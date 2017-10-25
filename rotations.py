@@ -1,4 +1,4 @@
-""" All functions from Miolane's thesis."""
+"""Computations on the Lie group of 3D rotations."""
 
 import numpy as np
 

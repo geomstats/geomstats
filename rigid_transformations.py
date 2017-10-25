@@ -1,4 +1,4 @@
-""" All functions from Miolane's thesis."""
+"""Computations on the Lie group of rigid transformations."""
 
 import numpy as np
 import geomstats.rotations as rotations
