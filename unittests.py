@@ -4,7 +4,8 @@ import numpy as np
 import unittest
 
 import rotations
-import rigid_transformations
+import rigid_transformations as rigids
+import visualization
 
 
 class TestGeomstatsMethods(unittest.TestCase):
@@ -47,7 +48,9 @@ class TestGeomstatsMethods(unittest.TestCase):
         rot_mat_2 = rotations.rotation_matrix_from_rotation_vector(rot_vec_2)
         rot_vec_2_test = rotations.rotation_vector_from_rotation_matrix(
                                                                rot_mat_2)
-        self.assertTrue(np.allclose(rot_vec_2, rot_vec_2_test))
+        self.assertTrue(np.allclose(
+                         rotations.regularize_rotation_vector(rot_vec_2),
+                         rot_vec_2_test))
 
         rot_vec_3 = 1e-11 * np.array([12., 1., -81.])
         angle = np.linalg.norm(rot_vec_3)
@@ -100,7 +103,7 @@ class TestGeomstatsMethods(unittest.TestCase):
                                                 skew_rot_vec_6))
         self.assertTrue(np.allclose(rot_mat_6, rot_mat_6_expected))
 
-    def test_rigid_transformations_group_exp_log(self):
+    def test_rigids_group_exp_log(self):
         translation_1 = np.array([1, 0, -3])
         rot_vec_1 = np.pi / (3 * np.sqrt(2)) * np.array([0, 0, 0])
         transfo_1 = np.concatenate([rot_vec_1, translation_1])
@@ -120,8 +123,8 @@ class TestGeomstatsMethods(unittest.TestCase):
 
         all_transfos = [transfo_1, transfo_2, transfo_3, transfo_4]
         for transfo in all_transfos:
-            gp_log = rigid_transformations.group_log(transfo)
-            transfo_result = rigid_transformations.group_exp(gp_log)
+            gp_log = rigids.group_log(transfo)
+            transfo_result = rigids.group_exp(gp_log)
             transfo_expected = transfo
 
             self.assertTrue(np.allclose(transfo_result, transfo_expected))
@@ -137,15 +140,15 @@ class TestGeomstatsMethods(unittest.TestCase):
         all_rot_vecs = [rot_vec_1, rot_vec_2, rot_vec_3, rot_vec_4]
 
         for rot_vec in all_rot_vecs:
-            riem_log = rotations.riemmanian_log(rot_vec,
+            riem_log = rotations.riemannian_log(rot_vec,
                                                 ref_point=rot_vec_ref_point)
             rot_vec_result = rotations.riemannian_exp(
                                               riem_log,
                                               ref_point=rot_vec_ref_point)
-            rot_vec_expected = rot_vec
+            rot_vec_expected = rotations.regularize_rotation_vector(rot_vec)
             self.assertTrue(np.allclose(rot_vec_result, rot_vec_expected))
 
-    def test_rigid_transformations_riemannian_exp_log(self):
+    def test_rigids_riemannian_exp_log(self):
         translation_ref_point = np.array([1, 2, 3])
         rot_vec_ref_point = np.array([-1, 3, 6])
         transfo_ref_point = np.concatenate([rot_vec_ref_point,
@@ -171,15 +174,23 @@ class TestGeomstatsMethods(unittest.TestCase):
         all_transfos = [transfo_1, transfo_2, transfo_3, transfo_4]
 
         for transfo in all_transfos:
-            riem_log = rigid_transformations.riemannian_log(
+            riem_log = rigids.riemannian_log(
                                                  transfo,
                                                  ref_point=transfo_ref_point)
-            transfo_result = rigid_transformations.riemannian_exp(
+            transfo_result = rigids.riemannian_exp(
                                                  riem_log,
                                                  ref_point=transfo_ref_point)
-            transfo_expected = transfo
+            transfo_expected = rigids.regularize_transformation(transfo)
 
             self.assertTrue(np.allclose(transfo_result, transfo_expected))
+
+    def test_trihedron_from_rigid_transformation(self):
+        translation = np.array([1, 2, 3])
+        rot_vec = np.array([-1, 3, 6])
+        transfo = np.concatenate([rot_vec, translation])
+
+        visualization.trihedron_from_rigid_transformation(transfo)
+
 
 if __name__ == '__main__':
         unittest.main()

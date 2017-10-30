@@ -1,7 +1,9 @@
 """Computations on the Lie group of rigid transformations."""
 
+import logging
 import numpy as np
-import geomstats.rotations as rotations
+
+import rotations as rotations
 
 TRANSLATIONS_IDENTITY = np.array([0, 0, 0])
 
@@ -519,7 +521,7 @@ def riemannian_variance(ref_point, transfo_vectors, weights,
     n_transformations, _ = transfo_vectors.shape
 
     if n_transformations < 2:
-        print 'Error: Calculating variance requires at least 2 points'
+        logging.info('Error: Calculating variance requires at least 2 points')
         return 0
 
     variance = 0
@@ -551,7 +553,7 @@ def riemannian_mean(transfo_vectors, weights,
     n_transformations, _ = transfo_vectors.shape
 
     if n_transformations < 2:
-        print 'Error: Calculating mean requires at least 2 points'
+        logging.info('Error: Calculating mean requires at least 2 points.')
 
     riem_mean = transfo_vectors[0, :]
 
