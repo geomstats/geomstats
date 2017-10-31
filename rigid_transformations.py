@@ -51,6 +51,7 @@ def inverse(transfo):
     rot_mat = rotations.rotation_matrix_from_rotation_vector(-rot_vec)
     inverse_transfo[3:6] = np.dot(rot_mat, -translation)
 
+    inverse_transfo = regularize_transformation(inverse_transfo)
     return inverse_transfo
 
 
@@ -83,6 +84,7 @@ def compose(transfo_1, transfo_2):
             prod_rot_mat)
     prod_transfo[3:6] = np.dot(rot_mat_1, translation_2) + translation_1
 
+    prod_transfo = regularize_transformation(prod_transfo)
     return prod_transfo
 
 
@@ -307,7 +309,7 @@ def riemannian_exp(tangent_vec,
             inner_product=ALGEBRA_CANONICAL_INNER_PRODUCT):
 
         transfo_exp_from_id = np.dot(inner_product, tangent_vec)
-
+        transfo_exp_from_id = regularize_transformation(transfo_exp_from_id)
         return transfo_exp_from_id
 
     assert len(ref_point) == 6 & len(tangent_vec) == 6
@@ -320,6 +322,7 @@ def riemannian_exp(tangent_vec,
     inv_jacobian = np.linalg.inv(jacobian)
 
     tangent_vec_translated_to_id = np.dot(inv_jacobian, tangent_vec)
+    tangent_vec_translated_to_id = regularize_transformation(tangent_vec_translated_to_id)
 
     if left_or_right == 'left':
         transfo_exp_from_id = riemannian_left_exp_from_id(
@@ -365,7 +368,7 @@ def riemannian_log(point,
 
         inv_inner_product = np.linalg.inv(inner_product)
         tangent_vec_log_from_id = np.dot(inv_inner_product, tangent_vec)
-
+        tangent_vec_log_from_id = regularize_transformation(tangent_vec_log_from_id)
         return tangent_vec_log_from_id
 
     assert len(ref_point) == 6 & len(point) == 6
@@ -391,6 +394,7 @@ def riemannian_log(point,
     jacobian = jacobian_translation(ref_point,
                                     left_or_right=left_or_right)
     transfo_vec_log = np.dot(jacobian, transfo_vec_log_from_id)
+    transfo_vec_log = regularize_transformation(transfo_vec_log)
     return transfo_vec_log
 
 

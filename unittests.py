@@ -1,5 +1,6 @@
 """Unit tests to check the maths functions."""
 
+import logging
 import numpy as np
 import unittest
 
@@ -155,7 +156,7 @@ class TestGeomstatsMethods(unittest.TestCase):
                                             translation_ref_point])
 
         translation_1 = np.array([1, 0, -3])
-        rot_vec_1 = np.pi / (3 * np.sqrt(2)) * np.array([0, 0, 0])
+        rot_vec_1 = np.pi / (3 * np.sqrt(2)) * np.array([0, 1, 0])
         transfo_1 = np.concatenate([rot_vec_1, translation_1])
 
         translation_2 = np.array([4, 0, 0])
@@ -172,8 +173,10 @@ class TestGeomstatsMethods(unittest.TestCase):
         transfo_4 = np.concatenate([rot_vec_4, translation_4])
 
         all_transfos = [transfo_1, transfo_2, transfo_3, transfo_4]
-
+        i_debug = 1
         for transfo in all_transfos:
+            print('at i=%d' % i_debug)
+            i_debug += 1
             riem_log = rigids.riemannian_log(
                                                  transfo,
                                                  ref_point=transfo_ref_point)
