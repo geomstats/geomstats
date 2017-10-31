@@ -161,6 +161,25 @@ def rotation_matrix_from_rotation_vector(rot_vec, epsilon=1e-5):
     return rot_mat
 
 
+# -- Group composition written in rotation vector
+
+
+def compose(rot_vec_1, rot_vec_2):
+    """
+    Compose 2 rotation vectors according to the matrix product
+    on the corresponding matrices.
+    """
+    rot_vec_1 = regularize_rotation_vector(rot_vec_1)
+    rot_vec_2 = regularize_rotation_vector(rot_vec_2)
+
+    rot_mat_1 = rotation_matrix_from_rotation_vector(rot_vec_1)
+    rot_mat_2 = rotation_matrix_from_rotation_vector(rot_vec_2)
+
+    rot_mat_prod = np.matmul(rot_mat_1, rot_mat_2)
+    rot_vec_prod = rotation_vector_from_rotation_matrix(rot_mat_prod)
+
+    return rot_vec_prod
+
 # -- Jacobians of left and right translations in SO(3)
 
 
@@ -195,9 +214,10 @@ def jacobian_translation(rot_vec,
     elif left_or_right == 'right':
         jacobian = (coef_1 * np.identity(3)
                     + coef_2 * np.outer(rot_vec, rot_vec)
-                    + skew_matrix_from_vector(rot_vec) / 2)
+                    - skew_matrix_from_vector(rot_vec) / 2)
     else:
-        ValueError('\'left_or_right\' needs \'left\' or \'right\'.')
+        raise ValueError('Param \'left_or_right\' '
+                         'should be \'left\' or \'right\'.')
 
     return jacobian
 
@@ -226,25 +246,38 @@ def riemannian_exp(tangent_vec,
     :param ref_point: 3D rotation vector, representing a point
     :returns rot_vec_exp: 3D rotation vector, representing a point
     """
+    def riemannian_left_exp_from_id(
+            tangent_vec,
+            inner_product=ALGEBRA_CANONICAL_INNER_PRODUCT):
+
+        rot_vec_exp_from_id = np.dot(inner_product, tangent_vec)
+
+        return rot_vec_exp_from_id
+
     assert len(ref_point) == 3 & len(tangent_vec) == 3
+    ref_point = regularize_rotation_vector(ref_point)
+    tangent_vec = regularize_rotation_vector(tangent_vec)
+
+    jacobian = jacobian_translation(ref_point,
+                                    left_or_right=left_or_right)
+    inv_jacobian = np.linalg.inv(jacobian)
+
+    tangent_vec_translated_to_id = np.dot(inv_jacobian, tangent_vec)
 
     if left_or_right == 'left':
-        jacobian = jacobian_translation(ref_point,
-                                        left_or_right=left_or_right)
-        inv_jacobian = np.linalg.inv(jacobian)
-
-        left_translated = np.dot(inv_jacobian, tangent_vec)
-
-        mat_ref = rotation_matrix_from_rotation_vector(ref_point)
-        mat_tangent_vec = rotation_matrix_from_rotation_vector(left_translated)
-        mat_exp = np.dot(mat_ref, mat_tangent_vec)
-        rot_vec_exp = rotation_vector_from_rotation_matrix(mat_exp)
+        rot_vec_exp_from_id = riemannian_left_exp_from_id(
+                                       tangent_vec_translated_to_id,
+                                       inner_product=inner_product)
+        rot_vec_exp = compose(ref_point, rot_vec_exp_from_id)
 
     elif left_or_right == 'right':
-        raise NotImplementedError()
+        rot_vec_exp_from_id = - riemannian_left_exp_from_id(
+                                            tangent_vec_translated_to_id,
+                                            inner_product=inner_product)
+        rot_vec_exp = compose(rot_vec_exp_from_id, ref_point)
 
     else:
-        raise ValueError('param \'left_or_right\' '
+        raise ValueError('Param \'left_or_right\' '
                          'should be \'left\' or \'right\'.')
 
     return rot_vec_exp
@@ -274,19 +307,19 @@ def riemannian_log(rot_vec,
     ref_point = regularize_rotation_vector(ref_point)
 
     if left_or_right == 'left':
-        rot_mat_1_inv = rotation_matrix_from_rotation_vector(-rot_vec)
-        rot_mat_2 = rotation_matrix_from_rotation_vector(ref_point)
-        rot_mat_prod = np.matmul(rot_mat_1_inv, rot_mat_2)
-        rot_vec_lie = rotation_vector_from_rotation_matrix(rot_mat_prod)
+        rot_mat_ref_inv = rotation_matrix_from_rotation_vector(-ref_point)
+        rot_mat = rotation_matrix_from_rotation_vector(rot_vec)
+        rot_mat_prod = np.matmul(rot_mat_ref_inv, rot_mat)
+        rot_vec_translated = rotation_vector_from_rotation_matrix(rot_mat_prod)
 
-        jacobian = jacobian_translation(rot_vec, left_or_right='left')
-        rot_vec_log = np.dot(jacobian, rot_vec_lie)
+        jacobian = jacobian_translation(ref_point, left_or_right='left')
+        rot_vec_log = np.dot(jacobian, rot_vec_translated)
 
     elif left_or_right == 'right':
         raise NotImplementedError()
 
     else:
-        raise ValueError('param \'left_or_right\' '
+        raise ValueError('Param \'left_or_right\' '
                          'should be \'left\' or \'right\'.')
 
     return rot_vec_log

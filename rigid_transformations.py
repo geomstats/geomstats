@@ -92,6 +92,9 @@ def jacobian_translation(transfo, left_or_right='left'):
     of the left/right translations
     from the identity to transfo in the Lie group SE(3).
 
+    Formula:
+    TODO(nina).
+
     :param transfo: 6D vector element of SE(3)
     :returns jacobian: 6x6 matrix
     """
@@ -240,6 +243,9 @@ def inner_product(coef_rotations, coef_translations):
     Compute a 6x6 diagonal matrix, where the diagonal is formed by:
     coef_rotations * [1, 1, 1] and coef_translations * [1, 1, 1].
 
+    Formula:
+    TODO(nina): put block diagonal matrix.
+
     :param coef_rotations: scalar
     :param coef_translations: scalar
     :returns inner_product_mat: 6x6 matrix
@@ -287,6 +293,9 @@ def riemannian_exp(tangent_vec,
     of inner_product.
     This gives a point in SE(3).
 
+    Formula:
+    TODO(nina).
+
     :param tangent_vec: translation part, rotation part of tangent vector
     :param inner_product: matrix of the inner product on the Lie algebra
     :param left_or_right: left or right translation of the inner product
@@ -310,22 +319,23 @@ def riemannian_exp(tangent_vec,
                                     left_or_right=left_or_right)
     inv_jacobian = np.linalg.inv(jacobian)
 
-    lie_vector = np.dot(inv_jacobian, tangent_vec)
+    tangent_vec_translated_to_id = np.dot(inv_jacobian, tangent_vec)
 
     if left_or_right == 'left':
         transfo_exp_from_id = riemannian_left_exp_from_id(
-                                       lie_vector,
+                                       tangent_vec_translated_to_id,
                                        inner_product=inner_product)
         transfo_exp = compose(ref_point, transfo_exp_from_id)
 
     elif left_or_right == 'right':
         transfo_exp_from_id = inverse(riemannian_left_exp_from_id(
-                                            lie_vector,
+                                            tangent_vec_translated_to_id,
                                             inner_product=inner_product))
         transfo_exp = compose(transfo_exp_from_id, ref_point)
 
     else:
-        ValueError('\'left_or_right\' needs \'left\' or \'right\'.')
+        raise ValueError('Param \'left_or_right\' '
+                         'should be \'left\' or \'right\'.')
 
     return transfo_exp
 
@@ -339,6 +349,9 @@ def riemannian_log(point,
     of point for left or right translation
     of inner_product.
     This gives a point in SE(3).
+
+    Formula:
+    TODO(nina).
 
     :param point: 6D vector, point whose log is taken
     :param inner_product: matrix of the inner product on the Lie algebra
@@ -370,6 +383,7 @@ def riemannian_log(point,
     elif left_or_right == 'right':
         point_near_id = compose(point, inverse(ref_point))
         # transfo_vec_log_from_id =  # TODO(nina)
+        raise NotImplementedError()
 
     else:
         ValueError('\'left_or_right\' needs \'left\' or \'right\'.')
@@ -389,6 +403,9 @@ def square_riemannian_norm(tangent_vector,
     using the riemannian metric at ref_point
     defined by the left or right translation of
     inner_product at the identity.
+
+    Formula:
+    TODO(nina).
 
     :param tangent_vector: 6D vector whose square norm is computed
     :param left_or_right:
