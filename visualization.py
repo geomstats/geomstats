@@ -1,12 +1,9 @@
 """Visualization for Geometric Statistics."""
 
-# import pylab
-
 import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-# import rigid_transformations
 import rotations
 
 
@@ -16,11 +13,11 @@ class Arrow3D():
         self.point = point
         self.vector = vector
 
-    def draw(self, ax, **kwargs):
+    def draw(self, ax, **quiver_kwargs):
         "Draw the arrow in 3D plot."
         ax.quiver(self.point[0], self.point[1], self.point[2],
                   self.vector[0], self.vector[1], self.vector[2],
-                  **kwargs)
+                  **quiver_kwargs)
 
 
 class Trihedron():
@@ -30,15 +27,15 @@ class Trihedron():
         self.arrow_2 = Arrow3D(point, vec_2)
         self.arrow_3 = Arrow3D(point, vec_3)
 
-    def draw(self, ax, **kwargs):
+    def draw(self, ax, **arrow_draw_kwargs):
         """
         Draw the trihedron by drawing its 3 Arrow3Ds.
         Arrows are drawn is order using green, red, and blue
         to show the trihedron's orientation.
         """
-        self.arrow_1.draw(ax, color='g', **kwargs)
-        self.arrow_2.draw(ax, color='r', **kwargs)
-        self.arrow_3.draw(ax, color='b', **kwargs)
+        self.arrow_1.draw(ax, color='g', **arrow_draw_kwargs)
+        self.arrow_2.draw(ax, color='r', **arrow_draw_kwargs)
+        self.arrow_3.draw(ax, color='b', **arrow_draw_kwargs)
 
 
 def trihedron_from_rigid_transformation(transfo):
@@ -70,9 +67,9 @@ def trihedron_from_rigid_transformation(transfo):
     return trihedron
 
 
-def plot_trihedron(trihedron, **kwargs):
-    "Plot the trihedron."
+def plot_trihedron(trihedron, **trihedron_draw_kwargs):
+    "Return the figure with the plotted trihedron."
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    trihedron.draw(ax, **kwargs)
-    plt.show()
+    trihedron.draw(ax, **trihedron_draw_kwargs)
+    return fig

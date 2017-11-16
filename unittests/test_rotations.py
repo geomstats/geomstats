@@ -1,15 +1,12 @@
-"""Unit tests to check the maths functions."""
+"""Unit tests for rotations module."""
 
-import logging
 import numpy as np
 import unittest
 
 import rotations
-import rigid_transformations as rigids
-import visualization
 
 
-class TestGeomstatsMethods(unittest.TestCase):
+class TestRotationsMethods(unittest.TestCase):
 
     def test_regularize_rotation_vector(self):
         rot_vec_1 = 2.5 * np.pi * np.array([0., 0., 1.])
@@ -104,32 +101,6 @@ class TestGeomstatsMethods(unittest.TestCase):
                                                 skew_rot_vec_6))
         self.assertTrue(np.allclose(rot_mat_6, rot_mat_6_expected))
 
-    def test_rigids_group_exp_log(self):
-        translation_1 = np.array([1, 0, -3])
-        rot_vec_1 = np.pi / (3 * np.sqrt(2)) * np.array([0, 0, 0])
-        transfo_1 = np.concatenate([rot_vec_1, translation_1])
-
-        translation_2 = np.array([4, 0, 0])
-        rot_vec_2 = np.pi / (2 * np.sqrt(3)) * np.array([1, 0, 0])
-        transfo_2 = np.concatenate([rot_vec_2, translation_2])
-
-        translation_3 = np.array([1.2, -3.6, 50])
-        rot_vec_3 = np.pi / (2 * np.sqrt(3)) * np.array([1, -20, 50])
-        transfo_3 = np.concatenate([rot_vec_3, translation_3])
-
-        translation_4 = np.array([4, 10, -2])
-        rot_vec_4 = (np.pi / (2 * np.sqrt(3)) *
-                     np.array([6 * 1e-8, 5.5 * 1e-7, -2 * 1e-6]))
-        transfo_4 = np.concatenate([rot_vec_4, translation_4])
-
-        all_transfos = [transfo_1, transfo_2, transfo_3, transfo_4]
-        for transfo in all_transfos:
-            gp_log = rigids.group_log(transfo)
-            transfo_result = rigids.group_exp(gp_log)
-            transfo_expected = transfo
-
-            self.assertTrue(np.allclose(transfo_result, transfo_expected))
-
     def test_rotations_riemannian_exp_log(self):
         rot_vec_ref_point = np.array([-1, 3, 6])
 
@@ -148,51 +119,6 @@ class TestGeomstatsMethods(unittest.TestCase):
                                               ref_point=rot_vec_ref_point)
             rot_vec_expected = rotations.regularize_rotation_vector(rot_vec)
             self.assertTrue(np.allclose(rot_vec_result, rot_vec_expected))
-
-    def test_rigids_riemannian_exp_log(self):
-        translation_ref_point = np.array([1, 2, 3])
-        rot_vec_ref_point = np.array([-1, 3, 6])
-        transfo_ref_point = np.concatenate([rot_vec_ref_point,
-                                            translation_ref_point])
-
-        translation_1 = np.array([1, 0, -3])
-        rot_vec_1 = np.pi / (3 * np.sqrt(2)) * np.array([0, 1, 0])
-        transfo_1 = np.concatenate([rot_vec_1, translation_1])
-
-        translation_2 = np.array([4, 0, 0])
-        rot_vec_2 = np.pi / (2 * np.sqrt(3)) * np.array([1, 0, 0])
-        transfo_2 = np.concatenate([rot_vec_2, translation_2])
-
-        translation_3 = np.array([1.2, -3.6, 50])
-        rot_vec_3 = np.pi / (2 * np.sqrt(3)) * np.array([1, -20, 50])
-        transfo_3 = np.concatenate([rot_vec_3, translation_3])
-
-        translation_4 = np.array([4, 10, -2])
-        rot_vec_4 = (np.pi / (2 * np.sqrt(3)) *
-                     np.array([6 * 1e-8, 5.5 * 1e-7, -2 * 1e-6]))
-        transfo_4 = np.concatenate([rot_vec_4, translation_4])
-
-        all_transfos = [transfo_1, transfo_2, transfo_3, transfo_4]
-        i_debug = 1
-        for transfo in all_transfos:
-            print('at i=%d' % i_debug)
-            i_debug += 1
-            riem_log = rigids.riemannian_log(
-                                                 transfo,
-                                                 ref_point=transfo_ref_point)
-            transfo_result = rigids.riemannian_exp(
-                                                 riem_log,
-                                                 ref_point=transfo_ref_point)
-            transfo_expected = rigids.regularize_transformation(transfo)
-
-            self.assertTrue(np.allclose(transfo_result, transfo_expected))
-
-    def test_trihedron_from_rigid_transformation(self):
-        translation = np.array([1, 2, 3])
-        rot_vec = np.array([-1, 3, 6])
-        transfo = np.concatenate([rot_vec, translation])
-
-        visualization.trihedron_from_rigid_transformation(transfo)
 
 
 if __name__ == '__main__':

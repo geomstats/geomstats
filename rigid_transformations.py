@@ -35,7 +35,7 @@ def inverse(transfo):
     Compute the group inverse in SE(3).
 
     Formula:
-    TODO(nina).
+    (R, t)^(-1) = (R^(-1), R^(-1).(-t))
 
     :param transfo: 6d vector element in SE(3)
     :returns inverse_transfo: 6d vector inverse of transfo
@@ -94,13 +94,12 @@ def jacobian_translation(transfo, left_or_right='left'):
     of the left/right translations
     from the identity to transfo in the Lie group SE(3).
 
-    Formula:
-    TODO(nina).
-
     :param transfo: 6D vector element of SE(3)
     :returns jacobian: 6x6 matrix
     """
     assert len(transfo) == 6
+    assert left_or_right in ('left', 'right')
+
     transfo = regularize_transformation(transfo)
 
     rot_vec = transfo[0:3]
@@ -117,15 +116,12 @@ def jacobian_translation(transfo, left_or_right='left'):
         jacobian[:3, :3] = jacobian_rot
         jacobian[3:, 3:] = jacobian_trans
 
-    elif left_or_right == 'right':
+    else:
         jacobian_rot = rotations.jacobian_translation(rot_vec,
                                                       left_or_right='right')
         jacobian[:3, :3] = jacobian_rot
         jacobian[3:, :3] = -rotations.skew_matrix_from_vector(translation)
         jacobian[3:, 3:] = np.eye(3)
-
-    else:
-        raise ValueError('\'left_or_right\' needs \'left\' or \'right\'')
 
     return jacobian
 
@@ -136,9 +132,6 @@ def group_exp(tangent_vector,
     """
     Compute the group exponential of vector tangent_vector,
     at point ref_point.
-
-    Formula:
-    TODO(nina).
 
     :param tangent_vector: tangent vector of SE(3) at ref_point.
     :param ref_point: 6d vector element of SE(3).
@@ -192,9 +185,6 @@ def group_log(transfo,
     Compute the group logarithm of point transfo,
     from point ref_point.
 
-    Formula:
-    TODO(nina).
-
     :param transfo: 6d tangent_vectorector element of SE(3)
     :param ref_point: 6d tangent_vectorector element of SE(3)
 
@@ -237,16 +227,10 @@ def group_log(transfo,
     return tangent_vector
 
 
-# --- Riemannian
-
-
 def inner_product(coef_rotations, coef_translations):
     """
     Compute a 6x6 diagonal matrix, where the diagonal is formed by:
     coef_rotations * [1, 1, 1] and coef_translations * [1, 1, 1].
-
-    Formula:
-    TODO(nina): put block diagonal matrix.
 
     :param coef_rotations: scalar
     :param coef_translations: scalar
@@ -265,14 +249,12 @@ def riemannian_metric(ref_point,
     Compute the 6x6 matrix of the Riemmanian metric at point ref_point,
     by translating inner_product from the identity to ref_point.
 
-    Formula:
-    TODO(nina).
-
     :param ref_point: 6D vector element of SE(3)
     :param inner_product: 6x6 matrix of inner product at the identity
     :param left_or_right: left/right translation of the inner product
     :returns metric_mat: 6x6 matrix of Riemannian metric at ref_point
     """
+    assert left_or_right in ('left', 'right')
     ref_point = regularize_transformation(ref_point)
 
     jacobian = jacobian_translation(ref_point, left_or_right=left_or_right)
@@ -295,14 +277,13 @@ def riemannian_exp(tangent_vec,
     of inner_product.
     This gives a point in SE(3).
 
-    Formula:
-    TODO(nina).
-
     :param tangent_vec: translation part, rotation part of tangent vector
     :param inner_product: matrix of the inner product on the Lie algebra
     :param left_or_right: left or right translation of the inner product
     :param ref_point: 6D vector
     :returns transfo_exp: 6D vector, representing a point
+
+    TODO(nina): This fn does not pass the unit test. Find the bug.
     """
     def riemannian_left_exp_from_id(
             tangent_vec,
@@ -313,6 +294,7 @@ def riemannian_exp(tangent_vec,
         return transfo_exp_from_id
 
     assert len(ref_point) == 6 & len(tangent_vec) == 6
+    assert left_or_right in ('left', 'right')
 
     ref_point = regularize_transformation(ref_point)
     tangent_vec = regularize_transformation(tangent_vec)
@@ -322,7 +304,8 @@ def riemannian_exp(tangent_vec,
     inv_jacobian = np.linalg.inv(jacobian)
 
     tangent_vec_translated_to_id = np.dot(inv_jacobian, tangent_vec)
-    tangent_vec_translated_to_id = regularize_transformation(tangent_vec_translated_to_id)
+    tangent_vec_translated_to_id = regularize_transformation(
+                                       tangent_vec_translated_to_id)
 
     if left_or_right == 'left':
         transfo_exp_from_id = riemannian_left_exp_from_id(
@@ -330,15 +313,11 @@ def riemannian_exp(tangent_vec,
                                        inner_product=inner_product)
         transfo_exp = compose(ref_point, transfo_exp_from_id)
 
-    elif left_or_right == 'right':
+    else:
         transfo_exp_from_id = inverse(riemannian_left_exp_from_id(
                                             tangent_vec_translated_to_id,
                                             inner_product=inner_product))
         transfo_exp = compose(transfo_exp_from_id, ref_point)
-
-    else:
-        raise ValueError('Param \'left_or_right\' '
-                         'should be \'left\' or \'right\'.')
 
     return transfo_exp
 
@@ -353,14 +332,13 @@ def riemannian_log(point,
     of inner_product.
     This gives a point in SE(3).
 
-    Formula:
-    TODO(nina).
-
     :param point: 6D vector, point whose log is taken
     :param inner_product: matrix of the inner product on the Lie algebra
     :param left_or_right: left or right translation of the inner product
     :param ref_point: 6D vector
     :returns transfo_exp: 6D vector, representing a point
+
+    TODO(nina): This fn does not pass the unit test. Find the bug.
     """
     def riemannian_left_log_from_id(
             tangent_vec,
@@ -368,10 +346,12 @@ def riemannian_log(point,
 
         inv_inner_product = np.linalg.inv(inner_product)
         tangent_vec_log_from_id = np.dot(inv_inner_product, tangent_vec)
-        tangent_vec_log_from_id = regularize_transformation(tangent_vec_log_from_id)
+        tangent_vec_log_from_id = regularize_transformation(
+                                      tangent_vec_log_from_id)
         return tangent_vec_log_from_id
 
     assert len(ref_point) == 6 & len(point) == 6
+    assert left_or_right in ('left', 'right')
 
     ref_point = regularize_transformation(ref_point)
     point = regularize_transformation(point)
@@ -383,13 +363,10 @@ def riemannian_log(point,
                                        point_near_id,
                                        inner_product=inner_product)
 
-    elif left_or_right == 'right':
+    else:
         point_near_id = compose(point, inverse(ref_point))
         # transfo_vec_log_from_id =  # TODO(nina)
         raise NotImplementedError()
-
-    else:
-        ValueError('\'left_or_right\' needs \'left\' or \'right\'.')
 
     jacobian = jacobian_translation(ref_point,
                                     left_or_right=left_or_right)
@@ -408,9 +385,6 @@ def square_riemannian_norm(tangent_vector,
     defined by the left or right translation of
     inner_product at the identity.
 
-    Formula:
-    TODO(nina).
-
     :param tangent_vector: 6D vector whose square norm is computed
     :param left_or_right:
     :param inner_product:
@@ -420,6 +394,7 @@ def square_riemannian_norm(tangent_vector,
 
     """
     assert len(tangent_vector) == 6 & len(ref_point) == 6
+    assert left_or_right in ('left', 'right')
 
     tangent_vector = regularize_transformation(tangent_vector)
     ref_point = regularize_transformation(ref_point)
@@ -432,9 +407,6 @@ def square_riemannian_norm(tangent_vector,
                           tangent_vector)
 
     return sq_riem_norm
-
-
-# -- Statistics
 
 
 def random_uniform():
@@ -536,8 +508,21 @@ def riemannian_variance(ref_point, transfo_vectors, weights,
                         left_or_right='left',
                         inner_product=ALGEBRA_CANONICAL_INNER_PRODUCT):
     """
+    Computes the variance of the transformations in transfo_vectors
+    at the point ref_point.
+
+    The variance is computed using weighted squared geodesic
+    distances from ref_rotation_vector to the data.
+    The geodesic distance is the left- (resp. right-) invariant
+    Riemannian distance.
+
+    :param ref_point: point at which to compute the variance
+    :param transfo_vectors: array of rotation vectors
+    :param weights: array of corresponding weights
+    :returns variance: variance of transformations at ref_point
 
     """
+    assert left_or_right in ('left', 'right')
 
     n_transformations, _ = transfo_vectors.shape
 
@@ -569,7 +554,17 @@ def riemannian_mean(transfo_vectors, weights,
                     inner_product=ALGEBRA_CANONICAL_INNER_PRODUCT,
                     epsilon=1e-5):
     """
+    Computes the weighted mean of the
+    transformations in transfo_vectors
+
+    The geodesic distances are obtained by the
+    left-invariant Riemannian distance.
+
+    :param transfo_vectors: array of 3d transformations
+    :param weights: array of weights
+    :returns riem_mean: 3d vector, weighted mean of transfo_vectors
     """
+    assert left_or_right in ('left', 'right')
 
     n_transformations, _ = transfo_vectors.shape
 
