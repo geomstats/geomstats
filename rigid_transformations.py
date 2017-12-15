@@ -70,7 +70,7 @@ def compose(transfo_1, transfo_2):
     rot_mat_1 = rotations.rotation_matrix_from_rotation_vector(transfo_1[0:3])
     rot_mat_1 = rotations.closest_rotation_matrix(rot_mat_1)
 
-    rot_mat_2 = rotations.rotation_matrix_from_rotation_vector(transfo_1[0:3])
+    rot_mat_2 = rotations.rotation_matrix_from_rotation_vector(transfo_2[0:3])
     rot_mat_2 = rotations.closest_rotation_matrix(rot_mat_2)
 
     translation_1 = transfo_1[3:6]
@@ -275,7 +275,7 @@ def riemannian_metric(ref_point,
 
     jacobian = jacobian_translation(ref_point, left_or_right=left_or_right)
     inv_jacobian = np.linalg.inv(jacobian)
-    inv_jacobian_transposed = np.linalg.inv(jacobian.transpose)
+    inv_jacobian_transposed = np.linalg.inv(jacobian.T)
 
     metric_mat = np.dot(inv_jacobian_transposed, inner_product)
     metric_mat = np.dot(metric_mat, inv_jacobian)
