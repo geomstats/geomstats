@@ -423,7 +423,7 @@ def square_riemannian_norm(tangent_vector,
     riem_metric_mat = riemannian_metric(ref_point=ref_point,
                                         inner_product=inner_product,
                                         left_or_right=left_or_right)
-    sq_riem_norm = np.dot(np.dot(tangent_vector.transpose,
+    sq_riem_norm = np.dot(np.dot(tangent_vector.T,
                                  riem_metric_mat),
                           tangent_vector)
 
