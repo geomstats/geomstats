@@ -35,7 +35,7 @@ def inverse(transfo):
     Compute the group inverse in SE(3).
 
     Formula:
-    (R, t)^(-1) = (R^(-1), R^(-1).(-t))
+    (R, t)^{-1} = (R^{-1}, R^{-1}.(-t))
 
     :param transfo: 6d vector element in SE(3)
     :returns inverse_transfo: 6d vector inverse of transfo
@@ -71,7 +71,7 @@ def compose(transfo_1, transfo_2):
     rot_mat_1 = rotations.rotation_matrix_from_rotation_vector(transfo_1[0:3])
     rot_mat_1 = rotations.closest_rotation_matrix(rot_mat_1)
 
-    rot_mat_2 = rotations.rotation_matrix_from_rotation_vector(transfo_1[0:3])
+    rot_mat_2 = rotations.rotation_matrix_from_rotation_vector(transfo_2[0:3])
     rot_mat_2 = rotations.closest_rotation_matrix(rot_mat_2)
 
     translation_1 = transfo_1[3:6]
@@ -153,16 +153,16 @@ def group_exp(tangent_vector,
             coef_1 = 0
             coef_2 = 0
         elif angle < epsilon:
-            coef_1 = 1. / 6. - angle ** 3 / 120.
-            coef_2 = 1. / 2. - angle ** 2 / 24.
+            coef_1 = 1. / 2. - angle ** 2 / 12.
+            coef_2 = 1. - angle ** 3 / 3.
         else:
-            coef_1 = angle ** (-2) * (1. - np.sin(angle) / angle)
-            coef_2 = angle ** (-2) * (1. - np.cos(angle))
+            coef_1 = (1. - np.cos(angle)) / angle ** 2
+            coef_2 = (angle - np.sin(angle)) / angle ** 3
 
         sq_skew_mat = np.dot(skew_mat, skew_mat)
         group_exp_transfo[3:6] = (translation
-                                  + coef_1 * np.dot(sq_skew_mat, translation)
-                                  + coef_2 * np.dot(skew_mat, translation))
+                                  + coef_1 * np.dot(skew_mat, translation)
+                                  + coef_2 * np.dot(sq_skew_mat, translation))
 
     else:
         ref_point = regularize_transformation(ref_point)
@@ -185,8 +185,8 @@ def group_log(transfo,
     Compute the group logarithm of point transfo,
     from point ref_point.
 
-    :param transfo: 6d tangent_vectorector element of SE(3)
-    :param ref_point: 6d tangent_vectorector element of SE(3)
+    :param transfo: 6d tangent_vector element of SE(3)
+    :param ref_point: 6d tangent_vector element of SE(3)
 
     :returns tangent vector: 6d tangent vector at ref_point.
     """
@@ -194,29 +194,32 @@ def group_log(transfo,
     transfo = regularize_transformation(transfo)
     if ref_point is GROUP_IDENTITY:
         rot_vec = transfo[0:3]
-        translation = transfo[3:6]
         angle = np.linalg.norm(rot_vec)
+        translation = transfo[3:6]
 
         tangent_vector = np.zeros(6)
         tangent_vector[0:3] = rot_vec
+        skew_rot_vec = rotations.skew_matrix_from_vector(rot_vec)
+        sq_skew_rot_vec = np.dot(skew_rot_vec, skew_rot_vec)
 
         if angle == 0:
             coef_1 = 0
             coef_2 = 0
+            tangent_vector[3:6] = translation
+
         elif angle < epsilon:
-            coef_1 = .5
-            coef_2 = 1. / 2. - angle ** 2 / 90.
+            coef_1 = - 0.5
+            coef_2 = 0.5 - angle ** 2 / 90
+
         else:
-            coef_1 = .5
-            coef_2 = 1 - .5 * angle * np.sin(angle) / (1. - np.cos(angle))
-            coef_2 = coef_2 / angle ** 2
+            coef_1 = - 0.5
+            psi = 0.5 * angle * np.sin(angle) / (1 - np.cos(angle))
+            coef_2 = (1 - psi) / (angle ** 2)
 
-        skew_rot_vec = rotations.skew_matrix_from_vector(rot_vec)
-        sq_skew_rot_vec = np.dot(skew_rot_vec, skew_rot_vec)
         tangent_vector[3:6] = (translation
-                               - coef_1 * np.dot(skew_rot_vec, translation)
-                               + coef_2 * np.dot(sq_skew_rot_vec, translation))
-
+                               + coef_1 * np.dot(skew_rot_vec, translation)
+                               + coef_2 * np.dot(sq_skew_rot_vec,
+                                                 translation))
     else:
         ref_point = regularize_transformation(ref_point)
         jacobian = jacobian_translation(ref_point, left_or_right='left')
@@ -283,14 +286,24 @@ def riemannian_exp(tangent_vec,
     :param ref_point: 6D vector
     :returns transfo_exp: 6D vector, representing a point
 
-    TODO(nina): This fn does not pass the unit test. Find the bug.
+    TODO(nina): Check formulae for right-invariant case.
     """
-    def riemannian_left_exp_from_id(
+    def riemannian_exp_from_id(
             tangent_vec,
-            inner_product=ALGEBRA_CANONICAL_INNER_PRODUCT):
+            inner_product=ALGEBRA_CANONICAL_INNER_PRODUCT,
+            left_or_right='left'):
+        if left_or_right == 'left':
+            transfo_exp_from_id = np.dot(inner_product, tangent_vec)
+            transfo_exp_from_id = regularize_transformation(
+                                                transfo_exp_from_id)
+        else:
+            vec = tangent_vec
+            vec[3:6] = -tangent_vec[3:6]
+            transfo_exp_from_id = inverse(riemannian_exp_from_id(
+                                                vec,
+                                                inner_product=inner_product,
+                                                left_or_right='left'))
 
-        transfo_exp_from_id = np.dot(inner_product, tangent_vec)
-        transfo_exp_from_id = regularize_transformation(transfo_exp_from_id)
         return transfo_exp_from_id
 
     assert len(ref_point) == 6 & len(tangent_vec) == 6
@@ -307,16 +320,14 @@ def riemannian_exp(tangent_vec,
     tangent_vec_translated_to_id = regularize_transformation(
                                        tangent_vec_translated_to_id)
 
+    transfo_exp_from_id = riemannian_exp_from_id(
+                                   tangent_vec_translated_to_id,
+                                   inner_product=inner_product,
+                                   left_or_right=left_or_right)
     if left_or_right == 'left':
-        transfo_exp_from_id = riemannian_left_exp_from_id(
-                                       tangent_vec_translated_to_id,
-                                       inner_product=inner_product)
         transfo_exp = compose(ref_point, transfo_exp_from_id)
 
     else:
-        transfo_exp_from_id = inverse(riemannian_left_exp_from_id(
-                                            tangent_vec_translated_to_id,
-                                            inner_product=inner_product))
         transfo_exp = compose(transfo_exp_from_id, ref_point)
 
     return transfo_exp
@@ -338,14 +349,25 @@ def riemannian_log(point,
     :param ref_point: 6D vector
     :returns transfo_exp: 6D vector, representing a point
 
-    TODO(nina): This fn does not pass the unit test. Find the bug.
+    TODO(nina): Check formulae for right-invariant case.
     """
-    def riemannian_left_log_from_id(
+    def riemannian_log_from_id(
             tangent_vec,
-            inner_product=ALGEBRA_CANONICAL_INNER_PRODUCT):
-
+            inner_product=ALGEBRA_CANONICAL_INNER_PRODUCT,
+            left_or_right='left'):
         inv_inner_product = np.linalg.inv(inner_product)
-        tangent_vec_log_from_id = np.dot(inv_inner_product, tangent_vec)
+        if left_or_right == 'left':
+            tangent_vec_log_from_id = np.dot(inv_inner_product, tangent_vec)
+        else:
+            tangent_vec_log_from_id = np.zeros(6)
+            inv_rot_mat = rotations.rotation_matrix_from_rotation_vector(
+                    -tangent_vec[0:3])
+            tangent_vec_log_from_id[0:3] = -tangent_vec[0:3]
+            tangent_vec_log_from_id[3:6] = np.dot(inv_rot_mat,
+                                                  tangent_vec[3:6])
+            tangent_vec_log_from_id = np.dot(inv_inner_product,
+                                             tangent_vec_log_from_id)
+
         tangent_vec_log_from_id = regularize_transformation(
                                       tangent_vec_log_from_id)
         return tangent_vec_log_from_id
@@ -359,15 +381,13 @@ def riemannian_log(point,
     if left_or_right == 'left':
         point_near_id = compose(inverse(ref_point), point)
 
-        transfo_vec_log_from_id = riemannian_left_log_from_id(
-                                       point_near_id,
-                                       inner_product=inner_product)
-
     else:
         point_near_id = compose(point, inverse(ref_point))
-        # transfo_vec_log_from_id =  # TODO(nina)
-        raise NotImplementedError()
 
+    transfo_vec_log_from_id = riemannian_log_from_id(
+                                   point_near_id,
+                                   inner_product=inner_product,
+                                   left_or_right=left_or_right)
     jacobian = jacobian_translation(ref_point,
                                     left_or_right=left_or_right)
     transfo_vec_log = np.dot(jacobian, transfo_vec_log_from_id)

@@ -1,9 +1,9 @@
 """Unit tests for visualization module."""
 
+import visualization
+
 import numpy as np
 import unittest
-
-import visualization
 
 
 class TestVisualizationMethods(unittest.TestCase):

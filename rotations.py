@@ -224,7 +224,7 @@ def riemannian_exp(tangent_vec,
     of the inner product inner_product at the Lie algebra.
 
     Formula:
-    R*Exp(DL(R^-1)*a)
+    R.Exp(DL(R^{-1}).a)
 
     This gives a point in SO(3).
 
