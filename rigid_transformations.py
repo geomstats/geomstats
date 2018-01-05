@@ -303,7 +303,7 @@ def riemannian_exp(tangent_vec,
                                                 vec,
                                                 inner_product=inner_product,
                                                 left_or_right='left'))
-
+        transfo_exp_from_id = regularize_transformation(transfo_exp_from_id)
         return transfo_exp_from_id
 
     assert len(ref_point) == 6 & len(tangent_vec) == 6
@@ -330,6 +330,7 @@ def riemannian_exp(tangent_vec,
     else:
         transfo_exp = compose(transfo_exp_from_id, ref_point)
 
+    transfo_exp = regularize_transformation(transfo_exp)
     return transfo_exp
 
 
