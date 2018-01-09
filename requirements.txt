@@ -1,7 +1,7 @@
 codecov
 coverage
+logging
 matplotlib
-mpl_toolkits
 nose
 numpy
 unittest
