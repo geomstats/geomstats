@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-import rotations
+import geomstats.rotations as rotations
 
 
 class Arrow3D():

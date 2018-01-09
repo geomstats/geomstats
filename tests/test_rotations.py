@@ -1,6 +1,6 @@
 """Unit tests for rotations module."""
 
-import rotations
+import geomstats.rotations as rotations
 
 import numpy as np
 import unittest

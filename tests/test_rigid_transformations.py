@@ -1,6 +1,6 @@
 """Unit tests for rigid_transformations module."""
 
-import rigid_transformations as rigids
+import geomstats.rigid_transformations as rigids
 
 import numpy as np
 import unittest

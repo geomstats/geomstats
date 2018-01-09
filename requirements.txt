@@ -1,0 +1,5 @@
+codecov
+coverage
+matplotlib
+nose
+numpy

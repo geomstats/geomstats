@@ -3,7 +3,7 @@
 import logging
 import numpy as np
 
-import rotations as rotations
+import geomstats.rotations as rotations
 
 TRANSLATIONS_IDENTITY = np.array([0, 0, 0])
 

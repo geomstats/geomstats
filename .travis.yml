@@ -1,0 +1,25 @@
+before_script:
+    - "export DISPLAY=:99.0"
+    - "sh -e /etc/init.d/xvfb start"
+    - sleep 3 # give xvfb some time to start
+
+dist: trusty
+cache: pip
+language: python
+python:
+    - "3.4"
+    - "3.5"
+    - "3.5-dev"
+    - "3.6"
+    - "3.6-dev"
+
+# TODO: Add the test for python 3.3
+
+install:
+    - pip install --upgrade pip setuptools wheel
+    - pip install -r requirements.txt --only-binary=numpy
+script:
+    - nosetests --with-coverage
+
+after_success:
+    - codecov
