@@ -1,6 +1,6 @@
 """Unit tests for visualization module."""
 
-import visualization
+import geomstats.visualization as visualization
 
 import numpy as np
 import unittest
