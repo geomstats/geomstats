@@ -1,3 +1,6 @@
+before_script:
+    - "export DISPLAY=:99.0"
+
 dist: trusty
 cache: pip
 language: python
