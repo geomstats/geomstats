@@ -10,7 +10,7 @@ python:
 
 install:
     - pip install --upgrade pip setuptools wheel
-    - pip install -r requirements.txt --only-binary=numpy,logging
+    - pip install -r requirements.txt --only-binary=numpy
 script:
     - nosetests --with-coverage
 
