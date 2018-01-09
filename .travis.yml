@@ -8,6 +8,9 @@ python:
 
 # TODO: Add the test for python 3.3
 
+install:
+    - pip install --upgrade pip setuptools wheel
+    - pip install -r requirements.txt --only-binary=numpy
 script:
     - nosetests --with-coverage
 
