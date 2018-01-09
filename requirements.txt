@@ -3,4 +3,3 @@ coverage
 matplotlib
 nose
 numpy
-unittest
