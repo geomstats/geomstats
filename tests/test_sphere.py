@@ -103,6 +103,20 @@ class TestSphereMethods(unittest.TestCase):
 
         self.assertTrue(np.allclose(result_2, expected_2))
 
+    def test_riemannian_exp_and_dist_and_projection_to_tangent_space(self):
+        ref_point_1 = np.array([16., -2., -2.5, 84.])
+        ref_point_1 = ref_point_1 / np.linalg.norm(ref_point_1)
+
+        vector_1 = np.array([9., 0., -1., -2.])
+        tangent_vec_1 = sphere.projection_to_tangent_space(ref_point_1,
+                                                           vector_1)
+        riem_exp_1 = sphere.riemannian_exp(ref_point_1, tangent_vec_1)
+
+        result_1 = sphere.riemannian_dist(ref_point_1, riem_exp_1)
+        expected_1 = np.mod(np.linalg.norm(tangent_vec_1), 2 * np.pi)
+
+        self.assertTrue(np.allclose(result_1, expected_1))
+
 
 if __name__ == '__main__':
         unittest.main()
