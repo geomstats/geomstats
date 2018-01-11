@@ -13,6 +13,25 @@ import math
 
 EPSILON = 1e-6
 
+SINH_TAYLOR_COEFFS = [0., 1.,
+                      0., 1 / math.factorial(3),
+                      0., 1 / math.factorial(5),
+                      0., 1 / math.factorial(7),
+                      0., 1 / math.factorial(9)]
+COSH_TAYLOR_COEFFS = [1., 0.,
+                      1 / math.factorial(2), 0.,
+                      1 / math.factorial(4), 0.,
+                      1 / math.factorial(6), 0.,
+                      1 / math.factorial(8), 0.]
+INV_SINH_TAYLOR_COEFFS = [0., - 1. / 6.,
+                          0., + 7. / 360.,
+                          0., - 31. / 15120.,
+                          0., + 127. / 604800.]
+INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
+                          0., - 1. / 45.,
+                          0., + 2. / 945.,
+                          0., -1. / 4725.]
+
 
 def intrinsic_to_extrinsic_coords(point_intrinsic):
     dimension = len(point_intrinsic)
@@ -64,14 +83,14 @@ def riemannian_exp(ref_point, vector, epsilon=EPSILON):
     norm_tangent_vec = math.sqrt(embedding_squared_norm(tangent_vec))
 
     if norm_tangent_vec < epsilon:
-        coef_1 = (1. + norm_tangent_vec ** 2 / math.factorial(2)
-                  + norm_tangent_vec ** 4 / math.factorial(4)
-                  + norm_tangent_vec ** 6 / math.factorial(6)
-                  + norm_tangent_vec ** 8 / math.factorial(8))
-        coef_2 = (1. + norm_tangent_vec ** 2 / math.factorial(3)
-                  + norm_tangent_vec ** 4 / math.factorial(5)
-                  + norm_tangent_vec ** 6 / math.factorial(7)
-                  + norm_tangent_vec ** 8 / math.factorial(9))
+        coef_1 = (1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
+                  + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
+                  + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
+                  + COSH_TAYLOR_COEFFS[8] * norm_tangent_vec ** 8)
+        coef_2 = (1. + SINH_TAYLOR_COEFFS[3] * norm_tangent_vec ** 2
+                  + SINH_TAYLOR_COEFFS[5] * norm_tangent_vec ** 4
+                  + SINH_TAYLOR_COEFFS[7] * norm_tangent_vec ** 6
+                  + SINH_TAYLOR_COEFFS[9] * norm_tangent_vec ** 8)
     else:
         coef_1 = np.cosh(norm_tangent_vec)
         coef_2 = np.sinh(norm_tangent_vec) / norm_tangent_vec
@@ -95,14 +114,14 @@ def riemannian_log(ref_point, point, epsilon=EPSILON):
     """
     angle = riemannian_dist(ref_point, point)
     if angle < epsilon:
-        coef_1 = (1. - angle ** 2 / 6.
-                  + 7. / 360. * angle ** 4
-                  - 31./15120. * angle ** 6
-                  + 127./604800. * angle ** 8)
-        coef_2 = (1. + angle ** 2 / 3.
-                  - angle ** 4 / 45.
-                  + 2./945. * angle ** 6
-                  - angle ** 8 / 4725.)
+        coef_1 = (1. + INV_SINH_TAYLOR_COEFFS[1] * angle ** 2
+                  + INV_SINH_TAYLOR_COEFFS[3] * angle ** 4
+                  + INV_SINH_TAYLOR_COEFFS[5] * angle ** 6
+                  + INV_SINH_TAYLOR_COEFFS[7] * angle ** 8)
+        coef_2 = (1. + INV_TANH_TAYLOR_COEFFS[1] * angle ** 2
+                  + INV_TANH_TAYLOR_COEFFS[3] * angle ** 4
+                  + INV_TANH_TAYLOR_COEFFS[5] * angle ** 6
+                  + INV_TANH_TAYLOR_COEFFS[7] * angle ** 8)
     else:
         coef_1 = angle / np.sinh(angle)
         coef_2 = angle / np.tanh(angle)
