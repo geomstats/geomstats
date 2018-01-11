@@ -100,11 +100,14 @@ def riemannian_dist(point_a, point_b):
     embedding of the n-dimensional sphere
     in the (n+1)-dimensional euclidean space.
     """
-    norm_a = np.linalg.norm(point_a)
-    norm_b = np.linalg.norm(point_b)
+    # TODO(nina): np.dot(unit_vec, unit_vec) != 1 ??
+    if np.all(point_a == point_b):
+        return 0.
 
-    cos_angle = np.dot(point_a, point_b) / norm_a / norm_b
+    point_a = point_a / np.linalg.norm(point_a)
+    point_b = point_b / np.linalg.norm(point_b)
 
+    cos_angle = np.dot(point_a, point_b)
     if cos_angle >= 1.:
         riem_dist = 0.
     elif cos_angle <= -1.:

@@ -56,13 +56,19 @@ class TestSphereMethods(unittest.TestCase):
         """
         # Riemannian Exp then Riemannian Log
         # General case
+        # NB: Riemannian log gives a regularized tangent vector,
+        # so we take the norm modulo 2 * pi.
         ref_point_1 = np.array([7., -3., 8., 33., 45., -129, 0.])
         ref_point_1 = ref_point_1 / np.linalg.norm(ref_point_1)
         vector_1 = np.array([9., 54., 0., 0., -1., -33., 2.])
 
         riem_exp_1 = sphere.riemannian_exp(ref_point_1, vector_1)
         result_1 = sphere.riemannian_log(ref_point_1, riem_exp_1)
-        expected_1 = sphere.projection_to_tangent_space
+
+        expected_1 = sphere.projection_to_tangent_space(ref_point_1, vector_1)
+        norm_expected_1 = np.linalg.norm(expected_1)
+        regularized_norm_expected_1 = np.mod(norm_expected_1, 2 * np.pi)
+        expected_1 = expected_1 / norm_expected_1 * regularized_norm_expected_1
 
         self.assertTrue(np.allclose(result_1, expected_1))
 
@@ -74,7 +80,7 @@ class TestSphereMethods(unittest.TestCase):
 
         riem_exp_2 = sphere.riemannian_exp(ref_point_2, vector_2)
         result_2 = sphere.riemannian_log(ref_point_2, riem_exp_2)
-        expected_2 = sphere.projection_to_tangent_space
+        expected_2 = sphere.projection_to_tangent_space(ref_point_2, vector_2)
 
         self.assertTrue(np.allclose(result_2, expected_2))
 
