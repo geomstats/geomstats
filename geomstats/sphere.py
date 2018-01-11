@@ -4,13 +4,14 @@ embedded in the (n+1)-dimensional Euclidean space.
 """
 
 import numpy as np
+import math
 
 EPSILON = 1e-6
 
 
 def projection_to_tangent_space(ref_point, vector):
     """
-    Project the vector v onto the tangent space:
+    Project the vector vector onto the tangent space:
     T_{ref_point} S = {w | scal(w, ref_point) = 0}
     """
     sq_norm = np.dot(ref_point, ref_point)
@@ -35,14 +36,14 @@ def riemannian_exp(ref_point, vector, epsilon=EPSILON):
     norm_tangent_vec = np.linalg.norm(tangent_vec)
 
     if norm_tangent_vec < epsilon:
-        coef_1 = (1. - norm_tangent_vec ** 2 / 2.
-                  + norm_tangent_vec ** 4 / 24.
-                  - norm_tangent_vec ** 6 / 720.
-                  + norm_tangent_vec ** 8 / 40320.)
-        coef_2 = (1. - norm_tangent_vec ** 2 / 6.
-                  + norm_tangent_vec ** 4 / 120.
-                  - norm_tangent_vec ** 6 / 5040.
-                  + norm_tangent_vec ** 8 / 362880.)
+        coef_1 = (1. - norm_tangent_vec ** 2 / math.factorial(2)
+                  + norm_tangent_vec ** 4 / math.factorial(4)
+                  - norm_tangent_vec ** 6 / math.factorial(6)
+                  + norm_tangent_vec ** 8 / math.factorial(8))
+        coef_2 = (1. - norm_tangent_vec ** 2 / math.factorial(3)
+                  + norm_tangent_vec ** 4 / math.factorial(5)
+                  - norm_tangent_vec ** 6 / math.factorial(7)
+                  + norm_tangent_vec ** 8 / math.factorial(9))
     else:
         coef_1 = np.cos(norm_tangent_vec)
         coef_2 = np.sin(norm_tangent_vec) / norm_tangent_vec
@@ -69,8 +70,8 @@ def riemannian_log(ref_point, point, epsilon=EPSILON):
     norm_point = np.linalg.norm(point)
 
     cos_angle = np.dot(ref_point, point) / (norm_ref_point * norm_point)
-    if cos_angle > 1.0:
-        angle = 0.0
+    if cos_angle >= 1.:
+        angle = 0.
     else:
         angle = np.arccos(cos_angle)
 
@@ -92,17 +93,17 @@ def riemannian_log(ref_point, point, epsilon=EPSILON):
     return riem_log
 
 
-def riemannian_dist(point_1, point_2):
+def riemannian_dist(point_a, point_b):
     """
     Compute the Riemannian logarithm at point ref_point,
     of point wrt the metric obtained by
     embedding of the n-dimensional sphere
     in the (n+1)-dimensional euclidean space.
     """
-    norm_1 = np.linalg.norm(point_1)
-    norm_2 = np.linalg.norm(point_2)
+    norm_a = np.linalg.norm(point_a)
+    norm_b = np.linalg.norm(point_b)
 
-    cos_angle = np.dot(point_1, point_2) / norm_1 / norm_2
+    cos_angle = np.dot(point_a, point_b) / norm_a / norm_b
 
     if cos_angle >= 1.:
         riem_dist = 0.
