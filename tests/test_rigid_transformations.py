@@ -653,6 +653,37 @@ class TestRigidTransformationsMethods(unittest.TestCase):
 
         self.assertTrue(np.allclose(result_4, expected_4))
 
+    def test_riemannian_dist(self):
+        # Both regularized
+        rot_vec_1 = np.array([-1., 0., -.7])  # NB: Regularized
+        translation_1 = np.array([6, 5, 9])
+        point_a_1 = np.concatenate([rot_vec_1,
+                                    translation_1])
+        rot_vec_1 = np.array([-1.2, 0.9, 0.9])  # NB: Regularized
+        translation_1 = np.array([5, 5, 5])
+        point_b_1 = np.concatenate([rot_vec_1,
+                                    translation_1])
+
+        dist_a_b_1 = rigids.riemannian_dist(point_a_1, point_b_1)
+        dist_b_a_1 = rigids.riemannian_dist(point_b_1, point_a_1)
+
+        self.assertTrue(dist_a_b_1, dist_b_a_1)
+
+        # point_a not regularized, point_b regularized
+        rot_vec_2 = np.array([-10., 0., -4.7])  # NB: Regularized
+        translation_2 = np.array([6, 5, 9])
+        point_a_2 = np.concatenate([rot_vec_2,
+                                    translation_2])
+        rot_vec_2 = np.array([-1.2, 0.9, 0.9])  # NB: Regularized
+        translation_2 = np.array([5, 5, 5])
+        point_b_2 = np.concatenate([rot_vec_2,
+                                    translation_2])
+
+        dist_a_b_2 = rigids.riemannian_dist(point_a_2, point_b_2)
+        dist_b_a_2 = rigids.riemannian_dist(point_b_2, point_a_2)
+
+        self.assertTrue(dist_a_b_2, dist_b_a_2)
+
 
 if __name__ == '__main__':
         unittest.main()

@@ -262,7 +262,7 @@ def riemannian_metric(ref_point,
 
     jacobian = jacobian_translation(ref_point, left_or_right=left_or_right)
     inv_jacobian = np.linalg.inv(jacobian)
-    inv_jacobian_transposed = np.linalg.inv(jacobian.transpose)
+    inv_jacobian_transposed = np.linalg.inv(jacobian.transpose())
 
     metric_mat = np.dot(inv_jacobian_transposed, inner_product)
     metric_mat = np.dot(metric_mat, inv_jacobian)
@@ -423,11 +423,31 @@ def square_riemannian_norm(tangent_vector,
     riem_metric_mat = riemannian_metric(ref_point=ref_point,
                                         inner_product=inner_product,
                                         left_or_right=left_or_right)
-    sq_riem_norm = np.dot(np.dot(tangent_vector.transpose,
+    sq_riem_norm = np.dot(np.dot(tangent_vector.transpose(),
                                  riem_metric_mat),
                           tangent_vector)
 
     return sq_riem_norm
+
+
+def riemannian_dist(point_a, point_b,
+                    left_or_right='left',
+                    inner_product=ALGEBRA_CANONICAL_INNER_PRODUCT):
+    """
+    Compute the Riemannian distance between points
+    point_a and point_b.
+    """
+    tangent_vec = riemannian_log(point_a,
+                                 ref_point=point_b,
+                                 left_or_right=left_or_right,
+                                 inner_product=inner_product)
+    sq_riem_dist = square_riemannian_norm(tangent_vec,
+                                          ref_point=point_b,
+                                          left_or_right=left_or_right,
+                                          inner_product=inner_product)
+    riem_dist = np.sqrt(sq_riem_dist)
+
+    return riem_dist
 
 
 def random_uniform():
