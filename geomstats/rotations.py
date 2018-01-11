@@ -280,9 +280,9 @@ def riemannian_log(rot_vec,
 
     This gives a tangent vector at point ref_point.
 
-    :params rot_vec: 3D rotation vector
+    :param rot_vec: 3D rotation vector
     :param ref_point: 3D rotation vector
-    :returns a: 3D rotation vector, tangent vector at ref_point
+    :returns rot_vec_log: 3D rotation vector, tangent vector at ref_point
     """
     assert len(rot_vec) == 3 & len(ref_point) == 3
     assert left_or_right in ('left', 'right')
