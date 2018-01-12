@@ -75,8 +75,6 @@ def skew_matrix_from_vector(vec):
     return skew_vec
 
 
-# -- Conversions: rotation matrix <-> rotation vector
-
 def rotation_vector_from_rotation_matrix(rot_mat, epsilon=1e-5):
     """
     Convert rotation matrix to rotation vector
@@ -161,9 +159,6 @@ def rotation_matrix_from_rotation_vector(rot_vec, epsilon=1e-5):
     return rot_mat
 
 
-# -- Group composition written in rotation vector
-
-
 def compose(rot_vec_1, rot_vec_2):
     """
     Compose 2 rotation vectors according to the matrix product
@@ -180,8 +175,6 @@ def compose(rot_vec_1, rot_vec_2):
 
     return rot_vec_prod
 
-# -- Jacobians of left and right translations in SO(3)
-
 
 def jacobian_translation(rot_vec,
                          left_or_right='left', epsilon=1e-5):
@@ -193,6 +186,7 @@ def jacobian_translation(rot_vec,
     :returns jacobian: 3x3 matrix
     """
     assert len(rot_vec) == 3
+    assert left_or_right in ('left', 'right')
     rot_vec = regularize_rotation_vector(rot_vec)
 
     angle = np.linalg.norm(rot_vec)
@@ -211,18 +205,12 @@ def jacobian_translation(rot_vec,
                     + coef_2 * np.outer(rot_vec, rot_vec)
                     + skew_matrix_from_vector(rot_vec) / 2)
 
-    elif left_or_right == 'right':
+    else:
         jacobian = (coef_1 * np.identity(3)
                     + coef_2 * np.outer(rot_vec, rot_vec)
                     - skew_matrix_from_vector(rot_vec) / 2)
-    else:
-        raise ValueError('Param \'left_or_right\' '
-                         'should be \'left\' or \'right\'.')
 
     return jacobian
-
-
-# -- Riemannian
 
 
 def riemannian_exp(tangent_vec,
@@ -236,7 +224,7 @@ def riemannian_exp(tangent_vec,
     of the inner product inner_product at the Lie algebra.
 
     Formula:
-    R*Exp(DL(R^-1)*a)
+    R.Exp(DL(R^{-1}).a)
 
     This gives a point in SO(3).
 
@@ -255,6 +243,7 @@ def riemannian_exp(tangent_vec,
         return rot_vec_exp_from_id
 
     assert len(ref_point) == 3 & len(tangent_vec) == 3
+    assert left_or_right in ('left', 'right')
     ref_point = regularize_rotation_vector(ref_point)
     tangent_vec = regularize_rotation_vector(tangent_vec)
 
@@ -270,15 +259,11 @@ def riemannian_exp(tangent_vec,
                                        inner_product=inner_product)
         rot_vec_exp = compose(ref_point, rot_vec_exp_from_id)
 
-    elif left_or_right == 'right':
+    else:
         rot_vec_exp_from_id = - riemannian_left_exp_from_id(
                                             tangent_vec_translated_to_id,
                                             inner_product=inner_product)
         rot_vec_exp = compose(rot_vec_exp_from_id, ref_point)
-
-    else:
-        raise ValueError('Param \'left_or_right\' '
-                         'should be \'left\' or \'right\'.')
 
     return rot_vec_exp
 
@@ -293,16 +278,14 @@ def riemannian_log(rot_vec,
     translation of the inner product inner_product at
     the Lie algebra.
 
-    Formula:
-    TODO(nina).
-
     This gives a tangent vector at point ref_point.
 
-    :params rot_vec: 3D rotation vector
+    :param rot_vec: 3D rotation vector
     :param ref_point: 3D rotation vector
-    :returns a: 3D rotation vector, tangent vector at ref_point
+    :returns rot_vec_log: 3D rotation vector, tangent vector at ref_point
     """
     assert len(rot_vec) == 3 & len(ref_point) == 3
+    assert left_or_right in ('left', 'right')
     rot_vec = regularize_rotation_vector(rot_vec)
     ref_point = regularize_rotation_vector(ref_point)
 
@@ -315,26 +298,50 @@ def riemannian_log(rot_vec,
         jacobian = jacobian_translation(ref_point, left_or_right='left')
         rot_vec_log = np.dot(jacobian, rot_vec_translated)
 
-    elif left_or_right == 'right':
-        raise NotImplementedError()
-
     else:
-        raise ValueError('Param \'left_or_right\' '
-                         'should be \'left\' or \'right\'.')
+        raise NotImplementedError()
 
     return rot_vec_log
 
 
-# -- Statistics
+def riemannian_variance(ref_rotation_vector, rotation_vectors, weights):
+    """
+    Computes the variance of the rotation vectors in rotation_vectors
+    at the point ref_rotation_vector.
+
+    The variance is computed using weighted squared geodesic
+    distances from ref_rotation_vector to the data.
+    The geodesic distance is the left-invariant Riemannian
+    distance.
+
+    :param ref_rotation_vector: point at which to compute the variance
+    :param rotation_vectors: array of rotation vectors
+    :param weights: array of corresponding weights
+    :returns variance: variance of rotation vectors at ref_rotation_vector
+
+    """
+
+    n_rotations, _ = rotation_vectors.shape
+
+    if n_rotations < 2:
+        raise ValueError('Computing the variance requires # of rotations >=2.')
+
+    variance = 0
+
+    for i in range(0, n_rotations):
+        weight_i = weights[i]
+        rot_vec_i = rotation_vectors[i, :]
+        riem_log = riemannian_log(ref_rotation_vector, rot_vec_i)
+        sq_geodesic_dist = np.linalg.norm(riem_log) ** 2
+        variance = variance + weight_i * sq_geodesic_dist
+
+    return variance
 
 
 def riemannian_mean(rotation_vectors, weights, epsilon=1e-5):
     """
     Computes the weighted mean of the
     rotation vectors in rotation_vectors
-
-    Formula:
-    TODO(nina).
 
     The geodesic distances are obtained by the
     left-invariant Riemannian distance.
@@ -376,40 +383,3 @@ def riemannian_mean(rotation_vectors, weights, epsilon=1e-5):
             break
 
     return mean_rotation
-
-
-def riemannian_variance(ref_rotation_vector, rotation_vectors, weights):
-    """
-    Computes the variance of the rotation vectors in rotation_vectors
-    at the point ref_rotation_vector.
-
-    Formula:
-    TODO(nina).
-
-    The variance is computed using weighted squared geodesic
-    distances from ref_rotation_vector to the data.
-    The geodesic distance is the left-invariant Riemannian
-    distance.
-
-    :param ref_rotation_vector: point at which to compute the variance
-    :param rotation_vectors: array of rotation vectors
-    :param weights: array of corresponding weights
-    :returns variance: variance of rotation vectors at ref_rotation_vector
-
-    """
-
-    n_rotations, _ = rotation_vectors.shape
-
-    if n_rotations < 2:
-        raise ValueError('Computing the variance requires # of rotations >=2.')
-
-    variance = 0
-
-    for i in range(0, n_rotations):
-        weight_i = weights[i]
-        rot_vec_i = rotation_vectors[i, :]
-        riem_log = riemannian_log(ref_rotation_vector, rot_vec_i)
-        sq_geodesic_dist = np.linalg.norm(riem_log) ** 2
-        variance = variance + weight_i * sq_geodesic_dist
-
-    return variance
