@@ -126,55 +126,55 @@ class TestLossesMethods(unittest.TestCase):
 
     def test_caffe_gradient_checker(self):
 
-        print('\n #####  GRADIENT CHECKER (CAFFE) ##### \n')
+        print('\n #####  GRADIENT CHECKER (CAFFE) ##### \n',sep='')
 
-        print('Setting Test Parameters: ') # Adjustable Parameters
+        print('Setting Test Parameters: ',sep='') # Adjustable Parameters
         dx = 0.01
         threshold = 0.01
         y_pred = np.array([-0.662919 , -1.29015 , 1.30245 , 1.25567 , 1.09228 , 0.153399 ]) #Regularized
         y_true = np.array([0.0349858 , 0.562573 , -1.94181 , -0.173889 , 0.127527 , -0.19467 ]) #Regularized
 
-        print('Stepsize: ', str(dx))
-        print('threshold: ', str(threshold))
-        print('y_pred', str(y_pred))
-        print('y_true', str(y_true))
+        print('Stepsize: ', dx,sep='')
+        print('threshold: ', threshold,sep='')
+        print('y_pred', y_pred,sep='')
+        print('y_true', y_true,sep='')
 
-        print('\nTesting Baseline forward and gradient: ')
+        print('\nTesting Baseline forward and gradient: ',sep='')
 
         forward_loss = losses.rigids_riemannian_loss(y_pred, y_true)
-        print('Forward Loss: ', str(forward_loss))
+        print('Forward Loss: ', forward_loss,sep='')
         
         backward_grad = losses.rigids_riemannian_grad(y_pred, y_true)
-        print('Backward Grad: ', str(backward_grad))
+        print('Backward Grad: ', backward_grad,sep='')
 
 
         for xdim in range(0,6):
-            print('\n ----- Testing dL/dy_pred[',str(xdim),'] ----- ')
+            print('\n ----- Testing dL/dy_pred[',xdim,'] ----- ',sep='')
 
             dx_vec = np.zeros(6)
             dx_vec[xdim] = dx
 
             y_pred_plus_dx = y_pred + dx_vec
-            print('y_pred[',str(xdim),']+dx: ',str(y_pred_plus_dx))
+            print('y_pred[',xdim,']+dx: ',y_pred_plus_dx,sep='')
             y_pred_minus_dx = y_pred - dx_vec
-            print('y_pred[',str(xdim),']-dx: ',str(y_pred_minus_dx))
+            print('y_pred[',xdim,']-dx: ',y_pred_minus_dx,sep='')
             
             forward_loss_y_pred_plus_dx = losses.rigids_riemannian_loss(y_pred_plus_dx, y_true)
-            print('Forward with +dx: ',str(forward_loss_y_pred_plus_dx))
+            print('Forward with +dx: ',forward_loss_y_pred_plus_dx,sep='')
             forward_loss_y_pred_minus_dx = losses.rigids_riemannian_loss(y_pred_minus_dx, y_true)
-            print('Forward with -dx: ',str(forward_loss_y_pred_minus_dx))
+            print('Forward with -dx: ',forward_loss_y_pred_minus_dx,sep='')
             
             dy_dx = (forward_loss_y_pred_plus_dx - forward_loss_y_pred_minus_dx) / (dx*2)
-            print('Computed grad backward_grad[',str(xdim),']: ',str(backward_grad[xdim]))
-            print('Calculated grad dL/dy_pred[',str(xdim),']: ',str(dy_dx))
+            print('Computed grad backward_grad[',xdim,']: ',backward_grad[xdim],sep='')
+            print('Calculated grad dL/dy_pred[',xdim,']: ',dy_dx,sep='')
             
             diff = np.abs(backward_grad[xdim]-dy_dx)
             scale = np.max(np.fabs(np.array([backward_grad[xdim],dy_dx,1.0])))
 
             if diff > (scale * threshold):
-                print('Gradient Check ERROR')
-                print('Difference between computed and calculated: ',str(diff))
-                print('Exceeds scale * threshold (',str(scale),' * ',str(threshold),') = ',str(scale*threshold))
+                print('Gradient Check ERROR',sep='')
+                print('Difference between computed and calculated: ',diff,sep='')
+                print('Exceeds scale * threshold (',scale,' * ',threshold,') = ',scale*threshold,sep='')
             else:
                 print('Gradient Check OK')
 
