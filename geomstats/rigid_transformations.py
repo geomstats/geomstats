@@ -397,7 +397,7 @@ def riemannian_log(point,
 
 
 def square_riemannian_norm(tangent_vector,
-                           left_or_right='left_or_right',
+                           left_or_right='left',
                            inner_product=ALGEBRA_CANONICAL_INNER_PRODUCT,
                            ref_point=GROUP_IDENTITY):
     """
