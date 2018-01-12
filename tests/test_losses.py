@@ -50,7 +50,13 @@ class TestLossesMethods(unittest.TestCase):
                                  / linear_norm_delta_1)
 
         result_1 = losses.rigids_riemannian_grad(y_true_1,
-                                                 y_pred_1)[0]
+                                                 y_pred_1)
+
+        # riem_mat_1 = rigids.riemannian_metric(ref_point=y_true_1)
+        # inv_riem_mat_1 = np.linalg.inv(riem_mat_1)
+
+        jacobian_1 = rigids.jacobian_translation(y_true_1)
+        inv_jacobian_1 = np.linalg.inv(jacobian_1)
 
         print('Linear numerical gradient:')
         print(linear_expected_1)
@@ -59,7 +65,9 @@ class TestLossesMethods(unittest.TestCase):
         print('Curved bis numerical gradient:')
         print(curved_bis_expected_1)
         print('\nGradient from formula:')
-        print(result_1)
+        print(result_1[0])
+        print('\nGradient from formula, translated to identity:')
+        print(np.dot(inv_jacobian_1, result_1)[0])
 
         # self.assertTrue(np.allclose(result_1, curved_expected_1))
 
