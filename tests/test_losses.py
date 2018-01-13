@@ -3,9 +3,59 @@
 import math
 import numpy as np
 import unittest
+import logging
 
 import geomstats.losses as losses
 import geomstats.rigid_transformations as rigids
+
+logging.basicConfig(level=logging.WARNING)
+logger = logging.getLogger(__name__)
+
+def test_partial_numerical_gradient_check(dx,xdim,rnd=False):
+
+    logger.info('Testing dL/dy_pred[%d]',xdim)
+
+    if rnd == False:
+        # Use predefined regularized transformation vector
+        logger.debug('Using predefined regularized transformation vector')
+        y_pred = np.array([-0.662919 , -1.29015 , 1.30245 , 1.25567 , 1.09228 , 0.153399 ]) 
+        y_true = np.array([0.0349858 , 0.562573 , -1.94181 , -0.173889 , 0.127527 , -0.19467 ]) 
+        logger.debug('y_pred: %s',str(y_pred))
+        logger.debug('y_true: %s',str(y_true))
+    else:
+        # Use random regularized transformation vector
+        logger.debug('Using random regularized transformation vector')
+        y_pred = rigids.random_uniform()
+        y_true = rigids.random_uniform()
+        logger.debug('y_pred: %s',str(y_pred))
+        logger.debug('y_true: %s',str(y_true))
+
+    forward_loss = losses.rigids_riemannian_loss(y_pred, y_true)    
+    backward_grad = losses.rigids_riemannian_grad(y_pred, y_true)
+    logger.debug('Forward Loss:  %f', forward_loss)
+    logger.debug('Backward Grad:  %s', str(backward_grad))
+
+    dx_vec = np.zeros(6)
+    dx_vec[xdim] = dx
+
+    y_pred_plus_dx = y_pred + dx_vec
+    y_pred_minus_dx = y_pred - dx_vec
+    logger.debug('y_pred[%d]+dx:  %s', xdim, str(y_pred_plus_dx))
+    logger.debug('y_pred[%d]-dx:  %s', xdim, str(y_pred_minus_dx))
+
+    forward_loss_y_pred_plus_dx = losses.rigids_riemannian_loss(y_pred_plus_dx, y_true)
+    forward_loss_y_pred_minus_dx = losses.rigids_riemannian_loss(y_pred_minus_dx, y_true)
+    logger.debug('Forward with +dx:  %s', str(forward_loss_y_pred_plus_dx))
+    logger.debug('Forward with -dx:  %s', str(forward_loss_y_pred_minus_dx))
+
+    dy_dx = (forward_loss_y_pred_plus_dx - forward_loss_y_pred_minus_dx) / (dx*2)
+    logger.debug('Computed grad backward_grad[%d]:  %f', xdim, backward_grad[xdim])
+    logger.debug('Calculated grad dL/dy_pred[%d]:  %f', xdim, dy_dx)
+
+    grad_diff = np.abs(backward_grad[xdim]-dy_dx)
+    scale = np.max(np.fabs(np.array([backward_grad[xdim],dy_dx,1.0])))
+
+    return grad_diff , scale
 
 
 class TestLossesMethods(unittest.TestCase):
@@ -124,59 +174,47 @@ class TestLossesMethods(unittest.TestCase):
 
         # self.assertTrue(np.allclose(result_2, curved_expected_2))
 
-    def test_caffe_gradient_checker(self):
+    def test_numerical_gradient_check_0(self):
 
-        print('\n #####  GRADIENT CHECKER (CAFFE) ##### \n',sep='')
-
-        print('Setting Test Parameters: ',sep='') # Adjustable Parameters
-        dx = 0.01
+        stepsize = 0.01
         threshold = 0.01
-        y_pred = np.array([-0.662919 , -1.29015 , 1.30245 , 1.25567 , 1.09228 , 0.153399 ]) #Regularized
-        y_true = np.array([0.0349858 , 0.562573 , -1.94181 , -0.173889 , 0.127527 , -0.19467 ]) #Regularized
+        grad_diff , scale = test_partial_numerical_gradient_check(stepsize,0,False)
+        self.assertLess(grad_diff, scale * threshold, msg='FAILURE: dL/dy_pred[0]')
 
-        print('Stepsize: ', dx,sep='')
-        print('threshold: ', threshold,sep='')
-        print('y_pred', y_pred,sep='')
-        print('y_true', y_true,sep='')
+    def test_numerical_gradient_check_1(self):
 
-        print('\nTesting Baseline forward and gradient: ',sep='')
+        stepsize = 0.01
+        threshold = 0.01
+        grad_diff , scale = test_partial_numerical_gradient_check(stepsize,1,False)
+        self.assertLess(grad_diff, scale * threshold, msg='FAILURE: dL/dy_pred[1]')
 
-        forward_loss = losses.rigids_riemannian_loss(y_pred, y_true)
-        print('Forward Loss: ', forward_loss,sep='')
-        
-        backward_grad = losses.rigids_riemannian_grad(y_pred, y_true)
-        print('Backward Grad: ', backward_grad,sep='')
+    def test_numerical_gradient_check_2(self):
 
+        stepsize = 0.01
+        threshold = 0.01
+        grad_diff , scale = test_partial_numerical_gradient_check(stepsize,2,False)
+        self.assertLess(grad_diff, scale * threshold, msg='FAILURE: dL/dy_pred[2]')
 
-        for xdim in range(0,6):
-            print('\n ----- Testing dL/dy_pred[',xdim,'] ----- ',sep='')
+    def test_numerical_gradient_check_3(self):
 
-            dx_vec = np.zeros(6)
-            dx_vec[xdim] = dx
+        stepsize = 0.01
+        threshold = 0.01
+        grad_diff , scale = test_partial_numerical_gradient_check(stepsize,3,False)
+        self.assertLess(grad_diff, scale * threshold, msg='FAILURE: dL/dy_pred[3]')
 
-            y_pred_plus_dx = y_pred + dx_vec
-            print('y_pred[',xdim,']+dx: ',y_pred_plus_dx,sep='')
-            y_pred_minus_dx = y_pred - dx_vec
-            print('y_pred[',xdim,']-dx: ',y_pred_minus_dx,sep='')
-            
-            forward_loss_y_pred_plus_dx = losses.rigids_riemannian_loss(y_pred_plus_dx, y_true)
-            print('Forward with +dx: ',forward_loss_y_pred_plus_dx,sep='')
-            forward_loss_y_pred_minus_dx = losses.rigids_riemannian_loss(y_pred_minus_dx, y_true)
-            print('Forward with -dx: ',forward_loss_y_pred_minus_dx,sep='')
-            
-            dy_dx = (forward_loss_y_pred_plus_dx - forward_loss_y_pred_minus_dx) / (dx*2)
-            print('Computed grad backward_grad[',xdim,']: ',backward_grad[xdim],sep='')
-            print('Calculated grad dL/dy_pred[',xdim,']: ',dy_dx,sep='')
-            
-            diff = np.abs(backward_grad[xdim]-dy_dx)
-            scale = np.max(np.fabs(np.array([backward_grad[xdim],dy_dx,1.0])))
+    def test_numerical_gradient_check_4(self):
 
-            if diff > (scale * threshold):
-                print('Gradient Check ERROR',sep='')
-                print('Difference between computed and calculated: ',diff,sep='')
-                print('Exceeds scale * threshold (',scale,' * ',threshold,') = ',scale*threshold,sep='')
-            else:
-                print('Gradient Check OK')
+        stepsize = 0.01
+        threshold = 0.01
+        grad_diff , scale = test_partial_numerical_gradient_check(stepsize,4,False)
+        self.assertLess(grad_diff, scale * threshold, msg='FAILURE: dL/dy_pred[4]')
+
+    def test_numerical_gradient_check_5(self):
+
+        stepsize = 0.01
+        threshold = 0.01
+        grad_diff , scale = test_partial_numerical_gradient_check(stepsize,5,False)
+        self.assertLess(grad_diff, scale * threshold, msg='FAILURE: dL/dy_pred[5]')
 
 
 if __name__ == '__main__':
