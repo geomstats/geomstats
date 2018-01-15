@@ -8,8 +8,8 @@ of Minkowski space of squared norm -1.
 NB: we use "riemannian" to refer to "pseudo-riemannian".
 """
 
-import numpy as np
 import math
+import numpy as np
 
 EPSILON = 1e-6
 
@@ -142,8 +142,8 @@ def riemannian_dist(point_a, point_b):
 
     if cosh_angle <= 1.:
         return 0.
-    else:
-        return(np.arccosh(cosh_angle))
+
+    return np.arccosh(cosh_angle)
 
 
 def random_uniform(dimension, max_norm):

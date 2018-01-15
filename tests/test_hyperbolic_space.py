@@ -2,8 +2,8 @@
 
 import geomstats.hyperbolic_space as hyperbolic_space
 
-import numpy as np
 import math
+import numpy as np
 import unittest
 
 
