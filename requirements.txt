@@ -3,3 +3,4 @@ coverage
 matplotlib
 nose
 numpy
+scipy
