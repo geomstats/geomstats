@@ -262,6 +262,7 @@ def riemannian_metric(ref_point,
 
     jacobian = jacobian_translation(ref_point, left_or_right=left_or_right)
     inv_jacobian = np.linalg.inv(jacobian)
+
     inv_jacobian_transposed = np.linalg.inv(jacobian.transpose())
 
     metric_mat = np.dot(inv_jacobian_transposed, inner_product)
