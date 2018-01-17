@@ -1,2 +1,6 @@
+build
+dist
+*egg-info
+*.egg
 *.pyc
 *.png
