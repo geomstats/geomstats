@@ -15,15 +15,18 @@ EPSILON = 1e-6
 
 
 def is_symmetric(mat, tolerance=TOL_SYMMETRIC):
-    """
-    Check if a matrix is symmetric.
-    """
+    """Check if a matrix is symmetric."""
     return np.allclose(mat, mat.transpose(), atol=tolerance)
+
+
+def make_symmetric(mat):
+    """Make a matrix fully symmetric to avoid numerical issues."""
+    return (mat + mat.transpose()) / 2
 
 
 def belongs(mat, tolerance=TOL_SYMMETRIC):
     """
-    Check if a matrix belong to the manifold of
+    Check if a matrix belongs to the manifold of
     symmetric positive definite matrices.
     """
     if is_symmetric(mat, tolerance=tolerance):
@@ -41,8 +44,7 @@ def group_exp(sym_mat):
     computation for symmetric positive definite matrices.
     """
     assert is_symmetric(sym_mat)
-    # Make it fully symmetric for numerics.
-    sym_mat = (sym_mat + sym_mat.transpose()) / 2
+    sym_mat = make_symmetric(sym_mat)
 
     [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
 
@@ -59,8 +61,7 @@ def group_log(sym_mat):
     computation for symmetric positive definite matrices.
     """
     assert is_symmetric(sym_mat)
-    # Make it fully symmetric for numerics.
-    sym_mat = (sym_mat + sym_mat.transpose()) / 2
+    sym_mat = make_symmetric(sym_mat)
 
     [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
 
@@ -77,19 +78,21 @@ def matrix_to_vector(matrix):
     Convert the symmetric part of a symmetric matrix
     into a vector.
     """
+    # TODO(nina): why factor np.sqrt(2)
     assert is_symmetric(matrix)
+    matrix = make_symmetric(matrix)
 
     dim_mat, _ = matrix.shape
-    dim_vec = dim_mat * (dim_mat + 1) / 2
+    dim_vec = int(dim_mat * (dim_mat + 1) / 2)
     vector = np.zeros(dim_vec)
 
     idx = 0
     for i in range(dim_mat):
         for j in range(i + 1):
             if i == j:
-                vector[idx] = matrix[j, i]
+                vector[idx] = matrix[j, j]
             else:
-                vector[idx] = matrix[j, i] / np.sqrt(2.)
+                vector[idx] = matrix[j, i] * np.sqrt(2.)
             idx += 1
 
     return vector
@@ -99,23 +102,18 @@ def vector_to_matrix(vector):
     """
     Convert a vector into a symmetric matrix.
     """
+    # TODO(nina): why factor np.sqrt(2)
     dim_vec = len(vector)
-    dim_mat = (np.sqrt(8 * dim_vec + 1) - 1) / 2
+    dim_mat = int((np.sqrt(8 * dim_vec + 1) - 1) / 2)
     matrix = np.zeros((dim_mat, dim_mat))
 
-    idx = 0
-    for j in range(dim_mat):
-        for i in range(j + 1):
-            if i == j:
-                matrix[i, j] = vector[idx]
-            else:
-                matrix[i, j] = vector[idx] / np.sqrt(2)
-            idx += 1
+    lower_triangle_indices = np.tril_indices(dim_mat)
+    diag_indices = np.diag_indices(dim_mat)
 
-    for j in range(dim_mat):
-        for i in range(j + 1, dim_mat):
-            matrix[i, j] = matrix[j, i]
+    matrix[lower_triangle_indices] = 2 * vector / np.sqrt(2)
+    matrix[diag_indices] = vector
 
+    matrix = make_symmetric(matrix)
     return matrix
 
 
@@ -185,7 +183,7 @@ def riemannian_mean(sym_matrices, n_max_iterations, epsilon=EPSILON):
 
     Initialization with one of the matrices.
     """
-
+    # TODO(nina): profile this code to study performance
     dists_between_iterates = []
     n_sym_matrices = len(sym_matrices)
 
