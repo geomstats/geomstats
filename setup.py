@@ -1,8 +1,11 @@
 from setuptools import setup
 
-version = '1.0'
-
 setup(name='geomstats',
-      version=version,
+      version='0.1',
+      description='Geometric statistics on manifolds',
+      url='http://github.com/ninamiolane/geomstats',
       author='Nina Miolane',
-      packages=['geomstats'])
+      author_email='ninamio78@gmail.com',
+      license='MIT',
+      packages=['geomstats'],
+      zip_safe=False)
