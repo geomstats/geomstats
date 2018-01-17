@@ -17,7 +17,7 @@ python:
 
 install:
     - pip install --upgrade pip setuptools wheel
-    - pip install -r requirements.txt --only-binary=numpy
+    - pip install -r requirements.txt --only-binary=numpy,scipy
 script:
     - nosetests --with-coverage
 
