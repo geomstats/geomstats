@@ -114,10 +114,8 @@ def riemannian_log(ref_point, point, epsilon=EPSILON):
 
 def riemannian_dist(point_a, point_b):
     """
-    Compute the Riemannian logarithm at point ref_point,
-    of point wrt the metric obtained by
-    embedding of the n-dimensional sphere
-    in the (n+1)-dimensional euclidean space.
+    Compute the Riemannian distance between points
+    point_a and point_b.
     """
     # TODO(nina): case np.dot(unit_vec, unit_vec) != 1
     if np.all(point_a == point_b):
