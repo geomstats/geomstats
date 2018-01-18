@@ -4,8 +4,8 @@ Computations on the (n+1)-dimensional Minkowski space.
 
 import numpy as np
 
-import Manifold
-import RiemannianMetric
+from geomstats.base_manifolds import Manifold
+from geomstats.base_manifolds import RiemannianMetric
 
 
 class MinkowskiMetric(RiemannianMetric):

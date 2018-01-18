@@ -11,9 +11,9 @@ NB: we use "riemannian" to refer to "pseudo-riemannian".
 import math
 import numpy as np
 
-import Manifold
-import MinkowskiMetric
-import RiemannianMetric
+from geomstats.minkowski_space import MinkowskiMetric
+from geomstats.base_manifolds import Manifold
+from geomstats.base_manifolds import RiemannianMetric
 
 EPSILON = 1e-6
 TOLERANCE = 1e-12
@@ -43,7 +43,7 @@ class HyperbolicMetric(RiemannianMetric):
     def __init__(self):
         self.embedding_metric = MinkowskiMetric()
 
-    def riemannian_exp(self, ref_point, vector, epsilon=EPSILON):
+    def riemannian_exp(self, ref_point, tangent_vec, epsilon=EPSILON):
         """
         Compute the Riemannian exponential at point ref_point
         of tangent vector tangent_vec wrt the metric obtained by
@@ -55,7 +55,6 @@ class HyperbolicMetric(RiemannianMetric):
         :param vector: vector
         :returns riem_exp: a point on the hyperbolic space
         """
-        tangent_vec = self.projection_to_tangent_space(ref_point, vector)
         sq_norm_tangent_vec = self.embedding_metric.riemannian_squared_norm(
                 tangent_vec)
         norm_tangent_vec = math.sqrt(sq_norm_tangent_vec)
@@ -127,7 +126,7 @@ class HyperbolicMetric(RiemannianMetric):
 class HyperbolicSpace(Manifold):
 
     def __init__(self, dimension):
-        Manifold.__init__(dimension)
+        Manifold.__init__(self, dimension)
         self.riemannian_metric = HyperbolicMetric()
         self.embedding_metric = MinkowskiMetric()
 
@@ -135,6 +134,7 @@ class HyperbolicSpace(Manifold):
         """
         By definition, a point on the Hyperbolic space
         has Minkowski squared norm -1.
+
         Note: point must be given in extrinsic coordinates.
         """
         sq_norm = self.embedding_metric.riemannian_squared_norm(point)

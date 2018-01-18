@@ -1,12 +1,12 @@
 """Computations on the Lie group of rigid transformations."""
 
-import logging
 import numpy as np
 
-import geomstats.EuclideanSpace as EuclideanSpace
-import geomstats.LieGroup as LieGroup
-import geomstats.SpecialOrthogonalGroup as SpecialOrthogonalGroup
 import geomstats.special_orthogonal_group as so_group
+
+from geomstats.euclidean_space import EuclideanSpace
+from geomstats.lie_groups import LieGroup
+from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
 EPSILON = 1e-5
 ALGEBRA_CANONICAL_INNER_PRODUCT = np.eye(6)
@@ -41,7 +41,7 @@ class SpecialEuclideanGroup(LieGroup):
         """
         Regularize an element of the group SE(3),
         by extracting the rotation vector r from the input [r t]
-        and using rotations.self.regularize.
+        and using self.rotations.regularize.
 
         :param transfo: 6d vector, element in SE(3) represented as [r t].
         :returns self.regularized_transfo: 6d vector, element in SE(3)
@@ -91,12 +91,10 @@ class SpecialEuclideanGroup(LieGroup):
         :param transfo_1, transfo_2: 6d vectors elements of SE(3)
         :returns prod_transfo: composition of transfo_1 and transfo_2
         """
-        rot_mat_1 = self.rotations.matrix_from_rotation_vector(
-                                                              transfo_1[0:3])
+        rot_mat_1 = self.rotations.matrix_from_rotation_vector(transfo_1[0:3])
         rot_mat_1 = self.rotations.closest_rotation_matrix(rot_mat_1)
 
-        rot_mat_2 = self.rotations.matrix_from_rotation_vector(
-                                                              transfo_2[0:3])
+        rot_mat_2 = self.rotations.matrix_from_rotation_vector(transfo_2[0:3])
         rot_mat_2 = self.rotations.closest_rotation_matrix(rot_mat_2)
 
         translation_1 = transfo_1[3:6]
@@ -260,56 +258,20 @@ class SpecialEuclideanGroup(LieGroup):
 
         return tangent_vector
 
-    def square_riemannian_norm(self,
-                               ref_point,
-                               tangent_vector,
-                               left_or_right='left_or_right',
-                               metric_matrix=ALGEBRA_CANONICAL_INNER_PRODUCT):
-        """
-        Compute the square norm of a tangent vector,
-        using the riemannian metric at ref_point
-        defined by the left or right translation of
-        inner_product at the identity.
-
-        :param tangent_vector: 6D vector whose square norm is computed
-        :param left_or_right:
-        :param inner_product:
-        :param ref_point:
-
-        :returns sq_riem_norm: positive scalar, squared norm of tangent_vector
-
-        """
-        assert len(tangent_vector) == 6 & len(ref_point) == 6
-        assert left_or_right in ('left', 'right')
-
-        tangent_vector = self.regularize(tangent_vector)
-        ref_point = self.regularize(ref_point)
-
-        riem_metric_mat = metric_matrix(ref_point=ref_point,
-                                        inner_product=metric_matrix,
-                                        left_or_right=left_or_right)
-        sq_riem_norm = np.dot(np.dot(tangent_vector.transpose(),
-                                     riem_metric_mat),
-                              tangent_vector)
-
-        return sq_riem_norm
-
-
-    def random_uniform():
+    def random_uniform(self):
         """
         Generate an 6d vector element of SE(3) uniformly
 
         :returns random transfo: 6d vector element of SE(3)
         """
         random_rot_vec = np.random.rand(3) * 2 - 1
-        random_rot_vec = rotations.self.regularize(random_rot_vec)
+        random_rot_vec = self.rotations.regularize(random_rot_vec)
         random_translation = np.random.rand(3) * 2 - 1
 
         random_transfo = np.concatenate([random_rot_vec, random_translation])
         return random_transfo
 
-
-    def exponential_matrix(rot_vec, epsilon=1e-5):
+    def exponential_matrix(self, rot_vec, epsilon=1e-5):
         """
         Compute the exponential of the rotation matrix
         represented by rot_vec.
@@ -318,10 +280,10 @@ class SpecialEuclideanGroup(LieGroup):
         :returns exponential_mat: 3x3 matrix
         """
 
-        rot_vec = rotations.self.regularize(rot_vec)
+        rot_vec = self.rotations.regularize(rot_vec)
 
         angle = np.linalg.norm(rot_vec)
-        skew_rot_vec = rotations.skew_matrix_from_vector(rot_vec)
+        skew_rot_vec = so_group.skew_matrix_from_vector(rot_vec)
 
         if angle == 0:
             coef_1 = 0
@@ -341,8 +303,7 @@ class SpecialEuclideanGroup(LieGroup):
 
         return exponential_mat
 
-
-    def exponential_barycenter(transfo_vectors, weights):
+    def exponential_barycenter(self, transfo_vectors, weights):
         """
 
         :param transfo_vectors: SE3 data points, Nx6 array
@@ -357,7 +318,10 @@ class SpecialEuclideanGroup(LieGroup):
         rotation_vectors = transfo_vectors[:, 0:3]
         translations = transfo_vectors[:, 3:6]
 
-        mean_rotation = rotations.riemannian_mean(rotation_vectors, weights)
+        biinvariant_metric = so_group.InvariantMetric(self.rotations,
+                                                      np.eye(3))
+        mean_rotation = biinvariant_metric.riemannian_mean(rotation_vectors,
+                                                           weights)
 
         # Partie translation, p34 de expbar
         matrix = np.zeros([3, 3])
@@ -368,14 +332,14 @@ class SpecialEuclideanGroup(LieGroup):
             translation_i = translations[i, :]
             weight_i = weights[i]
 
-            inv_rot_mat_i = rotations.matrix_from_rotation_vector(
+            inv_rot_mat_i = so_group.matrix_from_rotation_vector(
                     -rot_vec_i)
-            mean_rotation_mat = rotations.matrix_from_rotation_vector(
+            mean_rotation_mat = so_group.matrix_from_rotation_vector(
                     mean_rotation)
 
             matrix_aux = np.dot(mean_rotation_mat, inv_rot_mat_i)
-            vec_aux = rotations.rotation_vector_from_matrix(matrix_aux)
-            matrix_aux = exponential_matrix(vec_aux)
+            vec_aux = so_group.rotation_vector_from_matrix(matrix_aux)
+            matrix_aux = self.exponential_matrix(vec_aux)
             matrix_aux = np.linalg.inv(matrix_aux)
 
             matrix = matrix + weight_i * matrix_aux
@@ -388,105 +352,3 @@ class SpecialEuclideanGroup(LieGroup):
         mean_transformation[0:3] = mean_rotation
         mean_transformation[3:6] = np.dot(np.linalg.inv(matrix), translation)
         return mean_transformation
-
-
-    def riemannian_variance(ref_point, transfo_vectors, weights,
-                            left_or_right='left',
-                            inner_product=ALGEBRA_CANONICAL_INNER_PRODUCT):
-        """
-        Computes the variance of the transformations in transfo_vectors
-        at the point ref_point.
-
-        The variance is computed using weighted squared geodesic
-        distances from ref_rotation_vector to the data.
-        The geodesic distance is the left- (resp. right-) invariant
-        Riemannian distance.
-
-        :param ref_point: point at which to compute the variance
-        :param transfo_vectors: array of rotation vectors
-        :param weights: array of corresponding weights
-        :returns variance: variance of transformations at ref_point
-
-        """
-        assert left_or_right in ('left', 'right')
-
-        n_transformations, _ = transfo_vectors.shape
-
-        if n_transformations < 2:
-            logging.info('Error: Calculating variance requires at least 2 points')
-            return 0
-
-        variance = 0
-
-        for i in range(1, n_transformations):
-            transfo_i = transfo_vectors[i, :]
-            weight_i = weights[i]
-
-            log_vec = riemannian_log(transfo_i,
-                                     left_or_right=left_or_right,
-                                     ref_point=ref_point,
-                                     inner_product=inner_product)
-            sq_riem_norm = square_riemannian_norm(log_vec,
-                                                  left_or_right=left_or_right,
-                                                  inner_product=inner_product,
-                                                  ref_point=ref_point)
-            variance += weight_i * sq_riem_norm
-
-        return variance
-
-
-    def riemannian_mean(transfo_vectors, weights,
-                        left_or_right='left',
-                        inner_product=ALGEBRA_CANONICAL_INNER_PRODUCT,
-                        epsilon=1e-5):
-        """
-        Computes the weighted mean of the
-        transformations in transfo_vectors
-
-        The geodesic distances are obtained by the
-        left-invariant Riemannian distance.
-
-        :param transfo_vectors: array of 3d transformations
-        :param weights: array of weights
-        :returns riem_mean: 3d vector, weighted mean of transfo_vectors
-        """
-        assert left_or_right in ('left', 'right')
-
-        n_transformations, _ = transfo_vectors.shape
-
-        if n_transformations < 2:
-            logging.info('Error: Calculating mean requires at least 2 points.')
-
-        riem_mean = transfo_vectors[0, :]
-
-        while True:
-            aux = np.zeros(6)
-            riem_mean_next = riem_mean
-            for i in range(0, n_transformations):
-                transfo_i = transfo_vectors[i, :]
-                weight_i = weights[i]
-
-                riem_log_i = riemannian_log(transfo_i,
-                                            left_or_right=left_or_right,
-                                            inner_product=inner_product,
-                                            ref_point=riem_mean_next)
-                aux += weight_i * riem_log_i
-            riem_mean = riemannian_exp(aux,
-                                       ref_point=riem_mean_next,
-                                       left_or_right=left_or_right,
-                                       inner_product=inner_product)
-
-            riem_mean_vector_diff = riemannian_log(riem_mean,
-                                                   ref_point=riem_mean_next,
-                                                   left_or_right=left_or_right,
-                                                   inner_product=inner_product)
-            riem_mean_diff = square_riemannian_norm(riem_mean_vector_diff)
-            variance = riemannian_variance(riem_mean_next,
-                                           transfo_vectors,
-                                           weights,
-                                           inner_product=inner_product)
-
-            if riem_mean_diff < epsilon * variance:
-                break
-
-        return riem_mean

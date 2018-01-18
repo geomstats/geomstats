@@ -10,7 +10,9 @@ import math
 import numpy as np
 import scipy.linalg
 
-import RiemannianManifold
+from geomstats.base_manifolds import Manifold
+from geomstats.base_manifolds import RiemannianMetric
+
 
 EPSILON = 1e-6
 TOLERANCE = 1e-12
@@ -26,96 +28,7 @@ def make_symmetric(mat):
     return (mat + mat.transpose()) / 2
 
 
-class SPDMatricesSpace(RiemannianManifold):
-
-    def belongs(self, mat, tolerance=TOLERANCE):
-        """
-        Check if a matrix belongs to the manifold of
-        symmetric positive definite matrices.
-        """
-        if is_symmetric(mat, tolerance=tolerance):
-            eigenvalues = np.linalg.eigvalsh(mat)
-            return np.all(eigenvalues > 0)
-        return False
-
-    # TODO(nina): The manifold of sym matrices is not a Lie group.
-    # Use 'group_exp' and 'group_log'?
-    def group_exp(self, sym_mat):
-        """
-        Group exponential of the Lie group of
-        all invertible matrices has a straight-forward
-        computation for symmetric positive definite matrices.
-        """
-        assert is_symmetric(sym_mat)
-        sym_mat = make_symmetric(sym_mat)
-
-        [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
-
-        diag_exp = np.diag(np.exp(eigenvalues))
-        exp = np.dot(np.dot(vectors, diag_exp), vectors.transpose())
-
-        return(exp)
-
-    def group_log(self, sym_mat):
-        """
-        Group logarithm of the Lie group of
-        all invertible matrices has a straight-forward
-        computation for symmetric positive definite matrices.
-        """
-        assert is_symmetric(sym_mat)
-        sym_mat = make_symmetric(sym_mat)
-
-        [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
-
-        assert np.all(eigenvalues > 0)
-
-        diag_log = np.diag(np.log(eigenvalues))
-        log = np.dot(np.dot(vectors, diag_log), vectors.transpose())
-
-        return log
-
-    def matrix_to_vector(self, matrix):
-        """
-        Convert the symmetric part of a symmetric matrix
-        into a vector.
-        """
-        # TODO(nina): why factor np.sqrt(2)
-        assert is_symmetric(matrix)
-        matrix = make_symmetric(matrix)
-
-        dim_mat, _ = matrix.shape
-        dim_vec = int(dim_mat * (dim_mat + 1) / 2)
-        vector = np.zeros(dim_vec)
-
-        idx = 0
-        for i in range(dim_mat):
-            for j in range(i + 1):
-                if i == j:
-                    vector[idx] = matrix[j, j]
-                else:
-                    vector[idx] = matrix[j, i] * np.sqrt(2.)
-                idx += 1
-
-        return vector
-
-    def vector_to_matrix(self, vector):
-        """
-        Convert a vector into a symmetric matrix.
-        """
-        # TODO(nina): why factor np.sqrt(2)
-        dim_vec = len(vector)
-        dim_mat = int((np.sqrt(8 * dim_vec + 1) - 1) / 2)
-        matrix = np.zeros((dim_mat, dim_mat))
-
-        lower_triangle_indices = np.tril_indices(dim_mat)
-        diag_indices = np.diag_indices(dim_mat)
-
-        matrix[lower_triangle_indices] = 2 * vector / np.sqrt(2)
-        matrix[diag_indices] = vector
-
-        matrix = make_symmetric(matrix)
-        return matrix
-
+class SPDMetric(RiemannianMetric):
     def riemannian_inner_product(self, ref_point,
                                  tangent_vec_a, tangent_vec_b):
         """
@@ -220,3 +133,97 @@ class SPDMatricesSpace(RiemannianManifold):
             it += 1
 
         return (riem_mean, dists_between_iterates)
+
+
+class SPDMatricesSpace(Manifold):
+    def __init__(self, dimension):
+        Manifold.__init__(dimension)
+        self.riemannian_metric = SPDMetric()
+
+    def belongs(self, mat, tolerance=TOLERANCE):
+        """
+        Check if a matrix belongs to the manifold of
+        symmetric positive definite matrices.
+        """
+        if is_symmetric(mat, tolerance=tolerance):
+            eigenvalues = np.linalg.eigvalsh(mat)
+            return np.all(eigenvalues > 0)
+        return False
+
+    # TODO(nina): The manifold of sym matrices is not a Lie group.
+    # Use 'group_exp' and 'group_log'?
+    def group_exp(self, sym_mat):
+        """
+        Group exponential of the Lie group of
+        all invertible matrices has a straight-forward
+        computation for symmetric positive definite matrices.
+        """
+        assert is_symmetric(sym_mat)
+        sym_mat = make_symmetric(sym_mat)
+
+        [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
+
+        diag_exp = np.diag(np.exp(eigenvalues))
+        exp = np.dot(np.dot(vectors, diag_exp), vectors.transpose())
+
+        return(exp)
+
+    def group_log(self, sym_mat):
+        """
+        Group logarithm of the Lie group of
+        all invertible matrices has a straight-forward
+        computation for symmetric positive definite matrices.
+        """
+        assert is_symmetric(sym_mat)
+        sym_mat = make_symmetric(sym_mat)
+
+        [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
+
+        assert np.all(eigenvalues > 0)
+
+        diag_log = np.diag(np.log(eigenvalues))
+        log = np.dot(np.dot(vectors, diag_log), vectors.transpose())
+
+        return log
+
+    def matrix_to_vector(self, matrix):
+        """
+        Convert the symmetric part of a symmetric matrix
+        into a vector.
+        """
+        # TODO(nina): why factor np.sqrt(2)
+        assert is_symmetric(matrix)
+        matrix = make_symmetric(matrix)
+
+        dim_mat, _ = matrix.shape
+        dim_vec = int(dim_mat * (dim_mat + 1) / 2)
+        vector = np.zeros(dim_vec)
+
+        idx = 0
+        for i in range(dim_mat):
+            for j in range(i + 1):
+                if i == j:
+                    vector[idx] = matrix[j, j]
+                else:
+                    vector[idx] = matrix[j, i] * np.sqrt(2.)
+                idx += 1
+
+        return vector
+
+    def vector_to_matrix(self, vector):
+        """
+        Convert a vector into a symmetric matrix.
+        """
+        # TODO(nina): why factor np.sqrt(2)
+        dim_vec = len(vector)
+        dim_mat = int((np.sqrt(8 * dim_vec + 1) - 1) / 2)
+        matrix = np.zeros((dim_mat, dim_mat))
+
+        lower_triangle_indices = np.tril_indices(dim_mat)
+        diag_indices = np.diag_indices(dim_mat)
+
+        matrix[lower_triangle_indices] = 2 * vector / np.sqrt(2)
+        matrix[diag_indices] = vector
+
+        matrix = make_symmetric(matrix)
+        return matrix

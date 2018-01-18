@@ -2,7 +2,8 @@
 
 import numpy as np
 
-import geomstats.LieGroup as LieGroup
+from geomstats.lie_groups import LieGroup
+from geomstats.lie_groups import InvariantMetric
 ALGEBRA_CANONICAL_INNER_PRODUCT = np.eye(3)
 
 
@@ -54,7 +55,13 @@ class SpecialOrthogonalGroup(LieGroup):
     def __init__(self, dimension):
         if dimension is not 3:
             raise NotImplementedError('Only SO(3) is implemented.')
-        self.identity = np.array([0., 0., 0.])
+
+        LieGroup.__init__(self,
+                          dimension=dimension,
+                          identity=np.array([0., 0., 0.]))
+        self.canonical_metric = InvariantMetric(
+                self,
+                ALGEBRA_CANONICAL_INNER_PRODUCT)
 
     def regularize(self, rot_vec):
         """
@@ -178,6 +185,12 @@ class SpecialOrthogonalGroup(LieGroup):
         rot_vec_prod = self.rotation_vector_from_matrix(rot_mat_prod)
 
         return rot_vec_prod
+
+    def inverse(self, rot_vec):
+        """
+        Inverse of a rotation.
+        """
+        return -rot_vec
 
     def jacobian_translation(self, rot_vec,
                              left_or_right='left', epsilon=1e-5):

@@ -6,11 +6,9 @@ embedded in the (n+1)-dimensional Euclidean space.
 import numpy as np
 import math
 
-import EuclideanSpace
-import EuclideanMetric
-
-import Manifold
-import RiemannianMetric
+from geomstats.euclidean_space import EuclideanMetric
+from geomstats.base_manifolds import Manifold
+from geomstats.base_manifolds import RiemannianMetric
 
 
 EPSILON = 1e-6
@@ -41,7 +39,7 @@ class HypersphereMetric(RiemannianMetric):
     def __init__(self):
         self.embedding_metric = EuclideanMetric()
 
-    def riemannian_exp(self, ref_point, vector, epsilon=EPSILON):
+    def riemannian_exp(self, ref_point, tangent_vec, epsilon=EPSILON):
         """
         Compute the Riemannian exponential at point ref_point
         of tangent vector tangent_vec wrt the metric obtained by
@@ -54,7 +52,6 @@ class HypersphereMetric(RiemannianMetric):
         :param vector: (n+1)-dimensional vector
         :return riem_exp: a point on the n-dimensional sphere
         """
-        tangent_vec = self.projection_to_tangent_space(ref_point, vector)
         norm_tangent_vec = self.embedding_metric.riemannian_norm(tangent_vec)
 
         if norm_tangent_vec < epsilon:
@@ -139,11 +136,11 @@ class HypersphereMetric(RiemannianMetric):
         return riem_dist
 
 
-class HyperSphere(Manifold):
+class Hypersphere(Manifold):
     """Hypersphere embedded in Euclidean space."""
 
     def __init__(self, dimension):
-        Manifold.__init__(dimension)
+        Manifold.__init__(self, dimension)
         self.riemannian_metric = HypersphereMetric()
         self.embedding_metric = EuclideanMetric()
 

@@ -1,9 +1,9 @@
 """Computations on Lie groups."""
 
-import np
+import numpy as np
 
-import Manifold
-import RiemannianMetric
+from geomstats.base_manifolds import Manifold
+from geomstats.base_manifolds import RiemannianMetric
 
 
 class InvariantMetric(RiemannianMetric):
@@ -99,7 +99,7 @@ class InvariantMetric(RiemannianMetric):
 
         tangent_vec_translated_to_id = np.dot(inv_jacobian, tangent_vec)
 
-        exp_from_id = self.riemannian_exp_from_id(
+        exp_from_id = self.riemannian_exp_from_identity(
                                tangent_vec_translated_to_id)
 
         if self.left_or_right == 'left':
@@ -160,7 +160,7 @@ class InvariantMetric(RiemannianMetric):
                                    point,
                                    self.lie_group.inverse(ref_point))
 
-        log_from_id = self.riemannian_log_from_id(point_near_id)
+        log_from_id = self.riemannian_log_from_identity(point_near_id)
 
         jacobian = self.lie_group.jacobian_translation(
                                        ref_point,
@@ -174,9 +174,9 @@ class InvariantMetric(RiemannianMetric):
 class LieGroup(Manifold):
     """ Base class for Lie groups."""
 
-    def __init__(self, dimension):
-        Manifold.__init__(dimension)
-        self.identity = None
+    def __init__(self, dimension, identity):
+        Manifold.__init__(self, dimension)
+        self.identity = identity
         self.riemannian_metrics = []
 
     def compose(self, point_a, point_b):

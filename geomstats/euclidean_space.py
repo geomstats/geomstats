@@ -5,8 +5,8 @@ Computations on the n-dimensional Euclidean space.
 import numpy as np
 import math
 
-import Manifold
-import RiemannianMetric
+from geomstats.base_manifolds import Manifold
+from geomstats.base_manifolds import RiemannianMetric
 
 
 class EuclideanMetric(RiemannianMetric):
@@ -16,7 +16,7 @@ class EuclideanMetric(RiemannianMetric):
     The metric has signature (0, n) on the n-D vector space.
     """
 
-    def riemannian_inner_product(vector_a, vector_b):
+    def riemannian_inner_product(self, vector_a, vector_b):
         """Euclidean inner product."""
         return np.dot(vector_a, vector_b)
 
@@ -31,7 +31,7 @@ class EuclideanMetric(RiemannianMetric):
         Norm associated to the inner product,
         as the squared norm is always positive.
         """
-        sq_norm = self.riemannian_squared_norm(vector, vector)
+        sq_norm = self.riemannian_squared_norm(vector)
         norm = math.sqrt(sq_norm)
         return norm
 
