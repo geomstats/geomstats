@@ -67,21 +67,21 @@ class SpecialOrthogonalGroup(LieGroup):
         inverts the direction of the rotation axis.
 
         :param rot_vec: 3d vector
-        :returns regularized_rot_vec: 3d vector with: 0 < norm < pi
+        :returns self.regularized_rot_vec: 3d vector with: 0 < norm < pi
         """
         assert len(rot_vec) == 3
 
         rot_vec = np.array(rot_vec)
         angle = np.linalg.norm(rot_vec)
 
-        regularized_rot_vec = rot_vec
+        self.regularized_rot_vec = rot_vec
         if angle != 0:
             k = np.floor(angle / (2 * np.pi) + .5)
-            regularized_rot_vec = (1. - 2. * np.pi * k / angle) * rot_vec
+            self.regularized_rot_vec = (1. - 2. * np.pi * k / angle) * rot_vec
 
-        return regularized_rot_vec
+        return self.regularized_rot_vec
 
-    def rotation_vector_from_rotation_matrix(self, rot_mat, epsilon=1e-5):
+    def rotation_vector_from_matrix(self, rot_mat, epsilon=1e-5):
         """
         Convert rotation matrix to rotation vector
         (axis-angle representation).
@@ -136,9 +136,9 @@ class SpecialOrthogonalGroup(LieGroup):
             rot_vec = np.array([skew_rot_vec[2][1],
                                 skew_rot_vec[0][2],
                                 skew_rot_vec[1][0]])
-        return regularize(rot_vec)
+        return self.regularize(rot_vec)
 
-    def rotation_matrix_from_rotation_vector(self, rot_vec, epsilon=1e-5):
+    def matrix_from_rotation_vector(self, rot_vec, epsilon=1e-5):
         """
         Convert rotation vector to rotation matrix.
 
@@ -147,7 +147,7 @@ class SpecialOrthogonalGroup(LieGroup):
 
         """
         assert len(rot_vec) == 3
-        rot_vec = regularize(rot_vec)
+        rot_vec = self.regularize(rot_vec)
 
         angle = np.linalg.norm(rot_vec)
         skew_rot_vec = skew_matrix_from_vector(rot_vec)
@@ -163,23 +163,21 @@ class SpecialOrthogonalGroup(LieGroup):
                    + cos_angle * np.dot(skew_rot_vec, skew_rot_vec))
         return rot_mat
 
-
     def compose(self, rot_vec_1, rot_vec_2):
         """
         Compose 2 rotation vectors according to the matrix product
         on the corresponding matrices.
         """
-        rot_vec_1 = regularize(rot_vec_1)
-        rot_vec_2 = regularize(rot_vec_2)
+        rot_vec_1 = self.regularize(rot_vec_1)
+        rot_vec_2 = self.regularize(rot_vec_2)
 
-        rot_mat_1 = rotation_matrix_from_rotation_vector(rot_vec_1)
-        rot_mat_2 = rotation_matrix_from_rotation_vector(rot_vec_2)
+        rot_mat_1 = self.matrix_from_rotation_vector(rot_vec_1)
+        rot_mat_2 = self.matrix_from_rotation_vector(rot_vec_2)
 
         rot_mat_prod = np.matmul(rot_mat_1, rot_mat_2)
-        rot_vec_prod = rotation_vector_from_rotation_matrix(rot_mat_prod)
+        rot_vec_prod = self.rotation_vector_from_matrix(rot_mat_prod)
 
         return rot_vec_prod
-
 
     def jacobian_translation(self, rot_vec,
                              left_or_right='left', epsilon=1e-5):
@@ -192,7 +190,7 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         assert len(rot_vec) == 3
         assert left_or_right in ('left', 'right')
-        rot_vec = regularize(rot_vec)
+        rot_vec = self.regularize(rot_vec)
 
         angle = np.linalg.norm(rot_vec)
         if angle < epsilon:
@@ -216,39 +214,3 @@ class SpecialOrthogonalGroup(LieGroup):
                         - skew_matrix_from_vector(rot_vec) / 2)
 
         return jacobian
-
-
-    def riemannian_log(rot_vec,
-                       inner_product=ALGEBRA_CANONICAL_INNER_PRODUCT,
-                       left_or_right='left',
-                       ref_point=GROUP_IDENTITY):
-        """
-        Compute the Riemannian logarithm at point ref_point,
-        of point rot_vec wrt the metric obtained by left/right
-        translation of the inner product inner_product at
-        the Lie algebra.
-
-        This gives a tangent vector at point ref_point.
-
-        :param rot_vec: 3D rotation vector
-        :param ref_point: 3D rotation vector
-        :returns rot_vec_log: 3D rotation vector, tangent vector at ref_point
-        """
-        assert len(rot_vec) == 3 & len(ref_point) == 3
-        assert left_or_right in ('left', 'right')
-        rot_vec = regularize(rot_vec)
-        ref_point = regularize(ref_point)
-
-        if left_or_right == 'left':
-            rot_mat_ref_inv = rotation_matrix_from_rotation_vector(-ref_point)
-            rot_mat = rotation_matrix_from_rotation_vector(rot_vec)
-            rot_mat_prod = np.matmul(rot_mat_ref_inv, rot_mat)
-            rot_vec_translated = rotation_vector_from_rotation_matrix(rot_mat_prod)
-
-            jacobian = jacobian_translation(ref_point, left_or_right='left')
-            rot_vec_log = np.dot(jacobian, rot_vec_translated)
-
-        else:
-            raise NotImplementedError()
-
-        return rot_vec_log

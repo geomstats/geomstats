@@ -6,7 +6,9 @@ import numpy as np
 import geomstats.EuclideanSpace as EuclideanSpace
 import geomstats.LieGroup as LieGroup
 import geomstats.SpecialOrthogonalGroup as SpecialOrthogonalGroup
+import geomstats.special_orthogonal_group as so_group
 
+EPSILON = 1e-5
 ALGEBRA_CANONICAL_INNER_PRODUCT = np.eye(6)
 
 
@@ -39,11 +41,11 @@ class SpecialEuclideanGroup(LieGroup):
         """
         Regularize an element of the group SE(3),
         by extracting the rotation vector r from the input [r t]
-        and using rotations.regularize.
+        and using rotations.self.regularize.
 
         :param transfo: 6d vector, element in SE(3) represented as [r t].
-        :returns regularized_transfo: 6d vector, element in SE(3)
-        with regularized rotation.
+        :returns self.regularized_transfo: 6d vector, element in SE(3)
+        with self.regularized rotation.
         """
 
         regularized_transfo = transfo
@@ -52,7 +54,7 @@ class SpecialEuclideanGroup(LieGroup):
 
         return regularized_transfo
 
-    def inverse(transfo):
+    def inverse(self, transfo):
         """
         Compute the group inverse in SE(3).
 
@@ -63,21 +65,20 @@ class SpecialEuclideanGroup(LieGroup):
         :returns inverse_transfo: 6d vector inverse of transfo
         """
 
-        transfo = regularize(transfo)
+        transfo = self.regularize(transfo)
 
         rot_vec = transfo[0:3]
         translation = transfo[3:6]
 
         inverse_transfo = np.zeros(6)
         inverse_transfo[0:3] = -rot_vec
-        rot_mat = rotations.rotation_matrix_from_rotation_vector(-rot_vec)
+        rot_mat = self.rotations.matrix_from_rotation_vector(-rot_vec)
         inverse_transfo[3:6] = np.dot(rot_mat, -translation)
 
-        inverse_transfo = regularize(inverse_transfo)
+        inverse_transfo = self.regularize(inverse_transfo)
         return inverse_transfo
 
-
-    def compose(transfo_1, transfo_2):
+    def compose(self, transfo_1, transfo_2):
         """
         Compose two elements of group SE(3).
 
@@ -90,11 +91,13 @@ class SpecialEuclideanGroup(LieGroup):
         :param transfo_1, transfo_2: 6d vectors elements of SE(3)
         :returns prod_transfo: composition of transfo_1 and transfo_2
         """
-        rot_mat_1 = rotations.rotation_matrix_from_rotation_vector(transfo_1[0:3])
-        rot_mat_1 = rotations.closest_rotation_matrix(rot_mat_1)
+        rot_mat_1 = self.rotations.matrix_from_rotation_vector(
+                                                              transfo_1[0:3])
+        rot_mat_1 = self.rotations.closest_rotation_matrix(rot_mat_1)
 
-        rot_mat_2 = rotations.rotation_matrix_from_rotation_vector(transfo_2[0:3])
-        rot_mat_2 = rotations.closest_rotation_matrix(rot_mat_2)
+        rot_mat_2 = self.rotations.matrix_from_rotation_vector(
+                                                              transfo_2[0:3])
+        rot_mat_2 = self.rotations.closest_rotation_matrix(rot_mat_2)
 
         translation_1 = transfo_1[3:6]
         translation_2 = transfo_2[3:6]
@@ -102,15 +105,14 @@ class SpecialEuclideanGroup(LieGroup):
         prod_transfo = np.zeros(6)
         prod_rot_mat = np.dot(rot_mat_1, rot_mat_2)
 
-        prod_transfo[0:3] = rotations.rotation_vector_from_rotation_matrix(
-                prod_rot_mat)
+        prod_transfo[:3] = self.rotations.rotation_vector_from_matrix(
+                                                                  prod_rot_mat)
         prod_transfo[3:6] = np.dot(rot_mat_1, translation_2) + translation_1
 
-        prod_transfo = regularize(prod_transfo)
+        prod_transfo = self.regularize(prod_transfo)
         return prod_transfo
 
-
-    def jacobian_translation(transfo, left_or_right='left'):
+    def jacobian_translation(self, transfo, left_or_right='left'):
         """
         Compute the jacobian matrix of the differential
         of the left/right translations
@@ -122,7 +124,7 @@ class SpecialEuclideanGroup(LieGroup):
         assert len(transfo) == 6
         assert left_or_right in ('left', 'right')
 
-        transfo = regularize(transfo)
+        transfo = self.regularize(transfo)
 
         rot_vec = transfo[0:3]
         translation = transfo[3:6]
@@ -130,27 +132,29 @@ class SpecialEuclideanGroup(LieGroup):
         jacobian = np.zeros((6, 6))
 
         if left_or_right == 'left':
-            jacobian_rot = rotations.jacobian_translation(rot_vec,
-                                                          left_or_right='left')
-            jacobian_trans = rotations.rotation_matrix_from_rotation_vector(
+            jacobian_rot = self.rotations.jacobian_translation(
+                                                      rot_vec,
+                                                      left_or_right='left')
+            jacobian_trans = self.rotations.matrix_from_rotation_vector(
                     rot_vec)
 
             jacobian[:3, :3] = jacobian_rot
             jacobian[3:, 3:] = jacobian_trans
 
         else:
-            jacobian_rot = rotations.jacobian_translation(rot_vec,
-                                                          left_or_right='right')
+            jacobian_rot = self.rotations.jacobian_translation(
+                                                      rot_vec,
+                                                      left_or_right='right')
             jacobian[:3, :3] = jacobian_rot
-            jacobian[3:, :3] = -rotations.skew_matrix_from_vector(translation)
+            jacobian[3:, :3] = - so_group.skew_matrix_from_vector(translation)
             jacobian[3:, 3:] = np.eye(3)
 
         return jacobian
 
-
-    def group_exp(tangent_vector,
-                  ref_point=GROUP_IDENTITY,
-                  epsilon=1e-5):
+    def group_exp(self,
+                  tangent_vector,
+                  ref_point,
+                  epsilon=EPSILON):
         """
         Compute the group exponential of vector tangent_vector,
         at point ref_point.
@@ -159,9 +163,9 @@ class SpecialEuclideanGroup(LieGroup):
         :param ref_point: 6d vector element of SE(3).
         :returns group_exp_transfo: 6d vector element of SE(3).
         """
-        tangent_vector = regularize(tangent_vector)
+        tangent_vector = self.regularize(tangent_vector)
 
-        if ref_point is GROUP_IDENTITY:
+        if ref_point is self.identity:
             rot_vec = tangent_vector[0:3]
             translation = tangent_vector[3:6]  # this is dt
             angle = np.linalg.norm(rot_vec)
@@ -169,7 +173,7 @@ class SpecialEuclideanGroup(LieGroup):
             group_exp_transfo = np.zeros(6)
             group_exp_transfo[0:3] = rot_vec
 
-            skew_mat = rotations.skew_matrix_from_vector(rot_vec)
+            skew_mat = so_group.skew_matrix_from_vector(rot_vec)
 
             if angle == 0:
                 coef_1 = 0
@@ -183,26 +187,30 @@ class SpecialEuclideanGroup(LieGroup):
 
             sq_skew_mat = np.dot(skew_mat, skew_mat)
             group_exp_transfo[3:6] = (translation
-                                      + coef_1 * np.dot(skew_mat, translation)
-                                      + coef_2 * np.dot(sq_skew_mat, translation))
+                                      + coef_1 * np.dot(skew_mat,
+                                                        translation)
+                                      + coef_2 * np.dot(sq_skew_mat,
+                                                        translation))
 
         else:
-            ref_point = regularize(ref_point)
+            ref_point = self.regularize(ref_point)
 
-            jacobian = jacobian_translation(ref_point, left_or_right='left')
+            jacobian = self.jacobian_translation(ref_point,
+                                                 left_or_right='left')
             inv_jacobian = np.linalg.inv(jacobian)
 
             tangent_vector_at_identity = np.dot(inv_jacobian, tangent_vector)
-            group_exp_from_identity = group_exp(tangent_vector_at_identity)
+            group_exp_from_identity = self.group_exp(
+                                                  tangent_vector_at_identity)
 
-            group_exp_transfo = compose(ref_point, group_exp_from_identity)
+            group_exp_transfo = self.compose(ref_point,
+                                             group_exp_from_identity)
 
-        return regularize(group_exp_transfo)
+        return self.regularize(group_exp_transfo)
 
-
-    def group_log(transfo,
-                  ref_point=GROUP_IDENTITY,
-                  epsilon=1e-5):
+    def group_log(self, transfo,
+                  ref_point,
+                  epsilon=EPSILON):
         """
         Compute the group logarithm of point transfo,
         from point ref_point.
@@ -213,15 +221,15 @@ class SpecialEuclideanGroup(LieGroup):
         :returns tangent vector: 6d tangent vector at ref_point.
         """
 
-        transfo = regularize(transfo)
-        if ref_point is GROUP_IDENTITY:
+        transfo = self.regularize(transfo)
+        if ref_point is self.identity:
             rot_vec = transfo[0:3]
             angle = np.linalg.norm(rot_vec)
             translation = transfo[3:6]
 
             tangent_vector = np.zeros(6)
             tangent_vector[0:3] = rot_vec
-            skew_rot_vec = rotations.skew_matrix_from_vector(rot_vec)
+            skew_rot_vec = so_group.skew_matrix_from_vector(rot_vec)
             sq_skew_rot_vec = np.dot(skew_rot_vec, skew_rot_vec)
 
             if angle == 0:
@@ -243,19 +251,20 @@ class SpecialEuclideanGroup(LieGroup):
                                    + coef_2 * np.dot(sq_skew_rot_vec,
                                                      translation))
         else:
-            ref_point = regularize(ref_point)
-            jacobian = jacobian_translation(ref_point, left_or_right='left')
-            transfo_near_id = compose(inverse(ref_point), transfo)
-            tangent_vector_from_id = group_log(transfo_near_id)
+            ref_point = self.regularize(ref_point)
+            jacobian = self.jacobiance_translation(ref_point,
+                                                   left_or_right='left')
+            transfo_near_id = self.compose(self.inverse(ref_point), transfo)
+            tangent_vector_from_id = self.group_log(transfo_near_id)
             tangent_vector = np.dot(jacobian, tangent_vector_from_id)
 
         return tangent_vector
 
-
-    def square_riemannian_norm(tangent_vector,
+    def square_riemannian_norm(self,
+                               ref_point,
+                               tangent_vector,
                                left_or_right='left_or_right',
-                               inner_product=ALGEBRA_CANONICAL_INNER_PRODUCT,
-                               ref_point=GROUP_IDENTITY):
+                               metric_matrix=ALGEBRA_CANONICAL_INNER_PRODUCT):
         """
         Compute the square norm of a tangent vector,
         using the riemannian metric at ref_point
@@ -273,12 +282,12 @@ class SpecialEuclideanGroup(LieGroup):
         assert len(tangent_vector) == 6 & len(ref_point) == 6
         assert left_or_right in ('left', 'right')
 
-        tangent_vector = regularize(tangent_vector)
-        ref_point = regularize(ref_point)
+        tangent_vector = self.regularize(tangent_vector)
+        ref_point = self.regularize(ref_point)
 
         riem_metric_mat = metric_matrix(ref_point=ref_point,
-                                            inner_product=inner_product,
-                                            left_or_right=left_or_right)
+                                        inner_product=metric_matrix,
+                                        left_or_right=left_or_right)
         sq_riem_norm = np.dot(np.dot(tangent_vector.transpose(),
                                      riem_metric_mat),
                               tangent_vector)
@@ -293,7 +302,7 @@ class SpecialEuclideanGroup(LieGroup):
         :returns random transfo: 6d vector element of SE(3)
         """
         random_rot_vec = np.random.rand(3) * 2 - 1
-        random_rot_vec = rotations.regularize(random_rot_vec)
+        random_rot_vec = rotations.self.regularize(random_rot_vec)
         random_translation = np.random.rand(3) * 2 - 1
 
         random_transfo = np.concatenate([random_rot_vec, random_translation])
@@ -309,7 +318,7 @@ class SpecialEuclideanGroup(LieGroup):
         :returns exponential_mat: 3x3 matrix
         """
 
-        rot_vec = rotations.regularize(rot_vec)
+        rot_vec = rotations.self.regularize(rot_vec)
 
         angle = np.linalg.norm(rot_vec)
         skew_rot_vec = rotations.skew_matrix_from_vector(rot_vec)
@@ -359,13 +368,13 @@ class SpecialEuclideanGroup(LieGroup):
             translation_i = translations[i, :]
             weight_i = weights[i]
 
-            inv_rot_mat_i = rotations.rotation_matrix_from_rotation_vector(
+            inv_rot_mat_i = rotations.matrix_from_rotation_vector(
                     -rot_vec_i)
-            mean_rotation_mat = rotations.rotation_matrix_from_rotation_vector(
+            mean_rotation_mat = rotations.matrix_from_rotation_vector(
                     mean_rotation)
 
             matrix_aux = np.dot(mean_rotation_mat, inv_rot_mat_i)
-            vec_aux = rotations.rotation_vector_from_rotation_matrix(matrix_aux)
+            vec_aux = rotations.rotation_vector_from_matrix(matrix_aux)
             matrix_aux = exponential_matrix(vec_aux)
             matrix_aux = np.linalg.inv(matrix_aux)
 
