@@ -11,7 +11,9 @@ NB: we use "riemannian" to refer to "pseudo-riemannian".
 import math
 import numpy as np
 
-import RiemannianManifold
+import Manifold
+import MinkowskiMetric
+import RiemannianMetric
 
 EPSILON = 1e-6
 TOLERANCE = 1e-12
@@ -36,59 +38,10 @@ INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
                           0., -1. / 4725.]
 
 
-def embedding_inner_product(vector_a, vector_b):
-    """Minkowski inner product."""
-    return np.dot(vector_a, vector_b) - 2 * vector_a[0] * vector_b[0]
+class HyperbolicMetric(RiemannianMetric):
 
-
-def embedding_squared_norm(vector):
-    """Minkowski norm."""
-    return embedding_inner_product(vector, vector)
-
-
-class HyperbolicSpace(RiemannianManifold):
-
-    def belongs(self, point, tolerance=TOLERANCE):
-        """
-        By definition, points on the Hyperbolic space
-        are points of Minkowski norm -1.
-        Note: point must be given in extrinsic coordinates.
-        """
-        assert abs(embedding_squared_norm(point) + 1) < tolerance
-
-    def intrinsic_to_extrinsic_coords(self, point_intrinsic):
-        """
-        From the intrinsic coordinates in the hyperbolic space,
-        to the extrinsic coordinates in Minkowski space.
-        """
-        dimension = len(point_intrinsic)
-        point_extrinsic = np.zeros(dimension + 1, 'float')
-        point_extrinsic[1: dimension + 1] = point_intrinsic[0: dimension]
-        point_extrinsic[0] = np.sqrt(1. + np.dot(point_intrinsic,
-                                                 point_intrinsic))
-        return point_extrinsic
-
-    def extrinsic_to_intrinsic_coords(self, point_extrinsic):
-        """
-        From the extrinsic coordinates in Minkowski space,
-        to the extrinsic coordinates in Hyperbolic space.
-        """
-        assert self.belongs(point_extrinsic)
-
-        return point_extrinsic[1:]
-
-    def projection_to_tangent_space(self, ref_point, vector):
-        """
-         Project the vector vector onto the tangent space at ref_point
-         T_{ref_point}H = { w s.t. embedding_inner_product(ref_point, w) = 0 }
-        """
-        assert self.belongs(ref_point)
-
-        inner_prod = embedding_inner_product(ref_point, vector)
-        sq_norm_ref_point = embedding_squared_norm(ref_point)
-
-        tangent_vec = vector - inner_prod * ref_point / sq_norm_ref_point
-        return tangent_vec
+    def __init__(self):
+        self.embedding_metric = MinkowskiMetric()
 
     def riemannian_exp(self, ref_point, vector, epsilon=EPSILON):
         """
@@ -102,10 +55,10 @@ class HyperbolicSpace(RiemannianManifold):
         :param vector: vector
         :returns riem_exp: a point on the hyperbolic space
         """
-        assert self.belongs(ref_point)
-
         tangent_vec = self.projection_to_tangent_space(ref_point, vector)
-        norm_tangent_vec = math.sqrt(embedding_squared_norm(tangent_vec))
+        sq_norm_tangent_vec = self.embedding_metric.riemannian_squared_norm(
+                tangent_vec)
+        norm_tangent_vec = math.sqrt(sq_norm_tangent_vec)
 
         if norm_tangent_vec < epsilon:
             coef_1 = (1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
@@ -136,9 +89,6 @@ class HyperbolicSpace(RiemannianManifold):
         :param point: point on the hyperbolic space
         :returns riem_log: tangent vector at ref_point
         """
-        assert self.belongs(ref_point)
-        assert self.belongs(point)
-
         angle = self.riemannian_dist(ref_point, point)
         if angle < epsilon:
             coef_1 = (1. + INV_SINH_TAYLOR_COEFFS[1] * angle ** 2
@@ -160,12 +110,11 @@ class HyperbolicSpace(RiemannianManifold):
         of point wrt the metric obtained by
         embedding of the hyperbolic space in the minkowski space.
         """
-        assert self.belongs(point_a)
-        assert self.belongs(point_b)
-
-        sq_norm_a = embedding_squared_norm(point_a)
-        sq_norm_b = embedding_squared_norm(point_b)
-        inner_prod = embedding_inner_product(point_a, point_b)
+        sq_norm_a = self.embedding_metric.riemannian_squared_norm(point_a)
+        sq_norm_b = self.embedding_metric.riemannian_squared_norm(point_b)
+        inner_prod = self.embedding_metric.riemannian_inner_product(
+                point_a,
+                point_b)
 
         cosh_angle = - inner_prod / math.sqrt(sq_norm_a * sq_norm_b)
 
@@ -173,6 +122,60 @@ class HyperbolicSpace(RiemannianManifold):
             return 0.
 
         return np.arccosh(cosh_angle)
+
+
+class HyperbolicSpace(Manifold):
+
+    def __init__(self, dimension):
+        Manifold.__init__(dimension)
+        self.riemannian_metric = HyperbolicMetric()
+        self.embedding_metric = MinkowskiMetric()
+
+    def belongs(self, point, tolerance=TOLERANCE):
+        """
+        By definition, a point on the Hyperbolic space
+        has Minkowski squared norm -1.
+        Note: point must be given in extrinsic coordinates.
+        """
+        sq_norm = self.embedding_metric.riemannian_squared_norm(point)
+        assert abs(sq_norm + 1) < tolerance
+
+    def intrinsic_to_extrinsic_coords(self, point_intrinsic):
+        """
+        From the intrinsic coordinates in the hyperbolic space,
+        to the extrinsic coordinates in Minkowski space.
+        """
+        dimension = len(point_intrinsic)
+        point_extrinsic = np.zeros(dimension + 1, 'float')
+        point_extrinsic[1: dimension + 1] = point_intrinsic[0: dimension]
+        point_extrinsic[0] = np.sqrt(1. + np.dot(point_intrinsic,
+                                                 point_intrinsic))
+        return point_extrinsic
+
+    def extrinsic_to_intrinsic_coords(self, point_extrinsic):
+        """
+        From the extrinsic coordinates in Minkowski space,
+        to the extrinsic coordinates in Hyperbolic space.
+        """
+        assert self.belongs(point_extrinsic)
+
+        return point_extrinsic[1:]
+
+    def projection_to_tangent_space(self, ref_point, vector):
+        """
+         Project the vector vector onto the tangent space at ref_point
+         T_{ref_point}H = { w s.t. embedding_inner_product(ref_point, w) = 0 }
+        """
+        assert self.belongs(ref_point)
+
+        inner_prod = self.embedding_metric.riemannian_inner_product(
+                ref_point,
+                vector)
+        sq_norm_ref_point = self.embedding_metric.riemannian_squared_norm(
+                ref_point)
+
+        tangent_vec = vector - inner_prod * ref_point / sq_norm_ref_point
+        return tangent_vec
 
     def random_uniform(self, dimension, max_norm):
         """

@@ -6,7 +6,12 @@ embedded in the (n+1)-dimensional Euclidean space.
 import numpy as np
 import math
 
-import RiemannianManifold
+import EuclideanSpace
+import EuclideanMetric
+
+import Manifold
+import RiemannianMetric
+
 
 EPSILON = 1e-6
 TOLERANCE = 1e-12
@@ -31,35 +36,10 @@ INV_TAN_TAYLOR_COEFFS = [0., - 1. / 3.,
                          0., -1. / 4725.]
 
 
-def embedding_inner_product(vector_a, vector_b):
-    """Euclidean inner product."""
-    return np.dot(vector_a, vector_b)
+class HypersphereMetric(RiemannianMetric):
 
-
-def embedding_squared_norm(vector):
-    """Euclidean norm."""
-    return np.linalg.norm(vector)
-
-
-class HyperSphere(RiemannianManifold):
-
-    def belongs(self, point, tolerance=TOLERANCE):
-        """
-        By definition, a point on the hypersphere has norm 1
-        in the embedding Euclidean space.
-        """
-        assert abs(np.linalg.norm(point) - 1) < tolerance
-
-    def projection_to_tangent_space(self, ref_point, vector):
-        """
-        Project the vector vector onto the tangent space:
-        T_{ref_point} S = {w | scal(w, ref_point) = 0}
-        """
-        assert self.belongs(ref_point)
-
-        sq_norm = np.dot(ref_point, ref_point)
-        tangent_vec = vector - np.dot(ref_point, vector) / sq_norm * ref_point
-        return tangent_vec
+    def __init__(self):
+        self.embedding_metric = EuclideanMetric()
 
     def riemannian_exp(self, ref_point, vector, epsilon=EPSILON):
         """
@@ -74,10 +54,8 @@ class HyperSphere(RiemannianManifold):
         :param vector: (n+1)-dimensional vector
         :return riem_exp: a point on the n-dimensional sphere
         """
-        assert self.belongs(ref_point)
-
         tangent_vec = self.projection_to_tangent_space(ref_point, vector)
-        norm_tangent_vec = np.linalg.norm(tangent_vec)
+        norm_tangent_vec = self.embedding_metric.riemannian_norm(tangent_vec)
 
         if norm_tangent_vec < epsilon:
             coef_1 = (1. + COS_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
@@ -109,13 +87,11 @@ class HyperSphere(RiemannianManifold):
         :param point: point on the n-dimensional sphere
         :return riem_log: tangent vector at ref_point
         """
-        assert self.belongs(ref_point)
-        assert self.belongs(point)
-
-        norm_ref_point = np.linalg.norm(ref_point)
-        norm_point = np.linalg.norm(point)
-
-        cos_angle = np.dot(ref_point, point) / (norm_ref_point * norm_point)
+        norm_ref_point = self.embedding_metric.riemannian_norm(ref_point)
+        norm_point = self.embedding_metric.riemannian_norm(point)
+        inner_prod = self.embedding_metric.riemannian_inner_product(ref_point,
+                                                                    point)
+        cos_angle = inner_prod / (norm_ref_point * norm_point)
         if cos_angle >= 1.:
             angle = 0.
         else:
@@ -144,16 +120,15 @@ class HyperSphere(RiemannianManifold):
         point_a and point_b.
         """
         # TODO(nina): case np.dot(unit_vec, unit_vec) != 1
-        assert self.belongs(point_a)
-        assert self.belongs(point_b)
-
         if np.all(point_a == point_b):
             return 0.
 
-        point_a = point_a / np.linalg.norm(point_a)
-        point_b = point_b / np.linalg.norm(point_b)
+        norm_a = self.embedding_metric.riemannian_norm(point_a)
+        norm_b = self.embedding_metric.riemannian_norm(point_b)
+        inner_prod = self.embedding_metric.riemannian_inner_product(point_a,
+                                                                    point_b)
 
-        cos_angle = np.dot(point_a, point_b)
+        cos_angle = inner_prod / (norm_a * norm_b)
         if cos_angle >= 1.:
             riem_dist = 0.
         elif cos_angle <= -1.:
@@ -162,3 +137,35 @@ class HyperSphere(RiemannianManifold):
             riem_dist = np.arccos(cos_angle)
 
         return riem_dist
+
+
+class HyperSphere(Manifold):
+    """Hypersphere embedded in Euclidean space."""
+
+    def __init__(self, dimension):
+        Manifold.__init__(dimension)
+        self.riemannian_metric = HypersphereMetric()
+        self.embedding_metric = EuclideanMetric()
+
+    def belongs(self, point, tolerance=TOLERANCE):
+        """
+        By definition, a point on the hypersphere has squared norm 1
+        in the embedding Euclidean space.
+        Note: point must be given in extrinsic coordinates.
+        """
+        sq_norm = self.embedding_metric.riemannian_squared_norm(point)
+        assert abs(sq_norm - 1) < tolerance
+
+    def projection_to_tangent_space(self, ref_point, vector):
+        """
+        Project the vector vector onto the tangent space:
+        T_{ref_point} S = {w | scal(w, ref_point) = 0}
+        """
+        assert self.belongs(ref_point)
+
+        sq_norm = self.embedding_metric.riemannian_squared_norm(ref_point)
+        inner_prod = self.embedding_metric.riemannian_inner_product(ref_point,
+                                                                    vector)
+        tangent_vec = (vector - inner_prod / sq_norm * ref_point)
+
+        return tangent_vec
