@@ -40,5 +40,5 @@ class EuclideanSpace(Manifold):
     """The Euclidean space."""
 
     def __init__(self, dimension):
-        Manifold.__init__(dimension)
+        Manifold.__init__(self, dimension)
         self.riemannian_metric = EuclideanMetric()

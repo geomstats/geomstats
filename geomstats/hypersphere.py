@@ -151,7 +151,7 @@ class Hypersphere(Manifold):
         Note: point must be given in extrinsic coordinates.
         """
         sq_norm = self.embedding_metric.riemannian_squared_norm(point)
-        assert abs(sq_norm - 1) < tolerance
+        return abs(sq_norm - 1) < tolerance
 
     def projection_to_tangent_space(self, ref_point, vector):
         """

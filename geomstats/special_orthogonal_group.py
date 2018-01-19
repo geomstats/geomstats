@@ -58,7 +58,7 @@ class SpecialOrthogonalGroup(LieGroup):
 
         LieGroup.__init__(self,
                           dimension=dimension,
-                          identity=np.array([0., 0., 0.]))
+                          identity=np.zeros(3))
         self.canonical_metric = InvariantMetric(
                 self,
                 ALGEBRA_CANONICAL_INNER_PRODUCT)

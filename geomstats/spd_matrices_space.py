@@ -28,6 +28,44 @@ def make_symmetric(mat):
     return (mat + mat.transpose()) / 2
 
 
+# TODO(nina): The manifold of sym matrices is not a Lie group.
+# Use 'group_exp' and 'group_log'?
+def group_exp(sym_mat):
+    """
+    Group exponential of the Lie group of
+    all invertible matrices has a straight-forward
+    computation for symmetric positive definite matrices.
+    """
+    assert is_symmetric(sym_mat)
+    sym_mat = make_symmetric(sym_mat)
+
+    [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
+
+    diag_exp = np.diag(np.exp(eigenvalues))
+    exp = np.dot(np.dot(vectors, diag_exp), vectors.transpose())
+
+    return(exp)
+
+
+def group_log(sym_mat):
+    """
+    Group logarithm of the Lie group of
+    all invertible matrices has a straight-forward
+    computation for symmetric positive definite matrices.
+    """
+    assert is_symmetric(sym_mat)
+    sym_mat = make_symmetric(sym_mat)
+
+    [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
+
+    assert np.all(eigenvalues > 0)
+
+    diag_log = np.diag(np.log(eigenvalues))
+    log = np.dot(np.dot(vectors, diag_log), vectors.transpose())
+
+    return log
+
+
 class SPDMetric(RiemannianMetric):
     def riemannian_inner_product(self, ref_point,
                                  tangent_vec_a, tangent_vec_b):
@@ -60,7 +98,7 @@ class SPDMetric(RiemannianMetric):
         tangent_vec_at_id = np.dot(np.dot(inv_sqrt_ref_point,
                                           tangent_vec),
                                    inv_sqrt_ref_point)
-        riem_exp_from_id = self.group_exp(tangent_vec_at_id)
+        riem_exp_from_id = group_exp(tangent_vec_at_id)
 
         riem_exp = np.dot(sqrt_ref_point,
                           np.dot(riem_exp_from_id,
@@ -76,16 +114,13 @@ class SPDMetric(RiemannianMetric):
 
         This gives a tangent vector at point ref_point.
         """
-        assert self.belongs(ref_point)
-        assert self.belongs(point)
-
         sqrt_ref_point = scipy.linalg.sqrtm(ref_point)
         inv_sqrt_ref_point = np.linalg.inv(sqrt_ref_point)
 
         point_near_id = np.dot(np.dot(inv_sqrt_ref_point,
                                       point),
                                inv_sqrt_ref_point)
-        riem_log_at_id = self.group_log(point_near_id)
+        riem_log_at_id = group_log(point_near_id)
 
         riem_log = np.dot(np.dot(sqrt_ref_point,
                                  riem_log_at_id),
@@ -137,7 +172,7 @@ class SPDMetric(RiemannianMetric):
 
 class SPDMatricesSpace(Manifold):
     def __init__(self, dimension):
-        Manifold.__init__(dimension)
+        Manifold.__init__(self, dimension)
         self.riemannian_metric = SPDMetric()
 
     def belongs(self, mat, tolerance=TOLERANCE):
@@ -149,42 +184,6 @@ class SPDMatricesSpace(Manifold):
             eigenvalues = np.linalg.eigvalsh(mat)
             return np.all(eigenvalues > 0)
         return False
-
-    # TODO(nina): The manifold of sym matrices is not a Lie group.
-    # Use 'group_exp' and 'group_log'?
-    def group_exp(self, sym_mat):
-        """
-        Group exponential of the Lie group of
-        all invertible matrices has a straight-forward
-        computation for symmetric positive definite matrices.
-        """
-        assert is_symmetric(sym_mat)
-        sym_mat = make_symmetric(sym_mat)
-
-        [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
-
-        diag_exp = np.diag(np.exp(eigenvalues))
-        exp = np.dot(np.dot(vectors, diag_exp), vectors.transpose())
-
-        return(exp)
-
-    def group_log(self, sym_mat):
-        """
-        Group logarithm of the Lie group of
-        all invertible matrices has a straight-forward
-        computation for symmetric positive definite matrices.
-        """
-        assert is_symmetric(sym_mat)
-        sym_mat = make_symmetric(sym_mat)
-
-        [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
-
-        assert np.all(eigenvalues > 0)
-
-        diag_log = np.diag(np.log(eigenvalues))
-        log = np.dot(np.dot(vectors, diag_log), vectors.transpose())
-
-        return log
 
     def matrix_to_vector(self, matrix):
         """

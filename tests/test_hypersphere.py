@@ -1,4 +1,4 @@
-"""Unit tests for sphere module."""
+"""Unit tests for hypersphere module."""
 
 from geomstats.hypersphere import HypersphereMetric
 from geomstats.hypersphere import Hypersphere

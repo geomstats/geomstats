@@ -1,4 +1,4 @@
-"""Unit tests for rotations module."""
+"""Unit tests for special orthogonal group module."""
 
 import numpy as np
 import unittest

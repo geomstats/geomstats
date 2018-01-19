@@ -138,7 +138,7 @@ class HyperbolicSpace(Manifold):
         Note: point must be given in extrinsic coordinates.
         """
         sq_norm = self.embedding_metric.riemannian_squared_norm(point)
-        assert abs(sq_norm + 1) < tolerance
+        return abs(sq_norm + 1.) < tolerance
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """
