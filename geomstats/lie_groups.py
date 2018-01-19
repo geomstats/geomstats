@@ -17,25 +17,20 @@ class InvariantMetric(RiemannianMetric):
     their Riemannian logarithm for the canonical left-invariant metric.
     """
 
-    def __init__(self, lie_group, metric_matrix_at_identity,
+    def __init__(self, lie_group, inner_product_mat_at_identity,
                  left_or_right='left'):
-        matrix_shape = metric_matrix_at_identity.shape
+        matrix_shape = inner_product_mat_at_identity.shape
         assert matrix_shape == (lie_group.dimension, lie_group.dimension)
         assert left_or_right in ('left', 'right')
 
         self.lie_group = lie_group
-        self.metric_matrix_at_identity = metric_matrix_at_identity
+        self.inner_product_mat_at_identity = inner_product_mat_at_identity
         self.left_or_right = left_or_right
 
-    def metric_matrix(self, ref_point):
+    def riemannian_inner_product_matrix(self, ref_point):
         """
-        Compute the 6x6 matrix of the Riemmanian metric at point ref_point,
+        Compute the matrix of the Riemmanian metric at point ref_point,
         by translating inner_product from the identity to ref_point.
-
-        :param ref_point: 6D vector element of SE(3)
-        :param inner_product: 6x6 matrix of inner product at the identity
-        :param left_or_right: left/right translation of the inner product
-        :returns metric_mat: 6x6 matrix of Riemannian metric at ref_point
         """
         ref_point = self.lie_group.regularize(ref_point)
 
@@ -47,7 +42,7 @@ class InvariantMetric(RiemannianMetric):
         inv_jacobian_transposed = np.linalg.inv(jacobian.transpose())
 
         metric_mat = np.dot(inv_jacobian_transposed,
-                            self.metric_matrix_at_identity)
+                            self.riemannian_inner_product_matrix_at_identity)
         metric_mat = np.dot(metric_mat, inv_jacobian)
 
         return metric_mat
@@ -61,7 +56,7 @@ class InvariantMetric(RiemannianMetric):
         left Riemannian exponential of the canonical metric parameterizes
         the points.
         """
-        riem_exp = np.dot(self.metric_matrix_at_identity,
+        riem_exp = np.dot(self.inner_product_mat_at_identity,
                           tangent_vec)
 
         riem_exp = self.lie_group.regularize(riem_exp)
@@ -120,8 +115,10 @@ class InvariantMetric(RiemannianMetric):
         left Riemannian logarithm of the canonical metric parameterizes
         the points.
         """
-        inv_metric_matrix = np.linalg.inv(self.metric_matrix_at_identity)
-        riem_log = np.dot(inv_metric_matrix, point)
+        inner_prod_mat = self.inner_product_mat_at_identity
+        inv_inner_prod_mat = np.linalg.inv(inner_prod_mat)
+
+        riem_log = np.dot(inv_inner_prod_mat, point)
 
         riem_log = self.lie_group.regularize(riem_log)
         return riem_log

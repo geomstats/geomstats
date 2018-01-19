@@ -32,6 +32,12 @@ class RiemannianMetric(object):
     """
     Base class for (pseudo-/sub-) Riemannian metrics.
     """
+    def riemannian_inner_product_matrix(self, ref_point):
+        """
+        Compute the matrix of the Riemmanian metric at point ref_point.
+        """
+        raise NotImplementedError(
+                'The computation of the metric matrix is not implemented.')
 
     def riemannian_inner_product(self, ref_point,
                                  tangent_vec_a, tangent_vec_b):
@@ -39,8 +45,10 @@ class RiemannianMetric(object):
         Compute the inner product at point ref_point
         between tangent vectors tangent_vec_a and tangent_vec_b.
         """
-        raise NotImplementedError(
-                'The Riemannian inner product is not implemented.')
+        inner_prod_mat = self.riemannian_inner_product_matrix(ref_point)
+        inner_prod = np.dot(np.dot(tangent_vec_a.transpose(), inner_prod_mat),
+                            tangent_vec_b)
+        return inner_prod
 
     def riemannian_squared_norm(self, ref_point, vector):
         """

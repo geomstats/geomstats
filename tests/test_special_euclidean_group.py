@@ -10,30 +10,19 @@ from geomstats.special_euclidean_group import SpecialEuclideanGroup
 class TestSpecialEuclideanGroupMethods(unittest.TestCase):
     DIMENSION = 6
     GROUP = SpecialEuclideanGroup(dimension=DIMENSION)
-    ALGEBRA_CANONICAL_INNER_PRODUCT = np.eye(6)
 
-    LEFT_CANONICAL_METRIC = InvariantMetric(
-                lie_group=GROUP,
-                metric_matrix_at_identity=ALGEBRA_CANONICAL_INNER_PRODUCT,
-                left_or_right='left')
-
-    RIGHT_CANONICAL_METRIC = InvariantMetric(
-                lie_group=GROUP,
-                metric_matrix_at_identity=ALGEBRA_CANONICAL_INNER_PRODUCT,
-                left_or_right='right')
-
-    metric_matrix_at_identity = np.zeros([6, 6])
-    metric_matrix_at_identity[0:3, 0:3] = 3 * np.eye(3)
-    metric_matrix_at_identity[3:6, 3:6] = 9 * np.eye(3)
+    inner_product_mat_at_identity = np.zeros([6, 6])
+    inner_product_mat_at_identity[0:3, 0:3] = 3 * np.eye(3)
+    inner_product_mat_at_identity[3:6, 3:6] = 9 * np.eye(3)
 
     LEFT_DIAG_METRIC = InvariantMetric(
-                           lie_group=GROUP,
-                           metric_matrix_at_identity=metric_matrix_at_identity,
-                           left_or_right='left')
+               lie_group=GROUP,
+               inner_product_mat_at_identity=inner_product_mat_at_identity,
+               left_or_right='left')
     RIGHT_DIAG_METRIC = InvariantMetric(
-                           lie_group=GROUP,
-                           metric_matrix_at_identity=metric_matrix_at_identity,
-                           left_or_right='right')
+               lie_group=GROUP,
+               inner_product_mat_at_identity=inner_product_mat_at_identity,
+               left_or_right='right')
 
     def test_compose(self):
         # 1. Composition by identity, on the right
@@ -291,15 +280,13 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         # Expect the identity function
         # because we use the riemannian left logarithm with canonical
         # inner product to parameterize the transformations
-
+        metric = self.GROUP.left_canonical_metric
         # 1. General case
         tangent_rot_vec_1 = np.array([1., 1., 1.])  # NB: Regularized
         tangent_translation_1 = np.array([1., 0., -3.])
         tangent_vec_1 = np.concatenate([tangent_rot_vec_1,
                                         tangent_translation_1])
-
-        result_1 = self.LEFT_CANONICAL_METRIC.riemannian_exp_from_identity(
-                                                             tangent_vec_1)
+        result_1 = metric.riemannian_exp_from_identity(tangent_vec_1)
         expected_1 = tangent_vec_1
 
         self.assertTrue(np.allclose(result_1, expected_1))
@@ -311,14 +298,14 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         # because we use the riemannian left logarithm with canonical
         # inner product to parameterize the transformations
 
+        metric = self.GROUP.left_canonical_metric
         # 1. General case
         rot_vec_1 = np.array([0.1, 1, 0.9])  # NB: Regularized
         translation_1 = np.array([1, -19, -3])
         transfo_1 = np.concatenate([rot_vec_1, translation_1])
 
         expected_1 = transfo_1
-        result_1 = self.LEFT_CANONICAL_METRIC.riemannian_log_from_identity(
-                                                                 transfo_1)
+        result_1 = metric.riemannian_log_from_identity(transfo_1)
 
         self.assertTrue(np.allclose(result_1, expected_1))
 
@@ -328,8 +315,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         transfo_2 = np.concatenate([rot_vec_2, translation_2])
 
         expected_2 = transfo_2
-        result_2 = self.LEFT_CANONICAL_METRIC.riemannian_log_from_identity(
-                                                                 transfo_2)
+        result_2 = metric.riemannian_log_from_identity(transfo_2)
 
         self.assertTrue(np.allclose(result_2, expected_2))
 
@@ -340,15 +326,16 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         are inverse.
         Expect their composition to give the identity function.
         """
+        metric = self.GROUP.left_canonical_metric
         # 1. Compose log then exp
         # Canonical inner product on the lie algebra
         rot_vec_1 = np.array([-1., 0.5, -0.12])  # NB: Regularized
         translation_1 = np.array([-91., -7., 0.007])
         point_1 = np.concatenate([rot_vec_1, translation_1])
 
-        riem_log_1 = self.LEFT_CANONICAL_METRIC.riemannian_log_from_identity(
+        riem_log_1 = metric.riemannian_log_from_identity(
                                                   point=point_1)
-        result_1 = self.LEFT_CANONICAL_METRIC.riemannian_exp_from_identity(
+        result_1 = metric.riemannian_exp_from_identity(
                                          tangent_vec=riem_log_1)
         expected_1 = point_1
 
@@ -361,22 +348,22 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_2 = np.array([-1., 27., 7.])
         point_2 = np.concatenate([rot_vec_2, translation_2])
 
-        riem_log_2 = self.LEFT_CANONICAL_METRIC.riemannian_log_from_identity(
-                                                                     point_2)
-        result_2 = self.LEFT_CANONICAL_METRIC.riemannian_exp_from_identity(
-                                                                riem_log_2)
+        riem_log_2 = metric.riemannian_log_from_identity(point_2)
+        result_2 = metric.riemannian_exp_from_identity(riem_log_2)
         expected_2 = point_2
 
         self.assertTrue(np.allclose(result_2, expected_2))
 
         # 3. Compose log then exp
         # Block diagonal inner product
+        diag_metric = self.LEFT_DIAG_METRIC
+
         rot_vec_3 = np.array([-1., 0.5, -0.12])  # NB: Regularized
         translation_3 = np.array([-91., -7., 0.007])
         point_3 = np.concatenate([rot_vec_3, translation_3])
 
-        aux_3 = self.LEFT_DIAG_METRIC.riemannian_log_from_identity(point_3)
-        result_3 = self.LEFT_DIAG_METRIC.riemannian_exp_from_identity(aux_3)
+        aux_3 = diag_metric.riemannian_log_from_identity(point_3)
+        result_3 = diag_metric.riemannian_exp_from_identity(aux_3)
         expected_3 = point_3
 
         self.assertTrue(np.allclose(result_3, expected_3))
@@ -388,8 +375,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_4 = np.array([-1., 27., 7.])
         point_4 = np.concatenate([rot_vec_4, translation_4])
 
-        aux_4 = self.LEFT_DIAG_METRIC.riemannian_log_from_identity(point_4)
-        result_4 = self.LEFT_DIAG_METRIC.riemannian_exp_from_identity(aux_4)
+        aux_4 = diag_metric.riemannian_log_from_identity(point_4)
+        result_4 = diag_metric.riemannian_exp_from_identity(aux_4)
         expected_4 = point_4
 
         self.assertTrue(np.allclose(result_4, expected_4))
@@ -401,16 +388,15 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         are inverse.
         Expect their composition to give the identity function.
         """
+        metric = self.GROUP.right_canonical_metric
         # 1. Compose log then exp
         # Canonical inner product on the lie algebra
         rot_vec_1 = np.array([-1., 0.5, -0.12])  # NB: Regularized
         translation_1 = np.array([-91., -7., 0.007])
         point_1 = np.concatenate([rot_vec_1, translation_1])
 
-        aux_1 = self.RIGHT_CANONICAL_METRIC.riemannian_log_from_identity(
-                                                                  point_1)
-        result_1 = self.RIGHT_CANONICAL_METRIC.riemannian_exp_from_identity(
-                                                                    aux_1)
+        aux_1 = metric.riemannian_log_from_identity(point_1)
+        result_1 = metric.riemannian_exp_from_identity(aux_1)
 
         expected_1 = point_1
 
@@ -423,10 +409,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_2 = np.array([-1., 27., 7.])
         point_2 = np.concatenate([rot_vec_2, translation_2])
 
-        aux_2 = self.RIGHT_CANONICAL_METRIC.riemannian_log_from_identity(
-                                                                   point_2)
-        result_2 = self.RIGHT_CANONICAL_METRIC.riemannian_exp_from_identity(
-                                                                     aux_2)
+        aux_2 = metric.riemannian_log_from_identity(point_2)
+        result_2 = metric.riemannian_exp_from_identity(aux_2)
         expected_2 = point_2
 
         self.assertTrue(np.allclose(result_2, expected_2))
@@ -472,7 +456,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_1 = np.array([1, 0, -3])
         tangent_vec_1 = np.concatenate([rot_vec_1, translation_1])
 
-        result_1 = self.LEFT_CANONICAL_METRIC.riemannian_exp(
+        result_1 = self.GROUP.left_canonical_metric.riemannian_exp(
                                          ref_point=transfo_ref_point,
                                          tangent_vec=tangent_vec_1)
         expected_1 = np.concatenate([np.array([0., 0., 0.]),
@@ -499,7 +483,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected_1 = np.concatenate([np.array([0., 0., 0.]),
                                      np.array([-5., -1., -1.2])])
 
-        result_1 = self.LEFT_CANONICAL_METRIC.riemannian_log(
+        result_1 = self.GROUP.left_canonical_metric.riemannian_log(
                                        ref_point=transfo_ref_point,
                                        point=point_1)
 
@@ -524,10 +508,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_1 = np.concatenate([rot_vec_1,
                                   translation_1])
 
-        aux_1 = self.LEFT_CANONICAL_METRIC.riemannian_log(
+        aux_1 = self.GROUP.left_canonical_metric.riemannian_log(
                                           ref_point=transfo_ref_point,
                                           point=point_1)
-        result_1 = self.LEFT_CANONICAL_METRIC.riemannian_exp(
+        result_1 = self.GROUP.left_canonical_metric.riemannian_exp(
                                           ref_point=transfo_ref_point,
                                           tangent_vec=aux_1)
         expected_1 = point_1
@@ -542,10 +526,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_2 = np.concatenate([rot_vec_2,
                                   translation_2])
 
-        aux_2 = self.LEFT_CANONICAL_METRIC.riemannian_log(
+        aux_2 = self.GROUP.left_canonical_metric.riemannian_log(
                                         ref_point=transfo_ref_point,
                                         point=point_2)
-        result_2 = self.LEFT_CANONICAL_METRIC.riemannian_exp(
+        result_2 = self.GROUP.left_canonical_metric.riemannian_exp(
                                         ref_point=transfo_ref_point,
                                         tangent_vec=aux_2)
         expected_2 = point_2
@@ -605,10 +589,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_1 = np.concatenate([rot_vec_1,
                                   translation_1])
 
-        aux_1 = self.RIGHT_CANONICAL_METRIC.riemannian_log(
+        aux_1 = self.GROUP.right_canonical_metric.riemannian_log(
                                       ref_point=transfo_ref_point,
                                       point=point_1)
-        result_1 = self.RIGHT_CANONICAL_METRIC.riemannian_exp(
+        result_1 = self.GROUP.right_canonical_metric.riemannian_exp(
                                       ref_point=transfo_ref_point,
                                       tangent_vec=aux_1)
         expected_1 = point_1
@@ -622,10 +606,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_2 = np.concatenate([rot_vec_2,
                                   translation_2])
 
-        aux_2 = self.RIGHT_CANONICAL_METRIC.riemannian_log(
+        aux_2 = self.GROUP.right_canonical_metric.riemannian_log(
                                       ref_point=transfo_ref_point,
                                       point=point_2)
-        result_2 = self.RIGHT_CANONICAL_METRIC.riemannian_exp(
+        result_2 = self.GROUP.right_canonical_metric.riemannian_exp(
                                       ref_point=transfo_ref_point,
                                       tangent_vec=aux_2)
         expected_2 = point_2
@@ -643,10 +627,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         inner_product[0:3, 0:3] = 3 * np.eye(3)
         inner_product[3:6, 3:6] = 9 * np.eye(3)
 
-        aux_3 = self.RIGHT_CANONICAL_METRIC.riemannian_log(
+        aux_3 = self.GROUP.right_canonical_metric.riemannian_log(
                                       ref_point=transfo_ref_point,
                                       point=point_3)
-        result_3 = self.RIGHT_CANONICAL_METRIC.riemannian_exp(
+        result_3 = self.GROUP.right_canonical_metric.riemannian_exp(
                                       ref_point=transfo_ref_point,
                                       tangent_vec=aux_3)
         expected_3 = point_3
@@ -665,10 +649,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         inner_product[0:3, 0:3] = 3 * np.eye(3)
         inner_product[3:6, 3:6] = 9 * np.eye(3)
 
-        aux_4 = self.RIGHT_CANONICAL_METRIC.riemannian_log(
+        aux_4 = self.GROUP.right_canonical_metric.riemannian_log(
                                       ref_point=transfo_ref_point,
                                       point=point_4)
-        result_4 = self.RIGHT_CANONICAL_METRIC.riemannian_exp(
+        result_4 = self.GROUP.right_canonical_metric.riemannian_exp(
                                       ref_point=transfo_ref_point,
                                       tangent_vec=aux_4)
         expected_4 = point_4

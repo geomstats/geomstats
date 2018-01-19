@@ -5,6 +5,7 @@ import numpy as np
 import geomstats.special_orthogonal_group as so_group
 
 from geomstats.euclidean_space import EuclideanSpace
+from geomstats.lie_groups import InvariantMetric
 from geomstats.lie_groups import LieGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
@@ -22,22 +23,18 @@ class SpecialEuclideanGroup(LieGroup):
         self.rotations = SpecialOrthogonalGroup(dimension=3)
         self.translations = EuclideanSpace(dimension=3)
 
-        self.identity = np.concatenate([np.zeros(3),
+        self.identity = np.concatenate([self.rotations.identity,
                                         np.zeros(3)])
 
-    def inner_product(self, coef_rotations, coef_translations):
-        """
-        Compute a 6x6 diagonal matrix, where the diagonal is formed by:
-        coef_rotations * [1, 1, 1] and coef_translations * [1, 1, 1].
+        self.left_canonical_metric = InvariantMetric(
+                    lie_group=self,
+                    inner_product_mat_at_identity=np.eye(self.dimension),
+                    left_or_right='left')
 
-        :param coef_rotations: scalar
-        :param coef_translations: scalar
-        :returns inner_product_mat: 6x6 matrix
-        """
-        inner_product_mat = np.zeros([6, 6])
-        inner_product_mat[0:3, 0:3] = coef_rotations * np.eye(3)
-        inner_product_mat[3:6, 3:6] = coef_translations * np.eye(3)
-        return inner_product_mat
+        self.right_canonical_metric = InvariantMetric(
+                    lie_group=self,
+                    inner_product_mat_at_identity=np.eye(self.dimension),
+                    left_or_right='right')
 
     def regularize(self, transfo):
         """
@@ -267,6 +264,8 @@ class SpecialEuclideanGroup(LieGroup):
 
         :returns random transfo: 6d vector element of SE(3)
         """
+        # TODO(nina): uniformly w.r.t. which measure? i
+        # Add in riemannian metrics.
         random_rot_vec = np.random.rand(3) * 2 - 1
         random_rot_vec = self.rotations.regularize(random_rot_vec)
         random_translation = np.random.rand(3) * 2 - 1
