@@ -42,7 +42,7 @@ class InvariantMetric(RiemannianMetric):
         inv_jacobian_transposed = np.linalg.inv(jacobian.transpose())
 
         metric_mat = np.dot(inv_jacobian_transposed,
-                            self.riemannian_inner_product_matrix_at_identity)
+                            self.inner_product_mat_at_identity)
         metric_mat = np.dot(metric_mat, inv_jacobian)
 
         return metric_mat
