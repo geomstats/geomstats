@@ -5,8 +5,7 @@ import numpy as np
 import geomstats.special_orthogonal_group as so_group
 
 from geomstats.euclidean_space import EuclideanSpace
-from geomstats.lie_groups import InvariantMetric
-from geomstats.lie_groups import LieGroup
+from geomstats.lie_group import LieGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
 EPSILON = 1e-5
@@ -22,19 +21,6 @@ class SpecialEuclideanGroup(LieGroup):
                           identity=np.zeros(6))
         self.rotations = SpecialOrthogonalGroup(dimension=3)
         self.translations = EuclideanSpace(dimension=3)
-
-        self.identity = np.concatenate([self.rotations.identity,
-                                        np.zeros(3)])
-
-        self.left_canonical_metric = InvariantMetric(
-                    lie_group=self,
-                    inner_product_mat_at_identity=np.eye(self.dimension),
-                    left_or_right='left')
-
-        self.right_canonical_metric = InvariantMetric(
-                    lie_group=self,
-                    inner_product_mat_at_identity=np.eye(self.dimension),
-                    left_or_right='right')
 
     def regularize(self, transfo):
         """
@@ -149,20 +135,20 @@ class SpecialEuclideanGroup(LieGroup):
         return jacobian
 
     def group_exp(self,
-                  ref_point,
+                  base_point,
                   tangent_vec,
                   epsilon=EPSILON):
         """
         Compute the group exponential of vector tangent_vector,
-        at point ref_point.
+        at point base_point.
 
-        :param tangent_vector: tangent vector of SE(3) at ref_point.
-        :param ref_point: 6d vector element of SE(3).
+        :param tangent_vector: tangent vector of SE(3) at base_point.
+        :param base_point: 6d vector element of SE(3).
         :returns group_exp_transfo: 6d vector element of SE(3).
         """
         tangent_vec = self.regularize(tangent_vec)
 
-        if ref_point is self.identity:
+        if base_point is self.identity:
             rot_vec = tangent_vec[0:3]
             translation = tangent_vec[3:6]  # this is dt
             angle = np.linalg.norm(rot_vec)
@@ -190,36 +176,36 @@ class SpecialEuclideanGroup(LieGroup):
                                                         translation))
 
         else:
-            ref_point = self.regularize(ref_point)
+            base_point = self.regularize(base_point)
 
-            jacobian = self.jacobian_translation(ref_point,
+            jacobian = self.jacobian_translation(base_point,
                                                  left_or_right='left')
             inv_jacobian = np.linalg.inv(jacobian)
 
             tangent_vec_at_identity = np.dot(inv_jacobian, tangent_vec)
             group_exp_from_identity = self.group_exp(
-                                           ref_point=self.identity,
+                                           base_point=self.identity,
                                            tangent_vec=tangent_vec_at_identity)
 
-            group_exp_transfo = self.compose(ref_point,
+            group_exp_transfo = self.compose(base_point,
                                              group_exp_from_identity)
 
         return self.regularize(group_exp_transfo)
 
-    def group_log(self, ref_point, point,
+    def group_log(self, base_point, point,
                   epsilon=EPSILON):
         """
         Compute the group logarithm of point point,
-        from point ref_point.
+        from point base_point.
 
         :param point: 6d tangent_vector element of SE(3)
-        :param ref_point: 6d tangent_vector element of SE(3)
+        :param base_point: 6d tangent_vector element of SE(3)
 
-        :returns tangent vector: 6d tangent vector at ref_point.
+        :returns tangent vector: 6d tangent vector at base_point.
         """
 
         point = self.regularize(point)
-        if ref_point is self.identity:
+        if base_point is self.identity:
             rot_vec = point[0:3]
             angle = np.linalg.norm(rot_vec)
             translation = point[3:6]
@@ -248,11 +234,11 @@ class SpecialEuclideanGroup(LieGroup):
                                    + coef_2 * np.dot(sq_skew_rot_vec,
                                                      translation))
         else:
-            ref_point = self.regularize(ref_point)
-            jacobian = self.jacobian_translation(ref_point,
+            base_point = self.regularize(base_point)
+            jacobian = self.jacobian_translation(base_point,
                                                  left_or_right='left')
-            point_near_id = self.compose(self.inverse(ref_point), point)
-            tangent_vector_from_id = self.group_log(ref_point=self.identity,
+            point_near_id = self.compose(self.inverse(base_point), point)
+            tangent_vector_from_id = self.group_log(base_point=self.identity,
                                                     point=point_near_id)
             tangent_vector = np.dot(jacobian, tangent_vector_from_id)
 
@@ -305,7 +291,7 @@ class SpecialEuclideanGroup(LieGroup):
 
         return exponential_mat
 
-    def exponential_barycenter(self, transfo_vectors, weights):
+    def exponential_barycenter(self, transfo_vectors, weights=None):
         """
 
         :param transfo_vectors: SE3 data points, Nx6 array
@@ -313,23 +299,26 @@ class SpecialEuclideanGroup(LieGroup):
         """
 
         n_transformations, _ = transfo_vectors.shape
+        assert n_transformations > 0
 
-        if n_transformations < 2:
-            raise ValueError('Requires # of transformations >=2.')
+        if weights is None:
+            weights = np.ones(n_transformations)
+
+        n_weights = len(weights)
+        assert n_transformations == n_weights
 
         rotation_vectors = transfo_vectors[:, 0:3]
         translations = transfo_vectors[:, 3:6]
 
-        biinvariant_metric = so_group.InvariantMetric(self.rotations,
-                                                      np.eye(3))
-        mean_rotation = biinvariant_metric.riemannian_mean(rotation_vectors,
-                                                           weights)
+        bi_invariant_metric = so_group.bi_invariant_metric
+        mean_rotation = bi_invariant_metric.riemannian_mean(rotation_vectors,
+                                                            weights)
 
         # Partie translation, p34 de expbar
         matrix = np.zeros([3, 3])
         translation = np.zeros(3)
 
-        for i in range(0, n_transformations):
+        for i in range(n_transformations):
             rot_vec_i = rotation_vectors[i, :]
             translation_i = translations[i, :]
             weight_i = weights[i]

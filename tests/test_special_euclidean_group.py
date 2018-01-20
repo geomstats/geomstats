@@ -3,7 +3,7 @@
 import numpy as np
 import unittest
 
-from geomstats.lie_groups import InvariantMetric
+from geomstats.invariant_metric import InvariantMetric
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
 
 
@@ -81,7 +81,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_1 = np.array([1, 0, -3])
         transfo_1 = np.concatenate([rot_vec_1, translation_1])
 
-        result_1 = self.GROUP.group_log(ref_point=self.GROUP.identity,
+        result_1 = self.GROUP.group_log(base_point=self.GROUP.identity,
                                         point=transfo_1)
         expected_1 = transfo_1
 
@@ -94,7 +94,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_2 = np.array([4, 0, 0])
         transfo_2 = np.concatenate([rot_vec_2, translation_2])
 
-        result_2 = self.GROUP.group_log(ref_point=self.GROUP.identity,
+        result_2 = self.GROUP.group_log(base_point=self.GROUP.identity,
                                         point=transfo_2)
         expected_2 = transfo_2
 
@@ -107,7 +107,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_1 = np.array([1, 0, -3])
         tangent_vec_1 = np.concatenate([rot_vec_1, translation_1])
 
-        result_1 = self.GROUP.group_exp(ref_point=self.GROUP.identity,
+        result_1 = self.GROUP.group_exp(base_point=self.GROUP.identity,
                                         tangent_vec=tangent_vec_1)
         expected_1 = tangent_vec_1
 
@@ -120,7 +120,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_2 = np.array([4, 0, 0])
         tangent_vec_2 = np.concatenate([rot_vec_2, translation_2])
 
-        result_2 = self.GROUP.group_exp(ref_point=self.GROUP.identity,
+        result_2 = self.GROUP.group_exp(base_point=self.GROUP.identity,
                                         tangent_vec=tangent_vec_2)
         expected_2 = tangent_vec_2
 
@@ -138,9 +138,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_1 = np.array([10., 2., 7.])
         point_1 = np.concatenate([rot_vec_1, translation_1])
 
-        aux_1 = self.GROUP.group_log(ref_point=self.GROUP.identity,
+        aux_1 = self.GROUP.group_log(base_point=self.GROUP.identity,
                                      point=point_1)
-        result_1 = self.GROUP.group_exp(ref_point=self.GROUP.identity,
+        result_1 = self.GROUP.group_exp(base_point=self.GROUP.identity,
                                         tangent_vec=aux_1)
         expected_1 = point_1
 
@@ -152,9 +152,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_2 = np.array([-1., 27., 7.])
         point_2 = np.concatenate([rot_vec_2, translation_2])
 
-        aux_2 = self.GROUP.group_log(ref_point=self.GROUP.identity,
+        aux_2 = self.GROUP.group_log(base_point=self.GROUP.identity,
                                      point=point_2)
-        result_2 = self.GROUP.group_exp(ref_point=self.GROUP.identity,
+        result_2 = self.GROUP.group_exp(base_point=self.GROUP.identity,
                                         tangent_vec=aux_2)
         expected_2 = point_2
 
@@ -165,9 +165,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_3 = np.array([10., 2., 7.])
         tangent_vec_3 = np.concatenate([rot_vec_3, translation_3])
 
-        aux_3 = self.GROUP.group_exp(ref_point=self.GROUP.identity,
+        aux_3 = self.GROUP.group_exp(base_point=self.GROUP.identity,
                                      tangent_vec=tangent_vec_3)
-        result_3 = self.GROUP.group_log(ref_point=self.GROUP.identity,
+        result_3 = self.GROUP.group_log(base_point=self.GROUP.identity,
                                         point=aux_3)
         expected_3 = tangent_vec_3
 
@@ -179,9 +179,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_4 = np.array([-1., 27., 7.])
         tangent_vec_4 = np.concatenate([rot_vec_4, translation_4])
 
-        aux_4 = self.GROUP.group_exp(ref_point=self.GROUP.identity,
+        aux_4 = self.GROUP.group_exp(base_point=self.GROUP.identity,
                                      tangent_vec=tangent_vec_4)
-        result_4 = self.GROUP.group_log(ref_point=self.GROUP.identity,
+        result_4 = self.GROUP.group_log(base_point=self.GROUP.identity,
                                         point=aux_4)
         expected_4 = tangent_vec_4
 
@@ -191,10 +191,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
         # is the 6x6 identity matrix
-        rot_vec_ref_point = np.array([0., 0., 0.])
-        translation_ref_point = np.array([4, -1, 10000])
-        transfo_ref_point = np.concatenate([rot_vec_ref_point,
-                                            translation_ref_point])
+        rot_vec_base_point = np.array([0., 0., 0.])
+        translation_base_point = np.array([4, -1, 10000])
+        transfo_base_point = np.concatenate([rot_vec_base_point,
+                                            translation_base_point])
         # 1. Tangent vector is a translation (no infinitesimal rotational part)
         # Expect the sum of the translation
         # with the translation of the reference point
@@ -202,7 +202,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_1 = np.array([1, 0, -3])
         tangent_vec_1 = np.concatenate([rot_vec_1, translation_1])
 
-        result_1 = self.GROUP.group_exp(ref_point=transfo_ref_point,
+        result_1 = self.GROUP.group_exp(base_point=transfo_base_point,
                                         tangent_vec=tangent_vec_1)
         expected_1 = np.concatenate([np.array([0., 0., 0.]),
                                      np.array([5, -1, 9997])])
@@ -212,10 +212,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
         # is the 6x6 identity matrix
-        rot_vec_ref_point = np.array([0., 0., 0.])
-        translation_ref_point = np.array([4., 0., 0.])
-        transfo_ref_point = np.concatenate([rot_vec_ref_point,
-                                            translation_ref_point])
+        rot_vec_base_point = np.array([0., 0., 0.])
+        translation_base_point = np.array([4., 0., 0.])
+        transfo_base_point = np.concatenate([rot_vec_base_point,
+                                            translation_base_point])
 
         # 1. Point is a translation (no rotational part)
         # Expect the difference of the translation
@@ -228,7 +228,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected_1 = np.concatenate([np.array([0., 0., 0.]),
                                      np.array([1., 8., -3.2])])
 
-        result_1 = self.GROUP.group_log(ref_point=transfo_ref_point,
+        result_1 = self.GROUP.group_log(base_point=transfo_base_point,
                                         point=point_1)
 
         self.assertTrue(np.allclose(result_1, expected_1))
@@ -240,10 +240,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         Expect their composition to give the identity function.
         """
         # General case for the reference point
-        rot_vec_ref_point = np.pi / 3 * np.array([1, 0, 0])  # NB: Regularized
-        translation_ref_point = np.array([4, -1, 2])
-        transfo_ref_point = np.concatenate([rot_vec_ref_point,
-                                            translation_ref_point])
+        rot_vec_base_point = np.pi / 3 * np.array([1, 0, 0])  # NB: Regularized
+        translation_base_point = np.array([4, -1, 2])
+        transfo_base_point = np.concatenate([rot_vec_base_point,
+                                            translation_base_point])
 
         # 1. Compose log then exp
         rot_vec_1 = np.array([-1.2, 0.9, 0.9])  # NB: Regularized
@@ -251,9 +251,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_1 = np.concatenate([rot_vec_1,
                                   translation_1])
 
-        aux_1 = self.GROUP.group_log(ref_point=transfo_ref_point,
+        aux_1 = self.GROUP.group_log(base_point=transfo_base_point,
                                      point=point_1)
-        result_1 = self.GROUP.group_exp(ref_point=transfo_ref_point,
+        result_1 = self.GROUP.group_exp(base_point=transfo_base_point,
                                         tangent_vec=aux_1)
         expected_1 = point_1
 
@@ -266,15 +266,15 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_2 = np.concatenate([rot_vec_2,
                                   translation_2])
 
-        aux_2 = self.GROUP.group_log(ref_point=transfo_ref_point,
+        aux_2 = self.GROUP.group_log(base_point=transfo_base_point,
                                      point=point_2)
-        result_2 = self.GROUP.group_exp(ref_point=transfo_ref_point,
+        result_2 = self.GROUP.group_exp(base_point=transfo_base_point,
                                         tangent_vec=aux_2)
         expected_2 = point_2
 
         self.assertTrue(np.allclose(result_2, expected_2))
 
-    def test_riemannian_left_exp_from_id(self):
+    def test_left_exp_from_id(self):
         # Riemannian left-invariant metric given by
         # the canonical inner product on the lie algebra
         # Expect the identity function
@@ -286,12 +286,12 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         tangent_translation_1 = np.array([1., 0., -3.])
         tangent_vec_1 = np.concatenate([tangent_rot_vec_1,
                                         tangent_translation_1])
-        result_1 = metric.riemannian_exp_from_identity(tangent_vec_1)
+        result_1 = metric.exp_from_identity(tangent_vec_1)
         expected_1 = tangent_vec_1
 
         self.assertTrue(np.allclose(result_1, expected_1))
 
-    def test_riemannian_left_log_from_id(self):
+    def test_left_log_from_id(self):
         # Riemannian left-invariant metric given by
         # the canonical inner product on the lie algebra
         # Expect the identity function
@@ -305,7 +305,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         transfo_1 = np.concatenate([rot_vec_1, translation_1])
 
         expected_1 = transfo_1
-        result_1 = metric.riemannian_log_from_identity(transfo_1)
+        result_1 = metric.log_from_identity(transfo_1)
 
         self.assertTrue(np.allclose(result_1, expected_1))
 
@@ -315,11 +315,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         transfo_2 = np.concatenate([rot_vec_2, translation_2])
 
         expected_2 = transfo_2
-        result_2 = metric.riemannian_log_from_identity(transfo_2)
+        result_2 = metric.log_from_identity(transfo_2)
 
         self.assertTrue(np.allclose(result_2, expected_2))
 
-    def test_riemannian_left_exp_and_log_from_id(self):
+    def test_left_exp_and_log_from_id(self):
         """
         Test that the riemannian left exponential from the identity
         and the riemannian left logarithm from the identity
@@ -333,10 +333,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_1 = np.array([-91., -7., 0.007])
         point_1 = np.concatenate([rot_vec_1, translation_1])
 
-        riem_log_1 = metric.riemannian_log_from_identity(
-                                                  point=point_1)
-        result_1 = metric.riemannian_exp_from_identity(
-                                         tangent_vec=riem_log_1)
+        log_1 = metric.log_from_identity(point=point_1)
+        result_1 = metric.exp_from_identity(tangent_vec=log_1)
         expected_1 = point_1
 
         self.assertTrue(np.allclose(result_1, expected_1))
@@ -348,8 +346,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_2 = np.array([-1., 27., 7.])
         point_2 = np.concatenate([rot_vec_2, translation_2])
 
-        riem_log_2 = metric.riemannian_log_from_identity(point_2)
-        result_2 = metric.riemannian_exp_from_identity(riem_log_2)
+        log_2 = metric.log_from_identity(point_2)
+        result_2 = metric.exp_from_identity(log_2)
         expected_2 = point_2
 
         self.assertTrue(np.allclose(result_2, expected_2))
@@ -362,8 +360,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_3 = np.array([-91., -7., 0.007])
         point_3 = np.concatenate([rot_vec_3, translation_3])
 
-        aux_3 = diag_metric.riemannian_log_from_identity(point_3)
-        result_3 = diag_metric.riemannian_exp_from_identity(aux_3)
+        aux_3 = diag_metric.log_from_identity(point_3)
+        result_3 = diag_metric.exp_from_identity(aux_3)
         expected_3 = point_3
 
         self.assertTrue(np.allclose(result_3, expected_3))
@@ -375,13 +373,13 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_4 = np.array([-1., 27., 7.])
         point_4 = np.concatenate([rot_vec_4, translation_4])
 
-        aux_4 = diag_metric.riemannian_log_from_identity(point_4)
-        result_4 = diag_metric.riemannian_exp_from_identity(aux_4)
+        aux_4 = diag_metric.log_from_identity(point_4)
+        result_4 = diag_metric.exp_from_identity(aux_4)
         expected_4 = point_4
 
         self.assertTrue(np.allclose(result_4, expected_4))
 
-    def test_riemannian_right_exp_and_log_from_id(self):
+    def test_right_exp_and_log_from_id(self):
         """
         Test that the riemannian right exponential from the identity
         and the riemannian right logarithm from the identity
@@ -395,8 +393,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_1 = np.array([-91., -7., 0.007])
         point_1 = np.concatenate([rot_vec_1, translation_1])
 
-        aux_1 = metric.riemannian_log_from_identity(point_1)
-        result_1 = metric.riemannian_exp_from_identity(aux_1)
+        aux_1 = metric.log_from_identity(point_1)
+        result_1 = metric.exp_from_identity(aux_1)
 
         expected_1 = point_1
 
@@ -409,8 +407,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_2 = np.array([-1., 27., 7.])
         point_2 = np.concatenate([rot_vec_2, translation_2])
 
-        aux_2 = metric.riemannian_log_from_identity(point_2)
-        result_2 = metric.riemannian_exp_from_identity(aux_2)
+        aux_2 = metric.log_from_identity(point_2)
+        result_2 = metric.exp_from_identity(aux_2)
         expected_2 = point_2
 
         self.assertTrue(np.allclose(result_2, expected_2))
@@ -421,8 +419,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_3 = np.array([-91., -7., 0.007])
         point_3 = np.concatenate([rot_vec_3, translation_3])
 
-        aux_3 = self.RIGHT_DIAG_METRIC.riemannian_log_from_identity(point_3)
-        result_3 = self.RIGHT_DIAG_METRIC.riemannian_exp_from_identity(aux_3)
+        aux_3 = self.RIGHT_DIAG_METRIC.log_from_identity(point_3)
+        result_3 = self.RIGHT_DIAG_METRIC.exp_from_identity(aux_3)
         expected_3 = point_3
 
         self.assertTrue(np.allclose(result_3, expected_3))
@@ -434,20 +432,20 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_4 = np.array([-1., 27., 7.])
         point_4 = np.concatenate([rot_vec_4, translation_4])
 
-        aux_4 = self.RIGHT_DIAG_METRIC.riemannian_log_from_identity(point_4)
-        result_4 = self.RIGHT_DIAG_METRIC.riemannian_exp_from_identity(aux_4)
+        aux_4 = self.RIGHT_DIAG_METRIC.log_from_identity(point_4)
+        result_4 = self.RIGHT_DIAG_METRIC.exp_from_identity(aux_4)
         expected_4 = point_4
 
         self.assertTrue(np.allclose(result_4, expected_4))
 
-    def test_riemannian_left_exp(self):
+    def test_left_exp(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
         # is the 6x6 identity matrix
-        rot_vec_ref_point = np.array([0., 0., 0.])
-        translation_ref_point = np.array([4, -1, 10000])
-        transfo_ref_point = np.concatenate([rot_vec_ref_point,
-                                            translation_ref_point])
+        rot_vec_base_point = np.array([0., 0., 0.])
+        translation_base_point = np.array([4, -1, 10000])
+        transfo_base_point = np.concatenate([rot_vec_base_point,
+                                            translation_base_point])
 
         # 1. Tangent vector is a translation (no infinitesimal rotational part)
         # Expect the sum of the translation
@@ -456,21 +454,21 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_1 = np.array([1, 0, -3])
         tangent_vec_1 = np.concatenate([rot_vec_1, translation_1])
 
-        result_1 = self.GROUP.left_canonical_metric.riemannian_exp(
-                                         ref_point=transfo_ref_point,
+        result_1 = self.GROUP.left_canonical_metric.exp(
+                                         base_point=transfo_base_point,
                                          tangent_vec=tangent_vec_1)
         expected_1 = np.concatenate([np.array([0., 0., 0.]),
                                      np.array([5, -1, 9997])])
         self.assertTrue(np.allclose(result_1, expected_1))
 
-    def test_riemannian_left_log(self):
+    def test_left_log(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
         # is the 6x6 identity matrix
-        rot_vec_ref_point = np.array([0., 0., 0.])
-        translation_ref_point = np.array([4., 0., 0.])
-        transfo_ref_point = np.concatenate([rot_vec_ref_point,
-                                            translation_ref_point])
+        rot_vec_base_point = np.array([0., 0., 0.])
+        translation_base_point = np.array([4., 0., 0.])
+        transfo_base_point = np.concatenate([rot_vec_base_point,
+                                            translation_base_point])
 
         # 1. Point is a translation (no rotational part)
         # Expect the difference of the translation
@@ -483,23 +481,23 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected_1 = np.concatenate([np.array([0., 0., 0.]),
                                      np.array([-5., -1., -1.2])])
 
-        result_1 = self.GROUP.left_canonical_metric.riemannian_log(
-                                       ref_point=transfo_ref_point,
+        result_1 = self.GROUP.left_canonical_metric.log(
+                                       base_point=transfo_base_point,
                                        point=point_1)
 
         self.assertTrue(np.allclose(result_1, expected_1))
 
-    def test_riemannian_left_exp_and_log(self):
+    def test_left_exp_and_log(self):
         """
         Test that the riemannian left exponential and the
         riemannian left logarithm are inverse.
         Expect their composition to give the identity function.
         """
         # General case for the reference point
-        rot_vec_ref_point = np.pi / 3 * np.array([1, 0, 0])  # NB: Regularized
-        translation_ref_point = np.array([4, -1, 2])
-        transfo_ref_point = np.concatenate([rot_vec_ref_point,
-                                            translation_ref_point])
+        rot_vec_base_point = np.pi / 3 * np.array([1, 0, 0])  # NB: Regularized
+        translation_base_point = np.array([4, -1, 2])
+        transfo_base_point = np.concatenate([rot_vec_base_point,
+                                            translation_base_point])
 
         # 1. Compose log then exp
         # Canonical inner product on the lie algebra
@@ -508,11 +506,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_1 = np.concatenate([rot_vec_1,
                                   translation_1])
 
-        aux_1 = self.GROUP.left_canonical_metric.riemannian_log(
-                                          ref_point=transfo_ref_point,
+        aux_1 = self.GROUP.left_canonical_metric.log(
+                                          base_point=transfo_base_point,
                                           point=point_1)
-        result_1 = self.GROUP.left_canonical_metric.riemannian_exp(
-                                          ref_point=transfo_ref_point,
+        result_1 = self.GROUP.left_canonical_metric.exp(
+                                          base_point=transfo_base_point,
                                           tangent_vec=aux_1)
         expected_1 = point_1
 
@@ -526,11 +524,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_2 = np.concatenate([rot_vec_2,
                                   translation_2])
 
-        aux_2 = self.GROUP.left_canonical_metric.riemannian_log(
-                                        ref_point=transfo_ref_point,
+        aux_2 = self.GROUP.left_canonical_metric.log(
+                                        base_point=transfo_base_point,
                                         point=point_2)
-        result_2 = self.GROUP.left_canonical_metric.riemannian_exp(
-                                        ref_point=transfo_ref_point,
+        result_2 = self.GROUP.left_canonical_metric.exp(
+                                        base_point=transfo_base_point,
                                         tangent_vec=aux_2)
         expected_2 = point_2
 
@@ -543,11 +541,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_3 = np.concatenate([rot_vec_3,
                                   translation_3])
 
-        aux_3 = self.LEFT_DIAG_METRIC.riemannian_log(
-                                      ref_point=transfo_ref_point,
+        aux_3 = self.LEFT_DIAG_METRIC.log(
+                                      base_point=transfo_base_point,
                                       point=point_3)
-        result_3 = self.LEFT_DIAG_METRIC.riemannian_exp(
-                                      ref_point=transfo_ref_point,
+        result_3 = self.LEFT_DIAG_METRIC.exp(
+                                      base_point=transfo_base_point,
                                       tangent_vec=aux_3)
         expected_3 = point_3
 
@@ -561,27 +559,27 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_4 = np.concatenate([rot_vec_4,
                                   translation_4])
 
-        aux_4 = self.LEFT_DIAG_METRIC.riemannian_log(
-                                      ref_point=transfo_ref_point,
+        aux_4 = self.LEFT_DIAG_METRIC.log(
+                                      base_point=transfo_base_point,
                                       point=point_4)
-        result_4 = self.LEFT_DIAG_METRIC.riemannian_exp(
-                                         ref_point=transfo_ref_point,
+        result_4 = self.LEFT_DIAG_METRIC.exp(
+                                         base_point=transfo_base_point,
                                          tangent_vec=aux_4)
         expected_4 = point_4
 
         self.assertTrue(np.allclose(result_4, expected_4))
 
-    def test_riemannian_right_exp_and_log(self):
+    def test_right_exp_and_log(self):
         """
         Test that the riemannian right exponential and the
         riemannian right logarithm are inverse.
         Expect their composition to give the identity function.
         """
         # General case for the reference point
-        rot_vec_ref_point = np.pi / 3 * np.array([1, 0, 0])  # NB: Regularized
-        translation_ref_point = np.array([4, -1, 2])
-        transfo_ref_point = np.concatenate([rot_vec_ref_point,
-                                            translation_ref_point])
+        rot_vec_base_point = np.pi / 3 * np.array([1, 0, 0])  # NB: Regularized
+        translation_base_point = np.array([4, -1, 2])
+        transfo_base_point = np.concatenate([rot_vec_base_point,
+                                            translation_base_point])
 
         # 1. Compose log then exp
         rot_vec_1 = np.array([-1.2, 0.9, 0.9])  # NB: Regularized
@@ -589,11 +587,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_1 = np.concatenate([rot_vec_1,
                                   translation_1])
 
-        aux_1 = self.GROUP.right_canonical_metric.riemannian_log(
-                                      ref_point=transfo_ref_point,
+        aux_1 = self.GROUP.right_canonical_metric.log(
+                                      base_point=transfo_base_point,
                                       point=point_1)
-        result_1 = self.GROUP.right_canonical_metric.riemannian_exp(
-                                      ref_point=transfo_ref_point,
+        result_1 = self.GROUP.right_canonical_metric.exp(
+                                      base_point=transfo_base_point,
                                       tangent_vec=aux_1)
         expected_1 = point_1
 
@@ -606,11 +604,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_2 = np.concatenate([rot_vec_2,
                                   translation_2])
 
-        aux_2 = self.GROUP.right_canonical_metric.riemannian_log(
-                                      ref_point=transfo_ref_point,
+        aux_2 = self.GROUP.right_canonical_metric.log(
+                                      base_point=transfo_base_point,
                                       point=point_2)
-        result_2 = self.GROUP.right_canonical_metric.riemannian_exp(
-                                      ref_point=transfo_ref_point,
+        result_2 = self.GROUP.right_canonical_metric.exp(
+                                      base_point=transfo_base_point,
                                       tangent_vec=aux_2)
         expected_2 = point_2
 
@@ -627,11 +625,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         inner_product[0:3, 0:3] = 3 * np.eye(3)
         inner_product[3:6, 3:6] = 9 * np.eye(3)
 
-        aux_3 = self.GROUP.right_canonical_metric.riemannian_log(
-                                      ref_point=transfo_ref_point,
+        aux_3 = self.GROUP.right_canonical_metric.log(
+                                      base_point=transfo_base_point,
                                       point=point_3)
-        result_3 = self.GROUP.right_canonical_metric.riemannian_exp(
-                                      ref_point=transfo_ref_point,
+        result_3 = self.GROUP.right_canonical_metric.exp(
+                                      base_point=transfo_base_point,
                                       tangent_vec=aux_3)
         expected_3 = point_3
 
@@ -649,11 +647,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         inner_product[0:3, 0:3] = 3 * np.eye(3)
         inner_product[3:6, 3:6] = 9 * np.eye(3)
 
-        aux_4 = self.GROUP.right_canonical_metric.riemannian_log(
-                                      ref_point=transfo_ref_point,
+        aux_4 = self.GROUP.right_canonical_metric.log(
+                                      base_point=transfo_base_point,
                                       point=point_4)
-        result_4 = self.GROUP.right_canonical_metric.riemannian_exp(
-                                      ref_point=transfo_ref_point,
+        result_4 = self.GROUP.right_canonical_metric.exp(
+                                      base_point=transfo_base_point,
                                       tangent_vec=aux_4)
         expected_4 = point_4
 

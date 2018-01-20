@@ -9,7 +9,7 @@ from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
     DIMENSION = 3
     GROUP = SpecialOrthogonalGroup(dimension=DIMENSION)
-    METRIC = GROUP.canonical_metric
+    METRIC = GROUP.bi_invariant_metric
 
     def test_regularize(self):
         rot_vec_0 = np.array([0., 0., 0.])
@@ -143,23 +143,23 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 rot_mat_5)
         self.assertTrue(np.allclose(rot_vec_5, result_rot_vec_5))
 
-    def test_riemannian_exp(self):
+    def test_exp(self):
         """
         The Riemannian exp and log are inverse functions of each other.
-        This test is the inverse of test_riemannian_log's.
+        This test is the inverse of test_log's.
         """
         theta = np.pi / 5
-        rot_vec_ref_point = theta / np.sqrt(3.) * np.array([1., 1., 1.])
+        rot_vec_base_point = theta / np.sqrt(3.) * np.array([1., 1., 1.])
         # Note: the rotation vector for the reference point
         # needs to be regularized.
 
         # 1: Exponential of 0 gives the reference point
         rot_vec_1 = np.array([0, 0, 0])
-        expected_1 = rot_vec_ref_point
+        expected_1 = rot_vec_base_point
 
-        riem_exp_1 = self.METRIC.riemannian_exp(ref_point=rot_vec_ref_point,
-                                                tangent_vec=rot_vec_1)
-        self.assertTrue(np.allclose(riem_exp_1, expected_1))
+        exp_1 = self.METRIC.exp(base_point=rot_vec_base_point,
+                                tangent_vec=rot_vec_1)
+        self.assertTrue(np.allclose(exp_1, expected_1))
 
         # 2: General case - computed manually
         rot_vec_2 = np.pi / 4 * np.array([1, 0, 0])
@@ -171,29 +171,29 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     + (1 - phi) / 3 * np.ones([3, 3])
                     + np.pi / (10 * np.sqrt(3)) * skew)
         inv_jacobian = np.linalg.inv(jacobian)
-        expected_2 = self.GROUP.compose(rot_vec_ref_point,
+        expected_2 = self.GROUP.compose(rot_vec_base_point,
                                         np.dot(inv_jacobian, rot_vec_2))
 
-        riem_exp_2 = self.METRIC.riemannian_exp(ref_point=rot_vec_ref_point,
-                                                tangent_vec=rot_vec_2)
-        self.assertTrue(np.allclose(riem_exp_2, expected_2))
+        exp_2 = self.METRIC.exp(base_point=rot_vec_base_point,
+                                tangent_vec=rot_vec_2)
+        self.assertTrue(np.allclose(exp_2, expected_2))
 
-    def test_riemannian_log(self):
+    def test_log(self):
         """
         The Riemannian exp and log are inverse functions of each other.
-        This test is the inverse of test_riemannian_exp's.
+        This test is the inverse of test_exp's.
         """
         theta = np.pi / 5.
-        rot_vec_ref_point = theta / np.sqrt(3.) * np.array([1., 1., 1.])
+        rot_vec_base_point = theta / np.sqrt(3.) * np.array([1., 1., 1.])
         # Note: the rotation vector for the reference point
         # needs to be regularized.
 
         # The Logarithm of a point at itself gives 0.
-        rot_vec_1 = rot_vec_ref_point
+        rot_vec_1 = rot_vec_base_point
         expected_1 = np.array([0, 0, 0])
-        riem_log_1 = self.METRIC.riemannian_log(ref_point=rot_vec_ref_point,
-                                                point=rot_vec_1)
-        self.assertTrue(np.allclose(riem_log_1, expected_1))
+        log_1 = self.METRIC.log(base_point=rot_vec_base_point,
+                                point=rot_vec_1)
+        self.assertTrue(np.allclose(log_1, expected_1))
 
         # General case: this is the inverse test of test 1 for riemannian exp
         expected_2 = np.pi / 4 * np.array([1, 0, 0])
@@ -205,35 +205,35 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     + (1 - phi) / 3 * np.ones([3, 3])
                     + np.pi / (10 * np.sqrt(3)) * skew)
         inv_jacobian = np.linalg.inv(jacobian)
-        rot_vec_2 = self.GROUP.compose(rot_vec_ref_point,
+        rot_vec_2 = self.GROUP.compose(rot_vec_base_point,
                                        np.dot(inv_jacobian, expected_2))
 
-        riem_log_2 = self.METRIC.riemannian_log(ref_point=rot_vec_ref_point,
-                                                point=rot_vec_2)
-        self.assertTrue(np.allclose(riem_log_2, expected_2))
+        log_2 = self.METRIC.log(base_point=rot_vec_base_point,
+                                point=rot_vec_2)
+        self.assertTrue(np.allclose(log_2, expected_2))
 
-    def test_riemannian_log_and_exp(self):
+    def test_log_and_exp(self):
         """
         This tests that the composition of
-        riemannian_log and riemannian_exp gives identity.
+        log and exp gives identity.
         """
         theta = 12. * np.pi / 5.
-        rot_vec_ref_point = theta / np.sqrt(3.) * np.array([1., 1., 1.])
+        rot_vec_base_point = theta / np.sqrt(3.) * np.array([1., 1., 1.])
 
         rot_vec_1 = np.array([0, 0, 0])
-        aux_1 = self.METRIC.riemannian_exp(ref_point=rot_vec_ref_point,
-                                           tangent_vec=rot_vec_1)
-        result_1 = self.METRIC.riemannian_log(ref_point=rot_vec_ref_point,
-                                              point=aux_1)
+        aux_1 = self.METRIC.exp(base_point=rot_vec_base_point,
+                                tangent_vec=rot_vec_1)
+        result_1 = self.METRIC.log(base_point=rot_vec_base_point,
+                                   point=aux_1)
 
         self.assertTrue(np.allclose(result_1, rot_vec_1))
 
         rot_vec_2 = np.pi / (2 * np.sqrt(3)) * np.array([1, 0, 0])
 
-        aux_2 = self.METRIC.riemannian_exp(ref_point=rot_vec_ref_point,
-                                           tangent_vec=rot_vec_2)
-        result_2 = self.METRIC.riemannian_log(ref_point=rot_vec_ref_point,
-                                              point=aux_2)
+        aux_2 = self.METRIC.exp(base_point=rot_vec_base_point,
+                                tangent_vec=rot_vec_2)
+        result_2 = self.METRIC.log(base_point=rot_vec_base_point,
+                                   point=aux_2)
 
         self.assertTrue(np.allclose(result_2, rot_vec_2))
 

@@ -5,13 +5,11 @@ symmetric positive definite matrices.
 X. Pennec. A Riemannian Framework for Tensor Computing. (2004).
 """
 
-import logging
-import math
 import numpy as np
 import scipy.linalg
 
-from geomstats.base_manifolds import Manifold
-from geomstats.base_manifolds import RiemannianMetric
+from geomstats.manifold import Manifold
+from geomstats.riemannian_metric import RiemannianMetric
 
 
 EPSILON = 1e-6
@@ -66,114 +64,10 @@ def group_log(sym_mat):
     return log
 
 
-class SPDMetric(RiemannianMetric):
-    def riemannian_inner_product(self, ref_point,
-                                 tangent_vec_a, tangent_vec_b):
-        """
-        Compute the inner product of tangent_vec_a and tangent_vec_b
-        at point ref_point using the affine invariant Riemannian metric.
-        """
-        assert self.belongs(ref_point)
-
-        inv_ref_point = np.linalg.inv(ref_point)
-
-        aux_a = np.dot(inv_ref_point, tangent_vec_a)
-        aux_b = np.dot(inv_ref_point, tangent_vec_b)
-
-        inner_product = np.trace(np.dot(aux_a, aux_b))
-
-        return inner_product
-
-    def riemannian_exp(self, ref_point, tangent_vec):
-        """
-        Compute the Riemannian exponential at point ref_point
-        of tangent vector tangent_vec wrt the metric
-        defined in riemannian_inner_product.
-
-        This gives a symmetric positive definite matrix.
-        """
-        sqrt_ref_point = scipy.linalg.sqrtm(ref_point)
-        inv_sqrt_ref_point = np.linalg.inv(sqrt_ref_point)
-
-        tangent_vec_at_id = np.dot(np.dot(inv_sqrt_ref_point,
-                                          tangent_vec),
-                                   inv_sqrt_ref_point)
-        riem_exp_from_id = group_exp(tangent_vec_at_id)
-
-        riem_exp = np.dot(sqrt_ref_point,
-                          np.dot(riem_exp_from_id,
-                                 sqrt_ref_point))
-
-        return riem_exp
-
-    def riemannian_log(self, ref_point, point):
-        """
-        Compute the Riemannian logarithm at point ref_point,
-        of point wrt the metric defined in
-        riemannian_inner_product.
-
-        This gives a tangent vector at point ref_point.
-        """
-        sqrt_ref_point = scipy.linalg.sqrtm(ref_point)
-        inv_sqrt_ref_point = np.linalg.inv(sqrt_ref_point)
-
-        point_near_id = np.dot(np.dot(inv_sqrt_ref_point,
-                                      point),
-                               inv_sqrt_ref_point)
-        riem_log_at_id = group_log(point_near_id)
-
-        riem_log = np.dot(np.dot(sqrt_ref_point,
-                                 riem_log_at_id),
-                          sqrt_ref_point)
-
-        return riem_log
-
-    def riemannian_mean(self, sym_matrices, n_max_iterations, epsilon=EPSILON):
-        """
-        Compute the Riemannian mean (Frechet mean) iterating 3 steps:
-        - Project all the matrices onto the tangent space
-          using the riemannian log
-        - Calculate the tangent mean on the tangent space
-        - Shoot the tangent mean onto the manifold using the riemannian exp
-
-        Initialization with one of the matrices.
-        """
-        # TODO(nina): profile this code to study performance
-        dists_between_iterates = []
-        n_sym_matrices = len(sym_matrices)
-
-        riem_mean = sym_matrices[0]
-
-        dim = len(riem_mean)
-
-        dist = math.inf
-        it = 0
-        while it < n_max_iterations and dist > epsilon:
-            tangent_mean = np.zeros((dim, dim))
-            for j in range(n_sym_matrices):
-                tangent_mean += self.riemannian_log(riem_mean, sym_matrices[j])
-            tangent_mean = tangent_mean / n_sym_matrices
-
-            riem_mean = self.riemannian_exp(riem_mean, tangent_mean)
-
-            dist = self.riemannian_inner_product(riem_mean,
-                                                 tangent_mean, tangent_mean)
-            dists_between_iterates.append(dist)
-
-            if it == n_max_iterations:
-                logging.warning('Maximum number of iterations {} reached.'
-                                'The riemannian_mean may be inaccurate'
-                                ''.format(n_max_iterations))
-
-            it += 1
-
-        return (riem_mean, dists_between_iterates)
-
-
 class SPDMatricesSpace(Manifold):
     def __init__(self, dimension):
         Manifold.__init__(self, dimension)
-        self.riemannian_metric = SPDMetric()
+        self.metric = SPDMetric(dimension)
 
     def belongs(self, mat, tolerance=TOLERANCE):
         """
@@ -226,3 +120,65 @@ class SPDMatricesSpace(Manifold):
 
         matrix = make_symmetric(matrix)
         return matrix
+
+
+class SPDMetric(RiemannianMetric):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+        """
+        Compute the inner product of tangent_vec_a and tangent_vec_b
+        at point base_point using the affine invariant Riemannian metric.
+        """
+        assert self.belongs(base_point)
+
+        inv_base_point = np.linalg.inv(base_point)
+
+        aux_a = np.dot(inv_base_point, tangent_vec_a)
+        aux_b = np.dot(inv_base_point, tangent_vec_b)
+
+        inner_product = np.trace(np.dot(aux_a, aux_b))
+
+        return inner_product
+
+    def exp(self, tangent_vec, base_point):
+        """
+        Compute the Riemannian exponential at point base_point
+        of tangent vector tangent_vec wrt the metric
+        defined in inner_product.
+
+        This gives a symmetric positive definite matrix.
+        """
+        sqrt_base_point = scipy.linalg.sqrtm(base_point)
+        inv_sqrt_base_point = np.linalg.inv(sqrt_base_point)
+
+        tangent_vec_at_id = np.dot(np.dot(inv_sqrt_base_point,
+                                          tangent_vec),
+                                   inv_sqrt_base_point)
+        exp_from_id = group_exp(tangent_vec_at_id)
+
+        exp = np.dot(sqrt_base_point,
+                     np.dot(exp_from_id,
+                            sqrt_base_point))
+
+        return exp
+
+    def log(self, point, base_point):
+        """
+        Compute the Riemannian logarithm at point base_point,
+        of point wrt the metric defined in
+        inner_product.
+
+        This gives a tangent vector at point base_point.
+        """
+        sqrt_base_point = scipy.linalg.sqrtm(base_point)
+        inv_sqrt_base_point = np.linalg.inv(sqrt_base_point)
+
+        point_near_id = np.dot(np.dot(inv_sqrt_base_point,
+                                      point),
+                               inv_sqrt_base_point)
+        log_at_id = group_log(point_near_id)
+
+        log = np.dot(np.dot(sqrt_base_point,
+                            log_at_id),
+                     sqrt_base_point)
+
+        return log

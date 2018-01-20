@@ -10,7 +10,7 @@ from geomstats.spd_matrices_space import SPDMatricesSpace
 class TestSPDMatricesSpaceMethods(unittest.TestCase):
     DIMENSION = 3
     SPACE = SPDMatricesSpace(dimension=DIMENSION)
-    METRIC = SPACE.riemannian_metric
+    METRIC = SPACE.metric
 
     def test_is_symmetric(self):
         sym_mat = np.array([[1, 2],
@@ -63,16 +63,16 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
 
         self.assertTrue(np.allclose(result_1, expected_1))
 
-    def test_riemannian_log_and_exp(self):
-        ref_point_1 = np.array([[5., 0., 0.],
+    def test_log_and_exp(self):
+        base_point_1 = np.array([[5., 0., 0.],
                                 [0., 7., 2.],
                                 [0., 2., 8.]])
         point_1 = np.array([[9., 0., 0.],
                             [0., 5., 0.],
                             [0., 0., 1.]])
 
-        riem_log_1 = self.METRIC.riemannian_log(ref_point_1, point_1)
-        result_1 = self.METRIC.riemannian_exp(ref_point_1, riem_log_1)
+        log_1 = self.METRIC.log(point=point_1, base_point=base_point_1)
+        result_1 = self.METRIC.exp(tangent_vec=log_1, base_point=base_point_1)
         expected_1 = point_1
 
         self.assertTrue(np.allclose(result_1, expected_1))

@@ -2,9 +2,9 @@
 
 import numpy as np
 
-from geomstats.lie_groups import LieGroup
-from geomstats.lie_groups import InvariantMetric
-ALGEBRA_CANONICAL_INNER_PRODUCT = np.eye(3)
+from geomstats.lie_group import LieGroup
+
+EPSILON = 1e-5
 
 
 def closest_rotation_matrix(mat):
@@ -59,9 +59,7 @@ class SpecialOrthogonalGroup(LieGroup):
         LieGroup.__init__(self,
                           dimension=dimension,
                           identity=np.zeros(3))
-        self.canonical_metric = InvariantMetric(
-                self,
-                ALGEBRA_CANONICAL_INNER_PRODUCT)
+        self.bi_invariant_metric = self.left_canonical_metric
 
     def regularize(self, rot_vec):
         """
@@ -88,7 +86,7 @@ class SpecialOrthogonalGroup(LieGroup):
 
         return self.regularized_rot_vec
 
-    def rotation_vector_from_matrix(self, rot_mat, epsilon=1e-5):
+    def rotation_vector_from_matrix(self, rot_mat, epsilon=EPSILON):
         """
         Convert rotation matrix to rotation vector
         (axis-angle representation).
@@ -145,7 +143,7 @@ class SpecialOrthogonalGroup(LieGroup):
                                 skew_rot_vec[1][0]])
         return self.regularize(rot_vec)
 
-    def matrix_from_rotation_vector(self, rot_vec, epsilon=1e-5):
+    def matrix_from_rotation_vector(self, rot_vec, epsilon=EPSILON):
         """
         Convert rotation vector to rotation matrix.
 
@@ -193,7 +191,7 @@ class SpecialOrthogonalGroup(LieGroup):
         return -rot_vec
 
     def jacobian_translation(self, rot_vec,
-                             left_or_right='left', epsilon=1e-5):
+                             left_or_right='left', epsilon=EPSILON):
         """
         Compute the jacobian matrix of the differential
         of the left translation by the rotation r.

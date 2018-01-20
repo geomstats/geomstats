@@ -12,8 +12,8 @@ import math
 import numpy as np
 
 from geomstats.minkowski_space import MinkowskiMetric
-from geomstats.base_manifolds import Manifold
-from geomstats.base_manifolds import RiemannianMetric
+from geomstats.manifold import Manifold
+from geomstats.riemannian_metric import RiemannianMetric
 
 EPSILON = 1e-6
 TOLERANCE = 1e-12
@@ -38,97 +38,12 @@ INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
                           0., -1. / 4725.]
 
 
-class HyperbolicMetric(RiemannianMetric):
-
-    def __init__(self):
-        self.embedding_metric = MinkowskiMetric()
-
-    def riemannian_exp(self, ref_point, tangent_vec, epsilon=EPSILON):
-        """
-        Compute the Riemannian exponential at point ref_point
-        of tangent vector tangent_vec wrt the metric obtained by
-        embedding of the hyperbolic space in the minkowski space.
-
-        This gives a point on the hyperbolic space.
-
-        :param ref_point: a point on the hyperbolic space
-        :param vector: vector
-        :returns riem_exp: a point on the hyperbolic space
-        """
-        sq_norm_tangent_vec = self.embedding_metric.riemannian_squared_norm(
-                tangent_vec)
-        norm_tangent_vec = math.sqrt(sq_norm_tangent_vec)
-
-        if norm_tangent_vec < epsilon:
-            coef_1 = (1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
-                      + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
-                      + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
-                      + COSH_TAYLOR_COEFFS[8] * norm_tangent_vec ** 8)
-            coef_2 = (1. + SINH_TAYLOR_COEFFS[3] * norm_tangent_vec ** 2
-                      + SINH_TAYLOR_COEFFS[5] * norm_tangent_vec ** 4
-                      + SINH_TAYLOR_COEFFS[7] * norm_tangent_vec ** 6
-                      + SINH_TAYLOR_COEFFS[9] * norm_tangent_vec ** 8)
-        else:
-            coef_1 = np.cosh(norm_tangent_vec)
-            coef_2 = np.sinh(norm_tangent_vec) / norm_tangent_vec
-
-        riem_exp = coef_1 * ref_point + coef_2 * tangent_vec
-
-        return riem_exp
-
-    def riemannian_log(self, ref_point, point, epsilon=EPSILON):
-        """
-        Compute the Riemannian logarithm at point ref_point,
-        of point wrt the metric obtained by
-        embedding of the hyperbolic space in the minkowski space.
-
-        This gives a tangent vector at point ref_point.
-
-        :param ref_point: point on the hyperbolic space
-        :param point: point on the hyperbolic space
-        :returns riem_log: tangent vector at ref_point
-        """
-        angle = self.riemannian_dist(ref_point, point)
-        if angle < epsilon:
-            coef_1 = (1. + INV_SINH_TAYLOR_COEFFS[1] * angle ** 2
-                      + INV_SINH_TAYLOR_COEFFS[3] * angle ** 4
-                      + INV_SINH_TAYLOR_COEFFS[5] * angle ** 6
-                      + INV_SINH_TAYLOR_COEFFS[7] * angle ** 8)
-            coef_2 = (1. + INV_TANH_TAYLOR_COEFFS[1] * angle ** 2
-                      + INV_TANH_TAYLOR_COEFFS[3] * angle ** 4
-                      + INV_TANH_TAYLOR_COEFFS[5] * angle ** 6
-                      + INV_TANH_TAYLOR_COEFFS[7] * angle ** 8)
-        else:
-            coef_1 = angle / np.sinh(angle)
-            coef_2 = angle / np.tanh(angle)
-        return coef_1 * point - coef_2 * ref_point
-
-    def riemannian_dist(self, point_a, point_b):
-        """
-        Compute the Riemannian logarithm at point ref_point,
-        of point wrt the metric obtained by
-        embedding of the hyperbolic space in the minkowski space.
-        """
-        sq_norm_a = self.embedding_metric.riemannian_squared_norm(point_a)
-        sq_norm_b = self.embedding_metric.riemannian_squared_norm(point_b)
-        inner_prod = self.embedding_metric.riemannian_inner_product(
-                point_a,
-                point_b)
-
-        cosh_angle = - inner_prod / math.sqrt(sq_norm_a * sq_norm_b)
-
-        if cosh_angle <= 1.:
-            return 0.
-
-        return np.arccosh(cosh_angle)
-
-
 class HyperbolicSpace(Manifold):
 
     def __init__(self, dimension):
-        Manifold.__init__(self, dimension)
-        self.riemannian_metric = HyperbolicMetric()
-        self.embedding_metric = MinkowskiMetric()
+        self.dimension = dimension
+        self.metric = HyperbolicMetric(self.dimension)
+        self.embedding_metric = MinkowskiMetric(self.dimension + 1)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """
@@ -137,7 +52,7 @@ class HyperbolicSpace(Manifold):
 
         Note: point must be given in extrinsic coordinates.
         """
-        sq_norm = self.embedding_metric.riemannian_squared_norm(point)
+        sq_norm = self.embedding_metric.squared_norm(point)
         return abs(sq_norm + 1.) < tolerance
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
@@ -161,20 +76,19 @@ class HyperbolicSpace(Manifold):
 
         return point_extrinsic[1:]
 
-    def projection_to_tangent_space(self, ref_point, vector):
+    def projection_to_tangent_space(self, vector, base_point):
         """
-         Project the vector vector onto the tangent space at ref_point
-         T_{ref_point}H = { w s.t. embedding_inner_product(ref_point, w) = 0 }
+         Project the vector vector onto the tangent space at base_point
+         T_{base_point}H
+                = { w s.t. embedding_inner_product(base_point, w) = 0 }
         """
-        assert self.belongs(ref_point)
+        assert self.belongs(base_point)
 
-        inner_prod = self.embedding_metric.riemannian_inner_product(
-                ref_point,
-                vector)
-        sq_norm_ref_point = self.embedding_metric.riemannian_squared_norm(
-                ref_point)
+        inner_prod = self.embedding_metric.inner_product(base_point,
+                                                         vector)
+        sq_norm_base_point = self.embedding_metric.squared_norm(base_point)
 
-        tangent_vec = vector - inner_prod * ref_point / sq_norm_ref_point
+        tangent_vec = vector - inner_prod * base_point / sq_norm_base_point
         return tangent_vec
 
     def random_uniform(self, dimension, max_norm):
@@ -183,3 +97,87 @@ class HyperbolicSpace(Manifold):
         """
         point_intrinsic = (np.random.random_sample(dimension) - .5) * max_norm
         return self.intrinsic_to_extrinsic_coords(point_intrinsic)
+
+
+class HyperbolicMetric(RiemannianMetric):
+
+    def __init__(self, dimension):
+        self.dimension = dimension
+        self.embedding_metric = MinkowskiMetric(dimension + 1)
+
+    def exp(self, tangent_vec, base_point, epsilon=EPSILON):
+        """
+        Compute the Riemannian exponential at point base_point
+        of tangent vector tangent_vec wrt the metric obtained by
+        embedding of the hyperbolic space in the minkowski space.
+
+        This gives a point on the hyperbolic space.
+
+        :param base_point: a point on the hyperbolic space
+        :param vector: vector
+        :returns riem_exp: a point on the hyperbolic space
+        """
+        sq_norm_tangent_vec = self.embedding_metric.squared_norm(
+                tangent_vec)
+        norm_tangent_vec = math.sqrt(sq_norm_tangent_vec)
+
+        if norm_tangent_vec < epsilon:
+            coef_1 = (1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
+                      + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
+                      + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
+                      + COSH_TAYLOR_COEFFS[8] * norm_tangent_vec ** 8)
+            coef_2 = (1. + SINH_TAYLOR_COEFFS[3] * norm_tangent_vec ** 2
+                      + SINH_TAYLOR_COEFFS[5] * norm_tangent_vec ** 4
+                      + SINH_TAYLOR_COEFFS[7] * norm_tangent_vec ** 6
+                      + SINH_TAYLOR_COEFFS[9] * norm_tangent_vec ** 8)
+        else:
+            coef_1 = np.cosh(norm_tangent_vec)
+            coef_2 = np.sinh(norm_tangent_vec) / norm_tangent_vec
+
+        riem_exp = coef_1 * base_point + coef_2 * tangent_vec
+
+        return riem_exp
+
+    def log(self, point, base_point, epsilon=EPSILON):
+        """
+        Compute the Riemannian logarithm at point base_point,
+        of point wrt the metric obtained by
+        embedding of the hyperbolic space in the minkowski space.
+
+        This gives a tangent vector at point base_point.
+
+        :param base_point: point on the hyperbolic space
+        :param point: point on the hyperbolic space
+        :returns riem_log: tangent vector at base_point
+        """
+        angle = self.dist(base_point, point)
+        if angle < epsilon:
+            coef_1 = (1. + INV_SINH_TAYLOR_COEFFS[1] * angle ** 2
+                      + INV_SINH_TAYLOR_COEFFS[3] * angle ** 4
+                      + INV_SINH_TAYLOR_COEFFS[5] * angle ** 6
+                      + INV_SINH_TAYLOR_COEFFS[7] * angle ** 8)
+            coef_2 = (1. + INV_TANH_TAYLOR_COEFFS[1] * angle ** 2
+                      + INV_TANH_TAYLOR_COEFFS[3] * angle ** 4
+                      + INV_TANH_TAYLOR_COEFFS[5] * angle ** 6
+                      + INV_TANH_TAYLOR_COEFFS[7] * angle ** 8)
+        else:
+            coef_1 = angle / np.sinh(angle)
+            coef_2 = angle / np.tanh(angle)
+        return coef_1 * point - coef_2 * base_point
+
+    def dist(self, point_a, point_b):
+        """
+        Compute the Riemannian logarithm at point base_point,
+        of point wrt the metric obtained by
+        embedding of the hyperbolic space in the minkowski space.
+        """
+        sq_norm_a = self.embedding_metric.squared_norm(point_a)
+        sq_norm_b = self.embedding_metric.squared_norm(point_b)
+        inner_prod = self.embedding_metric.inner_product(point_a, point_b)
+
+        cosh_angle = - inner_prod / math.sqrt(sq_norm_a * sq_norm_b)
+
+        if cosh_angle <= 1.:
+            return 0.
+
+        return np.arccosh(cosh_angle)
