@@ -37,6 +37,27 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
         expected -= 2 * point[self.TIME_LIKE_DIM] * point[self.TIME_LIKE_DIM]
         self.assertTrue(np.allclose(result, expected))
 
+    def test_norm(self):
+        point = np.array([-1, 4])
+        self.assertRaises(ValueError,
+                          lambda: self.METRIC.norm(point))
+
+    def test_squared_dist(self):
+        point_a = np.array([-1, 4])
+        point_b = np.array([1, 1])
+
+        result = self.METRIC.squared_dist(point_a, point_b)
+        vec = point_b - point_a
+        expected = np.dot(vec, vec)
+        expected -= 2 * vec[self.TIME_LIKE_DIM] * vec[self.TIME_LIKE_DIM]
+        self.assertTrue(np.allclose(result, expected))
+
+    def test_dist(self):
+        point_a = np.array([-1, 4])
+        point_b = np.array([1, 1])
+        self.assertRaises(ValueError,
+                          lambda: self.METRIC.dist(point_a, point_b))
+
 
 if __name__ == '__main__':
         unittest.main()

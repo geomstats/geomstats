@@ -14,8 +14,12 @@ class RiemannianMetric(object):
     Note: this class includes sub- and pseudo- Riemannian metrics.
     """
 
-    def __init__(self, dimension):
+    def __init__(self, dimension, signature=None):
+        assert dimension > 0
         self.dimension = dimension
+        if signature is not None:
+            assert np.sum(signature) == dimension
+        self.signature = signature
 
     def inner_product_matrix(self, base_point=None):
         """
@@ -50,12 +54,12 @@ class RiemannianMetric(object):
         """
         Norm associated to the inner product.
         """
-        sq_norm = self.squared_norm(vector, base_point)
-        if sq_norm < 0:
+        n_negative_eigenvalues = self.signature[1]
+        if n_negative_eigenvalues > 0:
             raise ValueError(
-                    'The squared norm of this vector is non-positive.'
-                    ' The method \'norm\' only works for positive-definite'
+                    'The method \'norm\' only works for positive-definite'
                     ' Riemannian metrics and inner products.')
+        sq_norm = self.squared_norm(vector, base_point)
         norm = np.sqrt(sq_norm)
         return norm
 
@@ -91,13 +95,12 @@ class RiemannianMetric(object):
         Riemannian distance between points point_a and point_b. This
         is the geodesic distance associated to the Riemannian metric.
         """
-        sq_dist = self.squared_dist(point_a, point_b)
-        if sq_dist < 0:
+        n_negative_eigenvalues = self.signature[1]
+        if n_negative_eigenvalues > 0:
             raise ValueError(
-                    'The squared distance between these points is'
-                    ' non-positive. The method \'dist\' only works for'
-                    ' positive-definite Riemannian metrics'
-                    ' and inner products.')
+                    'The method \'dist\' only works for positive-definite'
+                    ' Riemannian metrics and inner products.')
+        sq_dist = self.squared_dist(point_a, point_b)
         dist = np.sqrt(sq_dist)
         return dist
 
@@ -162,7 +165,7 @@ class RiemannianMetric(object):
 
         n_weights = len(weights)
         assert n_points == n_weights
-        sum_weights = sum(weights)
+        sum_weights = np.sum(weights)
 
         mean = points[0]
         if n_points == 1:

@@ -16,6 +16,10 @@ class TestManifoldMethods(unittest.TestCase):
         expected = self.DIMENSION
         self.assertTrue(np.allclose(result, expected))
 
+    def test_belongs(self):
+        point = np.array([1, 2, 3])
+        self.assertRaises(NotImplementedError, self.belongs(point))
+
     def test_regularize(self):
         manifold = Manifold(self.DIMENSION)
         point = np.array(5)

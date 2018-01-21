@@ -22,6 +22,10 @@ class MinkowskiMetric(RiemannianMetric):
     The metric is flat: inner product independent of the reference point.
     The metric has signature (-1, n) on the (n+1)-D vector space.
     """
+    def __init__(self, dimension):
+        RiemannianMetric.__init__(self,
+                                  dimension=dimension,
+                                  signature=(dimension - 1, 1, 0))
 
     def inner_product_matrix(self, base_point=None):
         """
@@ -32,3 +36,15 @@ class MinkowskiMetric(RiemannianMetric):
         inner_prod_mat = np.eye(self.dimension)
         inner_prod_mat[0, 0] = -1
         return inner_prod_mat
+
+    def exp(self, tangent_vec, base_point):
+        """
+        The Riemannian exponential is the addition in the Minkowski space.
+        """
+        return base_point + tangent_vec
+
+    def log(self, point, base_point):
+        """
+        The Riemannian logarithm is the subtraction in the Minkowski space.
+        """
+        return point - base_point
