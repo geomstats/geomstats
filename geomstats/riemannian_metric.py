@@ -135,7 +135,7 @@ class RiemannianMetric(object):
 
         for i in range(n_points):
             weight_i = weights[i]
-            point_i = points[i, :]
+            point_i = points[i]
 
             sq_dist = self.squared_dist(base_point, point_i)
 
@@ -174,7 +174,6 @@ class RiemannianMetric(object):
         sq_dists_between_iterates = []
         it = 0
         while True:
-            it += 1
             a_tangent_vector = self.log(mean, mean)
             tangent_mean = np.zeros_like(a_tangent_vector)
 
@@ -188,17 +187,21 @@ class RiemannianMetric(object):
 
             mean_next = self.exp(tangent_vec=tangent_mean, base_point=mean)
 
-            sq_dist = self.squared_distance(mean_next, mean)
+            sq_dist = self.squared_dist(mean_next, mean)
             sq_dists_between_iterates.append(sq_dist)
 
-            variance = self.variance(mean_next, points, weights)
-
-            if sq_dist < epsilon * variance:
+            variance = self.variance(points=points,
+                                     weights=weights,
+                                     base_point=mean_next)
+            if sq_dist <= epsilon * variance:
                 break
 
             if it == n_max_iterations:
                 logging.warning('Maximum number of iterations {} reached.'
                                 'The mean may be inaccurate'
                                 ''.format(n_max_iterations))
+                break
+            mean = mean_next
+            it += 1
 
         return mean
