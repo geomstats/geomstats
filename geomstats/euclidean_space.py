@@ -61,7 +61,7 @@ class EuclideanMetric(RiemannianMetric):
         point = np.random.uniform(0., 1., size=self.dimension)
         return point
 
-    def mean(self, points, weights):
+    def mean(self, points, weights=None):
         """
         Weighted mean of the points.
         """

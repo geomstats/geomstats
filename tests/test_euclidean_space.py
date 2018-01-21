@@ -56,6 +56,15 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
         expected = point - base_point
         self.assertTrue(np.allclose(result, expected))
 
+    def test_squared_dist(self):
+        point_a = np.array([-1, 4])
+        point_b = np.array([1, 1])
+
+        result = self.METRIC.squared_dist(point_a, point_b)
+        vec = point_b - point_a
+        expected = np.dot(vec, vec)
+        self.assertTrue(np.allclose(result, expected))
+
     def test_dist(self):
         point_a = np.array([0, 1])
         point_b = np.array([2, 10])
@@ -69,6 +78,12 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
         self.assertTrue(self.SPACE.belongs(point))
 
     def test_mean(self):
+        point = np.array([1, 4])
+        result = self.METRIC.mean(points=[point, point, point])
+        expected = point
+
+        self.assertTrue(np.allclose(result, expected))
+
         points = np.array([[1, 2],
                            [2, 3],
                            [3, 4],
