@@ -24,6 +24,14 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                inner_product_mat_at_identity=inner_product_mat_at_identity,
                left_or_right='right')
 
+    def test_random_uniform_and_belongs(self):
+        """
+        Test that the random uniform method samples
+        on the special euclidean group.
+        """
+        base_point = self.SPACE.random_uniform(self.DIMENSION, 1)
+        self.assertTrue(self.SPACE.belongs(base_point))
+
     def test_compose(self):
         # 1. Composition by identity, on the right
         # Expect the original transformation

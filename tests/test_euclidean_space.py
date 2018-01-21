@@ -79,6 +79,18 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
         expected = np.array([16., 22.]) / 6.
         self.assertTrue(np.allclose(result, expected))
 
+    def test_variance(self):
+        points = np.array([[1, 2],
+                           [2, 3],
+                           [3, 4],
+                           [4, 5]])
+        weights = np.array([1, 2, 1, 2])
+        base_point = np.zeros(2)
+        result = self.METRIC.variance(points, weights, base_point)
+        # we expect the average of the points' sq norms.
+        expected = (1 * 5. + 2 * 13. + 1 * 25. + 2 * 41.) / 6.
+        self.assertTrue(np.allclose(result, expected))
+
 
 if __name__ == '__main__':
         unittest.main()

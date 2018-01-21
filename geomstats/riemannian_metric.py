@@ -110,15 +110,23 @@ class RiemannianMetric(object):
                 'Uniform sampling w.r.t. Riemannian measure'
                 ' is not implemented.')
 
-    def variance(self, base_point, points, weights):
+    def variance(self, points, weights=None, base_point=None):
         """
         Weighted variance of the points in the tangent space
         at the base_point.
         """
-        n_points, _ = points.shape
-        n_weights = len(weights)
+        n_points = len(points)
         assert n_points > 0
+
+        if weights is None:
+            weights = np.ones(n_points)
+
+        n_weights = len(weights)
         assert n_points == n_weights
+        sum_weights = sum(weights)
+
+        if base_point is None:
+            base_point = self.mean(points, weights)
 
         variance = 0
 
@@ -126,9 +134,10 @@ class RiemannianMetric(object):
             weight_i = weights[i]
             point_i = points[i, :]
 
-            sq_dist = self.squared_distance(base_point, point_i)
+            sq_dist = self.squared_dist(base_point, point_i)
 
             variance += weight_i * sq_dist
+        variance /= sum_weights
 
         return variance
 

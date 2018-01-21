@@ -22,6 +22,13 @@ class SpecialEuclideanGroup(LieGroup):
         self.rotations = SpecialOrthogonalGroup(dimension=3)
         self.translations = EuclideanSpace(dimension=3)
 
+    def belongs(self, transfo):
+        """
+        Check that the transformation belongs to
+        the special euclidean group.
+        """
+        return len(transfo) == self.dimension
+
     def regularize(self, transfo):
         """
         Regularize an element of the group SE(3),

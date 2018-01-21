@@ -61,6 +61,13 @@ class SpecialOrthogonalGroup(LieGroup):
                           identity=np.zeros(3))
         self.bi_invariant_metric = self.left_canonical_metric
 
+    def belongs(self, rot_vec):
+        """
+        Check that a vector belongs to the
+        special orthogonal group.
+        """
+        return len(rot_vec) == self.dimension
+
     def regularize(self, rot_vec):
         """
         Regularize the norm of the rotation vector,

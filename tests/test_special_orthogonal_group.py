@@ -3,6 +3,7 @@
 import numpy as np
 import unittest
 
+import geomstats.special_orthogonal_group as special_orthogonal_group
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
 
@@ -10,6 +11,22 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
     DIMENSION = 3
     GROUP = SpecialOrthogonalGroup(dimension=DIMENSION)
     METRIC = GROUP.bi_invariant_metric
+
+    def test_belongs(self):
+        rot_vec = np.ones(self.dimension)
+        self.assertTrue(self.GROUP.belongs(rot_vec))
+
+    def test_closest_rotation_matrix(self):
+        rot_mat = np.eye(3)
+        delta = 1e-12 * np.array([[0., 0., 0.],
+                                  [0., 0., 1.],
+                                  [0., 1., 0.]])
+
+        rot_mat_plus_delta = rot_mat + delta
+        result = special_orthogonal_group.closest_rotation_matrix(
+                                                   rot_mat_plus_delta)
+        expected = rot_mat
+        self.assertTrue(np.allclose(result, expected))
 
     def test_regularize(self):
         rot_vec_0 = np.array([0., 0., 0.])
@@ -131,7 +148,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 rot_mat_3)
         self.assertTrue(np.allclose(rot_vec_3, result_rot_vec_3))
 
-        rot_vec_4 = np.array([0., 2., 1.])
+        # Edge case: abs(angle - pi) < 1e-5
+        rot_vec_4 = np.array([np.pi - 1e-7, 0., 0.])
         rot_mat_4 = self.GROUP.matrix_from_rotation_vector(rot_vec_4)
         result_rot_vec_4 = self.GROUP.rotation_vector_from_matrix(
                 rot_mat_4)
@@ -236,6 +254,16 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                    point=aux_2)
 
         self.assertTrue(np.allclose(result_2, rot_vec_2))
+
+        rot_vec_base_point = (np.pi - 1e-10) * np.array([1, 0, 0])
+        rot_vec_3 = np.array([0.1, 0.001, 0.1])
+
+        aux_3 = self.METRIC.exp(base_point=rot_vec_base_point,
+                                tangent_vec=rot_vec_3)
+        result_3 = self.METRIC.log(base_point=rot_vec_base_point,
+                                   point=aux_3)
+
+        self.assertTrue(np.allclose(result_3, rot_vec_3))
 
 
 if __name__ == '__main__':
