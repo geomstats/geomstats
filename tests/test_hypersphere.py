@@ -26,7 +26,7 @@ class TestHypersphereMethods(unittest.TestCase):
         extrinsic_to_intrinsic_coords
         gives the identity.
         """
-        point_int = np.ones(self.DIMENSION)
+        point_int = np.array([.1, 0., 0., .1])
         point_ext = self.SPACE.intrinsic_to_extrinsic_coords(point_int)
         result = self.SPACE.extrinsic_to_intrinsic_coords(point_ext)
         expected = point_int

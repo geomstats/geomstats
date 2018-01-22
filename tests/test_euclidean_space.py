@@ -74,7 +74,7 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
         self.assertTrue(np.allclose(result, expected))
 
     def test_random_uniform_and_belongs(self):
-        point = self.METRIC.random_uniform()
+        point = self.SPACE.random_uniform()
         self.assertTrue(self.SPACE.belongs(point))
 
     def test_mean(self):

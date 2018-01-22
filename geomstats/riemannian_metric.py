@@ -104,15 +104,6 @@ class RiemannianMetric(object):
         dist = np.sqrt(sq_dist)
         return dist
 
-    def random_uniform(self):
-        """
-        Sample a random point on the manifold according to
-        the measure induced by the Riemannian metric.
-        """
-        raise NotImplementedError(
-                'Uniform sampling w.r.t. Riemannian measure'
-                ' is not implemented.')
-
     def variance(self, points, weights=None, base_point=None):
         """
         Weighted variance of the points in the tangent space

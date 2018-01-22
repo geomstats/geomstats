@@ -66,21 +66,26 @@ class Hypersphere(Manifold):
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """
-        From the intrinsic coordinates in the Hypersphere,
+        From some intrinsic coordinates in the Hypersphere,
         to the extrinsic coordinates in Euclidean space.
         """
+        assert np.linalg.norm(point_intrinsic) <= 1
+
         dimension = self.dimension
         point_extrinsic = np.zeros(dimension + 1, 'float')
         point_extrinsic[1: dimension + 1] = point_intrinsic[0: dimension]
+
         point_extrinsic[0] = np.sqrt(1. - np.dot(point_intrinsic,
                                                  point_intrinsic))
+        assert self.belongs(point_extrinsic)
         return point_extrinsic
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         """
         From the extrinsic coordinates in Euclidean space,
-        to the extrinsic coordinates in Hypersphere.
+        to some intrinsic coordinates in Hypersphere.
         """
+        assert self.belongs(point_extrinsic)
         return point_extrinsic[1:]
 
     def random_uniform(self, max_norm=1):
@@ -89,6 +94,8 @@ class Hypersphere(Manifold):
         """
         point = (np.random.random_sample(self.dimension) - .5) * max_norm
         point = self.intrinsic_to_extrinsic_coords(point)
+        assert self.belongs(point)
+
         return point
 
 

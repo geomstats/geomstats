@@ -21,6 +21,14 @@ class MinkowskiSpace(Manifold):
         """
         return len(point) == self.dimension
 
+    def random_uniform(self):
+        """
+        Sample a vector uniformly in the Minkowski space,
+        with coordinates each between -1. and 1.
+        """
+        point = np.random.rand(self.dimension) * 2 - 1
+        return point
+
 
 class MinkowskiMetric(RiemannianMetric):
     """
@@ -54,14 +62,6 @@ class MinkowskiMetric(RiemannianMetric):
         The Riemannian logarithm is the subtraction in the Minkowski space.
         """
         return point - base_point
-
-    def random_uniform(self):
-        """
-        Sample a vector uniformly in the Minkowski space,
-        with coordinates each between 0. and 1.
-        """
-        point = np.random.uniform(0., 1., size=self.dimension)
-        return point
 
     def mean(self, points, weights=None):
         """

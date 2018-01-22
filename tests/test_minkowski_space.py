@@ -76,7 +76,7 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
                           lambda: self.METRIC.dist(point_a, point_b))
 
     def test_random_uniform_and_belongs(self):
-        point = self.METRIC.random_uniform()
+        point = self.SPACE.random_uniform()
         self.assertTrue(self.SPACE.belongs(point))
 
     def test_mean(self):

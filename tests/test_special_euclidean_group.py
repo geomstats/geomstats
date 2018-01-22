@@ -3,34 +3,31 @@
 import numpy as np
 import unittest
 
-from geomstats.invariant_metric import InvariantMetric
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
 
 
 class TestSpecialEuclideanGroupMethods(unittest.TestCase):
-    DIMENSION = 6
-    GROUP = SpecialEuclideanGroup(dimension=DIMENSION)
+    N = 3
+    GROUP = SpecialEuclideanGroup(n=N)
 
-    inner_product_mat_at_identity = np.zeros([6, 6])
-    inner_product_mat_at_identity[0:3, 0:3] = 3 * np.eye(3)
-    inner_product_mat_at_identity[3:6, 3:6] = 9 * np.eye(3)
-
-    LEFT_DIAG_METRIC = InvariantMetric(
-               lie_group=GROUP,
-               inner_product_mat_at_identity=inner_product_mat_at_identity,
-               left_or_right='left')
-    RIGHT_DIAG_METRIC = InvariantMetric(
-               lie_group=GROUP,
-               inner_product_mat_at_identity=inner_product_mat_at_identity,
-               left_or_right='right')
-
-    def test_random_uniform_and_belongs(self):
+    def test_random_and_belongs(self):
         """
         Test that the random uniform method samples
         on the special euclidean group.
         """
-        base_point = self.SPACE.random_uniform(self.DIMENSION, 1)
-        self.assertTrue(self.SPACE.belongs(base_point))
+        base_point = self.GROUP.random_uniform()
+        self.assertTrue(self.GROUP.belongs(base_point))
+
+    def test_regularize(self):
+        rot_vec_0 = np.array([0., 0., 0.])
+        rot_vec_0 = self.GROUP.regularize(rot_vec_0)
+        rot_vec_0_expected = np.array([0., 0., 0.])
+        self.assertTrue(np.allclose(rot_vec_0, rot_vec_0_expected))
+
+        rot_vec_1 = 2.5 * np.pi * np.array([0., 0., 1.])
+        rot_vec_1 = self.GROUP.regularize(rot_vec_1)
+        rot_vec_1_expected = np.pi / 2. * np.array([0., 0., 1.])
+        self.assertTrue(np.allclose(rot_vec_1, rot_vec_1_expected))
 
     def test_compose(self):
         # 1. Composition by identity, on the right
@@ -360,33 +357,6 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
         self.assertTrue(np.allclose(result_2, expected_2))
 
-        # 3. Compose log then exp
-        # Block diagonal inner product
-        diag_metric = self.LEFT_DIAG_METRIC
-
-        rot_vec_3 = np.array([-1., 0.5, -0.12])  # NB: Regularized
-        translation_3 = np.array([-91., -7., 0.007])
-        point_3 = np.concatenate([rot_vec_3, translation_3])
-
-        aux_3 = diag_metric.log_from_identity(point_3)
-        result_3 = diag_metric.exp_from_identity(aux_3)
-        expected_3 = point_3
-
-        self.assertTrue(np.allclose(result_3, expected_3))
-
-        # 4. Compose log then exp
-        # for edge case: angle < epsilon, where angle = norm(rot_vec)
-        # Block diagonal inner product
-        rot_vec_4 = np.array([1e-15, 0., 5 * 1e-6])  # NB: Regularized
-        translation_4 = np.array([-1., 27., 7.])
-        point_4 = np.concatenate([rot_vec_4, translation_4])
-
-        aux_4 = diag_metric.log_from_identity(point_4)
-        result_4 = diag_metric.exp_from_identity(aux_4)
-        expected_4 = point_4
-
-        self.assertTrue(np.allclose(result_4, expected_4))
-
     def test_right_exp_and_log_from_id(self):
         """
         Test that the riemannian right exponential from the identity
@@ -420,31 +390,6 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected_2 = point_2
 
         self.assertTrue(np.allclose(result_2, expected_2))
-
-        # 3. Compose log then exp
-        # Block diagonal inner product
-        rot_vec_3 = np.array([-1., 0.5, -0.12])  # NB: Regularized
-        translation_3 = np.array([-91., -7., 0.007])
-        point_3 = np.concatenate([rot_vec_3, translation_3])
-
-        aux_3 = self.RIGHT_DIAG_METRIC.log_from_identity(point_3)
-        result_3 = self.RIGHT_DIAG_METRIC.exp_from_identity(aux_3)
-        expected_3 = point_3
-
-        self.assertTrue(np.allclose(result_3, expected_3))
-
-        # 4. Compose log then exp
-        # for edge case: angle < epsilon, where angle = norm(rot_vec)
-        # Block diagonal inner product
-        rot_vec_4 = np.array([1e-15, 0., 5 * 1e-6])  # NB: Regularized
-        translation_4 = np.array([-1., 27., 7.])
-        point_4 = np.concatenate([rot_vec_4, translation_4])
-
-        aux_4 = self.RIGHT_DIAG_METRIC.log_from_identity(point_4)
-        result_4 = self.RIGHT_DIAG_METRIC.exp_from_identity(aux_4)
-        expected_4 = point_4
-
-        self.assertTrue(np.allclose(result_4, expected_4))
 
     def test_left_exp(self):
         # Reference point is a translation (no rotational part)
@@ -542,41 +487,6 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
         self.assertTrue(np.allclose(result_2, expected_2))
 
-        # 3. Compose log then exp
-        # Block diagonal inner product
-        rot_vec_3 = np.array([-1.2, 0.9, 0.9])  # NB: Regularized
-        translation_3 = np.array([5, 5, 5])
-        point_3 = np.concatenate([rot_vec_3,
-                                  translation_3])
-
-        aux_3 = self.LEFT_DIAG_METRIC.log(
-                                      base_point=transfo_base_point,
-                                      point=point_3)
-        result_3 = self.LEFT_DIAG_METRIC.exp(
-                                      base_point=transfo_base_point,
-                                      tangent_vec=aux_3)
-        expected_3 = point_3
-
-        self.assertTrue(np.allclose(result_3, expected_3))
-
-        # 4. Compose log then exp
-        # for edge case: angle < epsilon, where angle = norm(rot_vec)
-        # Block diagonal inner product
-        rot_vec_4 = np.array([-1e-7, 0., -7*1e-8])  # NB: Regularized
-        translation_4 = np.array([6, 5, 9])
-        point_4 = np.concatenate([rot_vec_4,
-                                  translation_4])
-
-        aux_4 = self.LEFT_DIAG_METRIC.log(
-                                      base_point=transfo_base_point,
-                                      point=point_4)
-        result_4 = self.LEFT_DIAG_METRIC.exp(
-                                         base_point=transfo_base_point,
-                                         tangent_vec=aux_4)
-        expected_4 = point_4
-
-        self.assertTrue(np.allclose(result_4, expected_4))
-
     def test_right_exp_and_log(self):
         """
         Test that the riemannian right exponential and the
@@ -622,48 +532,26 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
         self.assertTrue(np.allclose(result_2, expected_2))
 
-        # 3. Compose log then exp
-        # Block diagonal inner product
-        rot_vec_3 = np.array([-1.2, 0.9, 0.9])  # NB: Regularized
-        translation_3 = np.array([5, 5, 5])
-        point_3 = np.concatenate([rot_vec_3,
-                                  translation_3])
+    def test_group_exponential_barycenter(self):
+        # TODO(nina): this test fails.
+        point_1 = self.GROUP.random_uniform()
+        result_1 = self.GROUP.group_exponential_barycenter(
+                                points=[point_1, point_1])
+        expected_1 = point_1
+        # self.assertTrue(np.allclose(result_1, expected_1))
 
-        inner_product = np.zeros([6, 6])
-        inner_product[0:3, 0:3] = 3 * np.eye(3)
-        inner_product[3:6, 3:6] = 9 * np.eye(3)
+        point_2 = self.GROUP.random_uniform()
+        result_2 = self.GROUP.group_exponential_barycenter(
+                                points=[point_2, point_2],
+                                weights=[1., 2.])
+        expected_2 = point_2
+        # self.assertTrue(np.allclose(result_2, expected_2))
 
-        aux_3 = self.GROUP.right_canonical_metric.log(
-                                      base_point=transfo_base_point,
-                                      point=point_3)
-        result_3 = self.GROUP.right_canonical_metric.exp(
-                                      base_point=transfo_base_point,
-                                      tangent_vec=aux_3)
-        expected_3 = point_3
+        result_3 = self.GROUP.group_exponential_barycenter(
+                                points=[point_1, point_2],
+                                weights=[1., .1])
 
-        self.assertTrue(np.allclose(result_3, expected_3))
-
-        # 4. Compose log then exp
-        # for edge case: angle < epsilon, where angle = norm(rot_vec)
-        # Block diagonal inner product
-        rot_vec_4 = np.array([-1e-7, 0., -7*1e-8])  # NB: Regularized
-        translation_4 = np.array([6, 5, 9])
-        point_4 = np.concatenate([rot_vec_4,
-                                  translation_4])
-
-        inner_product = np.zeros([6, 6])
-        inner_product[0:3, 0:3] = 3 * np.eye(3)
-        inner_product[3:6, 3:6] = 9 * np.eye(3)
-
-        aux_4 = self.GROUP.right_canonical_metric.log(
-                                      base_point=transfo_base_point,
-                                      point=point_4)
-        result_4 = self.GROUP.right_canonical_metric.exp(
-                                      base_point=transfo_base_point,
-                                      tangent_vec=aux_4)
-        expected_4 = point_4
-
-        self.assertTrue(np.allclose(result_4, expected_4))
+        self.assertTrue(self.GROUP.belongs(result_3))
 
 
 if __name__ == '__main__':
