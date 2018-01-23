@@ -7,17 +7,18 @@ import unittest
 
 
 class TestHypersphereMethods(unittest.TestCase):
-    DIMENSION = 4
-    SPACE = Hypersphere(dimension=DIMENSION)
-    METRIC = SPACE.metric
+    def setUp(self):
+        self.dimension = 4
+        self.space = Hypersphere(dimension=self.dimension)
+        self.metric = self.space.metric
 
     def test_random_uniform_and_belongs(self):
         """
         Test that the random uniform method samples
         on the hyperbolic space.
         """
-        point = self.SPACE.random_uniform()
-        self.assertTrue(self.SPACE.belongs(point))
+        point = self.space.random_uniform()
+        self.assertTrue(self.space.belongs(point))
 
     def test_intrinsic_and_extrinsic_coords(self):
         """
@@ -27,15 +28,15 @@ class TestHypersphereMethods(unittest.TestCase):
         gives the identity.
         """
         point_int = np.array([.1, 0., 0., .1])
-        point_ext = self.SPACE.intrinsic_to_extrinsic_coords(point_int)
-        result = self.SPACE.extrinsic_to_intrinsic_coords(point_ext)
+        point_ext = self.space.intrinsic_to_extrinsic_coords(point_int)
+        result = self.space.extrinsic_to_intrinsic_coords(point_ext)
         expected = point_int
 
         self.assertTrue(np.allclose(result, expected))
 
-        point_ext = self.SPACE.random_uniform()
-        point_int = self.SPACE.extrinsic_to_intrinsic_coords(point_ext)
-        result = self.SPACE.intrinsic_to_extrinsic_coords(point_int)
+        point_ext = self.space.random_uniform()
+        point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
+        result = self.space.intrinsic_to_extrinsic_coords(point_int)
         expected = point_ext
 
         self.assertTrue(np.allclose(result, expected))
@@ -59,8 +60,8 @@ class TestHypersphereMethods(unittest.TestCase):
         point_1 = np.array([0., 5., 6., 2., -1])
         point_1 = point_1 / np.linalg.norm(point_1)
 
-        log_1 = self.METRIC.log(point=point_1, base_point=base_point_1)
-        result_1 = self.METRIC.exp(tangent_vec=log_1, base_point=base_point_1)
+        log_1 = self.metric.log(point=point_1, base_point=base_point_1)
+        result_1 = self.metric.exp(tangent_vec=log_1, base_point=base_point_1)
         expected_1 = point_1
 
         self.assertTrue(np.allclose(result_1, expected_1))
@@ -83,8 +84,8 @@ class TestHypersphereMethods(unittest.TestCase):
         point_2 = base_point_2 + 1e-12 * np.array([-1., -2., 1., 1., .1])
         point_2 = point_2 / np.linalg.norm(point_2)
 
-        log_2 = self.METRIC.log(point=point_2, base_point=base_point_2)
-        result_2 = self.METRIC.exp(tangent_vec=log_2, base_point=base_point_2)
+        log_2 = self.metric.log(point=point_2, base_point=base_point_2)
+        result_2 = self.metric.exp(tangent_vec=log_2, base_point=base_point_2)
         expected_2 = point_2
 
         self.assertTrue(np.allclose(result_2, expected_2))
@@ -106,12 +107,12 @@ class TestHypersphereMethods(unittest.TestCase):
         base_point_1 = np.array([0., -3., 0., 3., 4.])
         base_point_1 = base_point_1 / np.linalg.norm(base_point_1)
         vector_1 = np.array([9., 5., 0., 0., -1.])
-        vector_1 = self.SPACE.projection_to_tangent_space(
+        vector_1 = self.space.projection_to_tangent_space(
                                                    vector=vector_1,
                                                    base_point=base_point_1)
 
-        exp_1 = self.METRIC.exp(tangent_vec=vector_1, base_point=base_point_1)
-        result_1 = self.METRIC.log(point=exp_1, base_point=base_point_1)
+        exp_1 = self.metric.exp(tangent_vec=vector_1, base_point=base_point_1)
+        result_1 = self.metric.log(point=exp_1, base_point=base_point_1)
 
         expected_1 = vector_1
         norm_expected_1 = np.linalg.norm(expected_1)
@@ -135,13 +136,13 @@ class TestHypersphereMethods(unittest.TestCase):
         base_point_2 = np.array([10., -2., -.5, 34., 3.])
         base_point_2 = base_point_2 / np.linalg.norm(base_point_2)
         vector_2 = 1e-10 * np.array([.06, -51., 6., 5., 3.])
-        vector_2 = self.SPACE.projection_to_tangent_space(
+        vector_2 = self.space.projection_to_tangent_space(
                                                     vector=vector_2,
                                                     base_point=base_point_2)
 
-        exp_2 = self.METRIC.exp(tangent_vec=vector_2, base_point=base_point_2)
-        result_2 = self.METRIC.log(point=exp_2, base_point=base_point_2)
-        expected_2 = self.SPACE.projection_to_tangent_space(
+        exp_2 = self.metric.exp(tangent_vec=vector_2, base_point=base_point_2)
+        result_2 = self.metric.log(point=exp_2, base_point=base_point_2)
+        expected_2 = self.space.projection_to_tangent_space(
                                                     vector=vector_2,
                                                     base_point=base_point_2)
 
@@ -152,11 +153,11 @@ class TestHypersphereMethods(unittest.TestCase):
         Test that the squqred distance between two points is
         the squared norm of their logarithm.
         """
-        point_a = self.SPACE.random_uniform()
-        point_b = self.SPACE.random_uniform()
-        log = self.METRIC.log(point=point_a, base_point=point_b)
-        result = self.METRIC.squared_norm(vector=log)
-        expected = self.METRIC.squared_dist(point_a, point_b)
+        point_a = self.space.random_uniform()
+        point_b = self.space.random_uniform()
+        log = self.metric.log(point=point_a, base_point=point_b)
+        result = self.metric.squared_norm(vector=log)
+        expected = self.metric.squared_dist(point_a, point_b)
 
         self.assertTrue(np.allclose(result, expected))
 
@@ -165,11 +166,11 @@ class TestHypersphereMethods(unittest.TestCase):
         Test that the distance between two points is
         the norm of their logarithm.
         """
-        point_a = self.SPACE.random_uniform()
-        point_b = self.SPACE.random_uniform()
-        log = self.METRIC.log(point=point_a, base_point=point_b)
-        result = self.METRIC.norm(vector=log)
-        expected = self.METRIC.dist(point_a, point_b)
+        point_a = self.space.random_uniform()
+        point_b = self.space.random_uniform()
+        log = self.metric.log(point=point_a, base_point=point_b)
+        result = self.metric.norm(vector=log)
+        expected = self.metric.dist(point_a, point_b)
 
         self.assertTrue(np.allclose(result, expected))
 
@@ -177,7 +178,7 @@ class TestHypersphereMethods(unittest.TestCase):
         # Distance between a point and itself is 0.
         point_a_1 = np.array([10., -2., -.5, 2., 3.])
         point_b_1 = point_a_1
-        result_1 = self.METRIC.dist(point_a_1, point_b_1)
+        result_1 = self.metric.dist(point_a_1, point_b_1)
         expected_1 = 0.
 
         self.assertTrue(np.allclose(result_1, expected_1))
@@ -188,7 +189,7 @@ class TestHypersphereMethods(unittest.TestCase):
         point_b_2 = np.array([2., 10, 0., 0., 0.])
         assert np.dot(point_a_2, point_b_2) == 0
 
-        result_2 = self.METRIC.dist(point_a_2, point_b_2)
+        result_2 = self.metric.dist(point_a_2, point_b_2)
         expected_2 = np.pi / 2
 
         self.assertTrue(np.allclose(result_2, expected_2))
@@ -198,38 +199,38 @@ class TestHypersphereMethods(unittest.TestCase):
         base_point_1 = base_point_1 / np.linalg.norm(base_point_1)
 
         vector_1 = np.array([9., 0., -1., -2., 1.])
-        tangent_vec_1 = self.SPACE.projection_to_tangent_space(
+        tangent_vec_1 = self.space.projection_to_tangent_space(
                                                       vector=vector_1,
                                                       base_point=base_point_1)
-        exp_1 = self.METRIC.exp(tangent_vec=tangent_vec_1,
+        exp_1 = self.metric.exp(tangent_vec=tangent_vec_1,
                                 base_point=base_point_1)
 
-        result_1 = self.METRIC.dist(base_point_1, exp_1)
+        result_1 = self.metric.dist(base_point_1, exp_1)
         expected_1 = np.mod(np.linalg.norm(tangent_vec_1), 2 * np.pi)
 
         self.assertTrue(np.allclose(result_1, expected_1))
 
     def test_variance(self):
-        point = self.SPACE.random_uniform()
-        result = self.METRIC.variance([point, point])
+        point = self.space.random_uniform()
+        result = self.metric.variance([point, point])
         expected = 0
 
         self.assertTrue(np.allclose(result, expected))
 
     def test_mean(self):
-        point = self.SPACE.random_uniform()
-        result = self.METRIC.mean([point, point])
+        point = self.space.random_uniform()
+        result = self.metric.mean([point, point])
         expected = point
 
         self.assertTrue(np.allclose(result, expected))
 
     def test_mean_and_belongs(self):
-        point_a = self.SPACE.random_uniform()
-        point_b = self.SPACE.random_uniform()
-        point_c = self.SPACE.random_uniform()
+        point_a = self.space.random_uniform()
+        point_b = self.space.random_uniform()
+        point_c = self.space.random_uniform()
 
-        result = self.METRIC.mean([point_a, point_b, point_c])
-        self.assertTrue(self.SPACE.belongs(result))
+        result = self.metric.mean([point_a, point_b, point_c])
+        self.assertTrue(self.space.belongs(result))
 
 
 if __name__ == '__main__':

@@ -37,9 +37,9 @@ class MinkowskiMetric(RiemannianMetric):
     The metric has signature (-1, n) on the (n+1)-D vector space.
     """
     def __init__(self, dimension):
-        RiemannianMetric.__init__(self,
-                                  dimension=dimension,
-                                  signature=(dimension - 1, 1, 0))
+        super(MinkowskiMetric, self).__init__(
+                                          dimension=dimension,
+                                          signature=(dimension - 1, 1, 0))
 
     def inner_product_matrix(self, base_point=None):
         """

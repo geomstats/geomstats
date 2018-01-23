@@ -7,25 +7,26 @@ from geomstats.special_euclidean_group import SpecialEuclideanGroup
 
 
 class TestSpecialEuclideanGroupMethods(unittest.TestCase):
-    N = 3
-    GROUP = SpecialEuclideanGroup(n=N)
+    def setUp(self):
+        n = 3
+        self.group = SpecialEuclideanGroup(n=n)
 
     def test_random_and_belongs(self):
         """
         Test that the random uniform method samples
         on the special euclidean group.
         """
-        base_point = self.GROUP.random_uniform()
-        self.assertTrue(self.GROUP.belongs(base_point))
+        base_point = self.group.random_uniform()
+        self.assertTrue(self.group.belongs(base_point))
 
     def test_regularize(self):
         rot_vec_0 = np.array([0., 0., 0.])
-        rot_vec_0 = self.GROUP.regularize(rot_vec_0)
+        rot_vec_0 = self.group.regularize(rot_vec_0)
         rot_vec_0_expected = np.array([0., 0., 0.])
         self.assertTrue(np.allclose(rot_vec_0, rot_vec_0_expected))
 
         rot_vec_1 = 2.5 * np.pi * np.array([0., 0., 1.])
-        rot_vec_1 = self.GROUP.regularize(rot_vec_1)
+        rot_vec_1 = self.group.regularize(rot_vec_1)
         rot_vec_1_expected = np.pi / 2. * np.array([0., 0., 1.])
         self.assertTrue(np.allclose(rot_vec_1, rot_vec_1_expected))
 
@@ -34,7 +35,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         # Expect the original transformation
         transfo_1 = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
 
-        result_1 = self.GROUP.compose(transfo_1, self.GROUP.identity)
+        result_1 = self.group.compose(transfo_1, self.group.identity)
         expected_1 = transfo_1
 
         self.assertTrue(np.allclose(result_1, expected_1))
@@ -43,7 +44,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         # Expect the original transformation
         transfo_2 = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
 
-        result_2 = self.GROUP.compose(self.GROUP.identity, transfo_2)
+        result_2 = self.group.compose(self.group.identity, transfo_2)
         expected_2 = transfo_2
 
         self.assertTrue(np.allclose(result_2, expected_2))
@@ -53,7 +54,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         transfo_a_3 = np.array([0., 0., 0., 0.4, 0.5, 0.6])
         transfo_b_3 = np.array([0., 0., 0., 0.5, 0.6, 0.7])
 
-        result_3 = self.GROUP.compose(transfo_a_3, transfo_b_3)
+        result_3 = self.group.compose(transfo_a_3, transfo_b_3)
         expected_3 = np.array([0., 0., 0., 0.9, 1.1, 1.3])
 
         self.assertTrue(np.allclose(result_3, expected_3))
@@ -62,20 +63,20 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         # 1. Compose transformation by its inverse on the right
         # Expect the group identity
         transfo_1 = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
-        inv_transfo_1 = self.GROUP.inverse(transfo_1)
+        inv_transfo_1 = self.group.inverse(transfo_1)
 
-        result_1 = self.GROUP.compose(transfo_1, inv_transfo_1)
-        expected_1 = self.GROUP.identity
+        result_1 = self.group.compose(transfo_1, inv_transfo_1)
+        expected_1 = self.group.identity
 
         self.assertTrue(np.allclose(result_1, expected_1))
 
         # 2. Compose transformation by its inverse on the left
         # Expect the group identity
         transfo_2 = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
-        inv_transfo_2 = self.GROUP.inverse(transfo_2)
+        inv_transfo_2 = self.group.inverse(transfo_2)
 
-        result_2 = self.GROUP.compose(inv_transfo_2, transfo_2)
-        expected_2 = self.GROUP.identity
+        result_2 = self.group.compose(inv_transfo_2, transfo_2)
+        expected_2 = self.group.identity
 
         self.assertTrue(np.allclose(result_2, expected_2))
 
@@ -86,7 +87,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_1 = np.array([1, 0, -3])
         transfo_1 = np.concatenate([rot_vec_1, translation_1])
 
-        result_1 = self.GROUP.group_log(base_point=self.GROUP.identity,
+        result_1 = self.group.group_log(base_point=self.group.identity,
                                         point=transfo_1)
         expected_1 = transfo_1
 
@@ -99,7 +100,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_2 = np.array([4, 0, 0])
         transfo_2 = np.concatenate([rot_vec_2, translation_2])
 
-        result_2 = self.GROUP.group_log(base_point=self.GROUP.identity,
+        result_2 = self.group.group_log(base_point=self.group.identity,
                                         point=transfo_2)
         expected_2 = transfo_2
 
@@ -112,7 +113,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_1 = np.array([1, 0, -3])
         tangent_vec_1 = np.concatenate([rot_vec_1, translation_1])
 
-        result_1 = self.GROUP.group_exp(base_point=self.GROUP.identity,
+        result_1 = self.group.group_exp(base_point=self.group.identity,
                                         tangent_vec=tangent_vec_1)
         expected_1 = tangent_vec_1
 
@@ -125,7 +126,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_2 = np.array([4, 0, 0])
         tangent_vec_2 = np.concatenate([rot_vec_2, translation_2])
 
-        result_2 = self.GROUP.group_exp(base_point=self.GROUP.identity,
+        result_2 = self.group.group_exp(base_point=self.group.identity,
                                         tangent_vec=tangent_vec_2)
         expected_2 = tangent_vec_2
 
@@ -143,9 +144,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_1 = np.array([10., 2., 7.])
         point_1 = np.concatenate([rot_vec_1, translation_1])
 
-        aux_1 = self.GROUP.group_log(base_point=self.GROUP.identity,
+        aux_1 = self.group.group_log(base_point=self.group.identity,
                                      point=point_1)
-        result_1 = self.GROUP.group_exp(base_point=self.GROUP.identity,
+        result_1 = self.group.group_exp(base_point=self.group.identity,
                                         tangent_vec=aux_1)
         expected_1 = point_1
 
@@ -157,9 +158,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_2 = np.array([-1., 27., 7.])
         point_2 = np.concatenate([rot_vec_2, translation_2])
 
-        aux_2 = self.GROUP.group_log(base_point=self.GROUP.identity,
+        aux_2 = self.group.group_log(base_point=self.group.identity,
                                      point=point_2)
-        result_2 = self.GROUP.group_exp(base_point=self.GROUP.identity,
+        result_2 = self.group.group_exp(base_point=self.group.identity,
                                         tangent_vec=aux_2)
         expected_2 = point_2
 
@@ -170,9 +171,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_3 = np.array([10., 2., 7.])
         tangent_vec_3 = np.concatenate([rot_vec_3, translation_3])
 
-        aux_3 = self.GROUP.group_exp(base_point=self.GROUP.identity,
+        aux_3 = self.group.group_exp(base_point=self.group.identity,
                                      tangent_vec=tangent_vec_3)
-        result_3 = self.GROUP.group_log(base_point=self.GROUP.identity,
+        result_3 = self.group.group_log(base_point=self.group.identity,
                                         point=aux_3)
         expected_3 = tangent_vec_3
 
@@ -184,9 +185,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_4 = np.array([-1., 27., 7.])
         tangent_vec_4 = np.concatenate([rot_vec_4, translation_4])
 
-        aux_4 = self.GROUP.group_exp(base_point=self.GROUP.identity,
+        aux_4 = self.group.group_exp(base_point=self.group.identity,
                                      tangent_vec=tangent_vec_4)
-        result_4 = self.GROUP.group_log(base_point=self.GROUP.identity,
+        result_4 = self.group.group_log(base_point=self.group.identity,
                                         point=aux_4)
         expected_4 = tangent_vec_4
 
@@ -207,7 +208,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_1 = np.array([1, 0, -3])
         tangent_vec_1 = np.concatenate([rot_vec_1, translation_1])
 
-        result_1 = self.GROUP.group_exp(base_point=transfo_base_point,
+        result_1 = self.group.group_exp(base_point=transfo_base_point,
                                         tangent_vec=tangent_vec_1)
         expected_1 = np.concatenate([np.array([0., 0., 0.]),
                                      np.array([5, -1, 9997])])
@@ -233,7 +234,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected_1 = np.concatenate([np.array([0., 0., 0.]),
                                      np.array([1., 8., -3.2])])
 
-        result_1 = self.GROUP.group_log(base_point=transfo_base_point,
+        result_1 = self.group.group_log(base_point=transfo_base_point,
                                         point=point_1)
 
         self.assertTrue(np.allclose(result_1, expected_1))
@@ -256,9 +257,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_1 = np.concatenate([rot_vec_1,
                                   translation_1])
 
-        aux_1 = self.GROUP.group_log(base_point=transfo_base_point,
+        aux_1 = self.group.group_log(base_point=transfo_base_point,
                                      point=point_1)
-        result_1 = self.GROUP.group_exp(base_point=transfo_base_point,
+        result_1 = self.group.group_exp(base_point=transfo_base_point,
                                         tangent_vec=aux_1)
         expected_1 = point_1
 
@@ -271,9 +272,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_2 = np.concatenate([rot_vec_2,
                                   translation_2])
 
-        aux_2 = self.GROUP.group_log(base_point=transfo_base_point,
+        aux_2 = self.group.group_log(base_point=transfo_base_point,
                                      point=point_2)
-        result_2 = self.GROUP.group_exp(base_point=transfo_base_point,
+        result_2 = self.group.group_exp(base_point=transfo_base_point,
                                         tangent_vec=aux_2)
         expected_2 = point_2
 
@@ -285,7 +286,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         # Expect the identity function
         # because we use the riemannian left logarithm with canonical
         # inner product to parameterize the transformations
-        metric = self.GROUP.left_canonical_metric
+        metric = self.group.left_canonical_metric
         # 1. General case
         tangent_rot_vec_1 = np.array([1., 1., 1.])  # NB: Regularized
         tangent_translation_1 = np.array([1., 0., -3.])
@@ -303,7 +304,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         # because we use the riemannian left logarithm with canonical
         # inner product to parameterize the transformations
 
-        metric = self.GROUP.left_canonical_metric
+        metric = self.group.left_canonical_metric
         # 1. General case
         rot_vec_1 = np.array([0.1, 1, 0.9])  # NB: Regularized
         translation_1 = np.array([1, -19, -3])
@@ -331,7 +332,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         are inverse.
         Expect their composition to give the identity function.
         """
-        metric = self.GROUP.left_canonical_metric
+        metric = self.group.left_canonical_metric
         # 1. Compose log then exp
         # Canonical inner product on the lie algebra
         rot_vec_1 = np.array([-1., 0.5, -0.12])  # NB: Regularized
@@ -364,7 +365,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         are inverse.
         Expect their composition to give the identity function.
         """
-        metric = self.GROUP.right_canonical_metric
+        metric = self.group.right_canonical_metric
         # 1. Compose log then exp
         # Canonical inner product on the lie algebra
         rot_vec_1 = np.array([-1., 0.5, -0.12])  # NB: Regularized
@@ -407,7 +408,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_1 = np.array([1, 0, -3])
         tangent_vec_1 = np.concatenate([rot_vec_1, translation_1])
 
-        result_1 = self.GROUP.left_canonical_metric.exp(
+        result_1 = self.group.left_canonical_metric.exp(
                                          base_point=transfo_base_point,
                                          tangent_vec=tangent_vec_1)
         expected_1 = np.concatenate([np.array([0., 0., 0.]),
@@ -434,7 +435,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected_1 = np.concatenate([np.array([0., 0., 0.]),
                                      np.array([-5., -1., -1.2])])
 
-        result_1 = self.GROUP.left_canonical_metric.log(
+        result_1 = self.group.left_canonical_metric.log(
                                        base_point=transfo_base_point,
                                        point=point_1)
 
@@ -459,10 +460,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_1 = np.concatenate([rot_vec_1,
                                   translation_1])
 
-        aux_1 = self.GROUP.left_canonical_metric.log(
+        aux_1 = self.group.left_canonical_metric.log(
                                           base_point=transfo_base_point,
                                           point=point_1)
-        result_1 = self.GROUP.left_canonical_metric.exp(
+        result_1 = self.group.left_canonical_metric.exp(
                                           base_point=transfo_base_point,
                                           tangent_vec=aux_1)
         expected_1 = point_1
@@ -477,10 +478,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_2 = np.concatenate([rot_vec_2,
                                   translation_2])
 
-        aux_2 = self.GROUP.left_canonical_metric.log(
+        aux_2 = self.group.left_canonical_metric.log(
                                         base_point=transfo_base_point,
                                         point=point_2)
-        result_2 = self.GROUP.left_canonical_metric.exp(
+        result_2 = self.group.left_canonical_metric.exp(
                                         base_point=transfo_base_point,
                                         tangent_vec=aux_2)
         expected_2 = point_2
@@ -505,10 +506,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_1 = np.concatenate([rot_vec_1,
                                   translation_1])
 
-        aux_1 = self.GROUP.right_canonical_metric.log(
+        aux_1 = self.group.right_canonical_metric.log(
                                       base_point=transfo_base_point,
                                       point=point_1)
-        result_1 = self.GROUP.right_canonical_metric.exp(
+        result_1 = self.group.right_canonical_metric.exp(
                                       base_point=transfo_base_point,
                                       tangent_vec=aux_1)
         expected_1 = point_1
@@ -522,10 +523,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_2 = np.concatenate([rot_vec_2,
                                   translation_2])
 
-        aux_2 = self.GROUP.right_canonical_metric.log(
+        aux_2 = self.group.right_canonical_metric.log(
                                       base_point=transfo_base_point,
                                       point=point_2)
-        result_2 = self.GROUP.right_canonical_metric.exp(
+        result_2 = self.group.right_canonical_metric.exp(
                                       base_point=transfo_base_point,
                                       tangent_vec=aux_2)
         expected_2 = point_2
@@ -534,24 +535,24 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
     def test_group_exponential_barycenter(self):
         # TODO(nina): this test fails.
-        point_1 = self.GROUP.random_uniform()
-        result_1 = self.GROUP.group_exponential_barycenter(
+        point_1 = self.group.random_uniform()
+        result_1 = self.group.group_exponential_barycenter(
                                 points=[point_1, point_1])
         expected_1 = point_1
         # self.assertTrue(np.allclose(result_1, expected_1))
 
-        point_2 = self.GROUP.random_uniform()
-        result_2 = self.GROUP.group_exponential_barycenter(
+        point_2 = self.group.random_uniform()
+        result_2 = self.group.group_exponential_barycenter(
                                 points=[point_2, point_2],
                                 weights=[1., 2.])
         expected_2 = point_2
         # self.assertTrue(np.allclose(result_2, expected_2))
 
-        result_3 = self.GROUP.group_exponential_barycenter(
+        result_3 = self.group.group_exponential_barycenter(
                                 points=[point_1, point_2],
                                 weights=[1., .1])
 
-        self.assertTrue(self.GROUP.belongs(result_3))
+        self.assertTrue(self.group.belongs(result_3))
 
 
 if __name__ == '__main__':

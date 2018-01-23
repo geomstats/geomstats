@@ -8,8 +8,9 @@ of Minkowski space of squared norm -1.
 NB: we use "riemannian" to refer to "pseudo-riemannian".
 """
 
-import math
+import logging
 import numpy as np
+import math
 
 from geomstats.minkowski_space import MinkowskiMetric
 from geomstats.manifold import Manifold
@@ -57,6 +58,12 @@ class HyperbolicSpace(Manifold):
 
         Note: point must be given in extrinsic coordinates.
         """
+        point_dim = len(point)
+        if point_dim is not self.dimension + 1:
+            if point_dim is self.dimension:
+                logging.warning('Use the extrinsic coordinates to '
+                                'represent points on the hypersphere.')
+            return False
         sq_norm = self.embedding_metric.squared_norm(point)
         return abs(sq_norm + 1.) < tolerance
 
@@ -107,7 +114,7 @@ class HyperbolicMetric(RiemannianMetric):
 
     def __init__(self, dimension):
         self.dimension = dimension
-        self.signature = (dimension, 0, 0)  # TODO(nina): check
+        self.signature = (dimension, 0, 0)
         self.embedding_metric = MinkowskiMetric(dimension + 1)
 
     def squared_norm(self, vector, base_point=None):
@@ -121,7 +128,7 @@ class HyperbolicMetric(RiemannianMetric):
         """
         Compute the Riemannian exponential at point base_point
         of tangent vector tangent_vec wrt the metric obtained by
-        embedding of the hyperbolic space in the minkowski space.
+        embedding of the hyperbolic space in the Minkowski space.
 
         This gives a point on the hyperbolic space.
 
@@ -154,7 +161,7 @@ class HyperbolicMetric(RiemannianMetric):
         """
         Compute the Riemannian logarithm at point base_point,
         of point wrt the metric obtained by
-        embedding of the hyperbolic space in the minkowski space.
+        embedding of the hyperbolic space in the Minkowski space.
 
         This gives a tangent vector at point base_point.
 
@@ -180,7 +187,7 @@ class HyperbolicMetric(RiemannianMetric):
     def dist(self, point_a, point_b):
         """
         Compute the distance induced on the hyperbolic
-        space, from its embedding in the minkowski space.
+        space, from its embedding in the Minkowski space.
         """
         sq_norm_a = self.embedding_metric.squared_norm(point_a)
         sq_norm_b = self.embedding_metric.squared_norm(point_b)

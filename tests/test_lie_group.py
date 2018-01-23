@@ -7,8 +7,8 @@ from geomstats.lie_group import LieGroup
 
 
 class TestLieGroupMethods(unittest.TestCase):
-    DIMENSION = 4
-    GROUP = LieGroup(dimension=DIMENSION,
+    dimension = 4
+    group = LieGroup(dimension=dimension,
                      identity=np.zeros(4))
 
 if __name__ == '__main__':

@@ -16,9 +16,9 @@ class MatrixLieGroup(LieGroup):
     """
 
     def __init__(self, dimension, n):
-        LieGroup.__init__(self,
-                          dimension=dimension,
-                          identity=np.eye(n))
+        super(MatrixLieGroup, self).__init__(
+                                      dimension=dimension,
+                                      identity=np.eye(n))
         self.n = n
 
     def belongs(self, mat):

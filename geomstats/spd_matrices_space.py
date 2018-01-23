@@ -66,7 +66,7 @@ def group_log(sym_mat):
 
 class SPDMatricesSpace(Manifold):
     def __init__(self, dimension):
-        Manifold.__init__(self, dimension)
+        super(SPDMatricesSpace, self).__init__(dimension)
         self.metric = SPDMetric(dimension)
 
     def belongs(self, mat, tolerance=TOLERANCE):
