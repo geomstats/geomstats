@@ -11,6 +11,37 @@ class TestHypersphereMethods(unittest.TestCase):
     SPACE = Hypersphere(dimension=DIMENSION)
     METRIC = SPACE.metric
 
+    def test_random_uniform_and_belongs(self):
+        """
+        Test that the random uniform method samples
+        on the hyperbolic space.
+        """
+        point = self.SPACE.random_uniform()
+        self.assertTrue(self.SPACE.belongs(point))
+
+    def test_intrinsic_and_extrinsic_coords(self):
+        """
+        Test that the composition of
+        intrinsic_to_extrinsic_coords and
+        extrinsic_to_intrinsic_coords
+        gives the identity.
+        """
+        point_int = np.array([.1, 0., 0., .1])
+        point_ext = self.SPACE.intrinsic_to_extrinsic_coords(point_int)
+        result = self.SPACE.extrinsic_to_intrinsic_coords(point_ext)
+        expected = point_int
+
+        self.assertTrue(np.allclose(result, expected))
+
+        point_ext = self.SPACE.random_uniform()
+        point_int = self.SPACE.extrinsic_to_intrinsic_coords(point_ext)
+        result = self.SPACE.intrinsic_to_extrinsic_coords(point_int)
+        expected = point_ext
+
+        self.assertTrue(np.allclose(result, expected))
+
+        self.assertTrue(np.allclose(result, expected))
+
     def test_log_and_exp_general_case(self):
         """
         Test that the riemannian exponential
@@ -116,6 +147,32 @@ class TestHypersphereMethods(unittest.TestCase):
 
         self.assertTrue(np.allclose(result_2, expected_2))
 
+    def test_squared_norm_and_squared_dist(self):
+        """
+        Test that the squqred distance between two points is
+        the squared norm of their logarithm.
+        """
+        point_a = self.SPACE.random_uniform()
+        point_b = self.SPACE.random_uniform()
+        log = self.METRIC.log(point=point_a, base_point=point_b)
+        result = self.METRIC.squared_norm(vector=log)
+        expected = self.METRIC.squared_dist(point_a, point_b)
+
+        self.assertTrue(np.allclose(result, expected))
+
+    def test_norm_and_dist(self):
+        """
+        Test that the distance between two points is
+        the norm of their logarithm.
+        """
+        point_a = self.SPACE.random_uniform()
+        point_b = self.SPACE.random_uniform()
+        log = self.METRIC.log(point=point_a, base_point=point_b)
+        result = self.METRIC.norm(vector=log)
+        expected = self.METRIC.dist(point_a, point_b)
+
+        self.assertTrue(np.allclose(result, expected))
+
     def test_dist_point_and_itself(self):
         # Distance between a point and itself is 0.
         point_a_1 = np.array([10., -2., -.5, 2., 3.])
@@ -151,6 +208,28 @@ class TestHypersphereMethods(unittest.TestCase):
         expected_1 = np.mod(np.linalg.norm(tangent_vec_1), 2 * np.pi)
 
         self.assertTrue(np.allclose(result_1, expected_1))
+
+    def test_variance(self):
+        point = self.SPACE.random_uniform()
+        result = self.METRIC.variance([point, point])
+        expected = 0
+
+        self.assertTrue(np.allclose(result, expected))
+
+    def test_mean(self):
+        point = self.SPACE.random_uniform()
+        result = self.METRIC.mean([point, point])
+        expected = point
+
+        self.assertTrue(np.allclose(result, expected))
+
+    def test_mean_and_belongs(self):
+        point_a = self.SPACE.random_uniform()
+        point_b = self.SPACE.random_uniform()
+        point_c = self.SPACE.random_uniform()
+
+        result = self.METRIC.mean([point_a, point_b, point_c])
+        self.assertTrue(self.SPACE.belongs(result))
 
 
 if __name__ == '__main__':

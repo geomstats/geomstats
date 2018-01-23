@@ -52,14 +52,25 @@ def skew_matrix_from_vector(vec):
 
 class SpecialOrthogonalGroup(LieGroup):
 
-    def __init__(self, dimension):
-        if dimension is not 3:
+    def __init__(self, n):
+        assert n > 1
+
+        if n is not 3:
             raise NotImplementedError('Only SO(3) is implemented.')
 
+        self.n = n
+        self.dimension = int((n * (n - 1)) / 2)
         LieGroup.__init__(self,
-                          dimension=dimension,
-                          identity=np.zeros(3))
+                          dimension=self.dimension,
+                          identity=np.zeros(self.dimension))
         self.bi_invariant_metric = self.left_canonical_metric
+
+    def belongs(self, rot_vec):
+        """
+        Check that a vector belongs to the
+        special orthogonal group.
+        """
+        return len(rot_vec) == self.dimension
 
     def regularize(self, rot_vec):
         """
@@ -74,7 +85,7 @@ class SpecialOrthogonalGroup(LieGroup):
         :param rot_vec: 3d vector
         :returns self.regularized_rot_vec: 3d vector with: 0 < norm < pi
         """
-        assert len(rot_vec) == 3
+        assert self.belongs(rot_vec)
 
         rot_vec = np.array(rot_vec)
         angle = np.linalg.norm(rot_vec)
@@ -94,7 +105,7 @@ class SpecialOrthogonalGroup(LieGroup):
         :param rot_mat: 3x3 rotation matrix
         :returns rot_vec: 3d rotation vector
         """
-        assert rot_mat.shape == (3, 3)
+        assert rot_mat.shape == (self.n, self.n)
 
         # -- Get angle, angle of the rotation
         # Note: trace(rotation_matrix) = 2cos(angle) + 1
@@ -111,8 +122,8 @@ class SpecialOrthogonalGroup(LieGroup):
                                 skew_rot_vec[1][0]])
         # -- Edge case: angle close to pi
         elif abs(angle - np.pi) < epsilon:
-            rot_vec = np.empty(3)
-            for i in range(0, 3):
+            rot_vec = np.empty(self.dimension)
+            for i in range(self.dimension):
                 sq_element_i = 1 + (rot_mat[i][i] - 1) / (1 - cos_angle)
                 sq_element_i = np.clip(sq_element_i, 0, 1)
                 rot_vec[i] = np.sqrt(sq_element_i)
@@ -151,21 +162,22 @@ class SpecialOrthogonalGroup(LieGroup):
         :returns rot_mat: 3x3 rotation matrix
 
         """
-        assert len(rot_vec) == 3
+        assert self.belongs(rot_vec)
         rot_vec = self.regularize(rot_vec)
 
         angle = np.linalg.norm(rot_vec)
         skew_rot_vec = skew_matrix_from_vector(rot_vec)
 
         if angle < epsilon:
-            sin_angle = 1 - (angle ** 2) / 6
-            cos_angle = 1 / 2 - angle ** 2
+            coef_1 = 1 - (angle ** 2) / 6
+            coef_2 = 1 / 2 - angle ** 2
         else:
-            sin_angle = np.sin(angle) / angle
-            cos_angle = (1 - np.cos(angle)) / (angle ** 2)
+            coef_1 = np.sin(angle) / angle
+            coef_2 = (1 - np.cos(angle)) / (angle ** 2)
 
-        rot_mat = (np.identity(3) + sin_angle * skew_rot_vec
-                   + cos_angle * np.dot(skew_rot_vec, skew_rot_vec))
+        rot_mat = (np.identity(self.dimension)
+                   + coef_1 * skew_rot_vec
+                   + coef_2 * np.dot(skew_rot_vec, skew_rot_vec))
         return rot_mat
 
     def compose(self, rot_vec_1, rot_vec_2):
@@ -190,7 +202,7 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         return -rot_vec
 
-    def jacobian_translation(self, rot_vec,
+    def jacobian_translation(self, point,
                              left_or_right='left', epsilon=EPSILON):
         """
         Compute the jacobian matrix of the differential
@@ -199,11 +211,11 @@ class SpecialOrthogonalGroup(LieGroup):
         :param rot_vec: 3D rotation vector
         :returns jacobian: 3x3 matrix
         """
-        assert len(rot_vec) == 3
+        assert self.belongs(point)
         assert left_or_right in ('left', 'right')
-        rot_vec = self.regularize(rot_vec)
+        point = self.regularize(point)
 
-        angle = np.linalg.norm(rot_vec)
+        angle = np.linalg.norm(point)
         if angle < epsilon:
             coef_1 = 1 - angle ** 2 / 12
             coef_2 = 1 / 12 + angle ** 2 / 720
@@ -215,13 +227,55 @@ class SpecialOrthogonalGroup(LieGroup):
             coef_2 = (1 - coef_1) / angle ** 2
 
         if left_or_right == 'left':
-            jacobian = (coef_1 * np.identity(3)
-                        + coef_2 * np.outer(rot_vec, rot_vec)
-                        + skew_matrix_from_vector(rot_vec) / 2)
+            jacobian = (coef_1 * np.identity(self.dimension)
+                        + coef_2 * np.outer(point, point)
+                        + skew_matrix_from_vector(point) / 2)
 
         else:
-            jacobian = (coef_1 * np.identity(3)
-                        + coef_2 * np.outer(rot_vec, rot_vec)
-                        - skew_matrix_from_vector(rot_vec) / 2)
+            jacobian = (coef_1 * np.identity(self.dimension)
+                        + coef_2 * np.outer(point, point)
+                        - skew_matrix_from_vector(point) / 2)
 
         return jacobian
+
+    def random_uniform(self):
+        """
+        Sample a 3d rotation vector uniformly, w.r.t.
+        the bi-invariant metric, by sampling in the
+        hypercube of side [-1, 1] on the tangent space.
+        """
+        random_rot_vec = np.random.rand(self.dimension) * 2 - 1
+        random_rot_vec = self.regularize(random_rot_vec)
+        return random_rot_vec
+
+    def group_exp_from_identity(self, tangent_vec):
+        """
+        Compute the group exponential of vector tangent_vector.
+        """
+        tangent_vec = self.regularize(tangent_vec)
+        return tangent_vec
+
+    def group_log_from_identity(self, point):
+        """
+        Compute the group logarithm of point point.
+        """
+        point = self.regularize(point)
+        return point
+
+    def group_exponential_barycenter(self, points, weights=None):
+        """
+        Group exponential barycenter is the Frechet mean
+        of the bi-invariant metric.
+        """
+        n_points = len(points)
+        assert n_points > 0
+
+        if weights is None:
+            weights = np.ones(n_points)
+
+        n_weights = len(weights)
+        assert n_points == n_weights
+
+        barycenter = self.bi_invariant_metric.mean(points, weights)
+
+        return barycenter

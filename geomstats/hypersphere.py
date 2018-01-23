@@ -44,7 +44,7 @@ class Hypersphere(Manifold):
 
     def belongs(self, point, tolerance=TOLERANCE):
         """
-        By definition, a point on the hypersphere has squared norm 1
+        By definition, a point on the Hypersphere has squared norm 1
         in the embedding Euclidean space.
         Note: point must be given in extrinsic coordinates.
         """
@@ -64,12 +64,54 @@ class Hypersphere(Manifold):
 
         return tangent_vec
 
+    def intrinsic_to_extrinsic_coords(self, point_intrinsic):
+        """
+        From some intrinsic coordinates in the Hypersphere,
+        to the extrinsic coordinates in Euclidean space.
+        """
+        assert np.linalg.norm(point_intrinsic) <= 1
+
+        dimension = self.dimension
+        point_extrinsic = np.zeros(dimension + 1, 'float')
+        point_extrinsic[1: dimension + 1] = point_intrinsic[0: dimension]
+
+        point_extrinsic[0] = np.sqrt(1. - np.dot(point_intrinsic,
+                                                 point_intrinsic))
+        assert self.belongs(point_extrinsic)
+        return point_extrinsic
+
+    def extrinsic_to_intrinsic_coords(self, point_extrinsic):
+        """
+        From the extrinsic coordinates in Euclidean space,
+        to some intrinsic coordinates in Hypersphere.
+        """
+        assert self.belongs(point_extrinsic)
+        return point_extrinsic[1:]
+
+    def random_uniform(self, max_norm=1):
+        """
+        Generate random elements on the Hypersphere.
+        """
+        point = (np.random.random_sample(self.dimension) - .5) * max_norm
+        point = self.intrinsic_to_extrinsic_coords(point)
+        assert self.belongs(point)
+
+        return point
+
 
 class HypersphereMetric(RiemannianMetric):
 
     def __init__(self, dimension):
         self.dimension = dimension
+        self.signature = (dimension, 0, 0)
         self.embedding_metric = EuclideanMetric(dimension + 1)
+
+    def squared_norm(self, vector, base_point=None):
+        """
+        Squared norm associated to the Hyperbolic Metric.
+        """
+        sq_norm = self.embedding_metric.squared_norm(vector)
+        return sq_norm
 
     def exp(self, tangent_vec, base_point, epsilon=EPSILON):
         """

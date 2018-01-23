@@ -14,8 +14,12 @@ class RiemannianMetric(object):
     Note: this class includes sub- and pseudo- Riemannian metrics.
     """
 
-    def __init__(self, dimension):
+    def __init__(self, dimension, signature=None):
+        assert dimension > 0
         self.dimension = dimension
+        if signature is not None:
+            assert np.sum(signature) == dimension
+        self.signature = signature
 
     def inner_product_matrix(self, base_point=None):
         """
@@ -50,12 +54,12 @@ class RiemannianMetric(object):
         """
         Norm associated to the inner product.
         """
-        sq_norm = self.squared_norm(vector, base_point)
-        if sq_norm < 0:
+        n_negative_eigenvalues = self.signature[1]
+        if n_negative_eigenvalues > 0:
             raise ValueError(
-                    'The squared norm of this vector is non-positive.'
-                    ' The method \'norm\' only works for positive-definite'
+                    'The method \'norm\' only works for positive-definite'
                     ' Riemannian metrics and inner products.')
+        sq_norm = self.squared_norm(vector, base_point)
         norm = np.sqrt(sq_norm)
         return norm
 
@@ -91,44 +95,43 @@ class RiemannianMetric(object):
         Riemannian distance between points point_a and point_b. This
         is the geodesic distance associated to the Riemannian metric.
         """
-        sq_dist = self.squared_dist(point_a, point_b)
-        if sq_dist < 0:
+        n_negative_eigenvalues = self.signature[1]
+        if n_negative_eigenvalues > 0:
             raise ValueError(
-                    'The squared distance between these points is'
-                    ' non-positive. The method \'dist\' only works for'
-                    ' positive-definite Riemannian metrics'
-                    ' and inner products.')
+                    'The method \'dist\' only works for positive-definite'
+                    ' Riemannian metrics and inner products.')
+        sq_dist = self.squared_dist(point_a, point_b)
         dist = np.sqrt(sq_dist)
         return dist
 
-    def random_uniform(self):
-        """
-        Sample a random point on the manifold according to
-        the measure induced by the Riemannian metric.
-        """
-        raise NotImplementedError(
-                'Uniform sampling w.r.t. Riemannian measure'
-                ' is not implemented.')
-
-    def variance(self, base_point, points, weights):
+    def variance(self, points, weights=None, base_point=None):
         """
         Weighted variance of the points in the tangent space
         at the base_point.
         """
-        n_points, _ = points.shape
-        n_weights = len(weights)
+        n_points = len(points)
         assert n_points > 0
+
+        if weights is None:
+            weights = np.ones(n_points)
+
+        n_weights = len(weights)
         assert n_points == n_weights
+        sum_weights = sum(weights)
+
+        if base_point is None:
+            base_point = self.mean(points, weights)
 
         variance = 0
 
         for i in range(n_points):
             weight_i = weights[i]
-            point_i = points[i, :]
+            point_i = points[i]
 
-            sq_dist = self.squared_distance(base_point, point_i)
+            sq_dist = self.squared_dist(base_point, point_i)
 
             variance += weight_i * sq_dist
+        variance /= sum_weights
 
         return variance
 
@@ -153,7 +156,7 @@ class RiemannianMetric(object):
 
         n_weights = len(weights)
         assert n_points == n_weights
-        sum_weights = sum(weights)
+        sum_weights = np.sum(weights)
 
         mean = points[0]
         if n_points == 1:
@@ -162,7 +165,6 @@ class RiemannianMetric(object):
         sq_dists_between_iterates = []
         it = 0
         while True:
-            it += 1
             a_tangent_vector = self.log(mean, mean)
             tangent_mean = np.zeros_like(a_tangent_vector)
 
@@ -176,17 +178,21 @@ class RiemannianMetric(object):
 
             mean_next = self.exp(tangent_vec=tangent_mean, base_point=mean)
 
-            sq_dist = self.squared_distance(mean_next, mean)
+            sq_dist = self.squared_dist(mean_next, mean)
             sq_dists_between_iterates.append(sq_dist)
 
-            variance = self.variance(mean_next, points, weights)
-
-            if sq_dist < epsilon * variance:
+            variance = self.variance(points=points,
+                                     weights=weights,
+                                     base_point=mean_next)
+            if sq_dist <= epsilon * variance:
                 break
 
             if it == n_max_iterations:
                 logging.warning('Maximum number of iterations {} reached.'
                                 'The mean may be inaccurate'
                                 ''.format(n_max_iterations))
+                break
+            mean = mean_next
+            it += 1
 
         return mean

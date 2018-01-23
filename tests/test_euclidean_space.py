@@ -56,6 +56,15 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
         expected = point - base_point
         self.assertTrue(np.allclose(result, expected))
 
+    def test_squared_dist(self):
+        point_a = np.array([-1, 4])
+        point_b = np.array([1, 1])
+
+        result = self.METRIC.squared_dist(point_a, point_b)
+        vec = point_b - point_a
+        expected = np.dot(vec, vec)
+        self.assertTrue(np.allclose(result, expected))
+
     def test_dist(self):
         point_a = np.array([0, 1])
         point_b = np.array([2, 10])
@@ -65,10 +74,16 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
         self.assertTrue(np.allclose(result, expected))
 
     def test_random_uniform_and_belongs(self):
-        point = self.METRIC.random_uniform()
+        point = self.SPACE.random_uniform()
         self.assertTrue(self.SPACE.belongs(point))
 
     def test_mean(self):
+        point = np.array([1, 4])
+        result = self.METRIC.mean(points=[point, point, point])
+        expected = point
+
+        self.assertTrue(np.allclose(result, expected))
+
         points = np.array([[1, 2],
                            [2, 3],
                            [3, 4],
@@ -77,6 +92,18 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
 
         result = self.METRIC.mean(points, weights)
         expected = np.array([16., 22.]) / 6.
+        self.assertTrue(np.allclose(result, expected))
+
+    def test_variance(self):
+        points = np.array([[1, 2],
+                           [2, 3],
+                           [3, 4],
+                           [4, 5]])
+        weights = np.array([1, 2, 1, 2])
+        base_point = np.zeros(2)
+        result = self.METRIC.variance(points, weights, base_point)
+        # we expect the average of the points' sq norms.
+        expected = (1 * 5. + 2 * 13. + 1 * 25. + 2 * 41.) / 6.
         self.assertTrue(np.allclose(result, expected))
 
 

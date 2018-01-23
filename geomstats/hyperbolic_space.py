@@ -39,6 +39,11 @@ INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
 
 
 class HyperbolicSpace(Manifold):
+    """
+    Hyperbolic space embedded in Minkowski space.
+    Note: points are parameterized by the extrinsic
+    coordinates by defaults.
+    """
 
     def __init__(self, dimension):
         self.dimension = dimension
@@ -60,7 +65,7 @@ class HyperbolicSpace(Manifold):
         From the intrinsic coordinates in the hyperbolic space,
         to the extrinsic coordinates in Minkowski space.
         """
-        dimension = len(point_intrinsic)
+        dimension = self.dimension
         point_extrinsic = np.zeros(dimension + 1, 'float')
         point_extrinsic[1: dimension + 1] = point_intrinsic[0: dimension]
         point_extrinsic[0] = np.sqrt(1. + np.dot(point_intrinsic,
@@ -72,8 +77,6 @@ class HyperbolicSpace(Manifold):
         From the extrinsic coordinates in Minkowski space,
         to the extrinsic coordinates in Hyperbolic space.
         """
-        assert self.belongs(point_extrinsic)
-
         return point_extrinsic[1:]
 
     def projection_to_tangent_space(self, vector, base_point):
@@ -91,19 +94,28 @@ class HyperbolicSpace(Manifold):
         tangent_vec = vector - inner_prod * base_point / sq_norm_base_point
         return tangent_vec
 
-    def random_uniform(self, dimension, max_norm):
+    def random_uniform(self, max_norm=1):
         """
-        Generate a random element on the hyperbolic space.
+        Generate random elements on the hyperbolic space.
         """
-        point_intrinsic = (np.random.random_sample(dimension) - .5) * max_norm
-        return self.intrinsic_to_extrinsic_coords(point_intrinsic)
+        point = (np.random.random_sample(self.dimension) - .5) * max_norm
+        point = self.intrinsic_to_extrinsic_coords(point)
+        return point
 
 
 class HyperbolicMetric(RiemannianMetric):
 
     def __init__(self, dimension):
         self.dimension = dimension
+        self.signature = (dimension, 0, 0)  # TODO(nina): check
         self.embedding_metric = MinkowskiMetric(dimension + 1)
+
+    def squared_norm(self, vector, base_point=None):
+        """
+        Squared norm associated to the Hyperbolic Metric.
+        """
+        sq_norm = self.embedding_metric.squared_norm(vector)
+        return sq_norm
 
     def exp(self, tangent_vec, base_point, epsilon=EPSILON):
         """
@@ -167,9 +179,8 @@ class HyperbolicMetric(RiemannianMetric):
 
     def dist(self, point_a, point_b):
         """
-        Compute the Riemannian logarithm at point base_point,
-        of point wrt the metric obtained by
-        embedding of the hyperbolic space in the minkowski space.
+        Compute the distance induced on the hyperbolic
+        space, from its embedding in the minkowski space.
         """
         sq_norm_a = self.embedding_metric.squared_norm(point_a)
         sq_norm_b = self.embedding_metric.squared_norm(point_b)

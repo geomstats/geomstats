@@ -3,13 +3,36 @@
 import numpy as np
 import unittest
 
+import geomstats.special_orthogonal_group as special_orthogonal_group
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
 
 class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
-    DIMENSION = 3
-    GROUP = SpecialOrthogonalGroup(dimension=DIMENSION)
+    N = 3
+    GROUP = SpecialOrthogonalGroup(n=N)
     METRIC = GROUP.bi_invariant_metric
+
+    def test_closest_rotation_matrix(self):
+        rot_mat = np.eye(3)
+        delta = 1e-12 * np.array([[0., 0., 0.],
+                                  [0., 0., 1.],
+                                  [0., 1., 0.]])
+
+        rot_mat_plus_delta = rot_mat + delta
+        result = special_orthogonal_group.closest_rotation_matrix(
+                                                   rot_mat_plus_delta)
+        expected = rot_mat
+        self.assertTrue(np.allclose(result, expected))
+
+    def test_skew_matrix_from_vector(self):
+        rot_vec = np.array([1., 2., 3.])
+        result = special_orthogonal_group.skew_matrix_from_vector(rot_vec)
+
+        self.assertTrue(np.allclose(np.dot(result, rot_vec), np.zeros(3)))
+
+    def test_random_and_belongs(self):
+        rot_vec = self.GROUP.random_uniform()
+        self.assertTrue(self.GROUP.belongs(rot_vec))
 
     def test_regularize(self):
         rot_vec_0 = np.array([0., 0., 0.])
@@ -131,7 +154,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 rot_mat_3)
         self.assertTrue(np.allclose(rot_vec_3, result_rot_vec_3))
 
-        rot_vec_4 = np.array([0., 2., 1.])
+        # Edge case: abs(angle - pi) < 1e-5
+        rot_vec_4 = np.array([np.pi - 1e-7, 0., 0.])
         rot_mat_4 = self.GROUP.matrix_from_rotation_vector(rot_vec_4)
         result_rot_vec_4 = self.GROUP.rotation_vector_from_matrix(
                 rot_mat_4)
@@ -236,6 +260,68 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                    point=aux_2)
 
         self.assertTrue(np.allclose(result_2, rot_vec_2))
+
+        rot_vec_base_point = (np.pi - 1e-10) * np.array([1, 0, 0])
+        rot_vec_3 = np.array([0.1, 0.001, 0.1])
+
+        aux_3 = self.METRIC.exp(base_point=rot_vec_base_point,
+                                tangent_vec=rot_vec_3)
+        result_3 = self.METRIC.log(base_point=rot_vec_base_point,
+                                   point=aux_3)
+
+        self.assertTrue(np.allclose(result_3, rot_vec_3))
+
+    def test_group_exp_and_log(self):
+        """
+        Test that the group exponential
+        and the group logarithm are inverse.
+        Expect their composition to give the identity function.
+        """
+        # General case for the reference point
+        rot_vec_base_point = np.pi / 3 * np.array([1, 0, 0])  # NB: Regularized
+
+        # 1. Compose log then exp
+        rot_vec_1 = np.array([-1.2, 0.9, 0.9])  # NB: Regularized
+
+        aux_1 = self.GROUP.group_log(base_point=rot_vec_base_point,
+                                     point=rot_vec_1)
+        result_1 = self.GROUP.group_exp(base_point=rot_vec_base_point,
+                                        tangent_vec=aux_1)
+        expected_1 = rot_vec_1
+
+        self.assertTrue(np.allclose(result_1, expected_1))
+
+        # 2. Compose log then exp
+        # for edge case: angle < epsilon, where angle = norm(rot_vec)
+        rot_vec_2 = np.array([-1e-7, 0., -7 * 1e-8])  # NB: Regularized
+
+        aux_2 = self.GROUP.group_log(base_point=rot_vec_base_point,
+                                     point=rot_vec_2)
+        result_2 = self.GROUP.group_exp(base_point=rot_vec_base_point,
+                                        tangent_vec=aux_2)
+        expected_2 = rot_vec_2
+
+        self.assertTrue(np.allclose(result_2, expected_2))
+
+    def test_group_exponential_barycenter(self):
+        rot_vec_1 = self.GROUP.random_uniform()
+        result_1 = self.GROUP.group_exponential_barycenter(
+                                points=[rot_vec_1, rot_vec_1])
+        expected_1 = rot_vec_1
+        self.assertTrue(np.allclose(result_1, expected_1))
+
+        rot_vec_2 = self.GROUP.random_uniform()
+        result_2 = self.GROUP.group_exponential_barycenter(
+                                points=[rot_vec_2, rot_vec_2],
+                                weights=[1., 2.])
+        expected_2 = rot_vec_2
+        self.assertTrue(np.allclose(result_2, expected_2))
+
+        result_3 = self.GROUP.group_exponential_barycenter(
+                                points=[rot_vec_1, rot_vec_2],
+                                weights=[1., .1])
+
+        self.assertTrue(self.GROUP.belongs(result_3))
 
 
 if __name__ == '__main__':

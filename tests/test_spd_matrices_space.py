@@ -38,6 +38,11 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
                             [3, 0.5, 1]])
         self.assertTrue(np.allclose(result, expected))
 
+    def test_belongs(self):
+        sym_pos_def_mat = np.array([[10, 2],
+                                    [2, 1]])
+        self.assertTrue(self.SPACE.belongs(sym_pos_def_mat))
+
     def matrix_to_vector_and_vector_to_matrix(self):
         sym_mat_1 = np.array([[1., 0.6, -3.],
                               [0.6, 7., 0.],

@@ -21,6 +21,14 @@ class EuclideanSpace(Manifold):
         """
         return len(point) == self.dimension
 
+    def random_uniform(self):
+        """
+        Sample a vector uniformly in the Euclidean space,
+        with coordinates each between -1. and 1.
+        """
+        point = np.random.rand(self.dimension) * 2 - 1
+        return point
+
 
 class EuclideanMetric(RiemannianMetric):
     """
@@ -28,6 +36,10 @@ class EuclideanMetric(RiemannianMetric):
     The metric is flat: inner product independent of the reference point.
     The metric has signature (0, n) on the n-D vector space.
     """
+    def __init__(self, dimension):
+        RiemannianMetric.__init__(self,
+                                  dimension=dimension,
+                                  signature=(dimension, 0, 0))
 
     def inner_product_matrix(self, base_point=None):
         """
@@ -49,15 +61,7 @@ class EuclideanMetric(RiemannianMetric):
         """
         return point - base_point
 
-    def random_uniform(self):
-        """
-        Sample a vector uniformly in the Euclidean space,
-        with coordinates each between 0. and 1.
-        """
-        point = np.random.uniform(0., 1., size=self.dimension)
-        return point
-
-    def mean(self, points, weights):
+    def mean(self, points, weights=None):
         """
         Weighted mean of the points.
         """
