@@ -57,7 +57,12 @@ class InvariantMetric(RiemannianMetric):
         The left Riemannian exponential has a special role since the
         left Riemannian exponential of the canonical metric parameterizes
         the points.
+
+        Note: In the case where the method is called by a right-invariant
+        metric, it used the left-invariant metric associated to the same
+        inner-product at the identity.
         """
+        tangent_vec = self.lie_group.regularize(tangent_vec)
         exp = np.dot(self.inner_product_mat_at_identity, tangent_vec)
 
         exp = self.lie_group.regularize(exp)
@@ -68,6 +73,7 @@ class InvariantMetric(RiemannianMetric):
         Compute the Riemannian exponential from the identity of the
         Lie group of tangent vector tangent_vec.
         """
+        tangent_vec = self.lie_group.regularize(tangent_vec)
         if self.left_or_right == 'left':
             exp = self.left_exp_from_identity(tangent_vec)
 
@@ -115,6 +121,8 @@ class InvariantMetric(RiemannianMetric):
         left Riemannian logarithm of the canonical metric parameterizes
         the points.
         """
+        point = self.lie_group.regularize(point)
+
         inner_prod_mat = self.inner_product_mat_at_identity
         inv_inner_prod_mat = np.linalg.inv(inner_prod_mat)
 
@@ -128,6 +136,7 @@ class InvariantMetric(RiemannianMetric):
         Compute the Riemannian logarithm of point at point base_point
         of point for the invariant metric from the identity.
         """
+        point = self.lie_group.regularize(point)
         if self.left_or_right == 'left':
             log = self.left_log_from_identity(point)
 

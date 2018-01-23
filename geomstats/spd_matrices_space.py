@@ -121,6 +121,12 @@ class SPDMatricesSpace(Manifold):
         matrix = make_symmetric(matrix)
         return matrix
 
+    def random_uniform(self):
+        mat = 2 * np.random.rand(self.dimension, self.dimension) - 1
+
+        spd_mat = group_exp(mat + mat.transpose())
+        return spd_mat
+
 
 class SPDMetric(RiemannianMetric):
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
