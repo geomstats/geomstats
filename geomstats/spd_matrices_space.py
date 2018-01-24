@@ -66,7 +66,7 @@ def group_log(sym_mat):
 
 class SPDMatricesSpace(Manifold):
     def __init__(self, dimension):
-        Manifold.__init__(self, dimension)
+        super(SPDMatricesSpace, self).__init__(dimension)
         self.metric = SPDMetric(dimension)
 
     def belongs(self, mat, tolerance=TOLERANCE):
@@ -120,6 +120,12 @@ class SPDMatricesSpace(Manifold):
 
         matrix = make_symmetric(matrix)
         return matrix
+
+    def random_uniform(self):
+        mat = 2 * np.random.rand(self.dimension, self.dimension) - 1
+
+        spd_mat = group_exp(mat + mat.transpose())
+        return spd_mat
 
 
 class SPDMetric(RiemannianMetric):

@@ -21,7 +21,7 @@ class SpecialEuclideanGroup(LieGroup):
 
         self.n = n
         self.dimension = int((n * (n - 1)) / 2 + n)
-        LieGroup.__init__(self,
+        super(SpecialEuclideanGroup, self).__init__(
                           dimension=self.dimension,
                           identity=np.zeros(self.dimension))
         self.rotations = SpecialOrthogonalGroup(n=n)

@@ -10,7 +10,7 @@ class LieGroup(Manifold):
     """ Base class for Lie groups."""
 
     def __init__(self, dimension, identity):
-        Manifold.__init__(self, dimension)
+        super(LieGroup, self).__init__(dimension)
         self.identity = identity
 
         self.left_canonical_metric = InvariantMetric(

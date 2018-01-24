@@ -37,9 +37,9 @@ class EuclideanMetric(RiemannianMetric):
     The metric has signature (0, n) on the n-D vector space.
     """
     def __init__(self, dimension):
-        RiemannianMetric.__init__(self,
-                                  dimension=dimension,
-                                  signature=(dimension, 0, 0))
+        super(EuclideanMetric, self).__init__(
+                                        dimension=dimension,
+                                        signature=(dimension, 0, 0))
 
     def inner_product_matrix(self, base_point=None):
         """

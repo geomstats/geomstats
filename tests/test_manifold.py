@@ -7,23 +7,24 @@ from geomstats.manifold import Manifold
 
 
 class TestManifoldMethods(unittest.TestCase):
-    DIMENSION = np.random.randint(1)
-    MANIFOLD = Manifold(DIMENSION)
+    def setUp(self):
+        self.dimension = np.random.randint(1)
+        self.manifold = Manifold(self.dimension)
 
     def test_dimension(self):
-        result = self.MANIFOLD.dimension
-        expected = self.DIMENSION
+        result = self.manifold.dimension
+        expected = self.dimension
         self.assertTrue(np.allclose(result, expected))
 
     def test_belongs(self):
         point = np.array([1, 2, 3])
         self.assertRaises(NotImplementedError,
-                          lambda: self.MANIFOLD.belongs(point))
+                          lambda: self.manifold.belongs(point))
 
     def test_regularize(self):
         point = np.array(5)
 
-        result = self.MANIFOLD.regularize(point)
+        result = self.manifold.regularize(point)
         expected = point
         self.assertTrue(np.allclose(result, expected))
 

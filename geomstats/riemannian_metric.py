@@ -163,8 +163,8 @@ class RiemannianMetric(object):
             return mean
 
         sq_dists_between_iterates = []
-        it = 0
-        while True:
+        iteration = 0
+        while iteration < n_max_iterations:
             a_tangent_vector = self.log(mean, mean)
             tangent_mean = np.zeros_like(a_tangent_vector)
 
@@ -187,12 +187,11 @@ class RiemannianMetric(object):
             if sq_dist <= epsilon * variance:
                 break
 
-            if it == n_max_iterations:
-                logging.warning('Maximum number of iterations {} reached.'
-                                'The mean may be inaccurate'
-                                ''.format(n_max_iterations))
-                break
             mean = mean_next
-            it += 1
+            iteration += 1
 
+        if iteration is n_max_iterations:
+            logging.warning('Maximum number of iterations {} reached.'
+                            'The mean may be inaccurate'
+                            ''.format(n_max_iterations))
         return mean

@@ -60,7 +60,7 @@ class SpecialOrthogonalGroup(LieGroup):
 
         self.n = n
         self.dimension = int((n * (n - 1)) / 2)
-        LieGroup.__init__(self,
+        super(SpecialOrthogonalGroup, self).__init__(
                           dimension=self.dimension,
                           identity=np.zeros(self.dimension))
         self.bi_invariant_metric = self.left_canonical_metric

@@ -3,8 +3,9 @@ Computations on the n-dimensional sphere
 embedded in the (n+1)-dimensional Euclidean space.
 """
 
-import numpy as np
+import logging
 import math
+import numpy as np
 
 from geomstats.euclidean_space import EuclideanMetric
 from geomstats.manifold import Manifold
@@ -48,6 +49,12 @@ class Hypersphere(Manifold):
         in the embedding Euclidean space.
         Note: point must be given in extrinsic coordinates.
         """
+        point_dim = len(point)
+        if point_dim is not self.dimension + 1:
+            if point_dim is self.dimension:
+                logging.warning('Use the extrinsic coordinates to '
+                                'represent points on the hypersphere.')
+            return False
         sq_norm = self.embedding_metric.squared_norm(point)
         return abs(sq_norm - 1) < tolerance
 

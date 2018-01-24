@@ -8,9 +8,10 @@ from geomstats.spd_matrices_space import SPDMatricesSpace
 
 
 class TestSPDMatricesSpaceMethods(unittest.TestCase):
-    DIMENSION = 3
-    SPACE = SPDMatricesSpace(dimension=DIMENSION)
-    METRIC = SPACE.metric
+    def setUp(self):
+        self.dimension = 3
+        self.space = SPDMatricesSpace(dimension=self.dimension)
+        self.metric = self.space.metric
 
     def test_is_symmetric(self):
         sym_mat = np.array([[1, 2],
@@ -39,23 +40,21 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         self.assertTrue(np.allclose(result, expected))
 
     def test_belongs(self):
-        sym_pos_def_mat = np.array([[10, 2],
-                                    [2, 1]])
-        self.assertTrue(self.SPACE.belongs(sym_pos_def_mat))
+        self.assertTrue(self.space.belongs(self.space.random_uniform()))
 
     def matrix_to_vector_and_vector_to_matrix(self):
         sym_mat_1 = np.array([[1., 0.6, -3.],
                               [0.6, 7., 0.],
                               [-3., 0., 8.]])
-        vector_1 = self.SPACE.matrix_to_vector(sym_mat_1)
-        result_1 = self.SPACE.vector_to_matrix(vector_1)
+        vector_1 = self.space.matrix_to_vector(sym_mat_1)
+        result_1 = self.space.vector_to_matrix(vector_1)
         expected_1 = sym_mat_1
 
         self.assertTrue(np.allclose(result_1, expected_1))
 
         vector_2 = np.array([1, 2, 3, 4, 5, 6])
-        sym_mat_2 = self.SPACE.vector_to_matrix(vector_2)
-        result_2 = self.SPACE.matrix_to_vector(sym_mat_2)
+        sym_mat_2 = self.space.vector_to_matrix(vector_2)
+        result_2 = self.space.matrix_to_vector(sym_mat_2)
         expected_2 = vector_2
 
         self.assertTrue(np.allclose(result_2, expected_2))
@@ -76,8 +75,8 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
                             [0., 5., 0.],
                             [0., 0., 1.]])
 
-        log_1 = self.METRIC.log(point=point_1, base_point=base_point_1)
-        result_1 = self.METRIC.exp(tangent_vec=log_1, base_point=base_point_1)
+        log_1 = self.metric.log(point=point_1, base_point=base_point_1)
+        result_1 = self.metric.exp(tangent_vec=log_1, base_point=base_point_1)
         expected_1 = point_1
 
         self.assertTrue(np.allclose(result_1, expected_1))

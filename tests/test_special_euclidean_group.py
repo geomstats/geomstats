@@ -1,135 +1,118 @@
-"""Unit tests for special euclidean group module."""
+"""
+Unit tests for special euclidean group module.
+
+Note: Only the *canonical* left- and right- invariant
+metrics on SE(3) are tested here. Other invariant
+metrics are tested with the tests of the invariant_metric
+module.
+"""
 
 import numpy as np
 import unittest
 
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
+import tests.helper as helper
 
 
 class TestSpecialEuclideanGroupMethods(unittest.TestCase):
-    N = 3
-    GROUP = SpecialEuclideanGroup(n=N)
+    def setUp(self):
+        n = 3
+        self.group = SpecialEuclideanGroup(n=n)
+
+        self.transfo_1 = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
+        self.transfo_2 = np.array([0.5, 0., -0.3, 0.4, 5., 60.])
+        self.transfo_small = np.array([1e-7, 0., 1e-8, 1., 1e-10, 2.])
+        self.translation_1 = np.array([0., 0., 0., 0.4, 0.5, 0.6])
+        self.translation_2 = np.array([0., 0., 0., 0.5, 0.6, 0.7])
+        self.rot_and_parallel_trans = np.array([np.pi / 3., 0., 0.,
+                                                1., 0., 0.])
 
     def test_random_and_belongs(self):
         """
         Test that the random uniform method samples
         on the special euclidean group.
         """
-        base_point = self.GROUP.random_uniform()
-        self.assertTrue(self.GROUP.belongs(base_point))
+        base_point = self.group.random_uniform()
+        self.assertTrue(self.group.belongs(base_point))
 
     def test_regularize(self):
-        rot_vec_0 = np.array([0., 0., 0.])
-        rot_vec_0 = self.GROUP.regularize(rot_vec_0)
-        rot_vec_0_expected = np.array([0., 0., 0.])
-        self.assertTrue(np.allclose(rot_vec_0, rot_vec_0_expected))
+        result = self.group.regularize(self.group.identity)
+        expected = self.group.identity
+        self.assertTrue(np.allclose(result, expected))
 
-        rot_vec_1 = 2.5 * np.pi * np.array([0., 0., 1.])
-        rot_vec_1 = self.GROUP.regularize(rot_vec_1)
-        rot_vec_1_expected = np.pi / 2. * np.array([0., 0., 1.])
-        self.assertTrue(np.allclose(rot_vec_1, rot_vec_1_expected))
+        point = 2.5 * np.pi * np.array([0., 0., 1.,
+                                        0., 0., 0.])
+        result = self.group.regularize(point)
+        expected = np.pi / 2. * np.array([0., 0., 1.,
+                                          0., 0., 0.])
+        self.assertTrue(np.allclose(result, expected))
 
     def test_compose(self):
-        # 1. Composition by identity, on the right
+        # Composition by identity, on the right
         # Expect the original transformation
-        transfo_1 = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
+        result = self.group.compose(self.transfo_1, self.group.identity)
+        expected = self.transfo_1
+        self.assertTrue(np.allclose(result, expected))
 
-        result_1 = self.GROUP.compose(transfo_1, self.GROUP.identity)
-        expected_1 = transfo_1
-
-        self.assertTrue(np.allclose(result_1, expected_1))
-
-        # 2. Composition by identity, on the left
+        # Composition by identity, on the left
         # Expect the original transformation
-        transfo_2 = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
+        result = self.group.compose(self.group.identity, self.transfo_1)
+        expected = self.transfo_1
+        self.assertTrue(np.allclose(result, expected))
 
-        result_2 = self.GROUP.compose(self.GROUP.identity, transfo_2)
-        expected_2 = transfo_2
-
-        self.assertTrue(np.allclose(result_2, expected_2))
-
-        # 3. Composition of translations (no rotational part)
+        # Composition of translations (no rotational part)
         # Expect the sum of the translations
-        transfo_a_3 = np.array([0., 0., 0., 0.4, 0.5, 0.6])
-        transfo_b_3 = np.array([0., 0., 0., 0.5, 0.6, 0.7])
-
-        result_3 = self.GROUP.compose(transfo_a_3, transfo_b_3)
-        expected_3 = np.array([0., 0., 0., 0.9, 1.1, 1.3])
-
-        self.assertTrue(np.allclose(result_3, expected_3))
+        result = self.group.compose(self.translation_1,
+                                    self.translation_2)
+        expected = self.translation_1 + self.translation_2
+        self.assertTrue(np.allclose(result, expected))
 
     def test_compose_and_inverse(self):
-        # 1. Compose transformation by its inverse on the right
+        inv_transfo_1 = self.group.inverse(self.transfo_1)
+        # Compose transformation by its inverse on the right
         # Expect the group identity
-        transfo_1 = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
-        inv_transfo_1 = self.GROUP.inverse(transfo_1)
+        result = self.group.compose(self.transfo_1, inv_transfo_1)
+        expected = self.group.identity
+        self.assertTrue(np.allclose(result, expected))
 
-        result_1 = self.GROUP.compose(transfo_1, inv_transfo_1)
-        expected_1 = self.GROUP.identity
-
-        self.assertTrue(np.allclose(result_1, expected_1))
-
-        # 2. Compose transformation by its inverse on the left
+        # Compose transformation by its inverse on the left
         # Expect the group identity
-        transfo_2 = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
-        inv_transfo_2 = self.GROUP.inverse(transfo_2)
-
-        result_2 = self.GROUP.compose(inv_transfo_2, transfo_2)
-        expected_2 = self.GROUP.identity
-
-        self.assertTrue(np.allclose(result_2, expected_2))
+        result = self.group.compose(inv_transfo_1, self.transfo_1)
+        expected = self.group.identity
+        self.assertTrue(np.allclose(result, expected))
 
     def test_group_log_from_identity(self):
-        # 1. Group logarithm of a translation (no rotational part)
+        # Group logarithm of a translation (no rotational part)
         # Expect the original translation
-        rot_vec_1 = np.array([0, 0, 0])
-        translation_1 = np.array([1, 0, -3])
-        transfo_1 = np.concatenate([rot_vec_1, translation_1])
+        result = self.group.group_log(base_point=self.group.identity,
+                                      point=self.translation_1)
+        expected = self.translation_1
+        self.assertTrue(np.allclose(expected, result))
 
-        result_1 = self.GROUP.group_log(base_point=self.GROUP.identity,
-                                        point=transfo_1)
-        expected_1 = transfo_1
-
-        self.assertTrue(np.allclose(expected_1, result_1))
-
-        # 2. Group logarithm of a transformation
+        # Group logarithm of a transformation
         # where translation is parallel to rotation axis
         # Expect the original transformation
-        rot_vec_2 = np.pi / 3 * np.array([1, 0, 0])  # NB: Regularized
-        translation_2 = np.array([4, 0, 0])
-        transfo_2 = np.concatenate([rot_vec_2, translation_2])
-
-        result_2 = self.GROUP.group_log(base_point=self.GROUP.identity,
-                                        point=transfo_2)
-        expected_2 = transfo_2
-
-        self.assertTrue(np.allclose(expected_2, result_2))
+        result = self.group.group_log(base_point=self.group.identity,
+                                      point=self.rot_and_parallel_trans)
+        expected = self.rot_and_parallel_trans
+        self.assertTrue(np.allclose(expected, result))
 
     def test_group_exp_from_identity(self):
-        # 1. Group exponential of a translation (no rotational part)
+        # Group exponential of a translation (no rotational part)
         # Expect the original translation
-        rot_vec_1 = np.array([0, 0, 0])
-        translation_1 = np.array([1, 0, -3])
-        tangent_vec_1 = np.concatenate([rot_vec_1, translation_1])
+        result = self.group.group_exp(base_point=self.group.identity,
+                                      tangent_vec=self.translation_1)
+        expected = self.translation_1
+        self.assertTrue(np.allclose(result, expected))
 
-        result_1 = self.GROUP.group_exp(base_point=self.GROUP.identity,
-                                        tangent_vec=tangent_vec_1)
-        expected_1 = tangent_vec_1
-
-        self.assertTrue(np.allclose(result_1, expected_1))
-
-        # 2. Group exponential of a transformation
+        # Group exponential of a transformation
         # where translation is parallel to rotation axis
         # Expect the original transformation
-        rot_vec_2 = np.pi / 3 * np.array([1, 0, 0])  # NB: Regularized
-        translation_2 = np.array([4, 0, 0])
-        tangent_vec_2 = np.concatenate([rot_vec_2, translation_2])
-
-        result_2 = self.GROUP.group_exp(base_point=self.GROUP.identity,
-                                        tangent_vec=tangent_vec_2)
-        expected_2 = tangent_vec_2
-
-        self.assertTrue(np.allclose(result_2, expected_2))
+        result = self.group.group_exp(
+                                  base_point=self.group.identity,
+                                  tangent_vec=self.rot_and_parallel_trans)
+        expected = self.rot_and_parallel_trans
+        self.assertTrue(np.allclose(result, expected))
 
     def test_group_exp_and_log_from_identity(self):
         """
@@ -138,105 +121,56 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         are inverse.
         Expect their composition to give the identity function.
         """
-        # 1. Compose log then exp
-        rot_vec_1 = np.array([0.01, -1., -0.8])  # NB: Regularized
-        translation_1 = np.array([10., 2., 7.])
-        point_1 = np.concatenate([rot_vec_1, translation_1])
+        # Compose log then exp
+        result = helper.group_log_then_exp_from_identity(self.group,
+                                                         self.transfo_1)
+        expected = self.transfo_1
+        self.assertTrue(np.allclose(result, expected))
 
-        aux_1 = self.GROUP.group_log(base_point=self.GROUP.identity,
-                                     point=point_1)
-        result_1 = self.GROUP.group_exp(base_point=self.GROUP.identity,
-                                        tangent_vec=aux_1)
-        expected_1 = point_1
-
-        self.assertTrue(np.allclose(result_1, expected_1))
-
-        # 2. Compose log then exp
+        # Compose log then exp
         # for edge case: angle < epsilon, where angle = norm(rot_vec)
-        rot_vec_2 = np.array([1e-10, 0., -6 * 1e-6])  # NB: Regularized
-        translation_2 = np.array([-1., 27., 7.])
-        point_2 = np.concatenate([rot_vec_2, translation_2])
+        result = helper.group_log_then_exp_from_identity(self.group,
+                                                         self.transfo_small)
+        expected = self.transfo_small
+        self.assertTrue(np.allclose(result, expected))
 
-        aux_2 = self.GROUP.group_log(base_point=self.GROUP.identity,
-                                     point=point_2)
-        result_2 = self.GROUP.group_exp(base_point=self.GROUP.identity,
-                                        tangent_vec=aux_2)
-        expected_2 = point_2
+        # Compose exp then log
+        result = helper.group_exp_then_log_from_identity(self.group,
+                                                         self.transfo_1)
+        expected = self.transfo_1
+        self.assertTrue(np.allclose(result, expected))
 
-        self.assertTrue(np.allclose(result_2, expected_2))
-
-        # 3. Compose exp then log
-        rot_vec_3 = np.array([0.01, -1., -0.8])  # NB: Regularized
-        translation_3 = np.array([10., 2., 7.])
-        tangent_vec_3 = np.concatenate([rot_vec_3, translation_3])
-
-        aux_3 = self.GROUP.group_exp(base_point=self.GROUP.identity,
-                                     tangent_vec=tangent_vec_3)
-        result_3 = self.GROUP.group_log(base_point=self.GROUP.identity,
-                                        point=aux_3)
-        expected_3 = tangent_vec_3
-
-        self.assertTrue(np.allclose(result_3, expected_3))
-
-        # 4. Compose exp then log
+        # Compose exp then log
         # for edge case: angle < epsilon, where angle = norm(rot_vec)
-        rot_vec_4 = np.array([1e-10, 0., -6 * 1e-6])  # NB: Regularized
-        translation_4 = np.array([-1., 27., 7.])
-        tangent_vec_4 = np.concatenate([rot_vec_4, translation_4])
-
-        aux_4 = self.GROUP.group_exp(base_point=self.GROUP.identity,
-                                     tangent_vec=tangent_vec_4)
-        result_4 = self.GROUP.group_log(base_point=self.GROUP.identity,
-                                        point=aux_4)
-        expected_4 = tangent_vec_4
-
-        self.assertTrue(np.allclose(result_4, expected_4))
+        result = helper.group_exp_then_log_from_identity(self.group,
+                                                         self.transfo_small)
+        expected = self.transfo_small
+        self.assertTrue(np.allclose(result, expected))
 
     def test_group_exp(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
         # is the 6x6 identity matrix
-        rot_vec_base_point = np.array([0., 0., 0.])
-        translation_base_point = np.array([4, -1, 10000])
-        transfo_base_point = np.concatenate([rot_vec_base_point,
-                                            translation_base_point])
-        # 1. Tangent vector is a translation (no infinitesimal rotational part)
+        # Tangent vector is a translation (no infinitesimal rotational part)
         # Expect the sum of the translation
         # with the translation of the reference point
-        rot_vec_1 = np.array([0., 0., 0.])
-        translation_1 = np.array([1, 0, -3])
-        tangent_vec_1 = np.concatenate([rot_vec_1, translation_1])
-
-        result_1 = self.GROUP.group_exp(base_point=transfo_base_point,
-                                        tangent_vec=tangent_vec_1)
-        expected_1 = np.concatenate([np.array([0., 0., 0.]),
-                                     np.array([5, -1, 9997])])
-        self.assertTrue(np.allclose(result_1, expected_1))
+        result = self.group.group_exp(base_point=self.translation_1,
+                                      tangent_vec=self.translation_2)
+        expected = self.translation_1 + self.translation_2
+        self.assertTrue(np.allclose(result, expected))
 
     def test_group_log(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
         # is the 6x6 identity matrix
-        rot_vec_base_point = np.array([0., 0., 0.])
-        translation_base_point = np.array([4., 0., 0.])
-        transfo_base_point = np.concatenate([rot_vec_base_point,
-                                            translation_base_point])
-
-        # 1. Point is a translation (no rotational part)
+        # Point is a translation (no rotational part)
         # Expect the difference of the translation
         # by the translation of the reference point
-        rot_vec_1 = np.array([0., 0., 0.])
-        translation_1 = np.array([5., 8., -3.2])
-        point_1 = np.concatenate([rot_vec_1,
-                                  translation_1])
+        result = self.group.group_log(base_point=self.translation_2,
+                                      point=self.translation_1)
+        expected = self.translation_1 - self.translation_2
 
-        expected_1 = np.concatenate([np.array([0., 0., 0.]),
-                                     np.array([1., 8., -3.2])])
-
-        result_1 = self.GROUP.group_log(base_point=transfo_base_point,
-                                        point=point_1)
-
-        self.assertTrue(np.allclose(result_1, expected_1))
+        self.assertTrue(np.allclose(result, expected))
 
     def test_group_exp_and_log(self):
         """
@@ -245,39 +179,22 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         Expect their composition to give the identity function.
         """
         # General case for the reference point
-        rot_vec_base_point = np.pi / 3 * np.array([1, 0, 0])  # NB: Regularized
-        translation_base_point = np.array([4, -1, 2])
-        transfo_base_point = np.concatenate([rot_vec_base_point,
-                                            translation_base_point])
+        transfo_base_point = self.transfo_1
 
-        # 1. Compose log then exp
-        rot_vec_1 = np.array([-1.2, 0.9, 0.9])  # NB: Regularized
-        translation_1 = np.array([5, 5, 5])
-        point_1 = np.concatenate([rot_vec_1,
-                                  translation_1])
+        # Compose log then exp
+        result = helper.group_log_then_exp(self.group,
+                                           base_point=transfo_base_point,
+                                           point=self.transfo_2)
+        expected = self.transfo_2
+        self.assertTrue(np.allclose(result, expected))
 
-        aux_1 = self.GROUP.group_log(base_point=transfo_base_point,
-                                     point=point_1)
-        result_1 = self.GROUP.group_exp(base_point=transfo_base_point,
-                                        tangent_vec=aux_1)
-        expected_1 = point_1
-
-        self.assertTrue(np.allclose(result_1, expected_1))
-
-        # 2. Compose log then exp
+        # Compose log then exp
         # for edge case: angle < epsilon, where angle = norm(rot_vec)
-        rot_vec_2 = np.array([-1e-7, 0., -7 * 1e-8])  # NB: Regularized
-        translation_2 = np.array([6, 5, 9])
-        point_2 = np.concatenate([rot_vec_2,
-                                  translation_2])
-
-        aux_2 = self.GROUP.group_log(base_point=transfo_base_point,
-                                     point=point_2)
-        result_2 = self.GROUP.group_exp(base_point=transfo_base_point,
-                                        tangent_vec=aux_2)
-        expected_2 = point_2
-
-        self.assertTrue(np.allclose(result_2, expected_2))
+        result = helper.group_log_then_exp(self.group,
+                                           base_point=transfo_base_point,
+                                           point=self.transfo_small)
+        expected = self.transfo_small
+        self.assertTrue(np.allclose(result, expected))
 
     def test_left_exp_from_id(self):
         # Riemannian left-invariant metric given by
@@ -285,7 +202,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         # Expect the identity function
         # because we use the riemannian left logarithm with canonical
         # inner product to parameterize the transformations
-        metric = self.GROUP.left_canonical_metric
+        metric = self.group.left_canonical_metric
         # 1. General case
         tangent_rot_vec_1 = np.array([1., 1., 1.])  # NB: Regularized
         tangent_translation_1 = np.array([1., 0., -3.])
@@ -303,7 +220,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         # because we use the riemannian left logarithm with canonical
         # inner product to parameterize the transformations
 
-        metric = self.GROUP.left_canonical_metric
+        metric = self.group.left_canonical_metric
         # 1. General case
         rot_vec_1 = np.array([0.1, 1, 0.9])  # NB: Regularized
         translation_1 = np.array([1, -19, -3])
@@ -331,7 +248,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         are inverse.
         Expect their composition to give the identity function.
         """
-        metric = self.GROUP.left_canonical_metric
+        metric = self.group.left_canonical_metric
         # 1. Compose log then exp
         # Canonical inner product on the lie algebra
         rot_vec_1 = np.array([-1., 0.5, -0.12])  # NB: Regularized
@@ -364,7 +281,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         are inverse.
         Expect their composition to give the identity function.
         """
-        metric = self.GROUP.right_canonical_metric
+        metric = self.group.right_canonical_metric
         # 1. Compose log then exp
         # Canonical inner product on the lie algebra
         rot_vec_1 = np.array([-1., 0.5, -0.12])  # NB: Regularized
@@ -407,7 +324,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         translation_1 = np.array([1, 0, -3])
         tangent_vec_1 = np.concatenate([rot_vec_1, translation_1])
 
-        result_1 = self.GROUP.left_canonical_metric.exp(
+        result_1 = self.group.left_canonical_metric.exp(
                                          base_point=transfo_base_point,
                                          tangent_vec=tangent_vec_1)
         expected_1 = np.concatenate([np.array([0., 0., 0.]),
@@ -434,7 +351,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected_1 = np.concatenate([np.array([0., 0., 0.]),
                                      np.array([-5., -1., -1.2])])
 
-        result_1 = self.GROUP.left_canonical_metric.log(
+        result_1 = self.group.left_canonical_metric.log(
                                        base_point=transfo_base_point,
                                        point=point_1)
 
@@ -459,10 +376,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_1 = np.concatenate([rot_vec_1,
                                   translation_1])
 
-        aux_1 = self.GROUP.left_canonical_metric.log(
+        aux_1 = self.group.left_canonical_metric.log(
                                           base_point=transfo_base_point,
                                           point=point_1)
-        result_1 = self.GROUP.left_canonical_metric.exp(
+        result_1 = self.group.left_canonical_metric.exp(
                                           base_point=transfo_base_point,
                                           tangent_vec=aux_1)
         expected_1 = point_1
@@ -477,10 +394,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_2 = np.concatenate([rot_vec_2,
                                   translation_2])
 
-        aux_2 = self.GROUP.left_canonical_metric.log(
+        aux_2 = self.group.left_canonical_metric.log(
                                         base_point=transfo_base_point,
                                         point=point_2)
-        result_2 = self.GROUP.left_canonical_metric.exp(
+        result_2 = self.group.left_canonical_metric.exp(
                                         base_point=transfo_base_point,
                                         tangent_vec=aux_2)
         expected_2 = point_2
@@ -505,10 +422,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_1 = np.concatenate([rot_vec_1,
                                   translation_1])
 
-        aux_1 = self.GROUP.right_canonical_metric.log(
+        aux_1 = self.group.right_canonical_metric.log(
                                       base_point=transfo_base_point,
                                       point=point_1)
-        result_1 = self.GROUP.right_canonical_metric.exp(
+        result_1 = self.group.right_canonical_metric.exp(
                                       base_point=transfo_base_point,
                                       tangent_vec=aux_1)
         expected_1 = point_1
@@ -522,36 +439,81 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_2 = np.concatenate([rot_vec_2,
                                   translation_2])
 
-        aux_2 = self.GROUP.right_canonical_metric.log(
+        aux_2 = self.group.right_canonical_metric.log(
                                       base_point=transfo_base_point,
                                       point=point_2)
-        result_2 = self.GROUP.right_canonical_metric.exp(
+        result_2 = self.group.right_canonical_metric.exp(
                                       base_point=transfo_base_point,
                                       tangent_vec=aux_2)
         expected_2 = point_2
 
         self.assertTrue(np.allclose(result_2, expected_2))
 
+    def test_squared_dist_is_symmetric(self):
+        # TODO(nina): this test fails
+        metric = self.group.left_canonical_metric
+        point_1 = np.array([0.16329, -0.660283, 2.75099,
+                            -0.363386, 0.113832, 1.3792])
+        point_2 = np.array([-1.2297, 0.551821, -0.370994,
+                            -0.130283, 0.518082, 0.671212])
+
+        point_1 = self.group.regularize(point_1)
+        point_2 = self.group.regularize(point_2)
+
+        log = metric.log(base_point=point_1, point=point_2)
+        log = self.group.regularize(log)
+        sq_dist_1_2 = metric.squared_norm(vector=log, base_point=point_1)
+
+        log = metric.log(base_point=point_2, point=point_1)
+        log = self.group.regularize(log)
+        sq_dist_2_1 = metric.squared_norm(vector=log, base_point=point_2)
+
+        # sq_dist_1_2 = metric.squared_dist(point_1, point_2)
+        # sq_dist_2_1 = metric.squared_dist(point_2, point_1)
+
+        # self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1))
+
+    def test_squared_dist_exp_and_squared_norm(self):
+        metric = self.group.left_canonical_metric
+        point_1 = np.array([0.16329, -0.660283, 2.75099,
+                            -0.363386, 0.113832, 1.3792])
+        vec_2 = np.array([-1.2297, 0.551821, -0.370994,
+                          -0.130283, 0.518082, 0.671212])
+        expected = metric.squared_norm(vector=vec_2, base_point=point_1)
+        result = metric.squared_dist(point_1, metric.exp(tangent_vec=vec_2,
+                                                         base_point=point_1))
+        self.assertTrue(np.allclose(expected, result))
+
+        metric = self.group.left_canonical_metric
+        vec_2 = np.array([0.16329, -0.660283, 2.75099,
+                          -0.363386, 0.113832, 1.3792])
+        point_1 = np.array([-1.2297, 0.551821, -0.370994,
+                            -0.130283, 0.518082, 0.671212])
+        expected = metric.squared_norm(vector=vec_2, base_point=point_1)
+        result = metric.squared_dist(point_1, metric.exp(tangent_vec=vec_2,
+                                                         base_point=point_1))
+        self.assertTrue(np.allclose(expected, result))
+
     def test_group_exponential_barycenter(self):
         # TODO(nina): this test fails.
-        point_1 = self.GROUP.random_uniform()
-        result_1 = self.GROUP.group_exponential_barycenter(
+        point_1 = self.group.random_uniform()
+        result_1 = self.group.group_exponential_barycenter(
                                 points=[point_1, point_1])
         expected_1 = point_1
         # self.assertTrue(np.allclose(result_1, expected_1))
 
-        point_2 = self.GROUP.random_uniform()
-        result_2 = self.GROUP.group_exponential_barycenter(
+        point_2 = self.group.random_uniform()
+        result_2 = self.group.group_exponential_barycenter(
                                 points=[point_2, point_2],
                                 weights=[1., 2.])
         expected_2 = point_2
         # self.assertTrue(np.allclose(result_2, expected_2))
 
-        result_3 = self.GROUP.group_exponential_barycenter(
+        result_3 = self.group.group_exponential_barycenter(
                                 points=[point_1, point_2],
                                 weights=[1., .1])
 
-        self.assertTrue(self.GROUP.belongs(result_3))
+        self.assertTrue(self.group.belongs(result_3))
 
 
 if __name__ == '__main__':

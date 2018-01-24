@@ -8,9 +8,10 @@ from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
 
 class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
-    N = 3
-    GROUP = SpecialOrthogonalGroup(n=N)
-    METRIC = GROUP.bi_invariant_metric
+    def setUp(self):
+        n = 3
+        self.group = SpecialOrthogonalGroup(n=n)
+        self.metric = self.group.bi_invariant_metric
 
     def test_closest_rotation_matrix(self):
         rot_mat = np.eye(3)
@@ -31,50 +32,50 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         self.assertTrue(np.allclose(np.dot(result, rot_vec), np.zeros(3)))
 
     def test_random_and_belongs(self):
-        rot_vec = self.GROUP.random_uniform()
-        self.assertTrue(self.GROUP.belongs(rot_vec))
+        rot_vec = self.group.random_uniform()
+        self.assertTrue(self.group.belongs(rot_vec))
 
     def test_regularize(self):
         rot_vec_0 = np.array([0., 0., 0.])
-        rot_vec_0 = self.GROUP.regularize(rot_vec_0)
+        rot_vec_0 = self.group.regularize(rot_vec_0)
         rot_vec_0_expected = np.array([0., 0., 0.])
         self.assertTrue(np.allclose(rot_vec_0, rot_vec_0_expected))
 
         rot_vec_1 = 2.5 * np.pi * np.array([0., 0., 1.])
-        rot_vec_1 = self.GROUP.regularize(rot_vec_1)
+        rot_vec_1 = self.group.regularize(rot_vec_1)
         rot_vec_1_expected = np.pi / 2. * np.array([0., 0., 1.])
         self.assertTrue(np.allclose(rot_vec_1, rot_vec_1_expected))
 
         rot_vec_2 = 1.5 * np.pi * np.array([0., 1., 0.])
-        rot_vec_2 = self.GROUP.regularize(rot_vec_2)
+        rot_vec_2 = self.group.regularize(rot_vec_2)
         rot_vec_2_expected = np.pi / 2. * np.array([0., -1., 0.])
         self.assertTrue(np.allclose(rot_vec_2, rot_vec_2_expected))
 
         rot_vec_3 = 11 * np.pi * np.array([1., 2., 3.])
-        rot_vec_3 = self.GROUP.regularize(rot_vec_3)
+        rot_vec_3 = self.group.regularize(rot_vec_3)
         # This factor comes from the norm of rot_vec_3 modulo pi
         fact = 0.84176874548664671 * np.pi / np.sqrt(14)
         rot_vec_3_expected = fact * np.array([-1., -2., -3.])
         self.assertTrue(np.allclose(rot_vec_3, rot_vec_3_expected))
 
         rot_vec_4 = 1e-15 * np.pi * np.array([1., 2., 3.])
-        rot_vec_4 = self.GROUP.regularize(rot_vec_4)
+        rot_vec_4 = self.group.regularize(rot_vec_4)
         expected_rot_vec_4 = rot_vec_4
         self.assertTrue(np.allclose(rot_vec_4, expected_rot_vec_4))
 
         rot_vec_5 = 1e-11 * np.array([12., 1., -81.])
-        rot_vec_5 = self.GROUP.regularize(rot_vec_5)
+        rot_vec_5 = self.group.regularize(rot_vec_5)
         expected_rot_vec_5 = rot_vec_5
         self.assertTrue(np.allclose(rot_vec_5, expected_rot_vec_5))
 
     def test_matrix_from_rotation_vector(self):
-        rot_vec_0 = self.GROUP.identity
-        rot_mat_0 = self.GROUP.matrix_from_rotation_vector(rot_vec_0)
+        rot_vec_0 = self.group.identity
+        rot_mat_0 = self.group.matrix_from_rotation_vector(rot_vec_0)
         expected_rot_mat_0 = np.eye(3)
         self.assertTrue(np.allclose(rot_mat_0, expected_rot_mat_0))
 
         rot_vec_1 = np.array([np.pi / 3., 0., 0.])
-        rot_mat_1 = self.GROUP.matrix_from_rotation_vector(rot_vec_1)
+        rot_mat_1 = self.group.matrix_from_rotation_vector(rot_vec_1)
         expected_rot_mat_1 = np.array([[1., 0., 0.],
                                        [0., 0.5, -np.sqrt(3) / 2],
                                        [0., np.sqrt(3) / 2, 0.5]])
@@ -91,7 +92,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                               + coef_1 * skew_rot_vec_3
                               + coef_2 * np.dot(skew_rot_vec_3,
                                                 skew_rot_vec_3))
-        rot_mat_3 = self.GROUP.matrix_from_rotation_vector(rot_vec_3)
+        rot_mat_3 = self.group.matrix_from_rotation_vector(rot_vec_3)
         self.assertTrue(np.allclose(rot_mat_3, expected_rot_mat_3))
 
         rot_vec_6 = np.array([.1, 1.3, -.5])
@@ -102,7 +103,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
         coef_1 = np.sin(angle) / angle
         coef_2 = (1 - np.cos(angle)) / (angle ** 2)
-        rot_mat_6 = self.GROUP.matrix_from_rotation_vector(rot_vec_6)
+        rot_mat_6 = self.group.matrix_from_rotation_vector(rot_vec_6)
         expected_rot_mat_6 = (np.identity(3)
                               + coef_1 * skew_rot_vec_6
                               + coef_2 * np.dot(skew_rot_vec_6,
@@ -113,7 +114,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         rot_mat = np.array([[1., 0., 0.],
                             [0., np.cos(.12), -np.sin(.12)],
                             [0, np.sin(.12), np.cos(.12)]])
-        rot_vec = self.GROUP.rotation_vector_from_matrix(rot_mat)
+        rot_vec = self.group.rotation_vector_from_matrix(rot_mat)
         expected_rot_vec = .12 * np.array([1., 0., 0.])
 
         self.assertTrue(np.allclose(rot_vec, expected_rot_vec))
@@ -127,8 +128,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         is the identity.
         """
         rot_vec_1 = np.array([np.pi / 3., 0., 0.])
-        rot_mat_1 = self.GROUP.matrix_from_rotation_vector(rot_vec_1)
-        result_rot_vec_1 = self.GROUP.rotation_vector_from_matrix(
+        rot_mat_1 = self.group.matrix_from_rotation_vector(rot_vec_1)
+        result_rot_vec_1 = self.group.rotation_vector_from_matrix(
                 rot_mat_1)
         self.assertTrue(np.allclose(rot_vec_1, result_rot_vec_1))
 
@@ -143,27 +144,27 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                      + coef_1 * skew_rot_vec_2
                      + coef_2 * np.dot(skew_rot_vec_2,
                                        skew_rot_vec_2))
-        rot_vec_2 = self.GROUP.rotation_vector_from_matrix(rot_mat_2)
-        result_rot_mat_2 = self.GROUP.matrix_from_rotation_vector(
+        rot_vec_2 = self.group.rotation_vector_from_matrix(rot_mat_2)
+        result_rot_mat_2 = self.group.matrix_from_rotation_vector(
                 rot_vec_2)
         self.assertTrue(np.allclose(rot_mat_2, result_rot_mat_2))
 
         rot_vec_3 = np.array([0.1, 1.4, -0.5])
-        rot_mat_3 = self.GROUP.matrix_from_rotation_vector(rot_vec_3)
-        result_rot_vec_3 = self.GROUP.rotation_vector_from_matrix(
+        rot_mat_3 = self.group.matrix_from_rotation_vector(rot_vec_3)
+        result_rot_vec_3 = self.group.rotation_vector_from_matrix(
                 rot_mat_3)
         self.assertTrue(np.allclose(rot_vec_3, result_rot_vec_3))
 
         # Edge case: abs(angle - pi) < 1e-5
         rot_vec_4 = np.array([np.pi - 1e-7, 0., 0.])
-        rot_mat_4 = self.GROUP.matrix_from_rotation_vector(rot_vec_4)
-        result_rot_vec_4 = self.GROUP.rotation_vector_from_matrix(
+        rot_mat_4 = self.group.matrix_from_rotation_vector(rot_vec_4)
+        result_rot_vec_4 = self.group.rotation_vector_from_matrix(
                 rot_mat_4)
         self.assertTrue(np.allclose(rot_vec_4, result_rot_vec_4))
 
-        rot_vec_5 = self.GROUP.identity
-        rot_mat_5 = self.GROUP.matrix_from_rotation_vector(rot_vec_5)
-        result_rot_vec_5 = self.GROUP.rotation_vector_from_matrix(
+        rot_vec_5 = self.group.identity
+        rot_mat_5 = self.group.matrix_from_rotation_vector(rot_vec_5)
+        result_rot_vec_5 = self.group.rotation_vector_from_matrix(
                 rot_mat_5)
         self.assertTrue(np.allclose(rot_vec_5, result_rot_vec_5))
 
@@ -181,7 +182,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         rot_vec_1 = np.array([0, 0, 0])
         expected_1 = rot_vec_base_point
 
-        exp_1 = self.METRIC.exp(base_point=rot_vec_base_point,
+        exp_1 = self.metric.exp(base_point=rot_vec_base_point,
                                 tangent_vec=rot_vec_1)
         self.assertTrue(np.allclose(exp_1, expected_1))
 
@@ -195,10 +196,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     + (1 - phi) / 3 * np.ones([3, 3])
                     + np.pi / (10 * np.sqrt(3)) * skew)
         inv_jacobian = np.linalg.inv(jacobian)
-        expected_2 = self.GROUP.compose(rot_vec_base_point,
+        expected_2 = self.group.compose(rot_vec_base_point,
                                         np.dot(inv_jacobian, rot_vec_2))
 
-        exp_2 = self.METRIC.exp(base_point=rot_vec_base_point,
+        exp_2 = self.metric.exp(base_point=rot_vec_base_point,
                                 tangent_vec=rot_vec_2)
         self.assertTrue(np.allclose(exp_2, expected_2))
 
@@ -215,7 +216,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         # The Logarithm of a point at itself gives 0.
         rot_vec_1 = rot_vec_base_point
         expected_1 = np.array([0, 0, 0])
-        log_1 = self.METRIC.log(base_point=rot_vec_base_point,
+        log_1 = self.metric.log(base_point=rot_vec_base_point,
                                 point=rot_vec_1)
         self.assertTrue(np.allclose(log_1, expected_1))
 
@@ -229,10 +230,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     + (1 - phi) / 3 * np.ones([3, 3])
                     + np.pi / (10 * np.sqrt(3)) * skew)
         inv_jacobian = np.linalg.inv(jacobian)
-        rot_vec_2 = self.GROUP.compose(rot_vec_base_point,
+        rot_vec_2 = self.group.compose(rot_vec_base_point,
                                        np.dot(inv_jacobian, expected_2))
 
-        log_2 = self.METRIC.log(base_point=rot_vec_base_point,
+        log_2 = self.metric.log(base_point=rot_vec_base_point,
                                 point=rot_vec_2)
         self.assertTrue(np.allclose(log_2, expected_2))
 
@@ -245,18 +246,18 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         rot_vec_base_point = theta / np.sqrt(3.) * np.array([1., 1., 1.])
 
         rot_vec_1 = np.array([0, 0, 0])
-        aux_1 = self.METRIC.exp(base_point=rot_vec_base_point,
+        aux_1 = self.metric.exp(base_point=rot_vec_base_point,
                                 tangent_vec=rot_vec_1)
-        result_1 = self.METRIC.log(base_point=rot_vec_base_point,
+        result_1 = self.metric.log(base_point=rot_vec_base_point,
                                    point=aux_1)
 
         self.assertTrue(np.allclose(result_1, rot_vec_1))
 
         rot_vec_2 = np.pi / (2 * np.sqrt(3)) * np.array([1, 0, 0])
 
-        aux_2 = self.METRIC.exp(base_point=rot_vec_base_point,
+        aux_2 = self.metric.exp(base_point=rot_vec_base_point,
                                 tangent_vec=rot_vec_2)
-        result_2 = self.METRIC.log(base_point=rot_vec_base_point,
+        result_2 = self.metric.log(base_point=rot_vec_base_point,
                                    point=aux_2)
 
         self.assertTrue(np.allclose(result_2, rot_vec_2))
@@ -264,9 +265,9 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         rot_vec_base_point = (np.pi - 1e-10) * np.array([1, 0, 0])
         rot_vec_3 = np.array([0.1, 0.001, 0.1])
 
-        aux_3 = self.METRIC.exp(base_point=rot_vec_base_point,
+        aux_3 = self.metric.exp(base_point=rot_vec_base_point,
                                 tangent_vec=rot_vec_3)
-        result_3 = self.METRIC.log(base_point=rot_vec_base_point,
+        result_3 = self.metric.log(base_point=rot_vec_base_point,
                                    point=aux_3)
 
         self.assertTrue(np.allclose(result_3, rot_vec_3))
@@ -283,9 +284,9 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         # 1. Compose log then exp
         rot_vec_1 = np.array([-1.2, 0.9, 0.9])  # NB: Regularized
 
-        aux_1 = self.GROUP.group_log(base_point=rot_vec_base_point,
+        aux_1 = self.group.group_log(base_point=rot_vec_base_point,
                                      point=rot_vec_1)
-        result_1 = self.GROUP.group_exp(base_point=rot_vec_base_point,
+        result_1 = self.group.group_exp(base_point=rot_vec_base_point,
                                         tangent_vec=aux_1)
         expected_1 = rot_vec_1
 
@@ -295,33 +296,33 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         # for edge case: angle < epsilon, where angle = norm(rot_vec)
         rot_vec_2 = np.array([-1e-7, 0., -7 * 1e-8])  # NB: Regularized
 
-        aux_2 = self.GROUP.group_log(base_point=rot_vec_base_point,
+        aux_2 = self.group.group_log(base_point=rot_vec_base_point,
                                      point=rot_vec_2)
-        result_2 = self.GROUP.group_exp(base_point=rot_vec_base_point,
+        result_2 = self.group.group_exp(base_point=rot_vec_base_point,
                                         tangent_vec=aux_2)
         expected_2 = rot_vec_2
 
         self.assertTrue(np.allclose(result_2, expected_2))
 
     def test_group_exponential_barycenter(self):
-        rot_vec_1 = self.GROUP.random_uniform()
-        result_1 = self.GROUP.group_exponential_barycenter(
+        rot_vec_1 = self.group.random_uniform()
+        result_1 = self.group.group_exponential_barycenter(
                                 points=[rot_vec_1, rot_vec_1])
         expected_1 = rot_vec_1
         self.assertTrue(np.allclose(result_1, expected_1))
 
-        rot_vec_2 = self.GROUP.random_uniform()
-        result_2 = self.GROUP.group_exponential_barycenter(
+        rot_vec_2 = self.group.random_uniform()
+        result_2 = self.group.group_exponential_barycenter(
                                 points=[rot_vec_2, rot_vec_2],
                                 weights=[1., 2.])
         expected_2 = rot_vec_2
         self.assertTrue(np.allclose(result_2, expected_2))
 
-        result_3 = self.GROUP.group_exponential_barycenter(
+        result_3 = self.group.group_exponential_barycenter(
                                 points=[rot_vec_1, rot_vec_2],
                                 weights=[1., .1])
 
-        self.assertTrue(self.GROUP.belongs(result_3))
+        self.assertTrue(self.group.belongs(result_3))
 
 
 if __name__ == '__main__':
