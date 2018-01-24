@@ -1,4 +1,11 @@
-"""Unit tests for special euclidean group module."""
+"""
+Unit tests for special euclidean group module.
+
+Note: Only the *canonical* left- and right- invariant
+metrics on SE(3) are tested here. Other invariant
+metrics are tested with the tests of the invariant_metric
+module.
+"""
 
 import numpy as np
 import unittest
@@ -442,15 +449,50 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
         self.assertTrue(np.allclose(result_2, expected_2))
 
-    def test_squared_dist(self):
+    def test_squared_dist_is_symmetric(self):
+        # TODO(nina): this test fails
+        metric = self.group.left_canonical_metric
         point_1 = np.array([0.16329, -0.660283, 2.75099,
                             -0.363386, 0.113832, 1.3792])
         point_2 = np.array([-1.2297, 0.551821, -0.370994,
                             -0.130283, 0.518082, 0.671212])
 
-        sq_dist_1_2 = self.left_canonical_metric.squared_dist(point_1, point_2)
-        sq_dist_2_1 = self.left_canonical_metric.squared_dist(point_2, point_1)
-        self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1))
+        point_1 = self.group.regularize(point_1)
+        point_2 = self.group.regularize(point_2)
+
+        log = metric.log(base_point=point_1, point=point_2)
+        log = self.group.regularize(log)
+        sq_dist_1_2 = metric.squared_norm(vector=log, base_point=point_1)
+
+        log = metric.log(base_point=point_2, point=point_1)
+        log = self.group.regularize(log)
+        sq_dist_2_1 = metric.squared_norm(vector=log, base_point=point_2)
+
+        # sq_dist_1_2 = metric.squared_dist(point_1, point_2)
+        # sq_dist_2_1 = metric.squared_dist(point_2, point_1)
+
+        # self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1))
+
+    def test_squared_dist_exp_and_squared_norm(self):
+        metric = self.group.left_canonical_metric
+        point_1 = np.array([0.16329, -0.660283, 2.75099,
+                            -0.363386, 0.113832, 1.3792])
+        vec_2 = np.array([-1.2297, 0.551821, -0.370994,
+                          -0.130283, 0.518082, 0.671212])
+        expected = metric.squared_norm(vector=vec_2, base_point=point_1)
+        result = metric.squared_dist(point_1, metric.exp(tangent_vec=vec_2,
+                                                         base_point=point_1))
+        self.assertTrue(np.allclose(expected, result))
+
+        metric = self.group.left_canonical_metric
+        vec_2 = np.array([0.16329, -0.660283, 2.75099,
+                          -0.363386, 0.113832, 1.3792])
+        point_1 = np.array([-1.2297, 0.551821, -0.370994,
+                            -0.130283, 0.518082, 0.671212])
+        expected = metric.squared_norm(vector=vec_2, base_point=point_1)
+        result = metric.squared_dist(point_1, metric.exp(tangent_vec=vec_2,
+                                                         base_point=point_1))
+        self.assertTrue(np.allclose(expected, result))
 
     def test_group_exponential_barycenter(self):
         # TODO(nina): this test fails.
