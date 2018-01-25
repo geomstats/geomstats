@@ -3,6 +3,7 @@
 import numpy as np
 import unittest
 
+from geomstats.invariant_metric import InvariantMetric
 import geomstats.special_orthogonal_group as special_orthogonal_group
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
@@ -10,8 +11,73 @@ from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
     def setUp(self):
         n = 3
-        self.group = SpecialOrthogonalGroup(n=n)
-        self.metric = self.group.bi_invariant_metric
+        group = SpecialOrthogonalGroup(n=n)
+
+        # -- Rotation vectors
+
+        # Angle 0
+        with_angle_0 = group.identity
+
+        # Angle close to 0
+        with_angle_close_0 = 1e-10 * np.array([1., -1., 1.])
+
+        # Angle closely lower than pi
+        with_angle_close_pi_low = ((np.pi - 1e-9) / np.sqrt(2)
+                                   * np.array([0., 1., -1]))
+
+        # Angle pi
+        with_angle_pi = np.pi / np.sqrt(3) * np.array([1., 1., -1])
+
+        # Angle closely larger than pi
+        with_angle_close_pi_high = ((np.pi + 1e-9) / np.sqrt(3)
+                                    * np.array([-1., 1., -1]))
+
+        # Angle between pi and 2pi
+        with_angle_in_pi_2pi = ((np.pi + 0.3) / np.sqrt(5)
+                                * np.array([-2., 1., 0]))
+
+        # Angle closely lower than 2pi
+        with_angle_close_2pi_low = ((2 * np.pi - 1e-9) / np.sqrt(6)
+                                    * np.array([2., 1., -1]))
+
+        # Angle 2pi
+        with_angle_2pi = 2 * np.pi / np.sqrt(3) * np.array([1., 1., -1])
+
+        # Angle closer larger than 2pi
+        with_angle_close_2pi_high = ((2 * np.pi + 1e-9) / np.sqrt(2)
+                                     * np.array([1., 0., -1]))
+
+        points = {'with_angle_0': with_angle_0,
+                  'with_angle_close_0': with_angle_close_0,
+                  'with_angle_close_pi_low': with_angle_close_pi_low,
+                  'with_angle_pi': with_angle_pi,
+                  'with_angle_close_pi_high': with_angle_close_pi_high,
+                  'with_angle_in_pi_2pi': with_angle_in_pi_2pi,
+                  'with_angle_close_2pi_low': with_angle_close_2pi_low,
+                  'with_angle_2pi': with_angle_2pi,
+                  'with_angle_close_2pi_high': with_angle_close_2pi_high}
+
+        # -- Metrics - only diagonals for now
+        canonical_metric = group.bi_invariant_metric
+
+        diag_mat = np.diag([1., 2., 3.])
+        left_diag_metric = InvariantMetric(
+                   lie_group=group,
+                   inner_product_mat_at_identity=diag_mat,
+                   left_or_right='left')
+        right_diag_metric = InvariantMetric(
+                   lie_group=group,
+                   inner_product_mat_at_identity=diag_mat,
+                   left_or_right='right')
+
+        metrics = {'canonical': canonical_metric,
+                   'left_diag': left_diag_metric,
+                   'right_diag': right_diag_metric}
+
+        # -- Set attributes
+        self.group = group
+        self.points = points
+        self.metrics = metrics
 
     def test_closest_rotation_matrix(self):
         rot_mat = np.eye(3)
@@ -36,37 +102,51 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         self.assertTrue(self.group.belongs(rot_vec))
 
     def test_regularize(self):
-        rot_vec_0 = np.array([0., 0., 0.])
-        rot_vec_0 = self.group.regularize(rot_vec_0)
-        rot_vec_0_expected = np.array([0., 0., 0.])
-        self.assertTrue(np.allclose(rot_vec_0, rot_vec_0_expected))
+        less_than_pi = ['with_angle_0',
+                        'with_angle_close_0',
+                        'with_angle_close_pi_low']
+        for angle_type in less_than_pi:
+            point = self.points[angle_type]
+            result = self.group.regularize(point)
+            expected = point
+            self.assertTrue(np.allclose(result, expected), angle_type)
 
-        rot_vec_1 = 2.5 * np.pi * np.array([0., 0., 1.])
-        rot_vec_1 = self.group.regularize(rot_vec_1)
-        rot_vec_1_expected = np.pi / 2. * np.array([0., 0., 1.])
-        self.assertTrue(np.allclose(rot_vec_1, rot_vec_1_expected))
+        # TODO(nina): is the rotation vector well defined for pi
+        angle_type = 'with_angle_pi'
+        point = self.points[angle_type]
+        result = self.group.regularize(point)
+        expected = point
+        print(result)
+        print(expected)
+        self.assertTrue(np.allclose(result, expected), angle_type)
 
-        rot_vec_2 = 1.5 * np.pi * np.array([0., 1., 0.])
-        rot_vec_2 = self.group.regularize(rot_vec_2)
-        rot_vec_2_expected = np.pi / 2. * np.array([0., -1., 0.])
-        self.assertTrue(np.allclose(rot_vec_2, rot_vec_2_expected))
+        in_pi_2pi = ['with_angle_close_pi_hi',
+                     'with_angle_in_pi_2pi',
+                     'with_angle_close_2pi_low']
 
-        rot_vec_3 = 11 * np.pi * np.array([1., 2., 3.])
-        rot_vec_3 = self.group.regularize(rot_vec_3)
-        # This factor comes from the norm of rot_vec_3 modulo pi
-        fact = 0.84176874548664671 * np.pi / np.sqrt(14)
-        rot_vec_3_expected = fact * np.array([-1., -2., -3.])
-        self.assertTrue(np.allclose(rot_vec_3, rot_vec_3_expected))
+        for angle_type in in_pi_2pi:
+            point = self.points[angle_type]
+            angle = np.linalg.norm(point)
+            new_angle = angle - np.pi
 
-        rot_vec_4 = 1e-15 * np.pi * np.array([1., 2., 3.])
-        rot_vec_4 = self.group.regularize(rot_vec_4)
-        expected_rot_vec_4 = rot_vec_4
-        self.assertTrue(np.allclose(rot_vec_4, expected_rot_vec_4))
+            result = self.group.regularize(point)
+            expected = - new_angle * (point / angle)
+            self.assertTrue(np.allclose(result, expected), angle_type)
 
-        rot_vec_5 = 1e-11 * np.array([12., 1., -81.])
-        rot_vec_5 = self.group.regularize(rot_vec_5)
-        expected_rot_vec_5 = rot_vec_5
-        self.assertTrue(np.allclose(rot_vec_5, expected_rot_vec_5))
+        angle_type = 'with_angle_2pi'
+        point = self.points[angle_type]
+        result = self.group.regularize(point)
+        expected = np.array([0., 0., 0.])
+        self.assertTrue(np.allclose(result, expected), angle_type)
+
+        angle_type = 'with_angle_close_2pi_high'
+        point = self.points[angle_type]
+        angle = np.linalg.norm(point)
+        new_angle = angle - 2 * np.pi
+
+        result = self.group.regularize(point)
+        expected = new_angle * point / angle
+        self.assertTrue(np.allclose(result, expected), angle_type)
 
     def test_matrix_from_rotation_vector(self):
         rot_vec_0 = self.group.identity
@@ -127,52 +207,19 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         matrix_from_rotation_vector
         is the identity.
         """
-        rot_vec_1 = np.array([np.pi / 3., 0., 0.])
-        rot_mat_1 = self.group.matrix_from_rotation_vector(rot_vec_1)
-        result_rot_vec_1 = self.group.rotation_vector_from_matrix(
-                rot_mat_1)
-        self.assertTrue(np.allclose(rot_vec_1, result_rot_vec_1))
-
-        rot_vec_2 = 1e-11 * np.array([12., 1., -81.])
-        angle = np.linalg.norm(rot_vec_2)
-        skew_rot_vec_2 = 1e-11 * np.array([[0., 81., 1.],
-                                           [-81., 0., -12.],
-                                           [-1., 12., 0.]])
-        coef_1 = np.sin(angle) / angle
-        coef_2 = (1 - np.cos(angle)) / (angle ** 2)
-        rot_mat_2 = (np.identity(3)
-                     + coef_1 * skew_rot_vec_2
-                     + coef_2 * np.dot(skew_rot_vec_2,
-                                       skew_rot_vec_2))
-        rot_vec_2 = self.group.rotation_vector_from_matrix(rot_mat_2)
-        result_rot_mat_2 = self.group.matrix_from_rotation_vector(
-                rot_vec_2)
-        self.assertTrue(np.allclose(rot_mat_2, result_rot_mat_2))
-
-        rot_vec_3 = np.array([0.1, 1.4, -0.5])
-        rot_mat_3 = self.group.matrix_from_rotation_vector(rot_vec_3)
-        result_rot_vec_3 = self.group.rotation_vector_from_matrix(
-                rot_mat_3)
-        self.assertTrue(np.allclose(rot_vec_3, result_rot_vec_3))
-
-        # Edge case: abs(angle - pi) < 1e-5
-        rot_vec_4 = np.array([np.pi - 1e-7, 0., 0.])
-        rot_mat_4 = self.group.matrix_from_rotation_vector(rot_vec_4)
-        result_rot_vec_4 = self.group.rotation_vector_from_matrix(
-                rot_mat_4)
-        self.assertTrue(np.allclose(rot_vec_4, result_rot_vec_4))
-
-        rot_vec_5 = self.group.identity
-        rot_mat_5 = self.group.matrix_from_rotation_vector(rot_vec_5)
-        result_rot_vec_5 = self.group.rotation_vector_from_matrix(
-                rot_mat_5)
-        self.assertTrue(np.allclose(rot_vec_5, result_rot_vec_5))
+        for angle_type in self.points.keys():
+            point = self.points[angle_type]
+            rot_mat = self.group.matrix_from_rotation_vector(point)
+            result = self.group.rotation_vector_from_matrix(rot_mat)
+            expected = point
+            self.assertTrue(np.allclose(result, expected), angle_type)
 
     def test_exp(self):
         """
         The Riemannian exp and log are inverse functions of each other.
         This test is the inverse of test_log's.
         """
+        metric = self.metrics['canonical']
         theta = np.pi / 5
         rot_vec_base_point = theta / np.sqrt(3.) * np.array([1., 1., 1.])
         # Note: the rotation vector for the reference point
@@ -182,8 +229,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         rot_vec_1 = np.array([0, 0, 0])
         expected_1 = rot_vec_base_point
 
-        exp_1 = self.metric.exp(base_point=rot_vec_base_point,
-                                tangent_vec=rot_vec_1)
+        exp_1 = metric.exp(base_point=rot_vec_base_point,
+                           tangent_vec=rot_vec_1)
         self.assertTrue(np.allclose(exp_1, expected_1))
 
         # 2: General case - computed manually
@@ -199,8 +246,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         expected_2 = self.group.compose(rot_vec_base_point,
                                         np.dot(inv_jacobian, rot_vec_2))
 
-        exp_2 = self.metric.exp(base_point=rot_vec_base_point,
-                                tangent_vec=rot_vec_2)
+        exp_2 = metric.exp(base_point=rot_vec_base_point,
+                           tangent_vec=rot_vec_2)
         self.assertTrue(np.allclose(exp_2, expected_2))
 
     def test_log(self):
@@ -208,6 +255,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         The Riemannian exp and log are inverse functions of each other.
         This test is the inverse of test_exp's.
         """
+        metric = self.metrics['canonical']
         theta = np.pi / 5.
         rot_vec_base_point = theta / np.sqrt(3.) * np.array([1., 1., 1.])
         # Note: the rotation vector for the reference point
@@ -216,8 +264,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         # The Logarithm of a point at itself gives 0.
         rot_vec_1 = rot_vec_base_point
         expected_1 = np.array([0, 0, 0])
-        log_1 = self.metric.log(base_point=rot_vec_base_point,
-                                point=rot_vec_1)
+        log_1 = metric.log(base_point=rot_vec_base_point,
+                           point=rot_vec_1)
         self.assertTrue(np.allclose(log_1, expected_1))
 
         # General case: this is the inverse test of test 1 for riemannian exp
@@ -233,8 +281,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         rot_vec_2 = self.group.compose(rot_vec_base_point,
                                        np.dot(inv_jacobian, expected_2))
 
-        log_2 = self.metric.log(base_point=rot_vec_base_point,
-                                point=rot_vec_2)
+        log_2 = metric.log(base_point=rot_vec_base_point,
+                           point=rot_vec_2)
         self.assertTrue(np.allclose(log_2, expected_2))
 
     def test_log_and_exp(self):
@@ -242,33 +290,34 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         This tests that the composition of
         log and exp gives identity.
         """
+        metric = self.metrics['canonical']
         theta = 12. * np.pi / 5.
         rot_vec_base_point = theta / np.sqrt(3.) * np.array([1., 1., 1.])
 
         rot_vec_1 = np.array([0, 0, 0])
-        aux_1 = self.metric.exp(base_point=rot_vec_base_point,
-                                tangent_vec=rot_vec_1)
-        result_1 = self.metric.log(base_point=rot_vec_base_point,
-                                   point=aux_1)
+        aux_1 = metric.exp(base_point=rot_vec_base_point,
+                           tangent_vec=rot_vec_1)
+        result_1 = metric.log(base_point=rot_vec_base_point,
+                              point=aux_1)
 
         self.assertTrue(np.allclose(result_1, rot_vec_1))
 
         rot_vec_2 = np.pi / (2 * np.sqrt(3)) * np.array([1, 0, 0])
 
-        aux_2 = self.metric.exp(base_point=rot_vec_base_point,
-                                tangent_vec=rot_vec_2)
-        result_2 = self.metric.log(base_point=rot_vec_base_point,
-                                   point=aux_2)
+        aux_2 = metric.exp(base_point=rot_vec_base_point,
+                           tangent_vec=rot_vec_2)
+        result_2 = metric.log(base_point=rot_vec_base_point,
+                              point=aux_2)
 
         self.assertTrue(np.allclose(result_2, rot_vec_2))
 
         rot_vec_base_point = (np.pi - 1e-10) * np.array([1, 0, 0])
         rot_vec_3 = np.array([0.1, 0.001, 0.1])
 
-        aux_3 = self.metric.exp(base_point=rot_vec_base_point,
-                                tangent_vec=rot_vec_3)
-        result_3 = self.metric.log(base_point=rot_vec_base_point,
-                                   point=aux_3)
+        aux_3 = metric.exp(base_point=rot_vec_base_point,
+                           tangent_vec=rot_vec_3)
+        result_3 = metric.log(base_point=rot_vec_base_point,
+                              point=aux_3)
 
         self.assertTrue(np.allclose(result_3, rot_vec_3))
 

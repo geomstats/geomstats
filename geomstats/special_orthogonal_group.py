@@ -40,14 +40,31 @@ def skew_matrix_from_vector(vec):
     associated to the vector vec.
 
     :param vec: 3d vector
-    :returns skew_vec: 3x3 skew-symmetric matrix
+    :return skew_mat: 3x3 skew-symmetric matrix
     """
     assert len(vec) == 3
 
-    skew_vec = np.array([[0, -vec[2], vec[1]],
+    skew_mat = np.array([[0, -vec[2], vec[1]],
                          [vec[2], 0, -vec[0]],
                          [-vec[1], vec[0], 0]])
-    return skew_vec
+    return skew_mat
+
+
+def vector_from_skew_matrix(skew_mat):
+    """
+    Compute the skew-symmetric matrix,
+    known as the cross-product of a vector,
+    associated to the vector vec.
+
+    :param skew_mat: 3x3 skew-symmetric matrix
+    :return vec: 3d vector
+    """
+    assert skew_mat.shape == (3, 3)
+
+    vec = np.array([skew_mat[2][1],
+                    skew_mat[0][2],
+                    skew_mat[1][0]])
+    return vec
 
 
 class SpecialOrthogonalGroup(LieGroup):
@@ -90,12 +107,17 @@ class SpecialOrthogonalGroup(LieGroup):
         rot_vec = np.array(rot_vec)
         angle = np.linalg.norm(rot_vec)
 
-        self.regularized_rot_vec = rot_vec
+        # self.regularized_rot_vec = rot_vec
+        # if angle != 0:
+        #     k = np.floor(angle / (2 * np.pi) + .5)
+        #     self.regularized_rot_vec = (1. - 2. * np.pi * k / angle) * rot_vec
+        regularized_rot_vec = rot_vec
         if angle != 0:
-            k = np.floor(angle / (2 * np.pi) + .5)
-            self.regularized_rot_vec = (1. - 2. * np.pi * k / angle) * rot_vec
+            k = np.floor(angle / (np.pi))
+            sign = 1 if k % 2 == 0 else -1
+            regularized_rot_vec = sign * (1. - np.pi * k / angle) * rot_vec
 
-        return self.regularized_rot_vec
+        return regularized_rot_vec
 
     def rotation_vector_from_matrix(self, rot_mat, epsilon=EPSILON):
         """
@@ -107,36 +129,34 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         assert rot_mat.shape == (self.n, self.n)
 
-        # -- Get angle, angle of the rotation
-        # Note: trace(rotation_matrix) = 2cos(angle) + 1
-        cos_angle = np.clip((np.trace(rot_mat) - 1) * 0.5, -1, 1)
+        cos_angle = .5 * (np.trace(rot_mat) - 1)
+        cos_angle = np.clip(cos_angle, -1, 1)
         angle = np.arccos(cos_angle)
 
         # -- Edge case: angle close to 0
         if angle < epsilon:
+            # Taylor expansion of 0.5 * angle / sin(angle) around 0:
             coef = 0.5 * (1 + (angle ** 2) / 6)
-            # Note: Taylor expansion of sin(angle) around angle = 0
             skew_rot_vec = coef * (rot_mat - rot_mat.transpose())
-            rot_vec = np.array([skew_rot_vec[2][1],
-                                skew_rot_vec[0][2],
-                                skew_rot_vec[1][0]])
+            rot_vec = vector_from_skew_matrix(skew_rot_vec)
+
         # -- Edge case: angle close to pi
         elif abs(angle - np.pi) < epsilon:
             rot_vec = np.empty(self.dimension)
-            for i in range(self.dimension):
-                sq_element_i = 1 + (rot_mat[i][i] - 1) / (1 - cos_angle)
-                sq_element_i = np.clip(sq_element_i, 0, 1)
-                rot_vec[i] = np.sqrt(sq_element_i)
+            diag_rot_mat = np.diag(rot_mat)
+            sq_element = 1 + (diag_rot_mat - np.ones(self.n)) / (1 - cos_angle)
+            sq_element = np.clip(sq_element, 0, 1)
+            rot_vec = np.sqrt(sq_element)
 
             rot_vec = rot_vec * angle / np.linalg.norm(rot_vec)
             if rot_mat[0][1] + rot_mat[1][0] < 0:
                 rot_vec[1] = -rot_vec[1]
             if rot_mat[0][2] + rot_mat[2][0] < 0:
                 rot_vec[2] = -rot_vec[2]
-            sinr = np.zeros((3,))
-            sinr[0] = rot_mat[2][1] - rot_mat[1][2]
-            sinr[1] = rot_mat[0][2] - rot_mat[2][0]
-            sinr[2] = rot_mat[1][0] - rot_mat[0][1]
+
+            sinr = np.zeros(self.dimension)
+            aux_mat = rot_mat - rot_mat.transpose()
+            sinr = vector_from_skew_matrix(aux_mat)
 
             k = 0
             if abs(sinr[1]) > abs(sinr[k]):
@@ -145,13 +165,11 @@ class SpecialOrthogonalGroup(LieGroup):
                 k = 2
             if sinr[k] * rot_vec[k] < 0:
                 rot_vec = -rot_vec
-        # -- Regular case (see wikipedia wrt math computations)
+
         else:
             coef = .5 * angle / np.sin(angle)
             skew_rot_vec = coef * (rot_mat - rot_mat.transpose())
-            rot_vec = np.array([skew_rot_vec[2][1],
-                                skew_rot_vec[0][2],
-                                skew_rot_vec[1][0]])
+            rot_vec = vector_from_skew_matrix(skew_rot_vec)
         return self.regularize(rot_vec)
 
     def matrix_from_rotation_vector(self, rot_vec, epsilon=EPSILON):

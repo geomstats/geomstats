@@ -10,6 +10,7 @@ module.
 import numpy as np
 import unittest
 
+from geomstats.invariant_metric import InvariantMetric
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
 import tests.helper as helper
 
@@ -17,8 +18,9 @@ import tests.helper as helper
 class TestSpecialEuclideanGroupMethods(unittest.TestCase):
     def setUp(self):
         n = 3
-        self.group = SpecialEuclideanGroup(n=n)
+        group = SpecialEuclideanGroup(n=n)
 
+        # Points
         self.point_1 = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
         self.point_2 = np.array([0.5, 0., -0.3, 0.4, 5., 60.])
         self.point_small = np.array([1e-7, 0., 1e-8, 1., 1e-10, 2.])
@@ -29,7 +31,29 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
         self.transfo_bug = np.array([0.16329, -0.660283, 2.75099,
                                      -0.363386, 0.113832, 1.3792])
-        self.transfo_bug_reg = self.group.regularize(self.transfo_bug)
+        self.transfo_bug_reg = group.regularize(self.transfo_bug)
+
+        # Metrics - only diagonals for now
+        diag_mat_at_identity = np.zeros([group.dimension, group.dimension])
+        diag_mat_at_identity[0:3, 0:3] = 1 * np.eye(3)
+        diag_mat_at_identity[3:6, 3:6] = 1 * np.eye(3)
+
+        left_diag_metric = InvariantMetric(
+                   lie_group=group,
+                   inner_product_mat_at_identity=diag_mat_at_identity,
+                   left_or_right='left')
+        right_diag_metric = InvariantMetric(
+                   lie_group=group,
+                   inner_product_mat_at_identity=diag_mat_at_identity,
+                   left_or_right='right')
+
+        metrics = {'left_canonical': group.left_canonical_metric,
+                   'right_canonical': group.right_canonical_metric,
+                   'left_diag': left_diag_metric,
+                   'right_diag': right_diag_metric}
+
+        self.group = group
+        self.metrics = metrics
 
     def test_random_and_belongs(self):
         """
@@ -47,8 +71,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point = 2.5 * np.pi * np.array([0., 0., 1.,
                                         0., 0., 0.])
         result = self.group.regularize(point)
-        expected = np.pi / 2. * np.array([0., 0., 1.,
-                                          0., 0., 0.])
+        expected = 0.5 * np.pi * np.array([0., 0., 1.,
+                                           0., 0., 0.])
         self.assertTrue(np.allclose(result, expected))
 
     def test_compose(self):
