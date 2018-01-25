@@ -532,16 +532,38 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
         point_1 = self.group.regularize(point_1)
         point_2 = self.group.regularize(point_2)
+        print('norms after regularization\n')
+        print(np.linalg.norm(point_1))
+        print(np.linalg.norm(point_2))
 
         sq_dist_1_2 = metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = metric.squared_dist(point_2, point_1)
+
+        print('\noriginal squared distances')
+        print(sq_dist_1_2)
+        print(sq_dist_2_1)
+
+        minus_point_1 = - point_1
+        print('\nby inverting 1 :\n')
+        sq_dist_minus1_2 = metric.squared_dist(minus_point_1, point_2)
+        sq_dist_2_minus1 = metric.squared_dist(point_2, minus_point_1)
+
+        print(sq_dist_minus1_2)
+        print(sq_dist_2_minus1)
+
+        minus_point_2 = - point_2
+        print('by inverting 2 :\n')
+        sq_dist_1_minus2 = metric.squared_dist(point_1, minus_point_2)
+        sq_dist_minus2_1 = metric.squared_dist(minus_point_2, point_1)
+
+        print(sq_dist_1_minus2)
+        print(sq_dist_minus2_1)
 
         self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1),
                         '\ndistance from 1 to 2: {}\n'
                         'distance from 2 to 1: {}\n'.format(
                                              sq_dist_1_2,
                                              sq_dist_2_1))
-
 
 if __name__ == '__main__':
         unittest.main()
