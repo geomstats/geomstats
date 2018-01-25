@@ -503,6 +503,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_1_result = metric.exp(base_point=point_2,
                                     tangent_vec=log_2_1)
         point_1_result = self.group.regularize(point_1_result)
+        print(point_1_result)
+        print(point_1)
         self.assertTrue(np.allclose(point_1_result, point_1))
 
         point_2_result = metric.exp(base_point=point_1,

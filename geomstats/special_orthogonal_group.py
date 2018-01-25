@@ -103,11 +103,22 @@ class SpecialOrthogonalGroup(LieGroup):
         :returns self.regularized_rot_vec: 3d vector with: 0 < norm < pi
         """
         assert self.belongs(rot_vec)
-
-        rot_vec = np.array(rot_vec)
+        rot_vec = rot_vec.astype(dtype=np.float64)
         angle = np.linalg.norm(rot_vec)
-
         regularized_rot_vec = rot_vec
+        #if angle != 0.:
+        #    k = np.floor(angle / 2 * np.pi)
+        #    regularized_rot_vec = (1. - 2 * np.pi * k / angle) * rot_vec
+        #    new_angle = np.linalg.norm(regularized_rot_vec)
+
+        #    if abs(new_angle - np.pi) < 1e-5:
+        #        new_angle = np.clip(new_angle, 0, np.pi - 1e-15)
+        #        regularized_rot_vec = (new_angle / angle
+        #                               * regularized_rot_vec)
+        #    elif new_angle - np.pi > 0:
+        #        new_angle = new_angle - np.pi
+        #        regularized_rot_vec = (new_angle / angle) * regularized_rot_vec
+        #        regularized_rot_vec = - regularized_rot_vec
         if angle != 0:
             k = np.floor(angle / (2 * np.pi) + .5)
             regularized_rot_vec = (1. - 2. * np.pi * k / angle) * rot_vec
@@ -115,6 +126,62 @@ class SpecialOrthogonalGroup(LieGroup):
         return regularized_rot_vec
 
     def rotation_vector_from_matrix(self, rot_mat, epsilon=EPSILON):
+        """
+        Convert rotation matrix to rotation vector
+        (axis-angle representation).
+
+        :param rot_mat: 3x3 rotation matrix
+        :returns rot_vec: 3d rotation vector
+        """
+        assert rot_mat.shape == (3, 3)
+
+        # get the rotation matrix that is the closest approximation to the input
+        rotationMatrix = closest_rotation_matrix(rot_mat)
+
+        # t is the sum of the eigenvalues of the rotationMatrix.
+        # The eigenvalues are 1, cos(theta) + i sin(theta), cos(theta) - i sin(theta)
+        # t = 1 + 2 cos(theta), -1 <= t <= 3
+        t = np.trace(rotationMatrix, dtype=np.float64)
+        cos_angle = .5 * (np.trace(rot_mat) - 1)
+        cos_angle = np.clip(cos_angle, -1, 1)
+        theta = np.arccos(cos_angle, dtype=np.float64)
+
+        r = np.array([rotationMatrix[2,1] - rotationMatrix[1,2],
+                      rotationMatrix[0,2] - rotationMatrix[2,0],
+                      rotationMatrix[1,0] - rotationMatrix[0,1]])
+
+        # -- theta is not close to 0 or pi
+        if np.sin(theta) >= epsilon:
+            rot_vec = theta / (2. * np.sin(theta)) * r
+
+        # -- Edge case: theta is close to 0
+        elif t-1. > 0.:
+            rot_vec = (.5 - (t - 3.) / 12.) * r
+
+        # -- Edge case: theta is close to pi
+        else:
+            # r = theta * v / |v|, where (w, v) is a unit quaternion.
+            # This formulation is derived by going from rotation matrix to unit
+            # quaternion to axis-angle
+
+            # choose the largest diagonal element to avoid a square root of a negative
+            # number
+            a = np.argmax(np.diag(rotationMatrix))
+            b = np.mod(a+1, 3)
+            c = np.mod(a+2, 3)
+
+            # compute the axis vector
+            s = np.sqrt(rotationMatrix[a, a] - rotationMatrix[b, b] - rotationMatrix[c, c] + 1.)
+            v = np.zeros(3)
+            v[a] = s / 2.
+            v[b] = (rotationMatrix[b, a] + rotationMatrix[a, b]) / (2. * s)
+            v[c] = (rotationMatrix[c, a] + rotationMatrix[a, c]) / (2. * s)
+
+            rot_vec = theta * v / np.linalg.norm(v)
+
+        return self.regularize(rot_vec)
+
+    def rotation_vector_from_matrix_scratch(self, rot_mat, epsilon=EPSILON):
         """
         Convert rotation matrix to rotation vector
         (axis-angle representation).

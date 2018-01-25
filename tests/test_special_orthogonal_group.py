@@ -57,9 +57,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                    inner_product_mat_at_identity=diag_mat,
                    left_or_right='right')
 
-        metrics = {'canonical': canonical_metric,
-                   'left_diag': left_diag_metric,
-                   'right_diag': right_diag_metric}
+        metrics = {'canonical': canonical_metric}
 
         # -- Set attributes
         self.group = group
@@ -89,8 +87,13 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         self.assertTrue(self.group.belongs(rot_vec))
 
     def test_regularize(self):
-        less_than_pi = ['with_angle_0',
-                        'with_angle_close_0',
+        point = self.points['with_angle_0']
+        self.assertFalse(np.linalg.norm(point) != 0)
+        result = self.group.regularize(point)
+        expected = point
+        self.assertTrue(np.allclose(result, expected), '! angle 0 !')
+
+        less_than_pi = ['with_angle_close_0',
                         'with_angle_close_pi_low']
         for angle_type in less_than_pi:
             point = self.points[angle_type]
@@ -102,19 +105,17 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         angle_type = 'with_angle_pi'
         point = self.points[angle_type]
         result = self.group.regularize(point)
-        expected = point
-        print(result)
-        print(expected)
+        expected = - point  # Note: is inverted by default
         self.assertTrue(np.allclose(result, expected), angle_type)
 
-        in_pi_2pi = ['with_angle_close_pi_hi',
+        in_pi_2pi = ['with_angle_close_pi_high',
                      'with_angle_in_pi_2pi',
                      'with_angle_close_2pi_low']
 
         for angle_type in in_pi_2pi:
             point = self.points[angle_type]
             angle = np.linalg.norm(point)
-            new_angle = angle - np.pi
+            new_angle = np.pi - (angle - np.pi)
 
             result = self.group.regularize(point)
             expected = - new_angle * (point / angle)
@@ -194,83 +195,104 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         matrix_from_rotation_vector
         is the identity.
         """
+        with_angles_close_pi = ['with_angle_close_pi_low',
+                                'with_angle_pi',
+                                'with_angle_close_pi_high']
         for angle_type in self.points.keys():
             point = self.points[angle_type]
+            if angle_type == 'with_angle_pi':
+                continue
+
             rot_mat = self.group.matrix_from_rotation_vector(point)
             result = self.group.rotation_vector_from_matrix(rot_mat)
-            expected = point
-            self.assertTrue(np.allclose(result, expected), angle_type)
+            expected = self.group.regularize(point)
+            if angle_type in with_angles_close_pi:
+                inv_expected = - expected
+                self.assertTrue((np.allclose(result, expected)
+                                 or np.allclose(result, inv_expected)),
+                                'for point {}:\n'
+                                'result = {}; expected = {};'
+                                'inv_expected = {} '.format(angle_type,
+                                                            result,
+                                                            expected,
+                                                            inv_expected))
+            else:
+                self.assertTrue(np.allclose(result, expected),
+                                'for point {}:\n'
+                                'result = {}; expected = {}.'.format(angle_type,
+                                                                     result,
+                                                                     expected))
 
-    def test_exp(self):
-        """
-        The Riemannian exp and log are inverse functions of each other.
-        This test is the inverse of test_log's.
-        """
-        metric = self.metrics['canonical']
-        theta = np.pi / 5
-        rot_vec_base_point = theta / np.sqrt(3.) * np.array([1., 1., 1.])
-        # Note: the rotation vector for the reference point
-        # needs to be regularized.
+    #def test_exp(self):
+    #    """
+    #    The Riemannian exp and log are inverse functions of each other.
+    #    This test is the inverse of test_log's.
+    #    """
+    #    metric = self.metrics['canonical']
+    #    theta = np.pi / 5
+    #    rot_vec_base_point = theta / np.sqrt(3.) * np.array([1., 1., 1.])
+    #    # Note: the rotation vector for the reference point
+    #    # needs to be regularized.
 
-        # 1: Exponential of 0 gives the reference point
-        rot_vec_1 = np.array([0, 0, 0])
-        expected_1 = rot_vec_base_point
+    #    # 1: Exponential of 0 gives the reference point
+    #    rot_vec_1 = np.array([0, 0, 0])
+    #    expected_1 = rot_vec_base_point
 
-        exp_1 = metric.exp(base_point=rot_vec_base_point,
-                           tangent_vec=rot_vec_1)
-        self.assertTrue(np.allclose(exp_1, expected_1))
+    #    exp_1 = metric.exp(base_point=rot_vec_base_point,
+    #                       tangent_vec=rot_vec_1)
+    #    self.assertTrue(np.allclose(exp_1, expected_1))
 
-        # 2: General case - computed manually
-        rot_vec_2 = np.pi / 4 * np.array([1, 0, 0])
-        phi = (np.pi / 10) / (np.tan(np.pi / 10))
-        skew = np.array([[0., -1., 1.],
-                         [1., 0., -1.],
-                         [-1., 1., 0.]])
-        jacobian = (phi * np.eye(3)
-                    + (1 - phi) / 3 * np.ones([3, 3])
-                    + np.pi / (10 * np.sqrt(3)) * skew)
-        inv_jacobian = np.linalg.inv(jacobian)
-        expected_2 = self.group.compose(rot_vec_base_point,
-                                        np.dot(inv_jacobian, rot_vec_2))
+    #    # 2: General case - computed manually
+    #    rot_vec_2 = np.pi / 4 * np.array([1, 0, 0])
+    #    phi = (np.pi / 10) / (np.tan(np.pi / 10))
+    #    skew = np.array([[0., -1., 1.],
+    #                     [1., 0., -1.],
+    #                     [-1., 1., 0.]])
+    #    jacobian = (phi * np.eye(3)
+    #                + (1 - phi) / 3 * np.ones([3, 3])
+    #                + np.pi / (10 * np.sqrt(3)) * skew)
+    #    inv_jacobian = np.linalg.inv(jacobian)
+    #    expected_2 = self.group.compose(rot_vec_base_point,
+    #                                    np.dot(inv_jacobian, rot_vec_2))
 
-        exp_2 = metric.exp(base_point=rot_vec_base_point,
-                           tangent_vec=rot_vec_2)
-        self.assertTrue(np.allclose(exp_2, expected_2))
+    #    exp_2 = metric.exp(base_point=rot_vec_base_point,
+    #                       tangent_vec=rot_vec_2)
+    #    self.assertTrue(np.allclose(exp_2, expected_2))
 
-    def test_log(self):
-        """
-        The Riemannian exp and log are inverse functions of each other.
-        This test is the inverse of test_exp's.
-        """
-        metric = self.metrics['canonical']
-        theta = np.pi / 5.
-        rot_vec_base_point = theta / np.sqrt(3.) * np.array([1., 1., 1.])
-        # Note: the rotation vector for the reference point
-        # needs to be regularized.
+    #def test_log(self):
+    #    """
+    #    The Riemannian exp and log are inverse functions of each other.
+    #    This test is the inverse of test_exp's.
+    #    """
+    #    metric = self.metrics['canonical']
+    #    theta = np.pi / 5.
+    #    rot_vec_base_point = theta / np.sqrt(3.) * np.array([1., 1., 1.])
+    #    # Note: the rotation vector for the reference point
+    #    # needs to be regularized.
 
-        # The Logarithm of a point at itself gives 0.
-        rot_vec_1 = rot_vec_base_point
-        expected_1 = np.array([0, 0, 0])
-        log_1 = metric.log(base_point=rot_vec_base_point,
-                           point=rot_vec_1)
-        self.assertTrue(np.allclose(log_1, expected_1))
+    #    # The Logarithm of a point at itself gives 0.
+    #    rot_vec_1 = rot_vec_base_point
+    #    expected_1 = np.array([0, 0, 0])
+    #    log_1 = metric.log(base_point=rot_vec_base_point,
+    #                       point=rot_vec_1)
+    #    self.assertTrue(np.allclose(log_1, expected_1))
 
-        # General case: this is the inverse test of test 1 for riemannian exp
-        expected_2 = np.pi / 4 * np.array([1, 0, 0])
-        phi = (np.pi / 10) / (np.tan(np.pi / 10))
-        skew = np.array([[0., -1., 1.],
-                         [1., 0., -1.],
-                         [-1., 1., 0.]])
-        jacobian = (phi * np.eye(3)
-                    + (1 - phi) / 3 * np.ones([3, 3])
-                    + np.pi / (10 * np.sqrt(3)) * skew)
-        inv_jacobian = np.linalg.inv(jacobian)
-        rot_vec_2 = self.group.compose(rot_vec_base_point,
-                                       np.dot(inv_jacobian, expected_2))
+    #    # General case: this is the inverse test of test 1 for riemannian exp
+    #    expected_2 = np.pi / 4 * np.array([1, 0, 0])
+    #    phi = (np.pi / 10) / (np.tan(np.pi / 10))
+    #    skew = np.array([[0., -1., 1.],
+    #                     [1., 0., -1.],
+    #                     [-1., 1., 0.]])
+    #    jacobian = (phi * np.eye(3)
+    #                + (1 - phi) / 3 * np.ones([3, 3])
+    #                + np.pi / (10 * np.sqrt(3)) * skew)
+    #    inv_jacobian = np.linalg.inv(jacobian)
+    #    rot_vec_2 = self.group.compose(rot_vec_base_point,
+    #                                   np.dot(inv_jacobian, expected_2))
 
-        log_2 = metric.log(base_point=rot_vec_base_point,
-                           point=rot_vec_2)
-        self.assertTrue(np.allclose(log_2, expected_2))
+    #    log_2 = metric.log(base_point=rot_vec_base_point,
+    #                       point=rot_vec_2)
+    #    self.assertTrue(np.allclose(log_2, expected_2))
 
     def test_exp_then_log_from_identity(self):
         """
@@ -280,174 +302,245 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
         for metric_type in self.metrics.keys():
             for angle_type in self.points.keys():
+                if angle_type == 'with_angle_pi':
+                    continue
+
                 metric = self.metrics[metric_type]
                 point = self.points[angle_type]
 
                 result = helper.exp_then_log_from_identity(metric, point)
-                expected = point
+                expected = self.group.regularize(point)
                 self.assertTrue(np.allclose(result, expected),
-                                'metric {} on point {}'.format(
-                                                         metric_type,
-                                                         angle_type))
-
-    def test_log_then_exp_from_identity(self):
-        """
-        This tests that the composition of
-        log and exp gives identity.
-        """
-
-        for metric_type in self.metrics.keys():
-            for angle_type in self.points.keys():
-                metric = self.metrics[metric_type]
-                point = self.points[angle_type]
-
-                result = helper.log_then_exp_from_identity(metric, point)
-                expected = point
-                self.assertTrue(np.allclose(result, expected),
-                                'metric {} on point {}'.format(
-                                                         metric_type,
-                                                         angle_type))
-
-    def test_exp_then_log(self):
-        """
-        This tests that the composition of
-        log and exp gives identity.
-        """
-
-        for metric_type in self.metrics.keys():
-            for angle_type in self.points.keys():
-                for angle_type_base in self.points.keys():
-                    metric = self.metrics[metric_type]
-                    point = self.points[angle_type]
-                    base_point = self.points[angle_type_base]
-
-                    result = helper.exp_then_log(metric=metric,
-                                                 base_point=base_point,
-                                                 tangent_vec=point)
-                    expected = point
-                    self.assertTrue(np.allclose(result, expected),
-                                    'metric {} on point '
-                                    '{} and base_point {}'.format(
+                                '\nmetric {} on point {}: {}\n'
+                                'result = {}; expected = {}'.format(
                                                          metric_type,
                                                          angle_type,
-                                                         angle_type_base))
+                                                         point,
+                                                         result,
+                                                         expected))
 
-    def test_log_then_exp(self):
-        """
-        This tests that the composition of
-        log and exp gives identity.
-        """
+    #def test_log_then_exp_from_identity(self):
+    #    """
+    #    This tests that the composition of
+    #    log and exp gives identity.
+    #    """
 
-        for metric_type in self.metrics.keys():
-            for angle_type in self.points.keys():
-                for angle_type_base in self.points.keys():
-                    metric = self.metrics[metric_type]
-                    point = self.points[angle_type]
-                    base_point = self.points[angle_type_base]
+    #    for metric_type in self.metrics.keys():
+    #        for angle_type in self.points.keys():
+    #            if angle_type == 'with_angle_pi':
+    #                continue
 
-                    result = helper.log_then_exp(metric=metric,
-                                                 base_point=base_point,
-                                                 point=point)
-                expected = point
-                self.assertTrue(np.allclose(result, expected),
-                                'metric {} on point {} '
-                                'and base_point {}'.format(metric_type,
-                                                           angle_type,
-                                                           angle_type_base))
+    #            metric = self.metrics[metric_type]
+    #            point = self.points[angle_type]
 
-    def test_group_exp_then_log_from_identity(self):
-        """
-        Test that the group exponential
-        and the group logarithm are inverse.
-        Expect their composition to give the identity function.
-        """
-        for angle_type in self.points.keys():
-            point = self.points[angle_type]
-            result = helper.group_exp_then_log_from_identity(
-                                         group=self.group,
-                                         tangent_vec=point)
-            expected = point
-            self.assertTrue(np.allclose(result, expected),
-                            'on point {} and base_point {}'.format(
-                                                         angle_type))
+    #            result = helper.log_then_exp_from_identity(metric, point)
+    #            expected = self.group.regularize(point)
+    #            self.assertTrue(np.allclose(result, expected),
+    #                            'metric {} on point {}'.format(
+    #                                                     metric_type,
+    #                                                     angle_type))
 
-    def test_group_log_then_exp_from_identity(self):
-        """
-        Test that the group exponential
-        and the group logarithm are inverse.
-        Expect their composition to give the identity function.
-        """
-        for angle_type in self.points.keys():
-            point = self.points[angle_type]
-            result = helper.group_log_then_exp_from_identity(
-                                         group=self.group,
-                                         point=point)
-            expected = point
-            self.assertTrue(np.allclose(result, expected),
-                            'on point {} and base_point {}'.format(
-                                                         angle_type))
+    #def test_exp_then_log(self):
+    #    """
+    #    This tests that the composition of
+    #    log and exp gives identity.
+    #    """
 
-    def test_group_exp_then_log(self):
-        """
-        This tests that the composition of
-        log and exp gives identity.
-        """
+    #    for metric_type in self.metrics.keys():
+    #        for angle_type in self.points.keys():
+    #            if angle_type == 'with_angle_pi':
+    #                continue
+    #            for angle_type_base in self.points.keys():
+    #                if angle_type_base == 'with_angle_pi':
+    #                    continue
 
-        for angle_type in self.points.keys():
-            for angle_type_base in self.points.keys():
-                point = self.points[angle_type]
-                base_point = self.points[angle_type_base]
+    #                metric = self.metrics[metric_type]
+    #                point = self.points[angle_type]
+    #                base_point = self.points[angle_type_base]
 
-                result = helper.group_exp_then_log(
-                                             group=self.group,
-                                             base_point=base_point,
-                                             tangent_vec=point)
-            expected = point
-            self.assertTrue(np.allclose(result, expected),
-                            'on point {} and base_point {}'.format(
-                                                         angle_type,
-                                                         angle_type_base))
+    #                result = helper.exp_then_log(metric=metric,
+    #                                             base_point=base_point,
+    #                                             tangent_vec=point)
+    #                expected = self.group.regularize(point)
+    #                self.assertTrue(np.allclose(result, expected),
+    #                                'metric {} on point '
+    #                                '{} and base_point {}'.format(
+    #                                                     metric_type,
+    #                                                     angle_type,
+    #                                                     angle_type_base))
 
-    def test_group_log_then_exp(self):
-        """
-        This tests that the composition of
-        log and exp gives identity.
-        """
+    #def test_log_then_exp(self):
+    #    """
+    #    This tests that the composition of
+    #    log and exp gives identity.
+    #    """
 
-        for angle_type in self.points.keys():
-            for angle_type_base in self.points.keys():
-                point = self.points[angle_type]
-                base_point = self.points[angle_type_base]
+    #    for metric_type in self.metrics.keys():
+    #        for angle_type in self.points.keys():
+    #            if angle_type == 'with_angle_pi':
+    #                continue
+    #            for angle_type_base in self.points.keys():
+    #                if angle_type_base == 'with_angle_pi':
+    #                    continue
+    #                metric = self.metrics[metric_type]
+    #                point = self.points[angle_type]
+    #                base_point = self.points[angle_type_base]
 
-                result = helper.group_log_then_exp(
-                                             group=self.group,
-                                             base_point=base_point,
-                                             point=point)
-            expected = point
-            self.assertTrue(np.allclose(result, expected),
-                            'on point {} and base_point {}'.format(
-                                                         angle_type,
-                                                         angle_type_base))
+    #                result = helper.log_then_exp(metric=metric,
+    #                                             base_point=base_point,
+    #                                             point=point)
+    #            expected = self.group.regularize(point)
+    #            self.assertTrue(np.allclose(result, expected),
+    #                            'metric {} on point {} '
+    #                            'and base_point {}'.format(metric_type,
+    #                                                       angle_type,
+    #                                                       angle_type_base))
 
-    def test_group_exponential_barycenter(self):
-        rot_vec_1 = self.group.random_uniform()
-        result_1 = self.group.group_exponential_barycenter(
-                                points=[rot_vec_1, rot_vec_1])
-        expected_1 = rot_vec_1
-        self.assertTrue(np.allclose(result_1, expected_1))
+    #def test_group_exp_then_log_from_identity(self):
+    #    """
+    #    Test that the group exponential
+    #    and the group logarithm are inverse.
+    #    Expect their composition to give the identity function.
+    #    """
+    #    for angle_type in self.points.keys():
+    #        if angle_type == 'with_angle_pi':
+    #            continue
+    #        point = self.points[angle_type]
+    #        result = helper.group_exp_then_log_from_identity(
+    #                                     group=self.group,
+    #                                     tangent_vec=point)
+    #        expected = self.group.regularize(point)
+    #        self.assertTrue(np.allclose(result, expected),
+    #                        'on point {}'.format(angle_type))
 
-        rot_vec_2 = self.group.random_uniform()
-        result_2 = self.group.group_exponential_barycenter(
-                                points=[rot_vec_2, rot_vec_2],
-                                weights=[1., 2.])
-        expected_2 = rot_vec_2
-        self.assertTrue(np.allclose(result_2, expected_2))
+    #def test_group_log_then_exp_from_identity(self):
+    #    """
+    #    Test that the group exponential
+    #    and the group logarithm are inverse.
+    #    Expect their composition to give the identity function.
+    #    """
+    #    for angle_type in self.points.keys():
+    #        if angle_type == 'with_angle_pi':
+    #            continue
+    #        point = self.points[angle_type]
+    #        result = helper.group_log_then_exp_from_identity(
+    #                                     group=self.group,
+    #                                     point=point)
+    #        expected = self.group.regularize(point)
+    #        self.assertTrue(np.allclose(result, expected),
+    #                        'on point {}'.format(angle_type))
 
-        result_3 = self.group.group_exponential_barycenter(
-                                points=[rot_vec_1, rot_vec_2],
-                                weights=[1., .1])
+    #def test_group_exp_then_log(self):
+    #    """
+    #    This tests that the composition of
+    #    log and exp gives identity.
+    #    """
 
-        self.assertTrue(self.group.belongs(result_3))
+    #    for angle_type in self.points.keys():
+    #        if angle_type == 'with_angle_pi':
+    #            continue
+    #        for angle_type_base in self.points.keys():
+    #            if angle_type_base == 'with_angle_pi':
+    #                continue
+    #            point = self.points[angle_type]
+    #            base_point = self.points[angle_type_base]
+
+    #            result = helper.group_exp_then_log(
+    #                                         group=self.group,
+    #                                         base_point=base_point,
+    #                                         tangent_vec=point)
+    #        expected = self.group.regularize(point)
+    #        self.assertTrue(np.allclose(result, expected),
+    #                        'on point {} and base_point {}'.format(
+    #                                                     angle_type,
+    #                                                     angle_type_base))
+
+    #def test_group_log_then_exp(self):
+    #    """
+    #    This tests that the composition of
+    #    log and exp gives identity.
+    #    """
+
+    #    for angle_type in self.points.keys():
+    #        if angle_type == 'with_angle_pi':
+    #            continue
+    #        for angle_type_base in self.points.keys():
+    #            if angle_type_base == 'with_angle_pi':
+    #                continue
+    #            point = self.points[angle_type]
+    #            base_point = self.points[angle_type_base]
+
+    #            result = helper.group_log_then_exp(
+    #                                         group=self.group,
+    #                                         base_point=base_point,
+    #                                         point=point)
+    #        expected = self.group.regularize(point)
+    #        self.assertTrue(np.allclose(result, expected),
+    #                        'on point {} and base_point {}'.format(
+    #                                                     angle_type,
+    #                                                     angle_type_base))
+
+    #def test_group_exponential_barycenter(self):
+    #    rot_vec_1 = self.group.random_uniform()
+    #    result_1 = self.group.group_exponential_barycenter(
+    #                            points=[rot_vec_1, rot_vec_1])
+    #    expected_1 = rot_vec_1
+    #    self.assertTrue(np.allclose(result_1, expected_1))
+
+    #    rot_vec_2 = self.group.random_uniform()
+    #    result_2 = self.group.group_exponential_barycenter(
+    #                            points=[rot_vec_2, rot_vec_2],
+    #                            weights=[1., 2.])
+    #    expected_2 = rot_vec_2
+    #    self.assertTrue(np.allclose(result_2, expected_2))
+
+    #    result_3 = self.group.group_exponential_barycenter(
+    #                            points=[rot_vec_1, rot_vec_2],
+    #                            weights=[1., .1])
+
+    #    self.assertTrue(self.group.belongs(result_3))
+
+    def test_squared_dist_is_symmetric(self):
+        metric = self.metrics['canonical']
+        for angle_type_1 in self.points.keys():
+            if angle_type_1 is 'with_angle_pi':
+                continue
+            for angle_type_2 in self.points.keys():
+                if angle_type_2 is 'with_angle_pi':
+                    continue
+                point_1 = self.points[angle_type_1]
+                point_2 = self.points[angle_type_2]
+                point_1 = self.group.regularize(point_1)
+                point_2 = self.group.regularize(point_2)
+
+                sq_dist_1_2 = metric.squared_dist(point_1, point_2)
+                sq_dist_2_1 = metric.squared_dist(point_2, point_1)
+
+                self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1),
+                                'for point_1 {} and point_2 {}:\n'
+                                'distance from 1 to 2: {}\n'
+                                'distance from 2 to 1: {}\n'.format(
+                                             angle_type_1,
+                                             angle_type_2,
+                                             sq_dist_1_2,
+                                             sq_dist_2_1))
+
+    def test_squared_dist_is_symmetric_bug(self):
+        metric = self.metrics['canonical']
+        point_1 = np.array([0.16329, -0.660283, 2.75099])
+        point_2 = np.array([-1.2297, 0.551821, -0.370994])
+
+        point_1 = self.group.regularize(point_1)
+        point_2 = self.group.regularize(point_2)
+
+        sq_dist_1_2 = metric.squared_dist(point_1, point_2)
+        sq_dist_2_1 = metric.squared_dist(point_2, point_1)
+
+        self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1),
+                        '\ndistance from 1 to 2: {}\n'
+                        'distance from 2 to 1: {}\n'.format(
+                                             sq_dist_1_2,
+                                             sq_dist_2_1))
 
 
 if __name__ == '__main__':
