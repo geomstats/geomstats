@@ -25,9 +25,17 @@ class InvariantMetric(RiemannianMetric):
         assert matrix_shape == (lie_group.dimension, lie_group.dimension)
         assert left_or_right in ('left', 'right')
 
+        eigenvalues = np.linalg.eigvalsh(inner_product_mat_at_identity)
+        n_pos_eigval = np.sum(eigenvalues > 0)
+        n_neg_eigval = np.sum(eigenvalues < 0)
+        n_null_eigval = np.sum(eigenvalues == 0)
+        assert (n_pos_eigval + n_neg_eigval
+                + n_null_eigval) == lie_group.dimension
+
         self.lie_group = lie_group
         self.inner_product_mat_at_identity = inner_product_mat_at_identity
         self.left_or_right = left_or_right
+        self.signature = (n_pos_eigval, n_null_eigval, n_neg_eigval)
 
     def inner_product_matrix(self, base_point):
         """

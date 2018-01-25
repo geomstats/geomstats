@@ -290,6 +290,9 @@ class SpecialOrthogonalGroup(LieGroup):
         Compute the jacobian matrix of the differential
         of the left translation by the rotation r.
 
+        Formula:
+        https://hal.inria.fr/inria-00073871
+
         :param rot_vec: 3D rotation vector
         :returns jacobian: 3x3 matrix
         """
