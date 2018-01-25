@@ -22,7 +22,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
         # Diagonal left and right invariant metrics
         diag_mat_at_identity = np.zeros([group.dimension, group.dimension])
         diag_mat_at_identity[0:3, 0:3] = 1 * np.eye(3)
-        diag_mat_at_identity[3:6, 3:6] = 9 * np.eye(3)
+        diag_mat_at_identity[3:6, 3:6] = 1 * np.eye(3)
 
         left_diag_metric = InvariantMetric(
                    lie_group=group,
@@ -53,6 +53,9 @@ class TestInvariantMetricMethods(unittest.TestCase):
         # Edge case for the point, angle < epsilon,
         point_small = np.array([-1e-7, 0., -7 * 1e-8, 6., 5., 9.])
 
+        point_bug = np.array([0.16329, -0.660283, 2.75099,
+                             -0.363386, 0.113832, 1.3792])
+        point_bug_reg = group.regularize(point_bug)
         self.group = group
         self.left_diag_metric = left_diag_metric
         self.right_diag_metric = right_diag_metric

@@ -19,13 +19,17 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         n = 3
         self.group = SpecialEuclideanGroup(n=n)
 
-        self.transfo_1 = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
-        self.transfo_2 = np.array([0.5, 0., -0.3, 0.4, 5., 60.])
-        self.transfo_small = np.array([1e-7, 0., 1e-8, 1., 1e-10, 2.])
+        self.point_1 = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
+        self.point_2 = np.array([0.5, 0., -0.3, 0.4, 5., 60.])
+        self.point_small = np.array([1e-7, 0., 1e-8, 1., 1e-10, 2.])
         self.translation_1 = np.array([0., 0., 0., 0.4, 0.5, 0.6])
         self.translation_2 = np.array([0., 0., 0., 0.5, 0.6, 0.7])
         self.rot_and_parallel_trans = np.array([np.pi / 3., 0., 0.,
                                                 1., 0., 0.])
+
+        self.transfo_bug = np.array([0.16329, -0.660283, 2.75099,
+                                     -0.363386, 0.113832, 1.3792])
+        self.transfo_bug_reg = self.group.regularize(self.transfo_bug)
 
     def test_random_and_belongs(self):
         """
@@ -50,14 +54,14 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
     def test_compose(self):
         # Composition by identity, on the right
         # Expect the original transformation
-        result = self.group.compose(self.transfo_1, self.group.identity)
-        expected = self.transfo_1
+        result = self.group.compose(self.point_1, self.group.identity)
+        expected = self.point_1
         self.assertTrue(np.allclose(result, expected))
 
         # Composition by identity, on the left
         # Expect the original transformation
-        result = self.group.compose(self.group.identity, self.transfo_1)
-        expected = self.transfo_1
+        result = self.group.compose(self.group.identity, self.point_1)
+        expected = self.point_1
         self.assertTrue(np.allclose(result, expected))
 
         # Composition of translations (no rotational part)
@@ -68,16 +72,29 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         self.assertTrue(np.allclose(result, expected))
 
     def test_compose_and_inverse(self):
-        inv_transfo_1 = self.group.inverse(self.transfo_1)
+        inv_transfo_1 = self.group.inverse(self.point_1)
         # Compose transformation by its inverse on the right
         # Expect the group identity
-        result = self.group.compose(self.transfo_1, inv_transfo_1)
+        result = self.group.compose(self.point_1, inv_transfo_1)
         expected = self.group.identity
         self.assertTrue(np.allclose(result, expected))
 
         # Compose transformation by its inverse on the left
         # Expect the group identity
-        result = self.group.compose(inv_transfo_1, self.transfo_1)
+        result = self.group.compose(inv_transfo_1, self.point_1)
+        expected = self.group.identity
+        self.assertTrue(np.allclose(result, expected))
+
+        inv_transfo_bug = self.group.inverse(self.transfo_bug)
+        # Compose transformation by its inverse on the right
+        # Expect the group identity
+        result = self.group.compose(self.transfo_bug, inv_transfo_bug)
+        expected = self.group.identity
+        self.assertTrue(np.allclose(result, expected))
+
+        # Compose transformation by its inverse on the left
+        # Expect the group identity
+        result = self.group.compose(inv_transfo_bug, self.transfo_bug)
         expected = self.group.identity
         self.assertTrue(np.allclose(result, expected))
 
@@ -123,28 +140,28 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         """
         # Compose log then exp
         result = helper.group_log_then_exp_from_identity(self.group,
-                                                         self.transfo_1)
-        expected = self.transfo_1
+                                                         self.point_1)
+        expected = self.point_1
         self.assertTrue(np.allclose(result, expected))
 
         # Compose log then exp
         # for edge case: angle < epsilon, where angle = norm(rot_vec)
         result = helper.group_log_then_exp_from_identity(self.group,
-                                                         self.transfo_small)
-        expected = self.transfo_small
+                                                         self.point_small)
+        expected = self.point_small
         self.assertTrue(np.allclose(result, expected))
 
         # Compose exp then log
         result = helper.group_exp_then_log_from_identity(self.group,
-                                                         self.transfo_1)
-        expected = self.transfo_1
+                                                         self.point_1)
+        expected = self.point_1
         self.assertTrue(np.allclose(result, expected))
 
         # Compose exp then log
         # for edge case: angle < epsilon, where angle = norm(rot_vec)
         result = helper.group_exp_then_log_from_identity(self.group,
-                                                         self.transfo_small)
-        expected = self.transfo_small
+                                                         self.point_small)
+        expected = self.point_small
         self.assertTrue(np.allclose(result, expected))
 
     def test_group_exp(self):
@@ -179,21 +196,21 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         Expect their composition to give the identity function.
         """
         # General case for the reference point
-        transfo_base_point = self.transfo_1
+        transfo_base_point = self.point_1
 
         # Compose log then exp
         result = helper.group_log_then_exp(self.group,
                                            base_point=transfo_base_point,
-                                           point=self.transfo_2)
-        expected = self.transfo_2
+                                           point=self.point_2)
+        expected = self.point_2
         self.assertTrue(np.allclose(result, expected))
 
         # Compose log then exp
         # for edge case: angle < epsilon, where angle = norm(rot_vec)
         result = helper.group_log_then_exp(self.group,
                                            base_point=transfo_base_point,
-                                           point=self.transfo_small)
-        expected = self.transfo_small
+                                           point=self.point_small)
+        expected = self.point_small
         self.assertTrue(np.allclose(result, expected))
 
     def test_left_exp_from_id(self):
@@ -249,30 +266,20 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         Expect their composition to give the identity function.
         """
         metric = self.group.left_canonical_metric
-        # 1. Compose log then exp
+        # Compose log then exp
         # Canonical inner product on the lie algebra
-        rot_vec_1 = np.array([-1., 0.5, -0.12])  # NB: Regularized
-        translation_1 = np.array([-91., -7., 0.007])
-        point_1 = np.concatenate([rot_vec_1, translation_1])
+        result = helper.left_exp_then_log_from_identity(
+                                        metric,
+                                        self.point_1)
+        expected = self.point_1
+        self.assertTrue(np.allclose(result, expected))
 
-        log_1 = metric.log_from_identity(point=point_1)
-        result_1 = metric.exp_from_identity(tangent_vec=log_1)
-        expected_1 = point_1
-
-        self.assertTrue(np.allclose(result_1, expected_1))
-
-        # 2. Compose log then exp
         # for edge case: angle < epsilon, where angle = norm(rot_vec)
-        # Canonical inner product on the lie algebra
-        rot_vec_2 = np.array([1e-15, 0., 5 * 1e-6])  # NB: Regularized
-        translation_2 = np.array([-1., 27., 7.])
-        point_2 = np.concatenate([rot_vec_2, translation_2])
-
-        log_2 = metric.log_from_identity(point_2)
-        result_2 = metric.exp_from_identity(log_2)
-        expected_2 = point_2
-
-        self.assertTrue(np.allclose(result_2, expected_2))
+        result = helper.left_exp_then_log_from_identity(
+                                        metric,
+                                        self.point_small)
+        expected = self.point_small
+        self.assertTrue(np.allclose(result, expected))
 
     def test_right_exp_and_log_from_id(self):
         """
@@ -282,31 +289,20 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         Expect their composition to give the identity function.
         """
         metric = self.group.right_canonical_metric
-        # 1. Compose log then exp
+        # Compose log then exp
         # Canonical inner product on the lie algebra
-        rot_vec_1 = np.array([-1., 0.5, -0.12])  # NB: Regularized
-        translation_1 = np.array([-91., -7., 0.007])
-        point_1 = np.concatenate([rot_vec_1, translation_1])
+        result = helper.left_exp_then_log_from_identity(
+                                        metric,
+                                        self.point_1)
+        expected = self.point_1
+        self.assertTrue(np.allclose(result, expected))
 
-        aux_1 = metric.log_from_identity(point_1)
-        result_1 = metric.exp_from_identity(aux_1)
-
-        expected_1 = point_1
-
-        self.assertTrue(np.allclose(result_1, expected_1))
-
-        # 2. Compose log then exp
         # for edge case: angle < epsilon, where angle = norm(rot_vec)
-        # Canonical inner product on the lie algebra
-        rot_vec_2 = np.array([1e-15, 0., 5 * 1e-6])  # NB: Regularized
-        translation_2 = np.array([-1., 27., 7.])
-        point_2 = np.concatenate([rot_vec_2, translation_2])
-
-        aux_2 = metric.log_from_identity(point_2)
-        result_2 = metric.exp_from_identity(aux_2)
-        expected_2 = point_2
-
-        self.assertTrue(np.allclose(result_2, expected_2))
+        result = helper.left_exp_then_log_from_identity(
+                                        metric,
+                                        self.point_small)
+        expected = self.point_small
+        self.assertTrue(np.allclose(result, expected))
 
     def test_left_exp(self):
         # Reference point is a translation (no rotational part)
@@ -404,6 +400,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
         self.assertTrue(np.allclose(result_2, expected_2))
 
+        # Bug point
+
+
     def test_right_exp_and_log(self):
         """
         Test that the riemannian right exponential and the
@@ -460,18 +459,32 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point_1 = self.group.regularize(point_1)
         point_2 = self.group.regularize(point_2)
 
-        log = metric.log(base_point=point_1, point=point_2)
-        log = self.group.regularize(log)
-        sq_dist_1_2 = metric.squared_norm(vector=log, base_point=point_1)
-
-        log = metric.log(base_point=point_2, point=point_1)
-        log = self.group.regularize(log)
-        sq_dist_2_1 = metric.squared_norm(vector=log, base_point=point_2)
-
-        # sq_dist_1_2 = metric.squared_dist(point_1, point_2)
-        # sq_dist_2_1 = metric.squared_dist(point_2, point_1)
+        sq_dist_1_2 = metric.squared_dist(point_1, point_2)
+        sq_dist_2_1 = metric.squared_dist(point_2, point_1)
 
         # self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1))
+
+        log_1_2 = metric.log(base_point=point_1, point=point_2)
+        log_1_2 = self.group.regularize(log_1_2)
+        sq_norm_log_1_2 = metric.squared_norm(vector=log_1_2,
+                                              base_point=point_1)
+
+        log_2_1 = metric.log(base_point=point_2, point=point_1)
+        log_2_1 = self.group.regularize(log_1_2)
+        sq_norm_log_2_1 = metric.squared_norm(vector=log_2_1,
+                                              base_point=point_2)
+        # self.assertTrue((np.allclose(sq_norm_log_1_2, sq_norm_log_2_1)))
+
+        # Test composition exp-log for both points
+        point_1_result = metric.exp(base_point=point_2,
+                                    tangent_vec=log_2_1)
+        point_1_result = self.group.regularize(point_1_result)
+        self.assertTrue(np.allclose(point_1_result, point_1))
+
+        point_2_result = metric.exp(base_point=point_1,
+                                    tangent_vec=log_1_2)
+        point_2_result = self.group.regularize(point_2_result)
+        self.assertTrue(np.allclose(point_2_result, point_2))
 
     def test_squared_dist_exp_and_squared_norm(self):
         metric = self.group.left_canonical_metric
