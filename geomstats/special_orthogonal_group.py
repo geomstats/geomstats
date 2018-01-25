@@ -107,15 +107,10 @@ class SpecialOrthogonalGroup(LieGroup):
         rot_vec = np.array(rot_vec)
         angle = np.linalg.norm(rot_vec)
 
-        # self.regularized_rot_vec = rot_vec
-        # if angle != 0:
-        #     k = np.floor(angle / (2 * np.pi) + .5)
-        #     self.regularized_rot_vec = (1. - 2. * np.pi * k / angle) * rot_vec
         regularized_rot_vec = rot_vec
         if angle != 0:
-            k = np.floor(angle / (np.pi))
-            sign = 1 if k % 2 == 0 else -1
-            regularized_rot_vec = sign * (1. - np.pi * k / angle) * rot_vec
+            k = np.floor(angle / (2 * np.pi) + .5)
+            regularized_rot_vec = (1. - 2. * np.pi * k / angle) * rot_vec
 
         return regularized_rot_vec
 
@@ -128,6 +123,7 @@ class SpecialOrthogonalGroup(LieGroup):
         :returns rot_vec: 3d rotation vector
         """
         assert rot_mat.shape == (self.n, self.n)
+        rot_mat = closest_rotation_matrix(rot_mat)
 
         cos_angle = .5 * (np.trace(rot_mat) - 1)
         cos_angle = np.clip(cos_angle, -1, 1)
@@ -196,6 +192,7 @@ class SpecialOrthogonalGroup(LieGroup):
         rot_mat = (np.identity(self.dimension)
                    + coef_1 * skew_rot_vec
                    + coef_2 * np.dot(skew_rot_vec, skew_rot_vec))
+        rot_mat = closest_rotation_matrix(rot_mat)
         return rot_mat
 
     def compose(self, rot_vec_1, rot_vec_2):
