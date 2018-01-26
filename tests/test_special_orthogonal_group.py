@@ -340,8 +340,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 result = helper.exp_then_log_from_identity(metric, point)
                 expected = self.group.regularize(point)
                 self.assertTrue(np.allclose(result, expected),
-                                '\nmetric {} on point {}: {}\n'
-                                'result = {}; expected = {}'.format(
+                                '\nmetric {}\n'
+                                '- on point {}: {}\n'
+                                'result = {}\n'
+                                'expected = {}'.format(
                                                          metric_type,
                                                          angle_type,
                                                          point,
@@ -365,9 +367,15 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 result = helper.log_then_exp_from_identity(metric, point)
                 expected = self.group.regularize(point)
                 self.assertTrue(np.allclose(result, expected),
-                                'metric {} on point {}'.format(
+                                '\nmetric {}\n'
+                                '- on point {}: {}\n'
+                                'result = {}\n'
+                                'expected = {}'.format(
                                                          metric_type,
-                                                         angle_type))
+                                                         angle_type,
+                                                         point,
+                                                         result,
+                                                         expected))
 
     def test_exp_then_log(self):
         """
@@ -388,21 +396,25 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     base_point = self.points[angle_type_base]
 
                     result = helper.exp_then_log(metric=metric,
-                                                 base_point=base_point,
-                                                 tangent_vec=point)
+                                                 tangent_vec=point,
+                                                 base_point=base_point)
                     expected = self.group.regularize(point)
                     inv_expected = - expected
 
                     self.assertTrue((np.allclose(result, expected)
                                      or np.allclose(result, inv_expected)),
-                                    'metric {} on point '
-                                    '{} and base_point {}:\n'
-                                    'result = {}; expected = {}'.format(
-                                                         metric_type,
-                                                         angle_type,
-                                                         angle_type_base,
-                                                         result,
-                                                         expected))
+                                    '\nmetric {}:\n'
+                                    '- on point {}: {} -> {}\n'
+                                    '- base_point {}: {} -> {}\n'
+                                    'result = {} -> {}\n'
+                                    'expected = {} -> {}'.format(
+                                 metric_type,
+                                 angle_type,
+                                 point, self.group.regularize(point),
+                                 angle_type_base,
+                                 base_point, self.group.regularize(base_point),
+                                 result, self.group.regularize(result),
+                                 expected, self.group.regularize(expected)))
                     if np.allclose(result, inv_expected):
                         if np.linalg.norm(inv_expected - expected) > 1e-5:
                             logging.warning('Test exp_then_log passed only '
@@ -435,47 +447,26 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     #                              point=point)
                     aux = metric.log(point=point, base_point=base_point)
 
-                    aux_group = self.group.group_log(point=point,
-                                                     base_point=base_point)
-
-                    norm_aux = metric.norm(vector=aux, base_point=base_point)
-                    norm_aux_group = metric.norm(vector=aux_group, base_point=base_point)
                     result = metric.exp(tangent_vec=aux,
                                         base_point=base_point)
-                    result_group_metric = metric.exp(tangent_vec=aux_group,
-                                                     base_point=base_point)
-                    result_metric_group = self.group.group_exp(
-                                        tangent_vec=aux,
-                                        base_point=base_point)
-                    result_full_group = self.group.group_exp(
-                                        tangent_vec=aux_group,
-                                        base_point=base_point)
+
                     expected = self.group.regularize(point)
                     inv_expected = - expected
                     self.assertTrue((np.allclose(result, expected)
                                      or np.allclose(result, inv_expected)),
-                                    'metric {} on point '
-                                    '{} and base_point {}:\n'
-                                    'result = {}\n'
-                                    'expected = {}\n'
-                                    'intermediary metric log = {} of norm'
-                                    ' {}\n'
-                                    'intermediary group log = {} of norm {}.\n'
-                                    'metric log then group exp gives {}\n'
-                                    'group log then metric exp gives {}\n'
-                                    'full group gives {}.'.format(
-                                                  metric_type,
-                                                  angle_type,
-                                                  angle_type_base,
-                                                  result,
-                                                  expected,
-                                                  aux,
-                                                  norm_aux,
-                                                  aux_group,
-                                                  norm_aux_group,
-                                                  result_metric_group,
-                                                  result_group_metric,
-                                                  result_full_group))
+                                    '\nmetric {}:\n'
+                                    '- on point {}: {} -> {}\n'
+                                    '- base_point {}: {} -> {}\n'
+                                    'result = {} -> {}\n'
+                                    'expected = {} -> {}'.format(
+                                 metric_type,
+                                 angle_type,
+                                 point, self.group.regularize(point),
+                                 angle_type_base,
+                                 base_point, self.group.regularize(base_point),
+                                 result, self.group.regularize(result),
+                                 expected, self.group.regularize(expected)))
+
                     if np.allclose(result, inv_expected):
                         if np.linalg.norm(inv_expected - expected) > 1e-5:
                             logging.warning('Test log_then_exp passed only '
@@ -537,20 +528,24 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
                 result = helper.group_exp_then_log(
                                              group=self.group,
-                                             base_point=base_point,
-                                             tangent_vec=point)
+                                             tangent_vec=point,
+                                             base_point=base_point)
                 expected = self.group.regularize(point)
                 inv_expected = - expected
 
                 self.assertTrue((np.allclose(result, expected)
                                  or np.allclose(result, inv_expected)),
-                                'point '
-                                '{} and base_point {}:\n'
-                                'result = {}; expected = {}'.format(
-                                                         angle_type,
-                                                         angle_type_base,
-                                                         result,
-                                                         expected))
+                                '\n- on point {}: {} -> {}\n'
+                                '- base_point {}: {} -> {}\n'
+                                'result = {} -> {}\n'
+                                'expected = {} -> {}'.format(
+                                 angle_type,
+                                 point, self.group.regularize(point),
+                                 angle_type_base,
+                                 base_point, self.group.regularize(base_point),
+                                 result, self.group.regularize(result),
+                                 expected, self.group.regularize(expected)))
+
                 if np.allclose(result, inv_expected):
                     if np.linalg.norm(inv_expected - expected) > 1e-5:
                         logging.warning('Test group_exp_then_log passed only '
@@ -578,20 +573,24 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
                 result = helper.group_log_then_exp(
                                              group=self.group,
-                                             base_point=base_point,
-                                             point=point)
+                                             point=point,
+                                             base_point=base_point)
                 expected = self.group.regularize(point)
                 inv_expected = - expected
 
                 self.assertTrue((np.allclose(result, expected)
                                  or np.allclose(result, inv_expected)),
-                                'point '
-                                '{} and base_point {}:\n'
-                                'result = {}; expected = {}'.format(
-                                                         angle_type,
-                                                         angle_type_base,
-                                                         result,
-                                                         expected))
+                                '\n- on point {}: {} -> {}\n'
+                                '- base_point {}: {} -> {}\n'
+                                'result = {} -> {}\n'
+                                'expected = {} -> {}'.format(
+                                 angle_type,
+                                 point, self.group.regularize(point),
+                                 angle_type_base,
+                                 base_point, self.group.regularize(base_point),
+                                 result, self.group.regularize(result),
+                                 expected, self.group.regularize(expected)))
+
                 if np.allclose(result, inv_expected):
                     if np.linalg.norm(inv_expected - expected) > 1e-5:
                         logging.warning('Test group_log_then_exp passed only '
@@ -640,8 +639,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
                 self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1),
                                 'for point_1 {} and point_2 {}:\n'
-                                'distance from 1 to 2: {}\n'
-                                'distance from 2 to 1: {}\n'.format(
+                                'squared distance from 1 to 2: {}\n'
+                                'squared distance from 2 to 1: {}\n'.format(
                                              angle_type_1,
                                              angle_type_2,
                                              sq_dist_1_2,
@@ -652,38 +651,12 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         point_1 = np.array([0.16329, -0.660283, 2.75099])
         point_2 = np.array([-1.2297, 0.551821, -0.370994])
 
-        point_1 = self.group.regularize(point_1)
-        point_2 = self.group.regularize(point_2)
-        print('norms after regularization\n')
-        print(np.linalg.norm(point_1))
-        print(np.linalg.norm(point_2))
-
         sq_dist_1_2 = metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = metric.squared_dist(point_2, point_1)
 
-        print('\noriginal squared distances')
-        print(sq_dist_1_2)
-        print(sq_dist_2_1)
-
-        minus_point_1 = - point_1
-        print('\nby inverting 1 :\n')
-        sq_dist_minus1_2 = metric.squared_dist(minus_point_1, point_2)
-        sq_dist_2_minus1 = metric.squared_dist(point_2, minus_point_1)
-
-        print(sq_dist_minus1_2)
-        print(sq_dist_2_minus1)
-
-        minus_point_2 = - point_2
-        print('by inverting 2 :\n')
-        sq_dist_1_minus2 = metric.squared_dist(point_1, minus_point_2)
-        sq_dist_minus2_1 = metric.squared_dist(minus_point_2, point_1)
-
-        print(sq_dist_1_minus2)
-        print(sq_dist_minus2_1)
-
         self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1),
-                        '\ndistance from 1 to 2: {}\n'
-                        'distance from 2 to 1: {}\n'.format(
+                        '\nsquared istance from 1 to 2: {}\n'
+                        'squared distance from 2 to 1: {}\n'.format(
                                              sq_dist_1_2,
                                              sq_dist_2_1))
 
