@@ -4,7 +4,6 @@ import numpy as np
 import unittest
 
 from geomstats.invariant_metric import InvariantMetric
-from geomstats.spd_matrices_space import SPDMatricesSpace
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
 
 import tests.helper as helper
@@ -34,8 +33,8 @@ class TestInvariantMetricMethods(unittest.TestCase):
                    left_or_right='right')
 
         # General left and right invariant metrics
-        spd_matrices_space = SPDMatricesSpace(group.dimension)
-        sym_mat_at_identity = spd_matrices_space.random_uniform()
+        # TODO(nina): replace by general SPD matrix
+        sym_mat_at_identity = np.eye(group.dimension)
 
         left_metric = InvariantMetric(
                    lie_group=group,
@@ -293,13 +292,13 @@ class TestInvariantMetricMethods(unittest.TestCase):
         # General point
         result = helper.log_then_exp(self.left_diag_metric,
                                      base_point, self.point_1)
-        expected = self.point_1
+        expected = self.group.regularize(self.point_1)
         self.assertTrue(np.allclose(result, expected))
 
         # Edge case, small angle
         result = helper.log_then_exp(self.left_diag_metric,
                                      base_point, self.point_small)
-        expected = self.point_small
+        expected = self.group.regularize(self.point_small)
         self.assertTrue(np.allclose(result, expected))
 
     def test_exp_and_log_left_metrics(self):
@@ -333,12 +332,12 @@ class TestInvariantMetricMethods(unittest.TestCase):
         # For right diagonal metric: point and point_small
         result = helper.log_then_exp(self.right_diag_metric,
                                      base_point, self.point_1)
-        expected = self.point_1
+        expected = self.group.regularize(self.point_1)
         self.assertTrue(np.allclose(result, expected))
 
         result = helper.log_then_exp(self.right_diag_metric,
                                      base_point, self.point_small)
-        expected = self.point_small
+        expected = self.group.regularize(self.point_small)
         self.assertTrue(np.allclose(result, expected))
 
     def test_exp_and_log_right_metrics(self):

@@ -68,132 +68,6 @@ def vector_from_skew_matrix(skew_mat):
     return vec
 
 
-class BiinvariantMetric(InvariantMetric):
-    def __init__(self, group):
-        super(BiinvariantMetric, self).__init__(group, np.eye(3))
-
-    def left_exp_from_identity(self, tangent_vec):
-        """
-        Compute the *left* Riemannian exponential from the identity of the
-        Lie group of tangent vector tangent_vec.
-
-        The left Riemannian exponential has a special role since the
-        left Riemannian exponential of the canonical metric parameterizes
-        the points.
-
-        Note: In the case where the method is called by a right-invariant
-        metric, it used the left-invariant metric associated to the same
-        inner-product at the identity.
-        """
-        exp = np.dot(self.inner_product_mat_at_identity, tangent_vec)
-
-        exp = self.lie_group.regularize(exp)
-        return exp
-
-    def exp_from_identity(self, tangent_vec):
-        """
-        Compute the Riemannian exponential from the identity of the
-        Lie group of tangent vector tangent_vec.
-        """
-        if self.left_or_right == 'left':
-            exp = self.left_exp_from_identity(tangent_vec)
-
-        else:
-            opp_left_exp = self.left_exp_from_identity(-tangent_vec)
-
-            exp = self.lie_group.inverse(opp_left_exp)
-
-        exp = self.lie_group.regularize(exp)
-        return exp
-
-    def exp(self, tangent_vec, base_point):
-        """
-        Compute the Riemannian exponential at point base_point
-        of tangent vector tangent_vec.
-        """
-        base_point = self.lie_group.regularize(base_point)
-
-        jacobian = self.lie_group.jacobian_translation(
-                                 base_point,
-                                 left_or_right=self.left_or_right)
-        inv_jacobian = np.linalg.inv(jacobian)
-
-        tangent_vec_translated_to_id = np.dot(inv_jacobian, tangent_vec)
-
-        exp_from_id = self.exp_from_identity(
-                               tangent_vec_translated_to_id)
-
-        if self.left_or_right == 'left':
-            exp = self.lie_group.compose(base_point, exp_from_id)
-
-        else:
-            exp = self.lie_group.compose(exp_from_id, base_point)
-
-        exp = self.lie_group.regularize(exp)
-        return exp
-
-    def left_log_from_identity(self, point):
-        """
-        Compute the *left* Riemannian logarithm from the identity of the
-        Lie group of tangent vector tangent_vec.
-
-        The left Riemannian logarithm has a special role since the
-        left Riemannian logarithm of the canonical metric parameterizes
-        the points.
-        """
-        point = self.lie_group.regularize(point)
-
-        inner_prod_mat = self.inner_product_mat_at_identity
-        inv_inner_prod_mat = np.linalg.inv(inner_prod_mat)
-
-        log = np.dot(inv_inner_prod_mat, point)
-
-        return log
-
-    def log_from_identity(self, point):
-        """
-        Compute the Riemannian logarithm of point at point base_point
-        of point for the invariant metric from the identity.
-        """
-        point = self.lie_group.regularize(point)
-        if self.left_or_right == 'left':
-            log = self.left_log_from_identity(point)
-
-        else:
-            inv_point = self.lie_group.inverse(point)
-            left_log = self.left_log_from_identity(inv_point)
-            log = - left_log
-
-        return log
-
-    def log(self, point, base_point):
-        """
-        Compute the Riemannian logarithm of point at point base_point
-        of point for the invariant metric.
-        """
-        base_point = self.lie_group.regularize(base_point)
-        point = self.lie_group.regularize(point)
-
-        if self.left_or_right == 'left':
-            point_near_id = self.lie_group.compose(
-                                   self.lie_group.inverse(base_point),
-                                   point)
-
-        else:
-            point_near_id = self.lie_group.compose(
-                                   point,
-                                   self.lie_group.inverse(base_point))
-
-        log_from_id = self.log_from_identity(point_near_id)
-
-        jacobian = self.lie_group.jacobian_translation(
-                                       base_point,
-                                       left_or_right=self.left_or_right)
-        log = np.dot(jacobian, log_from_id)
-
-        return log
-
-
 class SpecialOrthogonalGroup(LieGroup):
 
     def __init__(self, n):
@@ -207,7 +81,7 @@ class SpecialOrthogonalGroup(LieGroup):
         super(SpecialOrthogonalGroup, self).__init__(
                           dimension=self.dimension,
                           identity=np.zeros(self.dimension))
-        self.bi_invariant_metric = BiinvariantMetric(self)
+        self.bi_invariant_metric = self.left_canonical_metric
 
     def belongs(self, rot_vec):
         """

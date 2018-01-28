@@ -10,41 +10,40 @@ from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 import tests.helper as helper
 
 EPSILON = 1e-5
+# -- Rotation vectors with angles
+# 0, close to 0, closely lower than pi, pi,
+# between pi and 2pi, closely larger than 2pi, 2pi,
+# and closely larger than 2pi
+with_angle_0 = np.zeros(3)
+with_angle_close_0 = 1e-10 * np.array([1., -1., 1.])
+with_angle_close_pi_low = ((np.pi - 1e-9) / np.sqrt(2)
+                           * np.array([0., 1., -1]))
+with_angle_pi = np.pi / np.sqrt(3) * np.array([1., 1., -1])
+with_angle_close_pi_high = ((np.pi + 1e-9) / np.sqrt(3)
+                            * np.array([-1., 1., -1]))
+with_angle_in_pi_2pi = ((np.pi + 0.3) / np.sqrt(5)
+                        * np.array([-2., 1., 0]))
+with_angle_close_2pi_low = ((2 * np.pi - 1e-9) / np.sqrt(6)
+                            * np.array([2., 1., -1]))
+with_angle_2pi = 2 * np.pi / np.sqrt(3) * np.array([1., 1., -1])
+with_angle_close_2pi_high = ((2 * np.pi + 1e-9) / np.sqrt(2)
+                             * np.array([1., 0., -1]))
+
+ELEMENTS = {'with_angle_0': with_angle_0,
+            'with_angle_close_0': with_angle_close_0,
+            'with_angle_close_pi_low': with_angle_close_pi_low,
+            'with_angle_pi': with_angle_pi,
+            'with_angle_close_pi_high': with_angle_close_pi_high,
+            'with_angle_in_pi_2pi': with_angle_in_pi_2pi,
+            'with_angle_close_2pi_low': with_angle_close_2pi_low,
+            'with_angle_2pi': with_angle_2pi,
+            'with_angle_close_2pi_high': with_angle_close_2pi_high}
 
 
 class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
     def setUp(self):
         n = 3
         group = SpecialOrthogonalGroup(n=n)
-
-        # -- Rotation vectors with angles
-        # 0, close to 0, closely lower than pi, pi,
-        # between pi and 2pi, closely larger than 2pi, 2pi,
-        # and closely larger than 2pi
-        with_angle_0 = group.identity
-        with_angle_close_0 = 1e-10 * np.array([1., -1., 1.])
-        with_angle_close_pi_low = ((np.pi - 1e-9) / np.sqrt(2)
-                                   * np.array([0., 1., -1]))
-        with_angle_pi = np.pi / np.sqrt(3) * np.array([1., 1., -1])
-        with_angle_close_pi_high = ((np.pi + 1e-9) / np.sqrt(3)
-                                    * np.array([-1., 1., -1]))
-        with_angle_in_pi_2pi = ((np.pi + 0.3) / np.sqrt(5)
-                                * np.array([-2., 1., 0]))
-        with_angle_close_2pi_low = ((2 * np.pi - 1e-9) / np.sqrt(6)
-                                    * np.array([2., 1., -1]))
-        with_angle_2pi = 2 * np.pi / np.sqrt(3) * np.array([1., 1., -1])
-        with_angle_close_2pi_high = ((2 * np.pi + 1e-9) / np.sqrt(2)
-                                     * np.array([1., 0., -1]))
-
-        elements = {'with_angle_0': with_angle_0,
-                    'with_angle_close_0': with_angle_close_0,
-                    'with_angle_close_pi_low': with_angle_close_pi_low,
-                    'with_angle_pi': with_angle_pi,
-                    'with_angle_close_pi_high': with_angle_close_pi_high,
-                    'with_angle_in_pi_2pi': with_angle_in_pi_2pi,
-                    'with_angle_close_2pi_low': with_angle_close_2pi_low,
-                    'with_angle_2pi': with_angle_2pi,
-                    'with_angle_close_2pi_high': with_angle_close_2pi_high}
 
         # -- Metrics - only diagonals for now
         canonical_metric = group.bi_invariant_metric
@@ -63,7 +62,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
         # -- Set attributes
         self.group = group
-        self.elements = elements
+        self.elements = ELEMENTS
         self.angles_close_to_pi = ['with_angle_close_pi_low',
                                    'with_angle_pi',
                                    'with_angle_close_pi_high']

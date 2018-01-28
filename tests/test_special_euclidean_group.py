@@ -424,9 +424,6 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
         self.assertTrue(np.allclose(result_2, expected_2))
 
-        # Bug point
-
-
     def test_right_exp_and_log(self):
         """
         Test that the riemannian right exponential and the
@@ -473,7 +470,6 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         self.assertTrue(np.allclose(result_2, expected_2))
 
     def test_squared_dist_is_symmetric(self):
-        # TODO(nina): this test fails
         metric = self.group.left_canonical_metric
         point_1 = np.array([0.16329, -0.660283, 2.75099,
                             -0.363386, 0.113832, 1.3792])
@@ -486,67 +482,26 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         sq_dist_1_2 = metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = metric.squared_dist(point_2, point_1)
 
-        # self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1))
-
-        log_1_2 = metric.log(base_point=point_1, point=point_2)
-        log_1_2 = self.group.regularize(log_1_2)
-        sq_norm_log_1_2 = metric.squared_norm(vector=log_1_2,
-                                              base_point=point_1)
-
-        log_2_1 = metric.log(base_point=point_2, point=point_1)
-        log_2_1 = self.group.regularize(log_1_2)
-        sq_norm_log_2_1 = metric.squared_norm(vector=log_2_1,
-                                              base_point=point_2)
-        # self.assertTrue((np.allclose(sq_norm_log_1_2, sq_norm_log_2_1)))
-
-        # Test composition exp-log for both points
-        point_1_result = metric.exp(base_point=point_2,
-                                    tangent_vec=log_2_1)
-        point_1_result = self.group.regularize(point_1_result)
-        print(point_1_result)
-        print(point_1)
-        self.assertTrue(np.allclose(point_1_result, point_1))
-
-        point_2_result = metric.exp(base_point=point_1,
-                                    tangent_vec=log_1_2)
-        point_2_result = self.group.regularize(point_2_result)
-        self.assertTrue(np.allclose(point_2_result, point_2))
-
-    def test_squared_dist_exp_and_squared_norm(self):
-        metric = self.group.left_canonical_metric
-        point_1 = np.array([0.16329, -0.660283, 2.75099,
-                            -0.363386, 0.113832, 1.3792])
-        vec_2 = np.array([-1.2297, 0.551821, -0.370994,
-                          -0.130283, 0.518082, 0.671212])
-        expected = metric.squared_norm(vector=vec_2, base_point=point_1)
-        result = metric.squared_dist(point_1, metric.exp(tangent_vec=vec_2,
-                                                         base_point=point_1))
-        self.assertTrue(np.allclose(expected, result))
-
-        metric = self.group.left_canonical_metric
-        vec_2 = np.array([0.16329, -0.660283, 2.75099,
-                          -0.363386, 0.113832, 1.3792])
-        point_1 = np.array([-1.2297, 0.551821, -0.370994,
-                            -0.130283, 0.518082, 0.671212])
-        expected = metric.squared_norm(vector=vec_2, base_point=point_1)
-        result = metric.squared_dist(point_1, metric.exp(tangent_vec=vec_2,
-                                                         base_point=point_1))
-        self.assertTrue(np.allclose(expected, result))
+        self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1))
 
     def test_group_exponential_barycenter(self):
-        # TODO(nina): this test fails.
+        # TODO(nina): this test fails, the barycenter is not accurate.
         point_1 = self.group.random_uniform()
         result_1 = self.group.group_exponential_barycenter(
                                 points=[point_1, point_1])
-        expected_1 = point_1
-        # self.assertTrue(np.allclose(result_1, expected_1))
+        expected_1 = self.group.regularize(point_1)
+        # self.assertTrue(np.allclose(result_1, expected_1),
+        #                 '\nresult = {}\n'
+        #                 'expected = {}'.format(result_1, expected_1))
 
         point_2 = self.group.random_uniform()
         result_2 = self.group.group_exponential_barycenter(
                                 points=[point_2, point_2],
                                 weights=[1., 2.])
-        expected_2 = point_2
-        # self.assertTrue(np.allclose(result_2, expected_2))
+        expected_2 = self.group.regularize(point_2)
+        # self.assertTrue(np.allclose(result_2, expected_2),
+        #                 '\nresult = {}\n'
+        #                 'expected = {}'.format(result_2, expected_2))
 
         result_3 = self.group.group_exponential_barycenter(
                                 points=[point_1, point_2],

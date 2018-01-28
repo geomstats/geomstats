@@ -70,7 +70,6 @@ class InvariantMetric(RiemannianMetric):
         metric, it used the left-invariant metric associated to the same
         inner-product at the identity.
         """
-        tangent_vec = self.lie_group.regularize(tangent_vec)
         exp = np.dot(self.inner_product_mat_at_identity, tangent_vec)
 
         exp = self.lie_group.regularize(exp)
@@ -81,7 +80,6 @@ class InvariantMetric(RiemannianMetric):
         Compute the Riemannian exponential from the identity of the
         Lie group of tangent vector tangent_vec.
         """
-        tangent_vec = self.lie_group.regularize(tangent_vec)
         if self.left_or_right == 'left':
             exp = self.left_exp_from_identity(tangent_vec)
 
@@ -99,7 +97,6 @@ class InvariantMetric(RiemannianMetric):
         of tangent vector tangent_vec.
         """
         base_point = self.lie_group.regularize(base_point)
-        tangent_vec = self.lie_group.regularize(tangent_vec)
 
         jacobian = self.lie_group.jacobian_translation(
                                  base_point,
@@ -136,7 +133,6 @@ class InvariantMetric(RiemannianMetric):
 
         log = np.dot(inv_inner_prod_mat, point)
 
-        log = self.lie_group.regularize(log)
         return log
 
     def log_from_identity(self, point):
@@ -153,7 +149,6 @@ class InvariantMetric(RiemannianMetric):
             left_log = self.left_log_from_identity(inv_point)
             log = - left_log
 
-        log = self.lie_group.regularize(log)
         return log
 
     def log(self, point, base_point):
@@ -181,5 +176,4 @@ class InvariantMetric(RiemannianMetric):
                                        left_or_right=self.left_or_right)
         log = np.dot(jacobian, log_from_id)
 
-        log = self.lie_group.regularize(log)
         return log

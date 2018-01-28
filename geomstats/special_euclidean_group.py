@@ -157,8 +157,6 @@ class SpecialEuclideanGroup(LieGroup):
         :param base_point: 6d vector element of SE(3).
         :returns group_exp_transfo: 6d vector element of SE(3).
         """
-        tangent_vec = self.regularize(tangent_vec)
-
         rot_vec = tangent_vec[0:3]
         translation = tangent_vec[3:6]  # this is dt
         angle = np.linalg.norm(rot_vec)
