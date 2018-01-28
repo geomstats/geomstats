@@ -398,7 +398,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     result = helper.exp_then_log(metric=metric,
                                                  tangent_vec=point,
                                                  base_point=base_point)
-                    expected = self.group.regularize(point)
+                    expected = point
                     inv_expected = - expected
 
                     self.assertTrue((np.allclose(result, expected)
@@ -530,7 +530,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                              group=self.group,
                                              tangent_vec=point,
                                              base_point=base_point)
-                expected = self.group.regularize(point)
+                expected = point
                 inv_expected = - expected
 
                 self.assertTrue((np.allclose(result, expected)
