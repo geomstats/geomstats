@@ -85,7 +85,6 @@ class BiinvariantMetric(InvariantMetric):
         metric, it used the left-invariant metric associated to the same
         inner-product at the identity.
         """
-        # tangent_vec = self.lie_group.regularize(tangent_vec)
         exp = np.dot(self.inner_product_mat_at_identity, tangent_vec)
 
         exp = self.lie_group.regularize(exp)
@@ -96,7 +95,6 @@ class BiinvariantMetric(InvariantMetric):
         Compute the Riemannian exponential from the identity of the
         Lie group of tangent vector tangent_vec.
         """
-        # tangent_vec = self.lie_group.regularize(tangent_vec)
         if self.left_or_right == 'left':
             exp = self.left_exp_from_identity(tangent_vec)
 
@@ -114,7 +112,6 @@ class BiinvariantMetric(InvariantMetric):
         of tangent vector tangent_vec.
         """
         base_point = self.lie_group.regularize(base_point)
-        # tangent_vec = self.lie_group.regularize(tangent_vec)
 
         jacobian = self.lie_group.jacobian_translation(
                                  base_point,
@@ -151,7 +148,6 @@ class BiinvariantMetric(InvariantMetric):
 
         log = np.dot(inv_inner_prod_mat, point)
 
-        # log = self.lie_group.regularize(log)
         return log
 
     def log_from_identity(self, point):
@@ -168,7 +164,6 @@ class BiinvariantMetric(InvariantMetric):
             left_log = self.left_log_from_identity(inv_point)
             log = - left_log
 
-        # log = self.lie_group.regularize(log)
         return log
 
     def log(self, point, base_point):
@@ -196,8 +191,8 @@ class BiinvariantMetric(InvariantMetric):
                                        left_or_right=self.left_or_right)
         log = np.dot(jacobian, log_from_id)
 
-        # log = self.lie_group.regularize(log)
         return log
+
 
 class SpecialOrthogonalGroup(LieGroup):
 
@@ -238,19 +233,7 @@ class SpecialOrthogonalGroup(LieGroup):
         rot_vec = rot_vec.astype(dtype=np.float64)
         angle = np.linalg.norm(rot_vec)
         regularized_rot_vec = rot_vec
-        #if angle != 0.:
-        #    k = np.floor(angle / 2 * np.pi)
-        #    regularized_rot_vec = (1. - 2 * np.pi * k / angle) * rot_vec
-        #    new_angle = np.linalg.norm(regularized_rot_vec)
 
-        #    if abs(new_angle - np.pi) < 1e-5:
-        #        new_angle = np.clip(new_angle, 0, np.pi - 1e-15)
-        #        regularized_rot_vec = (new_angle / angle
-        #                               * regularized_rot_vec)
-        #    elif new_angle - np.pi > 0:
-        #        new_angle = new_angle - np.pi
-        #        regularized_rot_vec = (new_angle / angle) * regularized_rot_vec
-        #        regularized_rot_vec = - regularized_rot_vec
         if angle != 0:
             k = np.floor(angle / (2 * np.pi) + .5)
             regularized_rot_vec = (1. - 2. * np.pi * k / angle) * rot_vec
@@ -267,20 +250,20 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         assert rot_mat.shape == (3, 3)
 
-        # get the rotation matrix that is the closest approximation to the input
-        rotationMatrix = closest_rotation_matrix(rot_mat)
+        rot_mat = closest_rotation_matrix(rot_mat)
 
-        # t is the sum of the eigenvalues of the rotationMatrix.
-        # The eigenvalues are 1, cos(theta) + i sin(theta), cos(theta) - i sin(theta)
+        # t is the sum of the eigenvalues of the rot_mat.
+        # The eigenvalues are:
+        # 1, cos(theta) + i sin(theta), cos(theta) - i sin(theta)
         # t = 1 + 2 cos(theta), -1 <= t <= 3
-        t = np.trace(rotationMatrix, dtype=np.float64)
+        t = np.trace(rot_mat, dtype=np.float64)
         cos_angle = .5 * (np.trace(rot_mat) - 1)
         cos_angle = np.clip(cos_angle, -1, 1)
         theta = np.arccos(cos_angle, dtype=np.float64)
 
-        r = np.array([rotationMatrix[2,1] - rotationMatrix[1,2],
-                      rotationMatrix[0,2] - rotationMatrix[2,0],
-                      rotationMatrix[1,0] - rotationMatrix[0,1]])
+        r = np.array([rot_mat[2, 1] - rot_mat[1, 2],
+                      rot_mat[0, 2] - rot_mat[2, 0],
+                      rot_mat[1, 0] - rot_mat[0, 1]])
 
         # -- theta is not close to 0 or pi
         if np.sin(theta) >= epsilon:
@@ -296,75 +279,21 @@ class SpecialOrthogonalGroup(LieGroup):
             # This formulation is derived by going from rotation matrix to unit
             # quaternion to axis-angle
 
-            # choose the largest diagonal element to avoid a square root of a negative
-            # number
-            a = np.argmax(np.diag(rotationMatrix))
+            # choose the largest diagonal element
+            # to avoid a square root of a negative number
+            a = np.argmax(np.diag(rot_mat))
             b = np.mod(a+1, 3)
             c = np.mod(a+2, 3)
 
             # compute the axis vector
-            s = np.sqrt(rotationMatrix[a, a] - rotationMatrix[b, b] - rotationMatrix[c, c] + 1.)
+            s = np.sqrt(rot_mat[a, a] - rot_mat[b, b] - rot_mat[c, c] + 1.)
             v = np.zeros(3)
             v[a] = s / 2.
-            v[b] = (rotationMatrix[b, a] + rotationMatrix[a, b]) / (2. * s)
-            v[c] = (rotationMatrix[c, a] + rotationMatrix[a, c]) / (2. * s)
+            v[b] = (rot_mat[b, a] + rot_mat[a, b]) / (2. * s)
+            v[c] = (rot_mat[c, a] + rot_mat[a, c]) / (2. * s)
 
             rot_vec = theta * v / np.linalg.norm(v)
 
-        return self.regularize(rot_vec)
-
-    def rotation_vector_from_matrix_scratch(self, rot_mat, epsilon=EPSILON):
-        """
-        Convert rotation matrix to rotation vector
-        (axis-angle representation).
-
-        :param rot_mat: 3x3 rotation matrix
-        :returns rot_vec: 3d rotation vector
-        """
-        assert rot_mat.shape == (self.n, self.n)
-        rot_mat = closest_rotation_matrix(rot_mat)
-
-        cos_angle = .5 * (np.trace(rot_mat) - 1)
-        cos_angle = np.clip(cos_angle, -1, 1)
-        angle = np.arccos(cos_angle)
-
-        # -- Edge case: angle close to 0
-        if angle < epsilon:
-            # Taylor expansion of 0.5 * angle / sin(angle) around 0:
-            coef = 0.5 * (1 + (angle ** 2) / 6)
-            skew_rot_vec = coef * (rot_mat - rot_mat.transpose())
-            rot_vec = vector_from_skew_matrix(skew_rot_vec)
-
-        # -- Edge case: angle close to pi
-        elif abs(angle - np.pi) < epsilon:
-            rot_vec = np.empty(self.dimension)
-            diag_rot_mat = np.diag(rot_mat)
-            sq_element = 1 + (diag_rot_mat - np.ones(self.n)) / (1 - cos_angle)
-            sq_element = np.clip(sq_element, 0, 1)
-            rot_vec = np.sqrt(sq_element)
-
-            rot_vec = rot_vec * angle / np.linalg.norm(rot_vec)
-            if rot_mat[0][1] + rot_mat[1][0] < 0:
-                rot_vec[1] = -rot_vec[1]
-            if rot_mat[0][2] + rot_mat[2][0] < 0:
-                rot_vec[2] = -rot_vec[2]
-
-            sinr = np.zeros(self.dimension)
-            aux_mat = rot_mat - rot_mat.transpose()
-            sinr = vector_from_skew_matrix(aux_mat)
-
-            k = 0
-            if abs(sinr[1]) > abs(sinr[k]):
-                k = 1
-            if abs(sinr[2]) > abs(sinr[k]):
-                k = 2
-            if sinr[k] * rot_vec[k] < 0:
-                rot_vec = -rot_vec
-
-        else:
-            coef = .5 * angle / np.sin(angle)
-            skew_rot_vec = coef * (rot_mat - rot_mat.transpose())
-            rot_vec = vector_from_skew_matrix(skew_rot_vec)
         return self.regularize(rot_vec)
 
     def matrix_from_rotation_vector(self, rot_vec, epsilon=EPSILON):
@@ -483,7 +412,6 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         Compute the group exponential of vector tangent_vector.
         """
-        # tangent_vec = self.regularize(tangent_vec)
         base_point = self.regularize(base_point)
 
         point = super(SpecialOrthogonalGroup, self).group_exp(
@@ -502,7 +430,6 @@ class SpecialOrthogonalGroup(LieGroup):
         tangent_vec = super(SpecialOrthogonalGroup, self).group_log(
                                     point=point,
                                     base_point=base_point)
-        # tangent_vec = self.regularize(tangent_vec)
         return tangent_vec
 
     def group_exponential_barycenter(self, points, weights=None):
