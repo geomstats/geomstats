@@ -8,9 +8,6 @@ from geomstats.special_euclidean_group import SpecialEuclideanGroup
 
 import tests.helper as helper
 
-# TODO(nina): only diagonal metrics with the identity
-# on the rotations part pass the tests
-
 
 class TestInvariantMetricMethods(unittest.TestCase):
 
@@ -46,16 +43,22 @@ class TestInvariantMetricMethods(unittest.TestCase):
                    inner_product_mat_at_identity=sym_mat_at_identity,
                    left_or_right='right')
 
+        metrics = {'left_diag': left_diag_metric,
+                   'right_diag_metric': right_diag_metric,
+                   'left': left_metric,
+                   'right': right_metric}
+
         # General case for the point
         point_1 = np.array([-0.2, 0.9, 0.5, 5., 5., 5.])
         point_2 = np.array([0., 2., -0.1, 30., 400., 2.])
         # Edge case for the point, angle < epsilon,
         point_small = np.array([-1e-7, 0., -7 * 1e-8, 6., 5., 9.])
 
-        point_bug = np.array([0.16329, -0.660283, 2.75099,
-                             -0.363386, 0.113832, 1.3792])
-        point_bug_reg = group.regularize(point_bug)
+        elements = tests_special_orthogonal_group.ELEMENTS
+
         self.group = group
+        self.metrics = metrics
+
         self.left_diag_metric = left_diag_metric
         self.right_diag_metric = right_diag_metric
         self.left_metric = left_metric
@@ -106,27 +109,29 @@ class TestInvariantMetricMethods(unittest.TestCase):
         # - exp then log
         # For left diagonal metric: point_1 and point_small
         result = helper.left_exp_then_log_from_identity(
-                                        self.left_diag_metric,
-                                        self.point_1)
+                                        metric=self.left_diag_metric,
+                                        tangent_vec=self.point_1)
         expected = self.point_1
         self.assertTrue(np.allclose(result, expected))
 
         result = helper.left_exp_then_log_from_identity(
-                                        self.left_diag_metric,
-                                        self.point_small)
+                                        metric=self.left_diag_metric,
+                                        tangent_vec=self.point_small)
         expected = self.point_small
         self.assertTrue(np.allclose(result, expected))
 
         # - log then exp
 
         # For left diagonal metric: point_1 and point_small
-        result = helper.left_log_then_exp_from_identity(self.left_diag_metric,
-                                                        self.point_1)
+        result = helper.left_log_then_exp_from_identity(
+                                        metric=self.left_diag_metric,
+                                        point=self.point_1)
         expected = self.point_1
         self.assertTrue(np.allclose(result, expected))
 
-        result = helper.left_log_then_exp_from_identity(self.left_diag_metric,
-                                                        self.point_small)
+        result = helper.left_log_then_exp_from_identity(
+                                        metric=self.left_diag_metric,
+                                        point=self.point_small)
         expected = self.point_small
         self.assertTrue(np.allclose(result, expected))
 
@@ -139,27 +144,30 @@ class TestInvariantMetricMethods(unittest.TestCase):
         # - exp then log
         # For left metric: point_1 and point_small
         result = helper.left_exp_then_log_from_identity(
-                                        self.left_metric,
-                                        self.point_1)
+                                        metric=self.left_metric,
+                                        tangent_vec=self.point_1)
         expected = self.point_1
-        # self.assertTrue(np.allclose(result, expected))
+        self.assertTrue(np.allclose(result, expected))
 
-        result = helper.left_exp_then_log_from_identity(self.left_metric,
-                                                        self.point_small)
+        result = helper.left_exp_then_log_from_identity(
+                                        metric=self.left_metric,
+                                        tangent_vec=self.point_small)
         expected = self.point_small
-        # self.assertTrue(np.allclose(result, expected))
+        self.assertTrue(np.allclose(result, expected))
 
         # - log then exp
         # For left metric: point_1 and point_small
-        result = helper.left_log_then_exp_from_identity(self.left_metric,
-                                                        self.point_1)
+        result = helper.left_log_then_exp_from_identity(
+                                        metric=self.left_metric,
+                                        point=self.point_1)
         expected = self.point_1
-        # self.assertTrue(np.allclose(result, expected))
+        self.assertTrue(np.allclose(result, expected))
 
-        result = helper.left_log_then_exp_from_identity(self.left_metric,
-                                                        self.point_small)
+        result = helper.left_log_then_exp_from_identity(
+                                        metric=self.left_metric,
+                                        point=self.point_small)
         expected = self.point_small
-        # self.assertTrue(np.allclose(result, expected))
+        self.assertTrue(np.allclose(result, expected))
 
     def test_exp_and_log_from_identity_left_diag_metrics(self):
         """
@@ -169,25 +177,29 @@ class TestInvariantMetricMethods(unittest.TestCase):
         """
         # - exp then log
         # For left diagonal metric, point and point_small
-        result = helper.exp_then_log_from_identity(self.left_diag_metric,
-                                                   self.point_1)
+        result = helper.exp_then_log_from_identity(
+                                        metric=self.left_diag_metric,
+                                        tangent_vec=self.point_1)
         expected = self.point_1
         self.assertTrue(np.allclose(result, expected))
 
-        result = helper.exp_then_log_from_identity(self.left_diag_metric,
-                                                   self.point_small)
+        result = helper.exp_then_log_from_identity(
+                                        metric=self.left_diag_metric,
+                                        tangent_vec=self.point_small)
         expected = self.point_small
         self.assertTrue(np.allclose(result, expected))
 
         # - log then exp
         # For left diagonal metric, point and point_small
-        result = helper.log_then_exp_from_identity(self.left_diag_metric,
-                                                   self.point_1)
+        result = helper.log_then_exp_from_identity(
+                                        metric=self.left_diag_metric,
+                                        point=self.point_1)
         expected = self.point_1
         self.assertTrue(np.allclose(result, expected))
 
-        result = helper.log_then_exp_from_identity(self.left_diag_metric,
-                                                   self.point_small)
+        result = helper.log_then_exp_from_identity(
+                                        metric=self.left_diag_metric,
+                                        point=self.point_small)
         expected = self.point_small
         self.assertTrue(np.allclose(result, expected))
 
@@ -199,27 +211,31 @@ class TestInvariantMetricMethods(unittest.TestCase):
         """
         # - exp then log
         # For left metric, point and point_small
-        result = helper.exp_then_log_from_identity(self.left_metric,
-                                                   self.point_1)
+        result = helper.exp_then_log_from_identity(
+                                        metric=self.left_metric,
+                                        tangent_vec=self.point_1)
         expected = self.point_1
-        # self.assertTrue(np.allclose(result, expected))
+        self.assertTrue(np.allclose(result, expected))
 
-        result = helper.exp_then_log_from_identity(self.left_metric,
-                                                   self.point_small)
+        result = helper.exp_then_log_from_identity(
+                                        metric=self.left_metric,
+                                        tangent_vec=self.point_small)
         expected = self.point_small
-        # self.assertTrue(np.allclose(result, expected))
+        self.assertTrue(np.allclose(result, expected))
 
         # - log then exp
         # For left metric, point and point_small
-        result = helper.log_then_exp_from_identity(self.left_metric,
-                                                   self.point_1)
+        result = helper.log_then_exp_from_identity(
+                                        metric=self.left_metric,
+                                        point=self.point_1)
         expected = self.point_1
-        # self.assertTrue(np.allclose(result, expected))
+        self.assertTrue(np.allclose(result, expected))
 
-        result = helper.log_then_exp_from_identity(self.left_metric,
-                                                   self.point_small)
+        result = helper.log_then_exp_from_identity(
+                                        metric=self.left_metric,
+                                        point=self.point_small)
         expected = self.point_small
-        # self.assertTrue(np.allclose(result, expected))
+        self.assertTrue(np.allclose(result, expected))
 
     def test_exp_and_log_from_identity_right_diag_metrics(self):
         """
@@ -229,25 +245,29 @@ class TestInvariantMetricMethods(unittest.TestCase):
         """
         # - exp then log
         # For right diagonal metric, point and point_small
-        result = helper.exp_then_log_from_identity(self.right_diag_metric,
-                                                   self.point_1)
+        result = helper.exp_then_log_from_identity(
+                                        metric=self.right_diag_metric,
+                                        tangent_vec=self.point_1)
         expected = self.point_1
         self.assertTrue(np.allclose(result, expected))
 
-        result = helper.exp_then_log_from_identity(self.right_diag_metric,
-                                                   self.point_small)
+        result = helper.exp_then_log_from_identity(
+                                        metric=self.right_diag_metric,
+                                        tangent_vec=self.point_small)
         expected = self.point_small
         self.assertTrue(np.allclose(result, expected))
 
         # - log then exp
         # For right diagonal metric, point and point_small
-        result = helper.log_then_exp_from_identity(self.right_diag_metric,
-                                                   self.point_1)
+        result = helper.log_then_exp_from_identity(
+                                        metric=self.right_diag_metric,
+                                        point=self.point_1)
         expected = self.point_1
         self.assertTrue(np.allclose(result, expected))
 
-        result = helper.log_then_exp_from_identity(self.right_diag_metric,
-                                                   self.point_small)
+        result = helper.log_then_exp_from_identity(
+                                        metric=self.right_diag_metric,
+                                        point=self.point_small)
         expected = self.point_small
         self.assertTrue(np.allclose(result, expected))
 
