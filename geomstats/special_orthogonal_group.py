@@ -255,44 +255,42 @@ class SpecialOrthogonalGroup(LieGroup):
         # t is the sum of the eigenvalues of the rot_mat.
         # The eigenvalues are:
         # 1, cos(theta) + i sin(theta), cos(theta) - i sin(theta)
-        # t = 1 + 2 cos(theta), -1 <= t <= 3
-        t = np.trace(rot_mat, dtype=np.float64)
-        cos_angle = .5 * (np.trace(rot_mat) - 1)
+        # trace = 1 + 2 cos(theta), -1 <= trace <= 3
+        trace = np.trace(rot_mat, dtype=np.float64)
+        cos_angle = .5 * (trace - 1)
         cos_angle = np.clip(cos_angle, -1, 1)
-        theta = np.arccos(cos_angle, dtype=np.float64)
+        angle = np.arccos(cos_angle, dtype=np.float64)
 
-        r = np.array([rot_mat[2, 1] - rot_mat[1, 2],
-                      rot_mat[0, 2] - rot_mat[2, 0],
-                      rot_mat[1, 0] - rot_mat[0, 1]])
+        rot_vec = vector_from_skew_matrix(rot_mat - rot_mat.transpose())
 
-        # -- theta is not close to 0 or pi
-        if np.sin(theta) >= epsilon:
-            rot_vec = theta / (2. * np.sin(theta)) * r
+        # -- angle is not close to 0 or pi
+        if np.sin(angle) > epsilon:
+            rot_vec = angle / (2. * np.sin(angle)) * rot_vec
 
-        # -- Edge case: theta is close to 0
-        elif t-1. > 0.:
-            rot_vec = (.5 - (t - 3.) / 12.) * r
+        # -- Edge case: angle is close to 0
+        elif trace - 1. > 0.:
+            rot_vec = (.5 - (trace - 3.) / 12.) * rot_vec
 
-        # -- Edge case: theta is close to pi
+        # -- Edge case: angle is close to pi
         else:
-            # r = theta * v / |v|, where (w, v) is a unit quaternion.
+            # r = angle * v / |v|, where (w, v) is a unit quaternion.
             # This formulation is derived by going from rotation matrix to unit
             # quaternion to axis-angle
 
             # choose the largest diagonal element
             # to avoid a square root of a negative number
             a = np.argmax(np.diag(rot_mat))
-            b = np.mod(a+1, 3)
-            c = np.mod(a+2, 3)
+            b = np.mod(a + 1, 3)
+            c = np.mod(a + 2, 3)
 
             # compute the axis vector
             s = np.sqrt(rot_mat[a, a] - rot_mat[b, b] - rot_mat[c, c] + 1.)
-            v = np.zeros(3)
-            v[a] = s / 2.
-            v[b] = (rot_mat[b, a] + rot_mat[a, b]) / (2. * s)
-            v[c] = (rot_mat[c, a] + rot_mat[a, c]) / (2. * s)
+            rot_vec = np.zeros(3)
+            rot_vec[a] = s / 2.
+            rot_vec[b] = (rot_mat[b, a] + rot_mat[a, b]) / (2. * s)
+            rot_vec[c] = (rot_mat[c, a] + rot_mat[a, c]) / (2. * s)
 
-            rot_vec = theta * v / np.linalg.norm(v)
+            rot_vec = angle * rot_vec / np.linalg.norm(rot_vec)
 
         return self.regularize(rot_vec)
 
