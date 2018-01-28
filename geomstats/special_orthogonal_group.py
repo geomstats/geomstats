@@ -245,17 +245,26 @@ class SpecialOrthogonalGroup(LieGroup):
         Convert rotation matrix to rotation vector
         (axis-angle representation).
 
+        Get the angle through the trace of the rotation matrix:
+        The eigenvalues are:
+        1, cos(angle) + i sin(angle), cos(angle) - i sin(angle)
+        so that: trace = 1 + 2 cos(angle), -1 <= trace <= 3
+
+        Get the rotation vector through the formula:
+        S_r = angle / ( 2 * sin(angle) ) (R - R^T)
+
+        For the edge case where the angle is close to pi,
+        the formulation is derived by going from rotation matrix to unit
+        quaternion to axis-angle:
+         r = angle * v / |v|, where (w, v) is a unit quaternion.
+
         :param rot_mat: 3x3 rotation matrix
-        :returns rot_vec: 3d rotation vector
+        :return rot_vec: 3d rotation vector
         """
         assert rot_mat.shape == (3, 3)
 
         rot_mat = closest_rotation_matrix(rot_mat)
 
-        # t is the sum of the eigenvalues of the rot_mat.
-        # The eigenvalues are:
-        # 1, cos(theta) + i sin(theta), cos(theta) - i sin(theta)
-        # trace = 1 + 2 cos(theta), -1 <= trace <= 3
         trace = np.trace(rot_mat, dtype=np.float64)
         cos_angle = .5 * (trace - 1)
         cos_angle = np.clip(cos_angle, -1, 1)
@@ -263,20 +272,10 @@ class SpecialOrthogonalGroup(LieGroup):
 
         rot_vec = vector_from_skew_matrix(rot_mat - rot_mat.transpose())
 
-        # -- angle is not close to 0 or pi
-        if np.sin(angle) > epsilon:
-            rot_vec = angle / (2. * np.sin(angle)) * rot_vec
-
-        # -- Edge case: angle is close to 0
-        elif trace - 1. > 0.:
+        if angle < epsilon:
             rot_vec = (.5 - (trace - 3.) / 12.) * rot_vec
 
-        # -- Edge case: angle is close to pi
-        else:
-            # r = angle * v / |v|, where (w, v) is a unit quaternion.
-            # This formulation is derived by going from rotation matrix to unit
-            # quaternion to axis-angle
-
+        elif abs(angle - np.pi) < epsilon:
             # choose the largest diagonal element
             # to avoid a square root of a negative number
             a = np.argmax(np.diag(rot_mat))
@@ -284,13 +283,18 @@ class SpecialOrthogonalGroup(LieGroup):
             c = np.mod(a + 2, 3)
 
             # compute the axis vector
-            s = np.sqrt(rot_mat[a, a] - rot_mat[b, b] - rot_mat[c, c] + 1.)
+            sq_root = np.sqrt((rot_mat[a, a]
+                              - rot_mat[b, b] - rot_mat[c, c] + 1.))
+
             rot_vec = np.zeros(3)
-            rot_vec[a] = s / 2.
-            rot_vec[b] = (rot_mat[b, a] + rot_mat[a, b]) / (2. * s)
-            rot_vec[c] = (rot_mat[c, a] + rot_mat[a, c]) / (2. * s)
+            rot_vec[a] = sq_root / 2.
+            rot_vec[b] = (rot_mat[b, a] + rot_mat[a, b]) / (2. * sq_root)
+            rot_vec[c] = (rot_mat[c, a] + rot_mat[a, c]) / (2. * sq_root)
 
             rot_vec = angle * rot_vec / np.linalg.norm(rot_vec)
+
+        else:
+            rot_vec = angle / (2. * np.sin(angle)) * rot_vec
 
         return self.regularize(rot_vec)
 

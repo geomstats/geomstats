@@ -49,7 +49,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         # -- Metrics - only diagonals for now
         canonical_metric = group.bi_invariant_metric
 
-        diag_mat = np.diag([1., 2., 3.])
+        diag_mat = np.diag([3., 3., 3.])
         left_diag_metric = InvariantMetric(
                    lie_group=group,
                    inner_product_mat_at_identity=diag_mat,
@@ -202,7 +202,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         matrix_from_rotation_vector
         is the identity.
         """
-        for angle_type in self.elements.keys():
+        for angle_type in self.elements:
             point = self.elements[angle_type]
             if angle_type in self.angles_close_to_pi:
                 continue
@@ -247,7 +247,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                         inv_expected))
 
     def test_left_jacobian_through_its_determinant(self):
-        for angle_type in self.elements.keys():
+        for angle_type in self.elements:
             point = self.elements[angle_type]
             jacobian = self.group.jacobian_translation(point=point,
                                                        left_or_right='left')
@@ -346,28 +346,28 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         log and exp gives identity.
         """
 
-        for metric_type in self.metrics.keys():
-            for angle_type in self.elements.keys():
+        for metric_type in self.metrics:
+            for angle_type in self.elements:
                 if angle_type in self.angles_close_to_pi:
                     continue
 
                 metric = self.metrics[metric_type]
-                point = self.elements[angle_type]
+                tangent_vec = self.elements[angle_type]
 
-                result = helper.exp_then_log_from_identity(metric, point)
+                result = helper.exp_then_log_from_identity(metric, tangent_vec)
 
-                expected = self.group.regularize(point)
+                expected = self.group.regularize(tangent_vec)
 
                 self.assertTrue(np.allclose(result, expected),
                                 '\nmetric {}\n'
-                                '- on point {}: {}\n'
+                                '- on tangent_vec {}: {}\n'
                                 'result = {}\n'
                                 'expected = {}'.format(
-                                                         metric_type,
-                                                         angle_type,
-                                                         point,
-                                                         result,
-                                                         expected))
+                                                     metric_type,
+                                                     angle_type,
+                                                     tangent_vec,
+                                                     result,
+                                                     expected))
 
     def test_exp_then_log_from_identity_with_angles_close_to_pi(self):
         """
@@ -376,28 +376,28 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         """
         angle_types = self.angles_close_to_pi
 
-        for metric_type in self.metrics.keys():
+        for metric_type in self.metrics:
             for angle_type in angle_types:
 
                 metric = self.metrics[metric_type]
-                point = self.elements[angle_type]
+                tangent_vec = self.elements[angle_type]
 
-                result = helper.exp_then_log_from_identity(metric, point)
+                result = helper.exp_then_log_from_identity(metric, tangent_vec)
 
-                expected = self.group.regularize(point)
+                expected = self.group.regularize(tangent_vec)
                 inv_expected = - expected
 
                 self.assertTrue(np.allclose(result, expected)
                                 or np.allclose(result, inv_expected),
                                 '\nmetric {}\n'
-                                '- on point {}: {}\n'
+                                '- on tangent_vec {}: {}\n'
                                 'result = {}\n'
                                 'expected = {}'.format(
-                                                         metric_type,
-                                                         angle_type,
-                                                         point,
-                                                         result,
-                                                         expected))
+                                                     metric_type,
+                                                     angle_type,
+                                                     tangent_vec,
+                                                     result,
+                                                     expected))
 
     def test_log_then_exp_from_identity(self):
         """
@@ -405,8 +405,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         log and exp gives identity.
         """
 
-        for metric_type in self.metrics.keys():
-            for angle_type in self.elements.keys():
+        for metric_type in self.metrics:
+            for angle_type in self.elements:
                 if angle_type in self.angles_close_to_pi:
                     continue
 
@@ -434,7 +434,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         """
         angle_types = self.angles_close_to_pi
 
-        for metric_type in self.metrics.keys():
+        for metric_type in self.metrics:
             for angle_type in angle_types:
 
                 metric = self.metrics[metric_type]
@@ -461,11 +461,11 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         log and exp gives identity.
         """
         # TODO(nina): absolute tolerance for infinitesimal angles?
-        for metric_type in self.metrics.keys():
-            for angle_type in self.elements.keys():
+        for metric_type in self.metrics:
+            for angle_type in self.elements:
                 if angle_type in self.angles_close_to_pi:
                     continue
-                for angle_type_base in self.elements.keys():
+                for angle_type_base in self.elements:
 
                     metric = self.metrics[metric_type]
                     tangent_vec = self.elements[angle_type]
@@ -485,7 +485,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
                     self.assertTrue(np.allclose(result, expected, atol=1e-6),
                                     '\nmetric {}:\n'
-                                    '- on point {}: {} -> {}\n'
+                                    '- on tangent_vec {}: {} -> {}\n'
                                     '- base_point {}: {} -> {}\n'
                                     'result = {} -> {}\n'
                                     'expected = {} -> {}'.format(
@@ -503,9 +503,9 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         log and exp gives identity.
         """
         angle_types = self.angles_close_to_pi
-        for metric_type in self.metrics.keys():
+        for metric_type in self.metrics:
             for angle_type in angle_types:
-                for angle_type_base in self.elements.keys():
+                for angle_type_base in self.elements:
 
                     metric = self.metrics[metric_type]
                     tangent_vec = self.elements[angle_type]
@@ -527,7 +527,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     self.assertTrue((np.allclose(result, expected)
                                      or np.allclose(result, inv_expected)),
                                     '\nmetric {}:\n'
-                                    '- on point {}: {} -> {}\n'
+                                    '- on tangent_vec {}: {} -> {}\n'
                                     '- base_point {}: {} -> {}\n'
                                     'result = {} -> {}\n'
                                     'expected = {} -> {}'.format(
@@ -545,11 +545,11 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         log and exp gives identity.
         """
 
-        for metric_type in self.metrics.keys():
-            for angle_type in self.elements.keys():
+        for metric_type in self.metrics:
+            for angle_type in self.elements:
                 if angle_type in self.angles_close_to_pi:
                     continue
-                for angle_type_base in self.elements.keys():
+                for angle_type_base in self.elements:
                     metric = self.metrics[metric_type]
                     point = self.elements[angle_type]
                     base_point = self.elements[angle_type_base]
@@ -581,9 +581,9 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         log and exp gives identity.
         """
         angle_types = self.angles_close_to_pi
-        for metric_type in self.metrics.keys():
+        for metric_type in self.metrics:
             for angle_type in angle_types:
-                for angle_type_base in self.elements.keys():
+                for angle_type_base in self.elements:
                     metric = self.metrics[metric_type]
                     point = self.elements[angle_type]
                     base_point = self.elements[angle_type_base]
@@ -615,16 +615,16 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         and the group logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        for angle_type in self.elements.keys():
+        for angle_type in self.elements:
             if angle_type in self.angles_close_to_pi:
                 continue
-            point = self.elements[angle_type]
+            tangent_vec = self.elements[angle_type]
             result = helper.group_exp_then_log_from_identity(
                                          group=self.group,
-                                         tangent_vec=point)
-            expected = self.group.regularize(point)
+                                         tangent_vec=tangent_vec)
+            expected = self.group.regularize(tangent_vec)
             self.assertTrue(np.allclose(result, expected),
-                            'on point {}'.format(angle_type))
+                            'on tangent_vec {}'.format(angle_type))
 
     def test_group_exp_then_log_from_identity_with_angles_close_to_pi(self):
         """
@@ -634,15 +634,15 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         """
         angle_types = self.angles_close_to_pi
         for angle_type in angle_types:
-            point = self.elements[angle_type]
+            tangent_vec = self.elements[angle_type]
             result = helper.group_exp_then_log_from_identity(
                                          group=self.group,
-                                         tangent_vec=point)
-            expected = self.group.regularize(point)
+                                         tangent_vec=tangent_vec)
+            expected = self.group.regularize(tangent_vec)
             inv_expected = - expected
             self.assertTrue(np.allclose(result, expected)
                             or np.allclose(result, inv_expected),
-                            'on point {}'.format(angle_type))
+                            'on tangent_vec {}'.format(angle_type))
 
     def test_group_log_then_exp_from_identity(self):
         """
@@ -650,7 +650,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         and the group logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        for angle_type in self.elements.keys():
+        for angle_type in self.elements:
             point = self.elements[angle_type]
             result = helper.group_log_then_exp_from_identity(
                                          group=self.group,
@@ -684,10 +684,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
         """
         # TODO(nina): absolute tolerance for infinitesimal angles
-        for angle_type in self.elements.keys():
+        for angle_type in self.elements:
             if angle_type in self.angles_close_to_pi:
                 continue
-            for angle_type_base in self.elements.keys():
+            for angle_type_base in self.elements:
                 tangent_vec = self.elements[angle_type]
                 base_point = self.elements[angle_type_base]
 
@@ -705,7 +705,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 expected = np.dot(jacobian, tangent_vec_at_id)
 
                 self.assertTrue(np.allclose(result, expected, atol=1e-6),
-                                '\n- on point {}: {} -> {}\n'
+                                '\n- on tangent_vec {}: {} -> {}\n'
                                 '- base_point {}: {} -> {}\n'
                                 'result = {} -> {}\n'
                                 'expected = {} -> {}'.format(
@@ -723,7 +723,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         """
         angle_types = self.angles_close_to_pi
         for angle_type in angle_types:
-            for angle_type_base in self.elements.keys():
+            for angle_type_base in self.elements:
                 tangent_vec = self.elements[angle_type]
                 base_point = self.elements[angle_type_base]
 
@@ -744,7 +744,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
                 self.assertTrue((np.allclose(result, expected)
                                  or np.allclose(result, inv_expected)),
-                                '\n- on point {}: {} -> {}\n'
+                                '\n- on tangent_vec {}: {} -> {}\n'
                                 '- base_point {}: {} -> {}\n'
                                 'result = {} -> {}\n'
                                 'expected = {} -> {}'.format(
@@ -761,10 +761,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         log and exp gives identity.
         """
 
-        for angle_type in self.elements.keys():
+        for angle_type in self.elements:
             if angle_type in self.angles_close_to_pi:
                 continue
-            for angle_type_base in self.elements.keys():
+            for angle_type_base in self.elements:
                 point = self.elements[angle_type]
                 base_point = self.elements[angle_type_base]
 
@@ -793,7 +793,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         """
         angle_types = self.angles_close_to_pi
         for angle_type in angle_types:
-            for angle_type_base in self.elements.keys():
+            for angle_type_base in self.elements:
                 point = self.elements[angle_type]
                 base_point = self.elements[angle_type_base]
 
@@ -838,39 +838,39 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         self.assertTrue(self.group.belongs(result_3))
 
     def test_squared_dist_is_symmetric(self):
-        metric = self.metrics['canonical']
-        for angle_type_1 in self.elements.keys():
-            for angle_type_2 in self.elements.keys():
-                point_1 = self.elements[angle_type_1]
-                point_2 = self.elements[angle_type_2]
-                point_1 = self.group.regularize(point_1)
-                point_2 = self.group.regularize(point_2)
+        for metric in self.metrics.values():
+            for angle_type_1 in self.elements:
+                for angle_type_2 in self.elements:
+                    point_1 = self.elements[angle_type_1]
+                    point_2 = self.elements[angle_type_2]
+                    point_1 = self.group.regularize(point_1)
+                    point_2 = self.group.regularize(point_2)
 
-                sq_dist_1_2 = metric.squared_dist(point_1, point_2)
-                sq_dist_2_1 = metric.squared_dist(point_2, point_1)
+                    sq_dist_1_2 = metric.squared_dist(point_1, point_2)
+                    sq_dist_2_1 = metric.squared_dist(point_2, point_1)
 
-                self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1),
-                                'for point_1 {} and point_2 {}:\n'
-                                'squared distance from 1 to 2: {}\n'
-                                'squared distance from 2 to 1: {}\n'.format(
-                                             angle_type_1,
-                                             angle_type_2,
-                                             sq_dist_1_2,
-                                             sq_dist_2_1))
+                    self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1),
+                                    'for point_1 {} and point_2 {}:\n'
+                                    'squared dist from 1 to 2: {}\n'
+                                    'squared dist from 2 to 1: {}\n'.format(
+                                                 angle_type_1,
+                                                 angle_type_2,
+                                                 sq_dist_1_2,
+                                                 sq_dist_2_1))
 
     def test_squared_dist_is_less_than_squared_pi(self):
-        metric = self.metrics['canonical']
-        for angle_type_1 in self.elements.keys():
-            for angle_type_2 in self.elements.keys():
-                point_1 = self.elements[angle_type_1]
-                point_2 = self.elements[angle_type_2]
-                point_1 = self.group.regularize(point_1)
-                point_2 = self.group.regularize(point_2)
+        for metric in self.metrics.values():
+            for angle_type_1 in self.elements:
+                for angle_type_2 in self.elements:
+                    point_1 = self.elements[angle_type_1]
+                    point_2 = self.elements[angle_type_2]
+                    point_1 = self.group.regularize(point_1)
+                    point_2 = self.group.regularize(point_2)
 
-                sq_dist = metric.squared_dist(point_1, point_2)
-                diff = sq_dist - np.pi ** 2
-                self.assertTrue(diff <= 0 or abs(diff) < EPSILON,
-                                'sq_dist = {}'.format(sq_dist))
+                    sq_dist = metric.squared_dist(point_1, point_2)
+                    diff = sq_dist - np.pi ** 2
+                    self.assertTrue(diff <= 0 or abs(diff) < EPSILON,
+                                    'sq_dist = {}'.format(sq_dist))
 
 
 if __name__ == '__main__':
