@@ -3,7 +3,6 @@
 import numpy as np
 
 import geomstats.special_orthogonal_group as so_group
-import geomstats.utils as utils
 
 from geomstats.euclidean_space import EuclideanSpace
 from geomstats.lie_group import LieGroup
@@ -160,7 +159,7 @@ class SpecialEuclideanGroup(LieGroup):
         translation = tangent_vec[3:6]
         angle = np.linalg.norm(rot_vec)
 
-        if utils.is_close(angle, np.pi):
+        if np.isclose(angle, np.pi):
             rot_vec = self.rotations.regularize(rot_vec)
 
         group_exp_transfo = np.zeros(6)
@@ -171,7 +170,7 @@ class SpecialEuclideanGroup(LieGroup):
         if angle == 0:
             coef_1 = 0
             coef_2 = 0
-        elif utils.is_close(angle, 0):
+        elif np.isclose(angle, 0):
             coef_1 = 1. / 2. - angle ** 2 / 24. + angle ** 4 / 720.
             coef_2 = 1. / 6 - angle ** 2 / 120. + angle ** 4 / 5040.
 
@@ -211,11 +210,11 @@ class SpecialEuclideanGroup(LieGroup):
             coef_1 = 0
             coef_2 = 0
 
-        elif utils.is_close(angle, 0):
+        elif np.isclose(angle, 0):
             coef_1 = - 0.5
             coef_2 = 0.5 - angle ** 2 / 90
 
-        elif utils.is_close(angle, np.pi):
+        elif np.isclose(angle, np.pi):
             delta_angle = angle - np.pi
             coef_1 = - 0.5
             psi = 0.5 * angle * (- delta_angle / 2. - delta_angle ** 3 / 24.)
@@ -263,7 +262,7 @@ class SpecialEuclideanGroup(LieGroup):
             coef_1 = 0
             coef_2 = 0
 
-        elif utils.is_close(angle, 0):
+        elif np.isclose(angle, 0):
             coef_1 = 1. / 2. - angle ** 2 / 24.
             coef_2 = 1. / 6. - angle ** 3 / 120.
 
