@@ -123,7 +123,6 @@ class SpecialEuclideanGroup(LieGroup):
         point = self.regularize(point)
 
         rot_vec = point[0:3]
-        translation = point[3:6]
 
         jacobian = np.zeros((6, 6))
 
@@ -142,7 +141,7 @@ class SpecialEuclideanGroup(LieGroup):
                                                       point=rot_vec,
                                                       left_or_right='right')
             jacobian[:3, :3] = jacobian_rot
-            jacobian[3:, :3] = - so_group.skew_matrix_from_vector(translation)
+            jacobian[3:, :3] = - so_group.skew_matrix_from_vector(rot_vec)
             jacobian[3:, 3:] = np.eye(3)
 
         return jacobian
@@ -158,15 +157,13 @@ class SpecialEuclideanGroup(LieGroup):
         :param base_point: 6d vector element of SE(3).
         :returns group_exp_transfo: 6d vector element of SE(3).
         """
-        # Regularize the tangent vector at the identity, because:
-        # - shooting with a vector or its regularized version
-        # gives the same point
-        # - need the regularized angle for the edge cases
-        tangent_vec = self.regularize(tangent_vec)
-
         rot_vec = tangent_vec[0:3]
+        rot_vec = self.rotations.regularize(rot_vec)
         translation = tangent_vec[3:6]
         angle = np.linalg.norm(rot_vec)
+
+        if np.abs(angle - np.pi) < epsilon:
+            rot_vec = self.rotations.regularize(rot_vec)
 
         group_exp_transfo = np.zeros(6)
         group_exp_transfo[0:3] = rot_vec
@@ -236,10 +233,6 @@ class SpecialEuclideanGroup(LieGroup):
                           + coef_1 * np.dot(skew_rot_vec, translation)
                           + coef_2 * np.dot(sq_skew_rot_vec,
                                             translation))
-        # Regularize the tangent vector here since it is
-        # a logarithm taken from the identity
-
-        group_log = self.regularize(group_log)
         return group_log
 
     def random_uniform(self):
