@@ -3,7 +3,6 @@
 import numpy as np
 
 from geomstats.lie_group import LieGroup
-import geomstats.utils as utils
 
 
 def closest_rotation_matrix(mat):
@@ -140,9 +139,9 @@ class SpecialOrthogonalGroup(LieGroup):
 
         rot_vec = vector_from_skew_matrix(rot_mat - rot_mat.transpose())
 
-        if utils.is_close(angle, 0):
+        if np.isclose(angle, 0):
             rot_vec = (.5 - (trace - 3.) / 12.) * rot_vec
-        elif utils.is_close(angle, np.pi):
+        elif np.isclose(angle, np.pi):
             # choose the largest diagonal element
             # to avoid a square root of a negative number
             a = np.argmax(np.diag(rot_mat))
@@ -179,7 +178,7 @@ class SpecialOrthogonalGroup(LieGroup):
         angle = np.linalg.norm(rot_vec)
         skew_rot_vec = skew_matrix_from_vector(rot_vec)
 
-        if utils.is_close(angle, 0):
+        if np.isclose(angle, 0):
             coef_1 = 1 - (angle ** 2) / 6
             coef_2 = 1 / 2 - angle ** 2
         else:
@@ -231,10 +230,10 @@ class SpecialOrthogonalGroup(LieGroup):
         point = self.regularize(point)
 
         angle = np.linalg.norm(point)
-        if utils.is_close(angle, 0):
+        if np.isclose(angle, 0):
             coef_1 = 1 - angle ** 2 / 12
             coef_2 = 1 / 12 + angle ** 2 / 720
-        elif utils.is_close(angle, np.pi):
+        elif np.isclose(angle, np.pi):
             coef_1 = angle * (np.pi - angle) / 4
             coef_2 = (1 - coef_1) / angle ** 2
         else:
