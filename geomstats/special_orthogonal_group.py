@@ -239,7 +239,7 @@ class SpecialOrthogonalGroup(LieGroup):
         if angle < epsilon:
             coef_1 = 1 - angle ** 2 / 12
             coef_2 = 1 / 12 + angle ** 2 / 720
-        elif abs(angle - np.pi) < epsilon:
+        elif np.abs(angle - np.pi) < epsilon:
             coef_1 = angle * (np.pi - angle) / 4
             coef_2 = (1 - coef_1) / angle ** 2
         else:
@@ -272,7 +272,6 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         Compute the group exponential of vector tangent_vector.
         """
-        # tangent_vec = self.regularize(tangent_vec)
         return tangent_vec
 
     def group_log_from_identity(self, point):
