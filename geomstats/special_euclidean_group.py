@@ -45,9 +45,10 @@ class SpecialEuclideanGroup(LieGroup):
         with self.regularized rotation.
         """
 
-        regularized_transfo = transfo
+        regularized_transfo = np.zeros(self.dimension)
         rot_vec = transfo[0:3]
-        regularized_transfo[0:3] = self.rotations.regularize(rot_vec)
+        regularized_transfo[:3] = self.rotations.regularize(rot_vec)
+        regularized_transfo[3:6] = transfo[3:6]
 
         return regularized_transfo
 
@@ -157,8 +158,14 @@ class SpecialEuclideanGroup(LieGroup):
         :param base_point: 6d vector element of SE(3).
         :returns group_exp_transfo: 6d vector element of SE(3).
         """
+        # Regularize the tangent vector at the identity, because:
+        # - shooting with a vector or its regularized version
+        # gives the same point
+        # - need the regularized angle for the edge cases
+        tangent_vec = self.regularize(tangent_vec)
+
         rot_vec = tangent_vec[0:3]
-        translation = tangent_vec[3:6]  # this is dt
+        translation = tangent_vec[3:6]
         angle = np.linalg.norm(rot_vec)
 
         group_exp_transfo = np.zeros(6)
@@ -170,8 +177,8 @@ class SpecialEuclideanGroup(LieGroup):
             coef_1 = 0
             coef_2 = 0
         elif angle < epsilon:
-            coef_1 = 1. / 2. - angle ** 2 / 12.
-            coef_2 = 1. - angle ** 3 / 3.
+            coef_1 = 1. / 2. - angle ** 2 / 24. + angle ** 4 / 720.
+            coef_2 = 1. / 6 - angle ** 2 / 120. + angle ** 4 / 5040.
         else:
             coef_1 = (1. - np.cos(angle)) / angle ** 2
             coef_2 = (angle - np.sin(angle)) / angle ** 3
@@ -208,7 +215,6 @@ class SpecialEuclideanGroup(LieGroup):
         if angle == 0:
             coef_1 = 0
             coef_2 = 0
-            group_log[3:6] = translation
 
         elif angle < epsilon:
             coef_1 = - 0.5
