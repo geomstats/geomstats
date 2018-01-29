@@ -2,6 +2,8 @@
 Helper functions for unit tests.
 """
 
+import numpy as np
+
 # Left, from identity
 
 
@@ -84,3 +86,20 @@ def group_exp_then_log(group, tangent_vec, base_point):
     result = group.group_log(point=aux,
                              base_point=base_point)
     return result
+
+
+# Regularize a tangent_vector by getting its norm,
+# at the base point, to be less than pi,
+# following the regularization convention
+
+
+def regularize_tangent_vec(group, tangent_vec, base_point):
+    jacobian = group.jacobian_translation(
+                                      point=base_point,
+                                      left_or_right='left')
+    tangent_vec_at_id = np.dot(np.linalg.inv(jacobian),
+                               tangent_vec)
+    tangent_vec_at_id = group.regularize(
+                                        tangent_vec_at_id)
+    regularized_tangent_vec = np.dot(jacobian, tangent_vec_at_id)
+    return regularized_tangent_vec

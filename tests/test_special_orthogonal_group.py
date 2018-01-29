@@ -474,14 +474,11 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     result = helper.exp_then_log(metric=metric,
                                                  tangent_vec=tangent_vec,
                                                  base_point=base_point)
-                    jacobian = self.group.jacobian_translation(
-                                                          point=base_point,
-                                                          left_or_right='left')
-                    tangent_vec_at_id = np.dot(np.linalg.inv(jacobian),
-                                               tangent_vec)
-                    tangent_vec_at_id = self.group.regularize(
-                                                        tangent_vec_at_id)
-                    expected = np.dot(jacobian, tangent_vec_at_id)
+
+                    expected = helper.regularize_tangent_vec(
+                                                 group=self.group,
+                                                 tangent_vec=tangent_vec,
+                                                 base_point=base_point)
 
                     self.assertTrue(np.allclose(result, expected, atol=1e-6),
                                     '\nmetric {}:\n'

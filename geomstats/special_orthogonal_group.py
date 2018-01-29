@@ -2,7 +2,6 @@
 
 import numpy as np
 
-from geomstats.invariant_metric import InvariantMetric
 from geomstats.lie_group import LieGroup
 
 EPSILON = 1e-5
@@ -104,7 +103,6 @@ class SpecialOrthogonalGroup(LieGroup):
         :returns self.regularized_rot_vec: 3d vector with: 0 < norm < pi
         """
         assert self.belongs(rot_vec)
-        rot_vec = rot_vec.astype(dtype=np.float64)
         angle = np.linalg.norm(rot_vec)
         regularized_rot_vec = rot_vec
 
@@ -139,10 +137,10 @@ class SpecialOrthogonalGroup(LieGroup):
 
         rot_mat = closest_rotation_matrix(rot_mat)
 
-        trace = np.trace(rot_mat, dtype=np.float64)
+        trace = np.trace(rot_mat)
         cos_angle = .5 * (trace - 1)
         cos_angle = np.clip(cos_angle, -1, 1)
-        angle = np.arccos(cos_angle, dtype=np.float64)
+        angle = np.arccos(cos_angle)
 
         rot_vec = vector_from_skew_matrix(rot_mat - rot_mat.transpose())
 

@@ -179,6 +179,7 @@ class SpecialEuclideanGroup(LieGroup):
         elif angle < epsilon:
             coef_1 = 1. / 2. - angle ** 2 / 24. + angle ** 4 / 720.
             coef_2 = 1. / 6 - angle ** 2 / 120. + angle ** 4 / 5040.
+
         else:
             coef_1 = (1. - np.cos(angle)) / angle ** 2
             coef_2 = (angle - np.sin(angle)) / angle ** 3
@@ -217,18 +218,28 @@ class SpecialEuclideanGroup(LieGroup):
             coef_2 = 0
 
         elif angle < epsilon:
-            coef_1 = - 0.5
-            coef_2 = 0.5 - angle ** 2 / 90
+            coef_1 = - .5
+            coef_2 = .5 - angle ** 2 / 90
+
+        elif np.abs(angle - np.pi) < epsilon:
+            delta_angle = angle - np.pi
+            coef_1 = - .5
+            psi = .5 * angle * (- delta_angle / 2. - delta_angle ** 3 / 24.)
+            coef_2 = (1 - psi) / (angle ** 2)
 
         else:
-            coef_1 = - 0.5
-            psi = 0.5 * angle * np.sin(angle) / (1 - np.cos(angle))
+            coef_1 = - .5
+            psi = .5 * angle * np.sin(angle) / (1 - np.cos(angle))
             coef_2 = (1 - psi) / (angle ** 2)
 
         group_log[3:6] = (translation
                           + coef_1 * np.dot(skew_rot_vec, translation)
                           + coef_2 * np.dot(sq_skew_rot_vec,
                                             translation))
+        # Regularize the tangent vector here since it is
+        # a logarithm taken from the identity
+
+        group_log = self.regularize(group_log)
         return group_log
 
     def random_uniform(self):
