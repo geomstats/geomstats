@@ -2,7 +2,7 @@
 Helper functions for unit tests.
 """
 
-# Left, from identity
+import numpy as np
 
 
 def left_log_then_exp_from_identity(metric, point):
@@ -16,8 +16,6 @@ def left_exp_then_log_from_identity(metric, tangent_vec):
     result = metric.left_log_from_identity(point=aux)
     return result
 
-# From identity
-
 
 def log_then_exp_from_identity(metric, point):
     aux = metric.log_from_identity(point=point)
@@ -30,57 +28,63 @@ def exp_then_log_from_identity(metric, tangent_vec):
     result = metric.log_from_identity(point=aux)
     return result
 
-# Standard
 
-
-def log_then_exp(metric, base_point, point):
-    aux = metric.log(base_point=base_point,
-                     point=point)
-    result = metric.exp(base_point=base_point,
-                        tangent_vec=aux)
+def log_then_exp(metric, point, base_point):
+    aux = metric.log(point=point,
+                     base_point=base_point)
+    result = metric.exp(tangent_vec=aux,
+                        base_point=base_point)
     return result
 
 
-def exp_then_log(metric, base_point, tangent_vec):
-    aux = metric.exp(base_point=base_point,
-                     tangent_vec=tangent_vec)
-    result = metric.log(base_point=base_point,
-                        point=aux)
+def exp_then_log(metric, tangent_vec, base_point):
+    aux = metric.exp(tangent_vec=tangent_vec,
+                     base_point=base_point)
+    result = metric.log(point=aux,
+                        base_point=base_point)
     return result
-
-
-# -- Group
-
-
-# From identity
 
 
 def group_log_then_exp_from_identity(group, point):
-    aux = group.group_log(point=point)
-    result = group.group_exp(tangent_vec=aux)
+    aux = group.group_log_from_identity(point=point)
+    result = group.group_exp_from_identity(tangent_vec=aux)
     return result
 
 
 def group_exp_then_log_from_identity(group, tangent_vec):
-    aux = group.group_exp(tangent_vec)
-    result = group.group_log(aux)
+    aux = group.group_exp_from_identity(tangent_vec=tangent_vec)
+    result = group.group_log_from_identity(point=aux)
     return result
 
 
-# Standard
-
-
-def group_log_then_exp(group, base_point, point):
-    aux = group.group_log(base_point=base_point,
-                          point=point)
-    result = group.group_exp(base_point=base_point,
-                             tangent_vec=aux)
+def group_log_then_exp(group, point, base_point):
+    aux = group.group_log(point=point,
+                          base_point=base_point)
+    result = group.group_exp(tangent_vec=aux,
+                             base_point=base_point)
     return result
 
 
-def group_exp_then_log(group, base_point, tangent_vec):
-    aux = group.group_exp(base_point=base_point,
-                          tangent_vec=tangent_vec)
-    result = group.group_log(base_point=base_point,
-                             point=aux)
+def group_exp_then_log(group, tangent_vec, base_point):
+    aux = group.group_exp(tangent_vec=tangent_vec,
+                          base_point=base_point)
+    result = group.group_log(point=aux,
+                             base_point=base_point)
     return result
+
+
+def regularize_tangent_vec(group, tangent_vec, base_point):
+    """
+    Regularize a tangent_vector by getting its norm,
+    at the base point, to be less than pi,
+    following the regularization convention
+    """
+    jacobian = group.jacobian_translation(
+                                      point=base_point,
+                                      left_or_right='left')
+    tangent_vec_at_id = np.dot(np.linalg.inv(jacobian),
+                               tangent_vec)
+    tangent_vec_at_id = group.regularize(
+                                        tangent_vec_at_id)
+    regularized_tangent_vec = np.dot(jacobian, tangent_vec_at_id)
+    return regularized_tangent_vec

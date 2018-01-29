@@ -23,10 +23,8 @@ class TestManifoldMethods(unittest.TestCase):
 
     def test_regularize(self):
         point = np.array(5)
-
-        result = self.manifold.regularize(point)
-        expected = point
-        self.assertTrue(np.allclose(result, expected))
+        self.assertRaises(NotImplementedError,
+                          lambda: self.manifold.regularize(point))
 
 
 if __name__ == '__main__':

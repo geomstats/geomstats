@@ -3,12 +3,11 @@
 import numpy as np
 
 import geomstats.special_orthogonal_group as so_group
+import geomstats.utils as utils
 
 from geomstats.euclidean_space import EuclideanSpace
 from geomstats.lie_group import LieGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
-
-EPSILON = 1e-5
 
 
 class SpecialEuclideanGroup(LieGroup):
@@ -45,9 +44,10 @@ class SpecialEuclideanGroup(LieGroup):
         with self.regularized rotation.
         """
 
-        regularized_transfo = transfo
+        regularized_transfo = np.zeros(self.dimension)
         rot_vec = transfo[0:3]
-        regularized_transfo[0:3] = self.rotations.regularize(rot_vec)
+        regularized_transfo[:3] = self.rotations.regularize(rot_vec)
+        regularized_transfo[3:6] = transfo[3:6]
 
         return regularized_transfo
 
@@ -122,7 +122,6 @@ class SpecialEuclideanGroup(LieGroup):
         point = self.regularize(point)
 
         rot_vec = point[0:3]
-        translation = point[3:6]
 
         jacobian = np.zeros((6, 6))
 
@@ -141,14 +140,13 @@ class SpecialEuclideanGroup(LieGroup):
                                                       point=rot_vec,
                                                       left_or_right='right')
             jacobian[:3, :3] = jacobian_rot
-            jacobian[3:, :3] = - so_group.skew_matrix_from_vector(translation)
+            jacobian[3:, :3] = - so_group.skew_matrix_from_vector(rot_vec)
             jacobian[3:, 3:] = np.eye(3)
 
         return jacobian
 
     def group_exp_from_identity(self,
-                                tangent_vec,
-                                epsilon=EPSILON):
+                                tangent_vec):
         """
         Compute the group exponential of vector tangent_vector,
         at point base_point.
@@ -157,11 +155,13 @@ class SpecialEuclideanGroup(LieGroup):
         :param base_point: 6d vector element of SE(3).
         :returns group_exp_transfo: 6d vector element of SE(3).
         """
-        tangent_vec = self.regularize(tangent_vec)
-
         rot_vec = tangent_vec[0:3]
-        translation = tangent_vec[3:6]  # this is dt
+        rot_vec = self.rotations.regularize(rot_vec)
+        translation = tangent_vec[3:6]
         angle = np.linalg.norm(rot_vec)
+
+        if utils.is_close(angle, np.pi):
+            rot_vec = self.rotations.regularize(rot_vec)
 
         group_exp_transfo = np.zeros(6)
         group_exp_transfo[0:3] = rot_vec
@@ -171,9 +171,10 @@ class SpecialEuclideanGroup(LieGroup):
         if angle == 0:
             coef_1 = 0
             coef_2 = 0
-        elif angle < epsilon:
-            coef_1 = 1. / 2. - angle ** 2 / 12.
-            coef_2 = 1. - angle ** 3 / 3.
+        elif utils.is_close(angle, 0):
+            coef_1 = 1. / 2. - angle ** 2 / 24. + angle ** 4 / 720.
+            coef_2 = 1. / 6 - angle ** 2 / 120. + angle ** 4 / 5040.
+
         else:
             coef_1 = (1. - np.cos(angle)) / angle ** 2
             coef_2 = (angle - np.sin(angle)) / angle ** 3
@@ -189,8 +190,7 @@ class SpecialEuclideanGroup(LieGroup):
         return group_exp_transfo
 
     def group_log_from_identity(self,
-                                point,
-                                epsilon=EPSILON):
+                                point):
         """
         Compute the group logarithm of point point,
         from the identity.
@@ -210,11 +210,16 @@ class SpecialEuclideanGroup(LieGroup):
         if angle == 0:
             coef_1 = 0
             coef_2 = 0
-            group_log[3:6] = translation
 
-        elif angle < epsilon:
+        elif utils.is_close(angle, 0):
             coef_1 = - 0.5
             coef_2 = 0.5 - angle ** 2 / 90
+
+        elif utils.is_close(angle, np.pi):
+            delta_angle = angle - np.pi
+            coef_1 = - 0.5
+            psi = 0.5 * angle * (- delta_angle / 2. - delta_angle ** 3 / 24.)
+            coef_2 = (1 - psi) / (angle ** 2)
 
         else:
             coef_1 = - 0.5
@@ -240,7 +245,7 @@ class SpecialEuclideanGroup(LieGroup):
         random_transfo = np.concatenate([random_rot_vec, random_translation])
         return random_transfo
 
-    def exponential_matrix(self, rot_vec, epsilon=1e-5):
+    def exponential_matrix(self, rot_vec):
         """
         Compute the exponential of the rotation matrix
         represented by rot_vec.
@@ -258,7 +263,7 @@ class SpecialEuclideanGroup(LieGroup):
             coef_1 = 0
             coef_2 = 0
 
-        elif angle < epsilon:
+        elif utils.is_close(angle, 0):
             coef_1 = 1. / 2. - angle ** 2 / 24.
             coef_2 = 1. / 6. - angle ** 3 / 120.
 
