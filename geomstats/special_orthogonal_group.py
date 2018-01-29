@@ -3,8 +3,7 @@
 import numpy as np
 
 from geomstats.lie_group import LieGroup
-
-EPSILON = 1e-5
+import geomstats.utils as utils
 
 
 def closest_rotation_matrix(mat):
@@ -60,10 +59,7 @@ def vector_from_skew_matrix(skew_mat):
     :return vec: 3d vector
     """
     assert skew_mat.shape == (3, 3)
-
-    vec = np.array([skew_mat[2][1],
-                    skew_mat[0][2],
-                    skew_mat[1][0]])
+    vec = skew_mat[(2, 0, 1), (1, 2, 0)]
     return vec
 
 
@@ -112,7 +108,7 @@ class SpecialOrthogonalGroup(LieGroup):
 
         return regularized_rot_vec
 
-    def rotation_vector_from_matrix(self, rot_mat, epsilon=EPSILON):
+    def rotation_vector_from_matrix(self, rot_mat):
         """
         Convert rotation matrix to rotation vector
         (axis-angle representation).
@@ -144,10 +140,9 @@ class SpecialOrthogonalGroup(LieGroup):
 
         rot_vec = vector_from_skew_matrix(rot_mat - rot_mat.transpose())
 
-        if angle < epsilon:
+        if utils.is_close(angle, 0):
             rot_vec = (.5 - (trace - 3.) / 12.) * rot_vec
-
-        elif abs(angle - np.pi) < epsilon:
+        elif utils.is_close(angle, np.pi):
             # choose the largest diagonal element
             # to avoid a square root of a negative number
             a = np.argmax(np.diag(rot_mat))
@@ -170,7 +165,7 @@ class SpecialOrthogonalGroup(LieGroup):
 
         return self.regularize(rot_vec)
 
-    def matrix_from_rotation_vector(self, rot_vec, epsilon=EPSILON):
+    def matrix_from_rotation_vector(self, rot_vec):
         """
         Convert rotation vector to rotation matrix.
 
@@ -184,7 +179,7 @@ class SpecialOrthogonalGroup(LieGroup):
         angle = np.linalg.norm(rot_vec)
         skew_rot_vec = skew_matrix_from_vector(rot_vec)
 
-        if angle < epsilon:
+        if utils.is_close(angle, 0):
             coef_1 = 1 - (angle ** 2) / 6
             coef_2 = 1 / 2 - angle ** 2
         else:
@@ -220,7 +215,7 @@ class SpecialOrthogonalGroup(LieGroup):
         return -rot_vec
 
     def jacobian_translation(self, point,
-                             left_or_right='left', epsilon=EPSILON):
+                             left_or_right='left'):
         """
         Compute the jacobian matrix of the differential
         of the left translation by the rotation r.
@@ -236,10 +231,10 @@ class SpecialOrthogonalGroup(LieGroup):
         point = self.regularize(point)
 
         angle = np.linalg.norm(point)
-        if angle < epsilon:
+        if utils.is_close(angle, 0):
             coef_1 = 1 - angle ** 2 / 12
             coef_2 = 1 / 12 + angle ** 2 / 720
-        elif np.abs(angle - np.pi) < epsilon:
+        elif utils.is_close(angle, np.pi):
             coef_1 = angle * (np.pi - angle) / 4
             coef_2 = (1 - coef_1) / angle ** 2
         else:
