@@ -6,6 +6,11 @@ import unittest
 
 from geomstats.hyperbolic_space import HyperbolicSpace
 
+# Tolerance for errors on predicted vectors, relative to the *norm*
+# of the vector, as opposed to the standard behavior of np.allclose
+# where it is relative to each element of the array
+RTOL = 1e-6
+
 
 class TestHyperbolicSpaceMethods(unittest.TestCase):
     def setUp(self):
@@ -131,7 +136,11 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
         result_1 = self.metric.log(point=exp_1, base_point=base_point_1)
 
         expected_1 = vector_1
-        self.assertTrue(np.allclose(result_1, expected_1))
+        norm = np.linalg.norm(expected_1)
+        atol = RTOL
+        if norm != 0:
+            atol = RTOL * norm
+        self.assertTrue(np.allclose(result_1, expected_1, atol=atol))
 
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """

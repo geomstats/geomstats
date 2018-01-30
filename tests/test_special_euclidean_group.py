@@ -15,8 +15,9 @@ from geomstats.special_euclidean_group import SpecialEuclideanGroup
 import tests.helper as helper
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
-# of the vector
-RTOL = 1e-6
+# of the vector, as opposed to the standard behavior of np.allclose
+# where it is relative to each element of the array
+RTOL = 1e-5
 
 
 class TestSpecialEuclideanGroupMethods(unittest.TestCase):
@@ -80,8 +81,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
         # Metrics - only diagonals
         diag_mat_at_identity = np.zeros([group.dimension, group.dimension])
-        diag_mat_at_identity[0:3, 0:3] = 1 * np.eye(3)
-        diag_mat_at_identity[3:6, 3:6] = 2 * np.eye(3)
+        diag_mat_at_identity[0:3, 0:3] = 2 * np.eye(3)
+        diag_mat_at_identity[3:6, 3:6] = 3 * np.eye(3)
 
         left_diag_metric = InvariantMetric(
                    lie_group=group,
@@ -445,7 +446,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                    group=self.group,
                                                    tangent_vec=tangent_vec,
                                                    base_point=base_point)
-                self.assertTrue(np.allclose(result, expected),
+                norm = np.linalg.norm(expected)
+                atol = RTOL
+                if norm != 0:
+                    atol = RTOL * norm
+                self.assertTrue(np.allclose(result, expected, atol=atol),
                                 '\n{}'
                                 '\ntangent_vec = {}'
                                 '\nresult = {}'
@@ -743,7 +748,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                             group=self.group,
                                             tangent_vec=tangent_vec,
                                             base_point=base_point)
-                self.assertTrue(np.allclose(result, expected),
+                norm = np.linalg.norm(expected)
+                atol = RTOL
+                if norm != 0:
+                    atol = RTOL * norm
+                self.assertTrue(np.allclose(result, expected, atol=atol),
                                 '\ntangent_vec = {}'
                                 '\nresult = {}'
                                 '\nexpected = {}'.format(
@@ -806,7 +815,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                             base_point=base_point)
 
                 expected = self.group.regularize(point)
-                self.assertTrue(np.allclose(result, expected, atol=1e-6),
+                norm = np.linalg.norm(expected)
+                atol = RTOL
+                if norm != 0:
+                    atol = RTOL * norm
+                self.assertTrue(np.allclose(result, expected, atol=atol),
                                 '\npoint = {}'
                                 '\nresult = {}'
                                 '\nexpected = {}'.format(
@@ -871,17 +884,6 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                             group=self.group,
                                             tangent_vec=tangent_vec,
                                             base_point=base_point)
-                #  self.assertTrue(np.allclose(result, expected, atol=1e-6),
-                #                  '\n{}'
-                #                  '\nbase_point {} = {}'
-                #                  '\ntangent_vec = {}'
-                #                  '\nresult = {}'
-                #                  '\nexpected = {}'.format(
-                #                 element_type,
-                #                 base_point_type, base_point,
-                #                 tangent_vec,
-                #                 result,
-                #                 expected))
 
     def test_exp_then_log_right_with_angles_close_to_pi(self):
         """
@@ -908,11 +910,14 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                 inv_rot_expected = np.zeros(6)
                 inv_rot_expected[:3] = - expected[:3]
                 inv_rot_expected[3:6] = expected[3:6]
-
-                self.assertTrue(np.allclose(result, expected, atol=1e-6)
+                norm = np.linalg.norm(expected)
+                atol = RTOL
+                if norm != 0:
+                    atol = RTOL * norm
+                self.assertTrue(np.allclose(result, expected, atol=atol)
                                 or np.allclose(result,
                                                inv_rot_expected,
-                                               atol=1e-6),
+                                               atol=atol),
                                 '\ntangent_vec = {}'
                                 '\nresult = {}'
                                 '\nexpected = {}'
@@ -923,16 +928,16 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                    inv_rot_expected))
 
     def test_squared_dist_is_symmetric(self):
-        metric = self.group.left_canonical_metric
-        for point_a in self.elements.values():
-            for point_b in self.elements.values():
-                point_a = self.group.regularize(point_a)
-                point_b = self.group.regularize(point_b)
+        for metric in self.metrics.values():
+            for point_a in self.elements.values():
+                for point_b in self.elements.values():
+                    point_a = self.group.regularize(point_a)
+                    point_b = self.group.regularize(point_b)
 
-                sq_dist_a_b = metric.squared_dist(point_a, point_b)
-                sq_dist_b_a = metric.squared_dist(point_b, point_a)
+                    sq_dist_a_b = metric.squared_dist(point_a, point_b)
+                    sq_dist_b_a = metric.squared_dist(point_b, point_a)
 
-                self.assertTrue(np.allclose(sq_dist_a_b, sq_dist_b_a))
+                    self.assertTrue(np.allclose(sq_dist_a_b, sq_dist_b_a))
 
     def test_group_exponential_barycenter(self):
         # TODO(nina): this test fails, the barycenter is not accurate.
@@ -940,18 +945,12 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         result_1 = self.group.group_exponential_barycenter(
                                 points=[point_1, point_1])
         expected_1 = self.group.regularize(point_1)
-        # self.assertTrue(np.allclose(result_1, expected_1),
-        #                 '\nresult = {}\n'
-        #                 'expected = {}'.format(result_1, expected_1))
 
         point_2 = self.group.random_uniform()
         result_2 = self.group.group_exponential_barycenter(
                                 points=[point_2, point_2],
                                 weights=[1., 2.])
         expected_2 = self.group.regularize(point_2)
-        # self.assertTrue(np.allclose(result_2, expected_2),
-        #                 '\nresult = {}\n'
-        #                 'expected = {}'.format(result_2, expected_2))
 
         result_3 = self.group.group_exponential_barycenter(
                                 points=[point_1, point_2],
