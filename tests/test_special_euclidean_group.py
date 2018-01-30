@@ -15,12 +15,9 @@ from geomstats.special_euclidean_group import SpecialEuclideanGroup
 import tests.helper as helper
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
-# of the vector
-RTOL = 1e-6
-
-# Absolute tolerance for certain tests
-# TODO(nina): Get rid of this
-ATOL = 1e-5
+# of the vector, as opposed to relative to standard behavior of np.allclose
+# which compares element by element of the array
+RTOL = 1e-5
 
 
 class TestSpecialEuclideanGroupMethods(unittest.TestCase):
@@ -449,7 +446,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                    group=self.group,
                                                    tangent_vec=tangent_vec,
                                                    base_point=base_point)
-                self.assertTrue(np.allclose(result, expected, atol=ATOL),
+                norm = np.linalg.norm(expected)
+                atol = RTOL
+                if norm != 0:
+                    atol = RTOL * norm
+                self.assertTrue(np.allclose(result, expected, atol=atol),
                                 '\n{}'
                                 '\ntangent_vec = {}'
                                 '\nresult = {}'
@@ -747,7 +748,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                             group=self.group,
                                             tangent_vec=tangent_vec,
                                             base_point=base_point)
-                self.assertTrue(np.allclose(result, expected, atol=ATOL),
+                norm = np.linalg.norm(expected)
+                atol = RTOL
+                if norm != 0:
+                    atol = RTOL * norm
+                self.assertTrue(np.allclose(result, expected, atol=atol),
                                 '\ntangent_vec = {}'
                                 '\nresult = {}'
                                 '\nexpected = {}'.format(
@@ -810,7 +815,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                             base_point=base_point)
 
                 expected = self.group.regularize(point)
-                self.assertTrue(np.allclose(result, expected, atol=ATOL),
+                norm = np.linalg.norm(expected)
+                atol = RTOL
+                if norm != 0:
+                    atol = RTOL * norm
+                self.assertTrue(np.allclose(result, expected, atol=atol),
                                 '\npoint = {}'
                                 '\nresult = {}'
                                 '\nexpected = {}'.format(
@@ -875,7 +884,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                             group=self.group,
                                             tangent_vec=tangent_vec,
                                             base_point=base_point)
-                #  self.assertTrue(np.allclose(result, expected, atol=ATOL),
+
+                #  self.assertTrue(np.allclose(result, expected, atol=atol),
                 #                  '\n{}'
                 #                  '\nbase_point {} = {}'
                 #                  '\ntangent_vec = {}'
@@ -912,11 +922,14 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                 inv_rot_expected = np.zeros(6)
                 inv_rot_expected[:3] = - expected[:3]
                 inv_rot_expected[3:6] = expected[3:6]
-
-                self.assertTrue(np.allclose(result, expected, atol=1e-5)
+                norm = np.linalg.norm(expected)
+                atol = RTOL
+                if norm != 0:
+                    atol = RTOL * norm
+                self.assertTrue(np.allclose(result, expected, atol=atol)
                                 or np.allclose(result,
                                                inv_rot_expected,
-                                               atol=1e-5),
+                                               atol=atol),
                                 '\ntangent_vec = {}'
                                 '\nresult = {}'
                                 '\nexpected = {}'
