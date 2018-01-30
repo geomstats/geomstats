@@ -885,18 +885,6 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                             tangent_vec=tangent_vec,
                                             base_point=base_point)
 
-                #  self.assertTrue(np.allclose(result, expected, atol=atol),
-                #                  '\n{}'
-                #                  '\nbase_point {} = {}'
-                #                  '\ntangent_vec = {}'
-                #                  '\nresult = {}'
-                #                  '\nexpected = {}'.format(
-                #                 element_type,
-                #                 base_point_type, base_point,
-                #                 tangent_vec,
-                #                 result,
-                #                 expected))
-
     def test_exp_then_log_right_with_angles_close_to_pi(self):
         """
         Test that the riemannian right exponential and the
@@ -957,18 +945,12 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         result_1 = self.group.group_exponential_barycenter(
                                 points=[point_1, point_1])
         expected_1 = self.group.regularize(point_1)
-        # self.assertTrue(np.allclose(result_1, expected_1),
-        #                 '\nresult = {}\n'
-        #                 'expected = {}'.format(result_1, expected_1))
 
         point_2 = self.group.random_uniform()
         result_2 = self.group.group_exponential_barycenter(
                                 points=[point_2, point_2],
                                 weights=[1., 2.])
         expected_2 = self.group.regularize(point_2)
-        # self.assertTrue(np.allclose(result_2, expected_2),
-        #                 '\nresult = {}\n'
-        #                 'expected = {}'.format(result_2, expected_2))
 
         result_3 = self.group.group_exponential_barycenter(
                                 points=[point_1, point_2],
