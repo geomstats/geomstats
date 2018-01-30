@@ -15,8 +15,8 @@ from geomstats.special_euclidean_group import SpecialEuclideanGroup
 import tests.helper as helper
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
-# of the vector, as opposed to relative to standard behavior of np.allclose
-# which compares element by element of the array
+# of the vector, as opposed to the standard behavior of np.allclose
+# where it is relative to each element of the array
 RTOL = 1e-5
 
 
