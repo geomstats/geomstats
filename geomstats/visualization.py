@@ -1,10 +1,12 @@
 """Visualization for Geometric Statistics."""
 
-import numpy as np
-from matplotlib import pyplot as plt
+import matplotlib
+matplotlib.use('PDF')  # noqa
+import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
 
-import geomstats.rotations as rotations
+import geomstats.special_orthogonal_group as special_orthogonal_group
 
 
 class Arrow3D():
@@ -47,10 +49,11 @@ def trihedron_from_rigid_transformation(transfo):
     - the trihedron's orientation is the rotation of the canonical basis
     of R^3 by the rotation part of transfo.
     """
+    SO3 = special_orthogonal_group.SpecialOrthogonalGroup(3)
     translation = transfo[3:6]
     rot_vec = transfo[0:3]
-    rot_mat = rotations.rotation_matrix_from_rotation_vector(rot_vec)
-    rot_mat = rotations.closest_rotation_matrix(rot_mat)
+    rot_mat = SO3.matrix_from_rotation_vector(rot_vec)
+    rot_mat = special_orthogonal_group.closest_rotation_matrix(rot_mat)
 
     basis_vec_1 = np.array([1, 0, 0])
     basis_vec_2 = np.array([0, 1, 0])
