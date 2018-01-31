@@ -4,6 +4,7 @@ with its left-invariant canonical METRIC.
 """
 
 import numpy as np
+import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
@@ -19,10 +20,21 @@ def main():
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                initial_tangent_vec=initial_tangent_vec)
 
-    points = np.vstack([geodesic(t)
-                        for t in np.linspace(-0.7, 0.7, 20)])
+    n_steps = 10
+    t = np.linspace(0, 10, n_steps)
+    points = geodesic(t)
 
-    visualization.plot(points)
+    fig = plt.figure(figsize=(15, 5))
+
+    im = plt.imshow(geodesic(t), animated=True)
+
+    def updatefig(*args):
+        global t
+        t += 1
+        im.set_array(geodesic(t))
+        return im,
+
+    ani = animation.FuncAnimation(fig, updatefig, interval=10, blit=True)
     plt.show()
 
 
