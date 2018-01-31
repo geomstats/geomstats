@@ -89,7 +89,8 @@ class RiemannianMetric(object):
         geodesic curve parameterized by t.
         """
         def point_on_geodesic(t):
-            point_at_time_t = self.exp(tangent_vec=t * initial_tangent_vec,
+            tangent_vecs = np.outer(t, initial_tangent_vec)
+            point_at_time_t = self.exp(tangent_vec=tangent_vecs,
                                        base_point=initial_point)
             return point_at_time_t
 

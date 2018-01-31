@@ -6,9 +6,9 @@ with its left-invariant canonical METRIC.
 import numpy as np
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
-import geomstats.visualization as visualization
 
 SE3_GROUP = SpecialEuclideanGroup(n=3)
 METRIC = SE3_GROUP.left_canonical_metric
@@ -22,7 +22,6 @@ def main():
 
     n_steps = 10
     t = np.linspace(0, 10, n_steps)
-    points = geodesic(t)
 
     fig = plt.figure(figsize=(15, 5))
 

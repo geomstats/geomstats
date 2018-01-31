@@ -87,7 +87,9 @@ def plot(points, ax=None, **point_draw_kwargs):
                  ylim=(-ax_s, ax_s),
                  zlim=(-ax_s, ax_s),
                  xlabel="X", ylabel="Y", zlabel="Z")
+
     for point in points:
         trihedron = trihedron_from_rigid_transformation(point)
         trihedron.draw(ax, **point_draw_kwargs)
+
     return ax
