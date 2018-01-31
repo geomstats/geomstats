@@ -74,3 +74,28 @@ def plot_trihedron(trihedron, **trihedron_draw_kwargs):
     ax = fig.add_subplot(111, projection='3d')
     trihedron.draw(ax, **trihedron_draw_kwargs)
     return fig
+
+
+def plot_point(ax, point, space):
+    trihedron = trihedron_from_rigid_transformation(point)
+    trihedron.draw(ax)
+    return ax
+
+
+def plot_geodesic(ax, points, space=None):
+    if points is None or len(points) == 0:
+        raise ValueError("Geodesic does not contain any elements.")
+
+    if ax is None:
+        ax_s = np.amax(np.abs(points[:, 3:6]))
+        ax = plt.subplot(111, projection="3d", aspect="equal")
+        plt.setp(ax,
+                 xlim=(-ax_s, ax_s),
+                 ylim=(-ax_s, ax_s),
+                 zlim=(-ax_s, ax_s),
+                 xlabel="X", ylabel="Y", zlabel="Z")
+
+    for point in points:
+        plot_point(ax=ax, point=point, space=space)
+
+    return ax
