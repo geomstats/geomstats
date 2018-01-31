@@ -9,7 +9,7 @@ import unittest
 
 class TestVisualizationMethods(unittest.TestCase):
 
-    def test_trihedron_from_rigid_transformation(self):
+    def test_plot_points(self):
         translation = np.array([1, 2, 3])
         rot_vec = np.array([-1, 3, 6])
         transfo = np.concatenate([rot_vec, translation])
