@@ -16,7 +16,7 @@ class TestVisualizationMethods(unittest.TestCase):
 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        ax = visualization.plot_points(transfo, ax)
+        ax = visualization.plot(transfo, ax)
         fig.savefig('test_plot_trihedron.png')
 
 if __name__ == '__main__':

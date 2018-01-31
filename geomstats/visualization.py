@@ -68,7 +68,7 @@ def trihedron_from_rigid_transformation(transfo):
     return trihedron
 
 
-def plot_points(points, ax=None, **point_draw_kwargs):
+def plot(points, ax=None, **point_draw_kwargs):
     """
     Plot points in the 3D Special Euclidean Group,
     by showing them as trihedrons.
