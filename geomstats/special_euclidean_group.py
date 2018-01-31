@@ -30,7 +30,10 @@ class SpecialEuclideanGroup(LieGroup):
         Check that the transformation belongs to
         the special euclidean group.
         """
-        return len(transfo) == self.dimension
+        ##Note: Vectorized
+        if len(transfo.shape) == 1:
+            transfo = np.expand_dims(transfo, axis=0)
+        return transfo.shape[1] == self.dimension
 
     def regularize(self, transfo):
         """
@@ -42,11 +45,14 @@ class SpecialEuclideanGroup(LieGroup):
         :returns self.regularized_transfo: 6d vector, element in SE(3)
         with self.regularized rotation.
         """
-
-        regularized_transfo = np.zeros(self.dimension)
-        rot_vec = transfo[0:3]
-        regularized_transfo[:3] = self.rotations.regularize(rot_vec)
-        regularized_transfo[3:6] = transfo[3:6]
+        ##Note: Vectorized
+        assert self.belongs(transfo)
+        if len(transfo.shape) == 1:
+            transfo = np.expand_dims(transfo, axis=0)
+        regularized_transfo = np.zeros_like(transfo)
+        rot_vec = transfo[:, 0:3]
+        regularized_transfo[:, :3] = self.rotations.regularize(rot_vec)
+        regularized_transfo[:, 3:6] = transfo[:, 3:6]
 
         return regularized_transfo
 
@@ -63,6 +69,7 @@ class SpecialEuclideanGroup(LieGroup):
         :param transfo_1, transfo_2: 6d vectors elements of SE(3)
         :returns prod_transfo: composition of transfo_1 and transfo_2
         """
+        ##Note: Vectorized
         rot_mat_1 = self.rotations.matrix_from_rotation_vector(transfo_1[0:3])
         rot_mat_1 = so_group.closest_rotation_matrix(rot_mat_1)
 
@@ -77,7 +84,8 @@ class SpecialEuclideanGroup(LieGroup):
 
         prod_transfo[:3] = self.rotations.rotation_vector_from_matrix(
                                                                   prod_rot_mat)
-        prod_transfo[3:6] = np.dot(rot_mat_1, translation_2) + translation_1
+        prod_transfo[3:6] = (np.dot(translation_2, rot_mat_1.transpose())
+                             + translation_1)
 
         prod_transfo = self.regularize(prod_transfo)
         return prod_transfo
@@ -92,7 +100,7 @@ class SpecialEuclideanGroup(LieGroup):
         :param transfo: 6d vector element in SE(3)
         :returns inverse_transfo: 6d vector inverse of transfo
         """
-
+        ##Note: Vectorized
         transfo = self.regularize(transfo)
 
         rot_vec = transfo[0:3]
@@ -101,7 +109,7 @@ class SpecialEuclideanGroup(LieGroup):
         inverse_transfo = np.zeros(6)
         inverse_transfo[0:3] = -rot_vec
         rot_mat = self.rotations.matrix_from_rotation_vector(-rot_vec)
-        inverse_transfo[3:6] = np.dot(rot_mat, -translation)
+        inverse_transfo[3:6] = np.dot(-translation, rot_mat.transpose())
 
         inverse_transfo = self.regularize(inverse_transfo)
         return inverse_transfo
@@ -119,10 +127,11 @@ class SpecialEuclideanGroup(LieGroup):
         assert left_or_right in ('left', 'right')
 
         point = self.regularize(point)
+        print('point in jacobian of se3')
+        print(point.shape)
+        rot_vec = point[: , 0:3]
 
-        rot_vec = point[0:3]
-
-        jacobian = np.zeros((6, 6))
+        jacobian = np.zeros((point.shape[0], 6, 6))
 
         if left_or_right == 'left':
             jacobian_rot = self.rotations.jacobian_translation(
@@ -131,16 +140,16 @@ class SpecialEuclideanGroup(LieGroup):
             jacobian_trans = self.rotations.matrix_from_rotation_vector(
                     rot_vec)
 
-            jacobian[:3, :3] = jacobian_rot
-            jacobian[3:, 3:] = jacobian_trans
+            jacobian[:, :3, :3] = jacobian_rot
+            jacobian[:, 3:, 3:] = jacobian_trans
 
         else:
             jacobian_rot = self.rotations.jacobian_translation(
                                                       point=rot_vec,
                                                       left_or_right='right')
-            jacobian[:3, :3] = jacobian_rot
-            jacobian[3:, :3] = - so_group.skew_matrix_from_vector(rot_vec)
-            jacobian[3:, 3:] = np.eye(3)
+            jacobian[:, :3, :3] = jacobian_rot
+            jacobian[:, 3:, :3] = - so_group.skew_matrix_from_vector(rot_vec)
+            jacobian[:, 3:, 3:] = np.eye(3)
 
         return jacobian
 
@@ -154,6 +163,7 @@ class SpecialEuclideanGroup(LieGroup):
         :param base_point: 6d vector element of SE(3).
         :returns group_exp_transfo: 6d vector element of SE(3).
         """
+        ##Vectorized
         rot_vec = tangent_vec[0:3]
         rot_vec = self.rotations.regularize(rot_vec)
         translation = tangent_vec[3:6]
@@ -180,10 +190,10 @@ class SpecialEuclideanGroup(LieGroup):
 
         sq_skew_mat = np.dot(skew_mat, skew_mat)
         group_exp_transfo[3:6] = (translation
-                                  + coef_1 * np.dot(skew_mat,
-                                                    translation)
-                                  + coef_2 * np.dot(sq_skew_mat,
-                                                    translation))
+                                  + coef_1 * np.dot(translation,
+                                                    skew_mat.transpose())
+                                  + coef_2 * np.dot(translation,
+                                                    sq_skew_mat.transpose()))
 
         group_exp_transfo = self.regularize(group_exp_transfo)
         return group_exp_transfo
@@ -194,6 +204,7 @@ class SpecialEuclideanGroup(LieGroup):
         Compute the group logarithm of point point,
         from the identity.
         """
+        ##Vectorized
         assert self.belongs(point)
         point = self.regularize(point)
 
@@ -226,9 +237,10 @@ class SpecialEuclideanGroup(LieGroup):
             coef_2 = (1 - psi) / (angle ** 2)
 
         group_log[3:6] = (translation
-                          + coef_1 * np.dot(skew_rot_vec, translation)
-                          + coef_2 * np.dot(sq_skew_rot_vec,
-                                            translation))
+                          + coef_1 * np.dot(translation,
+                                            skew_rot_vec.transpose())
+                          + coef_2 * np.dot(translation,
+                                            sq_skew_rot_vec.transpose()))
         return group_log
 
     def random_uniform(self):

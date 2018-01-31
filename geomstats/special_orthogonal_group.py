@@ -15,7 +15,13 @@ def closest_rotation_matrix(mat):
     :param mat: 3x3 matrix
     :returns rot_mat: 3x3 rotation matrix.
     """
-    assert mat.shape == (3, 3)
+    print('mat before')
+    print(mat.shape)
+    if len(mat.shape) == 2:
+        mat = np.expand_dims(mat, axis=0)
+    print('mat after')
+    print(mat.shape)
+    assert mat.shape[1:] == (3, 3)
 
     mat_unitary_u, mat_diag_s, mat_unitary_v = np.linalg.svd(mat)
     rot_mat = np.dot(mat_unitary_u, mat_unitary_v)
@@ -40,11 +46,14 @@ def skew_matrix_from_vector(vec):
     :param vec: 3d vector
     :return skew_mat: 3x3 skew-symmetric matrix
     """
-    assert len(vec) == 3
+    if len(vec.shape) == 1:
+        vec = np.expand_dims(vec, axis=0)
 
-    skew_mat = np.array([[0, -vec[2], vec[1]],
-                         [vec[2], 0, -vec[0]],
-                         [-vec[1], vec[0], 0]])
+    skew_mat = np.zeros([vec.shape[0], vec.shape[1], vec.shape[1]])
+    skew_mat[:] = np.cross(np.array([[1., 0., 0.],
+                                     [0., 1., 0.],
+                                     [0., 0., 1.]]),
+                           vec[:])
     return skew_mat
 
 
@@ -82,7 +91,9 @@ class SpecialOrthogonalGroup(LieGroup):
         Check that a vector belongs to the
         special orthogonal group.
         """
-        return len(rot_vec) == self.dimension
+        if len(rot_vec.shape) == 1:
+            rot_vec = np.expand_dims(rot_vec, axis=0)
+        return rot_vec.shape[1] == self.dimension
 
     def regularize(self, rot_vec):
         """
@@ -98,6 +109,8 @@ class SpecialOrthogonalGroup(LieGroup):
         :returns self.regularized_rot_vec: 3d vector with: 0 < norm < pi
         """
         assert self.belongs(rot_vec)
+        if len(rot_vec.shape) == 1:
+            rot_vec = np.expand_dims(rot_vec, axis=0)
         angle = np.linalg.norm(rot_vec)
         regularized_rot_vec = rot_vec
 
@@ -225,6 +238,8 @@ class SpecialOrthogonalGroup(LieGroup):
         :param rot_vec: 3D rotation vector
         :returns jacobian: 3x3 matrix
         """
+        print('point for jacobian of rot')
+        print(point.shape)
         assert self.belongs(point)
         assert left_or_right in ('left', 'right')
         point = self.regularize(point)

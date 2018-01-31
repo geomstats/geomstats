@@ -70,8 +70,11 @@ class InvariantMetric(RiemannianMetric):
         metric, it used the left-invariant metric associated to the same
         inner-product at the identity.
         """
-        exp = np.dot(self.inner_product_mat_at_identity, tangent_vec)
-
+        ##Note: Vectorized
+        mat = self.inner_product_mat_at_identity.transpose()
+        exp = np.dot(tangent_vec, mat)
+        print('exp in left exp before ref')
+        print(exp.shape)
         exp = self.lie_group.regularize(exp)
         return exp
 
@@ -87,7 +90,8 @@ class InvariantMetric(RiemannianMetric):
             opp_left_exp = self.left_exp_from_identity(-tangent_vec)
 
             exp = self.lie_group.inverse(opp_left_exp)
-
+        print('exp from identity before reg: {}')
+        print(exp.shape)
         exp = self.lie_group.regularize(exp)
         return exp
 
@@ -96,6 +100,7 @@ class InvariantMetric(RiemannianMetric):
         Compute the Riemannian exponential at point base_point
         of tangent vector tangent_vec.
         """
+        ##Note: Vectorized
         base_point = self.lie_group.regularize(base_point)
 
         jacobian = self.lie_group.jacobian_translation(
@@ -103,8 +108,10 @@ class InvariantMetric(RiemannianMetric):
                                  left_or_right=self.left_or_right)
         inv_jacobian = np.linalg.inv(jacobian)
 
-        tangent_vec_translated_to_id = np.dot(inv_jacobian, tangent_vec)
-
+        tangent_vec_translated_to_id = np.dot(tangent_vec,
+                                              inv_jacobian.transpose())
+        print('tangent_vec_translated_to_id')
+        print(tangent_vec_translated_to_id.shape)
         exp_from_id = self.exp_from_identity(
                                tangent_vec_translated_to_id)
 
@@ -114,6 +121,8 @@ class InvariantMetric(RiemannianMetric):
         else:
             exp = self.lie_group.compose(exp_from_id, base_point)
 
+        print('exp before reg')
+        print(exp.shape)
         exp = self.lie_group.regularize(exp)
         return exp
 

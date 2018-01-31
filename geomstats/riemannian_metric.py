@@ -92,6 +92,7 @@ class RiemannianMetric(object):
             tangent_vecs = np.outer(t, initial_tangent_vec)
             point_at_time_t = self.exp(tangent_vec=tangent_vecs,
                                        base_point=initial_point)
+            print(point_at_time_t.shape)
             return point_at_time_t
 
         return point_on_geodesic
