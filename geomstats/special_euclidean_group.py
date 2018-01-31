@@ -18,6 +18,9 @@ PI7 = PI * PI6
 PI8 = PI * PI7
 
 
+ATOL = 1e-5
+
+
 class SpecialEuclideanGroup(LieGroup):
 
     def __init__(self, n):
@@ -393,6 +396,7 @@ class SpecialEuclideanGroup(LieGroup):
         group_log[:, dim_rotations:] = group_log_translation
 
         assert group_log.ndim == 2
+
         return group_log
 
     def random_uniform(self, n_samples=1):
@@ -463,6 +467,7 @@ class SpecialEuclideanGroup(LieGroup):
 
         exponential_mat = term_1 + term_2
         assert exponential_mat.ndim == 3
+
         return exponential_mat
 
     def group_exponential_barycenter(self, points, weights=None):

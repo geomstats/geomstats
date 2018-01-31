@@ -8,6 +8,8 @@ from geomstats.lie_group import LieGroup
 import geomstats.backend as gs
 import geomstats.spd_matrices_space as spd_matrices_space
 
+ATOL = 1e-5
+
 
 def closest_rotation_matrix(mat):
     """
@@ -588,6 +590,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             jacobian = self.matrix_from_rotation_vector(point)
 
         assert jacobian.ndim == 3
+
         return jacobian
 
     def random_uniform(self, n_samples=1):

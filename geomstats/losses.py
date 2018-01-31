@@ -4,8 +4,12 @@ Predict on manifolds: losses.
 import numpy as np
 
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
+from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
+import tests.helper as helper
+
 
 SE3_GROUP = SpecialEuclideanGroup(n=3)
+SO3_GROUP = SpecialOrthogonalGroup(n=3)
 
 
 def lie_group_riemannian_loss(y_pred, y_true,
@@ -16,22 +20,6 @@ def lie_group_riemannian_loss(y_pred, y_true,
     """
     loss = metric.squared_dist(y_pred, y_true)
     return loss
-
-
-def lie_group_riemannian_numerical_grad_per_coord(y_pred, y_true,
-                                                  delta=.001, coord=0):
-    delta_vec = np.zeros(SE3_GROUP.dimension)
-    delta_vec[coord] = delta
-
-    y_pred_and_delta = y_pred + delta
-
-    loss = lie_group_riemannian_loss(y_pred,
-                                     y_true)
-    loss_at_delta = lie_group_riemannian_loss(y_pred_and_delta,
-                                              y_true)
-
-    num_grad = (loss_at_delta - loss) / delta
-    return num_grad
 
 
 def lie_group_riemannian_grad(y_pred, y_true,
@@ -46,6 +34,10 @@ def lie_group_riemannian_grad(y_pred, y_true,
     grad_point = - 2. * tangent_vec
 
     inner_prod_mat = metric.inner_product_matrix(base_point=y_pred)
-    grad = np.dot(inner_prod_mat, grad_point)
 
+    grad = np.dot(inner_prod_mat, grad_point)
+    grad_rot = helper.regularize_tangent_vec(
+                                           group=SO3_GROUP,
+                                           tangent_vec=grad[:3],
+                                           base_point=y_pred[:3])
     return grad
