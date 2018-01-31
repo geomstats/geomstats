@@ -90,6 +90,22 @@ class RiemannianMetric(object):
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
         return sq_dist
 
+    def geodesic(self, initial_point, initial_tangent_vec):
+        """
+        Geodesic curve associated to the Riemannian metric,
+        starting at the point initial_point in the direction
+        of the initial tangent vector.
+
+        The geodesic is returned as a function of t, which represents the
+        geodesic curve parameterized by t.
+        """
+        def point_on_geodesic(t):
+            point_at_time_t = self.exp(tangent_vec=t * initial_tangent_vec,
+                                       base_point=initial_point)
+            return point_at_time_t
+
+        return point_on_geodesic
+
     def dist(self, point_a, point_b):
         """
         Riemannian distance between points point_a and point_b. This

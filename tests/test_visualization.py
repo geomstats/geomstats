@@ -2,6 +2,7 @@
 
 import geomstats.visualization as visualization
 
+import matplotlib.pyplot as plt
 import numpy as np
 import unittest
 
@@ -13,8 +14,9 @@ class TestVisualizationMethods(unittest.TestCase):
         rot_vec = np.array([-1, 3, 6])
         transfo = np.concatenate([rot_vec, translation])
 
-        trihedron = visualization.trihedron_from_rigid_transformation(transfo)
-        fig = visualization.plot_trihedron(trihedron)
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax = visualization.plot_points(transfo, ax)
         fig.savefig('test_plot_trihedron.png')
 
 if __name__ == '__main__':

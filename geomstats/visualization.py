@@ -1,7 +1,5 @@
 """Visualization for Geometric Statistics."""
 
-import matplotlib
-matplotlib.use('PDF')  # noqa
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
@@ -70,9 +68,26 @@ def trihedron_from_rigid_transformation(transfo):
     return trihedron
 
 
-def plot_trihedron(trihedron, **trihedron_draw_kwargs):
-    "Return the figure with the plotted trihedron."
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    trihedron.draw(ax, **trihedron_draw_kwargs)
-    return fig
+def plot_points(points, ax=None, **point_draw_kwargs):
+    """
+    Plot points in the 3D Special Euclidean Group,
+    by showing them as trihedrons.
+    """
+    if len(points.shape) is 1:
+        points = np.expand_dims(points, axis=0)
+
+    if points is None or points.shape[0] is 0:
+        raise ValueError("No points given for plotting.")
+
+    if ax is None:
+        ax_s = 1.2 * np.amax(np.abs(points[:, 3:6]))
+        ax = plt.subplot(111, projection="3d", aspect="equal")
+        plt.setp(ax,
+                 xlim=(-ax_s, ax_s),
+                 ylim=(-ax_s, ax_s),
+                 zlim=(-ax_s, ax_s),
+                 xlabel="X", ylabel="Y", zlabel="Z")
+    for point in points:
+        trihedron = trihedron_from_rigid_transformation(point)
+        trihedron.draw(ax, **point_draw_kwargs)
+    return ax
