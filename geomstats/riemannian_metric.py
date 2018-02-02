@@ -35,9 +35,20 @@ class RiemannianMetric(object):
         Inner product defined by the Riemannian metric at point base_point
         between tangent vectors tangent_vec_a and tangent_vec_b.
         """
+        if tangent_vec_a.ndim == 1:
+            tangent_vec_a = np.expand_dim(tangent_vec_a, axis=0)
+        if tangent_vec_b.ndim == 1:
+            tangent_vec_b = np.expand_dim(tangent_vec_b, axis=0)
+
+        assert tangent_vec_a.ndim == tangent_vec_b.ndim == 2
+
         inner_prod_mat = self.inner_product_matrix(base_point)
-        inner_prod = np.dot(np.dot(tangent_vec_a.transpose(), inner_prod_mat),
-                            tangent_vec_b)
+        if inner_prod_mat.ndim == 2:
+            inner_prod_mat = np.expand_dims(inner_prod_mat, axis=0)
+
+        aux = np.dot(tangent_vec_a, inner_prod_mat)
+        aux = np.squeeze(aux, axis=1)
+        inner_prod = np.dot(aux, tangent_vec_b.transpose())
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
@@ -107,22 +118,6 @@ class RiemannianMetric(object):
         log = self.log(point=point_b, base_point=point_a)
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
         return sq_dist
-
-    def geodesic(self, initial_point, initial_tangent_vec):
-        """
-        Geodesic curve associated to the Riemannian metric,
-        starting at the point initial_point in the direction
-        of the initial tangent vector.
-
-        The geodesic is returned as a function of t, which represents the
-        geodesic curve parameterized by t.
-        """
-        def point_on_geodesic(t):
-            point_at_time_t = self.exp(tangent_vec=t * initial_tangent_vec,
-                                       base_point=initial_point)
-            return point_at_time_t
-
-        return point_on_geodesic
 
     def dist(self, point_a, point_b):
         """

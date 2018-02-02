@@ -51,11 +51,11 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
         diag_mat = np.diag([3., 3., 3.])
         left_diag_metric = InvariantMetric(
-                   lie_group=group,
+                   group=group,
                    inner_product_mat_at_identity=diag_mat,
                    left_or_right='left')
         right_diag_metric = InvariantMetric(
-                   lie_group=group,
+                   group=group,
                    inner_product_mat_at_identity=diag_mat,
                    left_or_right='right')
 
@@ -511,14 +511,11 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     result = helper.exp_then_log(metric=metric,
                                                  tangent_vec=tangent_vec,
                                                  base_point=base_point)
-                    jacobian = self.group.jacobian_translation(
-                                                          point=base_point,
-                                                          left_or_right='left')
-                    tangent_vec_at_id = np.dot(np.linalg.inv(jacobian),
-                                               tangent_vec)
-                    tangent_vec_at_id = self.group.regularize(
-                                                        tangent_vec_at_id)
-                    expected = np.dot(jacobian, tangent_vec_at_id)
+
+                    expected = helper.regularize_tangent_vec(
+                                             group=self.group,
+                                             tangent_vec=tangent_vec,
+                                             base_point=base_point)
                     inv_expected = - expected
 
                     self.assertTrue((np.allclose(result, expected)
@@ -693,13 +690,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                              tangent_vec=tangent_vec,
                                              base_point=base_point)
 
-                jacobian = self.group.jacobian_translation(
-                                                      point=base_point,
-                                                      left_or_right='left')
-                tangent_vec_at_id = np.dot(np.linalg.inv(jacobian),
-                                           tangent_vec)
-                tangent_vec_at_id = self.group.regularize(tangent_vec_at_id)
-                expected = np.dot(jacobian, tangent_vec_at_id)
+                expected = helper.regularize_tangent_vec(
+                                             group=self.group,
+                                             tangent_vec=tangent_vec,
+                                             base_point=base_point)
 
                 self.assertTrue(np.allclose(result, expected, atol=1e-6),
                                 '\n- on tangent_vec {}: {} -> {}\n'
@@ -729,13 +723,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                              tangent_vec=tangent_vec,
                                              base_point=base_point)
 
-                jacobian = self.group.jacobian_translation(
-                                                      point=base_point,
-                                                      left_or_right='left')
-                tangent_vec_at_id = np.dot(np.linalg.inv(jacobian),
-                                           tangent_vec)
-                tangent_vec_at_id = self.group.regularize(tangent_vec_at_id)
-                expected = np.dot(jacobian, tangent_vec_at_id)
+                expected = helper.regularize_tangent_vec(
+                                             group=self.group,
+                                             tangent_vec=tangent_vec,
+                                             base_point=base_point)
 
                 inv_expected = - expected
 
@@ -816,21 +807,26 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
     def test_group_exponential_barycenter(self):
         rot_vec_1 = self.group.random_uniform()
+        points = np.vstack([rot_vec_1, rot_vec_1])
         result_1 = self.group.group_exponential_barycenter(
-                                points=[rot_vec_1, rot_vec_1])
+                                points=points)
         expected_1 = rot_vec_1
         self.assertTrue(np.allclose(result_1, expected_1))
 
         rot_vec_2 = self.group.random_uniform()
+        points = np.vstack([rot_vec_2, rot_vec_2])
+        weights = np.array([1., 2.])
         result_2 = self.group.group_exponential_barycenter(
-                                points=[rot_vec_2, rot_vec_2],
-                                weights=[1., 2.])
+                                points=points,
+                                weights=weights)
         expected_2 = rot_vec_2
         self.assertTrue(np.allclose(result_2, expected_2))
 
+        points = np.vstack([rot_vec_1, rot_vec_2])
+        weights = np.array([1., 2.])
         result_3 = self.group.group_exponential_barycenter(
-                                points=[rot_vec_1, rot_vec_2],
-                                weights=[1., .1])
+                                points=points,
+                                weights=weights)
 
         self.assertTrue(self.group.belongs(result_3))
 

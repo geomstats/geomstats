@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
+import geomstats.visualization as visualization
 
 SE3_GROUP = SpecialEuclideanGroup(n=3)
 METRIC = SE3_GROUP.left_canonical_metric
@@ -23,17 +24,9 @@ def main():
     n_steps = 10
     t = np.linspace(0, 10, n_steps)
 
-    fig = plt.figure(figsize=(15, 5))
+    points = geodesic(t)
 
-    im = plt.imshow(geodesic(t), animated=True)
-
-    def updatefig(*args):
-        global t
-        t += 1
-        im.set_array(geodesic(t))
-        return im,
-
-    ani = animation.FuncAnimation(fig, updatefig, interval=10, blit=True)
+    visualization.plot(points)
     plt.show()
 
 

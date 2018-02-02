@@ -85,11 +85,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         diag_mat_at_identity[3:6, 3:6] = 3 * np.eye(3)
 
         left_diag_metric = InvariantMetric(
-                   lie_group=group,
+                   group=group,
                    inner_product_mat_at_identity=diag_mat_at_identity,
                    left_or_right='left')
         right_diag_metric = InvariantMetric(
-                   lie_group=group,
+                   group=group,
                    inner_product_mat_at_identity=diag_mat_at_identity,
                    left_or_right='right')
 
@@ -300,9 +300,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                  point=point)
             expected = self.group.regularize(point)
 
-            inv_rot_expected = np.zeros(6)
-            inv_rot_expected[:3] = - expected[:3]
-            inv_rot_expected[3:6] = expected[3:6]
+            inv_rot_expected = np.zeros_like(expected)
+            inv_rot_expected[:, :3] = - expected[:, :3]
+            inv_rot_expected[:, 3:6] = expected[:, 3:6]
 
             self.assertTrue(np.allclose(result, expected)
                             or np.allclose(result, inv_rot_expected),
@@ -357,9 +357,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                 tangent_vec=tangent_vec)
             expected = self.group.regularize(tangent_vec)
 
-            inv_rot_expected = np.zeros(6)
-            inv_rot_expected[:3] = - expected[:3]
-            inv_rot_expected[3:6] = expected[3:6]
+            inv_rot_expected = np.zeros_like(expected)
+            inv_rot_expected[:, :3] = - expected[:, :3]
+            inv_rot_expected[:, 3:6] = expected[:, 3:6]
 
             self.assertTrue(np.allclose(result, expected)
                             or np.allclose(result, inv_rot_expected),
@@ -546,9 +546,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                             metric=metric,
                                             tangent_vec=tangent_vec)
             expected = self.group.regularize(tangent_vec)
-            inv_rot_expected = np.zeros(6)
-            inv_rot_expected[:3] = - expected[:3]
-            inv_rot_expected[3:6] = expected[3:6]
+            inv_rot_expected = np.zeros_like(expected)
+            inv_rot_expected[:, :3] = - expected[:, :3]
+            inv_rot_expected[:, 3:6] = expected[:, 3:6]
 
             self.assertTrue(np.allclose(result, expected)
                             or np.allclose(result, inv_rot_expected),
@@ -603,9 +603,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                             metric=metric,
                                             tangent_vec=tangent_vec)
             expected = self.group.regularize(tangent_vec)
-            inv_rot_expected = np.zeros(6)
-            inv_rot_expected[:3] = - expected[:3]
-            inv_rot_expected[3:6] = expected[3:6]
+            inv_rot_expected = np.zeros_like(expected)
+            inv_rot_expected[:, :3] = - expected[:, :3]
+            inv_rot_expected[:, 3:6] = expected[:, 3:6]
 
             self.assertTrue(np.allclose(result, expected)
                             or np.allclose(result, inv_rot_expected),
@@ -712,9 +712,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
                 expected = self.group.regularize(point)
 
-                inv_rot_expected = np.zeros(6)
-                inv_rot_expected[:3] = - expected[:3]
-                inv_rot_expected[3:6] = expected[3:6]
+                inv_rot_expected = np.zeros_like(expected)
+                inv_rot_expected[:, :3] = - expected[:, :3]
+                inv_rot_expected[:, 3:6] = expected[:, 3:6]
 
                 self.assertTrue(np.allclose(result, expected)
                                 or np.allclose(result, inv_rot_expected),
@@ -782,9 +782,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                             tangent_vec=tangent_vec,
                                             base_point=base_point)
 
-                inv_rot_expected = np.zeros(6)
-                inv_rot_expected[:3] = - expected[:3]
-                inv_rot_expected[3:6] = expected[3:6]
+                inv_rot_expected = np.zeros_like(expected)
+                inv_rot_expected[:, :3] = - expected[:, :3]
+                inv_rot_expected[:, 3:6] = expected[:, 3:6]
 
                 self.assertTrue(np.allclose(result, expected)
                                 or np.allclose(result, inv_rot_expected),
@@ -846,9 +846,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
                 expected = self.group.regularize(point)
 
-                inv_rot_expected = np.zeros(6)
-                inv_rot_expected[:3] = - expected[:3]
-                inv_rot_expected[3:6] = expected[3:6]
+                inv_rot_expected = np.zeros_like(expected)
+                inv_rot_expected[:, :3] = - expected[:, :3]
+                inv_rot_expected[:, 3:6] = expected[:, 3:6]
 
                 self.assertTrue(np.allclose(result, expected)
                                 or np.allclose(result, inv_rot_expected),
@@ -907,9 +907,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                             tangent_vec=tangent_vec,
                                             base_point=base_point)
 
-                inv_rot_expected = np.zeros(6)
-                inv_rot_expected[:3] = - expected[:3]
-                inv_rot_expected[3:6] = expected[3:6]
+                inv_rot_expected = np.zeros_like(expected)
+                inv_rot_expected[:, :3] = - expected[:, :3]
+                inv_rot_expected[:, 3:6] = expected[:, 3:6]
                 norm = np.linalg.norm(expected)
                 atol = RTOL
                 if norm != 0:
@@ -942,19 +942,24 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
     def test_group_exponential_barycenter(self):
         # TODO(nina): this test fails, the barycenter is not accurate.
         point_1 = self.group.random_uniform()
+        points = np.vstack([point_1, point_1])
         result_1 = self.group.group_exponential_barycenter(
-                                points=[point_1, point_1])
+                                points=points)
         expected_1 = self.group.regularize(point_1)
 
         point_2 = self.group.random_uniform()
+        points = np.vstack([point_2, point_2])
+        weights = np.array([1., 2.])
         result_2 = self.group.group_exponential_barycenter(
-                                points=[point_2, point_2],
-                                weights=[1., 2.])
+                                points=points,
+                                weights=weights)
         expected_2 = self.group.regularize(point_2)
 
+        points = np.vstack([point_1, point_2])
+        weights = np.array([1., 1.])
         result_3 = self.group.group_exponential_barycenter(
-                                points=[point_1, point_2],
-                                weights=[1., .1])
+                                points=points,
+                                weights=weights)
 
         self.assertTrue(self.group.belongs(result_3))
 

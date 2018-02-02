@@ -27,6 +27,8 @@ class EuclideanSpace(Manifold):
         with coordinates each between -1. and 1.
         """
         point = np.random.rand(self.dimension) * 2 - 1
+        if point.ndim == 1:
+            point = np.expand_dims(point, axis=0)
         return point
 
 

@@ -14,12 +14,12 @@ class LieGroup(Manifold):
         self.identity = identity
 
         self.left_canonical_metric = InvariantMetric(
-                    lie_group=self,
+                    group=self,
                     inner_product_mat_at_identity=np.eye(self.dimension),
                     left_or_right='left')
 
         self.right_canonical_metric = InvariantMetric(
-                    lie_group=self,
+                    group=self,
                     inner_product_mat_at_identity=np.eye(self.dimension),
                     left_or_right='right')
 
@@ -59,6 +59,9 @@ class LieGroup(Manifold):
         Compute the group exponential at point base_point
         of tangent vector tangent_vec.
         """
+        if tangent_vec.ndim == 1:
+            tangent_vec = np.expand_dims(tangent_vec, axis=0)
+        assert tangent_vec.ndim == 2
         if base_point is None:
             base_point = self.identity
 
@@ -72,10 +75,13 @@ class LieGroup(Manifold):
                                                  left_or_right='left')
             inv_jacobian = np.linalg.inv(jacobian)
 
-            tangent_vec_at_identity = np.dot(inv_jacobian, tangent_vec)
+            tangent_vec_at_identity = np.dot(tangent_vec,
+                                             np.transpose(inv_jacobian,
+                                                          axes=(0, 2, 1)))
+            tangent_vec_at_identity = np.squeeze(tangent_vec_at_identity,
+                                                 axis=1)
             group_exp_from_identity = self.group_exp_from_identity(
                                            tangent_vec=tangent_vec_at_identity)
-
             group_exp = self.compose(base_point,
                                      group_exp_from_identity)
         group_exp = self.regularize(group_exp)
@@ -107,8 +113,10 @@ class LieGroup(Manifold):
             point_near_id = self.compose(self.inverse(base_point), point)
             group_log_from_id = self.group_log_from_identity(
                                                point=point_near_id)
-            group_log = np.dot(jacobian, group_log_from_id)
-
+            group_log = np.dot(group_log_from_id,
+                               np.transpose(jacobian, axes=(0, 2, 1)))
+            group_log = np.squeeze(group_log, axis=1)
+        assert group_log.ndim == 2
         return group_log
 
     def group_exponential_barycenter(self, points, weights=None):

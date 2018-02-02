@@ -79,12 +79,20 @@ def regularize_tangent_vec(group, tangent_vec, base_point):
     at the base point, to be less than pi,
     following the regularization convention
     """
+    base_point = group.regularize(base_point)
+    if tangent_vec.ndim == 1:
+        tangent_vec = np.expand_dims(tangent_vec, axis=0)
+    assert tangent_vec.ndim == 2
     jacobian = group.jacobian_translation(
                                       point=base_point,
                                       left_or_right='left')
-    tangent_vec_at_id = np.dot(np.linalg.inv(jacobian),
-                               tangent_vec)
-    tangent_vec_at_id = group.regularize(
-                                        tangent_vec_at_id)
-    regularized_tangent_vec = np.dot(jacobian, tangent_vec_at_id)
+    inv_jacobian = np.linalg.inv(jacobian)
+    tangent_vec_at_id = np.dot(tangent_vec,
+                               np.transpose(inv_jacobian, axes=(0, 2, 1)))
+    tangent_vec_at_id = np.squeeze(tangent_vec_at_id, axis=1)
+    tangent_vec_at_id = group.regularize(tangent_vec_at_id)
+
+    regularized_tangent_vec = np.dot(tangent_vec_at_id,
+                                     np.transpose(jacobian, axes=(0, 2, 1)))
+    regularized_tangent_vec = np.squeeze(regularized_tangent_vec, axis=1)
     return regularized_tangent_vec
