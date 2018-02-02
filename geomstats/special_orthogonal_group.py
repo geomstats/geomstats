@@ -17,6 +17,7 @@ def closest_rotation_matrix(mat):
     """
     if mat.ndim == 2:
         mat = np.expand_dims(mat, axis=0)
+
     assert mat.shape[1:] == (3, 3)
 
     mat_unitary_u, diag_s, mat_unitary_v = np.linalg.svd(mat)
@@ -49,6 +50,7 @@ def skew_matrix_from_vector(vec):
 
     for i in range(vec.shape[0]):
         skew_mat[i] = np.cross(np.eye(3), vec[i])
+
     return skew_mat
 
 
@@ -95,6 +97,7 @@ class SpecialOrthogonalGroup(LieGroup):
             rot_vec = np.expand_dims(rot_vec, axis=0)
 
         assert rot_vec.ndim == 2
+
         return rot_vec.shape[1] == self.dimension
 
     def regularize(self, rot_vec):
@@ -268,6 +271,8 @@ class SpecialOrthogonalGroup(LieGroup):
         :param rot_vec: 3D rotation vector
         :returns jacobian: 3x3 matrix
         """
+        print('point for jacobian of rot')
+        print(point.shape)
         assert self.belongs(point)
         assert left_or_right in ('left', 'right')
         point = self.regularize(point)

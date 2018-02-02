@@ -81,6 +81,7 @@ class InvariantMetric(RiemannianMetric):
         exp = np.matmul(tangent_vec, mat)
 
         exp = self.group.regularize(exp)
+
         return exp
 
     def exp_from_identity(self, tangent_vec):
@@ -97,10 +98,10 @@ class InvariantMetric(RiemannianMetric):
 
         else:
             opp_left_exp = self.left_exp_from_identity(-tangent_vec)
-
             exp = self.group.inverse(opp_left_exp)
 
         exp = self.group.regularize(exp)
+
         return exp
 
     def exp(self, tangent_vec, base_point):
@@ -124,6 +125,7 @@ class InvariantMetric(RiemannianMetric):
                                                            axes=(0, 2, 1)))
         tangent_vec_translated_to_id = np.squeeze(tangent_vec_translated_to_id,
                                                   axis=1)
+
         exp_from_id = self.exp_from_identity(
                                tangent_vec_translated_to_id)
 
@@ -134,6 +136,7 @@ class InvariantMetric(RiemannianMetric):
             exp = self.group.compose(exp_from_id, base_point)
 
         exp = self.group.regularize(exp)
+
         return exp
 
     def left_log_from_identity(self, point):

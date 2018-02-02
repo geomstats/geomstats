@@ -33,6 +33,7 @@ class SpecialEuclideanGroup(LieGroup):
         if transfo.ndim == 1:
             transfo = np.expand_dims(transfo, axis=0)
         assert transfo.ndim == 2
+
         return transfo.shape[1] == self.dimension
 
     def regularize(self, transfo):
@@ -49,6 +50,7 @@ class SpecialEuclideanGroup(LieGroup):
         if transfo.ndim == 1:
             transfo = np.expand_dims(transfo, axis=0)
         assert transfo.ndim == 2
+
         regularized_transfo = np.zeros_like(transfo)
         rot_vec = transfo[:, 0:3]
         regularized_transfo[:, :3] = self.rotations.regularize(rot_vec)
@@ -74,6 +76,7 @@ class SpecialEuclideanGroup(LieGroup):
 
         rot_vec_1 = transfo_1[:, 0:3]
         rot_mat_1 = self.rotations.matrix_from_rotation_vector(rot_vec_1)
+
         rot_mat_1 = so_group.closest_rotation_matrix(rot_mat_1)
 
         rot_vec_2 = transfo_2[:, 0:3]
@@ -202,6 +205,7 @@ class SpecialEuclideanGroup(LieGroup):
 
         group_exp_transfo[:, 3:6] = translation + term_1 + term_2
 
+
         group_exp_transfo = self.regularize(group_exp_transfo)
         return group_exp_transfo
 
@@ -211,6 +215,7 @@ class SpecialEuclideanGroup(LieGroup):
         Compute the group logarithm of point point,
         from the identity.
         """
+        ##Vectorized
         assert self.belongs(point)
         point = self.regularize(point)
 
@@ -250,6 +255,7 @@ class SpecialEuclideanGroup(LieGroup):
         group_log[:, 3:6] = translation + term_1 + term_2
 
         assert group_log.ndim == 2
+
         return group_log
 
     def random_uniform(self):
