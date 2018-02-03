@@ -17,20 +17,24 @@ def closest_rotation_matrix(mat):
     """
     if mat.ndim == 2:
         mat = np.expand_dims(mat, axis=0)
-
+    n_mats = mat.shape[0]
     assert mat.shape[1:] == (3, 3)
 
     mat_unitary_u, diag_s, mat_unitary_v = np.linalg.svd(mat)
     rot_mat = np.matmul(mat_unitary_u, mat_unitary_v)
 
     mask = np.where(np.linalg.det(rot_mat) < 0)
-    diag_s[mask] = np.array([1, 1, -1])
 
-    mat_diag_s = np.diagflat(diag_s)
+    if np.any(mask):
+        diag_s[mask] = np.array([1, 1, -1])
 
-    rot_mat[mask] = np.matmul(np.matmul(mat_unitary_u, mat_diag_s),
-                              mat_unitary_v)
+        mat_diag_s = np.zeros_like(mat_unitary_u)
+        for i in range(n_mats):
+            mat_diag_s[i] = np.diag(diag_s[i])
 
+        rot_mat[mask] = np.matmul(np.matmul(mat_unitary_u, mat_diag_s),
+                                  mat_unitary_v)
+    assert rot_mat.ndim == 3
     return rot_mat
 
 
@@ -45,12 +49,12 @@ def skew_matrix_from_vector(vec):
     """
     if vec.ndim == 1:
         vec = np.expand_dims(vec, axis=0)
+    n_vecs = vec.shape[0]
+    skew_mat = np.zeros((n_vecs, vec.shape[1], vec.shape[1]))
 
-    skew_mat = np.zeros([vec.shape[0], vec.shape[1], vec.shape[1]])
-
-    for i in range(vec.shape[0]):
+    for i in range(n_vecs):
         skew_mat[i] = np.cross(np.eye(3), vec[i])
-
+    assert skew_mat.ndim == 3
     return skew_mat
 
 
@@ -66,10 +70,12 @@ def vector_from_skew_matrix(skew_mat):
     if skew_mat.ndim == 2:
         skew_mat = np.expand_dims(skew_mat, axis=0)
     assert skew_mat.shape[1:] == (3, 3)
+    n_skew_mats = skew_mat.shape[0]
 
-    vec = np.zeros((skew_mat.shape[0], 3))
+    vec = np.zeros((n_skew_mats, 3))
     vec[:] = skew_mat[:, (2, 0, 1), (1, 2, 0)]
 
+    assert vec.ndim == 2
     return vec
 
 
@@ -151,9 +157,15 @@ class SpecialOrthogonalGroup(LieGroup):
         if rot_mat.ndim == 2:
             rot_mat = np.expand_dims(rot_mat, axis=0)
         assert rot_mat.shape[1:] == (3, 3)
+        n_rot_mats = rot_mat.shape[0]
+
         rot_mat = closest_rotation_matrix(rot_mat)
 
         trace = np.trace(rot_mat, axis1=1, axis2=2)
+        if trace.ndim == 1:
+            trace = np.expand_dims(trace, axis=1)
+        assert trace.shape == (n_rot_mats, 1), trace.shape
+
         cos_angle = .5 * (trace - 1)
         cos_angle = np.clip(cos_angle, -1, 1)
         angle = np.arccos(cos_angle)
@@ -162,11 +174,13 @@ class SpecialOrthogonalGroup(LieGroup):
         rot_vec = vector_from_skew_matrix(rot_mat - rot_mat_transpose)
 
         mask_0 = np.isclose(angle, 0)
+        mask_0 = np.squeeze(mask_0, axis=1)
         if np.any(mask_0):
-            rot_vec[mask_0] = ((.5 - (trace[mask_0] - 3.) / 12.)
-                               * rot_vec[mask_0])
+            rot_vec[mask_0] = (rot_vec[mask_0]
+                               * (.5 - (trace[mask_0] - 3.) / 12.))
 
         mask_pi = np.isclose(angle, np.pi)
+        mask_pi = np.squeeze(mask_pi, axis=1)
         if np.any(mask_pi):
             # choose the largest diagonal element
             # to avoid a square root of a negative number
@@ -205,13 +219,15 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         assert self.belongs(rot_vec)
         rot_vec = self.regularize(rot_vec)
+        n_rot_vecs = rot_vec.shape[0]
+
         angle = np.linalg.norm(rot_vec, axis=1)
         angle = np.expand_dims(angle, axis=1)
-        assert angle.shape == (rot_vec.shape[0], 1)
+        assert angle.shape == (n_rot_vecs, 1)
         skew_rot_vec = skew_matrix_from_vector(rot_vec)
 
-        coef_1 = np.zeros([rot_vec.shape[0], 1])
-        coef_2 = np.zeros([rot_vec.shape[0], 1])
+        coef_1 = np.zeros([n_rot_vecs, 1])
+        coef_2 = np.zeros([n_rot_vecs, 1])
 
         mask_0 = np.isclose(angle, 0)
         if np.any(mask_0):
@@ -221,18 +237,19 @@ class SpecialOrthogonalGroup(LieGroup):
             coef_1[~mask_0] = np.sin(angle[~mask_0]) / angle[~mask_0]
             coef_2[~mask_0] = ((1 - np.cos(angle[~mask_0]))
                                / (angle[~mask_0] ** 2))
-        assert coef_1.shape == (rot_vec.shape[0], 1)
-        assert coef_1.shape == (rot_vec.shape[0], 1)
+        assert coef_1.shape == (n_rot_vecs, 1)
+        assert coef_1.shape == (n_rot_vecs, 1)
 
-        identity = np.repeat(np.identity(self.dimension),
-                             repeats=rot_vec.shape[0],
-                             axis=0)
+        term_1 = np.zeros((n_rot_vecs, self.n, self.n))
+        term_2 = np.zeros_like(term_1)
 
-        term_1 = coef_1 * skew_rot_vec
-        term_2 = coef_2 * np.matmul(skew_rot_vec, skew_rot_vec)
-        rot_mat = identity + term_1 + term_2
+        for i in range(n_rot_vecs):
+            term_1[i] = np.eye(self.dimension) + coef_1[i] * skew_rot_vec[i]
+            term_2[i] = coef_2[i] * np.matmul(skew_rot_vec[i], skew_rot_vec[i])
+        rot_mat = term_1 + term_2
 
         rot_mat = closest_rotation_matrix(rot_mat)
+
         return rot_mat
 
     def compose(self, rot_vec_1, rot_vec_2):
@@ -271,8 +288,6 @@ class SpecialOrthogonalGroup(LieGroup):
         :param rot_vec: 3D rotation vector
         :returns jacobian: 3x3 matrix
         """
-        print('point for jacobian of rot')
-        print(point.shape)
         assert self.belongs(point)
         assert left_or_right in ('left', 'right')
         point = self.regularize(point)
@@ -316,6 +331,7 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         if tangent_vec.ndim == 1:
             tangent_vec = np.expand_dims(tangent_vec, axis=0)
+        assert tangent_vec.ndim == 2
         return tangent_vec
 
     def group_log_from_identity(self, point):
@@ -349,6 +365,7 @@ class SpecialOrthogonalGroup(LieGroup):
         tangent_vec = super(SpecialOrthogonalGroup, self).group_log(
                                     point=point,
                                     base_point=base_point)
+        assert tangent_vec.ndim == 2
         return tangent_vec
 
     def group_exponential_barycenter(self, points, weights=None):
@@ -366,5 +383,5 @@ class SpecialOrthogonalGroup(LieGroup):
         assert n_points == n_weights
 
         barycenter = self.bi_invariant_metric.mean(points, weights)
-
+        assert barycenter.ndim == 2
         return barycenter

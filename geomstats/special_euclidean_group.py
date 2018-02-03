@@ -205,7 +205,6 @@ class SpecialEuclideanGroup(LieGroup):
 
         group_exp_transfo[:, 3:6] = translation + term_1 + term_2
 
-
         group_exp_transfo = self.regularize(group_exp_transfo)
         return group_exp_transfo
 
@@ -215,7 +214,6 @@ class SpecialEuclideanGroup(LieGroup):
         Compute the group logarithm of point point,
         from the identity.
         """
-        ##Vectorized
         assert self.belongs(point)
         point = self.regularize(point)
 
@@ -284,27 +282,47 @@ class SpecialEuclideanGroup(LieGroup):
         """
 
         rot_vec = self.rotations.regularize(rot_vec)
-
-        angle = np.linalg.norm(rot_vec)
+        n_rot_vecs = rot_vec.shape[0]
+        angle = np.linalg.norm(rot_vec, axis=1)
+        if angle.ndim == 1:
+            angle = np.expand_dims(angle, axis=1)
+        assert angle.shape == (n_rot_vecs, 1), angle.shape
         skew_rot_vec = so_group.skew_matrix_from_vector(rot_vec)
 
-        if angle == 0:
-            coef_1 = 0
-            coef_2 = 0
+        coef_1 = np.empty_like(angle)
+        coef_2 = np.empty_like(coef_1)
 
-        elif np.isclose(angle, 0):
-            coef_1 = 1. / 2. - angle ** 2 / 24.
-            coef_2 = 1. / 6. - angle ** 3 / 120.
+        mask_0 = np.where(angle == 0)[0]
+        mask_close_to_0 = np.isclose(angle, 0)
+        mask_close_to_0 = np.squeeze(mask_close_to_0, axis=1)
+        mask_else = ~mask_0 & ~mask_close_to_0
 
-        else:
-            coef_1 = angle ** (-2) * (1. - np.cos(angle))
-            coef_2 = angle ** (-2) * (1. - np.sin(angle) / angle)
+        if np.any(mask_close_to_0):
+            coef_1[mask_close_to_0] = (1. / 2.
+                                       - angle[mask_close_to_0] ** 2 / 24.)
+            coef_2[mask_close_to_0] = (1. / 6.
+                                       - angle[mask_close_to_0] ** 3 / 120.)
 
-        identity = np.repeat(np.identity(3), repeats=rot_vec.shape[0])
-        exponential_mat = (identity
-                           + coef_1 * skew_rot_vec
-                           + coef_2 * np.matmul(skew_rot_vec, skew_rot_vec))
+        if np.any(mask_0):
+            coef_1[mask_0] = 0
+            coef_2[mask_0] = 0
 
+        if np.any(mask_else):
+            coef_1[mask_else] = (angle[mask_else] ** (-2)
+                                 * (1. - np.cos(angle[mask_else])))
+            coef_2[mask_else] = (angle[mask_else] ** (-2)
+                                 * (1. - (np.sin(angle[mask_else])
+                                          / angle[mask_else])))
+
+        term_1 = np.zeros((n_rot_vecs, self.n, self.n))
+        term_2 = np.zeros_like(term_1)
+
+        for i in range(n_rot_vecs):
+            term_1[i] = np.eye(self.n) + skew_rot_vec[i] * coef_1[i]
+            term_2[i] = np.matmul(skew_rot_vec[i], skew_rot_vec[i]) * coef_2[i]
+
+        exponential_mat = term_1 + term_2
+        assert exponential_mat.ndim == 3
         return exponential_mat
 
     def group_exponential_barycenter(self, points, weights=None):
