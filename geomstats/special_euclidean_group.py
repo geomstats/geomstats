@@ -292,7 +292,8 @@ class SpecialEuclideanGroup(LieGroup):
         coef_1 = np.empty_like(angle)
         coef_2 = np.empty_like(coef_1)
 
-        mask_0 = np.where(angle == 0)[0]
+        mask_0 = np.equal(angle, 0)
+        mask_0 = np.squeeze(mask_0, axis=1)
         mask_close_to_0 = np.isclose(angle, 0)
         mask_close_to_0 = np.squeeze(mask_close_to_0, axis=1)
         mask_else = ~mask_0 & ~mask_close_to_0
@@ -338,7 +339,9 @@ class SpecialEuclideanGroup(LieGroup):
 
         if weights is None:
             weights = np.ones((n_points, 1))
-
+        if weights.ndim == 1:
+            weights = np.expand_dims(weights, axis=1)
+        assert weights.shape == (n_points, 1)
         n_weights = weights.shape[0]
         assert n_points == n_weights
 
@@ -369,19 +372,19 @@ class SpecialEuclideanGroup(LieGroup):
         matrix_aux = self.exponential_matrix(vec_aux)
         matrix_aux = np.linalg.inv(matrix_aux)
 
-        matrix += weights * matrix_aux
-
-        translation_aux += weights * np.dot(translations,
-                                            np.transpose(np.matmul(
-                                                matrix_aux,
-                                                inv_rot_mats), axes=(0, 2, 1)))
+        for i in range(n_points):
+            matrix += weights[i] * matrix_aux[i]
+            translation_aux += weights[i] * np.dot(np.matmul(
+                                                        matrix_aux[i],
+                                                        inv_rot_mats[i]),
+                                                   translations[i])
 
         mean_translation = np.dot(translation_aux,
                                   np.transpose(np.linalg.inv(matrix),
                                                axes=(0, 2, 1)))
 
         exp_bar = np.zeros([1, dim])
-        exp_bar[1, :dim_rotations] = mean_rotation
-        exp_bar[1, dim_rotations:dim] = mean_translation
+        exp_bar[0, :dim_rotations] = mean_rotation
+        exp_bar[0, dim_rotations:dim] = mean_translation
 
         return exp_bar

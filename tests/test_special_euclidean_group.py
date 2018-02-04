@@ -849,9 +849,14 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                 inv_rot_expected = np.zeros_like(expected)
                 inv_rot_expected[:, :3] = - expected[:, :3]
                 inv_rot_expected[:, 3:6] = expected[:, 3:6]
+                norm = np.linalg.norm(expected)
+                atol = RTOL
+                if norm != 0:
+                    atol = RTOL * norm
 
-                self.assertTrue(np.allclose(result, expected)
-                                or np.allclose(result, inv_rot_expected),
+                self.assertTrue(np.allclose(result, expected, atol=atol)
+                                or np.allclose(result, inv_rot_expected,
+                                               atol=atol),
                                 '\npoint = {}'
                                 '\nresult = {}'
                                 '\nexpected = {}'
