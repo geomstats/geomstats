@@ -226,6 +226,7 @@ class RiemannianMetric(object):
             tangent_mean = np.zeros_like(a_tangent_vector)
 
             for i in range(n_points):
+                # TODO(nina): abandon the for loop
                 point_i = points[i]
                 weight_i = weights[i]
                 tangent_mean = tangent_mean + weight_i * self.log(
