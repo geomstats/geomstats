@@ -294,37 +294,55 @@ class SpecialOrthogonalGroup(LieGroup):
         assert self.belongs(point)
         assert left_or_right in ('left', 'right')
         point = self.regularize(point)
+        n_points = point.shape[0]
 
-        angle = np.linalg.norm(point)
-        if np.isclose(angle, 0):
-            coef_1 = 1 - angle ** 2 / 12
-            coef_2 = 1 / 12 + angle ** 2 / 720
-        elif np.isclose(angle, np.pi):
-            coef_1 = angle * (np.pi - angle) / 4
-            coef_2 = (1 - coef_1) / angle ** 2
-        else:
-            coef_1 = (angle / 2) / np.tan(angle / 2)
-            coef_2 = (1 - coef_1) / angle ** 2
+        angle = np.linalg.norm(point, axis=1)
+        angle = np.expand_dims(angle, axis=1)
 
-        if left_or_right == 'left':
-            jacobian = (coef_1 * np.identity(self.dimension)
-                        + coef_2 * np.outer(point, point)
-                        + skew_matrix_from_vector(point) / 2)
+        coef_1 = np.zeros([n_points, 1])
+        coef_2 = np.zeros([n_points, 1])
 
-        else:
-            jacobian = (coef_1 * np.identity(self.dimension)
-                        + coef_2 * np.outer(point, point)
-                        - skew_matrix_from_vector(point) / 2)
+        mask_0 = np.isclose(angle, 0)
+        mask_0 = np.squeeze(mask_0, axis=1)
+        if np.any(mask_0):
+            coef_1[mask_0] = 1 - angle[mask_0] ** 2 / 12
+            coef_2[mask_0] = 1 / 12 + angle[mask_0] ** 2 / 720
+
+        mask_pi = np.isclose(angle, np.pi)
+        mask_pi = np.squeeze(mask_pi, axis=1)
+        if np.any(mask_pi):
+            coef_1[mask_pi] = angle[mask_pi] * (np.pi - angle[mask_pi]) / 4
+            coef_2[mask_pi] = (1 - coef_1[mask_pi]) / angle[mask_pi] ** 2
+
+        mask_else = ~mask_0 & ~mask_pi
+        if np.any(mask_else):
+            coef_1[mask_else] = ((angle[mask_else] / 2)
+                                 / np.tan(angle[mask_else] / 2))
+            coef_2[mask_else] = (1 - coef_1[mask_else]) / angle[mask_else] ** 2
+
+        jacobian = np.zeros((n_points, self.dimension, self.dimension))
+
+        for i in range(n_points):
+            if left_or_right == 'left':
+                jacobian[i] = (coef_1[i] * np.identity(self.dimension)
+                               + coef_2[i] * np.outer(point[i], point[i])
+                               + skew_matrix_from_vector(point[i]) / 2)
+
+            else:
+                jacobian[i] = (coef_1[i] * np.identity(self.dimension)
+                               + coef_2[i] * np.outer(point[i], point[i])
+                               - skew_matrix_from_vector(point[i]) / 2)
+
         assert jacobian.ndim == 3
         return jacobian
 
-    def random_uniform(self):
+    def random_uniform(self, n_samples=1):
         """
         Sample a 3d rotation vector uniformly, w.r.t.
         the bi-invariant metric, by sampling in the
         hypercube of side [-1, 1] on the tangent space.
         """
-        random_rot_vec = np.random.rand(self.dimension) * 2 - 1
+        random_rot_vec = np.random.rand(n_samples, self.dimension) * 2 - 1
         random_rot_vec = self.regularize(random_rot_vec)
         return random_rot_vec
 
@@ -351,6 +369,7 @@ class SpecialOrthogonalGroup(LieGroup):
         base_point = self.regularize(base_point)
         if tangent_vec.ndim == 1:
             tangent_vec = np.expand_dims(tangent_vec, axis=0)
+        assert tangent_vec.ndim == 2
 
         point = super(SpecialOrthogonalGroup, self).group_exp(
                                      tangent_vec=tangent_vec,

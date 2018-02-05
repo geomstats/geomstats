@@ -49,7 +49,9 @@ class Hypersphere(Manifold):
         in the embedding Euclidean space.
         Note: point must be given in extrinsic coordinates.
         """
-        point_dim = len(point)
+        if point.ndim == 1:
+            point = np.expand_dims(point, axis=0)
+        point_dim = point.shape[1]
         if point_dim is not self.dimension + 1:
             if point_dim is self.dimension:
                 logging.warning('Use the extrinsic coordinates to '

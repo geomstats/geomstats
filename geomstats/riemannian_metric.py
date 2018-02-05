@@ -30,15 +30,15 @@ class RiemannianMetric(object):
                 'The computation of the inner product matrix'
                 ' is not implemented.')
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None,):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """
         Inner product defined by the Riemannian metric at point base_point
         between tangent vectors tangent_vec_a and tangent_vec_b.
         """
         if tangent_vec_a.ndim == 1:
-            tangent_vec_a = np.expand_dim(tangent_vec_a, axis=0)
+            tangent_vec_a = np.expand_dims(tangent_vec_a, axis=0)
         if tangent_vec_b.ndim == 1:
-            tangent_vec_b = np.expand_dim(tangent_vec_b, axis=0)
+            tangent_vec_b = np.expand_dims(tangent_vec_b, axis=0)
 
         assert tangent_vec_a.ndim == tangent_vec_b.ndim == 2
 
@@ -46,9 +46,38 @@ class RiemannianMetric(object):
         if inner_prod_mat.ndim == 2:
             inner_prod_mat = np.expand_dims(inner_prod_mat, axis=0)
 
-        aux = np.dot(tangent_vec_a, inner_prod_mat)
-        aux = np.squeeze(aux, axis=1)
-        inner_prod = np.dot(aux, tangent_vec_b.transpose())
+        n_tangent_vecs_a = tangent_vec_a.shape[0]
+        n_tangent_vecs_b = tangent_vec_b.shape[0]
+        n_inner_prod_mats = inner_prod_mat.shape[0]
+
+        bool_all_same_n = (n_tangent_vecs_a
+                           == n_tangent_vecs_b
+                           == n_inner_prod_mats)
+        bool_a = n_tangent_vecs_a == 1
+        bool_b = n_tangent_vecs_b == 1
+        bool_inner_prod = n_inner_prod_mats == 1
+        assert (bool_all_same_n
+                or n_tangent_vecs_a == n_tangent_vecs_b and bool_inner_prod
+                or n_tangent_vecs_a == n_inner_prod_mats and bool_b
+                or n_tangent_vecs_b == n_inner_prod_mats and bool_a
+                or bool_a and bool_b
+                or bool_a and bool_inner_prod
+                or bool_b and bool_inner_prod)
+
+        n_inner_prods = np.amax([n_tangent_vecs_a,
+                                 n_tangent_vecs_b,
+                                 n_inner_prod_mats],
+                                axis=0)
+        inner_prod = np.zeros((n_inner_prods, 1))
+        for i in range(n_inner_prods):
+            tangent_vec_a_i = (tangent_vec_a[0] if n_tangent_vecs_a == 1
+                               else tangent_vec_a[i])
+            tangent_vec_b_i = (tangent_vec_b[0] if n_tangent_vecs_b == 1
+                               else tangent_vec_b[i])
+            inner_prod_mat_i = (inner_prod_mat[0] if n_inner_prod_mats == 1
+                                else inner_prod_mat[i])
+            inner_prod[i] = np.dot(np.dot(tangent_vec_a_i, inner_prod_mat_i),
+                                   tangent_vec_b_i.transpose())
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
@@ -199,8 +228,8 @@ class RiemannianMetric(object):
             for i in range(n_points):
                 point_i = points[i]
                 weight_i = weights[i]
-
-                tangent_mean += weight_i * self.log(point=point_i,
+                tangent_mean = tangent_mean + weight_i * self.log(
+                                                    point=point_i,
                                                     base_point=mean)
             tangent_mean /= sum_weights
 
