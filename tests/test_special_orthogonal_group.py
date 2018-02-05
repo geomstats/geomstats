@@ -10,7 +10,6 @@ from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 import tests.helper as helper
 
 EPSILON = 1e-5
-RTOL = 1e-5
 
 
 class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
@@ -296,30 +295,37 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                         inv_expected))
 
     def test_compose(self):
-        for point in self.elements.values():
+        for element_type in self.elements:
+            point = self.elements[element_type]
             # Composition by identity, on the right
             # Expect the original transformation
             result = self.group.compose(point,
                                         self.group.identity)
             expected = self.group.regularize(point)
-            atol = RTOL
-            norm = np.linalg.norm(expected)
-            if norm != 0:
-                atol = RTOL * norm
-            self.assertTrue(np.allclose(result, expected, atol=atol),
-                            '\nresult: {}'
-                            '\nexpected: {}'.format(result, expected))
+            if element_type not in self.angles_close_to_pi:
+                self.assertTrue(np.allclose(result, expected),
+                                '\n{}'
+                                '\nresult: {}'
+                                '\nexpected: {}'.format(element_type,
+                                                        result,
+                                                        expected))
+            else:
+                inv_expected = - expected
+                self.assertTrue(np.allclose(result, expected)
+                                or np.allclose(result, inv_expected))
 
             # Composition by identity, on the left
             # Expect the original transformation
             result = self.group.compose(self.group.identity,
                                         point)
             expected = self.group.regularize(point)
-            atol = RTOL
-            norm = np.linalg.norm(expected)
-            if norm != 0:
-                atol = RTOL * norm
-            self.assertTrue(np.allclose(result, expected, atol=atol))
+
+            if element_type not in self.angles_close_to_pi:
+                self.assertTrue(np.allclose(result, expected))
+            else:
+                inv_expected = - expected
+                self.assertTrue(np.allclose(result, expected)
+                                or np.allclose(result, inv_expected))
 
     def test_compose_and_inverse(self):
         for point in self.elements.values():
