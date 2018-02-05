@@ -10,6 +10,7 @@ from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 import tests.helper as helper
 
 EPSILON = 1e-5
+RTOL = 1e-5
 
 
 class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
@@ -301,14 +302,22 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             result = self.group.compose(point,
                                         self.group.identity)
             expected = self.group.regularize(point)
-            self.assertTrue(np.allclose(result, expected))
+            atol = RTOL
+            norm = np.linalg.norm(expected)
+            if norm != 0:
+                atol = RTOL * norm
+            self.assertTrue(np.allclose(result, expected, atol=atol))
 
             # Composition by identity, on the left
             # Expect the original transformation
             result = self.group.compose(self.group.identity,
                                         point)
             expected = self.group.regularize(point)
-            self.assertTrue(np.allclose(result, expected))
+            atol = RTOL
+            norm = np.linalg.norm(expected)
+            if norm != 0:
+                atol = RTOL * norm
+            self.assertTrue(np.allclose(result, expected, atol=atol))
 
     def test_compose_and_inverse(self):
         for point in self.elements.values():
