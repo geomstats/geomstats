@@ -30,7 +30,12 @@ class MatrixLieGroup(LieGroup):
         - Need override for any matrix Lie group
         that is not GL(n).
         """
-        mat_rank = np.linalg.matrix_rank(mat)
+        if mat.ndim == 1:
+            mat = np.expand_dims(mat, axis=0)
+        n_mats = mat.shape[0]
+        mat_rank = np.zeros((n_mats, 1))
+        for i in range(n_mats):
+            mat_rank[i] = np.linalg.matrix_rank(mat[i])
 
         return mat_rank == self.n
 
@@ -38,7 +43,7 @@ class MatrixLieGroup(LieGroup):
         """
         Matrix composition.
         """
-        return np.dot(mat_a, mat_b)
+        return np.matmul(mat_a, mat_b)
 
     def inverse(self, mat):
         """

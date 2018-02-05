@@ -15,19 +15,26 @@ def closest_rotation_matrix(mat):
     :param mat: 3x3 matrix
     :returns rot_mat: 3x3 rotation matrix.
     """
-    assert mat.shape == (3, 3)
+    if mat.ndim == 2:
+        mat = np.expand_dims(mat, axis=0)
+    n_mats = mat.shape[0]
+    assert mat.shape == (n_mats, 3, 3)
 
-    mat_unitary_u, mat_diag_s, mat_unitary_v = np.linalg.svd(mat)
-    rot_mat = np.dot(mat_unitary_u, mat_unitary_v)
-    mat_diag_s = np.eye(3) * mat_diag_s
+    mat_unitary_u, diag_s, mat_unitary_v = np.linalg.svd(mat)
+    rot_mat = np.matmul(mat_unitary_u, mat_unitary_v)
 
-    if np.linalg.det(rot_mat) < 0:
-        mat_diag_s[0, 0] = 1
-        mat_diag_s[1, 1] = 1
-        mat_diag_s[2, 2] = -1
-        rot_mat = np.dot(np.dot(mat_unitary_u, mat_diag_s),
-                         mat_unitary_v)
+    mask = np.where(np.linalg.det(rot_mat) < 0)
 
+    if np.any(mask):
+        diag_s[mask] = np.array([1, 1, -1])
+
+        mat_diag_s = np.zeros_like(mat_unitary_u)
+        for i in range(n_mats):
+            mat_diag_s[i] = np.diag(diag_s[i])
+
+        rot_mat[mask] = np.matmul(np.matmul(mat_unitary_u, mat_diag_s),
+                                  mat_unitary_v)
+    assert rot_mat.ndim == 3
     return rot_mat
 
 
@@ -40,11 +47,15 @@ def skew_matrix_from_vector(vec):
     :param vec: 3d vector
     :return skew_mat: 3x3 skew-symmetric matrix
     """
-    assert len(vec) == 3
+    if vec.ndim == 1:
+        vec = np.expand_dims(vec, axis=0)
+    n_vecs = vec.shape[0]
 
-    skew_mat = np.array([[0, -vec[2], vec[1]],
-                         [vec[2], 0, -vec[0]],
-                         [-vec[1], vec[0], 0]])
+    skew_mat = np.zeros((n_vecs, vec.shape[1], vec.shape[1]))
+    for i in range(n_vecs):
+        skew_mat[i] = np.cross(np.eye(3), vec[i])
+
+    assert skew_mat.ndim == 3
     return skew_mat
 
 
@@ -57,8 +68,16 @@ def vector_from_skew_matrix(skew_mat):
     :param skew_mat: 3x3 skew-symmetric matrix
     :return vec: 3d vector
     """
-    assert skew_mat.shape == (3, 3)
-    vec = skew_mat[(2, 0, 1), (1, 2, 0)]
+    if skew_mat.ndim == 2:
+        skew_mat = np.expand_dims(skew_mat, axis=0)
+    n_skew_mats = skew_mat.shape[0]
+
+    assert skew_mat.shape == (n_skew_mats, 3, 3)
+
+    vec = np.zeros((n_skew_mats, 3))
+    vec[:] = skew_mat[:, (2, 0, 1), (1, 2, 0)]
+
+    assert vec.ndim == 2
     return vec
 
 
@@ -82,7 +101,12 @@ class SpecialOrthogonalGroup(LieGroup):
         Check that a vector belongs to the
         special orthogonal group.
         """
-        return len(rot_vec) == self.dimension
+        if rot_vec.ndim == 1:
+            rot_vec = np.expand_dims(rot_vec, axis=0)
+
+        assert rot_vec.ndim == 2
+
+        return rot_vec.shape[1] == self.dimension
 
     def regularize(self, rot_vec):
         """
@@ -98,6 +122,9 @@ class SpecialOrthogonalGroup(LieGroup):
         :returns self.regularized_rot_vec: 3d vector with: 0 < norm < pi
         """
         assert self.belongs(rot_vec)
+        if rot_vec.ndim == 1:
+            rot_vec = np.expand_dims(rot_vec, axis=0)
+
         angle = np.linalg.norm(rot_vec)
         regularized_rot_vec = rot_vec
 
@@ -105,6 +132,7 @@ class SpecialOrthogonalGroup(LieGroup):
             k = np.floor(angle / (2 * np.pi) + .5)
             regularized_rot_vec = (1. - 2. * np.pi * k / angle) * rot_vec
 
+        assert regularized_rot_vec.ndim == 2
         return regularized_rot_vec
 
     def rotation_vector_from_matrix(self, rot_mat):
@@ -128,39 +156,59 @@ class SpecialOrthogonalGroup(LieGroup):
         :param rot_mat: 3x3 rotation matrix
         :return rot_vec: 3d rotation vector
         """
-        assert rot_mat.shape == (3, 3)
+        if rot_mat.ndim == 2:
+            rot_mat = np.expand_dims(rot_mat, axis=0)
+        n_rot_mats = rot_mat.shape[0]
+
+        assert rot_mat.shape == (n_rot_mats, self.n, self.n)
 
         rot_mat = closest_rotation_matrix(rot_mat)
 
-        trace = np.trace(rot_mat)
+        trace = np.trace(rot_mat, axis1=1, axis2=2)
+        if trace.ndim == 1:
+            trace = np.expand_dims(trace, axis=1)
+        assert trace.shape == (n_rot_mats, 1), trace.shape
+
         cos_angle = .5 * (trace - 1)
         cos_angle = np.clip(cos_angle, -1, 1)
         angle = np.arccos(cos_angle)
 
-        rot_vec = vector_from_skew_matrix(rot_mat - rot_mat.transpose())
+        rot_mat_transpose = np.transpose(rot_mat, axes=(0, 2, 1))
+        rot_vec = vector_from_skew_matrix(rot_mat - rot_mat_transpose)
 
-        if np.isclose(angle, 0):
-            rot_vec = (.5 - (trace - 3.) / 12.) * rot_vec
-        elif np.isclose(angle, np.pi):
+        mask_0 = np.isclose(angle, 0)
+        mask_0 = np.squeeze(mask_0, axis=1)
+        if np.any(mask_0):
+            rot_vec[mask_0] = (rot_vec[mask_0]
+                               * (.5 - (trace[mask_0] - 3.) / 12.))
+
+        mask_pi = np.isclose(angle, np.pi)
+        mask_pi = np.squeeze(mask_pi, axis=1)
+        if np.any(mask_pi):
             # choose the largest diagonal element
             # to avoid a square root of a negative number
-            a = np.argmax(np.diag(rot_mat))
+            a = np.argmax(np.diagonal(rot_mat, axis1=1, axis2=2))
             b = np.mod(a + 1, 3)
             c = np.mod(a + 2, 3)
 
             # compute the axis vector
-            sq_root = np.sqrt((rot_mat[a, a]
-                              - rot_mat[b, b] - rot_mat[c, c] + 1.))
+            sq_root = np.sqrt((rot_mat[:, a, a]
+                              - rot_mat[:, b, b] - rot_mat[:, c, c] + 1.))
+            rot_vec_pi = np.zeros((n_rot_mats, self.dimension))
+            rot_vec_pi[:, a] = sq_root / 2.
+            rot_vec_pi[:, b] = ((rot_mat[:, b, a] + rot_mat[:, a, b])
+                                / (2. * sq_root))
+            rot_vec_pi[:, c] = ((rot_mat[:, c, a] + rot_mat[:, a, c])
+                                / (2. * sq_root))
 
-            rot_vec = np.zeros(3)
-            rot_vec[a] = sq_root / 2.
-            rot_vec[b] = (rot_mat[b, a] + rot_mat[a, b]) / (2. * sq_root)
-            rot_vec[c] = (rot_mat[c, a] + rot_mat[a, c]) / (2. * sq_root)
+            rot_vec[mask_pi] = (angle[mask_pi] * rot_vec_pi[mask_pi]
+                                / np.linalg.norm(rot_vec_pi[mask_pi]))
 
-            rot_vec = angle * rot_vec / np.linalg.norm(rot_vec)
-
-        else:
-            rot_vec = angle / (2. * np.sin(angle)) * rot_vec
+        mask_else = ~mask_0 & ~mask_pi
+        if np.any(mask_else):
+            rot_vec[mask_else] = (angle[mask_else]
+                                  / (2. * np.sin(angle[mask_else]))
+                                  * rot_vec[mask_else])
 
         return self.regularize(rot_vec)
 
@@ -174,21 +222,37 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         assert self.belongs(rot_vec)
         rot_vec = self.regularize(rot_vec)
+        n_rot_vecs = rot_vec.shape[0]
 
-        angle = np.linalg.norm(rot_vec)
+        angle = np.linalg.norm(rot_vec, axis=1)
+        angle = np.expand_dims(angle, axis=1)
+        assert angle.shape == (n_rot_vecs, 1)
         skew_rot_vec = skew_matrix_from_vector(rot_vec)
 
-        if np.isclose(angle, 0):
-            coef_1 = 1 - (angle ** 2) / 6
-            coef_2 = 1 / 2 - angle ** 2
-        else:
-            coef_1 = np.sin(angle) / angle
-            coef_2 = (1 - np.cos(angle)) / (angle ** 2)
+        coef_1 = np.zeros([n_rot_vecs, 1])
+        coef_2 = np.zeros([n_rot_vecs, 1])
 
-        rot_mat = (np.identity(self.dimension)
-                   + coef_1 * skew_rot_vec
-                   + coef_2 * np.dot(skew_rot_vec, skew_rot_vec))
+        mask_0 = np.isclose(angle, 0)
+        if np.any(mask_0):
+            coef_1[mask_0] = 1 - (angle[mask_0] ** 2) / 6
+            coef_2[mask_0] = 1 / 2 - angle[mask_0] ** 2
+        if np.any(~mask_0):
+            coef_1[~mask_0] = np.sin(angle[~mask_0]) / angle[~mask_0]
+            coef_2[~mask_0] = ((1 - np.cos(angle[~mask_0]))
+                               / (angle[~mask_0] ** 2))
+        assert coef_1.shape == (n_rot_vecs, 1)
+        assert coef_1.shape == (n_rot_vecs, 1)
+
+        term_1 = np.zeros((n_rot_vecs, self.n, self.n))
+        term_2 = np.zeros_like(term_1)
+
+        for i in range(n_rot_vecs):
+            term_1[i] = np.eye(self.dimension) + coef_1[i] * skew_rot_vec[i]
+            term_2[i] = coef_2[i] * np.matmul(skew_rot_vec[i], skew_rot_vec[i])
+        rot_mat = term_1 + term_2
+
         rot_mat = closest_rotation_matrix(rot_mat)
+
         return rot_mat
 
     def compose(self, rot_vec_1, rot_vec_2):
@@ -205,12 +269,14 @@ class SpecialOrthogonalGroup(LieGroup):
         rot_mat_prod = np.matmul(rot_mat_1, rot_mat_2)
         rot_vec_prod = self.rotation_vector_from_matrix(rot_mat_prod)
 
+        rot_vec_prod = self.regularize(rot_vec_prod)
         return rot_vec_prod
 
     def inverse(self, rot_vec):
         """
         Inverse of a rotation.
         """
+        rot_vec = self.regularize(rot_vec)
         return -rot_vec
 
     def jacobian_translation(self, point,
@@ -228,37 +294,55 @@ class SpecialOrthogonalGroup(LieGroup):
         assert self.belongs(point)
         assert left_or_right in ('left', 'right')
         point = self.regularize(point)
+        n_points = point.shape[0]
 
-        angle = np.linalg.norm(point)
-        if np.isclose(angle, 0):
-            coef_1 = 1 - angle ** 2 / 12
-            coef_2 = 1 / 12 + angle ** 2 / 720
-        elif np.isclose(angle, np.pi):
-            coef_1 = angle * (np.pi - angle) / 4
-            coef_2 = (1 - coef_1) / angle ** 2
-        else:
-            coef_1 = (angle / 2) / np.tan(angle / 2)
-            coef_2 = (1 - coef_1) / angle ** 2
+        angle = np.linalg.norm(point, axis=1)
+        angle = np.expand_dims(angle, axis=1)
 
-        if left_or_right == 'left':
-            jacobian = (coef_1 * np.identity(self.dimension)
-                        + coef_2 * np.outer(point, point)
-                        + skew_matrix_from_vector(point) / 2)
+        coef_1 = np.zeros([n_points, 1])
+        coef_2 = np.zeros([n_points, 1])
 
-        else:
-            jacobian = (coef_1 * np.identity(self.dimension)
-                        + coef_2 * np.outer(point, point)
-                        - skew_matrix_from_vector(point) / 2)
+        mask_0 = np.isclose(angle, 0)
+        mask_0 = np.squeeze(mask_0, axis=1)
+        if np.any(mask_0):
+            coef_1[mask_0] = 1 - angle[mask_0] ** 2 / 12
+            coef_2[mask_0] = 1 / 12 + angle[mask_0] ** 2 / 720
 
+        mask_pi = np.isclose(angle, np.pi)
+        mask_pi = np.squeeze(mask_pi, axis=1)
+        if np.any(mask_pi):
+            coef_1[mask_pi] = angle[mask_pi] * (np.pi - angle[mask_pi]) / 4
+            coef_2[mask_pi] = (1 - coef_1[mask_pi]) / angle[mask_pi] ** 2
+
+        mask_else = ~mask_0 & ~mask_pi
+        if np.any(mask_else):
+            coef_1[mask_else] = ((angle[mask_else] / 2)
+                                 / np.tan(angle[mask_else] / 2))
+            coef_2[mask_else] = (1 - coef_1[mask_else]) / angle[mask_else] ** 2
+
+        jacobian = np.zeros((n_points, self.dimension, self.dimension))
+
+        for i in range(n_points):
+            if left_or_right == 'left':
+                jacobian[i] = (coef_1[i] * np.identity(self.dimension)
+                               + coef_2[i] * np.outer(point[i], point[i])
+                               + skew_matrix_from_vector(point[i]) / 2)
+
+            else:
+                jacobian[i] = (coef_1[i] * np.identity(self.dimension)
+                               + coef_2[i] * np.outer(point[i], point[i])
+                               - skew_matrix_from_vector(point[i]) / 2)
+
+        assert jacobian.ndim == 3
         return jacobian
 
-    def random_uniform(self):
+    def random_uniform(self, n_samples=1):
         """
         Sample a 3d rotation vector uniformly, w.r.t.
         the bi-invariant metric, by sampling in the
         hypercube of side [-1, 1] on the tangent space.
         """
-        random_rot_vec = np.random.rand(self.dimension) * 2 - 1
+        random_rot_vec = np.random.rand(n_samples, self.dimension) * 2 - 1
         random_rot_vec = self.regularize(random_rot_vec)
         return random_rot_vec
 
@@ -266,6 +350,9 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         Compute the group exponential of vector tangent_vector.
         """
+        if tangent_vec.ndim == 1:
+            tangent_vec = np.expand_dims(tangent_vec, axis=0)
+        assert tangent_vec.ndim == 2
         return tangent_vec
 
     def group_log_from_identity(self, point):
@@ -280,6 +367,9 @@ class SpecialOrthogonalGroup(LieGroup):
         Compute the group exponential of vector tangent_vector.
         """
         base_point = self.regularize(base_point)
+        if tangent_vec.ndim == 1:
+            tangent_vec = np.expand_dims(tangent_vec, axis=0)
+        assert tangent_vec.ndim == 2
 
         point = super(SpecialOrthogonalGroup, self).group_exp(
                                      tangent_vec=tangent_vec,
@@ -297,6 +387,7 @@ class SpecialOrthogonalGroup(LieGroup):
         tangent_vec = super(SpecialOrthogonalGroup, self).group_log(
                                     point=point,
                                     base_point=base_point)
+        assert tangent_vec.ndim == 2
         return tangent_vec
 
     def group_exponential_barycenter(self, points, weights=None):
@@ -304,15 +395,15 @@ class SpecialOrthogonalGroup(LieGroup):
         Group exponential barycenter is the Frechet mean
         of the bi-invariant metric.
         """
-        n_points = len(points)
+        n_points = points.shape[0]
         assert n_points > 0
 
         if weights is None:
-            weights = np.ones(n_points)
+            weights = np.ones((n_points, 1))
 
-        n_weights = len(weights)
+        n_weights = weights.shape[0]
         assert n_points == n_weights
 
         barycenter = self.bi_invariant_metric.mean(points, weights)
-
+        assert barycenter.ndim == 2
         return barycenter

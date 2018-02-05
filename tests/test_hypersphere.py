@@ -228,7 +228,6 @@ class TestHypersphereMethods(unittest.TestCase):
         point_a = self.space.random_uniform()
         point_b = self.space.random_uniform()
         point_c = self.space.random_uniform()
-
         result = self.metric.mean([point_a, point_b, point_c])
         self.assertTrue(self.space.belongs(result))
 

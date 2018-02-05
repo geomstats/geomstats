@@ -14,12 +14,12 @@ class LieGroup(Manifold):
         self.identity = identity
 
         self.left_canonical_metric = InvariantMetric(
-                    lie_group=self,
+                    group=self,
                     inner_product_mat_at_identity=np.eye(self.dimension),
                     left_or_right='left')
 
         self.right_canonical_metric = InvariantMetric(
-                    lie_group=self,
+                    group=self,
                     inner_product_mat_at_identity=np.eye(self.dimension),
                     left_or_right='right')
 
@@ -61,23 +61,42 @@ class LieGroup(Manifold):
         """
         if base_point is None:
             base_point = self.identity
-
         base_point = self.regularize(base_point)
-
         if base_point is self.identity:
-            group_exp = self.group_exp_from_identity(tangent_vec)
-        else:
+            return self.group_exp_from_identity(tangent_vec)
 
-            jacobian = self.jacobian_translation(point=base_point,
-                                                 left_or_right='left')
-            inv_jacobian = np.linalg.inv(jacobian)
+        if tangent_vec.ndim == 1:
+            tangent_vec = np.expand_dims(tangent_vec, axis=0)
+        assert tangent_vec.ndim == 2
 
-            tangent_vec_at_identity = np.dot(inv_jacobian, tangent_vec)
-            group_exp_from_identity = self.group_exp_from_identity(
-                                           tangent_vec=tangent_vec_at_identity)
+        n_tangent_vecs = tangent_vec.shape[0]
+        n_base_points = base_point.shape[0]
+        n_exps = np.maximum(n_tangent_vecs, n_base_points)
 
-            group_exp = self.compose(base_point,
-                                     group_exp_from_identity)
+        assert (n_tangent_vecs == n_base_points
+                or n_tangent_vecs == 1
+                or n_base_points == 1)
+
+        jacobian = self.jacobian_translation(point=base_point,
+                                             left_or_right='left')
+        inv_jacobian = np.linalg.inv(jacobian)
+
+        dim = self.dimension
+        assert inv_jacobian.shape == (n_base_points, dim, dim)
+
+        tangent_vec_at_id = np.zeros((n_exps, dim))
+        for i in range(n_exps):
+            inv_jacobian_i = (inv_jacobian[0] if n_base_points == 1
+                              else inv_jacobian[i])
+            tangent_vec_i = (tangent_vec[0] if n_tangent_vecs == 1
+                             else tangent_vec[i])
+            tangent_vec_at_id[i] = np.dot(tangent_vec_i,
+                                          np.transpose(inv_jacobian_i))
+
+        group_exp_from_identity = self.group_exp_from_identity(
+                                       tangent_vec=tangent_vec_at_id)
+        group_exp = self.compose(base_point,
+                                 group_exp_from_identity)
         group_exp = self.regularize(group_exp)
         return group_exp
 
@@ -96,19 +115,39 @@ class LieGroup(Manifold):
         """
         if base_point is None:
             base_point = self.identity
-
         base_point = self.regularize(base_point)
-
         if base_point is self.identity:
-            group_log = self.group_log_from_identity(point)
-        else:
-            jacobian = self.jacobian_translation(point=base_point,
-                                                 left_or_right='left')
-            point_near_id = self.compose(self.inverse(base_point), point)
-            group_log_from_id = self.group_log_from_identity(
-                                               point=point_near_id)
-            group_log = np.dot(jacobian, group_log_from_id)
+            return self.group_log_from_identity(point)
 
+        point = self.regularize(point)
+
+        n_points = point.shape[0]
+        n_base_points = base_point.shape[0]
+        n_logs = np.maximum(n_points, n_base_points)
+
+        assert (n_points == n_base_points
+                or n_points == 1
+                or n_base_points == 1)
+
+        jacobian = self.jacobian_translation(point=base_point,
+                                             left_or_right='left')
+        point_near_id = self.compose(self.inverse(base_point), point)
+        group_log_from_id = self.group_log_from_identity(
+                                           point=point_near_id)
+
+        dim = self.dimension
+        assert group_log_from_id.shape == (n_logs, dim)
+        assert jacobian.shape == (n_base_points, dim, dim)
+
+        group_log = np.zeros((n_logs, dim))
+        for i in range(n_logs):
+            jacobian_i = jacobian[0] if n_base_points == 1 else jacobian[i]
+
+            log_from_id_i = (group_log_from_id[0] if n_points == 1
+                             else group_log_from_id[i])
+            group_log[i] = np.dot(log_from_id_i, np.transpose(jacobian_i))
+
+        assert group_log.ndim == 2
         return group_log
 
     def group_exponential_barycenter(self, points, weights=None):

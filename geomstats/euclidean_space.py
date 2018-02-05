@@ -19,14 +19,16 @@ class EuclideanSpace(Manifold):
         """
         Check if point belongs to the Euclidean space.
         """
-        return len(point) == self.dimension
+        if point.ndim == 1:
+            point = np.expand_dims(point, axis=0)
+        return point.shape[1] == self.dimension
 
-    def random_uniform(self):
+    def random_uniform(self, n_samples=1):
         """
         Sample a vector uniformly in the Euclidean space,
         with coordinates each between -1. and 1.
         """
-        point = np.random.rand(self.dimension) * 2 - 1
+        point = np.random.rand(n_samples, self.dimension) * 2 - 1
         return point
 
 

@@ -30,14 +30,54 @@ class RiemannianMetric(object):
                 'The computation of the inner product matrix'
                 ' is not implemented.')
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None,):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """
         Inner product defined by the Riemannian metric at point base_point
         between tangent vectors tangent_vec_a and tangent_vec_b.
         """
+        if tangent_vec_a.ndim == 1:
+            tangent_vec_a = np.expand_dims(tangent_vec_a, axis=0)
+        if tangent_vec_b.ndim == 1:
+            tangent_vec_b = np.expand_dims(tangent_vec_b, axis=0)
+
+        assert tangent_vec_a.ndim == tangent_vec_b.ndim == 2
+
         inner_prod_mat = self.inner_product_matrix(base_point)
-        inner_prod = np.dot(np.dot(tangent_vec_a.transpose(), inner_prod_mat),
-                            tangent_vec_b)
+        if inner_prod_mat.ndim == 2:
+            inner_prod_mat = np.expand_dims(inner_prod_mat, axis=0)
+
+        n_tangent_vecs_a = tangent_vec_a.shape[0]
+        n_tangent_vecs_b = tangent_vec_b.shape[0]
+        n_inner_prod_mats = inner_prod_mat.shape[0]
+
+        bool_all_same_n = (n_tangent_vecs_a
+                           == n_tangent_vecs_b
+                           == n_inner_prod_mats)
+        bool_a = n_tangent_vecs_a == 1
+        bool_b = n_tangent_vecs_b == 1
+        bool_inner_prod = n_inner_prod_mats == 1
+        assert (bool_all_same_n
+                or n_tangent_vecs_a == n_tangent_vecs_b and bool_inner_prod
+                or n_tangent_vecs_a == n_inner_prod_mats and bool_b
+                or n_tangent_vecs_b == n_inner_prod_mats and bool_a
+                or bool_a and bool_b
+                or bool_a and bool_inner_prod
+                or bool_b and bool_inner_prod)
+
+        n_inner_prods = np.amax([n_tangent_vecs_a,
+                                 n_tangent_vecs_b,
+                                 n_inner_prod_mats],
+                                axis=0)
+        inner_prod = np.zeros((n_inner_prods, 1))
+        for i in range(n_inner_prods):
+            tangent_vec_a_i = (tangent_vec_a[0] if n_tangent_vecs_a == 1
+                               else tangent_vec_a[i])
+            tangent_vec_b_i = (tangent_vec_b[0] if n_tangent_vecs_b == 1
+                               else tangent_vec_b[i])
+            inner_prod_mat_i = (inner_prod_mat[0] if n_inner_prod_mats == 1
+                                else inner_prod_mat[i])
+            inner_prod[i] = np.dot(np.dot(tangent_vec_a_i, inner_prod_mat_i),
+                                   tangent_vec_b_i.transpose())
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
@@ -79,17 +119,6 @@ class RiemannianMetric(object):
         raise NotImplementedError(
                 'The Riemannian logarithm is not implemented.')
 
-    def squared_dist(self, point_a, point_b):
-        """
-        Squared Riemannian distance between points point_a and point_b.
-
-        Note: the squared distance may be non-positive if the metric
-        is not positive-definite.
-        """
-        log = self.log(point=point_b, base_point=point_a)
-        sq_dist = self.squared_norm(vector=log, base_point=point_a)
-        return sq_dist
-
     def geodesic(self, initial_point, initial_tangent_vec):
         """
         Geodesic curve associated to the Riemannian metric,
@@ -100,11 +129,23 @@ class RiemannianMetric(object):
         geodesic curve parameterized by t.
         """
         def point_on_geodesic(t):
-            point_at_time_t = self.exp(tangent_vec=t * initial_tangent_vec,
+            tangent_vecs = np.outer(t, initial_tangent_vec)
+            point_at_time_t = self.exp(tangent_vec=tangent_vecs,
                                        base_point=initial_point)
             return point_at_time_t
 
         return point_on_geodesic
+
+    def squared_dist(self, point_a, point_b):
+        """
+        Squared Riemannian distance between points point_a and point_b.
+
+        Note: the squared distance may be non-positive if the metric
+        is not positive-definite.
+        """
+        log = self.log(point=point_b, base_point=point_a)
+        sq_dist = self.squared_norm(vector=log, base_point=point_a)
+        return sq_dist
 
     def dist(self, point_a, point_b):
         """
@@ -185,10 +226,11 @@ class RiemannianMetric(object):
             tangent_mean = np.zeros_like(a_tangent_vector)
 
             for i in range(n_points):
+                # TODO(nina): abandon the for loop
                 point_i = points[i]
                 weight_i = weights[i]
-
-                tangent_mean += weight_i * self.log(point=point_i,
+                tangent_mean = tangent_mean + weight_i * self.log(
+                                                    point=point_i,
                                                     base_point=mean)
             tangent_mean /= sum_weights
 
