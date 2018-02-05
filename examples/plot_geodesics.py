@@ -5,7 +5,6 @@ with its left-invariant canonical METRIC.
 
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
 import geomstats.visualization as visualization
