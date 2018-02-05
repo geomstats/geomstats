@@ -36,91 +36,105 @@ class SpecialEuclideanGroup(LieGroup):
 
         return transfo.shape[1] == self.dimension
 
-    def regularize(self, transfo):
+    def regularize(self, point):
         """
         Regularize an element of the group SE(3),
         by extracting the rotation vector r from the input [r t]
         and using self.rotations.regularize.
 
-        :param transfo: 6d vector, element in SE(3) represented as [r t].
-        :returns self.regularized_transfo: 6d vector, element in SE(3)
+        :param point: 6d vector, element in SE(3) represented as [r t].
+        :returns self.regularized_point: 6d vector, element in SE(3)
         with self.regularized rotation.
         """
-        assert self.belongs(transfo)
-        if transfo.ndim == 1:
-            transfo = np.expand_dims(transfo, axis=0)
-        assert transfo.ndim == 2
+        assert self.belongs(point)
+        if point.ndim == 1:
+            point = np.expand_dims(point, axis=0)
+        assert point.ndim == 2
 
-        regularized_transfo = np.zeros_like(transfo)
-        rot_vec = transfo[:, 0:3]
-        regularized_transfo[:, :3] = self.rotations.regularize(rot_vec)
-        regularized_transfo[:, 3:6] = transfo[:, 3:6]
+        rotations = self.rotations
+        dim_rotations = rotations.dimension
 
-        return regularized_transfo
+        regularized_point = np.zeros_like(point)
+        rot_vec = point[:, :dim_rotations]
+        regularized_point[:, :dim_rotations] = rotations.regularize(rot_vec)
+        regularized_point[:, dim_rotations:] = point[:, dim_rotations:]
 
-    def compose(self, transfo_1, transfo_2):
+        return regularized_point
+
+    def compose(self, point_1, point_2):
         """
         Compose two elements of group SE(3).
 
         Formula:
-        transfo_1 . transfo_2 = [R1 * R2, (R1 * t2) + t1]
+        point_1 . point_2 = [R1 * R2, (R1 * t2) + t1]
         where:
         R1, R2 are rotation matrices,
         t1, t2 are translation vectors.
 
-        :param transfo_1, transfo_2: 6d vectors elements of SE(3)
-        :returns prod_transfo: composition of transfo_1 and transfo_2
+        :param point_1, point_2: 6d vectors elements of SE(3)
+        :returns composition: composition of point_1 and point_2
         """
-        transfo_1 = self.regularize(transfo_1)
-        transfo_2 = self.regularize(transfo_2)
+        rotations = self.rotations
+        dim_rotations = rotations.dimension
 
-        rot_vec_1 = transfo_1[:, 0:3]
-        rot_mat_1 = self.rotations.matrix_from_rotation_vector(rot_vec_1)
+        point_1 = self.regularize(point_1)
+        point_2 = self.regularize(point_2)
+        assert point_1.shape == point_2.shape
+
+        rot_vec_1 = point_1[:, :dim_rotations]
+        rot_mat_1 = rotations.matrix_from_rotation_vector(rot_vec_1)
 
         rot_mat_1 = so_group.closest_rotation_matrix(rot_mat_1)
 
-        rot_vec_2 = transfo_2[:, 0:3]
-        rot_mat_2 = self.rotations.matrix_from_rotation_vector(rot_vec_2)
+        rot_vec_2 = point_2[:, :dim_rotations]
+        rot_mat_2 = rotations.matrix_from_rotation_vector(rot_vec_2)
         rot_mat_2 = so_group.closest_rotation_matrix(rot_mat_2)
 
-        translation_1 = transfo_1[:, 3:6]
-        translation_2 = transfo_2[:, 3:6]
+        translation_1 = point_1[:, dim_rotations:]
+        translation_2 = point_2[:, dim_rotations:]
 
-        prod_transfo = np.zeros((rot_mat_1.shape[0], 6))
-        prod_rot_mat = np.matmul(rot_mat_1, rot_mat_2)
+        composition = np.zeros_like(point_1)
+        composition_rot_mat = np.matmul(rot_mat_1, rot_mat_2)
 
-        prod_transfo[:, :3] = self.rotations.rotation_vector_from_matrix(
-                                                                  prod_rot_mat)
-        prod_transfo[:, 3:6] = (np.dot(translation_2,
-                                       np.transpose(rot_mat_1, axes=(0, 2, 1)))
-                                + translation_1)
+        composition[:, :dim_rotations] = rotations.rotation_vector_from_matrix(
+                                                          composition_rot_mat)
+        composition[:, dim_rotations:] = (np.dot(translation_2,
+                                                 np.transpose(
+                                                        rot_mat_1,
+                                                        axes=(0, 2, 1)))
+                                          + translation_1)
 
-        prod_transfo = self.regularize(prod_transfo)
-        return prod_transfo
+        composition = self.regularize(composition)
+        return composition
 
-    def inverse(self, transfo):
+    def inverse(self, point):
         """
         Compute the group inverse in SE(3).
 
         Formula:
         (R, t)^{-1} = (R^{-1}, R^{-1}.(-t))
 
-        :param transfo: 6d vector element in SE(3)
-        :returns inverse_transfo: 6d vector inverse of transfo
+        :param point: 6d vector element in SE(3)
+        :returns inverse_point: 6d vector inverse of point
         """
-        transfo = self.regularize(transfo)
+        rotations = self.rotations
+        dim_rotations = rotations.dimension
 
-        rot_vec = transfo[:, 0:3]
-        translation = transfo[:, 3:6]
+        point = self.regularize(point)
 
-        inverse_transfo = np.zeros_like(transfo)
-        inverse_transfo[:, 0:3] = -rot_vec
-        rot_mat = self.rotations.matrix_from_rotation_vector(-rot_vec)
-        inverse_transfo[:, 3:6] = np.dot(-translation,
-                                         np.transpose(rot_mat, axes=(0, 2, 1)))
+        rot_vec = point[:, :dim_rotations]
+        translation = point[:, dim_rotations:]
 
-        inverse_transfo = self.regularize(inverse_transfo)
-        return inverse_transfo
+        inverse_point = np.zeros_like(point)
+        inverse_point[:, :dim_rotations] = -rot_vec
+        rot_mat = rotations.matrix_from_rotation_vector(-rot_vec)
+        inverse_point[:, dim_rotations:] = np.dot(-translation,
+                                                  np.transpose(
+                                                        rot_mat,
+                                                        axes=(0, 2, 1)))
+
+        inverse_point = self.regularize(inverse_point)
+        return inverse_point
 
     def jacobian_translation(self, point, left_or_right='left'):
         """
@@ -134,10 +148,14 @@ class SpecialEuclideanGroup(LieGroup):
         assert self.belongs(point)
         assert left_or_right in ('left', 'right')
 
-        point = self.regularize(point)
-        rot_vec = point[:, 0:3]
+        dim = self.dimension
+        rotations = self.rotations
+        dim_rotations = rotations.dimension
 
-        jacobian = np.zeros((point.shape[0], 6, 6))
+        point = self.regularize(point)
+        rot_vec = point[:, :dim_rotations]
+
+        jacobian = np.zeros((point.shape[0], dim, dim))
 
         if left_or_right == 'left':
             jacobian_rot = self.rotations.jacobian_translation(
@@ -146,16 +164,18 @@ class SpecialEuclideanGroup(LieGroup):
             jacobian_trans = self.rotations.matrix_from_rotation_vector(
                     rot_vec)
 
-            jacobian[:, :3, :3] = jacobian_rot
-            jacobian[:, 3:, 3:] = jacobian_trans
+            jacobian[:, :dim_rotations, :dim_rotations] = jacobian_rot
+            jacobian[:, dim_rotations:, dim_rotations:] = jacobian_trans
 
         else:
             jacobian_rot = self.rotations.jacobian_translation(
                                                       point=rot_vec,
                                                       left_or_right='right')
-            jacobian[:, :3, :3] = jacobian_rot
-            jacobian[:, 3:, :3] = - so_group.skew_matrix_from_vector(rot_vec)
-            jacobian[:, 3:, 3:] = np.eye(3)
+
+            inv_skew_mat = - so_group.skew_matrix_from_vector(rot_vec)
+            jacobian[:, :dim_rotations, :dim_rotations] = jacobian_rot
+            jacobian[:, dim_rotations:, :dim_rotations] = inv_skew_mat
+            jacobian[:, dim_rotations:, dim_rotations:] = np.eye(self.n)
 
         assert jacobian.ndim == 3
         return jacobian
@@ -173,16 +193,20 @@ class SpecialEuclideanGroup(LieGroup):
         if tangent_vec.ndim == 1:
             tangent_vec = np.expand_dims(tangent_vec, axis=0)
         assert tangent_vec.ndim == 2
-        rot_vec = tangent_vec[:, 0:3]
+
+        rotations = self.rotations
+        dim_rotations = rotations.dimension
+
+        rot_vec = tangent_vec[:, :dim_rotations]
         rot_vec = self.rotations.regularize(rot_vec)
-        translation = tangent_vec[:, 3:6]
+        translation = tangent_vec[:, dim_rotations:]
         angle = np.linalg.norm(rot_vec)
 
         if np.isclose(angle, np.pi):
-            rot_vec = self.rotations.regularize(rot_vec)
+            rot_vec = rotations.regularize(rot_vec)
 
         group_exp_transfo = np.zeros_like(tangent_vec)
-        group_exp_transfo[:, 0:3] = rot_vec
+        group_exp_transfo[:, :dim_rotations] = rot_vec
 
         skew_mat = so_group.skew_matrix_from_vector(rot_vec)
 
@@ -203,7 +227,7 @@ class SpecialEuclideanGroup(LieGroup):
         term_2 = coef_2 * np.dot(translation,
                                  np.transpose(sq_skew_mat, axes=(0, 2, 1)))
 
-        group_exp_transfo[:, 3:6] = translation + term_1 + term_2
+        group_exp_transfo[:, dim_rotations:] = translation + term_1 + term_2
 
         group_exp_transfo = self.regularize(group_exp_transfo)
         return group_exp_transfo
@@ -217,12 +241,15 @@ class SpecialEuclideanGroup(LieGroup):
         assert self.belongs(point)
         point = self.regularize(point)
 
-        rot_vec = point[:, 0:3]
+        rotations = self.rotations
+        dim_rotations = rotations.dimension
+
+        rot_vec = point[:, :dim_rotations]
         angle = np.linalg.norm(rot_vec)
-        translation = point[:, 3:6]
+        translation = point[:, dim_rotations:]
 
         group_log = np.zeros_like(point)
-        group_log[:, 0:3] = rot_vec
+        group_log[:, :dim_rotations] = rot_vec
         skew_rot_vec = so_group.skew_matrix_from_vector(rot_vec)
         sq_skew_rot_vec = np.matmul(skew_rot_vec, skew_rot_vec)
 
@@ -250,10 +277,9 @@ class SpecialEuclideanGroup(LieGroup):
         term_2 = coef_2 * np.dot(translation,
                                  np.transpose(sq_skew_rot_vec, axes=(0, 2, 1)))
 
-        group_log[:, 3:6] = translation + term_1 + term_2
+        group_log[:, dim_rotations:] = translation + term_1 + term_2
 
         assert group_log.ndim == 2
-
         return group_log
 
     def random_uniform(self):
@@ -345,30 +371,31 @@ class SpecialEuclideanGroup(LieGroup):
         n_weights = weights.shape[0]
         assert n_points == n_weights
 
-        dim_rotations = self.rotations.dimension
         dim = self.dimension
+        rotations = self.rotations
+        dim_rotations = rotations.dimension
 
         rotation_vectors = points[:, :dim_rotations]
         translations = points[:, dim_rotations:dim]
         assert rotation_vectors.shape == (n_points, dim_rotations)
         assert translations.shape == (n_points, self.n)
 
-        mean_rotation = self.rotations.group_exponential_barycenter(
+        mean_rotation = rotations.group_exponential_barycenter(
                                                 points=rotation_vectors,
                                                 weights=weights)
-        mean_rotation_mat = self.rotations.matrix_from_rotation_vector(
+        mean_rotation_mat = rotations.matrix_from_rotation_vector(
                     mean_rotation)
 
         matrix = np.zeros([1, self.n, self.n])
         translation_aux = np.zeros([1, self.n])
 
-        inv_rot_mats = self.rotations.matrix_from_rotation_vector(
+        inv_rot_mats = rotations.matrix_from_rotation_vector(
                 -rotation_vectors)
         # TODO(nina): this is the same mat multiplied several times
         matrix_aux = np.matmul(mean_rotation_mat, inv_rot_mats)
         assert matrix_aux.shape == (n_points, dim_rotations, dim_rotations)
 
-        vec_aux = self.rotations.rotation_vector_from_matrix(matrix_aux)
+        vec_aux = rotations.rotation_vector_from_matrix(matrix_aux)
         matrix_aux = self.exponential_matrix(vec_aux)
         matrix_aux = np.linalg.inv(matrix_aux)
 
