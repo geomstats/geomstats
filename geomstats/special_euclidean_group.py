@@ -79,7 +79,11 @@ class SpecialEuclideanGroup(LieGroup):
 
         point_1 = self.regularize(point_1)
         point_2 = self.regularize(point_2)
-        assert point_1.shape == point_2.shape
+        n_points_1 = point_1.shape[0]
+        n_points_2 = point_2.shape[0]
+        assert (point_1.shape == point_2.shape
+                or n_points_1 == 1
+                or n_points_2 == 1)
 
         rot_vec_1 = point_1[:, :dim_rotations]
         rot_mat_1 = rotations.matrix_from_rotation_vector(rot_vec_1)
@@ -93,16 +97,19 @@ class SpecialEuclideanGroup(LieGroup):
         translation_1 = point_1[:, dim_rotations:]
         translation_2 = point_2[:, dim_rotations:]
 
-        composition = np.zeros_like(point_1)
+        composition = np.zeros((np.maximum(n_points_1, n_points_2),
+                               self.dimension))
         composition_rot_mat = np.matmul(rot_mat_1, rot_mat_2)
-
-        composition[:, :dim_rotations] = rotations.rotation_vector_from_matrix(
+        composition_rot_vec = rotations.rotation_vector_from_matrix(
                                                           composition_rot_mat)
-        composition[:, dim_rotations:] = (np.dot(translation_2,
-                                                 np.transpose(
-                                                        rot_mat_1,
-                                                        axes=(0, 2, 1)))
-                                          + translation_1)
+        composition_translation = (np.dot(translation_2,
+                                          np.transpose(rot_mat_1,
+                                                       axes=(0, 2, 1)))
+                                   + translation_1)
+        composition_translation = np.squeeze(composition_translation, axis=1)
+
+        composition[:, :dim_rotations] = composition_rot_vec
+        composition[:, dim_rotations:] = composition_translation
 
         composition = self.regularize(composition)
         return composition

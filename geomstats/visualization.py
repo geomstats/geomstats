@@ -47,25 +47,32 @@ def trihedron_from_rigid_transformation(transfo):
     - the trihedron's orientation is the rotation of the canonical basis
     of R^3 by the rotation part of transfo.
     """
-    SO3 = special_orthogonal_group.SpecialOrthogonalGroup(3)
-    translation = transfo[3:6]
-    rot_vec = transfo[0:3]
-    rot_mat = SO3.matrix_from_rotation_vector(rot_vec)
+    if transfo.ndim == 1:
+        transfo = np.expand_dims(transfo, axis=0)
+
+    rotations = special_orthogonal_group.SpecialOrthogonalGroup(3)
+    dim_rotations = rotations.dimension
+
+    rot_vec = transfo[:, :dim_rotations]
+    rot_mat = rotations.matrix_from_rotation_vector(rot_vec)
     rot_mat = special_orthogonal_group.closest_rotation_matrix(rot_mat)
+    translation = transfo[:, dim_rotations:]
 
     basis_vec_1 = np.array([1, 0, 0])
     basis_vec_2 = np.array([0, 1, 0])
     basis_vec_3 = np.array([0, 0, 1])
 
-    trihedron_vec_1 = np.dot(rot_mat, basis_vec_1)
-    trihedron_vec_2 = np.dot(rot_mat, basis_vec_2)
-    trihedron_vec_3 = np.dot(rot_mat, basis_vec_3)
-    trihedron = Trihedron(translation,
-                          trihedron_vec_1,
-                          trihedron_vec_2,
-                          trihedron_vec_3)
-
-    return trihedron
+    trihedrons = []
+    for i in range(transfo.shape[0]):
+        trihedron_vec_1 = np.dot(rot_mat[i], basis_vec_1)
+        trihedron_vec_2 = np.dot(rot_mat[i], basis_vec_2)
+        trihedron_vec_3 = np.dot(rot_mat[i], basis_vec_3)
+        trihedron = Trihedron(translation[i],
+                              trihedron_vec_1,
+                              trihedron_vec_2,
+                              trihedron_vec_3)
+        trihedrons.append(trihedron)
+    return trihedrons
 
 
 def plot(points, ax=None, **point_draw_kwargs):
@@ -73,11 +80,11 @@ def plot(points, ax=None, **point_draw_kwargs):
     Plot points in the 3D Special Euclidean Group,
     by showing them as trihedrons.
     """
-    if len(points.shape) is 1:
-        points = np.expand_dims(points, axis=0)
-
-    if points is None or points.shape[0] is 0:
+    if points is None:
         raise ValueError("No points given for plotting.")
+
+    if points.ndim == 1:
+        points = np.expand_dims(points, axis=0)
 
     if ax is None:
         ax_s = 1.2 * np.amax(np.abs(points[:, 3:6]))
@@ -88,8 +95,8 @@ def plot(points, ax=None, **point_draw_kwargs):
                  zlim=(-ax_s, ax_s),
                  xlabel="X", ylabel="Y", zlabel="Z")
 
-    for point in points:
-        trihedron = trihedron_from_rigid_transformation(point)
+    trihedrons = trihedron_from_rigid_transformation(points)
+    for trihedron in trihedrons:
         trihedron.draw(ax, **point_draw_kwargs)
 
     return ax

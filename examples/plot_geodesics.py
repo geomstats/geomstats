@@ -21,11 +21,15 @@ def main():
                                initial_tangent_vec=initial_tangent_vec)
 
     n_steps = 10
-    t = np.linspace(0, 10, n_steps)
+    t = np.linspace(0, 1, n_steps)
 
     points = geodesic(t)
+    ax = plt.subplot(111, projection="3d", aspect="equal")
+    plt.setp(ax,
+             xlim=(-1, 4), ylim=(-1, 4), zlim=(-1, 2),
+             xlabel="X", ylabel="Y", zlabel="Z")
 
-    visualization.plot(points)
+    visualization.plot(points, ax)
     plt.show()
 
 
