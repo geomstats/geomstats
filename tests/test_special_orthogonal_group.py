@@ -306,7 +306,9 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             norm = np.linalg.norm(expected)
             if norm != 0:
                 atol = RTOL * norm
-            self.assertTrue(np.allclose(result, expected, atol=atol))
+            self.assertTrue(np.allclose(result, expected, atol=atol),
+                            '\nresult: {}'
+                            '\nexpected: {}'.format(result, expected))
 
             # Composition by identity, on the left
             # Expect the original transformation
