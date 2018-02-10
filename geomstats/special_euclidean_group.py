@@ -72,7 +72,7 @@ class SpecialEuclideanGroup(LieGroup):
         t1, t2 are translation vectors.
 
         :param point_1, point_2: 6d vectors elements of SE(3)
-        :returns composition: composition of point_1 and point_2
+        :return composition: composition of point_1 and point_2
         """
         rotations = self.rotations
         dim_rotations = rotations.dimension
