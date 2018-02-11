@@ -316,8 +316,10 @@ class SpecialOrthogonalGroup(LieGroup):
         mask_0 = np.squeeze(mask_0, axis=1)
         mask_not_0 = ~mask_0
         if np.any(mask_not_0):
-            rot_vec[mask_not_0] = (quaternion[mask_not_0, 1:]
-                                   / np.sin(half_angle[mask_not_0]))
+            rotation_axis = (quaternion[mask_not_0, 1:]
+                             / np.sin(half_angle[mask_not_0]))
+            rot_vec[mask_not_0] = (2 * half_angle[mask_not_0]
+                                   * rotation_axis)
 
         rot_vec = self.regularize(rot_vec)
         return rot_vec
