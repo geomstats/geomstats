@@ -135,14 +135,14 @@ class RiemannianMetric(object):
         assert base_point.ndim == 2
 
         n_tangent_vecs, _ = tangent_vec.shape
-        n_base_points, _ = base_point.shape
+        n_base_points, point_dim = base_point.shape
 
         assert (n_tangent_vecs == n_base_points
                 or n_tangent_vecs == 1
                 or n_base_points == 1)
 
         n_exps = np.maximum(n_tangent_vecs, n_base_points)
-        exp = np.zeros((n_exps, self.dimension))
+        exp = np.zeros((n_exps, point_dim))
         for i in range(n_exps):
             base_point_i = (base_point[0] if n_base_points == 1
                             else base_point[i])
@@ -166,14 +166,14 @@ class RiemannianMetric(object):
         assert base_point.ndim == 2
 
         n_points, _ = point.shape
-        n_base_points, _ = base_point.shape
+        n_base_points, point_dim = base_point.shape
 
         assert (n_points == n_base_points
                 or n_points == 1
                 or n_base_points == 1)
 
         n_logs = np.maximum(n_points, n_base_points)
-        log = np.zeros((n_logs, self.dimension))
+        log = np.zeros((n_logs, point_dim))
         for i in range(n_logs):
             base_point_i = (base_point[0] if n_base_points == 1
                             else base_point[i])
