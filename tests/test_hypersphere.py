@@ -16,7 +16,7 @@ class TestHypersphereMethods(unittest.TestCase):
     def test_random_uniform_and_belongs(self):
         """
         Test that the random uniform method samples
-        on the hyperbolic space.
+        on the hypersphere space.
         """
         point = self.space.random_uniform()
         self.assertTrue(self.space.belongs(point))
@@ -24,7 +24,7 @@ class TestHypersphereMethods(unittest.TestCase):
     def test_random_uniform_and_belongs_vectorization(self):
         """
         Test that the random uniform method samples
-        on the hyperbolic space.
+        on the hypersphere space.
         """
         n_samples = self.n_samples
         points = self.space.random_uniform(n_samples=n_samples)

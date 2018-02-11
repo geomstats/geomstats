@@ -85,8 +85,6 @@ class Hypersphere(Manifold):
             point_intrinsic = np.expand_dims(point_intrinsic, axis=0)
         assert point_intrinsic.ndim == 2
 
-        assert np.all(np.linalg.norm(point_intrinsic, axis=1) <= 1)
-
         n_points, _ = point_intrinsic.shape
 
         dimension = self.dimension
