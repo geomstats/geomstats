@@ -259,9 +259,14 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         Convert a rotation matrix into a unit quaternion.
         """
+        if rot_mat.ndim == 2:
+            rot_mat = np.expand_dims(rot_mat, axis=0)
+        assert rot_mat.ndim == 3, rot_mat.ndim
+
         rot_vec = self.rotation_vector_from_matrix(rot_mat)
         quaternion = self.quaternion_from_rotation_vector(rot_vec)
 
+        assert quaternion.ndim == 2
         return quaternion
 
     def quaternion_from_rotation_vector(self, rot_vec):
@@ -269,17 +274,23 @@ class SpecialOrthogonalGroup(LieGroup):
         Convert a rotation vector into a unit quaternion.
         """
         rot_vec = self.regularize(rot_vec)
+        n_rot_vecs, _ = rot_vec.shape
 
-        angle = np.linalg(rot_vec, axis=1)
-        rotation_axis = np.ones_like(rot_vec) / np.sqrt(self.dimension)
+        angle = np.linalg.norm(rot_vec, axis=1)
+        angle = np.expand_dims(angle, axis=1)
+        assert angle.shape == (n_rot_vecs, 1)
 
-        mask_not_0 = angle != 0
+        rotation_axis = np.zeros_like(rot_vec)
+
+        mask_0 = np.isclose(angle, 0)
+        mask_0 = np.squeeze(mask_0, axis=1)
+        mask_not_0 = ~mask_0
         if np.any(mask_not_0):
             rotation_axis[mask_not_0] = rot_vec[mask_not_0] / angle[mask_not_0]
 
         n_quaternions, _ = rot_vec.shape
         quaternion = np.zeros((n_quaternions, 4))
-        quaternion[:, 0] = np.cos(angle / 2)
+        quaternion[:, :1] = np.cos(angle / 2)
         quaternion[:, 1:] = np.sin(angle / 2) * rotation_axis[:]
 
         return quaternion
@@ -291,17 +302,24 @@ class SpecialOrthogonalGroup(LieGroup):
         if quaternion.ndim == 1:
             quaternion = np.expand_dims(quaternion, axis=0)
 
-        cos_half_angle = quaternion[0]
+        cos_half_angle = quaternion[:, 0]
         cos_half_angle = np.clip(cos_half_angle, -1, 1)
         half_angle = np.arccos(cos_half_angle)
 
-        rot_vec = np.ones_like(quaternion[:, 1:]) / np.sqrt(3)
+        n_quaternions, _ = quaternion.shape
+        half_angle = np.expand_dims(half_angle, axis=1)
+        assert half_angle.shape == (n_quaternions, 1), half_angle.shape
 
-        mask_not_0 = half_angle != 0
+        rot_vec = np.zeros_like(quaternion[:, 1:])
+
+        mask_0 = np.isclose(half_angle, 0)
+        mask_0 = np.squeeze(mask_0, axis=1)
+        mask_not_0 = ~mask_0
         if np.any(mask_not_0):
             rot_vec[mask_not_0] = (quaternion[mask_not_0, 1:]
                                    / np.sin(half_angle[mask_not_0]))
 
+        rot_vec = self.regularize(rot_vec)
         return rot_vec
 
     def matrix_from_quaternion(self, quaternion):
@@ -314,6 +332,7 @@ class SpecialOrthogonalGroup(LieGroup):
         rot_vec = self.rotation_vector_from_quaternion(quaternion)
         rot_mat = self.matrix_from_rotation_vector(rot_vec)
 
+        assert rot_mat.ndim == 3
         return rot_mat
 
     def compose(self, rot_vec_1, rot_vec_2):

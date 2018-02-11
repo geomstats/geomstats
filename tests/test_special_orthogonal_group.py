@@ -367,7 +367,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             point = self.elements[angle_type]
             matrix = self.group.matrix_from_rotation_vector(point)
 
-            quaternion = self.group.quaternion_from_matrix(point)
+            quaternion = self.group.quaternion_from_matrix(matrix)
             result = self.group.matrix_from_quaternion(quaternion)
 
             expected = matrix
@@ -390,7 +390,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         quaternions = self.group.quaternion_from_matrix(rot_mats)
         results = self.group.matrix_from_quaternion(quaternions)
 
-        expected = self.group.regularize(rot_mats)
+        expected = rot_mats
         self.assertTrue(np.allclose(results, expected))
 
     def test_compose(self):
