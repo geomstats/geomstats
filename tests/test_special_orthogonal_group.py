@@ -356,10 +356,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
             self.assertTrue(np.allclose(result, expected),
                             'for point {}:\n'
-                            'result = {};'
-                            ' expected = {}.'.format(angle_type,
-                                                     result,
-                                                     expected))
+                            '\nresult = \n{};'
+                            '\nexpected = \n{}.'.format(angle_type,
+                                                        result,
+                                                        expected))
 
     def test_quaternion_and_matrix_with_angles_close_to_pi(self):
         angle_types = self.angles_close_to_pi

@@ -330,9 +330,27 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         if quaternion.ndim == 1:
             quaternion = np.expand_dims(quaternion, axis=0)
+        assert quaternion.ndim == 2
 
-        rot_vec = self.rotation_vector_from_quaternion(quaternion)
-        rot_mat = self.matrix_from_rotation_vector(rot_vec)
+        n_quaternions, _ = quaternion.shape
+        a, b, c, d = np.hsplit(quaternion, 4)
+
+        rot_mat = np.zeros((n_quaternions, self.n, self.n))
+
+        for i in range(n_quaternions):
+            column_1 = [a[i] ** 2 + b[i] ** 2 - c[i] ** 2 - d[i] ** 2,
+                        2 * b[i] * c[i] - 2 * a[i] * d[i],
+                        2 * b[i] * d[i] + 2 * a[i] * c[i]]
+
+            column_2 = [2 * b[i] * c[i] + 2 * a[i] * d[i],
+                        a[i] ** 2 - b[i] ** 2 + c[i] ** 2 - d[i] ** 2,
+                        2 * c[i] * d[i] - 2 * a[i] * b[i]]
+
+            column_3 = [2 * b[i] * d[i] - 2 * a[i] * c[i],
+                        2 * c[i] * d[i] + 2 * a[i] * b[i],
+                        a[i] ** 2 - b[i] ** 2 - c[i] ** 2 + d[i] ** 2]
+
+            rot_mat[i] = np.hstack([column_1, column_2, column_3]).transpose()
 
         assert rot_mat.ndim == 3
         return rot_mat
