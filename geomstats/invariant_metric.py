@@ -119,8 +119,8 @@ class InvariantMetric(RiemannianMetric):
             tangent_vec = np.expand_dims(tangent_vec, axis=0)
         assert tangent_vec.ndim == 2
 
-        n_tangent_vecs = tangent_vec.shape[0]
-        n_base_points = base_point.shape[0]
+        n_tangent_vecs, _ = tangent_vec.shape
+        n_base_points, _ = base_point.shape
         n_exps = np.maximum(n_tangent_vecs, n_base_points)
 
         assert (n_tangent_vecs == n_base_points

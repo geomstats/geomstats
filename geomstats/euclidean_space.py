@@ -55,13 +55,61 @@ class EuclideanMetric(RiemannianMetric):
         """
         The Riemannian exponential is the addition in the Euclidean space.
         """
-        return base_point + tangent_vec
+        if tangent_vec.ndim == 1:
+            tangent_vec = np.expand_dims(tangent_vec, axis=0)
+        assert tangent_vec.ndim == 2
+
+        if base_point.ndim == 1:
+            base_point = np.expand_dims(base_point, axis=0)
+        assert base_point.ndim == 2
+
+        n_tangent_vecs, _ = tangent_vec.shape
+        n_base_points, _ = base_point.shape
+
+        assert (n_tangent_vecs == n_base_points
+                or n_tangent_vecs == 1
+                or n_base_points == 1)
+
+        n_exps = np.maximum(n_tangent_vecs, n_base_points)
+        exp = np.zeros((n_exps, self.dimension))
+        for i in range(n_exps):
+            base_point_i = (base_point[0] if n_base_points == 1
+                            else base_point[i])
+            tangent_vec_i = (tangent_vec[0] if n_tangent_vecs == 1
+                             else tangent_vec[i])
+            exp[i] = base_point_i + tangent_vec_i
+
+        return exp
 
     def log(self, point, base_point):
         """
         The Riemannian logarithm is the subtraction in the Euclidean space.
         """
-        return point - base_point
+        if point.ndim == 1:
+            point = np.expand_dims(point, axis=0)
+        assert point.ndim == 2
+
+        if base_point.ndim == 1:
+            base_point = np.expand_dims(base_point, axis=0)
+        assert base_point.ndim == 2
+
+        n_points, _ = point.shape
+        n_base_points, _ = base_point.shape
+
+        assert (n_points == n_base_points
+                or n_points == 1
+                or n_base_points == 1)
+
+        n_logs = np.maximum(n_points, n_base_points)
+        log = np.zeros((n_logs, self.dimension))
+        for i in range(n_logs):
+            base_point_i = (base_point[0] if n_base_points == 1
+                            else base_point[i])
+            point_i = (point[0] if n_points == 1
+                       else point[i])
+            log[i] = point_i - base_point_i
+
+        return log
 
     def mean(self, points, weights=None):
         """
