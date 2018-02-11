@@ -4,7 +4,12 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
+from geomstats.special_euclidean_group import SpecialEuclideanGroup
+from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 import geomstats.special_orthogonal_group as special_orthogonal_group
+
+SE3_GROUP = SpecialEuclideanGroup(n=3)
+SO3_GROUP = SpecialOrthogonalGroup(n=3)
 
 
 class Arrow3D():
@@ -15,6 +20,8 @@ class Arrow3D():
 
     def draw(self, ax, **quiver_kwargs):
         "Draw the arrow in 3D plot."
+        print('point')
+        print(self.point.shape)
         ax.quiver(self.point[0], self.point[1], self.point[2],
                   self.vector[0], self.vector[1], self.vector[2],
                   **quiver_kwargs)
@@ -38,32 +45,39 @@ class Trihedron():
         self.arrow_3.draw(ax, color='b', **arrow_draw_kwargs)
 
 
-def trihedron_from_rigid_transformation(transfo):
+def trihedron(point, group=SE3_GROUP):
     """
-    Transform a rigid transformation
+    Transform a rigid pointrmation
     into a trihedron s.t.:
     - the trihedron's base point is the translation of the origin
-    of R^3 by the translation part of transfo,
+    of R^3 by the translation part of point,
     - the trihedron's orientation is the rotation of the canonical basis
-    of R^3 by the rotation part of transfo.
+    of R^3 by the rotation part of point.
     """
-    if transfo.ndim == 1:
-        transfo = np.expand_dims(transfo, axis=0)
+    if point.ndim == 1:
+        point = np.expand_dims(point, axis=0)
+    n_points, _ = point.shape
 
-    rotations = special_orthogonal_group.SpecialOrthogonalGroup(3)
-    dim_rotations = rotations.dimension
+    dim_rotations = SO3_GROUP.dimension
 
-    rot_vec = transfo[:, :dim_rotations]
-    rot_mat = rotations.matrix_from_rotation_vector(rot_vec)
+    if group is SE3_GROUP:
+        rot_vec = point[:, :dim_rotations]
+        translation = point[:, dim_rotations:]
+    elif group is SO3_GROUP:
+        rot_vec = point
+        translation = np.zeros((n_points, 3))
+    else:
+        raise NotImplementedError(
+                'Visualization is only implemented for SO(3) and SE(3).')
+
+    rot_mat = SO3_GROUP.matrix_from_rotation_vector(rot_vec)
     rot_mat = special_orthogonal_group.closest_rotation_matrix(rot_mat)
-    translation = transfo[:, dim_rotations:]
-
     basis_vec_1 = np.array([1, 0, 0])
     basis_vec_2 = np.array([0, 1, 0])
     basis_vec_3 = np.array([0, 0, 1])
 
     trihedrons = []
-    for i in range(transfo.shape[0]):
+    for i in range(n_points):
         trihedron_vec_1 = np.dot(rot_mat[i], basis_vec_1)
         trihedron_vec_2 = np.dot(rot_mat[i], basis_vec_2)
         trihedron_vec_3 = np.dot(rot_mat[i], basis_vec_3)
@@ -75,7 +89,7 @@ def trihedron_from_rigid_transformation(transfo):
     return trihedrons
 
 
-def plot(points, ax=None, **point_draw_kwargs):
+def plot(points, ax=None, group=SE3_GROUP, **point_draw_kwargs):
     """
     Plot points in the 3D Special Euclidean Group,
     by showing them as trihedrons.
@@ -95,8 +109,8 @@ def plot(points, ax=None, **point_draw_kwargs):
                  zlim=(-ax_s, ax_s),
                  xlabel="X", ylabel="Y", zlabel="Z")
 
-    trihedrons = trihedron_from_rigid_transformation(points)
-    for trihedron in trihedrons:
-        trihedron.draw(ax, **point_draw_kwargs)
+    trihedrons = trihedron(points, group=group)
+    for t in trihedrons:
+        t.draw(ax, **point_draw_kwargs)
 
     return ax
