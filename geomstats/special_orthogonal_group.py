@@ -255,6 +255,34 @@ class SpecialOrthogonalGroup(LieGroup):
 
         return rot_mat
 
+    def quaternion_from_matrix(self, rot_mat):
+        """
+        Compute a unit quaternion from a rotation matrix.
+        """
+        rot_vec = self.rotation_vector_from_matrix(rot_mat)
+        quaternion = self.quaternion_from_rotation_vector(rot_vec)
+
+        return quaternion
+
+    def quaternion_from_rotation_vector(self, rot_vec):
+        """
+        Compute a unit quaternion from the rotation vector.
+        """
+        rot_vec = self.regularize(rot_vec)
+
+        angle = np.linalg(rot_vec, axis=1)
+        rotation_axis = np.ones_like(rot_vec) / np.sqrt(self.dimension)
+
+        mask_0 = angle == 0
+        rotation_axis[~mask_0] = rot_vec[~mask_0] / angle[~mask_0]
+
+        n_quaternions, _ = rot_vec.shape
+        quaternion = np.zeros((n_quaternions, 4))
+        quaternion[:, 0] = np.cos(angle / 2)
+        quaternion[:, 1:] = np.sin(angle / 2) * rotation_axis[:]
+
+        return quaternion
+
     def compose(self, rot_vec_1, rot_vec_2):
         """
         Compose 2 rotation vectors according to the matrix product
