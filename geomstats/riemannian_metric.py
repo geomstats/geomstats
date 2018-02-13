@@ -103,21 +103,85 @@ class RiemannianMetric(object):
         norm = np.sqrt(sq_norm)
         return norm
 
-    def exp(self, tangent_vec, base_point=None):
+    def exp_basis(self, tangent_vec, base_point=None):
         """
         Riemannian exponential at point base_point
         of tangent vector tangent_vec wrt the Riemannian metric.
         """
         raise NotImplementedError(
-                'The Riemannian exponential is not implemented.')
+                'The basis function for the Riemannian exponential'
+                'is not implemented.')
+
+    def log_basis(self, point, base_point=None):
+        """
+        Riemannian logarithm at point base_point
+        of tangent vector tangent_vec wrt the Riemannian metric.
+        """
+        raise NotImplementedError(
+                'The basis function for the Riemannian logarithm'
+                ' is not implemented.')
+
+    def exp(self, tangent_vec, base_point=None):
+        """
+        Riemannian exponential at point base_point
+        of tangent vector tangent_vec wrt the Riemannian metric.
+        """
+        if tangent_vec.ndim == 1:
+            tangent_vec = np.expand_dims(tangent_vec, axis=0)
+        assert tangent_vec.ndim == 2
+
+        if base_point.ndim == 1:
+            base_point = np.expand_dims(base_point, axis=0)
+        assert base_point.ndim == 2
+
+        n_tangent_vecs, _ = tangent_vec.shape
+        n_base_points, point_dim = base_point.shape
+
+        assert (n_tangent_vecs == n_base_points
+                or n_tangent_vecs == 1
+                or n_base_points == 1)
+
+        n_exps = np.maximum(n_tangent_vecs, n_base_points)
+        exp = np.zeros((n_exps, point_dim))
+        for i in range(n_exps):
+            base_point_i = (base_point[0] if n_base_points == 1
+                            else base_point[i])
+            tangent_vec_i = (tangent_vec[0] if n_tangent_vecs == 1
+                             else tangent_vec[i])
+            exp[i] = self.exp_basis(tangent_vec_i, base_point_i)
+
+        return exp
 
     def log(self, point, base_point=None):
         """
         Riemannian logarithm at point base_point
         of tangent vector tangent_vec wrt the Riemannian metric.
         """
-        raise NotImplementedError(
-                'The Riemannian logarithm is not implemented.')
+        if point.ndim == 1:
+            point = np.expand_dims(point, axis=0)
+        assert point.ndim == 2
+
+        if base_point.ndim == 1:
+            base_point = np.expand_dims(base_point, axis=0)
+        assert base_point.ndim == 2
+
+        n_points, _ = point.shape
+        n_base_points, point_dim = base_point.shape
+
+        assert (n_points == n_base_points
+                or n_points == 1
+                or n_base_points == 1)
+
+        n_logs = np.maximum(n_points, n_base_points)
+        log = np.zeros((n_logs, point_dim))
+        for i in range(n_logs):
+            base_point_i = (base_point[0] if n_base_points == 1
+                            else base_point[i])
+            point_i = (point[0] if n_points == 1
+                       else point[i])
+            log[i] = self.log_basis(point_i, base_point_i)
+
+        return log
 
     def geodesic(self, initial_point, initial_tangent_vec):
         """

@@ -19,14 +19,16 @@ class MinkowskiSpace(Manifold):
         """
         Check if point belongs to the Minkowski space.
         """
-        return len(point) == self.dimension
+        if point.ndim == 1:
+            point = np.expand_dims(point, axis=0)
+        return point.shape[1] == self.dimension
 
-    def random_uniform(self):
+    def random_uniform(self, n_samples=1):
         """
         Sample a vector uniformly in the Minkowski space,
         with coordinates each between -1. and 1.
         """
-        point = np.random.rand(self.dimension) * 2 - 1
+        point = np.random.rand(n_samples, self.dimension) * 2 - 1
         return point
 
 
@@ -51,13 +53,13 @@ class MinkowskiMetric(RiemannianMetric):
         inner_prod_mat[0, 0] = -1
         return inner_prod_mat
 
-    def exp(self, tangent_vec, base_point):
+    def exp_basis(self, tangent_vec, base_point):
         """
         The Riemannian exponential is the addition in the Minkowski space.
         """
         return base_point + tangent_vec
 
-    def log(self, point, base_point):
+    def log_basis(self, point, base_point):
         """
         The Riemannian logarithm is the subtraction in the Minkowski space.
         """
