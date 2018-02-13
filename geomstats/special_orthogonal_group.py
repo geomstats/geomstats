@@ -338,6 +338,8 @@ class SpecialOrthogonalGroup(LieGroup):
         rot_mat = np.zeros((n_quaternions, self.n, self.n))
 
         for i in range(n_quaternions):
+            # TODO(nina): vectorize by applying the composition of
+            # quaternions to the identity matrix
             column_1 = [a[i] ** 2 + b[i] ** 2 - c[i] ** 2 - d[i] ** 2,
                         2 * b[i] * c[i] - 2 * a[i] * d[i],
                         2 * b[i] * d[i] + 2 * a[i] * c[i]]
