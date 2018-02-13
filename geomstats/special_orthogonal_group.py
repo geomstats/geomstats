@@ -255,6 +255,108 @@ class SpecialOrthogonalGroup(LieGroup):
 
         return rot_mat
 
+    def quaternion_from_matrix(self, rot_mat):
+        """
+        Convert a rotation matrix into a unit quaternion.
+        """
+        if rot_mat.ndim == 2:
+            rot_mat = np.expand_dims(rot_mat, axis=0)
+        assert rot_mat.ndim == 3, rot_mat.ndim
+
+        rot_vec = self.rotation_vector_from_matrix(rot_mat)
+        quaternion = self.quaternion_from_rotation_vector(rot_vec)
+
+        assert quaternion.ndim == 2
+        return quaternion
+
+    def quaternion_from_rotation_vector(self, rot_vec):
+        """
+        Convert a rotation vector into a unit quaternion.
+        """
+        rot_vec = self.regularize(rot_vec)
+        n_rot_vecs, _ = rot_vec.shape
+
+        angle = np.linalg.norm(rot_vec, axis=1)
+        angle = np.expand_dims(angle, axis=1)
+        assert angle.shape == (n_rot_vecs, 1)
+
+        rotation_axis = np.zeros_like(rot_vec)
+
+        mask_0 = np.isclose(angle, 0)
+        mask_0 = np.squeeze(mask_0, axis=1)
+        mask_not_0 = ~mask_0
+        if np.any(mask_not_0):
+            rotation_axis[mask_not_0] = rot_vec[mask_not_0] / angle[mask_not_0]
+
+        n_quaternions, _ = rot_vec.shape
+        quaternion = np.zeros((n_quaternions, 4))
+        quaternion[:, :1] = np.cos(angle / 2)
+        quaternion[:, 1:] = np.sin(angle / 2) * rotation_axis[:]
+
+        return quaternion
+
+    def rotation_vector_from_quaternion(self, quaternion):
+        """
+        Convert a unit quaternion into a rotation vector.
+        """
+        if quaternion.ndim == 1:
+            quaternion = np.expand_dims(quaternion, axis=0)
+
+        cos_half_angle = quaternion[:, 0]
+        cos_half_angle = np.clip(cos_half_angle, -1, 1)
+        half_angle = np.arccos(cos_half_angle)
+
+        n_quaternions, _ = quaternion.shape
+        half_angle = np.expand_dims(half_angle, axis=1)
+        assert half_angle.shape == (n_quaternions, 1), half_angle.shape
+
+        rot_vec = np.zeros_like(quaternion[:, 1:])
+
+        mask_0 = np.isclose(half_angle, 0)
+        mask_0 = np.squeeze(mask_0, axis=1)
+        mask_not_0 = ~mask_0
+        if np.any(mask_not_0):
+            rotation_axis = (quaternion[mask_not_0, 1:]
+                             / np.sin(half_angle[mask_not_0]))
+            rot_vec[mask_not_0] = (2 * half_angle[mask_not_0]
+                                   * rotation_axis)
+
+        rot_vec = self.regularize(rot_vec)
+        return rot_vec
+
+    def matrix_from_quaternion(self, quaternion):
+        """
+        Convert a unit quaternion into a rotation vector.
+        """
+        if quaternion.ndim == 1:
+            quaternion = np.expand_dims(quaternion, axis=0)
+        assert quaternion.ndim == 2
+
+        n_quaternions, _ = quaternion.shape
+        a, b, c, d = np.hsplit(quaternion, 4)
+
+        rot_mat = np.zeros((n_quaternions, self.n, self.n))
+
+        for i in range(n_quaternions):
+            # TODO(nina): vectorize by applying the composition of
+            # quaternions to the identity matrix
+            column_1 = [a[i] ** 2 + b[i] ** 2 - c[i] ** 2 - d[i] ** 2,
+                        2 * b[i] * c[i] - 2 * a[i] * d[i],
+                        2 * b[i] * d[i] + 2 * a[i] * c[i]]
+
+            column_2 = [2 * b[i] * c[i] + 2 * a[i] * d[i],
+                        a[i] ** 2 - b[i] ** 2 + c[i] ** 2 - d[i] ** 2,
+                        2 * c[i] * d[i] - 2 * a[i] * b[i]]
+
+            column_3 = [2 * b[i] * d[i] - 2 * a[i] * c[i],
+                        2 * c[i] * d[i] + 2 * a[i] * b[i],
+                        a[i] ** 2 - b[i] ** 2 - c[i] ** 2 + d[i] ** 2]
+
+            rot_mat[i] = np.hstack([column_1, column_2, column_3]).transpose()
+
+        assert rot_mat.ndim == 3
+        return rot_mat
+
     def compose(self, rot_vec_1, rot_vec_2):
         """
         Compose 2 rotation vectors according to the matrix product
