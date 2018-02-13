@@ -294,6 +294,105 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                         expected,
                                                         inv_expected))
 
+    def test_quaternion_and_rotation_vector(self):
+        for angle_type in self.elements:
+            point = self.elements[angle_type]
+            if angle_type in self.angles_close_to_pi:
+                continue
+
+            quaternion = self.group.quaternion_from_rotation_vector(point)
+            result = self.group.rotation_vector_from_quaternion(quaternion)
+
+            expected = self.group.regularize(point)
+
+            self.assertTrue(np.allclose(result, expected),
+                            'for point {}:\n'
+                            'result = {};'
+                            ' expected = {}.'.format(angle_type,
+                                                     result,
+                                                     expected))
+
+    def test_quaternion_and_rotation_vector_with_angles_close_to_pi(self):
+        angle_types = self.angles_close_to_pi
+        for angle_type in angle_types:
+            point = self.elements[angle_type]
+
+            quaternion = self.group.quaternion_from_rotation_vector(point)
+            result = self.group.rotation_vector_from_quaternion(quaternion)
+
+            expected = self.group.regularize(point)
+            inv_expected = - expected
+
+            self.assertTrue((np.allclose(result, expected)
+                            or np.allclose(result, inv_expected)),
+                            'for point {}:\n'
+                            'result = {}; expected = {};'
+                            'inv_expected = {} '.format(angle_type,
+                                                        result,
+                                                        expected,
+                                                        inv_expected))
+
+    def test_quaternion_and_rotation_vector_vectorization(self):
+        n_samples = self.n_random_samples
+        rot_vecs = self.group.random_uniform(n_samples=n_samples)
+        quaternions = self.group.quaternion_from_rotation_vector(rot_vecs)
+        results = self.group.rotation_vector_from_quaternion(quaternions)
+
+        expected = self.group.regularize(rot_vecs)
+        self.assertTrue(np.allclose(results, expected))
+
+    def test_quaternion_and_matrix(self):
+        for angle_type in self.elements:
+            point = self.elements[angle_type]
+            if angle_type in self.angles_close_to_pi:
+                continue
+
+            matrix = self.group.matrix_from_rotation_vector(point)
+
+            quaternion = self.group.quaternion_from_matrix(matrix)
+            result = self.group.matrix_from_quaternion(quaternion)
+
+            expected = matrix
+
+            self.assertTrue(np.allclose(result, expected),
+                            'for point {}:\n'
+                            '\nresult = \n{};'
+                            '\nexpected = \n{}.'.format(angle_type,
+                                                        result,
+                                                        expected))
+
+    def test_quaternion_and_matrix_with_angles_close_to_pi(self):
+        angle_types = self.angles_close_to_pi
+        for angle_type in angle_types:
+            point = self.elements[angle_type]
+            matrix = self.group.matrix_from_rotation_vector(point)
+
+            quaternion = self.group.quaternion_from_matrix(matrix)
+            result = self.group.matrix_from_quaternion(quaternion)
+
+            expected = matrix
+            inv_expected = np.linalg.inv(matrix)
+
+            self.assertTrue((np.allclose(result, expected)
+                            or np.allclose(result, inv_expected)),
+                            'for point {}:\n'
+                            'result = {}; expected = {};'
+                            'inv_expected = {} '.format(angle_type,
+                                                        result,
+                                                        expected,
+                                                        inv_expected))
+
+    def test_quaternion_and_rotation_vector_and_matrix_vectorization(self):
+        n_samples = self.n_random_samples
+        rot_vecs = self.group.random_uniform(n_samples=n_samples)
+        rot_mats = self.group.matrix_from_rotation_vector(rot_vecs)
+
+        quaternions = self.group.quaternion_from_matrix(rot_mats)
+        results = self.group.matrix_from_quaternion(quaternions)
+
+        expected = rot_mats
+        self.assertTrue(np.allclose(results, expected))
+
     def test_compose(self):
         for element_type in self.elements:
             point = self.elements[element_type]
