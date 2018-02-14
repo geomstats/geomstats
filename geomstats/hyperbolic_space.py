@@ -16,7 +16,6 @@ from geomstats.minkowski_space import MinkowskiMetric
 from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
 
-EPSILON = 1e-6
 TOLERANCE = 1e-12
 
 SINH_TAYLOR_COEFFS = [0., 1.,
@@ -71,7 +70,7 @@ class HyperbolicSpace(Manifold):
         sq_norm = self.embedding_metric.squared_norm(point)
         diff = np.abs(sq_norm + 1)
 
-        return np.less(diff, tolerance)
+        return diff < tolerance
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """
@@ -148,7 +147,7 @@ class HyperbolicMetric(RiemannianMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
-    def exp_basis(self, tangent_vec, base_point, epsilon=EPSILON):
+    def exp_basis(self, tangent_vec, base_point):
         """
         Compute the Riemannian exponential at point base_point
         of tangent vector tangent_vec wrt the metric obtained by
@@ -162,9 +161,10 @@ class HyperbolicMetric(RiemannianMetric):
         """
         sq_norm_tangent_vec = self.embedding_metric.squared_norm(
                 tangent_vec)
+        # TODO(nina): Fix, value error on this squared norm
         norm_tangent_vec = np.sqrt(sq_norm_tangent_vec)
 
-        if norm_tangent_vec < epsilon:
+        if np.isclose(norm_tangent_vec, 0):
             coef_1 = (1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
                       + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
                       + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
@@ -181,7 +181,7 @@ class HyperbolicMetric(RiemannianMetric):
 
         return riem_exp
 
-    def log_basis(self, point, base_point, epsilon=EPSILON):
+    def log_basis(self, point, base_point):
         """
         Compute the Riemannian logarithm at point base_point,
         of point wrt the metric obtained by
@@ -194,7 +194,7 @@ class HyperbolicMetric(RiemannianMetric):
         :returns riem_log: tangent vector at base_point
         """
         angle = self.dist(base_point, point)
-        if angle < epsilon:
+        if np.isclose(angle, 0):
             coef_1 = (1. + INV_SINH_TAYLOR_COEFFS[1] * angle ** 2
                       + INV_SINH_TAYLOR_COEFFS[3] * angle ** 4
                       + INV_SINH_TAYLOR_COEFFS[5] * angle ** 6
@@ -238,11 +238,9 @@ class HyperbolicMetric(RiemannianMetric):
         cosh_angle = - inner_prod / np.sqrt(sq_norm_a * sq_norm_b)
 
         mask_cosh_less_1 = np.less_equal(cosh_angle, 1.)
-        mask_else = ~mask_cosh_less_1
+        mask_cosh_greater_1 = ~mask_cosh_less_1
 
-        if np.any(mask_cosh_less_1):
-            dist[mask_cosh_less_1] = 0.
-        if np.any(mask_else):
-            dist[mask_else] = np.arccosh(cosh_angle[mask_else])
+        dist[mask_cosh_less_1] = 0.
+        dist[mask_cosh_greater_1] = np.arccosh(cosh_angle[mask_cosh_greater_1])
 
         return dist

@@ -12,7 +12,6 @@ from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
 
 
-EPSILON = 1e-6
 TOLERANCE = 1e-12
 
 SIN_TAYLOR_COEFFS = [0., 1.,
@@ -61,7 +60,7 @@ class Hypersphere(Manifold):
         sq_norm = self.embedding_metric.squared_norm(point)
         diff = np.abs(sq_norm - 1)
 
-        return np.less(diff, tolerance)
+        return diff < tolerance
 
     def projection_to_tangent_space(self, vector, base_point):
         """
@@ -244,11 +243,8 @@ class HypersphereMetric(RiemannianMetric):
         mask_cos_less_minus_1 = np.less_equal(cos_angle, -1.)
         mask_else = ~mask_cos_greater_1 & ~mask_cos_less_minus_1
 
-        if np.any(mask_cos_greater_1):
-            dist[mask_cos_greater_1] = 0.
-        if np.any(mask_cos_less_minus_1):
-            dist[mask_cos_less_minus_1] = np.pi
-        if np.any(mask_else):
-            dist[mask_else] = np.arccos(cos_angle[mask_else])
+        dist[mask_cos_greater_1] = 0.
+        dist[mask_cos_less_minus_1] = np.pi
+        dist[mask_else] = np.arccos(cos_angle[mask_else])
 
         return dist
