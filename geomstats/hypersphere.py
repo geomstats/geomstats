@@ -139,7 +139,7 @@ class HypersphereMetric(RiemannianMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
-    def exp_basis(self, tangent_vec, base_point, epsilon=EPSILON):
+    def exp_basis(self, tangent_vec, base_point):
         """
         Compute the Riemannian exponential at point base_point
         of tangent vector tangent_vec wrt the metric obtained by
@@ -154,7 +154,7 @@ class HypersphereMetric(RiemannianMetric):
         """
         norm_tangent_vec = self.embedding_metric.norm(tangent_vec)
 
-        if norm_tangent_vec < epsilon:
+        if np.isclose(norm_tangent_vec, 0):
             coef_1 = (1. + COS_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
                       + COS_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
                       + COS_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
@@ -171,7 +171,7 @@ class HypersphereMetric(RiemannianMetric):
 
         return exp
 
-    def log_basis(self, point, base_point, epsilon=EPSILON):
+    def log_basis(self, point, base_point):
         """
         Compute the Riemannian logarithm at point base_point,
         of point wrt the metric obtained by
@@ -193,7 +193,7 @@ class HypersphereMetric(RiemannianMetric):
         else:
             angle = np.arccos(cos_angle)
 
-        if angle < epsilon:
+        if np.isclose(angle, 0):
             coef_1 = (1. + INV_SIN_TAYLOR_COEFFS[1] * angle ** 2
                       + INV_SIN_TAYLOR_COEFFS[3] * angle ** 4
                       + INV_SIN_TAYLOR_COEFFS[5] * angle ** 6
