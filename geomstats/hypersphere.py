@@ -12,7 +12,6 @@ from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
 
 
-EPSILON = 1e-6
 TOLERANCE = 1e-12
 
 SIN_TAYLOR_COEFFS = [0., 1.,
@@ -51,14 +50,17 @@ class Hypersphere(Manifold):
         """
         if point.ndim == 1:
             point = np.expand_dims(point, axis=0)
-        point_dim = point.shape[1]
+
+        _, point_dim = point.shape
         if point_dim is not self.dimension + 1:
             if point_dim is self.dimension:
                 logging.warning('Use the extrinsic coordinates to '
                                 'represent points on the hypersphere.')
             return False
         sq_norm = self.embedding_metric.squared_norm(point)
-        return abs(sq_norm - 1) < tolerance
+        diff = np.abs(sq_norm - 1)
+
+        return diff < tolerance
 
     def projection_to_tangent_space(self, vector, base_point):
         """
@@ -78,15 +80,22 @@ class Hypersphere(Manifold):
         From some intrinsic coordinates in the Hypersphere,
         to the extrinsic coordinates in Euclidean space.
         """
-        assert np.linalg.norm(point_intrinsic) <= 1
+        if point_intrinsic.ndim == 1:
+            point_intrinsic = np.expand_dims(point_intrinsic, axis=0)
+        assert point_intrinsic.ndim == 2
+
+        n_points, _ = point_intrinsic.shape
 
         dimension = self.dimension
-        point_extrinsic = np.zeros(dimension + 1, 'float')
-        point_extrinsic[1: dimension + 1] = point_intrinsic[0: dimension]
+        point_extrinsic = np.zeros((n_points, dimension + 1))
+        point_extrinsic[:, 1: dimension + 1] = point_intrinsic[:, 0: dimension]
 
-        point_extrinsic[0] = np.sqrt(1. - np.dot(point_intrinsic,
-                                                 point_intrinsic))
-        assert self.belongs(point_extrinsic)
+        point_extrinsic[:, 0] = np.sqrt(1. - np.linalg.norm(
+                                                point_intrinsic,
+                                                axis=1) ** 2)
+        assert np.all(self.belongs(point_extrinsic))
+
+        assert point_extrinsic.ndim == 2, point_extrinsic.ndim
         return point_extrinsic
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
@@ -94,17 +103,24 @@ class Hypersphere(Manifold):
         From the extrinsic coordinates in Euclidean space,
         to some intrinsic coordinates in Hypersphere.
         """
-        assert self.belongs(point_extrinsic)
-        return point_extrinsic[1:]
+        if point_extrinsic.ndim == 1:
+            point_extrinsic = np.expand_dims(point_extrinsic, axis=0)
+        assert np.all(self.belongs(point_extrinsic))
 
-    def random_uniform(self, max_norm=1):
+        point_intrinsic = point_extrinsic[:, 1:]
+        assert point_intrinsic.ndim == 2
+        return point_intrinsic
+
+    def random_uniform(self, n_samples=1, max_norm=1):
         """
         Generate random elements on the Hypersphere.
         """
-        point = (np.random.random_sample(self.dimension) - .5) * max_norm
+        point = ((np.random.rand(n_samples, self.dimension) - .5)
+                 * max_norm)
         point = self.intrinsic_to_extrinsic_coords(point)
-        assert self.belongs(point)
+        assert np.all(self.belongs(point))
 
+        assert point.ndim == 2
         return point
 
 
@@ -122,7 +138,7 @@ class HypersphereMetric(RiemannianMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
-    def exp(self, tangent_vec, base_point, epsilon=EPSILON):
+    def exp_basis(self, tangent_vec, base_point):
         """
         Compute the Riemannian exponential at point base_point
         of tangent vector tangent_vec wrt the metric obtained by
@@ -137,7 +153,7 @@ class HypersphereMetric(RiemannianMetric):
         """
         norm_tangent_vec = self.embedding_metric.norm(tangent_vec)
 
-        if norm_tangent_vec < epsilon:
+        if np.isclose(norm_tangent_vec, 0):
             coef_1 = (1. + COS_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
                       + COS_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
                       + COS_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
@@ -154,7 +170,7 @@ class HypersphereMetric(RiemannianMetric):
 
         return exp
 
-    def log(self, point, base_point, epsilon=EPSILON):
+    def log_basis(self, point, base_point):
         """
         Compute the Riemannian logarithm at point base_point,
         of point wrt the metric obtained by
@@ -176,7 +192,7 @@ class HypersphereMetric(RiemannianMetric):
         else:
             angle = np.arccos(cos_angle)
 
-        if angle < epsilon:
+        if np.isclose(angle, 0):
             coef_1 = (1. + INV_SIN_TAYLOR_COEFFS[1] * angle ** 2
                       + INV_SIN_TAYLOR_COEFFS[3] * angle ** 4
                       + INV_SIN_TAYLOR_COEFFS[5] * angle ** 6
@@ -202,16 +218,33 @@ class HypersphereMetric(RiemannianMetric):
         if np.all(point_a == point_b):
             return 0.
 
+        if point_a.ndim == 1:
+            point_a = np.expand_dims(point_a, axis=0)
+        if point_b.ndim == 1:
+            point_b = np.expand_dims(point_b, axis=0)
+
+        assert point_a.ndim == point_b.ndim == 2
+        n_points_a, _ = point_a.shape
+        n_points_b, _ = point_b.shape
+
+        assert (n_points_a == n_points_b
+                or n_points_a == 1
+                or n_points_b == 1)
+
+        n_dists = np.maximum(n_points_a, n_points_b)
+        dist = np.zeros((n_dists, 1))
+
         norm_a = self.embedding_metric.norm(point_a)
         norm_b = self.embedding_metric.norm(point_b)
         inner_prod = self.embedding_metric.inner_product(point_a, point_b)
 
         cos_angle = inner_prod / (norm_a * norm_b)
-        if cos_angle >= 1.:
-            dist = 0.
-        elif cos_angle <= -1.:
-            dist = np.pi
-        else:
-            dist = np.arccos(cos_angle)
+        mask_cos_greater_1 = np.greater_equal(cos_angle, 1.)
+        mask_cos_less_minus_1 = np.less_equal(cos_angle, -1.)
+        mask_else = ~mask_cos_greater_1 & ~mask_cos_less_minus_1
+
+        dist[mask_cos_greater_1] = 0.
+        dist[mask_cos_less_minus_1] = np.pi
+        dist[mask_else] = np.arccos(cos_angle[mask_else])
 
         return dist

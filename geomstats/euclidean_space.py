@@ -51,17 +51,21 @@ class EuclideanMetric(RiemannianMetric):
         """
         return np.eye(self.dimension)
 
-    def exp(self, tangent_vec, base_point):
+    def exp_basis(self, tangent_vec, base_point):
         """
         The Riemannian exponential is the addition in the Euclidean space.
         """
-        return base_point + tangent_vec
+        exp = base_point + tangent_vec
 
-    def log(self, point, base_point):
+        return exp
+
+    def log_basis(self, point, base_point):
         """
         The Riemannian logarithm is the subtraction in the Euclidean space.
         """
-        return point - base_point
+        log = point - base_point
+
+        return log
 
     def mean(self, points, weights=None):
         """
