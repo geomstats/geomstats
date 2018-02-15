@@ -28,7 +28,7 @@ def main():
              xlim=(-1, 4), ylim=(-1, 4), zlim=(-1, 2),
              xlabel="X", ylabel="Y", zlabel="Z")
 
-    visualization.plot(points, ax)
+    visualization.plot(points, ax, space='SE3_GROUP')
     plt.show()
 
 

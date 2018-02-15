@@ -1,21 +1,19 @@
 """
-Plot a geodesic of SO(3) equipped
-with its left-invariant canonical METRIC.
+Plot a geodesic on the sphere S2
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.hypersphere import Hypersphere
 import geomstats.visualization as visualization
 
-SO3_GROUP = SpecialOrthogonalGroup(n=3)
-METRIC = SO3_GROUP.bi_invariant_metric
+SPHERE2 = Hypersphere(dimension=2)
 
 
 def main():
-    initial_point = SO3_GROUP.identity
-    initial_tangent_vec = np.array([0.5, 0.5, 0.8])
+    initial_point = np.array([1., 0., 0.])
+    initial_tangent_vec = np.array([1.8, 0.2, 0.3, 3., 3., 1.])
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                initial_tangent_vec=initial_tangent_vec)
 
@@ -25,10 +23,10 @@ def main():
     points = geodesic(t)
     ax = plt.subplot(111, projection="3d", aspect="equal")
     plt.setp(ax,
-             xlim=(-1, 1), ylim=(-1, 1), zlim=(-1, 1),
+             xlim=(-1, 4), ylim=(-1, 4), zlim=(-1, 2),
              xlabel="X", ylabel="Y", zlabel="Z")
 
-    visualization.plot(points, ax, space='SO3_GROUP')
+    visualization.plot(points, ax, space='SE3_GROUP')
     plt.show()
 
 

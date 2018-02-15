@@ -20,8 +20,6 @@ class Arrow3D():
 
     def draw(self, ax, **quiver_kwargs):
         "Draw the arrow in 3D plot."
-        print('point')
-        print(self.point.shape)
         ax.quiver(self.point[0], self.point[1], self.point[2],
                   self.vector[0], self.vector[1], self.vector[2],
                   **quiver_kwargs)
@@ -45,7 +43,7 @@ class Trihedron():
         self.arrow_3.draw(ax, color='b', **arrow_draw_kwargs)
 
 
-def trihedron(point, group=SE3_GROUP):
+def trihedron(point, space=None):
     """
     Transform a rigid pointrmation
     into a trihedron s.t.:
@@ -60,10 +58,10 @@ def trihedron(point, group=SE3_GROUP):
 
     dim_rotations = SO3_GROUP.dimension
 
-    if group is SE3_GROUP:
+    if space is 'SE3_GROUP':
         rot_vec = point[:, :dim_rotations]
         translation = point[:, dim_rotations:]
-    elif group is SO3_GROUP:
+    elif space is 'SO3_GROUP':
         rot_vec = point
         translation = np.zeros((n_points, 3))
     else:
@@ -89,7 +87,7 @@ def trihedron(point, group=SE3_GROUP):
     return trihedrons
 
 
-def plot(points, ax=None, group=SE3_GROUP, **point_draw_kwargs):
+def plot(points, ax=None, space=None, **point_draw_kwargs):
     """
     Plot points in the 3D Special Euclidean Group,
     by showing them as trihedrons.
@@ -109,7 +107,7 @@ def plot(points, ax=None, group=SE3_GROUP, **point_draw_kwargs):
                  zlim=(-ax_s, ax_s),
                  xlabel="X", ylabel="Y", zlabel="Z")
 
-    trihedrons = trihedron(points, group=group)
+    trihedrons = trihedron(points, space=space)
     for t in trihedrons:
         t.draw(ax, **point_draw_kwargs)
 
