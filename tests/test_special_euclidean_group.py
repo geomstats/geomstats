@@ -1156,6 +1156,17 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
         self.assertTrue(self.group.belongs(result_3))
 
+    def test_geodesic_and_belongs(self):
+        initial_point = self.group.random_uniform()
+        initial_tangent_vec = np.array([2., 0., -1., 0., 2., 3.])
+        metric = self.metrics['left_canonical']
+        geodesic = metric.geodesic(initial_point=initial_point,
+                                   initial_tangent_vec=initial_tangent_vec)
+
+        t = np.linspace(start=0, stop=1, num=100)
+        points = geodesic(t)
+        self.assertTrue(np.all(self.group.belongs(points)))
+
 
 if __name__ == '__main__':
         unittest.main()

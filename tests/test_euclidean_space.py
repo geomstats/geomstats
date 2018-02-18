@@ -229,6 +229,17 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
         n_points = self.space.random_uniform(n_samples=n_samples)
         self.assertTrue(np.all(self.space.belongs(n_points)))
 
+    def test_geodesic_and_belongs(self):
+        initial_point = self.space.random_uniform()
+        initial_tangent_vec = np.array([2., 0.])
+        geodesic = self.metric.geodesic(
+                                   initial_point=initial_point,
+                                   initial_tangent_vec=initial_tangent_vec)
+
+        t = np.linspace(start=0, stop=1, num=100)
+        points = geodesic(t)
+        self.assertTrue(np.all(self.space.belongs(points)))
+
     def test_mean(self):
         point = np.array([1, 4])
         result = self.metric.mean(points=[point, point, point])
