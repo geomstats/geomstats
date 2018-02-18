@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
+from geomstats.hyperbolic_space import HyperbolicSpace
 from geomstats.hypersphere import Hypersphere
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
@@ -11,9 +12,12 @@ import geomstats.special_orthogonal_group as special_orthogonal_group
 
 SE3_GROUP = SpecialEuclideanGroup(n=3)
 SO3_GROUP = SpecialOrthogonalGroup(n=3)
-SPHERE2 = Hypersphere(dimension=2)
+S2 = Hypersphere(dimension=2)
+H2 = HyperbolicSpace(dimension=2)
 
 AX_SCALE = 1.2
+
+IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'S2', 'H2']
 
 
 class Arrow3D():
@@ -60,18 +64,18 @@ class Sphere():
         u, v = np.mgrid[0:2 * np.pi:n_meridians * 1j,
                         0:np.pi:n_circles_latitude * 1j]
 
-        center = np.zeros(3)
-        radius = 1
-        self.sphere_x = center[0] + radius * np.cos(u) * np.sin(v)
-        self.sphere_y = center[1] + radius * np.sin(u) * np.sin(v)
-        self.sphere_z = center[2] + radius * np.cos(v)
+        self.center = np.zeros(3)
+        self.radius = 1
+        self.sphere_x = self.center[0] + self.radius * np.cos(u) * np.sin(v)
+        self.sphere_y = self.center[1] + self.radius * np.sin(u) * np.sin(v)
+        self.sphere_z = self.center[2] + self.radius * np.cos(v)
 
         self.points = []
         if points is not None:
             self.add_points(points)
 
     def add_points(self, points):
-        assert np.all(SPHERE2.belongs(points))
+        assert np.all(S2.belongs(points))
         points_list = points.tolist()
         self.points.extend(points_list)
 
@@ -84,6 +88,25 @@ class Sphere():
         points_y = np.vstack([point[1] for point in self.points])
         points_z = np.vstack([point[2] for point in self.points])
         ax.scatter(points_x, points_y, points_z)
+
+
+class PoincareDisk():
+    def __init__(self):
+        self.center = np.array([0., 1.])
+
+    def add_points(self, points):
+        assert np.all(H2.belongs(points))
+        points = self.convert_to_disk_coordinates(points)
+        points_list = points.tolist()
+        self.points.extend(points_list)
+
+    def convert_to_disk_coordinates(self, points):
+        disk_coords = points[:, 1:] / (1 + points[:, 0])
+        return disk_coords
+
+    def draw(self, ax):
+        circle = plt.Circle(center=(0, 0), radius=1., color='black')
+        ax.add_artist(circle)
 
 
 def convert_to_trihedron(point, space=None):
@@ -135,6 +158,12 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
     Plot points in the 3D Special Euclidean Group,
     by showing them as trihedrons.
     """
+    if space not in IMPLEMENTED:
+        raise NotImplementedError(
+                'The plot function is not implemented'
+                ' for space {}. The spaces available for visualization'
+                ' are: {}.'.format(space, IMPLEMENTED))
+
     if points is None:
         raise ValueError("No points given for plotting.")
 
@@ -146,27 +175,37 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
             ax_s = AX_SCALE * np.amax(np.abs(points[:, 3:6]))
         elif space is 'SO3_GROUP':
             ax_s = AX_SCALE * np.amax(np.abs(points[:, :3]))
-        elif space is 'S2':
-            ax_s = AX_SCALE
         else:
-            raise NotImplementedError(
-                    'The plot function is not implemented'
-                    ' for the space {}.'.format(space))
+            ax_s = AX_SCALE
 
-        ax = plt.subplot(111, projection="3d", aspect="equal")
-        plt.setp(ax,
-                 xlim=(-ax_s, ax_s),
-                 ylim=(-ax_s, ax_s),
-                 zlim=(-ax_s, ax_s),
-                 xlabel="X", ylabel="Y", zlabel="Z")
+        if space is 'H2':
+            ax = plt.subplot(111, aspect='equal')
+            plt.setp(ax,
+                     xlim=(-ax_s, ax_s),
+                     ylim=(-ax_s, ax_s),
+                     xlabel='X', ylabel='Y')
+
+        else:
+            ax = plt.subplot(111, projection='3d', aspect='equal')
+            plt.setp(ax,
+                     xlim=(-ax_s, ax_s),
+                     ylim=(-ax_s, ax_s),
+                     zlim=(-ax_s, ax_s),
+                     xlabel='X', ylabel='Y', zlabel='Z')
 
     if space in ('SO3_GROUP', 'SE3_GROUP'):
         trihedrons = convert_to_trihedron(points, space=space)
         for t in trihedrons:
             t.draw(ax, **point_draw_kwargs)
+
     elif space is 'S2':
         sphere = Sphere()
         sphere.add_points(points)
         sphere.draw(ax)
+
+    elif space is 'H2':
+        poincare_disk = PoincareDisk()
+        poincare_disk.add_points(points)
+        poincare_disk.draw(points)
 
     return ax
