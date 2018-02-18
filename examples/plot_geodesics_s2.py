@@ -15,7 +15,7 @@ METRIC = SPHERE2.metric
 def main():
     initial_point = np.array([1., 0., 0.])
     initial_tangent_vec = SPHERE2.projection_to_tangent_space(
-                                        vector=np.array([1., 2., 0.]),
+                                        vector=np.array([1., 2., 0.8]),
                                         base_point=initial_point)
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                initial_tangent_vec=initial_tangent_vec)
@@ -25,9 +25,6 @@ def main():
 
     points = geodesic(t)
     ax = plt.subplot(111, projection="3d", aspect="equal")
-    plt.setp(ax,
-             xlim=(-1, 4), ylim=(-1, 4), zlim=(-1, 2),
-             xlabel="X", ylabel="Y", zlabel="Z")
 
     visualization.plot(points, ax, space='S2')
     plt.show()

@@ -45,7 +45,7 @@ class Trihedron():
         self.arrow_3.draw(ax, color='b', **arrow_draw_kwargs)
 
 
-class WireframeSphere():
+class Sphere():
     """
     Create the arrays sphere_x, sphere_y, sphere_z of values
     to plot the wireframe of a sphere.
@@ -162,7 +162,7 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
         for t in trihedrons:
             t.draw(ax, **point_draw_kwargs)
     elif space is 'S2':
-        sphere = WireframeSphere()
+        sphere = Sphere()
         sphere.add_points(points)
         sphere.draw(ax)
 
