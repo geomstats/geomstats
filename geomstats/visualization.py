@@ -4,12 +4,14 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
+from geomstats.hypersphere import Hypersphere
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 import geomstats.special_orthogonal_group as special_orthogonal_group
 
 SE3_GROUP = SpecialEuclideanGroup(n=3)
 SO3_GROUP = SpecialOrthogonalGroup(n=3)
+SPHERE2 = Hypersphere(dimension=2)
 
 
 class Arrow3D():
@@ -49,26 +51,25 @@ class WireframeSphere():
     to plot the wireframe of a sphere.
     Their shape is (n_meridians, n_circles_latitude).
     """
-    def __init__(self, center=[0., 0., 0.], radius=1.,
-                 n_meridians=20, n_circles_latitude=None,
+    def __init__(self, n_meridians=20, n_circles_latitude=None,
                  points=None):
         if n_circles_latitude is None:
             n_circles_latitude = max(n_meridians / 2, 4)
         u, v = np.mgrid[0:2 * np.pi:n_meridians * 1j,
                         0:np.pi:n_circles_latitude * 1j]
 
-        self.center = center
-        self.radius = radius
+        center = np.zeros(3)
+        radius = 1
         self.sphere_x = center[0] + radius * np.cos(u) * np.sin(v)
         self.sphere_y = center[1] + radius * np.sin(u) * np.sin(v)
         self.sphere_z = center[2] + radius * np.cos(v)
 
         self.points = []
-        self.add_points(points)
+        if points is not None:
+            self.add_points(points)
 
     def add_points(self, points):
-        sq_norms = np.linalg.norm((points-self.center) ** 2, axis=1)
-        assert np.all(sq_norms == self.radius ** 2)
+        assert np.all(SPHERE2.belongs(points))
         points_list = points.tolist()
         self.points.extend(points_list)
 
@@ -76,9 +77,11 @@ class WireframeSphere():
         ax.plot_wireframe(self.sphere_x,
                           self.sphere_y,
                           self.sphere_z,
-                          color="r", alpha=0.5)
-
-        ax.scatter(self.points)
+                          color="black", alpha=0.5)
+        points_x = np.vstack([point[0] for point in self.points])
+        points_y = np.vstack([point[1] for point in self.points])
+        points_z = np.vstack([point[2] for point in self.points])
+        ax.scatter(points_x, points_y, points_z)
 
 
 def convert_to_trihedron(point, space=None):
