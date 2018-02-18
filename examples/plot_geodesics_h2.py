@@ -22,7 +22,7 @@ def main():
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                initial_tangent_vec=initial_tangent_vec)
 
-    n_steps = 10
+    n_steps = 100
     t = np.linspace(0, 1, n_steps)
 
     points = geodesic(t)

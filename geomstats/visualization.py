@@ -212,7 +212,6 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
     elif space is 'H2':
         poincare_disk = PoincareDisk()
         poincare_disk.add_points(points)
-
         poincare_disk.draw(ax)
 
     return ax
