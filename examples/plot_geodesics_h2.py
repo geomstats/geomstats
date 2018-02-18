@@ -17,12 +17,11 @@ def main():
     assert H2.belongs(initial_point)
     initial_tangent_vec = H2.projection_to_tangent_space(
                                         vector=np.array([3.5, 0.6, 0.8]),
-
                                         base_point=initial_point)
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                initial_tangent_vec=initial_tangent_vec)
 
-    n_steps = 100
+    n_steps = 10
     t = np.linspace(0, 1, n_steps)
 
     points = geodesic(t)
