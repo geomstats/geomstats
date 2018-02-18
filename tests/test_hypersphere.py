@@ -324,6 +324,20 @@ class TestHypersphereMethods(unittest.TestCase):
 
         self.assertTrue(np.allclose(result_1, expected_1))
 
+    def test_geodesic_and_belongs(self):
+        initial_point = self.space.random_uniform()
+        vector = np.array([2., 0., -1., -2., 1.])
+        initial_tangent_vec = self.space.projection_to_tangent_space(
+                                            vector=vector,
+                                            base_point=initial_point)
+        geodesic = self.metric.geodesic(
+                                   initial_point=initial_point,
+                                   initial_tangent_vec=initial_tangent_vec)
+
+        t = np.linspace(start=0, stop=1, num=100)
+        points = geodesic(t)
+        self.assertTrue(np.all(self.space.belongs(points)))
+
     def test_variance(self):
         point = self.space.random_uniform()
         result = self.metric.variance([point, point])
