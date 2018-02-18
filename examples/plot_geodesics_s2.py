@@ -9,11 +9,12 @@ from geomstats.hypersphere import Hypersphere
 import geomstats.visualization as visualization
 
 SPHERE2 = Hypersphere(dimension=2)
+METRIC = SPHERE2.metric
 
 
 def main():
     initial_point = np.array([1., 0., 0.])
-    initial_tangent_vec = np.array([1.8, 0.2, 0.3, 3., 3., 1.])
+    initial_tangent_vec = np.array([1.8, 0.2, 0.3])
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                initial_tangent_vec=initial_tangent_vec)
 
@@ -26,7 +27,7 @@ def main():
              xlim=(-1, 4), ylim=(-1, 4), zlim=(-1, 2),
              xlabel="X", ylabel="Y", zlabel="Z")
 
-    visualization.plot(points, ax, space='SE3_GROUP')
+    visualization.plot(points, ax, space='S2')
     plt.show()
 
 

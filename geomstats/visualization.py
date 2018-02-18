@@ -43,7 +43,45 @@ class Trihedron():
         self.arrow_3.draw(ax, color='b', **arrow_draw_kwargs)
 
 
-def trihedron(point, space=None):
+class WireframeSphere():
+    """
+    Create the arrays sphere_x, sphere_y, sphere_z of values
+    to plot the wireframe of a sphere.
+    Their shape is (n_meridians, n_circles_latitude).
+    """
+    def __init__(self, center=[0., 0., 0.], radius=1.,
+                 n_meridians=20, n_circles_latitude=None,
+                 points=None):
+        if n_circles_latitude is None:
+            n_circles_latitude = max(n_meridians / 2, 4)
+        u, v = np.mgrid[0:2 * np.pi:n_meridians * 1j,
+                        0:np.pi:n_circles_latitude * 1j]
+
+        self.center = center
+        self.radius = radius
+        self.sphere_x = center[0] + radius * np.cos(u) * np.sin(v)
+        self.sphere_y = center[1] + radius * np.sin(u) * np.sin(v)
+        self.sphere_z = center[2] + radius * np.cos(v)
+
+        self.points = []
+        self.add_points(points)
+
+    def add_points(self, points):
+        sq_norms = np.linalg.norm((points-self.center) ** 2, axis=1)
+        assert np.all(sq_norms == self.radius ** 2)
+        points_list = points.tolist()
+        self.points.extend(points_list)
+
+    def draw(self, ax):
+        ax.plot_wireframe(self.sphere_x,
+                          self.sphere_y,
+                          self.sphere_z,
+                          color="r", alpha=0.5)
+
+        ax.scatter(self.points)
+
+
+def convert_to_trihedron(point, space=None):
     """
     Transform a rigid pointrmation
     into a trihedron s.t.:
@@ -99,7 +137,16 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
         points = np.expand_dims(points, axis=0)
 
     if ax is None:
-        ax_s = 1.2 * np.amax(np.abs(points[:, 3:6]))
+        if space is 'SE3_GROUP':
+            ax_s = 1.2 * np.amax(np.abs(points[:, 3:6]))
+        elif space is 'SO3_GROUP':
+            ax_s = 1.2 * np.amax(np.abs(points[:, :3]))
+        elif space is 'S2':
+            ax_s = 1.2
+        else:
+            raise NotImplementedError(
+                    'The plot function is not implemented for this space.')
+
         ax = plt.subplot(111, projection="3d", aspect="equal")
         plt.setp(ax,
                  xlim=(-ax_s, ax_s),
@@ -107,8 +154,13 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
                  zlim=(-ax_s, ax_s),
                  xlabel="X", ylabel="Y", zlabel="Z")
 
-    trihedrons = trihedron(points, space=space)
-    for t in trihedrons:
-        t.draw(ax, **point_draw_kwargs)
+    if space in ('SO3_GROUP', 'SE3_GROUP'):
+        trihedrons = convert_to_trihedron(points, space=space)
+        for t in trihedrons:
+            t.draw(ax, **point_draw_kwargs)
+    elif space is 'S2':
+        sphere = WireframeSphere()
+        sphere.add_points(points)
+        sphere.draw(ax)
 
     return ax
