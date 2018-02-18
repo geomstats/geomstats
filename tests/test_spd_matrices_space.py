@@ -39,8 +39,17 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
                             [3, 0.5, 1]])
         self.assertTrue(np.allclose(result, expected))
 
-    def test_belongs(self):
+    def test_random_uniform_and_belongs(self):
         self.assertTrue(self.space.belongs(self.space.random_uniform()))
+
+    def test_random_uniform_and_belongs_vectorization(self):
+        """
+        Test that the random uniform method samples
+        on the hypersphere space.
+        """
+        n_samples = self.n_samples
+        points = self.space.random_uniform(n_samples=n_samples)
+        self.assertTrue(np.all(self.space.belongs(points)))
 
     def matrix_to_vector_and_vector_to_matrix(self):
         sym_mat_1 = np.array([[1., 0.6, -3.],

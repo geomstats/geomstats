@@ -18,12 +18,16 @@ TOLERANCE = 1e-12
 
 def is_symmetric(mat, tolerance=TOLERANCE):
     """Check if a matrix is symmetric."""
-    return np.allclose(mat, mat.transpose(), atol=tolerance)
+    if mat.ndim == 2:
+        mat = np.expand_dims(mat, axis=0)
+    return np.allclose(mat, mat.transpose(axes=(0, 2, 1)), atol=tolerance)
 
 
 def make_symmetric(mat):
     """Make a matrix fully symmetric to avoid numerical issues."""
-    return (mat + mat.transpose()) / 2
+    if mat.ndim == 2:
+        mat = np.expand_dims(mat, axis=0)
+    return (mat + mat.transpose(axes=(0, 2, 1))) / 2
 
 
 # TODO(nina): The manifold of sym matrices is not a Lie group.
@@ -74,10 +78,18 @@ class SPDMatricesSpace(Manifold):
         Check if a matrix belongs to the manifold of
         symmetric positive definite matrices.
         """
-        if is_symmetric(mat, tolerance=tolerance):
-            eigenvalues = np.linalg.eigvalsh(mat)
-            return np.all(eigenvalues > 0)
-        return False
+        if mat.ndim == 2:
+            mat = np.expand_dims(mat, axis=0)
+        n_mats, mat_size, _ = mat.shape
+
+        mask_is_symmetric = is_symmetric(mat, tolerance=tolerance)
+
+        eigenvalues = np.zeros(n_mats, mat_size)
+        eigenvalues[mask_is_symmetric] = np.linalg.eigvalsh(
+                                              mat[mask_is_symmetric])
+
+        mask_pos_eigenvalues = np.all(eigenvalues > 0)
+        return mask_is_symmetric & mask_pos_eigenvalues
 
     def matrix_to_vector(self, matrix):
         """
