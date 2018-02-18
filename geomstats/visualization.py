@@ -87,8 +87,11 @@ class Sphere():
 
 
 class PoincareDisk():
-    def __init__(self):
-        self.center = np.array([0., 1.])
+    def __init__(self, points=None):
+        self.center = np.array([0., 0.])
+        self.points = []
+        if points is not None:
+            self.add_points(points)
 
     def add_points(self, points):
         assert np.all(H2.belongs(points))
@@ -97,12 +100,15 @@ class PoincareDisk():
         self.points.extend(points_list)
 
     def convert_to_disk_coordinates(self, points):
-        disk_coords = points[:, 1:] / (1 + points[:, 0])
+        disk_coords = points[:, 1:] / (1 + points[:, :1])
         return disk_coords
 
     def draw(self, ax):
-        circle = plt.Circle(center=(0, 0), radius=1., color='black')
+        circle = plt.Circle((0, 0), radius=1., color='black', fill=False)
         ax.add_artist(circle)
+        points_x = np.vstack([point[0] for point in self.points])
+        points_y = np.vstack([point[1] for point in self.points])
+        ax.scatter(points_x, points_y)
 
 
 def convert_to_trihedron(point, space=None):
@@ -173,7 +179,7 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
                     ' for space {}.'.format(space))
 
         if space is 'H2':
-            ax = plt.subplot(111, aspect='equal')
+            ax = plt.subplot(aspect='equal')
             plt.setp(ax,
                      xlim=(-ax_s, ax_s),
                      ylim=(-ax_s, ax_s),
@@ -200,6 +206,6 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
     elif space is 'H2':
         poincare_disk = PoincareDisk()
         poincare_disk.add_points(points)
-        poincare_disk.draw(points)
+        poincare_disk.draw(ax)
 
     return ax
