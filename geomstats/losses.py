@@ -62,10 +62,6 @@ def quaternion_translation_loss(y_pred, y_true,
     y_true_rot_vec = SO3_GROUP.rotation_vector_from_quaternion(y_true[:, :4])
     y_true = np.hstack([y_true_rot_vec, y_true[:, 4:]])
 
-    print('y_pred')
-    print(y_pred)
-    print('y_true')
-    print(y_true)
     loss = pose_loss(y_pred, y_true, metric)
     return loss
 
@@ -83,7 +79,6 @@ def quaternion_translation_grad(y_pred, y_true,
         y_pred = np.expand_dims(y_pred, axis=0)
     if y_true.ndim == 1:
         y_true = np.expand_dims(y_true, axis=0)
-
     y_pred_rot_vec = SO3_GROUP.rotation_vector_from_quaternion(y_pred[:, :4])
     y_pred_pose = np.hstack([y_pred_rot_vec, y_pred[:, 4:]])
     y_true_rot_vec = SO3_GROUP.rotation_vector_from_quaternion(y_true[:, :4])
