@@ -8,6 +8,15 @@ from geomstats.euclidean_space import EuclideanSpace
 from geomstats.lie_group import LieGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
+PI = np.pi
+PI2 = PI * PI
+PI3 = PI * PI2
+PI4 = PI * PI3
+PI5 = PI * PI4
+PI6 = PI * PI5
+PI7 = PI * PI6
+PI8 = PI * PI7
+
 
 class SpecialEuclideanGroup(LieGroup):
 
@@ -244,14 +253,16 @@ class SpecialEuclideanGroup(LieGroup):
         coef_2 = np.zeros_like(angle)
 
         if np.any(mask_0):
-            coef_1[mask_0] = 0
-            coef_2[mask_0] = 0
+            coef_1[mask_0] = 1. / 2.
+            coef_2[mask_0] = 1. / 6.
 
         if np.any(mask_close_0):
             coef_1[mask_close_0] = (1. / 2. - angle[mask_close_0] ** 2 / 24.
-                                    + angle[mask_close_0] ** 4 / 720.)
-            coef_2[mask_close_0] = (1. / 6 - angle[mask_close_0] ** 2 / 120.
-                                    + angle[mask_close_0] ** 4 / 5040.)
+                                    + angle[mask_close_0] ** 4 / 720.
+                                    - angle[mask_close_0] ** 6 / 40320.)
+            coef_2[mask_close_0] = (1. / 6. - angle[mask_close_0] ** 2 / 120.
+                                    + angle[mask_close_0] ** 4 / 5040.
+                                    - angle[mask_close_0] ** 6 / 362880.)
 
         if np.any(mask_else):
             coef_1[mask_else] = ((1. - np.cos(angle[mask_else]))
@@ -259,7 +270,7 @@ class SpecialEuclideanGroup(LieGroup):
             coef_2[mask_else] = ((angle[mask_else] - np.sin(angle[mask_else]))
                                  / angle[mask_else] ** 3)
 
-        n_tangent_vecs = tangent_vec.shape[0]
+        n_tangent_vecs, _ = tangent_vec.shape
         group_exp_translation = np.zeros((n_tangent_vecs, self.n))
         for i in range(n_tangent_vecs):
             translation_i = translation[i]
@@ -300,38 +311,43 @@ class SpecialEuclideanGroup(LieGroup):
         skew_rot_vec = so_group.skew_matrix_from_vector(rot_vec)
         sq_skew_rot_vec = np.matmul(skew_rot_vec, skew_rot_vec)
 
-        mask_0 = np.equal(angle, 0)
-        mask_close_0 = np.isclose(angle, 0) & ~mask_0
-        mask_close_pi = np.isclose(angle, np.pi)
-
-        mask_0 = np.squeeze(mask_0, axis=1)
+        mask_close_0 = np.isclose(angle, 0)
         mask_close_0 = np.squeeze(mask_close_0, axis=1)
+
+        mask_close_pi = np.isclose(angle, np.pi)
         mask_close_pi = np.squeeze(mask_close_pi, axis=1)
 
-        mask_else = ~mask_0 & ~mask_close_0 & ~mask_close_pi
+        mask_else = ~mask_close_0 & ~mask_close_pi
 
-        coef_1 = np.zeros_like(angle)
+        coef_1 = - 0.5 * np.ones_like(angle)
         coef_2 = np.zeros_like(angle)
 
         if np.any(mask_close_0):
-            # TODO(nina): why this doesn't cv to 0 for angle -> 0?
-            coef_1[mask_close_0] = - 0.5
-            coef_2[mask_close_0] = 0.5 - angle ** 2 / 90
+            coef_2[mask_close_0] = (1. / 12. + angle ** 2 / 720.
+                                    + angle ** 4 / 30240.
+                                    + angle ** 6 / 1209600.)
 
         if np.any(mask_close_pi):
             delta_angle = angle[mask_close_pi] - np.pi
-            coef_1[mask_close_pi] = - 0.5
-            psi = (0.5 * angle[mask_close_pi]
-                   * (- delta_angle / 2. - delta_angle ** 3 / 24.))
-            coef_2[mask_close_pi] = (1 - psi) / (angle[mask_close_pi] ** 2)
+            coef_2[mask_close_pi] = (1. / PI2
+                                     + (PI2 - 8.) * delta_angle / (4. * PI3)
+                                     - ((PI2 - 12.)
+                                        * delta_angle ** 2 / (4. * PI4))
+                                     + ((-192. + 12. * PI2 + PI4)
+                                        * delta_angle ** 3 / (48. * PI5))
+                                     - ((-240. + 12. * PI2 + PI4)
+                                        * delta_angle ** 4 / (48. * PI6))
+                                     + ((-2880. + 120. * PI2 + 10. * PI4 + PI6)
+                                        * delta_angle ** 5 / (480. * PI7))
+                                     - ((-3360 + 120. * PI2 + 10. * PI4 + PI6)
+                                        * delta_angle ** 6 / (480. * PI8)))
 
         if np.any(mask_else):
-            coef_1[mask_else] = - 0.5
             psi = (0.5 * angle[mask_else]
                    * np.sin(angle[mask_else]) / (1 - np.cos(angle[mask_else])))
             coef_2[mask_else] = (1 - psi) / (angle[mask_else] ** 2)
 
-        n_points = point.shape[0]
+        n_points, _ = point.shape
         group_log_translation = np.zeros((n_points, self.n))
         for i in range(n_points):
             translation_i = translation[i]
