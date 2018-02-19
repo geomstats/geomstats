@@ -12,6 +12,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         self.dimension = 3
         self.space = SPDMatricesSpace(dimension=self.dimension)
         self.metric = self.space.metric
+        self.n_samples = 10
 
     def test_is_symmetric(self):
         sym_mat = np.array([[1, 2],
