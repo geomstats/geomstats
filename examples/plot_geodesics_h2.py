@@ -1,5 +1,6 @@
 """
-Plot a geodesic on the sphere S2
+Plot a geodesic on the hyperbolic space h2,
+with Poincare Disk visualization.
 """
 
 import numpy as np
