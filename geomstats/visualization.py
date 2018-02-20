@@ -4,7 +4,16 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
+from geomstats.hypersphere import Hypersphere
+from geomstats.special_euclidean_group import SpecialEuclideanGroup
+from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 import geomstats.special_orthogonal_group as special_orthogonal_group
+
+SE3_GROUP = SpecialEuclideanGroup(n=3)
+SO3_GROUP = SpecialOrthogonalGroup(n=3)
+SPHERE2 = Hypersphere(dimension=2)
+
+AX_SCALE = 1.2
 
 
 class Arrow3D():
@@ -38,32 +47,78 @@ class Trihedron():
         self.arrow_3.draw(ax, color='b', **arrow_draw_kwargs)
 
 
-def trihedron_from_rigid_transformation(transfo):
+class Sphere():
     """
-    Transform a rigid transformation
+    Create the arrays sphere_x, sphere_y, sphere_z of values
+    to plot the wireframe of a sphere.
+    Their shape is (n_meridians, n_circles_latitude).
+    """
+    def __init__(self, n_meridians=20, n_circles_latitude=None,
+                 points=None):
+        if n_circles_latitude is None:
+            n_circles_latitude = max(n_meridians / 2, 4)
+        u, v = np.mgrid[0:2 * np.pi:n_meridians * 1j,
+                        0:np.pi:n_circles_latitude * 1j]
+
+        center = np.zeros(3)
+        radius = 1
+        self.sphere_x = center[0] + radius * np.cos(u) * np.sin(v)
+        self.sphere_y = center[1] + radius * np.sin(u) * np.sin(v)
+        self.sphere_z = center[2] + radius * np.cos(v)
+
+        self.points = []
+        if points is not None:
+            self.add_points(points)
+
+    def add_points(self, points):
+        assert np.all(SPHERE2.belongs(points))
+        points_list = points.tolist()
+        self.points.extend(points_list)
+
+    def draw(self, ax):
+        ax.plot_wireframe(self.sphere_x,
+                          self.sphere_y,
+                          self.sphere_z,
+                          color="black", alpha=0.5)
+        points_x = np.vstack([point[0] for point in self.points])
+        points_y = np.vstack([point[1] for point in self.points])
+        points_z = np.vstack([point[2] for point in self.points])
+        ax.scatter(points_x, points_y, points_z)
+
+
+def convert_to_trihedron(point, space=None):
+    """
+    Transform a rigid pointrmation
     into a trihedron s.t.:
     - the trihedron's base point is the translation of the origin
-    of R^3 by the translation part of transfo,
+    of R^3 by the translation part of point,
     - the trihedron's orientation is the rotation of the canonical basis
-    of R^3 by the rotation part of transfo.
+    of R^3 by the rotation part of point.
     """
-    if transfo.ndim == 1:
-        transfo = np.expand_dims(transfo, axis=0)
+    if point.ndim == 1:
+        point = np.expand_dims(point, axis=0)
+    n_points, _ = point.shape
 
-    rotations = special_orthogonal_group.SpecialOrthogonalGroup(3)
-    dim_rotations = rotations.dimension
+    dim_rotations = SO3_GROUP.dimension
 
-    rot_vec = transfo[:, :dim_rotations]
-    rot_mat = rotations.matrix_from_rotation_vector(rot_vec)
+    if space is 'SE3_GROUP':
+        rot_vec = point[:, :dim_rotations]
+        translation = point[:, dim_rotations:]
+    elif space is 'SO3_GROUP':
+        rot_vec = point
+        translation = np.zeros((n_points, 3))
+    else:
+        raise NotImplementedError(
+                'Trihedrons are only implemented for SO(3) and SE(3).')
+
+    rot_mat = SO3_GROUP.matrix_from_rotation_vector(rot_vec)
     rot_mat = special_orthogonal_group.closest_rotation_matrix(rot_mat)
-    translation = transfo[:, dim_rotations:]
-
     basis_vec_1 = np.array([1, 0, 0])
     basis_vec_2 = np.array([0, 1, 0])
     basis_vec_3 = np.array([0, 0, 1])
 
     trihedrons = []
-    for i in range(transfo.shape[0]):
+    for i in range(n_points):
         trihedron_vec_1 = np.dot(rot_mat[i], basis_vec_1)
         trihedron_vec_2 = np.dot(rot_mat[i], basis_vec_2)
         trihedron_vec_3 = np.dot(rot_mat[i], basis_vec_3)
@@ -75,7 +130,7 @@ def trihedron_from_rigid_transformation(transfo):
     return trihedrons
 
 
-def plot(points, ax=None, **point_draw_kwargs):
+def plot(points, ax=None, space=None, **point_draw_kwargs):
     """
     Plot points in the 3D Special Euclidean Group,
     by showing them as trihedrons.
@@ -87,7 +142,17 @@ def plot(points, ax=None, **point_draw_kwargs):
         points = np.expand_dims(points, axis=0)
 
     if ax is None:
-        ax_s = 1.2 * np.amax(np.abs(points[:, 3:6]))
+        if space is 'SE3_GROUP':
+            ax_s = AX_SCALE * np.amax(np.abs(points[:, 3:6]))
+        elif space is 'SO3_GROUP':
+            ax_s = AX_SCALE * np.amax(np.abs(points[:, :3]))
+        elif space is 'S2':
+            ax_s = AX_SCALE
+        else:
+            raise NotImplementedError(
+                    'The plot function is not implemented'
+                    ' for the space {}.'.format(space))
+
         ax = plt.subplot(111, projection="3d", aspect="equal")
         plt.setp(ax,
                  xlim=(-ax_s, ax_s),
@@ -95,8 +160,13 @@ def plot(points, ax=None, **point_draw_kwargs):
                  zlim=(-ax_s, ax_s),
                  xlabel="X", ylabel="Y", zlabel="Z")
 
-    trihedrons = trihedron_from_rigid_transformation(points)
-    for trihedron in trihedrons:
-        trihedron.draw(ax, **point_draw_kwargs)
+    if space in ('SO3_GROUP', 'SE3_GROUP'):
+        trihedrons = convert_to_trihedron(points, space=space)
+        for t in trihedrons:
+            t.draw(ax, **point_draw_kwargs)
+    elif space is 'S2':
+        sphere = Sphere()
+        sphere.add_points(points)
+        sphere.draw(ax)
 
     return ax

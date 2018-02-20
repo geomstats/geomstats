@@ -1,21 +1,21 @@
 """
-Plot a geodesic of SE(3) equipped
+Plot a geodesic of SO(3) equipped
 with its left-invariant canonical METRIC.
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
 
-from geomstats.special_euclidean_group import SpecialEuclideanGroup
+from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 import geomstats.visualization as visualization
 
-SE3_GROUP = SpecialEuclideanGroup(n=3)
-METRIC = SE3_GROUP.left_canonical_metric
+SO3_GROUP = SpecialOrthogonalGroup(n=3)
+METRIC = SO3_GROUP.bi_invariant_metric
 
 
 def main():
-    initial_point = SE3_GROUP.identity
-    initial_tangent_vec = np.array([1.8, 0.2, 0.3, 3., 3., 1.])
+    initial_point = SO3_GROUP.identity
+    initial_tangent_vec = np.array([0.5, 0.5, 0.8])
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                initial_tangent_vec=initial_tangent_vec)
 
@@ -25,10 +25,10 @@ def main():
     points = geodesic(t)
     ax = plt.subplot(111, projection="3d", aspect="equal")
     plt.setp(ax,
-             xlim=(-1, 4), ylim=(-1, 4), zlim=(-1, 2),
+             xlim=(-1, 1), ylim=(-1, 1), zlim=(-1, 1),
              xlabel="X", ylabel="Y", zlabel="Z")
 
-    visualization.plot(points, ax)
+    visualization.plot(points, ax, space='SO3_GROUP')
     plt.show()
 
 

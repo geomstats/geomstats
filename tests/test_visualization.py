@@ -1,23 +1,36 @@
 """Unit tests for visualization module."""
 
-import geomstats.visualization as visualization
-
-import matplotlib.pyplot as plt
-import numpy as np
 import unittest
 
+import geomstats.visualization as visualization
+from geomstats.hypersphere import Hypersphere
+from geomstats.special_euclidean_group import SpecialEuclideanGroup
+from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
+
+
+SO3_GROUP = SpecialOrthogonalGroup(n=3)
+SE3_GROUP = SpecialEuclideanGroup(n=3)
+S2 = Hypersphere(dimension=2)
+
+
+# TODO(nina): add tests for examples
 
 class TestVisualizationMethods(unittest.TestCase):
+    def setUp(self):
+        self.n_samples = 10
 
-    def test_plot_points(self):
-        translation = np.array([1, 2, 3])
-        rot_vec = np.array([-1, 3, 6])
-        transfo = np.concatenate([rot_vec, translation])
+    def test_plot_points_so3(self):
+        points = SO3_GROUP.random_uniform(self.n_samples)
+        visualization.plot(points, 'SO3_GROUP')
 
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        ax = visualization.plot(transfo, ax)
-        fig.savefig('test_plot_trihedron.png')
+    def test_plot_points_se3(self):
+        points = SE3_GROUP.random_uniform(self.n_samples)
+        visualization.plot(points, 'SE3_GROUP')
+
+    def test_plot_points_s2(self):
+        points = S2.random_uniform(self.n_samples)
+        visualization.plot(points, 'S2')
+
 
 if __name__ == '__main__':
         unittest.main()
