@@ -13,6 +13,8 @@ SE3_GROUP = SpecialEuclideanGroup(n=3)
 SO3_GROUP = SpecialOrthogonalGroup(n=3)
 SPHERE2 = Hypersphere(dimension=2)
 
+AX_SCALE = 1.2
+
 
 class Arrow3D():
     "An arrow in 3d, i.e. a point and a vector."
@@ -107,7 +109,7 @@ def convert_to_trihedron(point, space=None):
         translation = np.zeros((n_points, 3))
     else:
         raise NotImplementedError(
-                'Visualization is only implemented for SO(3) and SE(3).')
+                'Trihedrons are only implemented for SO(3) and SE(3).')
 
     rot_mat = SO3_GROUP.matrix_from_rotation_vector(rot_vec)
     rot_mat = special_orthogonal_group.closest_rotation_matrix(rot_mat)
@@ -141,14 +143,15 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
 
     if ax is None:
         if space is 'SE3_GROUP':
-            ax_s = 1.2 * np.amax(np.abs(points[:, 3:6]))
+            ax_s = AX_SCALE * np.amax(np.abs(points[:, 3:6]))
         elif space is 'SO3_GROUP':
-            ax_s = 1.2 * np.amax(np.abs(points[:, :3]))
+            ax_s = AX_SCALE * np.amax(np.abs(points[:, :3]))
         elif space is 'S2':
-            ax_s = 1.2
+            ax_s = AX_SCALE
         else:
             raise NotImplementedError(
-                    'The plot function is not implemented for this space.')
+                    'The plot function is not implemented'
+                    ' for the space {}.'.format(space))
 
         ax = plt.subplot(111, projection="3d", aspect="equal")
         plt.setp(ax,
