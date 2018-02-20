@@ -2,9 +2,6 @@
 
 import unittest
 
-import matplotlib.pyplot as plt
-matplotlib.use('Agg')  # noqa
-
 import geomstats.visualization as visualization
 from geomstats.hypersphere import Hypersphere
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
