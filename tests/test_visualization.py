@@ -16,6 +16,8 @@ SE3_GROUP = SpecialEuclideanGroup(n=3)
 S2 = Hypersphere(dimension=2)
 
 
+# TODO(nina): add tests for examples
+
 class TestVisualizationMethods(unittest.TestCase):
     def setUp(self):
         self.n_samples = 10
