@@ -21,15 +21,15 @@ class TestVisualizationMethods(unittest.TestCase):
 
     def test_plot_points_so3(self):
         points = SO3_GROUP.random_uniform(self.n_samples)
-        visualization.plot(points, 'SO3_GROUP')
+        visualization.plot(points, space='SO3_GROUP')
 
     def test_plot_points_se3(self):
         points = SE3_GROUP.random_uniform(self.n_samples)
-        visualization.plot(points, 'SE3_GROUP')
+        visualization.plot(points, space='SE3_GROUP')
 
     def test_plot_points_s2(self):
         points = S2.random_uniform(self.n_samples)
-        visualization.plot(points, 'S2')
+        visualization.plot(points, space='S2')
 
 
 if __name__ == '__main__':

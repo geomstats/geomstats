@@ -1250,5 +1250,17 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
         self.assertTrue(sq_dist_1_2.shape == (n_samples, 1))
 
+    def test_geodesic_and_belongs(self):
+        initial_point = self.group.random_uniform()
+        initial_tangent_vec = np.array([2., 0., -1.])
+        metric = self.metrics['canonical']
+        geodesic = metric.geodesic(initial_point=initial_point,
+                                   initial_tangent_vec=initial_tangent_vec)
+
+        t = np.linspace(start=0, stop=1, num=100)
+        points = geodesic(t)
+        self.assertTrue(np.all(self.group.belongs(points)))
+
+
 if __name__ == '__main__':
         unittest.main()
