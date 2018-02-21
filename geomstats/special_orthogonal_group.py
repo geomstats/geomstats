@@ -396,7 +396,7 @@ class SpecialOrthogonalGroup(LieGroup):
         assert self.belongs(point)
         assert left_or_right in ('left', 'right')
         point = self.regularize(point)
-        n_points = point.shape[0]
+        n_points, _ = point.shape
 
         angle = np.linalg.norm(point, axis=1)
         angle = np.expand_dims(angle, axis=1)
@@ -407,13 +407,23 @@ class SpecialOrthogonalGroup(LieGroup):
         mask_0 = np.isclose(angle, 0)
         mask_0 = np.squeeze(mask_0, axis=1)
         if np.any(mask_0):
-            coef_1[mask_0] = 1 - angle[mask_0] ** 2 / 12
-            coef_2[mask_0] = 1 / 12 + angle[mask_0] ** 2 / 720
+            coef_1[mask_0] = (1 - angle[mask_0] ** 2 / 12
+                              - angle[mask_0] ** 4 / 720
+                              - angle[mask_0] ** 6 / 30240)
+            coef_2[mask_0] = (1 / 12 + angle[mask_0] ** 2 / 720
+                              + angle[mask_0] ** 4 / 30240
+                              + angle[mask_0] ** 6 / 1209600)
 
         mask_pi = np.isclose(angle, np.pi)
         mask_pi = np.squeeze(mask_pi, axis=1)
         if np.any(mask_pi):
-            coef_1[mask_pi] = angle[mask_pi] * (np.pi - angle[mask_pi]) / 4
+            delta_angle = angle[mask_pi] - np.pi
+            coef_1[mask_pi] = (- np.pi * delta_angle / 4
+                               - delta_angle ** 2 / 4
+                               - np.pi * delta_angle ** 3 / 48
+                               - delta_angle ** 4 / 48
+                               - np.pi * delta_angle ** 5 / 480
+                               - delta_angle ** 6 / 480)
             coef_2[mask_pi] = (1 - coef_1[mask_pi]) / angle[mask_pi] ** 2
 
         mask_else = ~mask_0 & ~mask_pi
