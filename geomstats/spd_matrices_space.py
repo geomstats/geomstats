@@ -60,14 +60,8 @@ def group_exp(sym_mat):
     for i in range(n_sym_mats):
         diag_exp[i] = np.diag(np.exp(eigenvalues[i]))
 
-    print('diag_exp')
-    print(diag_exp.shape)
-
     exp = np.matmul(diag_exp, np.transpose(vectors, axes=(0, 2, 1)))
-    # exp = np.dot(np.dot(vectors, diag_exp), vectors.transpose())
     exp = np.matmul(vectors, exp)
-    print('exp')
-    print(exp.shape)
     return exp
 
 
@@ -87,10 +81,6 @@ def group_log(sym_mat):
 
     [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
 
-    print('eigenvalues')
-    print(eigenvalues.shape)
-    print('vectors')
-    print(vectors.shape)
     assert np.all(eigenvalues > 0)
     diag_log = np.zeros((n_sym_mats, mat_dim, mat_dim))
     for i in range(n_sym_mats):
@@ -98,8 +88,6 @@ def group_log(sym_mat):
 
     log = np.matmul(diag_log, np.transpose(vectors, axes=(0, 2, 1)))
     log = np.matmul(vectors, log)
-    print('log')
-    print(log.shape)
     return log
 
 
@@ -206,10 +194,14 @@ class SPDMetric(RiemannianMetric):
 
         This gives a symmetric positive definite matrix.
         """
+        print('1. tangent_vec')
+        print(tangent_vec.shape)
         if tangent_vec.ndim == 2:
             tangent_vec = np.expand_dims(tangent_vec, axis=0)
         assert tangent_vec.ndim == 3
 
+        print('2. tangent_vec')
+        print(tangent_vec.shape)
         if base_point.ndim == 2:
             base_point = np.expand_dims(base_point, axis=0)
         assert base_point.ndim == 3
