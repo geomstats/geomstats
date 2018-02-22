@@ -160,6 +160,67 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
                                      self.space.dimension,
                                      self.space.dimension)))
 
+    def test_log_vectorization(self):
+        n_samples = self.n_samples
+        # Test with the 1 base_point, and several different tangent_vecs
+        tangent_vecs = self.space.random_uniform(n_samples=n_samples)
+        base_point = self.space.random_uniform(n_samples=1)
+        results = self.metric.log(tangent_vecs, base_point)
+
+        self.assertTrue(np.allclose(results.shape,
+                                    (n_samples,
+                                     self.space.dimension,
+                                     self.space.dimension)))
+
+        # Test with the same number of base_points and tangent_vecs
+        tangent_vecs = self.space.random_uniform(n_samples=n_samples)
+        base_points = self.space.random_uniform(n_samples=n_samples)
+        results = self.metric.log(tangent_vecs, base_points)
+
+        self.assertTrue(np.allclose(results.shape,
+                                    (n_samples,
+                                     self.space.dimension,
+                                     self.space.dimension)))
+
+        # Test with the several base_points, and 1 tangent_vec
+        tangent_vec = self.space.random_uniform(n_samples=1)
+        base_points = self.space.random_uniform(n_samples=n_samples)
+        results = self.metric.log(tangent_vec, base_points)
+
+        self.assertTrue(np.allclose(results.shape,
+                                    (n_samples,
+                                     self.space.dimension,
+                                     self.space.dimension)))
+
+    def test_exp_and_log_vectorization(self):
+        n_samples = self.n_samples
+        # Test with the 1 base_point, and several different tangent_vecs
+        tangent_vecs = self.space.random_uniform(n_samples=n_samples)
+        base_point = self.space.random_uniform(n_samples=1)
+        exps = self.metric.exp(tangent_vecs, base_point)
+        results = self.metric.log(exps, base_point)
+        expected = tangent_vecs
+
+        self.assertTrue(np.allclose(results, expected))
+
+        # Test with the same number of base_points and tangent_vecs
+        tangent_vecs = self.space.random_uniform(n_samples=n_samples)
+        base_points = self.space.random_uniform(n_samples=n_samples)
+        exps = self.metric.exp(tangent_vecs, base_points)
+        results = self.metric.log(exps, base_point)
+        expected = tangent_vecs
+
+        self.assertTrue(np.allclose(results, expected))
+
+        # Test with the several base_points, and 1 tangent_vec
+        tangent_vec = self.space.random_uniform(n_samples=1)
+        base_points = self.space.random_uniform(n_samples=n_samples)
+        exps = self.metric.exp(tangent_vec, base_points)
+        results = self.metric.log(exps, base_point)
+        expected = tangent_vecs
+
+        self.assertTrue(np.allclose(results, expected))
+
     def test_geodesic_and_belongs(self):
         initial_point = self.space.random_uniform()
         initial_tangent_vec = np.array([[9., 0., 0.],
@@ -177,6 +238,70 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         points = geodesic(t)
         self.assertTrue(np.all(self.space.belongs(points)))
 
+    def test_squared_dist_is_symmetric(self):
+        n_samples = self.n_samples
+
+        point_1 = self.space.random_uniform(n_samples=1)
+        point_2 = self.space.random_uniform(n_samples=1)
+
+        sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
+        sq_dist_2_1 = self.metric.squared_dist(point_2, point_1)
+
+        self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1))
+
+        point_1 = self.space.random_uniform(n_samples=1)
+        point_2 = self.space.random_uniform(n_samples=n_samples)
+
+        sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
+        sq_dist_2_1 = self.metric.squared_dist(point_2, point_1)
+
+        self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1))
+
+        point_1 = self.space.random_uniform(n_samples=n_samples)
+        point_2 = self.space.random_uniform(n_samples=1)
+
+        sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
+        sq_dist_2_1 = self.metric.squared_dist(point_2, point_1)
+
+        self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1))
+
+        point_1 = self.space.random_uniform(n_samples=n_samples)
+        point_2 = self.space.random_uniform(n_samples=n_samples)
+
+        sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
+        sq_dist_2_1 = self.metric.squared_dist(point_2, point_1)
+
+        self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1))
+
+    def test_squared_dist_vectorization(self):
+        n_samples = self.n_samples
+        point_1 = self.space.random_uniform(n_samples=n_samples)
+        point_2 = self.space.random_uniform(n_samples=n_samples)
+
+        sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
+
+        self.assertTrue(sq_dist_1_2.shape == (n_samples, 1))
+
+        point_1 = self.space.random_uniform(n_samples=1)
+        point_2 = self.space.random_uniform(n_samples=n_samples)
+
+        sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
+
+        self.assertTrue(sq_dist_1_2.shape == (n_samples, 1))
+
+        point_1 = self.space.random_uniform(n_samples=n_samples)
+        point_2 = self.space.random_uniform(n_samples=1)
+
+        sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
+
+        self.assertTrue(sq_dist_1_2.shape == (n_samples, 1))
+
+        point_1 = self.space.random_uniform(n_samples=1)
+        point_2 = self.space.random_uniform(n_samples=1)
+
+        sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
+
+        self.assertTrue(sq_dist_1_2.shape == (1, 1))
 
 if __name__ == '__main__':
         unittest.main()
