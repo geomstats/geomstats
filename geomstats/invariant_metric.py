@@ -37,11 +37,13 @@ class InvariantMetric(RiemannianMetric):
         self.left_or_right = left_or_right
         self.signature = (n_pos_eigval, n_null_eigval, n_neg_eigval)
 
-    def inner_product_matrix(self, base_point):
+    def inner_product_matrix(self, base_point=None):
         """
         Compute the matrix of the Riemmanian metric at point base_point,
         by translating inner_product from the identity to base_point.
         """
+        if base_point is None:
+            base_point = self.group.identity
         base_point = self.group.regularize(base_point)
 
         jacobian = self.group.jacobian_translation(
