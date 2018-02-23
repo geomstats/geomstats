@@ -1152,6 +1152,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
             dist_1_2 = metric.dist(point_1, point_2)
             dist_1_id = metric.dist(point_1, self.group.identity)
+            expected_
             print(dist_1_id)
 
             self.assertTrue(dist_1_2.shape == (n_samples, 1))
