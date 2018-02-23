@@ -11,6 +11,7 @@ import numpy as np
 import unittest
 
 from geomstats.invariant_metric import InvariantMetric
+from geomstats.spd_matrices_space import SPDMatricesSpace
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
 import tests.helper as helper
 
@@ -26,6 +27,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
     def setUp(self):
         n = 3
         group = SpecialEuclideanGroup(n=n)
+        spd_matrices_space = SPDMatricesSpace(dimension=n)
 
         # Points
 
@@ -95,10 +97,23 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                    inner_product_mat_at_identity=diag_mat_at_identity,
                    left_or_right='right')
 
+        mat_at_identity = spd_matrices_space.random_uniform(n_samples=1)
+
+        left_metric = InvariantMetric(
+                   group=group,
+                   inner_product_mat_at_identity=mat_at_identity,
+                   left_or_right='left')
+        right_metric = InvariantMetric(
+                   group=group,
+                   inner_product_mat_at_identity=mat_at_identity,
+                   left_or_right='right')
+
         metrics = {'left_canonical': group.left_canonical_metric,
                    'right_canonical': group.right_canonical_metric,
                    'left_diag': left_diag_metric,
-                   'right_diag': right_diag_metric}
+                   'right_diag': right_diag_metric,
+                   'left': left_metric,
+                   'right': right_metric}
 
         self.group = group
         self.metrics = metrics
