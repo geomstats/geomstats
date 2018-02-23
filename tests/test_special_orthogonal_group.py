@@ -4,6 +4,7 @@ import numpy as np
 import unittest
 
 from geomstats.invariant_metric import InvariantMetric
+from geomstats.spd_matrices_space import SPDMatricesSpace
 import geomstats.special_orthogonal_group as special_orthogonal_group
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
@@ -16,6 +17,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
     def setUp(self):
         n = 3
         group = SpecialOrthogonalGroup(n=n)
+        spd_matrices_space = SPDMatricesSpace(dimension=group.dimension)
 
         # -- Rotation vectors with angles
         # 0, close to 0, closely lower than pi, pi,
@@ -59,7 +61,21 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                    inner_product_mat_at_identity=diag_mat,
                    left_or_right='right')
 
-        metrics = {'canonical': canonical_metric}
+        mat = spd_matrices_space.random_uniform()
+        left_metric = InvariantMetric(
+                   group=group,
+                   inner_product_mat_at_identity=mat,
+                   left_or_right='left')
+        right_metric = InvariantMetric(
+                   group=group,
+                   inner_product_mat_at_identity=mat,
+                   left_or_right='right')
+
+        metrics = {'canonical': canonical_metric,
+                   'left_diag': left_diag_metric,
+                   'right_diag': right_diag_metric,
+                   'left': left_metric,
+                   'right': right_metric}
 
         # -- Set attributes
         self.group = group
@@ -1260,18 +1276,23 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                  sq_dist_2_1))
 
     def test_squared_dist_is_less_than_squared_pi(self):
-        for metric in self.metrics.values():
-            for angle_type_1 in self.elements:
-                for angle_type_2 in self.elements:
-                    point_1 = self.elements[angle_type_1]
-                    point_2 = self.elements[angle_type_2]
-                    point_1 = self.group.regularize(point_1)
-                    point_2 = self.group.regularize(point_2)
+        """
+        This test only concerns the canonical metric.
+        For other metrics, the scaling factor can give
+        distances above pi.
+        """
+        metric = self.metrics['canonical']
+        for angle_type_1 in self.elements:
+            for angle_type_2 in self.elements:
+                point_1 = self.elements[angle_type_1]
+                point_2 = self.elements[angle_type_2]
+                point_1 = self.group.regularize(point_1)
+                point_2 = self.group.regularize(point_2)
 
-                    sq_dist = metric.squared_dist(point_1, point_2)
-                    diff = sq_dist - np.pi ** 2
-                    self.assertTrue(diff <= 0 or abs(diff) < EPSILON,
-                                    'sq_dist = {}'.format(sq_dist))
+                sq_dist = metric.squared_dist(point_1, point_2)
+                diff = sq_dist - np.pi ** 2
+                self.assertTrue(diff <= 0 or abs(diff) < EPSILON,
+                                'sq_dist = {}'.format(sq_dist))
 
     def test_squared_dist_vectorization(self):
         n_samples = self.n_samples

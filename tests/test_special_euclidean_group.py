@@ -27,7 +27,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
     def setUp(self):
         n = 3
         group = SpecialEuclideanGroup(n=n)
-        spd_matrices_space = SPDMatricesSpace(dimension=n)
+        spd_matrices_space = SPDMatricesSpace(dimension=group.dimension)
 
         # Points
 
@@ -97,7 +97,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                    inner_product_mat_at_identity=diag_mat_at_identity,
                    left_or_right='right')
 
-        mat_at_identity = spd_matrices_space.random_uniform(n_samples=1)
+        mat_at_identity = spd_matrices_space.random_uniform()
 
         left_metric = InvariantMetric(
                    group=group,
@@ -1256,7 +1256,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             self.assertTrue(np.allclose(result, expected))
 
     def test_squared_dist_is_symmetric(self):
-        for metric in self.metrics.values():
+        for metric_type in self.metrics:
+            metric = self.metrics[metric_type]
             for point_a in self.elements.values():
                 for point_b in self.elements.values():
                     point_a = self.group.regularize(point_a)
@@ -1264,7 +1265,14 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
                     sq_dist_a_b = metric.squared_dist(point_a, point_b)
                     sq_dist_b_a = metric.squared_dist(point_b, point_a)
-                    self.assertTrue(np.allclose(sq_dist_a_b, sq_dist_b_a))
+
+                    self.assertTrue(np.allclose(sq_dist_a_b, sq_dist_b_a),
+                                    'Squared dist a - b: {}\n'
+                                    'Squared dist b - a: {}\n'
+                                    ' for metric {}'.format(
+                                        sq_dist_a_b,
+                                        sq_dist_b_a,
+                                        metric_type))
 
     def test_dist_is_symmetric(self):
         for metric in self.metrics.values():
