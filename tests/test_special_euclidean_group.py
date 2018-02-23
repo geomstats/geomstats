@@ -1117,8 +1117,18 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
                     sq_dist_a_b = metric.squared_dist(point_a, point_b)
                     sq_dist_b_a = metric.squared_dist(point_b, point_a)
-
                     self.assertTrue(np.allclose(sq_dist_a_b, sq_dist_b_a))
+
+    def test_dist_is_symmetric(self):
+        for metric in self.metrics.values():
+            for point_a in self.elements.values():
+                for point_b in self.elements.values():
+                    point_a = self.group.regularize(point_a)
+                    point_b = self.group.regularize(point_b)
+
+                    dist_a_b = metric.dist(point_a, point_b)
+                    dist_b_a = metric.dist(point_b, point_a)
+                    self.assertTrue(np.allclose(dist_a_b, dist_b_a))
 
     def test_squared_dist_vectorization(self):
         n_samples = self.n_random_samples
@@ -1131,6 +1141,21 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             sq_dist_1_2 = metric.squared_dist(point_1, point_2)
 
             self.assertTrue(sq_dist_1_2.shape == (n_samples, 1))
+
+    def test_dist_vectorization(self):
+        n_samples = self.n_random_samples
+        for metric in self.metrics.values():
+            point_1 = self.group.random_uniform(n_samples=n_samples)
+            point_2 = self.group.random_uniform(n_samples=n_samples)
+            point_1 = self.group.regularize(point_1)
+            point_2 = self.group.regularize(point_2)
+
+            dist_1_2 = metric.dist(point_1, point_2)
+            dist_1_id = metric.dist(point_1, self.group.identity)
+            print(dist_1_id)
+
+            self.assertTrue(dist_1_2.shape == (n_samples, 1))
+            self.assertTrue(dist_1_id.shape == (n_samples, 1))
 
     def test_group_exponential_barycenter(self):
         # TODO(nina): this test fails, the barycenter is not accurate.
