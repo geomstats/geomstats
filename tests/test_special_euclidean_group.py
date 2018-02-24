@@ -104,7 +104,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         self.angles_close_to_pi = ['with_angle_close_pi_low',
                                    'with_angle_pi',
                                    'with_angle_close_pi_high']
-        self.n_random_samples = 100
+        self.n_samples = 3
 
     def test_random_and_belongs(self):
         """
@@ -115,7 +115,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         self.assertTrue(self.group.belongs(base_point))
 
     def test_random_and_belongs_vectorization(self):
-        n_samples = self.n_random_samples
+        n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
         self.assertTrue(self.group.belongs(points))
 
@@ -199,7 +199,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                         expected))
 
     def test_regularize_vectorization(self):
-        n_samples = self.n_random_samples
+        n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
         regularized_points = self.group.regularize(points)
 
@@ -246,7 +246,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         self.assertTrue(np.allclose(result, expected))
 
     def test_compose_vectorization(self):
-        n_samples = self.n_random_samples
+        n_samples = self.n_samples
         n_points_a = self.group.random_uniform(n_samples=n_samples)
         n_points_b = self.group.random_uniform(n_samples=n_samples)
         one_point = self.group.random_uniform(n_samples=1)
@@ -264,13 +264,13 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         self.assertTrue(result.shape == (n_samples, self.group.dimension))
 
     def test_inverse_vectorization(self):
-        n_samples = self.n_random_samples
+        n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
         result = self.group.inverse(points)
         self.assertTrue(result.shape == (n_samples, self.group.dimension))
 
     def test_left_jacobian_vectorization(self):
-        n_samples = self.n_random_samples
+        n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
         jacobians = self.group.jacobian_translation(point=points,
                                                     left_or_right='left')
@@ -280,7 +280,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                           self.group.dimension, self.group.dimension)))
 
     def test_exp_from_identity_vectorization(self):
-        n_samples = self.n_random_samples
+        n_samples = self.n_samples
         for metric in self.metrics.values():
             tangent_vecs = self.group.random_uniform(n_samples=n_samples)
             results = metric.exp_from_identity(tangent_vecs)
@@ -289,7 +289,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                         (n_samples, self.group.dimension)))
 
     def test_log_from_identity_vectorization(self):
-        n_samples = self.n_random_samples
+        n_samples = self.n_samples
         for metric in self.metrics.values():
             points = self.group.random_uniform(n_samples=n_samples)
             results = metric.log_from_identity(points)
@@ -298,61 +298,88 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                         (n_samples, self.group.dimension)))
 
     def test_exp_vectorization(self):
-        n_samples = self.n_random_samples
-        for metric in self.metrics.values():
-            # Test with the 1 base_point, and several different tangent_vecs
-            tangent_vecs = self.group.random_uniform(n_samples=n_samples)
-            base_point = self.group.random_uniform(n_samples=1)
-            results = metric.exp(tangent_vecs, base_point)
+        # TODO(nina): this test fails
+        n_samples = self.n_samples
+        for metric_type in self.metrics:
+            metric = self.metrics[metric_type]
 
-            self.assertTrue(np.allclose(results.shape,
+            one_tangent_vec = self.group.random_uniform(n_samples=1)
+            one_base_point = self.group.random_uniform(n_samples=1)
+            n_tangent_vec = self.group.random_uniform(n_samples=n_samples)
+            n_base_point = self.group.random_uniform(n_samples=n_samples)
+
+            # Test with the 1 base point, and n tangent vecs
+            result = metric.exp(n_tangent_vec, one_base_point)
+            self.assertTrue(np.allclose(result.shape,
+                                        (n_samples, self.group.dimension)))
+            expected = np.vstack([metric.exp(tangent_vec, one_base_point)
+                                  for tangent_vec in n_tangent_vec])
+            self.assertTrue(np.allclose(expected.shape,
                                         (n_samples, self.group.dimension)))
 
-            # Test with the same number of base_points and tangent_vecs
-            tangent_vecs = self.group.random_uniform(n_samples=n_samples)
-            base_points = self.group.random_uniform(n_samples=n_samples)
-            results = metric.exp(tangent_vecs, base_points)
-
-            self.assertTrue(np.allclose(results.shape,
+            # Test with the several base point, and one tangent vec
+            result = metric.exp(one_tangent_vec, n_base_point)
+            self.assertTrue(np.allclose(result.shape,
+                                        (n_samples, self.group.dimension)))
+            expected = np.vstack([metric.exp(one_tangent_vec, base_point)
+                                  for base_point in n_base_point])
+            self.assertTrue(np.allclose(expected.shape,
                                         (n_samples, self.group.dimension)))
 
-            # Test with the several base_points, and 1 tangent_vec
-            tangent_vec = self.group.random_uniform(n_samples=1)
-            base_points = self.group.random_uniform(n_samples=n_samples)
-            results = metric.exp(tangent_vec, base_points)
-
-            self.assertTrue(np.allclose(results.shape,
+            # Test with the same number n of base point and n tangent vec
+            result = metric.exp(n_tangent_vec, n_base_point)
+            self.assertTrue(np.allclose(result.shape,
+                                        (n_samples, self.group.dimension)))
+            expected = np.vstack([metric.exp(tangent_vec, base_point)
+                                  for tangent_vec, base_point in zip(
+                                                               n_tangent_vec,
+                                                               n_base_point)])
+            self.assertTrue(np.allclose(expected.shape,
                                         (n_samples, self.group.dimension)))
 
     def test_log_vectorization(self):
-        n_samples = self.n_random_samples
-        for metric in self.metrics.values():
+        # TODO(nina): this test fails
+        n_samples = self.n_samples
+        for metric_type in self.metrics:
+            metric = self.metrics[metric_type]
+
+            one_point = self.group.random_uniform(n_samples=1)
+            one_base_point = self.group.random_uniform(n_samples=1)
+            n_point = self.group.random_uniform(n_samples=n_samples)
+            n_base_point = self.group.random_uniform(n_samples=n_samples)
+
             # Test with the 1 base point, and several different points
-            points = self.group.random_uniform(n_samples=n_samples)
-            base_point = self.group.random_uniform(n_samples=1)
-            results = metric.log(points, base_point)
+            result = metric.log(n_point, one_base_point)
+            self.assertTrue(np.allclose(result.shape,
+                                        (n_samples, self.group.dimension)))
+            expected = np.vstack([metric.log(point, one_base_point)
+                                  for point in n_point])
+            self.assertTrue(np.allclose(expected.shape,
+                                        (n_samples, self.group.dimension)))
+            self.assertTrue(np.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
 
-            self.assertTrue(np.allclose(results.shape,
+            # Test with the several base point, and 1 point
+            result = metric.log(one_point, n_base_point)
+            self.assertTrue(np.allclose(result.shape,
+                                        (n_samples, self.group.dimension)))
+            expected = np.vstack([metric.log(one_point, base_point)
+                                  for base_point in n_base_point])
+            self.assertTrue(np.allclose(expected.shape,
                                         (n_samples, self.group.dimension)))
 
-            # Test with the same number of base points and points
-            points = self.group.random_uniform(n_samples=n_samples)
-            base_points = self.group.random_uniform(n_samples=n_samples)
-            results = metric.log(points, base_points)
-
-            self.assertTrue(np.allclose(results.shape,
+            # Test with the same number n of base point and point
+            result = metric.log(n_point, n_base_point)
+            self.assertTrue(np.allclose(result.shape,
                                         (n_samples, self.group.dimension)))
-
-            # Test with the several base points, and 1 point
-            point = self.group.random_uniform(n_samples=1)
-            base_points = self.group.random_uniform(n_samples=n_samples)
-            results = metric.log(point, base_points)
-
-            self.assertTrue(np.allclose(results.shape,
+            expected = np.vstack([metric.log(point, base_point)
+                                  for point, base_point in zip(n_point,
+                                                               n_base_point)])
+            self.assertTrue(np.allclose(expected.shape,
                                         (n_samples, self.group.dimension)))
 
     def test_group_exp_from_identity_vectorization(self):
-        n_samples = self.n_random_samples
+        n_samples = self.n_samples
         tangent_vecs = self.group.random_uniform(n_samples=n_samples)
         results = self.group.group_exp_from_identity(tangent_vecs)
 
@@ -360,7 +387,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                     (n_samples, self.group.dimension)))
 
     def test_group_log_from_identity_vectorization(self):
-        n_samples = self.n_random_samples
+        n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
         results = self.group.group_log_from_identity(points)
 
@@ -368,7 +395,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                     (n_samples, self.group.dimension)))
 
     def test_group_exp_vectorization(self):
-        n_samples = self.n_random_samples
+        n_samples = self.n_samples
         # Test with the 1 base_point, and several different tangent_vecs
         tangent_vecs = self.group.random_uniform(n_samples=n_samples)
         base_point = self.group.random_uniform(n_samples=1)
@@ -394,7 +421,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                     (n_samples, self.group.dimension)))
 
     def test_group_log_vectorization(self):
-        n_samples = self.n_random_samples
+        n_samples = self.n_samples
         # Test with the 1 base point, and several different points
         points = self.group.random_uniform(n_samples=n_samples)
         base_point = self.group.random_uniform(n_samples=1)
@@ -1108,6 +1135,98 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                    expected,
                                    inv_rot_expected))
 
+    def test_inner_product_at_identity_vectorization(self):
+        n_samples = self.n_samples
+        for metric in self.metrics.values():
+            one_vector_a = self.group.random_uniform(n_samples=1)
+            one_vector_b = self.group.random_uniform(n_samples=1)
+            n_vector_a = self.group.random_uniform(n_samples=n_samples)
+            n_vector_b = self.group.random_uniform(n_samples=n_samples)
+
+            result = metric.inner_product(one_vector_a, n_vector_b)
+            expected = np.vstack([metric.inner_product(one_vector_a, vec_b)
+                                  for vec_b in n_vector_b])
+            self.assertTrue(np.allclose(result, expected))
+
+            result = metric.inner_product(n_vector_a, one_vector_b)
+            expected = np.vstack([metric.inner_product(vec_a, one_vector_b)
+                                  for vec_a in n_vector_a])
+            self.assertTrue(np.allclose(result, expected))
+
+            result = metric.inner_product(n_vector_a, n_vector_b)
+            expected = np.vstack([metric.inner_product(vec_a, vec_b)
+                                  for vec_a, vec_b in zip(n_vector_a,
+                                                          n_vector_b)])
+            self.assertTrue(np.allclose(result, expected))
+
+    def test_inner_product_one_base_point_vectorization(self):
+        n_samples = self.n_samples
+        for metric in self.metrics.values():
+            one_base_point = self.group.random_uniform(n_samples=1)
+
+            one_vector_a = self.group.random_uniform(n_samples=1)
+            one_vector_b = self.group.random_uniform(n_samples=1)
+            n_vector_a = self.group.random_uniform(n_samples=n_samples)
+            n_vector_b = self.group.random_uniform(n_samples=n_samples)
+
+            result = metric.inner_product(one_vector_a, n_vector_b,
+                                          one_base_point)
+            expected = np.vstack([metric.inner_product(one_vector_a, vec_b,
+                                                       one_base_point)
+                                  for vec_b in n_vector_b])
+            self.assertTrue(np.allclose(result, expected))
+
+            result = metric.inner_product(n_vector_a, one_vector_b,
+                                          one_base_point)
+            expected = np.vstack([metric.inner_product(vec_a, one_vector_b,
+                                                       one_base_point)
+                                  for vec_a in n_vector_a])
+            self.assertTrue(np.allclose(result, expected))
+
+            result = metric.inner_product(n_vector_a, n_vector_b,
+                                          one_base_point)
+            expected = np.vstack([metric.inner_product(vec_a, vec_b,
+                                                       one_base_point)
+                                  for vec_a, vec_b in zip(n_vector_a,
+                                                          n_vector_b)])
+            self.assertTrue(np.allclose(result, expected))
+
+    def test_inner_product_n_base_point_vectorization(self):
+        n_samples = self.n_samples
+        for metric in self.metrics.values():
+            n_base_point = self.group.random_uniform(n_samples=n_samples)
+
+            one_vector_a = self.group.random_uniform(n_samples=1)
+            one_vector_b = self.group.random_uniform(n_samples=1)
+            n_vector_a = self.group.random_uniform(n_samples=n_samples)
+            n_vector_b = self.group.random_uniform(n_samples=n_samples)
+
+            result = metric.inner_product(one_vector_a, n_vector_b,
+                                          n_base_point)
+            expected = np.vstack([metric.inner_product(one_vector_a, vec_b,
+                                                       base_point)
+                                  for vec_b, base_point in zip(n_vector_b,
+                                                               n_base_point)])
+            self.assertTrue(np.allclose(result, expected))
+
+            result = metric.inner_product(n_vector_a, one_vector_b,
+                                          n_base_point)
+            expected = np.vstack([metric.inner_product(vec_a, one_vector_b,
+                                                       base_point)
+                                  for vec_a, base_point in zip(n_vector_a,
+                                                               n_base_point)])
+            self.assertTrue(np.allclose(result, expected))
+
+            result = metric.inner_product(n_vector_a, n_vector_b,
+                                          n_base_point)
+            expected = np.vstack([metric.inner_product(vec_a, vec_b,
+                                                       base_point)
+                                  for vec_a, vec_b, base_point in zip(
+                                                                n_vector_a,
+                                                                n_vector_b,
+                                                                n_base_point)])
+            self.assertTrue(np.allclose(result, expected))
+
     def test_squared_dist_is_symmetric(self):
         for metric in self.metrics.values():
             for point_a in self.elements.values():
@@ -1117,20 +1236,130 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
                     sq_dist_a_b = metric.squared_dist(point_a, point_b)
                     sq_dist_b_a = metric.squared_dist(point_b, point_a)
-
                     self.assertTrue(np.allclose(sq_dist_a_b, sq_dist_b_a))
 
-    def test_squared_dist_vectorization(self):
-        n_samples = self.n_random_samples
+    def test_dist_is_symmetric(self):
         for metric in self.metrics.values():
-            point_1 = self.group.random_uniform(n_samples=n_samples)
-            point_2 = self.group.random_uniform(n_samples=n_samples)
-            point_1 = self.group.regularize(point_1)
-            point_2 = self.group.regularize(point_2)
+            for point_a in self.elements.values():
+                for point_b in self.elements.values():
+                    point_a = self.group.regularize(point_a)
+                    point_b = self.group.regularize(point_b)
 
-            sq_dist_1_2 = metric.squared_dist(point_1, point_2)
+                    dist_a_b = metric.dist(point_a, point_b)
+                    dist_b_a = metric.dist(point_b, point_a)
+                    self.assertTrue(np.allclose(dist_a_b, dist_b_a))
 
-            self.assertTrue(sq_dist_1_2.shape == (n_samples, 1))
+    def test_squared_dist_vectorization(self):
+        # TODO(nina): this test fails
+        n_samples = self.n_samples
+        for metric_type in self.metrics:
+            metric = self.metrics[metric_type]
+            point_id = self.group.identity
+
+            one_point_1 = self.group.random_uniform(n_samples=1)
+            one_point_2 = self.group.random_uniform(n_samples=1)
+            one_point_1 = self.group.regularize(one_point_1)
+            one_point_2 = self.group.regularize(one_point_2)
+
+            n_point_1 = self.group.random_uniform(n_samples=n_samples)
+            n_point_2 = self.group.random_uniform(n_samples=n_samples)
+            n_point_1 = self.group.regularize(n_point_1)
+            n_point_2 = self.group.regularize(n_point_2)
+
+            # Identity and n points 2
+            result = metric.squared_dist(point_id, n_point_2)
+            self.assertTrue(result.shape == (n_samples, 1))
+
+            expected = np.vstack([metric.squared_dist(point_id, point_2)
+                                  for point_2 in n_point_2])
+            self.assertTrue(np.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
+
+            # n points 1 and identity
+            result = metric.squared_dist(n_point_1, point_id)
+
+            self.assertTrue(result.shape == (n_samples, 1))
+
+            expected = np.vstack([metric.squared_dist(point_1, point_id)
+                                  for point_1 in n_point_1])
+
+            # one point 1 and n points 2
+            result = metric.squared_dist(one_point_1, n_point_2)
+            self.assertTrue(result.shape == (n_samples, 1))
+
+            expected = np.vstack([metric.squared_dist(one_point_1, point_2)
+                                  for point_2 in n_point_2])
+
+            # n points 1 and one point 2
+            result = metric.squared_dist(n_point_1, one_point_2)
+            self.assertTrue(result.shape == (n_samples, 1))
+
+            expected = np.vstack([metric.squared_dist(point_1, one_point_2)
+                                  for point_1 in n_point_1])
+
+            # n points 1 and n points 2
+            result = metric.squared_dist(n_point_1, n_point_2)
+            self.assertTrue(result.shape == (n_samples, 1))
+
+            expected = np.vstack([metric.squared_dist(point_1, point_2)
+                                  for point_1, point_2 in zip(n_point_1,
+                                                              n_point_2)])
+
+    def test_dist_vectorization(self):
+        # TODO(nina): this test fails
+        n_samples = self.n_samples
+        for metric_type in self.metrics:
+            metric = self.metrics[metric_type]
+            point_id = self.group.identity
+
+            one_point_1 = self.group.random_uniform(n_samples=1)
+            one_point_2 = self.group.random_uniform(n_samples=1)
+            one_point_1 = self.group.regularize(one_point_1)
+            one_point_2 = self.group.regularize(one_point_2)
+
+            n_point_1 = self.group.random_uniform(n_samples=n_samples)
+            n_point_2 = self.group.random_uniform(n_samples=n_samples)
+            n_point_1 = self.group.regularize(n_point_1)
+            n_point_2 = self.group.regularize(n_point_2)
+
+            # Identity and n points 2
+            result = metric.dist(point_id, n_point_2)
+            self.assertTrue(result.shape == (n_samples, 1))
+
+            expected = np.vstack([metric.dist(point_id, point_2)
+                                  for point_2 in n_point_2])
+            self.assertTrue(np.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
+
+            # n points 1 and identity
+            result = metric.dist(n_point_1, point_id)
+
+            self.assertTrue(result.shape == (n_samples, 1))
+
+            expected = np.vstack([metric.dist(point_1, point_id)
+                                  for point_1 in n_point_1])
+
+            # one point 1 and n points 2
+            result = metric.dist(one_point_1, n_point_2)
+            self.assertTrue(result.shape == (n_samples, 1))
+
+            expected = np.vstack([metric.dist(one_point_1, point_2)
+                                  for point_2 in n_point_2])
+
+            # n points 1 and one point 2
+            result = metric.dist(n_point_1, one_point_2)
+            self.assertTrue(result.shape == (n_samples, 1))
+
+            expected = np.vstack([metric.dist(point_1, one_point_2)
+                                  for point_1 in n_point_1])
+
+            # n points 1 and n points 2
+            result = metric.dist(n_point_1, n_point_2)
+            self.assertTrue(result.shape == (n_samples, 1))
+
+            expected = np.vstack([metric.dist(point_1, point_2)
+                                  for point_1, point_2 in zip(n_point_1,
+                                                              n_point_2)])
 
     def test_group_exponential_barycenter(self):
         # TODO(nina): this test fails, the barycenter is not accurate.
