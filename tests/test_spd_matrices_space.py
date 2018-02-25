@@ -12,7 +12,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         self.dimension = 3
         self.space = SPDMatricesSpace(dimension=self.dimension)
         self.metric = self.space.metric
-        self.n_samples = 10
+        self.n_samples = 100
 
     def test_is_symmetric(self):
         sym_mat = np.array([[1, 2],
@@ -128,6 +128,14 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
 
         self.assertTrue(np.allclose(result_1, expected_1))
 
+    def test_exp_and_belongs(self):
+        n_samples = self.n_samples
+        tangent_vecs = self.space.random_uniform(n_samples=n_samples)
+        base_point = self.space.random_uniform(n_samples=1)
+        results = self.metric.exp(tangent_vecs, base_point)
+
+        # self.assertTrue(np.all(self.space.belongs(results)))
+
     def test_exp_vectorization(self):
         n_samples = self.n_samples
         # Test with the 1 base_point, and several different tangent_vecs
@@ -226,10 +234,6 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         initial_tangent_vec = np.array([[9., 0., 0.],
                                         [0., 5., 0.],
                                         [0., 0., 1.]])
-        print('initial_point')
-        print(initial_point.shape)
-        print('initial_tangent_vec')
-        print(initial_tangent_vec.shape)
         geodesic = self.metric.geodesic(
                                    initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
@@ -280,7 +284,8 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
 
         sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
 
-        self.assertTrue(sq_dist_1_2.shape == (n_samples, 1))
+        self.assertTrue(sq_dist_1_2.shape == (n_samples, 1),
+                        'sq_dist_1_2.shape = {}'.format(sq_dist_1_2.shape))
 
         point_1 = self.space.random_uniform(n_samples=1)
         point_2 = self.space.random_uniform(n_samples=n_samples)

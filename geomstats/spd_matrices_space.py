@@ -78,9 +78,7 @@ def group_log(sym_mat):
 
     assert np.all(is_symmetric(sym_mat))
     sym_mat = make_symmetric(sym_mat)
-
     [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
-
     assert np.all(eigenvalues > 0)
     diag_log = np.zeros((n_sym_mats, mat_dim, mat_dim))
     for i in range(n_sym_mats):
@@ -175,15 +173,13 @@ class SPDMetric(RiemannianMetric):
         Compute the inner product of tangent_vec_a and tangent_vec_b
         at point base_point using the affine invariant Riemannian metric.
         """
-        assert self.belongs(base_point)
-
         inv_base_point = np.linalg.inv(base_point)
 
-        aux_a = np.dot(inv_base_point, tangent_vec_a)
-        aux_b = np.dot(inv_base_point, tangent_vec_b)
-
-        inner_product = np.trace(np.dot(aux_a, aux_b))
-
+        aux_a = np.matmul(inv_base_point, tangent_vec_a)
+        aux_b = np.matmul(inv_base_point, tangent_vec_b)
+        inner_product = np.trace(np.matmul(aux_a, aux_b), axis1=1, axis2=2)
+        if inner_product.ndim == 1:
+            inner_product = np.expand_dims(inner_product, axis=1)
         return inner_product
 
     def exp(self, tangent_vec, base_point):
@@ -194,14 +190,10 @@ class SPDMetric(RiemannianMetric):
 
         This gives a symmetric positive definite matrix.
         """
-        print('1. tangent_vec')
-        print(tangent_vec.shape)
         if tangent_vec.ndim == 2:
             tangent_vec = np.expand_dims(tangent_vec, axis=0)
         assert tangent_vec.ndim == 3
 
-        print('2. tangent_vec')
-        print(tangent_vec.shape)
         if base_point.ndim == 2:
             base_point = np.expand_dims(base_point, axis=0)
         assert base_point.ndim == 3
@@ -258,7 +250,6 @@ class SPDMetric(RiemannianMetric):
             sqrt_base_point[i] = scipy.linalg.sqrtm(base_point[i])
 
         inv_sqrt_base_point = np.linalg.inv(sqrt_base_point)
-
         point_near_id = np.matmul(inv_sqrt_base_point, point)
         point_near_id = np.matmul(point_near_id, inv_sqrt_base_point)
         log_at_id = group_log(point_near_id)

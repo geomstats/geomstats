@@ -193,33 +193,21 @@ class RiemannianMetric(object):
         geodesic curve parameterized by t.
         """
         def point_on_geodesic(t):
-            print('before t')
-            print(t.shape)
             if t.ndim == 0:
                 t = np.expand_dims(t, axis=0)
             if t.ndim == 1:
                 t = np.expand_dims(t, axis=1)
-            print('after t')
-            print(t.shape)
-            print('initial_tangent_vec')
-            print(initial_tangent_vec.shape)
             point_ndim = initial_point.ndim
             tangent_vec_ndim = initial_tangent_vec.ndim
             new_initial_point = initial_point
             new_initial_tangent_vec = initial_tangent_vec
-            print('new_initial_tangent_vec')
-            print(new_initial_tangent_vec.shape)
             if point_ndim != tangent_vec_ndim:
-                print('ndim are differents')
                 if point_ndim + 1 == tangent_vec_ndim:
                     new_initial_point = np.expand_dims(
                                             initial_point, axis=0)
                 elif tangent_vec_ndim + 1 == point_ndim:
-                    print('correct tangent vec ndim')
                     new_initial_tangent_vec = np.expand_dims(
                                             initial_tangent_vec, axis=0)
-                    print('new_initial_tangent_vec is corrected')
-                    print(new_initial_tangent_vec.shape)
                 else:
                     raise ValueError(
                             'Initial point and initial tangent vector have'
@@ -227,8 +215,6 @@ class RiemannianMetric(object):
                                                   initial_point.shape,
                                                   initial_tangent_vec.shape))
 
-            print('before outer: new_initial_tangent_vec')
-            print(new_initial_tangent_vec.shape)
             n_times_t, _ = t.shape
             tangent_vec_shape = new_initial_tangent_vec.shape[1:]
             tangent_vecs = np.zeros((n_times_t,) + tangent_vec_shape)
