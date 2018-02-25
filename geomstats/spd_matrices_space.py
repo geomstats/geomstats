@@ -166,6 +166,33 @@ class SPDMatricesSpace(Manifold):
         spd_mat = group_exp(mat + np.transpose(mat, axes=(0, 2, 1)))
         return spd_mat
 
+    def random_tangent_vec_uniform(self, n_samples=1, base_point=None):
+        if base_point is None:
+            base_point = np.eye(self.dimension)
+
+        if base_point.ndim == 2:
+            base_point = np.expand_dims(base_point, axis=0)
+
+        n_base_points, _, _ = base_point.shape
+        assert n_base_points == n_samples or n_base_points == 1
+
+        sqrt_base_point = np.zeros_like(base_point)
+        for i in range(n_base_points):
+            sqrt_base_point[i] = scipy.linalg.sqrtm(base_point[i])
+
+        tangent_vec_at_id = (2 * np.random.rand(n_samples,
+                                                self.dimension,
+                                                self.dimension)
+                             - 1)
+        tangent_vec_at_id = (tangent_vec_at_id
+                             + np.transpose(tangent_vec_at_id,
+                                            axes=(0, 2, 1)))
+
+        tangent_vec = np.matmul(sqrt_base_point, tangent_vec_at_id)
+        tangent_vec = np.matmul(tangent_vec, sqrt_base_point)
+
+        return tangent_vec
+
 
 class SPDMetric(RiemannianMetric):
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):

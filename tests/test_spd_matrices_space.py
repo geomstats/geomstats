@@ -12,7 +12,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         self.dimension = 3
         self.space = SPDMatricesSpace(dimension=self.dimension)
         self.metric = self.space.metric
-        self.n_samples = 100
+        self.n_samples = 10
 
     def test_is_symmetric(self):
         sym_mat = np.array([[1, 2],
@@ -130,18 +130,28 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
 
     def test_exp_and_belongs(self):
         n_samples = self.n_samples
-        tangent_vecs = self.space.random_uniform(n_samples=n_samples)
         base_point = self.space.random_uniform(n_samples=1)
-        results = self.metric.exp(tangent_vecs, base_point)
+        tangent_vec = self.space.random_tangent_vec_uniform(
+                                               n_samples=n_samples,
+                                               base_point=base_point)
+        results = self.metric.exp(tangent_vec, base_point)
 
-        # self.assertTrue(np.all(self.space.belongs(results)))
+        self.assertTrue(np.all(self.space.belongs(results)))
 
     def test_exp_vectorization(self):
         n_samples = self.n_samples
+        one_base_point = self.space.random_uniform(n_samples=1)
+        n_base_point = self.space.random_uniform(n_samples=n_samples)
+
+        n_tangent_vec_same_base = self.space.random_tangent_vec_uniform(
+                                                 n_samples=n_samples,
+                                                 base_point=one_base_point)
+        n_tangent_vec = self.space.random_tangent_vec_uniform(
+                                                 n_samples=n_samples,
+                                                 base_point=n_base_point)
+
         # Test with the 1 base_point, and several different tangent_vecs
-        tangent_vecs = self.space.random_uniform(n_samples=n_samples)
-        base_point = self.space.random_uniform(n_samples=1)
-        results = self.metric.exp(tangent_vecs, base_point)
+        results = self.metric.exp(n_tangent_vec_same_base, one_base_point)
 
         self.assertTrue(np.allclose(results.shape,
                                     (n_samples,
@@ -149,19 +159,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
                                      self.space.dimension)))
 
         # Test with the same number of base_points and tangent_vecs
-        tangent_vecs = self.space.random_uniform(n_samples=n_samples)
-        base_points = self.space.random_uniform(n_samples=n_samples)
-        results = self.metric.exp(tangent_vecs, base_points)
-
-        self.assertTrue(np.allclose(results.shape,
-                                    (n_samples,
-                                     self.space.dimension,
-                                     self.space.dimension)))
-
-        # Test with the several base_points, and 1 tangent_vec
-        tangent_vec = self.space.random_uniform(n_samples=1)
-        base_points = self.space.random_uniform(n_samples=n_samples)
-        results = self.metric.exp(tangent_vec, base_points)
+        results = self.metric.exp(n_tangent_vec, n_base_point)
 
         self.assertTrue(np.allclose(results.shape,
                                     (n_samples,
@@ -170,70 +168,67 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
 
     def test_log_vectorization(self):
         n_samples = self.n_samples
-        # Test with the 1 base_point, and several different tangent_vecs
-        tangent_vecs = self.space.random_uniform(n_samples=n_samples)
-        base_point = self.space.random_uniform(n_samples=1)
-        results = self.metric.log(tangent_vecs, base_point)
+        one_base_point = self.space.random_uniform(n_samples=1)
+        n_base_point = self.space.random_uniform(n_samples=n_samples)
+
+        one_point = self.space.random_uniform(n_samples=1)
+        n_point = self.space.random_uniform(n_samples=n_samples)
+
+        # Test with different points, one base point
+        results = self.metric.log(n_point, one_base_point)
 
         self.assertTrue(np.allclose(results.shape,
                                     (n_samples,
                                      self.space.dimension,
                                      self.space.dimension)))
 
-        # Test with the same number of base_points and tangent_vecs
-        tangent_vecs = self.space.random_uniform(n_samples=n_samples)
-        base_points = self.space.random_uniform(n_samples=n_samples)
-        results = self.metric.log(tangent_vecs, base_points)
+        # Test with the same number of points and base points
+        results = self.metric.log(n_point, n_base_point)
 
         self.assertTrue(np.allclose(results.shape,
                                     (n_samples,
                                      self.space.dimension,
                                      self.space.dimension)))
 
-        # Test with the several base_points, and 1 tangent_vec
-        tangent_vec = self.space.random_uniform(n_samples=1)
-        base_points = self.space.random_uniform(n_samples=n_samples)
-        results = self.metric.log(tangent_vec, base_points)
+        # Test with the one point and n base points
+        results = self.metric.log(one_point, n_base_point)
 
         self.assertTrue(np.allclose(results.shape,
                                     (n_samples,
                                      self.space.dimension,
                                      self.space.dimension)))
 
-    def test_exp_and_log_vectorization(self):
+    def test_exp_then_log_vectorization(self):
         n_samples = self.n_samples
+        one_base_point = self.space.random_uniform(n_samples=1)
+        n_base_point = self.space.random_uniform(n_samples=n_samples)
+
+        n_tangent_vec_same_base = self.space.random_tangent_vec_uniform(
+                                                 n_samples=n_samples,
+                                                 base_point=one_base_point)
+        n_tangent_vec = self.space.random_tangent_vec_uniform(
+                                                 n_samples=n_samples,
+                                                 base_point=n_base_point)
+
         # Test with the 1 base_point, and several different tangent_vecs
-        tangent_vecs = self.space.random_uniform(n_samples=n_samples)
-        base_point = self.space.random_uniform(n_samples=1)
-        exps = self.metric.exp(tangent_vecs, base_point)
-        results = self.metric.log(exps, base_point)
-        expected = tangent_vecs
+        exps = self.metric.exp(n_tangent_vec_same_base, one_base_point)
+        results = self.metric.log(exps, one_base_point)
+        expected = n_tangent_vec_same_base
 
         self.assertTrue(np.allclose(results, expected))
 
         # Test with the same number of base_points and tangent_vecs
-        tangent_vecs = self.space.random_uniform(n_samples=n_samples)
-        base_points = self.space.random_uniform(n_samples=n_samples)
-        exps = self.metric.exp(tangent_vecs, base_points)
-        results = self.metric.log(exps, base_point)
-        expected = tangent_vecs
-
-        self.assertTrue(np.allclose(results, expected))
-
-        # Test with the several base_points, and 1 tangent_vec
-        tangent_vec = self.space.random_uniform(n_samples=1)
-        base_points = self.space.random_uniform(n_samples=n_samples)
-        exps = self.metric.exp(tangent_vec, base_points)
-        results = self.metric.log(exps, base_point)
-        expected = tangent_vecs
+        exps = self.metric.exp(n_tangent_vec, n_base_point)
+        results = self.metric.log(exps, n_base_point)
+        expected = n_tangent_vec
 
         self.assertTrue(np.allclose(results, expected))
 
     def test_geodesic_and_belongs(self):
         initial_point = self.space.random_uniform()
-        initial_tangent_vec = np.array([[9., 0., 0.],
-                                        [0., 5., 0.],
-                                        [0., 0., 1.]])
+        initial_tangent_vec = self.space.random_tangent_vec_uniform(
+                                                n_samples=1,
+                                                base_point=initial_point)
         geodesic = self.metric.geodesic(
                                    initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
