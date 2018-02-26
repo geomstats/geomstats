@@ -109,11 +109,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                    left_or_right='right')
 
         metrics = {'left_canonical': group.left_canonical_metric,
-                   'right_canonical': group.right_canonical_metric,
-                   'left_diag': left_diag_metric,
-                   'right_diag': right_diag_metric,
-                   'left': left_metric,
-                   'right': right_metric}
+                   'right_canonical': group.right_canonical_metric}
+        # 'left_diag': left_diag_metric,
+        # 'right_diag': right_diag_metric,
+        # 'left': left_metric,
+        # 'right': right_metric}
 
         self.group = group
         self.metrics = metrics
@@ -316,6 +316,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
     def test_exp_vectorization(self):
         n_samples = self.n_samples
+
         for metric_type in self.metrics:
             metric = self.metrics[metric_type]
 
@@ -332,8 +333,13 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                   for tangent_vec in n_tangent_vec])
             self.assertTrue(np.allclose(expected.shape,
                                         (n_samples, self.group.dimension)))
-            self.assertTrue(np.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+
+            self.assertTrue(np.allclose(expected, result),
+                            'with metric {}:\n'
+                            'result:\n{}\n'
+                            'expected:\n{}'.format(metric_type,
+                                                   result,
+                                                   expected))
 
             # Test with the several base point, and one tangent vec
             result = metric.exp(one_tangent_vec, n_base_point)
