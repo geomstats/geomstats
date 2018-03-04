@@ -220,7 +220,6 @@ class RiemannianMetric(object):
             tangent_vecs = np.zeros((n_times_t,) + tangent_vec_shape)
             for i in range(n_times_t):
                 tangent_vecs[i] = t[i] * new_initial_tangent_vec
-            # tangent_vecs = np.outer(t, new_initial_tangent_vec)
             point_at_time_t = self.exp(tangent_vec=tangent_vecs,
                                        base_point=new_initial_point)
             return point_at_time_t

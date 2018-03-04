@@ -15,6 +15,8 @@ from geomstats.riemannian_metric import RiemannianMetric
 EPSILON = 1e-6
 TOLERANCE = 1e-12
 
+# TODO(nina): refactor use of np.expand_dims that appears in all modules
+
 
 def is_symmetric(mat, tolerance=TOLERANCE):
     """Check if a matrix is symmetric."""
@@ -146,7 +148,7 @@ class SPDMatricesSpace(Manifold):
         if vector.ndim == 1:
             vector = np.expand_dims(vector, axis=0)
         assert vector.ndim == 2
-        # TODO(nina): why factor np.sqrt(2)
+        # TODO(nina): do we need factor np.sqrt(2) and why?
         _, vec_dim = vector.shape
         mat_dim = int((np.sqrt(8 * vec_dim + 1) - 1) / 2)
         matrix = np.zeros((mat_dim, mat_dim))
