@@ -193,9 +193,35 @@ class RiemannianMetric(object):
         geodesic curve parameterized by t.
         """
         def point_on_geodesic(t):
-            tangent_vecs = np.outer(t, initial_tangent_vec)
+            if t.ndim == 0:
+                t = np.expand_dims(t, axis=0)
+            if t.ndim == 1:
+                t = np.expand_dims(t, axis=1)
+            point_ndim = initial_point.ndim
+            tangent_vec_ndim = initial_tangent_vec.ndim
+            new_initial_point = initial_point
+            new_initial_tangent_vec = initial_tangent_vec
+            if point_ndim != tangent_vec_ndim:
+                if point_ndim + 1 == tangent_vec_ndim:
+                    new_initial_point = np.expand_dims(
+                                            initial_point, axis=0)
+                elif tangent_vec_ndim + 1 == point_ndim:
+                    new_initial_tangent_vec = np.expand_dims(
+                                            initial_tangent_vec, axis=0)
+                else:
+                    raise ValueError(
+                            'Initial point and initial tangent vector have'
+                            'non-compatible shapes: {} and {}.'.format(
+                                                  initial_point.shape,
+                                                  initial_tangent_vec.shape))
+
+            n_times_t, _ = t.shape
+            tangent_vec_shape = new_initial_tangent_vec.shape[1:]
+            tangent_vecs = np.zeros((n_times_t,) + tangent_vec_shape)
+            for i in range(n_times_t):
+                tangent_vecs[i] = t[i] * new_initial_tangent_vec
             point_at_time_t = self.exp(tangent_vec=tangent_vecs,
-                                       base_point=initial_point)
+                                       base_point=new_initial_point)
             return point_at_time_t
 
         return point_on_geodesic
