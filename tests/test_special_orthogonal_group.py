@@ -49,14 +49,14 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         # -- Metrics - only diagonals for now
         canonical_metric = group.bi_invariant_metric
 
-        small_diag_mat = np.diag([.03, .03, .03])
+        diag_mat = np.diag([3., 3., 3.])
         left_diag_metric = InvariantMetric(
                    group=group,
-                   inner_product_mat_at_identity=small_diag_mat,
+                   inner_product_mat_at_identity=diag_mat,
                    left_or_right='left')
         right_diag_metric = InvariantMetric(
                    group=group,
-                   inner_product_mat_at_identity=small_diag_mat,
+                   inner_product_mat_at_identity=diag_mat,
                    left_or_right='right')
 
         metrics = {'canonical': canonical_metric}
