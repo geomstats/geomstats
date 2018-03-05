@@ -106,7 +106,7 @@ class InvariantMetric(RiemannianMetric):
 
         return exp
 
-    def exp(self, tangent_vec, base_point=None):
+    def exp_basis(self, tangent_vec, base_point=None):
         """
         Compute the Riemannian exponential at point base_point
         of tangent vector tangent_vec.
@@ -123,31 +123,19 @@ class InvariantMetric(RiemannianMetric):
 
         n_tangent_vecs, _ = tangent_vec.shape
         n_base_points, _ = base_point.shape
-        n_exps = np.maximum(n_tangent_vecs, n_base_points)
 
-        assert (n_tangent_vecs == n_base_points
-                or n_tangent_vecs == 1
-                or n_base_points == 1)
+        assert n_tangent_vecs == 1 and n_base_points == 1
 
         jacobian = self.group.jacobian_translation(
                                  base_point,
                                  left_or_right=self.left_or_right)
         inv_jacobian = np.linalg.inv(jacobian)
 
-        dim = self.group.dimension
-        assert inv_jacobian.shape == (n_base_points, dim, dim)
-
-        tangent_vec_at_id = np.zeros((n_exps, dim))
-        for i in range(n_exps):
-            inv_jacobian_i = (inv_jacobian[0] if n_base_points == 1
-                              else inv_jacobian[i])
-            tangent_vec_i = (tangent_vec[0] if n_tangent_vecs == 1
-                             else tangent_vec[i])
-            tangent_vec_at_id[i] = np.dot(tangent_vec_i,
-                                          np.transpose(inv_jacobian_i))
-
-        exp_from_id = self.exp_from_identity(
-                               tangent_vec_at_id)
+        tangent_vec_at_id = np.matmul(tangent_vec,
+                                      np.transpose(inv_jacobian,
+                                                   axes=(0, 2, 1)))
+        tangent_vec_at_id = np.squeeze(tangent_vec_at_id, axis=0)
+        exp_from_id = self.exp_from_identity(tangent_vec_at_id)
 
         if self.left_or_right == 'left':
             exp = self.group.compose(base_point, exp_from_id)
@@ -195,7 +183,7 @@ class InvariantMetric(RiemannianMetric):
         assert log.ndim == 2
         return log
 
-    def log(self, point, base_point=None):
+    def log_basis(self, point, base_point=None):
         """
         Compute the Riemannian logarithm of point at point base_point
         of point for the invariant metric.
@@ -208,13 +196,9 @@ class InvariantMetric(RiemannianMetric):
 
         point = self.group.regularize(point)
 
-        n_points = point.shape[0]
-        n_base_points = base_point.shape[0]
-        n_logs = np.maximum(n_points, n_base_points)
-
-        assert (n_points == n_base_points
-                or n_points == 1
-                or n_base_points == 1)
+        n_points, _ = point.shape
+        n_base_points, _ = base_point.shape
+        assert n_points == 1 and n_base_points == 1
 
         if self.left_or_right == 'left':
             point_near_id = self.group.compose(
@@ -231,16 +215,8 @@ class InvariantMetric(RiemannianMetric):
         jacobian = self.group.jacobian_translation(
                                        base_point,
                                        left_or_right=self.left_or_right)
-        dim = self.group.dimension
-        assert log_from_id.shape == (n_logs, dim)
-        assert jacobian.shape == (n_base_points, dim, dim)
 
-        log = np.zeros((n_logs, dim))
-        for i in range(n_logs):
-            jacobian_i = jacobian[0] if n_base_points == 1 else jacobian[i]
-
-            log_from_id_i = log_from_id[0] if n_points == 1 else log_from_id[i]
-            log[i] = np.dot(log_from_id_i, np.transpose(jacobian_i))
-
+        log = np.matmul(log_from_id, np.transpose(jacobian, axes=(0, 2, 1)))
+        log = np.squeeze(log, axis=0)
         assert log.ndim == 2
         return log
