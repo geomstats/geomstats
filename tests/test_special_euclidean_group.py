@@ -19,6 +19,8 @@ import tests.helper as helper
 # where it is relative to each element of the array
 RTOL = 1e-5
 
+# TODO(nina): factorize tests vectorization se3 and so3
+
 
 class TestSpecialEuclideanGroupMethods(unittest.TestCase):
     def setUp(self):
@@ -298,7 +300,6 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                         (n_samples, self.group.dimension)))
 
     def test_exp_vectorization(self):
-        # TODO(nina): this test fails
         n_samples = self.n_samples
         for metric_type in self.metrics:
             metric = self.metrics[metric_type]
@@ -316,6 +317,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                   for tangent_vec in n_tangent_vec])
             self.assertTrue(np.allclose(expected.shape,
                                         (n_samples, self.group.dimension)))
+            self.assertTrue(np.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
 
             # Test with the several base point, and one tangent vec
             result = metric.exp(one_tangent_vec, n_base_point)
@@ -325,6 +328,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                   for base_point in n_base_point])
             self.assertTrue(np.allclose(expected.shape,
                                         (n_samples, self.group.dimension)))
+            self.assertTrue(np.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
 
             # Test with the same number n of base point and n tangent vec
             result = metric.exp(n_tangent_vec, n_base_point)
@@ -336,9 +341,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                                n_base_point)])
             self.assertTrue(np.allclose(expected.shape,
                                         (n_samples, self.group.dimension)))
+            self.assertTrue(np.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
 
     def test_log_vectorization(self):
-        # TODO(nina): this test fails
         n_samples = self.n_samples
         for metric_type in self.metrics:
             metric = self.metrics[metric_type]
@@ -354,10 +360,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                         (n_samples, self.group.dimension)))
             expected = np.vstack([metric.log(point, one_base_point)
                                   for point in n_point])
+
             self.assertTrue(np.allclose(expected.shape,
                                         (n_samples, self.group.dimension)))
-            # self.assertTrue(np.allclose(result, expected),
-            #                'with metric {}'.format(metric_type))
+            self.assertTrue(np.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
 
             # Test with the several base point, and 1 point
             result = metric.log(one_point, n_base_point)
@@ -365,8 +372,11 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                         (n_samples, self.group.dimension)))
             expected = np.vstack([metric.log(one_point, base_point)
                                   for base_point in n_base_point])
+
             self.assertTrue(np.allclose(expected.shape,
                                         (n_samples, self.group.dimension)))
+            self.assertTrue(np.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
 
             # Test with the same number n of base point and point
             result = metric.log(n_point, n_base_point)
@@ -377,6 +387,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                                n_base_point)])
             self.assertTrue(np.allclose(expected.shape,
                                         (n_samples, self.group.dimension)))
+            self.assertTrue(np.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
 
     def test_group_exp_from_identity_vectorization(self):
         n_samples = self.n_samples
@@ -649,7 +661,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         Expect their composition to give the identity function.
         """
         # TODO(nina): this test fails for translation_large
-        for base_point in self.elements.values():
+        for base_point_type in self.elements:
+            base_point = self.elements[base_point_type]
             for element_type in self.elements:
                 if element_type in self.angles_close_to_pi:
                     continue
@@ -1250,7 +1263,6 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                     self.assertTrue(np.allclose(dist_a_b, dist_b_a))
 
     def test_squared_dist_vectorization(self):
-        # TODO(nina): this test fails
         n_samples = self.n_samples
         for metric_type in self.metrics:
             metric = self.metrics[metric_type]
@@ -1282,6 +1294,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
             expected = np.vstack([metric.squared_dist(point_1, point_id)
                                   for point_1 in n_point_1])
+            self.assertTrue(np.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
 
             # one point 1 and n points 2
             result = metric.squared_dist(one_point_1, n_point_2)
@@ -1296,6 +1310,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
             expected = np.vstack([metric.squared_dist(point_1, one_point_2)
                                   for point_1 in n_point_1])
+            self.assertTrue(np.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
 
             # n points 1 and n points 2
             result = metric.squared_dist(n_point_1, n_point_2)
@@ -1304,9 +1320,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             expected = np.vstack([metric.squared_dist(point_1, point_2)
                                   for point_1, point_2 in zip(n_point_1,
                                                               n_point_2)])
+            self.assertTrue(np.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
 
     def test_dist_vectorization(self):
-        # TODO(nina): this test fails
         n_samples = self.n_samples
         for metric_type in self.metrics:
             metric = self.metrics[metric_type]
@@ -1338,6 +1355,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
             expected = np.vstack([metric.dist(point_1, point_id)
                                   for point_1 in n_point_1])
+            self.assertTrue(np.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
 
             # one point 1 and n points 2
             result = metric.dist(one_point_1, n_point_2)
@@ -1345,6 +1364,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
             expected = np.vstack([metric.dist(one_point_1, point_2)
                                   for point_2 in n_point_2])
+            self.assertTrue(np.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
 
             # n points 1 and one point 2
             result = metric.dist(n_point_1, one_point_2)
@@ -1352,6 +1373,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
             expected = np.vstack([metric.dist(point_1, one_point_2)
                                   for point_1 in n_point_1])
+            self.assertTrue(np.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
 
             # n points 1 and n points 2
             result = metric.dist(n_point_1, n_point_2)
@@ -1360,6 +1383,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             expected = np.vstack([metric.dist(point_1, point_2)
                                   for point_1, point_2 in zip(n_point_1,
                                                               n_point_2)])
+            self.assertTrue(np.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
 
     def test_group_exponential_barycenter(self):
         # TODO(nina): this test fails, the barycenter is not accurate.
