@@ -72,6 +72,9 @@ class SpecialEuclideanGroup(LieGroup):
 
         return regularized_point
 
+    def regularize_tangent_vec_at_identity(self, tangent_vec, metric=None):
+        return self.regularize_tangent_vec(tangent_vec, self.identity, metric)
+
     def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
         """
         Regularize an element of the group SE(3),
@@ -88,6 +91,10 @@ class SpecialEuclideanGroup(LieGroup):
         if tangent_vec.ndim == 1:
             tangent_vec = np.expand_dims(tangent_vec, axis=0)
         assert tangent_vec.ndim == 2
+
+        if base_point.ndim == 1:
+            base_point = np.expand_dims(base_point, axis=0)
+        assert base_point.ndim == 2
 
         rotations = self.rotations
         dim_rotations = rotations.dimension

@@ -21,6 +21,7 @@ import tests.helper as helper
 RTOL = 1e-5
 
 # TODO(nina): factorize tests vectorization se3 and so3
+# TODO(nina): check docstrings
 
 
 class TestSpecialEuclideanGroupMethods(unittest.TestCase):
@@ -693,9 +694,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                    tangent_vec=tangent_vec,
                                                    base_point=base_point)
                 metric = self.group.left_canonical_metric
-                expected = metric.regularize_tangent_vec(
+                expected = self.group.regularize_tangent_vec(
                                                    tangent_vec=tangent_vec,
-                                                   base_point=base_point)
+                                                   base_point=base_point,
+                                                   metric=metric)
 
     def test_exp_from_identity_left(self):
         # Riemannian left-invariant metric given by
@@ -760,7 +762,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                 result = helper.exp_then_log_from_identity(
                                                 metric=metric,
                                                 tangent_vec=tangent_vec)
-                expected = self.group.regularize(tangent_vec)
+                expected = self.group.regularize_tangent_vec_at_identity(
+                                                tangent_vec,
+                                                metric=metric)
                 self.assertTrue(np.allclose(result, expected),
                                 '\ntangent_vec = {}'
                                 '\nresult = {}'
@@ -785,7 +789,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                 result = helper.exp_then_log_from_identity(
                                                 metric=metric,
                                                 tangent_vec=tangent_vec)
-                expected = self.group.regularize(tangent_vec)
+                expected = self.group.regularize_tangent_vec_at_identity(
+                                                tangent_vec=tangent_vec,
+                                                metric=metric)
                 inv_rot_expected = np.zeros_like(expected)
                 inv_rot_expected[:, :3] = - expected[:, :3]
                 inv_rot_expected[:, 3:6] = expected[:, 3:6]
@@ -818,7 +824,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                 result = helper.exp_then_log_from_identity(
                                                 metric=metric,
                                                 tangent_vec=tangent_vec)
-                expected = metric.regularize_tangent_vec_at_identity(tangent_vec)
+                expected = self.group.regularize_tangent_vec_at_identity(
+                        tangent_vec=tangent_vec,
+                        metric=metric)
 
                 self.assertTrue(np.allclose(result, expected),
                                 '\ntangent_vec = {}'
@@ -844,7 +852,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                 result = helper.exp_then_log_from_identity(
                                                 metric=metric,
                                                 tangent_vec=tangent_vec)
-                expected = metric.regularize_tangent_vec_at_identity(tangent_vec)
+                expected = self.group.regularize_tangent_vec_at_identity(
+                                                tangent_vec=tangent_vec,
+                                                metric=metric)
                 inv_rot_expected = np.zeros_like(expected)
                 inv_rot_expected[:, :3] = - expected[:, :3]
                 inv_rot_expected[:, 3:6] = expected[:, 3:6]
@@ -988,9 +998,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                 tangent_vec=tangent_vec,
                                                 base_point=base_point)
 
-                    expected = metric.regularize_tangent_vec(
+                    expected = self.group.regularize_tangent_vec(
                                                 tangent_vec=tangent_vec,
-                                                base_point=base_point)
+                                                base_point=base_point,
+                                                metric=metric)
                     norm = np.linalg.norm(expected)
                     atol = RTOL
                     if norm != 0:
@@ -1020,9 +1031,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                             tangent_vec=tangent_vec,
                                             base_point=base_point)
 
-                expected = metric.regularize_tangent_vec(
+                expected = self.group.regularize_tangent_vec(
                                             tangent_vec=tangent_vec,
-                                            base_point=base_point)
+                                            base_point=base_point,
+                                            metric=metric)
 
                 inv_rot_expected = np.zeros_like(expected)
                 inv_rot_expected[:, :3] = - expected[:, :3]
@@ -1126,9 +1138,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                             tangent_vec=tangent_vec,
                                             base_point=base_point)
 
-                expected = metric.regularize_tangent_vec(
+                expected = self.group.regularize_tangent_vec(
                                             tangent_vec=tangent_vec,
-                                            base_point=base_point)
+                                            base_point=base_point,
+                                            metric=metric)
                 self.assertTrue(np.allclose(result, expected, atol=1e-5),
                                 '\ntangent_vec {} = {}'
                                 '\nresult = {}'
@@ -1154,9 +1167,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                             tangent_vec=tangent_vec,
                                             base_point=base_point)
 
-                expected = metric.regularize_tangent_vec(
+                expected = self.group.regularize_tangent_vec(
                                             tangent_vec=tangent_vec,
-                                            base_point=base_point)
+                                            base_point=base_point,
+                                            metric=metric)
 
                 inv_rot_expected = np.zeros_like(expected)
                 inv_rot_expected[:, :3] = - expected[:, :3]
