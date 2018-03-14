@@ -5,6 +5,7 @@ import numpy as np
 import geomstats.special_orthogonal_group as so_group
 
 from geomstats.euclidean_space import EuclideanSpace
+from geomstats.invariant_metric import InvariantMetric
 from geomstats.lie_group import LieGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
@@ -31,6 +32,7 @@ class SpecialEuclideanGroup(LieGroup):
         super(SpecialEuclideanGroup, self).__init__(
                           dimension=self.dimension,
                           identity=np.zeros(self.dimension))
+        # TODO(nina): keep the names rotations and translations here?
         self.rotations = SpecialOrthogonalGroup(n=n)
         self.translations = EuclideanSpace(dimension=n)
 
@@ -69,6 +71,45 @@ class SpecialEuclideanGroup(LieGroup):
         regularized_point[:, dim_rotations:] = point[:, dim_rotations:]
 
         return regularized_point
+
+    def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
+        """
+        Regularize an element of the group SE(3),
+        by extracting the rotation vector r from the input [r t]
+        and using self.rotations.regularize.
+
+        :param point: 6d vector, element in SE(3) represented as [r t].
+        :returns self.regularized_point: 6d vector, element in SE(3)
+        with self.regularized rotation.
+        """
+        if metric is None:
+            metric = self.left_canonical_metric
+
+        if tangent_vec.ndim == 1:
+            tangent_vec = np.expand_dims(tangent_vec, axis=0)
+        assert tangent_vec.ndim == 2
+
+        rotations = self.rotations
+        dim_rotations = rotations.dimension
+
+        rot_tangent_vec = tangent_vec[:, :dim_rotations]
+        rot_base_point = base_point[:, :dim_rotations]
+
+        metric_mat = metric.inner_product_mat_at_identity
+        rot_metric_mat = metric_mat[:dim_rotations, :dim_rotations]
+        rot_metric = InvariantMetric(
+                               group=rotations,
+                               inner_product_mat_at_identity=rot_metric_mat,
+                               left_or_right=metric.left_or_right)
+
+        regularized_vec = np.zeros_like(tangent_vec)
+        regularized_vec[:, :dim_rotations] = rotations.regularize_tangent_vec(
+                                                 tangent_vec=rot_tangent_vec,
+                                                 base_point=rot_base_point,
+                                                 metric=rot_metric)
+        regularized_vec[:, dim_rotations:] = tangent_vec[:, dim_rotations:]
+
+        return regularized_vec
 
     def compose(self, point_1, point_2):
         """

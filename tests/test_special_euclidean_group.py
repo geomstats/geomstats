@@ -109,9 +109,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                    left_or_right='right')
 
         metrics = {'left_canonical': group.left_canonical_metric,
-                   'right_canonical': group.right_canonical_metric}
-        # 'left_diag': left_diag_metric,
-        # 'right_diag': right_diag_metric,
+                   'right_canonical': group.right_canonical_metric,
+                   'left_diag': left_diag_metric,
+                   'right_diag': right_diag_metric}
         # 'left': left_metric,
         # 'right': right_metric}
 
@@ -681,7 +681,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         and the group logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        # TODO(nina): this test fails for translation_large
+        # TODO(nina): this test fails
         for base_point_type in self.elements:
             base_point = self.elements[base_point_type]
             for element_type in self.elements:
@@ -692,8 +692,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                 result = helper.group_exp_then_log(group=self.group,
                                                    tangent_vec=tangent_vec,
                                                    base_point=base_point)
-                expected = helper.regularize_tangent_vec(
-                                                   group=self.group,
+                metric = self.group.left_canonical_metric
+                expected = metric.regularize_tangent_vec(
                                                    tangent_vec=tangent_vec,
                                                    base_point=base_point)
 
@@ -750,22 +750,24 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         Expect their composition to give the identity function.
         """
         # Canonical inner product on the lie algebra
-        metric = self.group.left_canonical_metric
-        for angle_type in self.elements:
-            if angle_type in self.angles_close_to_pi:
-                continue
-            tangent_vec = self.elements[angle_type]
-            result = helper.exp_then_log_from_identity(
-                                            metric=metric,
-                                            tangent_vec=tangent_vec)
-            expected = self.group.regularize(tangent_vec)
-            self.assertTrue(np.allclose(result, expected),
-                            '\ntangent_vec = {}'
-                            '\nresult = {}'
-                            '\nexpected = {}'.format(
-                               tangent_vec,
-                               result,
-                               expected))
+
+        for metric in [self.metrics['left_canonical'],
+                       self.metrics['left_diag']]:
+            for angle_type in self.elements:
+                if angle_type in self.angles_close_to_pi:
+                    continue
+                tangent_vec = self.elements[angle_type]
+                result = helper.exp_then_log_from_identity(
+                                                metric=metric,
+                                                tangent_vec=tangent_vec)
+                expected = self.group.regularize(tangent_vec)
+                self.assertTrue(np.allclose(result, expected),
+                                '\ntangent_vec = {}'
+                                '\nresult = {}'
+                                '\nexpected = {}'.format(
+                                   tangent_vec,
+                                   result,
+                                   expected))
 
     def test_exp_then_log_from_identity_left_with_angles_close_to_pi(self):
         """
@@ -776,27 +778,28 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         """
         angle_types = self.angles_close_to_pi
         # Canonical inner product on the lie algebra
-        metric = self.group.left_canonical_metric
-        for angle_type in angle_types:
-            tangent_vec = self.elements[angle_type]
-            result = helper.exp_then_log_from_identity(
-                                            metric=metric,
-                                            tangent_vec=tangent_vec)
-            expected = self.group.regularize(tangent_vec)
-            inv_rot_expected = np.zeros_like(expected)
-            inv_rot_expected[:, :3] = - expected[:, :3]
-            inv_rot_expected[:, 3:6] = expected[:, 3:6]
+        for metric in [self.metrics['left_canonical'],
+                       self.metrics['left_diag']]:
+            for angle_type in angle_types:
+                tangent_vec = self.elements[angle_type]
+                result = helper.exp_then_log_from_identity(
+                                                metric=metric,
+                                                tangent_vec=tangent_vec)
+                expected = self.group.regularize(tangent_vec)
+                inv_rot_expected = np.zeros_like(expected)
+                inv_rot_expected[:, :3] = - expected[:, :3]
+                inv_rot_expected[:, 3:6] = expected[:, 3:6]
 
-            self.assertTrue(np.allclose(result, expected)
-                            or np.allclose(result, inv_rot_expected),
-                            '\ntangent_vec = {}'
-                            '\nresult = {}'
-                            '\nexpected = {}'
-                            '\nexpected with opp rotation = {}'.format(
-                               tangent_vec,
-                               result,
-                               expected,
-                               inv_rot_expected))
+                self.assertTrue(np.allclose(result, expected)
+                                or np.allclose(result, inv_rot_expected),
+                                '\ntangent_vec = {}'
+                                '\nresult = {}'
+                                '\nexpected = {}'
+                                '\nexpected with opp rotation = {}'.format(
+                                   tangent_vec,
+                                   result,
+                                   expected,
+                                   inv_rot_expected))
 
     def test_exp_then_log_from_identity_right(self):
         """
@@ -806,23 +809,24 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         Expect their composition to give the identity function.
         """
         # Canonical inner product on the lie algebra
-        metric = self.group.right_canonical_metric
-        for angle_type in self.elements:
-            if angle_type in self.angles_close_to_pi:
-                continue
-            tangent_vec = self.elements[angle_type]
-            result = helper.exp_then_log_from_identity(
-                                            metric=metric,
-                                            tangent_vec=tangent_vec)
-            expected = self.group.regularize(tangent_vec)
+        for metric in [self.metrics['right_canonical'],
+                       self.metrics['right_diag']]:
+            for angle_type in self.elements:
+                if angle_type in self.angles_close_to_pi:
+                    continue
+                tangent_vec = self.elements[angle_type]
+                result = helper.exp_then_log_from_identity(
+                                                metric=metric,
+                                                tangent_vec=tangent_vec)
+                expected = metric.regularize_tangent_vec_at_identity(tangent_vec)
 
-            self.assertTrue(np.allclose(result, expected),
-                            '\ntangent_vec = {}'
-                            '\nresult = {}'
-                            '\nexpected = {}'.format(
-                               tangent_vec,
-                               result,
-                               expected))
+                self.assertTrue(np.allclose(result, expected),
+                                '\ntangent_vec = {}'
+                                '\nresult = {}'
+                                '\nexpected = {}'.format(
+                                   tangent_vec,
+                                   result,
+                                   expected))
 
     def test_exp_then_log_from_identity_right_with_angles_close_to_pi(self):
         """
@@ -833,27 +837,28 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         """
         angle_types = self.angles_close_to_pi
         # Canonical inner product on the lie algebra
-        metric = self.group.right_canonical_metric
-        for angle_type in angle_types:
-            tangent_vec = self.elements[angle_type]
-            result = helper.exp_then_log_from_identity(
-                                            metric=metric,
-                                            tangent_vec=tangent_vec)
-            expected = self.group.regularize(tangent_vec)
-            inv_rot_expected = np.zeros_like(expected)
-            inv_rot_expected[:, :3] = - expected[:, :3]
-            inv_rot_expected[:, 3:6] = expected[:, 3:6]
+        for metric in [self.metrics['right_canonical'],
+                       self.metrics['right_diag']]:
+            for angle_type in angle_types:
+                tangent_vec = self.elements[angle_type]
+                result = helper.exp_then_log_from_identity(
+                                                metric=metric,
+                                                tangent_vec=tangent_vec)
+                expected = metric.regularize_tangent_vec_at_identity(tangent_vec)
+                inv_rot_expected = np.zeros_like(expected)
+                inv_rot_expected[:, :3] = - expected[:, :3]
+                inv_rot_expected[:, 3:6] = expected[:, 3:6]
 
-            self.assertTrue(np.allclose(result, expected)
-                            or np.allclose(result, inv_rot_expected),
-                            '\ntangent_vec = {}'
-                            '\nresult = {}'
-                            '\nexpected = {}'
-                            '\nexpected with opp rotation = {}'.format(
-                               tangent_vec,
-                               result,
-                               expected,
-                               inv_rot_expected))
+                self.assertTrue(np.allclose(result, expected)
+                                or np.allclose(result, inv_rot_expected),
+                                '\ntangent_vec = {}'
+                                '\nresult = {}'
+                                '\nexpected = {}'
+                                '\nexpected with opp rotation = {}'.format(
+                                   tangent_vec,
+                                   result,
+                                   expected,
+                                   inv_rot_expected))
 
     def test_exp_left(self):
         # Reference point is a translation (no rotational part)
@@ -910,25 +915,26 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         riemannian left logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        metric = self.metrics['left_canonical']
-        for base_point in self.elements.values():
-            for element_type in self.elements:
-                if element_type in self.angles_close_to_pi:
-                    continue
-                point = self.elements[element_type]
-                result = helper.log_then_exp(
-                                            metric=metric,
-                                            point=point,
-                                            base_point=base_point)
+        for metric in [self.metrics['left_canonical'],
+                       self.metrics['left_diag']]:
+            for base_point_type in self.elements:
+                base_point = self.elements[base_point_type]
+                for element_type in self.elements:
+                    if element_type in self.angles_close_to_pi:
+                        continue
+                    point = self.elements[element_type]
+                    result = helper.log_then_exp(
+                                                metric=metric,
+                                                point=point,
+                                                base_point=base_point)
 
-                expected = self.group.regularize(point)
-                self.assertTrue(np.allclose(result, expected),
-                                '\npoint = {}'
-                                '\nresult = {}'
-                                '\nexpected = {}'.format(
-                               point,
-                               result,
-                               expected))
+                    expected = self.group.regularize(point)
+
+                    self.assertTrue(np.allclose(result, expected),
+                                    '\nresult = {}'
+                                    '\nexpected = {}'.format(
+                                   result,
+                                   expected))
 
     def test_log_then_exp_left_with_angles_close_to_pi(self):
         """
@@ -970,32 +976,32 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         riemannian left logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        metric = self.metrics['left_canonical']
-        for base_point in self.elements.values():
-            for element_type in self.elements:
-                if element_type in self.angles_close_to_pi:
-                    continue
-                tangent_vec = self.elements[element_type]
-                result = helper.exp_then_log(
-                                            metric=metric,
-                                            tangent_vec=tangent_vec,
-                                            base_point=base_point)
+        for metric in [self.metrics['left_canonical'],
+                       self.metrics['left_diag']]:
+            for base_point in self.elements.values():
+                for element_type in self.elements:
+                    if element_type in self.angles_close_to_pi:
+                        continue
+                    tangent_vec = self.elements[element_type]
+                    result = helper.exp_then_log(
+                                                metric=metric,
+                                                tangent_vec=tangent_vec,
+                                                base_point=base_point)
 
-                expected = helper.regularize_tangent_vec(
-                                            group=self.group,
-                                            tangent_vec=tangent_vec,
-                                            base_point=base_point)
-                norm = np.linalg.norm(expected)
-                atol = RTOL
-                if norm != 0:
-                    atol = RTOL * norm
-                self.assertTrue(np.allclose(result, expected, atol=atol),
-                                '\ntangent_vec = {}'
-                                '\nresult = {}'
-                                '\nexpected = {}'.format(
-                               tangent_vec,
-                               result,
-                               expected))
+                    expected = metric.regularize_tangent_vec(
+                                                tangent_vec=tangent_vec,
+                                                base_point=base_point)
+                    norm = np.linalg.norm(expected)
+                    atol = RTOL
+                    if norm != 0:
+                        atol = RTOL * norm
+                    self.assertTrue(np.allclose(result, expected, atol=atol),
+                                    '\ntangent_vec = {}'
+                                    '\nresult = {}'
+                                    '\nexpected = {}'.format(
+                                   tangent_vec,
+                                   result,
+                                   expected))
 
     def test_exp_then_log_left_with_angles_close_to_pi(self):
         """
@@ -1014,8 +1020,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                             tangent_vec=tangent_vec,
                                             base_point=base_point)
 
-                expected = helper.regularize_tangent_vec(
-                                            group=self.group,
+                expected = metric.regularize_tangent_vec(
                                             tangent_vec=tangent_vec,
                                             base_point=base_point)
 
@@ -1109,7 +1114,6 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         riemannian left logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        # TODO(nina): this test fails
         metric = self.metrics['right_canonical']
         for base_point_type in self.elements:
             base_point = self.elements[base_point_type]
@@ -1122,10 +1126,16 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                             tangent_vec=tangent_vec,
                                             base_point=base_point)
 
-                expected = helper.regularize_tangent_vec(
-                                            group=self.group,
+                expected = metric.regularize_tangent_vec(
                                             tangent_vec=tangent_vec,
                                             base_point=base_point)
+                self.assertTrue(np.allclose(result, expected, atol=1e-5),
+                                '\ntangent_vec {} = {}'
+                                '\nresult = {}'
+                                '\nexpected = {}'.format(
+                               element_type, tangent_vec,
+                               result,
+                               expected))
 
     def test_exp_then_log_right_with_angles_close_to_pi(self):
         """
@@ -1144,8 +1154,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                             tangent_vec=tangent_vec,
                                             base_point=base_point)
 
-                expected = helper.regularize_tangent_vec(
-                                            group=self.group,
+                expected = metric.regularize_tangent_vec(
                                             tangent_vec=tangent_vec,
                                             base_point=base_point)
 

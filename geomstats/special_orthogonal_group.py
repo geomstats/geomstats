@@ -135,6 +135,72 @@ class SpecialOrthogonalGroup(LieGroup):
         assert regularized_rot_vec.ndim == 2
         return regularized_rot_vec
 
+    def regularize_tangent_vec_at_identity(self, tangent_vec, metric=None):
+        if metric is None:
+            metric = self.left_canonical_metric
+        if tangent_vec.ndim == 1:
+            tangent_vec = np.expand_dims(tangent_vec, axis=0)
+
+        tangent_vec_metric_norm = metric.norm(tangent_vec)
+        tangent_vec_canonical_norm = np.linalg.norm(tangent_vec, axis=1)
+        if tangent_vec_canonical_norm.ndim == 1:
+            tangent_vec_canonical_norm = np.expand_dims(
+                                     tangent_vec_canonical_norm, axis=1)
+
+        mask_norm_0 = np.isclose(tangent_vec_metric_norm, 0)
+        mask_canonical_norm_0 = np.isclose(tangent_vec_canonical_norm, 0)
+
+        mask_0 = mask_norm_0 | mask_canonical_norm_0
+        mask_else = ~mask_0
+
+        mask_0 = np.squeeze(mask_0, axis=1)
+        mask_else = np.squeeze(mask_else, axis=1)
+
+        coef = np.empty_like(tangent_vec_metric_norm)
+        regularized_vec = tangent_vec
+        if np.any(mask_0):
+            regularized_vec[mask_0] = tangent_vec[mask_0]
+        if np.any(mask_else):
+            coef[mask_else] = (tangent_vec_metric_norm[mask_else]
+                               / tangent_vec_canonical_norm[mask_else])
+            regularized_vec[mask_else] = self.regularize(
+                    coef[mask_else] * tangent_vec[mask_else])
+            regularized_vec[mask_else] = (regularized_vec[mask_else]
+                                          / coef[mask_else])
+
+        return regularized_vec
+
+    def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
+        """
+        Regularize a tangent_vector by getting its norm at the identity,
+        determined by the metric,
+        to be less than pi,
+        following the regularization convention
+        """
+        if metric is None:
+            metric = self.left_canonical_metric
+        base_point = self.regularize(base_point)
+        if tangent_vec.ndim == 1:
+            tangent_vec = np.expand_dims(tangent_vec, axis=0)
+        assert tangent_vec.ndim == 2
+        jacobian = self.jacobian_translation(
+                                          point=base_point,
+                                          left_or_right=metric.left_or_right)
+        inv_jacobian = np.linalg.inv(jacobian)
+        tangent_vec_at_id = np.dot(tangent_vec,
+                                   np.transpose(inv_jacobian, axes=(0, 2, 1)))
+        tangent_vec_at_id = np.squeeze(tangent_vec_at_id, axis=1)
+
+        tangent_vec_at_id = self.regularize_tangent_vec_at_identity(
+                                                             tangent_vec_at_id,
+                                                             metric)
+
+        regularized_tangent_vec = np.dot(tangent_vec_at_id,
+                                         np.transpose(jacobian,
+                                                      axes=(0, 2, 1)))
+        regularized_tangent_vec = np.squeeze(regularized_tangent_vec, axis=1)
+        return regularized_tangent_vec
+
     def rotation_vector_from_matrix(self, rot_mat):
         """
         Convert rotation matrix to rotation vector
@@ -517,5 +583,5 @@ class SpecialOrthogonalGroup(LieGroup):
         assert n_points == n_weights
 
         barycenter = self.bi_invariant_metric.mean(points, weights)
-        assert barycenter.ndim == 2
+        assert barycenter.ndim == 2, barycenter.ndim
         return barycenter
