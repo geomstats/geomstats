@@ -5,6 +5,7 @@ import numpy as np
 import geomstats.special_orthogonal_group as so_group
 
 from geomstats.euclidean_space import EuclideanSpace
+from geomstats.invariant_metric import InvariantMetric
 from geomstats.lie_group import LieGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
@@ -31,6 +32,7 @@ class SpecialEuclideanGroup(LieGroup):
         super(SpecialEuclideanGroup, self).__init__(
                           dimension=self.dimension,
                           identity=np.zeros(self.dimension))
+        # TODO(nina): keep the names rotations and translations here?
         self.rotations = SpecialOrthogonalGroup(n=n)
         self.translations = EuclideanSpace(dimension=n)
 
@@ -69,6 +71,52 @@ class SpecialEuclideanGroup(LieGroup):
         regularized_point[:, dim_rotations:] = point[:, dim_rotations:]
 
         return regularized_point
+
+    def regularize_tangent_vec_at_identity(self, tangent_vec, metric=None):
+        return self.regularize_tangent_vec(tangent_vec, self.identity, metric)
+
+    def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
+        """
+        Regularize an element of the group SE(3),
+        by extracting the rotation vector r from the input [r t]
+        and using self.rotations.regularize.
+
+        :param point: 6d vector, element in SE(3) represented as [r t].
+        :returns self.regularized_point: 6d vector, element in SE(3)
+        with self.regularized rotation.
+        """
+        if metric is None:
+            metric = self.left_canonical_metric
+
+        if tangent_vec.ndim == 1:
+            tangent_vec = np.expand_dims(tangent_vec, axis=0)
+        assert tangent_vec.ndim == 2
+
+        if base_point.ndim == 1:
+            base_point = np.expand_dims(base_point, axis=0)
+        assert base_point.ndim == 2
+
+        rotations = self.rotations
+        dim_rotations = rotations.dimension
+
+        rot_tangent_vec = tangent_vec[:, :dim_rotations]
+        rot_base_point = base_point[:, :dim_rotations]
+
+        metric_mat = metric.inner_product_mat_at_identity
+        rot_metric_mat = metric_mat[:dim_rotations, :dim_rotations]
+        rot_metric = InvariantMetric(
+                               group=rotations,
+                               inner_product_mat_at_identity=rot_metric_mat,
+                               left_or_right=metric.left_or_right)
+
+        regularized_vec = np.zeros_like(tangent_vec)
+        regularized_vec[:, :dim_rotations] = rotations.regularize_tangent_vec(
+                                                 tangent_vec=rot_tangent_vec,
+                                                 base_point=rot_base_point,
+                                                 metric=rot_metric)
+        regularized_vec[:, dim_rotations:] = tangent_vec[:, dim_rotations:]
+
+        return regularized_vec
 
     def compose(self, point_1, point_2):
         """
@@ -234,9 +282,8 @@ class SpecialEuclideanGroup(LieGroup):
 
         mask_close_pi = np.isclose(angle, np.pi)
         mask_close_pi = np.squeeze(mask_close_pi, axis=1)
-        if np.any(mask_close_pi):
-            rot_vec[mask_close_pi] = rotations.regularize(
-                                           rot_vec[mask_close_pi])
+        rot_vec[mask_close_pi] = rotations.regularize(
+                                       rot_vec[mask_close_pi])
 
         skew_mat = so_group.skew_matrix_from_vector(rot_vec)
         sq_skew_mat = np.matmul(skew_mat, skew_mat)
@@ -252,23 +299,20 @@ class SpecialEuclideanGroup(LieGroup):
         coef_1 = np.zeros_like(angle)
         coef_2 = np.zeros_like(angle)
 
-        if np.any(mask_0):
-            coef_1[mask_0] = 1. / 2.
-            coef_2[mask_0] = 1. / 6.
+        coef_1[mask_0] = 1. / 2.
+        coef_2[mask_0] = 1. / 6.
 
-        if np.any(mask_close_0):
-            coef_1[mask_close_0] = (1. / 2. - angle[mask_close_0] ** 2 / 24.
-                                    + angle[mask_close_0] ** 4 / 720.
-                                    - angle[mask_close_0] ** 6 / 40320.)
-            coef_2[mask_close_0] = (1. / 6. - angle[mask_close_0] ** 2 / 120.
-                                    + angle[mask_close_0] ** 4 / 5040.
-                                    - angle[mask_close_0] ** 6 / 362880.)
+        coef_1[mask_close_0] = (1. / 2. - angle[mask_close_0] ** 2 / 24.
+                                + angle[mask_close_0] ** 4 / 720.
+                                - angle[mask_close_0] ** 6 / 40320.)
+        coef_2[mask_close_0] = (1. / 6. - angle[mask_close_0] ** 2 / 120.
+                                + angle[mask_close_0] ** 4 / 5040.
+                                - angle[mask_close_0] ** 6 / 362880.)
 
-        if np.any(mask_else):
-            coef_1[mask_else] = ((1. - np.cos(angle[mask_else]))
-                                 / angle[mask_else] ** 2)
-            coef_2[mask_else] = ((angle[mask_else] - np.sin(angle[mask_else]))
-                                 / angle[mask_else] ** 3)
+        coef_1[mask_else] = ((1. - np.cos(angle[mask_else]))
+                             / angle[mask_else] ** 2)
+        coef_2[mask_else] = ((angle[mask_else] - np.sin(angle[mask_else]))
+                             / angle[mask_else] ** 3)
 
         n_tangent_vecs, _ = tangent_vec.shape
         group_exp_translation = np.zeros((n_tangent_vecs, self.n))
@@ -322,30 +366,27 @@ class SpecialEuclideanGroup(LieGroup):
         coef_1 = - 0.5 * np.ones_like(angle)
         coef_2 = np.zeros_like(angle)
 
-        if np.any(mask_close_0):
-            coef_2[mask_close_0] = (1. / 12. + angle ** 2 / 720.
-                                    + angle ** 4 / 30240.
-                                    + angle ** 6 / 1209600.)
+        coef_2[mask_close_0] = (1. / 12. + angle[mask_close_0] ** 2 / 720.
+                                + angle[mask_close_0] ** 4 / 30240.
+                                + angle[mask_close_0] ** 6 / 1209600.)
 
-        if np.any(mask_close_pi):
-            delta_angle = angle[mask_close_pi] - np.pi
-            coef_2[mask_close_pi] = (1. / PI2
-                                     + (PI2 - 8.) * delta_angle / (4. * PI3)
-                                     - ((PI2 - 12.)
-                                        * delta_angle ** 2 / (4. * PI4))
-                                     + ((-192. + 12. * PI2 + PI4)
-                                        * delta_angle ** 3 / (48. * PI5))
-                                     - ((-240. + 12. * PI2 + PI4)
-                                        * delta_angle ** 4 / (48. * PI6))
-                                     + ((-2880. + 120. * PI2 + 10. * PI4 + PI6)
-                                        * delta_angle ** 5 / (480. * PI7))
-                                     - ((-3360 + 120. * PI2 + 10. * PI4 + PI6)
-                                        * delta_angle ** 6 / (480. * PI8)))
+        delta_angle = angle[mask_close_pi] - np.pi
+        coef_2[mask_close_pi] = (1. / PI2
+                                 + (PI2 - 8.) * delta_angle / (4. * PI3)
+                                 - ((PI2 - 12.)
+                                    * delta_angle ** 2 / (4. * PI4))
+                                 + ((-192. + 12. * PI2 + PI4)
+                                    * delta_angle ** 3 / (48. * PI5))
+                                 - ((-240. + 12. * PI2 + PI4)
+                                    * delta_angle ** 4 / (48. * PI6))
+                                 + ((-2880. + 120. * PI2 + 10. * PI4 + PI6)
+                                    * delta_angle ** 5 / (480. * PI7))
+                                 - ((-3360 + 120. * PI2 + 10. * PI4 + PI6)
+                                    * delta_angle ** 6 / (480. * PI8)))
 
-        if np.any(mask_else):
-            psi = (0.5 * angle[mask_else]
-                   * np.sin(angle[mask_else]) / (1 - np.cos(angle[mask_else])))
-            coef_2[mask_else] = (1 - psi) / (angle[mask_else] ** 2)
+        psi = (0.5 * angle[mask_else]
+               * np.sin(angle[mask_else]) / (1 - np.cos(angle[mask_else])))
+        coef_2[mask_else] = (1 - psi) / (angle[mask_else] ** 2)
 
         n_points, _ = point.shape
         group_log_translation = np.zeros((n_points, self.n))
@@ -404,22 +445,20 @@ class SpecialEuclideanGroup(LieGroup):
         mask_close_to_0 = np.squeeze(mask_close_to_0, axis=1)
         mask_else = ~mask_0 & ~mask_close_to_0
 
-        if np.any(mask_close_to_0):
-            coef_1[mask_close_to_0] = (1. / 2.
-                                       - angle[mask_close_to_0] ** 2 / 24.)
-            coef_2[mask_close_to_0] = (1. / 6.
-                                       - angle[mask_close_to_0] ** 3 / 120.)
+        coef_1[mask_close_to_0] = (1. / 2.
+                                   - angle[mask_close_to_0] ** 2 / 24.)
+        coef_2[mask_close_to_0] = (1. / 6.
+                                   - angle[mask_close_to_0] ** 3 / 120.)
 
-        if np.any(mask_0):
-            coef_1[mask_0] = 0
-            coef_2[mask_0] = 0
+        # TODO(nina): check if the discountinuity as 0 is expected.
+        coef_1[mask_0] = 0
+        coef_2[mask_0] = 0
 
-        if np.any(mask_else):
-            coef_1[mask_else] = (angle[mask_else] ** (-2)
-                                 * (1. - np.cos(angle[mask_else])))
-            coef_2[mask_else] = (angle[mask_else] ** (-2)
-                                 * (1. - (np.sin(angle[mask_else])
-                                          / angle[mask_else])))
+        coef_1[mask_else] = (angle[mask_else] ** (-2)
+                             * (1. - np.cos(angle[mask_else])))
+        coef_2[mask_else] = (angle[mask_else] ** (-2)
+                             * (1. - (np.sin(angle[mask_else])
+                                      / angle[mask_else])))
 
         term_1 = np.zeros((n_rot_vecs, self.n, self.n))
         term_2 = np.zeros_like(term_1)
@@ -473,7 +512,7 @@ class SpecialEuclideanGroup(LieGroup):
                 -rotation_vectors)
         # TODO(nina): this is the same mat multiplied several times
         matrix_aux = np.matmul(mean_rotation_mat, inv_rot_mats)
-        assert matrix_aux.shape == (n_points, dim_rotations, dim_rotations)
+        assert matrix_aux.shape == (n_points,) + (dim_rotations,) * 2
 
         vec_aux = rotations.rotation_vector_from_matrix(matrix_aux)
         matrix_aux = self.exponential_matrix(vec_aux)
