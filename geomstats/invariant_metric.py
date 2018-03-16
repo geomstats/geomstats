@@ -12,6 +12,7 @@ import numpy as np
 import scipy.linalg
 
 from geomstats.riemannian_metric import RiemannianMetric
+import geomstats.vectorization as vectorization
 
 # TODO(nina): allow for multiplication of a metric by a scalar,
 # addition of metrics, etc.
@@ -57,17 +58,16 @@ class InvariantMetric(RiemannianMetric):
         base_point = self.group.regularize(base_point)
 
         jacobian = self.group.jacobian_translation(
-                              base_point,
+                              point=base_point,
                               left_or_right=self.left_or_right)
+        assert jacobian.ndim == 3
         inv_jacobian = np.linalg.inv(jacobian)
-        assert inv_jacobian.ndim == 3
         inv_jacobian_transposed = np.transpose(inv_jacobian, axes=(0, 2, 1))
 
         inner_product_mat_at_id = self.inner_product_mat_at_identity
-        if inner_product_mat_at_id.ndim == 2:
-            inner_product_mat_at_id = np.expand_dims(
-                             inner_product_mat_at_id,
-                             axis=0)
+        inner_product_mat_at_id = vectorization.expand_dims(
+                             inner_product_mat_at_id, to_ndim=2)
+
         metric_mat = np.matmul(inv_jacobian_transposed,
                                inner_product_mat_at_id)
         metric_mat = np.matmul(metric_mat, inv_jacobian)
@@ -86,9 +86,8 @@ class InvariantMetric(RiemannianMetric):
         metric, it used the left-invariant metric associated to the same
         inner-product at the identity.
         """
-        if tangent_vec.ndim == 1:
-            tangent_vec = np.expand_dims(tangent_vec, axis=0)
-        assert tangent_vec.ndim == 2
+        tangent_vec = vectorization.expand_dims(tangent_vec, to_ndim=2)
+
         tangent_vec = self.group.regularize_tangent_vec_at_identity(
                                         tangent_vec=tangent_vec,
                                         metric=self)
@@ -98,7 +97,6 @@ class InvariantMetric(RiemannianMetric):
         exp = np.matmul(tangent_vec, mat)
 
         exp = self.group.regularize(exp)
-
         return exp
 
     def exp_from_identity(self, tangent_vec):
@@ -106,9 +104,7 @@ class InvariantMetric(RiemannianMetric):
         Compute the Riemannian exponential from the identity of the
         Lie group of tangent vector tangent_vec.
         """
-        if tangent_vec.ndim == 1:
-            tangent_vec = np.expand_dims(tangent_vec, axis=0)
-        assert tangent_vec.ndim == 2
+        tangent_vec = vectorization.expand_dims(tangent_vec, to_ndim=2)
 
         if self.left_or_right == 'left':
             exp = self.left_exp_from_identity(tangent_vec)
@@ -118,7 +114,6 @@ class InvariantMetric(RiemannianMetric):
             exp = self.group.inverse(opp_left_exp)
 
         exp = self.group.regularize(exp)
-
         return exp
 
     def exp_basis(self, tangent_vec, base_point=None):
@@ -132,9 +127,7 @@ class InvariantMetric(RiemannianMetric):
         if base_point is self.group.identity:
             return self.exp_from_identity(tangent_vec)
 
-        if tangent_vec.ndim == 1:
-            tangent_vec = np.expand_dims(tangent_vec, axis=0)
-        assert tangent_vec.ndim == 2
+        tangent_vec = vectorization.expand_dims(tangent_vec, to_ndim=2)
 
         n_tangent_vecs, _ = tangent_vec.shape
         n_base_points, _ = base_point.shape
@@ -142,13 +135,13 @@ class InvariantMetric(RiemannianMetric):
         assert n_tangent_vecs == 1 and n_base_points == 1
 
         jacobian = self.group.jacobian_translation(
-                                 base_point,
+                                 point=base_point,
                                  left_or_right=self.left_or_right)
+        assert jacobian.ndim == 3
         inv_jacobian = np.linalg.inv(jacobian)
+        inv_jacobian_transposed = np.transpose(inv_jacobian, axes=(0, 2, 1))
 
-        tangent_vec_at_id = np.matmul(tangent_vec,
-                                      np.transpose(inv_jacobian,
-                                                   axes=(0, 2, 1)))
+        tangent_vec_at_id = np.matmul(tangent_vec, inv_jacobian_transposed)
         tangent_vec_at_id = np.squeeze(tangent_vec_at_id, axis=0)
         exp_from_id = self.exp_from_identity(tangent_vec_at_id)
 
@@ -176,6 +169,7 @@ class InvariantMetric(RiemannianMetric):
         sqrt_inv_inner_prod_mat = scipy.linalg.sqrtm(np.linalg.inv(
                                                      inner_prod_mat))
         assert sqrt_inv_inner_prod_mat.shape == (self.group.dimension,) * 2
+
         log = np.matmul(point, sqrt_inv_inner_prod_mat.transpose())
         log = self.group.regularize_tangent_vec_at_identity(
                                              tangent_vec=log,

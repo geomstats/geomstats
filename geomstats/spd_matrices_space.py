@@ -10,7 +10,7 @@ import scipy.linalg
 
 from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
-
+import geomstats.vectorization as vectorization
 
 EPSILON = 1e-6
 TOLERANCE = 1e-12
@@ -20,9 +20,7 @@ TOLERANCE = 1e-12
 
 def is_symmetric(mat, tolerance=TOLERANCE):
     """Check if a matrix is symmetric."""
-    if mat.ndim == 2:
-        mat = np.expand_dims(mat, axis=0)
-    assert mat.ndim == 3
+    mat = vectorization.expand_dims(mat, to_ndim=3)
     n_mats, _, _ = mat.shape
 
     mask = np.zeros(n_mats, dtype=bool)
@@ -35,9 +33,7 @@ def is_symmetric(mat, tolerance=TOLERANCE):
 
 def make_symmetric(mat):
     """Make a matrix fully symmetric to avoid numerical issues."""
-    if mat.ndim == 2:
-        mat = np.expand_dims(mat, axis=0)
-    assert mat.ndim == 3
+    mat = vectorization.expand_dims(mat, to_ndim=3)
     return (mat + np.transpose(mat, axes=(0, 2, 1))) / 2
 
 
@@ -49,9 +45,7 @@ def group_exp(sym_mat):
     all invertible matrices has a straight-forward
     computation for symmetric positive definite matrices.
     """
-    if sym_mat.ndim == 2:
-        sym_mat = np.expand_dims(sym_mat, axis=0)
-    assert sym_mat.ndim == 3
+    sym_mat = vectorization.expand_dims(sym_mat, to_ndim=3)
     n_sym_mats, mat_dim, _ = sym_mat.shape
 
     assert np.all(is_symmetric(sym_mat))
@@ -73,9 +67,7 @@ def group_log(sym_mat):
     all invertible matrices has a straight-forward
     computation for symmetric positive definite matrices.
     """
-    if sym_mat.ndim == 2:
-        sym_mat = np.expand_dims(sym_mat, axis=0)
-    assert sym_mat.ndim == 3
+    sym_mat = vectorization.expand_dims(sym_mat, to_ndim=3)
     n_sym_mats, mat_dim, _ = sym_mat.shape
 
     assert np.all(is_symmetric(sym_mat))
@@ -101,66 +93,60 @@ class SPDMatricesSpace(Manifold):
         Check if a matrix belongs to the manifold of
         symmetric positive definite matrices.
         """
-        if mat.ndim == 2:
-            mat = np.expand_dims(mat, axis=0)
-        assert mat.ndim == 3
-        n_mats, mat_size, _ = mat.shape
+        mat = vectorization.expand_dims(mat, to_ndim=3)
+        n_mats, mat_dim, _ = mat.shape
 
         mask_is_symmetric = is_symmetric(mat, tolerance=tolerance)
-        eigenvalues = np.zeros((n_mats, mat_size))
+        eigenvalues = np.zeros((n_mats, mat_dim))
         eigenvalues[mask_is_symmetric] = np.linalg.eigvalsh(
                                               mat[mask_is_symmetric])
 
         mask_pos_eigenvalues = np.all(eigenvalues > 0)
         return mask_is_symmetric & mask_pos_eigenvalues
 
-    def matrix_to_vector(self, matrix):
+    def matrix_to_vector(self, mat):
         """
         Convert the symmetric part of a symmetric matrix
         into a vector.
         """
         # TODO(nina): why factor np.sqrt(2)
-        if matrix.ndim == 2:
-            matrix = np.expand_dims(matrix, axis=0)
-        assert matrix.ndim == 3
-        assert np.all(is_symmetric(matrix))
-        matrix = make_symmetric(matrix)
+        mat = vectorization.expand_dims(mat, to_ndim=3)
+        assert np.all(is_symmetric(mat))
+        mat = make_symmetric(mat)
 
-        dim_mat, _ = matrix.shape
-        dim_vec = int(dim_mat * (dim_mat + 1) / 2)
-        vector = np.zeros(dim_vec)
+        _, mat_dim, _ = mat.shape
+        vec_dim = int(mat_dim * (mat_dim + 1) / 2)
+        vec = np.zeros(vec_dim)
 
         idx = 0
-        for i in range(dim_mat):
+        for i in range(mat_dim):
             for j in range(i + 1):
                 if i == j:
-                    vector[idx] = matrix[j, j]
+                    vec[idx] = mat[j, j]
                 else:
-                    vector[idx] = matrix[j, i] * np.sqrt(2.)
+                    vec[idx] = mat[j, i] * np.sqrt(2.)
                 idx += 1
 
-        return vector
+        return vec
 
-    def vector_to_matrix(self, vector):
+    def vector_to_matrix(self, vec):
         """
         Convert a vector into a symmetric matrix.
         """
-        if vector.ndim == 1:
-            vector = np.expand_dims(vector, axis=0)
-        assert vector.ndim == 2
+        vec = vectorization.expand_dims(vec, to_ndim=2)
         # TODO(nina): do we need factor np.sqrt(2) and why?
-        _, vec_dim = vector.shape
+        _, vec_dim = vec.shape
         mat_dim = int((np.sqrt(8 * vec_dim + 1) - 1) / 2)
-        matrix = np.zeros((mat_dim, mat_dim))
+        mat = np.zeros((mat_dim,) * 2)
 
         lower_triangle_indices = np.tril_indices(mat_dim)
         diag_indices = np.diag_indices(mat_dim)
 
-        matrix[lower_triangle_indices] = 2 * vector / np.sqrt(2)
-        matrix[diag_indices] = vector
+        mat[lower_triangle_indices] = 2 * vec / np.sqrt(2)
+        mat[diag_indices] = vec
 
-        matrix = make_symmetric(matrix)
-        return matrix
+        mat = make_symmetric(mat)
+        return mat
 
     def random_uniform(self, n_samples=1):
         mat = 2 * np.random.rand(n_samples, self.dimension, self.dimension) - 1
@@ -172,10 +158,9 @@ class SPDMatricesSpace(Manifold):
         if base_point is None:
             base_point = np.eye(self.dimension)
 
-        if base_point.ndim == 2:
-            base_point = np.expand_dims(base_point, axis=0)
-
+        base_point = vectorization.expand_dims(base_point, to_ndim=3)
         n_base_points, _, _ = base_point.shape
+
         assert n_base_points == n_samples or n_base_points == 1
 
         sqrt_base_point = np.zeros_like(base_point)
@@ -207,8 +192,8 @@ class SPDMetric(RiemannianMetric):
         aux_a = np.matmul(inv_base_point, tangent_vec_a)
         aux_b = np.matmul(inv_base_point, tangent_vec_b)
         inner_product = np.trace(np.matmul(aux_a, aux_b), axis1=1, axis2=2)
-        if inner_product.ndim == 1:
-            inner_product = np.expand_dims(inner_product, axis=1)
+        inner_product = vectorization.expand_dims(inner_product,
+                                                  to_ndim=2, axis=1)
         return inner_product
 
     def exp(self, tangent_vec, base_point):
@@ -219,15 +204,10 @@ class SPDMetric(RiemannianMetric):
 
         This gives a symmetric positive definite matrix.
         """
-        if tangent_vec.ndim == 2:
-            tangent_vec = np.expand_dims(tangent_vec, axis=0)
-        assert tangent_vec.ndim == 3
-
-        if base_point.ndim == 2:
-            base_point = np.expand_dims(base_point, axis=0)
-        assert base_point.ndim == 3
-
+        tangent_vec = vectorization.expand_dims(tangent_vec, to_ndim=3)
         n_tangent_vecs, _, _ = tangent_vec.shape
+
+        base_point = vectorization.expand_dims(base_point, to_ndim=3)
         n_base_points, mat_dim, _ = base_point.shape
 
         assert (n_tangent_vecs == n_base_points
@@ -259,22 +239,17 @@ class SPDMetric(RiemannianMetric):
 
         This gives a tangent vector at point base_point.
         """
-        if point.ndim == 2:
-            point = np.expand_dims(point, axis=0)
-        assert point.ndim == 3
-
-        if base_point.ndim == 2:
-            base_point = np.expand_dims(base_point, axis=0)
-        assert base_point.ndim == 3
-
+        point = vectorization.expand_dims(point, to_ndim=3)
         n_points, _, _ = point.shape
+
+        base_point = vectorization.expand_dims(base_point, to_ndim=3)
         n_base_points, mat_dim, _ = base_point.shape
 
         assert (n_points == n_base_points
                 or n_points == 1
                 or n_base_points == 1)
 
-        sqrt_base_point = np.zeros((n_base_points, mat_dim, mat_dim))
+        sqrt_base_point = np.zeros((n_base_points,) + (mat_dim,) * 2)
         for i in range(n_base_points):
             sqrt_base_point[i] = scipy.linalg.sqrtm(base_point[i])
 

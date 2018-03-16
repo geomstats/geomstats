@@ -15,6 +15,7 @@ import math
 from geomstats.minkowski_space import MinkowskiMetric
 from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
+import geomstats.vectorization as vectorization
 
 TOLERANCE = 1e-12
 
@@ -57,8 +58,7 @@ class HyperbolicSpace(Manifold):
 
         Note: point must be given in extrinsic coordinates.
         """
-        if point.ndim == 1:
-            point = np.expand_dims(point, axis=0)
+        point = vectorization.expand_dims(point, to_ndim=2)
         _, point_dim = point.shape
 
         if point_dim is not self.dimension + 1:
@@ -77,10 +77,8 @@ class HyperbolicSpace(Manifold):
         From the intrinsic coordinates in the hyperbolic space,
         to the extrinsic coordinates in Minkowski space.
         """
-        if point_intrinsic.ndim == 1:
-            point_intrinsic = np.expand_dims(point_intrinsic, axis=0)
-        assert point_intrinsic.ndim == 2
-
+        point_intrinsic = vectorization.expand_dims(point_intrinsic,
+                                                    to_ndim=2)
         n_points, _ = point_intrinsic.shape
 
         dimension = self.dimension
@@ -90,7 +88,7 @@ class HyperbolicSpace(Manifold):
                                                             axis=1) ** 2)
         assert np.all(self.belongs(point_extrinsic))
 
-        assert point_extrinsic.ndim == 2, point_extrinsic.ndim
+        assert point_extrinsic.ndim == 2
         return point_extrinsic
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
@@ -98,8 +96,8 @@ class HyperbolicSpace(Manifold):
         From the extrinsic coordinates in Minkowski space,
         to the extrinsic coordinates in Hyperbolic space.
         """
-        if point_extrinsic.ndim == 1:
-            point_extrinsic = np.expand_dims(point_extrinsic, axis=0)
+        point_extrinsic = vectorization.expand_dims(point_extrinsic,
+                                                    to_ndim=2)
         assert np.all(self.belongs(point_extrinsic))
 
         point_intrinsic = point_extrinsic[:, 1:]
@@ -215,13 +213,9 @@ class HyperbolicMetric(RiemannianMetric):
         """
         if np.all(point_a == point_b):
             return 0.
+        point_a = vectorization.expand_dims(point_a, to_ndim=2)
+        point_b = vectorization.expand_dims(point_b, to_ndim=2)
 
-        if point_a.ndim == 1:
-            point_a = np.expand_dims(point_a, axis=0)
-        if point_b.ndim == 1:
-            point_b = np.expand_dims(point_b, axis=0)
-
-        assert point_a.ndim == point_b.ndim == 2
         n_points_a, _ = point_a.shape
         n_points_b, _ = point_b.shape
 

@@ -4,6 +4,7 @@ import numpy as np
 import scipy.linalg
 
 from geomstats.lie_group import LieGroup
+import geomstats.vectorization as vectorization
 
 
 class MatrixLieGroup(LieGroup):
@@ -30,9 +31,9 @@ class MatrixLieGroup(LieGroup):
         - Need override for any matrix Lie group
         that is not GL(n).
         """
-        if mat.ndim == 1:
-            mat = np.expand_dims(mat, axis=0)
-        n_mats = mat.shape[0]
+        mat = vectorization.expand_dims(mat, to_ndim=3)
+        n_mats, _, _ = mat.shape
+
         mat_rank = np.zeros((n_mats, 1))
         for i in range(n_mats):
             mat_rank[i] = np.linalg.matrix_rank(mat[i])

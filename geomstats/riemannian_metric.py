@@ -5,6 +5,8 @@ Base class for Riemannian metrics.
 import logging
 import numpy as np
 
+import geomstats.vectorization as vectorization
+
 EPSILON = 1e-5
 
 
@@ -35,16 +37,11 @@ class RiemannianMetric(object):
         Inner product defined by the Riemannian metric at point base_point
         between tangent vectors tangent_vec_a and tangent_vec_b.
         """
-        if tangent_vec_a.ndim == 1:
-            tangent_vec_a = np.expand_dims(tangent_vec_a, axis=0)
-        if tangent_vec_b.ndim == 1:
-            tangent_vec_b = np.expand_dims(tangent_vec_b, axis=0)
-
-        assert tangent_vec_a.ndim == tangent_vec_b.ndim == 2
+        tangent_vec_a = vectorization.expand_dims(tangent_vec_a, to_ndim=2)
+        tangent_vec_b = vectorization.expand_dims(tangent_vec_b, to_ndim=2)
 
         inner_prod_mat = self.inner_product_matrix(base_point)
-        if inner_prod_mat.ndim == 2:
-            inner_prod_mat = np.expand_dims(inner_prod_mat, axis=0)
+        inner_prod_mat = vectorization.expand_dims(inner_prod_mat, to_ndim=3)
 
         n_tangent_vecs_a = tangent_vec_a.shape[0]
         n_tangent_vecs_b = tangent_vec_b.shape[0]
@@ -157,13 +154,8 @@ class RiemannianMetric(object):
         Riemannian logarithm at point base_point
         of tangent vector tangent_vec wrt the Riemannian metric.
         """
-        if point.ndim == 1:
-            point = np.expand_dims(point, axis=0)
-        assert point.ndim == 2
-
-        if base_point.ndim == 1:
-            base_point = np.expand_dims(base_point, axis=0)
-        assert base_point.ndim == 2
+        point = vectorization.expand_dims(point, to_ndim=2)
+        base_point = vectorization.expand_dims(base_point, to_ndim=2)
 
         n_points, _ = point.shape
         n_base_points, point_dim = base_point.shape
@@ -193,10 +185,9 @@ class RiemannianMetric(object):
         geodesic curve parameterized by t.
         """
         def point_on_geodesic(t):
-            if t.ndim == 0:
-                t = np.expand_dims(t, axis=0)
-            if t.ndim == 1:
-                t = np.expand_dims(t, axis=1)
+            t = vectorization.expand_dims(t, to_ndim=1)
+            t = vectorization.expand_dims(t, to_ndim=2, axis=1)
+
             point_ndim = initial_point.ndim
             tangent_vec_ndim = initial_tangent_vec.ndim
             new_initial_point = initial_point

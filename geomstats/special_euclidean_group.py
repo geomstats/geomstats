@@ -8,6 +8,7 @@ from geomstats.euclidean_space import EuclideanSpace
 from geomstats.invariant_metric import InvariantMetric
 from geomstats.lie_group import LieGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
+import geomstats.vectorization as vectorization
 
 PI = np.pi
 PI2 = PI * PI
@@ -36,16 +37,14 @@ class SpecialEuclideanGroup(LieGroup):
         self.rotations = SpecialOrthogonalGroup(n=n)
         self.translations = EuclideanSpace(dimension=n)
 
-    def belongs(self, transfo):
+    def belongs(self, point):
         """
         Check that the transformation belongs to
         the special euclidean group.
         """
-        if transfo.ndim == 1:
-            transfo = np.expand_dims(transfo, axis=0)
-        assert transfo.ndim == 2
-
-        return transfo.shape[1] == self.dimension
+        point = vectorization.expand_dims(point, to_ndim=2)
+        _, point_dim = point.shape
+        return point_dim == self.dimension
 
     def regularize(self, point):
         """
@@ -57,10 +56,8 @@ class SpecialEuclideanGroup(LieGroup):
         :returns self.regularized_point: 6d vector, element in SE(3)
         with self.regularized rotation.
         """
+        point = vectorization.expand_dims(point, to_ndim=2)
         assert self.belongs(point)
-        if point.ndim == 1:
-            point = np.expand_dims(point, axis=0)
-        assert point.ndim == 2
 
         rotations = self.rotations
         dim_rotations = rotations.dimension
@@ -88,13 +85,8 @@ class SpecialEuclideanGroup(LieGroup):
         if metric is None:
             metric = self.left_canonical_metric
 
-        if tangent_vec.ndim == 1:
-            tangent_vec = np.expand_dims(tangent_vec, axis=0)
-        assert tangent_vec.ndim == 2
-
-        if base_point.ndim == 1:
-            base_point = np.expand_dims(base_point, axis=0)
-        assert base_point.ndim == 2
+        tangent_vec = vectorization.expand_dims(tangent_vec, to_ndim=2)
+        base_point = vectorization.expand_dims(base_point, to_ndim=2)
 
         rotations = self.rotations
         dim_rotations = rotations.dimension
@@ -137,8 +129,9 @@ class SpecialEuclideanGroup(LieGroup):
         point_1 = self.regularize(point_1)
         point_2 = self.regularize(point_2)
 
-        n_points_1 = point_1.shape[0]
-        n_points_2 = point_2.shape[0]
+        n_points_1, _ = point_1.shape
+        n_points_2, _ = point_2.shape
+
         assert (point_1.shape == point_2.shape
                 or n_points_1 == 1
                 or n_points_2 == 1)
@@ -191,7 +184,7 @@ class SpecialEuclideanGroup(LieGroup):
         dim_rotations = rotations.dimension
 
         point = self.regularize(point)
-        n_points = point.shape[0]
+        n_points, _ = point.shape
 
         rot_vec = point[:, :dim_rotations]
         translation = point[:, dim_rotations:]
@@ -229,9 +222,11 @@ class SpecialEuclideanGroup(LieGroup):
         dim_rotations = rotations.dimension
 
         point = self.regularize(point)
+        n_points, _ = point.shape
+
         rot_vec = point[:, :dim_rotations]
 
-        jacobian = np.zeros((point.shape[0], dim, dim))
+        jacobian = np.zeros((n_points,) + (dim,) * 2)
 
         if left_or_right == 'left':
             jacobian_rot = self.rotations.jacobian_translation(
@@ -266,9 +261,7 @@ class SpecialEuclideanGroup(LieGroup):
         :param base_point: 6d vector element of SE(3).
         :returns group_exp: 6d vector element of SE(3).
         """
-        if tangent_vec.ndim == 1:
-            tangent_vec = np.expand_dims(tangent_vec, axis=0)
-        assert tangent_vec.ndim == 2
+        tangent_vec = vectorization.expand_dims(tangent_vec, to_ndim=2)
 
         rotations = self.rotations
         dim_rotations = rotations.dimension
@@ -276,9 +269,9 @@ class SpecialEuclideanGroup(LieGroup):
         rot_vec = tangent_vec[:, :dim_rotations]
         rot_vec = self.rotations.regularize(rot_vec)
         translation = tangent_vec[:, dim_rotations:]
+
         angle = np.linalg.norm(rot_vec, axis=1)
-        if angle.ndim == 1:
-            angle = np.expand_dims(angle, axis=1)
+        angle = vectorization.expand_dims(angle, to_ndim=2, axis=1)
 
         mask_close_pi = np.isclose(angle, np.pi)
         mask_close_pi = np.squeeze(mask_close_pi, axis=1)
@@ -346,8 +339,8 @@ class SpecialEuclideanGroup(LieGroup):
 
         rot_vec = point[:, :dim_rotations]
         angle = np.linalg.norm(rot_vec, axis=1)
-        if angle.ndim == 1:
-            angle = np.expand_dims(angle, axis=1)
+        angle = vectorization.expand_dims(angle, to_ndim=2, axis=1)
+
         translation = point[:, dim_rotations:]
 
         group_log = np.zeros_like(point)
@@ -429,11 +422,11 @@ class SpecialEuclideanGroup(LieGroup):
         """
 
         rot_vec = self.rotations.regularize(rot_vec)
-        n_rot_vecs = rot_vec.shape[0]
+        n_rot_vecs, _ = rot_vec.shape
+
         angle = np.linalg.norm(rot_vec, axis=1)
-        if angle.ndim == 1:
-            angle = np.expand_dims(angle, axis=1)
-        assert angle.shape == (n_rot_vecs, 1), angle.shape
+        angle = vectorization.expand_dims(angle, to_ndim=2, axis=1)
+
         skew_rot_vec = so_group.skew_matrix_from_vector(rot_vec)
 
         coef_1 = np.empty_like(angle)
@@ -484,10 +477,9 @@ class SpecialEuclideanGroup(LieGroup):
 
         if weights is None:
             weights = np.ones((n_points, 1))
-        if weights.ndim == 1:
-            weights = np.expand_dims(weights, axis=1)
-        assert weights.shape == (n_points, 1)
-        n_weights = weights.shape[0]
+
+        weights = vectorization.expand_dims(weights, to_ndim=2, axis=1)
+        n_weights, _ = weights.shape
         assert n_points == n_weights
 
         dim = self.dimension
@@ -505,8 +497,8 @@ class SpecialEuclideanGroup(LieGroup):
         mean_rotation_mat = rotations.matrix_from_rotation_vector(
                     mean_rotation)
 
-        matrix = np.zeros([1, self.n, self.n])
-        translation_aux = np.zeros([1, self.n])
+        matrix = np.zeros((1,) + (self.n,) * 2)
+        translation_aux = np.zeros((1, self.n))
 
         inv_rot_mats = rotations.matrix_from_rotation_vector(
                 -rotation_vectors)
@@ -529,7 +521,7 @@ class SpecialEuclideanGroup(LieGroup):
                                   np.transpose(np.linalg.inv(matrix),
                                                axes=(0, 2, 1)))
 
-        exp_bar = np.zeros([1, dim])
+        exp_bar = np.zeros((1, dim))
         exp_bar[0, :dim_rotations] = mean_rotation
         exp_bar[0, dim_rotations:dim] = mean_translation
 

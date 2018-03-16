@@ -6,6 +6,7 @@ import numpy as np
 
 from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
+import geomstats.vectorization as vectorization
 
 
 class EuclideanSpace(Manifold):
@@ -19,9 +20,9 @@ class EuclideanSpace(Manifold):
         """
         Check if point belongs to the Euclidean space.
         """
-        if point.ndim == 1:
-            point = np.expand_dims(point, axis=0)
-        return point.shape[1] == self.dimension
+        point = vectorization.expand_dims(point, to_ndim=2)
+        _, point_dim = point.shape
+        return point_dim == self.dimension
 
     def random_uniform(self, n_samples=1):
         """
@@ -56,7 +57,6 @@ class EuclideanMetric(RiemannianMetric):
         The Riemannian exponential is the addition in the Euclidean space.
         """
         exp = base_point + tangent_vec
-
         return exp
 
     def log_basis(self, point, base_point):
@@ -64,7 +64,6 @@ class EuclideanMetric(RiemannianMetric):
         The Riemannian logarithm is the subtraction in the Euclidean space.
         """
         log = point - base_point
-
         return log
 
     def mean(self, points, weights=None):

@@ -4,6 +4,7 @@ import numpy as np
 
 from geomstats.invariant_metric import InvariantMetric
 from geomstats.manifold import Manifold
+import geomstats.vectorization as vectorization
 
 
 class LieGroup(Manifold):
@@ -65,9 +66,7 @@ class LieGroup(Manifold):
         if base_point is self.identity:
             return self.group_exp_from_identity(tangent_vec)
 
-        if tangent_vec.ndim == 1:
-            tangent_vec = np.expand_dims(tangent_vec, axis=0)
-        assert tangent_vec.ndim == 2
+        tangent_vec = vectorization.expand_dims(tangent_vec, to_ndim=2)
 
         n_tangent_vecs = tangent_vec.shape[0]
         n_base_points = base_point.shape[0]
