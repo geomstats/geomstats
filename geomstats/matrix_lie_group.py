@@ -31,7 +31,7 @@ class MatrixLieGroup(LieGroup):
         - Need override for any matrix Lie group
         that is not GL(n).
         """
-        mat = vectorization_utils.expand_dims(mat, to_ndim=2)
+        mat = vectorization_utils.expand_dims(mat, to_ndim=3)
         n_mats, _, _ = mat.shape
 
         mat_rank = np.zeros((n_mats, 1))

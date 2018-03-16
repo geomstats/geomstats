@@ -158,7 +158,7 @@ class SPDMatricesSpace(Manifold):
         if base_point is None:
             base_point = np.eye(self.dimension)
 
-        base_point = vectorization_utils.expand_dims(base_point, to_ndim=2)
+        base_point = vectorization_utils.expand_dims(base_point, to_ndim=3)
         n_base_points, _, _ = base_point.shape
 
         assert n_base_points == n_samples or n_base_points == 1
@@ -204,10 +204,10 @@ class SPDMetric(RiemannianMetric):
 
         This gives a symmetric positive definite matrix.
         """
-        tangent_vec = vectorization_utils.expand_dims(tangent_vec, to_ndim=2)
+        tangent_vec = vectorization_utils.expand_dims(tangent_vec, to_ndim=3)
         n_tangent_vecs, _, _ = tangent_vec.shape
 
-        base_point = vectorization_utils.expand_dims(base_point, to_ndim=2)
+        base_point = vectorization_utils.expand_dims(base_point, to_ndim=3)
         n_base_points, mat_dim, _ = base_point.shape
 
         assert (n_tangent_vecs == n_base_points
@@ -239,10 +239,10 @@ class SPDMetric(RiemannianMetric):
 
         This gives a tangent vector at point base_point.
         """
-        point = vectorization_utils.expand_dims(point, to_ndim=2)
+        point = vectorization_utils.expand_dims(point, to_ndim=3)
         n_points, _, _ = point.shape
 
-        base_point = vectorization_utils.expand_dims(base_point, to_ndim=2)
+        base_point = vectorization_utils.expand_dims(base_point, to_ndim=3)
         n_base_points, mat_dim, _ = base_point.shape
 
         assert (n_points == n_base_points
