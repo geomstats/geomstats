@@ -22,6 +22,7 @@ RTOL = 1e-5
 
 # TODO(nina): factorize tests vectorization se3 and so3
 # TODO(nina): check docstrings
+# TODO(nina): add local functions to decrease the number of for loops
 
 
 class TestSpecialEuclideanGroupMethods(unittest.TestCase):
