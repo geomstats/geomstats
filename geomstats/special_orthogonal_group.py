@@ -2,7 +2,9 @@
 
 import numpy as np
 
+# TODO(nina): Rename modules to make imports cleaner?
 from geomstats.lie_group import LieGroup
+import geomstats.vectorization_utils as vectorization_utils
 
 
 def closest_rotation_matrix(mat):
@@ -15,12 +17,10 @@ def closest_rotation_matrix(mat):
     :param mat: 3x3 matrix
     :returns rot_mat: 3x3 rotation matrix.
     """
-    if mat.ndim == 2:
-        mat = np.expand_dims(mat, axis=0)
-    assert mat.ndim == 3
+    mat = vectorization_utils.expand_dims(mat, to_dim=3)
 
-    n_mats, _, _ = mat.shape
-    assert mat.shape == (n_mats,) + (3,) * 2
+    _, mat_dim_1, mat_dim_2 = mat.shape
+    assert mat_dim_1 == mat_dim_2 == 3
 
     mat_unitary_u, diag_s, mat_unitary_v = np.linalg.svd(mat)
     rot_mat = np.matmul(mat_unitary_u, mat_unitary_v)
@@ -44,11 +44,10 @@ def skew_matrix_from_vector(vec):
     :param vec: 3d vector
     :return skew_mat: 3x3 skew-symmetric matrix
     """
-    if vec.ndim == 1:
-        vec = np.expand_dims(vec, axis=0)
-    n_vecs = vec.shape[0]
+    vec = vectorization_utils.expand_dims(vec, to_dim=2)
+    n_vecs, vec_dim = vec.shape
 
-    skew_mat = np.zeros((n_vecs,) + (vec.shape[1],) * 2)
+    skew_mat = np.zeros((n_vecs,) + (vec_dim,) * 2)
     for i in range(n_vecs):
         skew_mat[i] = np.cross(np.eye(3), vec[i])
 
@@ -65,11 +64,10 @@ def vector_from_skew_matrix(skew_mat):
     :param skew_mat: 3x3 skew-symmetric matrix
     :return vec: 3d vector
     """
-    if skew_mat.ndim == 2:
-        skew_mat = np.expand_dims(skew_mat, axis=0)
-    n_skew_mats = skew_mat.shape[0]
+    skew_mat = vectorization_utils.expand_dims(skew_mat, to_dim=3)
+    n_skew_mats, mat_dim_1, mat_dim_2 = skew_mat.shape
 
-    assert skew_mat.shape == (n_skew_mats,) + (3,) * 2
+    assert mat_dim_1 == mat_dim_2 == 3
 
     vec = np.zeros((n_skew_mats, 3))
     vec[:] = skew_mat[:, (2, 0, 1), (1, 2, 0)]
@@ -98,12 +96,9 @@ class SpecialOrthogonalGroup(LieGroup):
         Check that a vector belongs to the
         special orthogonal group.
         """
-        if rot_vec.ndim == 1:
-            rot_vec = np.expand_dims(rot_vec, axis=0)
-
-        assert rot_vec.ndim == 2
-
-        return rot_vec.shape[1] == self.dimension
+        rot_vec = vectorization_utils.expand_dims(rot_vec, to_dim=2)
+        _, vec_dim = rot_vec.shape
+        return vec_dim == self.dimension
 
     def regularize(self, rot_vec):
         """
@@ -118,9 +113,8 @@ class SpecialOrthogonalGroup(LieGroup):
         :param rot_vec: 3d vector
         :returns self.regularized_rot_vec: 3d vector with: 0 < norm < pi
         """
+        rot_vec = vectorization_utils.expand_dims(rot_vec, to_dim=2)
         assert self.belongs(rot_vec)
-        if rot_vec.ndim == 1:
-            rot_vec = np.expand_dims(rot_vec, axis=0)
 
         angle = np.linalg.norm(rot_vec)
         regularized_rot_vec = rot_vec
@@ -135,8 +129,8 @@ class SpecialOrthogonalGroup(LieGroup):
     def regularize_tangent_vec_at_identity(self, tangent_vec, metric=None):
         if metric is None:
             metric = self.left_canonical_metric
-        if tangent_vec.ndim == 1:
-            tangent_vec = np.expand_dims(tangent_vec, axis=0)
+
+        tangent_vec = vectorization_utils.expand_dims(tangent_vec, to_dim=2)
 
         tangent_vec_metric_norm = metric.norm(tangent_vec)
         tangent_vec_canonical_norm = np.linalg.norm(tangent_vec, axis=1)
@@ -177,9 +171,8 @@ class SpecialOrthogonalGroup(LieGroup):
         if metric is None:
             metric = self.left_canonical_metric
         base_point = self.regularize(base_point)
-        if tangent_vec.ndim == 1:
-            tangent_vec = np.expand_dims(tangent_vec, axis=0)
-        assert tangent_vec.ndim == 2
+        tangent_vec = vectorization_utils.expand_dims(tangent_vec, to_dim=2)
+
         jacobian = self.jacobian_translation(
                                           point=base_point,
                                           left_or_right=metric.left_or_right)
@@ -219,17 +212,14 @@ class SpecialOrthogonalGroup(LieGroup):
         :param rot_mat: 3x3 rotation matrix
         :return rot_vec: 3d rotation vector
         """
-        if rot_mat.ndim == 2:
-            rot_mat = np.expand_dims(rot_mat, axis=0)
-        n_rot_mats = rot_mat.shape[0]
-
-        assert rot_mat.shape == (n_rot_mats,) + (self.n,) * 2
+        rot_mat = vectorization_utils.expand_dims(rot_mat, to_dim=3)
+        n_rot_mats, mat_dim_1, mat_dim_2 = rot_mat.shape
+        assert mat_dim_1 == mat_dim_2 == self.n
 
         rot_mat = closest_rotation_matrix(rot_mat)
 
         trace = np.trace(rot_mat, axis1=1, axis2=2)
-        if trace.ndim == 1:
-            trace = np.expand_dims(trace, axis=1)
+        trace = vectorization_utils.expand_dims(trace, to_dim=2, axis=1)
         assert trace.shape == (n_rot_mats, 1), trace.shape
 
         cos_angle = .5 * (trace - 1)
@@ -289,12 +279,13 @@ class SpecialOrthogonalGroup(LieGroup):
         n_rot_vecs = rot_vec.shape[0]
 
         angle = np.linalg.norm(rot_vec, axis=1)
-        angle = np.expand_dims(angle, axis=1)
+        angle = vectorization_utils.expand_dims(angle, to_dim=2, axis=1)
         assert angle.shape == (n_rot_vecs, 1)
+
         skew_rot_vec = skew_matrix_from_vector(rot_vec)
 
-        coef_1 = np.zeros([n_rot_vecs, 1])
-        coef_2 = np.zeros([n_rot_vecs, 1])
+        coef_1 = np.zeros_like(angle)
+        coef_2 = np.zeros_like(angle)
 
         mask_0 = np.isclose(angle, 0)
         coef_1[mask_0] = 1 - (angle[mask_0] ** 2) / 6
@@ -304,10 +295,7 @@ class SpecialOrthogonalGroup(LieGroup):
         coef_2[~mask_0] = ((1 - np.cos(angle[~mask_0]))
                            / (angle[~mask_0] ** 2))
 
-        assert coef_1.shape == (n_rot_vecs, 1)
-        assert coef_2.shape == (n_rot_vecs, 1)
-
-        term_1 = np.zeros((n_rot_vecs, self.n, self.n))
+        term_1 = np.zeros((n_rot_vecs,) + (self.n,) * 2)
         term_2 = np.zeros_like(term_1)
 
         for i in range(n_rot_vecs):
@@ -323,9 +311,7 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         Convert a rotation matrix into a unit quaternion.
         """
-        if rot_mat.ndim == 2:
-            rot_mat = np.expand_dims(rot_mat, axis=0)
-        assert rot_mat.ndim == 3, rot_mat.ndim
+        rot_mat = vectorization_utils.expand_dims(rot_mat, to_dim=3)
 
         rot_vec = self.rotation_vector_from_matrix(rot_mat)
         quaternion = self.quaternion_from_rotation_vector(rot_vec)
@@ -362,16 +348,16 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         Convert a unit quaternion into a rotation vector.
         """
-        if quaternion.ndim == 1:
-            quaternion = np.expand_dims(quaternion, axis=0)
+        quaternion = vectorization_utils.expand_dims(quaternion, to_dim=2)
+        n_quaternions, _ = quaternion.shape
 
         cos_half_angle = quaternion[:, 0]
         cos_half_angle = np.clip(cos_half_angle, -1, 1)
         half_angle = np.arccos(cos_half_angle)
 
-        n_quaternions, _ = quaternion.shape
-        half_angle = np.expand_dims(half_angle, axis=1)
-        assert half_angle.shape == (n_quaternions, 1), half_angle.shape
+        half_angle = vectorization_utils.expand_dims(half_angle,
+                                                     to_dim=2, axis=1)
+        assert half_angle.shape == (n_quaternions, 1)
 
         rot_vec = np.zeros_like(quaternion[:, 1:])
 
@@ -390,14 +376,12 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         Convert a unit quaternion into a rotation vector.
         """
-        if quaternion.ndim == 1:
-            quaternion = np.expand_dims(quaternion, axis=0)
-        assert quaternion.ndim == 2
-
+        quaternion = vectorization_utils.expand_dims(quaternion, to_dim=2)
         n_quaternions, _ = quaternion.shape
+
         a, b, c, d = np.hsplit(quaternion, 4)
 
-        rot_mat = np.zeros((n_quaternions, self.n, self.n))
+        rot_mat = np.zeros((n_quaternions,) + (self.n,) * 2)
 
         for i in range(n_quaternions):
             # TODO(nina): vectorize by applying the composition of
@@ -521,9 +505,7 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         Compute the group exponential of vector tangent_vector.
         """
-        if tangent_vec.ndim == 1:
-            tangent_vec = np.expand_dims(tangent_vec, axis=0)
-        assert tangent_vec.ndim == 2
+        tangent_vec = vectorization_utils.expand_dims(tangent_vec, to_dim=2)
         return tangent_vec
 
     def group_log_from_identity(self, point):
@@ -538,9 +520,7 @@ class SpecialOrthogonalGroup(LieGroup):
         Compute the group exponential of vector tangent_vector.
         """
         base_point = self.regularize(base_point)
-        if tangent_vec.ndim == 1:
-            tangent_vec = np.expand_dims(tangent_vec, axis=0)
-        assert tangent_vec.ndim == 2
+        tangent_vec = vectorization_utils.expand_dims(tangent_vec, to_dim=2)
 
         point = super(SpecialOrthogonalGroup, self).group_exp(
                                      tangent_vec=tangent_vec,
