@@ -6,6 +6,7 @@ import numpy as np
 
 from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
+import geomstats.vectorization_utils as vectorization_utils
 
 
 class MinkowskiSpace(Manifold):
@@ -19,9 +20,9 @@ class MinkowskiSpace(Manifold):
         """
         Check if point belongs to the Minkowski space.
         """
-        if point.ndim == 1:
-            point = np.expand_dims(point, axis=0)
-        return point.shape[1] == self.dimension
+        point = vectorization_utils.expand_dims(point, to_ndim=2)
+        _, point_dim = point.shape
+        return point_dim == self.dimension
 
     def random_uniform(self, n_samples=1):
         """
