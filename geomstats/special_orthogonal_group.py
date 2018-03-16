@@ -18,7 +18,7 @@ def closest_rotation_matrix(mat):
     if mat.ndim == 2:
         mat = np.expand_dims(mat, axis=0)
     n_mats = mat.shape[0]
-    assert mat.shape == (n_mats, 3, 3)
+    assert mat.shape == (n_mats,) + (3,) * 2
 
     mat_unitary_u, diag_s, mat_unitary_v = np.linalg.svd(mat)
     rot_mat = np.matmul(mat_unitary_u, mat_unitary_v)
@@ -51,7 +51,7 @@ def skew_matrix_from_vector(vec):
         vec = np.expand_dims(vec, axis=0)
     n_vecs = vec.shape[0]
 
-    skew_mat = np.zeros((n_vecs, vec.shape[1], vec.shape[1]))
+    skew_mat = np.zeros((n_vecs,) + (vec.shape[1],) * 2)
     for i in range(n_vecs):
         skew_mat[i] = np.cross(np.eye(3), vec[i])
 
@@ -72,7 +72,7 @@ def vector_from_skew_matrix(skew_mat):
         skew_mat = np.expand_dims(skew_mat, axis=0)
     n_skew_mats = skew_mat.shape[0]
 
-    assert skew_mat.shape == (n_skew_mats, 3, 3)
+    assert skew_mat.shape == (n_skew_mats,) + (3,) * 2
 
     vec = np.zeros((n_skew_mats, 3))
     vec[:] = skew_mat[:, (2, 0, 1), (1, 2, 0)]
@@ -226,7 +226,7 @@ class SpecialOrthogonalGroup(LieGroup):
             rot_mat = np.expand_dims(rot_mat, axis=0)
         n_rot_mats = rot_mat.shape[0]
 
-        assert rot_mat.shape == (n_rot_mats, self.n, self.n)
+        assert rot_mat.shape == (n_rot_mats,) + (self.n,) * 2
 
         rot_mat = closest_rotation_matrix(rot_mat)
 

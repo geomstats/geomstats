@@ -32,7 +32,7 @@ class InvariantMetric(RiemannianMetric):
                                inner_product_mat_at_identity, axis=0)
 
         matrix_shape = inner_product_mat_at_identity.shape
-        assert matrix_shape == (group.dimension, group.dimension)
+        assert matrix_shape == (group.dimension,) * 2
         assert left_or_right in ('left', 'right')
 
         eigenvalues = np.linalg.eigvalsh(inner_product_mat_at_identity)
@@ -175,8 +175,7 @@ class InvariantMetric(RiemannianMetric):
         inner_prod_mat = self.inner_product_mat_at_identity
         sqrt_inv_inner_prod_mat = scipy.linalg.sqrtm(np.linalg.inv(
                                                      inner_prod_mat))
-        assert sqrt_inv_inner_prod_mat.shape == (self.group.dimension,
-                                                 self.group.dimension)
+        assert sqrt_inv_inner_prod_mat.shape == (self.group.dimension,) * 2
         log = np.matmul(point, sqrt_inv_inner_prod_mat.transpose())
         log = self.group.regularize_tangent_vec_at_identity(
                                              tangent_vec=log,

@@ -521,7 +521,7 @@ class SpecialEuclideanGroup(LieGroup):
                 -rotation_vectors)
         # TODO(nina): this is the same mat multiplied several times
         matrix_aux = np.matmul(mean_rotation_mat, inv_rot_mats)
-        assert matrix_aux.shape == (n_points, dim_rotations, dim_rotations)
+        assert matrix_aux.shape == (n_points,) + (dim_rotations,) * 2
 
         vec_aux = rotations.rotation_vector_from_matrix(matrix_aux)
         matrix_aux = self.exponential_matrix(vec_aux)
