@@ -12,7 +12,7 @@ import numpy as np
 import scipy.linalg
 
 from geomstats.riemannian_metric import RiemannianMetric
-import geomstats.vectorization_utils as vectorization_utils
+import geomstats.vectorization as vectorization
 
 # TODO(nina): allow for multiplication of a metric by a scalar,
 # addition of metrics, etc.
@@ -65,7 +65,7 @@ class InvariantMetric(RiemannianMetric):
         inv_jacobian_transposed = np.transpose(inv_jacobian, axes=(0, 2, 1))
 
         inner_product_mat_at_id = self.inner_product_mat_at_identity
-        inner_product_mat_at_id = vectorization_utils.expand_dims(
+        inner_product_mat_at_id = vectorization.expand_dims(
                              inner_product_mat_at_id, to_ndim=2)
 
         metric_mat = np.matmul(inv_jacobian_transposed,
@@ -86,7 +86,7 @@ class InvariantMetric(RiemannianMetric):
         metric, it used the left-invariant metric associated to the same
         inner-product at the identity.
         """
-        tangent_vec = vectorization_utils.expand_dims(tangent_vec, to_ndim=2)
+        tangent_vec = vectorization.expand_dims(tangent_vec, to_ndim=2)
 
         tangent_vec = self.group.regularize_tangent_vec_at_identity(
                                         tangent_vec=tangent_vec,
@@ -104,7 +104,7 @@ class InvariantMetric(RiemannianMetric):
         Compute the Riemannian exponential from the identity of the
         Lie group of tangent vector tangent_vec.
         """
-        tangent_vec = vectorization_utils.expand_dims(tangent_vec, to_ndim=2)
+        tangent_vec = vectorization.expand_dims(tangent_vec, to_ndim=2)
 
         if self.left_or_right == 'left':
             exp = self.left_exp_from_identity(tangent_vec)
@@ -127,7 +127,7 @@ class InvariantMetric(RiemannianMetric):
         if base_point is self.group.identity:
             return self.exp_from_identity(tangent_vec)
 
-        tangent_vec = vectorization_utils.expand_dims(tangent_vec, to_ndim=2)
+        tangent_vec = vectorization.expand_dims(tangent_vec, to_ndim=2)
 
         n_tangent_vecs, _ = tangent_vec.shape
         n_base_points, _ = base_point.shape

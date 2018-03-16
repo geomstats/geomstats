@@ -9,6 +9,7 @@ from geomstats.hypersphere import Hypersphere
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 import geomstats.special_orthogonal_group as special_orthogonal_group
+import geomstats.vectorization as vectorization
 
 SE3_GROUP = SpecialEuclideanGroup(n=3)
 SO3_GROUP = SpecialOrthogonalGroup(n=3)
@@ -124,8 +125,7 @@ def convert_to_trihedron(point, space=None):
     - the trihedron's orientation is the rotation of the canonical basis
     of R^3 by the rotation part of point.
     """
-    if point.ndim == 1:
-        point = np.expand_dims(point, axis=0)
+    point = vectorization.expand_dims(point, to_ndim=2)
     n_points, _ = point.shape
 
     dim_rotations = SO3_GROUP.dimension
@@ -173,8 +173,7 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
     if points is None:
         raise ValueError("No points given for plotting.")
 
-    if points.ndim == 1:
-        points = np.expand_dims(points, axis=0)
+    points = vectorization.expand_dims(points, to_ndim=2)
 
     if ax is None:
         if space is 'SE3_GROUP':

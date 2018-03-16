@@ -6,7 +6,7 @@ import numpy as np
 
 from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
-import geomstats.vectorization_utils as vectorization_utils
+import geomstats.vectorization as vectorization
 
 
 class EuclideanSpace(Manifold):
@@ -20,7 +20,7 @@ class EuclideanSpace(Manifold):
         """
         Check if point belongs to the Euclidean space.
         """
-        point = vectorization_utils.expand_dims(point, to_ndim=2)
+        point = vectorization.expand_dims(point, to_ndim=2)
         _, point_dim = point.shape
         return point_dim == self.dimension
 
