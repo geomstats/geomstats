@@ -175,7 +175,7 @@ class RiemannianMetric(object):
 
         return log
 
-    def geodesic(self, initial_point, initial_tangent_vec):
+    def geodesic(self, initial_point, initial_tangent_vec, point_ndim=1):
         """
         Geodesic curve associated to the Riemannian metric,
         starting at the point initial_point in the direction
@@ -183,32 +183,27 @@ class RiemannianMetric(object):
 
         The geodesic is returned as a function of t, which represents the
         geodesic curve parameterized by t.
+
+        By default, the function assumes that points and tangent_vecs are
+        represented by vectors: point_ndim=1. This function is overwritten
+        for manifolds whose points are represented by matrices or higher
+        dimensional tensors.
         """
         def point_on_geodesic(t):
             t = vectorization.expand_dims(t, to_ndim=1)
             t = vectorization.expand_dims(t, to_ndim=2, axis=1)
 
-            point_ndim = initial_point.ndim
-            tangent_vec_ndim = initial_tangent_vec.ndim
-            new_initial_point = initial_point
-            new_initial_tangent_vec = initial_tangent_vec
-            if point_ndim != tangent_vec_ndim:
-                if point_ndim + 1 == tangent_vec_ndim:
-                    new_initial_point = np.expand_dims(
-                                            initial_point, axis=0)
-                elif tangent_vec_ndim + 1 == point_ndim:
-                    new_initial_tangent_vec = np.expand_dims(
-                                            initial_tangent_vec, axis=0)
-                else:
-                    raise ValueError(
-                            'Initial point and initial tangent vector have'
-                            'non-compatible shapes: {} and {}.'.format(
-                                                  initial_point.shape,
-                                                  initial_tangent_vec.shape))
+            new_initial_point = vectorization.expand_dims(
+                                          initial_point,
+                                          to_ndim=point_ndim+1)
+            new_initial_tangent_vec = vectorization.expand_dims(
+                                          initial_tangent_vec,
+                                          to_ndim=point_ndim+1)
 
             n_times_t, _ = t.shape
             tangent_vec_shape = new_initial_tangent_vec.shape[1:]
             tangent_vecs = np.zeros((n_times_t,) + tangent_vec_shape)
+
             for i in range(n_times_t):
                 tangent_vecs[i] = t[i] * new_initial_tangent_vec
             point_at_time_t = self.exp(tangent_vec=tangent_vecs,
