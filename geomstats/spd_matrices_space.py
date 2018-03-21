@@ -262,3 +262,9 @@ class SPDMetric(RiemannianMetric):
         log = np.matmul(log, sqrt_base_point)
 
         return log
+
+    def geodesic(self, initial_point, initial_tangent_vec):
+        return super(SPDMetric, self).geodesic(
+                                      initial_point=initial_point,
+                                      initial_tangent_vec=initial_tangent_vec,
+                                      point_ndim=2)
