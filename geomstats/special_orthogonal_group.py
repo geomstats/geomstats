@@ -50,7 +50,7 @@ def skew_matrix_from_vector(vec):
 
     skew_mat = np.zeros((n_vecs,) + (vec_dim,) * 2)
     for i in range(n_vecs):
-        skew_mat[i] = np.cross(np.eye(3), vec[i])
+        skew_mat[i] = np.cross(np.eye(vec_dim), vec[i])
 
     assert skew_mat.ndim == 3
     return skew_mat
@@ -68,9 +68,9 @@ def vector_from_skew_matrix(skew_mat):
     skew_mat = vectorization.to_ndarray(skew_mat, to_ndim=3)
     n_skew_mats, mat_dim_1, mat_dim_2 = skew_mat.shape
 
-    assert mat_dim_1 == mat_dim_2 == 3
+    assert mat_dim_1 == mat_dim_2
 
-    vec = np.zeros((n_skew_mats, 3))
+    vec = np.zeros((n_skew_mats, mat_dim_1))
     vec[:] = skew_mat[:, (2, 0, 1), (1, 2, 0)]
 
     assert vec.ndim == 2
