@@ -11,6 +11,7 @@ from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 import tests.helper as helper
 
 EPSILON = 1e-5
+ATOL = 1e-5
 
 
 class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
@@ -185,10 +186,15 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
     def test_regularize_vectorization(self):
         n_samples = self.n_samples
         rot_vecs = self.group.random_uniform(n_samples=n_samples)
-        regularized_rot_vecs = self.group.regularize(rot_vecs)
+        result = self.group.regularize(rot_vecs)
 
-        self.assertTrue(np.allclose(regularized_rot_vecs.shape,
+        self.assertTrue(np.allclose(result.shape,
                                     (n_samples, self.group.dimension)))
+        expected = np.zeros_like(rot_vecs)
+        for i in range(n_samples):
+            expected[i] = self.group.regularize(rot_vecs[i])
+
+        self.assertTrue(np.allclose(expected, result))
 
     def test_matrix_from_rotation_vector(self):
         rot_vec_0 = self.group.identity
@@ -848,11 +854,11 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                              base_point=base_point,
                                              metric=metric)
 
-                    regularized_tangent_vec = self.group.regularize_tangent_vec(
+                    reg_tangent_vec = self.group.regularize_tangent_vec(
                                                  tangent_vec=tangent_vec,
                                                  base_point=base_point,
                                                  metric=metric)
-                    expected = regularized_tangent_vec
+                    expected = reg_tangent_vec
 
                     regularized_expected = self.group.regularize_tangent_vec(
                                                  tangent_vec=expected,
@@ -867,7 +873,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                     'expected = {} -> {}'.format(
                              metric_type,
                              angle_type,
-                             tangent_vec, regularized_tangent_vec,
+                             tangent_vec, reg_tangent_vec,
                              angle_type_base,
                              base_point, self.group.regularize(base_point),
                              result, regularized_result,
@@ -898,11 +904,11 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                              base_point=base_point,
                                              metric=metric)
 
-                    regularized_tangent_vec = self.group.regularize_tangent_vec(
+                    reg_tangent_vec = self.group.regularize_tangent_vec(
                                                  tangent_vec=tangent_vec,
                                                  base_point=base_point,
                                                  metric=metric)
-                    expected = regularized_tangent_vec
+                    expected = reg_tangent_vec
                     inv_expected = - expected
                     regularized_expected = self.group.regularize_tangent_vec(
                                                  tangent_vec=expected,
@@ -920,7 +926,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                     'expected = {} -> {}'.format(
                              metric_type,
                              angle_type,
-                             tangent_vec, regularized_tangent_vec,
+                             tangent_vec, reg_tangent_vec,
                              angle_type_base,
                              base_point, self.group.regularize(base_point),
                              result, regularized_result,
@@ -1232,7 +1238,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                              base_point=base_point)
                 expected = self.group.regularize(point)
 
-                self.assertTrue(np.allclose(result, expected),
+                self.assertTrue(np.allclose(result, expected, atol=ATOL),
                                 '\n- on point {}: {} -> {}\n'
                                 '- base_point {}: {} -> {}\n'
                                 'result = {} -> {}\n'

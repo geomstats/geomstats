@@ -3,6 +3,7 @@
 import numpy as np
 
 # TODO(nina): Rename modules to make imports cleaner?
+# TODO(nina): make code robust to different types and input structures
 from geomstats.lie_group import LieGroup
 import geomstats.vectorization as vectorization
 
@@ -115,13 +116,19 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         rot_vec = vectorization.expand_dims(rot_vec, to_ndim=2)
         assert self.belongs(rot_vec)
+        n_rot_vecs, _ = rot_vec.shape
 
-        angle = np.linalg.norm(rot_vec)
-        regularized_rot_vec = rot_vec
+        angle = np.linalg.norm(rot_vec, axis=1)
+        regularized_rot_vec = rot_vec.astype('float64')
+        mask_not_0 = angle != 0
 
-        if angle != 0:
-            k = np.floor(angle / (2 * np.pi) + .5)
-            regularized_rot_vec = (1. - 2. * np.pi * k / angle) * rot_vec
+        k = np.floor(angle / (2 * np.pi) + .5)
+        norms_ratio = np.zeros_like(angle).astype('float64')
+        norms_ratio[mask_not_0] = (
+              1. - 2. * np.pi * k[mask_not_0] / angle[mask_not_0])
+        norms_ratio[angle == 0] = 1
+        for i in range(n_rot_vecs):
+            regularized_rot_vec[i, :] = norms_ratio[i] * rot_vec[i]
 
         assert regularized_rot_vec.ndim == 2
         return regularized_rot_vec
