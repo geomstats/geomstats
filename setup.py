@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='geomstats',
-      version='1.4',
+      version='1.5',
       description='Geometric statistics on manifolds',
       url='http://github.com/ninamiolane/geomstats',
       author='Nina Miolane',
