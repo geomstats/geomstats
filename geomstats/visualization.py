@@ -1,15 +1,15 @@
 """Visualization for Geometric Statistics."""
 
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import numpy as np
-
 from geomstats.hyperbolic_space import HyperbolicSpace
 from geomstats.hypersphere import Hypersphere
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
+from mpl_toolkits.mplot3d import Axes3D  # NOQA
+
 import geomstats.special_orthogonal_group as special_orthogonal_group
 import geomstats.vectorization as vectorization
+import matplotlib.pyplot as plt
+import numpy as np
 
 SE3_GROUP = SpecialEuclideanGroup(n=3)
 SO3_GROUP = SpecialOrthogonalGroup(n=3)
@@ -108,12 +108,12 @@ class PoincareDisk():
         disk_coords = points[:, 1:] / (1 + points[:, :1])
         return disk_coords
 
-    def draw(self, ax):
+    def draw(self, ax, **kwargs):
         circle = plt.Circle((0, 0), radius=1., color='black', fill=False)
         ax.add_artist(circle)
         points_x = np.vstack([point[0] for point in self.points])
         points_y = np.vstack([point[1] for point in self.points])
-        ax.scatter(points_x, points_y)
+        ax.scatter(points_x, points_y, **kwargs)
 
 
 def convert_to_trihedron(point, space=None):
@@ -191,6 +191,7 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
                      xlabel='X', ylabel='Y')
 
         else:
+            # The 3d projection needs the Axes3d module import.
             ax = plt.subplot(111, projection='3d', aspect='equal')
             plt.setp(ax,
                      xlim=(-ax_s, ax_s),
@@ -211,6 +212,6 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
     elif space is 'H2':
         poincare_disk = PoincareDisk()
         poincare_disk.add_points(points)
-        poincare_disk.draw(ax)
+        poincare_disk.draw(ax, **point_draw_kwargs)
 
     return ax
