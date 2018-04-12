@@ -58,7 +58,7 @@ class HyperbolicSpace(Manifold):
 
         Note: point must be given in extrinsic coordinates.
         """
-        point = vectorization.expand_dims(point, to_ndim=2)
+        point = vectorization.to_ndarray(point, to_ndim=2)
         _, point_dim = point.shape
 
         if point_dim is not self.dimension + 1:
@@ -77,7 +77,7 @@ class HyperbolicSpace(Manifold):
         From the intrinsic coordinates in the hyperbolic space,
         to the extrinsic coordinates in Minkowski space.
         """
-        point_intrinsic = vectorization.expand_dims(point_intrinsic,
+        point_intrinsic = vectorization.to_ndarray(point_intrinsic,
                                                     to_ndim=2)
         n_points, _ = point_intrinsic.shape
 
@@ -96,7 +96,7 @@ class HyperbolicSpace(Manifold):
         From the extrinsic coordinates in Minkowski space,
         to the extrinsic coordinates in Hyperbolic space.
         """
-        point_extrinsic = vectorization.expand_dims(point_extrinsic,
+        point_extrinsic = vectorization.to_ndarray(point_extrinsic,
                                                     to_ndim=2)
         assert np.all(self.belongs(point_extrinsic))
 
@@ -213,8 +213,8 @@ class HyperbolicMetric(RiemannianMetric):
         """
         if np.all(point_a == point_b):
             return 0.
-        point_a = vectorization.expand_dims(point_a, to_ndim=2)
-        point_b = vectorization.expand_dims(point_b, to_ndim=2)
+        point_a = vectorization.to_ndarray(point_a, to_ndim=2)
+        point_b = vectorization.to_ndarray(point_b, to_ndim=2)
 
         n_points_a, _ = point_a.shape
         n_points_b, _ = point_b.shape

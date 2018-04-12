@@ -37,11 +37,11 @@ class RiemannianMetric(object):
         Inner product defined by the Riemannian metric at point base_point
         between tangent vectors tangent_vec_a and tangent_vec_b.
         """
-        tangent_vec_a = vectorization.expand_dims(tangent_vec_a, to_ndim=2)
-        tangent_vec_b = vectorization.expand_dims(tangent_vec_b, to_ndim=2)
+        tangent_vec_a = vectorization.to_ndarray(tangent_vec_a, to_ndim=2)
+        tangent_vec_b = vectorization.to_ndarray(tangent_vec_b, to_ndim=2)
 
         inner_prod_mat = self.inner_product_matrix(base_point)
-        inner_prod_mat = vectorization.expand_dims(inner_prod_mat, to_ndim=3)
+        inner_prod_mat = vectorization.to_ndarray(inner_prod_mat, to_ndim=3)
 
         n_tangent_vecs_a = tangent_vec_a.shape[0]
         n_tangent_vecs_b = tangent_vec_b.shape[0]
@@ -154,8 +154,8 @@ class RiemannianMetric(object):
         Riemannian logarithm at point base_point
         of tangent vector tangent_vec wrt the Riemannian metric.
         """
-        point = vectorization.expand_dims(point, to_ndim=2)
-        base_point = vectorization.expand_dims(base_point, to_ndim=2)
+        point = vectorization.to_ndarray(point, to_ndim=2)
+        base_point = vectorization.to_ndarray(base_point, to_ndim=2)
 
         n_points, _ = point.shape
         n_base_points, point_dim = base_point.shape
@@ -190,13 +190,13 @@ class RiemannianMetric(object):
         dimensional tensors.
         """
         def point_on_geodesic(t):
-            t = vectorization.expand_dims(t, to_ndim=1)
-            t = vectorization.expand_dims(t, to_ndim=2, axis=1)
+            t = vectorization.to_ndarray(t, to_ndim=1)
+            t = vectorization.to_ndarray(t, to_ndim=2, axis=1)
 
-            new_initial_point = vectorization.expand_dims(
+            new_initial_point = vectorization.to_ndarray(
                                           initial_point,
                                           to_ndim=point_ndim+1)
-            new_initial_tangent_vec = vectorization.expand_dims(
+            new_initial_tangent_vec = vectorization.to_ndarray(
                                           initial_tangent_vec,
                                           to_ndim=point_ndim+1)
 

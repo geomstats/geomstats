@@ -20,7 +20,7 @@ class EuclideanSpace(Manifold):
         """
         Check if point belongs to the Euclidean space.
         """
-        point = vectorization.expand_dims(point, to_ndim=2)
+        point = vectorization.to_ndarray(point, to_ndim=2)
         _, point_dim = point.shape
         return point_dim == self.dimension
 
