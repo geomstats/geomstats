@@ -179,10 +179,6 @@ class HyperbolicMetric(RiemannianMetric):
         :param vector: vector
         :returns riem_exp: a point on the hyperbolic space
         """
-        sq_norm = self.embedding_metric.squared_norm(base_point)
-        real_norm = np.sqrt(np.abs(sq_norm))
-        base_point = base_point / real_norm
-
         sq_norm_tangent_vec = self.embedding_metric.squared_norm(
                 tangent_vec)
         if sq_norm_tangent_vec < 0:
@@ -201,6 +197,7 @@ class HyperbolicMetric(RiemannianMetric):
                       + SINH_TAYLOR_COEFFS[9] * sq_norm_tangent_vec ** 4)
         else:
             coef_1 = np.cosh(norm_tangent_vec)
+            print('coef_1 = {}'.format(coef_1))
             coef_2 = np.sinh(norm_tangent_vec) / norm_tangent_vec
 
         riem_exp = coef_1 * base_point + coef_2 * tangent_vec
