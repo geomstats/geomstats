@@ -175,7 +175,8 @@ class RiemannianMetric(object):
 
         return log
 
-    def geodesic(self, initial_point, initial_tangent_vec, point_ndim=1):
+    def geodesic(self, initial_point,
+                 end_point=None, initial_tangent_vec=None, point_ndim=1):
         """
         Geodesic curve associated to the Riemannian metric,
         starting at the point initial_point in the direction
@@ -189,6 +190,15 @@ class RiemannianMetric(object):
         for manifolds whose points are represented by matrices or higher
         dimensional tensors.
         """
+        if end_point is None and initial_tangent_vec is None:
+            raise ValueError('Specify an end point or an initial tangent '
+                             'vector to define the geodesic.')
+        if end_point is not None:
+            shooting_tangent_vec = self.log(point=end_point, base_point=initial_point)
+            if initial_tangent_vec is not None:
+                assert shooting_tangent_vec == initial_tangent_vec
+            initial_tangent_vec = shooting_tangent_vec
+
         def point_on_geodesic(t):
             t = vectorization.to_ndarray(t, to_ndim=1)
             t = vectorization.to_ndarray(t, to_ndim=2, axis=1)
