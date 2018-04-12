@@ -66,7 +66,7 @@ class LieGroup(Manifold):
         if base_point is self.identity:
             return self.group_exp_from_identity(tangent_vec)
 
-        tangent_vec = vectorization.expand_dims(tangent_vec, to_ndim=2)
+        tangent_vec = vectorization.to_ndarray(tangent_vec, to_ndim=2)
 
         n_tangent_vecs = tangent_vec.shape[0]
         n_base_points = base_point.shape[0]
