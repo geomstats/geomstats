@@ -48,6 +48,5 @@ def main():
     plot_geodesic_with_initial_tangent_vector(initial_point, initial_tangent_vec)
     plt.show()
 
-
 if __name__ == "__main__":
     main()
