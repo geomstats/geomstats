@@ -11,24 +11,27 @@ import geomstats.visualization as visualization
 
 H2 = HyperbolicSpace(dimension=2)
 METRIC = H2.metric
+SQUARE_SIZE = 5.99
 
 
 def main():
-    points = []
-    points.append(H2.intrinsic_to_extrinsic_coords(np.array([-2.999, -2.999])))
-    points.append(H2.intrinsic_to_extrinsic_coords(np.array([-2.999, 2.999])))
-    points.append(H2.intrinsic_to_extrinsic_coords(np.array([2.999, 2.999])))
-    points.append(H2.intrinsic_to_extrinsic_coords(np.array([2.999, -2.999])))
-    for i in range(0, 4):
-        dst = (i+1) % 4
-        initial_tangent_vec = METRIC.log(points[dst], points[i])
-        geodesic = METRIC.geodesic(initial_point=points[i],
-                                   initial_tangent_vec=initial_tangent_vec)
-
-        n_steps = 10
+    top = SQUARE_SIZE / 2.0
+    bot = - SQUARE_SIZE / 2.0
+    left = - SQUARE_SIZE / 2.0
+    right = SQUARE_SIZE / 2.0
+    corners_int = [(bot, left), (bot, right), (top, right), (top, left)]
+    corners_ext = H2.intrinsic_to_extrinsic_coords(np.array(corners_int))
+    n_steps = 10
+    for i, src in enumerate(corners_ext):
+        dst_id = (i+1) % len(corners_ext)
+        dst = corners_ext[dst_id]
+        tangent_vec = METRIC.log(dst, src)
+        geodesic = METRIC.geodesic(initial_point=src,
+                                   initial_tangent_vec=tangent_vec)
         t = np.linspace(0, 1, n_steps)
         points_to_plot = geodesic(t)
-        visualization.plot(points_to_plot, space='H2', line='-')
+        visualization.plot(points_to_plot, space='H2', marker='.',
+                           color='black')
     plt.show()
 
 
