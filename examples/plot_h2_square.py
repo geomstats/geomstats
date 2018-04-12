@@ -20,12 +20,12 @@ def main():
     left = - SQUARE_SIZE / 2.0
     right = SQUARE_SIZE / 2.0
     corners_int = [(bot, left), (bot, right), (top, right), (top, left)]
-    corners_ext = H2.intrinsic_to_extrinsic_coords(np.array(corners_int))
-    n_steps = 10
+    corners_ext = H2.intrinsic_to_extrinsic_coords(corners_int)
+    n_steps = 20
     for i, src in enumerate(corners_ext):
         dst_id = (i+1) % len(corners_ext)
         dst = corners_ext[dst_id]
-        tangent_vec = METRIC.log(dst, src)
+        tangent_vec = METRIC.log(point=dst, base_point=src)
         geodesic = METRIC.geodesic(initial_point=src,
                                    initial_tangent_vec=tangent_vec)
         t = np.linspace(0, 1, n_steps)
