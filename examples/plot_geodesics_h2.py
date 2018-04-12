@@ -1,5 +1,5 @@
 """
-Plot a geodesic on the hyperbolic space h2,
+Plot a geodesic on the hyperbolic space H2,
 with Poincare Disk visualization.
 """
 
@@ -14,10 +14,10 @@ METRIC = H2.metric
 
 
 def main():
-    initial_point = [1., 0., 0.]
+    initial_point = H2.intrinsic_to_extrinsic_coords(np.array([0, 0.]))
     assert H2.belongs(initial_point)
     initial_tangent_vec = H2.projection_to_tangent_space(
-                                        vector=[0., 300., 0.],
+                                        vector=np.array([3.5, 0.6, 0]),
                                         base_point=initial_point)
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                initial_tangent_vec=initial_tangent_vec)
