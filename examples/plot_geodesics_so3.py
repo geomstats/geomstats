@@ -15,7 +15,7 @@ METRIC = SO3_GROUP.bi_invariant_metric
 
 def main():
     initial_point = SO3_GROUP.identity
-    initial_tangent_vec = np.array([0.5, 0.5, 0.8])
+    initial_tangent_vec = [0.5, 0.5, 0.8]
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                initial_tangent_vec=initial_tangent_vec)
 
