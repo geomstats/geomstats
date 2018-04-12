@@ -29,8 +29,8 @@ def main():
         geodesic = METRIC.geodesic(initial_point=src,
                                    initial_tangent_vec=tangent_vec)
         t = np.linspace(0, 1, n_steps)
-        points_to_plot = geodesic(t)
-        visualization.plot(points_to_plot, space='H2', marker='.',
+        edge_points = geodesic(t)
+        visualization.plot(edge_points, space='H2', marker='.',
                            color='black')
     plt.show()
 
