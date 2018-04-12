@@ -14,8 +14,8 @@ METRIC = H2.metric
 
 
 def main():
-    initial_point = H2.intrinsic_to_extrinsic_coords(np.array([0, 0.]))
-    end_point = H2.intrinsic_to_extrinsic_coords(np.array([1.5, 1.5]))
+    initial_point = [np.sqrt(2), 1., 0.]
+    end_point = H2.intrinsic_to_extrinsic_coords([1.5, 1.5])
     assert H2.belongs(initial_point)
     assert H2.belongs(end_point)
     initial_tangent_vec = H2.projection_to_tangent_space(
