@@ -269,6 +269,5 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
         expected = (1 * 5. + 2 * 13. + 1 * 25. + 2 * 41.) / 6.
         self.assertTrue(np.allclose(result, expected))
 
-
 if __name__ == '__main__':
         unittest.main()
