@@ -56,6 +56,9 @@ class HyperbolicSpace(Manifold):
         By definition, a point on the Hyperbolic space
         has Minkowski squared norm -1.
 
+        We use a tolerance relative to the Euclidean norm of
+        the point.
+
         Note: point must be given in extrinsic coordinates.
         """
         point = vectorization.to_ndarray(point, to_ndim=2)
@@ -68,21 +71,18 @@ class HyperbolicSpace(Manifold):
             return False
 
         sq_norm = self.embedding_metric.squared_norm(point)
+        euclidean_sq_norm = np.dot(point, point.transpose())
         diff = np.abs(sq_norm + 1)
-        point_belongs = diff < tolerance
+        return diff < tolerance * euclidean_sq_norm
 
-        #msg = 'diff is: {}, points are: {} and tolerance was: {}'.format(
-        #        diff, point, tolerance)
-
-        #print(msg)
-        #assert np.all(point_belongs)
-        return point_belongs
 
     def regularize(self, point):
+        # TODO(nina): vectorize
         assert self.belongs(point)
         sq_norm = self.embedding_metric.squared_norm(point)
         real_norm = np.sqrt(np.abs(sq_norm))
-        point = point / real_norm
+        for i in range(len(real_norm)):
+            point[i] = point[i] / real_norm[i]
         return point
 
 
@@ -197,7 +197,6 @@ class HyperbolicMetric(RiemannianMetric):
                       + SINH_TAYLOR_COEFFS[9] * sq_norm_tangent_vec ** 4)
         else:
             coef_1 = np.cosh(norm_tangent_vec)
-            print('coef_1 = {}'.format(coef_1))
             coef_2 = np.sinh(norm_tangent_vec) / norm_tangent_vec
 
         riem_exp = coef_1 * base_point + coef_2 * tangent_vec
