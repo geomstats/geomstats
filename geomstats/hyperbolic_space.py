@@ -64,19 +64,27 @@ class HyperbolicSpace(Manifold):
         if point_dim is not self.dimension + 1:
             if point_dim is self.dimension:
                 logging.warning('Use the extrinsic coordinates to '
-                                'represent points on the hypersphere.')
+                                'represent points on the hyperbolic space.')
             return False
 
         sq_norm = self.embedding_metric.squared_norm(point)
         diff = np.abs(sq_norm + 1)
         point_belongs = diff < tolerance
 
-        msg = 'diff is: {}, points are: {} and tolerance was: {}'.format(
-                diff, point, tolerance)
+        #msg = 'diff is: {}, points are: {} and tolerance was: {}'.format(
+        #        diff, point, tolerance)
 
-        print(msg)
-        assert np.all(point_belongs)
+        #print(msg)
+        #assert np.all(point_belongs)
         return point_belongs
+
+    def regularize(self, point):
+        assert self.belongs(point)
+        sq_norm = self.embedding_metric.squared_norm(point)
+        real_norm = np.sqrt(np.abs(sq_norm))
+        point = point / real_norm
+        return point
+
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """
@@ -138,6 +146,14 @@ class HyperbolicSpace(Manifold):
 
 
 class HyperbolicMetric(RiemannianMetric):
+    def regularize(self, point):
+        sq_norm = self.embedding_metric.squared_norm(point)
+        diff = np.abs(sq_norm + 1)
+        point_belongs = diff < 1e-12
+        # assert
+        real_norm = np.sqrt(np.abs(sq_norm))
+        point = point / real_norm
+        return point
 
     def __init__(self, dimension):
         self.dimension = dimension
@@ -163,26 +179,32 @@ class HyperbolicMetric(RiemannianMetric):
         :param vector: vector
         :returns riem_exp: a point on the hyperbolic space
         """
+        sq_norm = self.embedding_metric.squared_norm(base_point)
+        real_norm = np.sqrt(np.abs(sq_norm))
+        base_point = base_point / real_norm
+
         sq_norm_tangent_vec = self.embedding_metric.squared_norm(
                 tangent_vec)
+        if sq_norm_tangent_vec < 0:
+            print('<0: sq norm is: {}'.format(sq_norm_tangent_vec))
         # TODO(nina): Fix, value error on this squared norm
         norm_tangent_vec = np.sqrt(sq_norm_tangent_vec)
 
-        if np.isclose(norm_tangent_vec, 0):
-            coef_1 = (1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
-                      + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
-                      + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
-                      + COSH_TAYLOR_COEFFS[8] * norm_tangent_vec ** 8)
-            coef_2 = (1. + SINH_TAYLOR_COEFFS[3] * norm_tangent_vec ** 2
-                      + SINH_TAYLOR_COEFFS[5] * norm_tangent_vec ** 4
-                      + SINH_TAYLOR_COEFFS[7] * norm_tangent_vec ** 6
-                      + SINH_TAYLOR_COEFFS[9] * norm_tangent_vec ** 8)
+        if np.isclose(sq_norm_tangent_vec, 0):
+            coef_1 = (1. + COSH_TAYLOR_COEFFS[2] * sq_norm_tangent_vec
+                      + COSH_TAYLOR_COEFFS[4] * sq_norm_tangent_vec ** 2
+                      + COSH_TAYLOR_COEFFS[6] * sq_norm_tangent_vec ** 3
+                      + COSH_TAYLOR_COEFFS[8] * sq_norm_tangent_vec ** 4)
+            coef_2 = (1. + SINH_TAYLOR_COEFFS[3] * sq_norm_tangent_vec
+                      + SINH_TAYLOR_COEFFS[5] * sq_norm_tangent_vec ** 2
+                      + SINH_TAYLOR_COEFFS[7] * sq_norm_tangent_vec ** 3
+                      + SINH_TAYLOR_COEFFS[9] * sq_norm_tangent_vec ** 4)
         else:
             coef_1 = np.cosh(norm_tangent_vec)
             coef_2 = np.sinh(norm_tangent_vec) / norm_tangent_vec
 
         riem_exp = coef_1 * base_point + coef_2 * tangent_vec
-
+        # riem_exp = self.regularize(riem_exp)
         return riem_exp
 
     def log_basis(self, point, base_point):
