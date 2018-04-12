@@ -17,7 +17,7 @@ from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
 import geomstats.vectorization as vectorization
 
-TOLERANCE = 1e-4
+TOLERANCE = 1e-5
 
 SINH_TAYLOR_COEFFS = [0., 1.,
                       0., 1 / math.factorial(3),

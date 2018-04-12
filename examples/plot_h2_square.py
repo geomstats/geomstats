@@ -10,7 +10,7 @@ import geomstats.visualization as visualization
 
 H2 = HyperbolicSpace(dimension=2)
 METRIC = H2.metric
-SQUARE_SIZE = 5.99
+SQUARE_SIZE = 80 #5.99
 
 
 def main():
