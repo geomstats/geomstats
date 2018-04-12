@@ -12,7 +12,7 @@ from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
 import geomstats.vectorization as vectorization
 
-TOLERANCE = 1e-12
+TOLERANCE = 1e-6
 
 SIN_TAYLOR_COEFFS = [0., 1.,
                      0., - 1 / math.factorial(3),
