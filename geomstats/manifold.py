@@ -18,4 +18,5 @@ class Manifold(object):
         Regularizes the point's coordinates to the canonical representation
         chosen for this manifold.
         """
-        raise NotImplementedError('regularize is not implemented.')
+        return point
+        # raise NotImplementedError('regularize is not implemented.')
