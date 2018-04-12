@@ -125,7 +125,7 @@ def convert_to_trihedron(point, space=None):
     - the trihedron's orientation is the rotation of the canonical basis
     of R^3 by the rotation part of point.
     """
-    point = vectorization.expand_dims(point, to_ndim=2)
+    point = vectorization.to_ndarray(point, to_ndim=2)
     n_points, _ = point.shape
 
     dim_rotations = SO3_GROUP.dimension
@@ -173,7 +173,7 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
     if points is None:
         raise ValueError("No points given for plotting.")
 
-    points = vectorization.expand_dims(points, to_ndim=2)
+    points = vectorization.to_ndarray(points, to_ndim=2)
 
     if ax is None:
         if space is 'SE3_GROUP':
