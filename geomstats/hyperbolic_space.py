@@ -69,8 +69,14 @@ class HyperbolicSpace(Manifold):
 
         sq_norm = self.embedding_metric.squared_norm(point)
         diff = np.abs(sq_norm + 1)
+        point_belongs = diff < tolerance
 
-        return diff < tolerance
+        msg = 'diff is: {}, points are: {} and tolerance was: {}'.format(
+                diff, point, tolerance)
+
+        print(msg)
+        assert np.all(point_belongs)
+        return point_belongs
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """
