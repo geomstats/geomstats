@@ -15,7 +15,7 @@ METRIC = SE3_GROUP.left_canonical_metric
 
 def main():
     initial_point = SE3_GROUP.identity
-    initial_tangent_vec = np.array([1.8, 0.2, 0.3, 3., 3., 1.])
+    initial_tangent_vec = [1.8, 0.2, 0.3, 3., 3., 1.]
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                initial_tangent_vec=initial_tangent_vec)
 
