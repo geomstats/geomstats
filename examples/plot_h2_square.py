@@ -1,6 +1,5 @@
 """
-Plot a square on a h2 space,
-with Poincare Disk visualization.
+Plot a square on H2 with Poincare Disk visualization.
 """
 
 import numpy as np
