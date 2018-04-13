@@ -82,7 +82,8 @@ class HyperbolicSpace(Manifold):
         sq_norm = self.embedding_metric.squared_norm(point)
         real_norm = np.sqrt(np.abs(sq_norm))
         for i in range(len(real_norm)):
-            point[i] = point[i] / real_norm[i]
+            if real_norm[i] != 0:
+                point[i] = point[i] / real_norm[i]
         return point
 
 
@@ -181,26 +182,25 @@ class HyperbolicMetric(RiemannianMetric):
         """
         sq_norm_tangent_vec = self.embedding_metric.squared_norm(
                 tangent_vec)
-        if sq_norm_tangent_vec < 0:
-            print('<0: sq norm is: {}'.format(sq_norm_tangent_vec))
-        # TODO(nina): Fix, value error on this squared norm
         norm_tangent_vec = np.sqrt(sq_norm_tangent_vec)
 
         if np.isclose(sq_norm_tangent_vec, 0):
-            coef_1 = (1. + COSH_TAYLOR_COEFFS[2] * sq_norm_tangent_vec
-                      + COSH_TAYLOR_COEFFS[4] * sq_norm_tangent_vec ** 2
-                      + COSH_TAYLOR_COEFFS[6] * sq_norm_tangent_vec ** 3
-                      + COSH_TAYLOR_COEFFS[8] * sq_norm_tangent_vec ** 4)
-            coef_2 = (1. + SINH_TAYLOR_COEFFS[3] * sq_norm_tangent_vec
-                      + SINH_TAYLOR_COEFFS[5] * sq_norm_tangent_vec ** 2
-                      + SINH_TAYLOR_COEFFS[7] * sq_norm_tangent_vec ** 3
-                      + SINH_TAYLOR_COEFFS[9] * sq_norm_tangent_vec ** 4)
+            coef_1 = (1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
+                      + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
+                      + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
+                      + COSH_TAYLOR_COEFFS[8] * norm_tangent_vec ** 8)
+            coef_2 = (1. + SINH_TAYLOR_COEFFS[3] * norm_tangent_vec ** 2
+                      + SINH_TAYLOR_COEFFS[5] * norm_tangent_vec ** 4
+                      + SINH_TAYLOR_COEFFS[7] * norm_tangent_vec ** 6
+                      + SINH_TAYLOR_COEFFS[9] * norm_tangent_vec ** 8)
         else:
             coef_1 = np.cosh(norm_tangent_vec)
             coef_2 = np.sinh(norm_tangent_vec) / norm_tangent_vec
 
         riem_exp = coef_1 * base_point + coef_2 * tangent_vec
-        # riem_exp = self.regularize(riem_exp)
+
+        hyperbolic_space = HyperbolicSpace(dimension=self.dimension)
+        riem_exp = hyperbolic_space.regularize(riem_exp)
         return riem_exp
 
     def log_basis(self, point, base_point):

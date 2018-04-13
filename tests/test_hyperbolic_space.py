@@ -111,43 +111,26 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
         base_point = np.array([1., 0., 0.])
         sq_norm_base = METRIC.embedding_metric.squared_norm(base_point)
         tangent_vec = H2.projection_to_tangent_space(
-                vector=np.array([0., 19., 0.]),
+                vector=np.array([0., 200., 0.]),
                 base_point=base_point)
         sq_norm_vec = METRIC.embedding_metric.squared_norm(tangent_vec)
-        assert np.all(tangent_vec == np.array([0., 19., 0.]))
+        assert np.all(tangent_vec == np.array([0., 200., 0.]))
         assert H2.belongs(base_point)
         exp = METRIC.exp(tangent_vec=tangent_vec,
                          base_point=base_point)
         sq_norm_exp = METRIC.embedding_metric.squared_norm(exp)
-        print('base_point\'s squared norm {}'.format(sq_norm_base))
-        print('tangent vec\'s squared norm {}'.format(sq_norm_vec))
-        print('exp\'s squared norm: {}'.format(sq_norm_exp))
-        print('base point: {}'.format(base_point))
-        print('tangent vec: {}'.format(tangent_vec))
-        print('exp: {}'.format(exp))
-        print('res = {}'.format(- exp[0, 0] ** 2))
         assert H2.belongs(exp)
 
-    # def test_exp_vectorization(self):
-    #     n_samples = self.n_samples
-    #     dim = self.dimension
-    #     one_tangent_vec = self.space.random_uniform(n_samples=1)
-    #     one_base_point = self.space.random_uniform(n_samples=1)
-    #     n_tangent_vecs = self.space.random_uniform(n_samples=n_samples)
-    #     n_base_points = self.space.random_uniform(n_samples=n_samples)
+    def test_exp_vectorization(self):
+        # TODO(nina): Complete this test: need to randomly
+        # generate tangent vectors
+        n_samples = self.n_samples
+        dim = self.dimension
+        one_base_point = self.space.random_uniform(n_samples=1)
+        n_base_points = self.space.random_uniform(n_samples=n_samples)
 
-    #     result = self.metric.exp(one_tangent_vec, one_base_point)
-    #     self.assertTrue(np.allclose(result.shape, (1, dim + 1)))
-
-    #     result = self.metric.exp(n_tangent_vecs, one_base_point)
-    #     self.assertTrue(np.allclose(result.shape, (n_samples, dim + 1)),
-    #                     '\n result.shape = {}'.format(result.shape))
-
-    #     result = self.metric.exp(one_tangent_vec, n_base_points)
-    #     self.assertTrue(np.allclose(result.shape, (n_samples, dim + 1)))
-
-    #     result = self.metric.exp(n_tangent_vecs, n_base_points)
-    #     self.assertTrue(np.allclose(result.shape, (n_samples, dim + 1)))
+        one_tangent_vec = np.random.rand(1, dim + 1) - 0.5
+        n_tangent_vecs = np.random.rand(n_samples, dim + 1) - 0.5
 
     def test_log_vectorization(self):
         n_samples = self.n_samples
@@ -340,7 +323,7 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
 
         t = np.linspace(start=0, stop=1, num=100)
         points = geodesic(t)
-        # self.assertTrue(np.all(self.space.belongs(points)))
+        self.assertTrue(np.all(self.space.belongs(points)))
 
     def test_variance(self):
         point = self.space.random_uniform()
