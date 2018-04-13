@@ -104,26 +104,30 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
 
         self.assertTrue(np.allclose(result_1, expected_1))
 
+    def test_exp_and_belongs(self):
+        H2 = HyperbolicSpace(dimension=2)
+        METRIC = H2.metric
+
+        base_point = np.array([1., 0., 0.])
+        assert H2.belongs(base_point)
+
+        tangent_vec = H2.projection_to_tangent_space(
+                vector=np.array([10., 200., 1.]),
+                base_point=base_point)
+        exp = METRIC.exp(tangent_vec=tangent_vec,
+                         base_point=base_point)
+        self.assertTrue(H2.belongs(exp))
+
     def test_exp_vectorization(self):
+        # TODO(nina): Complete this test: need to randomly
+        # generate tangent vectors
         n_samples = self.n_samples
         dim = self.dimension
-        one_tangent_vec = self.space.random_uniform(n_samples=1)
         one_base_point = self.space.random_uniform(n_samples=1)
-        n_tangent_vecs = self.space.random_uniform(n_samples=n_samples)
         n_base_points = self.space.random_uniform(n_samples=n_samples)
 
-        result = self.metric.exp(one_tangent_vec, one_base_point)
-        self.assertTrue(np.allclose(result.shape, (1, dim + 1)))
-
-        result = self.metric.exp(n_tangent_vecs, one_base_point)
-        self.assertTrue(np.allclose(result.shape, (n_samples, dim + 1)),
-                        '\n result.shape = {}'.format(result.shape))
-
-        result = self.metric.exp(one_tangent_vec, n_base_points)
-        self.assertTrue(np.allclose(result.shape, (n_samples, dim + 1)))
-
-        result = self.metric.exp(n_tangent_vecs, n_base_points)
-        self.assertTrue(np.allclose(result.shape, (n_samples, dim + 1)))
+        one_tangent_vec = np.random.rand(1, dim + 1) - 0.5
+        n_tangent_vecs = np.random.rand(n_samples, dim + 1) - 0.5
 
     def test_log_vectorization(self):
         n_samples = self.n_samples
@@ -316,7 +320,7 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
 
         t = np.linspace(start=0, stop=1, num=100)
         points = geodesic(t)
-        # self.assertTrue(np.all(self.space.belongs(points)))
+        self.assertTrue(np.all(self.space.belongs(points)))
 
     def test_variance(self):
         point = self.space.random_uniform()

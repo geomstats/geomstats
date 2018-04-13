@@ -56,6 +56,9 @@ class HyperbolicSpace(Manifold):
         By definition, a point on the Hyperbolic space
         has Minkowski squared norm -1.
 
+        We use a tolerance relative to the Euclidean norm of
+        the point.
+
         Note: point must be given in extrinsic coordinates.
         """
         point = vectorization.to_ndarray(point, to_ndim=2)
@@ -64,13 +67,25 @@ class HyperbolicSpace(Manifold):
         if point_dim is not self.dimension + 1:
             if point_dim is self.dimension:
                 logging.warning('Use the extrinsic coordinates to '
-                                'represent points on the hypersphere.')
+                                'represent points on the hyperbolic space.')
             return False
 
         sq_norm = self.embedding_metric.squared_norm(point)
+        euclidean_sq_norm = np.dot(point, point.transpose())
         diff = np.abs(sq_norm + 1)
+        return diff < tolerance * euclidean_sq_norm
 
-        return diff < tolerance
+
+    def regularize(self, point):
+        # TODO(nina): vectorize
+        assert self.belongs(point)
+        sq_norm = self.embedding_metric.squared_norm(point)
+        real_norm = np.sqrt(np.abs(sq_norm))
+        for i in range(len(real_norm)):
+            if real_norm[i] != 0:
+                point[i] = point[i] / real_norm[i]
+        return point
+
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """
@@ -159,10 +174,9 @@ class HyperbolicMetric(RiemannianMetric):
         """
         sq_norm_tangent_vec = self.embedding_metric.squared_norm(
                 tangent_vec)
-        # TODO(nina): Fix, value error on this squared norm
         norm_tangent_vec = np.sqrt(sq_norm_tangent_vec)
 
-        if np.isclose(norm_tangent_vec, 0):
+        if np.isclose(sq_norm_tangent_vec, 0):
             coef_1 = (1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
                       + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
                       + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
@@ -177,6 +191,8 @@ class HyperbolicMetric(RiemannianMetric):
 
         riem_exp = coef_1 * base_point + coef_2 * tangent_vec
 
+        hyperbolic_space = HyperbolicSpace(dimension=self.dimension)
+        riem_exp = hyperbolic_space.regularize(riem_exp)
         return riem_exp
 
     def log_basis(self, point, base_point):

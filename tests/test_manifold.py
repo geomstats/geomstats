@@ -22,9 +22,8 @@ class TestManifoldMethods(unittest.TestCase):
                           lambda: self.manifold.belongs(point))
 
     def test_regularize(self):
-        point = np.array(5)
-        self.assertRaises(NotImplementedError,
-                          lambda: self.manifold.regularize(point))
+       point = np.array([1, 2, 3])
+       self.assertTrue(np.allclose(point, self.manifold.regularize(point)))
 
 
 if __name__ == '__main__':
