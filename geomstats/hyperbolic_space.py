@@ -147,14 +147,6 @@ class HyperbolicSpace(Manifold):
 
 
 class HyperbolicMetric(RiemannianMetric):
-    def regularize(self, point):
-        sq_norm = self.embedding_metric.squared_norm(point)
-        diff = np.abs(sq_norm + 1)
-        point_belongs = diff < 1e-12
-        # assert
-        real_norm = np.sqrt(np.abs(sq_norm))
-        point = point / real_norm
-        return point
 
     def __init__(self, dimension):
         self.dimension = dimension

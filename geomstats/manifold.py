@@ -19,4 +19,3 @@ class Manifold(object):
         chosen for this manifold.
         """
         return point
-        # raise NotImplementedError('regularize is not implemented.')
