@@ -109,17 +109,14 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
         METRIC = H2.metric
 
         base_point = np.array([1., 0., 0.])
-        sq_norm_base = METRIC.embedding_metric.squared_norm(base_point)
-        tangent_vec = H2.projection_to_tangent_space(
-                vector=np.array([0., 200., 0.]),
-                base_point=base_point)
-        sq_norm_vec = METRIC.embedding_metric.squared_norm(tangent_vec)
-        assert np.all(tangent_vec == np.array([0., 200., 0.]))
         assert H2.belongs(base_point)
+
+        tangent_vec = H2.projection_to_tangent_space(
+                vector=np.array([10., 200., 1.]),
+                base_point=base_point)
         exp = METRIC.exp(tangent_vec=tangent_vec,
                          base_point=base_point)
-        sq_norm_exp = METRIC.embedding_metric.squared_norm(exp)
-        assert H2.belongs(exp)
+        self.assertTrue(H2.belongs(exp))
 
     def test_exp_vectorization(self):
         # TODO(nina): Complete this test: need to randomly
