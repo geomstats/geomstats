@@ -17,9 +17,8 @@ def main():
     initial_point = [1., 0., 0.]
     assert H2.belongs(initial_point)
     initial_tangent_vec = H2.projection_to_tangent_space(
-                                        vector=[0., 3., 0.],
+                                        vector=[0., 300., 0.],
                                         base_point=initial_point)
-    print('initial_tangent_vec: {}'.format(initial_tangent_vec))
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                initial_tangent_vec=initial_tangent_vec)
 
