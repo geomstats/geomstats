@@ -190,18 +190,18 @@ class RiemannianMetric(object):
         for manifolds whose points are represented by matrices or higher
         dimensional tensors.
         """
-        initial_point = vectorization.to_ndarray(initial_point, to_ndim=2)
+        initial_point = vectorization.to_ndarray(initial_point, to_ndim=point_ndim+1)
 
         if end_point is None and initial_tangent_vec is None:
             raise ValueError('Specify an end point or an initial tangent '
                              'vector to define the geodesic.')
         if end_point is not None:
-            end_point = vectorization.to_ndarray(end_point, to_ndim=2)
+            end_point = vectorization.to_ndarray(end_point, to_ndim=point_ndim+1)
             shooting_tangent_vec = self.log(point=end_point, base_point=initial_point)
             if initial_tangent_vec is not None:
                 assert np.allclose(shooting_tangent_vec, initial_tangent_vec)
             initial_tangent_vec = shooting_tangent_vec
-        initial_tangent_vec = vectorization.to_ndarray(initial_tangent_vec, to_ndim=2)
+        initial_tangent_vec = vectorization.to_ndarray(initial_tangent_vec, to_ndim=point_ndim+1)
 
         def point_on_geodesic(t):
             t = vectorization.to_ndarray(t, to_ndim=1)
