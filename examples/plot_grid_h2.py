@@ -13,12 +13,12 @@ H2 = HyperbolicSpace(dimension=2)
 METRIC = H2.metric
 
 
-def plot_grid(left=-128,
-              right=128,
-              bottom=-128,
-              top=128,
-              grid_size=32,
-              n_steps=512):
+def main(left=-128,
+         right=128,
+         bottom=-128,
+         top=128,
+         grid_size=32,
+         n_steps=512):
     starts = []
     ends = []
     for p in np.linspace(left, right, grid_size):
@@ -41,4 +41,4 @@ def plot_grid(left=-128,
 
 
 if __name__ == "__main__":
-    plot_grid()
+    main()
