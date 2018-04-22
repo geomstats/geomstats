@@ -7,6 +7,8 @@ from geomstats.lie_group import LieGroup
 
 
 class TestLieGroupMethods(unittest.TestCase):
+    _multiprocess_can_split_ = True
+
     dimension = 4
     group = LieGroup(dimension=dimension,
                      identity=np.zeros(4))

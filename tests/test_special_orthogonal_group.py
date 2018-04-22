@@ -15,6 +15,8 @@ ATOL = 1e-5
 
 
 class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
+    _multiprocess_can_split_ = True
+
     def setUp(self):
         n = 3
         group = SpecialOrthogonalGroup(n=n)
@@ -1493,7 +1495,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
         tangent_vec_step = initial_tangent_vec / n_steps
         for i in range(n_steps+1):
-            point_step = metric.exp(tangent_vec=i * tangent_vec_step, base_point=initial_point)
+            point_step = metric.exp(tangent_vec=i * tangent_vec_step,
+                                    base_point=initial_point)
             assert np.all(point_step == points[i])
 
 

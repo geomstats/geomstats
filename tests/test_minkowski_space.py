@@ -7,6 +7,8 @@ from geomstats.minkowski_space import MinkowskiSpace
 
 
 class TestMinkowskiSpaceMethods(unittest.TestCase):
+    _multiprocess_can_split_ = True
+
     def setUp(self):
         self.time_like_dim = 0
         self.dimension = 2
