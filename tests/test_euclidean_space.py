@@ -7,6 +7,8 @@ from geomstats.euclidean_space import EuclideanSpace
 
 
 class TestEuclideanSpaceMethods(unittest.TestCase):
+    _multiprocess_can_split_ = True
+
     def setUp(self):
         self.dimension = 2
         self.space = EuclideanSpace(self.dimension)
@@ -268,6 +270,7 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
         # we expect the average of the points' sq norms.
         expected = (1 * 5. + 2 * 13. + 1 * 25. + 2 * 41.) / 6.
         self.assertTrue(np.allclose(result, expected))
+
 
 if __name__ == '__main__':
         unittest.main()

@@ -13,6 +13,8 @@ RTOL = 1e-6
 
 
 class TestHyperbolicSpaceMethods(unittest.TestCase):
+    _multiprocess_can_split_ = True
+
     def setUp(self):
         self.dimension = 6
         self.space = HyperbolicSpace(dimension=self.dimension)

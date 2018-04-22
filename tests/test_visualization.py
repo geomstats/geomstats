@@ -16,6 +16,8 @@ S2 = Hypersphere(dimension=2)
 # TODO(nina): add tests for examples
 
 class TestVisualizationMethods(unittest.TestCase):
+    _multiprocess_can_split_ = True
+
     def setUp(self):
         self.n_samples = 10
 

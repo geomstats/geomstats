@@ -10,6 +10,7 @@ import tests.helper as helper
 
 
 class TestInvariantMetricMethods(unittest.TestCase):
+    _multiprocess_can_split_ = True
 
     def setUp(self):
         n = 3

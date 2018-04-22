@@ -11,6 +11,8 @@ RTOL = 1e-5
 
 
 class TestMatrixLieGroupMethods(unittest.TestCase):
+    _multiprocess_can_split_ = True
+
     def setUp(self):
         n = 3
         self.group = MatrixLieGroup(dimension=n ** 2,

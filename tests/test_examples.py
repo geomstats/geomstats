@@ -12,7 +12,9 @@ import examples.plot_geodesics_so3 as plot_geodesics_so3
 import examples.plot_grid_h2 as plot_grid_h2
 
 
-class TestEuclideanSpaceMethods(unittest.TestCase):
+class TestExamples(unittest.TestCase):
+    _multiprocess_can_split_ = True
+
     def test_plot_geodesics_h2(self):
         plot_geodesics_h2.main()
 
@@ -27,7 +29,7 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
 
     def test_plot_grid_h2(self):
         plot_grid_h2.main()
-
+        
 
 if __name__ == '__main__':
         unittest.main()

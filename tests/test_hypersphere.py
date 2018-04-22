@@ -7,6 +7,8 @@ import unittest
 
 
 class TestHypersphereMethods(unittest.TestCase):
+    _multiprocess_can_split_ = True
+
     def setUp(self):
         self.dimension = 4
         self.space = Hypersphere(dimension=self.dimension)

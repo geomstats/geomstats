@@ -8,6 +8,8 @@ from geomstats.spd_matrices_space import SPDMatricesSpace
 
 
 class TestSPDMatricesSpaceMethods(unittest.TestCase):
+    _multiprocess_can_split_ = True
+
     def setUp(self):
         self.dimension = 3
         self.space = SPDMatricesSpace(dimension=self.dimension)
@@ -302,6 +304,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
 
         self.assertTrue(sq_dist_1_2.shape == (1, 1))
+
 
 if __name__ == '__main__':
         unittest.main()
