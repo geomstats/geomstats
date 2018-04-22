@@ -19,7 +19,7 @@ install:
     - pip install --upgrade pip setuptools wheel
     - pip install -r requirements.txt --only-binary=numpy,scipy
 script:
-    - nosetests --process-timeout=120 --processes=4 --with-coverage
+    - nosetests --process-timeout=180 --processes=4 --with-coverage
 
 after_success:
     - codecov
