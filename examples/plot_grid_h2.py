@@ -12,29 +12,26 @@ import geomstats.visualization as visualization
 H2 = HyperbolicSpace(dimension=2)
 METRIC = H2.metric
 
-c = H2.intrinsic_to_extrinsic_coords
 
-
-def main():
+def main(left=-128,
+         right=128,
+         bottom=-128,
+         top=128,
+         grid_size=32,
+         n_steps=512):
     starts = []
     ends = []
-    left = -128
-    right = 128
-    bottom = -128
-    top = 128
-    grid_size = 32
-    n_steps = 512
     for p in np.linspace(left, right, grid_size):
         starts.append(np.array([top, p]))
         ends.append(np.array([bottom, p]))
     for p in np.linspace(top, bottom, grid_size):
         starts.append(np.array([p, left]))
         ends.append(np.array([p, right]))
-    starts = [c(s) for s in starts]
-    ends = [c(e) for e in ends]
-    for i, _ in enumerate(starts):
-        initial_tangent_vec = METRIC.log(ends[i], starts[i])
-        geodesic = METRIC.geodesic(initial_point=starts[i],
+    starts = [H2.intrinsic_to_extrinsic_coords(s) for s in starts]
+    ends = [H2.intrinsic_to_extrinsic_coords(e) for e in ends]
+    for start, end in zip(starts, ends):
+        initial_tangent_vec = METRIC.log(end, start)
+        geodesic = METRIC.geodesic(initial_point=start,
                                    initial_tangent_vec=initial_tangent_vec)
 
         t = np.linspace(0, 1, n_steps)
