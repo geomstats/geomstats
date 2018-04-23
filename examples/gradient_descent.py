@@ -5,12 +5,11 @@ Gradient descent on a sphere.
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")  # NOQA
-import matplotlib.pyplot as plt
-import matplotlib.animation as manimation
-
-from geomstats.hypersphere import Hypersphere
-import geomstats.visualization as visualization
 import geomstats.vectorization as vectorization
+import geomstats.visualization as visualization
+import matplotlib.animation as manimation
+import matplotlib.pyplot as plt
+from geomstats.hypersphere import Hypersphere
 
 SPHERE2 = Hypersphere(dimension=2)
 METRIC = SPHERE2.metric
@@ -23,12 +22,14 @@ def gradient_descent(start,
                      lr=0.05,
                      max_iter=128,
                      precision=1e-5):
+    """Operate a gradient descent on a given manifold until either max_iter or
+    a given precision is reached."""
     x = start
     for i in range(max_iter):
         x_prev = x
-        euclidian = - lr * grad(x)
-        tangent_vec = manifold.projection_to_tangent_space(vector=euclidian,
-                                                           base_point=x)
+        euclidian_grad = - lr * grad(x)
+        tangent_vec = manifold.projection_to_tangent_space(
+                vector=euclidian_grad, base_point=x)
         x = manifold.metric.exp(base_point=x, tangent_vec=tangent_vec)[0]
         if np.abs(loss(x) - loss(x_prev)) <= precision:
             print('x: %s' % x)
@@ -38,18 +39,22 @@ def gradient_descent(start,
         yield x, loss(x)
 
 
-def animate(geodesics, size=20, fps=0, dpi=103, out='out.mp4', color='red'):
+def plot_and_save_vid(geodesics,
+                      size=20,
+                      fps=0,
+                      dpi=100,
+                      out='out.mp4',
+                      color='red'):
+    """Render a set of geodesics and save it to an mpeg 4 file."""
     FFMpegWriter = manimation.writers['ffmpeg']
-    metadata = dict(title='Movie Test', artist='Matplotlib',
-                    comment='Movie support!')
-    writer = FFMpegWriter(fps=fps, metadata=metadata)
+    writer = FFMpegWriter(fps=fps)
     fig = plt.figure(figsize=(size, size))
     ax = fig.add_subplot(111, projection='3d', aspect='equal')
     sphere = visualization.Sphere()
     points = vectorization.to_ndarray(geodesics[0], to_ndim=2)
     sphere.add_points(points)
     sphere.draw(ax, color=color, marker='.')
-    with writer.saving(fig, 'foo.mp4', dpi=dpi):
+    with writer.saving(fig, out, dpi=dpi):
         for points in geodesics[1:]:
             points = vectorization.to_ndarray(points, to_ndim=2)
             sphere.add_points(points)
@@ -76,7 +81,7 @@ def main():
         t = np.linspace(0, 1, n_steps)
         geodesics.append(geodesic(t))
         previous_x = x
-    animate(geodesics)
+    plot_and_save_vid(geodesics)
     eig, _ = np.linalg.eig(A)
     np.testing.assert_almost_equal(loss(x), np.min(eig), decimal=2)
 
