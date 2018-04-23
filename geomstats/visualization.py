@@ -58,7 +58,7 @@ class Sphere():
     to plot the wireframe of a sphere.
     Their shape is (n_meridians, n_circles_latitude).
     """
-    def __init__(self, n_meridians=20, n_circles_latitude=None,
+    def __init__(self, n_meridians=40, n_circles_latitude=None,
                  points=None):
         if n_circles_latitude is None:
             n_circles_latitude = max(n_meridians / 2, 4)
@@ -80,15 +80,18 @@ class Sphere():
         points_list = points.tolist()
         self.points.extend(points_list)
 
-    def draw(self, ax):
+    def draw(self, ax, **scatter_kwargs):
         ax.plot_wireframe(self.sphere_x,
                           self.sphere_y,
                           self.sphere_z,
-                          color="black", alpha=0.5)
+                          color="black", alpha=0.3)
+        self.draw_points(ax, **scatter_kwargs)
+
+    def draw_points(self, ax, **scatter_kwargs):
         points_x = np.vstack([point[0] for point in self.points])
         points_y = np.vstack([point[1] for point in self.points])
         points_z = np.vstack([point[2] for point in self.points])
-        ax.scatter(points_x, points_y, points_z)
+        ax.scatter(points_x, points_y, points_z, **scatter_kwargs)
 
 
 class PoincareDisk():
@@ -207,7 +210,7 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
     elif space is 'S2':
         sphere = Sphere()
         sphere.add_points(points)
-        sphere.draw(ax)
+        sphere.draw(ax, **point_draw_kwargs)
 
     elif space is 'H2':
         poincare_disk = PoincareDisk()
