@@ -20,9 +20,6 @@ AX_SCALE = 1.2
 
 IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'S2', 'H2']
 
-import logging
-logger = logging.getLogger('matplotlib.animation')
-logger.setLevel(logging.DEBUG)
 
 class Arrow3D():
     "An arrow in 3d, i.e. a point and a vector."
