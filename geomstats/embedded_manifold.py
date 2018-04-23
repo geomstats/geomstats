@@ -19,7 +19,7 @@ class EmbeddedManifold(Manifold):
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         raise NotImplementedError(
-            'intrinsic_to_extrinsic coords is not implemented.')
+            'intrinsic_to_extrinsic_coords is not implemented.')
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         raise NotImplementedError(

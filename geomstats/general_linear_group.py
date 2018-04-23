@@ -1,5 +1,5 @@
 """
-Base class for the General Lie Group,
+Base class for the General Linear Group,
 i.e. the matrix group GL(n).
 """
 
@@ -12,7 +12,7 @@ import geomstats.vectorization as vectorization
 
 class GeneralLinearGroup(LieGroup):
     """
-    Base class for the General Lie Group,
+    Base class for the General Linear Group,
     i.e. the matrix group GL(n).
 
     Note: for now, SO(n) and SE(n) elements are represented
