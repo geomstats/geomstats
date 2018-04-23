@@ -16,7 +16,6 @@ class EmbeddedManifold(Manifold):
         super(EmbeddedManifold, self).__init__(
             dimension=dimension)
         self.embedding_manifold = embedding_manifold
-        self.embedding_metric = embedding_manifold.metric
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         raise NotImplementedError(

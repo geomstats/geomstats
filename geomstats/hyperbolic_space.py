@@ -51,6 +51,7 @@ class HyperbolicSpace(EmbeddedManifold):
         super(HyperbolicSpace, self).__init__(
                 dimension=dimension,
                 embedding_manifold=MinkowskiSpace(dimension+1))
+        self.embedding_metric = self.embedding_manifold.metric
         self.metric = HyperbolicMetric(self.dimension)
 
     def belongs(self, point, tolerance=TOLERANCE):

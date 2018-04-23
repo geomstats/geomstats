@@ -42,6 +42,7 @@ class Hypersphere(EmbeddedManifold):
         super(Hypersphere, self).__init__(
                 dimension=dimension,
                 embedding_manifold=EuclideanSpace(dimension+1))
+        self.embedding_metric = self.embedding_manifold.metric
         self.metric = HypersphereMetric(dimension)
 
     def belongs(self, point, tolerance=TOLERANCE):
