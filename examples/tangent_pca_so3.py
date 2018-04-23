@@ -1,6 +1,6 @@
 """
-Plot a geodesic of SO(3) equipped
-with its left-invariant canonical METRIC.
+Compute the mean of a data set of 3D rotations.
+Performs tangent PCA at the mean.
 """
 
 import matplotlib.pyplot as plt
@@ -13,6 +13,7 @@ SO3_GROUP = SpecialOrthogonalGroup(n=3)
 METRIC = SO3_GROUP.bi_invariant_metric
 
 N_SAMPLES = 20
+# TODO(nina): find real data set
 
 
 def main():
