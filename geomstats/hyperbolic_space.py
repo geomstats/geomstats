@@ -9,11 +9,12 @@ NB: we use "riemannian" to refer to "pseudo-riemannian".
 """
 
 import logging
-import numpy as np
 import math
+import numpy as np
 
+from geomstats.embedded_manifold import EmbeddedManifold
 from geomstats.minkowski_space import MinkowskiMetric
-from geomstats.manifold import Manifold
+from geomstats.minkowski_space import MinkowskiSpace
 from geomstats.riemannian_metric import RiemannianMetric
 import geomstats.vectorization as vectorization
 
@@ -39,7 +40,7 @@ INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
                           0., -1. / 4725.]
 
 
-class HyperbolicSpace(Manifold):
+class HyperbolicSpace(EmbeddedManifold):
     """
     Hyperbolic space embedded in Minkowski space.
     Note: points are parameterized by the extrinsic
@@ -47,9 +48,10 @@ class HyperbolicSpace(Manifold):
     """
 
     def __init__(self, dimension):
-        self.dimension = dimension
+        super(HyperbolicSpace, self).__init__(
+                dimension=dimension,
+                embedding_manifold=MinkowskiSpace(dimension+1))
         self.metric = HyperbolicMetric(self.dimension)
-        self.embedding_metric = MinkowskiMetric(self.dimension + 1)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """
@@ -75,7 +77,6 @@ class HyperbolicSpace(Manifold):
         diff = np.abs(sq_norm + 1)
         return diff < tolerance * euclidean_sq_norm
 
-
     def regularize(self, point):
         # TODO(nina): vectorize
         assert self.belongs(point)
@@ -86,14 +87,13 @@ class HyperbolicSpace(Manifold):
                 point[i] = point[i] / real_norm[i]
         return point
 
-
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """
         From the intrinsic coordinates in the hyperbolic space,
         to the extrinsic coordinates in Minkowski space.
         """
         point_intrinsic = vectorization.to_ndarray(point_intrinsic,
-                                                    to_ndim=2)
+                                                   to_ndim=2)
         n_points, _ = point_intrinsic.shape
 
         dimension = self.dimension
@@ -112,7 +112,7 @@ class HyperbolicSpace(Manifold):
         to the extrinsic coordinates in Hyperbolic space.
         """
         point_extrinsic = vectorization.to_ndarray(point_extrinsic,
-                                                    to_ndim=2)
+                                                   to_ndim=2)
         assert np.all(self.belongs(point_extrinsic))
 
         point_intrinsic = point_extrinsic[:, 1:]
