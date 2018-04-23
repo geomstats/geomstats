@@ -139,6 +139,20 @@ class HypersphereMetric(RiemannianMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
+    def projection_to_tangent_space(self, vector, base_point):
+        """
+        Project the vector vector onto the tangent space:
+        T_{base_point} S = {w | scal(w, base_point) = 0}
+        """
+        # TODO(nina): define HypersphereMetric inside Hypersphere
+        # to avoid copy-pasting this code?
+
+        sq_norm = self.embedding_metric.squared_norm(base_point)
+        inner_prod = self.embedding_metric.inner_product(base_point, vector)
+        tangent_vec = (vector - inner_prod / sq_norm * base_point)
+
+        return tangent_vec
+
     def exp_basis(self, tangent_vec, base_point):
         """
         Compute the Riemannian exponential at point base_point
@@ -152,6 +166,16 @@ class HypersphereMetric(RiemannianMetric):
         :param vector: (n+1)-dimensional vector
         :return exp: a point on the n-dimensional sphere
         """
+        projected_tangent_vec = self.projection_to_tangent_space(
+            vector=tangent_vec, base_point=base_point)
+        diff = np.abs(projected_tangent_vec - tangent_vec)
+        if not np.allclose(diff, 0):
+            tangent_vec = projected_tangent_vec
+            logging.warning(
+                'The input vector is not tangent to the hypersphere.'
+                ' We project it on the tangent space at base_point={}.'.format(
+                    base_point))
+
         norm_tangent_vec = self.embedding_metric.norm(tangent_vec)
 
         if np.isclose(norm_tangent_vec, 0):

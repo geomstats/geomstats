@@ -161,6 +161,21 @@ class HyperbolicMetric(RiemannianMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
+    def projection_to_tangent_space(self, vector, base_point):
+        """
+         Project the vector vector onto the tangent space at base_point
+         T_{base_point}H
+                = { w s.t. embedding_inner_product(base_point, w) = 0 }
+        """
+        # TODO(nina): define HyperbolicMetric class inside HyperbolicSpace
+        # so that there is no need to copy-paste this code?
+        inner_prod = self.embedding_metric.inner_product(base_point,
+                                                         vector)
+        sq_norm_base_point = self.embedding_metric.squared_norm(base_point)
+
+        tangent_vec = vector - inner_prod * base_point / sq_norm_base_point
+        return tangent_vec
+
     def exp_basis(self, tangent_vec, base_point):
         """
         Compute the Riemannian exponential at point base_point
@@ -173,6 +188,16 @@ class HyperbolicMetric(RiemannianMetric):
         :param vector: vector
         :returns riem_exp: a point on the hyperbolic space
         """
+        projected_tangent_vec = self.projection_to_tangent_space(
+            vector=tangent_vec, base_point=base_point)
+        diff = np.abs(projected_tangent_vec - tangent_vec)
+        if not np.allclose(diff, 0):
+            tangent_vec = projected_tangent_vec
+            logging.warning(
+                'The input vector is not tangent to the hyperbolic space.'
+                ' We project it on the tangent space at base_point={}.'.format(
+                    base_point))
+
         sq_norm_tangent_vec = self.embedding_metric.squared_norm(
                 tangent_vec)
         norm_tangent_vec = np.sqrt(sq_norm_tangent_vec)

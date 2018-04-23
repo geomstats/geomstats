@@ -157,16 +157,16 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
 
         self.assertTrue(np.allclose(results.shape,
                                     (n_samples,
-                                     self.space.dimension,
-                                     self.space.dimension)))
+                                     self.space.n,
+                                     self.space.n)))
 
         # Test with the same number of base_points and tangent_vecs
         results = self.metric.exp(n_tangent_vec, n_base_point)
 
         self.assertTrue(np.allclose(results.shape,
                                     (n_samples,
-                                     self.space.dimension,
-                                     self.space.dimension)))
+                                     self.space.n,
+                                     self.space.n)))
 
     def test_log_vectorization(self):
         n_samples = self.n_samples
@@ -181,24 +181,24 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
 
         self.assertTrue(np.allclose(results.shape,
                                     (n_samples,
-                                     self.space.dimension,
-                                     self.space.dimension)))
+                                     self.space.n,
+                                     self.space.n)))
 
         # Test with the same number of points and base points
         results = self.metric.log(n_point, n_base_point)
 
         self.assertTrue(np.allclose(results.shape,
                                     (n_samples,
-                                     self.space.dimension,
-                                     self.space.dimension)))
+                                     self.space.n,
+                                     self.space.n)))
 
         # Test with the one point and n base points
         results = self.metric.log(one_point, n_base_point)
 
         self.assertTrue(np.allclose(results.shape,
                                     (n_samples,
-                                     self.space.dimension,
-                                     self.space.dimension)))
+                                     self.space.n,
+                                     self.space.n)))
 
     def test_exp_then_log_vectorization(self):
         n_samples = self.n_samples

@@ -87,6 +87,7 @@ class SPDMatricesSpace(EmbeddedManifold):
         super(SPDMatricesSpace, self).__init__(
             dimension=int(n * (n + 1) / 2),
             embedding_manifold=GeneralLinearGroup(n=n))
+        self.n = n
         self.metric = SPDMetric(n=n)
 
     def belongs(self, mat, tolerance=TOLERANCE):
@@ -150,14 +151,14 @@ class SPDMatricesSpace(EmbeddedManifold):
         return mat
 
     def random_uniform(self, n_samples=1):
-        mat = 2 * np.random.rand(n_samples, self.dimension, self.dimension) - 1
+        mat = 2 * np.random.rand(n_samples, self.n, self.n) - 1
 
         spd_mat = group_exp(mat + np.transpose(mat, axes=(0, 2, 1)))
         return spd_mat
 
     def random_tangent_vec_uniform(self, n_samples=1, base_point=None):
         if base_point is None:
-            base_point = np.eye(self.dimension)
+            base_point = np.eye(self.n)
 
         base_point = vectorization.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, _ = base_point.shape
@@ -169,8 +170,8 @@ class SPDMatricesSpace(EmbeddedManifold):
             sqrt_base_point[i] = scipy.linalg.sqrtm(base_point[i])
 
         tangent_vec_at_id = (2 * np.random.rand(n_samples,
-                                                self.dimension,
-                                                self.dimension)
+                                                self.n,
+                                                self.n)
                              - 1)
         tangent_vec_at_id = (tangent_vec_at_id
                              + np.transpose(tangent_vec_at_id,
