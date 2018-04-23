@@ -190,18 +190,22 @@ class RiemannianMetric(object):
         for manifolds whose points are represented by matrices or higher
         dimensional tensors.
         """
-        initial_point = vectorization.to_ndarray(initial_point, to_ndim=point_ndim+1)
+        initial_point = vectorization.to_ndarray(initial_point,
+                                                 to_ndim=point_ndim+1)
 
         if end_point is None and initial_tangent_vec is None:
             raise ValueError('Specify an end point or an initial tangent '
                              'vector to define the geodesic.')
         if end_point is not None:
-            end_point = vectorization.to_ndarray(end_point, to_ndim=point_ndim+1)
-            shooting_tangent_vec = self.log(point=end_point, base_point=initial_point)
+            end_point = vectorization.to_ndarray(end_point,
+                                                 to_ndim=point_ndim+1)
+            shooting_tangent_vec = self.log(point=end_point,
+                                            base_point=initial_point)
             if initial_tangent_vec is not None:
                 assert np.allclose(shooting_tangent_vec, initial_tangent_vec)
             initial_tangent_vec = shooting_tangent_vec
-        initial_tangent_vec = vectorization.to_ndarray(initial_tangent_vec, to_ndim=point_ndim+1)
+        initial_tangent_vec = vectorization.to_ndarray(initial_tangent_vec,
+                                                       to_ndim=point_ndim+1)
 
         def point_on_geodesic(t):
             t = vectorization.to_ndarray(t, to_ndim=1)
@@ -343,3 +347,24 @@ class RiemannianMetric(object):
                             'The mean may be inaccurate'
                             ''.format(n_max_iterations))
         return mean
+
+    def tangent_pca(self, points, base_point=None):
+        """
+        Tangent Principal Component Analysis (tPCA) at base_point.
+        This is standard PCA on the Riemannian Logarithms of the points
+        at the base point.
+        """
+        # TODO(nina): It only works for points of ndim=2, adapt to other ndims.
+        if base_point is None:
+            base_point = self.mean(points)
+
+        tangent_vecs = self.log(points, base_point=base_point)
+
+        covariance_mat = np.cov(tangent_vecs.transpose())
+        eigenvalues, tangent_eigenvecs = np.linalg.eig(covariance_mat)
+
+        idx = eigenvalues.argsort()[::-1]
+        eigenvalues = eigenvalues[idx]
+        tangent_eigenvecs = tangent_eigenvecs[idx]
+
+        return eigenvalues, tangent_eigenvecs
