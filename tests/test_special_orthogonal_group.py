@@ -20,7 +20,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
     def setUp(self):
         n = 3
         group = SpecialOrthogonalGroup(n=n)
-        spd_matrices_space = SPDMatricesSpace(dimension=group.dimension)
+        spd_matrices_space = SPDMatricesSpace(n=group.dimension)
 
         # -- Rotation vectors with angles
         # 0, close to 0, closely lower than pi, pi,

@@ -8,14 +8,13 @@ X. Pennec. A Riemannian Framework for Tensor Computing. (2004).
 import numpy as np
 import scipy.linalg
 
-from geomstats.manifold import Manifold
+from geomstats.embedded_manifold import EmbeddedManifold
+from geomstats.general_linear_group import GeneralLinearGroup
 from geomstats.riemannian_metric import RiemannianMetric
 import geomstats.vectorization as vectorization
 
 EPSILON = 1e-6
 TOLERANCE = 1e-12
-
-# TODO(nina): refactor use of np.expand_dims that appears in all modules
 
 
 def is_symmetric(mat, tolerance=TOLERANCE):
@@ -83,10 +82,13 @@ def group_log(sym_mat):
     return log
 
 
-class SPDMatricesSpace(Manifold):
-    def __init__(self, dimension):
-        super(SPDMatricesSpace, self).__init__(dimension)
-        self.metric = SPDMetric(dimension)
+class SPDMatricesSpace(EmbeddedManifold):
+    def __init__(self, n):
+        super(SPDMatricesSpace, self).__init__(
+            dimension=int(n * (n + 1) / 2),
+            embedding_manifold=GeneralLinearGroup(n=n))
+        self.n = n
+        self.metric = SPDMetric(n=n)
 
     def belongs(self, mat, tolerance=TOLERANCE):
         """
@@ -149,14 +151,14 @@ class SPDMatricesSpace(Manifold):
         return mat
 
     def random_uniform(self, n_samples=1):
-        mat = 2 * np.random.rand(n_samples, self.dimension, self.dimension) - 1
+        mat = 2 * np.random.rand(n_samples, self.n, self.n) - 1
 
         spd_mat = group_exp(mat + np.transpose(mat, axes=(0, 2, 1)))
         return spd_mat
 
     def random_tangent_vec_uniform(self, n_samples=1, base_point=None):
         if base_point is None:
-            base_point = np.eye(self.dimension)
+            base_point = np.eye(self.n)
 
         base_point = vectorization.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, _ = base_point.shape
@@ -168,8 +170,8 @@ class SPDMatricesSpace(Manifold):
             sqrt_base_point[i] = scipy.linalg.sqrtm(base_point[i])
 
         tangent_vec_at_id = (2 * np.random.rand(n_samples,
-                                                self.dimension,
-                                                self.dimension)
+                                                self.n,
+                                                self.n)
                              - 1)
         tangent_vec_at_id = (tangent_vec_at_id
                              + np.transpose(tangent_vec_at_id,
@@ -182,6 +184,10 @@ class SPDMatricesSpace(Manifold):
 
 
 class SPDMetric(RiemannianMetric):
+
+    def __init__(self, n):
+        super(SPDMetric, self).__init__(dimension=int(n * (n + 1) / 2))
+
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """
         Compute the inner product of tangent_vec_a and tangent_vec_b
@@ -193,7 +199,7 @@ class SPDMetric(RiemannianMetric):
         aux_b = np.matmul(inv_base_point, tangent_vec_b)
         inner_product = np.trace(np.matmul(aux_a, aux_b), axis1=1, axis2=2)
         inner_product = vectorization.to_ndarray(inner_product,
-                                                  to_ndim=2, axis=1)
+                                                 to_ndim=2, axis=1)
         return inner_product
 
     def exp(self, tangent_vec, base_point):

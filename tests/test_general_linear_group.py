@@ -3,20 +3,18 @@
 import numpy as np
 import unittest
 
-from geomstats.matrix_lie_group import MatrixLieGroup
-
+from geomstats.general_linear_group import GeneralLinearGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
 RTOL = 1e-5
 
 
-class TestMatrixLieGroupMethods(unittest.TestCase):
+class TestGeneralLinearGroupMethods(unittest.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
         n = 3
-        self.group = MatrixLieGroup(dimension=n ** 2,
-                                    n=n)
+        self.group = GeneralLinearGroup(n=n)
         # We generate invertible matrices using so3_group
         self.so3_group = SpecialOrthogonalGroup(n=n)
 

@@ -1,4 +1,7 @@
-"""Base class for matrix Lie groups."""
+"""
+Base class for the General Linear Group,
+i.e. the matrix group GL(n).
+"""
 
 import numpy as np
 import scipy.linalg
@@ -7,29 +10,24 @@ from geomstats.lie_group import LieGroup
 import geomstats.vectorization as vectorization
 
 
-class MatrixLieGroup(LieGroup):
+class GeneralLinearGroup(LieGroup):
     """
-    Base class for matrix Lie groups,
-    where each element is represented by a matrix by default.
+    Base class for the General Linear Group,
+    i.e. the matrix group GL(n).
 
     Note: for now, SO(n) and SE(n) elements are represented
     by a vector by default.
     """
 
-    def __init__(self, dimension, n):
-        super(MatrixLieGroup, self).__init__(
-                                      dimension=dimension,
+    def __init__(self, n):
+        super(GeneralLinearGroup, self).__init__(
+                                      dimension=n*n,
                                       identity=np.eye(n))
         self.n = n
 
     def belongs(self, mat):
         """
-        Check if mat belongs to the Matrix Lie group.
-
-        Note:
-        - By default, check that the matrix is invertible.
-        - Need override for any matrix Lie group
-        that is not GL(n).
+        Check if mat belongs to GL(n).
         """
         mat = vectorization.to_ndarray(mat, to_ndim=3)
         n_mats, _, _ = mat.shape

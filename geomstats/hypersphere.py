@@ -7,8 +7,9 @@ import logging
 import math
 import numpy as np
 
+from geomstats.embedded_manifold import EmbeddedManifold
 from geomstats.euclidean_space import EuclideanMetric
-from geomstats.manifold import Manifold
+from geomstats.euclidean_space import EuclideanSpace
 from geomstats.riemannian_metric import RiemannianMetric
 import geomstats.vectorization as vectorization
 
@@ -34,13 +35,15 @@ INV_TAN_TAYLOR_COEFFS = [0., - 1. / 3.,
                          0., -1. / 4725.]
 
 
-class Hypersphere(Manifold):
+class Hypersphere(EmbeddedManifold):
     """Hypersphere embedded in Euclidean space."""
 
     def __init__(self, dimension):
-        self.dimension = dimension
+        super(Hypersphere, self).__init__(
+                dimension=dimension,
+                embedding_manifold=EuclideanSpace(dimension+1))
+        self.embedding_metric = self.embedding_manifold.metric
         self.metric = HypersphereMetric(dimension)
-        self.embedding_metric = EuclideanMetric(dimension + 1)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """
@@ -80,7 +83,7 @@ class Hypersphere(Manifold):
         to the extrinsic coordinates in Euclidean space.
         """
         point_intrinsic = vectorization.to_ndarray(point_intrinsic,
-                                                    to_ndim=2)
+                                                   to_ndim=2)
 
         n_points, _ = point_intrinsic.shape
 
@@ -102,7 +105,7 @@ class Hypersphere(Manifold):
         to some intrinsic coordinates in Hypersphere.
         """
         point_extrinsic = vectorization.to_ndarray(point_extrinsic,
-                                                    to_ndim=2)
+                                                   to_ndim=2)
         assert np.all(self.belongs(point_extrinsic))
 
         point_intrinsic = point_extrinsic[:, 1:]
@@ -136,6 +139,20 @@ class HypersphereMetric(RiemannianMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
+    def projection_to_tangent_space(self, vector, base_point):
+        """
+        Project the vector vector onto the tangent space:
+        T_{base_point} S = {w | scal(w, base_point) = 0}
+        """
+        # TODO(nina): define HypersphereMetric inside Hypersphere
+        # to avoid copy-pasting this code?
+
+        sq_norm = self.embedding_metric.squared_norm(base_point)
+        inner_prod = self.embedding_metric.inner_product(base_point, vector)
+        tangent_vec = (vector - inner_prod / sq_norm * base_point)
+
+        return tangent_vec
+
     def exp_basis(self, tangent_vec, base_point):
         """
         Compute the Riemannian exponential at point base_point
@@ -149,6 +166,16 @@ class HypersphereMetric(RiemannianMetric):
         :param vector: (n+1)-dimensional vector
         :return exp: a point on the n-dimensional sphere
         """
+        projected_tangent_vec = self.projection_to_tangent_space(
+            vector=tangent_vec, base_point=base_point)
+        diff = np.abs(projected_tangent_vec - tangent_vec)
+        if not np.allclose(diff, 0):
+            tangent_vec = projected_tangent_vec
+            logging.warning(
+                'The input vector is not tangent to the hypersphere.'
+                ' We project it on the tangent space at base_point={}.'.format(
+                    base_point))
+
         norm_tangent_vec = self.embedding_metric.norm(tangent_vec)
 
         if np.isclose(norm_tangent_vec, 0):
