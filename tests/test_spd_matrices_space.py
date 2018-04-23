@@ -11,8 +11,8 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
-        self.dimension = 3
-        self.space = SPDMatricesSpace(dimension=self.dimension)
+        self.n = 3
+        self.space = SPDMatricesSpace(n=self.n)
         self.metric = self.space.metric
         self.n_samples = 10
 

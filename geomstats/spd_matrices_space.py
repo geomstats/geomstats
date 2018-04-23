@@ -85,9 +85,9 @@ def group_log(sym_mat):
 class SPDMatricesSpace(EmbeddedManifold):
     def __init__(self, n):
         super(SPDMatricesSpace, self).__init__(
-            dimension=n * (n + 1) / 2,
+            dimension=int(n * (n + 1) / 2),
             embedding_manifold=GeneralLinearGroup(n=n))
-        self.metric = SPDMetric(self.dimension)
+        self.metric = SPDMetric(n=n)
 
     def belongs(self, mat, tolerance=TOLERANCE):
         """
@@ -185,7 +185,7 @@ class SPDMatricesSpace(EmbeddedManifold):
 class SPDMetric(RiemannianMetric):
 
     def __init__(self, n):
-        super(SPDMetric, self).__init__(dimension=n * (n + 1) / 2)
+        super(SPDMetric, self).__init__(dimension=int(n * (n + 1) / 2))
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """
