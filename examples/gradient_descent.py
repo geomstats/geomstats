@@ -1,15 +1,25 @@
 """
 Gradient descent on a sphere.
+
+We solve the following optimization problem:
+
+    minimize: x^{T}Ax
+    such than: x^{T}x = 1
+
+Using by operating a gradient descent of the quadratic form
+on the sphere. We solve this in 3 dimension on the 2-sphere
+manifold so that we can visualize and render the path as a video.
 """
 
-import numpy as np
 import matplotlib
 matplotlib.use("Agg")  # NOQA
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+import numpy as np
+
+from geomstats.hypersphere import Hypersphere
 import geomstats.vectorization as vectorization
 import geomstats.visualization as visualization
-import matplotlib.animation as manimation
-import matplotlib.pyplot as plt
-from geomstats.hypersphere import Hypersphere
 
 SPHERE2 = Hypersphere(dimension=2)
 METRIC = SPHERE2.metric
@@ -27,9 +37,9 @@ def gradient_descent(start,
     x = start
     for i in range(max_iter):
         x_prev = x
-        euclidian_grad = - lr * grad(x)
+        euclidean_grad = - lr * grad(x)
         tangent_vec = manifold.projection_to_tangent_space(
-                vector=euclidian_grad, base_point=x)
+                vector=euclidean_grad, base_point=x)
         x = manifold.metric.exp(base_point=x, tangent_vec=tangent_vec)[0]
         if np.abs(loss(x) - loss(x_prev)) <= precision:
             print('x: %s' % x)
@@ -41,12 +51,12 @@ def gradient_descent(start,
 
 def plot_and_save_vid(geodesics,
                       size=20,
-                      fps=0,
+                      fps=10,
                       dpi=100,
                       out='out.mp4',
                       color='red'):
     """Render a set of geodesics and save it to an mpeg 4 file."""
-    FFMpegWriter = manimation.writers['ffmpeg']
+    FFMpegWriter = animation.writers['ffmpeg']
     writer = FFMpegWriter(fps=fps)
     fig = plt.figure(figsize=(size, size))
     ax = fig.add_subplot(111, projection='3d', aspect='equal')
