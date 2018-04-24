@@ -3,8 +3,8 @@ Plot a geodesic of SO(3) equipped
 with its left-invariant canonical METRIC.
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 import geomstats.visualization as visualization
