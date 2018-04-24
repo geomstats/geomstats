@@ -117,9 +117,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         self.n = n
         self.dimension = int((n * (n - 1)) / 2)
-        LieGroup.__init__(dimension=self.dimension,
+        LieGroup.__init__(self,
+                          dimension=self.dimension,
                           identity=np.zeros(self.dimension))
-        EmbeddedManifold.__init__(dimension=self.dimension,
+        EmbeddedManifold.__init__(self,
+                                  dimension=self.dimension,
                                   embedding_manifold=GeneralLinearGroup(n=n))
         self.bi_invariant_metric = self.left_canonical_metric
 
@@ -384,6 +386,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         """
         Convert a rotation matrix into a unit quaternion.
         """
+        assert self.n == 3, ('The quaternion representation does not exist'
+                             ' for rotations in %d dimensions.' % self.n)
         rot_mat = vectorization.to_ndarray(rot_mat, to_ndim=3)
 
         rot_vec = self.rotation_vector_from_matrix(rot_mat)
@@ -396,6 +400,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         """
         Convert a rotation vector into a unit quaternion.
         """
+        assert self.n == 3, ('The quaternion representation does not exist'
+                             ' for rotations in %d dimensions.' % self.n)
         rot_vec = self.regularize(rot_vec)
         n_rot_vecs, _ = rot_vec.shape
 
@@ -420,6 +426,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         """
         Convert a unit quaternion into a rotation vector.
         """
+        assert self.n == 3, ('The quaternion representation does not exist'
+                             ' for rotations in %d dimensions.' % self.n)
         quaternion = vectorization.to_ndarray(quaternion, to_ndim=2)
         n_quaternions, _ = quaternion.shape
 
@@ -448,6 +456,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         """
         Convert a unit quaternion into a rotation vector.
         """
+        assert self.n == 3, ('The quaternion representation does not exist'
+                             ' for rotations in %d dimensions.' % self.n)
         quaternion = vectorization.to_ndarray(quaternion, to_ndim=2)
         n_quaternions, _ = quaternion.shape
 
@@ -496,8 +506,13 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         """
         Inverse of a rotation.
         """
-        rot_vec = self.regularize(rot_vec)
-        return -rot_vec
+        if self.n == 3:
+            inv_rot_vec = -self.regularize(rot_vec)
+        else:
+            rot_mat = self.matrix_from_rotation_vector(rot_vec)
+            inv_rot_mat = np.linalg.inv(rot_mat)
+            inv_rot_vec = self.rotation_vector_from_matrix(inv_rot_mat)
+        return inv_rot_vec
 
     def jacobian_translation(self, point,
                              left_or_right='left'):
@@ -511,6 +526,10 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         :param rot_vec: 3D rotation vector
         :returns jacobian: 3x3 matrix
         """
+        if self.n != 3:
+            raise NotImplementedError(
+                'jacobian_translation not implemented for n != 3.')
+
         assert self.belongs(point)
         assert left_or_right in ('left', 'right')
         point = self.regularize(point)
