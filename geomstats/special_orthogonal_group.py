@@ -38,19 +38,31 @@ def closest_rotation_matrix(mat):
 
 def skew_matrix_from_vector(vec):
     """
-    Compute the skew-symmetric matrix,
+    In 3D, compute the skew-symmetric matrix,
     known as the cross-product of a vector,
     associated to the vector vec.
 
-    :param vec: 3d vector
-    :return skew_mat: 3x3 skew-symmetric matrix
+    In nD, fill a skew-symmetric matrix with
+    the values of the vector.
+
+    :param vec: vector
+    :return skew_mat: skew-symmetric matrix
     """
     vec = vectorization.to_ndarray(vec, to_ndim=2)
     n_vecs, vec_dim = vec.shape
 
-    skew_mat = np.zeros((n_vecs,) + (vec_dim,) * 2)
-    for i in range(n_vecs):
-        skew_mat[i] = np.cross(np.eye(vec_dim), vec[i])
+    mat_dim = int(0.5 * (1 + np.sqrt(1 + 8 * vec_dim)))
+    skew_mat = np.zeros((n_vecs,) + (mat_dim,) * 2)
+
+    if vec_dim == 3:
+        for i in range(n_vecs):
+            skew_mat[i] = np.cross(np.eye(vec_dim), vec[i])
+    else:
+        lower_triangle_indices = np.tril_indices(mat_dim)
+        # TODO(nina): no srt(2) here?
+        for i in range(n_vecs):
+            skew_mat[i, lower_triangle_indices] = vec
+            skew_mat[i] = skew_mat[i] - skew_mat[i].transpose()
 
     assert skew_mat.ndim == 3
     return skew_mat
