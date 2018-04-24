@@ -14,9 +14,6 @@ import scipy.linalg
 from geomstats.riemannian_metric import RiemannianMetric
 import geomstats.vectorization as vectorization
 
-# TODO(nina): allow for multiplication of a metric by a scalar,
-# addition of metrics, etc.
-
 
 class InvariantMetric(RiemannianMetric):
     """

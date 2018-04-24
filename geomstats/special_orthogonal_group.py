@@ -1,6 +1,7 @@
 """Computations on the Lie group of 3D rotations."""
 
 import numpy as np
+import scipy.linalg
 
 # TODO(nina): Rename modules to make imports cleaner?
 # TODO(nina): make code robust to different types and input structures
@@ -12,45 +13,64 @@ def closest_rotation_matrix(mat):
     """
     Compute the closest - in terms of
     the Frobenius norm - rotation matrix
-    of a given matrix M.
-    This avoids computational errors.
+    of a given matrix mat.
 
-    :param mat: 3x3 matrix
-    :returns rot_mat: 3x3 rotation matrix.
+    :param mat: matrix
+    :returns rot_mat: rotation matrix.
     """
     mat = vectorization.to_ndarray(mat, to_ndim=3)
 
-    _, mat_dim_1, mat_dim_2 = mat.shape
-    assert mat_dim_1 == mat_dim_2 == 3
+    n_mats, mat_dim_1, mat_dim_2 = mat.shape
+    assert mat_dim_1 == mat_dim_2
 
-    mat_unitary_u, diag_s, mat_unitary_v = np.linalg.svd(mat)
-    rot_mat = np.matmul(mat_unitary_u, mat_unitary_v)
+    if mat_dim_1 == 3:
+        mat_unitary_u, diag_s, mat_unitary_v = np.linalg.svd(mat)
+        rot_mat = np.matmul(mat_unitary_u, mat_unitary_v)
 
-    mask = np.where(np.linalg.det(rot_mat) < 0)
-    new_mat_diag_s = np.tile(np.diag([1, 1, -1]), sum(mask))
+        mask = np.where(np.linalg.det(rot_mat) < 0)
+        new_mat_diag_s = np.tile(np.diag([1, 1, -1]), len(mask))
 
-    rot_mat[mask] = np.matmul(np.matmul(mat_unitary_u[mask],
-                                        new_mat_diag_s),
-                              mat_unitary_v[mask])
+        rot_mat[mask] = np.matmul(np.matmul(mat_unitary_u[mask],
+                                            new_mat_diag_s),
+                                  mat_unitary_v[mask])
+    else:
+        aux_mat = np.matmul(np.transpose(mat, axes=(0, 2, 1)), mat)
+
+        inv_sqrt_mat = np.zeros_like(mat)
+        for i in range(n_mats):
+            inv_sqrt_mat[i] = np.linalg.inv(scipy.linalg.sqrtm(aux_mat[i]))
+        rot_mat = np.matmul(mat, inv_sqrt_mat)
+
     assert rot_mat.ndim == 3
     return rot_mat
 
 
 def skew_matrix_from_vector(vec):
     """
-    Compute the skew-symmetric matrix,
+    In 3D, compute the skew-symmetric matrix,
     known as the cross-product of a vector,
     associated to the vector vec.
 
-    :param vec: 3d vector
-    :return skew_mat: 3x3 skew-symmetric matrix
+    In nD, fill a skew-symmetric matrix with
+    the values of the vector.
+
+    :param vec: vector
+    :return skew_mat: skew-symmetric matrix
     """
     vec = vectorization.to_ndarray(vec, to_ndim=2)
     n_vecs, vec_dim = vec.shape
 
-    skew_mat = np.zeros((n_vecs,) + (vec_dim,) * 2)
-    for i in range(n_vecs):
-        skew_mat[i] = np.cross(np.eye(3), vec[i])
+    mat_dim = int((1 + np.sqrt(1 + 8 * vec_dim)) / 2)
+    skew_mat = np.zeros((n_vecs,) + (mat_dim,) * 2)
+
+    if vec_dim == 3:
+        for i in range(n_vecs):
+            skew_mat[i] = np.cross(np.eye(vec_dim), vec[i])
+    else:
+        lower_triangle_indices = np.tril_indices(mat_dim, k=-1)
+        for i in range(n_vecs):
+            skew_mat[i][lower_triangle_indices] = vec[i]
+            skew_mat[i] = skew_mat[i] - skew_mat[i].transpose()
 
     assert skew_mat.ndim == 3
     return skew_mat
@@ -58,20 +78,31 @@ def skew_matrix_from_vector(vec):
 
 def vector_from_skew_matrix(skew_mat):
     """
-    Compute the skew-symmetric matrix,
-    known as the cross-product of a vector,
-    associated to the vector vec.
+    In 3D, compute the vector defining the cross product
+    associated to the skew-symmetric matrix skew mat.
 
-    :param skew_mat: 3x3 skew-symmetric matrix
-    :return vec: 3d vector
+    In nD, fill a vector by reading the values
+    of the upper triangle of skew_mat.
+
+    :param skew_mat: skew-symmetric matrix
+    :return vec: vector
     """
     skew_mat = vectorization.to_ndarray(skew_mat, to_ndim=3)
     n_skew_mats, mat_dim_1, mat_dim_2 = skew_mat.shape
 
-    assert mat_dim_1 == mat_dim_2 == 3
+    assert mat_dim_1 == mat_dim_2
 
-    vec = np.zeros((n_skew_mats, 3))
-    vec[:] = skew_mat[:, (2, 0, 1), (1, 2, 0)]
+    vec_dim = int(mat_dim_1 * (mat_dim_1 - 1) / 2)
+    vec = np.zeros((n_skew_mats, vec_dim))
+
+    if vec_dim == 3:
+        vec[:] = skew_mat[:, (2, 0, 1), (1, 2, 0)]
+    else:
+        idx = 0
+        for j in range(mat_dim_1):
+            for i in range(j):
+                vec[:, idx] = skew_mat[:, i, j]
+                idx += 1
 
     assert vec.ndim == 2
     return vec
@@ -81,9 +112,6 @@ class SpecialOrthogonalGroup(LieGroup):
 
     def __init__(self, n):
         assert n > 1
-
-        if n is not 3:
-            raise NotImplementedError('Only SO(3) is implemented.')
 
         self.n = n
         self.dimension = int((n * (n - 1)) / 2)
@@ -103,7 +131,7 @@ class SpecialOrthogonalGroup(LieGroup):
 
     def regularize(self, rot_vec):
         """
-        Regularize the norm of the rotation vector,
+        In 3D, regularize the norm of the rotation vector,
         to be between 0 and pi, following the axis-angle
         representation's convention.
 
@@ -116,55 +144,68 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         rot_vec = vectorization.to_ndarray(rot_vec, to_ndim=2)
         assert self.belongs(rot_vec)
-        n_rot_vecs, _ = rot_vec.shape
+        n_rot_vecs, vec_dim = rot_vec.shape
 
-        angle = np.linalg.norm(rot_vec, axis=1)
-        regularized_rot_vec = rot_vec.astype('float64')
-        mask_not_0 = angle != 0
+        if vec_dim == 3:
+            angle = np.linalg.norm(rot_vec, axis=1)
+            regularized_rot_vec = rot_vec.astype('float64')
+            mask_not_0 = angle != 0
 
-        k = np.floor(angle / (2 * np.pi) + .5)
-        norms_ratio = np.zeros_like(angle).astype('float64')
-        norms_ratio[mask_not_0] = (
-              1. - 2. * np.pi * k[mask_not_0] / angle[mask_not_0])
-        norms_ratio[angle == 0] = 1
-        for i in range(n_rot_vecs):
-            regularized_rot_vec[i, :] = norms_ratio[i] * rot_vec[i]
+            k = np.floor(angle / (2 * np.pi) + .5)
+            norms_ratio = np.zeros_like(angle).astype('float64')
+            norms_ratio[mask_not_0] = (
+                  1. - 2. * np.pi * k[mask_not_0] / angle[mask_not_0])
+            norms_ratio[angle == 0] = 1
+            for i in range(n_rot_vecs):
+                regularized_rot_vec[i, :] = norms_ratio[i] * rot_vec[i]
+        else:
+            # TODO(nina): regularization needed in nD?
+            regularized_rot_vec = rot_vec
 
         assert regularized_rot_vec.ndim == 2
         return regularized_rot_vec
 
     def regularize_tangent_vec_at_identity(self, tangent_vec, metric=None):
-        if metric is None:
-            metric = self.left_canonical_metric
-
+        """
+        In 3D, regularize a tangent_vector by getting its norm at the identity,
+        determined by the metric, to be less than pi,
+        following the regularization convention.
+        """
         tangent_vec = vectorization.to_ndarray(tangent_vec, to_ndim=2)
+        _, vec_dim = tangent_vec.shape
 
-        tangent_vec_metric_norm = metric.norm(tangent_vec)
-        tangent_vec_canonical_norm = np.linalg.norm(tangent_vec, axis=1)
-        if tangent_vec_canonical_norm.ndim == 1:
-            tangent_vec_canonical_norm = np.expand_dims(
-                                     tangent_vec_canonical_norm, axis=1)
+        if vec_dim == 3:
+            if metric is None:
+                metric = self.left_canonical_metric
+            tangent_vec_metric_norm = metric.norm(tangent_vec)
+            tangent_vec_canonical_norm = np.linalg.norm(tangent_vec, axis=1)
+            if tangent_vec_canonical_norm.ndim == 1:
+                tangent_vec_canonical_norm = np.expand_dims(
+                                         tangent_vec_canonical_norm, axis=1)
 
-        mask_norm_0 = np.isclose(tangent_vec_metric_norm, 0)
-        mask_canonical_norm_0 = np.isclose(tangent_vec_canonical_norm, 0)
+            mask_norm_0 = np.isclose(tangent_vec_metric_norm, 0)
+            mask_canonical_norm_0 = np.isclose(tangent_vec_canonical_norm, 0)
 
-        mask_0 = mask_norm_0 | mask_canonical_norm_0
-        mask_else = ~mask_0
+            mask_0 = mask_norm_0 | mask_canonical_norm_0
+            mask_else = ~mask_0
 
-        mask_0 = np.squeeze(mask_0, axis=1)
-        mask_else = np.squeeze(mask_else, axis=1)
+            mask_0 = np.squeeze(mask_0, axis=1)
+            mask_else = np.squeeze(mask_else, axis=1)
 
-        coef = np.empty_like(tangent_vec_metric_norm)
-        regularized_vec = tangent_vec
+            coef = np.empty_like(tangent_vec_metric_norm)
+            regularized_vec = tangent_vec
 
-        regularized_vec[mask_0] = tangent_vec[mask_0]
+            regularized_vec[mask_0] = tangent_vec[mask_0]
 
-        coef[mask_else] = (tangent_vec_metric_norm[mask_else]
-                           / tangent_vec_canonical_norm[mask_else])
-        regularized_vec[mask_else] = self.regularize(
-                coef[mask_else] * tangent_vec[mask_else])
-        regularized_vec[mask_else] = (regularized_vec[mask_else]
-                                      / coef[mask_else])
+            coef[mask_else] = (tangent_vec_metric_norm[mask_else]
+                               / tangent_vec_canonical_norm[mask_else])
+            regularized_vec[mask_else] = self.regularize(
+                    coef[mask_else] * tangent_vec[mask_else])
+            regularized_vec[mask_else] = (regularized_vec[mask_else]
+                                          / coef[mask_else])
+        else:
+            # TODO(nina): regularization needed in nD?
+            regularized_vec = tangent_vec
 
         return regularized_vec
 
@@ -175,27 +216,34 @@ class SpecialOrthogonalGroup(LieGroup):
         to be less than pi,
         following the regularization convention
         """
-        if metric is None:
-            metric = self.left_canonical_metric
-        base_point = self.regularize(base_point)
         tangent_vec = vectorization.to_ndarray(tangent_vec, to_ndim=2)
+        _, vec_dim = tangent_vec.shape
+        if vec_dim == 3:
+            if metric is None:
+                metric = self.left_canonical_metric
+            base_point = self.regularize(base_point)
 
-        jacobian = self.jacobian_translation(
+            jacobian = self.jacobian_translation(
                                           point=base_point,
                                           left_or_right=metric.left_or_right)
-        inv_jacobian = np.linalg.inv(jacobian)
-        tangent_vec_at_id = np.dot(tangent_vec,
-                                   np.transpose(inv_jacobian, axes=(0, 2, 1)))
-        tangent_vec_at_id = np.squeeze(tangent_vec_at_id, axis=1)
+            inv_jacobian = np.linalg.inv(jacobian)
+            tangent_vec_at_id = np.dot(
+                    tangent_vec,
+                    np.transpose(inv_jacobian, axes=(0, 2, 1)))
+            tangent_vec_at_id = np.squeeze(tangent_vec_at_id, axis=1)
 
-        tangent_vec_at_id = self.regularize_tangent_vec_at_identity(
-                                                             tangent_vec_at_id,
-                                                             metric)
+            tangent_vec_at_id = self.regularize_tangent_vec_at_identity(
+                                          tangent_vec_at_id,
+                                          metric)
 
-        regularized_tangent_vec = np.dot(tangent_vec_at_id,
-                                         np.transpose(jacobian,
-                                                      axes=(0, 2, 1)))
-        regularized_tangent_vec = np.squeeze(regularized_tangent_vec, axis=1)
+            regularized_tangent_vec = np.dot(tangent_vec_at_id,
+                                             np.transpose(jacobian,
+                                                          axes=(0, 2, 1)))
+            regularized_tangent_vec = np.squeeze(regularized_tangent_vec,
+                                                 axis=1)
+        else:
+            # TODO(nina): is regularization needed in nD?
+            regularized_tangent_vec = tangent_vec
         return regularized_tangent_vec
 
     def rotation_vector_from_matrix(self, rot_mat):
@@ -361,7 +409,7 @@ class SpecialOrthogonalGroup(LieGroup):
         half_angle = np.arccos(cos_half_angle)
 
         half_angle = vectorization.to_ndarray(half_angle,
-                                               to_ndim=2, axis=1)
+                                              to_ndim=2, axis=1)
         assert half_angle.shape == (n_quaternions, 1)
 
         rot_vec = np.zeros_like(quaternion[:, 1:])
