@@ -128,11 +128,15 @@ class Sphere():
 
         return np.array([x_vals, y_vals, z_vals])
 
-    def plot_heatmap(self, ax, loss, n_points=16000, alpha=0.2, cmap='jet'):
+    def plot_heatmap(self, ax,
+                     scalar_function,
+                     n_points=16000,
+                     alpha=0.2,
+                     cmap='jet'):
         """Plot a heatmap defined by a loss on the sphere."""
-        x = self.fibonnaci_points(n_points)
-        intensity = np.array([loss(x_) for x_ in x.T])
-        ax.scatter(x[0, :], x[1, :], x[2, :],
+        points = self.fibonnaci_points(n_points)
+        intensity = np.array([scalar_function(x) for x in points.T])
+        ax.scatter(points[0, :], points[1, :], points[2, :],
                    c=intensity,
                    alpha=alpha,
                    marker='.',
