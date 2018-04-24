@@ -131,7 +131,7 @@ class SpecialOrthogonalGroup(LieGroup):
 
     def regularize(self, rot_vec):
         """
-        In, 3D, regularize the norm of the rotation vector,
+        In 3D, regularize the norm of the rotation vector,
         to be between 0 and pi, following the axis-angle
         representation's convention.
 
