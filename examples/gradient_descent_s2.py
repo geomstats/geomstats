@@ -18,15 +18,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from geomstats.hypersphere import Hypersphere
-from geomstats.matrix_spaces import SPDMatricesSpace
+from geomstats.spd_matrices_space import SPDMatricesSpace
 import geomstats.vectorization as vectorization
 import geomstats.visualization as visualization
 
 
 SPHERE2 = Hypersphere(dimension=2)
 METRIC = SPHERE2.metric
-np.random.seed(196)
-A = np.random.random(size=(3, 3))
+np.random.seed(1984)
 
 
 def gradient_descent(start,
@@ -34,7 +33,7 @@ def gradient_descent(start,
                      grad,
                      manifold,
                      lr=0.05,
-                     max_iter=5,
+                     max_iter=128,
                      precision=1e-5):
     """Operate a gradient descent on a given manifold until either max_iter or
     a given precision is reached."""
@@ -66,7 +65,7 @@ def plot_and_save_vid(geodesics,
     fig = plt.figure(figsize=(size, size))
     ax = fig.add_subplot(111, projection='3d', aspect='equal')
     sphere = visualization.Sphere()
-    sphere.plot_heatmap(ax, loss)
+    sphere.plot_heatmap(ax, loss, n_points=32000)
     points = vectorization.to_ndarray(geodesics[0], to_ndim=2)
     sphere.add_points(points)
     sphere.draw(ax, color=color, marker='.')
@@ -79,7 +78,10 @@ def plot_and_save_vid(geodesics,
 
 
 def generate_well_behaved_matrix():
-    return SPDMatricesSpace(n=3).random_uniform()
+    """Generate a matrix with real eig."""
+    matrix = SPDMatricesSpace(n=3).random_uniform()[0]
+    assert np.linalg.det(matrix) > 0
+    return matrix
 
 
 def main():
