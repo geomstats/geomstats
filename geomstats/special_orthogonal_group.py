@@ -5,6 +5,8 @@ import scipy.linalg
 
 # TODO(nina): Rename modules to make imports cleaner?
 # TODO(nina): make code robust to different types and input structures
+from geomstats.embedded_manifold import EmbeddedManifold
+from geomstats.general_linear_group import GeneralLinearGroup
 from geomstats.lie_group import LieGroup
 import geomstats.vectorization as vectorization
 
@@ -108,16 +110,17 @@ def vector_from_skew_matrix(skew_mat):
     return vec
 
 
-class SpecialOrthogonalGroup(LieGroup):
+class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
     def __init__(self, n):
         assert n > 1
 
         self.n = n
         self.dimension = int((n * (n - 1)) / 2)
-        super(SpecialOrthogonalGroup, self).__init__(
-                          dimension=self.dimension,
+        LieGroup.__init__(dimension=self.dimension,
                           identity=np.zeros(self.dimension))
+        EmbeddedManifold.__init__(dimension=self.dimension,
+                                  embedding_manifold=GeneralLinearGroup(n=n))
         self.bi_invariant_metric = self.left_canonical_metric
 
     def belongs(self, rot_vec):
@@ -248,7 +251,7 @@ class SpecialOrthogonalGroup(LieGroup):
 
     def rotation_vector_from_matrix(self, rot_mat):
         """
-        Convert rotation matrix to rotation vector
+        In 3D, convert rotation matrix to rotation vector
         (axis-angle representation).
 
         Get the angle through the trace of the rotation matrix:
@@ -264,8 +267,11 @@ class SpecialOrthogonalGroup(LieGroup):
         quaternion to axis-angle:
          r = angle * v / |v|, where (w, v) is a unit quaternion.
 
-        :param rot_mat: 3x3 rotation matrix
-        :return rot_vec: 3d rotation vector
+        In nD, the rotation vector store the n(n-1)/2 values of the
+        skew-symmetric matrix representing
+
+        :param rot_mat: rotation matrix
+        :return rot_vec: rotation vector
         """
         rot_mat = vectorization.to_ndarray(rot_mat, to_ndim=3)
         n_rot_mats, mat_dim_1, mat_dim_2 = rot_mat.shape
@@ -273,51 +279,57 @@ class SpecialOrthogonalGroup(LieGroup):
 
         rot_mat = closest_rotation_matrix(rot_mat)
 
-        trace = np.trace(rot_mat, axis1=1, axis2=2)
-        trace = vectorization.to_ndarray(trace, to_ndim=2, axis=1)
-        assert trace.shape == (n_rot_mats, 1), trace.shape
+        if self.n == 3:
+            trace = np.trace(rot_mat, axis1=1, axis2=2)
+            trace = vectorization.to_ndarray(trace, to_ndim=2, axis=1)
+            assert trace.shape == (n_rot_mats, 1), trace.shape
 
-        cos_angle = .5 * (trace - 1)
-        cos_angle = np.clip(cos_angle, -1, 1)
-        angle = np.arccos(cos_angle)
+            cos_angle = .5 * (trace - 1)
+            cos_angle = np.clip(cos_angle, -1, 1)
+            angle = np.arccos(cos_angle)
 
-        rot_mat_transpose = np.transpose(rot_mat, axes=(0, 2, 1))
-        rot_vec = vector_from_skew_matrix(rot_mat - rot_mat_transpose)
+            rot_mat_transpose = np.transpose(rot_mat, axes=(0, 2, 1))
+            rot_vec = vector_from_skew_matrix(rot_mat - rot_mat_transpose)
 
-        mask_0 = np.isclose(angle, 0)
-        mask_0 = np.squeeze(mask_0, axis=1)
-        rot_vec[mask_0] = (rot_vec[mask_0]
-                           * (.5 - (trace[mask_0] - 3.) / 12.))
+            mask_0 = np.isclose(angle, 0)
+            mask_0 = np.squeeze(mask_0, axis=1)
+            rot_vec[mask_0] = (rot_vec[mask_0]
+                               * (.5 - (trace[mask_0] - 3.) / 12.))
 
-        mask_pi = np.isclose(angle, np.pi)
-        mask_pi = np.squeeze(mask_pi, axis=1)
+            mask_pi = np.isclose(angle, np.pi)
+            mask_pi = np.squeeze(mask_pi, axis=1)
 
-        # choose the largest diagonal element
-        # to avoid a square root of a negative number
-        a = 0
-        if np.any(mask_pi):
-            a = np.argmax(np.diagonal(rot_mat[mask_pi], axis1=1, axis2=2))
-        b = np.mod(a + 1, 3)
-        c = np.mod(a + 2, 3)
+            # choose the largest diagonal element
+            # to avoid a square root of a negative number
+            a = 0
+            if np.any(mask_pi):
+                a = np.argmax(np.diagonal(rot_mat[mask_pi], axis1=1, axis2=2))
+            b = np.mod(a + 1, 3)
+            c = np.mod(a + 2, 3)
 
-        # compute the axis vector
-        sq_root = np.sqrt((rot_mat[mask_pi, a, a]
-                           - rot_mat[mask_pi, b, b]
-                           - rot_mat[mask_pi, c, c] + 1.))
-        rot_vec_pi = np.zeros((sum(mask_pi), self.dimension))
-        rot_vec_pi[:, a] = sq_root / 2.
-        rot_vec_pi[:, b] = ((rot_mat[mask_pi, b, a] + rot_mat[mask_pi, a, b])
-                            / (2. * sq_root))
-        rot_vec_pi[:, c] = ((rot_mat[mask_pi, c, a] + rot_mat[mask_pi, a, c])
-                            / (2. * sq_root))
+            # compute the axis vector
+            sq_root = np.sqrt((rot_mat[mask_pi, a, a]
+                               - rot_mat[mask_pi, b, b]
+                               - rot_mat[mask_pi, c, c] + 1.))
+            rot_vec_pi = np.zeros((sum(mask_pi), self.dimension))
+            rot_vec_pi[:, a] = sq_root / 2.
+            rot_vec_pi[:, b] = ((rot_mat[mask_pi, b, a]
+                                 + rot_mat[mask_pi, a, b])
+                                / (2. * sq_root))
+            rot_vec_pi[:, c] = ((rot_mat[mask_pi, c, a]
+                                + rot_mat[mask_pi, a, c])
+                                / (2. * sq_root))
 
-        rot_vec[mask_pi] = (angle[mask_pi] * rot_vec_pi
-                            / np.linalg.norm(rot_vec_pi))
+            rot_vec[mask_pi] = (angle[mask_pi] * rot_vec_pi
+                                / np.linalg.norm(rot_vec_pi))
 
-        mask_else = ~mask_0 & ~mask_pi
-        rot_vec[mask_else] = (angle[mask_else]
-                              / (2. * np.sin(angle[mask_else]))
-                              * rot_vec[mask_else])
+            mask_else = ~mask_0 & ~mask_pi
+            rot_vec[mask_else] = (angle[mask_else]
+                                  / (2. * np.sin(angle[mask_else]))
+                                  * rot_vec[mask_else])
+        else:
+            skew_mat = self.embedding_manifold.group_log_from_identity(rot_mat)
+            rot_vec = vector_from_skew_matrix(skew_mat)
 
         return self.regularize(rot_vec)
 
@@ -325,39 +337,46 @@ class SpecialOrthogonalGroup(LieGroup):
         """
         Convert rotation vector to rotation matrix.
 
-        :param rot_vec: 3d rotation vector
-        :returns rot_mat: 3x3 rotation matrix
+        :param rot_vec: rotation vector
+        :returns rot_mat: rotation matrix
 
         """
         assert self.belongs(rot_vec)
         rot_vec = self.regularize(rot_vec)
-        n_rot_vecs = rot_vec.shape[0]
+        n_rot_vecs, _ = rot_vec.shape
 
-        angle = np.linalg.norm(rot_vec, axis=1)
-        angle = vectorization.to_ndarray(angle, to_ndim=2, axis=1)
+        if self.n == 3:
+            angle = np.linalg.norm(rot_vec, axis=1)
+            angle = vectorization.to_ndarray(angle, to_ndim=2, axis=1)
 
-        skew_rot_vec = skew_matrix_from_vector(rot_vec)
+            skew_rot_vec = skew_matrix_from_vector(rot_vec)
 
-        coef_1 = np.zeros_like(angle)
-        coef_2 = np.zeros_like(angle)
+            coef_1 = np.zeros_like(angle)
+            coef_2 = np.zeros_like(angle)
 
-        mask_0 = np.isclose(angle, 0)
-        coef_1[mask_0] = 1 - (angle[mask_0] ** 2) / 6
-        coef_2[mask_0] = 1 / 2 - angle[mask_0] ** 2
+            mask_0 = np.isclose(angle, 0)
+            coef_1[mask_0] = 1 - (angle[mask_0] ** 2) / 6
+            coef_2[mask_0] = 1 / 2 - angle[mask_0] ** 2
 
-        coef_1[~mask_0] = np.sin(angle[~mask_0]) / angle[~mask_0]
-        coef_2[~mask_0] = ((1 - np.cos(angle[~mask_0]))
-                           / (angle[~mask_0] ** 2))
+            coef_1[~mask_0] = np.sin(angle[~mask_0]) / angle[~mask_0]
+            coef_2[~mask_0] = ((1 - np.cos(angle[~mask_0]))
+                               / (angle[~mask_0] ** 2))
 
-        term_1 = np.zeros((n_rot_vecs,) + (self.n,) * 2)
-        term_2 = np.zeros_like(term_1)
+            term_1 = np.zeros((n_rot_vecs,) + (self.n,) * 2)
+            term_2 = np.zeros_like(term_1)
 
-        for i in range(n_rot_vecs):
-            term_1[i] = np.eye(self.dimension) + coef_1[i] * skew_rot_vec[i]
-            term_2[i] = coef_2[i] * np.matmul(skew_rot_vec[i], skew_rot_vec[i])
-        rot_mat = term_1 + term_2
+            for i in range(n_rot_vecs):
+                term_1[i] = (np.eye(self.dimension)
+                             + coef_1[i] * skew_rot_vec[i])
+                term_2[i] = (coef_2[i]
+                             * np.matmul(skew_rot_vec[i], skew_rot_vec[i]))
+            rot_mat = term_1 + term_2
 
-        rot_mat = closest_rotation_matrix(rot_mat)
+            rot_mat = closest_rotation_matrix(rot_mat)
+
+        else:
+            skew_mat = skew_matrix_from_vector(rot_vec)
+            rot_mat = self.embedding_manifold.group_exp_from_identity(skew_mat)
 
         return rot_mat
 
