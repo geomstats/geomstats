@@ -29,7 +29,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
     def setUp(self):
         n = 3
         group = SpecialEuclideanGroup(n=n)
-        spd_matrices_space = SPDMatricesSpace(dimension=group.dimension)
+        spd_matrices_space = SPDMatricesSpace(n=group.dimension)
 
         # Points
 
