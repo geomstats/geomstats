@@ -361,7 +361,7 @@ class SpecialOrthogonalGroup(LieGroup):
         half_angle = np.arccos(cos_half_angle)
 
         half_angle = vectorization.to_ndarray(half_angle,
-                                               to_ndim=2, axis=1)
+                                              to_ndim=2, axis=1)
         assert half_angle.shape == (n_quaternions, 1)
 
         rot_vec = np.zeros_like(quaternion[:, 1:])
