@@ -18,11 +18,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from geomstats.hypersphere import Hypersphere
+from geomstats.matrix_spaces import SPDMatricesSpace
 import geomstats.vectorization as vectorization
 import geomstats.visualization as visualization
 
+
 SPHERE2 = Hypersphere(dimension=2)
 METRIC = SPHERE2.metric
+np.random.seed(196)
+A = np.random.random(size=(3, 3))
 
 
 def gradient_descent(start,
@@ -30,7 +34,7 @@ def gradient_descent(start,
                      grad,
                      manifold,
                      lr=0.05,
-                     max_iter=128,
+                     max_iter=5,
                      precision=1e-5):
     """Operate a gradient descent on a given manifold until either max_iter or
     a given precision is reached."""
@@ -50,6 +54,7 @@ def gradient_descent(start,
 
 
 def plot_and_save_vid(geodesics,
+                      loss,
                       size=20,
                       fps=10,
                       dpi=100,
@@ -61,6 +66,7 @@ def plot_and_save_vid(geodesics,
     fig = plt.figure(figsize=(size, size))
     ax = fig.add_subplot(111, projection='3d', aspect='equal')
     sphere = visualization.Sphere()
+    sphere.plot_heatmap(ax, loss)
     points = vectorization.to_ndarray(geodesics[0], to_ndim=2)
     sphere.add_points(points)
     sphere.draw(ax, color=color, marker='.')
@@ -72,9 +78,12 @@ def plot_and_save_vid(geodesics,
             writer.grab_frame()
 
 
+def generate_well_behaved_matrix():
+    return SPDMatricesSpace(n=3).random_uniform()
+
+
 def main():
-    np.random.seed(1980)
-    A = np.random.random(size=(3, 3))
+    A = generate_well_behaved_matrix()
     loss = lambda x: x.T @ A @ x  # NOQA
     grad = lambda x: 2 * A @ x  # NOQA
     initial_point = np.array([0., 1., 0.])
@@ -91,7 +100,7 @@ def main():
         t = np.linspace(0, 1, n_steps)
         geodesics.append(geodesic(t))
         previous_x = x
-    plot_and_save_vid(geodesics)
+    plot_and_save_vid(geodesics, loss)
     eig, _ = np.linalg.eig(A)
     np.testing.assert_almost_equal(loss(x), np.min(eig), decimal=2)
 
