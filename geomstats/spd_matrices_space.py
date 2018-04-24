@@ -106,12 +106,11 @@ class SPDMatricesSpace(EmbeddedManifold):
         mask_pos_eigenvalues = np.all(eigenvalues > 0)
         return mask_is_symmetric & mask_pos_eigenvalues
 
-    def matrix_to_vector(self, mat):
+    def vector_from_symmetric_matrix(self, mat):
         """
         Convert the symmetric part of a symmetric matrix
         into a vector.
         """
-        # TODO(nina): why factor np.sqrt(2)
         mat = vectorization.to_ndarray(mat, to_ndim=3)
         assert np.all(is_symmetric(mat))
         mat = make_symmetric(mat)
@@ -126,17 +125,16 @@ class SPDMatricesSpace(EmbeddedManifold):
                 if i == j:
                     vec[idx] = mat[j, j]
                 else:
-                    vec[idx] = mat[j, i] * np.sqrt(2.)
+                    vec[idx] = mat[j, i]
                 idx += 1
 
         return vec
 
-    def vector_to_matrix(self, vec):
+    def symmetric_matrix_from_vector(self, vec):
         """
         Convert a vector into a symmetric matrix.
         """
         vec = vectorization.to_ndarray(vec, to_ndim=2)
-        # TODO(nina): do we need factor np.sqrt(2) and why?
         _, vec_dim = vec.shape
         mat_dim = int((np.sqrt(8 * vec_dim + 1) - 1) / 2)
         mat = np.zeros((mat_dim,) * 2)
@@ -144,7 +142,7 @@ class SPDMatricesSpace(EmbeddedManifold):
         lower_triangle_indices = np.tril_indices(mat_dim)
         diag_indices = np.diag_indices(mat_dim)
 
-        mat[lower_triangle_indices] = 2 * vec / np.sqrt(2)
+        mat[lower_triangle_indices] = 2 * vec
         mat[diag_indices] = vec
 
         mat = make_symmetric(mat)
