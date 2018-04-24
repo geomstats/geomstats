@@ -89,7 +89,7 @@ class Sphere():
         ax.plot_wireframe(self.sphere_x,
                           self.sphere_y,
                           self.sphere_z,
-                          color="black", alpha=0.3)
+                          color="black", alpha=0.9)
         self.draw_points(ax, **scatter_kwargs)
 
     def draw_points(self, ax, **scatter_kwargs):
@@ -97,6 +97,50 @@ class Sphere():
         points_y = np.vstack([point[1] for point in self.points])
         points_z = np.vstack([point[2] for point in self.points])
         ax.scatter(points_x, points_y, points_z, **scatter_kwargs)
+
+    def fibonnaci_points(self, n_points=16000):
+        """Spherical Fibonacci point sets yield nearly uniform point
+        distributions on the unit sphere."""
+
+        x_vals = []
+        y_vals = []
+        z_vals = []
+
+        offset = 2. / n_points
+        increment = np.pi * (3. - np.sqrt(5.))
+
+        for i in range(n_points):
+            y = ((i * offset) - 1) + (offset / 2)
+            r = np.sqrt(1 - pow(y, 2))
+
+            phi = ((i + 1) % n_points) * increment
+
+            x = np.cos(phi) * r
+            z = np.sin(phi) * r
+
+            x_vals.append(x)
+            y_vals.append(y)
+            z_vals.append(z)
+
+        x_vals = [(self.radius * i) for i in x_vals]
+        y_vals = [(self.radius * i) for i in y_vals]
+        z_vals = [(self.radius * i) for i in z_vals]
+
+        return np.array([x_vals, y_vals, z_vals])
+
+    def plot_heatmap(self, ax,
+                     scalar_function,
+                     n_points=16000,
+                     alpha=0.2,
+                     cmap='jet'):
+        """Plot a heatmap defined by a loss on the sphere."""
+        points = self.fibonnaci_points(n_points)
+        intensity = np.array([scalar_function(x) for x in points.T])
+        ax.scatter(points[0, :], points[1, :], points[2, :],
+                   c=intensity,
+                   alpha=alpha,
+                   marker='.',
+                   cmap=plt.get_cmap(cmap))
 
 
 class PoincareDisk():
