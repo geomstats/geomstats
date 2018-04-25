@@ -72,9 +72,9 @@ def skew_matrix_from_vector(vec):
         for i in range(n_vecs):
             skew_mat[i] = np.cross(np.eye(vec_dim), vec[i])
     else:
-        lower_triangle_indices = np.triu_indices(mat_dim, k=1)
+        upper_triangle_indices = np.triu_indices(mat_dim, k=1)
         for i in range(n_vecs):
-            skew_mat[i][lower_triangle_indices] = vec[i]
+            skew_mat[i][upper_triangle_indices] = vec[i]
             skew_mat[i] = skew_mat[i] - skew_mat[i].transpose()
 
     assert skew_mat.ndim == 3
