@@ -272,8 +272,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         quaternion to axis-angle:
          r = angle * v / |v|, where (w, v) is a unit quaternion.
 
-        In nD, the rotation vector store the n(n-1)/2 values of the
-        skew-symmetric matrix representing
+        In nD, the rotation vector stores the n(n-1)/2 values of the
+        skew-symmetric matrix representing the rotation.
 
         :param rot_mat: rotation matrix
         :return rot_vec: rotation vector
