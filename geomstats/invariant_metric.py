@@ -61,7 +61,7 @@ class InvariantMetric(RiemannianMetric):
             tangent_vec_b = vectorization.to_ndarray(tangent_vec_b, to_ndim=2)
 
             aux_vec_a = np.matmul(np.transpose(tangent_vec_a),
-                                  self.inner_product_mat_at_id)
+                                  self.inner_product_mat_at_identity)
             inner_prod = np.matmul(aux_vec_a, tangent_vec_b)
 
         elif self.group.point_representation == 'matrix':
