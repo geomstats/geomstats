@@ -8,6 +8,7 @@ import scipy.linalg
 from geomstats.embedded_manifold import EmbeddedManifold
 from geomstats.general_linear_group import GeneralLinearGroup
 from geomstats.lie_group import LieGroup
+from geomstats.spd_matrices_space import is_symmetric
 import geomstats.vectorization as vectorization
 
 
@@ -40,7 +41,9 @@ def closest_rotation_matrix(mat):
 
         inv_sqrt_mat = np.zeros_like(mat)
         for i in range(n_mats):
-            inv_sqrt_mat[i] = np.linalg.inv(scipy.linalg.sqrtm(aux_mat[i]))
+            sym_mat = aux_mat[i]
+            assert is_symmetric(sym_mat)
+            inv_sqrt_mat[i] = np.linalg.inv(scipy.linalg.sqrtm(sym_mat))
         rot_mat = np.matmul(mat, inv_sqrt_mat)
 
     assert rot_mat.ndim == 3
@@ -69,7 +72,7 @@ def skew_matrix_from_vector(vec):
         for i in range(n_vecs):
             skew_mat[i] = np.cross(np.eye(vec_dim), vec[i])
     else:
-        lower_triangle_indices = np.tril_indices(mat_dim, k=-1)
+        lower_triangle_indices = np.triu_indices(mat_dim, k=1)
         for i in range(n_vecs):
             skew_mat[i][lower_triangle_indices] = vec[i]
             skew_mat[i] = skew_mat[i] - skew_mat[i].transpose()

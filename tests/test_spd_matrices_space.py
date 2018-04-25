@@ -66,35 +66,35 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         points = self.space.random_uniform(n_samples=n_samples)
         self.assertTrue(np.all(self.space.belongs(points)))
 
-    def matrix_to_vector_and_vector_to_matrix(self):
+    def vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(self):
         sym_mat_1 = np.array([[1., 0.6, -3.],
                               [0.6, 7., 0.],
                               [-3., 0., 8.]])
-        vector_1 = self.space.matrix_to_vector(sym_mat_1)
-        result_1 = self.space.vector_to_matrix(vector_1)
+        vector_1 = self.space.vector_from_symmetric_matrix(sym_mat_1)
+        result_1 = self.space.symmetric_matrix_from_vector(vector_1)
         expected_1 = sym_mat_1
 
         self.assertTrue(np.allclose(result_1, expected_1))
 
         vector_2 = np.array([1, 2, 3, 4, 5, 6])
-        sym_mat_2 = self.space.vector_to_matrix(vector_2)
-        result_2 = self.space.matrix_to_vector(sym_mat_2)
+        sym_mat_2 = self.space.symmetric_matrix_from_vector(vector_2)
+        result_2 = self.space.vector_from_symmetric_matrix(sym_mat_2)
         expected_2 = vector_2
 
         self.assertTrue(np.allclose(result_2, expected_2))
 
-    def matrix_to_vector_and_vector_to_matrix_vectorization(self):
+    def vector_and_symmetric_matrix_vectorization(self):
         n_samples = self.n_samples
         vector = np.random.rand(n_samples, 6)
-        sym_mat = self.space.vector_to_matrix(vector)
-        result = self.space.matrix_to_vector(sym_mat)
+        sym_mat = self.space.symmetric_matrix_from_vector(vector)
+        result = self.space.vector_from_symmetric_matrix(sym_mat)
         expected = vector
 
         self.assertTrue(np.allclose(result, expected))
 
         sym_mat = self.space.random_uniform(n_samples)
-        vector = self.space.matrix_to_vector(sym_mat)
-        result = self.space.vector_to_matrix(vector)
+        vector = self.space.vector_from_symmetric_matrix(sym_mat)
+        result = self.space.symmetric_matrix_from_vector(vector)
         expected = sym_mat
 
         self.assertTrue(np.allclose(result, expected))
