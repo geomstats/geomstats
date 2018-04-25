@@ -14,12 +14,8 @@ from geomstats.riemannian_metric import RiemannianMetric
 import geomstats.vectorization as vectorization
 
 TOLERANCE = 1e-6
+EPSILON = 1e-8
 
-SIN_TAYLOR_COEFFS = [0., 1.,
-                     0., - 1 / math.factorial(3),
-                     0., + 1 / math.factorial(5),
-                     0., - 1 / math.factorial(7),
-                     0., + 1 / math.factorial(9)]
 COS_TAYLOR_COEFFS = [1., 0.,
                      - 1 / math.factorial(2), 0.,
                      + 1 / math.factorial(4), 0.,
@@ -176,20 +172,10 @@ class HypersphereMetric(RiemannianMetric):
                 ' We project it on the tangent space at base_point={}.'.format(
                     base_point))
 
-        norm_tangent_vec = self.embedding_metric.norm(tangent_vec)
-
-        if np.isclose(norm_tangent_vec, 0):
-            coef_1 = (1. + COS_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
-                      + COS_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
-                      + COS_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
-                      + COS_TAYLOR_COEFFS[8] * norm_tangent_vec ** 8)
-            coef_2 = (1. + SIN_TAYLOR_COEFFS[3] * norm_tangent_vec ** 2
-                      + SIN_TAYLOR_COEFFS[5] * norm_tangent_vec ** 4
-                      + SIN_TAYLOR_COEFFS[7] * norm_tangent_vec ** 6
-                      + SIN_TAYLOR_COEFFS[9] * norm_tangent_vec ** 8)
-        else:
-            coef_1 = np.cos(norm_tangent_vec)
-            coef_2 = np.sin(norm_tangent_vec) / norm_tangent_vec
+        # TODO(johmathe): Evaluate the bias introduced by this variable
+        norm_tangent_vec = self.embedding_metric.norm(tangent_vec) + EPSILON
+        coef_1 = np.cos(norm_tangent_vec)
+        coef_2 = np.sin(norm_tangent_vec) / norm_tangent_vec
 
         exp = coef_1 * base_point + coef_2 * tangent_vec
 
