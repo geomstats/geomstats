@@ -15,7 +15,10 @@ class GeneralLinearGroup(LieGroup):
     Base class for the General Linear Group,
     i.e. the matrix group GL(n).
 
-    Note: for now, SO(n) and SE(n) elements are represented
+
+    Note: The default representation for elements of GL(n)
+    are matrices.
+    For now, SO(n) and SE(n) elements are represented
     by a vector by default.
     """
 
@@ -55,11 +58,27 @@ class GeneralLinearGroup(LieGroup):
         Compute the group exponential
         of tangent vector tangent_vec from the identity.
         """
-        return scipy.linalg.expm(tangent_vec)
+        if tangent_vec.ndim == 2:
+            return scipy.linalg.expm(tangent_vec)
+
+        exp = np.zeros_like(tangent_vec)
+        n_vecs, _, _ = tangent_vec.shape
+        for i in range(n_vecs):
+            exp[i] = scipy.linalg.expm(tangent_vec[i])
+
+        return exp
 
     def group_log_from_identity(self, point):
         """
         Compute the group logarithm
         of the point point from the identity.
         """
-        return scipy.linalg.logm(point)
+        if point.ndim == 2:
+            return scipy.linalg.logm(point)
+
+        log = np.zeros_like(point)
+        n_points, _, _ = point.shape
+        for i in range(n_points):
+            log[i] = scipy.linalg.logm(point[i])
+
+        return log

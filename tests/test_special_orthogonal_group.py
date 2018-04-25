@@ -18,7 +18,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
-        n_seq = [3, 10]
+        n_seq = [2, 3]
         so = {n: SpecialOrthogonalGroup(n=n) for n in n_seq}
         spd_matrices_spaces = {n: SPDMatricesSpace(n=group.dimension)
                                for n, group in so.items()}
@@ -155,6 +155,20 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
         self.assertTrue(np.allclose(np.dot(result, rot_vec), np.zeros(n)))
 
+    def test_skew_matrix_and_vector(self):
+        for n in self.n_seq:
+            group = self.so[n]
+            rot_vec = group.random_uniform()
+            skew_mat = special_orthogonal_group.skew_matrix_from_vector(
+                rot_vec)
+            result = special_orthogonal_group.vector_from_skew_matrix(skew_mat)
+            expected = rot_vec
+
+            self.assertTrue(np.allclose(result, expected),
+                            'result = {};'
+                            ' expected = {}.'.format(result,
+                                                     expected))
+
     def test_skew_matrix_from_vector_vectorization(self):
         n_samples = self.n_samples
         for n in self.n_seq:
@@ -180,83 +194,82 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
     def test_regularize(self):
         # Specific to 3D
-        n = 3
-        group = self.so[n]
+        for n in self.n_seq:
+            group = self.so[n]
 
-        point = self.elements[3]['with_angle_0']
-        self.assertFalse(np.linalg.norm(point) != 0)
-        result = group.regularize(point)
-        expected = point
-        self.assertTrue(np.allclose(result, expected), '! angle 0 !')
+            if n == 3:
+                point = self.elements[3]['with_angle_0']
+                self.assertFalse(np.linalg.norm(point) != 0)
+                result = group.regularize(point)
+                expected = point
+                self.assertTrue(np.allclose(result, expected), '! angle 0 !')
 
-        less_than_pi = ['with_angle_close_0',
-                        'with_angle_close_pi_low']
-        for angle_type in less_than_pi:
-            point = self.elements[3][angle_type]
-            result = group.regularize(point)
-            expected = point
-            self.assertTrue(np.allclose(result, expected), angle_type)
+                less_than_pi = ['with_angle_close_0',
+                                'with_angle_close_pi_low']
+                for angle_type in less_than_pi:
+                    point = self.elements[3][angle_type]
+                    result = group.regularize(point)
+                    expected = point
+                    self.assertTrue(np.allclose(result, expected), angle_type)
 
-        # Note: by default, the rotation vector is inverted by
-        # the function regularize when the angle of the rotation is pi.
-        # TODO(nina): should we modify this?
-        angle_type = 'with_angle_pi'
-        point = self.elements[3][angle_type]
-        result = group.regularize(point)
-        expected = - point
-        self.assertTrue(np.allclose(result, expected), angle_type)
+                # Note: by default, the rotation vector is inverted by
+                # the function regularize when the angle of the rotation is pi.
+                # TODO(nina): should we modify this?
+                angle_type = 'with_angle_pi'
+                point = self.elements[3][angle_type]
+                result = group.regularize(point)
+                expected = - point
+                self.assertTrue(np.allclose(result, expected), angle_type)
 
-        in_pi_2pi = ['with_angle_close_pi_high',
-                     'with_angle_in_pi_2pi',
-                     'with_angle_close_2pi_low']
+                in_pi_2pi = ['with_angle_close_pi_high',
+                             'with_angle_in_pi_2pi',
+                             'with_angle_close_2pi_low']
 
-        for angle_type in in_pi_2pi:
-            point = self.elements[3][angle_type]
-            angle = np.linalg.norm(point)
-            new_angle = np.pi - (angle - np.pi)
+                for angle_type in in_pi_2pi:
+                    point = self.elements[3][angle_type]
+                    angle = np.linalg.norm(point)
+                    new_angle = np.pi - (angle - np.pi)
 
-            result = group.regularize(point)
-            expected = - new_angle * (point / angle)
-            self.assertTrue(np.allclose(result, expected), angle_type)
+                    result = group.regularize(point)
+                    expected = - new_angle * (point / angle)
+                    self.assertTrue(np.allclose(result, expected), angle_type)
 
-        angle_type = 'with_angle_2pi'
-        point = self.elements[3][angle_type]
-        result = group.regularize(point)
-        expected = np.array([0., 0., 0.])
-        self.assertTrue(np.allclose(result, expected), angle_type)
+                angle_type = 'with_angle_2pi'
+                point = self.elements[3][angle_type]
+                result = group.regularize(point)
+                expected = np.array([0., 0., 0.])
+                self.assertTrue(np.allclose(result, expected), angle_type)
 
-        angle_type = 'with_angle_close_2pi_high'
-        point = self.elements[3][angle_type]
-        angle = np.linalg.norm(point)
-        new_angle = angle - 2 * np.pi
+                angle_type = 'with_angle_close_2pi_high'
+                point = self.elements[3][angle_type]
+                angle = np.linalg.norm(point)
+                new_angle = angle - 2 * np.pi
 
-        result = group.regularize(point)
-        expected = new_angle * point / angle
-        self.assertTrue(np.allclose(result, expected), angle_type)
+                result = group.regularize(point)
+                expected = new_angle * point / angle
+                self.assertTrue(np.allclose(result, expected), angle_type)
 
-        # nD case:
-        n = 10
-        group = self.so[n]
-        point = np.random.rand(group.dimension)
-        result = group.regularize(point)
-        expected = point
-        self.assertTrue(np.allclose(result, expected))
+            else:
+                point = np.random.rand(group.dimension)
+                result = group.regularize(point)
+                expected = point
+                self.assertTrue(np.allclose(result, expected))
 
     def test_regularize_vectorization(self):
-        n = 3
-        group = self.so[n]
+        for n in self.n_seq:
+            group = self.so[n]
 
-        n_samples = self.n_samples
-        rot_vecs = group.random_uniform(n_samples=n_samples)
-        result = group.regularize(rot_vecs)
+            n_samples = self.n_samples
+            rot_vecs = group.random_uniform(n_samples=n_samples)
+            result = group.regularize(rot_vecs)
 
-        self.assertTrue(np.allclose(result.shape,
-                                    (n_samples, group.dimension)))
-        expected = np.zeros_like(rot_vecs)
-        for i in range(n_samples):
-            expected[i] = group.regularize(rot_vecs[i])
+            self.assertTrue(np.allclose(result.shape,
+                                        (n_samples, group.dimension)))
+            expected = np.zeros_like(rot_vecs)
+            for i in range(n_samples):
+                expected[i] = group.regularize(rot_vecs[i])
 
-        self.assertTrue(np.allclose(expected, result))
+            self.assertTrue(np.allclose(expected, result))
 
     def test_matrix_from_rotation_vector(self):
         n = 3
@@ -304,15 +317,15 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         self.assertTrue(np.allclose(rot_mat_6, expected_rot_mat_6))
 
     def test_matrix_from_rotation_vector_vectorization(self):
-        n = 3
-        group = self.so[n]
+        for n in self.n_seq:
+            group = self.so[n]
 
-        n_samples = self.n_samples
-        rot_vecs = group.random_uniform(n_samples=n_samples)
-        rot_mats = group.matrix_from_rotation_vector(rot_vecs)
+            n_samples = self.n_samples
+            rot_vecs = group.random_uniform(n_samples=n_samples)
+            rot_mats = group.matrix_from_rotation_vector(rot_vecs)
 
-        self.assertTrue(np.allclose(rot_mats.shape,
-                                    (n_samples, group.n, group.n)))
+            self.assertTrue(np.allclose(rot_mats.shape,
+                                        (n_samples, group.n, group.n)))
 
     def test_rotation_vector_from_matrix(self):
         n = 3
@@ -334,37 +347,49 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         matrix_from_rotation_vector
         is the identity.
         """
-        n = 3
-        group = self.so[n]
+        for n in self.n_seq:
+            group = self.so[n]
 
-        for angle_type in self.elements[3]:
-            point = self.elements[3][angle_type]
-            if angle_type in self.angles_close_to_pi[3]:
-                continue
+            if n == 3:
+                for angle_type in self.elements[3]:
+                    point = self.elements[3][angle_type]
+                    if angle_type in self.angles_close_to_pi[3]:
+                        continue
 
-            rot_mat = group.matrix_from_rotation_vector(point)
-            result = group.rotation_vector_from_matrix(rot_mat)
+                    rot_mat = group.matrix_from_rotation_vector(point)
+                    result = group.rotation_vector_from_matrix(rot_mat)
 
-            expected = group.regularize(point)
+                    expected = group.regularize(point)
 
-            self.assertTrue(np.allclose(result, expected),
-                            'for point {}:\n'
-                            'result = {};'
-                            ' expected = {}.'.format(angle_type,
-                                                     result,
-                                                     expected))
+                    self.assertTrue(np.allclose(result, expected),
+                                    'for point {}:\n'
+                                    'result = {};'
+                                    ' expected = {}.'.format(angle_type,
+                                                             result,
+                                                             expected))
+            else:
+                point = group.random_uniform()
+                rot_mat = group.matrix_from_rotation_vector(point)
+                result = group.rotation_vector_from_matrix(rot_mat)
+
+                expected = point
+
+                self.assertTrue(np.allclose(result, expected),
+                                'result = {};'
+                                ' expected = {}.'.format(result,
+                                                         expected))
 
     def test_rotation_vector_and_rotation_matrix_vectorization(self):
-        n = 3
-        group = self.so[n]
+        for n in self.n_seq:
+            group = self.so[n]
 
-        n_samples = self.n_samples
-        rot_vecs = group.random_uniform(n_samples=n_samples)
-        rot_mats = group.matrix_from_rotation_vector(rot_vecs)
-        results = group.rotation_vector_from_matrix(rot_mats)
+            n_samples = self.n_samples
+            rot_vecs = group.random_uniform(n_samples=n_samples)
+            rot_mats = group.matrix_from_rotation_vector(rot_vecs)
+            results = group.rotation_vector_from_matrix(rot_mats)
 
-        expected = group.regularize(rot_vecs)
-        self.assertTrue(np.allclose(results, expected))
+            expected = group.regularize(rot_vecs)
+            self.assertTrue(np.allclose(results, expected))
 
     def test_rotation_vector_and_rotation_matrix_with_angles_close_to_pi(self):
         """
@@ -397,25 +422,35 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                         inv_expected))
 
     def test_quaternion_and_rotation_vector(self):
-        n = 3
-        group = self.so[n]
+        for n in self.n_seq:
+            group = self.so[n]
+            if n == 3:
+                for angle_type in self.elements[3]:
+                    point = self.elements[3][angle_type]
+                    if angle_type in self.angles_close_to_pi[3]:
+                        continue
 
-        for angle_type in self.elements[3]:
-            point = self.elements[3][angle_type]
-            if angle_type in self.angles_close_to_pi[3]:
-                continue
+                    quaternion = group.quaternion_from_rotation_vector(point)
+                    result = group.rotation_vector_from_quaternion(quaternion)
 
-            quaternion = group.quaternion_from_rotation_vector(point)
-            result = group.rotation_vector_from_quaternion(quaternion)
+                    expected = group.regularize(point)
 
-            expected = group.regularize(point)
-
-            self.assertTrue(np.allclose(result, expected),
-                            'for point {}:\n'
-                            'result = {};'
-                            ' expected = {}.'.format(angle_type,
-                                                     result,
-                                                     expected))
+                    self.assertTrue(np.allclose(result, expected),
+                                    'for point {}:\n'
+                                    'result = {};'
+                                    ' expected = {}.'.format(angle_type,
+                                                             result,
+                                                             expected))
+            else:
+                point = group.random_uniform()
+                self.assertRaises(
+                    AssertionError,
+                    lambda: group.quaternion_from_rotation_vector(point))
+                fake_quaternion = np.random.rand(1, n + 1)
+                self.assertRaises(
+                    AssertionError,
+                    lambda: group.rotation_vector_from_quaternion(
+                        fake_quaternion))
 
     def test_quaternion_and_rotation_vector_with_angles_close_to_pi(self):
         n = 3
@@ -453,27 +488,39 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         self.assertTrue(np.allclose(results, expected))
 
     def test_quaternion_and_matrix(self):
-        n = 3
-        group = self.so[n]
+        for n in self.n_seq:
+            group = self.so[n]
 
-        for angle_type in self.elements[3]:
-            point = self.elements[3][angle_type]
-            if angle_type in self.angles_close_to_pi[3]:
-                continue
+            if n == 3:
+                for angle_type in self.elements[3]:
+                    point = self.elements[3][angle_type]
+                    if angle_type in self.angles_close_to_pi[3]:
+                        continue
 
-            matrix = group.matrix_from_rotation_vector(point)
+                    matrix = group.matrix_from_rotation_vector(point)
 
-            quaternion = group.quaternion_from_matrix(matrix)
-            result = group.matrix_from_quaternion(quaternion)
+                    quaternion = group.quaternion_from_matrix(matrix)
+                    result = group.matrix_from_quaternion(quaternion)
 
-            expected = matrix
+                    expected = matrix
 
-            self.assertTrue(np.allclose(result, expected),
-                            'for point {}:\n'
-                            '\nresult = \n{};'
-                            '\nexpected = \n{}.'.format(angle_type,
-                                                        result,
-                                                        expected))
+                    self.assertTrue(np.allclose(result, expected),
+                                    'for point {}:\n'
+                                    '\nresult = \n{};'
+                                    '\nexpected = \n{}.'.format(angle_type,
+                                                                result,
+                                                                expected))
+            else:
+                rot_vec = group.random_uniform()
+                rot_mat = group.matrix_from_rotation_vector(rot_vec)
+                self.assertRaises(
+                    AssertionError,
+                    lambda: group.quaternion_from_matrix(rot_mat))
+                fake_quaternion = np.random.rand(1, n + 1)
+                self.assertRaises(
+                    AssertionError,
+                    lambda: group.matrix_from_quaternion(
+                        fake_quaternion))
 
     def test_quaternion_and_matrix_with_angles_close_to_pi(self):
         n = 3
@@ -514,83 +561,120 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         self.assertTrue(np.allclose(results, expected))
 
     def test_compose(self):
-        n = 3
-        group = self.so[n]
+        for n in self.n_seq:
+            group = self.so[n]
+            if n == 3:
+                for element_type in self.elements[3]:
+                    point = self.elements[3][element_type]
+                    # Composition by identity, on the right
+                    # Expect the original transformation
+                    result = group.compose(point, group.identity)
+                    expected = group.regularize(point)
+                    if element_type not in self.angles_close_to_pi[3]:
+                        self.assertTrue(np.allclose(result, expected),
+                                        '\n{}'
+                                        '\nresult: {}'
+                                        '\nexpected: {}'.format(element_type,
+                                                                result,
+                                                                expected))
+                    else:
+                        inv_expected = - expected
+                        self.assertTrue(np.allclose(result, expected)
+                                        or np.allclose(result, inv_expected))
 
-        for element_type in self.elements[3]:
-            point = self.elements[3][element_type]
-            # Composition by identity, on the right
-            # Expect the original transformation
-            result = group.compose(point, group.identity)
-            expected = group.regularize(point)
-            if element_type not in self.angles_close_to_pi[3]:
+                    # Composition by identity, on the left
+                    # Expect the original transformation
+                    result = group.compose(group.identity, point)
+                    expected = group.regularize(point)
+
+                    if element_type not in self.angles_close_to_pi[3]:
+                        self.assertTrue(np.allclose(result, expected))
+                    else:
+                        inv_expected = - expected
+                        self.assertTrue(np.allclose(result, expected)
+                                        or np.allclose(result, inv_expected))
+            else:
+                point = group.random_uniform()
+
+                result = group.compose(point, group.identity)
+                expected = group.regularize(point)
                 self.assertTrue(np.allclose(result, expected),
-                                '\n{}'
-                                '\nresult: {}'
-                                '\nexpected: {}'.format(element_type,
-                                                        result,
-                                                        expected))
-            else:
-                inv_expected = - expected
-                self.assertTrue(np.allclose(result, expected)
-                                or np.allclose(result, inv_expected))
+                                'result = {}; expected = {}'.format(result,
+                                                                    expected))
 
-            # Composition by identity, on the left
-            # Expect the original transformation
-            result = group.compose(group.identity, point)
-            expected = group.regularize(point)
-
-            if element_type not in self.angles_close_to_pi[3]:
-                self.assertTrue(np.allclose(result, expected))
-            else:
-                inv_expected = - expected
-                self.assertTrue(np.allclose(result, expected)
-                                or np.allclose(result, inv_expected))
+                result = group.compose(group.identity, point)
+                expected = group.regularize(point)
+                self.assertTrue(np.allclose(result, expected),
+                                'result = {}; expected = {}'.format(result,
+                                                                    expected))
 
     def test_compose_and_inverse(self):
-        n = 3
-        group = self.so[n]
+        for n in self.n_seq:
+            group = self.so[n]
 
-        for point in self.elements[3].values():
-            inv_point = group.inverse(point)
-            # Compose transformation by its inverse on the right
-            # Expect the group identity
-            result = group.compose(point, inv_point)
-            expected = group.identity
-            self.assertTrue(np.allclose(result, expected))
+            if n == 3:
+                for point in self.elements[3].values():
+                    inv_point = group.inverse(point)
+                    # Compose transformation by its inverse on the right
+                    # Expect the group identity
+                    result = group.compose(point, inv_point)
+                    expected = group.identity
+                    self.assertTrue(np.allclose(result, expected),
+                                    'result = {}; expected = {}'.format(
+                                        result, expected))
 
-            # Compose transformation by its inverse on the left
-            # Expect the group identity
-            result = group.compose(inv_point, point)
-            expected = group.identity
-            self.assertTrue(np.allclose(result, expected))
+                    # Compose transformation by its inverse on the left
+                    # Expect the group identity
+                    result = group.compose(inv_point, point)
+                    expected = group.identity
+                    self.assertTrue(np.allclose(result, expected),
+                                    'result = {}; expected = {}'.format(
+                                        result, expected))
+            else:
+                point = group.random_uniform()
+                inv_point = group.inverse(point)
+                # Compose transformation by its inverse on the right
+                # Expect the group identity
+                result = group.compose(point, inv_point)
+                expected = group.identity
+                self.assertTrue(np.allclose(result, expected),
+                                'result = {}; expected = {}'.format(result,
+                                                                    expected))
+
+                # Compose transformation by its inverse on the left
+                # Expect the group identity
+                result = group.compose(inv_point, point)
+                expected = group.identity
+                self.assertTrue(np.allclose(result, expected),
+                                'result = {}; expected = {}'.format(result,
+                                                                    expected))
 
     def test_compose_vectorization(self):
-        n = 3
-        group = self.so[n]
+        for n in self.n_seq:
+            group = self.so[n]
 
-        n_samples = self.n_samples
-        n_points_a = group.random_uniform(n_samples=n_samples)
-        n_points_b = group.random_uniform(n_samples=n_samples)
-        one_point = group.random_uniform(n_samples=1)
+            n_samples = self.n_samples
+            n_points_a = group.random_uniform(n_samples=n_samples)
+            n_points_b = group.random_uniform(n_samples=n_samples)
+            one_point = group.random_uniform(n_samples=1)
 
-        result = group.compose(one_point, n_points_a)
-        self.assertTrue(result.shape == (n_samples, group.dimension))
+            result = group.compose(one_point, n_points_a)
+            self.assertTrue(result.shape == (n_samples, group.dimension))
 
-        result = group.compose(n_points_a, one_point)
-        self.assertTrue(result.shape == (n_samples, group.dimension))
+            result = group.compose(n_points_a, one_point)
+            self.assertTrue(result.shape == (n_samples, group.dimension))
 
-        result = group.compose(n_points_a, n_points_b)
-        self.assertTrue(result.shape == (n_samples, group.dimension))
+            result = group.compose(n_points_a, n_points_b)
+            self.assertTrue(result.shape == (n_samples, group.dimension))
 
     def test_inverse_vectorization(self):
-        n = 3
-        group = self.so[n]
+        for n in self.n_seq:
+            group = self.so[n]
 
-        n_samples = self.n_samples
-        points = group.random_uniform(n_samples=n_samples)
-        result = group.inverse(points)
-        self.assertTrue(result.shape == (n_samples, group.dimension))
+            n_samples = self.n_samples
+            points = group.random_uniform(n_samples=n_samples)
+            result = group.inverse(points)
+            self.assertTrue(result.shape == (n_samples, group.dimension))
 
     def test_left_jacobian_through_its_determinant(self):
         n = 3
