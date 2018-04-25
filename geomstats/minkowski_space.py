@@ -13,6 +13,7 @@ class MinkowskiSpace(Manifold):
     """The Minkowski Space."""
 
     def __init__(self, dimension):
+        assert dimension > 0
         self.dimension = dimension
         self.metric = MinkowskiMetric(dimension)
 
