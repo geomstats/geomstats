@@ -11,6 +11,7 @@ class LieGroup(Manifold):
     """ Base class for Lie groups."""
 
     def __init__(self, dimension, identity):
+        assert dimension > 0
         Manifold.__init__(self, dimension)
         self.identity = identity
 

@@ -45,6 +45,20 @@ class InvariantMetric(RiemannianMetric):
         self.left_or_right = left_or_right
         self.signature = (n_pos_eigval, n_null_eigval, n_neg_eigval)
 
+    def inner_product_at_identity(self, tangent_vec_a, tangent_vec_b):
+        """
+        Inner product between two tangent vectors at the identity of the
+        Lie group.
+        Note: tangent vectors are given in vector representation.
+        """
+        tangent_vec_a = vectorization.to_ndarray(tangent_vec_a, to_ndim=2)
+        tangent_vec_b = vectorization.to_ndarray(tangent_vec_b, to_ndim=2)
+
+        aux_vec_a = np.matmul(np.transpose(tangent_vec_a),
+                              self.inner_product_mat_at_id)
+        inner_prod = np.matmul(aux_vec_a, tangent_vec_b)
+        return inner_prod
+
     def inner_product_matrix(self, base_point=None):
         """
         Compute the matrix of the Riemmanian metric at point base_point,
