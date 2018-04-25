@@ -127,6 +127,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                                   dimension=self.dimension,
                                   embedding_manifold=GeneralLinearGroup(n=n))
         self.bi_invariant_metric = self.left_canonical_metric
+        self.point_representation = 'vector' if n == 3 else 'matrix'
 
     def belongs(self, rot_vec):
         """
