@@ -23,7 +23,7 @@ PI8 = PI * PI7
 class SpecialEuclideanGroup(LieGroup):
 
     def __init__(self, n):
-        assert n > 1
+        assert isinstance(n, int) and n > 1
 
         if n is not 3:
             raise NotImplementedError('Only SE(3) is implemented.')

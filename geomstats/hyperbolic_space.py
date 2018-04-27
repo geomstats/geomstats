@@ -48,7 +48,7 @@ class HyperbolicSpace(EmbeddedManifold):
     """
 
     def __init__(self, dimension):
-        assert dimension > 0
+        assert isinstance(dimension, int) and dimension > 0
         super(HyperbolicSpace, self).__init__(
                 dimension=dimension,
                 embedding_manifold=MinkowskiSpace(dimension+1))

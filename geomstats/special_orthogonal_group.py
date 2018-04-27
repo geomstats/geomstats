@@ -116,7 +116,7 @@ def vector_from_skew_matrix(skew_mat):
 class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
     def __init__(self, n):
-        assert n > 1
+        assert isinstance(n, int) and n > 1
 
         self.n = n
         self.dimension = int((n * (n - 1)) / 2)

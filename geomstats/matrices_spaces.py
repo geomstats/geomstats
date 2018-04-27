@@ -13,7 +13,7 @@ class MatrixSpace(EuclideanSpace):
     """The space of matrices (m, n)."""
 
     def __init__(self, m, n):
-        assert m > 0 & n > 0
+        assert isinstance(m, int) and isinstance(n, int) and m > 0 and n > 0
         super().init(dimension=m*n)
         self.m = m
         self.n = n
