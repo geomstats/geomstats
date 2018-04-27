@@ -74,7 +74,8 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
         n_points = self.space.random_uniform(n_samples=n_samples)
 
         result = self.metric.squared_norm(n_points)
-        self.assertTrue(np.allclose(result.shape, (n_samples, 1)))
+        self.assertTrue(np.allclose(result.shape, (n_samples, 1)),
+                        'result.shape={}'.format(result.shape))
 
     def test_norm(self):
         point = np.array([-1, 4])
