@@ -180,10 +180,12 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         determined by the metric, to be less than pi,
         following the regularization convention.
         """
-        tangent_vec = vectorization.to_ndarray(tangent_vec, to_ndim=2)
-        _, vec_dim = tangent_vec.shape
+        assert self.point_representation in ('vector', 'matrix')
 
-        if vec_dim == 3:
+        if self.point_representation is 'vector':
+            tangent_vec = vectorization.to_ndarray(tangent_vec, to_ndim=2)
+            _, vec_dim = tangent_vec.shape
+
             if metric is None:
                 metric = self.left_canonical_metric
             tangent_vec_metric_norm = metric.norm(tangent_vec)

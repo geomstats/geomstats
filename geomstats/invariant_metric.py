@@ -56,13 +56,17 @@ class InvariantMetric(RiemannianMetric):
         Lie group.
         Note: tangent vectors are given in vector representation.
         """
+        assert self.group.point_representation in ('vector', 'matrix')
+
         if self.group.point_representation == 'vector':
             tangent_vec_a = vectorization.to_ndarray(tangent_vec_a, to_ndim=2)
             tangent_vec_b = vectorization.to_ndarray(tangent_vec_b, to_ndim=2)
 
-            aux_vec_a = np.matmul(np.transpose(tangent_vec_a),
+            aux_vec_a = np.matmul(tangent_vec_a,
                                   self.inner_product_mat_at_identity)
-            inner_prod = np.matmul(aux_vec_a, tangent_vec_b)
+            inner_prod = np.einsum('ij,ij->i', aux_vec_a, tangent_vec_b)
+            inner_prod = vectorization.to_ndarray(inner_prod,
+                                                  to_ndim=2, axis=1)
 
         elif self.group.point_representation == 'matrix':
             logging.warning(
