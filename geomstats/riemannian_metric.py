@@ -17,7 +17,7 @@ class RiemannianMetric(object):
     """
 
     def __init__(self, dimension, signature=None):
-        assert dimension > 0
+        assert isinstance(dimension, int) and dimension > 0
         self.dimension = dimension
         if signature is not None:
             assert np.sum(signature) == dimension

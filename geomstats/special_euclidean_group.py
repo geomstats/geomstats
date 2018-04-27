@@ -23,7 +23,7 @@ PI8 = PI * PI7
 class SpecialEuclideanGroup(LieGroup):
 
     def __init__(self, n):
-        assert n > 1
+        assert isinstance(n, int) and n > 1
 
         if n is not 3:
             raise NotImplementedError('Only SE(3) is implemented.')
@@ -36,6 +36,7 @@ class SpecialEuclideanGroup(LieGroup):
         # TODO(nina): keep the names rotations and translations here?
         self.rotations = SpecialOrthogonalGroup(n=n)
         self.translations = EuclideanSpace(dimension=n)
+        self.point_representation = 'vector' if n == 3 else 'matrix'
 
     def belongs(self, point):
         """

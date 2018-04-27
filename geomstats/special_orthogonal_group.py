@@ -116,7 +116,7 @@ def vector_from_skew_matrix(skew_mat):
 class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
     def __init__(self, n):
-        assert n > 1
+        assert isinstance(n, int) and n > 1
 
         self.n = n
         self.dimension = int((n * (n - 1)) / 2)
@@ -127,6 +127,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                                   dimension=self.dimension,
                                   embedding_manifold=GeneralLinearGroup(n=n))
         self.bi_invariant_metric = self.left_canonical_metric
+        self.point_representation = 'vector' if n == 3 else 'matrix'
 
     def belongs(self, rot_vec):
         """
@@ -179,10 +180,12 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         determined by the metric, to be less than pi,
         following the regularization convention.
         """
-        tangent_vec = vectorization.to_ndarray(tangent_vec, to_ndim=2)
-        _, vec_dim = tangent_vec.shape
+        assert self.point_representation in ('vector', 'matrix')
 
-        if vec_dim == 3:
+        if self.point_representation is 'vector':
+            tangent_vec = vectorization.to_ndarray(tangent_vec, to_ndim=2)
+            _, vec_dim = tangent_vec.shape
+
             if metric is None:
                 metric = self.left_canonical_metric
             tangent_vec_metric_norm = metric.norm(tangent_vec)
@@ -529,58 +532,63 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         :param rot_vec: 3D rotation vector
         :returns jacobian: 3x3 matrix
         """
-        if self.n != 3:
-            raise NotImplementedError(
-                'jacobian_translation not implemented for n != 3.')
-
         assert self.belongs(point)
         assert left_or_right in ('left', 'right')
-        point = self.regularize(point)
-        n_points, _ = point.shape
 
-        angle = np.linalg.norm(point, axis=1)
-        angle = np.expand_dims(angle, axis=1)
+        if self.n == 3:
+            point = self.regularize(point)
+            n_points, _ = point.shape
 
-        coef_1 = np.zeros([n_points, 1])
-        coef_2 = np.zeros([n_points, 1])
+            angle = np.linalg.norm(point, axis=1)
+            angle = np.expand_dims(angle, axis=1)
 
-        mask_0 = np.isclose(angle, 0)
-        mask_0 = np.squeeze(mask_0, axis=1)
-        coef_1[mask_0] = (1 - angle[mask_0] ** 2 / 12
-                          - angle[mask_0] ** 4 / 720
-                          - angle[mask_0] ** 6 / 30240)
-        coef_2[mask_0] = (1 / 12 + angle[mask_0] ** 2 / 720
-                          + angle[mask_0] ** 4 / 30240
-                          + angle[mask_0] ** 6 / 1209600)
+            coef_1 = np.zeros([n_points, 1])
+            coef_2 = np.zeros([n_points, 1])
 
-        mask_pi = np.isclose(angle, np.pi)
-        mask_pi = np.squeeze(mask_pi, axis=1)
-        delta_angle = angle[mask_pi] - np.pi
-        coef_1[mask_pi] = (- np.pi * delta_angle / 4
-                           - delta_angle ** 2 / 4
-                           - np.pi * delta_angle ** 3 / 48
-                           - delta_angle ** 4 / 48
-                           - np.pi * delta_angle ** 5 / 480
-                           - delta_angle ** 6 / 480)
-        coef_2[mask_pi] = (1 - coef_1[mask_pi]) / angle[mask_pi] ** 2
+            mask_0 = np.isclose(angle, 0)
+            mask_0 = np.squeeze(mask_0, axis=1)
+            coef_1[mask_0] = (1 - angle[mask_0] ** 2 / 12
+                              - angle[mask_0] ** 4 / 720
+                              - angle[mask_0] ** 6 / 30240)
+            coef_2[mask_0] = (1 / 12 + angle[mask_0] ** 2 / 720
+                              + angle[mask_0] ** 4 / 30240
+                              + angle[mask_0] ** 6 / 1209600)
 
-        mask_else = ~mask_0 & ~mask_pi
-        coef_1[mask_else] = ((angle[mask_else] / 2)
-                             / np.tan(angle[mask_else] / 2))
-        coef_2[mask_else] = (1 - coef_1[mask_else]) / angle[mask_else] ** 2
+            mask_pi = np.isclose(angle, np.pi)
+            mask_pi = np.squeeze(mask_pi, axis=1)
+            delta_angle = angle[mask_pi] - np.pi
+            coef_1[mask_pi] = (- np.pi * delta_angle / 4
+                               - delta_angle ** 2 / 4
+                               - np.pi * delta_angle ** 3 / 48
+                               - delta_angle ** 4 / 48
+                               - np.pi * delta_angle ** 5 / 480
+                               - delta_angle ** 6 / 480)
+            coef_2[mask_pi] = (1 - coef_1[mask_pi]) / angle[mask_pi] ** 2
 
-        jacobian = np.zeros((n_points, self.dimension, self.dimension))
+            mask_else = ~mask_0 & ~mask_pi
+            coef_1[mask_else] = ((angle[mask_else] / 2)
+                                 / np.tan(angle[mask_else] / 2))
+            coef_2[mask_else] = (1 - coef_1[mask_else]) / angle[mask_else] ** 2
 
-        for i in range(n_points):
-            if left_or_right == 'left':
-                jacobian[i] = (coef_1[i] * np.identity(self.dimension)
-                               + coef_2[i] * np.outer(point[i], point[i])
-                               + skew_matrix_from_vector(point[i]) / 2)
+            jacobian = np.zeros((n_points, self.dimension, self.dimension))
 
-            else:
-                jacobian[i] = (coef_1[i] * np.identity(self.dimension)
-                               + coef_2[i] * np.outer(point[i], point[i])
-                               - skew_matrix_from_vector(point[i]) / 2)
+            for i in range(n_points):
+                if left_or_right == 'left':
+                    jacobian[i] = (coef_1[i] * np.identity(self.dimension)
+                                   + coef_2[i] * np.outer(point[i], point[i])
+                                   + skew_matrix_from_vector(point[i]) / 2)
+
+                else:
+                    jacobian[i] = (coef_1[i] * np.identity(self.dimension)
+                                   + coef_2[i] * np.outer(point[i], point[i])
+                                   - skew_matrix_from_vector(point[i]) / 2)
+
+        else:
+            if left_or_right == 'right':
+                raise NotImplementedError(
+                    'The jacobian of the right translation'
+                    ' is not implemented.')
+            jacobian = self.matrix_from_rotation_vector(point)
 
         assert jacobian.ndim == 3
         return jacobian

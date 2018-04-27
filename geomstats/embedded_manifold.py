@@ -13,6 +13,7 @@ class EmbeddedManifold(Manifold):
     """
 
     def __init__(self, dimension, embedding_manifold):
+        assert isinstance(dimension, int) and dimension > 0
         super(EmbeddedManifold, self).__init__(
             dimension=dimension)
         self.embedding_manifold = embedding_manifold

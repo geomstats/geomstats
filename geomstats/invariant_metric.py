@@ -8,6 +8,7 @@ Note: Assume that the points are parameterized by
 their Riemannian logarithm for the canonical left-invariant metric.
 """
 
+import logging
 import numpy as np
 import scipy.linalg
 
@@ -21,7 +22,8 @@ class InvariantMetric(RiemannianMetric):
     that can be defined on Lie groups.
     """
 
-    def __init__(self, group, inner_product_mat_at_identity,
+    def __init__(self, group,
+                 inner_product_mat_at_identity=None,
                  left_or_right='left'):
         if inner_product_mat_at_identity.ndim == 3:
             n_mats, _, _ = inner_product_mat_at_identity.shape
@@ -41,15 +43,75 @@ class InvariantMetric(RiemannianMetric):
                 + n_null_eigval) == group.dimension
 
         self.group = group
+        if inner_product_mat_at_identity is None:
+            inner_product_mat_at_identity = np.eye(self.group.dimension)
+
         self.inner_product_mat_at_identity = inner_product_mat_at_identity
         self.left_or_right = left_or_right
         self.signature = (n_pos_eigval, n_null_eigval, n_neg_eigval)
+
+    def inner_product_at_identity(self, tangent_vec_a, tangent_vec_b):
+        """
+        Inner product between two tangent vectors at the identity of the
+        Lie group.
+        Note: tangent vectors are given in vector representation.
+        """
+        assert self.group.point_representation in ('vector', 'matrix')
+
+        if self.group.point_representation == 'vector':
+            tangent_vec_a = vectorization.to_ndarray(tangent_vec_a, to_ndim=2)
+            tangent_vec_b = vectorization.to_ndarray(tangent_vec_b, to_ndim=2)
+
+            aux_vec_a = np.matmul(tangent_vec_a,
+                                  self.inner_product_mat_at_identity)
+            inner_prod = np.einsum('ij,ij->i', aux_vec_a, tangent_vec_b)
+            inner_prod = vectorization.to_ndarray(inner_prod,
+                                                  to_ndim=2, axis=1)
+
+        elif self.group.point_representation == 'matrix':
+            logging.warning(
+                'Only the canonical inner product -Frobenius inner product-'
+                ' is implemented for Lie groups whose elements are represented'
+                ' by matrices.')
+            tangent_vec_a = vectorization.to_ndarray(tangent_vec_a, to_ndim=3)
+            tangent_vec_b = vectorization.to_ndarray(tangent_vec_b, to_ndim=3)
+            aux_prod = np.matmul(np.transpose(tangent_vec_a, axes=(0, 2, 1)),
+                                 tangent_vec_b)
+            inner_prod = np.trace(aux_prod)
+
+        return inner_prod
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        if base_point is None:
+            return self.inner_product_at_identity(tangent_vec_a,
+                                                  tangent_vec_b)
+        if self.group.point_representation == 'vector':
+                return super(InvariantMetric, self).inner_product(
+                                     tangent_vec_a,
+                                     tangent_vec_b,
+                                     base_point)
+
+        if self.left_or_right == 'right':
+            raise NotImplementedError(
+                'inner_product not implemented for right invariant metrics.')
+        jacobian = self.group.jacobian_translation(base_point)
+        inv_jacobian = np.linalg.inv(jacobian)
+        tangent_vec_a_at_id = np.matmul(inv_jacobian, tangent_vec_a)
+        tangent_vec_b_at_id = np.matmul(inv_jacobian, tangent_vec_b)
+        inner_prod = self.inner_product_at_identity(tangent_vec_a_at_id,
+                                                    tangent_vec_b_at_id)
+        return inner_prod
 
     def inner_product_matrix(self, base_point=None):
         """
         Compute the matrix of the Riemmanian metric at point base_point,
         by translating inner_product from the identity to base_point.
         """
+        if self.group.point_representation == 'matrix':
+            raise NotImplementedError(
+                'inner_product_matrix not implemented for Lie groups'
+                ' whose elements are represented as matrices.')
+
         if base_point is None:
             base_point = self.group.identity
         base_point = self.group.regularize(base_point)

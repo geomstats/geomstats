@@ -84,6 +84,7 @@ def group_log(sym_mat):
 
 class SPDMatricesSpace(EmbeddedManifold):
     def __init__(self, n):
+        assert isinstance(n, int) and n > 0
         super(SPDMatricesSpace, self).__init__(
             dimension=int(n * (n + 1) / 2),
             embedding_manifold=GeneralLinearGroup(n=n))

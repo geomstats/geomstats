@@ -13,6 +13,7 @@ class EuclideanSpace(Manifold):
     """The Euclidean space."""
 
     def __init__(self, dimension):
+        assert isinstance(dimension, int) and dimension > 0
         self.dimension = dimension
         self.metric = EuclideanMetric(dimension)
 
@@ -40,6 +41,7 @@ class EuclideanMetric(RiemannianMetric):
     The metric has signature (0, n) on the n-D vector space.
     """
     def __init__(self, dimension):
+        assert isinstance(dimension, int) and dimension > 0
         super(EuclideanMetric, self).__init__(
                                         dimension=dimension,
                                         signature=(dimension, 0, 0))

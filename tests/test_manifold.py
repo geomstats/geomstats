@@ -10,7 +10,7 @@ class TestManifoldMethods(unittest.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
-        self.dimension = np.random.randint(1)
+        self.dimension = np.random.randint(low=1, high=10)
         self.manifold = Manifold(self.dimension)
 
     def test_dimension(self):

@@ -23,6 +23,7 @@ class GeneralLinearGroup(LieGroup):
     """
 
     def __init__(self, n):
+        assert isinstance(n, int) and n > 0
         super(GeneralLinearGroup, self).__init__(
                                       dimension=n*n,
                                       identity=np.eye(n))
