@@ -11,6 +11,7 @@ from geomstats.embedded_manifold import EmbeddedManifold
 from geomstats.euclidean_space import EuclideanMetric
 from geomstats.euclidean_space import EuclideanSpace
 from geomstats.riemannian_metric import RiemannianMetric
+import keras.backend as K
 import geomstats.vectorization as vectorization
 
 TOLERANCE = 1e-6
@@ -47,16 +48,15 @@ class Hypersphere(EmbeddedManifold):
         in the embedding Euclidean space.
         Note: point must be given in extrinsic coordinates.
         """
-        point = vectorization.to_ndarray(point, to_ndim=2)
-
-        _, point_dim = point.shape
+        # point = vectorization.to_ndarray(point, to_ndim=2)
+        _, point_dim = K.shape(point)
         if point_dim is not self.dimension + 1:
             if point_dim is self.dimension:
                 logging.warning('Use the extrinsic coordinates to '
                                 'represent points on the hypersphere.')
             return False
         sq_norm = self.embedding_metric.squared_norm(point)
-        diff = np.abs(sq_norm - 1)
+        diff = K.abs(sq_norm - 1)
 
         return diff < tolerance
 
@@ -65,12 +65,14 @@ class Hypersphere(EmbeddedManifold):
         Project the vector vector onto the tangent space:
         T_{base_point} S = {w | scal(w, base_point) = 0}
         """
-        assert self.belongs(base_point)
-
+        #assert self.belongs(base_point)
+        orig_shape = K.shape(base_point)
+        base_point = K.flatten(base_point)
+        vector = K.flatten(vector)
         sq_norm = self.embedding_metric.squared_norm(base_point)
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
         tangent_vec = (vector - inner_prod / sq_norm * base_point)
-
+        K.reshape(tangent_vec, orig_shape)
         return tangent_vec
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
@@ -81,18 +83,18 @@ class Hypersphere(EmbeddedManifold):
         point_intrinsic = vectorization.to_ndarray(point_intrinsic,
                                                    to_ndim=2)
 
-        n_points, _ = point_intrinsic.shape
+        n_points, _ = K.shape(point_intrinsic)
 
         dimension = self.dimension
-        point_extrinsic = np.zeros((n_points, dimension + 1))
+        point_extrinsic = K.zeros((n_points, dimension + 1))
         point_extrinsic[:, 1: dimension + 1] = point_intrinsic[:, 0: dimension]
 
-        point_extrinsic[:, 0] = np.sqrt(1. - np.linalg.norm(
+        point_extrinsic[:, 0] = K.sqrt(1. - K.l2_normalize(
                                                 point_intrinsic,
                                                 axis=1) ** 2)
-        assert np.all(self.belongs(point_extrinsic))
+        #assert np.all(self.belongs(point_extrinsic))
 
-        assert point_extrinsic.ndim == 2
+        #assert point_extrinsic.ndim == 2
         return point_extrinsic
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
@@ -164,8 +166,8 @@ class HypersphereMetric(RiemannianMetric):
         """
         projected_tangent_vec = self.projection_to_tangent_space(
             vector=tangent_vec, base_point=base_point)
-        diff = np.abs(projected_tangent_vec - tangent_vec)
-        if not np.allclose(diff, 0):
+        diff = K.abs(projected_tangent_vec - tangent_vec)
+        if not K.allclose(diff, 0):
             tangent_vec = projected_tangent_vec
             logging.warning(
                 'The input vector is not tangent to the hypersphere.'
@@ -174,8 +176,8 @@ class HypersphereMetric(RiemannianMetric):
 
         # TODO(johmathe): Evaluate the bias introduced by this variable
         norm_tangent_vec = self.embedding_metric.norm(tangent_vec) + EPSILON
-        coef_1 = np.cos(norm_tangent_vec)
-        coef_2 = np.sin(norm_tangent_vec) / norm_tangent_vec
+        coef_1 = K.cos(norm_tangent_vec)
+        coef_2 = K.sin(norm_tangent_vec) / norm_tangent_vec
 
         exp = coef_1 * base_point + coef_2 * tangent_vec
 
@@ -232,8 +234,8 @@ class HypersphereMetric(RiemannianMetric):
         point_a = vectorization.to_ndarray(point_a, to_ndim=2)
         point_b = vectorization.to_ndarray(point_b, to_ndim=2)
 
-        n_points_a, _ = point_a.shape
-        n_points_b, _ = point_b.shape
+        n_points_a, _ = K.shape(point_a)
+        n_points_b, _ = K.shape(point_b)
 
         assert (n_points_a == n_points_b
                 or n_points_a == 1

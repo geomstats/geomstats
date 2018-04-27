@@ -3,7 +3,7 @@ The Euclidean space.
 """
 
 import numpy as np
-
+import keras.backend as K
 from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
 import geomstats.vectorization as vectorization
@@ -50,7 +50,7 @@ class EuclideanMetric(RiemannianMetric):
 
         Note: the matrix is independent of the base_point.
         """
-        return np.eye(self.dimension)
+        return K.eye(self.dimension)
 
     def exp_basis(self, tangent_vec, base_point):
         """

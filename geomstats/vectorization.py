@@ -2,13 +2,9 @@
 Utils to factorize geomstats code w.r.t. vectorization.
 """
 
-import numpy as np
-
+import keras.backend as K
 
 def to_ndarray(element, to_ndim, axis=0):
-    element = np.asarray(element)
-
-    if element.ndim == to_ndim - 1:
-        element = np.expand_dims(element, axis=axis)
-    assert element.ndim == to_ndim
+    if K.ndim(element) == to_ndim - 1:
+        element = K.expand_dims(element, axis=axis)
     return element
