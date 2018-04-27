@@ -2,8 +2,10 @@
 Base class for Riemannian metrics.
 """
 
+import tensorflow as tf
 import logging
 import numpy as np
+import keras.backend as K
 
 import geomstats.vectorization as vectorization
 
@@ -42,10 +44,11 @@ class RiemannianMetric(object):
 
         inner_prod_mat = self.inner_product_matrix(base_point)
         inner_prod_mat = vectorization.to_ndarray(inner_prod_mat, to_ndim=3)
+        print(tangent_vec_a)
+        n_tangent_vecs_a = tf.shape(tangent_vec_a)[0]
 
-        n_tangent_vecs_a = tangent_vec_a.shape[0]
-        n_tangent_vecs_b = tangent_vec_b.shape[0]
-        n_inner_prod_mats = inner_prod_mat.shape[0]
+        n_tangent_vecs_b = tf.shape(tangent_vec_b)[0]
+        n_inner_prod_mats = tf.shape(inner_prod_mat)[0]
 
         bool_all_same_n = (n_tangent_vecs_a
                            == n_tangent_vecs_b
@@ -53,19 +56,19 @@ class RiemannianMetric(object):
         bool_a = n_tangent_vecs_a == 1
         bool_b = n_tangent_vecs_b == 1
         bool_inner_prod = n_inner_prod_mats == 1
-        assert (bool_all_same_n
-                or n_tangent_vecs_a == n_tangent_vecs_b and bool_inner_prod
-                or n_tangent_vecs_a == n_inner_prod_mats and bool_b
-                or n_tangent_vecs_b == n_inner_prod_mats and bool_a
-                or bool_a and bool_b
-                or bool_a and bool_inner_prod
-                or bool_b and bool_inner_prod)
+        #assert (bool_all_same_n
+        #        or n_tangent_vecs_a == n_tangent_vecs_b and bool_inner_prod
+        #        or n_tangent_vecs_a == n_inner_prod_mats and bool_b
+        #        or n_tangent_vecs_b == n_inner_prod_mats and bool_a
+        #        or bool_a and bool_b
+        #        or bool_a and bool_inner_prod
+        #        or bool_b and bool_inner_prod)
 
-        n_inner_prods = np.amax([n_tangent_vecs_a,
-                                 n_tangent_vecs_b,
-                                 n_inner_prod_mats],
-                                axis=0)
-        inner_prod = np.zeros((n_inner_prods, 1))
+        n_inner_prods = K.max([n_tangent_vecs_a,
+                               n_tangent_vecs_b,
+                               n_inner_prod_mats],
+                               axis=0)
+        inner_prod = K.zeros((n_inner_prods, 1))
         for i in range(n_inner_prods):
             tangent_vec_a_i = (tangent_vec_a[0] if n_tangent_vecs_a == 1
                                else tangent_vec_a[i])
@@ -73,8 +76,8 @@ class RiemannianMetric(object):
                                else tangent_vec_b[i])
             inner_prod_mat_i = (inner_prod_mat[0] if n_inner_prod_mats == 1
                                 else inner_prod_mat[i])
-            inner_prod[i] = np.dot(np.dot(tangent_vec_a_i, inner_prod_mat_i),
-                                   tangent_vec_b_i.transpose())
+            inner_prod[i] = K.dot(np.dot(tangent_vec_a_i, inner_prod_mat_i),
+                                  tangent_vec_b_i.transpose())
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
