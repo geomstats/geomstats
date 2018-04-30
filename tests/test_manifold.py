@@ -7,8 +7,10 @@ from geomstats.manifold import Manifold
 
 
 class TestManifoldMethods(unittest.TestCase):
+    _multiprocess_can_split_ = True
+
     def setUp(self):
-        self.dimension = np.random.randint(1)
+        self.dimension = np.random.randint(low=1, high=10)
         self.manifold = Manifold(self.dimension)
 
     def test_dimension(self):
@@ -22,9 +24,8 @@ class TestManifoldMethods(unittest.TestCase):
                           lambda: self.manifold.belongs(point))
 
     def test_regularize(self):
-        point = np.array(5)
-        self.assertRaises(NotImplementedError,
-                          lambda: self.manifold.regularize(point))
+        point = np.array([1, 2, 3])
+        self.assertTrue(np.allclose(point, self.manifold.regularize(point)))
 
 
 if __name__ == '__main__':

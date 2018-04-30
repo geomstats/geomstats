@@ -7,6 +7,7 @@ class Manifold(object):
     """Base class for differentiable manifolds."""
 
     def __init__(self, dimension):
+        assert isinstance(dimension, int) and dimension > 0
         self.dimension = dimension
 
     def belongs(self, point):
@@ -18,4 +19,4 @@ class Manifold(object):
         Regularizes the point's coordinates to the canonical representation
         chosen for this manifold.
         """
-        raise NotImplementedError('regularize is not implemented.')
+        return point

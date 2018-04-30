@@ -3,16 +3,18 @@
 import numpy as np
 import unittest
 
-from geomstats.matrix_lie_group import MatrixLieGroup
-
+from geomstats.general_linear_group import GeneralLinearGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
+RTOL = 1e-5
 
-class TestMatrixLieGroupMethods(unittest.TestCase):
+
+class TestGeneralLinearGroupMethods(unittest.TestCase):
+    _multiprocess_can_split_ = True
+
     def setUp(self):
         n = 3
-        self.group = MatrixLieGroup(dimension=n ** 2,
-                                    n=n)
+        self.group = GeneralLinearGroup(n=n)
         # We generate invertible matrices using so3_group
         self.so3_group = SpecialOrthogonalGroup(n=n)
 
@@ -45,7 +47,14 @@ class TestMatrixLieGroupMethods(unittest.TestCase):
         result_2 = self.group.compose(self.group.identity, mat_2)
         expected_2 = mat_2
 
-        self.assertTrue(np.allclose(result_2, expected_2))
+        norm = np.linalg.norm(expected_2)
+        atol = RTOL
+        if norm != 0:
+            atol = RTOL * norm
+        self.assertTrue(np.allclose(result_2, expected_2, atol=atol),
+                        '\nresult:\n{}'
+                        '\nexpected:\n{}'.format(result_2,
+                                                 expected_2))
 
     def test_compose_and_inverse(self):
         # 1. Compose transformation by its inverse on the right
@@ -57,7 +66,14 @@ class TestMatrixLieGroupMethods(unittest.TestCase):
         result_1 = self.group.compose(mat_1, inv_mat_1)
         expected_1 = self.group.identity
 
-        self.assertTrue(np.allclose(result_1, expected_1))
+        norm = np.linalg.norm(expected_1)
+        atol = RTOL
+        if norm != 0:
+            atol = RTOL * norm
+
+        self.assertTrue(np.allclose(result_1, expected_1, atol=atol),
+                        '\nresult:\n{}'
+                        '\nexpected:\n{}'.format(result_1, expected_1))
 
         # 2. Compose transformation by its inverse on the left
         # Expect the group identity
@@ -68,7 +84,12 @@ class TestMatrixLieGroupMethods(unittest.TestCase):
         result_2 = self.group.compose(inv_mat_2, mat_2)
         expected_2 = self.group.identity
 
-        self.assertTrue(np.allclose(result_2, expected_2))
+        norm = np.linalg.norm(expected_2)
+        atol = RTOL
+        if norm != 0:
+            atol = RTOL * norm
+
+        self.assertTrue(np.allclose(result_2, expected_2, atol=atol))
 
 
 if __name__ == '__main__':

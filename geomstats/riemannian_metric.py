@@ -5,6 +5,8 @@ Base class for Riemannian metrics.
 import logging
 import numpy as np
 
+import geomstats.vectorization as vectorization
+
 EPSILON = 1e-5
 
 
@@ -15,7 +17,7 @@ class RiemannianMetric(object):
     """
 
     def __init__(self, dimension, signature=None):
-        assert dimension > 0
+        assert isinstance(dimension, int) and dimension > 0
         self.dimension = dimension
         if signature is not None:
             assert np.sum(signature) == dimension
@@ -30,14 +32,41 @@ class RiemannianMetric(object):
                 'The computation of the inner product matrix'
                 ' is not implemented.')
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None,):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """
         Inner product defined by the Riemannian metric at point base_point
         between tangent vectors tangent_vec_a and tangent_vec_b.
         """
+        tangent_vec_a = vectorization.to_ndarray(tangent_vec_a, to_ndim=2)
+        tangent_vec_b = vectorization.to_ndarray(tangent_vec_b, to_ndim=2)
+
         inner_prod_mat = self.inner_product_matrix(base_point)
-        inner_prod = np.dot(np.dot(tangent_vec_a.transpose(), inner_prod_mat),
-                            tangent_vec_b)
+        inner_prod_mat = vectorization.to_ndarray(inner_prod_mat, to_ndim=3)
+
+        n_tangent_vecs_a, _ = tangent_vec_a.shape
+        n_tangent_vecs_b, _ = tangent_vec_b.shape
+        n_inner_prod_mats, _, _ = inner_prod_mat.shape
+
+        bool_all_same_n = (n_tangent_vecs_a
+                           == n_tangent_vecs_b
+                           == n_inner_prod_mats)
+        bool_a = n_tangent_vecs_a == 1
+        bool_b = n_tangent_vecs_b == 1
+        bool_inner_prod = n_inner_prod_mats == 1
+        assert (bool_all_same_n
+                or n_tangent_vecs_a == n_tangent_vecs_b and bool_inner_prod
+                or n_tangent_vecs_a == n_inner_prod_mats and bool_b
+                or n_tangent_vecs_b == n_inner_prod_mats and bool_a
+                or bool_a and bool_b
+                or bool_a and bool_inner_prod
+                or bool_b and bool_inner_prod)
+
+        inner_prod = np.einsum('ij,ijk,ik->i',
+                               tangent_vec_a,
+                               inner_prod_mat,
+                               tangent_vec_b)
+        inner_prod = vectorization.to_ndarray(inner_prod, to_ndim=2, axis=1)
+
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
@@ -63,21 +92,135 @@ class RiemannianMetric(object):
         norm = np.sqrt(sq_norm)
         return norm
 
-    def exp(self, tangent_vec, base_point=None):
+    def exp_basis(self, tangent_vec, base_point=None):
         """
         Riemannian exponential at point base_point
         of tangent vector tangent_vec wrt the Riemannian metric.
         """
         raise NotImplementedError(
-                'The Riemannian exponential is not implemented.')
+                'The basis function for the Riemannian exponential'
+                'is not implemented.')
+
+    def log_basis(self, point, base_point=None):
+        """
+        Riemannian logarithm at point base_point
+        of tangent vector tangent_vec wrt the Riemannian metric.
+        """
+        raise NotImplementedError(
+                'The basis function for the Riemannian logarithm'
+                ' is not implemented.')
+
+    def exp(self, tangent_vec, base_point=None):
+        """
+        Riemannian exponential at point base_point
+        of tangent vector tangent_vec wrt the Riemannian metric.
+        """
+        if tangent_vec.ndim == 1:
+            tangent_vec = np.expand_dims(tangent_vec, axis=0)
+        assert tangent_vec.ndim == 2
+
+        if base_point.ndim == 1:
+            base_point = np.expand_dims(base_point, axis=0)
+        assert base_point.ndim == 2
+
+        n_tangent_vecs, _ = tangent_vec.shape
+        n_base_points, point_dim = base_point.shape
+
+        assert (n_tangent_vecs == n_base_points
+                or n_tangent_vecs == 1
+                or n_base_points == 1)
+
+        n_exps = np.maximum(n_tangent_vecs, n_base_points)
+        exp = np.zeros((n_exps, point_dim))
+        for i in range(n_exps):
+            base_point_i = (base_point[0] if n_base_points == 1
+                            else base_point[i])
+            tangent_vec_i = (tangent_vec[0] if n_tangent_vecs == 1
+                             else tangent_vec[i])
+            exp[i] = self.exp_basis(tangent_vec_i, base_point_i)
+
+        return exp
 
     def log(self, point, base_point=None):
         """
         Riemannian logarithm at point base_point
         of tangent vector tangent_vec wrt the Riemannian metric.
         """
-        raise NotImplementedError(
-                'The Riemannian logarithm is not implemented.')
+        point = vectorization.to_ndarray(point, to_ndim=2)
+        base_point = vectorization.to_ndarray(base_point, to_ndim=2)
+
+        n_points, _ = point.shape
+        n_base_points, point_dim = base_point.shape
+
+        assert (n_points == n_base_points
+                or n_points == 1
+                or n_base_points == 1)
+
+        n_logs = np.maximum(n_points, n_base_points)
+        log = np.zeros((n_logs, point_dim))
+        for i in range(n_logs):
+            base_point_i = (base_point[0] if n_base_points == 1
+                            else base_point[i])
+            point_i = (point[0] if n_points == 1
+                       else point[i])
+            log[i] = self.log_basis(point_i, base_point_i)
+
+        return log
+
+    def geodesic(self, initial_point,
+                 end_point=None, initial_tangent_vec=None, point_ndim=1):
+        """
+        Geodesic curve associated to the Riemannian metric,
+        starting at the point initial_point in the direction
+        of the initial tangent vector.
+
+        The geodesic is returned as a function of t, which represents the
+        geodesic curve parameterized by t.
+
+        By default, the function assumes that points and tangent_vecs are
+        represented by vectors: point_ndim=1. This function is overwritten
+        for manifolds whose points are represented by matrices or higher
+        dimensional tensors.
+        """
+        initial_point = vectorization.to_ndarray(initial_point,
+                                                 to_ndim=point_ndim+1)
+
+        if end_point is None and initial_tangent_vec is None:
+            raise ValueError('Specify an end point or an initial tangent '
+                             'vector to define the geodesic.')
+        if end_point is not None:
+            end_point = vectorization.to_ndarray(end_point,
+                                                 to_ndim=point_ndim+1)
+            shooting_tangent_vec = self.log(point=end_point,
+                                            base_point=initial_point)
+            if initial_tangent_vec is not None:
+                assert np.allclose(shooting_tangent_vec, initial_tangent_vec)
+            initial_tangent_vec = shooting_tangent_vec
+        initial_tangent_vec = vectorization.to_ndarray(initial_tangent_vec,
+                                                       to_ndim=point_ndim+1)
+
+        def point_on_geodesic(t):
+            t = vectorization.to_ndarray(t, to_ndim=1)
+            t = vectorization.to_ndarray(t, to_ndim=2, axis=1)
+
+            new_initial_point = vectorization.to_ndarray(
+                                          initial_point,
+                                          to_ndim=point_ndim+1)
+            new_initial_tangent_vec = vectorization.to_ndarray(
+                                          initial_tangent_vec,
+                                          to_ndim=point_ndim+1)
+
+            n_times_t, _ = t.shape
+            tangent_vec_shape = new_initial_tangent_vec.shape[1:]
+            tangent_vecs = np.zeros((n_times_t,) + tangent_vec_shape)
+
+            for i in range(n_times_t):
+                tangent_vecs[i] = t[i] * new_initial_tangent_vec
+            point_at_time_t = self.exp(tangent_vec=tangent_vecs,
+                                       base_point=new_initial_point)
+            return point_at_time_t
+
+        return point_on_geodesic
 
     def squared_dist(self, point_a, point_b):
         """
@@ -169,10 +312,11 @@ class RiemannianMetric(object):
             tangent_mean = np.zeros_like(a_tangent_vector)
 
             for i in range(n_points):
+                # TODO(nina): abandon the for loop
                 point_i = points[i]
                 weight_i = weights[i]
-
-                tangent_mean += weight_i * self.log(point=point_i,
+                tangent_mean = tangent_mean + weight_i * self.log(
+                                                    point=point_i,
                                                     base_point=mean)
             tangent_mean /= sum_weights
 
@@ -195,3 +339,24 @@ class RiemannianMetric(object):
                             'The mean may be inaccurate'
                             ''.format(n_max_iterations))
         return mean
+
+    def tangent_pca(self, points, base_point=None):
+        """
+        Tangent Principal Component Analysis (tPCA) at base_point.
+        This is standard PCA on the Riemannian Logarithms of the points
+        at the base point.
+        """
+        # TODO(nina): It only works for points of ndim=2, adapt to other ndims.
+        if base_point is None:
+            base_point = self.mean(points)
+
+        tangent_vecs = self.log(points, base_point=base_point)
+
+        covariance_mat = np.cov(tangent_vecs.transpose())
+        eigenvalues, tangent_eigenvecs = np.linalg.eig(covariance_mat)
+
+        idx = eigenvalues.argsort()[::-1]
+        eigenvalues = eigenvalues[idx]
+        tangent_eigenvecs = tangent_eigenvecs[idx]
+
+        return eigenvalues, tangent_eigenvecs

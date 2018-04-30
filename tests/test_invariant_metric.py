@@ -10,6 +10,7 @@ import tests.helper as helper
 
 
 class TestInvariantMetricMethods(unittest.TestCase):
+    _multiprocess_can_split_ = True
 
     def setUp(self):
         n = 3
@@ -21,11 +22,11 @@ class TestInvariantMetricMethods(unittest.TestCase):
         diag_mat_at_identity[3:6, 3:6] = 1 * np.eye(3)
 
         left_diag_metric = InvariantMetric(
-                   lie_group=group,
+                   group=group,
                    inner_product_mat_at_identity=diag_mat_at_identity,
                    left_or_right='left')
         right_diag_metric = InvariantMetric(
-                   lie_group=group,
+                   group=group,
                    inner_product_mat_at_identity=diag_mat_at_identity,
                    left_or_right='right')
 
@@ -34,12 +35,12 @@ class TestInvariantMetricMethods(unittest.TestCase):
         sym_mat_at_identity = np.eye(group.dimension)
 
         left_metric = InvariantMetric(
-                   lie_group=group,
+                   group=group,
                    inner_product_mat_at_identity=sym_mat_at_identity,
                    left_or_right='left')
 
         right_metric = InvariantMetric(
-                   lie_group=group,
+                   group=group,
                    inner_product_mat_at_identity=sym_mat_at_identity,
                    left_or_right='right')
 

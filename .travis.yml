@@ -2,7 +2,7 @@ before_script:
     - "export DISPLAY=:99.0"
     - "sh -e /etc/init.d/xvfb start"
     - sleep 3 # give xvfb some time to start
-
+sudo: false
 dist: trusty
 cache: pip
 language: python
@@ -19,7 +19,7 @@ install:
     - pip install --upgrade pip setuptools wheel
     - pip install -r requirements.txt --only-binary=numpy,scipy
 script:
-    - nosetests --with-coverage
+    - nosetests --process-timeout=2400 --processes=2 --with-coverage
 
 after_success:
     - codecov

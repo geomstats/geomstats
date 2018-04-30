@@ -7,19 +7,15 @@ import logging
 import math
 import numpy as np
 
+from geomstats.embedded_manifold import EmbeddedManifold
 from geomstats.euclidean_space import EuclideanMetric
-from geomstats.manifold import Manifold
+from geomstats.euclidean_space import EuclideanSpace
 from geomstats.riemannian_metric import RiemannianMetric
+import geomstats.vectorization as vectorization
 
+TOLERANCE = 1e-6
+EPSILON = 1e-8
 
-EPSILON = 1e-6
-TOLERANCE = 1e-12
-
-SIN_TAYLOR_COEFFS = [0., 1.,
-                     0., - 1 / math.factorial(3),
-                     0., + 1 / math.factorial(5),
-                     0., - 1 / math.factorial(7),
-                     0., + 1 / math.factorial(9)]
 COS_TAYLOR_COEFFS = [1., 0.,
                      - 1 / math.factorial(2), 0.,
                      + 1 / math.factorial(4), 0.,
@@ -35,13 +31,16 @@ INV_TAN_TAYLOR_COEFFS = [0., - 1. / 3.,
                          0., -1. / 4725.]
 
 
-class Hypersphere(Manifold):
+class Hypersphere(EmbeddedManifold):
     """Hypersphere embedded in Euclidean space."""
 
     def __init__(self, dimension):
-        self.dimension = dimension
+        assert isinstance(dimension, int) and dimension > 0
+        super(Hypersphere, self).__init__(
+                dimension=dimension,
+                embedding_manifold=EuclideanSpace(dimension+1))
+        self.embedding_metric = self.embedding_manifold.metric
         self.metric = HypersphereMetric(dimension)
-        self.embedding_metric = EuclideanMetric(dimension + 1)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """
@@ -49,14 +48,18 @@ class Hypersphere(Manifold):
         in the embedding Euclidean space.
         Note: point must be given in extrinsic coordinates.
         """
-        point_dim = len(point)
+        point = vectorization.to_ndarray(point, to_ndim=2)
+
+        _, point_dim = point.shape
         if point_dim is not self.dimension + 1:
             if point_dim is self.dimension:
                 logging.warning('Use the extrinsic coordinates to '
                                 'represent points on the hypersphere.')
             return False
         sq_norm = self.embedding_metric.squared_norm(point)
-        return abs(sq_norm - 1) < tolerance
+        diff = np.abs(sq_norm - 1)
+
+        return diff < tolerance
 
     def projection_to_tangent_space(self, vector, base_point):
         """
@@ -76,15 +79,21 @@ class Hypersphere(Manifold):
         From some intrinsic coordinates in the Hypersphere,
         to the extrinsic coordinates in Euclidean space.
         """
-        assert np.linalg.norm(point_intrinsic) <= 1
+        point_intrinsic = vectorization.to_ndarray(point_intrinsic,
+                                                   to_ndim=2)
+
+        n_points, _ = point_intrinsic.shape
 
         dimension = self.dimension
-        point_extrinsic = np.zeros(dimension + 1, 'float')
-        point_extrinsic[1: dimension + 1] = point_intrinsic[0: dimension]
+        point_extrinsic = np.zeros((n_points, dimension + 1))
+        point_extrinsic[:, 1: dimension + 1] = point_intrinsic[:, 0: dimension]
 
-        point_extrinsic[0] = np.sqrt(1. - np.dot(point_intrinsic,
-                                                 point_intrinsic))
-        assert self.belongs(point_extrinsic)
+        point_extrinsic[:, 0] = np.sqrt(1. - np.linalg.norm(
+                                                point_intrinsic,
+                                                axis=1) ** 2)
+        assert np.all(self.belongs(point_extrinsic))
+
+        assert point_extrinsic.ndim == 2
         return point_extrinsic
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
@@ -92,17 +101,24 @@ class Hypersphere(Manifold):
         From the extrinsic coordinates in Euclidean space,
         to some intrinsic coordinates in Hypersphere.
         """
-        assert self.belongs(point_extrinsic)
-        return point_extrinsic[1:]
+        point_extrinsic = vectorization.to_ndarray(point_extrinsic,
+                                                   to_ndim=2)
+        assert np.all(self.belongs(point_extrinsic))
 
-    def random_uniform(self, max_norm=1):
+        point_intrinsic = point_extrinsic[:, 1:]
+        assert point_intrinsic.ndim == 2
+        return point_intrinsic
+
+    def random_uniform(self, n_samples=1, max_norm=1):
         """
         Generate random elements on the Hypersphere.
         """
-        point = (np.random.random_sample(self.dimension) - .5) * max_norm
+        point = ((np.random.rand(n_samples, self.dimension) - .5)
+                 * max_norm)
         point = self.intrinsic_to_extrinsic_coords(point)
-        assert self.belongs(point)
+        assert np.all(self.belongs(point))
 
+        assert point.ndim == 2
         return point
 
 
@@ -120,7 +136,21 @@ class HypersphereMetric(RiemannianMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
-    def exp(self, tangent_vec, base_point, epsilon=EPSILON):
+    def projection_to_tangent_space(self, vector, base_point):
+        """
+        Project the vector vector onto the tangent space:
+        T_{base_point} S = {w | scal(w, base_point) = 0}
+        """
+        # TODO(nina): define HypersphereMetric inside Hypersphere
+        # to avoid copy-pasting this code?
+
+        sq_norm = self.embedding_metric.squared_norm(base_point)
+        inner_prod = self.embedding_metric.inner_product(base_point, vector)
+        tangent_vec = (vector - inner_prod / sq_norm * base_point)
+
+        return tangent_vec
+
+    def exp_basis(self, tangent_vec, base_point):
         """
         Compute the Riemannian exponential at point base_point
         of tangent vector tangent_vec wrt the metric obtained by
@@ -133,26 +163,26 @@ class HypersphereMetric(RiemannianMetric):
         :param vector: (n+1)-dimensional vector
         :return exp: a point on the n-dimensional sphere
         """
-        norm_tangent_vec = self.embedding_metric.norm(tangent_vec)
+        projected_tangent_vec = self.projection_to_tangent_space(
+            vector=tangent_vec, base_point=base_point)
+        diff = np.abs(projected_tangent_vec - tangent_vec)
+        if not np.allclose(diff, 0):
+            tangent_vec = projected_tangent_vec
+            logging.warning(
+                'The input vector is not tangent to the hypersphere.'
+                ' We project it on the tangent space at base_point={}.'.format(
+                    base_point))
 
-        if norm_tangent_vec < epsilon:
-            coef_1 = (1. + COS_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
-                      + COS_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
-                      + COS_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
-                      + COS_TAYLOR_COEFFS[8] * norm_tangent_vec ** 8)
-            coef_2 = (1. + SIN_TAYLOR_COEFFS[3] * norm_tangent_vec ** 2
-                      + SIN_TAYLOR_COEFFS[5] * norm_tangent_vec ** 4
-                      + SIN_TAYLOR_COEFFS[7] * norm_tangent_vec ** 6
-                      + SIN_TAYLOR_COEFFS[9] * norm_tangent_vec ** 8)
-        else:
-            coef_1 = np.cos(norm_tangent_vec)
-            coef_2 = np.sin(norm_tangent_vec) / norm_tangent_vec
+        # TODO(johmathe): Evaluate the bias introduced by this variable
+        norm_tangent_vec = self.embedding_metric.norm(tangent_vec) + EPSILON
+        coef_1 = np.cos(norm_tangent_vec)
+        coef_2 = np.sin(norm_tangent_vec) / norm_tangent_vec
 
         exp = coef_1 * base_point + coef_2 * tangent_vec
 
         return exp
 
-    def log(self, point, base_point, epsilon=EPSILON):
+    def log_basis(self, point, base_point):
         """
         Compute the Riemannian logarithm at point base_point,
         of point wrt the metric obtained by
@@ -174,7 +204,7 @@ class HypersphereMetric(RiemannianMetric):
         else:
             angle = np.arccos(cos_angle)
 
-        if angle < epsilon:
+        if np.isclose(angle, 0):
             coef_1 = (1. + INV_SIN_TAYLOR_COEFFS[1] * angle ** 2
                       + INV_SIN_TAYLOR_COEFFS[3] * angle ** 4
                       + INV_SIN_TAYLOR_COEFFS[5] * angle ** 6
@@ -200,16 +230,30 @@ class HypersphereMetric(RiemannianMetric):
         if np.all(point_a == point_b):
             return 0.
 
+        point_a = vectorization.to_ndarray(point_a, to_ndim=2)
+        point_b = vectorization.to_ndarray(point_b, to_ndim=2)
+
+        n_points_a, _ = point_a.shape
+        n_points_b, _ = point_b.shape
+
+        assert (n_points_a == n_points_b
+                or n_points_a == 1
+                or n_points_b == 1)
+
+        n_dists = np.maximum(n_points_a, n_points_b)
+        dist = np.zeros((n_dists, 1))
+
         norm_a = self.embedding_metric.norm(point_a)
         norm_b = self.embedding_metric.norm(point_b)
         inner_prod = self.embedding_metric.inner_product(point_a, point_b)
 
         cos_angle = inner_prod / (norm_a * norm_b)
-        if cos_angle >= 1.:
-            dist = 0.
-        elif cos_angle <= -1.:
-            dist = np.pi
-        else:
-            dist = np.arccos(cos_angle)
+        mask_cos_greater_1 = np.greater_equal(cos_angle, 1.)
+        mask_cos_less_minus_1 = np.less_equal(cos_angle, -1.)
+        mask_else = ~mask_cos_greater_1 & ~mask_cos_less_minus_1
+
+        dist[mask_cos_greater_1] = 0.
+        dist[mask_cos_less_minus_1] = np.pi
+        dist[mask_else] = np.arccos(cos_angle[mask_else])
 
         return dist

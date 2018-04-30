@@ -6,12 +6,14 @@ import numpy as np
 
 from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
+import geomstats.vectorization as vectorization
 
 
 class EuclideanSpace(Manifold):
     """The Euclidean space."""
 
     def __init__(self, dimension):
+        assert isinstance(dimension, int) and dimension > 0
         self.dimension = dimension
         self.metric = EuclideanMetric(dimension)
 
@@ -19,14 +21,16 @@ class EuclideanSpace(Manifold):
         """
         Check if point belongs to the Euclidean space.
         """
-        return len(point) == self.dimension
+        point = vectorization.to_ndarray(point, to_ndim=2)
+        _, point_dim = point.shape
+        return point_dim == self.dimension
 
-    def random_uniform(self):
+    def random_uniform(self, n_samples=1):
         """
         Sample a vector uniformly in the Euclidean space,
         with coordinates each between -1. and 1.
         """
-        point = np.random.rand(self.dimension) * 2 - 1
+        point = np.random.rand(n_samples, self.dimension) * 2 - 1
         return point
 
 
@@ -37,6 +41,7 @@ class EuclideanMetric(RiemannianMetric):
     The metric has signature (0, n) on the n-D vector space.
     """
     def __init__(self, dimension):
+        assert isinstance(dimension, int) and dimension > 0
         super(EuclideanMetric, self).__init__(
                                         dimension=dimension,
                                         signature=(dimension, 0, 0))
@@ -49,17 +54,19 @@ class EuclideanMetric(RiemannianMetric):
         """
         return np.eye(self.dimension)
 
-    def exp(self, tangent_vec, base_point):
+    def exp_basis(self, tangent_vec, base_point):
         """
         The Riemannian exponential is the addition in the Euclidean space.
         """
-        return base_point + tangent_vec
+        exp = base_point + tangent_vec
+        return exp
 
-    def log(self, point, base_point):
+    def log_basis(self, point, base_point):
         """
         The Riemannian logarithm is the subtraction in the Euclidean space.
         """
-        return point - base_point
+        log = point - base_point
+        return log
 
     def mean(self, points, weights=None):
         """
