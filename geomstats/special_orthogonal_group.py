@@ -502,7 +502,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         rot_mat_1 = self.matrix_from_rotation_vector(rot_vec_1)
         rot_mat_2 = self.matrix_from_rotation_vector(rot_vec_2)
 
-        rot_mat_prod = np.matmul(rot_mat_1, rot_mat_2)
+        rot_mat_prod = np.einsum('ijk,ikl->ijl', rot_mat_1, rot_mat_2)
         rot_vec_prod = self.rotation_vector_from_matrix(rot_mat_prod)
 
         rot_vec_prod = self.regularize(rot_vec_prod)
