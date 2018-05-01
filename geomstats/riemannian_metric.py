@@ -61,7 +61,7 @@ class RiemannianMetric(object):
                 or bool_a and bool_inner_prod
                 or bool_b and bool_inner_prod)
 
-        inner_prod = np.einsum('ij,ijk,ik->i',
+        inner_prod = np.einsum('...j,...jk,...k->...',
                                tangent_vec_a,
                                inner_prod_mat,
                                tangent_vec_b)
