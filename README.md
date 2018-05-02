@@ -1,7 +1,7 @@
 # Geomstats
 [![Build Status](https://travis-ci.org/ninamiolane/geomstats.svg?branch=master)](https://travis-ci.org/ninamiolane/geomstats)  [![Coverage Status](https://codecov.io/gh/ninamiolane/geomstats/branch/master/graph/badge.svg)](https://codecov.io/gh/ninamiolane/geomstats)
 
-Computations and statistics on manifolds with geometric structures such as (pseudo-/sub-) Riemannian manifolds, Lie groups, quotient spaces, etc.
+Computations and statistics on manifolds with geometric structures.
 
 <img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/gradient_descent.gif" width=384 height=384><img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=256 height=256>
 
