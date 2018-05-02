@@ -88,7 +88,7 @@ class Hypersphere(EmbeddedManifold):
         point_extrinsic = gs.zeros((n_points, dimension + 1))
         point_extrinsic[:, 1: dimension + 1] = point_intrinsic[:, 0: dimension]
 
-        point_extrinsic[:, 0] = gs.sqrt(1. - gs.norm(
+        point_extrinsic[:, 0] = gs.sqrt(1. - gs.linalg.norm(
                                                 point_intrinsic,
                                                 axis=1) ** 2)
         assert gs.all(self.belongs(point_extrinsic))
@@ -113,7 +113,7 @@ class Hypersphere(EmbeddedManifold):
         """
         Generate random elements on the Hypersphere.
         """
-        point = ((gs.rand(n_samples, self.dimension) - .5)
+        point = ((gs.random.rand(n_samples, self.dimension) - .5)
                  * max_norm)
         point = self.intrinsic_to_extrinsic_coords(point)
         assert gs.all(self.belongs(point))
