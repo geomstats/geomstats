@@ -86,8 +86,8 @@ def generate_well_behaved_matrix():
 
 def main():
     A = generate_well_behaved_matrix()
-    loss = lambda x: x.T @ A @ x  # NOQA
-    grad = lambda x: 2 * A @ x  # NOQA
+    loss = lambda x: np.matmul(x.T, matmul(A, x))  # NOQA
+    grad = lambda x: 2 * np.matmul(A, x)  # NOQA
     initial_point = np.array([0., 1., 0.])
     previous_x = initial_point
     geodesics = []
@@ -102,7 +102,7 @@ def main():
         t = np.linspace(0, 1, n_steps)
         geodesics.append(geodesic(t))
         previous_x = x
-    plot_and_save_vid(geodesics, loss)
+    plot_and_save_video(geodesics, loss)
     eig, _ = np.linalg.eig(A)
     np.testing.assert_almost_equal(loss(x), np.min(eig), decimal=2)
 
