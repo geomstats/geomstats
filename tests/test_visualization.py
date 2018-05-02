@@ -1,5 +1,7 @@
 """Unit tests for visualization module."""
 
+import matplotlib
+matplotlib.use('Agg')  # NOQA
 import unittest
 
 import geomstats.visualization as visualization
