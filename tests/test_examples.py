@@ -1,6 +1,8 @@
 """Unit tests for the examples."""
 
 import unittest
+import matplotlib
+matplotlib.use('Agg')  # NOQA
 
 import examples.plot_geodesics_h2 as plot_geodesics_h2
 import examples.plot_geodesics_s2 as plot_geodesics_s2
