@@ -33,6 +33,22 @@ def cos(val):
     return np.cos(val)
 
 
+def cosh(*args, **kwargs):
+    return np.cosh(*args, **kwargs)
+
+
+def sinh(*args, **kwargs):
+    return np.sinh(*args, **kwargs)
+
+
+def tanh(*args, **kwargs):
+    return np.tanh(*args, **kwargs)
+
+
+def arccosh(*args, **kwargs):
+    return np.arccosh(*args, **kwargs)
+
+
 def tan(val):
     return np.tan(val)
 
@@ -88,3 +104,39 @@ def isclose(a, b):
 
 def less_equal(a, b):
     return np.less_equal(a, b)
+
+
+def eye(*args, **kwargs):
+    return np.eye(*args, **kwargs)
+
+
+def average(*args, **kwargs):
+    return np.average(*args, **kwargs)
+
+
+def matmul(*args, **kwargs):
+    return np.matmul(*args, **kwargs)
+
+
+def sum(*args, **kwargs):
+    return np.sum(*args, **kwargs)
+
+
+def einsum(*args, **kwargs):
+    return np.einsum(*args, **kwargs)
+
+
+def transpose(*args, **kwargs):
+    return np.transpose(*args, **kwargs)
+
+
+def squeeze(*args, **kwargs):
+    return np.squeeze(*args, **kwargs)
+
+
+def zeros_like(*args, **kwargs):
+    return np.zeros_like(*args, **kwargs)
+
+
+def trace(*args, **kwargs):
+    return np.trace(*args, **kwargs)

@@ -228,7 +228,7 @@ class TestHypersphereMethods(unittest.TestCase):
 
     def test_squared_norm_and_squared_dist(self):
         """
-        Test that the squqred distance between two points is
+        Test that the squared distance between two points is
         the squared norm of their logarithm.
         """
         point_a = self.space.random_uniform()

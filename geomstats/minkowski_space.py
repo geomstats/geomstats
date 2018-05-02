@@ -2,11 +2,9 @@
 Computations on the (n+1)-dimensional Minkowski space.
 """
 
-import numpy as np
-
 from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
-import geomstats.vectorization as vectorization
+import geomstats.backend as gs
 
 
 class MinkowskiSpace(Manifold):
@@ -21,7 +19,7 @@ class MinkowskiSpace(Manifold):
         """
         Check if point belongs to the Minkowski space.
         """
-        point = vectorization.to_ndarray(point, to_ndim=2)
+        point = gs.to_ndarray(point, to_ndim=2)
         _, point_dim = point.shape
         return point_dim == self.dimension
 
@@ -30,7 +28,7 @@ class MinkowskiSpace(Manifold):
         Sample a vector uniformly in the Minkowski space,
         with coordinates each between -1. and 1.
         """
-        point = np.random.rand(n_samples, self.dimension) * 2 - 1
+        point = gs.random.rand(n_samples, self.dimension) * 2 - 1
         return point
 
 
@@ -51,7 +49,7 @@ class MinkowskiMetric(RiemannianMetric):
 
         Note: the matrix is independent on the base_point.
         """
-        inner_prod_mat = np.eye(self.dimension)
+        inner_prod_mat = gs.eye(self.dimension)
         inner_prod_mat[0, 0] = -1
         return inner_prod_mat
 
@@ -71,4 +69,4 @@ class MinkowskiMetric(RiemannianMetric):
         """
         Weighted mean of the points.
         """
-        return np.average(points, axis=0, weights=weights)
+        return gs.average(points, axis=0, weights=weights)
