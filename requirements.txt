@@ -1,6 +1,6 @@
 codecov
 coverage
 matplotlib
-nose
+nose2
 numpy
 scipy
