@@ -342,6 +342,7 @@ class TestHypersphereMethods(unittest.TestCase):
 
     def test_variance(self):
         point = self.space.random_uniform()
+        print(point)
         result = self.metric.variance([point, point])
         expected = 0
 
