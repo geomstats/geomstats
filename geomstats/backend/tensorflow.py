@@ -27,20 +27,20 @@ def cos(x):
     return tf.cos(x)
 
 
-def cosh(*args, **kwargs):
-    return tf.cosh(*args, **kwargs)
+def cosh(x):
+    return tf.cosh(x)
 
 
-def sinh(*args, **kwargs):
-    return tf.sinh(*args, **kwargs)
+def sinh(x):
+    return tf.sinh(x)
 
 
-def tanh(*args, **kwargs):
-    return tf.tanh(*args, **kwargs)
+def tanh(x):
+    return tf.tanh(x)
 
 
-def arccosh(*args, **kwargs):
-    return tf.arccosh(*args, **kwargs)
+def arccosh(x):
+    return tf.arccosh(x)
 
 
 def tan(x):
