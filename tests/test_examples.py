@@ -2,9 +2,6 @@
 
 import unittest
 
-import matplotlib
-matplotlib.use('agg')  # noqa
-
 import examples.plot_geodesics_h2 as plot_geodesics_h2
 import examples.plot_geodesics_s2 as plot_geodesics_s2
 import examples.plot_geodesics_se3 as plot_geodesics_se3
