@@ -59,6 +59,10 @@ def shape(x):
     return tf.shape(x)
 
 
+def ndims(x):
+    return tf.get_shape(x).ndims
+
+
 def dot(x, y):
     return tf.reduce_sum(tf.multiply(x, y))
 
@@ -71,20 +75,15 @@ def greater_equal(x, y):
     return tf.greater_equal(x, y)
 
 
-def to_ndarray(element, to_ndim, axis=0):
-
-    if element.ndim == to_ndim - 1:
-        element = tf.expand_dims(element, axis=axis)
-    assert element.ndim == to_ndim
-    return element
+def to_ndarray(x, to_ndim, axis=0):
+    if ndims(x) == to_ndim - 1:
+        x = tf.expand_dims(x, axis=axis)
+    tf.Assert(ndims(x) == to_ndim)
+    return x
 
 
 def sqrt(x):
     return tf.sqrt(x)
-
-
-def norm(x, axis=None, keepdims=None):
-    return tf.linalg.norm(x, axis=axis, keepdims=keepdims)
 
 
 def isclose(x, y, rtol=1e-05, atol=1e-08):
