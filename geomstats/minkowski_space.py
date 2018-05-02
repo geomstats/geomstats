@@ -19,7 +19,7 @@ class MinkowskiSpace(Manifold):
         """
         Check if point belongs to the Minkowski space.
         """
-        point = vectorization.to_ndarray(point, to_ndim=2)
+        point = gs.to_ndarray(point, to_ndim=2)
         _, point_dim = point.shape
         return point_dim == self.dimension
 
