@@ -192,7 +192,7 @@ class HyperbolicMetric(RiemannianMetric):
         if not gs.allclose(diff, 0):
             tangent_vec = projected_tangent_vec
             logging.warning(
-                'The igsut vector is not tangent to the hyperbolic space.'
+                'The input vector is not tangent to the hyperbolic space.'
                 ' We project it on the tangent space at base_point={}.'.format(
                     base_point))
 

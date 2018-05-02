@@ -7,7 +7,6 @@ import scipy.linalg
 
 from geomstats.lie_group import LieGroup
 import geomstats.backend as gs
-import geomstats.vectorization as vectorization
 
 
 class GeneralLinearGroup(LieGroup):
@@ -33,7 +32,7 @@ class GeneralLinearGroup(LieGroup):
         """
         Check if mat belongs to GL(n).
         """
-        mat = vectorization.to_ndarray(mat, to_ndim=3)
+        mat = gs.to_ndarray(mat, to_ndim=3)
         n_mats, _, _ = mat.shape
 
         mat_rank = gs.zeros((n_mats, 1))
