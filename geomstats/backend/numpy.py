@@ -136,3 +136,7 @@ def squeeze(*args, **kwargs):
 
 def zeros_like(*args, **kwargs):
     return np.zeros_like(*args, **kwargs)
+
+
+def trace(*args, **kwargs):
+    return np.trace(*args, **kwargs)
