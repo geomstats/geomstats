@@ -113,31 +113,7 @@ class RiemannianMetric(object):
         Riemannian exponential at point base_point
         of tangent vector tangent_vec wrt the Riemannian metric.
         """
-        if tangent_vec.ndim == 1:
-            tangent_vec = np.expand_dims(tangent_vec, axis=0)
-        assert tangent_vec.ndim == 2
-
-        if base_point.ndim == 1:
-            base_point = np.expand_dims(base_point, axis=0)
-        assert base_point.ndim == 2
-
-        n_tangent_vecs, _ = tangent_vec.shape
-        n_base_points, point_dim = base_point.shape
-
-        assert (n_tangent_vecs == n_base_points
-                or n_tangent_vecs == 1
-                or n_base_points == 1)
-
-        n_exps = np.maximum(n_tangent_vecs, n_base_points)
-        exp = np.zeros((n_exps, point_dim))
-        for i in range(n_exps):
-            base_point_i = (base_point[0] if n_base_points == 1
-                            else base_point[i])
-            tangent_vec_i = (tangent_vec[0] if n_tangent_vecs == 1
-                             else tangent_vec[i])
-            exp[i] = self.exp_basis(tangent_vec_i, base_point_i)
-
-        return exp
+        return self.exp_basis(tangent_vec, base_point)
 
     def log(self, point, base_point=None):
         """

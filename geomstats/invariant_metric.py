@@ -189,8 +189,6 @@ class InvariantMetric(RiemannianMetric):
         n_tangent_vecs, _ = tangent_vec.shape
         n_base_points, _ = base_point.shape
 
-        assert n_tangent_vecs == 1 and n_base_points == 1
-
         jacobian = self.group.jacobian_translation(
                                  point=base_point,
                                  left_or_right=self.left_or_right)
@@ -198,8 +196,9 @@ class InvariantMetric(RiemannianMetric):
         inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = gs.transpose(inv_jacobian, axes=(0, 2, 1))
 
-        tangent_vec_at_id = gs.matmul(tangent_vec, inv_jacobian_transposed)
-        tangent_vec_at_id = gs.squeeze(tangent_vec_at_id, axis=0)
+        tangent_vec_at_id = gs.einsum('ij,ijk->ik',
+                                      tangent_vec,
+                                      inv_jacobian_transposed)
         exp_from_id = self.exp_from_identity(tangent_vec_at_id)
 
         if self.left_or_right == 'left':
