@@ -18,7 +18,7 @@ python:
 install:
     - pip install --upgrade pip setuptools wheel
     - pip install -r requirements.txt --only-binary=numpy,scipy
-script: travis_wait
+script:
     - nose2 --with-coverage --verbose
 
 after_success:
