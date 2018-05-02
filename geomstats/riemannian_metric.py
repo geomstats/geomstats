@@ -144,26 +144,7 @@ class RiemannianMetric(object):
         Riemannian logarithm at point base_point
         of tangent vector tangent_vec wrt the Riemannian metric.
         """
-        point = vectorization.to_ndarray(point, to_ndim=2)
-        base_point = vectorization.to_ndarray(base_point, to_ndim=2)
-
-        n_points, _ = point.shape
-        n_base_points, point_dim = base_point.shape
-
-        assert (n_points == n_base_points
-                or n_points == 1
-                or n_base_points == 1)
-
-        n_logs = np.maximum(n_points, n_base_points)
-        log = np.zeros((n_logs, point_dim))
-        for i in range(n_logs):
-            base_point_i = (base_point[0] if n_base_points == 1
-                            else base_point[i])
-            point_i = (point[0] if n_points == 1
-                       else point[i])
-            log[i] = self.log_basis(point_i, base_point_i)
-
-        return log
+        return self.log_basis(point, base_point)
 
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None, point_ndim=1):
