@@ -3,10 +3,10 @@ Base class for the General Linear Group,
 i.e. the matrix group GL(n).
 """
 
-import numpy as np
 import scipy.linalg
 
 from geomstats.lie_group import LieGroup
+import geomstats.backend as gs
 import geomstats.vectorization as vectorization
 
 
@@ -26,7 +26,7 @@ class GeneralLinearGroup(LieGroup):
         assert isinstance(n, int) and n > 0
         super(GeneralLinearGroup, self).__init__(
                                       dimension=n*n,
-                                      identity=np.eye(n))
+                                      identity=gs.eye(n))
         self.n = n
 
     def belongs(self, mat):
@@ -36,9 +36,9 @@ class GeneralLinearGroup(LieGroup):
         mat = vectorization.to_ndarray(mat, to_ndim=3)
         n_mats, _, _ = mat.shape
 
-        mat_rank = np.zeros((n_mats, 1))
+        mat_rank = gs.zeros((n_mats, 1))
         for i in range(n_mats):
-            mat_rank[i] = np.linalg.matrix_rank(mat[i])
+            mat_rank[i] = gs.linalg.matrix_rank(mat[i])
 
         return mat_rank == self.n
 
@@ -46,13 +46,13 @@ class GeneralLinearGroup(LieGroup):
         """
         Matrix composition.
         """
-        return np.matmul(mat_a, mat_b)
+        return gs.matmul(mat_a, mat_b)
 
     def inverse(self, mat):
         """
         Matrix inverse.
         """
-        return np.linalg.inv(mat)
+        return gs.linalg.inv(mat)
 
     def group_exp_from_identity(self, tangent_vec):
         """
@@ -62,7 +62,7 @@ class GeneralLinearGroup(LieGroup):
         if tangent_vec.ndim == 2:
             return scipy.linalg.expm(tangent_vec)
 
-        exp = np.zeros_like(tangent_vec)
+        exp = gs.zeros_like(tangent_vec)
         n_vecs, _, _ = tangent_vec.shape
         for i in range(n_vecs):
             exp[i] = scipy.linalg.expm(tangent_vec[i])
@@ -77,7 +77,7 @@ class GeneralLinearGroup(LieGroup):
         if point.ndim == 2:
             return scipy.linalg.logm(point)
 
-        log = np.zeros_like(point)
+        log = gs.zeros_like(point)
         n_points, _, _ = point.shape
         for i in range(n_points):
             log[i] = scipy.linalg.logm(point[i])
