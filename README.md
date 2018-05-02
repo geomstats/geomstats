@@ -18,7 +18,7 @@ pip3 install geomstats
 
 ```
 pip3 install nose2
-python3 -m nose2 tests/*
+nose2
 ```
 
 ## Contributing
