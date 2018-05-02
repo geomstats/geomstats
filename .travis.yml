@@ -19,7 +19,7 @@ install:
     - pip install --upgrade pip setuptools wheel
     - pip install -r requirements.txt --only-binary=numpy,scipy
 script: travis_wait
-    - nose2 --with-coverage
+    - nose2 --with-coverage --verbose
 
 after_success:
     - codecov
