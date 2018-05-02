@@ -64,8 +64,7 @@ class InvariantMetric(RiemannianMetric):
             aux_vec_a = gs.matmul(tangent_vec_a,
                                   self.inner_product_mat_at_identity)
             inner_prod = gs.einsum('ij,ij->i', aux_vec_a, tangent_vec_b)
-            inner_prod = gs.to_ndarray(inner_prod,
-                                                  to_ndim=2, axis=1)
+            inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
         elif self.group.point_representation == 'matrix':
             logging.warning(
@@ -267,7 +266,7 @@ class InvariantMetric(RiemannianMetric):
 
         n_points, _ = point.shape
         n_base_points, _ = base_point.shape
-        assert n_points == 1 and n_base_points == 1
+        # assert n_points == 1 and n_base_points == 1
 
         if self.left_or_right == 'left':
             point_near_id = self.group.compose(
@@ -285,7 +284,9 @@ class InvariantMetric(RiemannianMetric):
                                        base_point,
                                        left_or_right=self.left_or_right)
 
-        log = gs.matmul(log_from_id, gs.transpose(jacobian, axes=(0, 2, 1)))
-        log = gs.squeeze(log, axis=0)
+        log = gs.einsum('ij,ijk->ik',
+                        log_from_id,
+                        gs.transpose(jacobian, axes=(0, 2, 1)))
+        # log = gs.squeeze(log, axis=0)
         assert log.ndim == 2
         return log
