@@ -80,7 +80,7 @@ class HyperbolicSpace(EmbeddedManifold):
 
     def regularize(self, point):
         # TODO(nina): vectorize
-        assert self.belongs(point)
+        assert gs.all(self.belongs(point))
         sq_norm = self.embedding_metric.squared_norm(point)
         real_norm = gs.sqrt(gs.abs(sq_norm))
         for i in range(len(real_norm)):
@@ -200,18 +200,25 @@ class HyperbolicMetric(RiemannianMetric):
                 tangent_vec)
         norm_tangent_vec = gs.sqrt(sq_norm_tangent_vec)
 
-        if gs.isclose(sq_norm_tangent_vec, 0):
-            coef_1 = (1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
-                      + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
-                      + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
-                      + COSH_TAYLOR_COEFFS[8] * norm_tangent_vec ** 8)
-            coef_2 = (1. + SINH_TAYLOR_COEFFS[3] * norm_tangent_vec ** 2
-                      + SINH_TAYLOR_COEFFS[5] * norm_tangent_vec ** 4
-                      + SINH_TAYLOR_COEFFS[7] * norm_tangent_vec ** 6
-                      + SINH_TAYLOR_COEFFS[9] * norm_tangent_vec ** 8)
-        else:
-            coef_1 = gs.cosh(norm_tangent_vec)
-            coef_2 = gs.sinh(norm_tangent_vec) / norm_tangent_vec
+        mask_0 = gs.isclose(sq_norm_tangent_vec, 0)
+        mask_else = ~mask_0
+        coef_1 = gs.zeros_like(norm_tangent_vec)
+        coef_2 = gs.zeros_like(norm_tangent_vec)
+
+        coef_1[mask_0] = (
+                  1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec[mask_0] ** 2
+                  + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec[mask_0] ** 4
+                  + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec[mask_0] ** 6
+                  + COSH_TAYLOR_COEFFS[8] * norm_tangent_vec[mask_0] ** 8)
+        coef_2[mask_0] = (
+                  1. + SINH_TAYLOR_COEFFS[3] * norm_tangent_vec[mask_0] ** 2
+                  + SINH_TAYLOR_COEFFS[5] * norm_tangent_vec[mask_0] ** 4
+                  + SINH_TAYLOR_COEFFS[7] * norm_tangent_vec[mask_0] ** 6
+                  + SINH_TAYLOR_COEFFS[9] * norm_tangent_vec[mask_0] ** 8)
+
+        coef_1[mask_else] = gs.cosh(norm_tangent_vec[mask_else])
+        coef_2[mask_else] = (gs.sinh(norm_tangent_vec[mask_else])
+                             / norm_tangent_vec[mask_else])
 
         riem_exp = coef_1 * base_point + coef_2 * tangent_vec
 
@@ -232,18 +239,31 @@ class HyperbolicMetric(RiemannianMetric):
         :returns riem_log: tangent vector at base_point
         """
         angle = self.dist(base_point, point)
-        if gs.isclose(angle, 0):
-            coef_1 = (1. + INV_SINH_TAYLOR_COEFFS[1] * angle ** 2
-                      + INV_SINH_TAYLOR_COEFFS[3] * angle ** 4
-                      + INV_SINH_TAYLOR_COEFFS[5] * angle ** 6
-                      + INV_SINH_TAYLOR_COEFFS[7] * angle ** 8)
-            coef_2 = (1. + INV_TANH_TAYLOR_COEFFS[1] * angle ** 2
-                      + INV_TANH_TAYLOR_COEFFS[3] * angle ** 4
-                      + INV_TANH_TAYLOR_COEFFS[5] * angle ** 6
-                      + INV_TANH_TAYLOR_COEFFS[7] * angle ** 8)
-        else:
-            coef_1 = angle / gs.sinh(angle)
-            coef_2 = angle / gs.tanh(angle)
+        angle = gs.array(angle)
+        if angle.ndim == 0:
+            angle = gs.to_ndarray(angle, to_ndim=1, axis=0)
+        angle = gs.to_ndarray(angle, to_ndim=2)
+
+        mask_0 = gs.isclose(angle, 0)
+        mask_else = ~mask_0
+
+        coef_1 = gs.zeros_like(angle)
+        coef_2 = gs.zeros_like(angle)
+
+        coef_1[mask_0] = (
+                  1. + INV_SINH_TAYLOR_COEFFS[1] * angle[mask_0] ** 2
+                  + INV_SINH_TAYLOR_COEFFS[3] * angle[mask_0] ** 4
+                  + INV_SINH_TAYLOR_COEFFS[5] * angle[mask_0] ** 6
+                  + INV_SINH_TAYLOR_COEFFS[7] * angle[mask_0] ** 8)
+        coef_2[mask_0] = (
+                  1. + INV_TANH_TAYLOR_COEFFS[1] * angle[mask_0] ** 2
+                  + INV_TANH_TAYLOR_COEFFS[3] * angle[mask_0] ** 4
+                  + INV_TANH_TAYLOR_COEFFS[5] * angle[mask_0] ** 6
+                  + INV_TANH_TAYLOR_COEFFS[7] * angle[mask_0] ** 8)
+
+        coef_1[mask_else] = angle[mask_else] / gs.sinh(angle[mask_else])
+        coef_2[mask_else] = angle[mask_else] / gs.tanh(angle[mask_else])
+
         return coef_1 * point - coef_2 * base_point
 
     def dist(self, point_a, point_b):

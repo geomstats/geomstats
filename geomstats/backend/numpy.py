@@ -5,6 +5,10 @@ import numpy as np
 pi = np.pi
 
 
+def array(val):
+    return np.array(val)
+
+
 def abs(val):
     return np.abs(val)
 
