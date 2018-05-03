@@ -65,9 +65,7 @@ class InvariantMetric(RiemannianMetric):
                                    tangent_vec_a,
                                    self.inner_product_mat_at_identity,
                                    tangent_vec_b)
-            #inner_prod = gs.einsum('ij,ij->i',
-            #                       aux_vec_a,
-            #                       tangent_vec_b)
+
             inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
         elif self.group.point_representation == 'matrix':
@@ -160,11 +158,7 @@ class InvariantMetric(RiemannianMetric):
         mat = np.transpose(sqrt_inner_product_mat, axes=(0, 2, 1))
         exp = gs.matmul(tangent_vec, mat)
         exp = np.squeeze(exp, axis=0)
-        if exp.ndim != 2 and exp.ndim !=1:
-            print('tangent_vec.shape={}'.format(tangent_vec.shape))
-            print('sqrt_inner_product_mat.shape={}'.format(sqrt_inner_product_mat.shape))
-            print('mat.shape={}'.format(mat.shape))
-            print('exp.shape={}'.format(exp.shape))
+
         exp = self.group.regularize(exp)
         return exp
 
