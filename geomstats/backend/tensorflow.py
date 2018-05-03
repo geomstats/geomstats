@@ -4,8 +4,6 @@
 
 import tensorflow as tf
 
-pi = tf.pi
-
 
 def abs(x):
     return tf.abs(x)
@@ -60,7 +58,7 @@ def shape(x):
 
 
 def ndims(x):
-    return tf.get_shape(x).ndims
+    return x.get_shape()._ndims
 
 
 def dot(x, y):
@@ -78,7 +76,7 @@ def greater_equal(x, y):
 def to_ndarray(x, to_ndim, axis=0):
     if ndims(x) == to_ndim - 1:
         x = tf.expand_dims(x, axis=axis)
-    tf.Assert(ndims(x) == to_ndim)
+    #tf.assert_equal(ndims(x), to_ndim)
     return x
 
 
@@ -133,3 +131,13 @@ def zeros_like(x):
 
 def trace(x, **kwargs):
     return tf.trace(x)
+
+
+def array(x):
+    return tf.constant(x)
+
+
+def all(bool_tensor):
+    bool_tensor = tf.cast(bool_tensor, tf.float32)
+    all_true = tf.equal(tf.reduce_mean(bool_tensor), 1.0)
+    return all_true

@@ -3,5 +3,5 @@
 import tensorflow as tf
 
 
-def rand(shape):
-    return tf.random_uniform(shape)
+def rand(*args):
+    return tf.random_uniform(shape=args)
