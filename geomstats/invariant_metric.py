@@ -173,7 +173,7 @@ class InvariantMetric(RiemannianMetric):
         exp = self.group.regularize(exp)
         return exp
 
-    def exp_basis(self, tangent_vec, base_point=None):
+    def exp(self, tangent_vec, base_point=None):
         """
         Compute the Riemannian exponential at point base_point
         of tangent vector tangent_vec.
@@ -250,7 +250,7 @@ class InvariantMetric(RiemannianMetric):
         assert log.ndim == 2
         return log
 
-    def log_basis(self, point, base_point=None):
+    def log(self, point, base_point=None):
         """
         Compute the Riemannian logarithm of point at point base_point
         of point for the invariant metric.

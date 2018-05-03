@@ -90,37 +90,21 @@ class RiemannianMetric(object):
         norm = np.sqrt(sq_norm)
         return norm
 
-    def exp_basis(self, tangent_vec, base_point=None):
-        """
-        Riemannian exponential at point base_point
-        of tangent vector tangent_vec wrt the Riemannian metric.
-        """
-        raise NotImplementedError(
-                'The basis function for the Riemannian exponential'
-                'is not implemented.')
-
-    def log_basis(self, point, base_point=None):
-        """
-        Riemannian logarithm at point base_point
-        of tangent vector tangent_vec wrt the Riemannian metric.
-        """
-        raise NotImplementedError(
-                'The basis function for the Riemannian logarithm'
-                ' is not implemented.')
-
     def exp(self, tangent_vec, base_point=None):
         """
         Riemannian exponential at point base_point
         of tangent vector tangent_vec wrt the Riemannian metric.
         """
-        return self.exp_basis(tangent_vec, base_point)
+        raise NotImplementedError(
+                'The Riemannian exponential is not implemented.')
 
     def log(self, point, base_point=None):
         """
         Riemannian logarithm at point base_point
         of tangent vector tangent_vec wrt the Riemannian metric.
         """
-        return self.log_basis(point, base_point)
+        raise NotImplementedError(
+                'The Riemannian logarithm is not implemented.')
 
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None, point_ndim=1):
