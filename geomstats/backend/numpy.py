@@ -3,6 +3,10 @@
 import numpy as np
 
 
+def hstack(val):
+    return np.hstack(val)
+
+
 def array(val):
     return np.array(val)
 
