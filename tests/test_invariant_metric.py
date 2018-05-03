@@ -81,8 +81,9 @@ class TestInvariantMetricMethods(unittest.TestCase):
     def test_inner_product_matrix_and_its_inverse(self):
         inner_prod_mat = self.left_diag_metric.inner_product_mat_at_identity
         inv_inner_prod_mat = np.linalg.inv(inner_prod_mat)
-        result = np.dot(inv_inner_prod_mat, inner_prod_mat)
+        result = np.matmul(inv_inner_prod_mat, inner_prod_mat)
         expected = np.eye(self.group.dimension)
+        expected = np.expand_dims(expected, axis=0)
         self.assertTrue(np.allclose(result, expected))
 
     def test_left_exp_and_exp_from_identity_left_diag_metrics(self):
