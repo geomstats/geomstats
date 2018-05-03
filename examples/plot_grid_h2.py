@@ -30,9 +30,8 @@ def main(left=-128,
     starts = [H2.intrinsic_to_extrinsic_coords(s) for s in starts]
     ends = [H2.intrinsic_to_extrinsic_coords(e) for e in ends]
     for start, end in zip(starts, ends):
-        initial_tangent_vec = METRIC.log(end, start)
         geodesic = METRIC.geodesic(initial_point=start,
-                                   initial_tangent_vec=initial_tangent_vec)
+                                   end_point=end)
 
         t = np.linspace(0, 1, n_steps)
         points_to_plot = geodesic(t)
