@@ -199,23 +199,33 @@ class HypersphereMetric(RiemannianMetric):
         norm_point = self.embedding_metric.norm(point)
         inner_prod = self.embedding_metric.inner_product(base_point, point)
         cos_angle = inner_prod / (norm_base_point * norm_point)
-        if cos_angle >= 1.:
-            angle = 0.
-        else:
-            angle = gs.arccos(cos_angle)
 
-        if gs.isclose(angle, 0):
-            coef_1 = (1. + INV_SIN_TAYLOR_COEFFS[1] * angle ** 2
-                      + INV_SIN_TAYLOR_COEFFS[3] * angle ** 4
-                      + INV_SIN_TAYLOR_COEFFS[5] * angle ** 6
-                      + INV_SIN_TAYLOR_COEFFS[7] * angle ** 8)
-            coef_2 = (1. + INV_TAN_TAYLOR_COEFFS[1] * angle ** 2
-                      + INV_TAN_TAYLOR_COEFFS[3] * angle ** 4
-                      + INV_TAN_TAYLOR_COEFFS[5] * angle ** 6
-                      + INV_TAN_TAYLOR_COEFFS[7] * angle ** 8)
-        else:
-            coef_1 = angle / gs.sin(angle)
-            coef_2 = angle / gs.tan(angle)
+        mask_greater_1 = cos_angle >= 1
+        mask_else_1 = ~mask_greater_1
+
+        angle = gs.zeros_like(cos_angle)
+        angle[mask_greater_1] = 0.
+        angle[mask_else_1] = gs.arccos(cos_angle[mask_else_1])
+
+        mask_0 = gs.isclose(angle, 0)
+        mask_else_0 = ~mask_0
+
+        coef_1 = gs.zeros_like(angle)
+        coef_2 = gs.zeros_like(angle)
+
+        coef_1[mask_0] = (
+                      1. + INV_SIN_TAYLOR_COEFFS[1] * angle[mask_0] ** 2
+                      + INV_SIN_TAYLOR_COEFFS[3] * angle[mask_0] ** 4
+                      + INV_SIN_TAYLOR_COEFFS[5] * angle[mask_0] ** 6
+                      + INV_SIN_TAYLOR_COEFFS[7] * angle[mask_0] ** 8)
+        coef_2[mask_0] = (
+                      1. + INV_TAN_TAYLOR_COEFFS[1] * angle[mask_0] ** 2
+                      + INV_TAN_TAYLOR_COEFFS[3] * angle[mask_0] ** 4
+                      + INV_TAN_TAYLOR_COEFFS[5] * angle[mask_0] ** 6
+                      + INV_TAN_TAYLOR_COEFFS[7] * angle[mask_0] ** 8)
+
+        coef_1[mask_else_0] = angle[mask_else_0] / gs.sin(angle[mask_else_0])
+        coef_2[mask_else_0] = angle[mask_else_0] / gs.tan(angle[mask_else_0])
 
         log = coef_1 * point - coef_2 * base_point
 

@@ -660,12 +660,21 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
             result = group.compose(one_point, n_points_a)
             self.assertTrue(result.shape == (n_samples, group.dimension))
+            for i in range(n_samples):
+                self.assertTrue(np.allclose(
+                    result[i], group.compose(one_point, n_points_a[i])))
 
             result = group.compose(n_points_a, one_point)
             self.assertTrue(result.shape == (n_samples, group.dimension))
+            for i in range(n_samples):
+                self.assertTrue(np.allclose(
+                    result[i], group.compose(n_points_a[i], one_point)))
 
             result = group.compose(n_points_a, n_points_b)
             self.assertTrue(result.shape == (n_samples, group.dimension))
+            for i in range(n_samples):
+                self.assertTrue(np.allclose(
+                    result[i], group.compose(n_points_a[i], n_points_b[i])))
 
     def test_inverse_vectorization(self):
         for n in self.n_seq:
@@ -675,6 +684,9 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             points = group.random_uniform(n_samples=n_samples)
             result = group.inverse(points)
             self.assertTrue(result.shape == (n_samples, group.dimension))
+            for i in range(n_samples):
+                self.assertTrue(np.allclose(
+                    result[i], group.inverse(points[i])))
 
     def test_left_jacobian_through_its_determinant(self):
         n = 3
