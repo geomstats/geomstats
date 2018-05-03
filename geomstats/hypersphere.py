@@ -80,11 +80,11 @@ class Hypersphere(EmbeddedManifold):
         """
         point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
 
-        n_points, _ = point_intrinsic.shape
-
         coord_0 = gs.sqrt(1. - gs.linalg.norm(point_intrinsic, axis=1) ** 2)
         coord_0 = gs.to_ndarray(coord_0, to_ndim=2, axis=1)
+
         point_extrinsic = gs.hstack([coord_0, point_intrinsic])
+
         assert gs.all(self.belongs(point_extrinsic))
 
         assert point_extrinsic.ndim == 2
