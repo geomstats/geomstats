@@ -9,9 +9,10 @@ their Riemannian logarithm for the canonical left-invariant metric.
 """
 
 import logging
-import scipy.linalg
+import numpy as np
 
 from geomstats.riemannian_metric import RiemannianMetric
+
 import geomstats.backend as gs
 
 
@@ -24,22 +25,21 @@ class InvariantMetric(RiemannianMetric):
     def __init__(self, group,
                  inner_product_mat_at_identity=None,
                  left_or_right='left'):
-        if inner_product_mat_at_identity.ndim == 3:
-            n_mats, _, _ = inner_product_mat_at_identity.shape
-            assert n_mats == 1
-            inner_product_mat_at_identity = gs.squeeze(
-                               inner_product_mat_at_identity, axis=0)
+        if inner_product_mat_at_identity is None:
+            inner_product_mat_at_identity = gs.eye(self.group.dimension)
+        inner_product_mat_at_identity = gs.to_ndarray(
+            inner_product_mat_at_identity, to_ndim=3)
+        mat_shape = inner_product_mat_at_identity.shape
+        assert mat_shape == (1,) + (group.dimension, ) * 2, mat_shape
 
-        matrix_shape = inner_product_mat_at_identity.shape
-        assert matrix_shape == (group.dimension,) * 2
         assert left_or_right in ('left', 'right')
 
         eigenvalues = gs.linalg.eigvalsh(inner_product_mat_at_identity)
         n_pos_eigval = gs.sum(eigenvalues > 0)
         n_neg_eigval = gs.sum(eigenvalues < 0)
         n_null_eigval = gs.sum(eigenvalues == 0)
-        assert (n_pos_eigval + n_neg_eigval
-                + n_null_eigval) == group.dimension
+        n_eigval = n_pos_eigval + n_neg_eigval + n_null_eigval
+        assert n_eigval == group.dimension
 
         self.group = group
         if inner_product_mat_at_identity is None:
@@ -61,9 +61,13 @@ class InvariantMetric(RiemannianMetric):
             tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
             tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
 
-            aux_vec_a = gs.matmul(tangent_vec_a,
-                                  self.inner_product_mat_at_identity)
-            inner_prod = gs.einsum('ij,ij->i', aux_vec_a, tangent_vec_b)
+            inner_prod = gs.einsum('ij,ijk,ik->i',
+                                   tangent_vec_a,
+                                   self.inner_product_mat_at_identity,
+                                   tangent_vec_b)
+            #inner_prod = gs.einsum('ij,ij->i',
+            #                       aux_vec_a,
+            #                       tangent_vec_b)
             inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
         elif self.group.point_representation == 'matrix':
@@ -123,7 +127,7 @@ class InvariantMetric(RiemannianMetric):
 
         inner_product_mat_at_id = self.inner_product_mat_at_identity
         inner_product_mat_at_id = gs.to_ndarray(
-                             inner_product_mat_at_id, to_ndim=2)
+            inner_product_mat_at_id, to_ndim=3)
 
         metric_mat = gs.matmul(inv_jacobian_transposed,
                                inner_product_mat_at_id)
@@ -143,16 +147,24 @@ class InvariantMetric(RiemannianMetric):
         metric, it used the left-invariant metric associated to the same
         inner-product at the identity.
         """
+        from geomstats.spd_matrices_space import SPDMatricesSpace
+        spd_space = SPDMatricesSpace(n=self.group.dimension)
+
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
 
         tangent_vec = self.group.regularize_tangent_vec_at_identity(
                                         tangent_vec=tangent_vec,
                                         metric=self)
-        sqrt_inner_product_mat = scipy.linalg.sqrtm(
-                                            self.inner_product_mat_at_identity)
-        mat = sqrt_inner_product_mat.transpose()
+        sqrt_inner_product_mat = spd_space.sqrtm(
+            self.inner_product_mat_at_identity)
+        mat = np.transpose(sqrt_inner_product_mat, axes=(0, 2, 1))
         exp = gs.matmul(tangent_vec, mat)
-
+        exp = np.squeeze(exp, axis=0)
+        if exp.ndim != 2 and exp.ndim !=1:
+            print('tangent_vec.shape={}'.format(tangent_vec.shape))
+            print('sqrt_inner_product_mat.shape={}'.format(sqrt_inner_product_mat.shape))
+            print('mat.shape={}'.format(mat.shape))
+            print('exp.shape={}'.format(exp.shape))
         exp = self.group.regularize(exp)
         return exp
 
@@ -220,13 +232,17 @@ class InvariantMetric(RiemannianMetric):
         left Riemannian logarithm of the canonical metric parameterizes
         the points.
         """
+        from geomstats.spd_matrices_space import SPDMatricesSpace
+        spd_space = SPDMatricesSpace(n=self.group.dimension)
+
         point = self.group.regularize(point)
         inner_prod_mat = self.inner_product_mat_at_identity
-        sqrt_inv_inner_prod_mat = scipy.linalg.sqrtm(gs.linalg.inv(
-                                                     inner_prod_mat))
-        assert sqrt_inv_inner_prod_mat.shape == (self.group.dimension,) * 2
-
-        log = gs.matmul(point, sqrt_inv_inner_prod_mat.transpose())
+        inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
+        sqrt_inv_inner_prod_mat = spd_space.sqrtm(inv_inner_prod_mat)
+        assert sqrt_inv_inner_prod_mat.shape == ((1,)
+                                                 + (self.group.dimension,) * 2)
+        aux = np.squeeze(sqrt_inv_inner_prod_mat, axis=0)
+        log = gs.matmul(point, aux)
         log = self.group.regularize_tangent_vec_at_identity(
                                              tangent_vec=log,
                                              metric=self)
