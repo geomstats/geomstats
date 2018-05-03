@@ -153,18 +153,14 @@ class SPDMatricesSpace(EmbeddedManifold):
         assert self.belongs(sym_mat)
         sym_mat = vectorization.to_ndarray(sym_mat, to_ndim=3)
 
-        #[eigenvalues, vectors] = np.linalg.eigh(sym_mat)
+        [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
 
-        # sqrt_eigenvalues = np.sqrt(eigenvalues)
-        # diag = np.diag(np.squeeze(sqrt_eigenvalues, axis=0))
-        # diag = vectorization.to_ndarray(diag, to_ndim=3)
+        sqrt_eigenvalues = np.sqrt(eigenvalues)
+        diag = np.diag(np.squeeze(sqrt_eigenvalues, axis=0))
+        diag = vectorization.to_ndarray(diag, to_ndim=3)
 
-        # sqrt_mat = np.einsum('ijk,ikl,ilm->ijm',
-        #                      vectors, diag, vectors)
-
-        sqrt_mat = np.zeros_like(sym_mat)
-        for i in range(sqrt_mat.shape[0]):
-            sqrt_mat[i] = scipy.linalg.sqrtm(sym_mat[i])
+        sqrt_mat = np.einsum('ijk,ikl,iml->ijm',
+                             vectors, diag, vectors)
 
         sqrt_mat = vectorization.to_ndarray(sqrt_mat, to_ndim=3)
         return sqrt_mat
