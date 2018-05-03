@@ -147,7 +147,7 @@ class HypersphereMetric(RiemannianMetric):
 
         return tangent_vec
 
-    def exp_basis(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point):
         """
         Compute the Riemannian exponential at point base_point
         of tangent vector tangent_vec wrt the metric obtained by
@@ -179,7 +179,7 @@ class HypersphereMetric(RiemannianMetric):
 
         return exp
 
-    def log_basis(self, point, base_point):
+    def log(self, point, base_point):
         """
         Compute the Riemannian logarithm at point base_point,
         of point wrt the metric obtained by

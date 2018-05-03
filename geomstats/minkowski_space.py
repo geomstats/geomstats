@@ -53,13 +53,13 @@ class MinkowskiMetric(RiemannianMetric):
         inner_prod_mat[0, 0] = -1
         return inner_prod_mat
 
-    def exp_basis(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point):
         """
         The Riemannian exponential is the addition in the Minkowski space.
         """
         return base_point + tangent_vec
 
-    def log_basis(self, point, base_point):
+    def log(self, point, base_point):
         """
         The Riemannian logarithm is the subtraction in the Minkowski space.
         """

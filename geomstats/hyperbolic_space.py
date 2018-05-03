@@ -174,7 +174,7 @@ class HyperbolicMetric(RiemannianMetric):
         tangent_vec = vector - inner_prod * base_point / sq_norm_base_point
         return tangent_vec
 
-    def exp_basis(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point):
         """
         Compute the Riemannian exponential at point base_point
         of tangent vector tangent_vec wrt the metric obtained by
@@ -226,7 +226,7 @@ class HyperbolicMetric(RiemannianMetric):
         riem_exp = hyperbolic_space.regularize(riem_exp)
         return riem_exp
 
-    def log_basis(self, point, base_point):
+    def log(self, point, base_point):
         """
         Compute the Riemannian logarithm at point base_point,
         of point wrt the metric obtained by
