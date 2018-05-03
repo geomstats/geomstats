@@ -9,7 +9,6 @@ their Riemannian logarithm for the canonical left-invariant metric.
 """
 
 import logging
-import numpy as np
 
 from geomstats.riemannian_metric import RiemannianMetric
 
@@ -155,9 +154,9 @@ class InvariantMetric(RiemannianMetric):
                                         metric=self)
         sqrt_inner_product_mat = spd_space.sqrtm(
             self.inner_product_mat_at_identity)
-        mat = np.transpose(sqrt_inner_product_mat, axes=(0, 2, 1))
+        mat = gs.transpose(sqrt_inner_product_mat, axes=(0, 2, 1))
         exp = gs.matmul(tangent_vec, mat)
-        exp = np.squeeze(exp, axis=0)
+        exp = gs.squeeze(exp, axis=0)
 
         exp = self.group.regularize(exp)
         return exp
@@ -235,7 +234,7 @@ class InvariantMetric(RiemannianMetric):
         sqrt_inv_inner_prod_mat = spd_space.sqrtm(inv_inner_prod_mat)
         assert sqrt_inv_inner_prod_mat.shape == ((1,)
                                                  + (self.group.dimension,) * 2)
-        aux = np.squeeze(sqrt_inv_inner_prod_mat, axis=0)
+        aux = gs.squeeze(sqrt_inv_inner_prod_mat, axis=0)
         log = gs.matmul(point, aux)
         log = self.group.regularize_tangent_vec_at_identity(
                                              tangent_vec=log,
