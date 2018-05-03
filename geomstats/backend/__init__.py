@@ -10,6 +10,8 @@ else:
 
 _BACKEND = _backend
 
+from .common import *  # NOQA
+
 if _BACKEND == 'numpy':
     sys.stderr.write('Using numpy backend\n')
     from .numpy import *  # NOQA
@@ -18,8 +20,8 @@ if _BACKEND == 'numpy':
 elif _BACKEND == 'tensorflow':
     sys.stderr.write('Using tensorflow backend\n')
     from .tensorflow import *  # NOQA
-    from . import tensorflow_random as random
-    from . import tensorflow_linalg as linalg
+    from . import tensorflow_random as random  # NOQA
+    from . import tensorflow_linalg as linalg  # NOQA
 elif _BACKEND == 'pytorch':
     raise NotImplementedError('pytorch backend not implemented yet')
 

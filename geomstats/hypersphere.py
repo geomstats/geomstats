@@ -11,7 +11,6 @@ from geomstats.embedded_manifold import EmbeddedManifold
 from geomstats.euclidean_space import EuclideanMetric
 from geomstats.euclidean_space import EuclideanSpace
 from geomstats.riemannian_metric import RiemannianMetric
-import geomstats.vectorization as vectorization
 
 TOLERANCE = 1e-6
 EPSILON = 1e-8
@@ -48,7 +47,7 @@ class Hypersphere(EmbeddedManifold):
         in the embedding Euclidean space.
         Note: point must be given in extrinsic coordinates.
         """
-        point = vectorization.to_ndarray(point, to_ndim=2)
+        point = gs.to_ndarray(point, to_ndim=2)
 
         _, point_dim = point.shape
         if point_dim is not self.dimension + 1:
@@ -79,8 +78,7 @@ class Hypersphere(EmbeddedManifold):
         From some intrinsic coordinates in the Hypersphere,
         to the extrinsic coordinates in Euclidean space.
         """
-        point_intrinsic = vectorization.to_ndarray(point_intrinsic,
-                                                   to_ndim=2)
+        point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
 
         n_points, _ = point_intrinsic.shape
 
@@ -101,8 +99,7 @@ class Hypersphere(EmbeddedManifold):
         From the extrinsic coordinates in Euclidean space,
         to some intrinsic coordinates in Hypersphere.
         """
-        point_extrinsic = vectorization.to_ndarray(point_extrinsic,
-                                                   to_ndim=2)
+        point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=2)
         assert gs.all(self.belongs(point_extrinsic))
 
         point_intrinsic = point_extrinsic[:, 1:]
@@ -240,8 +237,8 @@ class HypersphereMetric(RiemannianMetric):
         if gs.all(point_a == point_b):
             return 0.
 
-        point_a = vectorization.to_ndarray(point_a, to_ndim=2)
-        point_b = vectorization.to_ndarray(point_b, to_ndim=2)
+        point_a = gs.to_ndarray(point_a, to_ndim=2)
+        point_b = gs.to_ndarray(point_b, to_ndim=2)
 
         n_points_a, _ = point_a.shape
         n_points_b, _ = point_b.shape

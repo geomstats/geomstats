@@ -2,8 +2,6 @@
 
 import numpy as np
 
-pi = np.pi
-
 
 def array(val):
     return np.array(val)
@@ -144,3 +142,11 @@ def zeros_like(*args, **kwargs):
 
 def trace(*args, **kwargs):
     return np.trace(*args, **kwargs)
+
+
+def mod(*args, **kwargs):
+    return np.mod(*args, **kwargs)
+
+
+def linspace(*args, **kwargs):
+    return np.linspace(*args, **kwargs)
