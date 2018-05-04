@@ -14,14 +14,18 @@ class TestHypersphereMethods(unittest.TestCase):
         self.space = Hypersphere(dimension=self.dimension)
         self.metric = self.space.metric
         self.n_samples = 10
+        self.sess = gs.start_session()
+
+    def tearDown(self):
+        gs.stop_session(self.sess)
 
     def test_random_uniform_and_belongs(self):
         """
         Test that the random uniform method samples
         on the hypersphere space.
         """
-        point = self.space.random_uniform()
-        self.assertTrue(self.space.belongs(point))
+        point = self.sess.run(self.space.random_uniform())
+        self.assertTrue(self.sess.run(self.space.belongs(point)))
 
     def test_random_uniform_and_belongs_vectorization(self):
         """
@@ -30,7 +34,7 @@ class TestHypersphereMethods(unittest.TestCase):
         """
         n_samples = self.n_samples
         points = self.space.random_uniform(n_samples=n_samples)
-        self.assertTrue(gs.all(self.space.belongs(points)))
+        self.assertTrue(self.sess.run((gs.all(self.space.belongs(points)))))
 
     def test_intrinsic_and_extrinsic_coords(self):
         """

@@ -65,7 +65,7 @@ class Hypersphere(EmbeddedManifold):
         Project the vector vector onto the tangent space:
         T_{base_point} S = {w | scal(w, base_point) = 0}
         """
-        assert self.belongs(base_point)
+        # assert self.belongs(base_point)
 
         sq_norm = self.embedding_metric.squared_norm(base_point)
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
@@ -156,15 +156,15 @@ class HypersphereMetric(RiemannianMetric):
         :param vector: (n+1)-dimensional vector
         :return exp: a point on the n-dimensional sphere
         """
-        projected_tangent_vec = self.projection_to_tangent_space(
-            vector=tangent_vec, base_point=base_point)
-        diff = gs.abs(projected_tangent_vec - tangent_vec)
-        if not gs.allclose(diff, 0):
-            tangent_vec = projected_tangent_vec
-            logging.warning(
-                'The input vector is not tangent to the hypersphere.'
-                ' We project it on the tangent space at base_point={}.'.format(
-                    base_point))
+        #projected_tangent_vec = self.projection_to_tangent_space(
+        #    vector=tangent_vec, base_point=base_point)
+        #diff = gs.abs(projected_tangent_vec - tangent_vec)
+        #if not gs.allclose(diff, 0):
+        #    tangent_vec = projected_tangent_vec
+        #    logging.warning(
+        #        'The input vector is not tangent to the hypersphere.'
+        #        ' We project it on the tangent space at base_point={}.'.format(
+        #            base_point))
 
         # TODO(johmathe): Evaluate the bias introduced by this variable
         norm_tangent_vec = self.embedding_metric.norm(tangent_vec) + EPSILON
