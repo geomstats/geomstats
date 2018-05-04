@@ -123,7 +123,7 @@ class HyperbolicSpace(EmbeddedManifold):
          T_{base_point}H
                 = { w s.t. embedding_inner_product(base_point, w) = 0 }
         """
-        assert self.belongs(base_point)
+        assert gs.all(self.belongs(base_point))
 
         inner_prod = self.embedding_metric.inner_product(base_point,
                                                          vector)
