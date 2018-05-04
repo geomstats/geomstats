@@ -27,9 +27,8 @@ class TestExamples(unittest.TestCase):
     def test_plot_geodesics_so3(self):
         plot_geodesics_so3.main()
 
-    # TODO(nina): this test fails
-    # def test_plot_grid_h2(self):
-    #    plot_grid_h2.main()
+    def test_plot_grid_h2(self):
+        plot_grid_h2.main()
 
     def test_tangent_pca_so3(self):
         tangent_pca_so3.main()

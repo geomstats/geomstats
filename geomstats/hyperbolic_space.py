@@ -74,15 +74,18 @@ class HyperbolicSpace(EmbeddedManifold):
             return False
 
         sq_norm = self.embedding_metric.squared_norm(point)
-        euclidean_sq_norm = gs.dot(point, point.transpose())
+        euclidean_sq_norm = gs.einsum('ij,ij->i', point, point)
+        euclidean_sq_norm = gs.to_ndarray(euclidean_sq_norm, to_ndim=2, axis=1)
         diff = gs.abs(sq_norm + 1)
+
         return diff < tolerance * euclidean_sq_norm
 
     def regularize(self, point):
-        # TODO(nina): vectorize
         assert gs.all(self.belongs(point))
+
         sq_norm = self.embedding_metric.squared_norm(point)
         real_norm = gs.sqrt(gs.abs(sq_norm))
+
         for i in range(len(real_norm)):
             if real_norm[i] != 0:
                 point[i] = point[i] / real_norm[i]
