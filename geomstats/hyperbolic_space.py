@@ -191,7 +191,7 @@ class HyperbolicMetric(RiemannianMetric):
         projected_tangent_vec = self.projection_to_tangent_space(
             vector=tangent_vec, base_point=base_point)
         diff = gs.abs(projected_tangent_vec - tangent_vec)
-        if not gs.allclose(diff, 0):
+        if not gs.allclose(diff, 0, atol=TOLERANCE):
             tangent_vec = projected_tangent_vec
             logging.warning(
                 'The input vector is not tangent to the hyperbolic space.'
