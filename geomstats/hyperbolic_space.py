@@ -74,15 +74,18 @@ class HyperbolicSpace(EmbeddedManifold):
             return False
 
         sq_norm = self.embedding_metric.squared_norm(point)
-        euclidean_sq_norm = gs.dot(point, point.transpose())
+        euclidean_sq_norm = gs.einsum('ij,ij->i', point, point)
+        euclidean_sq_norm = gs.to_ndarray(euclidean_sq_norm, to_ndim=2, axis=1)
         diff = gs.abs(sq_norm + 1)
+
         return diff < tolerance * euclidean_sq_norm
 
     def regularize(self, point):
-        # TODO(nina): vectorize
         assert gs.all(self.belongs(point))
+
         sq_norm = self.embedding_metric.squared_norm(point)
         real_norm = gs.sqrt(gs.abs(sq_norm))
+
         for i in range(len(real_norm)):
             if real_norm[i] != 0:
                 point[i] = point[i] / real_norm[i]
@@ -123,7 +126,7 @@ class HyperbolicSpace(EmbeddedManifold):
          T_{base_point}H
                 = { w s.t. embedding_inner_product(base_point, w) = 0 }
         """
-        assert self.belongs(base_point)
+        assert gs.all(self.belongs(base_point))
 
         inner_prod = self.embedding_metric.inner_product(base_point,
                                                          vector)
@@ -188,7 +191,7 @@ class HyperbolicMetric(RiemannianMetric):
         projected_tangent_vec = self.projection_to_tangent_space(
             vector=tangent_vec, base_point=base_point)
         diff = gs.abs(projected_tangent_vec - tangent_vec)
-        if not gs.allclose(diff, 0):
+        if not gs.allclose(diff, 0, atol=TOLERANCE):
             tangent_vec = projected_tangent_vec
             logging.warning(
                 'The input vector is not tangent to the hyperbolic space.'

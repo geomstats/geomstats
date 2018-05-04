@@ -144,8 +144,14 @@ def all(bool_tensor):
     all_true = tf.equal(tf.reduce_mean(bool_tensor), 1.0)
     return all_true
 
+
 def start_session():
     return tf.Session()
 
+
 def stop_session(session):
     session.close()
+
+
+def Assert(statement):
+    tf.equal(statement, True)

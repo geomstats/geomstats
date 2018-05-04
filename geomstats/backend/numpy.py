@@ -27,8 +27,8 @@ def all(val):
     return np.all(val)
 
 
-def allclose(a, b):
-    return np.allclose(a, b)
+def allclose(a, b, **kwargs):
+    return np.allclose(a, b, **kwargs)
 
 
 def sin(val):
