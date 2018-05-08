@@ -1,6 +1,6 @@
 """Unit tests for matrix lie group module."""
 
-import numpy as np
+import geomstats.backend as gs
 import unittest
 
 from geomstats.general_linear_group import GeneralLinearGroup
@@ -13,6 +13,7 @@ class TestGeneralLinearGroupMethods(unittest.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
+        gs.random.seed(1234)
         n = 3
         self.group = GeneralLinearGroup(n=n)
         # We generate invertible matrices using so3_group
@@ -37,7 +38,7 @@ class TestGeneralLinearGroupMethods(unittest.TestCase):
         result_1 = self.group.compose(mat_1, self.group.identity)
         expected_1 = mat_1
 
-        self.assertTrue(np.allclose(result_1, expected_1))
+        self.assertTrue(gs.allclose(result_1, expected_1))
 
         # 2. Composition by identity, on the left
         # Expect the original transformation
@@ -47,11 +48,11 @@ class TestGeneralLinearGroupMethods(unittest.TestCase):
         result_2 = self.group.compose(self.group.identity, mat_2)
         expected_2 = mat_2
 
-        norm = np.linalg.norm(expected_2)
+        norm = gs.linalg.norm(expected_2)
         atol = RTOL
         if norm != 0:
             atol = RTOL * norm
-        self.assertTrue(np.allclose(result_2, expected_2, atol=atol),
+        self.assertTrue(gs.allclose(result_2, expected_2, atol=atol),
                         '\nresult:\n{}'
                         '\nexpected:\n{}'.format(result_2,
                                                  expected_2))
@@ -66,12 +67,12 @@ class TestGeneralLinearGroupMethods(unittest.TestCase):
         result_1 = self.group.compose(mat_1, inv_mat_1)
         expected_1 = self.group.identity
 
-        norm = np.linalg.norm(expected_1)
+        norm = gs.linalg.norm(expected_1)
         atol = RTOL
         if norm != 0:
             atol = RTOL * norm
 
-        self.assertTrue(np.allclose(result_1, expected_1, atol=atol),
+        self.assertTrue(gs.allclose(result_1, expected_1, atol=atol),
                         '\nresult:\n{}'
                         '\nexpected:\n{}'.format(result_1, expected_1))
 
@@ -84,12 +85,12 @@ class TestGeneralLinearGroupMethods(unittest.TestCase):
         result_2 = self.group.compose(inv_mat_2, mat_2)
         expected_2 = self.group.identity
 
-        norm = np.linalg.norm(expected_2)
+        norm = gs.linalg.norm(expected_2)
         atol = RTOL
         if norm != 0:
             atol = RTOL * norm
 
-        self.assertTrue(np.allclose(result_2, expected_2, atol=atol))
+        self.assertTrue(gs.allclose(result_2, expected_2, atol=atol))
 
 
 if __name__ == '__main__':
