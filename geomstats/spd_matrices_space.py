@@ -20,14 +20,10 @@ def is_symmetric(mat, tolerance=TOLERANCE):
     """Check if a matrix is symmetric."""
     mat = vectorization.to_ndarray(mat, to_ndim=3)
     n_mats, _, _ = mat.shape
-    #mat_transpose = np.transpose(mat, axes=(0, 2, 1))
-    #mask = np.allclose(mat, mat_transpose, atol=tolerance)
+    mat_transpose = np.transpose(mat, axes=(0, 2, 1))
 
-    #mask = np.all(mask, axis=(1, 2))
-    mask = np.zeros(n_mats, dtype=bool)
-    for i in range(n_mats):
-        mask[i] = np.allclose(mat[i], np.transpose(mat[i]),
-                              atol=tolerance)
+    mask = np.isclose(mat, mat_transpose, atol=tolerance)
+    mask = np.all(mask, axis=(1, 2))
 
     return mask
 
