@@ -144,9 +144,7 @@ class InvariantMetric(RiemannianMetric):
         metric, it used the left-invariant metric associated to the same
         inner-product at the identity.
         """
-        from geomstats.spd_matrices_space import SPDMatricesSpace
-        spd_space = SPDMatricesSpace(n=self.group.dimension)
-
+        import geomstats.spd_matrices_space as spd_space
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
 
         tangent_vec = self.group.regularize_tangent_vec_at_identity(
@@ -225,8 +223,7 @@ class InvariantMetric(RiemannianMetric):
         left Riemannian logarithm of the canonical metric parameterizes
         the points.
         """
-        from geomstats.spd_matrices_space import SPDMatricesSpace
-        spd_space = SPDMatricesSpace(n=self.group.dimension)
+        import geomstats.spd_matrices_space as spd_space
 
         point = self.group.regularize(point)
         inner_prod_mat = self.inner_product_mat_at_identity

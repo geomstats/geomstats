@@ -1,14 +1,12 @@
 """Computations on the Lie group of 3D rotations."""
 
-import scipy.linalg
-
 # TODO(nina): Rename modules to make imports cleaner?
 # TODO(nina): make code robust to different types and input structures
 from geomstats.embedded_manifold import EmbeddedManifold
 from geomstats.general_linear_group import GeneralLinearGroup
 from geomstats.lie_group import LieGroup
-from geomstats.spd_matrices_space import is_symmetric
 import geomstats.backend as gs
+import geomstats.spd_matrices_space as spd_space
 
 
 def closest_rotation_matrix(mat):
@@ -41,8 +39,9 @@ def closest_rotation_matrix(mat):
         inv_sqrt_mat = gs.zeros_like(mat)
         for i in range(n_mats):
             sym_mat = aux_mat[i]
-            assert is_symmetric(sym_mat)
-            inv_sqrt_mat[i] = gs.linalg.inv(scipy.linalg.sqrtm(sym_mat))
+
+            assert spd_space.is_symmetric(sym_mat)
+            inv_sqrt_mat[i] = gs.linalg.inv(spd_space.sqrtm(sym_mat))
         rot_mat = gs.matmul(mat, inv_sqrt_mat)
 
     assert rot_mat.ndim == 3
