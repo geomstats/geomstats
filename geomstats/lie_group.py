@@ -68,29 +68,14 @@ class LieGroup(Manifold):
 
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
 
-        n_tangent_vecs = tangent_vec.shape[0]
-        n_base_points = base_point.shape[0]
-        n_exps = gs.maximum(n_tangent_vecs, n_base_points)
-
-        assert (n_tangent_vecs == n_base_points
-                or n_tangent_vecs == 1
-                or n_base_points == 1)
-
         jacobian = self.jacobian_translation(point=base_point,
                                              left_or_right='left')
         inv_jacobian = gs.linalg.inv(jacobian)
 
-        dim = self.dimension
-        assert inv_jacobian.shape == (n_base_points, dim, dim)
-
-        tangent_vec_at_id = gs.zeros((n_exps, dim))
-        for i in range(n_exps):
-            inv_jacobian_i = (inv_jacobian[0] if n_base_points == 1
-                              else inv_jacobian[i])
-            tangent_vec_i = (tangent_vec[0] if n_tangent_vecs == 1
-                             else tangent_vec[i])
-            tangent_vec_at_id[i] = gs.dot(tangent_vec_i,
-                                          gs.transpose(inv_jacobian_i))
+        tangent_vec_at_id = gs.einsum('ij,ijk->ik',
+                                      tangent_vec,
+                                      gs.transpose(inv_jacobian,
+                                                   axes=(0, 2, 1)))
 
         group_exp_from_identity = self.group_exp_from_identity(
                                        tangent_vec=tangent_vec_at_id)
@@ -120,31 +105,15 @@ class LieGroup(Manifold):
 
         point = self.regularize(point)
 
-        n_points = point.shape[0]
-        n_base_points = base_point.shape[0]
-        n_logs = gs.maximum(n_points, n_base_points)
-
-        assert (n_points == n_base_points
-                or n_points == 1
-                or n_base_points == 1)
-
         jacobian = self.jacobian_translation(point=base_point,
                                              left_or_right='left')
         point_near_id = self.compose(self.inverse(base_point), point)
         group_log_from_id = self.group_log_from_identity(
                                            point=point_near_id)
 
-        dim = self.dimension
-        assert group_log_from_id.shape == (n_logs, dim)
-        assert jacobian.shape == (n_base_points, dim, dim)
-
-        group_log = gs.zeros((n_logs, dim))
-        for i in range(n_logs):
-            jacobian_i = jacobian[0] if n_base_points == 1 else jacobian[i]
-
-            log_from_id_i = (group_log_from_id[0] if n_points == 1
-                             else group_log_from_id[i])
-            group_log[i] = gs.dot(log_from_id_i, gs.transpose(jacobian_i))
+        group_log = gs.einsum('ij,ijk->ik',
+                              group_log_from_id,
+                              gs.transpose(jacobian, axes=(0, 2, 1)))
 
         assert group_log.ndim == 2
         return group_log

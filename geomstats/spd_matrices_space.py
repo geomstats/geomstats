@@ -6,7 +6,6 @@ X. Pennec. A Riemannian Framework for Tensor Computing. (2004).
 """
 
 import numpy as np
-import scipy.linalg
 
 from geomstats.embedded_manifold import EmbeddedManifold
 from geomstats.general_linear_group import GeneralLinearGroup
@@ -21,11 +20,10 @@ def is_symmetric(mat, tolerance=TOLERANCE):
     """Check if a matrix is symmetric."""
     mat = vectorization.to_ndarray(mat, to_ndim=3)
     n_mats, _, _ = mat.shape
+    mat_transpose = np.transpose(mat, axes=(0, 2, 1))
 
-    mask = np.zeros(n_mats, dtype=bool)
-    for i in range(n_mats):
-        mask[i] = np.allclose(mat[i], np.transpose(mat[i]),
-                              atol=tolerance)
+    mask = np.isclose(mat, mat_transpose, atol=tolerance)
+    mask = np.all(mask, axis=(1, 2))
 
     return mask
 
@@ -34,6 +32,20 @@ def make_symmetric(mat):
     """Make a matrix fully symmetric to avoid numerical issues."""
     mat = vectorization.to_ndarray(mat, to_ndim=3)
     return (mat + np.transpose(mat, axes=(0, 2, 1))) / 2
+
+
+def sqrtm(sym_mat):
+    sym_mat = vectorization.to_ndarray(sym_mat, to_ndim=3)
+
+    [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
+
+    sqrt_eigenvalues = np.sqrt(eigenvalues)
+
+    aux = np.einsum('ijk,ik->ijk', vectors, sqrt_eigenvalues)
+    sqrt_mat = np.einsum('ijk,ilk->ijl', aux, vectors)
+
+    sqrt_mat = vectorization.to_ndarray(sqrt_mat, to_ndim=3)
+    return sqrt_mat
 
 
 # TODO(nina): The manifold of sym matrices is not a Lie group.
@@ -51,13 +63,13 @@ def group_exp(sym_mat):
     sym_mat = make_symmetric(sym_mat)
 
     [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
-    diag_exp = np.zeros((n_sym_mats, mat_dim, mat_dim))
-    for i in range(n_sym_mats):
-        diag_exp[i] = np.diag(np.exp(eigenvalues[i]))
+    exp_eigenvalues = np.exp(eigenvalues)
 
-    exp = np.matmul(diag_exp, np.transpose(vectors, axes=(0, 2, 1)))
-    exp = np.matmul(vectors, exp)
-    return exp
+    aux = np.einsum('ijk,ik->ijk', vectors, exp_eigenvalues)
+    exp_mat = np.einsum('ijk,ilk->ijl', aux, vectors)
+
+    exp_mat = vectorization.to_ndarray(exp_mat, to_ndim=3)
+    return exp_mat
 
 
 def group_log(sym_mat):
@@ -73,13 +85,14 @@ def group_log(sym_mat):
     sym_mat = make_symmetric(sym_mat)
     [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
     assert np.all(eigenvalues > 0)
-    diag_log = np.zeros((n_sym_mats, mat_dim, mat_dim))
-    for i in range(n_sym_mats):
-        diag_log[i] = np.diag(np.log(eigenvalues[i]))
 
-    log = np.matmul(diag_log, np.transpose(vectors, axes=(0, 2, 1)))
-    log = np.matmul(vectors, log)
-    return log
+    log_eigenvalues = np.log(eigenvalues)
+
+    aux = np.einsum('ijk,ik->ijk', vectors, log_eigenvalues)
+    log_mat = np.einsum('ijk,ilk->ijl', aux, vectors)
+
+    log_mat = vectorization.to_ndarray(log_mat, to_ndim=3)
+    return log_mat
 
 
 class SPDMatricesSpace(EmbeddedManifold):
@@ -149,22 +162,6 @@ class SPDMatricesSpace(EmbeddedManifold):
         mat = make_symmetric(mat)
         return mat
 
-    def sqrtm(self, sym_mat):
-        assert self.belongs(sym_mat)
-        sym_mat = vectorization.to_ndarray(sym_mat, to_ndim=3)
-
-        [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
-
-        sqrt_eigenvalues = np.sqrt(eigenvalues)
-        diag = np.diag(np.squeeze(sqrt_eigenvalues, axis=0))
-        diag = vectorization.to_ndarray(diag, to_ndim=3)
-
-        sqrt_mat = np.einsum('ijk,ikl,iml->ijm',
-                             vectors, diag, vectors)
-
-        sqrt_mat = vectorization.to_ndarray(sqrt_mat, to_ndim=3)
-        return sqrt_mat
-
     def random_uniform(self, n_samples=1):
         mat = 2 * np.random.rand(n_samples, self.n, self.n) - 1
 
@@ -180,9 +177,7 @@ class SPDMatricesSpace(EmbeddedManifold):
 
         assert n_base_points == n_samples or n_base_points == 1
 
-        sqrt_base_point = np.zeros_like(base_point)
-        for i in range(n_base_points):
-            sqrt_base_point[i] = scipy.linalg.sqrtm(base_point[i])
+        sqrt_base_point = sqrtm(base_point)
 
         tangent_vec_at_id = (2 * np.random.rand(n_samples,
                                                 self.n,
@@ -235,9 +230,7 @@ class SPDMetric(RiemannianMetric):
                 or n_tangent_vecs == 1
                 or n_base_points == 1)
 
-        sqrt_base_point = np.zeros((n_base_points, mat_dim, mat_dim))
-        for i in range(n_base_points):
-            sqrt_base_point[i] = scipy.linalg.sqrtm(base_point[i])
+        sqrt_base_point = sqrtm(base_point)
 
         inv_sqrt_base_point = np.linalg.inv(sqrt_base_point)
 
@@ -271,8 +264,7 @@ class SPDMetric(RiemannianMetric):
                 or n_base_points == 1)
 
         sqrt_base_point = np.zeros((n_base_points,) + (mat_dim,) * 2)
-        for i in range(n_base_points):
-            sqrt_base_point[i] = scipy.linalg.sqrtm(base_point[i])
+        sqrt_base_point = sqrtm(base_point)
 
         inv_sqrt_base_point = np.linalg.inv(sqrt_base_point)
         point_near_id = np.matmul(inv_sqrt_base_point, point)

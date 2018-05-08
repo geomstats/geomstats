@@ -144,15 +144,13 @@ class InvariantMetric(RiemannianMetric):
         metric, it used the left-invariant metric associated to the same
         inner-product at the identity.
         """
-        from geomstats.spd_matrices_space import SPDMatricesSpace
-        spd_space = SPDMatricesSpace(n=self.group.dimension)
-
+        import geomstats.spd_matrices_space as spd_matrices_space
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
 
         tangent_vec = self.group.regularize_tangent_vec_at_identity(
                                         tangent_vec=tangent_vec,
                                         metric=self)
-        sqrt_inner_product_mat = spd_space.sqrtm(
+        sqrt_inner_product_mat = spd_matrices_space.sqrtm(
             self.inner_product_mat_at_identity)
         mat = gs.transpose(sqrt_inner_product_mat, axes=(0, 2, 1))
         exp = gs.matmul(tangent_vec, mat)
@@ -225,13 +223,12 @@ class InvariantMetric(RiemannianMetric):
         left Riemannian logarithm of the canonical metric parameterizes
         the points.
         """
-        from geomstats.spd_matrices_space import SPDMatricesSpace
-        spd_space = SPDMatricesSpace(n=self.group.dimension)
+        import geomstats.spd_matrices_space as spd_matrices_space
 
         point = self.group.regularize(point)
         inner_prod_mat = self.inner_product_mat_at_identity
         inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
-        sqrt_inv_inner_prod_mat = spd_space.sqrtm(inv_inner_prod_mat)
+        sqrt_inv_inner_prod_mat = spd_matrices_space.sqrtm(inv_inner_prod_mat)
         assert sqrt_inv_inner_prod_mat.shape == ((1,)
                                                  + (self.group.dimension,) * 2)
         aux = gs.squeeze(sqrt_inv_inner_prod_mat, axis=0)

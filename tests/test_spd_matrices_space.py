@@ -1,6 +1,7 @@
 """Unit tests for symmetric positive definite matrices."""
 
 import geomstats.backend as gs
+import scipy.linalg
 import unittest
 
 import geomstats.spd_matrices_space as spd_matrices_space
@@ -55,6 +56,17 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
 
         results = spd_matrices_space.make_symmetric(mats)
         self.assertTrue(gs.all(spd_matrices_space.is_symmetric(results)))
+
+    def test_sqrtm(self):
+        n_samples = self.n_samples
+        points = self.space.random_uniform(n_samples=n_samples)
+
+        result = spd_matrices_space.sqrtm(points)
+        expected = gs.zeros((n_samples, self.n, self.n))
+        for i in range(n_samples):
+            expected[i] = scipy.linalg.sqrtm(points[i])
+
+        self.assertTrue(gs.allclose(result, expected))
 
     def test_random_uniform_and_belongs(self):
         self.assertTrue(self.space.belongs(self.space.random_uniform()))
