@@ -20,7 +20,10 @@ def is_symmetric(mat, tolerance=TOLERANCE):
     """Check if a matrix is symmetric."""
     mat = vectorization.to_ndarray(mat, to_ndim=3)
     n_mats, _, _ = mat.shape
+    #mat_transpose = np.transpose(mat, axes=(0, 2, 1))
+    #mask = np.allclose(mat, mat_transpose, atol=tolerance)
 
+    #mask = np.all(mask, axis=(1, 2))
     mask = np.zeros(n_mats, dtype=bool)
     for i in range(n_mats):
         mask[i] = np.allclose(mat[i], np.transpose(mat[i]),
@@ -87,13 +90,13 @@ def group_log(sym_mat):
     [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
     assert np.all(eigenvalues > 0)
 
-    diag_log = np.zeros((n_sym_mats, mat_dim, mat_dim))
-    for i in range(n_sym_mats):
-        diag_log[i] = np.diag(np.log(eigenvalues[i]))
+    log_eigenvalues = np.log(eigenvalues)
 
-    log = np.matmul(diag_log, np.transpose(vectors, axes=(0, 2, 1)))
-    log = np.matmul(vectors, log)
-    return log
+    aux = np.einsum('ijk,ik->ijk', vectors, log_eigenvalues)
+    log_mat = np.einsum('ijk,ilk->ijl', aux, vectors)
+
+    log_mat = vectorization.to_ndarray(log_mat, to_ndim=3)
+    return log_mat
 
 
 class SPDMatricesSpace(EmbeddedManifold):
