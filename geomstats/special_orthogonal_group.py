@@ -6,7 +6,7 @@ from geomstats.embedded_manifold import EmbeddedManifold
 from geomstats.general_linear_group import GeneralLinearGroup
 from geomstats.lie_group import LieGroup
 import geomstats.backend as gs
-import geomstats.spd_matrices_space as spd_space
+import geomstats.spd_matrices_space as spd_matrices_space
 
 
 def closest_rotation_matrix(mat):
@@ -40,8 +40,8 @@ def closest_rotation_matrix(mat):
         for i in range(n_mats):
             sym_mat = aux_mat[i]
 
-            assert spd_space.is_symmetric(sym_mat)
-            inv_sqrt_mat[i] = gs.linalg.inv(spd_space.sqrtm(sym_mat))
+            assert spd_matrices_space.is_symmetric(sym_mat)
+            inv_sqrt_mat[i] = gs.linalg.inv(spd_matrices_space.sqrtm(sym_mat))
         rot_mat = gs.matmul(mat, inv_sqrt_mat)
 
     assert rot_mat.ndim == 3
