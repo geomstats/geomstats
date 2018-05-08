@@ -3,8 +3,20 @@
 import numpy as np
 
 
+def concatenate(val):
+    return np.concatenate(val)
+
+
+def identity(val):
+    return np.identity(val)
+
+
 def hstack(val):
     return np.hstack(val)
+
+
+def vstack(val):
+    return np.vstack(val)
 
 
 def array(val):

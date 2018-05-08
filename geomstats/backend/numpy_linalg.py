@@ -3,6 +3,10 @@
 import numpy as np
 
 
+def det(*args, **kwargs):
+    return np.linalg.det(*args, **kwargs)
+
+
 def norm(*args, **kwargs):
     return np.linalg.norm(*args, **kwargs)
 
