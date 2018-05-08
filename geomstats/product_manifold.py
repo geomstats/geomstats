@@ -9,6 +9,7 @@ from geomstats.manifold import Manifold
 # TODO(nina): get rid of for loops
 # TODO(nina): unit tests
 
+
 class ProductManifold(Manifold):
     """Base class for a product of differentiable manifolds."""
 
