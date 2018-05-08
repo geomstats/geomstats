@@ -1,16 +1,14 @@
 """Computations on the Lie group of rigid transformations."""
 
-import numpy as np
-
 import geomstats.special_orthogonal_group as so_group
 
 from geomstats.euclidean_space import EuclideanSpace
 from geomstats.invariant_metric import InvariantMetric
 from geomstats.lie_group import LieGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
-import geomstats.vectorization as vectorization
+import geomstats.backend as gs
 
-PI = np.pi
+PI = gs.pi
 PI2 = PI * PI
 PI3 = PI * PI2
 PI4 = PI * PI3
@@ -32,7 +30,7 @@ class SpecialEuclideanGroup(LieGroup):
         self.dimension = int((n * (n - 1)) / 2 + n)
         super(SpecialEuclideanGroup, self).__init__(
                           dimension=self.dimension,
-                          identity=np.zeros(self.dimension))
+                          identity=gs.zeros(self.dimension))
         # TODO(nina): keep the names rotations and translations here?
         self.rotations = SpecialOrthogonalGroup(n=n)
         self.translations = EuclideanSpace(dimension=n)
@@ -43,7 +41,7 @@ class SpecialEuclideanGroup(LieGroup):
         Check that the transformation belongs to
         the special euclidean group.
         """
-        point = vectorization.to_ndarray(point, to_ndim=2)
+        point = gs.to_ndarray(point, to_ndim=2)
         _, point_dim = point.shape
         return point_dim == self.dimension
 
@@ -57,13 +55,13 @@ class SpecialEuclideanGroup(LieGroup):
         :returns self.regularized_point: 6d vector, element in SE(3)
         with self.regularized rotation.
         """
-        point = vectorization.to_ndarray(point, to_ndim=2)
+        point = gs.to_ndarray(point, to_ndim=2)
         assert self.belongs(point)
 
         rotations = self.rotations
         dim_rotations = rotations.dimension
 
-        regularized_point = np.zeros_like(point)
+        regularized_point = gs.zeros_like(point)
         rot_vec = point[:, :dim_rotations]
         regularized_point[:, :dim_rotations] = rotations.regularize(rot_vec)
         regularized_point[:, dim_rotations:] = point[:, dim_rotations:]
@@ -86,8 +84,8 @@ class SpecialEuclideanGroup(LieGroup):
         if metric is None:
             metric = self.left_canonical_metric
 
-        tangent_vec = vectorization.to_ndarray(tangent_vec, to_ndim=2)
-        base_point = vectorization.to_ndarray(base_point, to_ndim=2)
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
 
         rotations = self.rotations
         dim_rotations = rotations.dimension
@@ -102,7 +100,7 @@ class SpecialEuclideanGroup(LieGroup):
                                inner_product_mat_at_identity=rot_metric_mat,
                                left_or_right=metric.left_or_right)
 
-        regularized_vec = np.zeros_like(tangent_vec)
+        regularized_vec = gs.zeros_like(tangent_vec)
         regularized_vec[:, :dim_rotations] = rotations.regularize_tangent_vec(
                                                  tangent_vec=rot_tangent_vec,
                                                  base_point=rot_base_point,
@@ -148,11 +146,11 @@ class SpecialEuclideanGroup(LieGroup):
         translation_1 = point_1[:, dim_rotations:]
         translation_2 = point_2[:, dim_rotations:]
 
-        n_compositions = np.maximum(n_points_1, n_points_2)
-        composition_rot_mat = np.matmul(rot_mat_1, rot_mat_2)
+        n_compositions = gs.maximum(n_points_1, n_points_2)
+        composition_rot_mat = gs.matmul(rot_mat_1, rot_mat_2)
         composition_rot_vec = rotations.rotation_vector_from_matrix(
                                                           composition_rot_mat)
-        composition_translation = np.zeros((n_compositions, self.n))
+        composition_translation = gs.zeros((n_compositions, self.n))
         for i in range(n_compositions):
             translation_1_i = (translation_1[0] if n_points_1 == 1
                                else translation_1[i])
@@ -160,11 +158,11 @@ class SpecialEuclideanGroup(LieGroup):
                            else rot_mat_1[i])
             translation_2_i = (translation_2[0] if n_points_2 == 1
                                else translation_2[i])
-            composition_translation[i] = (np.dot(translation_2_i,
-                                                 np.transpose(rot_mat_1_i))
+            composition_translation[i] = (gs.dot(translation_2_i,
+                                                 gs.transpose(rot_mat_1_i))
                                           + translation_1_i)
 
-        composition = np.zeros((n_compositions, self.dimension))
+        composition = gs.zeros((n_compositions, self.dimension))
         composition[:, :dim_rotations] = composition_rot_vec
         composition[:, dim_rotations:] = composition_translation
 
@@ -190,15 +188,15 @@ class SpecialEuclideanGroup(LieGroup):
         rot_vec = point[:, :dim_rotations]
         translation = point[:, dim_rotations:]
 
-        inverse_point = np.zeros_like(point)
+        inverse_point = gs.zeros_like(point)
         inverse_rotation = -rot_vec
 
         inv_rot_mat = rotations.matrix_from_rotation_vector(inverse_rotation)
 
-        inverse_translation = np.zeros((n_points, self.n))
+        inverse_translation = gs.zeros((n_points, self.n))
         for i in range(n_points):
-            inverse_translation[i] = np.dot(-translation[i],
-                                            np.transpose(inv_rot_mat[i]))
+            inverse_translation[i] = gs.dot(-translation[i],
+                                            gs.transpose(inv_rot_mat[i]))
 
         inverse_point[:, :dim_rotations] = inverse_rotation
         inverse_point[:, dim_rotations:] = inverse_translation
@@ -227,7 +225,7 @@ class SpecialEuclideanGroup(LieGroup):
 
         rot_vec = point[:, :dim_rotations]
 
-        jacobian = np.zeros((n_points,) + (dim,) * 2)
+        jacobian = gs.zeros((n_points,) + (dim,) * 2)
 
         if left_or_right == 'left':
             jacobian_rot = self.rotations.jacobian_translation(
@@ -247,7 +245,7 @@ class SpecialEuclideanGroup(LieGroup):
             inv_skew_mat = - so_group.skew_matrix_from_vector(rot_vec)
             jacobian[:, :dim_rotations, :dim_rotations] = jacobian_rot
             jacobian[:, dim_rotations:, :dim_rotations] = inv_skew_mat
-            jacobian[:, dim_rotations:, dim_rotations:] = np.eye(self.n)
+            jacobian[:, dim_rotations:, dim_rotations:] = gs.eye(self.n)
 
         assert jacobian.ndim == 3
         return jacobian
@@ -262,7 +260,7 @@ class SpecialEuclideanGroup(LieGroup):
         :param base_point: 6d vector element of SE(3).
         :returns group_exp: 6d vector element of SE(3).
         """
-        tangent_vec = vectorization.to_ndarray(tangent_vec, to_ndim=2)
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
 
         rotations = self.rotations
         dim_rotations = rotations.dimension
@@ -271,27 +269,27 @@ class SpecialEuclideanGroup(LieGroup):
         rot_vec = self.rotations.regularize(rot_vec)
         translation = tangent_vec[:, dim_rotations:]
 
-        angle = np.linalg.norm(rot_vec, axis=1)
-        angle = vectorization.to_ndarray(angle, to_ndim=2, axis=1)
+        angle = gs.linalg.norm(rot_vec, axis=1)
+        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
-        mask_close_pi = np.isclose(angle, np.pi)
-        mask_close_pi = np.squeeze(mask_close_pi, axis=1)
+        mask_close_pi = gs.isclose(angle, gs.pi)
+        mask_close_pi = gs.squeeze(mask_close_pi, axis=1)
         rot_vec[mask_close_pi] = rotations.regularize(
                                        rot_vec[mask_close_pi])
 
         skew_mat = so_group.skew_matrix_from_vector(rot_vec)
-        sq_skew_mat = np.matmul(skew_mat, skew_mat)
+        sq_skew_mat = gs.matmul(skew_mat, skew_mat)
 
-        mask_0 = np.equal(angle, 0)
-        mask_close_0 = np.isclose(angle, 0) & ~mask_0
+        mask_0 = gs.equal(angle, 0)
+        mask_close_0 = gs.isclose(angle, 0) & ~mask_0
 
-        mask_0 = np.squeeze(mask_0, axis=1)
-        mask_close_0 = np.squeeze(mask_close_0, axis=1)
+        mask_0 = gs.squeeze(mask_0, axis=1)
+        mask_close_0 = gs.squeeze(mask_close_0, axis=1)
 
         mask_else = ~mask_0 & ~mask_close_0
 
-        coef_1 = np.zeros_like(angle)
-        coef_2 = np.zeros_like(angle)
+        coef_1 = gs.zeros_like(angle)
+        coef_2 = gs.zeros_like(angle)
 
         coef_1[mask_0] = 1. / 2.
         coef_2[mask_0] = 1. / 6.
@@ -303,23 +301,23 @@ class SpecialEuclideanGroup(LieGroup):
                                 + angle[mask_close_0] ** 4 / 5040.
                                 - angle[mask_close_0] ** 6 / 362880.)
 
-        coef_1[mask_else] = ((1. - np.cos(angle[mask_else]))
+        coef_1[mask_else] = ((1. - gs.cos(angle[mask_else]))
                              / angle[mask_else] ** 2)
-        coef_2[mask_else] = ((angle[mask_else] - np.sin(angle[mask_else]))
+        coef_2[mask_else] = ((angle[mask_else] - gs.sin(angle[mask_else]))
                              / angle[mask_else] ** 3)
 
         n_tangent_vecs, _ = tangent_vec.shape
-        group_exp_translation = np.zeros((n_tangent_vecs, self.n))
+        group_exp_translation = gs.zeros((n_tangent_vecs, self.n))
         for i in range(n_tangent_vecs):
             translation_i = translation[i]
-            term_1_i = coef_1[i] * np.dot(translation_i,
-                                          np.transpose(skew_mat[i]))
-            term_2_i = coef_2[i] * np.dot(translation_i,
-                                          np.transpose(sq_skew_mat[i]))
+            term_1_i = coef_1[i] * gs.dot(translation_i,
+                                          gs.transpose(skew_mat[i]))
+            term_2_i = coef_2[i] * gs.dot(translation_i,
+                                          gs.transpose(sq_skew_mat[i]))
 
             group_exp_translation[i] = translation_i + term_1_i + term_2_i
 
-        group_exp = np.zeros_like(tangent_vec)
+        group_exp = gs.zeros_like(tangent_vec)
         group_exp[:, :dim_rotations] = rot_vec
         group_exp[:, dim_rotations:] = group_exp_translation
 
@@ -339,32 +337,32 @@ class SpecialEuclideanGroup(LieGroup):
         dim_rotations = rotations.dimension
 
         rot_vec = point[:, :dim_rotations]
-        angle = np.linalg.norm(rot_vec, axis=1)
-        angle = vectorization.to_ndarray(angle, to_ndim=2, axis=1)
+        angle = gs.linalg.norm(rot_vec, axis=1)
+        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
         translation = point[:, dim_rotations:]
 
-        group_log = np.zeros_like(point)
+        group_log = gs.zeros_like(point)
         group_log[:, :dim_rotations] = rot_vec
         skew_rot_vec = so_group.skew_matrix_from_vector(rot_vec)
-        sq_skew_rot_vec = np.matmul(skew_rot_vec, skew_rot_vec)
+        sq_skew_rot_vec = gs.matmul(skew_rot_vec, skew_rot_vec)
 
-        mask_close_0 = np.isclose(angle, 0)
-        mask_close_0 = np.squeeze(mask_close_0, axis=1)
+        mask_close_0 = gs.isclose(angle, 0)
+        mask_close_0 = gs.squeeze(mask_close_0, axis=1)
 
-        mask_close_pi = np.isclose(angle, np.pi)
-        mask_close_pi = np.squeeze(mask_close_pi, axis=1)
+        mask_close_pi = gs.isclose(angle, gs.pi)
+        mask_close_pi = gs.squeeze(mask_close_pi, axis=1)
 
         mask_else = ~mask_close_0 & ~mask_close_pi
 
-        coef_1 = - 0.5 * np.ones_like(angle)
-        coef_2 = np.zeros_like(angle)
+        coef_1 = - 0.5 * gs.ones_like(angle)
+        coef_2 = gs.zeros_like(angle)
 
         coef_2[mask_close_0] = (1. / 12. + angle[mask_close_0] ** 2 / 720.
                                 + angle[mask_close_0] ** 4 / 30240.
                                 + angle[mask_close_0] ** 6 / 1209600.)
 
-        delta_angle = angle[mask_close_pi] - np.pi
+        delta_angle = angle[mask_close_pi] - gs.pi
         coef_2[mask_close_pi] = (1. / PI2
                                  + (PI2 - 8.) * delta_angle / (4. * PI3)
                                  - ((PI2 - 12.)
@@ -379,17 +377,17 @@ class SpecialEuclideanGroup(LieGroup):
                                     * delta_angle ** 6 / (480. * PI8)))
 
         psi = (0.5 * angle[mask_else]
-               * np.sin(angle[mask_else]) / (1 - np.cos(angle[mask_else])))
+               * gs.sin(angle[mask_else]) / (1 - gs.cos(angle[mask_else])))
         coef_2[mask_else] = (1 - psi) / (angle[mask_else] ** 2)
 
         n_points, _ = point.shape
-        group_log_translation = np.zeros((n_points, self.n))
+        group_log_translation = gs.zeros((n_points, self.n))
         for i in range(n_points):
             translation_i = translation[i]
-            term_1_i = coef_1[i] * np.dot(translation_i,
-                                          np.transpose(skew_rot_vec[i]))
-            term_2_i = coef_2[i] * np.dot(translation_i,
-                                          np.transpose(sq_skew_rot_vec[i]))
+            term_1_i = coef_1[i] * gs.dot(translation_i,
+                                          gs.transpose(skew_rot_vec[i]))
+            term_2_i = coef_2[i] * gs.dot(translation_i,
+                                          gs.transpose(sq_skew_rot_vec[i]))
             group_log_translation[i] = translation_i + term_1_i + term_2_i
 
         group_log[:, dim_rotations:] = group_log_translation
@@ -408,7 +406,7 @@ class SpecialEuclideanGroup(LieGroup):
         random_rot_vec = self.rotations.random_uniform(n_samples)
         random_translation = self.translations.random_uniform(n_samples)
 
-        random_transfo = np.concatenate([random_rot_vec, random_translation],
+        random_transfo = gs.concatenate([random_rot_vec, random_translation],
                                         axis=1)
         random_transfo = self.regularize(random_transfo)
         return random_transfo
@@ -425,18 +423,18 @@ class SpecialEuclideanGroup(LieGroup):
         rot_vec = self.rotations.regularize(rot_vec)
         n_rot_vecs, _ = rot_vec.shape
 
-        angle = np.linalg.norm(rot_vec, axis=1)
-        angle = vectorization.to_ndarray(angle, to_ndim=2, axis=1)
+        angle = gs.linalg.norm(rot_vec, axis=1)
+        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
         skew_rot_vec = so_group.skew_matrix_from_vector(rot_vec)
 
-        coef_1 = np.empty_like(angle)
-        coef_2 = np.empty_like(coef_1)
+        coef_1 = gs.empty_like(angle)
+        coef_2 = gs.empty_like(coef_1)
 
-        mask_0 = np.equal(angle, 0)
-        mask_0 = np.squeeze(mask_0, axis=1)
-        mask_close_to_0 = np.isclose(angle, 0)
-        mask_close_to_0 = np.squeeze(mask_close_to_0, axis=1)
+        mask_0 = gs.equal(angle, 0)
+        mask_0 = gs.squeeze(mask_0, axis=1)
+        mask_close_to_0 = gs.isclose(angle, 0)
+        mask_close_to_0 = gs.squeeze(mask_close_to_0, axis=1)
         mask_else = ~mask_0 & ~mask_close_to_0
 
         coef_1[mask_close_to_0] = (1. / 2.
@@ -449,17 +447,17 @@ class SpecialEuclideanGroup(LieGroup):
         coef_2[mask_0] = 0
 
         coef_1[mask_else] = (angle[mask_else] ** (-2)
-                             * (1. - np.cos(angle[mask_else])))
+                             * (1. - gs.cos(angle[mask_else])))
         coef_2[mask_else] = (angle[mask_else] ** (-2)
-                             * (1. - (np.sin(angle[mask_else])
+                             * (1. - (gs.sin(angle[mask_else])
                                       / angle[mask_else])))
 
-        term_1 = np.zeros((n_rot_vecs, self.n, self.n))
-        term_2 = np.zeros_like(term_1)
+        term_1 = gs.zeros((n_rot_vecs, self.n, self.n))
+        term_2 = gs.zeros_like(term_1)
 
         for i in range(n_rot_vecs):
-            term_1[i] = np.eye(self.n) + skew_rot_vec[i] * coef_1[i]
-            term_2[i] = np.matmul(skew_rot_vec[i], skew_rot_vec[i]) * coef_2[i]
+            term_1[i] = gs.eye(self.n) + skew_rot_vec[i] * coef_1[i]
+            term_2[i] = gs.matmul(skew_rot_vec[i], skew_rot_vec[i]) * coef_2[i]
 
         exponential_mat = term_1 + term_2
         assert exponential_mat.ndim == 3
@@ -477,9 +475,9 @@ class SpecialEuclideanGroup(LieGroup):
         assert n_points > 0
 
         if weights is None:
-            weights = np.ones((n_points, 1))
+            weights = gs.ones((n_points, 1))
 
-        weights = vectorization.to_ndarray(weights, to_ndim=2, axis=1)
+        weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
         n_weights, _ = weights.shape
         assert n_points == n_weights
 
@@ -498,31 +496,31 @@ class SpecialEuclideanGroup(LieGroup):
         mean_rotation_mat = rotations.matrix_from_rotation_vector(
                     mean_rotation)
 
-        matrix = np.zeros((1,) + (self.n,) * 2)
-        translation_aux = np.zeros((1, self.n))
+        matrix = gs.zeros((1,) + (self.n,) * 2)
+        translation_aux = gs.zeros((1, self.n))
 
         inv_rot_mats = rotations.matrix_from_rotation_vector(
                 -rotation_vectors)
         # TODO(nina): this is the same mat multiplied several times
-        matrix_aux = np.matmul(mean_rotation_mat, inv_rot_mats)
+        matrix_aux = gs.matmul(mean_rotation_mat, inv_rot_mats)
         assert matrix_aux.shape == (n_points,) + (dim_rotations,) * 2
 
         vec_aux = rotations.rotation_vector_from_matrix(matrix_aux)
         matrix_aux = self.exponential_matrix(vec_aux)
-        matrix_aux = np.linalg.inv(matrix_aux)
+        matrix_aux = gs.linalg.inv(matrix_aux)
 
         for i in range(n_points):
             matrix += weights[i] * matrix_aux[i]
-            translation_aux += weights[i] * np.dot(np.matmul(
+            translation_aux += weights[i] * gs.dot(gs.matmul(
                                                         matrix_aux[i],
                                                         inv_rot_mats[i]),
                                                    translations[i])
 
-        mean_translation = np.dot(translation_aux,
-                                  np.transpose(np.linalg.inv(matrix),
+        mean_translation = gs.dot(translation_aux,
+                                  gs.transpose(gs.linalg.inv(matrix),
                                                axes=(0, 2, 1)))
 
-        exp_bar = np.zeros((1, dim))
+        exp_bar = gs.zeros((1, dim))
         exp_bar[0, :dim_rotations] = mean_rotation
         exp_bar[0, dim_rotations:dim] = mean_translation
 
