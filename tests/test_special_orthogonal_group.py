@@ -1,6 +1,6 @@
 """Unit tests for special orthogonal group module."""
 
-import numpy as np
+import geomstats.backend as gs
 import unittest
 
 from geomstats.invariant_metric import InvariantMetric
@@ -18,6 +18,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
+        gs.random.seed(1234)
+
         n_seq = [2, 3]
         so = {n: SpecialOrthogonalGroup(n=n) for n in n_seq}
         spd_matrices_spaces = {n: SPDMatricesSpace(n=group.dimension)
@@ -27,20 +29,20 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         # 0, close to 0, closely lower than pi, pi,
         # between pi and 2pi, closely larger than 2pi, 2pi,
         # and closely larger than 2pi
-        with_angle_0 = np.zeros(3)
-        with_angle_close_0 = 1e-10 * np.array([1., -1., 1.])
-        with_angle_close_pi_low = ((np.pi - 1e-9) / np.sqrt(2)
-                                   * np.array([0., 1., -1]))
-        with_angle_pi = np.pi / np.sqrt(3) * np.array([1., 1., -1])
-        with_angle_close_pi_high = ((np.pi + 1e-9) / np.sqrt(3)
-                                    * np.array([-1., 1., -1]))
-        with_angle_in_pi_2pi = ((np.pi + 0.3) / np.sqrt(5)
-                                * np.array([-2., 1., 0]))
-        with_angle_close_2pi_low = ((2 * np.pi - 1e-9) / np.sqrt(6)
-                                    * np.array([2., 1., -1]))
-        with_angle_2pi = 2 * np.pi / np.sqrt(3) * np.array([1., 1., -1])
-        with_angle_close_2pi_high = ((2 * np.pi + 1e-9) / np.sqrt(2)
-                                     * np.array([1., 0., -1]))
+        with_angle_0 = gs.zeros(3)
+        with_angle_close_0 = 1e-10 * gs.array([1., -1., 1.])
+        with_angle_close_pi_low = ((gs.pi - 1e-9) / gs.sqrt(2)
+                                   * gs.array([0., 1., -1]))
+        with_angle_pi = gs.pi / gs.sqrt(3) * gs.array([1., 1., -1])
+        with_angle_close_pi_high = ((gs.pi + 1e-9) / gs.sqrt(3)
+                                    * gs.array([-1., 1., -1]))
+        with_angle_in_pi_2pi = ((gs.pi + 0.3) / gs.sqrt(5)
+                                * gs.array([-2., 1., 0]))
+        with_angle_close_2pi_low = ((2 * gs.pi - 1e-9) / gs.sqrt(6)
+                                    * gs.array([2., 1., -1]))
+        with_angle_2pi = 2 * gs.pi / gs.sqrt(3) * gs.array([1., 1., -1])
+        with_angle_close_2pi_high = ((2 * gs.pi + 1e-9) / gs.sqrt(2)
+                                     * gs.array([1., 0., -1]))
 
         elements = {
             3: {'with_angle_0': with_angle_0,
@@ -59,7 +61,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         canonical_metrics = {n: group.bi_invariant_metric
                              for n, group in so.items()}
 
-        diag_mats = {n: 9 * np.eye(group.dimension)
+        diag_mats = {n: 9 * gs.eye(group.dimension)
                      for n, group in so.items()}
         left_diag_metrics = {
             n: InvariantMetric(
@@ -131,29 +133,29 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
     def test_closest_rotation_matrix(self):
         # Test 3D and nD cases
         for n in self.n_seq:
-            rot_mat = np.eye(n)
-            delta = 1e-12 * np.random.rand(n, n)
+            rot_mat = gs.eye(n)
+            delta = 1e-12 * gs.random.rand(n, n)
             rot_mat_plus_delta = rot_mat + delta
             result = special_orthogonal_group.closest_rotation_matrix(
                                                        rot_mat_plus_delta)
             expected = rot_mat
-            self.assertTrue(np.allclose(result, expected))
+            self.assertTrue(gs.allclose(result, expected))
 
     def test_closest_rotation_matrix_vectorization(self):
         for n in self.n_seq:
             n_samples = self.n_samples
-            mats = np.random.rand(n_samples, n, n)
+            mats = gs.random.rand(n_samples, n, n)
             result = special_orthogonal_group.closest_rotation_matrix(mats)
-            self.assertTrue(np.allclose(result.shape,
+            self.assertTrue(gs.allclose(result.shape,
                                         (n_samples, n, n)))
 
     def test_skew_matrix_from_vector(self):
         # Specific to 3D case
         n = 3
-        rot_vec = np.random.rand(n)
+        rot_vec = gs.random.rand(n)
         result = special_orthogonal_group.skew_matrix_from_vector(rot_vec)
 
-        self.assertTrue(np.allclose(np.dot(result, rot_vec), np.zeros(n)))
+        self.assertTrue(gs.allclose(gs.dot(result, rot_vec), gs.zeros(n)))
 
     def test_skew_matrix_and_vector(self):
         for n in self.n_seq:
@@ -164,7 +166,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             result = special_orthogonal_group.vector_from_skew_matrix(skew_mat)
             expected = rot_vec
 
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'result = {};'
                             ' expected = {}.'.format(result,
                                                      expected))
@@ -176,7 +178,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             rot_vecs = group.random_uniform(n_samples=n_samples)
             result = special_orthogonal_group.skew_matrix_from_vector(rot_vecs)
 
-            self.assertTrue(np.allclose(result.shape,
+            self.assertTrue(gs.allclose(result.shape,
                                         (n_samples, n, n)))
 
     def test_random_and_belongs(self):
@@ -199,10 +201,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
             if n == 3:
                 point = self.elements[3]['with_angle_0']
-                self.assertFalse(np.linalg.norm(point) != 0)
+                self.assertFalse(gs.linalg.norm(point) != 0)
                 result = group.regularize(point)
                 expected = point
-                self.assertTrue(np.allclose(result, expected), '! angle 0 !')
+                self.assertTrue(gs.allclose(result, expected), '! angle 0 !')
 
                 less_than_pi = ['with_angle_close_0',
                                 'with_angle_close_pi_low']
@@ -210,7 +212,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     point = self.elements[3][angle_type]
                     result = group.regularize(point)
                     expected = point
-                    self.assertTrue(np.allclose(result, expected), angle_type)
+                    self.assertTrue(gs.allclose(result, expected), angle_type)
 
                 # Note: by default, the rotation vector is inverted by
                 # the function regularize when the angle of the rotation is pi.
@@ -219,7 +221,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 point = self.elements[3][angle_type]
                 result = group.regularize(point)
                 expected = - point
-                self.assertTrue(np.allclose(result, expected), angle_type)
+                self.assertTrue(gs.allclose(result, expected), angle_type)
 
                 in_pi_2pi = ['with_angle_close_pi_high',
                              'with_angle_in_pi_2pi',
@@ -227,33 +229,33 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
                 for angle_type in in_pi_2pi:
                     point = self.elements[3][angle_type]
-                    angle = np.linalg.norm(point)
-                    new_angle = np.pi - (angle - np.pi)
+                    angle = gs.linalg.norm(point)
+                    new_angle = gs.pi - (angle - gs.pi)
 
                     result = group.regularize(point)
                     expected = - new_angle * (point / angle)
-                    self.assertTrue(np.allclose(result, expected), angle_type)
+                    self.assertTrue(gs.allclose(result, expected), angle_type)
 
                 angle_type = 'with_angle_2pi'
                 point = self.elements[3][angle_type]
                 result = group.regularize(point)
-                expected = np.array([0., 0., 0.])
-                self.assertTrue(np.allclose(result, expected), angle_type)
+                expected = gs.array([0., 0., 0.])
+                self.assertTrue(gs.allclose(result, expected), angle_type)
 
                 angle_type = 'with_angle_close_2pi_high'
                 point = self.elements[3][angle_type]
-                angle = np.linalg.norm(point)
-                new_angle = angle - 2 * np.pi
+                angle = gs.linalg.norm(point)
+                new_angle = angle - 2 * gs.pi
 
                 result = group.regularize(point)
                 expected = new_angle * point / angle
-                self.assertTrue(np.allclose(result, expected), angle_type)
+                self.assertTrue(gs.allclose(result, expected), angle_type)
 
             else:
-                point = np.random.rand(group.dimension)
+                point = gs.random.rand(group.dimension)
                 result = group.regularize(point)
                 expected = point
-                self.assertTrue(np.allclose(result, expected))
+                self.assertTrue(gs.allclose(result, expected))
 
     def test_regularize_vectorization(self):
         for n in self.n_seq:
@@ -263,13 +265,13 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             rot_vecs = group.random_uniform(n_samples=n_samples)
             result = group.regularize(rot_vecs)
 
-            self.assertTrue(np.allclose(result.shape,
+            self.assertTrue(gs.allclose(result.shape,
                                         (n_samples, group.dimension)))
-            expected = np.zeros_like(rot_vecs)
+            expected = gs.zeros_like(rot_vecs)
             for i in range(n_samples):
                 expected[i] = group.regularize(rot_vecs[i])
 
-            self.assertTrue(np.allclose(expected, result))
+            self.assertTrue(gs.allclose(expected, result))
 
     def test_matrix_from_rotation_vector(self):
         n = 3
@@ -277,44 +279,44 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
         rot_vec_0 = group.identity
         rot_mat_0 = group.matrix_from_rotation_vector(rot_vec_0)
-        expected_rot_mat_0 = np.eye(3)
-        self.assertTrue(np.allclose(rot_mat_0, expected_rot_mat_0))
+        expected_rot_mat_0 = gs.eye(3)
+        self.assertTrue(gs.allclose(rot_mat_0, expected_rot_mat_0))
 
-        rot_vec_1 = np.array([np.pi / 3., 0., 0.])
+        rot_vec_1 = gs.array([gs.pi / 3., 0., 0.])
         rot_mat_1 = group.matrix_from_rotation_vector(rot_vec_1)
-        expected_rot_mat_1 = np.array([[1., 0., 0.],
-                                       [0., 0.5, -np.sqrt(3) / 2],
-                                       [0., np.sqrt(3) / 2, 0.5]])
-        self.assertTrue(np.allclose(rot_mat_1, expected_rot_mat_1))
+        expected_rot_mat_1 = gs.array([[1., 0., 0.],
+                                       [0., 0.5, -gs.sqrt(3) / 2],
+                                       [0., gs.sqrt(3) / 2, 0.5]])
+        self.assertTrue(gs.allclose(rot_mat_1, expected_rot_mat_1))
 
-        rot_vec_3 = 1e-11 * np.array([12., 1., -81.])
-        angle = np.linalg.norm(rot_vec_3)
-        skew_rot_vec_3 = 1e-11 * np.array([[0., 81., 1.],
+        rot_vec_3 = 1e-11 * gs.array([12., 1., -81.])
+        angle = gs.linalg.norm(rot_vec_3)
+        skew_rot_vec_3 = 1e-11 * gs.array([[0., 81., 1.],
                                            [-81., 0., -12.],
                                            [-1., 12., 0.]])
-        coef_1 = np.sin(angle) / angle
-        coef_2 = (1 - np.cos(angle)) / (angle ** 2)
-        expected_rot_mat_3 = (np.identity(3)
+        coef_1 = gs.sin(angle) / angle
+        coef_2 = (1 - gs.cos(angle)) / (angle ** 2)
+        expected_rot_mat_3 = (gs.identity(3)
                               + coef_1 * skew_rot_vec_3
-                              + coef_2 * np.dot(skew_rot_vec_3,
+                              + coef_2 * gs.dot(skew_rot_vec_3,
                                                 skew_rot_vec_3))
         rot_mat_3 = group.matrix_from_rotation_vector(rot_vec_3)
-        self.assertTrue(np.allclose(rot_mat_3, expected_rot_mat_3))
+        self.assertTrue(gs.allclose(rot_mat_3, expected_rot_mat_3))
 
-        rot_vec_6 = np.array([.1, 1.3, -.5])
-        angle = np.linalg.norm(rot_vec_6)
-        skew_rot_vec_6 = np.array([[0., .5, 1.3],
+        rot_vec_6 = gs.array([.1, 1.3, -.5])
+        angle = gs.linalg.norm(rot_vec_6)
+        skew_rot_vec_6 = gs.array([[0., .5, 1.3],
                                    [-.5, 0., -.1],
                                    [-1.3, .1, 0.]])
 
-        coef_1 = np.sin(angle) / angle
-        coef_2 = (1 - np.cos(angle)) / (angle ** 2)
+        coef_1 = gs.sin(angle) / angle
+        coef_2 = (1 - gs.cos(angle)) / (angle ** 2)
         rot_mat_6 = group.matrix_from_rotation_vector(rot_vec_6)
-        expected_rot_mat_6 = (np.identity(3)
+        expected_rot_mat_6 = (gs.identity(3)
                               + coef_1 * skew_rot_vec_6
-                              + coef_2 * np.dot(skew_rot_vec_6,
+                              + coef_2 * gs.dot(skew_rot_vec_6,
                                                 skew_rot_vec_6))
-        self.assertTrue(np.allclose(rot_mat_6, expected_rot_mat_6))
+        self.assertTrue(gs.allclose(rot_mat_6, expected_rot_mat_6))
 
     def test_matrix_from_rotation_vector_vectorization(self):
         for n in self.n_seq:
@@ -324,20 +326,20 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             rot_vecs = group.random_uniform(n_samples=n_samples)
             rot_mats = group.matrix_from_rotation_vector(rot_vecs)
 
-            self.assertTrue(np.allclose(rot_mats.shape,
+            self.assertTrue(gs.allclose(rot_mats.shape,
                                         (n_samples, group.n, group.n)))
 
     def test_rotation_vector_from_matrix(self):
         n = 3
         group = self.so[n]
 
-        rot_mat = np.array([[1., 0., 0.],
-                            [0., np.cos(.12), -np.sin(.12)],
-                            [0, np.sin(.12), np.cos(.12)]])
+        rot_mat = gs.array([[1., 0., 0.],
+                            [0., gs.cos(.12), -gs.sin(.12)],
+                            [0, gs.sin(.12), gs.cos(.12)]])
         rot_vec = group.rotation_vector_from_matrix(rot_mat)
-        expected_rot_vec = .12 * np.array([1., 0., 0.])
+        expected_rot_vec = .12 * gs.array([1., 0., 0.])
 
-        self.assertTrue(np.allclose(rot_vec, expected_rot_vec))
+        self.assertTrue(gs.allclose(rot_vec, expected_rot_vec))
 
     def test_rotation_vector_and_rotation_matrix(self):
         """
@@ -361,7 +363,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
                     expected = group.regularize(point)
 
-                    self.assertTrue(np.allclose(result, expected),
+                    self.assertTrue(gs.allclose(result, expected),
                                     'for point {}:\n'
                                     'result = {};'
                                     ' expected = {}.'.format(angle_type,
@@ -374,7 +376,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
                 expected = point
 
-                self.assertTrue(np.allclose(result, expected),
+                self.assertTrue(gs.allclose(result, expected),
                                 'result = {};'
                                 ' expected = {}.'.format(result,
                                                          expected))
@@ -389,7 +391,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             results = group.rotation_vector_from_matrix(rot_mats)
 
             expected = group.regularize(rot_vecs)
-            self.assertTrue(np.allclose(results, expected))
+            self.assertTrue(gs.allclose(results, expected))
 
     def test_rotation_vector_and_rotation_matrix_with_angles_close_to_pi(self):
         """
@@ -412,8 +414,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             expected = group.regularize(point)
             inv_expected = - expected
 
-            self.assertTrue((np.allclose(result, expected)
-                            or np.allclose(result, inv_expected)),
+            self.assertTrue((gs.allclose(result, expected)
+                            or gs.allclose(result, inv_expected)),
                             'for point {}:\n'
                             'result = {}; expected = {};'
                             'inv_expected = {} '.format(angle_type,
@@ -435,7 +437,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
                     expected = group.regularize(point)
 
-                    self.assertTrue(np.allclose(result, expected),
+                    self.assertTrue(gs.allclose(result, expected),
                                     'for point {}:\n'
                                     'result = {};'
                                     ' expected = {}.'.format(angle_type,
@@ -446,7 +448,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 self.assertRaises(
                     AssertionError,
                     lambda: group.quaternion_from_rotation_vector(point))
-                fake_quaternion = np.random.rand(1, n + 1)
+                fake_quaternion = gs.random.rand(1, n + 1)
                 self.assertRaises(
                     AssertionError,
                     lambda: group.rotation_vector_from_quaternion(
@@ -466,8 +468,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             expected = group.regularize(point)
             inv_expected = - expected
 
-            self.assertTrue((np.allclose(result, expected)
-                            or np.allclose(result, inv_expected)),
+            self.assertTrue((gs.allclose(result, expected)
+                            or gs.allclose(result, inv_expected)),
                             'for point {}:\n'
                             'result = {}; expected = {};'
                             'inv_expected = {} '.format(angle_type,
@@ -485,7 +487,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         results = group.rotation_vector_from_quaternion(quaternions)
 
         expected = group.regularize(rot_vecs)
-        self.assertTrue(np.allclose(results, expected))
+        self.assertTrue(gs.allclose(results, expected))
 
     def test_quaternion_and_matrix(self):
         for n in self.n_seq:
@@ -504,7 +506,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
                     expected = matrix
 
-                    self.assertTrue(np.allclose(result, expected),
+                    self.assertTrue(gs.allclose(result, expected),
                                     'for point {}:\n'
                                     '\nresult = \n{};'
                                     '\nexpected = \n{}.'.format(angle_type,
@@ -516,7 +518,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 self.assertRaises(
                     AssertionError,
                     lambda: group.quaternion_from_matrix(rot_mat))
-                fake_quaternion = np.random.rand(1, n + 1)
+                fake_quaternion = gs.random.rand(1, n + 1)
                 self.assertRaises(
                     AssertionError,
                     lambda: group.matrix_from_quaternion(
@@ -535,10 +537,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             result = group.matrix_from_quaternion(quaternion)
 
             expected = matrix
-            inv_expected = np.linalg.inv(matrix)
+            inv_expected = gs.linalg.inv(matrix)
 
-            self.assertTrue((np.allclose(result, expected)
-                            or np.allclose(result, inv_expected)),
+            self.assertTrue((gs.allclose(result, expected)
+                            or gs.allclose(result, inv_expected)),
                             'for point {}:\n'
                             'result = {}; expected = {};'
                             'inv_expected = {} '.format(angle_type,
@@ -558,7 +560,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         results = group.matrix_from_quaternion(quaternions)
 
         expected = rot_mats
-        self.assertTrue(np.allclose(results, expected))
+        self.assertTrue(gs.allclose(results, expected))
 
     def test_compose(self):
         for n in self.n_seq:
@@ -571,7 +573,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     result = group.compose(point, group.identity)
                     expected = group.regularize(point)
                     if element_type not in self.angles_close_to_pi[3]:
-                        self.assertTrue(np.allclose(result, expected),
+                        self.assertTrue(gs.allclose(result, expected),
                                         '\n{}'
                                         '\nresult: {}'
                                         '\nexpected: {}'.format(element_type,
@@ -579,8 +581,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                                 expected))
                     else:
                         inv_expected = - expected
-                        self.assertTrue(np.allclose(result, expected)
-                                        or np.allclose(result, inv_expected))
+                        self.assertTrue(gs.allclose(result, expected)
+                                        or gs.allclose(result, inv_expected))
 
                     # Composition by identity, on the left
                     # Expect the original transformation
@@ -588,23 +590,23 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     expected = group.regularize(point)
 
                     if element_type not in self.angles_close_to_pi[3]:
-                        self.assertTrue(np.allclose(result, expected))
+                        self.assertTrue(gs.allclose(result, expected))
                     else:
                         inv_expected = - expected
-                        self.assertTrue(np.allclose(result, expected)
-                                        or np.allclose(result, inv_expected))
+                        self.assertTrue(gs.allclose(result, expected)
+                                        or gs.allclose(result, inv_expected))
             else:
                 point = group.random_uniform()
 
                 result = group.compose(point, group.identity)
                 expected = group.regularize(point)
-                self.assertTrue(np.allclose(result, expected),
+                self.assertTrue(gs.allclose(result, expected),
                                 'result = {}; expected = {}'.format(result,
                                                                     expected))
 
                 result = group.compose(group.identity, point)
                 expected = group.regularize(point)
-                self.assertTrue(np.allclose(result, expected),
+                self.assertTrue(gs.allclose(result, expected),
                                 'result = {}; expected = {}'.format(result,
                                                                     expected))
 
@@ -619,7 +621,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     # Expect the group identity
                     result = group.compose(point, inv_point)
                     expected = group.identity
-                    self.assertTrue(np.allclose(result, expected),
+                    self.assertTrue(gs.allclose(result, expected),
                                     'result = {}; expected = {}'.format(
                                         result, expected))
 
@@ -627,7 +629,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     # Expect the group identity
                     result = group.compose(inv_point, point)
                     expected = group.identity
-                    self.assertTrue(np.allclose(result, expected),
+                    self.assertTrue(gs.allclose(result, expected),
                                     'result = {}; expected = {}'.format(
                                         result, expected))
             else:
@@ -637,7 +639,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 # Expect the group identity
                 result = group.compose(point, inv_point)
                 expected = group.identity
-                self.assertTrue(np.allclose(result, expected),
+                self.assertTrue(gs.allclose(result, expected),
                                 'result = {}; expected = {}'.format(result,
                                                                     expected))
 
@@ -645,7 +647,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 # Expect the group identity
                 result = group.compose(inv_point, point)
                 expected = group.identity
-                self.assertTrue(np.allclose(result, expected),
+                self.assertTrue(gs.allclose(result, expected),
                                 'result = {}; expected = {}'.format(result,
                                                                     expected))
 
@@ -661,19 +663,19 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             result = group.compose(one_point, n_points_a)
             self.assertTrue(result.shape == (n_samples, group.dimension))
             for i in range(n_samples):
-                self.assertTrue(np.allclose(
+                self.assertTrue(gs.allclose(
                     result[i], group.compose(one_point, n_points_a[i])))
 
             result = group.compose(n_points_a, one_point)
             self.assertTrue(result.shape == (n_samples, group.dimension))
             for i in range(n_samples):
-                self.assertTrue(np.allclose(
+                self.assertTrue(gs.allclose(
                     result[i], group.compose(n_points_a[i], one_point)))
 
             result = group.compose(n_points_a, n_points_b)
             self.assertTrue(result.shape == (n_samples, group.dimension))
             for i in range(n_samples):
-                self.assertTrue(np.allclose(
+                self.assertTrue(gs.allclose(
                     result[i], group.compose(n_points_a[i], n_points_b[i])))
 
     def test_inverse_vectorization(self):
@@ -685,7 +687,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             result = group.inverse(points)
             self.assertTrue(result.shape == (n_samples, group.dimension))
             for i in range(n_samples):
-                self.assertTrue(np.allclose(
+                self.assertTrue(gs.allclose(
                     result[i], group.inverse(points[i])))
 
     def test_left_jacobian_through_its_determinant(self):
@@ -696,18 +698,18 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             point = self.elements[3][angle_type]
             jacobian = group.jacobian_translation(point=point,
                                                   left_or_right='left')
-            result = np.linalg.det(jacobian)
+            result = gs.linalg.det(jacobian)
             point = group.regularize(point)
-            angle = np.linalg.norm(point)
+            angle = gs.linalg.norm(point)
             if angle_type in ['with_angle_0',
                               'with_angle_close_0',
                               'with_angle_2pi',
                               'with_angle_close_2pi_high']:
                 expected = 1. + angle ** 2 / 12. + angle ** 4 / 240.
             else:
-                expected = angle ** 2 / (4 * np.sin(angle / 2) ** 2)
+                expected = angle ** 2 / (4 * gs.sin(angle / 2) ** 2)
 
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'for point {}:\n'
                             'result = {}; expected = {}.'.format(
                                                      angle_type,
@@ -722,7 +724,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         points = group.random_uniform(n_samples=n_samples)
         jacobians = group.jacobian_translation(point=points,
                                                left_or_right='left')
-        self.assertTrue(np.allclose(
+        self.assertTrue(gs.allclose(
                          jacobians.shape,
                          (n_samples,
                           group.dimension, group.dimension)))
@@ -736,35 +738,35 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         group = self.so[n]
 
         metric = self.metrics[3]['canonical']
-        theta = np.pi / 5
-        rot_vec_base_point = theta / np.sqrt(3.) * np.array([1., 1., 1.])
+        theta = gs.pi / 5
+        rot_vec_base_point = theta / gs.sqrt(3.) * gs.array([1., 1., 1.])
         # Note: the rotation vector for the reference point
         # needs to be regularized.
 
         # 1: Exponential of 0 gives the reference point
-        rot_vec_1 = np.array([0, 0, 0])
+        rot_vec_1 = gs.array([0, 0, 0])
         expected_1 = rot_vec_base_point
 
         exp_1 = metric.exp(base_point=rot_vec_base_point,
                            tangent_vec=rot_vec_1)
-        self.assertTrue(np.allclose(exp_1, expected_1))
+        self.assertTrue(gs.allclose(exp_1, expected_1))
 
         # 2: General case - computed manually
-        rot_vec_2 = np.pi / 4 * np.array([1, 0, 0])
-        phi = (np.pi / 10) / (np.tan(np.pi / 10))
-        skew = np.array([[0., -1., 1.],
+        rot_vec_2 = gs.pi / 4 * gs.array([1, 0, 0])
+        phi = (gs.pi / 10) / (gs.tan(gs.pi / 10))
+        skew = gs.array([[0., -1., 1.],
                          [1., 0., -1.],
                          [-1., 1., 0.]])
-        jacobian = (phi * np.eye(3)
-                    + (1 - phi) / 3 * np.ones([3, 3])
-                    + np.pi / (10 * np.sqrt(3)) * skew)
-        inv_jacobian = np.linalg.inv(jacobian)
+        jacobian = (phi * gs.eye(3)
+                    + (1 - phi) / 3 * gs.ones([3, 3])
+                    + gs.pi / (10 * gs.sqrt(3)) * skew)
+        inv_jacobian = gs.linalg.inv(jacobian)
         expected_2 = group.compose(rot_vec_base_point,
-                                   np.dot(inv_jacobian, rot_vec_2))
+                                   gs.dot(inv_jacobian, rot_vec_2))
 
         exp_2 = metric.exp(base_point=rot_vec_base_point,
                            tangent_vec=rot_vec_2)
-        self.assertTrue(np.allclose(exp_2, expected_2))
+        self.assertTrue(gs.allclose(exp_2, expected_2))
 
     def test_exp_vectorization(self):
         n = 3
@@ -781,37 +783,37 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
             # Test with the 1 base point, and n tangent vecs
             result = metric.exp(n_tangent_vec, one_base_point)
-            self.assertTrue(np.allclose(result.shape,
+            self.assertTrue(gs.allclose(result.shape,
                                         (n_samples, group.dimension)))
-            expected = np.vstack([metric.exp(tangent_vec, one_base_point)
+            expected = gs.vstack([metric.exp(tangent_vec, one_base_point)
                                   for tangent_vec in n_tangent_vec])
-            self.assertTrue(np.allclose(expected.shape,
+            self.assertTrue(gs.allclose(expected.shape,
                                         (n_samples, group.dimension)))
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # Test with the several base point, and one tangent vec
             result = metric.exp(one_tangent_vec, n_base_point)
-            self.assertTrue(np.allclose(result.shape,
+            self.assertTrue(gs.allclose(result.shape,
                                         (n_samples, group.dimension)))
-            expected = np.vstack([metric.exp(one_tangent_vec, base_point)
+            expected = gs.vstack([metric.exp(one_tangent_vec, base_point)
                                   for base_point in n_base_point])
-            self.assertTrue(np.allclose(expected.shape,
+            self.assertTrue(gs.allclose(expected.shape,
                                         (n_samples, group.dimension)))
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # Test with the same number n of base point and n tangent vec
             result = metric.exp(n_tangent_vec, n_base_point)
-            self.assertTrue(np.allclose(result.shape,
+            self.assertTrue(gs.allclose(result.shape,
                                         (n_samples, group.dimension)))
-            expected = np.vstack([metric.exp(tangent_vec, base_point)
+            expected = gs.vstack([metric.exp(tangent_vec, base_point)
                                   for tangent_vec, base_point in zip(
                                                                n_tangent_vec,
                                                                n_base_point)])
-            self.assertTrue(np.allclose(expected.shape,
+            self.assertTrue(gs.allclose(expected.shape,
                                         (n_samples, group.dimension)))
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
     def test_log(self):
@@ -823,34 +825,34 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         group = self.so[n]
 
         metric = self.metrics[3]['canonical']
-        theta = np.pi / 5.
-        rot_vec_base_point = theta / np.sqrt(3.) * np.array([1., 1., 1.])
+        theta = gs.pi / 5.
+        rot_vec_base_point = theta / gs.sqrt(3.) * gs.array([1., 1., 1.])
         # Note: the rotation vector for the reference point
         # needs to be regularized.
 
         # The Logarithm of a point at itself gives 0.
         rot_vec_1 = rot_vec_base_point
-        expected_1 = np.array([0, 0, 0])
+        expected_1 = gs.array([0, 0, 0])
         log_1 = metric.log(base_point=rot_vec_base_point,
                            point=rot_vec_1)
-        self.assertTrue(np.allclose(log_1, expected_1))
+        self.assertTrue(gs.allclose(log_1, expected_1))
 
         # General case: this is the inverse test of test 1 for riemannian exp
-        expected_2 = np.pi / 4 * np.array([1, 0, 0])
-        phi = (np.pi / 10) / (np.tan(np.pi / 10))
-        skew = np.array([[0., -1., 1.],
+        expected_2 = gs.pi / 4 * gs.array([1, 0, 0])
+        phi = (gs.pi / 10) / (gs.tan(gs.pi / 10))
+        skew = gs.array([[0., -1., 1.],
                          [1., 0., -1.],
                          [-1., 1., 0.]])
-        jacobian = (phi * np.eye(3)
-                    + (1 - phi) / 3 * np.ones([3, 3])
-                    + np.pi / (10 * np.sqrt(3)) * skew)
-        inv_jacobian = np.linalg.inv(jacobian)
+        jacobian = (phi * gs.eye(3)
+                    + (1 - phi) / 3 * gs.ones([3, 3])
+                    + gs.pi / (10 * gs.sqrt(3)) * skew)
+        inv_jacobian = gs.linalg.inv(jacobian)
         rot_vec_2 = group.compose(rot_vec_base_point,
-                                  np.dot(inv_jacobian, expected_2))
+                                  gs.dot(inv_jacobian, expected_2))
 
         log_2 = metric.log(base_point=rot_vec_base_point,
                            point=rot_vec_2)
-        self.assertTrue(np.allclose(log_2, expected_2))
+        self.assertTrue(gs.allclose(log_2, expected_2))
 
     def test_log_vectorization(self):
         n = 3
@@ -867,38 +869,38 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
             # Test with the 1 base point, and several different points
             result = metric.log(n_point, one_base_point)
-            self.assertTrue(np.allclose(result.shape,
+            self.assertTrue(gs.allclose(result.shape,
                                         (n_samples, group.dimension)))
-            expected = np.vstack([metric.log(point, one_base_point)
+            expected = gs.vstack([metric.log(point, one_base_point)
                                   for point in n_point])
 
-            self.assertTrue(np.allclose(expected.shape,
+            self.assertTrue(gs.allclose(expected.shape,
                                         (n_samples, group.dimension)))
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # Test with the several base point, and 1 point
             result = metric.log(one_point, n_base_point)
-            self.assertTrue(np.allclose(result.shape,
+            self.assertTrue(gs.allclose(result.shape,
                                         (n_samples, group.dimension)))
-            expected = np.vstack([metric.log(one_point, base_point)
+            expected = gs.vstack([metric.log(one_point, base_point)
                                   for base_point in n_base_point])
 
-            self.assertTrue(np.allclose(expected.shape,
+            self.assertTrue(gs.allclose(expected.shape,
                                         (n_samples, group.dimension)))
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # Test with the same number n of base point and point
             result = metric.log(n_point, n_base_point)
-            self.assertTrue(np.allclose(result.shape,
+            self.assertTrue(gs.allclose(result.shape,
                                         (n_samples, group.dimension)))
-            expected = np.vstack([metric.log(point, base_point)
+            expected = gs.vstack([metric.log(point, base_point)
                                   for point, base_point in zip(n_point,
                                                                n_base_point)])
-            self.assertTrue(np.allclose(expected.shape,
+            self.assertTrue(gs.allclose(expected.shape,
                                         (n_samples, group.dimension)))
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
     def test_exp_from_identity_vectorization(self):
@@ -911,7 +913,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         tangent_vecs = group.random_uniform(n_samples=n_samples)
         results = metric.exp_from_identity(tangent_vecs)
 
-        self.assertTrue(np.allclose(results.shape,
+        self.assertTrue(gs.allclose(results.shape,
                                     (n_samples, group.dimension)))
 
     def test_log_from_identity_vectorization(self):
@@ -924,7 +926,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         points = group.random_uniform(n_samples=n_samples)
         results = metric.log_from_identity(points)
 
-        self.assertTrue(np.allclose(results.shape,
+        self.assertTrue(gs.allclose(results.shape,
                                     (n_samples, group.dimension)))
 
     def test_exp_then_log_from_identity(self):
@@ -957,7 +959,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                              tangent_vec=expected,
                                              metric=metric)
 
-                self.assertTrue(np.allclose(result, expected),
+                self.assertTrue(gs.allclose(result, expected),
                                 '\nmetric {}:\n'
                                 '- on tangent_vec {}: {} -> {}\n'
                                 'result = {} -> {}\n'
@@ -991,8 +993,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                 metric=metric)
                 inv_expected = - expected
 
-                self.assertTrue(np.allclose(result, expected)
-                                or np.allclose(result, inv_expected),
+                self.assertTrue(gs.allclose(result, expected)
+                                or gs.allclose(result, inv_expected),
                                 '\nmetric {}\n'
                                 '- on tangent_vec {}: {}\n'
                                 'result = {}\n'
@@ -1023,7 +1025,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 result = helper.log_then_exp_from_identity(metric, point)
                 expected = group.regularize(point)
 
-                self.assertTrue(np.allclose(result, expected),
+                self.assertTrue(gs.allclose(result, expected),
                                 '\nmetric {}\n'
                                 '- on point {}: {}\n'
                                 'result = {}\n'
@@ -1053,8 +1055,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 result = helper.log_then_exp_from_identity(metric, point)
                 expected = group.regularize(point)
                 inv_expected = - expected
-                self.assertTrue(np.allclose(result, expected)
-                                or np.allclose(result, inv_expected),
+                self.assertTrue(gs.allclose(result, expected)
+                                or gs.allclose(result, inv_expected),
                                 '\nmetric {}\n'
                                 '- on point {}: {}\n'
                                 'result = {}\n'
@@ -1104,7 +1106,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                  base_point=base_point,
                                                  metric=metric)
 
-                    self.assertTrue(np.allclose(result, expected, atol=1e-4),
+                    self.assertTrue(gs.allclose(result, expected, atol=1e-4),
                                     '\nmetric {}:\n'
                                     '- on tangent_vec {}: {} -> {}\n'
                                     '- base_point {}: {} -> {}\n'
@@ -1157,9 +1159,9 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                  base_point=base_point,
                                                  metric=metric)
 
-                    self.assertTrue((np.allclose(result, expected,
+                    self.assertTrue((gs.allclose(result, expected,
                                                  atol=1e-5)
-                                     or np.allclose(result, inv_expected,
+                                     or gs.allclose(result, inv_expected,
                                                     atol=1e-5)),
                                     '\nmetric {}:\n'
                                     '- on tangent_vec {}: {} -> {}\n'
@@ -1201,8 +1203,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
                     expected = group.regularize(point)
                     inv_expected = - expected
-                    self.assertTrue((np.allclose(result, expected)
-                                     or np.allclose(result, inv_expected)),
+                    self.assertTrue((gs.allclose(result, expected)
+                                     or gs.allclose(result, inv_expected)),
                                     '\nmetric {}:\n'
                                     '- on point {}: {} -> {}\n'
                                     '- base_point {}: {} -> {}\n'
@@ -1238,8 +1240,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
                     expected = group.regularize(point)
                     inv_expected = - expected
-                    self.assertTrue((np.allclose(result, expected)
-                                     or np.allclose(result, inv_expected)),
+                    self.assertTrue((gs.allclose(result, expected)
+                                     or gs.allclose(result, inv_expected)),
                                     '\nmetric {}:\n'
                                     '- on point {}: {} -> {}\n'
                                     '- base_point {}: {} -> {}\n'
@@ -1261,7 +1263,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         tangent_vecs = group.random_uniform(n_samples=n_samples)
         results = group.group_exp_from_identity(tangent_vecs)
 
-        self.assertTrue(np.allclose(results.shape,
+        self.assertTrue(gs.allclose(results.shape,
                                     (n_samples, group.dimension)))
 
     def test_group_log_from_identity_vectorization(self):
@@ -1272,7 +1274,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         points = group.random_uniform(n_samples=n_samples)
         results = group.group_log_from_identity(points)
 
-        self.assertTrue(np.allclose(results.shape,
+        self.assertTrue(gs.allclose(results.shape,
                                     (n_samples, group.dimension)))
 
     def test_group_exp_vectorization(self):
@@ -1285,7 +1287,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         base_point = group.random_uniform(n_samples=1)
         results = group.group_exp(tangent_vecs, base_point)
 
-        self.assertTrue(np.allclose(results.shape,
+        self.assertTrue(gs.allclose(results.shape,
                                     (n_samples, group.dimension)))
 
         # Test with the same number of base_points and tangent_vecs
@@ -1293,7 +1295,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         base_points = group.random_uniform(n_samples=n_samples)
         results = group.group_exp(tangent_vecs, base_points)
 
-        self.assertTrue(np.allclose(results.shape,
+        self.assertTrue(gs.allclose(results.shape,
                                     (n_samples, group.dimension)))
 
         # Test with the several base_points, and 1 tangent_vec
@@ -1301,7 +1303,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         base_points = group.random_uniform(n_samples=n_samples)
         results = group.group_exp(tangent_vec, base_points)
 
-        self.assertTrue(np.allclose(results.shape,
+        self.assertTrue(gs.allclose(results.shape,
                                     (n_samples, group.dimension)))
 
     def test_group_log_vectorization(self):
@@ -1314,7 +1316,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         base_point = group.random_uniform(n_samples=1)
         results = group.group_log(points, base_point)
 
-        self.assertTrue(np.allclose(results.shape,
+        self.assertTrue(gs.allclose(results.shape,
                                     (n_samples, group.dimension)))
 
         # Test with the same number of base points and points
@@ -1322,7 +1324,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         base_points = group.random_uniform(n_samples=n_samples)
         results = group.group_log(points, base_points)
 
-        self.assertTrue(np.allclose(results.shape,
+        self.assertTrue(gs.allclose(results.shape,
                                     (n_samples, group.dimension)))
 
         # Test with the several base points, and 1 point
@@ -1330,7 +1332,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         base_points = group.random_uniform(n_samples=n_samples)
         results = group.group_log(point, base_points)
 
-        self.assertTrue(np.allclose(results.shape,
+        self.assertTrue(gs.allclose(results.shape,
                                     (n_samples, group.dimension)))
 
     def test_group_exp_then_log_from_identity(self):
@@ -1350,7 +1352,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                          group=group,
                                          tangent_vec=tangent_vec)
             expected = group.regularize(tangent_vec)
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'on tangent_vec {}'.format(angle_type))
 
     def test_group_exp_then_log_from_identity_with_angles_close_to_pi(self):
@@ -1370,8 +1372,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                          tangent_vec=tangent_vec)
             expected = group.regularize(tangent_vec)
             inv_expected = - expected
-            self.assertTrue(np.allclose(result, expected)
-                            or np.allclose(result, inv_expected),
+            self.assertTrue(gs.allclose(result, expected)
+                            or gs.allclose(result, inv_expected),
                             'on tangent_vec {}'.format(angle_type))
 
     def test_group_log_then_exp_from_identity(self):
@@ -1389,7 +1391,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                          group=group,
                                          point=point)
             expected = group.regularize(point)
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'on point {}'.format(angle_type))
 
     def test_group_log_then_exp_from_identity_with_angles_close_to_pi(self):
@@ -1409,8 +1411,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                          point=point)
             expected = group.regularize(point)
             inv_expected = - expected
-            self.assertTrue(np.allclose(result, expected)
-                            or np.allclose(result, inv_expected),
+            self.assertTrue(gs.allclose(result, expected)
+                            or gs.allclose(result, inv_expected),
                             'on point {}'.format(angle_type))
 
     def test_group_exp_then_log(self):
@@ -1443,7 +1445,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                      base_point=base_point,
                                      metric=metric)
 
-                self.assertTrue(np.allclose(result, expected, atol=1e-6),
+                self.assertTrue(gs.allclose(result, expected, atol=1e-6),
                                 '\n- on tangent_vec {}: {} -> {}\n'
                                 '- base_point {}: {} -> {}\n'
                                 'result = {} -> {}\n'
@@ -1484,8 +1486,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 expected = reg_tangent_vec
                 inv_expected = - expected
 
-                self.assertTrue((np.allclose(result, expected)
-                                 or np.allclose(result, inv_expected)),
+                self.assertTrue((gs.allclose(result, expected)
+                                 or gs.allclose(result, inv_expected)),
                                 '\n- on tangent_vec {}: {} -> {}\n'
                                 '- base_point {}: {} -> {}\n'
                                 'result = {} -> {}\n'
@@ -1519,7 +1521,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                              base_point=base_point)
                 expected = group.regularize(point)
 
-                self.assertTrue(np.allclose(result, expected, atol=ATOL),
+                self.assertTrue(gs.allclose(result, expected, atol=ATOL),
                                 '\n- on point {}: {} -> {}\n'
                                 '- base_point {}: {} -> {}\n'
                                 'result = {} -> {}\n'
@@ -1552,8 +1554,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 expected = group.regularize(point)
                 inv_expected = - expected
 
-                self.assertTrue((np.allclose(result, expected)
-                                 or np.allclose(result, inv_expected)),
+                self.assertTrue((gs.allclose(result, expected)
+                                 or gs.allclose(result, inv_expected)),
                                 '\n- on point {}: {} -> {}\n'
                                 '- base_point {}: {} -> {}\n'
                                 'result = {} -> {}\n'
@@ -1570,23 +1572,23 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         group = self.so[n]
 
         rot_vec_1 = group.random_uniform()
-        points = np.vstack([rot_vec_1, rot_vec_1])
+        points = gs.vstack([rot_vec_1, rot_vec_1])
         result_1 = group.group_exponential_barycenter(
                                 points=points)
         expected_1 = rot_vec_1
-        self.assertTrue(np.allclose(result_1, expected_1))
+        self.assertTrue(gs.allclose(result_1, expected_1))
 
         rot_vec_2 = group.random_uniform()
-        points = np.vstack([rot_vec_2, rot_vec_2])
-        weights = np.array([1., 2.])
+        points = gs.vstack([rot_vec_2, rot_vec_2])
+        weights = gs.array([1., 2.])
         result_2 = group.group_exponential_barycenter(
                                 points=points,
                                 weights=weights)
         expected_2 = rot_vec_2
-        self.assertTrue(np.allclose(result_2, expected_2))
+        self.assertTrue(gs.allclose(result_2, expected_2))
 
-        points = np.vstack([rot_vec_1, rot_vec_2])
-        weights = np.array([1., 2.])
+        points = gs.vstack([rot_vec_1, rot_vec_2])
+        weights = gs.array([1., 2.])
         result_3 = group.group_exponential_barycenter(
                                 points=points,
                                 weights=weights)
@@ -1608,7 +1610,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     sq_dist_1_2 = metric.squared_dist(point_1, point_2)
                     sq_dist_2_1 = metric.squared_dist(point_2, point_1)
 
-                    self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1),
+                    self.assertTrue(gs.allclose(sq_dist_1_2, sq_dist_2_1),
                                     'for point_1 {} and point_2 {}:\n'
                                     'squared dist from 1 to 2: {}\n'
                                     'squared dist from 2 to 1: {}\n'.format(
@@ -1635,7 +1637,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 point_2 = group.regularize(point_2)
 
                 sq_dist = metric.squared_dist(point_1, point_2)
-                diff = sq_dist - np.pi ** 2
+                diff = sq_dist - gs.pi ** 2
                 self.assertTrue(diff <= 0 or abs(diff) < EPSILON,
                                 'sq_dist = {}'.format(sq_dist))
 
@@ -1662,9 +1664,9 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             result = metric.squared_dist(point_id, n_point_2)
             self.assertTrue(result.shape == (n_samples, 1))
 
-            expected = np.vstack([metric.squared_dist(point_id, point_2)
+            expected = gs.vstack([metric.squared_dist(point_id, point_2)
                                   for point_2 in n_point_2])
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # n points 1 and identity
@@ -1672,35 +1674,35 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
             self.assertTrue(result.shape == (n_samples, 1))
 
-            expected = np.vstack([metric.squared_dist(point_1, point_id)
+            expected = gs.vstack([metric.squared_dist(point_1, point_id)
                                   for point_1 in n_point_1])
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # one point 1 and n points 2
             result = metric.squared_dist(one_point_1, n_point_2)
             self.assertTrue(result.shape == (n_samples, 1))
 
-            expected = np.vstack([metric.squared_dist(one_point_1, point_2)
+            expected = gs.vstack([metric.squared_dist(one_point_1, point_2)
                                   for point_2 in n_point_2])
 
             # n points 1 and one point 2
             result = metric.squared_dist(n_point_1, one_point_2)
             self.assertTrue(result.shape == (n_samples, 1))
 
-            expected = np.vstack([metric.squared_dist(point_1, one_point_2)
+            expected = gs.vstack([metric.squared_dist(point_1, one_point_2)
                                   for point_1 in n_point_1])
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # n points 1 and n points 2
             result = metric.squared_dist(n_point_1, n_point_2)
             self.assertTrue(result.shape == (n_samples, 1))
 
-            expected = np.vstack([metric.squared_dist(point_1, point_2)
+            expected = gs.vstack([metric.squared_dist(point_1, point_2)
                                   for point_1, point_2 in zip(n_point_1,
                                                               n_point_2)])
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
     def test_dist_vectorization(self):
@@ -1726,9 +1728,9 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             result = metric.dist(point_id, n_point_2)
             self.assertTrue(result.shape == (n_samples, 1))
 
-            expected = np.vstack([metric.dist(point_id, point_2)
+            expected = gs.vstack([metric.dist(point_id, point_2)
                                   for point_2 in n_point_2])
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # n points 1 and identity
@@ -1736,37 +1738,37 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
             self.assertTrue(result.shape == (n_samples, 1))
 
-            expected = np.vstack([metric.dist(point_1, point_id)
+            expected = gs.vstack([metric.dist(point_1, point_id)
                                   for point_1 in n_point_1])
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # one point 1 and n points 2
             result = metric.dist(one_point_1, n_point_2)
             self.assertTrue(result.shape == (n_samples, 1))
 
-            expected = np.vstack([metric.dist(one_point_1, point_2)
+            expected = gs.vstack([metric.dist(one_point_1, point_2)
                                   for point_2 in n_point_2])
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # n points 1 and one point 2
             result = metric.dist(n_point_1, one_point_2)
             self.assertTrue(result.shape == (n_samples, 1))
 
-            expected = np.vstack([metric.dist(point_1, one_point_2)
+            expected = gs.vstack([metric.dist(point_1, one_point_2)
                                   for point_1 in n_point_1])
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # n points 1 and n points 2
             result = metric.dist(n_point_1, n_point_2)
             self.assertTrue(result.shape == (n_samples, 1))
 
-            expected = np.vstack([metric.dist(point_1, point_2)
+            expected = gs.vstack([metric.dist(point_1, point_2)
                                   for point_1, point_2 in zip(n_point_1,
                                                               n_point_2)])
-            self.assertTrue(np.allclose(result, expected),
+            self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
     def test_geodesic_and_belongs(self):
@@ -1774,33 +1776,33 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         group = self.so[n]
 
         initial_point = group.random_uniform()
-        initial_tangent_vec = np.array([2., 0., -1.])
+        initial_tangent_vec = gs.array([2., 0., -1.])
         metric = self.metrics[3]['canonical']
         geodesic = metric.geodesic(initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
 
-        t = np.linspace(start=0, stop=1, num=100)
+        t = gs.linspace(start=0, stop=1, num=100)
         points = geodesic(t)
-        self.assertTrue(np.all(group.belongs(points)))
+        self.assertTrue(gs.all(group.belongs(points)))
 
     def test_geodesic_subsample(self):
         n = 3
         group = self.so[n]
 
         initial_point = group.random_uniform()
-        initial_tangent_vec = np.array([1., 1., 1.])
+        initial_tangent_vec = gs.array([1., 1., 1.])
         metric = self.metrics[3]['canonical']
         geodesic = metric.geodesic(initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
         n_steps = 100
-        t = np.linspace(start=0, stop=1, num=n_steps+1)
+        t = gs.linspace(start=0, stop=1, num=n_steps+1)
         points = geodesic(t)
 
         tangent_vec_step = initial_tangent_vec / n_steps
         for i in range(n_steps+1):
             point_step = metric.exp(tangent_vec=i * tangent_vec_step,
                                     base_point=initial_point)
-            assert np.all(point_step == points[i])
+            assert gs.all(point_step == points[i])
 
 
 if __name__ == '__main__':
