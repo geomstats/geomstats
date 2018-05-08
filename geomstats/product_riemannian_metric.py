@@ -9,6 +9,9 @@ from geomstats.riemannian_metric import RiemannianMetric
 EPSILON = 1e-5
 
 
+# TODO(nina): gs.array, no tuples
+# TODO(nina): unit tests
+
 class ProductRiemannianMetric(RiemannianMetric):
     """
     Base class for product of Riemannian metrics.
