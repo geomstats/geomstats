@@ -70,7 +70,6 @@ class LieGroup(Manifold):
 
         n_tangent_vecs = tangent_vec.shape[0]
         n_base_points = base_point.shape[0]
-        n_exps = gs.maximum(n_tangent_vecs, n_base_points)
 
         assert (n_tangent_vecs == n_base_points
                 or n_tangent_vecs == 1
@@ -83,14 +82,10 @@ class LieGroup(Manifold):
         dim = self.dimension
         assert inv_jacobian.shape == (n_base_points, dim, dim)
 
-        tangent_vec_at_id = gs.zeros((n_exps, dim))
-        for i in range(n_exps):
-            inv_jacobian_i = (inv_jacobian[0] if n_base_points == 1
-                              else inv_jacobian[i])
-            tangent_vec_i = (tangent_vec[0] if n_tangent_vecs == 1
-                             else tangent_vec[i])
-            tangent_vec_at_id[i] = gs.dot(tangent_vec_i,
-                                          gs.transpose(inv_jacobian_i))
+        tangent_vec_at_id = gs.einsum('ij,ijk->ik',
+                                      tangent_vec,
+                                      gs.transpose(inv_jacobian,
+                                                   axes=(0, 2, 1)))
 
         group_exp_from_identity = self.group_exp_from_identity(
                                        tangent_vec=tangent_vec_at_id)
