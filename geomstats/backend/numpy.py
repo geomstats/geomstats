@@ -3,8 +3,8 @@
 import numpy as np
 
 
-def concatenate(val):
-    return np.concatenate(val)
+def concatenate(*args, **kwargs):
+    return np.concatenate(*args, **kwargs)
 
 
 def identity(val):
@@ -33,6 +33,14 @@ def zeros(val):
 
 def ones(val):
     return np.ones(val)
+
+
+def ones_like(*args, **kwargs):
+    return np.ones_like(*args, **kwargs)
+
+
+def empty_like(*args, **kwargs):
+    return np.empty_like(*args, **kwargs)
 
 
 def all(val):
@@ -166,3 +174,59 @@ def mod(*args, **kwargs):
 
 def linspace(*args, **kwargs):
     return np.linspace(*args, **kwargs)
+
+
+def equal(*args, **kwargs):
+    return np.equal(*args, **kwargs)
+
+
+def floor(*args, **kwargs):
+    return np.floor(*args, **kwargs)
+
+
+def cross(*args, **kwargs):
+    return np.cross(*args, **kwargs)
+
+
+def triu_indices(*args, **kwargs):
+    return np.triu_indices(*args, **kwargs)
+
+
+def where(*args, **kwargs):
+    return np.where(*args, **kwargs)
+
+
+def tile(*args, **kwargs):
+    return np.tile(*args, **kwargs)
+
+
+def clip(*args, **kwargs):
+    return np.clip(*args, **kwargs)
+
+
+def diag(*args, **kwargs):
+    return np.diag(*args, **kwargs)
+
+
+def any(*args, **kwargs):
+    return np.any(*args, **kwargs)
+
+
+def expand_dims(*args, **kwargs):
+    return np.expand_dims(*args, **kwargs)
+
+
+def outer(*args, **kwargs):
+    return np.outer(*args, **kwargs)
+
+
+def hsplit(*args, **kwargs):
+    return np.hsplit(*args, **kwargs)
+
+
+def argmax(*args, **kwargs):
+    return np.argmax(*args, **kwargs)
+
+
+def diagonal(*args, **kwargs):
+    return np.diagonal(*args, **kwargs)
