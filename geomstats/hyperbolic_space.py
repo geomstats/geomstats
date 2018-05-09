@@ -183,9 +183,8 @@ class HyperbolicMetric(RiemannianMetric):
         norm_tangent_vec = gs.to_ndarray(norm_tangent_vec, to_ndim=2, axis=1)
 
         mask_0 = gs.isclose(sq_norm_tangent_vec, 0)
-        mask_else = ~mask_0
-
         mask_0 = gs.to_ndarray(mask_0, to_ndim=1)
+        mask_else = ~mask_0
         mask_else = gs.to_ndarray(mask_else, to_ndim=1)
 
         coef_1 = gs.zeros_like(norm_tangent_vec)
