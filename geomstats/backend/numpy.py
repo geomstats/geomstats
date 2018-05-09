@@ -238,3 +238,7 @@ def exp(*args, **kwargs):
 
 def log(*args, **kwargs):
     return np.log(*args, **kwargs)
+
+
+def cov(*args, **kwargs):
+    return np.cov(*args, **kwargs)
