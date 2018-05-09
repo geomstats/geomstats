@@ -160,7 +160,10 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
         n_base_points = self.space.random_uniform(n_samples=n_samples)
 
         result = self.metric.log(one_point, one_base_point)
-        self.assertTrue(gs.allclose(result.shape, (1, dim + 1)))
+        self.assertTrue(
+            gs.allclose(result.shape, (1, dim + 1)),
+            'result.shape={} \n true shape: {}'.format(
+                result.shape, (1, dim + 1)))
 
         result = self.metric.log(n_points, one_base_point)
         self.assertTrue(gs.allclose(result.shape, (n_samples, dim + 1)))
@@ -192,16 +195,16 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
         n_points_b = self.space.random_uniform(n_samples=n_samples)
 
         result = self.metric.squared_dist(one_point_a, one_point_b)
-        self.assertTrue(gs.allclose(result.shape, (1, 1)))
+        self.assertTrue(gs.allclose(result.shape, ()))
 
         result = self.metric.squared_dist(n_points_a, one_point_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, 1)))
+        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
 
         result = self.metric.squared_dist(one_point_a, n_points_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, 1)))
+        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
 
         result = self.metric.squared_dist(n_points_a, n_points_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, 1)))
+        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
 
     def test_norm_and_dist(self):
         """
@@ -224,16 +227,16 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
         n_points_b = self.space.random_uniform(n_samples=n_samples)
 
         result = self.metric.dist(one_point_a, one_point_b)
-        self.assertTrue(gs.allclose(result.shape, (1, 1)))
+        self.assertTrue(gs.allclose(result.shape, ()))
 
         result = self.metric.dist(n_points_a, one_point_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, 1)))
+        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
 
         result = self.metric.dist(one_point_a, n_points_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, 1)))
+        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
 
         result = self.metric.dist(n_points_a, n_points_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, 1)))
+        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
 
     def test_log_and_exp_edge_case(self):
         """
