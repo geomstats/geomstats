@@ -44,19 +44,21 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
 
         result = self.metric.inner_product(n_points_a, one_point_b)
         expected = gs.dot(n_points_a, one_point_b.transpose())
-        self.assertTrue(gs.allclose(result.shape, (n_samples, 1)))
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertTrue(gs.allclose(result.shape, (n_samples,)),
+                        'result.shape = {}'.format(result.shape))
+        self.assertTrue(gs.allclose(result, expected),
+                        'result = {}\n expected = {}'.format(result, expected))
 
         result = self.metric.inner_product(one_point_a, n_points_b)
         expected = gs.dot(one_point_a, n_points_b.transpose()).transpose()
-        self.assertTrue(gs.allclose(result.shape, (n_samples, 1)))
+        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
         self.assertTrue(gs.allclose(result, expected))
 
         result = self.metric.inner_product(n_points_a, n_points_b)
-        expected = gs.zeros((n_samples, 1))
+        expected = gs.zeros((n_samples,))
         for i in range(n_samples):
             expected[i] = gs.dot(n_points_a[i], n_points_b[i])
-        self.assertTrue(gs.allclose(result.shape, (n_samples, 1)))
+        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
         self.assertTrue(gs.allclose(result, expected))
 
     def test_squared_norm(self):
@@ -72,8 +74,7 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
 
         result = self.metric.squared_norm(n_points)
         expected = gs.linalg.norm(n_points, axis=1) ** 2
-        expected = gs.to_ndarray(expected, to_ndim=2, axis=1)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, 1)))
+        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
         self.assertTrue(gs.allclose(result, expected))
 
     def test_norm(self):
@@ -89,8 +90,7 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
 
         result = self.metric.norm(n_points)
         expected = gs.linalg.norm(n_points, axis=1)
-        expected = gs.to_ndarray(expected, to_ndim=2, axis=1)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, 1)))
+        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
         self.assertTrue(gs.allclose(result, expected),
                         '\n result = {}'
                         '\n expected = {}'.format(result, expected))
@@ -177,17 +177,17 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
         self.assertTrue(gs.allclose(result, expected))
 
         result = self.metric.squared_dist(n_points_a, one_point_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, 1)))
+        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
 
         result = self.metric.squared_dist(one_point_a, n_points_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, 1)))
+        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
 
         result = self.metric.squared_dist(n_points_a, n_points_b)
-        expected = gs.zeros((n_samples, 1))
+        expected = gs.zeros((n_samples,))
         for i in range(n_samples):
             vec = n_points_a[i] - n_points_b[i]
             expected[i] = gs.dot(vec, vec.transpose())
-        self.assertTrue(gs.allclose(result.shape, (n_samples, 1)))
+        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
         self.assertTrue(gs.allclose(result, expected))
 
     def test_dist(self):
@@ -211,17 +211,17 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
         self.assertTrue(gs.allclose(result, expected))
 
         result = self.metric.dist(n_points_a, one_point_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, 1)))
+        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
 
         result = self.metric.dist(one_point_a, n_points_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, 1)))
+        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
 
         result = self.metric.dist(n_points_a, n_points_b)
-        expected = gs.zeros((n_samples, 1))
+        expected = gs.zeros((n_samples,))
         for i in range(n_samples):
             vec = n_points_a[i] - n_points_b[i]
             expected[i] = gs.sqrt(gs.dot(vec, vec.transpose()))
-        self.assertTrue(gs.allclose(result.shape, (n_samples, 1)))
+        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
         self.assertTrue(gs.allclose(result, expected))
 
     def test_random_uniform_and_belongs(self):

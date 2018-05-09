@@ -19,8 +19,7 @@ class EuclideanSpace(Manifold):
         """
         Check if point belongs to the Euclidean space.
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        _, point_dim = point.shape
+        point_dim = point.shape[-1]
         return point_dim == self.dimension
 
     def random_uniform(self, n_samples=1):
@@ -29,6 +28,8 @@ class EuclideanSpace(Manifold):
         with coordinates each between -1. and 1.
         """
         point = gs.random.rand(n_samples, self.dimension) * 2 - 1
+        if n_samples == 1:
+            point = gs.squeeze(point, axis=0)
         return point
 
 
