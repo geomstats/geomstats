@@ -15,7 +15,9 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
         self.dimension = 2
         self.space = EuclideanSpace(self.dimension)
         self.metric = self.space.metric
+
         self.n_samples = 10
+        self.n_channels = 3
 
     def test_inner_product_matrix(self):
         result = self.metric.inner_product_matrix()
@@ -61,6 +63,50 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
         self.assertTrue(gs.allclose(result.shape, (n_samples,)))
         self.assertTrue(gs.allclose(result, expected))
 
+    def test_inner_product_vectorization_with_channels(self):
+        n_samples = self.n_samples
+        n_channels = self.n_channels
+
+        one_point_a = self.space.random_uniform(n_samples=1,
+                                                n_channels=n_channels)
+        one_point_b = self.space.random_uniform(n_samples=1,
+                                                n_channels=n_channels)
+        n_points_a = self.space.random_uniform(n_samples=n_samples,
+                                               n_channels=n_channels)
+        n_points_b = self.space.random_uniform(n_samples=n_samples,
+                                               n_channels=n_channels)
+
+        result = self.metric.inner_product(one_point_a, one_point_b)
+        expected = gs.einsum('...k,...k->...', one_point_a, one_point_b)
+        self.assertTrue(
+            gs.allclose(result, expected),
+            'result = {} \n expected = {}'.format(result, expected))
+
+        result = self.metric.inner_product(n_points_a, one_point_b)
+        expected = gs.zeros((n_samples, n_channels,))
+        for i in range(n_samples):
+            for j in range(n_channels):
+                expected[i, j] = gs.dot(n_points_a[i, j], one_point_b[j])
+        self.assertTrue(gs.allclose(result.shape, (n_samples, n_channels)),
+                        'result.shape = {}'.format(result.shape))
+        self.assertTrue(gs.allclose(result, expected))
+
+        result = self.metric.inner_product(one_point_a, n_points_b)
+        expected = gs.zeros((n_samples, n_channels,))
+        for i in range(n_samples):
+            for j in range(n_channels):
+                expected[i, j] = gs.dot(one_point_a[j], n_points_b[i, j])
+        self.assertTrue(gs.allclose(result.shape, (n_samples, n_channels)))
+        self.assertTrue(gs.allclose(result, expected))
+
+        result = self.metric.inner_product(n_points_a, n_points_b)
+        expected = gs.zeros((n_samples, n_channels,))
+        for i in range(n_samples):
+            for j in range(n_channels):
+                expected[i, j] = gs.dot(n_points_a[i, j], n_points_b[i, j])
+        self.assertTrue(gs.allclose(result.shape, (n_samples, n_channels)))
+        self.assertTrue(gs.allclose(result, expected))
+
     def test_squared_norm(self):
         point = gs.array([-2, 4])
 
@@ -77,6 +123,17 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
         self.assertTrue(gs.allclose(result.shape, (n_samples,)))
         self.assertTrue(gs.allclose(result, expected))
 
+    def test_squared_norm_vectorization_with_channels(self):
+        n_samples = self.n_samples
+        n_channels = self.n_channels
+        n_points = self.space.random_uniform(n_samples=n_samples,
+                                             n_channels=n_channels)
+
+        result = self.metric.squared_norm(n_points)
+        expected = gs.linalg.norm(n_points, axis=-1) ** 2
+        self.assertTrue(gs.allclose(result.shape, (n_samples, n_channels)))
+        self.assertTrue(gs.allclose(result, expected))
+
     def test_norm(self):
         point = gs.array([-2, 4])
 
@@ -91,6 +148,20 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
         result = self.metric.norm(n_points)
         expected = gs.linalg.norm(n_points, axis=1)
         self.assertTrue(gs.allclose(result.shape, (n_samples,)))
+        self.assertTrue(gs.allclose(result, expected),
+                        '\n result = {}'
+                        '\n expected = {}'.format(result, expected))
+
+    def test_norm_vectorization_with_channels(self):
+        n_samples = self.n_samples
+        n_channels = self.n_channels
+        n_points = self.space.random_uniform(n_samples=n_samples,
+                                             n_channels=n_channels)
+
+        result = self.metric.norm(n_points)
+        expected = gs.linalg.norm(n_points, axis=-1)
+
+        self.assertTrue(gs.allclose(result.shape, (n_samples, n_channels)))
         self.assertTrue(gs.allclose(result, expected),
                         '\n result = {}'
                         '\n expected = {}'.format(result, expected))
@@ -126,6 +197,37 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
         result = self.metric.exp(n_tangent_vecs, n_base_points)
         self.assertTrue(gs.allclose(result.shape, (n_samples, dim)))
 
+    def test_exp_vectorization_with_channels(self):
+        n_samples = self.n_samples
+        n_channels = self.n_channels
+
+        dim = self.dimension
+        one_tangent_vec = self.space.random_uniform(n_samples=1,
+                                                    n_channels=n_channels)
+        one_base_point = self.space.random_uniform(n_samples=1,
+                                                   n_channels=n_channels)
+        n_tangent_vecs = self.space.random_uniform(n_samples=n_samples,
+                                                   n_channels=n_channels)
+        n_base_points = self.space.random_uniform(n_samples=n_samples,
+                                                  n_channels=n_channels)
+
+        result = self.metric.exp(one_tangent_vec, one_base_point)
+        expected = one_tangent_vec + one_base_point
+        self.assertTrue(gs.allclose(result, expected))
+
+        result = self.metric.exp(n_tangent_vecs, one_base_point)
+        self.assertTrue(
+            gs.allclose(result.shape, (n_samples, n_channels, dim)),
+            '\n result.shape = {}'.format(result.shape))
+
+        result = self.metric.exp(one_tangent_vec, n_base_points)
+        self.assertTrue(
+            gs.allclose(result.shape, (n_samples, n_channels, dim)))
+
+        result = self.metric.exp(n_tangent_vecs, n_base_points)
+        self.assertTrue(
+            gs.allclose(result.shape, (n_samples, n_channels, dim)))
+
     def test_log(self):
         base_point = gs.array([0, 1])
         point = gs.array([2, 10])
@@ -154,6 +256,36 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
 
         result = self.metric.log(n_points, n_base_points)
         self.assertTrue(gs.allclose(result.shape, (n_samples, dim)))
+
+    def test_log_vectorization_with_channels(self):
+        n_samples = self.n_samples
+        n_channels = self.n_channels
+
+        dim = self.dimension
+        one_point = self.space.random_uniform(n_samples=1,
+                                              n_channels=n_channels)
+        one_base_point = self.space.random_uniform(n_samples=1,
+                                                   n_channels=n_channels)
+        n_points = self.space.random_uniform(n_samples=n_samples,
+                                             n_channels=n_channels)
+        n_base_points = self.space.random_uniform(n_samples=n_samples,
+                                                  n_channels=n_channels)
+
+        result = self.metric.log(one_point, one_base_point)
+        expected = one_point - one_base_point
+        self.assertTrue(gs.allclose(result, expected))
+
+        result = self.metric.log(n_points, one_base_point)
+        self.assertTrue(
+            gs.allclose(result.shape, (n_samples, n_channels, dim)))
+
+        result = self.metric.log(one_point, n_base_points)
+        self.assertTrue(
+            gs.allclose(result.shape, (n_samples, n_channels, dim)))
+
+        result = self.metric.log(n_points, n_base_points)
+        self.assertTrue(
+            gs.allclose(result.shape, (n_samples, n_channels, dim)))
 
     def test_squared_dist(self):
         point_a = gs.array([-1, 4])
