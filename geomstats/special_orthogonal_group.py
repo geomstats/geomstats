@@ -121,17 +121,31 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                                   dimension=self.dimension,
                                   embedding_manifold=GeneralLinearGroup(n=n))
         self.bi_invariant_metric = self.left_canonical_metric
-        self.point_representation = 'vector' if n == 3 else 'matrix'
+        self.default_representation = 'vector' if n == 3 else 'matrix'
 
-    def belongs(self, point):
+    def belongs(self, point, representation=None):
         """
         Evaluate if a point belongs to SO(n).
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        _, point_dim = point.shape
-        return point_dim == self.dimension
+        if representation is None:
+            representation = self.default_representation
 
-    def regularize(self, point):
+        if representation == 'vector':
+            point = gs.to_ndarray(point, to_ndim=2)
+            _, vec_dim = point.shape
+            return vec_dim == self.dimension
+
+        if representation == 'matrix':
+            point = gs.to_ndarray(point, to_ndim=3)
+            point_transpose = gs.transpose(point, axes=(0, 2, 1))
+            point_inverse = gs.linalg.inv(point)
+
+            mask = gs.isclose(point_inverse, point_transpose)
+            mask = gs.all(mask, axis=(1, 2))
+
+            return mask
+
+    def regularize(self, point, representation=None):
         """
         In 3D, regularize the norm of the rotation vector,
         to be between 0 and pi, following the axis-angle
@@ -141,6 +155,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         the function computes its complementary in 2pi and
         inverts the direction of the rotation axis.
         """
+        if representation is None:
+            representation = self.default_representation
+
         point = gs.to_ndarray(point, to_ndim=2)
         assert self.belongs(point)
         n_points, vec_dim = point.shape
