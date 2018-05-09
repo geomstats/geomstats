@@ -43,8 +43,8 @@ def empty_like(*args, **kwargs):
     return np.empty_like(*args, **kwargs)
 
 
-def all(val):
-    return np.all(val)
+def all(*args, **kwargs):
+    return np.all(*args, **kwargs)
 
 
 def allclose(a, b, **kwargs):
@@ -124,8 +124,8 @@ def rand(*args, **largs):
     return np.random.rand(*args, **largs)
 
 
-def isclose(a, b):
-    return np.isclose(a, b)
+def isclose(*args, **kwargs):
+    return np.isclose(*args, **kwargs)
 
 
 def less_equal(a, b):
@@ -230,3 +230,15 @@ def argmax(*args, **kwargs):
 
 def diagonal(*args, **kwargs):
     return np.diagonal(*args, **kwargs)
+
+
+def exp(*args, **kwargs):
+    return np.exp(*args, **kwargs)
+
+
+def log(*args, **kwargs):
+    return np.log(*args, **kwargs)
+
+
+def cov(*args, **kwargs):
+    return np.cov(*args, **kwargs)

@@ -25,3 +25,11 @@ def eigvalsh(*args, **kwargs):
 
 def svd(*args, **kwargs):
     return np.linalg.svd(*args, **kwargs)
+
+
+def eigh(*args, **kwargs):
+    return np.linalg.eigh(*args, **kwargs)
+
+
+def exp(*args, **kwargs):
+    return np.exp(*args, **kwargs)
