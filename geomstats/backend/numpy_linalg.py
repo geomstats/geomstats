@@ -31,5 +31,9 @@ def eigh(*args, **kwargs):
     return np.linalg.eigh(*args, **kwargs)
 
 
+def eig(*args, **kwargs):
+    return np.linalg.eig(*args, **kwargs)
+
+
 def exp(*args, **kwargs):
     return np.exp(*args, **kwargs)
