@@ -1,16 +1,12 @@
 """
 Computations on the manifold of
 symmetric positive definite matrices.
-
-X. Pennec. A Riemannian Framework for Tensor Computing. (2004).
 """
-
-import numpy as np
 
 from geomstats.embedded_manifold import EmbeddedManifold
 from geomstats.general_linear_group import GeneralLinearGroup
 from geomstats.riemannian_metric import RiemannianMetric
-import geomstats.vectorization as vectorization
+import geomstats.backend as gs
 
 EPSILON = 1e-6
 TOLERANCE = 1e-12
@@ -18,33 +14,33 @@ TOLERANCE = 1e-12
 
 def is_symmetric(mat, tolerance=TOLERANCE):
     """Check if a matrix is symmetric."""
-    mat = vectorization.to_ndarray(mat, to_ndim=3)
+    mat = gs.to_ndarray(mat, to_ndim=3)
     n_mats, _, _ = mat.shape
-    mat_transpose = np.transpose(mat, axes=(0, 2, 1))
+    mat_transpose = gs.transpose(mat, axes=(0, 2, 1))
 
-    mask = np.isclose(mat, mat_transpose, atol=tolerance)
-    mask = np.all(mask, axis=(1, 2))
+    mask = gs.isclose(mat, mat_transpose, atol=tolerance)
+    mask = gs.all(mask, axis=(1, 2))
 
     return mask
 
 
 def make_symmetric(mat):
     """Make a matrix fully symmetric to avoid numerical issues."""
-    mat = vectorization.to_ndarray(mat, to_ndim=3)
-    return (mat + np.transpose(mat, axes=(0, 2, 1))) / 2
+    mat = gs.to_ndarray(mat, to_ndim=3)
+    return (mat + gs.transpose(mat, axes=(0, 2, 1))) / 2
 
 
 def sqrtm(sym_mat):
-    sym_mat = vectorization.to_ndarray(sym_mat, to_ndim=3)
+    sym_mat = gs.to_ndarray(sym_mat, to_ndim=3)
 
-    [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
+    [eigenvalues, vectors] = gs.linalg.eigh(sym_mat)
 
-    sqrt_eigenvalues = np.sqrt(eigenvalues)
+    sqrt_eigenvalues = gs.sqrt(eigenvalues)
 
-    aux = np.einsum('ijk,ik->ijk', vectors, sqrt_eigenvalues)
-    sqrt_mat = np.einsum('ijk,ilk->ijl', aux, vectors)
+    aux = gs.einsum('ijk,ik->ijk', vectors, sqrt_eigenvalues)
+    sqrt_mat = gs.einsum('ijk,ilk->ijl', aux, vectors)
 
-    sqrt_mat = vectorization.to_ndarray(sqrt_mat, to_ndim=3)
+    sqrt_mat = gs.to_ndarray(sqrt_mat, to_ndim=3)
     return sqrt_mat
 
 
@@ -56,19 +52,19 @@ def group_exp(sym_mat):
     all invertible matrices has a straight-forward
     computation for symmetric positive definite matrices.
     """
-    sym_mat = vectorization.to_ndarray(sym_mat, to_ndim=3)
+    sym_mat = gs.to_ndarray(sym_mat, to_ndim=3)
     n_sym_mats, mat_dim, _ = sym_mat.shape
 
-    assert np.all(is_symmetric(sym_mat))
+    assert gs.all(is_symmetric(sym_mat))
     sym_mat = make_symmetric(sym_mat)
 
-    [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
-    exp_eigenvalues = np.exp(eigenvalues)
+    [eigenvalues, vectors] = gs.linalg.eigh(sym_mat)
+    exp_eigenvalues = gs.exp(eigenvalues)
 
-    aux = np.einsum('ijk,ik->ijk', vectors, exp_eigenvalues)
-    exp_mat = np.einsum('ijk,ilk->ijl', aux, vectors)
+    aux = gs.einsum('ijk,ik->ijk', vectors, exp_eigenvalues)
+    exp_mat = gs.einsum('ijk,ilk->ijl', aux, vectors)
 
-    exp_mat = vectorization.to_ndarray(exp_mat, to_ndim=3)
+    exp_mat = gs.to_ndarray(exp_mat, to_ndim=3)
     return exp_mat
 
 
@@ -78,20 +74,20 @@ def group_log(sym_mat):
     all invertible matrices has a straight-forward
     computation for symmetric positive definite matrices.
     """
-    sym_mat = vectorization.to_ndarray(sym_mat, to_ndim=3)
+    sym_mat = gs.to_ndarray(sym_mat, to_ndim=3)
     n_sym_mats, mat_dim, _ = sym_mat.shape
 
-    assert np.all(is_symmetric(sym_mat))
+    assert gs.all(is_symmetric(sym_mat))
     sym_mat = make_symmetric(sym_mat)
-    [eigenvalues, vectors] = np.linalg.eigh(sym_mat)
-    assert np.all(eigenvalues > 0)
+    [eigenvalues, vectors] = gs.linalg.eigh(sym_mat)
+    assert gs.all(eigenvalues > 0)
 
-    log_eigenvalues = np.log(eigenvalues)
+    log_eigenvalues = gs.log(eigenvalues)
 
-    aux = np.einsum('ijk,ik->ijk', vectors, log_eigenvalues)
-    log_mat = np.einsum('ijk,ilk->ijl', aux, vectors)
+    aux = gs.einsum('ijk,ik->ijk', vectors, log_eigenvalues)
+    log_mat = gs.einsum('ijk,ilk->ijl', aux, vectors)
 
-    log_mat = vectorization.to_ndarray(log_mat, to_ndim=3)
+    log_mat = gs.to_ndarray(log_mat, to_ndim=3)
     return log_mat
 
 
@@ -109,15 +105,15 @@ class SPDMatricesSpace(EmbeddedManifold):
         Check if a matrix belongs to the manifold of
         symmetric positive definite matrices.
         """
-        mat = vectorization.to_ndarray(mat, to_ndim=3)
+        mat = gs.to_ndarray(mat, to_ndim=3)
         n_mats, mat_dim, _ = mat.shape
 
         mask_is_symmetric = is_symmetric(mat, tolerance=tolerance)
-        eigenvalues = np.zeros((n_mats, mat_dim))
-        eigenvalues[mask_is_symmetric] = np.linalg.eigvalsh(
+        eigenvalues = gs.zeros((n_mats, mat_dim))
+        eigenvalues[mask_is_symmetric] = gs.linalg.eigvalsh(
                                               mat[mask_is_symmetric])
 
-        mask_pos_eigenvalues = np.all(eigenvalues > 0)
+        mask_pos_eigenvalues = gs.all(eigenvalues > 0)
         return mask_is_symmetric & mask_pos_eigenvalues
 
     def vector_from_symmetric_matrix(self, mat):
@@ -125,13 +121,13 @@ class SPDMatricesSpace(EmbeddedManifold):
         Convert the symmetric part of a symmetric matrix
         into a vector.
         """
-        mat = vectorization.to_ndarray(mat, to_ndim=3)
-        assert np.all(is_symmetric(mat))
+        mat = gs.to_ndarray(mat, to_ndim=3)
+        assert gs.all(is_symmetric(mat))
         mat = make_symmetric(mat)
 
         _, mat_dim, _ = mat.shape
         vec_dim = int(mat_dim * (mat_dim + 1) / 2)
-        vec = np.zeros(vec_dim)
+        vec = gs.zeros(vec_dim)
 
         idx = 0
         for i in range(mat_dim):
@@ -148,13 +144,13 @@ class SPDMatricesSpace(EmbeddedManifold):
         """
         Convert a vector into a symmetric matrix.
         """
-        vec = vectorization.to_ndarray(vec, to_ndim=2)
+        vec = gs.to_ndarray(vec, to_ndim=2)
         _, vec_dim = vec.shape
-        mat_dim = int((np.sqrt(8 * vec_dim + 1) - 1) / 2)
-        mat = np.zeros((mat_dim,) * 2)
+        mat_dim = int((gs.sqrt(8 * vec_dim + 1) - 1) / 2)
+        mat = gs.zeros((mat_dim,) * 2)
 
-        lower_triangle_indices = np.tril_indices(mat_dim)
-        diag_indices = np.diag_indices(mat_dim)
+        lower_triangle_indices = gs.tril_indices(mat_dim)
+        diag_indices = gs.diag_indices(mat_dim)
 
         mat[lower_triangle_indices] = 2 * vec
         mat[diag_indices] = vec
@@ -163,32 +159,32 @@ class SPDMatricesSpace(EmbeddedManifold):
         return mat
 
     def random_uniform(self, n_samples=1):
-        mat = 2 * np.random.rand(n_samples, self.n, self.n) - 1
+        mat = 2 * gs.random.rand(n_samples, self.n, self.n) - 1
 
-        spd_mat = group_exp(mat + np.transpose(mat, axes=(0, 2, 1)))
+        spd_mat = group_exp(mat + gs.transpose(mat, axes=(0, 2, 1)))
         return spd_mat
 
     def random_tangent_vec_uniform(self, n_samples=1, base_point=None):
         if base_point is None:
-            base_point = np.eye(self.n)
+            base_point = gs.eye(self.n)
 
-        base_point = vectorization.to_ndarray(base_point, to_ndim=3)
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, _ = base_point.shape
 
         assert n_base_points == n_samples or n_base_points == 1
 
         sqrt_base_point = sqrtm(base_point)
 
-        tangent_vec_at_id = (2 * np.random.rand(n_samples,
+        tangent_vec_at_id = (2 * gs.random.rand(n_samples,
                                                 self.n,
                                                 self.n)
                              - 1)
         tangent_vec_at_id = (tangent_vec_at_id
-                             + np.transpose(tangent_vec_at_id,
+                             + gs.transpose(tangent_vec_at_id,
                                             axes=(0, 2, 1)))
 
-        tangent_vec = np.matmul(sqrt_base_point, tangent_vec_at_id)
-        tangent_vec = np.matmul(tangent_vec, sqrt_base_point)
+        tangent_vec = gs.matmul(sqrt_base_point, tangent_vec_at_id)
+        tangent_vec = gs.matmul(tangent_vec, sqrt_base_point)
 
         return tangent_vec
 
@@ -203,13 +199,12 @@ class SPDMetric(RiemannianMetric):
         Compute the inner product of tangent_vec_a and tangent_vec_b
         at point base_point using the affine invariant Riemannian metric.
         """
-        inv_base_point = np.linalg.inv(base_point)
+        inv_base_point = gs.linalg.inv(base_point)
 
-        aux_a = np.matmul(inv_base_point, tangent_vec_a)
-        aux_b = np.matmul(inv_base_point, tangent_vec_b)
-        inner_product = np.trace(np.matmul(aux_a, aux_b), axis1=1, axis2=2)
-        inner_product = vectorization.to_ndarray(inner_product,
-                                                 to_ndim=2, axis=1)
+        aux_a = gs.matmul(inv_base_point, tangent_vec_a)
+        aux_b = gs.matmul(inv_base_point, tangent_vec_b)
+        inner_product = gs.trace(gs.matmul(aux_a, aux_b), axis1=1, axis2=2)
+        inner_product = gs.to_ndarray(inner_product, to_ndim=2, axis=1)
         return inner_product
 
     def exp(self, tangent_vec, base_point):
@@ -220,10 +215,10 @@ class SPDMetric(RiemannianMetric):
 
         This gives a symmetric positive definite matrix.
         """
-        tangent_vec = vectorization.to_ndarray(tangent_vec, to_ndim=3)
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         n_tangent_vecs, _, _ = tangent_vec.shape
 
-        base_point = vectorization.to_ndarray(base_point, to_ndim=3)
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, mat_dim, _ = base_point.shape
 
         assert (n_tangent_vecs == n_base_points
@@ -232,16 +227,16 @@ class SPDMetric(RiemannianMetric):
 
         sqrt_base_point = sqrtm(base_point)
 
-        inv_sqrt_base_point = np.linalg.inv(sqrt_base_point)
+        inv_sqrt_base_point = gs.linalg.inv(sqrt_base_point)
 
-        tangent_vec_at_id = np.matmul(inv_sqrt_base_point,
+        tangent_vec_at_id = gs.matmul(inv_sqrt_base_point,
                                       tangent_vec)
-        tangent_vec_at_id = np.matmul(tangent_vec_at_id,
+        tangent_vec_at_id = gs.matmul(tangent_vec_at_id,
                                       inv_sqrt_base_point)
         exp_from_id = group_exp(tangent_vec_at_id)
 
-        exp = np.matmul(exp_from_id, sqrt_base_point)
-        exp = np.matmul(sqrt_base_point, exp)
+        exp = gs.matmul(exp_from_id, sqrt_base_point)
+        exp = gs.matmul(sqrt_base_point, exp)
 
         return exp
 
@@ -253,26 +248,26 @@ class SPDMetric(RiemannianMetric):
 
         This gives a tangent vector at point base_point.
         """
-        point = vectorization.to_ndarray(point, to_ndim=3)
+        point = gs.to_ndarray(point, to_ndim=3)
         n_points, _, _ = point.shape
 
-        base_point = vectorization.to_ndarray(base_point, to_ndim=3)
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, mat_dim, _ = base_point.shape
 
         assert (n_points == n_base_points
                 or n_points == 1
                 or n_base_points == 1)
 
-        sqrt_base_point = np.zeros((n_base_points,) + (mat_dim,) * 2)
+        sqrt_base_point = gs.zeros((n_base_points,) + (mat_dim,) * 2)
         sqrt_base_point = sqrtm(base_point)
 
-        inv_sqrt_base_point = np.linalg.inv(sqrt_base_point)
-        point_near_id = np.matmul(inv_sqrt_base_point, point)
-        point_near_id = np.matmul(point_near_id, inv_sqrt_base_point)
+        inv_sqrt_base_point = gs.linalg.inv(sqrt_base_point)
+        point_near_id = gs.matmul(inv_sqrt_base_point, point)
+        point_near_id = gs.matmul(point_near_id, inv_sqrt_base_point)
         log_at_id = group_log(point_near_id)
 
-        log = np.matmul(sqrt_base_point, log_at_id)
-        log = np.matmul(log, sqrt_base_point)
+        log = gs.matmul(sqrt_base_point, log_at_id)
+        log = gs.matmul(log, sqrt_base_point)
 
         return log
 

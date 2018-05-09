@@ -3,9 +3,9 @@ Base class for Riemannian metrics.
 """
 
 import logging
-import numpy as np
 
-import geomstats.vectorization as vectorization
+import geomstats.backend as gs
+
 
 EPSILON = 1e-5
 
@@ -20,7 +20,7 @@ class RiemannianMetric(object):
         assert isinstance(dimension, int) and dimension > 0
         self.dimension = dimension
         if signature is not None:
-            assert np.sum(signature) == dimension
+            assert gs.sum(signature) == dimension
         self.signature = signature
 
     def inner_product_matrix(self, base_point=None):
@@ -37,11 +37,11 @@ class RiemannianMetric(object):
         Inner product defined by the Riemannian metric at point base_point
         between tangent vectors tangent_vec_a and tangent_vec_b.
         """
-        tangent_vec_a = vectorization.to_ndarray(tangent_vec_a, to_ndim=2)
-        tangent_vec_b = vectorization.to_ndarray(tangent_vec_b, to_ndim=2)
+        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
+        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
 
         inner_prod_mat = self.inner_product_matrix(base_point)
-        inner_prod_mat = vectorization.to_ndarray(inner_prod_mat, to_ndim=3)
+        inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
 
         n_tangent_vecs_a, _ = tangent_vec_a.shape
         n_tangent_vecs_b, _ = tangent_vec_b.shape
@@ -61,9 +61,9 @@ class RiemannianMetric(object):
                 or bool_a and bool_inner_prod
                 or bool_b and bool_inner_prod)
 
-        aux = np.einsum('ij,ijk->ik', tangent_vec_a, inner_prod_mat)
-        inner_prod = np.einsum('ik,ik->i', aux, tangent_vec_b)
-        inner_prod = vectorization.to_ndarray(inner_prod, to_ndim=2, axis=1)
+        aux = gs.einsum('ij,ijk->ik', tangent_vec_a, inner_prod_mat)
+        inner_prod = gs.einsum('ik,ik->i', aux, tangent_vec_b)
+        inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
         return inner_prod
 
@@ -87,7 +87,7 @@ class RiemannianMetric(object):
                     'The method \'norm\' only works for positive-definite'
                     ' Riemannian metrics and inner products.')
         sq_norm = self.squared_norm(vector, base_point)
-        norm = np.sqrt(sq_norm)
+        norm = gs.sqrt(sq_norm)
         return norm
 
     def exp(self, tangent_vec, base_point=None):
@@ -121,35 +121,35 @@ class RiemannianMetric(object):
         for manifolds whose points are represented by matrices or higher
         dimensional tensors.
         """
-        initial_point = vectorization.to_ndarray(initial_point,
-                                                 to_ndim=point_ndim+1)
+        initial_point = gs.to_ndarray(initial_point,
+                                      to_ndim=point_ndim+1)
 
         if end_point is None and initial_tangent_vec is None:
             raise ValueError('Specify an end point or an initial tangent '
                              'vector to define the geodesic.')
         if end_point is not None:
-            end_point = vectorization.to_ndarray(end_point,
-                                                 to_ndim=point_ndim+1)
+            end_point = gs.to_ndarray(end_point,
+                                      to_ndim=point_ndim+1)
             shooting_tangent_vec = self.log(point=end_point,
                                             base_point=initial_point)
             if initial_tangent_vec is not None:
-                assert np.allclose(shooting_tangent_vec, initial_tangent_vec)
+                assert gs.allclose(shooting_tangent_vec, initial_tangent_vec)
             initial_tangent_vec = shooting_tangent_vec
-        initial_tangent_vec = vectorization.to_ndarray(initial_tangent_vec,
-                                                       to_ndim=point_ndim+1)
+        initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
+                                            to_ndim=point_ndim+1)
 
         def point_on_geodesic(t):
-            t = vectorization.to_ndarray(t, to_ndim=1)
-            t = vectorization.to_ndarray(t, to_ndim=2, axis=1)
+            t = gs.to_ndarray(t, to_ndim=1)
+            t = gs.to_ndarray(t, to_ndim=2, axis=1)
 
-            new_initial_point = vectorization.to_ndarray(
+            new_initial_point = gs.to_ndarray(
                                           initial_point,
                                           to_ndim=point_ndim+1)
-            new_initial_tangent_vec = vectorization.to_ndarray(
+            new_initial_tangent_vec = gs.to_ndarray(
                                           initial_tangent_vec,
                                           to_ndim=point_ndim+1)
 
-            tangent_vecs = np.einsum('il,k...->i...',
+            tangent_vecs = gs.einsum('il,k...->i...',
                                      t,
                                      new_initial_tangent_vec)
             point_at_time_t = self.exp(tangent_vec=tangent_vecs,
@@ -180,7 +180,7 @@ class RiemannianMetric(object):
                     'The method \'dist\' only works for positive-definite'
                     ' Riemannian metrics and inner products.')
         sq_dist = self.squared_dist(point_a, point_b)
-        dist = np.sqrt(sq_dist)
+        dist = gs.sqrt(sq_dist)
         return dist
 
     def variance(self, points, weights=None, base_point=None):
@@ -192,7 +192,7 @@ class RiemannianMetric(object):
         assert n_points > 0
 
         if weights is None:
-            weights = np.ones(n_points)
+            weights = gs.ones(n_points)
 
         n_weights = len(weights)
         assert n_points == n_weights
@@ -231,11 +231,11 @@ class RiemannianMetric(object):
         assert n_points > 0
 
         if weights is None:
-            weights = np.ones(n_points)
+            weights = gs.ones(n_points)
 
         n_weights = len(weights)
         assert n_points == n_weights
-        sum_weights = np.sum(weights)
+        sum_weights = gs.sum(weights)
 
         mean = points[0]
         if n_points == 1:
@@ -245,7 +245,7 @@ class RiemannianMetric(object):
         iteration = 0
         while iteration < n_max_iterations:
             a_tangent_vector = self.log(mean, mean)
-            tangent_mean = np.zeros_like(a_tangent_vector)
+            tangent_mean = gs.zeros_like(a_tangent_vector)
 
             for i in range(n_points):
                 # TODO(nina): abandon the for loop
@@ -288,8 +288,8 @@ class RiemannianMetric(object):
 
         tangent_vecs = self.log(points, base_point=base_point)
 
-        covariance_mat = np.cov(tangent_vecs.transpose())
-        eigenvalues, tangent_eigenvecs = np.linalg.eig(covariance_mat)
+        covariance_mat = gs.cov(tangent_vecs.transpose())
+        eigenvalues, tangent_eigenvecs = gs.linalg.eig(covariance_mat)
 
         idx = eigenvalues.argsort()[::-1]
         eigenvalues = eigenvalues[idx]
