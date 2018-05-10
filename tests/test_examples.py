@@ -35,6 +35,10 @@ class TestExamples(unittest.TestCase):
     # def test_plot_grid_h2(self):
     #    plot_grid_h2.main()
 
+    # TODO(johmathe): this test fails
+    # def test_gradient_descent_s2(self):
+    #     gradient_descent_s2.main()
+
     def test_tangent_pca_so3(self):
         tangent_pca_so3.main()
 

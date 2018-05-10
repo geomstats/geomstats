@@ -3,6 +3,10 @@
 import numpy as np
 
 
+def asarray(*args, **kwargs):
+    return np.asarray(*args, **kwargs)
+
+
 def concatenate(*args, **kwargs):
     return np.concatenate(*args, **kwargs)
 
@@ -13,6 +17,10 @@ def identity(val):
 
 def hstack(val):
     return np.hstack(val)
+
+
+def stack(*args, **kwargs):
+    return np.stack(*args, **kwargs)
 
 
 def vstack(val):
