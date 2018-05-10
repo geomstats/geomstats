@@ -98,17 +98,18 @@ class Hypersphere(EmbeddedManifold):
         point_intrinsic = point_extrinsic[..., 1:]
         return point_intrinsic
 
-    def random_uniform(self, n_samples=1, depth=1, max_norm=1):
+    def random_uniform(self, n_samples=1, depth=None, max_norm=1):
         """
         Generate random elements on the Hypersphere.
         """
-        point = ((gs.random.rand(n_samples, depth, self.dimension) - .5)
-                 * max_norm)
-        point = self.intrinsic_to_extrinsic_coords(point)
-        assert gs.all(self.belongs(point))
+        if depth is None:
+            size = (n_samples, self.dimension)
+        else:
+            size = (n_samples, depth, self.dimension)
+        point = (gs.random.rand(*size) - .5) * max_norm
 
-        if depth == 1:
-            point = gs.squeeze(point, axis=1)
+        point = self.intrinsic_to_extrinsic_coords(point)
+
         if n_samples == 1:
             point = gs.squeeze(point, axis=0)
         return point
