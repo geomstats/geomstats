@@ -4,6 +4,7 @@ import unittest
 import matplotlib
 matplotlib.use('Agg')  # NOQA
 
+import examples.gradient_descent_s2 as gradient_descent_s2
 import examples.plot_geodesics_h2 as plot_geodesics_h2
 import examples.plot_geodesics_s2 as plot_geodesics_s2
 import examples.plot_geodesics_se3 as plot_geodesics_se3
@@ -30,6 +31,10 @@ class TestExamples(unittest.TestCase):
     # TODO(nina): this test fails
     # def test_plot_grid_h2(self):
     #    plot_grid_h2.main()
+
+    # TODO(johmathe): this test fails
+    # def test_gradient_descent_s2(self):
+    #     gradient_descent_s2.main()
 
     def test_tangent_pca_so3(self):
         tangent_pca_so3.main()
