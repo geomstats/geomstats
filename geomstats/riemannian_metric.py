@@ -37,33 +37,10 @@ class RiemannianMetric(object):
         Inner product defined by the Riemannian metric at point base_point
         between tangent vectors tangent_vec_a and tangent_vec_b.
         """
-        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
-        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
-
         inner_prod_mat = self.inner_product_matrix(base_point)
-        inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
 
-        n_tangent_vecs_a, _ = tangent_vec_a.shape
-        n_tangent_vecs_b, _ = tangent_vec_b.shape
-        n_inner_prod_mats, _, _ = inner_prod_mat.shape
-
-        bool_all_same_n = (n_tangent_vecs_a
-                           == n_tangent_vecs_b
-                           == n_inner_prod_mats)
-        bool_a = n_tangent_vecs_a == 1
-        bool_b = n_tangent_vecs_b == 1
-        bool_inner_prod = n_inner_prod_mats == 1
-        assert (bool_all_same_n
-                or n_tangent_vecs_a == n_tangent_vecs_b and bool_inner_prod
-                or n_tangent_vecs_a == n_inner_prod_mats and bool_b
-                or n_tangent_vecs_b == n_inner_prod_mats and bool_a
-                or bool_a and bool_b
-                or bool_a and bool_inner_prod
-                or bool_b and bool_inner_prod)
-
-        aux = gs.einsum('ij,ijk->ik', tangent_vec_a, inner_prod_mat)
-        inner_prod = gs.einsum('ik,ik->i', aux, tangent_vec_b)
-        inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
+        aux = gs.einsum('...j,...jk->...k', tangent_vec_a, inner_prod_mat)
+        inner_prod = gs.einsum('...k,...k->...', aux, tangent_vec_b)
 
         return inner_prod
 
@@ -215,7 +192,7 @@ class RiemannianMetric(object):
         return variance
 
     def mean(self, points,
-             weights=None, n_max_iterations=100, epsilon=EPSILON):
+             weights=None, n_max_iterations=32, epsilon=EPSILON):
         """
         Weighted Frechet mean of the points, iterating 3 steps:
         - Project the points on the tangent space with the riemannian log

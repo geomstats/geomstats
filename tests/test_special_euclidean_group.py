@@ -1223,6 +1223,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             expected = gs.vstack([metric.inner_product(one_vector_a, vec_b,
                                                        one_base_point)
                                   for vec_b in n_vector_b])
+            expected = gs.squeeze(expected, axis=1)
             self.assertTrue(gs.allclose(result, expected))
 
             result = metric.inner_product(n_vector_a, one_vector_b,
@@ -1230,6 +1231,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             expected = gs.vstack([metric.inner_product(vec_a, one_vector_b,
                                                        one_base_point)
                                   for vec_a in n_vector_a])
+            expected = gs.squeeze(expected, axis=1)
             self.assertTrue(gs.allclose(result, expected))
 
             result = metric.inner_product(n_vector_a, n_vector_b,
@@ -1238,6 +1240,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                        one_base_point)
                                   for vec_a, vec_b in zip(n_vector_a,
                                                           n_vector_b)])
+            expected = gs.squeeze(expected, axis=1)
             self.assertTrue(gs.allclose(result, expected))
 
     def test_inner_product_n_base_point_vectorization(self):
@@ -1256,6 +1259,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                        base_point)
                                   for vec_b, base_point in zip(n_vector_b,
                                                                n_base_point)])
+            expected = gs.squeeze(expected, axis=1)
             self.assertTrue(gs.allclose(result, expected))
 
             result = metric.inner_product(n_vector_a, one_vector_b,
@@ -1264,6 +1268,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                        base_point)
                                   for vec_a, base_point in zip(n_vector_a,
                                                                n_base_point)])
+            expected = gs.squeeze(expected, axis=1)
             self.assertTrue(gs.allclose(result, expected))
 
             result = metric.inner_product(n_vector_a, n_vector_b,
@@ -1274,6 +1279,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                                 n_vector_a,
                                                                 n_vector_b,
                                                                 n_base_point)])
+            expected = gs.squeeze(expected, axis=1)
             self.assertTrue(gs.allclose(result, expected))
 
     def test_squared_dist_is_symmetric(self):
@@ -1324,46 +1330,51 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
             # Identity and n points 2
             result = metric.squared_dist(point_id, n_point_2)
-            self.assertTrue(result.shape == (n_samples, 1))
+            self.assertTrue(gs.isclose(result.shape, n_samples))
 
             expected = gs.vstack([metric.squared_dist(point_id, point_2)
                                   for point_2 in n_point_2])
+            expected = gs.squeeze(expected, axis=1)
             self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # n points 1 and identity
             result = metric.squared_dist(n_point_1, point_id)
 
-            self.assertTrue(result.shape == (n_samples, 1))
+            self.assertTrue(gs.isclose(result.shape, n_samples))
 
             expected = gs.vstack([metric.squared_dist(point_1, point_id)
                                   for point_1 in n_point_1])
+            expected = gs.squeeze(expected, axis=1)
             self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # one point 1 and n points 2
             result = metric.squared_dist(one_point_1, n_point_2)
-            self.assertTrue(result.shape == (n_samples, 1))
+            self.assertTrue(gs.isclose(result.shape, n_samples))
 
             expected = gs.vstack([metric.squared_dist(one_point_1, point_2)
                                   for point_2 in n_point_2])
+            expected = gs.squeeze(expected, axis=1)
 
             # n points 1 and one point 2
             result = metric.squared_dist(n_point_1, one_point_2)
-            self.assertTrue(result.shape == (n_samples, 1))
+            self.assertTrue(gs.isclose(result.shape, n_samples))
 
             expected = gs.vstack([metric.squared_dist(point_1, one_point_2)
                                   for point_1 in n_point_1])
+            expected = gs.squeeze(expected, axis=1)
             self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # n points 1 and n points 2
             result = metric.squared_dist(n_point_1, n_point_2)
-            self.assertTrue(result.shape == (n_samples, 1))
+            self.assertTrue(gs.isclose(result.shape, n_samples))
 
             expected = gs.vstack([metric.squared_dist(point_1, point_2)
                                   for point_1, point_2 in zip(n_point_1,
                                                               n_point_2)])
+            expected = gs.squeeze(expected, axis=1)
             self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
@@ -1385,48 +1396,53 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
             # Identity and n points 2
             result = metric.dist(point_id, n_point_2)
-            self.assertTrue(result.shape == (n_samples, 1))
+            self.assertTrue(gs.isclose(result.shape, n_samples))
 
             expected = gs.vstack([metric.dist(point_id, point_2)
                                   for point_2 in n_point_2])
+            expected = gs.squeeze(expected, axis=1)
             self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # n points 1 and identity
             result = metric.dist(n_point_1, point_id)
 
-            self.assertTrue(result.shape == (n_samples, 1))
+            self.assertTrue(gs.isclose(result.shape, n_samples))
 
             expected = gs.vstack([metric.dist(point_1, point_id)
                                   for point_1 in n_point_1])
+            expected = gs.squeeze(expected, axis=1)
             self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # one point 1 and n points 2
             result = metric.dist(one_point_1, n_point_2)
-            self.assertTrue(result.shape == (n_samples, 1))
+            self.assertTrue(gs.isclose(result.shape, n_samples))
 
             expected = gs.vstack([metric.dist(one_point_1, point_2)
                                   for point_2 in n_point_2])
+            expected = gs.squeeze(expected, axis=1)
             self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # n points 1 and one point 2
             result = metric.dist(n_point_1, one_point_2)
-            self.assertTrue(result.shape == (n_samples, 1))
+            self.assertTrue(gs.isclose(result.shape, n_samples))
 
             expected = gs.vstack([metric.dist(point_1, one_point_2)
                                   for point_1 in n_point_1])
+            expected = gs.squeeze(expected, axis=1)
             self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
             # n points 1 and n points 2
             result = metric.dist(n_point_1, n_point_2)
-            self.assertTrue(result.shape == (n_samples, 1))
+            self.assertTrue(gs.isclose(result.shape, n_samples))
 
             expected = gs.vstack([metric.dist(point_1, point_2)
                                   for point_1, point_2 in zip(n_point_1,
                                                               n_point_2)])
+            expected = gs.squeeze(expected, axis=1)
             self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 

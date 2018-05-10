@@ -66,7 +66,6 @@ class HyperbolicSpace(EmbeddedManifold):
         """
         point = gs.to_ndarray(point, to_ndim=2)
         _, point_dim = point.shape
-
         if point_dim is not self.dimension + 1:
             if point_dim is self.dimension:
                 logging.warning('Use the extrinsic coordinates to '
@@ -77,7 +76,6 @@ class HyperbolicSpace(EmbeddedManifold):
         euclidean_sq_norm = gs.einsum('ij,ij->i', point, point)
         euclidean_sq_norm = gs.to_ndarray(euclidean_sq_norm, to_ndim=2, axis=1)
         diff = gs.abs(sq_norm + 1)
-
         return diff < tolerance * euclidean_sq_norm
 
     def regularize(self, point):
@@ -132,7 +130,8 @@ class HyperbolicSpace(EmbeddedManifold):
                                                          vector)
         sq_norm_base_point = self.embedding_metric.squared_norm(base_point)
 
-        tangent_vec = vector - inner_prod * base_point / sq_norm_base_point
+        coef = inner_prod / sq_norm_base_point
+        tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
         return tangent_vec
 
     def random_uniform(self, n_samples=1, max_norm=1):
@@ -161,21 +160,6 @@ class HyperbolicMetric(RiemannianMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
-    def projection_to_tangent_space(self, vector, base_point):
-        """
-         Project the vector vector onto the tangent space at base_point
-         T_{base_point}H
-                = { w s.t. embedding_inner_product(base_point, w) = 0 }
-        """
-        # TODO(nina): define HyperbolicMetric class inside HyperbolicSpace
-        # so that there is no need to copy-paste this code?
-        inner_prod = self.embedding_metric.inner_product(base_point,
-                                                         vector)
-        sq_norm_base_point = self.embedding_metric.squared_norm(base_point)
-
-        tangent_vec = vector - inner_prod * base_point / sq_norm_base_point
-        return tangent_vec
-
     def exp(self, tangent_vec, base_point):
         """
         Compute the Riemannian exponential at point base_point
@@ -188,22 +172,19 @@ class HyperbolicMetric(RiemannianMetric):
         :param vector: vector
         :returns riem_exp: a point on the hyperbolic space
         """
-        projected_tangent_vec = self.projection_to_tangent_space(
-            vector=tangent_vec, base_point=base_point)
-        diff = gs.abs(projected_tangent_vec - tangent_vec)
-        if not gs.allclose(diff, 0, atol=TOLERANCE):
-            tangent_vec = projected_tangent_vec
-            logging.warning(
-                'The input vector is not tangent to the hyperbolic space.'
-                ' We project it on the tangent space at base_point={}.'.format(
-                    base_point))
 
         sq_norm_tangent_vec = self.embedding_metric.squared_norm(
                 tangent_vec)
         norm_tangent_vec = gs.sqrt(sq_norm_tangent_vec)
+        if norm_tangent_vec.ndim == 0:
+            norm_tangent_vec = gs.to_ndarray(norm_tangent_vec, to_ndim=1)
+        norm_tangent_vec = gs.to_ndarray(norm_tangent_vec, to_ndim=2, axis=1)
 
         mask_0 = gs.isclose(sq_norm_tangent_vec, 0)
+        mask_0 = gs.to_ndarray(mask_0, to_ndim=1)
         mask_else = ~mask_0
+        mask_else = gs.to_ndarray(mask_else, to_ndim=1)
+
         coef_1 = gs.zeros_like(norm_tangent_vec)
         coef_2 = gs.zeros_like(norm_tangent_vec)
 
@@ -222,11 +203,14 @@ class HyperbolicMetric(RiemannianMetric):
         coef_2[mask_else] = (gs.sinh(norm_tangent_vec[mask_else])
                              / norm_tangent_vec[mask_else])
 
-        riem_exp = coef_1 * base_point + coef_2 * tangent_vec
+        coef_1 = gs.squeeze(coef_1, axis=-1)
+        coef_2 = gs.squeeze(coef_2, axis=-1)
+        exp = (gs.einsum('...,...j->...j', coef_1, base_point)
+               + gs.einsum('...,...j->...j', coef_2, tangent_vec))
 
         hyperbolic_space = HyperbolicSpace(dimension=self.dimension)
-        riem_exp = hyperbolic_space.regularize(riem_exp)
-        return riem_exp
+        exp = hyperbolic_space.regularize(exp)
+        return exp
 
     def log(self, point, base_point):
         """
@@ -242,9 +226,7 @@ class HyperbolicMetric(RiemannianMetric):
         """
         angle = self.dist(base_point, point)
         angle = gs.array(angle)
-        if angle.ndim == 0:
-            angle = gs.to_ndarray(angle, to_ndim=1, axis=0)
-        angle = gs.to_ndarray(angle, to_ndim=2)
+        angle = gs.to_ndarray(angle, to_ndim=1)
 
         mask_0 = gs.isclose(angle, 0)
         mask_else = ~mask_0
@@ -266,7 +248,9 @@ class HyperbolicMetric(RiemannianMetric):
         coef_1[mask_else] = angle[mask_else] / gs.sinh(angle[mask_else])
         coef_2[mask_else] = angle[mask_else] / gs.tanh(angle[mask_else])
 
-        return coef_1 * point - coef_2 * base_point
+        log = (gs.einsum('...,...j->...j', coef_1, point)
+               - gs.einsum('...,...j->...j', coef_2, base_point))
+        return log
 
     def dist(self, point_a, point_b):
         """
@@ -281,12 +265,8 @@ class HyperbolicMetric(RiemannianMetric):
         n_points_a, _ = point_a.shape
         n_points_b, _ = point_b.shape
 
-        assert (n_points_a == n_points_b
-                or n_points_a == 1
-                or n_points_b == 1)
-
         n_dists = gs.maximum(n_points_a, n_points_b)
-        dist = gs.zeros((n_dists, 1))
+        dist = gs.zeros((n_dists,))
         sq_norm_a = self.embedding_metric.squared_norm(point_a)
         sq_norm_b = self.embedding_metric.squared_norm(point_b)
         inner_prod = self.embedding_metric.inner_product(point_a, point_b)

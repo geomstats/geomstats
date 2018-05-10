@@ -68,8 +68,11 @@ class Hypersphere(EmbeddedManifold):
         assert gs.all(self.belongs(base_point))
 
         sq_norm = self.embedding_metric.squared_norm(base_point)
+
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
-        tangent_vec = (vector - inner_prod / sq_norm * base_point)
+
+        coef = inner_prod / sq_norm
+        tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
 
         return tangent_vec
 
@@ -129,20 +132,6 @@ class HypersphereMetric(RiemannianMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
-    def projection_to_tangent_space(self, vector, base_point):
-        """
-        Project the vector vector onto the tangent space:
-        T_{base_point} S = {w | scal(w, base_point) = 0}
-        """
-        # TODO(nina): define HypersphereMetric inside Hypersphere
-        # to avoid copy-pasting this code?
-
-        sq_norm = self.embedding_metric.squared_norm(base_point)
-        inner_prod = self.embedding_metric.inner_product(base_point, vector)
-        tangent_vec = (vector - inner_prod / sq_norm * base_point)
-
-        return tangent_vec
-
     def exp(self, tangent_vec, base_point):
         """
         Compute the Riemannian exponential at point base_point
@@ -156,22 +145,14 @@ class HypersphereMetric(RiemannianMetric):
         :param vector: (n+1)-dimensional vector
         :return exp: a point on the n-dimensional sphere
         """
-        projected_tangent_vec = self.projection_to_tangent_space(
-            vector=tangent_vec, base_point=base_point)
-        diff = gs.abs(projected_tangent_vec - tangent_vec)
-        if not gs.allclose(diff, 0):
-            tangent_vec = projected_tangent_vec
-            logging.warning(
-                'The input vector is not tangent to the hypersphere.'
-                ' We project it on the tangent space at base_point={}.'.format(
-                    base_point))
 
         # TODO(johmathe): Evaluate the bias introduced by this variable
         norm_tangent_vec = self.embedding_metric.norm(tangent_vec) + EPSILON
         coef_1 = gs.cos(norm_tangent_vec)
         coef_2 = gs.sin(norm_tangent_vec) / norm_tangent_vec
 
-        exp = coef_1 * base_point + coef_2 * tangent_vec
+        exp = (gs.einsum('...,...j->...j', coef_1, base_point)
+               + gs.einsum('...,...j->...j', coef_2, tangent_vec))
 
         return exp
 
@@ -192,6 +173,7 @@ class HypersphereMetric(RiemannianMetric):
         norm_point = self.embedding_metric.norm(point)
         inner_prod = self.embedding_metric.inner_product(base_point, point)
         cos_angle = inner_prod / (norm_base_point * norm_point)
+        cos_angle = gs.to_ndarray(cos_angle, to_ndim=1)
 
         mask_greater_1 = cos_angle >= 1
         mask_else_1 = ~mask_greater_1
@@ -220,7 +202,8 @@ class HypersphereMetric(RiemannianMetric):
         coef_1[mask_else_0] = angle[mask_else_0] / gs.sin(angle[mask_else_0])
         coef_2[mask_else_0] = angle[mask_else_0] / gs.tan(angle[mask_else_0])
 
-        log = coef_1 * point - coef_2 * base_point
+        log = (gs.einsum('...,...j->...j', coef_1, point)
+               - gs.einsum('...,...j->...j', coef_2, base_point))
 
         return log
 
@@ -244,7 +227,7 @@ class HypersphereMetric(RiemannianMetric):
                 or n_points_b == 1)
 
         n_dists = gs.maximum(n_points_a, n_points_b)
-        dist = gs.zeros((n_dists, 1))
+        dist = gs.zeros((n_dists,))
 
         norm_a = self.embedding_metric.norm(point_a)
         norm_b = self.embedding_metric.norm(point_b)
