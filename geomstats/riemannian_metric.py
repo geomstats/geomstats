@@ -192,7 +192,7 @@ class RiemannianMetric(object):
         return variance
 
     def mean(self, points,
-             weights=None, n_max_iterations=2, epsilon=EPSILON):
+             weights=None, n_max_iterations=32, epsilon=EPSILON):
         """
         Weighted Frechet mean of the points, iterating 3 steps:
         - Project the points on the tangent space with the riemannian log

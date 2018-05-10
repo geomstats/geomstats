@@ -66,7 +66,6 @@ class HyperbolicSpace(EmbeddedManifold):
         """
         point = gs.to_ndarray(point, to_ndim=2)
         _, point_dim = point.shape
-
         if point_dim is not self.dimension + 1:
             if point_dim is self.dimension:
                 logging.warning('Use the extrinsic coordinates to '
@@ -77,7 +76,6 @@ class HyperbolicSpace(EmbeddedManifold):
         euclidean_sq_norm = gs.einsum('ij,ij->i', point, point)
         euclidean_sq_norm = gs.to_ndarray(euclidean_sq_norm, to_ndim=2, axis=1)
         diff = gs.abs(sq_norm + 1)
-
         return diff < tolerance * euclidean_sq_norm
 
     def regularize(self, point):
