@@ -260,13 +260,13 @@ class TestHypersphereMethods(unittest.TestCase):
         self.assertTrue(gs.allclose(result.shape, ()))
 
         result = self.metric.squared_dist(n_points_a, one_point_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
+        self.assertTrue(gs.isclose(result.shape, n_samples))
 
         result = self.metric.squared_dist(one_point_a, n_points_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
+        self.assertTrue(gs.isclose(result.shape, n_samples))
 
         result = self.metric.squared_dist(n_points_a, n_points_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
+        self.assertTrue(gs.isclose(result.shape, n_samples))
 
     def test_norm_and_dist(self):
         """
@@ -292,13 +292,13 @@ class TestHypersphereMethods(unittest.TestCase):
         self.assertTrue(gs.allclose(result.shape, ()))
 
         result = self.metric.dist(n_points_a, one_point_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
+        self.assertTrue(gs.isclose(result.shape, n_samples))
 
         result = self.metric.dist(one_point_a, n_points_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
+        self.assertTrue(gs.isclose(result.shape, n_samples))
 
         result = self.metric.dist(n_points_a, n_points_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
+        self.assertTrue(gs.isclose(result.shape, n_samples))
 
     def test_dist_point_and_itself(self):
         # Distance between a point and itself is 0.

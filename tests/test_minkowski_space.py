@@ -49,18 +49,18 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
         self.assertTrue(gs.allclose(result, expected))
 
         result = self.metric.inner_product(n_points_a, one_point_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
+        self.assertTrue(gs.isclose(result.shape, n_samples))
 
         result = self.metric.inner_product(one_point_a, n_points_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
+        self.assertTrue(gs.isclose(result.shape, n_samples))
 
         result = self.metric.inner_product(n_points_a, n_points_b)
-        expected = gs.zeros((n_samples,))
+        expected = gs.zeros(n_samples)
         for i in range(n_samples):
             expected[i] = gs.dot(n_points_a[i], n_points_b[i])
             expected[i] -= (2 * n_points_a[i, self.time_like_dim]
                             * n_points_b[i, self.time_like_dim])
-        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
+        self.assertTrue(gs.isclose(result.shape, n_samples))
         self.assertTrue(gs.allclose(result, expected))
 
     def test_squared_norm(self):
@@ -76,7 +76,7 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
         n_points = self.space.random_uniform(n_samples=n_samples)
 
         result = self.metric.squared_norm(n_points)
-        self.assertTrue(gs.allclose(result.shape, (n_samples,)),
+        self.assertTrue(gs.isclose(result.shape, n_samples),
                         'result.shape={}'.format(result.shape))
 
     def test_norm(self):
@@ -168,19 +168,19 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
         self.assertTrue(gs.allclose(result, expected))
 
         result = self.metric.squared_dist(n_points_a, one_point_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
+        self.assertTrue(gs.allclose(result.shape, n_samples))
 
         result = self.metric.squared_dist(one_point_a, n_points_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
+        self.assertTrue(gs.allclose(result.shape, n_samples))
 
         result = self.metric.squared_dist(n_points_a, n_points_b)
-        expected = gs.zeros((n_samples,))
+        expected = gs.zeros(n_samples)
         for i in range(n_samples):
             vec = n_points_a[i] - n_points_b[i]
             expected_i = gs.dot(vec, vec.transpose())
             expected_i -= 2 * vec[self.time_like_dim] * vec[self.time_like_dim]
             expected[i] = expected_i
-        self.assertTrue(gs.allclose(result.shape, (n_samples,)))
+        self.assertTrue(gs.allclose(result.shape, n_samples))
         self.assertTrue(gs.allclose(result, expected))
 
     def test_dist(self):
