@@ -4,6 +4,7 @@ import unittest
 import matplotlib
 matplotlib.use('Agg')  # NOQA
 
+import examples.gradient_descent_s2 as gradient_descent_s2
 import examples.plot_geodesics_h2 as plot_geodesics_h2
 import examples.plot_geodesics_s2 as plot_geodesics_s2
 import examples.plot_geodesics_se3 as plot_geodesics_se3
@@ -14,6 +15,9 @@ import examples.tangent_pca_so3 as tangent_pca_so3
 
 class TestExamples(unittest.TestCase):
     _multiprocess_can_split_ = True
+
+    def test_gradient_descent_s2(self):
+        gradient_descent_s2.main(max_iter=3)
 
     def test_plot_geodesics_h2(self):
         plot_geodesics_h2.main()
