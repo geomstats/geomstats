@@ -47,6 +47,7 @@ class Hypersphere(EmbeddedManifold):
         in the embedding Euclidean space.
         Note: point must be given in extrinsic coordinates.
         """
+        point = gs.asarray(point)
         point_dim = point.shape[-1]
         if point_dim is not self.dimension + 1:
             if point_dim is self.dimension:

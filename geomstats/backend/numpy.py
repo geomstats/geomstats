@@ -3,6 +3,10 @@
 import numpy as np
 
 
+def asarray(*args, **kwargs):
+    return np.asarray(*args, **kwargs)
+
+
 def concatenate(*args, **kwargs):
     return np.concatenate(*args, **kwargs)
 
