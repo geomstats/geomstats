@@ -405,6 +405,8 @@ class SpecialEuclideanGroup(LieGroup):
         """
         random_rot_vec = self.rotations.random_uniform(n_samples)
         random_translation = self.translations.random_uniform(n_samples)
+        # TODO(nina): remove this line after full parallelization
+        random_translation = gs.to_ndarray(random_translation, to_ndim=2)
 
         random_transfo = gs.concatenate([random_rot_vec, random_translation],
                                         axis=1)
