@@ -15,6 +15,10 @@ def hstack(val):
     return np.hstack(val)
 
 
+def stack(*args, **kwargs):
+    return np.stack(*args, **kwargs)
+
+
 def vstack(val):
     return np.vstack(val)
 

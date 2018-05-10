@@ -16,6 +16,7 @@ class TestHypersphereMethods(unittest.TestCase):
         self.space = Hypersphere(dimension=self.dimension)
         self.metric = self.space.metric
         self.n_samples = 10
+        self.n_channels = 3
 
     def test_random_uniform_and_belongs(self):
         """
@@ -140,7 +141,46 @@ class TestHypersphereMethods(unittest.TestCase):
         one_tangent_vec = self.space.projection_to_tangent_space(
             one_vec, base_point=one_base_point)
         result = self.metric.exp(one_tangent_vec, one_base_point)
-        self.assertTrue(gs.allclose(result.shape, (1, dim + 1)))
+        self.assertTrue(
+            gs.allclose(result.shape, (dim + 1,)),
+            'result.shape = {}'.format(result.shape))
+
+        n_tangent_vecs = self.space.projection_to_tangent_space(
+            n_vecs, base_point=one_base_point)
+        result = self.metric.exp(n_tangent_vecs, one_base_point)
+        self.assertTrue(gs.allclose(result.shape, (n_samples, dim + 1)),
+                        '\n result.shape = {}'.format(result.shape))
+
+        one_tangent_vec = self.space.projection_to_tangent_space(
+            one_vec, base_point=n_base_points)
+        result = self.metric.exp(one_tangent_vec, n_base_points)
+        self.assertTrue(gs.allclose(result.shape, (n_samples, dim + 1)))
+
+        n_tangent_vecs = self.space.projection_to_tangent_space(
+            n_vecs, base_point=n_base_points)
+        result = self.metric.exp(n_tangent_vecs, n_base_points)
+        self.assertTrue(gs.allclose(result.shape, (n_samples, dim + 1)))
+
+    def test_exp_vectorization_with_channels(self):
+        n_samples = self.n_samples
+        n_channels = self.n_channels
+
+        dim = self.dimension
+        one_vec = self.space.random_uniform(
+            n_samples=1, n_channels=n_channels)
+        one_base_point = self.space.random_uniform(
+            n_samples=1, n_channels=n_channels)
+        n_vecs = self.space.random_uniform(
+            n_samples=n_samples, n_channels=n_channels)
+        n_base_points = self.space.random_uniform(
+            n_samples=n_samples, n_channels=n_channels)
+
+        one_tangent_vec = self.space.projection_to_tangent_space(
+            one_vec, base_point=one_base_point)
+        result = self.metric.exp(one_tangent_vec, one_base_point)
+        self.assertTrue(
+            gs.allclose(result.shape, (dim + 1,)),
+            'result.shape = {}'.format(result.shape))
 
         n_tangent_vecs = self.space.projection_to_tangent_space(
             n_vecs, base_point=one_base_point)

@@ -47,9 +47,7 @@ class Hypersphere(EmbeddedManifold):
         in the embedding Euclidean space.
         Note: point must be given in extrinsic coordinates.
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-
-        _, point_dim = point.shape
+        point_dim = point.shape[-1]
         if point_dim is not self.dimension + 1:
             if point_dim is self.dimension:
                 logging.warning('Use the extrinsic coordinates to '
@@ -81,16 +79,12 @@ class Hypersphere(EmbeddedManifold):
         From some intrinsic coordinates in the Hypersphere,
         to the extrinsic coordinates in Euclidean space.
         """
-        point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
-
-        coord_0 = gs.sqrt(1. - gs.linalg.norm(point_intrinsic, axis=1) ** 2)
-        coord_0 = gs.to_ndarray(coord_0, to_ndim=2, axis=1)
-
-        point_extrinsic = gs.hstack([coord_0, point_intrinsic])
+        coord_0 = gs.sqrt(1. - gs.linalg.norm(point_intrinsic, axis=-1) ** 2)
+        coord_0 = gs.to_ndarray(coord_0, to_ndim=point_intrinsic.ndim, axis=-1)
+        point_extrinsic = gs.concatenate([coord_0, point_intrinsic], axis=-1)
 
         assert gs.all(self.belongs(point_extrinsic))
 
-        assert point_extrinsic.ndim == 2
         return point_extrinsic
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
@@ -98,23 +92,24 @@ class Hypersphere(EmbeddedManifold):
         From the extrinsic coordinates in Euclidean space,
         to some intrinsic coordinates in Hypersphere.
         """
-        point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=2)
         assert gs.all(self.belongs(point_extrinsic))
 
-        point_intrinsic = point_extrinsic[:, 1:]
-        assert point_intrinsic.ndim == 2
+        point_intrinsic = point_extrinsic[..., 1:]
         return point_intrinsic
 
-    def random_uniform(self, n_samples=1, max_norm=1):
+    def random_uniform(self, n_samples=1, n_channels=1, max_norm=1):
         """
         Generate random elements on the Hypersphere.
         """
-        point = ((gs.random.rand(n_samples, self.dimension) - .5)
+        point = ((gs.random.rand(n_samples, n_channels, self.dimension) - .5)
                  * max_norm)
         point = self.intrinsic_to_extrinsic_coords(point)
         assert gs.all(self.belongs(point))
 
-        assert point.ndim == 2
+        if n_channels == 1:
+            point = gs.squeeze(point, axis=1)
+        if n_samples == 1:
+            point = gs.squeeze(point, axis=0)
         return point
 
 
