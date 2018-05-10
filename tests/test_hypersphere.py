@@ -16,7 +16,7 @@ class TestHypersphereMethods(unittest.TestCase):
         self.space = Hypersphere(dimension=self.dimension)
         self.metric = self.space.metric
         self.n_samples = 10
-        self.n_channels = 3
+        self.n_depth = 3
 
     def test_random_uniform_and_belongs(self):
         """
@@ -161,42 +161,45 @@ class TestHypersphereMethods(unittest.TestCase):
         result = self.metric.exp(n_tangent_vecs, n_base_points)
         self.assertTrue(gs.allclose(result.shape, (n_samples, dim + 1)))
 
-    def test_exp_vectorization_with_channels(self):
+    def test_exp_vectorization_with_depth(self):
         n_samples = self.n_samples
-        n_channels = self.n_channels
+        n_depth = self.n_depth
 
         dim = self.dimension
         one_vec = self.space.random_uniform(
-            n_samples=1, n_channels=n_channels)
+            n_samples=1, n_depth=n_depth)
         one_base_point = self.space.random_uniform(
-            n_samples=1, n_channels=n_channels)
+            n_samples=1, n_depth=n_depth)
         n_vecs = self.space.random_uniform(
-            n_samples=n_samples, n_channels=n_channels)
+            n_samples=n_samples, n_depth=n_depth)
         n_base_points = self.space.random_uniform(
-            n_samples=n_samples, n_channels=n_channels)
+            n_samples=n_samples, n_depth=n_depth)
 
         one_tangent_vec = self.space.projection_to_tangent_space(
             one_vec, base_point=one_base_point)
         result = self.metric.exp(one_tangent_vec, one_base_point)
         self.assertTrue(
-            gs.allclose(result.shape, (dim + 1,)),
+            gs.allclose(result.shape, (n_depth, dim + 1)),
             'result.shape = {}'.format(result.shape))
 
         n_tangent_vecs = self.space.projection_to_tangent_space(
             n_vecs, base_point=one_base_point)
         result = self.metric.exp(n_tangent_vecs, one_base_point)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, dim + 1)),
-                        '\n result.shape = {}'.format(result.shape))
+        self.assertTrue(
+            gs.allclose(result.shape, (n_samples, n_depth, dim + 1)),
+            '\n result.shape = {}'.format(result.shape))
 
         one_tangent_vec = self.space.projection_to_tangent_space(
             one_vec, base_point=n_base_points)
         result = self.metric.exp(one_tangent_vec, n_base_points)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, dim + 1)))
+        self.assertTrue(
+            gs.allclose(result.shape, (n_samples, n_depth, dim + 1)))
 
         n_tangent_vecs = self.space.projection_to_tangent_space(
             n_vecs, base_point=n_base_points)
         result = self.metric.exp(n_tangent_vecs, n_base_points)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, dim + 1)))
+        self.assertTrue(
+            gs.allclose(result.shape, (n_samples, n_depth, dim + 1)))
 
     def test_log_vectorization(self):
         n_samples = self.n_samples
@@ -217,6 +220,36 @@ class TestHypersphereMethods(unittest.TestCase):
 
         result = self.metric.log(n_points, n_base_points)
         self.assertTrue(gs.allclose(result.shape, (n_samples, dim + 1)))
+
+    def test_log_vectorization_with_depth(self):
+        n_samples = self.n_samples
+        n_depth = self.n_depth
+        dim = self.dimension
+
+        one_point = self.space.random_uniform(
+            n_samples=1, n_depth=n_depth)
+        one_base_point = self.space.random_uniform(
+            n_samples=1, n_depth=n_depth)
+        n_points = self.space.random_uniform(
+            n_samples=n_samples, n_depth=n_depth)
+        n_base_points = self.space.random_uniform(
+            n_samples=n_samples, n_depth=n_depth)
+
+        result = self.metric.log(one_point, one_base_point)
+        self.assertTrue(
+            gs.allclose(result.shape, (n_depth, dim + 1)))
+
+        result = self.metric.log(n_points, one_base_point)
+        self.assertTrue(
+            gs.allclose(result.shape, (n_samples, n_depth, dim + 1)))
+
+        result = self.metric.log(one_point, n_base_points)
+        self.assertTrue(
+            gs.allclose(result.shape, (n_samples, n_depth, dim + 1)))
+
+        result = self.metric.log(n_points, n_base_points)
+        self.assertTrue(
+            gs.allclose(result.shape, (n_samples, n_depth, dim + 1)))
 
     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
         """
