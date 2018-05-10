@@ -106,7 +106,8 @@ def main(video_file='out.mp4', max_iter=128):
         t = np.linspace(0, 1, n_steps)
         geodesics.append(geodesic(t))
         previous_x = x
-    plot_and_save_video(geodesics, loss, out=video_file, )
+    if video_file:
+        plot_and_save_video(geodesics, loss, out=video_file)
     eig, _ = np.linalg.eig(A)
     np.testing.assert_almost_equal(loss(x), np.min(eig), decimal=2)
 
