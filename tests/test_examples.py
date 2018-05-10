@@ -17,7 +17,7 @@ class TestExamples(unittest.TestCase):
     _multiprocess_can_split_ = True
 
     def test_gradient_descent_s2(self):
-        gradient_descent_s2.main(max_iter=3)
+        gradient_descent_s2.main(max_iter=3, output_file=None)
 
     def test_plot_geodesics_h2(self):
         plot_geodesics_h2.main()
