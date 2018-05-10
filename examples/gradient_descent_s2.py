@@ -25,7 +25,6 @@ import geomstats.visualization as visualization
 
 SPHERE2 = Hypersphere(dimension=2)
 METRIC = SPHERE2.metric
-np.random.seed(1983)
 
 
 def gradient_descent(start,
@@ -85,6 +84,7 @@ def generate_well_behaved_matrix():
 
 
 def main(video_file='out.mp4', max_iter=128):
+    np.random.seed(1983)
     A = generate_well_behaved_matrix()
     loss = lambda x: np.matmul(x.T, np.matmul(A, x))  # NOQA
     grad = lambda x: 2 * np.matmul(A, x)  # NOQA
