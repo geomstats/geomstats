@@ -86,7 +86,7 @@ def generate_well_behaved_matrix():
 
 def main():
     A = generate_well_behaved_matrix()
-    loss = lambda x: np.matmul(x.T, matmul(A, x))  # NOQA
+    loss = lambda x: np.matmul(x.T, np.matmul(A, x))  # NOQA
     grad = lambda x: 2 * np.matmul(A, x)  # NOQA
     initial_point = np.array([0., 1., 0.])
     previous_x = initial_point
