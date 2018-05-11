@@ -2,15 +2,35 @@
 Helper functions for unit tests.
 """
 
+import unittest
+
 import geomstats.backend as gs
 
 
-def is_scalar(result, n_samples, depth):
-    return gs.allclose(result.shape, (n_samples, depth, 1))
+class TestGeomstatsMethods(unittest.TestCase):
+    def assertScalar(self, result, n_samples=1, depth=1):
+        return self.assertTrue(
+            gs.allclose(result.shape, (n_samples, depth, 1)),
+            '\nresult.shape = {}'.format(result.shape))
 
+    def assertVector(self, result, n_samples=1, depth=1, dim=1):
+        return self.assertTrue(
+            gs.allclose(result.shape, (n_samples, depth, dim)),
+            '\nresult.shape = {}'.format(result.shape))
 
-def is_vector(result, n_samples, depth, dim):
-    return gs.allclose(result.shape, (n_samples, depth, dim))
+    def assertAllClose(self, result, expected):
+        result = gs.asarray(result)
+        expected = gs.asarray(expected)
+        return self.assertTrue(
+            gs.allclose(result, expected),
+            '\nresult.shape = {}'
+            '\nexpected.shape = {}'
+            '\nresult = {}'
+            '\nexpected = {}'.format(
+                result.shape,
+                expected.shape,
+                result,
+                expected))
 
 
 def to_scalar(expected):

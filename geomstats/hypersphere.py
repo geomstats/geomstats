@@ -65,13 +65,17 @@ class Hypersphere(EmbeddedManifold):
         T_{base_point} S = {w | scal(w, base_point) = 0}
         """
         assert gs.all(self.belongs(base_point))
+        vector = gs.to_ndarray(vector, to_ndim=2)
+        vector = gs.to_ndarray(vector, to_ndim=3, axis=1)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=3, axis=1)
 
         sq_norm = self.embedding_metric.squared_norm(base_point)
 
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
 
         coef = inner_prod / sq_norm
-        tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
+        tangent_vec = vector - gs.einsum('nd,ndj->ndj', coef, base_point)
 
         return tangent_vec
 
@@ -94,8 +98,10 @@ class Hypersphere(EmbeddedManifold):
         to some intrinsic coordinates in Hypersphere.
         """
         assert gs.all(self.belongs(point_extrinsic))
+        point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=2)
+        point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=3, axis=1)
 
-        point_intrinsic = point_extrinsic[..., 1:]
+        point_intrinsic = point_extrinsic[:, :, 1:]
         return point_intrinsic
 
     def random_uniform(self, n_samples=1, depth=None, max_norm=1):
@@ -142,14 +148,18 @@ class HypersphereMetric(RiemannianMetric):
         :param vector: (n+1)-dimensional vector
         :return exp: a point on the n-dimensional sphere
         """
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3, axis=1)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=3, axis=1)
 
         # TODO(johmathe): Evaluate the bias introduced by this variable
         norm_tangent_vec = self.embedding_metric.norm(tangent_vec) + EPSILON
         coef_1 = gs.cos(norm_tangent_vec)
         coef_2 = gs.sin(norm_tangent_vec) / norm_tangent_vec
 
-        exp = (gs.einsum('...,...j->...j', coef_1, base_point)
-               + gs.einsum('...,...j->...j', coef_2, tangent_vec))
+        exp = (gs.einsum('nd,ndj->ndj', coef_1, base_point)
+               + gs.einsum('nd,ndj->ndj', coef_2, tangent_vec))
 
         return exp
 
@@ -194,8 +204,8 @@ class HypersphereMetric(RiemannianMetric):
         coef_1[mask_else] = angle[mask_else] / gs.sin(angle[mask_else])
         coef_2[mask_else] = angle[mask_else] / gs.tan(angle[mask_else])
 
-        log = (gs.einsum('...,...j->...j', coef_1, point)
-               - gs.einsum('...,...j->...j', coef_2, base_point))
+        log = (gs.einsum('nd,ndj->ndj', coef_1, point)
+               - gs.einsum('nd,ndj->ndj', coef_2, base_point))
 
         return log
 

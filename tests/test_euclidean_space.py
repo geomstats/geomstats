@@ -7,7 +7,7 @@ import unittest
 from geomstats.euclidean_space import EuclideanSpace
 
 
-class TestEuclideanSpaceMethods(unittest.TestCase):
+class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
     _multiprocess_can_split_ = True
 
     def setUp(self):
@@ -19,30 +19,6 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
 
         self.n_samples = 10
         self.depth = 3
-
-    def assertScalar(self, result, n_samples=1, depth=1):
-        return self.assertTrue(
-            helper.is_scalar(result, n_samples, depth),
-            '\nresult.shape = {}'.format(result.shape))
-
-    def assertVector(self, result, n_samples=1, depth=1, dim=1):
-        return self.assertTrue(
-            helper.is_vector(result, n_samples, depth, dim),
-            '\nresult.shape = {}'.format(result.shape))
-
-    def assertAllClose(self, result, expected):
-        result = gs.asarray(result)
-        expected = gs.asarray(expected)
-        return self.assertTrue(
-            gs.allclose(result, expected),
-            '\nresult.shape = {}'
-            '\nexpected.shape = {}'
-            '\nresult = {}'
-            '\nexpected = {}'.format(
-                result.shape,
-                expected.shape,
-                result,
-                expected))
 
     def test_inner_product_matrix(self):
         result = self.metric.inner_product_matrix()
