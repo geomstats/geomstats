@@ -11,12 +11,14 @@ class TestGeomstatsMethods(unittest.TestCase):
     def assertScalar(self, result, n_samples=1, depth=1):
         return self.assertTrue(
             gs.allclose(result.shape, (n_samples, depth, 1)),
-            '\nresult.shape = {}'.format(result.shape))
+            '\nresult.shape = {} instead of {}'.format(
+                result.shape, (n_samples, depth, 1)))
 
     def assertVector(self, result, n_samples=1, depth=1, dim=1):
         return self.assertTrue(
             gs.allclose(result.shape, (n_samples, depth, dim)),
-            '\nresult.shape = {}'.format(result.shape))
+            '\nresult.shape = {} instead of {}'.format(
+                result.shape, (n_samples, depth, dim)))
 
     def assertAllClose(self, result, expected):
         result = gs.asarray(result)

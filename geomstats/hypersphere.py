@@ -75,7 +75,7 @@ class Hypersphere(EmbeddedManifold):
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
 
         coef = inner_prod / sq_norm
-        tangent_vec = vector - gs.einsum('nd,ndj->ndj', coef, base_point)
+        tangent_vec = vector - gs.einsum('ndi,ndj->ndj', coef, base_point)
 
         return tangent_vec
 
@@ -116,8 +116,6 @@ class Hypersphere(EmbeddedManifold):
 
         point = self.intrinsic_to_extrinsic_coords(point)
 
-        if n_samples == 1:
-            point = gs.squeeze(point, axis=0)
         return point
 
 
@@ -158,8 +156,8 @@ class HypersphereMetric(RiemannianMetric):
         coef_1 = gs.cos(norm_tangent_vec)
         coef_2 = gs.sin(norm_tangent_vec) / norm_tangent_vec
 
-        exp = (gs.einsum('nd,ndj->ndj', coef_1, base_point)
-               + gs.einsum('nd,ndj->ndj', coef_2, tangent_vec))
+        exp = (gs.einsum('ndi,ndj->ndj', coef_1, base_point)
+               + gs.einsum('ndi,ndj->ndj', coef_2, tangent_vec))
 
         return exp
 
@@ -176,6 +174,11 @@ class HypersphereMetric(RiemannianMetric):
         :param point: point on the n-dimensional sphere
         :return log: tangent vector at base_point
         """
+        point = gs.to_ndarray(point, to_ndim=2)
+        point = gs.to_ndarray(point, to_ndim=3, axis=1)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=3, axis=1)
+
         norm_base_point = self.embedding_metric.norm(base_point)
         norm_point = self.embedding_metric.norm(point)
         inner_prod = self.embedding_metric.inner_product(base_point, point)
@@ -204,9 +207,14 @@ class HypersphereMetric(RiemannianMetric):
         coef_1[mask_else] = angle[mask_else] / gs.sin(angle[mask_else])
         coef_2[mask_else] = angle[mask_else] / gs.tan(angle[mask_else])
 
-        log = (gs.einsum('nd,ndj->ndj', coef_1, point)
-               - gs.einsum('nd,ndj->ndj', coef_2, base_point))
+        assert coef_1.ndim == 3, coef_1.shape
+        assert coef_2.ndim == 3, coef_2.shape
+        assert point.ndim == 3, point.shape
+        assert base_point.ndim == 3, base_point.shape
+        log = (gs.einsum('ndi,ndj->ndj', coef_1, point)
+               - gs.einsum('ndi,ndj->ndj', coef_2, base_point))
 
+        assert log.ndim == 3, log.shape
         return log
 
     def dist(self, point_a, point_b):
