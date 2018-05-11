@@ -116,7 +116,7 @@ def to_ndarray(element, to_ndim, axis=0):
 
     if element.ndim == to_ndim - 1:
         element = np.expand_dims(element, axis=axis)
-    assert element.ndim == to_ndim
+    assert element.ndim >= to_ndim
     return element
 
 

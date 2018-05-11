@@ -39,9 +39,18 @@ class RiemannianMetric(object):
         """
         inner_prod_mat = self.inner_product_matrix(base_point)
 
-        aux = gs.einsum('...j,...jk->...k', tangent_vec_a, inner_prod_mat)
-        inner_prod = gs.einsum('...k,...k->...', aux, tangent_vec_b)
+        inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
+        inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=4, axis=1)
+        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
+        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3, axis=1)
+        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
+        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3, axis=1)
 
+        aux = gs.einsum('ndj,ndjk->ndk', tangent_vec_a, inner_prod_mat)
+        inner_prod = gs.einsum('ndk,ndk->nd', aux, tangent_vec_b)
+
+        inner_prod = gs.to_ndarray(inner_prod, to_ndim=3, axis=2)
+        assert inner_prod.ndim == 3, inner_prod.shape
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
