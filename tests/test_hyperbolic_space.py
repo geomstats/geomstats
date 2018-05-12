@@ -22,6 +22,25 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
         self.space = HyperbolicSpace(dimension=self.dimension)
         self.metric = self.space.metric
         self.n_samples = 10
+        self.depth = 3
+
+    def test_random_uniform_vectorization_with_depth(self):
+        n_samples = self.n_samples
+        depth = self.depth
+        dim = self.dimension
+
+        points = self.space.random_uniform(n_samples=n_samples, depth=depth)
+
+        self.assertVector(points, n_samples, depth, dim + 1)
+
+    def test_belongs_vectorization_with_depth(self):
+        n_samples = self.n_samples
+        depth = self.depth
+
+        points = self.space.random_uniform(n_samples=n_samples, depth=depth)
+        belongs = self.space.belongs(points)
+
+        self.assertScalar(belongs, n_samples, depth)
 
     def test_random_uniform_and_belongs(self):
         """
@@ -40,6 +59,19 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
         points = self.space.random_uniform(n_samples=n_samples)
         self.assertTrue(gs.all(self.space.belongs(points)))
 
+    def test_random_uniform_and_belongs_vectorization_with_depth(self):
+        """
+        Test that the random uniform method samples
+        on the hypersphere space.
+        """
+        n_samples = self.n_samples
+        depth = self.depth
+
+        points = self.space.random_uniform(n_samples=n_samples, depth=depth)
+        belongs = self.space.belongs(points)
+
+        self.assertTrue(gs.all(belongs))
+
     def test_intrinsic_and_extrinsic_coords(self):
         """
         Test that the composition of
@@ -52,16 +84,16 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
         result = self.space.extrinsic_to_intrinsic_coords(point_ext)
         expected = point_int
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
         point_ext = self.space.random_uniform()
         point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
         result = self.space.intrinsic_to_extrinsic_coords(point_int)
         expected = point_ext
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     def test_intrinsic_and_extrinsic_coords_vectorization(self):
         """
@@ -80,7 +112,7 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
         result = self.space.extrinsic_to_intrinsic_coords(point_ext)
         expected = point_int
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
         n_samples = self.n_samples
         point_ext = self.space.random_uniform(n_samples=n_samples)
@@ -88,7 +120,7 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
         result = self.space.intrinsic_to_extrinsic_coords(point_int)
         expected = point_ext
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     def test_log_and_exp_general_case(self):
         """
@@ -185,7 +217,7 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
         result = self.metric.squared_norm(vector=log)
         expected = self.metric.squared_dist(point_a, point_b)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     def test_squared_dist_vectorization(self):
         n_samples = self.n_samples
@@ -217,7 +249,7 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
         result = self.metric.norm(vector=log)
         expected = self.metric.dist(point_a, point_b)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     def test_dist_vectorization(self):
         n_samples = self.n_samples
@@ -352,14 +384,14 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
         result = self.metric.variance([point, point])
         expected = 0
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     def test_mean(self):
         point = self.space.random_uniform()
         result = self.metric.mean([point, point])
         expected = point
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     def test_mean_and_belongs(self):
         point_a = self.space.random_uniform()

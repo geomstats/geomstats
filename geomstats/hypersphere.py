@@ -89,10 +89,10 @@ class Hypersphere(EmbeddedManifold):
 
         coord_0 = gs.sqrt(1. - gs.linalg.norm(point_intrinsic, axis=-1) ** 2)
         coord_0 = gs.to_ndarray(coord_0, to_ndim=3, axis=2)
+
         point_extrinsic = gs.concatenate([coord_0, point_intrinsic], axis=-1)
 
         assert gs.all(self.belongs(point_extrinsic))
-
         return point_extrinsic
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
@@ -100,11 +100,13 @@ class Hypersphere(EmbeddedManifold):
         From the extrinsic coordinates in Euclidean space,
         to some intrinsic coordinates in Hypersphere.
         """
-        assert gs.all(self.belongs(point_extrinsic))
         point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=2)
         point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=3, axis=1)
 
+        assert gs.all(self.belongs(point_extrinsic))
+
         point_intrinsic = point_extrinsic[:, :, 1:]
+
         return point_intrinsic
 
     def random_uniform(self, n_samples=1, depth=None, max_norm=1):
@@ -235,6 +237,7 @@ class HypersphereMetric(RiemannianMetric):
 
         cos_angle = inner_prod / (norm_a * norm_b)
         cos_angle = gs.clip(cos_angle, -1, 1)
+
         dist = gs.arccos(cos_angle)
 
         return dist

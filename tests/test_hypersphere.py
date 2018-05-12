@@ -19,56 +19,51 @@ class TestHypersphereMethods(helper.TestGeomstatsMethods):
         self.n_samples = 10
         self.depth = 3
 
-    def test_random_uniform_vectorization_with_depth(self):
-        n_samples = self.n_samples
-        depth = self.depth
-        dim = self.dimension
+    def test_belongs(self):
+        self.check_shape_belongs(self.space)
 
-        points = self.space.random_uniform(n_samples=n_samples, depth=depth)
-
-        self.assertVector(points, n_samples, depth, dim + 1)
+    def test_belongs_vectorization(self):
+        self.check_shape_belongs_vectorization(
+            self.space, self.n_samples)
 
     def test_belongs_vectorization_with_depth(self):
-        n_samples = self.n_samples
-        depth = self.depth
+        self.check_shape_belongs_vectorization_with_depth(
+            self.space, self.n_samples, self.depth)
 
-        points = self.space.random_uniform(n_samples=n_samples, depth=depth)
-        belongs = self.space.belongs(points)
+    def test_random_uniform(self):
+        self.check_shape_random_uniform(
+            self.space, self.dimension + 1)
 
-        self.assertScalar(belongs, n_samples, depth)
+    def test_random_uniform_vectorization(self):
+        self.check_shape_random_uniform_vectorization(
+            self.space, self.n_samples, self.dimension + 1)
+
+    def test_random_uniform_vectorization_with_depth(self):
+        self.check_shape_random_uniform_vectorization_with_depth(
+            self.space, self.n_samples, self.depth, self.dimension + 1)
 
     def test_random_uniform_and_belongs(self):
         """
         Test that the random uniform method samples
         on the hypersphere space.
         """
-        point = self.space.random_uniform()
-
-        self.assertTrue(self.space.belongs(point))
+        self.assert_random_uniform_and_belongs(self.space)
 
     def test_random_uniform_and_belongs_vectorization(self):
         """
         Test that the random uniform method samples
         on the hypersphere space.
         """
-        n_samples = self.n_samples
-
-        points = self.space.random_uniform(n_samples=n_samples)
-
-        self.assertTrue(gs.all(self.space.belongs(points)))
+        self.assert_random_uniform_and_belongs_vectorization(
+            self.space, self.n_samples)
 
     def test_random_uniform_and_belongs_vectorization_with_depth(self):
         """
         Test that the random uniform method samples
         on the hypersphere space.
         """
-        n_samples = self.n_samples
-        depth = self.depth
-
-        points = self.space.random_uniform(n_samples=n_samples, depth=depth)
-        belongs = self.space.belongs(points)
-
-        self.assertTrue(gs.all(belongs))
+        self.assert_random_uniform_and_belongs_vectorization_with_depth(
+            self.space, self.n_samples, self.depth)
 
     def test_intrinsic_and_extrinsic_coords(self):
         """
@@ -190,189 +185,20 @@ class TestHypersphereMethods(helper.TestGeomstatsMethods):
         self.assertAllClose(result, expected)
 
     def test_exp_vectorization(self):
-        n_samples = self.n_samples
-        dim = self.dimension
-        depth = 1
-
-        one_vec = self.space.random_uniform(n_samples=1)
-        one_base_point = self.space.random_uniform(n_samples=1)
-        n_vecs = self.space.random_uniform(n_samples=n_samples)
-        n_base_points = self.space.random_uniform(n_samples=n_samples)
-
-        one_tangent_vec = self.space.projection_to_tangent_space(
-            one_vec, base_point=one_base_point)
-        result = self.metric.exp(one_tangent_vec, one_base_point)
-        self.assertVector(result, 1, depth, dim + 1)
-
-        n_tangent_vecs = self.space.projection_to_tangent_space(
-            n_vecs, base_point=one_base_point)
-        result = self.metric.exp(n_tangent_vecs, one_base_point)
-        self.assertVector(result, n_samples, depth, dim+1)
-
-        expected = gs.zeros((n_samples, dim + 1))
-        for i in range(n_samples):
-            expected[i] = self.metric.exp(n_tangent_vecs[i], one_base_point)
-        expected = helper.to_vector(expected)
-        self.assertAllClose(result, expected)
-
-        one_tangent_vec = self.space.projection_to_tangent_space(
-            one_vec, base_point=n_base_points)
-        result = self.metric.exp(one_tangent_vec, n_base_points)
-        self.assertVector(result, n_samples, depth, dim+1)
-
-        expected = gs.zeros((n_samples, dim + 1))
-        for i in range(n_samples):
-            expected[i] = self.metric.exp(one_tangent_vec[i], n_base_points[i])
-        expected = helper.to_vector(expected)
-        self.assertAllClose(result, expected)
-
-        n_tangent_vecs = self.space.projection_to_tangent_space(
-            n_vecs, base_point=n_base_points)
-        result = self.metric.exp(n_tangent_vecs, n_base_points)
-        self.assertVector(result, n_samples, depth, dim+1)
-
-        expected = gs.zeros((n_samples, dim + 1))
-        for i in range(n_samples):
-            expected[i] = self.metric.exp(n_tangent_vecs[i], n_base_points[i])
-        expected = helper.to_vector(expected)
-        self.assertAllClose(result, expected)
+        self.check_shape_exp_vectorization(
+            self.space, self.n_samples, self.dimension + 1)
 
     def test_exp_vectorization_with_depth(self):
-        n_samples = self.n_samples
-        depth = self.depth
-
-        dim = self.dimension
-        one_vec = self.space.random_uniform(
-            n_samples=1, depth=depth)
-        one_base_point = self.space.random_uniform(
-            n_samples=1, depth=depth)
-        n_vecs = self.space.random_uniform(
-            n_samples=n_samples, depth=depth)
-        n_base_points = self.space.random_uniform(
-            n_samples=n_samples, depth=depth)
-
-        one_tangent_vec = self.space.projection_to_tangent_space(
-            one_vec, base_point=one_base_point)
-        result = self.metric.exp(one_tangent_vec, one_base_point)
-        self.assertVector(result, 1, depth, dim + 1)
-        expected = gs.zeros((1, depth, dim + 1))
-        for j in range(depth):
-            expected[0, j] = self.metric.exp(
-                one_tangent_vec[0, j], one_base_point[0, j])
-        expected = helper.to_vector(expected)
-        self.assertAllClose(result, expected)
-
-        n_tangent_vecs = self.space.projection_to_tangent_space(
-            n_vecs, base_point=one_base_point)
-        result = self.metric.exp(n_tangent_vecs, one_base_point)
-        self.assertVector(result, n_samples, depth, dim + 1)
-        expected = gs.zeros((n_samples, depth, dim + 1))
-        for i in range(n_samples):
-            for j in range(depth):
-                expected[i, j] = self.metric.exp(
-                    n_tangent_vecs[i, j], one_base_point[0, j])
-        expected = helper.to_vector(expected)
-        self.assertAllClose(result, expected)
-
-        one_tangent_vec = self.space.projection_to_tangent_space(
-            one_vec, base_point=n_base_points)
-        result = self.metric.exp(one_tangent_vec, n_base_points)
-        self.assertVector(result, n_samples, depth, dim + 1)
-
-        expected = gs.zeros((n_samples, depth, dim + 1))
-        for i in range(n_samples):
-            for j in range(depth):
-                expected[i, j] = self.metric.exp(
-                    one_tangent_vec[i, j], n_base_points[i, j])
-        expected = helper.to_vector(expected)
-        self.assertAllClose(result, expected)
-
-        n_tangent_vecs = self.space.projection_to_tangent_space(
-            n_vecs, base_point=n_base_points)
-        result = self.metric.exp(n_tangent_vecs, n_base_points)
-        self.assertVector(result, n_samples, depth, dim + 1)
-        expected = gs.zeros((n_samples, depth, dim + 1))
-        for i in range(n_samples):
-            for j in range(depth):
-                expected[i, j] = self.metric.exp(
-                    n_tangent_vecs[i, j], n_base_points[i, j])
-        expected = helper.to_vector(expected)
-        self.assertAllClose(result, expected)
+        self.check_shape_exp_vectorization_with_depth(
+            self.space, self.n_samples, self.depth, self.dimension + 1)
 
     def test_log_vectorization(self):
-        n_samples = self.n_samples
-        depth = 1
-        dim = self.dimension
-
-        one_point = self.space.random_uniform(n_samples=1)
-        one_base_point = self.space.random_uniform(n_samples=1)
-        n_points = self.space.random_uniform(n_samples=n_samples)
-        n_base_points = self.space.random_uniform(n_samples=n_samples)
-
-        result = self.metric.log(one_point, one_base_point)
-        self.assertVector(result, 1, depth, dim + 1)
-
-        result = self.metric.log(n_points, one_base_point)
-        self.assertVector(result, n_samples, depth, dim + 1)
-
-        result = self.metric.log(one_point, n_base_points)
-        self.assertVector(result, n_samples, depth, dim + 1)
-
-        result = self.metric.log(n_points, n_base_points)
-        self.assertVector(result, n_samples, depth, dim + 1)
+        self.check_shape_log_vectorization(
+            self.space, self.n_samples, self.dimension + 1)
 
     def test_log_vectorization_with_depth(self):
-        n_samples = self.n_samples
-        depth = self.depth
-        dim = self.dimension
-
-        one_point = self.space.random_uniform(
-            n_samples=1, depth=depth)
-        one_base_point = self.space.random_uniform(
-            n_samples=1, depth=depth)
-        n_points = self.space.random_uniform(
-            n_samples=n_samples, depth=depth)
-        n_base_points = self.space.random_uniform(
-            n_samples=n_samples, depth=depth)
-
-        result = self.metric.log(one_point, one_base_point)
-        self.assertVector(result, 1, depth, dim + 1)
-        expected = gs.zeros((1, depth, dim + 1))
-        for j in range(depth):
-            expected[0, j] = self.metric.log(
-                one_point[0, j], one_base_point[0, j])
-        expected = helper.to_vector(expected)
-        self.assertAllClose(result, expected)
-
-        result = self.metric.log(n_points, one_base_point)
-        self.assertVector(result, n_samples, depth, dim + 1)
-        expected = gs.zeros((n_samples, depth, dim + 1))
-        for i in range(n_samples):
-            for j in range(depth):
-                expected[i, j] = self.metric.log(
-                    n_points[i, j], one_base_point[0, j])
-        expected = helper.to_vector(expected)
-        self.assertAllClose(result, expected)
-
-        result = self.metric.log(one_point, n_base_points)
-        self.assertVector(result, n_samples, depth, dim + 1)
-        expected = gs.zeros((n_samples, depth, dim + 1))
-        for i in range(n_samples):
-            for j in range(depth):
-                expected[i, j] = self.metric.log(
-                    one_point[0, j], n_base_points[i, j])
-        expected = helper.to_vector(expected)
-        self.assertAllClose(result, expected)
-
-        result = self.metric.log(n_points, n_base_points)
-        self.assertVector(result, n_samples, depth, dim + 1)
-        expected = gs.zeros((n_samples, depth, dim + 1))
-        for i in range(n_samples):
-            for j in range(depth):
-                expected[i, j] = self.metric.log(
-                    n_points[i, j], n_base_points[i, j])
-        expected = helper.to_vector(expected)
-        self.assertAllClose(result, expected)
+        self.check_shape_log_vectorization_with_depth(
+            self.space, self.n_samples, self.depth, self.dimension + 1)
 
     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
         """
@@ -451,50 +277,12 @@ class TestHypersphereMethods(helper.TestGeomstatsMethods):
         self.assertAllClose(result, expected)
 
     def test_squared_dist_vectorization(self):
-        n_samples = self.n_samples
-        depth = 1
-
-        one_point_a = self.space.random_uniform(n_samples=1)
-        one_point_b = self.space.random_uniform(n_samples=1)
-        n_points_a = self.space.random_uniform(n_samples=n_samples)
-        n_points_b = self.space.random_uniform(n_samples=n_samples)
-
-        result = self.metric.squared_dist(one_point_a, one_point_b)
-        self.assertScalar(result, 1, depth)
-
-        result = self.metric.squared_dist(n_points_a, one_point_b)
-        self.assertScalar(result, n_samples, depth)
-
-        result = self.metric.squared_dist(one_point_a, n_points_b)
-        self.assertScalar(result, n_samples, depth)
-
-        result = self.metric.squared_dist(n_points_a, n_points_b)
-        self.assertScalar(result, n_samples, depth)
+        self.check_shape_squared_dist_vectorization(
+            self.space, self.metric, self.n_samples)
 
     def test_squared_dist_vectorization_with_depth(self):
-        n_samples = self.n_samples
-        depth = self.depth
-
-        one_point_a = self.space.random_uniform(
-            n_samples=1, depth=depth)
-        one_point_b = self.space.random_uniform(
-            n_samples=1, depth=depth)
-        n_points_a = self.space.random_uniform(
-            n_samples=n_samples, depth=depth)
-        n_points_b = self.space.random_uniform(
-            n_samples=n_samples, depth=depth)
-
-        result = self.metric.squared_dist(one_point_a, one_point_b)
-        self.assertScalar(result, 1, depth)
-
-        result = self.metric.squared_dist(n_points_a, one_point_b)
-        self.assertScalar(result, n_samples, depth)
-
-        result = self.metric.squared_dist(one_point_a, n_points_b)
-        self.assertScalar(result, n_samples, depth)
-
-        result = self.metric.squared_dist(n_points_a, n_points_b)
-        self.assertScalar(result, n_samples, depth)
+        self.check_shape_squared_dist_vectorization_with_depth(
+            self.space, self.metric, self.n_samples, self.depth)
 
     def test_norm_and_dist(self):
         """
@@ -511,50 +299,12 @@ class TestHypersphereMethods(helper.TestGeomstatsMethods):
         self.assertAllClose(result, expected)
 
     def test_dist_vectorization(self):
-        n_samples = self.n_samples
-        depth = 1
-
-        one_point_a = self.space.random_uniform(n_samples=1)
-        one_point_b = self.space.random_uniform(n_samples=1)
-        n_points_a = self.space.random_uniform(n_samples=n_samples)
-        n_points_b = self.space.random_uniform(n_samples=n_samples)
-
-        result = self.metric.dist(one_point_a, one_point_b)
-        self.assertScalar(result, 1, depth)
-
-        result = self.metric.dist(n_points_a, one_point_b)
-        self.assertScalar(result, n_samples, depth)
-
-        result = self.metric.dist(one_point_a, n_points_b)
-        self.assertScalar(result, n_samples, depth)
-
-        result = self.metric.dist(n_points_a, n_points_b)
-        self.assertScalar(result, n_samples, depth)
+        self.check_shape_dist_vectorization(
+            self.space, self.metric, self.n_samples)
 
     def test_dist_vectorization_with_depth(self):
-        n_samples = self.n_samples
-        depth = self.depth
-
-        one_point_a = self.space.random_uniform(
-            n_samples=1, depth=depth)
-        one_point_b = self.space.random_uniform(
-            n_samples=1, depth=depth)
-        n_points_a = self.space.random_uniform(
-            n_samples=n_samples, depth=depth)
-        n_points_b = self.space.random_uniform(
-            n_samples=n_samples, depth=depth)
-
-        result = self.metric.dist(one_point_a, one_point_b)
-        self.assertScalar(result, 1, depth)
-
-        result = self.metric.dist(n_points_a, one_point_b)
-        self.assertScalar(result, n_samples, depth)
-
-        result = self.metric.dist(one_point_a, n_points_b)
-        self.assertScalar(result, n_samples, depth)
-
-        result = self.metric.dist(n_points_a, n_points_b)
-        self.assertScalar(result, n_samples, depth)
+        self.check_shape_dist_vectorization_with_depth(
+            self.space, self.metric, self.n_samples, self.depth)
 
     def test_dist_point_and_itself(self):
         # Distance between a point and itself is 0.

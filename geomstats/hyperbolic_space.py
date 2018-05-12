@@ -65,7 +65,8 @@ class HyperbolicSpace(EmbeddedManifold):
         Note: point must be given in extrinsic coordinates.
         """
         point = gs.to_ndarray(point, to_ndim=2)
-        _, point_dim = point.shape
+        point = gs.to_ndarray(point, to_ndim=3, axis=1)
+        point_dim = point.shape[-1]
         if point_dim is not self.dimension + 1:
             if point_dim is self.dimension:
                 logging.warning('Use the extrinsic coordinates to '
@@ -73,8 +74,8 @@ class HyperbolicSpace(EmbeddedManifold):
             return False
 
         sq_norm = self.embedding_metric.squared_norm(point)
-        euclidean_sq_norm = gs.einsum('ij,ij->i', point, point)
-        euclidean_sq_norm = gs.to_ndarray(euclidean_sq_norm, to_ndim=2, axis=1)
+        euclidean_sq_norm = gs.einsum('ndj,ndj->nd', point, point)
+        euclidean_sq_norm = gs.to_ndarray(euclidean_sq_norm, to_ndim=3, axis=2)
         diff = gs.abs(sq_norm + 1)
         return diff < tolerance * euclidean_sq_norm
 
@@ -83,40 +84,12 @@ class HyperbolicSpace(EmbeddedManifold):
 
         sq_norm = self.embedding_metric.squared_norm(point)
         real_norm = gs.sqrt(gs.abs(sq_norm))
+        n_points = len(real_norm)
 
-        for i in range(len(real_norm)):
+        for i in range(n_points):
             if real_norm[i] != 0:
                 point[i] = point[i] / real_norm[i]
         return point
-
-    def intrinsic_to_extrinsic_coords(self, point_intrinsic):
-        """
-        From the intrinsic coordinates in the hyperbolic space,
-        to the extrinsic coordinates in Minkowski space.
-        """
-        point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
-
-        coord_0 = gs.sqrt(1. + gs.linalg.norm(point_intrinsic, axis=1) ** 2)
-        coord_0 = gs.to_ndarray(coord_0, to_ndim=2, axis=1)
-
-        point_extrinsic = gs.hstack([coord_0, point_intrinsic])
-
-        assert gs.all(self.belongs(point_extrinsic))
-
-        assert point_extrinsic.ndim == 2
-        return point_extrinsic
-
-    def extrinsic_to_intrinsic_coords(self, point_extrinsic):
-        """
-        From the extrinsic coordinates in Minkowski space,
-        to the extrinsic coordinates in Hyperbolic space.
-        """
-        point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=2)
-        assert gs.all(self.belongs(point_extrinsic))
-
-        point_intrinsic = point_extrinsic[:, 1:]
-        assert point_intrinsic.ndim == 2
-        return point_intrinsic
 
     def projection_to_tangent_space(self, vector, base_point):
         """
@@ -125,24 +98,61 @@ class HyperbolicSpace(EmbeddedManifold):
                 = { w s.t. embedding_inner_product(base_point, w) = 0 }
         """
         assert gs.all(self.belongs(base_point))
+        vector = gs.to_ndarray(vector, to_ndim=2)
+        vector = gs.to_ndarray(vector, to_ndim=3, axis=1)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=3, axis=1)
 
+        sq_norm = self.embedding_metric.squared_norm(base_point)
         inner_prod = self.embedding_metric.inner_product(base_point,
                                                          vector)
-        sq_norm_base_point = self.embedding_metric.squared_norm(base_point)
 
-        coef = inner_prod / sq_norm_base_point
-        tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
+        coef = inner_prod / sq_norm
+        tangent_vec = vector - gs.einsum('ndi,ndj->ndj', coef, base_point)
         return tangent_vec
 
-    def random_uniform(self, n_samples=1, max_norm=1):
+    def intrinsic_to_extrinsic_coords(self, point_intrinsic):
+        """
+        From the intrinsic coordinates in the hyperbolic space,
+        to the extrinsic coordinates in Minkowski space.
+        """
+        point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
+        point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=3, axis=1)
+
+        coord_0 = gs.sqrt(1. + gs.linalg.norm(point_intrinsic, axis=-1) ** 2)
+        coord_0 = gs.to_ndarray(coord_0, to_ndim=3, axis=2)
+
+        point_extrinsic = gs.concatenate([coord_0, point_intrinsic], axis=-1)
+
+        assert gs.all(self.belongs(point_extrinsic))
+        return point_extrinsic
+
+    def extrinsic_to_intrinsic_coords(self, point_extrinsic):
+        """
+        From the extrinsic coordinates in Minkowski space,
+        to the extrinsic coordinates in Hyperbolic space.
+        """
+        point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=2)
+        point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=3, axis=1)
+
+        assert gs.all(self.belongs(point_extrinsic))
+
+        point_intrinsic = point_extrinsic[:, :, 1:]
+
+        return point_intrinsic
+
+    def random_uniform(self, n_samples=1, depth=None, max_norm=1):
         """
         Generate random elements on the hyperbolic space.
         """
-        point = (gs.random.rand(n_samples, self.dimension) - .5) * max_norm
-        point = self.intrinsic_to_extrinsic_coords(point)
-        assert gs.all(self.belongs(point))
+        if depth is None:
+            size = (n_samples, self.dimension)
+        else:
+            size = (n_samples, depth, self.dimension)
+        point = (gs.random.rand(*size) - .5) * max_norm
 
-        assert point.ndim == 2
+        point = self.intrinsic_to_extrinsic_coords(point)
+
         return point
 
 
@@ -172,13 +182,14 @@ class HyperbolicMetric(RiemannianMetric):
         :param vector: vector
         :returns riem_exp: a point on the hyperbolic space
         """
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3, axis=1)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=3, axis=1)
 
         sq_norm_tangent_vec = self.embedding_metric.squared_norm(
                 tangent_vec)
         norm_tangent_vec = gs.sqrt(sq_norm_tangent_vec)
-        if norm_tangent_vec.ndim == 0:
-            norm_tangent_vec = gs.to_ndarray(norm_tangent_vec, to_ndim=1)
-        norm_tangent_vec = gs.to_ndarray(norm_tangent_vec, to_ndim=2, axis=1)
 
         mask_0 = gs.isclose(sq_norm_tangent_vec, 0)
         mask_0 = gs.to_ndarray(mask_0, to_ndim=1)
@@ -203,10 +214,8 @@ class HyperbolicMetric(RiemannianMetric):
         coef_2[mask_else] = (gs.sinh(norm_tangent_vec[mask_else])
                              / norm_tangent_vec[mask_else])
 
-        coef_1 = gs.squeeze(coef_1, axis=-1)
-        coef_2 = gs.squeeze(coef_2, axis=-1)
-        exp = (gs.einsum('...,...j->...j', coef_1, base_point)
-               + gs.einsum('...,...j->...j', coef_2, tangent_vec))
+        exp = (gs.einsum('ndi,ndj->ndj', coef_1, base_point)
+               + gs.einsum('ndi,ndj->ndj', coef_2, tangent_vec))
 
         hyperbolic_space = HyperbolicSpace(dimension=self.dimension)
         exp = hyperbolic_space.regularize(exp)
@@ -224,9 +233,14 @@ class HyperbolicMetric(RiemannianMetric):
         :param point: point on the hyperbolic space
         :returns riem_log: tangent vector at base_point
         """
+        point = gs.to_ndarray(point, to_ndim=2)
+        point = gs.to_ndarray(point, to_ndim=3, axis=1)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=3, axis=1)
+
         angle = self.dist(base_point, point)
-        angle = gs.array(angle)
-        angle = gs.to_ndarray(angle, to_ndim=1)
+        angle = gs.to_ndarray(angle, to_ndim=3, axis=-1)
+        print('angle.shape = {}'.format(angle.shape))
 
         mask_0 = gs.isclose(angle, 0)
         mask_else = ~mask_0
@@ -248,8 +262,8 @@ class HyperbolicMetric(RiemannianMetric):
         coef_1[mask_else] = angle[mask_else] / gs.sinh(angle[mask_else])
         coef_2[mask_else] = angle[mask_else] / gs.tanh(angle[mask_else])
 
-        log = (gs.einsum('...,...j->...j', coef_1, point)
-               - gs.einsum('...,...j->...j', coef_2, base_point))
+        log = (gs.einsum('ndi,ndj->ndj', coef_1, point)
+               - gs.einsum('ndi,ndj->ndj', coef_2, base_point))
         return log
 
     def dist(self, point_a, point_b):
@@ -257,26 +271,16 @@ class HyperbolicMetric(RiemannianMetric):
         Compute the distance induced on the hyperbolic
         space, from its embedding in the Minkowski space.
         """
-        if gs.all(point_a == point_b):
+        if gs.all(gs.equal(point_a, point_b)):
             return 0.
-        point_a = gs.to_ndarray(point_a, to_ndim=2)
-        point_b = gs.to_ndarray(point_b, to_ndim=2)
 
-        n_points_a, _ = point_a.shape
-        n_points_b, _ = point_b.shape
-
-        n_dists = gs.maximum(n_points_a, n_points_b)
-        dist = gs.zeros((n_dists,))
         sq_norm_a = self.embedding_metric.squared_norm(point_a)
         sq_norm_b = self.embedding_metric.squared_norm(point_b)
         inner_prod = self.embedding_metric.inner_product(point_a, point_b)
 
         cosh_angle = - inner_prod / gs.sqrt(sq_norm_a * sq_norm_b)
+        cosh_angle = gs.clip(cosh_angle, 1, None)
 
-        mask_cosh_less_1 = gs.less_equal(cosh_angle, 1.)
-        mask_cosh_greater_1 = ~mask_cosh_less_1
-
-        dist[mask_cosh_less_1] = 0.
-        dist[mask_cosh_greater_1] = gs.arccosh(cosh_angle[mask_cosh_greater_1])
+        dist = gs.arccosh(cosh_angle)
 
         return dist
