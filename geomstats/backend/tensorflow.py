@@ -2,7 +2,6 @@
 
 # TODO(johmathe): Reproduce all unit tests with tensorflow backend.
 
-import numpy as np
 import tensorflow as tf
 
 
@@ -167,6 +166,14 @@ def _to_tensor(x, dtype):
         A tensor.
     """
     return tf.convert_to_tensor(x, dtype=dtype)
+
+
+def expand_dims(x, axis=None):
+    return tf.expand_dims(x, axis)
+
+
+def eval(x):
+    return x.eval()
 
 
 def clip(x, min_value, max_value):

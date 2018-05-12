@@ -252,5 +252,9 @@ def cov(*args, **kwargs):
     return np.cov(*args, **kwargs)
 
 
+def eval(x):
+    return x
+
+
 def ndim(x):
     return x.ndim
