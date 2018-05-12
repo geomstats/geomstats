@@ -2,6 +2,7 @@
 
 # TODO(johmathe): Reproduce all unit tests with tensorflow backend.
 
+import numpy as np
 import tensorflow as tf
 
 
@@ -92,7 +93,7 @@ def sqrt(x):
 
 def isclose(x, y, rtol=1e-05, atol=1e-08):
     rhs = tf.constant(atol) + tf.constant(rtol) * tf.abs(y)
-    return tf.less_equal(tf.abs(tf.sub(x, y)), rhs)
+    return tf.less_equal(tf.abs(tf.subtract(x, y)), rhs)
 
 
 def allclose(x, y, rtol=1e-05, atol=1e-08):
@@ -155,3 +156,26 @@ def concatenate(*args, **kwargs):
 
 def asarray(x):
     return x
+
+
+def _to_tensor(x, dtype):
+    """Convert the input `x` to a tensor of type `dtype`.
+    # Arguments
+        x: An object to be converted (numpy array, list, tensors).
+        dtype: The destination type.
+    # Returns
+        A tensor.
+    """
+    return tf.convert_to_tensor(x, dtype=dtype)
+
+
+def clip(x, min_value, max_value):
+    """Element-wise value clipping.
+    # Arguments
+        x: Tensor or variable.
+        min_value: Python float or integer.
+        max_value: Python float or integer.
+    # Returns
+        A tensor.
+    """
+    return tf.clip_by_value(x, min_value, max_value)

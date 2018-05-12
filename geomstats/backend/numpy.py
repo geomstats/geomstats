@@ -250,3 +250,7 @@ def log(*args, **kwargs):
 
 def cov(*args, **kwargs):
     return np.cov(*args, **kwargs)
+
+
+def ndim(x):
+    return x.ndim
