@@ -46,6 +46,8 @@ class RiemannianMetric(object):
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3, axis=1)
 
+        print('base: %s' % gs.eval(inner_prod_mat))
+        print('tangent %s' % gs.eval(tangent_vec_a))
         aux = gs.einsum('ndj,ndjk->ndk', tangent_vec_a, inner_prod_mat)
         inner_prod = gs.einsum('ndk,ndk->nd', aux, tangent_vec_b)
 

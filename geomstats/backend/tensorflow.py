@@ -167,5 +167,13 @@ def expand_dims(x, axis=None):
     return tf.expand_dims(x, axis)
 
 
+def expand_dims(x, axis=None):
+    return tf.expand_dims(x, axis)
+
+
+def eval(x):
+    return x.eval()
+
+
 def clip(x, min_value, max_value):
     return tf.clip_by_value(x, min_value, max_value)

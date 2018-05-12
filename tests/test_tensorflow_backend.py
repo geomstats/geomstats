@@ -46,8 +46,8 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
             base_point = base_point / gs.linalg.norm(base_point)
             vector = gs.array([9., 0., -1., -2., 1.])
             tangent_vec = self.space.projection_to_tangent_space(
-                    vector=vector,
-                    base_point=base_point)
+                                                      vector=vector,
+                                                      base_point=base_point)
             exp = self.metric.exp(tangent_vec=tangent_vec,
                                   base_point=base_point)
             result = self.metric.dist(base_point, exp)
@@ -60,13 +60,11 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
 
             base_point = gs.array([[16., -2., -2.5, 84., 3.],
                                    [16., -2., -2.5, 84., 3.]])
-            # TODO(nina): remove when we get to 2d
-            base_point = gs.expand_dims(base_point, 0)
+
             base_single_point = gs.array([16., -2., -2.5, 84., 3.])
             scalar_norm = gs.linalg.norm(base_single_point)
             base_point = base_point / scalar_norm
             vector = gs.array([[9., 0., -1., -2., 1.], [9., 0., -1., -2., 1]])
-            vector = gs.expand_dims(vector, 0)
             tangent_vec = self.space.projection_to_tangent_space(
                     vector=vector,
                     base_point=base_point)
