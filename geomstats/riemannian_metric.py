@@ -37,20 +37,30 @@ class RiemannianMetric(object):
         Inner product defined by the Riemannian metric at point base_point
         between tangent vectors tangent_vec_a and tangent_vec_b.
         """
+<<<<<<< HEAD
+=======
         inner_prod_mat = self.inner_product_matrix(base_point)
-
         inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
         inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=4, axis=1)
+>>>>>>> d45d777... test failing
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
-        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3, axis=1)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
+<<<<<<< HEAD
+        n_tangent_vecs, _ = tangent_vec_a.shape
+        inner_prod_mat = self.inner_product_matrix(base_point)
+        inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
+        inner_prod_mat = gs.tile(
+            inner_prod_mat, [n_tangent_vecs, 1, 1])
+        aux = gs.einsum('nj,njk->nk', tangent_vec_a, inner_prod_mat)
+        inner_prod = gs.einsum('nk,nk->n', aux, tangent_vec_b)
+        inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
+=======
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3, axis=1)
-
         aux = gs.einsum('ndj,ndjk->ndk', tangent_vec_a, inner_prod_mat)
         inner_prod = gs.einsum('ndk,ndk->nd', aux, tangent_vec_b)
+>>>>>>> c8d728b... update test
 
-        inner_prod = gs.to_ndarray(inner_prod, to_ndim=3, axis=2)
-        assert gs.ndim(inner_prod) == 3, inner_prod.shape
+        assert gs.ndim(inner_prod) == 2, inner_prod.shape
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
