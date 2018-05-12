@@ -19,6 +19,8 @@ class EuclideanSpace(Manifold):
         """
         Check if point belongs to the Euclidean space.
         """
+        point = gs.to_ndarray(point, to_ndim=2)
+        point = gs.to_ndarray(point, to_ndim=3, axis=1)
         point_dim = point.shape[-1]
         return point_dim == self.dimension
 
@@ -28,7 +30,7 @@ class EuclideanSpace(Manifold):
         with coordinates each between -1. and 1.
         """
         if depth is None:
-            size = (n_samples, self.dimension)
+            size = (n_samples, 1, self.dimension)
         else:
             size = (n_samples, depth, self.dimension)
         point = gs.random.rand(*size) * 2 - 1

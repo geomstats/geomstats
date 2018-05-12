@@ -20,6 +20,40 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         self.n_samples = 10
         self.depth = 3
 
+    def test_belongs(self):
+        self.check_shape_belongs(self.space)
+
+    def test_belongs_vectorization(self):
+        self.check_shape_belongs_vectorization(
+            self.space, self.n_samples)
+
+    def test_belongs_vectorization_with_depth(self):
+        self.check_shape_belongs_vectorization_with_depth(
+            self.space, self.n_samples, self.depth)
+
+    def test_random_uniform(self):
+        self.check_shape_random_uniform(
+            self.space, self.dimension)
+
+    def test_random_uniform_vectorization(self):
+        self.check_shape_random_uniform_vectorization(
+            self.space, self.n_samples, self.dimension)
+
+    def test_random_uniform_vectorization_with_depth(self):
+        self.check_shape_random_uniform_vectorization_with_depth(
+            self.space, self.n_samples, self.depth, self.dimension)
+
+    def test_random_uniform_and_belongs(self):
+        self.assert_random_uniform_and_belongs(self.space)
+
+    def test_random_uniform_and_belongs_vectorization(self):
+        self.assert_random_uniform_and_belongs_vectorization(
+            self.space, self.n_samples)
+
+    def test_random_uniform_and_belongs_vectorization_with_depth(self):
+        self.assert_random_uniform_and_belongs_vectorization_with_depth(
+            self.space, self.n_samples, self.depth)
+
     def test_inner_product_matrix(self):
         result = self.metric.inner_product_matrix()
 
@@ -73,7 +107,7 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         self.assertScalar(result, n_samples=n_samples, depth=depth)
         self.assertAllClose(result, expected)
 
-    def test_inner_product_vectorization_with_channels(self):
+    def test_inner_product_vectorization_with_depth(self):
         n_samples = self.n_samples
         depth = self.depth
 
@@ -142,7 +176,7 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         self.assertScalar(result, n_samples=n_samples, depth=depth)
         self.assertAllClose(result, expected)
 
-    def test_squared_norm_vectorization_with_channels(self):
+    def test_squared_norm_vectorization_with_depth(self):
         n_samples = self.n_samples
         depth = self.depth
 
@@ -174,7 +208,7 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         self.assertScalar(result, n_samples=n_samples, depth=depth)
         self.assertAllClose(result, expected)
 
-    def test_norm_vectorization_with_channels(self):
+    def test_norm_vectorization_with_depth(self):
         n_samples = self.n_samples
         depth = self.depth
         n_points = self.space.random_uniform(n_samples=n_samples,
@@ -220,7 +254,7 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         result = self.metric.exp(n_tangent_vecs, n_base_points)
         self.assertVector(result, n_samples, depth, dim)
 
-    def test_exp_vectorization_with_channels(self):
+    def test_exp_vectorization_with_depth(self):
         n_samples = self.n_samples
         depth = self.depth
 
@@ -280,7 +314,7 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         result = self.metric.log(n_points, n_base_points)
         self.assertVector(result, n_samples, depth, dim)
 
-    def test_log_vectorization_with_channels(self):
+    def test_log_vectorization_with_depth(self):
         n_samples = self.n_samples
         depth = self.depth
 
@@ -386,15 +420,6 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         expected = helper.to_scalar(expected)
         self.assertScalar(result, n_samples, depth)
         self.assertAllClose(result, expected)
-
-    def test_random_uniform_and_belongs(self):
-        point = self.space.random_uniform()
-        self.assertTrue(self.space.belongs(point))
-
-    def test_random_uniform_and_belongs_vectorization(self):
-        n_samples = self.n_samples
-        n_points = self.space.random_uniform(n_samples=n_samples)
-        self.assertTrue(gs.all(self.space.belongs(n_points)))
 
     def test_geodesic_and_belongs(self):
         initial_point = self.space.random_uniform()

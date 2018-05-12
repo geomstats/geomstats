@@ -62,6 +62,7 @@ class TestGeomstatsMethods(unittest.TestCase):
 
     def check_shape_random_uniform(self, space, vec_dim):
         point = space.random_uniform()
+
         self.assertVector(point, dim=vec_dim)
 
     def check_shape_random_uniform_vectorization(self,
