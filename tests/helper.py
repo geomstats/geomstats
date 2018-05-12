@@ -106,6 +106,7 @@ class TestGeomstatsMethods(unittest.TestCase):
         self.assertTrue(gs.all(belongs))
 
     def check_shape_exp_vectorization(self, space, n_samples, dim):
+        # TODO(nina): write a version without projection to tangent
         depth = 1
 
         one_vec = self.space.random_uniform()
@@ -156,6 +157,7 @@ class TestGeomstatsMethods(unittest.TestCase):
                                                  n_samples,
                                                  depth,
                                                  dim):
+        # TODO(nina): write a version without projection to tangent
         one_vec = self.space.random_uniform(
             n_samples=1, depth=depth)
         one_base_point = self.space.random_uniform(
