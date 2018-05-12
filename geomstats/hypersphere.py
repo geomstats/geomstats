@@ -153,12 +153,12 @@ class HypersphereMetric(RiemannianMetric):
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3, axis=1)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=3, axis=1)
-
         # TODO(johmathe): Evaluate the bias introduced by this variable
         norm_tangent_vec = self.embedding_metric.norm(tangent_vec) + EPSILON
         coef_1 = gs.cos(norm_tangent_vec)
         coef_2 = gs.sin(norm_tangent_vec) / norm_tangent_vec
-
+        print('coef: %s' % coef_1)
+        print('coef: %s' % coef_2)
         exp = (gs.einsum('ndi,ndj->ndj', coef_1, base_point)
                + gs.einsum('ndi,ndj->ndj', coef_2, tangent_vec))
 
