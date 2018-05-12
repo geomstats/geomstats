@@ -84,8 +84,11 @@ class Hypersphere(EmbeddedManifold):
         From some intrinsic coordinates in the Hypersphere,
         to the extrinsic coordinates in Euclidean space.
         """
+        point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
+        point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=3, axis=1)
+
         coord_0 = gs.sqrt(1. - gs.linalg.norm(point_intrinsic, axis=-1) ** 2)
-        coord_0 = gs.to_ndarray(coord_0, to_ndim=point_intrinsic.ndim, axis=-1)
+        coord_0 = gs.to_ndarray(coord_0, to_ndim=3, axis=2)
         point_extrinsic = gs.concatenate([coord_0, point_intrinsic], axis=-1)
 
         assert gs.all(self.belongs(point_extrinsic))
@@ -223,7 +226,7 @@ class HypersphereMetric(RiemannianMetric):
         point_a and point_b.
         """
         # TODO(nina): case gs.dot(unit_vec, unit_vec) != 1
-        if gs.all(point_a == point_b):
+        if gs.all(gs.equal(point_a, point_b)):
             return 0.
 
         norm_a = self.embedding_metric.norm(point_a)
