@@ -81,14 +81,17 @@ class HyperbolicSpace(EmbeddedManifold):
 
     def regularize(self, point):
         assert gs.all(self.belongs(point))
+        point = gs.to_ndarray(point, to_ndim=2)
+        point = gs.to_ndarray(point, to_ndim=3, axis=1)
 
         sq_norm = self.embedding_metric.squared_norm(point)
         real_norm = gs.sqrt(gs.abs(sq_norm))
-        n_points = len(real_norm)
+        n_points, depth, _ = real_norm.shape
 
         for i in range(n_points):
-            if real_norm[i] != 0:
-                point[i] = point[i] / real_norm[i]
+            for j in range(depth):
+                if real_norm[i, j, 0] != 0:
+                    point[i, j] = point[i, j] / real_norm[i, j, 0]
         return point
 
     def projection_to_tangent_space(self, vector, base_point):
@@ -239,8 +242,9 @@ class HyperbolicMetric(RiemannianMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=3, axis=1)
 
         angle = self.dist(base_point, point)
+        angle = gs.to_ndarray(angle, to_ndim=1)
+        angle = gs.to_ndarray(angle, to_ndim=2)
         angle = gs.to_ndarray(angle, to_ndim=3, axis=-1)
-        print('angle.shape = {}'.format(angle.shape))
 
         mask_0 = gs.isclose(angle, 0)
         mask_else = ~mask_0
