@@ -49,15 +49,17 @@ class Hypersphere(EmbeddedManifold):
         """
         point = gs.asarray(point)
         point_dim = point.shape[-1]
-        if point_dim is not self.dimension + 1:
+        #print(point_dim)
+        #print(self.dimension +1)
+        if point_dim != self.dimension + 1:
+            print('proutou')
             if point_dim is self.dimension:
                 logging.warning('Use the extrinsic coordinates to '
                                 'represent points on the hypersphere.')
             return False
         sq_norm = self.embedding_metric.squared_norm(point)
         diff = gs.abs(sq_norm - 1)
-
-        return diff < tolerance
+        return gs.less_equal(diff, tolerance)
 
     def projection_to_tangent_space(self, vector, base_point):
         """
@@ -92,7 +94,7 @@ class Hypersphere(EmbeddedManifold):
 
         point_extrinsic = gs.concatenate([coord_0, point_intrinsic], axis=-1)
 
-        assert gs.all(self.belongs(point_extrinsic))
+        # assert gs.all(self.belongs(point_extrinsic))
         return point_extrinsic
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):

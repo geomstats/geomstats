@@ -19,8 +19,8 @@ class RiemannianMetric(object):
     def __init__(self, dimension, signature=None):
         assert isinstance(dimension, int) and dimension > 0
         self.dimension = dimension
-        if signature is not None:
-            assert gs.sum(signature) == dimension
+        #if signature is not None:
+        #    assert gs.sum(signature) == dimension
         self.signature = signature
 
     def inner_product_matrix(self, base_point=None):
@@ -50,7 +50,7 @@ class RiemannianMetric(object):
         inner_prod = gs.einsum('ndk,ndk->nd', aux, tangent_vec_b)
 
         inner_prod = gs.to_ndarray(inner_prod, to_ndim=3, axis=2)
-        assert inner_prod.ndim == 3, inner_prod.shape
+        assert gs.ndim(inner_prod) == 3, inner_prod.shape
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
