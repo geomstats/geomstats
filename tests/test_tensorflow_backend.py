@@ -69,13 +69,9 @@ class TestHypersphereMethods(tf.test.TestCase):
             base_point = base_point / scalar_norm
             vector = gs.array([[9., 0., -1., -2., 1.], [9., 0., -1., -2., 1]])
             vector = gs.expand_dims(vector, 0)
-            print('vector: %s ' % gs.eval(vector))
-            print('base point: %s ' % gs.eval(base_point))
-            print(self.space)
             tangent_vec = self.space.projection_to_tangent_space(
                                                           vector=vector,
                                                           base_point=base_point)
-            print('base point: %s ' % gs.eval(base_point))
             exp = self.metric.exp(tangent_vec=tangent_vec,
                                   base_point=base_point)
             result = self.metric.dist(base_point, exp)
