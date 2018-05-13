@@ -38,16 +38,12 @@ class RiemannianMetric(object):
         between tangent vectors tangent_vec_a and tangent_vec_b.
         """
         inner_prod_mat = self.inner_product_matrix(base_point)
-
         inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
         inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=4, axis=1)
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3, axis=1)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3, axis=1)
-
-        print('base: %s' % gs.eval(inner_prod_mat))
-        print('tangent %s' % gs.eval(tangent_vec_a))
         aux = gs.einsum('ndj,ndjk->ndk', tangent_vec_a, inner_prod_mat)
         inner_prod = gs.einsum('ndk,ndk->nd', aux, tangent_vec_b)
 

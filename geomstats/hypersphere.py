@@ -67,9 +67,7 @@ class Hypersphere(EmbeddedManifold):
         vector = gs.to_ndarray(vector, to_ndim=3, axis=1)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=3, axis=1)
-
         sq_norm = self.embedding_metric.squared_norm(base_point)
-
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
 
         coef = inner_prod / sq_norm
