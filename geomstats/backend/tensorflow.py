@@ -5,6 +5,10 @@
 import tensorflow as tf
 
 
+def eval(x):
+    return x
+    return x.eval()
+
 def abs(x):
     return tf.abs(x)
 
@@ -57,8 +61,11 @@ def shape(x):
     return tf.shape(x)
 
 
-def ndims(x):
-    return x.get_shape()._ndims
+def ndim(x):
+    dims = x.get_shape()._dims
+    if dims is not None:
+        return len(dims)
+    return None
 
 
 def dot(x, y):
@@ -73,10 +80,14 @@ def greater_equal(x, y):
     return tf.greater_equal(x, y)
 
 
+def equal(x, y):
+    return tf.equal(x, y)
+
+
 def to_ndarray(x, to_ndim, axis=0):
-    if ndims(x) == to_ndim - 1:
+    if ndim(x) == to_ndim - 1:
         x = tf.expand_dims(x, axis=axis)
-    #tf.assert_equal(ndims(x), to_ndim)
+
     return x
 
 
@@ -86,7 +97,7 @@ def sqrt(x):
 
 def isclose(x, y, rtol=1e-05, atol=1e-08):
     rhs = tf.constant(atol) + tf.constant(rtol) * tf.abs(y)
-    return tf.less_equal(tf.abs(tf.sub(x, y)), rhs)
+    return tf.less_equal(tf.abs(tf.subtract(x, y)), rhs)
 
 
 def allclose(x, y, rtol=1e-05, atol=1e-08):
@@ -137,7 +148,45 @@ def array(x):
     return tf.constant(x)
 
 
-def all(bool_tensor):
-    bool_tensor = tf.cast(bool_tensor, tf.float32)
-    all_true = tf.equal(tf.reduce_mean(bool_tensor), 1.0)
+def all(bool_tensor, axis=None, keepdims=False):
+    bool_tensor = tf.cast(bool_tensor, tf.bool)
+    all_true = tf.reduce_all(bool_tensor, axis, keepdims)
     return all_true
+
+
+def concatenate(*args, **kwargs):
+    return tf.concat(*args, **kwargs)
+
+
+def asarray(x):
+    return x
+
+
+def _to_tensor(x, dtype):
+    """Convert the input `x` to a tensor of type `dtype`.
+    # Arguments
+        x: An object to be converted (numpy array, list, tensors).
+        dtype: The destination type.
+    # Returns
+        A tensor.
+    """
+    return tf.convert_to_tensor(x, dtype=dtype)
+
+
+def expand_dims(x, axis=None):
+    return tf.expand_dims(x, axis)
+
+
+
+
+
+def clip(x, min_value, max_value):
+    """Element-wise value clipping.
+    # Arguments
+        x: Tensor or variable.
+        min_value: Python float or integer.
+        max_value: Python float or integer.
+    # Returns
+        A tensor.
+    """
+    return tf.clip_by_value(x, min_value, max_value)

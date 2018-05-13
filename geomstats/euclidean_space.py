@@ -19,6 +19,8 @@ class EuclideanSpace(Manifold):
         """
         Check if point belongs to the Euclidean space.
         """
+        point = gs.to_ndarray(point, to_ndim=2)
+        point = gs.to_ndarray(point, to_ndim=3, axis=1)
         point_dim = point.shape[-1]
         return point_dim == self.dimension
 
@@ -28,13 +30,11 @@ class EuclideanSpace(Manifold):
         with coordinates each between -1. and 1.
         """
         if depth is None:
-            size = (n_samples, self.dimension)
+            size = (n_samples, 1, self.dimension)
         else:
             size = (n_samples, depth, self.dimension)
         point = gs.random.rand(*size) * 2 - 1
 
-        if n_samples == 1:
-            point = gs.squeeze(point, axis=0)
         return point
 
 
@@ -62,6 +62,10 @@ class EuclideanMetric(RiemannianMetric):
         """
         The Riemannian exponential is the addition in the Euclidean space.
         """
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3, axis=1)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=3, axis=1)
         exp = base_point + tangent_vec
         return exp
 
@@ -69,6 +73,10 @@ class EuclideanMetric(RiemannianMetric):
         """
         The Riemannian logarithm is the subtraction in the Euclidean space.
         """
+        point = gs.to_ndarray(point, to_ndim=2)
+        point = gs.to_ndarray(point, to_ndim=3, axis=1)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=3, axis=1)
         log = point - base_point
         return log
 
