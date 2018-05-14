@@ -8,17 +8,17 @@ import geomstats.backend as gs
 
 
 class TestGeomstatsMethods(unittest.TestCase):
-    def assertScalar(self, result, n_samples=1, depth=1):
+    def assertScalar(self, result, n_samples=1):
         return self.assertTrue(
-            gs.allclose(result.shape, (n_samples, depth, 1)),
+            gs.allclose(result.shape, (n_samples, 1)),
             '\nresult.shape = {} instead of {}'.format(
-                result.shape, (n_samples, depth, 1)))
+                result.shape, (n_samples, 1)))
 
-    def assertVector(self, result, n_samples=1, depth=1, dim=1):
+    def assertVector(self, result, n_samples=1, dim=1):
         return self.assertTrue(
-            gs.allclose(result.shape, (n_samples, depth, dim)),
+            gs.allclose(result.shape, (n_samples, dim)),
             '\nresult.shape = {} instead of {}'.format(
-                result.shape, (n_samples, depth, dim)))
+                result.shape, (n_samples, dim)))
 
     def assertAllClose(self, result, expected):
         result = gs.asarray(result)
@@ -37,7 +37,6 @@ class TestGeomstatsMethods(unittest.TestCase):
     def check_shape_belongs(self, space):
         point = space.random_uniform()
         belongs = space.belongs(point)
-        print('belongs={}'.format(belongs))
 
         self.assertScalar(belongs)
 
@@ -77,7 +76,6 @@ class TestGeomstatsMethods(unittest.TestCase):
 
     def check_shape_exp_vectorization(self, space, n_samples, dim):
         # TODO(nina): write a version without projection to tangent
-        depth = 1
 
         one_vec = self.space.random_uniform()
         one_base_point = self.space.random_uniform()
@@ -87,12 +85,12 @@ class TestGeomstatsMethods(unittest.TestCase):
         one_tangent_vec = self.space.projection_to_tangent_space(
             one_vec, base_point=one_base_point)
         result = self.metric.exp(one_tangent_vec, one_base_point)
-        self.assertVector(result, 1, depth, dim)
+        self.assertVector(result, 1, dim)
 
         n_tangent_vecs = self.space.projection_to_tangent_space(
             n_vecs, base_point=one_base_point)
         result = self.metric.exp(n_tangent_vecs, one_base_point)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
         expected = gs.zeros((n_samples, dim))
         for i in range(n_samples):
@@ -103,7 +101,7 @@ class TestGeomstatsMethods(unittest.TestCase):
         one_tangent_vec = self.space.projection_to_tangent_space(
             one_vec, base_point=n_base_points)
         result = self.metric.exp(one_tangent_vec, n_base_points)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
         expected = gs.zeros((n_samples, dim))
         for i in range(n_samples):
@@ -114,7 +112,7 @@ class TestGeomstatsMethods(unittest.TestCase):
         n_tangent_vecs = self.space.projection_to_tangent_space(
             n_vecs, base_point=n_base_points)
         result = self.metric.exp(n_tangent_vecs, n_base_points)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
         expected = gs.zeros((n_samples, dim))
         for i in range(n_samples):
@@ -123,64 +121,58 @@ class TestGeomstatsMethods(unittest.TestCase):
         self.assertAllClose(result, expected)
 
     def check_shape_log_vectorization(self, space, n_samples, dim):
-        depth = 1
-
         one_point = self.space.random_uniform()
         one_base_point = self.space.random_uniform()
         n_points = self.space.random_uniform(n_samples=n_samples)
         n_base_points = self.space.random_uniform(n_samples=n_samples)
 
         result = self.metric.log(one_point, one_base_point)
-        self.assertVector(result, 1, depth, dim)
+        self.assertVector(result, 1, dim)
 
         result = self.metric.log(n_points, one_base_point)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
         result = self.metric.log(one_point, n_base_points)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
         result = self.metric.log(n_points, n_base_points)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
     def check_shape_squared_dist_vectorization(self, space, metric, n_samples):
-        depth = 1
-
         one_point_a = self.space.random_uniform()
         one_point_b = self.space.random_uniform()
         n_points_a = self.space.random_uniform(n_samples=n_samples)
         n_points_b = self.space.random_uniform(n_samples=n_samples)
 
         result = self.metric.squared_dist(one_point_a, one_point_b)
-        self.assertScalar(result, 1, depth)
+        self.assertScalar(result, 1)
 
         result = self.metric.squared_dist(n_points_a, one_point_b)
-        self.assertScalar(result, n_samples, depth)
+        self.assertScalar(result, n_samples)
 
         result = self.metric.squared_dist(one_point_a, n_points_b)
-        self.assertScalar(result, n_samples, depth)
+        self.assertScalar(result, n_samples)
 
         result = self.metric.squared_dist(n_points_a, n_points_b)
-        self.assertScalar(result, n_samples, depth)
+        self.assertScalar(result, n_samples)
 
     def check_shape_dist_vectorization(self, space, metric, n_samples):
-        depth = 1
-
         one_point_a = self.space.random_uniform()
         one_point_b = self.space.random_uniform()
         n_points_a = self.space.random_uniform(n_samples=n_samples)
         n_points_b = self.space.random_uniform(n_samples=n_samples)
 
         result = self.metric.dist(one_point_a, one_point_b)
-        self.assertScalar(result, 1, depth)
+        self.assertScalar(result, 1)
 
         result = self.metric.dist(n_points_a, one_point_b)
-        self.assertScalar(result, n_samples, depth)
+        self.assertScalar(result, n_samples)
 
         result = self.metric.dist(one_point_a, n_points_b)
-        self.assertScalar(result, n_samples, depth)
+        self.assertScalar(result, n_samples)
 
         result = self.metric.dist(n_points_a, n_points_b)
-        self.assertScalar(result, n_samples, depth)
+        self.assertScalar(result, n_samples)
 
 
 def to_scalar(expected):

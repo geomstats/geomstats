@@ -18,7 +18,6 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         self.metric = self.space.metric
 
         self.n_samples = 10
-        self.depth = 3
 
     def test_belongs(self):
         self.check_shape_belongs(self.space)
