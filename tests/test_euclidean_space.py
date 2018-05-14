@@ -27,10 +27,6 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         self.check_shape_belongs_vectorization(
             self.space, self.n_samples)
 
-    def test_belongs_vectorization_with_depth(self):
-        self.check_shape_belongs_vectorization_with_depth(
-            self.space, self.n_samples, self.depth)
-
     def test_random_uniform(self):
         self.check_shape_random_uniform(
             self.space, self.dimension)
@@ -39,20 +35,12 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         self.check_shape_random_uniform_vectorization(
             self.space, self.n_samples, self.dimension)
 
-    def test_random_uniform_vectorization_with_depth(self):
-        self.check_shape_random_uniform_vectorization_with_depth(
-            self.space, self.n_samples, self.depth, self.dimension)
-
     def test_random_uniform_and_belongs(self):
         self.assert_random_uniform_and_belongs(self.space)
 
     def test_random_uniform_and_belongs_vectorization(self):
         self.assert_random_uniform_and_belongs_vectorization(
             self.space, self.n_samples)
-
-    def test_random_uniform_and_belongs_vectorization_with_depth(self):
-        self.assert_random_uniform_and_belongs_vectorization_with_depth(
-            self.space, self.n_samples, self.depth)
 
     def test_inner_product_matrix(self):
         result = self.metric.inner_product_matrix()
@@ -107,55 +95,6 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         self.assertScalar(result, n_samples=n_samples, depth=depth)
         self.assertAllClose(result, expected)
 
-    def test_inner_product_vectorization_with_depth(self):
-        n_samples = self.n_samples
-        depth = self.depth
-
-        one_point_a = self.space.random_uniform(n_samples=1,
-                                                depth=depth)
-        one_point_b = self.space.random_uniform(n_samples=1,
-                                                depth=depth)
-        n_points_a = self.space.random_uniform(n_samples=n_samples,
-                                               depth=depth)
-        n_points_b = self.space.random_uniform(n_samples=n_samples,
-                                               depth=depth)
-
-        result = self.metric.inner_product(one_point_a, one_point_b)
-        expected = gs.einsum('ndk,ndk->nd', one_point_a, one_point_b)
-        expected = helper.to_scalar(expected)
-        self.assertAllClose(result, expected)
-
-        result = self.metric.inner_product(n_points_a, one_point_b)
-        expected = gs.zeros((n_samples, depth, 1))
-        for i in range(n_samples):
-            for j in range(depth):
-                expected[i, j] = gs.dot(
-                    n_points_a[i, j], gs.transpose(one_point_b[0, j]))
-        expected = helper.to_scalar(expected)
-
-        self.assertScalar(result, n_samples=n_samples, depth=depth)
-        self.assertAllClose(result, expected)
-
-        result = self.metric.inner_product(one_point_a, n_points_b)
-        expected = gs.zeros((n_samples, depth,))
-        for i in range(n_samples):
-            for j in range(depth):
-                expected[i, j] = gs.dot(
-                    one_point_a[0, j], gs.transpose(n_points_b[i, j]))
-        expected = helper.to_scalar(expected)
-        self.assertScalar(result, n_samples=n_samples, depth=depth)
-        self.assertAllClose(result, expected)
-
-        result = self.metric.inner_product(n_points_a, n_points_b)
-        expected = gs.zeros((n_samples, depth,))
-        for i in range(n_samples):
-            for j in range(depth):
-                expected[i, j] = gs.dot(
-                    n_points_a[i, j], gs.transpose(n_points_b[i, j]))
-        expected = helper.to_scalar(expected)
-        self.assertScalar(result, n_samples=n_samples, depth=depth)
-        self.assertAllClose(result, expected)
-
     def test_squared_norm(self):
         point = gs.array([-2, 4])
 
@@ -169,19 +108,6 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         depth = 1
 
         n_points = self.space.random_uniform(n_samples=n_samples)
-
-        result = self.metric.squared_norm(n_points)
-        expected = gs.linalg.norm(n_points, axis=-1) ** 2
-        expected = helper.to_scalar(expected)
-        self.assertScalar(result, n_samples=n_samples, depth=depth)
-        self.assertAllClose(result, expected)
-
-    def test_squared_norm_vectorization_with_depth(self):
-        n_samples = self.n_samples
-        depth = self.depth
-
-        n_points = self.space.random_uniform(n_samples=n_samples,
-                                             depth=depth)
 
         result = self.metric.squared_norm(n_points)
         expected = gs.linalg.norm(n_points, axis=-1) ** 2
@@ -205,19 +131,6 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         result = self.metric.norm(n_points)
         expected = gs.linalg.norm(n_points, axis=1)
         expected = helper.to_scalar(expected)
-        self.assertScalar(result, n_samples=n_samples, depth=depth)
-        self.assertAllClose(result, expected)
-
-    def test_norm_vectorization_with_depth(self):
-        n_samples = self.n_samples
-        depth = self.depth
-        n_points = self.space.random_uniform(n_samples=n_samples,
-                                             depth=depth)
-
-        result = self.metric.norm(n_points)
-        expected = gs.linalg.norm(n_points, axis=-1)
-        expected = helper.to_scalar(expected)
-
         self.assertScalar(result, n_samples=n_samples, depth=depth)
         self.assertAllClose(result, expected)
 
@@ -254,34 +167,6 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         result = self.metric.exp(n_tangent_vecs, n_base_points)
         self.assertVector(result, n_samples, depth, dim)
 
-    def test_exp_vectorization_with_depth(self):
-        n_samples = self.n_samples
-        depth = self.depth
-
-        dim = self.dimension
-        one_tangent_vec = self.space.random_uniform(n_samples=1,
-                                                    depth=depth)
-        one_base_point = self.space.random_uniform(n_samples=1,
-                                                   depth=depth)
-        n_tangent_vecs = self.space.random_uniform(n_samples=n_samples,
-                                                   depth=depth)
-        n_base_points = self.space.random_uniform(n_samples=n_samples,
-                                                  depth=depth)
-
-        result = self.metric.exp(one_tangent_vec, one_base_point)
-        expected = one_tangent_vec + one_base_point
-        expected = helper.to_vector(expected)
-        self.assertAllClose(result, expected)
-
-        result = self.metric.exp(n_tangent_vecs, one_base_point)
-        self.assertVector(result, n_samples, depth, dim)
-
-        result = self.metric.exp(one_tangent_vec, n_base_points)
-        self.assertVector(result, n_samples, depth, dim)
-
-        result = self.metric.exp(n_tangent_vecs, n_base_points)
-        self.assertVector(result, n_samples, depth, dim)
-
     def test_log(self):
         base_point = gs.array([0, 1])
         point = gs.array([2, 10])
@@ -299,34 +184,6 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         one_base_point = self.space.random_uniform(n_samples=1)
         n_points = self.space.random_uniform(n_samples=n_samples)
         n_base_points = self.space.random_uniform(n_samples=n_samples)
-
-        result = self.metric.log(one_point, one_base_point)
-        expected = one_point - one_base_point
-        expected = helper.to_vector(expected)
-        self.assertAllClose(result, expected)
-
-        result = self.metric.log(n_points, one_base_point)
-        self.assertVector(result, n_samples, depth, dim)
-
-        result = self.metric.log(one_point, n_base_points)
-        self.assertVector(result, n_samples, depth, dim)
-
-        result = self.metric.log(n_points, n_base_points)
-        self.assertVector(result, n_samples, depth, dim)
-
-    def test_log_vectorization_with_depth(self):
-        n_samples = self.n_samples
-        depth = self.depth
-
-        dim = self.dimension
-        one_point = self.space.random_uniform(n_samples=1,
-                                              depth=depth)
-        one_base_point = self.space.random_uniform(n_samples=1,
-                                                   depth=depth)
-        n_points = self.space.random_uniform(n_samples=n_samples,
-                                             depth=depth)
-        n_base_points = self.space.random_uniform(n_samples=n_samples,
-                                                  depth=depth)
 
         result = self.metric.log(one_point, one_base_point)
         expected = one_point - one_base_point
