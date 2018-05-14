@@ -3,8 +3,8 @@
 import tensorflow as tf
 
 
-def norm(x):
-    return tf.linalg.norm(x)
+def norm(x, axis=None):
+    return tf.linalg.norm(x, axis=axis)
 
 
 def inv(x):
