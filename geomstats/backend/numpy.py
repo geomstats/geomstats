@@ -3,6 +3,10 @@
 import numpy as np
 
 
+def repeat(*args, **kwargs):
+    return np.repeat(*args, **kwargs)
+
+
 def asarray(*args, **kwargs):
     return np.asarray(*args, **kwargs)
 

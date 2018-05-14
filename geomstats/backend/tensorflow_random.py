@@ -4,7 +4,7 @@ import tensorflow as tf
 
 
 def rand(*args):
-    return tf.random_uniform(shape=args)
+    return tf.random_uniform(args)
 
 
 def seed(*args):

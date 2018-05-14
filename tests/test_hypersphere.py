@@ -3,10 +3,11 @@
 from geomstats.hypersphere import Hypersphere
 
 import geomstats.backend as gs
+import tests.helper as helper
 import unittest
 
 
-class TestHypersphereMethods(unittest.TestCase):
+class TestHypersphereMethods(helper.TestGeomstatsMethods):
     _multiprocess_can_split_ = True
 
     def setUp(self):
@@ -16,40 +17,36 @@ class TestHypersphereMethods(unittest.TestCase):
         self.space = Hypersphere(dimension=self.dimension)
         self.metric = self.space.metric
         self.n_samples = 10
-        self.depth = 3
+
+    def test_belongs(self):
+        self.check_shape_belongs(self.space)
+
+    def test_belongs_vectorization(self):
+        self.check_shape_belongs_vectorization(
+            self.space, self.n_samples)
+
+    def test_random_uniform(self):
+        self.check_shape_random_uniform(
+            self.space, self.dimension + 1)
+
+    def test_random_uniform_vectorization(self):
+        self.check_shape_random_uniform_vectorization(
+            self.space, self.n_samples, self.dimension + 1)
 
     def test_random_uniform_and_belongs(self):
         """
         Test that the random uniform method samples
         on the hypersphere space.
         """
-        point = self.space.random_uniform()
-        self.assertTrue(self.space.belongs(point))
+        self.assert_random_uniform_and_belongs(self.space)
 
     def test_random_uniform_and_belongs_vectorization(self):
         """
         Test that the random uniform method samples
         on the hypersphere space.
         """
-        n_samples = self.n_samples
-        points = self.space.random_uniform(n_samples=n_samples)
-        self.assertTrue(
-            gs.isclose(self.space.belongs(points).shape, n_samples))
-        self.assertTrue(gs.all(self.space.belongs(points)))
-
-    def test_random_uniform_and_belongs_vectorization_with_depth(self):
-        """
-        Test that the random uniform method samples
-        on the hypersphere space.
-        """
-        n_samples = self.n_samples
-        depth = self.depth
-
-        points = self.space.random_uniform(n_samples=n_samples, depth=depth)
-        self.assertTrue(
-            gs.allclose(self.space.belongs(points).shape, (n_samples, depth)))
-
-        self.assertTrue(gs.all(self.space.belongs(points)))
+        self.assert_random_uniform_and_belongs_vectorization(
+            self.space, self.n_samples)
 
     def test_intrinsic_and_extrinsic_coords(self):
         """
@@ -62,15 +59,17 @@ class TestHypersphereMethods(unittest.TestCase):
         point_ext = self.space.intrinsic_to_extrinsic_coords(point_int)
         result = self.space.extrinsic_to_intrinsic_coords(point_ext)
         expected = point_int
+        expected = helper.to_vector(expected)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
         point_ext = self.space.random_uniform()
         point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
         result = self.space.intrinsic_to_extrinsic_coords(point_int)
         expected = point_ext
+        expected = helper.to_vector(expected)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     def test_intrinsic_and_extrinsic_coords_vectorization(self):
         """
@@ -88,33 +87,18 @@ class TestHypersphereMethods(unittest.TestCase):
         point_ext = self.space.intrinsic_to_extrinsic_coords(point_int)
         result = self.space.extrinsic_to_intrinsic_coords(point_ext)
         expected = point_int
+        expected = helper.to_vector(expected)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
         n_samples = self.n_samples
         point_ext = self.space.random_uniform(n_samples=n_samples)
         point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
         result = self.space.intrinsic_to_extrinsic_coords(point_int)
         expected = point_ext
+        expected = helper.to_vector(expected)
 
-        self.assertTrue(gs.allclose(result, expected))
-
-    def test_intrinsic_and_extrinsic_coords_vectorization_with_depth(self):
-        """
-        Test that the composition of
-        intrinsic_to_extrinsic_coords and
-        extrinsic_to_intrinsic_coords
-        gives the identity.
-        """
-        n_samples = self.n_samples
-        depth = self.depth
-
-        point_ext = self.space.random_uniform(n_samples=n_samples, depth=depth)
-        point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
-        result = self.space.intrinsic_to_extrinsic_coords(point_int)
-        expected = point_ext
-
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     def test_log_and_exp_general_case(self):
         """
@@ -128,16 +112,17 @@ class TestHypersphereMethods(unittest.TestCase):
         """
         # Riemannian Log then Riemannian Exp
         # General case
-        base_point_1 = gs.array([1., 2., 3., 4., 6.])
-        base_point_1 = base_point_1 / gs.linalg.norm(base_point_1)
-        point_1 = gs.array([0., 5., 6., 2., -1])
-        point_1 = point_1 / gs.linalg.norm(point_1)
+        base_point = gs.array([1., 2., 3., 4., 6.])
+        base_point = base_point / gs.linalg.norm(base_point)
+        point = gs.array([0., 5., 6., 2., -1])
+        point = point / gs.linalg.norm(point)
 
-        log_1 = self.metric.log(point=point_1, base_point=base_point_1)
-        result_1 = self.metric.exp(tangent_vec=log_1, base_point=base_point_1)
-        expected_1 = point_1
+        log = self.metric.log(point=point, base_point=base_point)
+        result = self.metric.exp(tangent_vec=log, base_point=base_point)
+        expected = point
+        expected = helper.to_vector(expected)
 
-        self.assertTrue(gs.allclose(result_1, expected_1))
+        self.assertAllClose(result, expected)
 
     def test_log_and_exp_edge_case(self):
         """
@@ -152,191 +137,25 @@ class TestHypersphereMethods(unittest.TestCase):
         # Riemannian Log then Riemannian Exp
         # Edge case: two very close points, base_point_2 and point_2,
         # form an angle < epsilon
-        base_point_2 = gs.array([1., 2., 3., 4., 6.])
-        base_point_2 = base_point_2 / gs.linalg.norm(base_point_2)
-        point_2 = base_point_2 + 1e-12 * gs.array([-1., -2., 1., 1., .1])
-        point_2 = point_2 / gs.linalg.norm(point_2)
+        base_point = gs.array([1., 2., 3., 4., 6.])
+        base_point = base_point / gs.linalg.norm(base_point)
+        point = base_point + 1e-12 * gs.array([-1., -2., 1., 1., .1])
+        point = point / gs.linalg.norm(point)
 
-        log_2 = self.metric.log(point=point_2, base_point=base_point_2)
-        result_2 = self.metric.exp(tangent_vec=log_2, base_point=base_point_2)
-        expected_2 = point_2
+        log = self.metric.log(point=point, base_point=base_point)
+        result = self.metric.exp(tangent_vec=log, base_point=base_point)
+        expected = point
+        expected = helper.to_vector(expected)
 
-        self.assertTrue(gs.allclose(result_2, expected_2))
+        self.assertAllClose(result, expected)
 
     def test_exp_vectorization(self):
-        n_samples = self.n_samples
-        dim = self.dimension
-        one_vec = self.space.random_uniform(n_samples=1)
-        one_base_point = self.space.random_uniform(n_samples=1)
-        n_vecs = self.space.random_uniform(n_samples=n_samples)
-        n_base_points = self.space.random_uniform(n_samples=n_samples)
-
-        one_tangent_vec = self.space.projection_to_tangent_space(
-            one_vec, base_point=one_base_point)
-        result = self.metric.exp(one_tangent_vec, one_base_point)
-        self.assertTrue(
-            gs.isclose(result.shape, dim + 1),
-            'result.shape = {}'.format(result.shape))
-
-        n_tangent_vecs = self.space.projection_to_tangent_space(
-            n_vecs, base_point=one_base_point)
-        result = self.metric.exp(n_tangent_vecs, one_base_point)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, dim + 1)),
-                        '\n result.shape = {}'.format(result.shape))
-        expected = gs.zeros((n_samples, dim + 1))
-        for i in range(n_samples):
-            expected[i] = self.metric.exp(n_tangent_vecs[i], one_base_point)
-        self.assertTrue(gs.allclose(result, expected))
-
-        one_tangent_vec = self.space.projection_to_tangent_space(
-            one_vec, base_point=n_base_points)
-        result = self.metric.exp(one_tangent_vec, n_base_points)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, dim + 1)))
-        expected = gs.zeros((n_samples, dim + 1))
-        for i in range(n_samples):
-            expected[i] = self.metric.exp(one_tangent_vec[i], n_base_points[i])
-        self.assertTrue(gs.allclose(result, expected))
-
-        n_tangent_vecs = self.space.projection_to_tangent_space(
-            n_vecs, base_point=n_base_points)
-        result = self.metric.exp(n_tangent_vecs, n_base_points)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, dim + 1)))
-        expected = gs.zeros((n_samples, dim + 1))
-        for i in range(n_samples):
-            expected[i] = self.metric.exp(n_tangent_vecs[i], n_base_points[i])
-        self.assertTrue(gs.allclose(result, expected))
-
-    def test_exp_vectorization_with_depth(self):
-        n_samples = self.n_samples
-        depth = self.depth
-
-        dim = self.dimension
-        one_vec = self.space.random_uniform(
-            n_samples=1, depth=depth)
-        one_base_point = self.space.random_uniform(
-            n_samples=1, depth=depth)
-        n_vecs = self.space.random_uniform(
-            n_samples=n_samples, depth=depth)
-        n_base_points = self.space.random_uniform(
-            n_samples=n_samples, depth=depth)
-
-        one_tangent_vec = self.space.projection_to_tangent_space(
-            one_vec, base_point=one_base_point)
-        result = self.metric.exp(one_tangent_vec, one_base_point)
-        self.assertTrue(
-            gs.allclose(result.shape, (depth, dim + 1)),
-            'result.shape = {}'.format(result.shape))
-        expected = gs.zeros((depth, dim + 1))
-        for j in range(depth):
-            expected[j] = self.metric.exp(
-                one_tangent_vec[j], one_base_point[j])
-        self.assertTrue(gs.allclose(result, expected))
-
-        n_tangent_vecs = self.space.projection_to_tangent_space(
-            n_vecs, base_point=one_base_point)
-        result = self.metric.exp(n_tangent_vecs, one_base_point)
-        self.assertTrue(
-            gs.allclose(result.shape, (n_samples, depth, dim + 1)),
-            '\n result.shape = {}'.format(result.shape))
-        expected = gs.zeros((n_samples, depth, dim + 1))
-        for i in range(n_samples):
-            for j in range(depth):
-                expected[i, j] = self.metric.exp(
-                    n_tangent_vecs[i, j], one_base_point[j])
-        self.assertTrue(gs.allclose(result, expected))
-
-        one_tangent_vec = self.space.projection_to_tangent_space(
-            one_vec, base_point=n_base_points)
-        result = self.metric.exp(one_tangent_vec, n_base_points)
-        self.assertTrue(
-            gs.allclose(result.shape, (n_samples, depth, dim + 1)))
-        expected = gs.zeros((n_samples, depth, dim + 1))
-        for i in range(n_samples):
-            for j in range(depth):
-                expected[i, j] = self.metric.exp(
-                    one_tangent_vec[i, j], n_base_points[i, j])
-        self.assertTrue(gs.allclose(result, expected))
-
-        n_tangent_vecs = self.space.projection_to_tangent_space(
-            n_vecs, base_point=n_base_points)
-        result = self.metric.exp(n_tangent_vecs, n_base_points)
-        self.assertTrue(
-            gs.allclose(result.shape, (n_samples, depth, dim + 1)))
-        expected = gs.zeros((n_samples, depth, dim + 1))
-        for i in range(n_samples):
-            for j in range(depth):
-                expected[i, j] = self.metric.exp(
-                    n_tangent_vecs[i, j], n_base_points[i, j])
-        self.assertTrue(gs.allclose(result, expected))
+        self.check_shape_exp_vectorization(
+            self.space, self.n_samples, self.dimension + 1)
 
     def test_log_vectorization(self):
-        n_samples = self.n_samples
-        dim = self.dimension
-        one_point = self.space.random_uniform(n_samples=1)
-        one_base_point = self.space.random_uniform(n_samples=1)
-        n_points = self.space.random_uniform(n_samples=n_samples)
-        n_base_points = self.space.random_uniform(n_samples=n_samples)
-
-        result = self.metric.log(one_point, one_base_point)
-        self.assertTrue(gs.isclose(result.shape, dim + 1))
-
-        result = self.metric.log(n_points, one_base_point)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, dim + 1)))
-
-        result = self.metric.log(one_point, n_base_points)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, dim + 1)))
-
-        result = self.metric.log(n_points, n_base_points)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, dim + 1)))
-
-    def test_log_vectorization_with_depth(self):
-        n_samples = self.n_samples
-        depth = self.depth
-        dim = self.dimension
-
-        one_point = self.space.random_uniform(
-            n_samples=1, depth=depth)
-        one_base_point = self.space.random_uniform(
-            n_samples=1, depth=depth)
-        n_points = self.space.random_uniform(
-            n_samples=n_samples, depth=depth)
-        n_base_points = self.space.random_uniform(
-            n_samples=n_samples, depth=depth)
-
-        result = self.metric.log(one_point, one_base_point)
-        self.assertTrue(
-            gs.allclose(result.shape, (depth, dim + 1)))
-        expected = gs.zeros((depth, dim + 1))
-        for j in range(depth):
-            expected[j] = self.metric.log(
-                one_point[j], one_base_point[j])
-
-        result = self.metric.log(n_points, one_base_point)
-        self.assertTrue(
-            gs.allclose(result.shape, (n_samples, depth, dim + 1)))
-        expected = gs.zeros((n_samples, depth, dim + 1))
-        for i in range(n_samples):
-            for j in range(depth):
-                expected[i, j] = self.metric.log(
-                    n_points[i, j], one_base_point[j])
-
-        result = self.metric.log(one_point, n_base_points)
-        self.assertTrue(
-            gs.allclose(result.shape, (n_samples, depth, dim + 1)))
-        expected = gs.zeros((n_samples, depth, dim + 1))
-        for i in range(n_samples):
-            for j in range(depth):
-                expected[i, j] = self.metric.log(
-                    one_point[j], n_base_points[i, j])
-
-        result = self.metric.log(n_points, n_base_points)
-        self.assertTrue(
-            gs.allclose(result.shape, (n_samples, depth, dim + 1)))
-        expected = gs.zeros((n_samples, depth, dim + 1))
-        for i in range(n_samples):
-            for j in range(depth):
-                expected[i, j] = self.metric.log(
-                    n_points[i, j], n_base_points[i, j])
+        self.check_shape_log_vectorization(
+            self.space, self.n_samples, self.dimension + 1)
 
     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
         """
@@ -366,6 +185,7 @@ class TestHypersphereMethods(unittest.TestCase):
         norm_expected = gs.linalg.norm(expected)
         regularized_norm_expected = gs.mod(norm_expected, 2 * gs.pi)
         expected = expected / norm_expected * regularized_norm_expected
+        expected = helper.to_vector(expected)
         # TODO(nina): this test fails
         # self.assertTrue(
         #    gs.allclose(result, expected),
@@ -383,20 +203,21 @@ class TestHypersphereMethods(unittest.TestCase):
         """
         # Riemannian Exp then Riemannian Log
         # Edge case: tangent vector has norm < epsilon
-        base_point_2 = gs.array([10., -2., -.5, 34., 3.])
-        base_point_2 = base_point_2 / gs.linalg.norm(base_point_2)
-        vector_2 = 1e-10 * gs.array([.06, -51., 6., 5., 3.])
-        vector_2 = self.space.projection_to_tangent_space(
-                                                    vector=vector_2,
-                                                    base_point=base_point_2)
+        base_point = gs.array([10., -2., -.5, 34., 3.])
+        base_point = base_point / gs.linalg.norm(base_point)
+        vector = 1e-10 * gs.array([.06, -51., 6., 5., 3.])
+        vector = self.space.projection_to_tangent_space(
+                                                    vector=vector,
+                                                    base_point=base_point)
 
-        exp_2 = self.metric.exp(tangent_vec=vector_2, base_point=base_point_2)
-        result_2 = self.metric.log(point=exp_2, base_point=base_point_2)
-        expected_2 = self.space.projection_to_tangent_space(
-                                                    vector=vector_2,
-                                                    base_point=base_point_2)
+        exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
+        result = self.metric.log(point=exp, base_point=base_point)
+        expected = self.space.projection_to_tangent_space(
+                                                    vector=vector,
+                                                    base_point=base_point)
+        expected = helper.to_vector(expected)
 
-        self.assertTrue(gs.allclose(result_2, expected_2))
+        self.assertAllClose(result, expected)
 
     def test_squared_norm_and_squared_dist(self):
         """
@@ -408,53 +229,13 @@ class TestHypersphereMethods(unittest.TestCase):
         log = self.metric.log(point=point_a, base_point=point_b)
         result = self.metric.squared_norm(vector=log)
         expected = self.metric.squared_dist(point_a, point_b)
+        expected = helper.to_scalar(expected)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     def test_squared_dist_vectorization(self):
-        n_samples = self.n_samples
-        one_point_a = self.space.random_uniform(n_samples=1)
-        one_point_b = self.space.random_uniform(n_samples=1)
-        n_points_a = self.space.random_uniform(n_samples=n_samples)
-        n_points_b = self.space.random_uniform(n_samples=n_samples)
-
-        result = self.metric.squared_dist(one_point_a, one_point_b)
-        self.assertTrue(gs.isclose(result.ndim, 0),
-                        'result.shape = {}'.format(result.shape))
-
-        result = self.metric.squared_dist(n_points_a, one_point_b)
-        self.assertTrue(gs.isclose(result.shape, n_samples))
-
-        result = self.metric.squared_dist(one_point_a, n_points_b)
-        self.assertTrue(gs.isclose(result.shape, n_samples))
-
-        result = self.metric.squared_dist(n_points_a, n_points_b)
-        self.assertTrue(gs.isclose(result.shape, n_samples))
-
-    def test_squared_dist_vectorization_with_depth(self):
-        n_samples = self.n_samples
-        depth = self.depth
-
-        one_point_a = self.space.random_uniform(
-            n_samples=1, depth=depth)
-        one_point_b = self.space.random_uniform(
-            n_samples=1, depth=depth)
-        n_points_a = self.space.random_uniform(
-            n_samples=n_samples, depth=depth)
-        n_points_b = self.space.random_uniform(
-            n_samples=n_samples, depth=depth)
-
-        result = self.metric.squared_dist(one_point_a, one_point_b)
-        self.assertTrue(gs.isclose(result.shape, depth))
-
-        result = self.metric.squared_dist(n_points_a, one_point_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, depth)))
-
-        result = self.metric.squared_dist(one_point_a, n_points_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, depth)))
-
-        result = self.metric.squared_dist(n_points_a, n_points_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, depth)))
+        self.check_shape_squared_dist_vectorization(
+            self.space, self.metric, self.n_samples)
 
     def test_norm_and_dist(self):
         """
@@ -466,88 +247,52 @@ class TestHypersphereMethods(unittest.TestCase):
         log = self.metric.log(point=point_a, base_point=point_b)
         result = self.metric.norm(vector=log)
         expected = self.metric.dist(point_a, point_b)
+        expected = helper.to_scalar(expected)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     def test_dist_vectorization(self):
-        n_samples = self.n_samples
-        one_point_a = self.space.random_uniform(n_samples=1)
-        one_point_b = self.space.random_uniform(n_samples=1)
-        n_points_a = self.space.random_uniform(n_samples=n_samples)
-        n_points_b = self.space.random_uniform(n_samples=n_samples)
-
-        result = self.metric.dist(one_point_a, one_point_b)
-        self.assertTrue(gs.isclose(result.ndim, 0))
-
-        result = self.metric.dist(n_points_a, one_point_b)
-        self.assertTrue(gs.isclose(result.shape, n_samples))
-
-        result = self.metric.dist(one_point_a, n_points_b)
-        self.assertTrue(gs.isclose(result.shape, n_samples))
-
-        result = self.metric.dist(n_points_a, n_points_b)
-        self.assertTrue(gs.isclose(result.shape, n_samples))
-
-    def test_dist_vectorization_with_depth(self):
-        n_samples = self.n_samples
-        depth = self.depth
-
-        one_point_a = self.space.random_uniform(
-            n_samples=1, depth=depth)
-        one_point_b = self.space.random_uniform(
-            n_samples=1, depth=depth)
-        n_points_a = self.space.random_uniform(
-            n_samples=n_samples, depth=depth)
-        n_points_b = self.space.random_uniform(
-            n_samples=n_samples, depth=depth)
-
-        result = self.metric.dist(one_point_a, one_point_b)
-        self.assertTrue(gs.isclose(result.shape, depth))
-
-        result = self.metric.dist(n_points_a, one_point_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, depth)))
-
-        result = self.metric.dist(one_point_a, n_points_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, depth)))
-
-        result = self.metric.dist(n_points_a, n_points_b)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, depth)))
+        self.check_shape_dist_vectorization(
+            self.space, self.metric, self.n_samples)
 
     def test_dist_point_and_itself(self):
         # Distance between a point and itself is 0.
-        point_a_1 = gs.array([10., -2., -.5, 2., 3.])
-        point_b_1 = point_a_1
-        result_1 = self.metric.dist(point_a_1, point_b_1)
-        expected_1 = 0.
+        point_a = gs.array([10., -2., -.5, 2., 3.])
+        point_b = point_a
+        result = self.metric.dist(point_a, point_b)
+        expected = 0.
+        expected = helper.to_scalar(expected)
 
-        self.assertTrue(gs.allclose(result_1, expected_1))
+        self.assertAllClose(result, expected)
 
     def test_dist_orthogonal_points(self):
         # Distance between two orthogonal points is pi / 2.
-        point_a_2 = gs.array([10., -2., -.5, 0., 0.])
-        point_b_2 = gs.array([2., 10, 0., 0., 0.])
-        self.assertEqual(gs.dot(point_a_2, point_b_2), 0)
+        point_a = gs.array([10., -2., -.5, 0., 0.])
+        point_b = gs.array([2., 10, 0., 0., 0.])
+        self.assertEqual(gs.dot(point_a, point_b), 0)
 
-        result_2 = self.metric.dist(point_a_2, point_b_2)
-        expected_2 = gs.pi / 2
+        result = self.metric.dist(point_a, point_b)
+        expected = gs.pi / 2
+        expected = helper.to_scalar(expected)
 
-        self.assertTrue(gs.allclose(result_2, expected_2))
+        self.assertAllClose(result, expected)
 
     def test_exp_and_dist_and_projection_to_tangent_space(self):
-        base_point_1 = gs.array([16., -2., -2.5, 84., 3.])
-        base_point_1 = base_point_1 / gs.linalg.norm(base_point_1)
+        base_point = gs.array([16., -2., -2.5, 84., 3.])
+        base_point = base_point / gs.linalg.norm(base_point)
 
-        vector_1 = gs.array([9., 0., -1., -2., 1.])
-        tangent_vec_1 = self.space.projection_to_tangent_space(
-                                                      vector=vector_1,
-                                                      base_point=base_point_1)
-        exp_1 = self.metric.exp(tangent_vec=tangent_vec_1,
-                                base_point=base_point_1)
+        vector = gs.array([9., 0., -1., -2., 1.])
+        tangent_vec = self.space.projection_to_tangent_space(
+                                                      vector=vector,
+                                                      base_point=base_point)
+        exp = self.metric.exp(tangent_vec=tangent_vec,
+                              base_point=base_point)
 
-        result_1 = self.metric.dist(base_point_1, exp_1)
-        expected_1 = gs.mod(gs.linalg.norm(tangent_vec_1), 2 * gs.pi)
+        result = self.metric.dist(base_point, exp)
+        expected = gs.mod(gs.linalg.norm(tangent_vec), 2 * gs.pi)
+        expected = helper.to_scalar(expected)
 
-        self.assertTrue(gs.allclose(result_1, expected_1))
+        self.assertAllClose(result, expected)
 
     def test_geodesic_and_belongs(self):
         initial_point = self.space.random_uniform()
@@ -568,14 +313,14 @@ class TestHypersphereMethods(unittest.TestCase):
         result = self.metric.variance([point, point])
         expected = 0
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     def test_mean(self):
         point = self.space.random_uniform()
         result = self.metric.mean([point, point])
         expected = point
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     def test_mean_and_belongs(self):
         point_a = self.space.random_uniform()

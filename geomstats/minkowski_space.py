@@ -19,16 +19,20 @@ class MinkowskiSpace(Manifold):
         """
         Check if point belongs to the Minkowski space.
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        _, point_dim = point.shape
+        point_dim = point.shape[-1]
         return point_dim == self.dimension
 
-    def random_uniform(self, n_samples=1):
+    def random_uniform(self, n_samples=1, depth=None):
         """
         Sample a vector uniformly in the Minkowski space,
         with coordinates each between -1. and 1.
         """
-        point = gs.random.rand(n_samples, self.dimension) * 2 - 1
+        if depth is None:
+            size = (n_samples, 1, self.dimension)
+        else:
+            size = (n_samples, depth, self.dimension)
+        point = gs.random.rand(*size) * 2 - 1
+
         return point
 
 
@@ -57,12 +61,20 @@ class MinkowskiMetric(RiemannianMetric):
         """
         The Riemannian exponential is the addition in the Minkowski space.
         """
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3, axis=1)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=3, axis=1)
         return base_point + tangent_vec
 
     def log(self, point, base_point):
         """
         The Riemannian logarithm is the subtraction in the Minkowski space.
         """
+        point = gs.to_ndarray(point, to_ndim=2)
+        point = gs.to_ndarray(point, to_ndim=3, axis=1)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=3, axis=1)
         return point - base_point
 
     def mean(self, points, weights=None):
