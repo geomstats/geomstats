@@ -5,6 +5,10 @@
 import tensorflow as tf
 
 
+def tile(*args, **kwargs):
+    return tf.tile(*args, **kwargs)
+
+
 def eval(x):
     if tf.executing_eagerly():
         return x

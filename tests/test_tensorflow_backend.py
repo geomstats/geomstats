@@ -6,7 +6,6 @@ import importlib
 import os
 import tensorflow as tf
 import tests.helper as helper
-tf.enable_eager_execution()
 
 
 class TestHypersphereOnTensorFlow(tf.test.TestCase):
