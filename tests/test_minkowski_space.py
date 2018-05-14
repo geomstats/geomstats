@@ -18,7 +18,6 @@ class TestMinkowskiSpaceMethods(helper.TestGeomstatsMethods):
         self.space = MinkowskiSpace(self.dimension)
         self.metric = self.space.metric
         self.n_samples = 10
-        self.depth = 3
 
     def test_belongs(self):
         self.check_shape_belongs(self.space)
@@ -26,10 +25,6 @@ class TestMinkowskiSpaceMethods(helper.TestGeomstatsMethods):
     def test_belongs_vectorization(self):
         self.check_shape_belongs_vectorization(
             self.space, self.n_samples)
-
-    def test_belongs_vectorization_with_depth(self):
-        self.check_shape_belongs_vectorization_with_depth(
-            self.space, self.n_samples, self.depth)
 
     def test_random_uniform(self):
         self.check_shape_random_uniform(
@@ -39,20 +34,12 @@ class TestMinkowskiSpaceMethods(helper.TestGeomstatsMethods):
         self.check_shape_random_uniform_vectorization(
             self.space, self.n_samples, self.dimension)
 
-    def test_random_uniform_vectorization_with_depth(self):
-        self.check_shape_random_uniform_vectorization_with_depth(
-            self.space, self.n_samples, self.depth, self.dimension)
-
     def test_random_uniform_and_belongs(self):
         self.assert_random_uniform_and_belongs(self.space)
 
     def test_random_uniform_and_belongs_vectorization(self):
         self.assert_random_uniform_and_belongs_vectorization(
             self.space, self.n_samples)
-
-    def test_random_uniform_and_belongs_vectorization_with_depth(self):
-        self.assert_random_uniform_and_belongs_vectorization_with_depth(
-            self.space, self.n_samples, self.depth)
 
     def test_inner_product_matrix(self):
         result = self.metric.inner_product_matrix()
@@ -72,8 +59,6 @@ class TestMinkowskiSpaceMethods(helper.TestGeomstatsMethods):
         self.assertAllClose(result, expected)
 
     def test_inner_product_vectorization(self):
-        depth = 1
-
         n_samples = self.n_samples
         one_point_a = self.space.random_uniform(n_samples=1)
         one_point_b = self.space.random_uniform(n_samples=1)
@@ -88,10 +73,10 @@ class TestMinkowskiSpaceMethods(helper.TestGeomstatsMethods):
         self.assertAllClose(result, expected)
 
         result = self.metric.inner_product(n_points_a, one_point_b)
-        self.assertScalar(result, n_samples=n_samples, depth=depth)
+        self.assertScalar(result, n_samples=n_samples)
 
         result = self.metric.inner_product(one_point_a, n_points_b)
-        self.assertScalar(result, n_samples=n_samples, depth=depth)
+        self.assertScalar(result, n_samples=n_samples)
 
         result = self.metric.inner_product(n_points_a, n_points_b)
         expected = gs.zeros(n_samples)
@@ -100,7 +85,7 @@ class TestMinkowskiSpaceMethods(helper.TestGeomstatsMethods):
             expected[i] -= (2 * n_points_a[i, self.time_like_dim]
                             * n_points_b[i, self.time_like_dim])
         expected = helper.to_scalar(expected)
-        self.assertScalar(result, n_samples=n_samples, depth=depth)
+        self.assertScalar(result, n_samples=n_samples)
         self.assertAllClose(result, expected)
 
     def test_squared_norm(self):
@@ -116,8 +101,7 @@ class TestMinkowskiSpaceMethods(helper.TestGeomstatsMethods):
         n_points = self.space.random_uniform(n_samples=n_samples)
 
         result = self.metric.squared_norm(n_points)
-        self.assertTrue(gs.isclose(result.shape, n_samples),
-                        'result.shape={}'.format(result.shape))
+        self.assertScalar(result, n_samples)
 
     def test_norm(self):
         point = gs.array([-1, 4])
@@ -134,8 +118,6 @@ class TestMinkowskiSpaceMethods(helper.TestGeomstatsMethods):
         self.assertAllClose(result, expected)
 
     def test_exp_vectorization(self):
-        depth = 1
-
         n_samples = self.n_samples
         dim = self.dimension
         one_tangent_vec = self.space.random_uniform(n_samples=1)
@@ -149,13 +131,13 @@ class TestMinkowskiSpaceMethods(helper.TestGeomstatsMethods):
         self.assertAllClose(result, expected)
 
         result = self.metric.exp(n_tangent_vecs, one_base_point)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
         result = self.metric.exp(one_tangent_vec, n_base_points)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
         result = self.metric.exp(n_tangent_vecs, n_base_points)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
     def test_log(self):
         base_point = gs.array([0, 1])
@@ -166,8 +148,6 @@ class TestMinkowskiSpaceMethods(helper.TestGeomstatsMethods):
         self.assertAllClose(result, expected)
 
     def test_log_vectorization(self):
-        depth = 1
-
         n_samples = self.n_samples
         dim = self.dimension
         one_point = self.space.random_uniform(n_samples=1)
@@ -181,13 +161,13 @@ class TestMinkowskiSpaceMethods(helper.TestGeomstatsMethods):
         self.assertAllClose(result, expected)
 
         result = self.metric.log(n_points, one_base_point)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
         result = self.metric.log(one_point, n_base_points)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
         result = self.metric.log(n_points, n_base_points)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
     def test_squared_dist(self):
         point_a = gs.array([-1, 4])
@@ -197,7 +177,7 @@ class TestMinkowskiSpaceMethods(helper.TestGeomstatsMethods):
         vec = point_b - point_a
         expected = gs.dot(vec, vec)
         expected -= 2 * vec[self.time_like_dim] * vec[self.time_like_dim]
-        expected = helper.to_vector(expected)
+        expected = helper.to_scalar(expected)
         self.assertAllClose(result, expected)
 
     def test_squared_dist_vectorization(self):
