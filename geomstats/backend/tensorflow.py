@@ -6,7 +6,6 @@ import tensorflow as tf
 
 
 def eval(x):
-    return x
     return x.eval()
 
 
