@@ -24,11 +24,10 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
         tf.enable_eager_execution()
         os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
         importlib.reload(gs)
-        importlib.reload(hypersphere)
 
     @classmethod
     def tearDownClass(cls):
-        os.unsetenv('GEOMSTATS_BACKEND')
+        os.environ['GEOMSTATS_BACKEND'] = 'numpy'
         importlib.reload(gs)
 
     def test_random_uniform_and_belongs(self):
