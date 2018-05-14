@@ -26,9 +26,8 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        pass
-        #os.unsetenv('GEOMSTATS_BACKEND')
-        #importlib.reload(gs)
+        os.environ['GEOMSTATS_BACKEND'] = 'numpy'
+        importlib.reload(gs)
 
     def test_random_uniform_and_belongs(self):
         pass
