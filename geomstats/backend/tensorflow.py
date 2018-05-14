@@ -5,8 +5,8 @@
 import tensorflow as tf
 
 
-def tile(*args, **kwargs):
-    return tf.tile(*args, **kwargs)
+def tile(x, reps):
+    return tf.tile(x, reps)
 
 
 def eval(x):

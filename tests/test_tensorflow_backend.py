@@ -1,11 +1,11 @@
 """Unit tests for tensorflow backend."""
 
+import os
+import tensorflow as tf
 
 from geomstats import hypersphere
 import geomstats.backend as gs
-import importlib
-import os
-import tensorflow as tf
+import tests.helper as helper
 
 
 class TestHypersphereOnTensorFlow(tf.test.TestCase):
@@ -38,7 +38,7 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
         """
         point = self.space.random_uniform()
         with self.test_session():
-            self.assertTrue(gs.eval(self.space.belongs(point)))
+            self.assertTrue(gs.eval(self.space.belongs(point)[0, 0]))
 
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         with self.test_session():
@@ -80,8 +80,6 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
 
             expected = helper.to_scalar(expected)
             self.assertAllClose(gs.eval(result), gs.eval(expected))
-
-
 
 
 if __name__ == '__main__':
