@@ -61,7 +61,6 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
 
     def test_inner_product_vectorization(self):
         n_samples = self.n_samples
-        depth = 1
 
         one_point_a = self.space.random_uniform(n_samples=1)
         one_point_b = self.space.random_uniform(n_samples=1)
@@ -77,13 +76,13 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         expected = gs.dot(n_points_a, one_point_b.transpose())
         expected = helper.to_scalar(expected)
 
-        self.assertScalar(result, n_samples=n_samples, depth=depth)
+        self.assertScalar(result, n_samples=n_samples)
         self.assertAllClose(result, expected)
 
         result = self.metric.inner_product(one_point_a, n_points_b)
         expected = gs.dot(one_point_a, n_points_b.transpose()).transpose()
         expected = helper.to_scalar(expected)
-        self.assertScalar(result, n_samples=n_samples, depth=depth)
+        self.assertScalar(result, n_samples=n_samples)
         self.assertAllClose(result, expected)
 
         result = self.metric.inner_product(n_points_a, n_points_b)
@@ -91,7 +90,7 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         for i in range(n_samples):
             expected[i] = gs.dot(n_points_a[i], n_points_b[i])
         expected = helper.to_scalar(expected)
-        self.assertScalar(result, n_samples=n_samples, depth=depth)
+        self.assertScalar(result, n_samples=n_samples)
         self.assertAllClose(result, expected)
 
     def test_squared_norm(self):
@@ -104,14 +103,13 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
 
     def test_squared_norm_vectorization(self):
         n_samples = self.n_samples
-        depth = 1
 
         n_points = self.space.random_uniform(n_samples=n_samples)
 
         result = self.metric.squared_norm(n_points)
         expected = gs.linalg.norm(n_points, axis=-1) ** 2
         expected = helper.to_scalar(expected)
-        self.assertScalar(result, n_samples=n_samples, depth=depth)
+        self.assertScalar(result, n_samples=n_samples)
         self.assertAllClose(result, expected)
 
     def test_norm(self):
@@ -124,13 +122,12 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
 
     def test_norm_vectorization(self):
         n_samples = self.n_samples
-        depth = 1
         n_points = self.space.random_uniform(n_samples=n_samples)
 
         result = self.metric.norm(n_points)
         expected = gs.linalg.norm(n_points, axis=1)
         expected = helper.to_scalar(expected)
-        self.assertScalar(result, n_samples=n_samples, depth=depth)
+        self.assertScalar(result, n_samples=n_samples)
         self.assertAllClose(result, expected)
 
     def test_exp(self):
@@ -144,7 +141,6 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
 
     def test_exp_vectorization(self):
         n_samples = self.n_samples
-        depth = 1
         dim = self.dimension
 
         one_tangent_vec = self.space.random_uniform(n_samples=1)
@@ -158,13 +154,13 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         self.assertAllClose(result, expected)
 
         result = self.metric.exp(n_tangent_vecs, one_base_point)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
         result = self.metric.exp(one_tangent_vec, n_base_points)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
         result = self.metric.exp(n_tangent_vecs, n_base_points)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
     def test_log(self):
         base_point = gs.array([0, 1])
@@ -176,7 +172,6 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
 
     def test_log_vectorization(self):
         n_samples = self.n_samples
-        depth = 1
         dim = self.dimension
 
         one_point = self.space.random_uniform(n_samples=1)
@@ -190,13 +185,13 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         self.assertAllClose(result, expected)
 
         result = self.metric.log(n_points, one_base_point)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
         result = self.metric.log(one_point, n_base_points)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
         result = self.metric.log(n_points, n_base_points)
-        self.assertVector(result, n_samples, depth, dim)
+        self.assertVector(result, n_samples, dim)
 
     def test_squared_dist(self):
         point_a = gs.array([-1, 4])
@@ -210,7 +205,6 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
 
     def test_squared_dist_vectorization(self):
         n_samples = self.n_samples
-        depth = 1
 
         one_point_a = self.space.random_uniform(n_samples=1)
         one_point_b = self.space.random_uniform(n_samples=1)
@@ -224,10 +218,10 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         self.assertAllClose(result, expected)
 
         result = self.metric.squared_dist(n_points_a, one_point_b)
-        self.assertScalar(result, n_samples, depth)
+        self.assertScalar(result, n_samples)
 
         result = self.metric.squared_dist(one_point_a, n_points_b)
-        self.assertScalar(result, n_samples, depth)
+        self.assertScalar(result, n_samples)
 
         result = self.metric.squared_dist(n_points_a, n_points_b)
         expected = gs.zeros(n_samples)
@@ -235,7 +229,7 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
             vec = n_points_a[i] - n_points_b[i]
             expected[i] = gs.dot(vec, vec.transpose())
         expected = helper.to_scalar(expected)
-        self.assertScalar(result, n_samples, depth)
+        self.assertScalar(result, n_samples)
         self.assertAllClose(result, expected)
 
     def test_dist(self):
@@ -249,7 +243,6 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
 
     def test_dist_vectorization(self):
         n_samples = self.n_samples
-        depth = 1
 
         one_point_a = self.space.random_uniform(n_samples=1)
         one_point_b = self.space.random_uniform(n_samples=1)
@@ -263,10 +256,10 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         self.assertAllClose(result, expected)
 
         result = self.metric.dist(n_points_a, one_point_b)
-        self.assertScalar(result, n_samples, depth)
+        self.assertScalar(result, n_samples)
 
         result = self.metric.dist(one_point_a, n_points_b)
-        self.assertScalar(result, n_samples, depth)
+        self.assertScalar(result, n_samples)
 
         result = self.metric.dist(n_points_a, n_points_b)
         expected = gs.zeros(n_samples)
@@ -274,7 +267,7 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
             vec = n_points_a[i] - n_points_b[i]
             expected[i] = gs.sqrt(gs.dot(vec, vec.transpose()))
         expected = helper.to_scalar(expected)
-        self.assertScalar(result, n_samples, depth)
+        self.assertScalar(result, n_samples)
         self.assertAllClose(result, expected)
 
     def test_geodesic_and_belongs(self):
@@ -292,6 +285,7 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         point = gs.array([1, 4])
         result = self.metric.mean(points=[point, point, point])
         expected = point
+        expected = helper.to_vector(expected)
 
         self.assertAllClose(result, expected)
 
@@ -303,6 +297,7 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
 
         result = self.metric.mean(points, weights)
         expected = gs.array([16., 22.]) / 6.
+        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
     def test_variance(self):
@@ -315,6 +310,7 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         result = self.metric.variance(points, weights, base_point)
         # we expect the average of the points' sq norms.
         expected = (1 * 5. + 2 * 13. + 1 * 25. + 2 * 41.) / 6.
+        expected = helper.to_scalar(expected)
         self.assertAllClose(result, expected)
 
 

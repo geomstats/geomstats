@@ -43,6 +43,7 @@ class RiemannianMetric(object):
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
         aux = gs.einsum('nj,njk->nk', tangent_vec_a, inner_prod_mat)
         inner_prod = gs.einsum('nk,nk->n', aux, tangent_vec_b)
+        inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
         assert gs.ndim(inner_prod) == 2, inner_prod.shape
         return inner_prod
