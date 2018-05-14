@@ -37,6 +37,7 @@ class TestGeomstatsMethods(unittest.TestCase):
     def check_shape_belongs(self, space):
         point = space.random_uniform()
         belongs = space.belongs(point)
+        print('belongs={}'.format(belongs))
 
         self.assertScalar(belongs)
 

@@ -171,7 +171,7 @@ class TestEuclideanSpaceMethods(helper.TestGeomstatsMethods):
         n_points = self.space.random_uniform(n_samples=n_samples)
 
         result = self.metric.squared_norm(n_points)
-        expected = gs.linalg.norm(n_points, axis=1) ** 2
+        expected = gs.linalg.norm(n_points, axis=-1) ** 2
         expected = helper.to_scalar(expected)
         self.assertScalar(result, n_samples=n_samples, depth=depth)
         self.assertAllClose(result, expected)
