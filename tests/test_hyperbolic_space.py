@@ -23,7 +23,6 @@ class TestHyperbolicSpaceMethods(helper.TestGeomstatsMethods):
         self.space = HyperbolicSpace(dimension=self.dimension)
         self.metric = self.space.metric
         self.n_samples = 10
-        self.depth = 3
 
     def test_belongs(self):
         self.check_shape_belongs(self.space)
@@ -32,10 +31,6 @@ class TestHyperbolicSpaceMethods(helper.TestGeomstatsMethods):
         self.check_shape_belongs_vectorization(
             self.space, self.n_samples)
 
-    def test_belongs_vectorization_with_depth(self):
-        self.check_shape_belongs_vectorization_with_depth(
-            self.space, self.n_samples, self.depth)
-
     def test_random_uniform(self):
         self.check_shape_random_uniform(
             self.space, self.dimension + 1)
@@ -43,10 +38,6 @@ class TestHyperbolicSpaceMethods(helper.TestGeomstatsMethods):
     def test_random_uniform_vectorization(self):
         self.check_shape_random_uniform_vectorization(
             self.space, self.n_samples, self.dimension + 1)
-
-    def test_random_uniform_vectorization_with_depth(self):
-        self.check_shape_random_uniform_vectorization_with_depth(
-            self.space, self.n_samples, self.depth, self.dimension + 1)
 
     def test_random_uniform_and_belongs(self):
         """
@@ -62,14 +53,6 @@ class TestHyperbolicSpaceMethods(helper.TestGeomstatsMethods):
         """
         self.assert_random_uniform_and_belongs_vectorization(
             self.space, self.n_samples)
-
-    def test_random_uniform_and_belongs_vectorization_with_depth(self):
-        """
-        Test that the random uniform method samples
-        on the hyperbolic space.
-        """
-        self.assert_random_uniform_and_belongs_vectorization_with_depth(
-            self.space, self.n_samples, self.depth)
 
     def test_intrinsic_and_extrinsic_coords(self):
         """
@@ -159,17 +142,9 @@ class TestHyperbolicSpaceMethods(helper.TestGeomstatsMethods):
         self.check_shape_exp_vectorization(
             self.space, self.n_samples, self.dimension + 1)
 
-    def test_exp_vectorization_with_depth(self):
-        self.check_shape_exp_vectorization_with_depth(
-            self.space, self.n_samples, self.depth, self.dimension + 1)
-
     def test_log_vectorization(self):
         self.check_shape_log_vectorization(
             self.space, self.n_samples, self.dimension + 1)
-
-    def test_log_vectorization_with_depth(self):
-        self.check_shape_log_vectorization_with_depth(
-            self.space, self.n_samples, self.depth, self.dimension + 1)
 
     def test_squared_norm_and_squared_dist(self):
         """
@@ -188,10 +163,6 @@ class TestHyperbolicSpaceMethods(helper.TestGeomstatsMethods):
         self.check_shape_squared_dist_vectorization(
             self.space, self.metric, self.n_samples)
 
-    def test_squared_dist_vectorization_with_depth(self):
-        self.check_shape_squared_dist_vectorization_with_depth(
-            self.space, self.metric, self.n_samples, self.depth)
-
     def test_norm_and_dist(self):
         """
         Test that the distance between two points is
@@ -208,10 +179,6 @@ class TestHyperbolicSpaceMethods(helper.TestGeomstatsMethods):
     def test_dist_vectorization(self):
         self.check_shape_dist_vectorization(
             self.space, self.metric, self.n_samples)
-
-    def test_dist_vectorization_with_depth(self):
-        self.check_shape_dist_vectorization_with_depth(
-            self.space, self.metric, self.n_samples, self.depth)
 
     def test_log_and_exp_edge_case(self):
         """

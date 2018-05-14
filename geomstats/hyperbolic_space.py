@@ -65,8 +65,7 @@ class HyperbolicSpace(EmbeddedManifold):
         Note: point must be given in extrinsic coordinates.
         """
         point = gs.to_ndarray(point, to_ndim=2)
-        point = gs.to_ndarray(point, to_ndim=3, axis=1)
-        point_dim = point.shape[-1]
+        _, point_dim = point.shape
         if point_dim is not self.dimension + 1:
             if point_dim is self.dimension:
                 logging.warning('Use the extrinsic coordinates to '
@@ -74,10 +73,11 @@ class HyperbolicSpace(EmbeddedManifold):
             return False
 
         sq_norm = self.embedding_metric.squared_norm(point)
-        euclidean_sq_norm = gs.einsum('ndj,ndj->nd', point, point)
-        euclidean_sq_norm = gs.to_ndarray(euclidean_sq_norm, to_ndim=3, axis=2)
+        euclidean_sq_norm = gs.linalg.norm(point, axis=-1) ** 2
+        euclidean_sq_norm = gs.to_ndarray(euclidean_sq_norm, to_ndim=2, axis=1)
         diff = gs.abs(sq_norm + 1)
-        return diff < tolerance * euclidean_sq_norm
+        belongs = diff < tolerance * euclidean_sq_norm
+        return belongs
 
     def regularize(self, point):
         assert gs.all(self.belongs(point))
@@ -85,7 +85,7 @@ class HyperbolicSpace(EmbeddedManifold):
 
         sq_norm = self.embedding_metric.squared_norm(point)
         real_norm = gs.sqrt(gs.abs(sq_norm))
-        n_points, depth, _ = real_norm.shape
+        n_points, _ = real_norm.shape
 
         for i in range(n_points):
                 if real_norm[i, 0] != 0:
@@ -177,9 +177,7 @@ class HyperbolicMetric(RiemannianMetric):
         :returns riem_exp: a point on the hyperbolic space
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3, axis=1)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=3, axis=1)
 
         sq_norm_tangent_vec = self.embedding_metric.squared_norm(
                 tangent_vec)
