@@ -63,8 +63,8 @@ class Hypersphere(EmbeddedManifold):
         Project the vector vector onto the tangent space:
         T_{base_point} S = {w | scal(w, base_point) = 0}
         """
-        vector = gs.to_ndarray(vector, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        #vector = gs.to_ndarray(vector, to_ndim=2)
+        #base_point = gs.to_ndarray(base_point, to_ndim=2)
         sq_norm = self.embedding_metric.squared_norm(base_point)
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
 
