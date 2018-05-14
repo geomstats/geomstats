@@ -37,6 +37,7 @@ class RiemannianMetric(object):
         Inner product defined by the Riemannian metric at point base_point
         between tangent vectors tangent_vec_a and tangent_vec_b.
         """
+
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
         n_tangent_vecs, _ = tangent_vec_a.shape

@@ -24,6 +24,7 @@ class EuclideanSpace(Manifold):
         belongs = point_dim == self.dimension
         belongs = gs.repeat(belongs, repeats=n_points, axis=0)
         belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
+
         return belongs
 
     def random_uniform(self, n_samples=1):

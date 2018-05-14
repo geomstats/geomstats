@@ -38,9 +38,9 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
         Test that the random uniform method samples
         on the hypersphere space.
         """
-        #point = self.space.random_uniform()
-        #with self.test_session():
-        #    self.assertTrue(gs.eval(self.space.belongs(point)))
+        point = self.space.random_uniform()
+        with self.test_session():
+            self.assertTrue(gs.eval(self.space.belongs(point)))
 
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         with self.test_session():
@@ -48,8 +48,8 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
             base_point = base_point / gs.linalg.norm(base_point)
             vector = gs.array([9., 0., -1., -2., 1.])
             tangent_vec = self.space.projection_to_tangent_space(
-                                                      vector=vector,
-                                                      base_point=base_point)
+                    vector=vector,
+                    base_point=base_point)
             exp = self.metric.exp(tangent_vec=tangent_vec,
                                   base_point=base_point)
             result = self.metric.dist(base_point, exp)
