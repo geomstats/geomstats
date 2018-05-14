@@ -19,10 +19,13 @@ class EuclideanSpace(Manifold):
         """
         Check if point belongs to the Euclidean space.
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        point = gs.to_ndarray(point, to_ndim=3, axis=1)
         point_dim = point.shape[-1]
-        return point_dim == self.dimension
+        belongs = point_dim == self.dimension
+        belongs = gs.asarray(belongs)
+        belongs = gs.to_ndarray(belongs, to_ndim=1)
+        belongs = gs.to_ndarray(belongs, to_ndim=2)
+        belongs = gs.to_ndarray(belongs, to_ndim=3, axis=1)
+        return belongs
 
     def random_uniform(self, n_samples=1, depth=None):
         """

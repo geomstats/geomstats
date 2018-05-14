@@ -22,7 +22,7 @@ class TestHypersphereMethods(tf.test.TestCase):
     @classmethod
     def setUpClass(cls):
         pass
-        #os.environ['GEOMSTATS_BACKEND'] = 'tenosr'
+        #os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
         #importlib.reload(gs)
         #importlib.reload(hypersphere)
 
