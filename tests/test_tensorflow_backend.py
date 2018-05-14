@@ -1,23 +1,12 @@
-<<<<<<< HEAD
 """Unit tests for tensorflow backend."""
-=======
-"""Unit tests for hypersphere module."""
->>>>>>> c8d728b... update test
+
 
 from geomstats import hypersphere
 import geomstats.backend as gs
 import importlib
 import os
 import tensorflow as tf
-import tests.helper as helper
-<<<<<<< HEAD
-<<<<<<< HEAD
 
-=======
->>>>>>> c8d728b... update test
-=======
-tf.enable_eager_execution()
->>>>>>> d45d777... test failing
 
 class TestHypersphereOnTensorFlow(tf.test.TestCase):
     _multiprocess_can_split_ = True
@@ -32,21 +21,8 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
 
     @classmethod
     def setUpClass(cls):
-<<<<<<< HEAD
-<<<<<<< HEAD
         tf.enable_eager_execution()
         os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
-=======
-        #os.environ['GEOMSTATS_BACKEND'] = 'tenosr'
->>>>>>> c8d728b... update test
-        importlib.reload(gs)
-        importlib.reload(hypersphere)
-=======
-        pass
-        #os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
-        #importlib.reload(gs)
-        #importlib.reload(hypersphere)
->>>>>>> d45d777... test failing
 
     @classmethod
     def tearDownClass(cls):
@@ -60,16 +36,9 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
         Test that the random uniform method samples
         on the hypersphere space.
         """
-<<<<<<< HEAD
-<<<<<<< HEAD
-        #point = self.space.random_uniform()
-        #with self.test_session():
-        #    self.assertTrue(gs.eval(self.space.belongs(point)))
-=======
         point = self.space.random_uniform()
         with self.test_session():
             self.assertTrue(gs.eval(self.space.belongs(point)))
->>>>>>> c8d728b... update test
 
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         with self.test_session():
@@ -77,13 +46,9 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
             base_point = base_point / gs.linalg.norm(base_point)
             vector = gs.array([9., 0., -1., -2., 1.])
             tangent_vec = self.space.projection_to_tangent_space(
-<<<<<<< HEAD
                                                       vector=vector,
                                                       base_point=base_point)
-=======
-                                                          vector=vector,
-                                                          base_point=base_point)
->>>>>>> c8d728b... update test
+
             exp = self.metric.exp(tangent_vec=tangent_vec,
                                   base_point=base_point)
             result = self.metric.dist(base_point, exp)
@@ -91,34 +56,11 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
             expected = helper.to_scalar(expected)
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-=======
-        #point = self.space.random_uniform()
-        #with self.test_session():
-        #    self.assertTrue(gs.eval(self.space.belongs(point)))
-
-    def test_exp_and_dist_and_projection_to_tangent_space(self):
-        pass
-        #with self.test_session():
-        #    base_point = gs.array([16., -2., -2.5, 84., 3.])
-        #    base_point = base_point / gs.linalg.norm(base_point)
-        #    vector = gs.array([9., 0., -1., -2., 1.])
-        #    tangent_vec = self.space.projection_to_tangent_space(
-        #                                                  vector=vector,
-        #                                                  base_point=base_point)
-        #    exp = self.metric.exp(tangent_vec=tangent_vec,
-        #                          base_point=base_point)
-        #    result = self.metric.dist(base_point, exp)
-        #    expected = gs.linalg.norm(tangent_vec) % (2 * gs.pi)
-        #    expected = helper.to_scalar(expected)
-        #    self.assertAllClose(gs.eval(result), gs.eval(expected))
-#
->>>>>>> d45d777... test failing
     def test_exp_and_dist_and_projection_to_tangent_space_vec(self):
         with self.test_session():
 
             base_point = gs.array([[16., -2., -2.5, 84., 3.],
                                    [16., -2., -2.5, 84., 3.]])
-<<<<<<< HEAD
 
             base_single_point = gs.array([16., -2., -2.5, 84., 3.])
             scalar_norm = gs.linalg.norm(base_single_point)
@@ -138,24 +80,7 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
 
             expected = helper.to_scalar(expected)
             self.assertAllClose(gs.eval(result), gs.eval(expected))
-=======
-            base_point = gs.expand_dims(base_point, 0)
-            base_single_point = gs.array([16., -2., -2.5, 84., 3.])
-            scalar_norm = gs.linalg.norm(base_single_point)
-            base_point = base_point / scalar_norm
-            vector = gs.array([[9., 0., -1., -2., 1.], [9., 0., -1., -2., 1]])
-            vector = gs.expand_dims(vector, 0)
-            tangent_vec = self.space.projection_to_tangent_space(
-                                                          vector=vector,
-                                                          base_point=base_point)
-            exp = self.metric.exp(tangent_vec=tangent_vec,
-                                  base_point=base_point)
-            result = self.metric.dist(base_point, exp)
-            expected = gs.linalg.norm(tangent_vec, axis=-1) % (2 * gs.pi)
-            expected = helper.to_scalar(expected)
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
->>>>>>> c8d728b... update test
 
 
 

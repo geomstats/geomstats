@@ -184,10 +184,6 @@ def to_scalar(expected):
 
 def to_vector(expected):
     expected = gs.to_ndarray(expected, to_ndim=2)
-<<<<<<< HEAD
-=======
-    expected = gs.to_ndarray(expected, to_ndim=3, axis=1)
->>>>>>> c8d728b... update test
     return expected
 
 

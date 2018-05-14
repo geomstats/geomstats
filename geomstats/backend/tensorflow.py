@@ -5,7 +5,6 @@
 import tensorflow as tf
 
 
-<<<<<<< HEAD
 def tile(*args, **kwargs):
     return tf.tile(*args, **kwargs)
 
@@ -16,12 +15,6 @@ def eval(x):
     return x.eval()
 
 
-=======
-def eval(x):
-    return x
-    return x.eval()
-
->>>>>>> d45d777... test failing
 def abs(x):
     return tf.abs(x)
 
@@ -177,13 +170,6 @@ def asarray(x):
 
 def expand_dims(x, axis=None):
     return tf.expand_dims(x, axis)
-
-
-def expand_dims(x, axis=None):
-    return tf.expand_dims(x, axis)
-
-
-
 
 
 def clip(x, min_value, max_value):
