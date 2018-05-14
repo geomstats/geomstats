@@ -6,6 +6,8 @@ import tensorflow as tf
 
 
 def eval(x):
+    if tf.executing_eagerly():
+        return x
     return x.eval()
 
 
