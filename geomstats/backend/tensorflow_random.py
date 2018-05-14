@@ -8,4 +8,4 @@ def rand(*args):
 
 
 def seed(*args):
-    return tf.set_random_seed(seed=args)
+    return tf.set_random_seed(*args)
