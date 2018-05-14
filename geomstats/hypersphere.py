@@ -64,14 +64,12 @@ class Hypersphere(EmbeddedManifold):
         T_{base_point} S = {w | scal(w, base_point) = 0}
         """
         vector = gs.to_ndarray(vector, to_ndim=2)
-        vector = gs.to_ndarray(vector, to_ndim=3, axis=1)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=3, axis=1)
         sq_norm = self.embedding_metric.squared_norm(base_point)
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
 
         coef = inner_prod / sq_norm
-        tangent_vec = vector - gs.einsum('ndi,ndj->ndj', coef, base_point)
+        tangent_vec = vector - gs.einsum('ni,nj->nj', coef, base_point)
 
         return tangent_vec
 
@@ -81,10 +79,9 @@ class Hypersphere(EmbeddedManifold):
         to the extrinsic coordinates in Euclidean space.
         """
         point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
-        point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=3, axis=1)
 
         coord_0 = gs.sqrt(1. - gs.linalg.norm(point_intrinsic, axis=-1) ** 2)
-        coord_0 = gs.to_ndarray(coord_0, to_ndim=3, axis=2)
+        coord_0 = gs.to_ndarray(coord_0, to_ndim=2, axis=-1)
 
         point_extrinsic = gs.concatenate([coord_0, point_intrinsic], axis=-1)
 
@@ -97,22 +94,18 @@ class Hypersphere(EmbeddedManifold):
         to some intrinsic coordinates in Hypersphere.
         """
         point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=2)
-        point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=3, axis=1)
 
-        #assert gs.all(self.belongs(point_extrinsic))
+        # assert gs.all(self.belongs(point_extrinsic))
 
-        point_intrinsic = point_extrinsic[:, :, 1:]
+        point_intrinsic = point_extrinsic[:, 1:]
 
         return point_intrinsic
 
-    def random_uniform(self, n_samples=1, depth=None, max_norm=1):
+    def random_uniform(self, n_samples=1, max_norm=1):
         """
         Generate random elements on the Hypersphere.
         """
-        if depth is None:
-            size = (n_samples, self.dimension)
-        else:
-            size = (n_samples, depth, self.dimension)
+        size = (n_samples, self.dimension)
         point = (gs.random.rand(*size) - .5) * max_norm
 
         point = self.intrinsic_to_extrinsic_coords(point)
@@ -148,16 +141,14 @@ class HypersphereMetric(RiemannianMetric):
         :return exp: a point on the n-dimensional sphere
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3, axis=1)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=3, axis=1)
 
         # TODO(johmathe): Evaluate the bias introduced by this variable
         norm_tangent_vec = self.embedding_metric.norm(tangent_vec) + EPSILON
         coef_1 = gs.cos(norm_tangent_vec)
         coef_2 = gs.sin(norm_tangent_vec) / norm_tangent_vec
-        exp = (gs.einsum('ndi,ndj->ndj', coef_1, base_point)
-               + gs.einsum('ndi,ndj->ndj', coef_2, tangent_vec))
+        exp = (gs.einsum('ni,nj->nj', coef_1, base_point)
+               + gs.einsum('ni,nj->nj', coef_2, tangent_vec))
 
         return exp
 
@@ -175,9 +166,7 @@ class HypersphereMetric(RiemannianMetric):
         :return log: tangent vector at base_point
         """
         point = gs.to_ndarray(point, to_ndim=2)
-        point = gs.to_ndarray(point, to_ndim=3, axis=1)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=3, axis=1)
 
         norm_base_point = self.embedding_metric.norm(base_point)
         norm_point = self.embedding_metric.norm(point)
@@ -207,14 +196,9 @@ class HypersphereMetric(RiemannianMetric):
         coef_1[mask_else] = angle[mask_else] / gs.sin(angle[mask_else])
         coef_2[mask_else] = angle[mask_else] / gs.tan(angle[mask_else])
 
-        assert coef_1.ndim == 3, coef_1.shape
-        assert coef_2.ndim == 3, coef_2.shape
-        assert point.ndim == 3, point.shape
-        assert base_point.ndim == 3, base_point.shape
-        log = (gs.einsum('ndi,ndj->ndj', coef_1, point)
-               - gs.einsum('ndi,ndj->ndj', coef_2, base_point))
+        log = (gs.einsum('ni,nj->nj', coef_1, point)
+               - gs.einsum('ni,nj->nj', coef_2, base_point))
 
-        assert log.ndim == 3, log.shape
         return log
 
     def dist(self, point_a, point_b):
@@ -223,7 +207,7 @@ class HypersphereMetric(RiemannianMetric):
         point_a and point_b.
         """
         # TODO(nina): case gs.dot(unit_vec, unit_vec) != 1
-        #if gs.all(gs.equal(point_a, point_b)):
+        # if gs.all(gs.equal(point_a, point_b)):
         #    return 0.
 
         norm_a = self.embedding_metric.norm(point_a)

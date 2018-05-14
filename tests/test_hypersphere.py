@@ -17,7 +17,6 @@ class TestHypersphereMethods(helper.TestGeomstatsMethods):
         self.space = Hypersphere(dimension=self.dimension)
         self.metric = self.space.metric
         self.n_samples = 10
-        self.depth = 3
 
     def test_belongs(self):
         self.check_shape_belongs(self.space)
@@ -26,10 +25,6 @@ class TestHypersphereMethods(helper.TestGeomstatsMethods):
         self.check_shape_belongs_vectorization(
             self.space, self.n_samples)
 
-    def test_belongs_vectorization_with_depth(self):
-        self.check_shape_belongs_vectorization_with_depth(
-            self.space, self.n_samples, self.depth)
-
     def test_random_uniform(self):
         self.check_shape_random_uniform(
             self.space, self.dimension + 1)
@@ -37,10 +32,6 @@ class TestHypersphereMethods(helper.TestGeomstatsMethods):
     def test_random_uniform_vectorization(self):
         self.check_shape_random_uniform_vectorization(
             self.space, self.n_samples, self.dimension + 1)
-
-    def test_random_uniform_vectorization_with_depth(self):
-        self.check_shape_random_uniform_vectorization_with_depth(
-            self.space, self.n_samples, self.depth, self.dimension + 1)
 
     def test_random_uniform_and_belongs(self):
         """
@@ -56,14 +47,6 @@ class TestHypersphereMethods(helper.TestGeomstatsMethods):
         """
         self.assert_random_uniform_and_belongs_vectorization(
             self.space, self.n_samples)
-
-    def test_random_uniform_and_belongs_vectorization_with_depth(self):
-        """
-        Test that the random uniform method samples
-        on the hypersphere space.
-        """
-        self.assert_random_uniform_and_belongs_vectorization_with_depth(
-            self.space, self.n_samples, self.depth)
 
     def test_intrinsic_and_extrinsic_coords(self):
         """
@@ -110,24 +93,6 @@ class TestHypersphereMethods(helper.TestGeomstatsMethods):
 
         n_samples = self.n_samples
         point_ext = self.space.random_uniform(n_samples=n_samples)
-        point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
-        result = self.space.intrinsic_to_extrinsic_coords(point_int)
-        expected = point_ext
-        expected = helper.to_vector(expected)
-
-        self.assertAllClose(result, expected)
-
-    def test_intrinsic_and_extrinsic_coords_vectorization_with_depth(self):
-        """
-        Test that the composition of
-        intrinsic_to_extrinsic_coords and
-        extrinsic_to_intrinsic_coords
-        gives the identity.
-        """
-        n_samples = self.n_samples
-        depth = self.depth
-
-        point_ext = self.space.random_uniform(n_samples=n_samples, depth=depth)
         point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
         result = self.space.intrinsic_to_extrinsic_coords(point_int)
         expected = point_ext
@@ -188,17 +153,9 @@ class TestHypersphereMethods(helper.TestGeomstatsMethods):
         self.check_shape_exp_vectorization(
             self.space, self.n_samples, self.dimension + 1)
 
-    def test_exp_vectorization_with_depth(self):
-        self.check_shape_exp_vectorization_with_depth(
-            self.space, self.n_samples, self.depth, self.dimension + 1)
-
     def test_log_vectorization(self):
         self.check_shape_log_vectorization(
             self.space, self.n_samples, self.dimension + 1)
-
-    def test_log_vectorization_with_depth(self):
-        self.check_shape_log_vectorization_with_depth(
-            self.space, self.n_samples, self.depth, self.dimension + 1)
 
     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
         """
@@ -280,10 +237,6 @@ class TestHypersphereMethods(helper.TestGeomstatsMethods):
         self.check_shape_squared_dist_vectorization(
             self.space, self.metric, self.n_samples)
 
-    def test_squared_dist_vectorization_with_depth(self):
-        self.check_shape_squared_dist_vectorization_with_depth(
-            self.space, self.metric, self.n_samples, self.depth)
-
     def test_norm_and_dist(self):
         """
         Test that the distance between two points is
@@ -301,10 +254,6 @@ class TestHypersphereMethods(helper.TestGeomstatsMethods):
     def test_dist_vectorization(self):
         self.check_shape_dist_vectorization(
             self.space, self.metric, self.n_samples)
-
-    def test_dist_vectorization_with_depth(self):
-        self.check_shape_dist_vectorization_with_depth(
-            self.space, self.metric, self.n_samples, self.depth)
 
     def test_dist_point_and_itself(self):
         # Distance between a point and itself is 0.
