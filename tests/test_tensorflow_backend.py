@@ -1,19 +1,14 @@
-"""Unit tests for hypersphere module."""
-import numpy as np
-import os
-os.environ['GEOMSTATS_BACKEND'] = 'numpy'
+"""Unit tests for tensorflow backend."""
+
 from geomstats import hypersphere
-
-import tests.helper as helper
-
 import geomstats.backend as gs
 import importlib
-
+import os
 import tensorflow as tf
+import tests.helper as helper
 
 
-
-class TestHypersphereMethods(tf.test.TestCase):
+class TestHypersphereOnTensorFlow(tf.test.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
@@ -25,8 +20,9 @@ class TestHypersphereMethods(tf.test.TestCase):
         self.depth = 3
 
     @classmethod
-    def etUpClass(cls):
-        os.environ['GEOMSTATS_BACKEND'] = 'numpy'
+    def setUpClass(cls):
+        tf.enable_eager_execution()
+        os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
         importlib.reload(gs)
         importlib.reload(hypersphere)
 
@@ -42,56 +38,45 @@ class TestHypersphereMethods(tf.test.TestCase):
         """
         point = self.space.random_uniform()
         with self.test_session():
-            print(self.space.random_uniform(n_samples=1, depth=3))
-            self.assertTrue(self.space.belongs(point)) #.eval())
+            self.assertTrue(gs.eval(self.space.belongs(point)))
 
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         with self.test_session():
             base_point = gs.array([16., -2., -2.5, 84., 3.])
             base_point = base_point / gs.linalg.norm(base_point)
-
             vector = gs.array([9., 0., -1., -2., 1.])
             tangent_vec = self.space.projection_to_tangent_space(
-                                                          vector=vector,
-                                                          base_point=base_point)
-            print(tangent_vec)
+                    vector=vector,
+                    base_point=base_point)
             exp = self.metric.exp(tangent_vec=tangent_vec,
                                   base_point=base_point)
-            print('expo: %s' % exp)
             result = self.metric.dist(base_point, exp)
             expected = gs.linalg.norm(tangent_vec) % (2 * gs.pi)
             expected = helper.to_scalar(expected)
-            print(expected)
-            print(result)
-            self.assertAllClose(result, expected) #.eval(), expected.eval())
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     def test_exp_and_dist_and_projection_to_tangent_space_vec(self):
         with self.test_session():
+
             base_point = gs.array([[16., -2., -2.5, 84., 3.],
                                    [16., -2., -2.5, 84., 3.]])
-            base_point = np.expand_dims(base_point, 0)
-            base_point = base_point / gs.linalg.norm(base_point)
-
+            # TODO(nina): remove when we get to 2d
+            base_point = gs.expand_dims(base_point, 0)
+            base_single_point = gs.array([16., -2., -2.5, 84., 3.])
+            scalar_norm = gs.linalg.norm(base_single_point)
+            base_point = base_point / scalar_norm
             vector = gs.array([[9., 0., -1., -2., 1.], [9., 0., -1., -2., 1]])
-            vector = np.expand_dims(vector, 0)
+            vector = gs.expand_dims(vector, 0)
             tangent_vec = self.space.projection_to_tangent_space(
-                                                          vector=vector,
-                                                          base_point=base_point)
-            print(tangent_vec)
+                    vector=vector,
+                    base_point=base_point)
             exp = self.metric.exp(tangent_vec=tangent_vec,
                                   base_point=base_point)
-            print('expo2 %s' % exp)
             result = self.metric.dist(base_point, exp)
             expected = gs.linalg.norm(tangent_vec, axis=-1) % (2 * gs.pi)
-            #print('result:%s' % result)
-            #print('expected %s' % expected)
             expected = helper.to_scalar(expected)
-            self.assertAllClose(result, expected) # .eval(), expected.eval())
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-def to_vector(expected):
-    expected = gs.to_ndarray(expected, to_ndim=2)
-    expected = gs.to_ndarray(expected, to_ndim=3, axis=1)
-    return expected
 
 if __name__ == '__main__':
     tf.test.main()

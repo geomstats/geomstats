@@ -2,8 +2,13 @@
 
 # TODO(johmathe): Reproduce all unit tests with tensorflow backend.
 
-import numpy as np
 import tensorflow as tf
+
+
+def eval(x):
+    if tf.executing_eagerly():
+        return x
+    return x.eval()
 
 
 def abs(x):
@@ -158,24 +163,9 @@ def asarray(x):
     return x
 
 
-def _to_tensor(x, dtype):
-    """Convert the input `x` to a tensor of type `dtype`.
-    # Arguments
-        x: An object to be converted (numpy array, list, tensors).
-        dtype: The destination type.
-    # Returns
-        A tensor.
-    """
-    return tf.convert_to_tensor(x, dtype=dtype)
+def expand_dims(x, axis=None):
+    return tf.expand_dims(x, axis)
 
 
 def clip(x, min_value, max_value):
-    """Element-wise value clipping.
-    # Arguments
-        x: Tensor or variable.
-        min_value: Python float or integer.
-        max_value: Python float or integer.
-    # Returns
-        A tensor.
-    """
     return tf.clip_by_value(x, min_value, max_value)

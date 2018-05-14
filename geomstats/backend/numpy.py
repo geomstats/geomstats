@@ -111,13 +111,12 @@ def greater_equal(a, b):
     return np.greater_equal(a, b)
 
 
-def to_ndarray(element, to_ndim, axis=0):
-    element = np.asarray(element)
-
-    if element.ndim == to_ndim - 1:
-        element = np.expand_dims(element, axis=axis)
-    assert element.ndim >= to_ndim
-    return element
+def to_ndarray(x, to_ndim, axis=0):
+    x = np.asarray(x)
+    if x.ndim == to_ndim - 1:
+        x = np.expand_dims(x, axis=axis)
+    assert x.ndim >= to_ndim
+    return x
 
 
 def sqrt(val):
@@ -250,6 +249,10 @@ def log(*args, **kwargs):
 
 def cov(*args, **kwargs):
     return np.cov(*args, **kwargs)
+
+
+def eval(x):
+    return x
 
 
 def ndim(x):
