@@ -8,7 +8,7 @@ class Manifold(object):
 
     def __init__(self, dimension):
         assert isinstance(dimension, int) and dimension > 0
-        self.dimension = dimension
+        self._dimension = dimension
 
     def belongs(self, point):
         """Check if the point belongs to the manifold."""
@@ -21,5 +21,6 @@ class Manifold(object):
         """
         return point
 
-    def get_dimension(self):
-        return self.dimension
+    @property
+    def dimension(self):
+        return self._dimension
