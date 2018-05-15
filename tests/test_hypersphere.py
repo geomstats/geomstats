@@ -34,6 +34,12 @@ class TestHypersphereMethods(unittest.TestCase):
 
         self.assertTrue(self.space.belongs(point))
 
+    def test_projection_and_belongs(self):
+        point = gs.array([1, 2, 3, 4, 5])
+        result = self.space.projection(point)
+
+        self.assertTrue(self.space.belongs(result))
+
     def test_intrinsic_and_extrinsic_coords(self):
         """
         Test that the composition of

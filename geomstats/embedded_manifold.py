@@ -26,6 +26,10 @@ class EmbeddedManifold(Manifold):
         raise NotImplementedError(
             'extrinsic_to_intrinsic_coords is not implemented.')
 
+    def projection(self, point):
+        raise NotImplementedError(
+            'projection is not implemented.')
+
     def projection_to_tangent_space(self, vector, base_point):
         raise NotImplementedError(
             'projection_to_tangent_space is not implemented.')
