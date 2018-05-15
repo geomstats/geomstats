@@ -58,6 +58,22 @@ class Hypersphere(EmbeddedManifold):
         diff = gs.abs(sq_norm - 1)
         return gs.less_equal(diff, tolerance)
 
+    def regularize(self, point):
+        assert gs.all(self.belongs(point))
+
+        return self.projection(point)
+
+    def projection(self, point):
+        """
+        Project the point on the manifold
+        """
+        point = gs.to_ndarray(point, to_ndim=2)
+
+        norm = self.embedding_metric.norm(point)
+        projected_point = point / norm
+
+        return projected_point
+
     def projection_to_tangent_space(self, vector, base_point):
         """
         Project the vector vector onto the tangent space:
