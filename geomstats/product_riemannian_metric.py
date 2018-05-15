@@ -55,6 +55,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         """
         if base_point is None:
             base_point = [None, ] * self.n_metrics
+
         inner_products = [self.metrics[i].inner_product(tangent_vec_a[i],
                                                         tangent_vec_b[i],
                                                         base_point[i])
@@ -72,6 +73,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         exp = [self.metrics[i].exp(tangent_vec[i], base_point[i])
                for i in range(self.n_metrics)]
+
         return exp
 
     def log(self, point, base_point=None):
@@ -84,4 +86,5 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         log = [self.metrics[i].log(point[i], base_point[i])
                for i in range(self.n_metrics)]
+
         return log
