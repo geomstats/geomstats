@@ -56,7 +56,9 @@ class EuclideanMetric(RiemannianMetric):
 
         Note: the matrix is independent of the base_point.
         """
-        return gs.eye(self.dimension)
+        mat = gs.eye(self.dimension)
+        mat = gs.to_ndarray(mat, to_ndim=3)
+        return mat
 
     def exp(self, tangent_vec, base_point):
         """
@@ -80,4 +82,6 @@ class EuclideanMetric(RiemannianMetric):
         """
         Weighted mean of the points.
         """
-        return gs.average(points, axis=0, weights=weights)
+        mean = gs.average(points, axis=0, weights=weights)
+        mean = gs.to_ndarray(mean, to_ndim=2)
+        return mean

@@ -5,6 +5,17 @@
 import tensorflow as tf
 
 
+int32 = tf.int32
+
+
+def cast(x, dtype):
+    return tf.cast(x, dtype)
+
+
+def divide(x1, x2):
+    return tf.divide(x1, x2)
+
+
 def tile(x, reps):
     return tf.tile(x, reps)
 

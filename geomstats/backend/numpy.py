@@ -2,6 +2,16 @@
 
 import numpy as np
 
+int32 = np.int32
+
+
+def cast(x, dtype):
+    return x.astype(dtype)
+
+
+def divide(*args, **kwargs):
+    return np.divide(*args, **kwargs)
+
 
 def repeat(*args, **kwargs):
     return np.repeat(*args, **kwargs)

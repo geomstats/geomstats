@@ -82,4 +82,6 @@ class MinkowskiMetric(RiemannianMetric):
         """
         Weighted mean of the points.
         """
-        return gs.average(points, axis=0, weights=weights)
+        mean = gs.average(points, axis=0, weights=weights)
+        mean = gs.to_ndarray(mean, to_ndim=2)
+        return mean

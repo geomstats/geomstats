@@ -1,5 +1,6 @@
 """Unit tests for tensorflow backend."""
 
+import importlib
 import os
 import tensorflow as tf
 
