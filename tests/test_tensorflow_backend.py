@@ -24,6 +24,7 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
     def setUpClass(cls):
         tf.enable_eager_execution()
         os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
+        importlib.reload(gs)
 
     @classmethod
     def tearDownClass(cls):
