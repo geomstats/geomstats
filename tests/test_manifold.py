@@ -11,7 +11,7 @@ class TestManifoldMethods(unittest.TestCase):
 
     def setUp(self):
         gs.random.seed(1234)
-        self.dimension = gs.random.randint(low=1, high=10)
+        self.dimension = 10
         self.manifold = Manifold(self.dimension)
 
     def test_dimension(self):
@@ -27,6 +27,10 @@ class TestManifoldMethods(unittest.TestCase):
     def test_regularize(self):
         point = gs.array([1, 2, 3])
         self.assertTrue(gs.allclose(point, self.manifold.regularize(point)))
+
+    def test_get_dimension(self):
+        manifold = Manifold(10)
+        self.assertEquals(manifold.get_dimension(), 10)
 
 
 if __name__ == '__main__':

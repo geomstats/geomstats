@@ -20,3 +20,6 @@ class Manifold(object):
         chosen for this manifold.
         """
         return point
+
+    def get_dimension(self):
+        return self.dimension
