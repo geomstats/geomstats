@@ -58,14 +58,19 @@ class Hypersphere(EmbeddedManifold):
         diff = gs.abs(sq_norm - 1)
         return gs.less_equal(diff, tolerance)
 
+    def regularize(self, point):
+        assert gs.all(self.belongs(point))
+
+        return self.projection(point)
+
     def projection(self, point):
         """
         Project the point on the manifold
         """
         point = gs.to_ndarray(point, to_ndim=2)
 
-        sq_norm = self.embedding_metric.squared_norm(point)
-        projected_point = point / sq_norm
+        norm = self.embedding_metric.norm(point)
+        projected_point = point / norm
 
         return projected_point
 
