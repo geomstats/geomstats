@@ -2,6 +2,24 @@
 Helper functions for unit tests.
 """
 
+import geomstats.backend as gs
+
+
+def to_scalar(expected):
+    expected = gs.to_ndarray(expected, to_ndim=1)
+    expected = gs.to_ndarray(expected, to_ndim=2, axis=-1)
+    return expected
+
+
+def to_vector(expected):
+    expected = gs.to_ndarray(expected, to_ndim=2)
+    return expected
+
+
+def to_matrix(expected):
+    expected = gs.to_ndarray(expected, to_ndim=3)
+    return expected
+
 
 def left_log_then_exp_from_identity(metric, point):
     aux = metric.left_log_from_identity(point=point)

@@ -1,6 +1,7 @@
 """Unit tests for minkowski space module."""
 
 import geomstats.backend as gs
+import tests.helper as helper
 import unittest
 
 from geomstats.minkowski_space import MinkowskiSpace
@@ -18,12 +19,28 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
         self.metric = self.space.metric
         self.n_samples = 10
 
+    def test_belongs(self):
+        point = self.space.random_uniform()
+        belongs = self.space.belongs(point)
+
+        gs.testing.assert_allclose(belongs.shape, (1, 1))
+
+    def test_random_uniform(self):
+        point = self.space.random_uniform()
+
+        gs.testing.assert_allclose(point.shape, (1, self.dimension))
+
+    def test_random_uniform_and_belongs(self):
+        point = self.space.random_uniform()
+
+        self.assertTrue(self.space.belongs(point))
+
     def test_inner_product_matrix(self):
         result = self.metric.inner_product_matrix()
 
         expected = gs.eye(self.dimension)
         expected[self.time_like_dim, self.time_like_dim] = -1
-        self.assertTrue(gs.allclose(result, expected))
+        gs.testing.assert_allclose(result, expected)
 
     def test_inner_product(self):
         point_a = gs.array([0, 1])
@@ -33,7 +50,7 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
         expected = gs.dot(point_a, point_b)
         expected -= (2 * point_a[self.time_like_dim]
                      * point_b[self.time_like_dim])
-        self.assertTrue(gs.allclose(result, expected))
+        gs.testing.assert_allclose(result, expected)
 
     def test_inner_product_vectorization(self):
         n_samples = self.n_samples
@@ -46,13 +63,14 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
         expected = gs.dot(one_point_a, one_point_b.transpose())
         expected -= (2 * one_point_a[:, self.time_like_dim]
                      * one_point_b[:, self.time_like_dim])
-        self.assertTrue(gs.allclose(result, expected))
+        expected = helper.to_scalar(expected)
+        gs.testing.assert_allclose(result, expected)
 
         result = self.metric.inner_product(n_points_a, one_point_b)
-        self.assertTrue(gs.isclose(result.shape, n_samples))
+        gs.testing.assert_allclose(result.shape, (n_samples, 1))
 
         result = self.metric.inner_product(one_point_a, n_points_b)
-        self.assertTrue(gs.isclose(result.shape, n_samples))
+        gs.testing.assert_allclose(result.shape, (n_samples, 1))
 
         result = self.metric.inner_product(n_points_a, n_points_b)
         expected = gs.zeros(n_samples)
@@ -60,8 +78,9 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
             expected[i] = gs.dot(n_points_a[i], n_points_b[i])
             expected[i] -= (2 * n_points_a[i, self.time_like_dim]
                             * n_points_b[i, self.time_like_dim])
-        self.assertTrue(gs.isclose(result.shape, n_samples))
-        self.assertTrue(gs.allclose(result, expected))
+        expected = helper.to_scalar(expected)
+        gs.testing.assert_allclose(result.shape, (n_samples, 1))
+        gs.testing.assert_allclose(result, expected)
 
     def test_squared_norm(self):
         point = gs.array([-2, 4])
@@ -69,15 +88,14 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
         result = self.metric.squared_norm(point)
         expected = gs.dot(point, point)
         expected -= 2 * point[self.time_like_dim] * point[self.time_like_dim]
-        self.assertTrue(gs.allclose(result, expected))
+        gs.testing.assert_allclose(result, expected)
 
     def test_squared_norm_vectorization(self):
         n_samples = self.n_samples
         n_points = self.space.random_uniform(n_samples=n_samples)
 
         result = self.metric.squared_norm(n_points)
-        self.assertTrue(gs.isclose(result.shape, n_samples),
-                        'result.shape={}'.format(result.shape))
+        gs.testing.assert_allclose(result.shape, (n_samples, 1))
 
     def test_norm(self):
         point = gs.array([-1, 4])
@@ -91,7 +109,8 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
         result = self.metric.exp(tangent_vec=vector,
                                  base_point=base_point)
         expected = base_point + vector
-        self.assertTrue(gs.allclose(result, expected))
+        expected = helper.to_vector(expected)
+        gs.testing.assert_allclose(result, expected)
 
     def test_exp_vectorization(self):
         n_samples = self.n_samples
@@ -103,17 +122,17 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
 
         result = self.metric.exp(one_tangent_vec, one_base_point)
         expected = one_tangent_vec + one_base_point
-        self.assertTrue(gs.allclose(result, expected))
+        expected = helper.to_vector(expected)
+        gs.testing.assert_allclose(result, expected)
 
         result = self.metric.exp(n_tangent_vecs, one_base_point)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, dim)),
-                        '\n result.shape = {}'.format(result.shape))
+        gs.testing.assert_allclose(result.shape, (n_samples, dim))
 
         result = self.metric.exp(one_tangent_vec, n_base_points)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, dim)))
+        gs.testing.assert_allclose(result.shape, (n_samples, dim))
 
         result = self.metric.exp(n_tangent_vecs, n_base_points)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, dim)))
+        gs.testing.assert_allclose(result.shape, (n_samples, dim))
 
     def test_log(self):
         base_point = gs.array([0, 1])
@@ -121,7 +140,8 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
 
         result = self.metric.log(point=point, base_point=base_point)
         expected = point - base_point
-        self.assertTrue(gs.allclose(result, expected))
+        expected = helper.to_vector(expected)
+        gs.testing.assert_allclose(result, expected)
 
     def test_log_vectorization(self):
         n_samples = self.n_samples
@@ -133,16 +153,17 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
 
         result = self.metric.log(one_point, one_base_point)
         expected = one_point - one_base_point
-        self.assertTrue(gs.allclose(result, expected))
+        expected = helper.to_vector(expected)
+        gs.testing.assert_allclose(result, expected)
 
         result = self.metric.log(n_points, one_base_point)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, dim)))
+        gs.testing.assert_allclose(result.shape, (n_samples, dim))
 
         result = self.metric.log(one_point, n_base_points)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, dim)))
+        gs.testing.assert_allclose(result.shape, (n_samples, dim))
 
         result = self.metric.log(n_points, n_base_points)
-        self.assertTrue(gs.allclose(result.shape, (n_samples, dim)))
+        gs.testing.assert_allclose(result.shape, (n_samples, dim))
 
     def test_squared_dist(self):
         point_a = gs.array([-1, 4])
@@ -152,51 +173,14 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
         vec = point_b - point_a
         expected = gs.dot(vec, vec)
         expected -= 2 * vec[self.time_like_dim] * vec[self.time_like_dim]
-        self.assertTrue(gs.allclose(result, expected))
-
-    def test_squared_dist_vectorization(self):
-        n_samples = self.n_samples
-        one_point_a = self.space.random_uniform(n_samples=1)
-        one_point_b = self.space.random_uniform(n_samples=1)
-        n_points_a = self.space.random_uniform(n_samples=n_samples)
-        n_points_b = self.space.random_uniform(n_samples=n_samples)
-
-        result = self.metric.squared_dist(one_point_a, one_point_b)
-        vec = one_point_a - one_point_b
-        expected = gs.dot(vec, vec.transpose())
-        expected -= 2 * vec[0, self.time_like_dim] * vec[0, self.time_like_dim]
-        self.assertTrue(gs.allclose(result, expected))
-
-        result = self.metric.squared_dist(n_points_a, one_point_b)
-        self.assertTrue(gs.allclose(result.shape, n_samples))
-
-        result = self.metric.squared_dist(one_point_a, n_points_b)
-        self.assertTrue(gs.allclose(result.shape, n_samples))
-
-        result = self.metric.squared_dist(n_points_a, n_points_b)
-        expected = gs.zeros(n_samples)
-        for i in range(n_samples):
-            vec = n_points_a[i] - n_points_b[i]
-            expected_i = gs.dot(vec, vec.transpose())
-            expected_i -= 2 * vec[self.time_like_dim] * vec[self.time_like_dim]
-            expected[i] = expected_i
-        self.assertTrue(gs.allclose(result.shape, n_samples))
-        self.assertTrue(gs.allclose(result, expected))
+        expected = helper.to_scalar(expected)
+        gs.testing.assert_allclose(result, expected)
 
     def test_dist(self):
         point_a = gs.array([-1, 4])
         point_b = gs.array([1, 1])
         self.assertRaises(ValueError,
                           lambda: self.metric.dist(point_a, point_b))
-
-    def test_random_uniform_and_belongs(self):
-        point = self.space.random_uniform()
-        self.assertTrue(self.space.belongs(point))
-
-    def test_random_uniform_and_belongs_vectorization(self):
-        n_samples = self.n_samples
-        n_points = self.space.random_uniform(n_samples=n_samples)
-        self.assertTrue(gs.all(self.space.belongs(n_points)))
 
     def test_geodesic_and_belongs(self):
         initial_point = self.space.random_uniform()
@@ -213,8 +197,9 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
         point = gs.array([1, 4])
         result = self.metric.mean(points=[point, point, point])
         expected = point
+        expected = helper.to_vector(expected)
 
-        self.assertTrue(gs.allclose(result, expected))
+        gs.testing.assert_allclose(result, expected)
 
         points = gs.array([[1, 2],
                            [2, 3],
@@ -224,7 +209,8 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
 
         result = self.metric.mean(points, weights)
         expected = gs.array([16., 22.]) / 6.
-        self.assertTrue(gs.allclose(result, expected))
+        expected = helper.to_vector(expected)
+        gs.testing.assert_allclose(result, expected)
 
     def test_variance(self):
         points = gs.array([[1, 2],
@@ -236,7 +222,8 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
         result = self.metric.variance(points, weights, base_point)
         # we expect the average of the points' Minkowski sq norms.
         expected = (1 * 3. + 2 * 5. + 1 * 7. + 2 * 9.) / 6.
-        self.assertTrue(gs.allclose(result, expected))
+        expected = helper.to_scalar(expected)
+        gs.testing.assert_allclose(result, expected)
 
 
 if __name__ == '__main__':
