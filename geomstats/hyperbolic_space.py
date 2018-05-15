@@ -87,9 +87,9 @@ class HyperbolicSpace(EmbeddedManifold):
         real_norm = gs.sqrt(gs.abs(sq_norm))
         n_points, _ = real_norm.shape
 
-        for i in range(n_points):
-                if real_norm[i, 0] != 0:
-                    point[i] = point[i] / real_norm[i, 0]
+        mask_0 = gs.isclose(real_norm, 0)
+        mask_0 = gs.squeeze(mask_0, axis=1)
+        point[~mask_0] = point[~mask_0] / real_norm[~mask_0]
         return point
 
     def projection_to_tangent_space(self, vector, base_point):
