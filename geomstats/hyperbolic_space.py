@@ -92,6 +92,17 @@ class HyperbolicSpace(EmbeddedManifold):
         point[~mask_0] = point[~mask_0] / real_norm[~mask_0]
         return point
 
+    def projection(self, point):
+        """
+        Project the point on the manifold
+        """
+        point = gs.to_ndarray(point, to_ndim=2)
+
+        sq_norm = self.embedding_metric.squared_norm(point)
+        projected_point = point / sq_norm
+
+        return projected_point
+
     def projection_to_tangent_space(self, vector, base_point):
         """
          Project the vector vector onto the tangent space at base_point
