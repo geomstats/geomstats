@@ -4,6 +4,29 @@
 from geomstats.invariant_metric import InvariantMetric
 from geomstats.manifold import Manifold
 import geomstats.backend as gs
+import geomstats.riemannian_metric as riemannian_metric
+
+
+def loss(y_pred, y_true, group, metric=None):
+    """
+    Loss function given by a riemannian metric.
+    """
+    if metric is None:
+        metric = group.left_invariant_metric
+    loss = riemannian_metric.loss(y_pred, y_true, metric)
+    return loss
+
+
+def grad(y_pred, y_true, group, metric=None):
+    """
+    Closed-form for the gradient of the loss function.
+
+    :return: tangent vector at point y_pred.
+    """
+    if metric is None:
+        metric = group.left_invariant_metric
+    grad = riemannian_metric.grad(y_pred, y_true, metric)
+    return grad
 
 
 class LieGroup(Manifold):

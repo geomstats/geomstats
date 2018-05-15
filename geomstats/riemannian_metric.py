@@ -10,6 +10,29 @@ import geomstats.backend as gs
 EPSILON = 1e-5
 
 
+def loss(y_pred, y_true, metric):
+    """
+    Loss function given by a riemannian metric.
+    """
+    loss = metric.squared_dist(y_pred, y_true)
+    return loss
+
+
+def grad(y_pred, y_true, metric):
+    """
+    Closed-form for the gradient of the loss function.
+
+    :return: tangent vector at point y_pred.
+    """
+    tangent_vec = metric.log(base_point=y_pred, point=y_true)
+    grad_vec = - 2. * tangent_vec
+
+    inner_prod_mat = metric.inner_product_matrix(base_point=y_pred)
+
+    grad = gs.dot(grad_vec, gs.transpose(inner_prod_mat, axes=(0, 2, 1)))
+    return grad
+
+
 class RiemannianMetric(object):
     """
     Base class for Riemannian metrics.
@@ -19,8 +42,6 @@ class RiemannianMetric(object):
     def __init__(self, dimension, signature=None):
         assert isinstance(dimension, int) and dimension > 0
         self.dimension = dimension
-        #if signature is not None:
-        #    assert gs.sum(signature) == dimension
         self.signature = signature
 
     def inner_product_matrix(self, base_point=None):
