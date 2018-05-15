@@ -18,15 +18,15 @@ class ProductRiemannianMetric(RiemannianMetric):
 
     def __init__(self, metrics):
         self.n_metrics = gs.len(metrics)
-        dimensions = tuple([metric.dimension for metric in metrics])
-        signatures = tuple([metric.signature for metric in metrics])
+        dimensions = [metric.dimension for metric in metrics]
+        signatures = [metric.signature for metric in metrics]
 
         self.metrics = metrics
         self.dimensions = dimensions
         self.signatures = signatures
         super(ProductRiemannianMetric, self).__init__(
             dimension=gs.sum(dimensions),
-            signature=tuple(map(sum, signatures)))
+            signature=map(sum, signatures))
 
     def inner_product_matrix(self, base_point=None):
         """
@@ -54,7 +54,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         between tangent vectors tangent_vec_a and tangent_vec_b.
         """
         if base_point is None:
-            base_point = (None,) * self.n_metrics
+            base_point = [None, ] * self.n_metrics
         inner_products = [self.metrics[i].inner_product(tangent_vec_a[i],
                                                         tangent_vec_b[i],
                                                         base_point[i])
@@ -68,10 +68,10 @@ class ProductRiemannianMetric(RiemannianMetric):
         of tangent vector tangent_vec wrt the Riemannian metric.
         """
         if base_point is None:
-            base_point = (None,) * self.n_metrics
+            base_point = [None, ] * self.n_metrics
 
-        exp = tuple([self.metrics[i].exp(tangent_vec[i], base_point[i])
-                     for i in range(self.n_metrics)])
+        exp = [self.metrics[i].exp(tangent_vec[i], base_point[i])
+               for i in range(self.n_metrics)]
         return exp
 
     def log(self, point, base_point=None):
@@ -80,8 +80,8 @@ class ProductRiemannianMetric(RiemannianMetric):
         of tangent vector tangent_vec wrt the Riemannian metric.
         """
         if base_point is None:
-            base_point = (None,) * self.n_metrics
+            base_point = [None, ] * self.n_metrics
 
-        log = tuple([self.metrics[i].log(point[i], base_point[i])
-                     for i in range(self.n_metrics)])
+        log = [self.metrics[i].log(point[i], base_point[i])
+               for i in range(self.n_metrics)]
         return log
