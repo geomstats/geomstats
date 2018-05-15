@@ -17,6 +17,7 @@ if _BACKEND == 'numpy':
     from .numpy import *  # NOQA
     from . import numpy_linalg as linalg
     from . import numpy_random as random
+    from . import numpy_testing as testing
 elif _BACKEND == 'tensorflow':
     sys.stderr.write('Using tensorflow backend\n')
     from .tensorflow import *  # NOQA

@@ -42,7 +42,7 @@ def gradient_descent(start,
         euclidean_grad = - lr * grad(x)
         tangent_vec = manifold.projection_to_tangent_space(
                 vector=euclidean_grad, base_point=x)
-        x = manifold.metric.exp(base_point=x, tangent_vec=tangent_vec)
+        x = manifold.metric.exp(base_point=x, tangent_vec=tangent_vec)[0]
         if np.abs(loss(x) - loss(x_prev)) <= precision:
             print('x: %s' % x)
             print('reached precision %s' % precision)

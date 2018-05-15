@@ -19,22 +19,22 @@ class EuclideanSpace(Manifold):
         """
         Check if point belongs to the Euclidean space.
         """
-        point_dim = point.shape[-1]
-        return point_dim == self.dimension
+        point = gs.to_ndarray(point, to_ndim=2)
+        n_points, point_dim = point.shape
+        belongs = point_dim == self.dimension
+        belongs = gs.repeat(belongs, repeats=n_points, axis=0)
+        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
 
-    def random_uniform(self, n_samples=1, depth=None):
+        return belongs
+
+    def random_uniform(self, n_samples=1):
         """
         Sample a vector uniformly in the Euclidean space,
         with coordinates each between -1. and 1.
         """
-        if depth is None:
-            size = (n_samples, self.dimension)
-        else:
-            size = (n_samples, depth, self.dimension)
+        size = (n_samples, self.dimension)
         point = gs.random.rand(*size) * 2 - 1
 
-        if n_samples == 1:
-            point = gs.squeeze(point, axis=0)
         return point
 
 
@@ -56,12 +56,16 @@ class EuclideanMetric(RiemannianMetric):
 
         Note: the matrix is independent of the base_point.
         """
-        return gs.eye(self.dimension)
+        mat = gs.eye(self.dimension)
+        mat = gs.to_ndarray(mat, to_ndim=3)
+        return mat
 
     def exp(self, tangent_vec, base_point):
         """
         The Riemannian exponential is the addition in the Euclidean space.
         """
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
         exp = base_point + tangent_vec
         return exp
 
@@ -69,6 +73,8 @@ class EuclideanMetric(RiemannianMetric):
         """
         The Riemannian logarithm is the subtraction in the Euclidean space.
         """
+        point = gs.to_ndarray(point, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
         log = point - base_point
         return log
 
@@ -76,4 +82,6 @@ class EuclideanMetric(RiemannianMetric):
         """
         Weighted mean of the points.
         """
-        return gs.average(points, axis=0, weights=weights)
+        mean = gs.average(points, axis=0, weights=weights)
+        mean = gs.to_ndarray(mean, to_ndim=2)
+        return mean
