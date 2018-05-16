@@ -658,5 +658,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         assert n_points == n_weights
 
         barycenter = self.bi_invariant_metric.mean(points, weights)
+
+        barycenter = gs.to_ndarray(barycenter, to_ndim=2)
         assert barycenter.ndim == 2, barycenter.ndim
         return barycenter

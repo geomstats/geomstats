@@ -1571,29 +1571,29 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         n = 3
         group = self.so[n]
 
-        rot_vec_1 = group.random_uniform()
-        points = gs.vstack([rot_vec_1, rot_vec_1])
-        result_1 = group.group_exponential_barycenter(
+        rot_vec = group.random_uniform()
+        points = gs.vstack([rot_vec, rot_vec])
+        result = group.group_exponential_barycenter(
                                 points=points)
-        expected_1 = rot_vec_1
-        self.assertTrue(gs.allclose(result_1, expected_1))
+        expected = rot_vec
+        self.assertTrue(gs.allclose(result, expected))
 
-        rot_vec_2 = group.random_uniform()
-        points = gs.vstack([rot_vec_2, rot_vec_2])
+        rot_vec = group.random_uniform()
+        points = gs.vstack([rot_vec, rot_vec])
         weights = gs.array([1., 2.])
-        result_2 = group.group_exponential_barycenter(
+        result = group.group_exponential_barycenter(
                                 points=points,
                                 weights=weights)
-        expected_2 = rot_vec_2
-        self.assertTrue(gs.allclose(result_2, expected_2))
+        expected = rot_vec
+        self.assertTrue(gs.allclose(result, expected))
 
-        points = gs.vstack([rot_vec_1, rot_vec_2])
+        points = gs.vstack([rot_vec, rot_vec])
         weights = gs.array([1., 2.])
-        result_3 = group.group_exponential_barycenter(
+        result = group.group_exponential_barycenter(
                                 points=points,
                                 weights=weights)
 
-        self.assertTrue(group.belongs(result_3))
+        self.assertTrue(group.belongs(result))
 
     def test_squared_dist_is_symmetric(self):
         n = 3
