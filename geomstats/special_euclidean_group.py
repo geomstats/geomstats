@@ -304,8 +304,7 @@ class SpecialEuclideanGroup(LieGroup):
 
     def group_log_from_identity(self, point):
         """
-        Compute the group logarithm of the point point,
-        from the identity.
+        Compute the group logarithm of the point at the identity.
         """
         assert self.belongs(point)
         point = self.regularize(point)
@@ -437,7 +436,7 @@ class SpecialEuclideanGroup(LieGroup):
 
     def group_exponential_barycenter(self, points, weights=None):
         """
-        Compute the group exponential barycenter.
+        Compute the group exponential barycenter in SE(n).
         """
 
         n_points = points.shape[0]
