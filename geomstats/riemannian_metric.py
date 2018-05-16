@@ -7,7 +7,7 @@ import logging
 import geomstats.backend as gs
 
 
-EPSILON = 1e-5
+EPSILON = 1e-4
 
 
 def loss(y_pred, y_true, metric):
@@ -277,7 +277,9 @@ class RiemannianMetric(object):
                                                     base_point=mean)
             tangent_mean /= sum_weights
 
-            mean_next = self.exp(tangent_vec=tangent_mean, base_point=mean)
+            mean_next = self.exp(
+                tangent_vec=tangent_mean,
+                base_point=mean)
 
             sq_dist = self.squared_dist(mean_next, mean)
             sq_dists_between_iterates.append(sq_dist)
@@ -285,6 +287,8 @@ class RiemannianMetric(object):
             variance = self.variance(points=points,
                                      weights=weights,
                                      base_point=mean_next)
+            if gs.isclose(variance, 0):
+                break
             if sq_dist <= epsilon * variance:
                 break
 
