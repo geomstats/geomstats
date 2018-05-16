@@ -1,11 +1,8 @@
 """
-Base class for special Riemannian metrics that
-can be built on Lie groups:
+Class for:
 - left-invariant metrics
-- right-invariant metrics.
-
-Note: Assume that the points are parameterized by
-their Riemannian logarithm for the canonical left-invariant metric.
+- right-invariant metrics
+that exist on Lie groups.
 """
 
 import logging
@@ -17,8 +14,13 @@ from geomstats.riemannian_metric import RiemannianMetric
 
 class InvariantMetric(RiemannianMetric):
     """
-    Base class for left- or right- invariant metrics
-    that can be defined on Lie groups.
+    Class for:
+    - left-invariant metrics
+    - right-invariant metrics
+    that exist on Lie groups.
+
+    Points are parameterized by the Riemannian logarithm
+    for the canonical left-invariant metric.
     """
 
     def __init__(self, group,
@@ -50,9 +52,7 @@ class InvariantMetric(RiemannianMetric):
 
     def inner_product_at_identity(self, tangent_vec_a, tangent_vec_b):
         """
-        Inner product between two tangent vectors at the identity of the
-        Lie group.
-        Note: tangent vectors are given in vector representation.
+        Inner product matrix at the tangent space at the identity.
         """
         assert self.group.point_representation in ('vector', 'matrix')
 
@@ -81,6 +81,9 @@ class InvariantMetric(RiemannianMetric):
         return inner_prod
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """
+        Inner product between two tangent vectors at a base point.
+        """
         if base_point is None:
             return self.inner_product_at_identity(tangent_vec_a,
                                                   tangent_vec_b)
@@ -103,8 +106,7 @@ class InvariantMetric(RiemannianMetric):
 
     def inner_product_matrix(self, base_point=None):
         """
-        Compute the matrix of the Riemmanian metric at point base_point,
-        by translating inner_product from the identity to base_point.
+        Inner product matrix at the tangent space at a base point.
         """
         if self.group.point_representation == 'matrix':
             raise NotImplementedError(
@@ -133,16 +135,12 @@ class InvariantMetric(RiemannianMetric):
 
     def left_exp_from_identity(self, tangent_vec):
         """
-        Compute the *left* Riemannian exponential from the identity of the
-        Lie group of tangent vector tangent_vec.
+        Riemannian exponential of a tangent vector wrt the identity associated
+        to the left-invariant metric.
 
-        The left Riemannian exponential has a special role since the
-        left Riemannian exponential of the canonical metric parameterizes
-        the points.
-
-        Note: In the case where the method is called by a right-invariant
-        metric, it used the left-invariant metric associated to the same
-        inner-product at the identity.
+        If the method is called by a right-invariant metric, it uses the
+        left-invariant metric associated to the same inner-product matrix
+        at the identity.
         """
         import geomstats.spd_matrices_space as spd_matrices_space
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
@@ -161,8 +159,7 @@ class InvariantMetric(RiemannianMetric):
 
     def exp_from_identity(self, tangent_vec):
         """
-        Compute the Riemannian exponential from the identity of the
-        Lie group of tangent vector tangent_vec.
+        Riemannian exponential of a tangent vector wrt the identity.
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
 
@@ -178,8 +175,7 @@ class InvariantMetric(RiemannianMetric):
 
     def exp(self, tangent_vec, base_point=None):
         """
-        Compute the Riemannian exponential at point base_point
-        of tangent vector tangent_vec.
+        Riemannian exponential of a tangent vector wrt to a base point.
         """
         if base_point is None:
             base_point = self.group.identity
@@ -216,12 +212,12 @@ class InvariantMetric(RiemannianMetric):
 
     def left_log_from_identity(self, point):
         """
-        Compute the *left* Riemannian logarithm from the identity of the
-        Lie group of tangent vector tangent_vec.
+        Riemannian logarithm of a point wrt the identity associated
+        to the left-invariant metric.
 
-        The left Riemannian logarithm has a special role since the
-        left Riemannian logarithm of the canonical metric parameterizes
-        the points.
+        If the method is called by a right-invariant metric, it uses the
+        left-invariant metric associated to the same inner-product matrix
+        at the identity.
         """
         import geomstats.spd_matrices_space as spd_matrices_space
 
@@ -241,8 +237,7 @@ class InvariantMetric(RiemannianMetric):
 
     def log_from_identity(self, point):
         """
-        Compute the Riemannian logarithm of point at point base_point
-        of point for the invariant metric from the identity.
+        Riemannian logarithm of a point wrt the identity.
         """
         point = self.group.regularize(point)
         if self.left_or_right == 'left':
@@ -258,8 +253,7 @@ class InvariantMetric(RiemannianMetric):
 
     def log(self, point, base_point=None):
         """
-        Compute the Riemannian logarithm of point at point base_point
-        of point for the invariant metric.
+        Riemannian logarithm of a point wrt a base point.
         """
         if base_point is None:
             base_point = self.group.identity
