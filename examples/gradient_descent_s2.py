@@ -17,10 +17,11 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
 
-from geomstats.hypersphere import Hypersphere
-from geomstats.spd_matrices_space import SPDMatricesSpace
 import geomstats.vectorization as vectorization
 import geomstats.visualization as visualization
+
+from geomstats.hypersphere import Hypersphere
+from geomstats.spd_matrices_space import SPDMatricesSpace
 
 
 SPHERE2 = Hypersphere(dimension=2)

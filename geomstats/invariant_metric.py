@@ -10,9 +10,9 @@ their Riemannian logarithm for the canonical left-invariant metric.
 
 import logging
 
-from geomstats.riemannian_metric import RiemannianMetric
-
 import geomstats.backend as gs
+
+from geomstats.riemannian_metric import RiemannianMetric
 
 
 class InvariantMetric(RiemannianMetric):

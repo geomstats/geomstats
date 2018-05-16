@@ -1,12 +1,15 @@
-"""Computations on the Lie group of 3D rotations."""
+"""
+Class for the Lie group of rotations.
+"""
 
 # TODO(nina): Rename modules to make imports cleaner?
 # TODO(nina): make code robust to different types and input structures
+import geomstats.backend as gs
+import geomstats.spd_matrices_space as spd_matrices_space
+
 from geomstats.embedded_manifold import EmbeddedManifold
 from geomstats.general_linear_group import GeneralLinearGroup
 from geomstats.lie_group import LieGroup
-import geomstats.backend as gs
-import geomstats.spd_matrices_space as spd_matrices_space
 
 ATOL = 1e-5
 
@@ -114,6 +117,9 @@ def vector_from_skew_matrix(skew_mat):
 
 
 class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
+    """
+    Class for the Lie group of rotations.
+    """
 
     def __init__(self, n):
         assert isinstance(n, int) and n > 1

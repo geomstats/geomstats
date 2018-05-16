@@ -4,6 +4,7 @@ Predict on SE3: losses.
 import numpy as np
 
 import geomstats.lie_group as lie_group
+
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 

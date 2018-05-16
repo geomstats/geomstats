@@ -6,11 +6,13 @@ with Poincare Disk visualization.
 import numpy as np
 import matplotlib.pyplot as plt
 
-from geomstats.hyperbolic_space import HyperbolicSpace
 import geomstats.visualization as visualization
+
+from geomstats.hyperbolic_space import HyperbolicSpace
 
 H2 = HyperbolicSpace(dimension=2)
 METRIC = H2.metric
+
 
 def plot_geodesic_between_two_points(initial_point,
                                      end_point, n_steps=10):
@@ -45,9 +47,12 @@ def main():
                                         vector=[3.5, 0.6, 0.8],
                                         base_point=initial_point)
 
-    plot_geodesic_between_two_points(initial_point, end_point)
-    plot_geodesic_with_initial_tangent_vector(initial_point, initial_tangent_vec)
+    plot_geodesic_between_two_points(initial_point,
+                                     end_point)
+    plot_geodesic_with_initial_tangent_vector(initial_point,
+                                              initial_tangent_vec)
     plt.show()
+
 
 if __name__ == "__main__":
     main()

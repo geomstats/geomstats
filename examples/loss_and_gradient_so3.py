@@ -4,6 +4,7 @@ Predict on manifolds: losses.
 import numpy as np
 
 import geomstats.lie_group as lie_group
+
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
 

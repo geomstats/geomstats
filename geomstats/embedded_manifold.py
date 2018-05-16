@@ -1,6 +1,5 @@
 """
-Base for differentiable manifolds
-that are embedded in another manifold.
+Class for manifolds embedded in another manifold.
 """
 
 from geomstats.manifold import Manifold
@@ -8,8 +7,7 @@ from geomstats.manifold import Manifold
 
 class EmbeddedManifold(Manifold):
     """
-    Base class for differentiable manifolds
-    that are embedded in another manifold.
+    Class for manifolds embedded in another manifold.
     """
 
     def __init__(self, dimension, embedding_manifold):

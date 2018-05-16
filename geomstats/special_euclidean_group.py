@@ -1,12 +1,14 @@
-"""Computations on the Lie group of rigid transformations."""
+"""
+Class for the Lie group of rigid transformations.
+"""
 
+import geomstats.backend as gs
 import geomstats.special_orthogonal_group as so_group
 
 from geomstats.euclidean_space import EuclideanSpace
 from geomstats.invariant_metric import InvariantMetric
 from geomstats.lie_group import LieGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
-import geomstats.backend as gs
 
 PI = gs.pi
 PI2 = PI * PI
@@ -22,12 +24,12 @@ ATOL = 1e-5
 
 
 class SpecialEuclideanGroup(LieGroup):
+    """
+    Class for the Lie group of rigid transformations.
+    """
 
     def __init__(self, n):
         assert isinstance(n, int) and n > 1
-
-        if n is not 3:
-            raise NotImplementedError('Only SE(3) is implemented.')
 
         self.n = n
         self.dimension = int((n * (n - 1)) / 2 + n)

@@ -1,12 +1,12 @@
 """
-Computations on the manifold of
-symmetric positive definite matrices.
+Class for the manifold of symmetric positive definite (SPD) matrices.
 """
+
+import geomstats.backend as gs
 
 from geomstats.embedded_manifold import EmbeddedManifold
 from geomstats.general_linear_group import GeneralLinearGroup
 from geomstats.riemannian_metric import RiemannianMetric
-import geomstats.backend as gs
 
 EPSILON = 1e-6
 TOLERANCE = 1e-12
@@ -92,6 +92,9 @@ def group_log(sym_mat):
 
 
 class SPDMatricesSpace(EmbeddedManifold):
+    """
+    Class for the manifold of symmetric positive definite (SPD) matrices.
+    """
     def __init__(self, n):
         assert isinstance(n, int) and n > 0
         super(SPDMatricesSpace, self).__init__(

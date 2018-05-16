@@ -1,10 +1,11 @@
-"""Base class for Lie groups."""
+"""Class for Lie groups."""
 
+
+import geomstats.backend as gs
+import geomstats.riemannian_metric as riemannian_metric
 
 from geomstats.invariant_metric import InvariantMetric
 from geomstats.manifold import Manifold
-import geomstats.backend as gs
-import geomstats.riemannian_metric as riemannian_metric
 
 
 def loss(y_pred, y_true, group, metric=None):
@@ -30,7 +31,7 @@ def grad(y_pred, y_true, group, metric=None):
 
 
 class LieGroup(Manifold):
-    """ Base class for Lie groups."""
+    """ Class for Lie groups."""
 
     def __init__(self, dimension, identity):
         assert dimension > 0

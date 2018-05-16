@@ -6,8 +6,9 @@ with Poincare Disk visualization.
 import numpy as np
 import matplotlib.pyplot as plt
 
-from geomstats.hyperbolic_space import HyperbolicSpace
 import geomstats.visualization as visualization
+
+from geomstats.hyperbolic_space import HyperbolicSpace
 
 H2 = HyperbolicSpace(dimension=2)
 METRIC = H2.metric

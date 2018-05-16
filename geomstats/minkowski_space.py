@@ -1,14 +1,15 @@
 """
-Computations on the (n+1)-dimensional Minkowski space.
+Class for Minkowski space.
 """
+
+import geomstats.backend as gs
 
 from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
-import geomstats.backend as gs
 
 
 class MinkowskiSpace(Manifold):
-    """The Minkowski Space."""
+    """Class for Minkowski Space."""
 
     def __init__(self, dimension):
         assert isinstance(dimension, int) and dimension > 0

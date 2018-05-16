@@ -1,5 +1,5 @@
 """
-Computations on the n-dimensional sphere
+Class for the n-dimensional hypersphere
 embedded in the (n+1)-dimensional Euclidean space.
 """
 
@@ -7,6 +7,7 @@ import logging
 import math
 
 import geomstats.backend as gs
+
 from geomstats.embedded_manifold import EmbeddedManifold
 from geomstats.euclidean_space import EuclideanMetric
 from geomstats.euclidean_space import EuclideanSpace
@@ -31,7 +32,7 @@ INV_TAN_TAYLOR_COEFFS = [0., - 1. / 3.,
 
 
 class Hypersphere(EmbeddedManifold):
-    """Hypersphere embedded in Euclidean space."""
+    """Class for the Hypersphere embedded in Euclidean space."""
 
     def __init__(self, dimension):
         assert isinstance(dimension, int) and dimension > 0

@@ -1,5 +1,5 @@
 """
-Computations on the Hyperbolic space H_n
+Class for the Hyperbolic space H_n
 as embedded in Minkowski space R^{1,n}.
 
 Elements of the Hyperbolic space are the elements
@@ -11,11 +11,12 @@ NB: we use "riemannian" to refer to "pseudo-riemannian".
 import logging
 import math
 
+import geomstats.backend as gs
+
 from geomstats.embedded_manifold import EmbeddedManifold
 from geomstats.minkowski_space import MinkowskiMetric
 from geomstats.minkowski_space import MinkowskiSpace
 from geomstats.riemannian_metric import RiemannianMetric
-import geomstats.backend as gs
 
 TOLERANCE = 1e-6
 
@@ -41,7 +42,7 @@ INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
 
 class HyperbolicSpace(EmbeddedManifold):
     """
-    Hyperbolic space embedded in Minkowski space.
+    Class for the Hyperbolic space embedded in Minkowski space.
     Note: points are parameterized by the extrinsic
     coordinates by defaults.
     """

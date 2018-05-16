@@ -1,5 +1,5 @@
 """
-Base class for product of Riemannian metrics.
+Class for product of Riemannian metrics.
 """
 
 import geomstats.backend as gs
@@ -13,7 +13,7 @@ EPSILON = 1e-5
 
 class ProductRiemannianMetric(RiemannianMetric):
     """
-    Base class for product of Riemannian metrics.
+    Class for product of Riemannian metrics.
     """
 
     def __init__(self, metrics):

@@ -1,5 +1,5 @@
 """
-Base class for a product of differentiable manifolds.
+Class for a product of manifolds.
 """
 
 import geomstats.backend as gs
@@ -11,7 +11,7 @@ from geomstats.manifold import Manifold
 
 
 class ProductManifold(Manifold):
-    """Base class for a product of differentiable manifolds."""
+    """Class for a product of manifolds."""
 
     def __init__(self, manifolds):
         self.manifolds = manifolds

@@ -6,8 +6,9 @@ with its left-invariant canonical METRIC.
 import numpy as np
 import matplotlib.pyplot as plt
 
-from geomstats.special_euclidean_group import SpecialEuclideanGroup
 import geomstats.visualization as visualization
+
+from geomstats.special_euclidean_group import SpecialEuclideanGroup
 
 SE3_GROUP = SpecialEuclideanGroup(n=3)
 METRIC = SE3_GROUP.left_canonical_metric

@@ -1,14 +1,15 @@
 """
-The Euclidean space.
+Class for Euclidean spaces.
 """
+
+import geomstats.backend as gs
 
 from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
-import geomstats.backend as gs
 
 
 class EuclideanSpace(Manifold):
-    """The Euclidean space."""
+    """Class for Euclidean spaces."""
 
     def __init__(self, dimension):
         assert isinstance(dimension, int) and dimension > 0
@@ -40,9 +41,7 @@ class EuclideanSpace(Manifold):
 
 class EuclideanMetric(RiemannianMetric):
     """
-    Class for the Euclidean metric.
-    The metric is flat: inner product independent of the reference point.
-    The metric has signature (0, n) on the n-D vector space.
+    Class for Euclidean metrics.
     """
     def __init__(self, dimension):
         assert isinstance(dimension, int) and dimension > 0
