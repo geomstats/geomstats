@@ -1,11 +1,14 @@
-"""Unit tests for hyperbolic_space module."""
+"""
+Unit tests for the Hyperbolic space.
+"""
 
-from geomstats.hyperbolic_space import HyperbolicSpace
+import math
+import unittest
 
 import geomstats.backend as gs
-import math
 import tests.helper as helper
-import unittest
+
+from geomstats.hyperbolic_space import HyperbolicSpace
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
 # of the vector, as opposed to the standard behavior of gs.allclose

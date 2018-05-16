@@ -1,5 +1,5 @@
 """
-Unit tests for special euclidean group module.
+Unit tests for special euclidean group SE(n).
 
 Note: Only the *canonical* left- and right- invariant
 metrics on SE(3) are tested here. Other invariant
@@ -7,13 +7,14 @@ metrics are tested with the tests of the invariant_metric
 module.
 """
 
-import geomstats.backend as gs
 import unittest
+
+import geomstats.backend as gs
+import tests.helper as helper
 
 from geomstats.invariant_metric import InvariantMetric
 from geomstats.spd_matrices_space import SPDMatricesSpace
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
-import tests.helper as helper
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
 # of the vector, as opposed to the standard behavior of gs.allclose

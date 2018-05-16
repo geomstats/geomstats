@@ -1,9 +1,12 @@
-"""Unit tests for base_manifolds module."""
+"""
+Unit tests for manifolds.
+"""
 
-from geomstats.manifold import Manifold
+import unittest
 
 import geomstats.backend as gs
-import unittest
+
+from geomstats.manifold import Manifold
 
 
 class TestManifoldMethods(unittest.TestCase):

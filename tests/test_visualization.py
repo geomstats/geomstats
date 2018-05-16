@@ -1,10 +1,13 @@
-"""Unit tests for visualization module."""
+"""
+Unit tests for visualization.
+"""
 
 import matplotlib
 matplotlib.use('Agg')  # NOQA
 import unittest
 
 import geomstats.visualization as visualization
+
 from geomstats.hypersphere import Hypersphere
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup

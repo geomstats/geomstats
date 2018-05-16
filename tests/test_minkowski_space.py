@@ -1,8 +1,11 @@
-"""Unit tests for minkowski space module."""
+"""
+Unit tests for Minkowski space.
+"""
+
+import unittest
 
 import geomstats.backend as gs
 import tests.helper as helper
-import unittest
 
 from geomstats.minkowski_space import MinkowskiSpace
 

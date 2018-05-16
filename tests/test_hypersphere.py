@@ -1,10 +1,13 @@
-"""Unit tests for hypersphere module."""
+"""
+Unit tests for the Hypersphere.
+"""
 
-from geomstats.hypersphere import Hypersphere
+import unittest
 
 import geomstats.backend as gs
 import tests.helper as helper
-import unittest
+
+from geomstats.hypersphere import Hypersphere
 
 
 class TestHypersphereMethods(unittest.TestCase):

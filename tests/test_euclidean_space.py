@@ -1,8 +1,11 @@
-"""Unit tests for euclidean space module."""
+"""
+Unit tests for the Euclidean space.
+"""
+
+import unittest
 
 import geomstats.backend as gs
 import tests.helper as helper
-import unittest
 
 from geomstats.euclidean_space import EuclideanSpace
 

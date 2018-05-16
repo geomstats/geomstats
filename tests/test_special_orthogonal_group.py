@@ -1,14 +1,17 @@
-"""Unit tests for special orthogonal group module."""
+"""
+Unit tests for special orthogonal group SO(n).
+"""
+
+import unittest
 
 import geomstats.backend as gs
-import unittest
+import geomstats.special_orthogonal_group as special_orthogonal_group
+import tests.helper as helper
 
 from geomstats.invariant_metric import InvariantMetric
 from geomstats.spd_matrices_space import SPDMatricesSpace
-import geomstats.special_orthogonal_group as special_orthogonal_group
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
-import tests.helper as helper
 
 EPSILON = 1e-5
 ATOL = 1e-5

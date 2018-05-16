@@ -1,7 +1,10 @@
-"""Unit tests for matrix lie group module."""
+"""
+Unit tests for General Linear group.
+"""
+
+import unittest
 
 import geomstats.backend as gs
-import unittest
 
 from geomstats.general_linear_group import GeneralLinearGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
