@@ -1,8 +1,8 @@
 """
-Class for the Lie group of rotations.
+Class for the special orthogonal group SO(n),
+i.e. the Lie group of rotations.
 """
 
-# TODO(nina): Rename modules to make imports cleaner?
 # TODO(nina): make code robust to different types and input structures
 import geomstats.backend as gs
 import geomstats.spd_matrices_space as spd_matrices_space
@@ -16,12 +16,8 @@ ATOL = 1e-5
 
 def closest_rotation_matrix(mat):
     """
-    Compute the closest - in terms of
-    the Frobenius norm - rotation matrix
-    of a given matrix mat.
-
-    :param mat: matrix
-    :returns rot_mat: rotation matrix.
+    Compute the closest rotation matrix of a given matrix mat,
+    in terms of the Frobenius norm.
     """
     mat = gs.to_ndarray(mat, to_ndim=3)
 
@@ -61,9 +57,6 @@ def skew_matrix_from_vector(vec):
 
     In nD, fill a skew-symmetric matrix with
     the values of the vector.
-
-    :param vec: vector
-    :return skew_mat: skew-symmetric matrix
     """
     vec = gs.to_ndarray(vec, to_ndim=2)
     n_vecs, vec_dim = vec.shape
@@ -91,9 +84,6 @@ def vector_from_skew_matrix(skew_mat):
 
     In nD, fill a vector by reading the values
     of the upper triangle of skew_mat.
-
-    :param skew_mat: skew-symmetric matrix
-    :return vec: vector
     """
     skew_mat = gs.to_ndarray(skew_mat, to_ndim=3)
     n_skew_mats, mat_dim_1, mat_dim_2 = skew_mat.shape
@@ -118,7 +108,8 @@ def vector_from_skew_matrix(skew_mat):
 
 class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
     """
-    Class for the Lie group of rotations.
+    Class for the special orthogonal group SO(n),
+    i.e. the Lie group of rotations.
     """
 
     def __init__(self, n):
@@ -135,16 +126,15 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         self.bi_invariant_metric = self.left_canonical_metric
         self.point_representation = 'vector' if n == 3 else 'matrix'
 
-    def belongs(self, rot_vec):
+    def belongs(self, point):
         """
-        Check that a vector belongs to the
-        special orthogonal group.
+        Evaluate if the point belongs to SO(n).
         """
-        rot_vec = gs.to_ndarray(rot_vec, to_ndim=2)
-        _, vec_dim = rot_vec.shape
-        return vec_dim == self.dimension
+        point = gs.to_ndarray(point, to_ndim=2)
+        _, point_dim = point.shape
+        return point_dim == self.dimension
 
-    def regularize(self, rot_vec):
+    def regularize(self, point):
         """
         In 3D, regularize the norm of the rotation vector,
         to be between 0 and pi, following the axis-angle
@@ -153,17 +143,14 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         If the angle angle is between pi and 2pi,
         the function computes its complementary in 2pi and
         inverts the direction of the rotation axis.
-
-        :param rot_vec: 3d vector
-        :returns self.regularized_rot_vec: 3d vector with: 0 < norm < pi
         """
-        rot_vec = gs.to_ndarray(rot_vec, to_ndim=2)
-        assert self.belongs(rot_vec)
-        n_rot_vecs, vec_dim = rot_vec.shape
+        point = gs.to_ndarray(point, to_ndim=2)
+        assert self.belongs(point)
+        n_points, vec_dim = point.shape
 
         if vec_dim == 3:
-            angle = gs.linalg.norm(rot_vec, axis=1)
-            regularized_rot_vec = rot_vec.astype('float64')
+            angle = gs.linalg.norm(point, axis=1)
+            regularized_point = point.astype('float64')
             mask_not_0 = angle != 0
 
             k = gs.floor(angle / (2 * gs.pi) + .5)
@@ -171,20 +158,19 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             norms_ratio[mask_not_0] = (
                   1. - 2. * gs.pi * k[mask_not_0] / angle[mask_not_0])
             norms_ratio[angle == 0] = 1
-            for i in range(n_rot_vecs):
-                regularized_rot_vec[i, :] = norms_ratio[i] * rot_vec[i]
+            for i in range(n_points):
+                regularized_point[i, :] = norms_ratio[i] * point[i]
         else:
             # TODO(nina): regularization needed in nD?
-            regularized_rot_vec = rot_vec
+            regularized_point = point
 
-        assert regularized_rot_vec.ndim == 2
-        return regularized_rot_vec
+        assert regularized_point.ndim == 2
+        return regularized_point
 
     def regularize_tangent_vec_at_identity(self, tangent_vec, metric=None):
         """
         In 3D, regularize a tangent_vector by getting its norm at the identity,
-        determined by the metric, to be less than pi,
-        following the regularization convention.
+        determined by the metric, to be less than pi.
         """
         assert self.point_representation in ('vector', 'matrix')
 
@@ -228,10 +214,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
     def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
         """
-        Regularize a tangent_vector by getting its norm at the identity,
-        determined by the metric,
-        to be less than pi,
-        following the regularization convention
+        In 3D, regularize a tangent_vector by getting the norm of its parallel
+        transport to the identity, determined by the metric,
+        to be less than pi.
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         _, vec_dim = tangent_vec.shape
@@ -283,9 +268,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         In nD, the rotation vector stores the n(n-1)/2 values of the
         skew-symmetric matrix representing the rotation.
-
-        :param rot_mat: rotation matrix
-        :return rot_vec: rotation vector
         """
         rot_mat = gs.to_ndarray(rot_mat, to_ndim=3)
         n_rot_mats, mat_dim_1, mat_dim_2 = rot_mat.shape
@@ -496,46 +478,38 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         assert rot_mat.ndim == 3
         return rot_mat
 
-    def compose(self, rot_vec_1, rot_vec_2):
+    def compose(self, point_1, point_2):
         """
-        Compose 2 rotation vectors according to the matrix product
-        on the corresponding matrices.
+        Compose two elements of SO(n).
         """
-        rot_vec_1 = self.regularize(rot_vec_1)
-        rot_vec_2 = self.regularize(rot_vec_2)
+        point_1 = self.regularize(point_1)
+        point_2 = self.regularize(point_2)
 
-        rot_mat_1 = self.matrix_from_rotation_vector(rot_vec_1)
-        rot_mat_2 = self.matrix_from_rotation_vector(rot_vec_2)
+        rot_mat_1 = self.matrix_from_rotation_vector(point_1)
+        rot_mat_2 = self.matrix_from_rotation_vector(point_2)
 
         rot_mat_prod = gs.einsum('ijk,ikl->ijl', rot_mat_1, rot_mat_2)
-        rot_vec_prod = self.rotation_vector_from_matrix(rot_mat_prod)
+        point_prod = self.rotation_vector_from_matrix(rot_mat_prod)
 
-        rot_vec_prod = self.regularize(rot_vec_prod)
-        return rot_vec_prod
+        point_prod = self.regularize(point_prod)
+        return point_prod
 
-    def inverse(self, rot_vec):
+    def inverse(self, point):
         """
-        Inverse of a rotation.
+        Compute the group inverse in SO(n).
         """
         if self.n == 3:
-            inv_rot_vec = -self.regularize(rot_vec)
+            inv_point = -self.regularize(point)
         else:
-            rot_mat = self.matrix_from_rotation_vector(rot_vec)
+            rot_mat = self.matrix_from_rotation_vector(point)
             inv_rot_mat = gs.linalg.inv(rot_mat)
-            inv_rot_vec = self.rotation_vector_from_matrix(inv_rot_mat)
-        return inv_rot_vec
+            inv_point = self.rotation_vector_from_matrix(inv_rot_mat)
+        return inv_point
 
-    def jacobian_translation(self, point,
-                             left_or_right='left'):
+    def jacobian_translation(self, point, left_or_right='left'):
         """
         Compute the jacobian matrix of the differential
-        of the left translation by the rotation r.
-
-        Formula:
-        https://hal.inria.fr/inria-00073871
-
-        :param rot_vec: 3D rotation vector
-        :returns jacobian: 3x3 matrix
+        of the left/right translations from the identity to point in SO(n).
         """
         assert self.belongs(point)
         assert left_or_right in ('left', 'right')
@@ -601,9 +575,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
     def random_uniform(self, n_samples=1):
         """
-        Sample a 3d rotation vector uniformly, w.r.t.
-        the bi-invariant metric, by sampling in the
-        hypercube of side [-1, 1] on the tangent space.
+        Sample in SO(n) with the uniform distribution.
         """
         random_rot_vec = gs.random.rand(n_samples, self.dimension) * 2 - 1
         random_rot_vec = self.regularize(random_rot_vec)

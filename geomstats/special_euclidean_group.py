@@ -1,5 +1,6 @@
 """
-Class for the Lie group of rigid transformations.
+Class for the special euclidean group SE(n),
+i.e. the Lie group of rigid transformations.
 """
 
 import geomstats.backend as gs
@@ -25,7 +26,8 @@ ATOL = 1e-5
 
 class SpecialEuclideanGroup(LieGroup):
     """
-    Class for the Lie group of rigid transformations.
+    Class for the special euclidean group SE(n),
+    i.e. the Lie group of rigid transformations.
     """
 
     def __init__(self, n):
@@ -43,8 +45,7 @@ class SpecialEuclideanGroup(LieGroup):
 
     def belongs(self, point):
         """
-        Check that the transformation belongs to
-        the special euclidean group.
+        Evaluate if the point belongs to SE(n).
         """
         point = gs.to_ndarray(point, to_ndim=2)
         _, point_dim = point.shape
@@ -52,14 +53,11 @@ class SpecialEuclideanGroup(LieGroup):
 
     def regularize(self, point):
         """
-        Regularize an element of the group SE(3),
-        by extracting the rotation vector r from the input [r t]
-        and using self.rotations.regularize.
-
-        :param point: 6d vector, element in SE(3) represented as [r t].
-        :returns self.regularized_point: 6d vector, element in SE(3)
-        with self.regularized rotation.
+        Regularize the point to the canonical representation
+        chosen for SE(n).
         """
+        assert self.point_representation == 'vector'
+
         point = gs.to_ndarray(point, to_ndim=2)
         assert self.belongs(point)
 
@@ -77,15 +75,6 @@ class SpecialEuclideanGroup(LieGroup):
         return self.regularize_tangent_vec(tangent_vec, self.identity, metric)
 
     def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
-        """
-        Regularize an element of the group SE(3),
-        by extracting the rotation vector r from the input [r t]
-        and using self.rotations.regularize.
-
-        :param point: 6d vector, element in SE(3) represented as [r t].
-        :returns self.regularized_point: 6d vector, element in SE(3)
-        with self.regularized rotation.
-        """
         if metric is None:
             metric = self.left_canonical_metric
 
@@ -116,16 +105,13 @@ class SpecialEuclideanGroup(LieGroup):
 
     def compose(self, point_1, point_2):
         """
-        Compose two elements of group SE(3).
+        Compose two elements of SE(n).
 
         Formula:
         point_1 . point_2 = [R1 * R2, (R1 * t2) + t1]
         where:
         R1, R2 are rotation matrices,
         t1, t2 are translation vectors.
-
-        :param point_1, point_2: 6d vectors elements of SE(3)
-        :return composition: composition of point_1 and point_2
         """
         rotations = self.rotations
         dim_rotations = rotations.dimension
@@ -176,13 +162,10 @@ class SpecialEuclideanGroup(LieGroup):
 
     def inverse(self, point):
         """
-        Compute the group inverse in SE(3).
+        Compute the group inverse in SE(n).
 
         Formula:
         (R, t)^{-1} = (R^{-1}, R^{-1}.(-t))
-
-        :param point: 6d vector element in SE(3)
-        :returns inverse_point: 6d vector inverse of point
         """
         rotations = self.rotations
         dim_rotations = rotations.dimension
@@ -212,11 +195,7 @@ class SpecialEuclideanGroup(LieGroup):
     def jacobian_translation(self, point, left_or_right='left'):
         """
         Compute the jacobian matrix of the differential
-        of the left/right translations
-        from the identity to point in the Lie group SE(3).
-
-        :param point: 6D vector element of SE(3)
-        :returns jacobian: 6x6 matrix
+        of the left/right translations from the identity to point in SE(n).
         """
         assert self.belongs(point)
         assert left_or_right in ('left', 'right')
@@ -255,15 +234,9 @@ class SpecialEuclideanGroup(LieGroup):
         assert jacobian.ndim == 3
         return jacobian
 
-    def group_exp_from_identity(self,
-                                tangent_vec):
+    def group_exp_from_identity(self, tangent_vec):
         """
-        Compute the group exponential of vector tangent_vector,
-        at point base_point.
-
-        :param tangent_vector: tangent vector of SE(3) at base_point.
-        :param base_point: 6d vector element of SE(3).
-        :returns group_exp: 6d vector element of SE(3).
+        Compute the group exponential of the tangent vector at the identity.
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
 
@@ -329,10 +302,9 @@ class SpecialEuclideanGroup(LieGroup):
         group_exp = self.regularize(group_exp)
         return group_exp
 
-    def group_log_from_identity(self,
-                                point):
+    def group_log_from_identity(self, point):
         """
-        Compute the group logarithm of point point,
+        Compute the group logarithm of the point point,
         from the identity.
         """
         assert self.belongs(point)
@@ -403,16 +375,10 @@ class SpecialEuclideanGroup(LieGroup):
 
     def random_uniform(self, n_samples=1):
         """
-        Generate an 6d vector element of SE(3) uniformly,
-        by generating separately a rotation vector uniformly
-        on the hypercube of sides [-1, 1] in the tangent space,
-        and a translation in the hypercube of side [-1, 1] in
-        the euclidean space.
+        Sample in SE(n) with the uniform distribution.
         """
         random_rot_vec = self.rotations.random_uniform(n_samples)
         random_translation = self.translations.random_uniform(n_samples)
-        # TODO(nina): remove this line after full parallelization
-        random_translation = gs.to_ndarray(random_translation, to_ndim=2)
 
         random_transfo = gs.concatenate([random_rot_vec, random_translation],
                                         axis=1)
@@ -423,9 +389,6 @@ class SpecialEuclideanGroup(LieGroup):
         """
         Compute the exponential of the rotation matrix
         represented by rot_vec.
-
-        :param rot_vec: 3D rotation vector
-        :returns exponential_mat: 3x3 matrix
         """
 
         rot_vec = self.rotations.regularize(rot_vec)
@@ -475,9 +438,6 @@ class SpecialEuclideanGroup(LieGroup):
     def group_exponential_barycenter(self, points, weights=None):
         """
         Compute the group exponential barycenter.
-
-        :param points: SE3 data points, Nx6 array
-        :param weights: data point weights, Nx1 array
         """
 
         n_points = points.shape[0]
