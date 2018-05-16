@@ -2,8 +2,8 @@
 Plot a geodesic on the sphere S2
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 import geomstats.visualization as visualization
 

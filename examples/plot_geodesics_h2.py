@@ -3,8 +3,8 @@ Plot a geodesic on the Hyperbolic space H2,
 with Poincare Disk visualization.
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 import geomstats.visualization as visualization
 

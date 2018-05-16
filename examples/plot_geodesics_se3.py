@@ -3,8 +3,8 @@ Plot a geodesic of SE(3) equipped
 with its left-invariant canonical METRIC.
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 import geomstats.visualization as visualization
 
