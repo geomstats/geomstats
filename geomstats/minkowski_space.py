@@ -18,7 +18,7 @@ class MinkowskiSpace(Manifold):
 
     def belongs(self, point):
         """
-        Evaluate if the point belongs to the Minkowski space.
+        Evaluate if a point belongs to the Minkowski space.
         """
         point = gs.to_ndarray(point, to_ndim=2)
         n_points, point_dim = point.shape

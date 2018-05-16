@@ -18,7 +18,7 @@ class EuclideanSpace(Manifold):
 
     def belongs(self, point):
         """
-        Evaluate if the point belongs to the Euclidean space.
+        Evaluate if a point belongs to the Euclidean space.
         """
         point = gs.to_ndarray(point, to_ndim=2)
         n_points, point_dim = point.shape
@@ -33,7 +33,7 @@ class EuclideanSpace(Manifold):
         Sample in the Euclidean space with the uniform distribution.
         """
         size = (n_samples, self.dimension)
-        point = gs.random.rand(*size) * 2 - 1
+        point = (gs.random.rand(*size) - 0.5) * 2
 
         return point
 

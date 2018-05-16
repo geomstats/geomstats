@@ -268,7 +268,7 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
         atol = RTOL
         if norm != 0:
             atol = RTOL * norm
-        self.assertTrue(gs.allclose(result, expected, atol=atol))
+        gs.testing.assert_allclose(result, expected, atol=atol)
 
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """

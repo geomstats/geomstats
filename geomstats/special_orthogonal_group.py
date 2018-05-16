@@ -128,7 +128,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
     def belongs(self, point):
         """
-        Evaluate if the point belongs to SO(n).
+        Evaluate if a point belongs to SO(n).
         """
         point = gs.to_ndarray(point, to_ndim=2)
         _, point_dim = point.shape

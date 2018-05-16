@@ -45,7 +45,7 @@ class SpecialEuclideanGroup(LieGroup):
 
     def belongs(self, point):
         """
-        Evaluate if the point belongs to SE(n).
+        Evaluate if a point belongs to SE(n).
         """
         point = gs.to_ndarray(point, to_ndim=2)
         _, point_dim = point.shape
@@ -53,7 +53,7 @@ class SpecialEuclideanGroup(LieGroup):
 
     def regularize(self, point):
         """
-        Regularize the point to the canonical representation
+        Regularize a point to the canonical representation
         chosen for SE(n).
         """
         assert self.point_representation == 'vector'

@@ -14,13 +14,13 @@ class Manifold(object):
 
     def belongs(self, point):
         """
-        Evaluate if the point belongs to the manifold.
+        Evaluate if a point belongs to the manifold.
         """
         raise NotImplementedError('belongs is not implemented.')
 
     def regularize(self, point):
         """
-        Regularize the point to the canonical representation
+        Regularize a point to the canonical representation
         chosen for the manifold.
         """
         return point
