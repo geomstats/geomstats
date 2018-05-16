@@ -18,7 +18,7 @@ class EuclideanSpace(Manifold):
 
     def belongs(self, point):
         """
-        Check if point belongs to the Euclidean space.
+        Evaluate if the point belongs to the Euclidean space.
         """
         point = gs.to_ndarray(point, to_ndim=2)
         n_points, point_dim = point.shape
@@ -30,8 +30,7 @@ class EuclideanSpace(Manifold):
 
     def random_uniform(self, n_samples=1):
         """
-        Sample a vector uniformly in the Euclidean space,
-        with coordinates each between -1. and 1.
+        Sample in the Euclidean space with the uniform distribution.
         """
         size = (n_samples, self.dimension)
         point = gs.random.rand(*size) * 2 - 1
@@ -42,6 +41,7 @@ class EuclideanSpace(Manifold):
 class EuclideanMetric(RiemannianMetric):
     """
     Class for Euclidean metrics.
+    The metric is flat: the inner product is independent of the base point.
     """
     def __init__(self, dimension):
         assert isinstance(dimension, int) and dimension > 0
@@ -51,9 +51,7 @@ class EuclideanMetric(RiemannianMetric):
 
     def inner_product_matrix(self, base_point=None):
         """
-        Euclidean inner product matrix, which is the identity matrix.
-
-        Note: the matrix is independent of the base_point.
+        Inner product matrix, independent of the base point.
         """
         mat = gs.eye(self.dimension)
         mat = gs.to_ndarray(mat, to_ndim=3)
@@ -79,7 +77,8 @@ class EuclideanMetric(RiemannianMetric):
 
     def mean(self, points, weights=None):
         """
-        Weighted mean of the points.
+        The Frechet mean of (weighted) points is the weighted average of
+        the points in the Euclidean space.
         """
         mean = gs.average(points, axis=0, weights=weights)
         mean = gs.to_ndarray(mean, to_ndim=2)

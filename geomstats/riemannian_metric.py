@@ -1,8 +1,6 @@
 """
-Base class for Riemannian metrics.
+Class for Riemannian and pseudo-Riemannian metrics.
 """
-
-import logging
 
 import geomstats.backend as gs
 
@@ -12,7 +10,9 @@ EPSILON = 1e-4
 
 def loss(y_pred, y_true, metric):
     """
-    Loss function given by a riemannian metric.
+    Loss function given by a riemannian metric,
+    expressed as the squared geodesic distance between the prediction
+    and the ground truth.
     """
     loss = metric.squared_dist(y_pred, y_true)
     return loss
@@ -21,8 +21,6 @@ def loss(y_pred, y_true, metric):
 def grad(y_pred, y_true, metric):
     """
     Closed-form for the gradient of the loss function.
-
-    :return: tangent vector at point y_pred.
     """
     tangent_vec = metric.log(base_point=y_pred, point=y_true)
     grad_vec = - 2. * tangent_vec
@@ -35,10 +33,8 @@ def grad(y_pred, y_true, metric):
 
 class RiemannianMetric(object):
     """
-    Base class for Riemannian metrics.
-    Note: this class includes sub- and pseudo- Riemannian metrics.
+    Class for Riemannian and pseudo-Riemannian metrics.
     """
-
     def __init__(self, dimension, signature=None):
         assert isinstance(dimension, int) and dimension > 0
         self.dimension = dimension
@@ -46,8 +42,7 @@ class RiemannianMetric(object):
 
     def inner_product_matrix(self, base_point=None):
         """
-        Matrix of the inner product defined by the Riemmanian metric
-        at point base_point of the manifold.
+        Inner product matrix at the tangent space at a base point.
         """
         raise NotImplementedError(
                 'The computation of the inner product matrix'
@@ -55,8 +50,7 @@ class RiemannianMetric(object):
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """
-        Inner product defined by the Riemannian metric at point base_point
-        between tangent vectors tangent_vec_a and tangent_vec_b.
+        Inner product between two tangent vectors at a base point.
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
@@ -90,17 +84,16 @@ class RiemannianMetric(object):
 
     def squared_norm(self, vector, base_point=None):
         """
-        Squared norm associated to the inner product.
-
-        Note: the squared norm may be non-positive if the metric
-        is not positive-definite.
+        Squared norm of a vector associated to the inner product
+        at the tangent space at a base point.
         """
         sq_norm = self.inner_product(vector, vector, base_point)
         return sq_norm
 
     def norm(self, vector, base_point=None):
         """
-        Norm associated to the inner product.
+        Norm of a vector associated to the inner product
+        at the tangent space at a base point.
         """
         n_negative_eigenvalues = self.signature[1]
         if n_negative_eigenvalues > 0:
@@ -113,16 +106,14 @@ class RiemannianMetric(object):
 
     def exp(self, tangent_vec, base_point=None):
         """
-        Riemannian exponential at point base_point
-        of tangent vector tangent_vec wrt the Riemannian metric.
+        Riemannian exponential of a tangent vector wrt to a base point.
         """
         raise NotImplementedError(
                 'The Riemannian exponential is not implemented.')
 
     def log(self, point, base_point=None):
         """
-        Riemannian logarithm at point base_point
-        of tangent vector tangent_vec wrt the Riemannian metric.
+        Riemannian logarithm of a point wrt a base point.
         """
         raise NotImplementedError(
                 'The Riemannian logarithm is not implemented.')
@@ -130,17 +121,12 @@ class RiemannianMetric(object):
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None, point_ndim=1):
         """
-        Geodesic curve associated to the Riemannian metric,
-        starting at the point initial_point in the direction
-        of the initial tangent vector.
+        Geodesic curve defined by either:
+        - an initial point and an initial tangent vector,
+        or
+        -an initial point and an end point.
 
-        The geodesic is returned as a function of t, which represents the
-        geodesic curve parameterized by t.
-
-        By default, the function assumes that points and tangent_vecs are
-        represented by vectors: point_ndim=1. This function is overwritten
-        for manifolds whose points are represented by matrices or higher
-        dimensional tensors.
+        The geodesic is returned as a function parameterized by t.
         """
         initial_point = gs.to_ndarray(initial_point,
                                       to_ndim=point_ndim+1)
@@ -181,10 +167,7 @@ class RiemannianMetric(object):
 
     def squared_dist(self, point_a, point_b):
         """
-        Squared Riemannian distance between points point_a and point_b.
-
-        Note: the squared distance may be non-positive if the metric
-        is not positive-definite.
+        Squared geodesic distance between two points.
         """
         log = self.log(point=point_b, base_point=point_a)
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
@@ -192,8 +175,7 @@ class RiemannianMetric(object):
 
     def dist(self, point_a, point_b):
         """
-        Riemannian distance between points point_a and point_b. This
-        is the geodesic distance associated to the Riemannian metric.
+        Geodesic distance between two points.
         """
         n_negative_eigenvalues = self.signature[1]
         if n_negative_eigenvalues > 0:
@@ -206,8 +188,7 @@ class RiemannianMetric(object):
 
     def variance(self, points, weights=None, base_point=None):
         """
-        Weighted variance of the points in the tangent space
-        at the base_point.
+        Variance of (weighted) points wrt a base point.
         """
         n_points = len(points)
         assert n_points > 0
@@ -238,12 +219,7 @@ class RiemannianMetric(object):
     def mean(self, points,
              weights=None, n_max_iterations=32, epsilon=EPSILON):
         """
-        Weighted Frechet mean of the points, iterating 3 steps:
-        - Project the points on the tangent space with the riemannian log
-        - Calculate the tangent mean on the tangent space
-        - Shoot the tangent mean onto the manifold with the riemannian exp
-
-        Initialization with one of the points.
+        Frechet mean of (weighted) points.
         """
         # TODO(nina): profile this code to study performance,
         # i.e. what to do with sq_dists_between_iterates.
@@ -296,16 +272,14 @@ class RiemannianMetric(object):
             iteration += 1
 
         if iteration is n_max_iterations:
-            logging.warning('Maximum number of iterations {} reached.'
-                            'The mean may be inaccurate'
-                            ''.format(n_max_iterations))
+            print('Maximum number of iterations {} reached.'
+                  'The mean may be inaccurate'.format(n_max_iterations))
         return mean
 
     def tangent_pca(self, points, base_point=None):
         """
-        Tangent Principal Component Analysis (tPCA) at base_point.
-        This is standard PCA on the Riemannian Logarithms of the points
-        at the base point.
+        Tangent Principal Component Analysis (tPCA) of points
+        on the tangent space at a base point.
         """
         # TODO(nina): It only works for points of ndim=2, adapt to other ndims.
         if base_point is None:

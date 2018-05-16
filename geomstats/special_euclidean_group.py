@@ -386,8 +386,7 @@ class SpecialEuclideanGroup(LieGroup):
 
     def exponential_matrix(self, rot_vec):
         """
-        Compute the exponential of the rotation matrix
-        represented by rot_vec.
+        Compute the exponential of the rotation matrix represented by rot_vec.
         """
 
         rot_vec = self.rotations.regularize(rot_vec)

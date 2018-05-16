@@ -18,7 +18,7 @@ class MinkowskiSpace(Manifold):
 
     def belongs(self, point):
         """
-        Check if point belongs to the Minkowski space.
+        Evaluate if the point belongs to the Minkowski space.
         """
         point = gs.to_ndarray(point, to_ndim=2)
         n_points, point_dim = point.shape
@@ -33,8 +33,7 @@ class MinkowskiSpace(Manifold):
 
     def random_uniform(self, n_samples=1):
         """
-        Sample a vector uniformly in the Minkowski space,
-        with coordinates each between -1. and 1.
+        Sample in the Minkowski space with the uniform distribution.
         """
         size = (n_samples, self.dimension)
         point = gs.random.rand(*size) * 2 - 1
@@ -45,8 +44,7 @@ class MinkowskiSpace(Manifold):
 class MinkowskiMetric(RiemannianMetric):
     """
     Class for the pseudo-Riemannian Minkowski metric.
-    The metric is flat: inner product independent of the reference point.
-    The metric has signature (-1, n) on the (n+1)-D vector space.
+    The metric is flat: the inner product is independent of the base point.
     """
     def __init__(self, dimension):
         super(MinkowskiMetric, self).__init__(
@@ -55,9 +53,7 @@ class MinkowskiMetric(RiemannianMetric):
 
     def inner_product_matrix(self, base_point=None):
         """
-        Minkowski inner product matrix.
-
-        Note: the matrix is independent on the base_point.
+        Inner product matrix, independent of the base point.
         """
         inner_prod_mat = gs.eye(self.dimension)
         inner_prod_mat[0, 0] = -1
@@ -81,7 +77,8 @@ class MinkowskiMetric(RiemannianMetric):
 
     def mean(self, points, weights=None):
         """
-        Weighted mean of the points.
+        The Frechet mean of (weighted) points is the weighted average of
+        the points in the Minkowski space.
         """
         mean = gs.average(points, axis=0, weights=weights)
         mean = gs.to_ndarray(mean, to_ndim=2)
