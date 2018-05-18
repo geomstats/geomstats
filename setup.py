@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name='geomstats',
       version='1.6',
@@ -7,5 +7,5 @@ setup(name='geomstats',
       author='Nina Miolane',
       author_email='ninamio78@gmail.com',
       license='MIT',
-      packages=['geomstats'],
+      packages=find_packages(),
       zip_safe=False)
