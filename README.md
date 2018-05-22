@@ -1,5 +1,5 @@
 # Geomstats
-[![Build Status](https://travis-ci.org/geomstats/geomstats.svg?branch=master)](https://travis-ci.org/geomstats/geomstats)  [![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg)](https://codecov.io/gh/geomstats/geomstats)
+[![Build Status](https://travis-ci.org/geomstats/geomstats.svg?branch=master)](https://travis-ci.org/geomstats/geomstats)  [![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg)](https://codecov.io/gh/geomstats/geomstats)[![Pypi version](https://img.shields.io/pypi/v/geomstats.svg)](https://pypi.python.org/pypi/geomstats/)
 
 Computations and statistics on manifolds with geometric structures.
 
