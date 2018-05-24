@@ -1,0 +1,28 @@
+<?xml version="1.0"?> 
+<sdf version="1.4">
+  <world name="default">
+
+    <physics type='ode'>
+      <max_step_size>0.001000</max_step_size>
+      <real_time_factor>1.000000</real_time_factor>
+      <real_time_update_rate>1000.000000</real_time_update_rate>
+      <gravity>0.000000 0.000000 0.000000</gravity>
+    </physics>
+
+    <!-- Ground Plane -->
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <include>
+      <uri>model://iiwa14</uri>
+      <plugin name="iiwa_control" filename="libiiwa_control.so">
+        <update_rate>1000.0</update_rate>
+      </plugin>
+    </include>       
+  </world>
+</sdf>
