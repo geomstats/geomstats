@@ -1,11 +1,12 @@
 """
-Class for differentiable manifolds.
+Manifold, i.e. a topological space that locally resembles
+Euclidean space near each point.
 """
 
 
 class Manifold(object):
     """
-    Class for differentiable manifolds.
+    Class for manifolds.
     """
 
     def __init__(self, dimension):

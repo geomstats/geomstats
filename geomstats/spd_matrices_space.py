@@ -1,5 +1,5 @@
 """
-Class for the manifold of symmetric positive definite (SPD) matrices.
+The manifold of symmetric positive definite (SPD) matrices.
 """
 
 import geomstats.backend as gs

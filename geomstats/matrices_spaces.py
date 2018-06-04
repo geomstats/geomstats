@@ -1,6 +1,5 @@
 """
-Class for the space of matrices (m, n), which is the Euclidean space
-R^{mn}.
+The space of matrices (m, n), which is the Euclidean space R^{mn}.
 """
 
 import geomstats.backend as gs

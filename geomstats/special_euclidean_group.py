@@ -1,6 +1,6 @@
 """
-Class for the special euclidean group SE(n),
-i.e. the Lie group of rigid transformations.
+The special euclidean group SE(n),
+i.e. the Lie group of rigid transformations in n dimensions.
 """
 
 import geomstats.backend as gs

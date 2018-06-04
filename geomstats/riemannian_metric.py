@@ -1,5 +1,5 @@
 """
-Class for Riemannian and pseudo-Riemannian metrics.
+Riemannian and pseudo-Riemannian metrics.
 """
 
 import geomstats.backend as gs

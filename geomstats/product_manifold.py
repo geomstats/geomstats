@@ -1,5 +1,5 @@
 """
-Class for a product of manifolds.
+Product of manifolds.
 """
 
 import geomstats.backend as gs

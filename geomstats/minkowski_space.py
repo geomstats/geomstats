@@ -1,5 +1,5 @@
 """
-Class for Minkowski space.
+Minkowski space.
 """
 
 import geomstats.backend as gs

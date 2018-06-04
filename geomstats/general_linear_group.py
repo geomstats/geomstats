@@ -1,5 +1,5 @@
 """
-Class for the General Linear Group, i.e. the matrix group GL(n).
+The General Linear Group, i.e. the matrix group GL(n).
 """
 
 import scipy.linalg

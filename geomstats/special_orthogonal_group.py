@@ -1,6 +1,6 @@
 """
-Class for the special orthogonal group SO(n),
-i.e. the Lie group of rotations.
+The special orthogonal group SO(n),
+i.e. the Lie group of rotations in n dimensions.
 """
 
 # TODO(nina): make code robust to different types and input structures

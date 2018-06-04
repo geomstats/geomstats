@@ -1,4 +1,4 @@
-"""Class for Lie groups."""
+"""Lie groups."""
 
 
 import geomstats.backend as gs

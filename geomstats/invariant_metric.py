@@ -1,8 +1,5 @@
 """
-Class for:
-- left-invariant metrics
-- right-invariant metrics
-that exist on Lie groups.
+Left- and right- invariant metrics that exist on Lie groups.
 """
 
 import logging

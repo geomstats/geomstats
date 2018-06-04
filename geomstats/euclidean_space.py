@@ -1,5 +1,5 @@
 """
-Class for Euclidean spaces.
+Euclidean space.
 """
 
 import geomstats.backend as gs
@@ -9,7 +9,12 @@ from geomstats.riemannian_metric import RiemannianMetric
 
 
 class EuclideanSpace(Manifold):
-    """Class for Euclidean spaces."""
+    """
+    Class for Euclidean spaces.
+
+    By definition, a Euclidean space is a vector space of a given
+    dimension, equipped with a Euclidean metric.
+    """
 
     def __init__(self, dimension):
         assert isinstance(dimension, int) and dimension > 0
@@ -41,7 +46,11 @@ class EuclideanSpace(Manifold):
 class EuclideanMetric(RiemannianMetric):
     """
     Class for Euclidean metrics.
-    The metric is flat: the inner product is independent of the base point.
+
+    As a Riemannian metric, the Euclidean metric is:
+    - flat: the inner product is independent of the base point.
+    - positive definite: it has signature (0, dimension),
+    where dimension is the dimension of the Euclidean space.
     """
     def __init__(self, dimension):
         assert isinstance(dimension, int) and dimension > 0
@@ -77,8 +86,9 @@ class EuclideanMetric(RiemannianMetric):
 
     def mean(self, points, weights=None):
         """
-        The Frechet mean of (weighted) points is the weighted average of
-        the points in the Euclidean space.
+        The Frechet mean of (weighted) points computed with the
+        Euclidean metric is the weighted average of the points
+        in the Euclidean space.
         """
         mean = gs.average(points, axis=0, weights=weights)
         mean = gs.to_ndarray(mean, to_ndim=2)

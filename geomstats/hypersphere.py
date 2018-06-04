@@ -1,8 +1,9 @@
 """
-Class for the n-dimensional hypersphere
+The n-dimensional hypersphere
 embedded in the (n+1)-dimensional Euclidean space.
 """
 
+import logging
 import math
 
 import geomstats.backend as gs
@@ -55,8 +56,9 @@ class Hypersphere(EmbeddedManifold):
         point_dim = point.shape[-1]
         if point_dim != self.dimension + 1:
             if point_dim is self.dimension:
-                print('Use the extrinsic coordinates to '
-                      'represent points on the hypersphere.')
+                logging.warning(
+                    'Use the extrinsic coordinates to '
+                    'represent points on the hypersphere.')
             return False
         sq_norm = self.embedding_metric.squared_norm(point)
         diff = gs.abs(sq_norm - 1)

@@ -1,5 +1,5 @@
 """
-Class for manifolds embedded in another manifold.
+Manifold embedded in another manifold.
 """
 
 from geomstats.manifold import Manifold

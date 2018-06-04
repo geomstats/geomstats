@@ -1,8 +1,9 @@
 """
-Class for the n-dimensional Hyperbolic space
+The n-dimensional Hyperbolic space
 as embedded in (n+1)-dimensional Minkowski space.
 """
 
+import logging
 import math
 
 import geomstats.backend as gs
@@ -59,8 +60,9 @@ class HyperbolicSpace(EmbeddedManifold):
         _, point_dim = point.shape
         if point_dim is not self.dimension + 1:
             if point_dim is self.dimension:
-                print('Use the extrinsic coordinates to '
-                      'represent points on the hyperbolic space.')
+                logging.warning(
+                    'Use the extrinsic coordinates to '
+                    'represent points on the hyperbolic space.')
             return False
 
         sq_norm = self.embedding_metric.squared_norm(point)
@@ -109,8 +111,9 @@ class HyperbolicSpace(EmbeddedManifold):
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """
-        Convert from intrinsic coordinates in the hyperbolic space,
-        to the extrinsic coordinates in Minkowski space.
+        Convert the parameterization of a point on the Hyperbolic space
+        from its intrinsic coordinates, to its extrinsic coordinates
+        in Minkowski space.
         """
         point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
 
@@ -123,8 +126,9 @@ class HyperbolicSpace(EmbeddedManifold):
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         """
-        Convert from the extrinsic coordinates in Minkowski space,
-        to the extrinsic coordinates in Hyperbolic space.
+        Convert the parameterization of a point on the Hyperbolic space
+        from its extrinsic coordinates in Minkowski space, to its
+        intrinsic coordinates.
         """
         point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=2)
 
@@ -153,7 +157,7 @@ class HyperbolicMetric(RiemannianMetric):
 
     def squared_norm(self, vector, base_point=None):
         """
-        Squared norm of a vector associated to the inner product
+        Squared norm of a vector associated with the inner product
         at the tangent space at a base point.
         """
         sq_norm = self.embedding_metric.squared_norm(vector)

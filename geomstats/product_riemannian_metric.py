@@ -1,5 +1,5 @@
 """
-Class for product of Riemannian metrics.
+Product of Riemannian metrics.
 """
 
 import geomstats.backend as gs
