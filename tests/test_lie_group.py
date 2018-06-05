@@ -1,7 +1,10 @@
-"""Unit tests for lie group module."""
+"""
+Unit tests for Lie groups.
+"""
+
+import unittest
 
 import geomstats.backend as gs
-import unittest
 
 from geomstats.lie_group import LieGroup
 

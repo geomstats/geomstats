@@ -1,10 +1,13 @@
-"""Unit tests for symmetric positive definite matrices."""
+"""
+Unit tests for the manifold of symmetric positive definite matrices.
+"""
 
-import geomstats.backend as gs
 import scipy.linalg
 import unittest
 
+import geomstats.backend as gs
 import geomstats.spd_matrices_space as spd_matrices_space
+
 from geomstats.spd_matrices_space import SPDMatricesSpace
 
 

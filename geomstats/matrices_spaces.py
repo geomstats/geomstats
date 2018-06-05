@@ -1,14 +1,14 @@
 """
-The space of matrices (m, n), which is the Euclidean space
-R^{mn}.
+The space of matrices (m, n), which is the Euclidean space R^{mn}.
 """
 
-from geomstats.euclidean_space import EuclideanSpace
 import geomstats.backend as gs
+
+from geomstats.euclidean_space import EuclideanSpace
 
 
 class MatrixSpace(EuclideanSpace):
-    """The space of matrices (m, n)."""
+    """Class for the space of matrices (m, n)."""
 
     def __init__(self, m, n):
         assert isinstance(m, int) and isinstance(n, int) and m > 0 and n > 0

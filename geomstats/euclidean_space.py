@@ -1,14 +1,20 @@
 """
-The Euclidean space.
+Euclidean space.
 """
+
+import geomstats.backend as gs
 
 from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
-import geomstats.backend as gs
 
 
 class EuclideanSpace(Manifold):
-    """The Euclidean space."""
+    """
+    Class for Euclidean spaces.
+
+    By definition, a Euclidean space is a vector space of a given
+    dimension, equipped with a Euclidean metric.
+    """
 
     def __init__(self, dimension):
         assert isinstance(dimension, int) and dimension > 0
@@ -17,7 +23,7 @@ class EuclideanSpace(Manifold):
 
     def belongs(self, point):
         """
-        Check if point belongs to the Euclidean space.
+        Evaluate if a point belongs to the Euclidean space.
         """
         point = gs.to_ndarray(point, to_ndim=2)
         n_points, point_dim = point.shape
@@ -29,20 +35,22 @@ class EuclideanSpace(Manifold):
 
     def random_uniform(self, n_samples=1):
         """
-        Sample a vector uniformly in the Euclidean space,
-        with coordinates each between -1. and 1.
+        Sample in the Euclidean space with the uniform distribution.
         """
         size = (n_samples, self.dimension)
-        point = gs.random.rand(*size) * 2 - 1
+        point = (gs.random.rand(*size) - 0.5) * 2
 
         return point
 
 
 class EuclideanMetric(RiemannianMetric):
     """
-    Class for the Euclidean metric.
-    The metric is flat: inner product independent of the reference point.
-    The metric has signature (0, n) on the n-D vector space.
+    Class for Euclidean metrics.
+
+    As a Riemannian metric, the Euclidean metric is:
+    - flat: the inner product is independent of the base point.
+    - positive definite: it has signature (0, dimension),
+    where dimension is the dimension of the Euclidean space.
     """
     def __init__(self, dimension):
         assert isinstance(dimension, int) and dimension > 0
@@ -52,9 +60,7 @@ class EuclideanMetric(RiemannianMetric):
 
     def inner_product_matrix(self, base_point=None):
         """
-        Euclidean inner product matrix, which is the identity matrix.
-
-        Note: the matrix is independent of the base_point.
+        Inner product matrix, independent of the base point.
         """
         mat = gs.eye(self.dimension)
         mat = gs.to_ndarray(mat, to_ndim=3)
@@ -80,7 +86,9 @@ class EuclideanMetric(RiemannianMetric):
 
     def mean(self, points, weights=None):
         """
-        Weighted mean of the points.
+        The Frechet mean of (weighted) points computed with the
+        Euclidean metric is the weighted average of the points
+        in the Euclidean space.
         """
         mean = gs.average(points, axis=0, weights=weights)
         mean = gs.to_ndarray(mean, to_ndim=2)

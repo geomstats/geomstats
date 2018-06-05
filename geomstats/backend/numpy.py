@@ -5,6 +5,10 @@ import numpy as np
 int32 = np.int32
 
 
+def arctan2(*args, **kwargs):
+    return np.arctan2(*args, **kwargs)
+
+
 def cast(x, dtype):
     return x.astype(dtype)
 

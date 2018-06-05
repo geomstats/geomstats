@@ -1,5 +1,5 @@
 """
-Computations on the n-dimensional sphere
+The n-dimensional hypersphere
 embedded in the (n+1)-dimensional Euclidean space.
 """
 
@@ -7,6 +7,7 @@ import logging
 import math
 
 import geomstats.backend as gs
+
 from geomstats.embedded_manifold import EmbeddedManifold
 from geomstats.euclidean_space import EuclideanMetric
 from geomstats.euclidean_space import EuclideanSpace
@@ -31,7 +32,12 @@ INV_TAN_TAYLOR_COEFFS = [0., - 1. / 3.,
 
 
 class Hypersphere(EmbeddedManifold):
-    """Hypersphere embedded in Euclidean space."""
+    """
+    Class for the n-dimensional hypersphere
+    embedded in the (n+1)-dimensional Euclidean space.
+
+    By default, points are parameterized by their extrinsic (n+1)-coordinates.
+    """
 
     def __init__(self, dimension):
         assert isinstance(dimension, int) and dimension > 0
@@ -43,29 +49,33 @@ class Hypersphere(EmbeddedManifold):
 
     def belongs(self, point, tolerance=TOLERANCE):
         """
-        By definition, a point on the Hypersphere has squared norm 1
-        in the embedding Euclidean space.
-        Note: point must be given in extrinsic coordinates.
+        Evaluate if a point belongs to the Hypersphere,
+        i.e. evaluate if its squared norm in the Euclidean space is 1.
         """
         point = gs.asarray(point)
         point_dim = point.shape[-1]
         if point_dim != self.dimension + 1:
             if point_dim is self.dimension:
-                logging.warning('Use the extrinsic coordinates to '
-                                'represent points on the hypersphere.')
+                logging.warning(
+                    'Use the extrinsic coordinates to '
+                    'represent points on the hypersphere.')
             return False
         sq_norm = self.embedding_metric.squared_norm(point)
         diff = gs.abs(sq_norm - 1)
         return gs.less_equal(diff, tolerance)
 
     def regularize(self, point):
+        """
+        Regularize a point to the canonical representation
+        chosen for the Hypersphere, to avoid numerical issues.
+        """
         assert gs.all(self.belongs(point))
 
         return self.projection(point)
 
     def projection(self, point):
         """
-        Project the point on the manifold
+        Project a point on the Hypersphere.
         """
         point = gs.to_ndarray(point, to_ndim=2)
 
@@ -76,8 +86,8 @@ class Hypersphere(EmbeddedManifold):
 
     def projection_to_tangent_space(self, vector, base_point):
         """
-        Project the vector vector onto the tangent space:
-        T_{base_point} S = {w | scal(w, base_point) = 0}
+        Project a vector in Euclidean space
+        on the tangent space of the Hypersphere at a base point.
         """
         vector = gs.to_ndarray(vector, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -92,7 +102,7 @@ class Hypersphere(EmbeddedManifold):
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """
-        From some intrinsic coordinates in the Hypersphere,
+        Convert from the intrinsic coordinates in the Hypersphere,
         to the extrinsic coordinates in Euclidean space.
         """
         point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
@@ -102,28 +112,25 @@ class Hypersphere(EmbeddedManifold):
 
         point_extrinsic = gs.concatenate([coord_0, point_intrinsic], axis=-1)
 
-        # assert gs.all(self.belongs(point_extrinsic))
         return point_extrinsic
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         """
-        From the extrinsic coordinates in Euclidean space,
+        Convert from the extrinsic coordinates in Euclidean space,
         to some intrinsic coordinates in Hypersphere.
         """
         point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=2)
-
-        # assert gs.all(self.belongs(point_extrinsic))
 
         point_intrinsic = point_extrinsic[:, 1:]
 
         return point_intrinsic
 
-    def random_uniform(self, n_samples=1, max_norm=1):
+    def random_uniform(self, n_samples=1):
         """
-        Generate random elements on the Hypersphere.
+        Sample in the Hypersphere with the uniform distribution.
         """
         size = (n_samples, self.dimension)
-        point = (gs.random.rand(*size) - .5) * max_norm
+        point = gs.random.rand(*size) - 0.5
 
         point = self.intrinsic_to_extrinsic_coords(point)
 
@@ -139,23 +146,15 @@ class HypersphereMetric(RiemannianMetric):
 
     def squared_norm(self, vector, base_point=None):
         """
-        Squared norm associated to the Hyperbolic Metric.
+        Squared norm of a vector associated to the inner product
+        at the tangent space at a base point.
         """
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
     def exp(self, tangent_vec, base_point):
         """
-        Compute the Riemannian exponential at point base_point
-        of tangent vector tangent_vec wrt the metric obtained by
-        embedding of the n-dimensional sphere
-        in the (n+1)-dimensional euclidean space.
-
-        This gives a point on the n-dimensional sphere.
-
-        :param base_point: a point on the n-dimensional sphere
-        :param vector: (n+1)-dimensional vector
-        :return exp: a point on the n-dimensional sphere
+        Riemannian exponential of a tangent vector wrt to a base point.
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -171,16 +170,7 @@ class HypersphereMetric(RiemannianMetric):
 
     def log(self, point, base_point):
         """
-        Compute the Riemannian logarithm at point base_point,
-        of point wrt the metric obtained by
-        embedding of the n-dimensional sphere
-        in the (n+1)-dimensional euclidean space.
-
-        This gives a tangent vector at point base_point.
-
-        :param base_point: point on the n-dimensional sphere
-        :param point: point on the n-dimensional sphere
-        :return log: tangent vector at base_point
+        Riemannian logarithm of a point wrt a base point.
         """
         point = gs.to_ndarray(point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -220,8 +210,7 @@ class HypersphereMetric(RiemannianMetric):
 
     def dist(self, point_a, point_b):
         """
-        Compute the Riemannian distance between points
-        point_a and point_b.
+        Geodesic distance between two points.
         """
         # TODO(nina): case gs.dot(unit_vec, unit_vec) != 1
         # if gs.all(gs.equal(point_a, point_b)):

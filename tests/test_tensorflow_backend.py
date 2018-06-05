@@ -1,12 +1,15 @@
-"""Unit tests for tensorflow backend."""
+"""
+Unit tests for tensorflow backend.
+"""
 
 import importlib
 import os
 import tensorflow as tf
 
-from geomstats import hypersphere
 import geomstats.backend as gs
 import tests.helper as helper
+
+from geomstats.hypersphere import Hypersphere
 
 
 class TestHypersphereOnTensorFlow(tf.test.TestCase):
@@ -15,7 +18,7 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
     def setUp(self):
         gs.random.seed(1234)
         self.dimension = 4
-        self.space = hypersphere.Hypersphere(dimension=self.dimension)
+        self.space = Hypersphere(dimension=self.dimension)
         self.metric = self.space.metric
         self.n_samples = 10
         self.depth = 3

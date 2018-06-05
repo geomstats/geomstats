@@ -1,12 +1,14 @@
-"""Unit tests for left- and right- invariant metrics module."""
+"""
+Unit tests for the invariant metrics on Lie groups.
+"""
+
+import unittest
+
+import geomstats.backend as gs
+import tests.helper as helper
 
 from geomstats.invariant_metric import InvariantMetric
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
-
-import tests.helper as helper
-
-import geomstats.backend as gs
-import unittest
 
 
 class TestInvariantMetricMethods(unittest.TestCase):

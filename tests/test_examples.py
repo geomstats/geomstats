@@ -1,8 +1,10 @@
-"""Unit tests for the examples."""
+"""
+Unit tests for the examples.
+"""
 
-import unittest
 import matplotlib
 matplotlib.use('Agg')  # NOQA
+import unittest
 
 import examples.gradient_descent_s2 as gradient_descent_s2
 import examples.loss_and_gradient_se3 as loss_and_gradient_se3

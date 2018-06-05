@@ -1,18 +1,17 @@
 """
-Base class for the General Linear Group,
-i.e. the matrix group GL(n).
+The General Linear Group, i.e. the matrix group GL(n).
 """
 
 import scipy.linalg
 
-from geomstats.lie_group import LieGroup
 import geomstats.backend as gs
+
+from geomstats.lie_group import LieGroup
 
 
 class GeneralLinearGroup(LieGroup):
     """
-    Base class for the General Linear Group,
-    i.e. the matrix group GL(n).
+    Class for the General Linear Group, i.e. the matrix group GL(n).
 
 
     Note: The default representation for elements of GL(n)
