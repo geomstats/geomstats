@@ -25,11 +25,10 @@ def closest_rotation_matrix(mat):
     assert mat_dim_1 == mat_dim_2
 
     if mat_dim_1 == 3:
-        mat_unitary_u, diag_s, mat_unitary_v = gs.linalg.svd(mat)
+        mat_unitary_u, diag_s, mat_unitary_v = gs.linalg.svd(mat[0])
         rot_mat = gs.matmul(mat_unitary_u, mat_unitary_v)
-
-        mask = gs.where(gs.linalg.det(rot_mat) < 0)
-        new_mat_diag_s = gs.tile(gs.diag([1, 1, -1]), len(mask))
+        mask = gs.nonzero(gs.linalg.det(rot_mat) < 0)
+        new_mat_diag_s = gs.tile(gs.diag(gs.array([1, 1, -1])), len(mask))
 
         rot_mat[mask] = gs.matmul(gs.matmul(mat_unitary_u[mask],
                                             new_mat_diag_s),
@@ -45,7 +44,7 @@ def closest_rotation_matrix(mat):
             inv_sqrt_mat[i] = gs.linalg.inv(spd_matrices_space.sqrtm(sym_mat))
         rot_mat = gs.matmul(mat, inv_sqrt_mat)
 
-    assert rot_mat.ndim == 3
+    assert gs.ndim(rot_mat) == 3
     return rot_mat
 
 
@@ -66,14 +65,14 @@ def skew_matrix_from_vector(vec):
 
     if vec_dim == 3:
         for i in range(n_vecs):
-            skew_mat[i] = gs.cross(gs.eye(vec_dim), vec[i])
+            skew_mat[i] = gs.cross(gs.eye(vec_dim), gs.outer(vec[i], gs.ones(vec_dim)))
     else:
         upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
         for i in range(n_vecs):
             skew_mat[i][upper_triangle_indices] = vec[i]
             skew_mat[i] = skew_mat[i] - skew_mat[i].transpose()
 
-    assert skew_mat.ndim == 3
+    assert gs.ndim(skew_mat) == 3
     return skew_mat
 
 
@@ -150,11 +149,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         if vec_dim == 3:
             angle = gs.linalg.norm(point, axis=1)
-            regularized_point = point.astype('float64')
+            regularized_point = point
             mask_not_0 = angle != 0
 
             k = gs.floor(angle / (2 * gs.pi) + .5)
-            norms_ratio = gs.zeros_like(angle).astype('float64')
+            norms_ratio = gs.zeros_like(angle)
             norms_ratio[mask_not_0] = (
                   1. - 2. * gs.pi * k[mask_not_0] / angle[mask_not_0])
             norms_ratio[angle == 0] = 1
@@ -164,7 +163,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             # TODO(nina): regularization needed in nD?
             regularized_point = point
 
-        assert regularized_point.ndim == 2
+        assert gs.ndim(regularized_point) == 2
         return regularized_point
 
     def regularize_tangent_vec_at_identity(self, tangent_vec, metric=None):
@@ -346,7 +345,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             coef_1 = gs.zeros_like(angle)
             coef_2 = gs.zeros_like(angle)
 
-            mask_0 = gs.isclose(angle, 0)
+            mask_0 = gs.isclose(angle, 0.0)
             coef_1[mask_0] = 1 - (angle[mask_0] ** 2) / 6
             coef_2[mask_0] = 1 / 2 - angle[mask_0] ** 2
 

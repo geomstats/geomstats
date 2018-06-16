@@ -31,11 +31,11 @@ class InvariantMetric(RiemannianMetric):
         assert mat_shape == (1,) + (group.dimension, ) * 2, mat_shape
 
         assert left_or_right in ('left', 'right')
-
-        eigenvalues = gs.linalg.eigvalsh(inner_product_mat_at_identity)
-        n_pos_eigval = gs.sum(eigenvalues > 0)
-        n_neg_eigval = gs.sum(eigenvalues < 0)
-        n_null_eigval = gs.sum(eigenvalues == 0)
+        eigenvalues = gs.linalg.eigvalsh(inner_product_mat_at_identity[0])
+        print(eigenvalues)
+        n_pos_eigval = gs.sum(eigenvalues > 0.0)
+        n_neg_eigval = gs.sum(eigenvalues < 0.0)
+        n_null_eigval = gs.sum(eigenvalues == 0.0)
         n_eigval = n_pos_eigval + n_neg_eigval + n_null_eigval
         assert n_eigval == group.dimension
 
