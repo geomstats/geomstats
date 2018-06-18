@@ -1,9 +1,12 @@
 # Geomstats
-[![Build Status](https://travis-ci.org/geomstats/geomstats.svg?branch=master)](https://travis-ci.org/geomstats/geomstats) [![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg)](https://codecov.io/gh/geomstats/geomstats) 
+[![Build Status](https://travis-ci.org/geomstats/geomstats.svg?branch=master)](https://travis-ci.org/geomstats/geomstats) [![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg)](https://codecov.io/gh/geomstats/geomstats)
 
 Computations and statistics on manifolds with geometric structures.
 
-<img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/gradient_descent.gif" width=384 height=384><img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=256 height=256>
+- [Geomstats paper](https://arxiv.org/abs/1805.08308) on arxiv.
+- For more in-detph examples, see the [examples repository](https://github.com/geomstats/examples/).
+
+<img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/gradient_descent.gif" width=384 height=384><img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=200 height=200>
 
 
 ## Installation
