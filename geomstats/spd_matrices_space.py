@@ -57,7 +57,6 @@ def group_exp(sym_mat):
 
     assert gs.all(is_symmetric(sym_mat))
     sym_mat = make_symmetric(sym_mat)
-
     [eigenvalues, vectors] = gs.linalg.eigh(sym_mat)
     exp_eigenvalues = gs.exp(eigenvalues)
 

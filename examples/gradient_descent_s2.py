@@ -32,7 +32,7 @@ def gradient_descent(start,
                      loss,
                      grad,
                      manifold,
-                     lr=0.5,
+                     lr=0.1,
                      max_iter=128,
                      precision=1e-5):
     """Operate a gradient descent on a given manifold until either max_iter or
@@ -85,8 +85,9 @@ def generate_well_behaved_matrix():
 
 
 def main(output_file='out.mp4', max_iter=128):
-    np.random.seed(1983)
+    np.random.seed(1982)
     A = generate_well_behaved_matrix()
+    print(A)
     loss = lambda x: np.matmul(x.T, np.matmul(A, x))  # NOQA
     grad = lambda x: 2 * np.matmul(A, x)  # NOQA
     initial_point = np.array([0., 1., 0.])

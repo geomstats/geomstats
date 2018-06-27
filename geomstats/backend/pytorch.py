@@ -3,16 +3,18 @@
 import torch
 import numpy as np
 
+int32 = 'torch.LongTensor'
+
 def arctan2(*args, **kwargs):
     return torch.arctan2(*args, **kwargs)
 
 
 def cast(x, dtype):
-    return x.astype(dtype)
+    return x.type(dtype)
 
 
 def divide(*args, **kwargs):
-    return torch.divide(*args, **kwargs)
+    return torch.div(*args, **kwargs)
 
 
 def repeat(*args, **kwargs):
@@ -67,8 +69,10 @@ def empty_like(*args, **kwargs):
     return torch.empty_like(*args, **kwargs)
 
 
-def all(*args, **kwargs):
-    return torch.all(*args, **kwargs)
+def all(x, axis=None):
+    if axis is None:
+        return x.byte().all()
+    return torch.from_numpy(np.all(x,axis=axis).astype(int))
 
 
 def allclose(a, b, **kwargs):
@@ -120,7 +124,7 @@ def dot(a, b):
 
 
 def maximum(a, b):
-    return torch.maximum(a, b)
+    return torch.max(array(a), array(b))
 
 
 def greater_equal(a, b):
@@ -128,6 +132,8 @@ def greater_equal(a, b):
 
 
 def to_ndarray(x, to_ndim, axis=0):
+    if type(x) == np.ndarray:
+        x = torch.from_numpy(x)
     if x.dim() == to_ndim - 1:
         x = torch.unsqueeze(x, dim=axis)
     assert x.dim() >= to_ndim
@@ -147,7 +153,6 @@ def rand(*args, **largs):
 
 
 def isclose(*args, **kwargs):
-    print(array(args[1]))
     return torch.isclose(args[0], array(args[1]), *args[2:], **kwargs)
 
 
@@ -172,11 +177,12 @@ def sum(*args, **kwargs):
 
 
 def einsum(*args, **kwargs):
-    return torch.einsum(*args, **kwargs)
+    castedargs = [a.double() for a in args[1:]]
+    return torch.einsum(args[0], castedargs, **kwargs)
 
 
-def transpose(*args, **kwargs):
-    return torch.transpose(*args, **kwargs)
+def transpose(x, axes=None):
+    return x.permute(axes)
 
 
 def squeeze(*args, **kwargs):
@@ -208,7 +214,6 @@ def floor(*args, **kwargs):
 
 
 def cross(*args, **kwargs):
-    print(args[1])
     return torch.cross(*args, **kwargs)
 
 
@@ -222,8 +227,6 @@ def where(*args, **kwargs):
 
 def tile(*args, **kwargs):
     # TODO(johmathe): Native tile implementation
-    print(np.tile(*args, **kwargs))
-    print("ME")
     return array(np.tile(*args, **kwargs))
 
 
@@ -235,8 +238,8 @@ def diag(*args, **kwargs):
     return torch.diag(*args, **kwargs)
 
 
-def any(*args, **kwargs):
-    return torch.any(*args, **kwargs)
+def any(x):
+    return x.byte().any()
 
 
 def expand_dims(x, axis):

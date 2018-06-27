@@ -89,6 +89,7 @@ class Hypersphere(EmbeddedManifold):
         Project a vector in Euclidean space
         on the tangent space of the Hypersphere at a base point.
         """
+        print(vector)
         vector = gs.to_ndarray(vector, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
