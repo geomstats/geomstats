@@ -89,14 +89,13 @@ class Hypersphere(EmbeddedManifold):
         Project a vector in Euclidean space
         on the tangent space of the Hypersphere at a base point.
         """
-        print(vector)
         vector = gs.to_ndarray(vector, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
         sq_norm = self.embedding_metric.squared_norm(base_point)
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
 
-        coef = inner_prod / sq_norm
+        coef = inner_prod / sq_norm.double()
         tangent_vec = vector - gs.einsum('ni,nj->nj', coef, base_point)
 
         return tangent_vec
@@ -185,7 +184,7 @@ class HypersphereMetric(RiemannianMetric):
         angle = gs.arccos(cos_angle)
 
         mask_0 = gs.isclose(angle, 0.0)
-        mask_else = gs.equal(mask_0, False)
+        mask_else = gs.equal(mask_0, gs.array(False).long())
 
         coef_1 = gs.zeros_like(angle)
         coef_2 = gs.zeros_like(angle)

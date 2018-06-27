@@ -5,6 +5,7 @@ import numpy as np
 
 int32 = 'torch.LongTensor'
 
+
 def arctan2(*args, **kwargs):
     return torch.arctan2(*args, **kwargs)
 
@@ -21,8 +22,8 @@ def repeat(*args, **kwargs):
     return torch.repeat(*args, **kwargs)
 
 
-def asarray(*args, **kwargs):
-    return torch.asarray(*args, **kwargs)
+def asarray(x):
+    return np.asarray(x)
 
 
 def concatenate(*args, **kwargs):
@@ -99,8 +100,12 @@ def tanh(*args, **kwargs):
     return torch.tanh(*args, **kwargs)
 
 
-def arccosh(*args, **kwargs):
-    return torch.arccosh(*args, **kwargs)
+def arcsinh(x):
+    return torch.log(x + torch.sqrt(x*x+1))
+
+
+def arcosh(x):
+    return torch.log(x + torch.sqrt(x*x-1))
 
 
 def tan(val):
@@ -108,11 +113,11 @@ def tan(val):
 
 
 def arcsin(val):
-    return torch.arcsin(val)
+    return torch.asin(val)
 
 
 def arccos(val):
-    return torch.arccos(val)
+    return torch.acos(val)
 
 
 def shape(val):
@@ -153,11 +158,11 @@ def rand(*args, **largs):
 
 
 def isclose(*args, **kwargs):
-    return torch.isclose(args[0], array(args[1]), *args[2:], **kwargs)
+    return torch.from_numpy(np.isclose(*args, **kwargs).astype(int))
 
 
 def less_equal(a, b):
-    return torch.less_equal(a, b)
+    return np.less_equal(a, b)
 
 
 def eye(*args, **kwargs):
@@ -177,12 +182,18 @@ def sum(*args, **kwargs):
 
 
 def einsum(*args, **kwargs):
+    return torch.from_numpy(np.einsum(*args, **kwargs))
     castedargs = [a.double() for a in args[1:]]
-    return torch.einsum(args[0], castedargs, **kwargs)
+    return torch.einsum(args[0], castedargs, **kwargs).double()
+
+
+def T(x):
+    return torch.t(x)
 
 
 def transpose(x, axes=None):
-    return x.permute(axes)
+    if axes:
+        return x.permute(axes)
 
 
 def squeeze(*args, **kwargs):
@@ -230,8 +241,8 @@ def tile(*args, **kwargs):
     return array(np.tile(*args, **kwargs))
 
 
-def clip(*args, **kwargs):
-    return torch.clip(*args, **kwargs)
+def clip(x, amin, amax):
+    return np.clip(x, amin, amax)
 
 
 def diag(*args, **kwargs):

@@ -17,6 +17,7 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
 
+import geomstats.backend as gs
 import geomstats.vectorization as vectorization
 import geomstats.visualization as visualization
 
@@ -44,7 +45,7 @@ def gradient_descent(start,
         tangent_vec = manifold.projection_to_tangent_space(
                 vector=euclidean_grad, base_point=x)
         x = manifold.metric.exp(base_point=x, tangent_vec=tangent_vec)[0]
-        if np.abs(loss(x) - loss(x_prev)) <= precision:
+        if np.abs(loss(x, use_gs=True) - loss(x_prev, use_gs=True)) <= precision:
             print('x: %s' % x)
             print('reached precision %s' % precision)
             print('iterations: %d' % i)
@@ -86,16 +87,20 @@ def generate_well_behaved_matrix():
 
 def main(output_file='out.mp4', max_iter=128):
     np.random.seed(1982)
-    A = generate_well_behaved_matrix()
-    print(A)
-    loss = lambda x: np.matmul(x.T, np.matmul(A, x))  # NOQA
-    grad = lambda x: 2 * np.matmul(A, x)  # NOQA
-    initial_point = np.array([0., 1., 0.])
+    A = generate_well_behaved_matrix().double()
+
+    def grad(x):
+        return 2 * gs.matmul(A.double(), x.double())
+
+    def loss(x, use_gs=False):
+        if use_gs:
+            return gs.matmul(x.double(), gs.matmul(A, x.double()).double()).double()
+        return np.matmul(x, np.matmul(A, x))
+
+    initial_point = gs.array([0., 1., 0.])
     previous_x = initial_point
     geodesics = []
     n_steps = 20
-    # TODO(johmathe): auto differentiation
-    # TODO(johmathe): gpu implementation
     for x, fx in gradient_descent(initial_point,
                                   loss,
                                   grad,
