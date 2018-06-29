@@ -215,7 +215,12 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     point = self.elements[3][angle_type]
                     result = group.regularize(point)
                     expected = point
-                    self.assertTrue(gs.allclose(result, expected), angle_type)
+                    self.assertTrue(gs.allclose(result, expected),
+                                    'angle_type = {};'
+                                    'result = {};'
+                                    ' expected = {}.'.format(angle_type,
+                                                             result,
+                                                             expected))
 
                 # Note: by default, the rotation vector is inverted by
                 # the function regularize when the angle of the rotation is pi.
@@ -223,21 +228,52 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 angle_type = 'with_angle_pi'
                 point = self.elements[3][angle_type]
                 result = group.regularize(point)
-                expected = - point
+                expected = point
                 self.assertTrue(gs.allclose(result, expected), angle_type)
 
-                in_pi_2pi = ['with_angle_close_pi_high',
-                             'with_angle_in_pi_2pi',
+                angle_type = 'with_angle_close_pi_high'
+                point = self.elements[3][angle_type]
+                result = group.regularize(point)
+                expected = point / gs.linalg.norm(point) * gs.pi
+                self.assertTrue(gs.allclose(result, expected), angle_type)
+
+                in_pi_2pi = ['with_angle_in_pi_2pi',
                              'with_angle_close_2pi_low']
 
                 for angle_type in in_pi_2pi:
                     point = self.elements[3][angle_type]
+                    point_initial = point
                     angle = gs.linalg.norm(point)
+                    print('gs norm = {}'.format(gs.linalg.norm(point)))
                     new_angle = gs.pi - (angle - gs.pi)
 
+                    point_initial = point
+                    print('before point = {}'.format(point))
+                    print('before point_initial = {}'.format(point_initial))
                     result = group.regularize(point)
-                    expected = - new_angle * (point / angle)
-                    self.assertTrue(gs.allclose(result, expected), angle_type)
+                    print('after point = {}'.format(point))
+                    print('after point_initial = {}'.format(point_initial))
+                    print('result gs norm = {}'.format(gs.linalg.norm(result)))
+                    print('point gs norm = {}'.format(gs.linalg.norm(point)))
+
+                    expected = - (new_angle / angle) * point_initial
+                    self.assertTrue(gs.allclose(result, expected),
+                                    'angle_type = {}\n'
+                                    'point = {}\n'
+                                    'angle = {}\n'
+                                    'new_angle = {}\n'
+                                    'result = {}\n'
+                                    'norm(result) = {}\n'
+                                    'expected = {}\n'
+                                    'norm(expected) = {}'.format(
+                                        angle_type,
+                                        point,
+                                        angle,
+                                        new_angle,
+                                        result,
+                                        gs.linalg.norm(result),
+                                        expected,
+                                        gs.linalg.norm(expected)))
 
                 angle_type = 'with_angle_2pi'
                 point = self.elements[3][angle_type]

@@ -148,23 +148,29 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         assert self.belongs(point)
         n_points, vec_dim = point.shape
 
+        regularized_point = point  # .astype('float64')
         if vec_dim == 3:
-            angle = gs.linalg.norm(point, axis=1)
-            regularized_point = point.astype('float64')
-            mask_not_0 = angle != 0
+            angle = gs.linalg.norm(regularized_point, axis=1)
+            mask_0 = gs.isclose(angle, 0)
+            mask_not_0 = ~mask_0
+
+            mask_pi = gs.isclose(angle, gs.pi)
 
             k = gs.floor(angle / (2 * gs.pi) + .5)
-            norms_ratio = gs.zeros_like(angle).astype('float64')
+            norms_ratio = gs.zeros_like(angle)
             norms_ratio[mask_not_0] = (
                   1. - 2. * gs.pi * k[mask_not_0] / angle[mask_not_0])
-            norms_ratio[angle == 0] = 1
+            norms_ratio[mask_0] = 1
+            norms_ratio[mask_pi] = gs.pi / angle[mask_pi]
             for i in range(n_points):
-                regularized_point[i, :] = norms_ratio[i] * point[i]
+                regularized_point[i, :] = (norms_ratio[i]
+                                           * regularized_point[i, :])
         else:
             # TODO(nina): regularization needed in nD?
             regularized_point = point
 
         assert regularized_point.ndim == 2
+
         return regularized_point
 
     def regularize_tangent_vec_at_identity(self, tangent_vec, metric=None):
