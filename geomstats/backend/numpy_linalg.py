@@ -20,7 +20,7 @@ def matrix_rank(*args, **kwargs):
 
 
 def eigvalsh(*args, **kwargs):
-    return np.linalg.eig(*args, **kwargs)
+    return np.linalg.eigvalsh(*args, **kwargs)
 
 
 def svd(*args, **kwargs):

@@ -16,7 +16,9 @@ matplotlib.use("Agg")  # NOQA
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
+os.environ['GEOMSTATS_BACKEND'] = 'pytorch'  # NOQA
 import geomstats.backend as gs
 import geomstats.vectorization as vectorization
 import geomstats.visualization as visualization

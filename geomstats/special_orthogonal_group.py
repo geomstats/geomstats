@@ -25,7 +25,7 @@ def closest_rotation_matrix(mat):
     assert mat_dim_1 == mat_dim_2
 
     if mat_dim_1 == 3:
-        mat_unitary_u, diag_s, mat_unitary_v = gs.linalg.svd(mat[0])
+        mat_unitary_u, diag_s, mat_unitary_v = gs.linalg.svd(mat)
         rot_mat = gs.matmul(mat_unitary_u, mat_unitary_v)
         mask = gs.nonzero(gs.linalg.det(rot_mat) < 0)
         new_mat_diag_s = gs.tile(gs.diag(gs.array([1, 1, -1])), len(mask))
@@ -65,7 +65,8 @@ def skew_matrix_from_vector(vec):
 
     if vec_dim == 3:
         for i in range(n_vecs):
-            skew_mat[i] = gs.cross(gs.eye(vec_dim), gs.outer(vec[i], gs.ones(vec_dim)))
+            skew_mat[i] = gs.cross(gs.eye(vec_dim), vec[i])
+            #skew_mat[i] = gs.cross(gs.eye(vec_dim), gs.outer(vec[i], gs.ones(vec_dim)))
     else:
         upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
         for i in range(n_vecs):
@@ -146,16 +147,16 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         point = gs.to_ndarray(point, to_ndim=2)
         assert self.belongs(point)
         n_points, vec_dim = point.shape
-
+        point = gs.cast(point, gs.float64)
         if vec_dim == 3:
             angle = gs.linalg.norm(point, axis=1)
-            regularized_point = point
+            regularized_point = gs.cast(point, gs.float64)
             mask_not_0 = angle != 0
-
+            print(mask_not_0)
             k = gs.floor(angle / (2 * gs.pi) + .5)
-            norms_ratio = gs.zeros_like(angle)
+            norms_ratio = gs.cast(gs.zeros_like(angle), gs.float64)
             norms_ratio[mask_not_0] = (
-                  1. - 2. * gs.pi * k[mask_not_0] / angle[mask_not_0])
+                  1. - 2. * gs.cast(gs.pi * k[mask_not_0], gs.float64) / gs.cast(angle[mask_not_0], gs.float64))
             norms_ratio[angle == 0] = 1
             for i in range(n_points):
                 regularized_point[i, :] = norms_ratio[i] * point[i]

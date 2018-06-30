@@ -4,6 +4,9 @@ import torch
 import numpy as np
 
 int32 = 'torch.LongTensor'
+double = 'torch.DoubleTensor'
+float64 = 'torch.DoubleTensor'
+float16 = 'torch.Float'
 
 
 def arctan2(*args, **kwargs):

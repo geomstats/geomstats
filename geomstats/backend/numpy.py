@@ -3,6 +3,8 @@
 import numpy as np
 
 int32 = np.int32
+double = np.float32
+float64 = np.float64
 
 
 def arctan2(*args, **kwargs):
@@ -275,3 +277,7 @@ def eval(x):
 
 def ndim(x):
     return x.ndim
+
+
+def nonzero(x):
+    return np.nonzero(x)
