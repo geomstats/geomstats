@@ -66,7 +66,6 @@ def skew_matrix_from_vector(vec):
     if vec_dim == 3:
         for i in range(n_vecs):
             skew_mat[i] = gs.cross(gs.eye(vec_dim), vec[i])
-            #skew_mat[i] = gs.cross(gs.eye(vec_dim), gs.outer(vec[i], gs.ones(vec_dim)))
     else:
         upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
         for i in range(n_vecs):
@@ -147,24 +146,26 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         point = gs.to_ndarray(point, to_ndim=2)
         assert self.belongs(point)
         n_points, vec_dim = point.shape
-        point = gs.cast(point, gs.float64)
-        if vec_dim == 3:
-            angle = gs.linalg.norm(point, axis=1)
-            regularized_point = gs.cast(point, gs.float64)
-            mask_not_0 = angle != 0
-            print(mask_not_0)
-            k = gs.floor(angle / (2 * gs.pi) + .5)
-            norms_ratio = gs.cast(gs.zeros_like(angle), gs.float64)
-            norms_ratio[mask_not_0] = (
-                  1. - 2. * gs.cast(gs.pi * k[mask_not_0], gs.float64) / gs.cast(angle[mask_not_0], gs.float64))
-            norms_ratio[angle == 0] = 1
-            for i in range(n_points):
-                regularized_point[i, :] = norms_ratio[i] * point[i]
-        else:
-            # TODO(nina): regularization needed in nD?
-            regularized_point = point
 
+        regularized_point = gs.copy(point)
+        if vec_dim == 3:
+            angle = gs.linalg.norm(regularized_point, axis=1)
+            mask_0 = gs.isclose(angle, 0)
+            mask_not_0 = ~mask_0
+
+            mask_pi = gs.isclose(angle, gs.pi)
+
+            k = gs.floor(angle / (2 * gs.pi) + .5)
+            norms_ratio = gs.zeros_like(angle)
+            norms_ratio[mask_not_0] = (
+                  1. - 2. * gs.pi * k[mask_not_0] / angle[mask_not_0])
+            norms_ratio[mask_0] = 1
+            norms_ratio[mask_pi] = gs.pi / angle[mask_pi]
+            for i in range(n_points):
+                regularized_point[i, :] = (norms_ratio[i]
+                                           * regularized_point[i, :])
         assert gs.ndim(regularized_point) == 2
+
         return regularized_point
 
     def regularize_tangent_vec_at_identity(self, tangent_vec, metric=None):

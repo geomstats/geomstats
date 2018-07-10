@@ -165,7 +165,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         result = self.group.regularize(point)
 
         expected = gs.zeros(6)
-        expected[:3] = - point[:3]
+        expected[:3] = point[:3]
         expected[3:6] = point[3:6]
         expected = helper.to_vector(expected)
 
@@ -178,9 +178,15 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                             point,
                             result,
                             expected))
+        angle_type = 'with_angle_close_pi_high'
+        point = self.elements[angle_type]
+        result = self.group.regularize(point)
+        expected = gs.zeros(6)
+        expected[:3] = point[:3] / gs.linalg.norm(point[:3]) * gs.pi
+        expected[3:6] = point[3:6]
+        self.assertTrue(gs.allclose(result, expected), angle_type)
 
-        in_pi_2pi = ['with_angle_close_pi_high',
-                     'with_angle_in_pi_2pi',
+        in_pi_2pi = ['with_angle_in_pi_2pi',
                      'with_angle_close_2pi_low']
 
         for angle_type in in_pi_2pi:

@@ -281,3 +281,7 @@ def ndim(x):
 
 def nonzero(x):
     return np.nonzero(x)
+
+
+def copy(x):
+    return np.copy(x)
