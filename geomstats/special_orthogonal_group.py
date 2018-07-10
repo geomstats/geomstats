@@ -148,7 +148,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         assert self.belongs(point)
         n_points, vec_dim = point.shape
 
-        regularized_point = point  # .astype('float64')
+        regularized_point = gs.copy(point)
         if vec_dim == 3:
             angle = gs.linalg.norm(regularized_point, axis=1)
             mask_0 = gs.isclose(angle, 0)
