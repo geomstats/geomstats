@@ -275,3 +275,7 @@ def eval(x):
 
 def ndim(x):
     return x.ndim
+
+
+def copy(x):
+    return np.copy(x)
