@@ -89,14 +89,14 @@ def generate_well_behaved_matrix():
 
 def main(output_file='out.mp4', max_iter=128):
     np.random.seed(1982)
-    A = generate_well_behaved_matrix().double()
+    A = generate_well_behaved_matrix()
 
     def grad(x):
-        return 2 * gs.matmul(A.double(), x.double())
+        return 2 * gs.matmul(A, x)
 
     def loss(x, use_gs=False):
         if use_gs:
-            return gs.matmul(x.double(), gs.matmul(A, x.double()).double()).double()
+            return gs.matmul(x, gs.matmul(A, x))
         return np.matmul(x, np.matmul(A, x))
 
     initial_point = gs.array([0., 1., 0.])

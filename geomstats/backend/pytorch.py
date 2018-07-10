@@ -3,6 +3,7 @@
 import torch
 import numpy as np
 
+int8 = 'torch.ByteTensor'
 int32 = 'torch.LongTensor'
 double = 'torch.DoubleTensor'
 float64 = 'torch.DoubleTensor'
@@ -76,7 +77,7 @@ def empty_like(*args, **kwargs):
 def all(x, axis=None):
     if axis is None:
         return x.byte().all()
-    return torch.from_numpy(np.all(x,axis=axis).astype(int))
+    return torch.from_numpy(np.all(x, axis=axis).astype(int))
 
 
 def allclose(a, b, **kwargs):
@@ -149,7 +150,7 @@ def to_ndarray(x, to_ndim, axis=0):
 
 
 def sqrt(val):
-    return torch.sqrt(torch.tensor(val).double())
+    return torch.sqrt(torch.tensor(val))
 
 
 def norm(val, axis):
@@ -161,7 +162,7 @@ def rand(*args, **largs):
 
 
 def isclose(*args, **kwargs):
-    return torch.from_numpy(np.isclose(*args, **kwargs).astype(int))
+    return torch.from_numpy(np.isclose(*args, **kwargs).astype(int)).byte()
 
 
 def less_equal(a, b):
@@ -186,8 +187,6 @@ def sum(*args, **kwargs):
 
 def einsum(*args, **kwargs):
     return torch.from_numpy(np.einsum(*args, **kwargs))
-    castedargs = [a.double() for a in args[1:]]
-    return torch.einsum(args[0], castedargs, **kwargs).double()
 
 
 def T(x):
@@ -306,3 +305,7 @@ def eq(*args, **kwargs):
 
 def nonzero(*args, **kwargs):
     return torch.nonzero(*args, **kwargs)
+
+
+def copy(x):
+    return x.clone()
