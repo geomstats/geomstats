@@ -244,17 +244,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     point = self.elements[3][angle_type]
                     point_initial = point
                     angle = gs.linalg.norm(point)
-                    print('gs norm = {}'.format(gs.linalg.norm(point)))
                     new_angle = gs.pi - (angle - gs.pi)
 
                     point_initial = point
-                    print('before point = {}'.format(point))
-                    print('before point_initial = {}'.format(point_initial))
                     result = group.regularize(point)
-                    print('after point = {}'.format(point))
-                    print('after point_initial = {}'.format(point_initial))
-                    print('result gs norm = {}'.format(gs.linalg.norm(result)))
-                    print('point gs norm = {}'.format(gs.linalg.norm(point)))
 
                     expected = - (new_angle / angle) * point_initial
                     self.assertTrue(gs.allclose(result, expected),
