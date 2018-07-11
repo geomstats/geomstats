@@ -2,7 +2,7 @@
 Predict on SE3: losses.
 """
 import os
-os.environ['GEOMSTATS_BACKEND'] = 'pytorch'  # NOQA
+#os.environ['GEOMSTATS_BACKEND'] = 'pytorch'  # NOQA
 import geomstats.backend as gs
 import geomstats.lie_group as lie_group
 

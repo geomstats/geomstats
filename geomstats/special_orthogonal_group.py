@@ -62,7 +62,6 @@ def skew_matrix_from_vector(vec):
 
     mat_dim = int((1 + gs.sqrt(1 + 8 * vec_dim)) / 2)
     skew_mat = gs.zeros((n_vecs,) + (mat_dim,) * 2)
-
     if vec_dim == 3:
         for i in range(n_vecs):
             skew_mat[i] = gs.cross(gs.eye(vec_dim), vec[i])
@@ -71,7 +70,6 @@ def skew_matrix_from_vector(vec):
         for i in range(n_vecs):
             skew_mat[i][upper_triangle_indices] = vec[i]
             skew_mat[i] = skew_mat[i] - skew_mat[i].transpose()
-
     assert gs.ndim(skew_mat) == 3
     return skew_mat
 
@@ -101,7 +99,7 @@ def vector_from_skew_matrix(skew_mat):
                 vec[:, idx] = skew_mat[:, i, j]
                 idx += 1
 
-    assert vec.ndim == 2
+    assert gs.ndim(vec) == 2
     return vec
 
 
@@ -164,6 +162,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             for i in range(n_points):
                 regularized_point[i, :] = (norms_ratio[i]
                                            * regularized_point[i, :])
+        else:
+            regularized_point = point
         assert gs.ndim(regularized_point) == 2
 
         return regularized_point
@@ -298,11 +298,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
             # choose the largest diagonal element
             # to avoid a square root of a negative number
-            a = 0
+            a = gs.array(0)
             if gs.any(mask_pi):
                 a = gs.argmax(gs.diagonal(rot_mat[mask_pi], axis1=1, axis2=2))
-            b = gs.mod(a + 1, 3)
-            c = gs.mod(a + 2, 3)
+            b = gs.mod(a + 1.0, gs.array(3))
+            c = gs.mod(a + 2.0, gs.array(3))
 
             # compute the axis vector
             sq_root = gs.sqrt((rot_mat[mask_pi, a, a]

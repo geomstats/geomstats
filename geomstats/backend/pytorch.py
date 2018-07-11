@@ -58,8 +58,8 @@ def abs(val):
     return torch.abs(val)
 
 
-def zeros(val):
-    return torch.zeros(val)
+def zeros(*args):
+    return torch.from_numpy(np.zeros(*args)).float()
 
 
 def ones(val):
@@ -129,7 +129,7 @@ def shape(val):
 
 
 def dot(a, b):
-    return torch.dot(a, b)
+    return torch.from_numpy(np.dot(a, b))
 
 
 def maximum(a, b):
@@ -150,7 +150,7 @@ def to_ndarray(x, to_ndim, axis=0):
 
 
 def sqrt(val):
-    return torch.sqrt(torch.tensor(val))
+    return torch.sqrt(torch.tensor(val).float())
 
 
 def norm(val, axis):
@@ -196,10 +196,13 @@ def T(x):
 def transpose(x, axes=None):
     if axes:
         return x.permute(axes)
+    if len(shape(x)) == 1:
+        return x
+    return x.t()
 
 
-def squeeze(*args, **kwargs):
-    return torch.squeeze(*args, **kwargs)
+def squeeze(x, axis=None):
+    return torch.squeeze(x, dim=axis)
 
 
 def zeros_like(*args, **kwargs):
@@ -207,11 +210,11 @@ def zeros_like(*args, **kwargs):
 
 
 def trace(*args, **kwargs):
-    return torch.trace(*args, **kwargs)
+    return torch.from_numpy(np.trace(*args, **kwargs))
 
 
 def mod(*args, **kwargs):
-    return torch.mod(*args, **kwargs)
+    return torch.fmod(*args, **kwargs)
 
 
 def linspace(*args, **kwargs):
@@ -226,8 +229,8 @@ def floor(*args, **kwargs):
     return torch.floor(*args, **kwargs)
 
 
-def cross(*args, **kwargs):
-    return torch.cross(*args, **kwargs)
+def cross(x, y):
+    return torch.from_numpy(np.cross(x, y))
 
 
 def triu_indices(*args, **kwargs):
@@ -238,9 +241,9 @@ def where(*args, **kwargs):
     return torch.where(*args, **kwargs)
 
 
-def tile(*args, **kwargs):
+def tile(x, y):
     # TODO(johmathe): Native tile implementation
-    return array(np.tile(*args, **kwargs))
+    return array(np.tile(x, y))
 
 
 def clip(x, amin, amax):

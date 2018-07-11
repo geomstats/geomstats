@@ -14,11 +14,12 @@ def eigh(*args, **kwargs):
 
 
 def svd(*args, **kwargs):
-    return torch.svd(*args, **kwargs)
+    svds = np.linalg.svd(*args, **kwargs)
+    return torch.from_numpy(svds[0]), torch.from_numpy(svds[1]), torch.from_numpy(svds[2])
 
 
 def det(*args, **kwargs):
-    return torch.det(*args, **kwargs)
+    return torch.from_numpy(np.linalg.det(*args, **kwargs))
 
 
 def norm(x, ord=2, axis=None, keepdims=False):
