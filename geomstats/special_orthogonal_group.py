@@ -121,21 +121,21 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                                   dimension=self.dimension,
                                   embedding_manifold=GeneralLinearGroup(n=n))
         self.bi_invariant_metric = self.left_canonical_metric
-        self.default_representation = 'vector' if n == 3 else 'matrix'
+        self.point_representation = 'vector' if n == 3 else 'matrix'
 
-    def belongs(self, point, representation=None):
+    def belongs(self, point, point_representation=None):
         """
         Evaluate if a point belongs to SO(n).
         """
-        if representation is None:
-            representation = self.default_representation
+        if point_representation is None:
+            point_representation = self.point_representation
 
-        if representation == 'vector':
+        if point_representation == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
             _, vec_dim = point.shape
             return vec_dim == self.dimension
 
-        if representation == 'matrix':
+        if point_representation == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
             point_transpose = gs.transpose(point, axes=(0, 2, 1))
             point_inverse = gs.linalg.inv(point)
@@ -145,7 +145,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
             return mask
 
-    def regularize(self, point, representation=None):
+    def regularize(self, point, point_representation=None):
         """
         In 3D, regularize the norm of the rotation vector,
         to be between 0 and pi, following the axis-angle
@@ -155,115 +155,138 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         the function computes its complementary in 2pi and
         inverts the direction of the rotation axis.
         """
-        if representation is None:
-            representation = self.default_representation
+        if point_representation is None:
+            point_representation = self.point_representation
 
-        point = gs.to_ndarray(point, to_ndim=2)
-        assert self.belongs(point)
-        n_points, vec_dim = point.shape
+        if point_representation == 'vector':
+            point = gs.to_ndarray(point, to_ndim=2)
+            assert self.belongs(point)
+            n_points, vec_dim = point.shape
 
-        regularized_point = gs.copy(point)
-        if vec_dim == 3:
-            angle = gs.linalg.norm(regularized_point, axis=1)
-            mask_0 = gs.isclose(angle, 0)
-            mask_not_0 = ~mask_0
+            regularized_point = gs.copy(point)
+            if vec_dim == 3:
+                angle = gs.linalg.norm(regularized_point, axis=1)
+                mask_0 = gs.isclose(angle, 0)
+                mask_not_0 = ~mask_0
 
-            mask_pi = gs.isclose(angle, gs.pi)
+                mask_pi = gs.isclose(angle, gs.pi)
 
-            k = gs.floor(angle / (2 * gs.pi) + .5)
-            norms_ratio = gs.zeros_like(angle)
-            norms_ratio[mask_not_0] = (
-                  1. - 2. * gs.pi * k[mask_not_0] / angle[mask_not_0])
-            norms_ratio[mask_0] = 1
-            norms_ratio[mask_pi] = gs.pi / angle[mask_pi]
-            for i in range(n_points):
-                regularized_point[i, :] = (norms_ratio[i]
-                                           * regularized_point[i, :])
-        else:
-            regularized_point = point
-        assert gs.ndim(regularized_point) == 2
+                k = gs.floor(angle / (2 * gs.pi) + .5)
+                norms_ratio = gs.zeros_like(angle)
+                norms_ratio[mask_not_0] = (
+                      1. - 2. * gs.pi * k[mask_not_0] / angle[mask_not_0])
+                norms_ratio[mask_0] = 1
+                norms_ratio[mask_pi] = gs.pi / angle[mask_pi]
+                for i in range(n_points):
+                    regularized_point[i, :] = (norms_ratio[i]
+                                               * regularized_point[i, :])
+            else:
+                # TODO(nina): regularization needed in nD?
+                regularized_point = point
+
+            assert regularized_point.ndim == 2
+
+        if point_representation == 'matrix':
+            raise NotImplementedError()
 
         return regularized_point
 
-    def regularize_tangent_vec_at_identity(self, tangent_vec, metric=None):
+    def regularize_tangent_vec_at_identity(
+            self, tangent_vec, metric=None, point_representation=None):
         """
         In 3D, regularize a tangent_vector by getting its norm at the identity,
         determined by the metric, to be less than pi.
         """
-        assert self.point_representation in ('vector', 'matrix')
+        if point_representation is None:
+            point_representation = self.point_representation
 
-        if self.point_representation is 'vector':
+        if point_representation == 'vector':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
             _, vec_dim = tangent_vec.shape
 
-            if metric is None:
-                metric = self.left_canonical_metric
-            tangent_vec_metric_norm = metric.norm(tangent_vec)
-            tangent_vec_canonical_norm = gs.linalg.norm(tangent_vec, axis=1)
-            if tangent_vec_canonical_norm.ndim == 1:
-                tangent_vec_canonical_norm = gs.expand_dims(
-                                         tangent_vec_canonical_norm, axis=1)
+            if vec_dim == 3:
+                if metric is None:
+                    metric = self.left_canonical_metric
+                tangent_vec_metric_norm = metric.norm(tangent_vec)
+                tangent_vec_canonical_norm = gs.linalg.norm(
+                                                  tangent_vec, axis=1)
+                if tangent_vec_canonical_norm.ndim == 1:
+                    tangent_vec_canonical_norm = gs.expand_dims(
+                                   tangent_vec_canonical_norm, axis=1)
 
-            mask_norm_0 = gs.isclose(tangent_vec_metric_norm, 0)
-            mask_canonical_norm_0 = gs.isclose(tangent_vec_canonical_norm, 0)
+                mask_norm_0 = gs.isclose(tangent_vec_metric_norm, 0)
+                mask_canonical_norm_0 = gs.isclose(
+                    tangent_vec_canonical_norm, 0)
 
-            mask_0 = mask_norm_0 | mask_canonical_norm_0
-            mask_else = ~mask_0
+                mask_0 = mask_norm_0 | mask_canonical_norm_0
+                mask_else = ~mask_0
 
-            mask_0 = gs.squeeze(mask_0, axis=1)
-            mask_else = gs.squeeze(mask_else, axis=1)
+                mask_0 = gs.squeeze(mask_0, axis=1)
+                mask_else = gs.squeeze(mask_else, axis=1)
 
-            coef = gs.empty_like(tangent_vec_metric_norm)
-            regularized_vec = tangent_vec
+                coef = gs.empty_like(tangent_vec_metric_norm)
+                regularized_vec = tangent_vec
 
-            regularized_vec[mask_0] = tangent_vec[mask_0]
+                regularized_vec[mask_0] = tangent_vec[mask_0]
 
-            coef[mask_else] = (tangent_vec_metric_norm[mask_else]
-                               / tangent_vec_canonical_norm[mask_else])
-            regularized_vec[mask_else] = self.regularize(
-                    coef[mask_else] * tangent_vec[mask_else])
-            regularized_vec[mask_else] = (regularized_vec[mask_else]
-                                          / coef[mask_else])
-        else:
-            # TODO(nina): regularization needed in nD?
-            regularized_vec = tangent_vec
+                coef[mask_else] = (tangent_vec_metric_norm[mask_else]
+                                   / tangent_vec_canonical_norm[mask_else])
+                regularized_vec[mask_else] = self.regularize(
+                        coef[mask_else] * tangent_vec[mask_else])
+                regularized_vec[mask_else] = (regularized_vec[mask_else]
+                                              / coef[mask_else])
+            else:
+                # TODO(nina): regularization needed in nD?
+                regularized_vec = tangent_vec
+        if point_representation == 'matrix':
+            raise NotImplementedError()
 
         return regularized_vec
 
-    def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
+    def regularize_tangent_vec(
+            self, tangent_vec, base_point,
+            metric=None, point_representation=None):
         """
         In 3D, regularize a tangent_vector by getting the norm of its parallel
         transport to the identity, determined by the metric,
         to be less than pi.
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        _, vec_dim = tangent_vec.shape
-        if vec_dim == 3:
-            if metric is None:
-                metric = self.left_canonical_metric
-            base_point = self.regularize(base_point)
+        if point_representation is None:
+            point_representation = self.point_representation
 
-            jacobian = self.jacobian_translation(
+        if point_representation == 'vector':
+            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+            _, vec_dim = tangent_vec.shape
+            if vec_dim == 3:
+                if metric is None:
+                    metric = self.left_canonical_metric
+                base_point = self.regularize(base_point)
+
+                jacobian = self.jacobian_translation(
                                           point=base_point,
                                           left_or_right=metric.left_or_right)
-            inv_jacobian = gs.linalg.inv(jacobian)
-            tangent_vec_at_id = gs.dot(
-                    tangent_vec,
-                    gs.transpose(inv_jacobian, axes=(0, 2, 1)))
-            tangent_vec_at_id = gs.squeeze(tangent_vec_at_id, axis=1)
+                inv_jacobian = gs.linalg.inv(jacobian)
+                tangent_vec_at_id = gs.dot(
+                        tangent_vec,
+                        gs.transpose(inv_jacobian, axes=(0, 2, 1)))
+                tangent_vec_at_id = gs.squeeze(tangent_vec_at_id, axis=1)
 
-            tangent_vec_at_id = self.regularize_tangent_vec_at_identity(
-                                          tangent_vec_at_id,
-                                          metric)
+                tangent_vec_at_id = self.regularize_tangent_vec_at_identity(
+                                              tangent_vec_at_id,
+                                              metric)
 
-            regularized_tangent_vec = gs.dot(tangent_vec_at_id,
-                                             gs.transpose(jacobian,
-                                                          axes=(0, 2, 1)))
-            regularized_tangent_vec = gs.squeeze(regularized_tangent_vec,
-                                                 axis=1)
-        else:
-            # TODO(nina): is regularization needed in nD?
-            regularized_tangent_vec = tangent_vec
+                regularized_tangent_vec = gs.dot(tangent_vec_at_id,
+                                                 gs.transpose(jacobian,
+                                                              axes=(0, 2, 1)))
+                regularized_tangent_vec = gs.squeeze(regularized_tangent_vec,
+                                                     axis=1)
+            else:
+                # TODO(nina): is regularization needed in nD?
+                regularized_tangent_vec = tangent_vec
+
+        if point_representation == 'matrix':
+            raise NotImplementedError()
+
         return regularized_tangent_vec
 
     def rotation_vector_from_matrix(self, rot_mat):
@@ -492,35 +515,52 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         assert rot_mat.ndim == 3
         return rot_mat
 
-    def compose(self, point_1, point_2):
+    def compose(self, point_1, point_2, point_representation=None):
         """
         Compose two elements of SO(n).
         """
         point_1 = self.regularize(point_1)
         point_2 = self.regularize(point_2)
 
-        rot_mat_1 = self.matrix_from_rotation_vector(point_1)
-        rot_mat_2 = self.matrix_from_rotation_vector(point_2)
+        if point_representation is None:
+            point_representation = self.point_representation
 
-        rot_mat_prod = gs.einsum('ijk,ikl->ijl', rot_mat_1, rot_mat_2)
-        point_prod = self.rotation_vector_from_matrix(rot_mat_prod)
+        if point_representation == 'vector':
+            point_1 = self.matrix_from_rotation_vector(point_1)
+            point_2 = self.matrix_from_rotation_vector(point_2)
+
+        point_prod = gs.einsum('ijk,ikl->ijl', point_1, point_2)
+
+        if point_representation == 'vector':
+            point_prod = self.rotation_vector_from_matrix(point_prod)
 
         point_prod = self.regularize(point_prod)
         return point_prod
 
-    def inverse(self, point):
+    def inverse(self, point, point_representation=None):
         """
         Compute the group inverse in SO(n).
         """
-        if self.n == 3:
-            inv_point = -self.regularize(point)
-        else:
-            rot_mat = self.matrix_from_rotation_vector(point)
-            inv_rot_mat = gs.linalg.inv(rot_mat)
-            inv_point = self.rotation_vector_from_matrix(inv_rot_mat)
+
+        if point_representation is None:
+            point_representation = self.point_representation
+
+        if point_representation == 'vector':
+            if self.n == 3:
+                inv_point = -self.regularize(point)
+                return inv_point
+            else:
+                point = self.matrix_from_rotation_vector(point)
+
+        inv_point = gs.linalg.inv(point)
+
+        if point_representation == 'vector':
+            inv_point = self.rotation_vector_from_matrix(inv_point)
+
         return inv_point
 
-    def jacobian_translation(self, point, left_or_right='left'):
+    def jacobian_translation(
+            self, point, left_or_right='left', point_representation=None):
         """
         Compute the jacobian matrix of the differential
         of the left/right translations from the identity to point in SO(n).
@@ -528,88 +568,108 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         assert self.belongs(point)
         assert left_or_right in ('left', 'right')
 
-        if self.n == 3:
-            point = self.regularize(point)
-            n_points, _ = point.shape
+        if point_representation is None:
+            point_representation = self.point_representation
 
-            angle = gs.linalg.norm(point, axis=1)
-            angle = gs.expand_dims(angle, axis=1)
+        if point_representation == 'vector':
+            if self.n == 3:
+                point = self.regularize(point)
+                n_points, _ = point.shape
 
-            coef_1 = gs.zeros([n_points, 1])
-            coef_2 = gs.zeros([n_points, 1])
+                angle = gs.linalg.norm(point, axis=1)
+                angle = gs.expand_dims(angle, axis=1)
 
-            mask_0 = gs.isclose(angle, 0)
-            mask_0 = gs.squeeze(mask_0, axis=1)
-            coef_1[mask_0] = (1 - angle[mask_0] ** 2 / 12
-                              - angle[mask_0] ** 4 / 720
-                              - angle[mask_0] ** 6 / 30240)
-            coef_2[mask_0] = (1 / 12 + angle[mask_0] ** 2 / 720
-                              + angle[mask_0] ** 4 / 30240
-                              + angle[mask_0] ** 6 / 1209600)
+                coef_1 = gs.zeros([n_points, 1])
+                coef_2 = gs.zeros([n_points, 1])
 
-            mask_pi = gs.isclose(angle, gs.pi)
-            mask_pi = gs.squeeze(mask_pi, axis=1)
-            delta_angle = angle[mask_pi] - gs.pi
-            coef_1[mask_pi] = (- gs.pi * delta_angle / 4
-                               - delta_angle ** 2 / 4
-                               - gs.pi * delta_angle ** 3 / 48
-                               - delta_angle ** 4 / 48
-                               - gs.pi * delta_angle ** 5 / 480
-                               - delta_angle ** 6 / 480)
-            coef_2[mask_pi] = (1 - coef_1[mask_pi]) / angle[mask_pi] ** 2
+                mask_0 = gs.isclose(angle, 0)
+                mask_0 = gs.squeeze(mask_0, axis=1)
+                coef_1[mask_0] = (1 - angle[mask_0] ** 2 / 12
+                                  - angle[mask_0] ** 4 / 720
+                                  - angle[mask_0] ** 6 / 30240)
+                coef_2[mask_0] = (1 / 12 + angle[mask_0] ** 2 / 720
+                                  + angle[mask_0] ** 4 / 30240
+                                  + angle[mask_0] ** 6 / 1209600)
 
-            mask_else = ~mask_0 & ~mask_pi
-            coef_1[mask_else] = ((angle[mask_else] / 2)
-                                 / gs.tan(angle[mask_else] / 2))
-            coef_2[mask_else] = (1 - coef_1[mask_else]) / angle[mask_else] ** 2
+                mask_pi = gs.isclose(angle, gs.pi)
+                mask_pi = gs.squeeze(mask_pi, axis=1)
+                delta_angle = angle[mask_pi] - gs.pi
+                coef_1[mask_pi] = (- gs.pi * delta_angle / 4
+                                   - delta_angle ** 2 / 4
+                                   - gs.pi * delta_angle ** 3 / 48
+                                   - delta_angle ** 4 / 48
+                                   - gs.pi * delta_angle ** 5 / 480
+                                   - delta_angle ** 6 / 480)
+                coef_2[mask_pi] = (1 - coef_1[mask_pi]) / angle[mask_pi] ** 2
 
-            jacobian = gs.zeros((n_points, self.dimension, self.dimension))
+                mask_else = ~mask_0 & ~mask_pi
+                coef_1[mask_else] = ((angle[mask_else] / 2)
+                                     / gs.tan(angle[mask_else] / 2))
+                coef_2[mask_else] = ((1 - coef_1[mask_else])
+                                     / angle[mask_else] ** 2)
 
-            for i in range(n_points):
-                if left_or_right == 'left':
-                    jacobian[i] = (coef_1[i] * gs.identity(self.dimension)
-                                   + coef_2[i] * gs.outer(point[i], point[i])
-                                   + skew_matrix_from_vector(point[i]) / 2)
+                jacobian = gs.zeros((n_points, self.dimension, self.dimension))
 
-                else:
-                    jacobian[i] = (coef_1[i] * gs.identity(self.dimension)
-                                   + coef_2[i] * gs.outer(point[i], point[i])
-                                   - skew_matrix_from_vector(point[i]) / 2)
+                for i in range(n_points):
+                    if left_or_right == 'left':
+                        jacobian[i] = (
+                            coef_1[i] * gs.identity(self.dimension)
+                            + coef_2[i] * gs.outer(point[i], point[i])
+                            + skew_matrix_from_vector(point[i]) / 2)
 
-        else:
-            if left_or_right == 'right':
-                raise NotImplementedError(
-                    'The jacobian of the right translation'
-                    ' is not implemented.')
-            jacobian = self.matrix_from_rotation_vector(point)
+                    else:
+                        jacobian[i] = (
+                            coef_1[i] * gs.identity(self.dimension)
+                            + coef_2[i] * gs.outer(point[i], point[i])
+                            - skew_matrix_from_vector(point[i]) / 2)
 
-        assert jacobian.ndim == 3
+            else:
+                if left_or_right == 'right':
+                    raise NotImplementedError(
+                        'The jacobian of the right translation'
+                        ' is not implemented.')
+                jacobian = self.matrix_from_rotation_vector(point)
+
+            assert jacobian.ndim == 3
+
+        if point_representation == 'matrix':
+            raise NotImplementedError()
 
         return jacobian
 
-    def random_uniform(self, n_samples=1):
+    def random_uniform(self, n_samples=1, point_representation=None):
         """
         Sample in SO(n) with the uniform distribution.
         """
-        random_rot_vec = gs.random.rand(n_samples, self.dimension) * 2 - 1
-        random_rot_vec = self.regularize(random_rot_vec)
-        return random_rot_vec
+        if point_representation is None:
+            point_representation = self.point_representation
 
-    def group_exp_from_identity(self, tangent_vec):
+        if point_representation == 'vector':
+            random_point = gs.random.rand(n_samples, self.dimension) * 2 - 1
+            random_point = self.regularize(random_point)
+        if point_representation == 'matrix':
+            # TODO(nina): does this give the uniform distribution on rotations?
+            random_matrix = gs.random.rand(n_samples, self.n, self.n)
+            random_point = closest_rotation_matrix(random_matrix)
+
+        return random_point
+
+    def group_exp_from_identity(self, tangent_vec, point_representation=None):
         """
         Compute the group exponential of the tangent vector at the identity.
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         return tangent_vec
 
-    def group_log_from_identity(self, point):
+    def group_log_from_identity(self, point, point_representation=None):
         """
         Compute the group logarithm of the point at the identity.
         """
         point = self.regularize(point)
         return point
 
-    def group_exp(self, tangent_vec, base_point=None):
+    def group_exp(
+            self, tangent_vec, base_point=None, point_representation=None):
         """
         Compute the group exponential of the tangent vector at the base point.
         """
@@ -622,7 +682,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         point = self.regularize(point)
         return point
 
-    def group_log(self, point, base_point=None):
+    def group_log(self, point, base_point=None, point_representation=None):
         """
         Compute the group logarithm of point point.
         """
@@ -635,7 +695,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         assert tangent_vec.ndim == 2
         return tangent_vec
 
-    def group_exponential_barycenter(self, points, weights=None):
+    def group_exponential_barycenter(self, points, weights=None, point_representation=None):
         """
         Compute the group exponential barycenter in SO(n), which is the
         Frechet mean of the canonical bi-invariant metric on SO(n).
