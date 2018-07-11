@@ -187,8 +187,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
     def test_random_and_belongs(self):
         for n in self.n_seq:
             group = self.so[n]
-            rot_vec = group.random_uniform()
-            self.assertTrue(group.belongs(rot_vec))
+            point = group.random_uniform()
+            self.assertTrue(group.belongs(point),
+                            'n = {}\n'
+                            'point = {}'.format(n, point))
 
     def test_random_and_belongs_vectorization(self):
         n_samples = self.n_samples
