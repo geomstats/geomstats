@@ -112,12 +112,13 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
     i.e. the Lie group of rotations.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, point_representation=None):
         assert isinstance(n, int) and n > 1
 
         self.n = n
         self.dimension = int((n * (n - 1)) / 2)
-        self.point_representation = 'vector' if n == 3 else 'matrix'
+        if point_representation is None:
+            self.point_representation = 'vector' if n == 3 else 'matrix'
 
         identity = gs.zeros(self.dimension)
         if self.point_representation == 'matrix':
