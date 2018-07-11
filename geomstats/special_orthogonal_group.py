@@ -114,14 +114,19 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         self.n = n
         self.dimension = int((n * (n - 1)) / 2)
+        self.point_representation = 'vector' if n == 3 else 'matrix'
+
+        identity = gs.zeros(self.dimension)
+        if self.point_representation == 'matrix':
+            identity = gs.eye(n)
+
         LieGroup.__init__(self,
                           dimension=self.dimension,
-                          identity=gs.zeros(self.dimension))
+                          identity=identity)
         EmbeddedManifold.__init__(self,
                                   dimension=self.dimension,
                                   embedding_manifold=GeneralLinearGroup(n=n))
         self.bi_invariant_metric = self.left_canonical_metric
-        self.point_representation = 'vector' if n == 3 else 'matrix'
 
     def belongs(self, point, point_representation=None):
         """
@@ -160,7 +165,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         if point_representation == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
-            assert self.belongs(point)
+            assert self.belongs(point, point_representation)
             n_points, vec_dim = point.shape
 
             regularized_point = gs.copy(point)
@@ -187,7 +192,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             assert regularized_point.ndim == 2
 
         if point_representation == 'matrix':
-            raise NotImplementedError()
+            regularized_point = closest_rotation_matrix(point)
 
         return regularized_point
 
@@ -260,11 +265,12 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             if vec_dim == 3:
                 if metric is None:
                     metric = self.left_canonical_metric
-                base_point = self.regularize(base_point)
+                base_point = self.regularize(base_point, point_representation)
 
                 jacobian = self.jacobian_translation(
-                                          point=base_point,
-                                          left_or_right=metric.left_or_right)
+                              point=base_point,
+                              left_or_right=metric.left_or_right,
+                              point_representation=point_representation)
                 inv_jacobian = gs.linalg.inv(jacobian)
                 tangent_vec_at_id = gs.dot(
                         tangent_vec,
@@ -273,7 +279,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
                 tangent_vec_at_id = self.regularize_tangent_vec_at_identity(
                                               tangent_vec_at_id,
-                                              metric)
+                                              metric,
+                                              point_representation)
 
                 regularized_tangent_vec = gs.dot(tangent_vec_at_id,
                                                  gs.transpose(jacobian,
@@ -368,14 +375,14 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             skew_mat = self.embedding_manifold.group_log_from_identity(rot_mat)
             rot_vec = vector_from_skew_matrix(skew_mat)
 
-        return self.regularize(rot_vec)
+        return self.regularize(rot_vec, point_representation='vector')
 
     def matrix_from_rotation_vector(self, rot_vec):
         """
         Convert rotation vector to rotation matrix.
         """
-        assert self.belongs(rot_vec)
-        rot_vec = self.regularize(rot_vec)
+        assert self.belongs(rot_vec, point_representation='vector')
+        rot_vec = self.regularize(rot_vec, point_representation='vector')
         n_rot_vecs, _ = rot_vec.shape
 
         if self.n == 3:
@@ -433,7 +440,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         """
         assert self.n == 3, ('The quaternion representation does not exist'
                              ' for rotations in %d dimensions.' % self.n)
-        rot_vec = self.regularize(rot_vec)
+        rot_vec = self.regularize(rot_vec, point_representation='vector')
         n_rot_vecs, _ = rot_vec.shape
 
         angle = gs.linalg.norm(rot_vec, axis=1)
@@ -479,7 +486,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         rot_vec[mask_not_0] = (2 * half_angle[mask_not_0]
                                * rotation_axis)
 
-        rot_vec = self.regularize(rot_vec)
+        rot_vec = self.regularize(rot_vec, point_representation='vector')
         return rot_vec
 
     def matrix_from_quaternion(self, quaternion):
@@ -534,7 +541,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         if point_representation == 'vector':
             point_prod = self.rotation_vector_from_matrix(point_prod)
 
-        point_prod = self.regularize(point_prod)
+        point_prod = self.regularize(
+            point_prod, point_representation=point_representation)
         return point_prod
 
     def inverse(self, point, point_representation=None):
@@ -565,15 +573,16 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         Compute the jacobian matrix of the differential
         of the left/right translations from the identity to point in SO(n).
         """
-        assert self.belongs(point)
         assert left_or_right in ('left', 'right')
 
         if point_representation is None:
             point_representation = self.point_representation
+        assert self.belongs(point, point_representation)
 
         if point_representation == 'vector':
             if self.n == 3:
-                point = self.regularize(point)
+                point = self.regularize(
+                    point, point_representation=point_representation)
                 n_points, _ = point.shape
 
                 angle = gs.linalg.norm(point, axis=1)
@@ -646,7 +655,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         if point_representation == 'vector':
             random_point = gs.random.rand(n_samples, self.dimension) * 2 - 1
-            random_point = self.regularize(random_point)
+            random_point = self.regularize(
+                random_point, point_representation=point_representation)
         if point_representation == 'matrix':
             # TODO(nina): does this give the uniform distribution on rotations?
             random_matrix = gs.random.rand(n_samples, self.n, self.n)
@@ -658,14 +668,22 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         """
         Compute the group exponential of the tangent vector at the identity.
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        if point_representation is None:
+            point_representation = self.point_representation
+
+        if point_representation == 'vector':
+            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        if point_representation == 'matrix':
+            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
+
         return tangent_vec
 
     def group_log_from_identity(self, point, point_representation=None):
         """
         Compute the group logarithm of the point at the identity.
         """
-        point = self.regularize(point)
+        point = self.regularize(
+            point, point_representation=point_representation)
         return point
 
     def group_exp(
@@ -673,44 +691,74 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         """
         Compute the group exponential of the tangent vector at the base point.
         """
-        base_point = self.regularize(base_point)
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        if point_representation is None:
+            point_representation = self.point_representation
 
-        point = super(SpecialOrthogonalGroup, self).group_exp(
-                                     tangent_vec=tangent_vec,
-                                     base_point=base_point)
-        point = self.regularize(point)
+        base_point = self.regularize(
+            base_point, point_representation=point_representation)
+        if point_representation == 'vector':
+            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        if point_representation == 'matrix':
+            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
+
+        if point_representation == 'vector':
+            point = super(SpecialOrthogonalGroup, self).group_exp(
+                                         tangent_vec=tangent_vec,
+                                         base_point=base_point)
+        if point_representation == 'matrix':
+            raise NotImplementedError()
+
+        point = self.regularize(
+            point, point_representation=point_representation)
         return point
 
     def group_log(self, point, base_point=None, point_representation=None):
         """
         Compute the group logarithm of point point.
         """
-        point = self.regularize(point)
-        base_point = self.regularize(base_point)
+        if point_representation is None:
+            point_representation = self.point_representation
 
-        tangent_vec = super(SpecialOrthogonalGroup, self).group_log(
-                                    point=point,
-                                    base_point=base_point)
-        assert tangent_vec.ndim == 2
+        point = self.regularize(
+            point, point_representation=point_representation)
+        base_point = self.regularize(
+            base_point, point_representation=point_representation)
+
+        if point_representation == 'vector':
+            tangent_vec = super(SpecialOrthogonalGroup, self).group_log(
+                                        point=point,
+                                        base_point=base_point)
+            assert tangent_vec.ndim == 2
+
+        if point_representation == 'matrix':
+            raise NotImplementedError()
+
         return tangent_vec
 
-    def group_exponential_barycenter(self, points, weights=None, point_representation=None):
+    def group_exponential_barycenter(
+            self, points, weights=None, point_representation=None):
         """
         Compute the group exponential barycenter in SO(n), which is the
         Frechet mean of the canonical bi-invariant metric on SO(n).
         """
-        n_points = points.shape[0]
-        assert n_points > 0
+        if point_representation is None:
+            point_representation = self.point_representation
 
-        if weights is None:
-            weights = gs.ones((n_points, 1))
+        if point_representation == 'vector':
+            n_points = points.shape[0]
+            assert n_points > 0
 
-        n_weights = weights.shape[0]
-        assert n_points == n_weights
+            if weights is None:
+                weights = gs.ones((n_points, 1))
 
-        barycenter = self.bi_invariant_metric.mean(points, weights)
+            n_weights = weights.shape[0]
+            assert n_points == n_weights
 
-        barycenter = gs.to_ndarray(barycenter, to_ndim=2)
-        assert barycenter.ndim == 2, barycenter.ndim
+            barycenter = self.bi_invariant_metric.mean(points, weights)
+
+            barycenter = gs.to_ndarray(barycenter, to_ndim=2)
+            assert barycenter.ndim == 2, barycenter.ndim
+        if point_representation == 'matrix':
+            raise NotImplementedError()
+
         return barycenter
