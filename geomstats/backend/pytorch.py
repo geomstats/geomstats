@@ -3,11 +3,11 @@
 import numpy as np
 import torch
 
-int8 = 'torch.ByteTensor'
-int32 = 'torch.LongTensor'
 double = 'torch.DoubleTensor'
-float64 = 'torch.DoubleTensor'
 float16 = 'torch.Float'
+float64 = 'torch.DoubleTensor'
+int32 = 'torch.LongTensor'
+int8 = 'torch.ByteTensor'
 
 
 def arctan2(*args, **kwargs):
