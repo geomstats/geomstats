@@ -28,7 +28,7 @@ def closest_rotation_matrix(mat):
         mat_unitary_u, diag_s, mat_unitary_v = gs.linalg.svd(mat)
         rot_mat = gs.matmul(mat_unitary_u, mat_unitary_v)
         mask = gs.nonzero(gs.linalg.det(rot_mat) < 0)
-        new_mat_diag_s = gs.tile(gs.diag(gs.array([1, 1, -1])), len(mask))
+        new_mat_diag_s = gs.tile(gs.diag([1, 1, -1]), len(mask))
 
         rot_mat[mask] = gs.matmul(gs.matmul(mat_unitary_u[mask],
                                             new_mat_diag_s),

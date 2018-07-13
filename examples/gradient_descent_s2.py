@@ -89,7 +89,7 @@ def generate_well_behaved_matrix():
 
 
 def main(output_file='out.mp4', max_iter=128):
-    gs.seed(1985)
+    gs.random.seed(1985)
     A = generate_well_behaved_matrix()
 
     def grad(x):

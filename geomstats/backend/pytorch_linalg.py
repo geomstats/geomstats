@@ -25,7 +25,6 @@ def det(*args, **kwargs):
 
 
 def norm(x, ord=2, axis=None, keepdims=False):
-    assert keepdims is False
     if axis is None:
         return torch.norm(x, p=ord)
     return torch.norm(x, p=ord, dim=axis)

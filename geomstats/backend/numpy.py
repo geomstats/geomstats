@@ -286,7 +286,3 @@ def nonzero(x):
 
 def copy(x):
     return np.copy(x)
-
-
-def seed(x):
-    np.random.seed(x)
