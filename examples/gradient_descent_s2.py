@@ -16,7 +16,6 @@ matplotlib.use("Agg")  # NOQA
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
-import time
 import os
 
 os.environ['GEOMSTATS_BACKEND'] = 'pytorch'  # NOQA
@@ -48,7 +47,8 @@ def gradient_descent(start,
         tangent_vec = manifold.projection_to_tangent_space(
                 vector=euclidean_grad, base_point=x)
         x = manifold.metric.exp(base_point=x, tangent_vec=tangent_vec)[0]
-        if np.abs(loss(x, use_gs=True) - loss(x_prev, use_gs=True)) <= precision:
+        if (gs.abs(loss(x, use_gs=True) - loss(x_prev, use_gs=True))
+                <= precision):
             print('x: %s' % x)
             print('reached precision %s' % precision)
             print('iterations: %d' % i)
@@ -104,7 +104,6 @@ def main(output_file='out.mp4', max_iter=128):
     previous_x = initial_point
     geodesics = []
     n_steps = 20
-    a = time.time()
     for x, fx in gradient_descent(initial_point,
                                   loss,
                                   grad,
@@ -117,7 +116,6 @@ def main(output_file='out.mp4', max_iter=128):
         t = np.linspace(0, 1, n_steps)
         geodesics.append(geodesic(t))
         previous_x = x
-    print(time.time() - a)
     if output_file:
         plot_and_save_video(geodesics, loss, out=output_file)
     eig, _ = np.linalg.eig(A)
