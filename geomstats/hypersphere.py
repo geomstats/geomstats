@@ -94,7 +94,6 @@ class Hypersphere(EmbeddedManifold):
 
         sq_norm = self.embedding_metric.squared_norm(base_point)
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
-
         coef = inner_prod / sq_norm
         tangent_vec = vector - gs.einsum('ni,nj->nj', coef, base_point)
 
@@ -158,7 +157,6 @@ class HypersphereMetric(RiemannianMetric):
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
-
         # TODO(johmathe): Evaluate the bias introduced by this variable
         norm_tangent_vec = self.embedding_metric.norm(tangent_vec) + EPSILON
         coef_1 = gs.cos(norm_tangent_vec)
@@ -184,7 +182,7 @@ class HypersphereMetric(RiemannianMetric):
         angle = gs.arccos(cos_angle)
 
         mask_0 = gs.isclose(angle, 0.0)
-        mask_else = gs.equal(mask_0, False)
+        mask_else = gs.equal(mask_0, gs.cast(gs.array(False), gs.int8))
 
         coef_1 = gs.zeros_like(angle)
         coef_2 = gs.zeros_like(angle)

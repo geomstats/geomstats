@@ -1,7 +1,8 @@
 """
 Predict on SE3: losses.
 """
-
+import os
+#os.environ['GEOMSTATS_BACKEND'] = 'pytorch'  # NOQA
 import geomstats.backend as gs
 import geomstats.lie_group as lie_group
 
@@ -20,9 +21,9 @@ def loss(y_pred, y_true,
     Loss function given by a riemannian metric on a Lie group,
     by default the left-invariant canonical metric.
     """
-    if y_pred.ndim == 1:
+    if gs.ndim(y_pred) == 1:
         y_pred = gs.expand_dims(y_pred, axis=0)
-    if y_true.ndim == 1:
+    if gs.ndim(y_true) == 1:
         y_true = gs.expand_dims(y_true, axis=0)
 
     if representation == 'quaternion':

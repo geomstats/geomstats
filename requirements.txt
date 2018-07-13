@@ -5,3 +5,4 @@ nose2
 numpy>=1.14.1
 scipy
 tensorflow>=1.8
+torch==0.4.0

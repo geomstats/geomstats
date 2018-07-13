@@ -27,8 +27,7 @@ def closest_rotation_matrix(mat):
     if mat_dim_1 == 3:
         mat_unitary_u, diag_s, mat_unitary_v = gs.linalg.svd(mat)
         rot_mat = gs.matmul(mat_unitary_u, mat_unitary_v)
-
-        mask = gs.where(gs.linalg.det(rot_mat) < 0)
+        mask = gs.nonzero(gs.linalg.det(rot_mat) < 0)
         new_mat_diag_s = gs.tile(gs.diag([1, 1, -1]), len(mask))
 
         rot_mat[mask] = gs.matmul(gs.matmul(mat_unitary_u[mask],
@@ -45,7 +44,7 @@ def closest_rotation_matrix(mat):
             inv_sqrt_mat[i] = gs.linalg.inv(spd_matrices_space.sqrtm(sym_mat))
         rot_mat = gs.matmul(mat, inv_sqrt_mat)
 
-    assert rot_mat.ndim == 3
+    assert gs.ndim(rot_mat) == 3
     return rot_mat
 
 
@@ -63,7 +62,6 @@ def skew_matrix_from_vector(vec):
 
     mat_dim = int((1 + gs.sqrt(1 + 8 * vec_dim)) / 2)
     skew_mat = gs.zeros((n_vecs,) + (mat_dim,) * 2)
-
     if vec_dim == 3:
         for i in range(n_vecs):
             skew_mat[i] = gs.cross(gs.eye(vec_dim), vec[i])
@@ -72,8 +70,7 @@ def skew_matrix_from_vector(vec):
         for i in range(n_vecs):
             skew_mat[i][upper_triangle_indices] = vec[i]
             skew_mat[i] = skew_mat[i] - skew_mat[i].transpose()
-
-    assert skew_mat.ndim == 3
+    assert gs.ndim(skew_mat) == 3
     return skew_mat
 
 
@@ -102,7 +99,7 @@ def vector_from_skew_matrix(skew_mat):
                 vec[:, idx] = skew_mat[:, i, j]
                 idx += 1
 
-    assert vec.ndim == 2
+    assert gs.ndim(vec) == 2
     return vec
 
 
@@ -166,10 +163,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 regularized_point[i, :] = (norms_ratio[i]
                                            * regularized_point[i, :])
         else:
-            # TODO(nina): regularization needed in nD?
             regularized_point = point
-
-        assert regularized_point.ndim == 2
+        assert gs.ndim(regularized_point) == 2
 
         return regularized_point
 
@@ -303,11 +298,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
             # choose the largest diagonal element
             # to avoid a square root of a negative number
-            a = 0
+            a = gs.array(0)
             if gs.any(mask_pi):
                 a = gs.argmax(gs.diagonal(rot_mat[mask_pi], axis1=1, axis2=2))
-            b = gs.mod(a + 1, 3)
-            c = gs.mod(a + 2, 3)
+            b = (a + 1) % 3
+            c = (a + 2) % 3
 
             # compute the axis vector
             sq_root = gs.sqrt((rot_mat[mask_pi, a, a]
@@ -352,7 +347,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             coef_1 = gs.zeros_like(angle)
             coef_2 = gs.zeros_like(angle)
 
-            mask_0 = gs.isclose(angle, 0)
+            mask_0 = gs.isclose(angle, 0.0)
             coef_1[mask_0] = 1 - (angle[mask_0] ** 2) / 6
             coef_2[mask_0] = 1 / 2 - angle[mask_0] ** 2
 
