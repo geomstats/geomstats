@@ -15,7 +15,9 @@ def eigh(*args, **kwargs):
 
 def svd(*args, **kwargs):
     svds = np.linalg.svd(*args, **kwargs)
-    return torch.from_numpy(svds[0]), torch.from_numpy(svds[1]), torch.from_numpy(svds[2])
+    return (torch.from_numpy(svds[0]),
+            torch.from_numpy(svds[1]),
+            torch.from_numpy(svds[2]))
 
 
 def det(*args, **kwargs):
