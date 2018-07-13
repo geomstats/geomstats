@@ -3,6 +3,7 @@
 import numpy as np
 
 int32 = np.int32
+int8 = np.int8
 double = np.float32
 float64 = np.float64
 
@@ -285,3 +286,7 @@ def nonzero(x):
 
 def copy(x):
     return np.copy(x)
+
+
+def seed(x):
+    np.random.seed(x)

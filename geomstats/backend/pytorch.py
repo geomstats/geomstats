@@ -186,7 +186,7 @@ def sum(*args, **kwargs):
 
 
 def einsum(*args, **kwargs):
-    return torch.from_numpy(np.einsum(*args, **kwargs))
+    return torch.from_numpy(np.einsum(*args, **kwargs)).float()
 
 
 def T(x):
@@ -312,3 +312,7 @@ def nonzero(*args, **kwargs):
 
 def copy(x):
     return x.clone()
+
+
+def seed(x):
+    torch.manual_seed(x)

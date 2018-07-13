@@ -301,8 +301,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             a = gs.array(0)
             if gs.any(mask_pi):
                 a = gs.argmax(gs.diagonal(rot_mat[mask_pi], axis1=1, axis2=2))
-            b = gs.mod(a + 1.0, gs.array(3))
-            c = gs.mod(a + 2.0, gs.array(3))
+            b = (a + 1) % 3
+            c = (a + 2) % 3
 
             # compute the axis vector
             sq_root = gs.sqrt((rot_mat[mask_pi, a, a]

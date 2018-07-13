@@ -148,7 +148,6 @@ class RiemannianMetric(object):
         def point_on_geodesic(t):
             t = gs.to_ndarray(t, to_ndim=1)
             t = gs.to_ndarray(t, to_ndim=2, axis=1)
-
             new_initial_point = gs.to_ndarray(
                                           initial_point,
                                           to_ndim=point_ndim+1)
