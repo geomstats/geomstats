@@ -1,7 +1,7 @@
 """Pytorch based computation backend."""
 
-import torch
 import numpy as np
+import torch
 
 int8 = 'torch.ByteTensor'
 int32 = 'torch.LongTensor'
