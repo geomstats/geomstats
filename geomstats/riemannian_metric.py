@@ -142,6 +142,7 @@ class RiemannianMetric(object):
             if initial_tangent_vec is not None:
                 assert gs.allclose(shooting_tangent_vec, initial_tangent_vec)
             initial_tangent_vec = shooting_tangent_vec
+        initial_tangent_vec = gs.array(initial_tangent_vec)
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
                                             to_ndim=point_ndim+1)
 

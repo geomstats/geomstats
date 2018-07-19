@@ -4,6 +4,10 @@ import torch
 import numpy as np
 
 
+def inv(*args, **kwargs):
+    return torch.from_numpy(np.linalg.inv(*args, **kwargs))
+
+
 def eigvalsh(*args, **kwargs):
     return torch.from_numpy(np.linalg.eigvalsh(*args, **kwargs))
 

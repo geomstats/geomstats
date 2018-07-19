@@ -116,7 +116,7 @@ class InvariantMetric(RiemannianMetric):
         jacobian = self.group.jacobian_translation(
                               point=base_point,
                               left_or_right=self.left_or_right)
-        assert jacobian.ndim == 3
+        assert gs.ndim(jacobian) == 3
         inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = gs.transpose(inv_jacobian, axes=(0, 2, 1))
 
@@ -187,7 +187,7 @@ class InvariantMetric(RiemannianMetric):
         jacobian = self.group.jacobian_translation(
                                  point=base_point,
                                  left_or_right=self.left_or_right)
-        assert jacobian.ndim == 3
+        assert gs.ndim(jacobian) == 3
         inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = gs.transpose(inv_jacobian, axes=(0, 2, 1))
 
@@ -228,7 +228,7 @@ class InvariantMetric(RiemannianMetric):
         log = self.group.regularize_tangent_vec_at_identity(
                                              tangent_vec=log,
                                              metric=self)
-        assert log.ndim == 2
+        assert gs.ndim(log) == 2
         return log
 
     def log_from_identity(self, point):
@@ -244,7 +244,7 @@ class InvariantMetric(RiemannianMetric):
             left_log = self.left_log_from_identity(inv_point)
             log = - left_log
 
-        assert log.ndim == 2
+        assert gs.ndim(log) == 2
         return log
 
     def log(self, point, base_point=None):
@@ -281,5 +281,5 @@ class InvariantMetric(RiemannianMetric):
         log = gs.einsum('ij,ijk->ik',
                         log_from_id,
                         gs.transpose(jacobian, axes=(0, 2, 1)))
-        assert log.ndim == 2
+        assert gs.ndim(log) == 2
         return log

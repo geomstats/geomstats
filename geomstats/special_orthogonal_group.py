@@ -24,7 +24,7 @@ TAYLOR_COEFFS_2_AT_0 = [1. / 12., 0.,
 TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 4., - gs.pi / 48.,
                          - 1. / 48., - gs.pi / 480.,
-                         - 1. / 480]
+                         - 1. / 480.]
 
 
 def closest_rotation_matrix(mat):
@@ -41,7 +41,8 @@ def closest_rotation_matrix(mat):
         mat_unitary_u, diag_s, mat_unitary_v = gs.linalg.svd(mat)
         rot_mat = gs.matmul(mat_unitary_u, mat_unitary_v)
         mask = gs.nonzero(gs.linalg.det(rot_mat) < 0)
-        new_mat_diag_s = gs.tile(gs.diag([1, 1, -1]), len(mask))
+        diag = gs.array([1, 1, -1])
+        new_mat_diag_s = gs.tile(gs.diag(diag), len(mask))
 
         rot_mat[mask] = gs.matmul(gs.matmul(mat_unitary_u[mask],
                                             new_mat_diag_s),
@@ -203,7 +204,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 # TODO(nina): regularization needed in nD?
                 regularized_point = gs.copy(point)
 
-            assert regularized_point.ndim == 2
+            assert gs.ndim(regularized_point) == 2
 
         elif point_type == 'matrix':
             regularized_point = closest_rotation_matrix(point)
@@ -229,7 +230,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 tangent_vec_metric_norm = metric.norm(tangent_vec)
                 tangent_vec_canonical_norm = gs.linalg.norm(
                                                   tangent_vec, axis=1)
-                if tangent_vec_canonical_norm.ndim == 1:
+                if gs.ndim(tangent_vec_canonical_norm) == 1:
                     tangent_vec_canonical_norm = gs.expand_dims(
                                    tangent_vec_canonical_norm, axis=1)
 
@@ -445,7 +446,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         rot_vec = self.rotation_vector_from_matrix(rot_mat)
         quaternion = self.quaternion_from_rotation_vector(rot_vec)
 
-        assert quaternion.ndim == 2
+        assert gs.ndim(quaternion) == 2
         return quaternion
 
     def quaternion_from_rotation_vector(self, rot_vec):
@@ -533,7 +534,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
             rot_mat[i] = gs.hstack([column_1, column_2, column_3]).transpose()
 
-        assert rot_mat.ndim == 3
+        assert gs.ndim(rot_mat) == 3
         return rot_mat
 
     def compose(self, point_1, point_2, point_type=None):
@@ -654,7 +655,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                         ' is not implemented.')
                 jacobian = self.matrix_from_rotation_vector(point)
 
-            assert jacobian.ndim == 3
+            assert gs.ndim(jacobian) == 3
 
         elif point_type == 'matrix':
             raise NotImplementedError()
@@ -743,7 +744,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             tangent_vec = super(SpecialOrthogonalGroup, self).group_log(
                                         point=point,
                                         base_point=base_point)
-            assert tangent_vec.ndim == 2
+            assert gs.ndim(tangent_vec) == 2
 
         elif point_type == 'matrix':
             raise NotImplementedError()
@@ -772,7 +773,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             barycenter = self.bi_invariant_metric.mean(points, weights)
 
             barycenter = gs.to_ndarray(barycenter, to_ndim=2)
-            assert barycenter.ndim == 2, barycenter.ndim
+            assert gs.ndim(barycenter) == 2, gs.ndim(barycenter)
         elif point_type == 'matrix':
             raise NotImplementedError()
 

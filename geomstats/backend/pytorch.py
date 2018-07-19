@@ -30,12 +30,12 @@ def asarray(x):
     return np.asarray(x)
 
 
-def concatenate(*args, **kwargs):
-    return torch.concatenate(*args, **kwargs)
+def concatenate(seq, axis=0, out=None):
+    return torch.cat(seq, dim=axis, out=out)
 
 
 def identity(val):
-    return torch.identity(val)
+    return torch.eye(val)
 
 
 def hstack(val):
@@ -141,6 +141,8 @@ def greater_equal(a, b):
 
 
 def to_ndarray(x, to_ndim, axis=0):
+    if type(x) == list:
+        x = np.copy(np.array(x))
     if type(x) == np.ndarray:
         x = torch.from_numpy(x)
     if x.dim() == to_ndim - 1:
