@@ -50,9 +50,9 @@ class InvariantMetric(RiemannianMetric):
         """
         Inner product matrix at the tangent space at the identity.
         """
-        assert self.group.point_representation in ('vector', 'matrix')
+        assert self.group.point_type in ('vector', 'matrix')
 
-        if self.group.point_representation == 'vector':
+        if self.group.point_type == 'vector':
             tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
             tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
 
@@ -63,7 +63,7 @@ class InvariantMetric(RiemannianMetric):
 
             inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
-        elif self.group.point_representation == 'matrix':
+        elif self.group.point_type == 'matrix':
             logging.warning(
                 'Only the canonical inner product -Frobenius inner product-'
                 ' is implemented for Lie groups whose elements are represented'
@@ -83,7 +83,7 @@ class InvariantMetric(RiemannianMetric):
         if base_point is None:
             return self.inner_product_at_identity(tangent_vec_a,
                                                   tangent_vec_b)
-        if self.group.point_representation == 'vector':
+        if self.group.point_type == 'vector':
                 return super(InvariantMetric, self).inner_product(
                                      tangent_vec_a,
                                      tangent_vec_b,
@@ -104,7 +104,7 @@ class InvariantMetric(RiemannianMetric):
         """
         Inner product matrix at the tangent space at a base point.
         """
-        if self.group.point_representation == 'matrix':
+        if self.group.point_type == 'matrix':
             raise NotImplementedError(
                 'inner_product_matrix not implemented for Lie groups'
                 ' whose elements are represented as matrices.')

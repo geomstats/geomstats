@@ -41,7 +41,7 @@ class SpecialEuclideanGroup(LieGroup):
         # TODO(nina): keep the names rotations and translations here?
         self.rotations = SpecialOrthogonalGroup(n=n)
         self.translations = EuclideanSpace(dimension=n)
-        self.point_representation = 'vector' if n == 3 else 'matrix'
+        self.point_type = 'vector' if n == 3 else 'matrix'
 
     def belongs(self, point):
         """
@@ -56,7 +56,7 @@ class SpecialEuclideanGroup(LieGroup):
         Regularize a point to the canonical representation
         chosen for SE(n).
         """
-        assert self.point_representation == 'vector'
+        assert self.point_type == 'vector'
 
         point = gs.to_ndarray(point, to_ndim=2)
         assert self.belongs(point)

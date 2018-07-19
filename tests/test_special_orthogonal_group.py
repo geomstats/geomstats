@@ -161,11 +161,11 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         self.assertTrue(gs.allclose(gs.dot(result, rot_vec), gs.zeros(n)))
 
     def test_skew_matrix_and_vector(self):
-        point_representation = 'vector'
+        point_type = 'vector'
         for n in self.n_seq:
             group = self.so[n]
             rot_vec = group.random_uniform(
-                point_representation=point_representation)
+                point_type=point_type)
             skew_mat = special_orthogonal_group.skew_matrix_from_vector(
                 rot_vec)
             result = special_orthogonal_group.vector_from_skew_matrix(skew_mat)
@@ -177,12 +177,12 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                      expected))
 
     def test_skew_matrix_from_vector_vectorization(self):
-        point_representation = 'vector'
+        point_type = 'vector'
         n_samples = self.n_samples
         for n in self.n_seq:
             group = self.so[n]
             rot_vecs = group.random_uniform(
-                n_samples=n_samples, point_representation=point_representation)
+                n_samples=n_samples, point_type=point_type)
             result = special_orthogonal_group.skew_matrix_from_vector(rot_vecs)
 
             self.assertTrue(gs.allclose(result.shape,
@@ -296,20 +296,20 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 self.assertTrue(gs.allclose(result, expected))
 
     def test_regularize_vectorization(self):
-        for point_representation in ('vector', 'matrix'):
+        for point_type in ('vector', 'matrix'):
             for n in self.n_seq:
                 group = self.so[n]
-                group.point_representation = point_representation
+                group.point_type = point_type
 
                 n_samples = self.n_samples
                 rot_vecs = group.random_uniform(n_samples=n_samples)
                 result = group.regularize(rot_vecs)
 
-                if point_representation == 'vector':
+                if point_type == 'vector':
                     self.assertTrue(
                         gs.allclose(
                             result.shape, (n_samples, group.dimension)))
-                if point_representation == 'matrix':
+                if point_type == 'matrix':
                     self.assertTrue(
                         gs.allclose(
                             result.shape, (n_samples, n, n)))
@@ -371,7 +371,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
             n_samples = self.n_samples
             rot_vecs = group.random_uniform(
-                n_samples=n_samples, point_representation='vector')
+                n_samples=n_samples, point_type='vector')
             rot_mats = group.matrix_from_rotation_vector(rot_vecs)
 
             self.assertTrue(gs.allclose(rot_mats.shape,
@@ -418,7 +418,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                              result,
                                                              expected))
             else:
-                point = group.random_uniform(point_representation='vector')
+                point = group.random_uniform(point_type='vector')
                 rot_mat = group.matrix_from_rotation_vector(point)
                 result = group.rotation_vector_from_matrix(rot_mat)
 
@@ -435,12 +435,12 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
             n_samples = self.n_samples
             rot_vecs = group.random_uniform(
-                n_samples=n_samples, point_representation='vector')
+                n_samples=n_samples, point_type='vector')
             rot_mats = group.matrix_from_rotation_vector(rot_vecs)
             results = group.rotation_vector_from_matrix(rot_mats)
 
             expected = group.regularize(
-                rot_vecs, point_representation='vector')
+                rot_vecs, point_type='vector')
             self.assertTrue(gs.allclose(results, expected))
 
     def test_rotation_vector_and_rotation_matrix_with_angles_close_to_pi(self):
@@ -563,7 +563,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                                 result,
                                                                 expected))
             else:
-                rot_vec = group.random_uniform(point_representation='vector')
+                rot_vec = group.random_uniform(point_type='vector')
                 rot_mat = group.matrix_from_rotation_vector(rot_vec)
                 self.assertRaises(
                     AssertionError,
@@ -702,10 +702,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                                     expected))
 
     def test_compose_vectorization(self):
-        for point_representation in ('vector', 'matrix'):
+        for point_type in ('vector', 'matrix'):
             for n in self.n_seq:
                 group = self.so[n]
-                group.point_representation = point_representation
+                group.point_type = point_type
 
                 n_samples = self.n_samples
                 n_points_a = group.random_uniform(n_samples=n_samples)
@@ -713,10 +713,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 one_point = group.random_uniform(n_samples=1)
 
                 result = group.compose(one_point, n_points_a)
-                if group.point_representation == 'vector':
+                if group.point_type == 'vector':
                     self.assertTrue(
                         result.shape == (n_samples, group.dimension))
-                if group.point_representation == 'matrix':
+                if group.point_type == 'matrix':
                     self.assertTrue(
                         result.shape == (n_samples, n, n))
 
@@ -725,10 +725,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                         result[i], group.compose(one_point, n_points_a[i])))
 
                 result = group.compose(n_points_a, one_point)
-                if point_representation == 'vector':
+                if point_type == 'vector':
                     self.assertTrue(
                         result.shape == (n_samples, group.dimension))
-                if group.point_representation == 'matrix':
+                if group.point_type == 'matrix':
                     self.assertTrue(
                         result.shape == (n_samples, n, n))
 
@@ -737,10 +737,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                         result[i], group.compose(n_points_a[i], one_point)))
 
                 result = group.compose(n_points_a, n_points_b)
-                if point_representation == 'vector':
+                if point_type == 'vector':
                     self.assertTrue(
                         result.shape == (n_samples, group.dimension))
-                if group.point_representation == 'matrix':
+                if group.point_type == 'matrix':
                     self.assertTrue(
                         result.shape == (n_samples, n, n))
                 for i in range(n_samples):
