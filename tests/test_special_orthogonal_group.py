@@ -166,6 +166,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             group = self.so[n]
             rot_vec = group.random_uniform(
                 point_type=point_type)
+
             skew_mat = special_orthogonal_group.skew_matrix_from_vector(
                 rot_vec)
             result = special_orthogonal_group.vector_from_skew_matrix(skew_mat)
@@ -310,6 +311,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                         gs.allclose(
                             result.shape, (n_samples, group.dimension)))
                 if point_type == 'matrix':
+
                     self.assertTrue(
                         gs.allclose(
                             result.shape, (n_samples, n, n)))
@@ -372,6 +374,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             n_samples = self.n_samples
             rot_vecs = group.random_uniform(
                 n_samples=n_samples, point_type='vector')
+
             rot_mats = group.matrix_from_rotation_vector(rot_vecs)
 
             self.assertTrue(gs.allclose(rot_mats.shape,
@@ -419,6 +422,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                              expected))
             else:
                 point = group.random_uniform(point_type='vector')
+
                 rot_mat = group.matrix_from_rotation_vector(point)
                 result = group.rotation_vector_from_matrix(rot_mat)
 
@@ -436,11 +440,13 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             n_samples = self.n_samples
             rot_vecs = group.random_uniform(
                 n_samples=n_samples, point_type='vector')
+
             rot_mats = group.matrix_from_rotation_vector(rot_vecs)
             results = group.rotation_vector_from_matrix(rot_mats)
 
             expected = group.regularize(
                 rot_vecs, point_type='vector')
+
             self.assertTrue(gs.allclose(results, expected))
 
     def test_rotation_vector_and_rotation_matrix_with_angles_close_to_pi(self):
@@ -564,6 +570,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                                 expected))
             else:
                 rot_vec = group.random_uniform(point_type='vector')
+
                 rot_mat = group.matrix_from_rotation_vector(rot_vec)
                 self.assertRaises(
                     AssertionError,
@@ -717,6 +724,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     self.assertTrue(
                         result.shape == (n_samples, group.dimension))
                 if group.point_type == 'matrix':
+
                     self.assertTrue(
                         result.shape == (n_samples, n, n))
 
@@ -729,6 +737,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     self.assertTrue(
                         result.shape == (n_samples, group.dimension))
                 if group.point_type == 'matrix':
+
                     self.assertTrue(
                         result.shape == (n_samples, n, n))
 
@@ -741,6 +750,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     self.assertTrue(
                         result.shape == (n_samples, group.dimension))
                 if group.point_type == 'matrix':
+
                     self.assertTrue(
                         result.shape == (n_samples, n, n))
                 for i in range(n_samples):

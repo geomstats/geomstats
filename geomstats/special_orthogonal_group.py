@@ -124,6 +124,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
     """
 
     def __init__(self, n, point_type=None):
+
         assert isinstance(n, int) and n > 1
 
         self.n = n
@@ -598,6 +599,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             if self.n == 3:
                 point = self.regularize(
                     point, point_type=point_type)
+
                 n_points, _ = point.shape
 
                 angle = gs.linalg.norm(point, axis=1)
@@ -629,6 +631,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                         + TAYLOR_COEFFS_1_AT_PI[4] * delta_angle ** 4
                         + TAYLOR_COEFFS_1_AT_PI[5] * delta_angle ** 5
                         + TAYLOR_COEFFS_1_AT_PI[6] * delta_angle ** 6)
+
                 coef_2[mask_pi] = (1 - coef_1[mask_pi]) / angle[mask_pi] ** 2
 
                 mask_else = ~mask_0 & ~mask_pi
