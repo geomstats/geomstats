@@ -50,9 +50,9 @@ class InvariantMetric(RiemannianMetric):
         """
         Inner product matrix at the tangent space at the identity.
         """
-        assert self.group.point_representation in ('vector', 'matrix')
+        assert self.group.point_type in ('vector', 'matrix')
 
-        if self.group.point_representation == 'vector':
+        if self.group.point_type == 'vector':
             tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
             tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
 
@@ -63,7 +63,7 @@ class InvariantMetric(RiemannianMetric):
 
             inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
-        elif self.group.point_representation == 'matrix':
+        elif self.group.point_type == 'matrix':
             logging.warning(
                 'Only the canonical inner product -Frobenius inner product-'
                 ' is implemented for Lie groups whose elements are represented'
@@ -83,7 +83,7 @@ class InvariantMetric(RiemannianMetric):
         if base_point is None:
             return self.inner_product_at_identity(tangent_vec_a,
                                                   tangent_vec_b)
-        if self.group.point_representation == 'vector':
+        if self.group.point_type == 'vector':
                 return super(InvariantMetric, self).inner_product(
                                      tangent_vec_a,
                                      tangent_vec_b,
@@ -104,7 +104,7 @@ class InvariantMetric(RiemannianMetric):
         """
         Inner product matrix at the tangent space at a base point.
         """
-        if self.group.point_representation == 'matrix':
+        if self.group.point_type == 'matrix':
             raise NotImplementedError(
                 'inner_product_matrix not implemented for Lie groups'
                 ' whose elements are represented as matrices.')
@@ -116,7 +116,7 @@ class InvariantMetric(RiemannianMetric):
         jacobian = self.group.jacobian_translation(
                               point=base_point,
                               left_or_right=self.left_or_right)
-        assert jacobian.ndim == 3
+        assert gs.ndim(jacobian) == 3
         inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = gs.transpose(inv_jacobian, axes=(0, 2, 1))
 
@@ -187,7 +187,7 @@ class InvariantMetric(RiemannianMetric):
         jacobian = self.group.jacobian_translation(
                                  point=base_point,
                                  left_or_right=self.left_or_right)
-        assert jacobian.ndim == 3
+        assert gs.ndim(jacobian) == 3
         inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = gs.transpose(inv_jacobian, axes=(0, 2, 1))
 
@@ -228,7 +228,7 @@ class InvariantMetric(RiemannianMetric):
         log = self.group.regularize_tangent_vec_at_identity(
                                              tangent_vec=log,
                                              metric=self)
-        assert log.ndim == 2
+        assert gs.ndim(log) == 2
         return log
 
     def log_from_identity(self, point):
@@ -244,7 +244,7 @@ class InvariantMetric(RiemannianMetric):
             left_log = self.left_log_from_identity(inv_point)
             log = - left_log
 
-        assert log.ndim == 2
+        assert gs.ndim(log) == 2
         return log
 
     def log(self, point, base_point=None):
@@ -281,5 +281,5 @@ class InvariantMetric(RiemannianMetric):
         log = gs.einsum('ij,ijk->ik',
                         log_from_id,
                         gs.transpose(jacobian, axes=(0, 2, 1)))
-        assert log.ndim == 2
+        assert gs.ndim(log) == 2
         return log
