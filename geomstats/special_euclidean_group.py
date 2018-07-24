@@ -29,18 +29,37 @@ class SpecialEuclideanGroup(LieGroup):
     i.e. the Lie group of rigid transformations.
     """
 
-    def __init__(self, n):
+    def __init__(self, n, point_type=None):
         assert isinstance(n, int) and n > 1
 
         self.n = n
         self.dimension = int((n * (n - 1)) / 2 + n)
+
+        self.point_type = point_type
+        if point_type is None:
+            self.point_type = 'vector' if n == 3 else 'matrix'
+
         super(SpecialEuclideanGroup, self).__init__(
                           dimension=self.dimension,
-                          identity=gs.zeros(self.dimension))
+                          identity=self.identity(point_type))
+
         # TODO(nina): keep the names rotations and translations here?
         self.rotations = SpecialOrthogonalGroup(n=n)
         self.translations = EuclideanSpace(dimension=n)
-        self.point_type = 'vector' if n == 3 else 'matrix'
+
+    def identity(self, point_type=None):
+        """
+        Get the identity of the group,
+        as a vector if point_type == 'vector',
+        as a matrix if point_type == 'matrix'.
+        """
+        if point_type is None:
+            point_type = self.point_type
+
+        identity = gs.zeros(self.dimension)
+        if self.point_type == 'matrix':
+            identity = gs.eye(self.n)
+        return identity
 
     def belongs(self, point, point_type=None):
         """

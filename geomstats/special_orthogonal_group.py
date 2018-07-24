@@ -40,12 +40,14 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         self.n = n
         self.dimension = int((n * (n - 1)) / 2)
+
+        self.point_type = point_type
         if point_type is None:
             self.point_type = 'vector' if n == 3 else 'matrix'
 
         LieGroup.__init__(self,
                           dimension=self.dimension,
-                          identity=self.identity())
+                          identity=self.identity(point_type))
         EmbeddedManifold.__init__(self,
                                   dimension=self.dimension,
                                   embedding_manifold=GeneralLinearGroup(n=n))
