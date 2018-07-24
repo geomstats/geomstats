@@ -4,7 +4,6 @@ i.e. the Lie group of rigid transformations in n dimensions.
 """
 
 import geomstats.backend as gs
-import geomstats.special_orthogonal_group as so_group
 
 from geomstats.euclidean_space import EuclideanSpace
 from geomstats.invariant_metric import InvariantMetric
@@ -128,11 +127,11 @@ class SpecialEuclideanGroup(LieGroup):
 
         rot_vec_1 = point_1[:, :dim_rotations]
         rot_mat_1 = rotations.matrix_from_rotation_vector(rot_vec_1)
-        rot_mat_1 = so_group.closest_rotation_matrix(rot_mat_1)
+        rot_mat_1 = rotations.projection(rot_mat_1)
 
         rot_vec_2 = point_2[:, :dim_rotations]
         rot_mat_2 = rotations.matrix_from_rotation_vector(rot_vec_2)
-        rot_mat_2 = so_group.closest_rotation_matrix(rot_mat_2)
+        rot_mat_2 = rotations.projection(rot_mat_2)
 
         translation_1 = point_1[:, dim_rotations:]
         translation_2 = point_2[:, dim_rotations:]
@@ -226,7 +225,7 @@ class SpecialEuclideanGroup(LieGroup):
                                                       point=rot_vec,
                                                       left_or_right='right')
 
-            inv_skew_mat = - so_group.skew_matrix_from_vector(rot_vec)
+            inv_skew_mat = - self.rotations.skew_matrix_from_vector(rot_vec)
             jacobian[:, :dim_rotations, :dim_rotations] = jacobian_rot
             jacobian[:, dim_rotations:, :dim_rotations] = inv_skew_mat
             jacobian[:, dim_rotations:, dim_rotations:] = gs.eye(self.n)
@@ -255,7 +254,7 @@ class SpecialEuclideanGroup(LieGroup):
         rot_vec[mask_close_pi] = rotations.regularize(
                                        rot_vec[mask_close_pi])
 
-        skew_mat = so_group.skew_matrix_from_vector(rot_vec)
+        skew_mat = self.rotations.skew_matrix_from_vector(rot_vec)
         sq_skew_mat = gs.matmul(skew_mat, skew_mat)
 
         mask_0 = gs.equal(angle, 0)
@@ -320,7 +319,7 @@ class SpecialEuclideanGroup(LieGroup):
 
         group_log = gs.zeros_like(point)
         group_log[:, :dim_rotations] = rot_vec
-        skew_rot_vec = so_group.skew_matrix_from_vector(rot_vec)
+        skew_rot_vec = rotations.skew_matrix_from_vector(rot_vec)
         sq_skew_rot_vec = gs.matmul(skew_rot_vec, skew_rot_vec)
 
         mask_close_0 = gs.isclose(angle, 0)
@@ -395,7 +394,7 @@ class SpecialEuclideanGroup(LieGroup):
         angle = gs.linalg.norm(rot_vec, axis=1)
         angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
-        skew_rot_vec = so_group.skew_matrix_from_vector(rot_vec)
+        skew_rot_vec = self.rotations.skew_matrix_from_vector(rot_vec)
 
         coef_1 = gs.empty_like(angle)
         coef_2 = gs.empty_like(coef_1)

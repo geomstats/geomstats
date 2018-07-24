@@ -5,7 +5,6 @@ Unit tests for special orthogonal group SO(n).
 import unittest
 
 import geomstats.backend as gs
-import geomstats.special_orthogonal_group as special_orthogonal_group
 import tests.helper as helper
 
 from geomstats.invariant_metric import InvariantMetric
@@ -133,30 +132,32 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         self.metrics = metrics
         self.n_samples = 10
 
-    def test_closest_rotation_matrix(self):
+    def test_projection(self):
         # Test 3D and nD cases
         for n in self.n_seq:
+            group = self.so[n]
             rot_mat = gs.eye(n)
             delta = 1e-12 * gs.random.rand(n, n)
             rot_mat_plus_delta = rot_mat + delta
-            result = special_orthogonal_group.closest_rotation_matrix(
-                                                       rot_mat_plus_delta)
+            result = group.projection(rot_mat_plus_delta)
             expected = rot_mat
             self.assertTrue(gs.allclose(result, expected))
 
-    def test_closest_rotation_matrix_vectorization(self):
+    def test_projection_vectorization(self):
         for n in self.n_seq:
+            group = self.so[n]
             n_samples = self.n_samples
             mats = gs.random.rand(n_samples, n, n)
-            result = special_orthogonal_group.closest_rotation_matrix(mats)
+            result = group.projection(mats)
             self.assertTrue(gs.allclose(result.shape,
                                         (n_samples, n, n)))
 
     def test_skew_matrix_from_vector(self):
         # Specific to 3D case
         n = 3
+        group = self.so[n]
         rot_vec = gs.random.rand(n)
-        result = special_orthogonal_group.skew_matrix_from_vector(rot_vec)
+        result = group.skew_matrix_from_vector(rot_vec)
 
         self.assertTrue(gs.allclose(gs.dot(result, rot_vec), gs.zeros(n)))
 
@@ -167,9 +168,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             rot_vec = group.random_uniform(
                 point_type=point_type)
 
-            skew_mat = special_orthogonal_group.skew_matrix_from_vector(
-                rot_vec)
-            result = special_orthogonal_group.vector_from_skew_matrix(skew_mat)
+            skew_mat = group.skew_matrix_from_vector(rot_vec)
+            result = group.vector_from_skew_matrix(skew_mat)
             expected = rot_vec
 
             self.assertTrue(gs.allclose(result, expected),
@@ -184,7 +184,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             group = self.so[n]
             rot_vecs = group.random_uniform(
                 n_samples=n_samples, point_type=point_type)
-            result = special_orthogonal_group.skew_matrix_from_vector(rot_vecs)
+            result = group.skew_matrix_from_vector(rot_vecs)
 
             self.assertTrue(gs.allclose(result.shape,
                                         (n_samples, n, n)))
