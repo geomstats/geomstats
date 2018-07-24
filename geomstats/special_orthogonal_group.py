@@ -169,8 +169,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             else:
                 # TODO(nina): regularization needed in nD?
                 regularized_vec = tangent_vec
+
         elif point_type == 'matrix':
-            raise NotImplementedError()
+                # TODO(nina): regularization in terms
+                # of skew-symmetric matrices?
+                regularized_vec = tangent_vec
 
         return regularized_vec
 
@@ -218,7 +221,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 regularized_tangent_vec = tangent_vec
 
         elif point_type == 'matrix':
-            raise NotImplementedError()
+            # TODO(nina): regularization in terms
+            # of skew-symmetric matrices?
+            regularized_tangent_vec = tangent_vec
 
         return regularized_tangent_vec
 
@@ -691,19 +696,28 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             point_type = self.point_type
 
         if point_type == 'vector':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+            point = gs.to_ndarray(tangent_vec, to_ndim=2)
         elif point_type == 'matrix':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
+            tangent_vec = self.vector_from_skew_matrix(tangent_vec)
+            point = self.matrix_from_rotation_vector(tangent_vec)
 
-        return tangent_vec
+        return point
 
     def group_log_from_identity(self, point, point_type=None):
         """
         Compute the group logarithm of the point at the identity.
         """
-        point = self.regularize(
-            point, point_type=point_type)
-        return point
+        if point_type is None:
+            point_type = self.point_type
+
+        if point_type == 'vector':
+            tangent_vec = self.regularize(
+                point, point_type=point_type)
+        elif point_type == 'matrix':
+            point = self.rotation_vector_from_matrix(point)
+            tangent_vec = self.skew_matrix_from_vector(point)
+        return tangent_vec
 
     def group_exp(
             self, tangent_vec, base_point=None, point_type=None):
@@ -720,13 +734,10 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         elif point_type == 'matrix':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
 
-        if point_type == 'vector':
-            point = super(SpecialOrthogonalGroup, self).group_exp(
-                                         tangent_vec=tangent_vec,
-                                         base_point=base_point)
-        elif point_type == 'matrix':
-            raise NotImplementedError()
-
+        point = super(SpecialOrthogonalGroup, self).group_exp(
+                                     tangent_vec=tangent_vec,
+                                     base_point=base_point,
+                                     point_type=point_type)
         point = self.regularize(
             point, point_type=point_type)
         return point

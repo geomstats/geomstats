@@ -42,19 +42,25 @@ class SpecialEuclideanGroup(LieGroup):
         self.translations = EuclideanSpace(dimension=n)
         self.point_type = 'vector' if n == 3 else 'matrix'
 
-    def belongs(self, point):
+    def belongs(self, point, point_type=None):
         """
         Evaluate if a point belongs to SE(n).
         """
+        if point_type is None:
+            point_type = self.point_type
+
         point = gs.to_ndarray(point, to_ndim=2)
         _, point_dim = point.shape
         return point_dim == self.dimension
 
-    def regularize(self, point):
+    def regularize(self, point, point_type=None):
         """
         Regularize a point to the canonical representation
         chosen for SE(n).
         """
+        if point_type is None:
+            point_type = self.point_type
+
         assert self.point_type == 'vector'
 
         point = gs.to_ndarray(point, to_ndim=2)
@@ -70,10 +76,19 @@ class SpecialEuclideanGroup(LieGroup):
 
         return regularized_point
 
-    def regularize_tangent_vec_at_identity(self, tangent_vec, metric=None):
-        return self.regularize_tangent_vec(tangent_vec, self.identity, metric)
+    def regularize_tangent_vec_at_identity(
+            self, tangent_vec, metric=None, point_type=None):
+        if point_type is None:
+            point_type = self.point_type
 
-    def regularize_tangent_vec(self, tangent_vec, base_point, metric=None):
+        return self.regularize_tangent_vec(
+                tangent_vec, self.identity, metric, point_type=point_type)
+
+    def regularize_tangent_vec(
+            self, tangent_vec, base_point, metric=None, point_type=None):
+        if point_type is None:
+            point_type = self.point_type
+
         if metric is None:
             metric = self.left_canonical_metric
 
@@ -97,12 +112,13 @@ class SpecialEuclideanGroup(LieGroup):
         regularized_vec[:, :dim_rotations] = rotations.regularize_tangent_vec(
                                                  tangent_vec=rot_tangent_vec,
                                                  base_point=rot_base_point,
-                                                 metric=rot_metric)
+                                                 metric=rot_metric,
+                                                 point_type=point_type)
         regularized_vec[:, dim_rotations:] = tangent_vec[:, dim_rotations:]
 
         return regularized_vec
 
-    def compose(self, point_1, point_2):
+    def compose(self, point_1, point_2, point_type=None):
         """
         Compose two elements of SE(n).
 
@@ -112,6 +128,9 @@ class SpecialEuclideanGroup(LieGroup):
         R1, R2 are rotation matrices,
         t1, t2 are translation vectors.
         """
+        if point_type is None:
+            point_type = self.point_type
+
         rotations = self.rotations
         dim_rotations = rotations.dimension
 
@@ -156,16 +175,19 @@ class SpecialEuclideanGroup(LieGroup):
         composition[:, :dim_rotations] = composition_rot_vec
         composition[:, dim_rotations:] = composition_translation
 
-        composition = self.regularize(composition)
+        composition = self.regularize(composition, point_type=point_type)
         return composition
 
-    def inverse(self, point):
+    def inverse(self, point, point_type=None):
         """
         Compute the group inverse in SE(n).
 
         Formula:
         (R, t)^{-1} = (R^{-1}, R^{-1}.(-t))
         """
+        if point_type is None:
+            point_type = self.point_type
+
         rotations = self.rotations
         dim_rotations = rotations.dimension
 
@@ -191,19 +213,23 @@ class SpecialEuclideanGroup(LieGroup):
         inverse_point = self.regularize(inverse_point)
         return inverse_point
 
-    def jacobian_translation(self, point, left_or_right='left'):
+    def jacobian_translation(
+            self, point, left_or_right='left', point_type=None):
         """
         Compute the jacobian matrix of the differential
         of the left/right translations from the identity to point in SE(n).
         """
-        assert self.belongs(point)
+        if point_type is None:
+            point_type = self.point_type
+
+        assert self.belongs(point, point_type=point_type)
         assert left_or_right in ('left', 'right')
 
         dim = self.dimension
         rotations = self.rotations
         dim_rotations = rotations.dimension
 
-        point = self.regularize(point)
+        point = self.regularize(point, point_type=point_type)
         n_points, _ = point.shape
 
         rot_vec = point[:, :dim_rotations]
@@ -213,7 +239,8 @@ class SpecialEuclideanGroup(LieGroup):
         if left_or_right == 'left':
             jacobian_rot = self.rotations.jacobian_translation(
                                                       point=rot_vec,
-                                                      left_or_right='left')
+                                                      left_or_right='left',
+                                                      point_type=point_type)
             jacobian_trans = self.rotations.matrix_from_rotation_vector(
                     rot_vec)
 
@@ -223,7 +250,8 @@ class SpecialEuclideanGroup(LieGroup):
         else:
             jacobian_rot = self.rotations.jacobian_translation(
                                                       point=rot_vec,
-                                                      left_or_right='right')
+                                                      left_or_right='right',
+                                                      point_type=point_type)
 
             inv_skew_mat = - self.rotations.skew_matrix_from_vector(rot_vec)
             jacobian[:, :dim_rotations, :dim_rotations] = jacobian_rot
@@ -233,80 +261,90 @@ class SpecialEuclideanGroup(LieGroup):
         assert jacobian.ndim == 3
         return jacobian
 
-    def group_exp_from_identity(self, tangent_vec):
+    def group_exp_from_identity(self, tangent_vec, point_type=None):
         """
         Compute the group exponential of the tangent vector at the identity.
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        if point_type is None:
+            point_type = self.point_type
 
-        rotations = self.rotations
-        dim_rotations = rotations.dimension
+        if point_type == 'vector':
+            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
 
-        rot_vec = tangent_vec[:, :dim_rotations]
-        rot_vec = self.rotations.regularize(rot_vec)
-        translation = tangent_vec[:, dim_rotations:]
+            rotations = self.rotations
+            dim_rotations = rotations.dimension
 
-        angle = gs.linalg.norm(rot_vec, axis=1)
-        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
+            rot_vec = tangent_vec[:, :dim_rotations]
+            rot_vec = self.rotations.regularize(rot_vec, point_type=point_type)
+            translation = tangent_vec[:, dim_rotations:]
 
-        mask_close_pi = gs.isclose(angle, gs.pi)
-        mask_close_pi = gs.squeeze(mask_close_pi, axis=1)
-        rot_vec[mask_close_pi] = rotations.regularize(
-                                       rot_vec[mask_close_pi])
+            angle = gs.linalg.norm(rot_vec, axis=1)
+            angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
-        skew_mat = self.rotations.skew_matrix_from_vector(rot_vec)
-        sq_skew_mat = gs.matmul(skew_mat, skew_mat)
+            mask_close_pi = gs.isclose(angle, gs.pi)
+            mask_close_pi = gs.squeeze(mask_close_pi, axis=1)
+            rot_vec[mask_close_pi] = rotations.regularize(
+                                           rot_vec[mask_close_pi],
+                                           point_type=point_type)
 
-        mask_0 = gs.equal(angle, 0)
-        mask_close_0 = gs.isclose(angle, 0) & ~mask_0
+            skew_mat = self.rotations.skew_matrix_from_vector(rot_vec)
+            sq_skew_mat = gs.matmul(skew_mat, skew_mat)
 
-        mask_0 = gs.squeeze(mask_0, axis=1)
-        mask_close_0 = gs.squeeze(mask_close_0, axis=1)
+            mask_0 = gs.equal(angle, 0)
+            mask_close_0 = gs.isclose(angle, 0) & ~mask_0
 
-        mask_else = ~mask_0 & ~mask_close_0
+            mask_0 = gs.squeeze(mask_0, axis=1)
+            mask_close_0 = gs.squeeze(mask_close_0, axis=1)
 
-        coef_1 = gs.zeros_like(angle)
-        coef_2 = gs.zeros_like(angle)
+            mask_else = ~mask_0 & ~mask_close_0
 
-        coef_1[mask_0] = 1. / 2.
-        coef_2[mask_0] = 1. / 6.
+            coef_1 = gs.zeros_like(angle)
+            coef_2 = gs.zeros_like(angle)
 
-        coef_1[mask_close_0] = (1. / 2. - angle[mask_close_0] ** 2 / 24.
-                                + angle[mask_close_0] ** 4 / 720.
-                                - angle[mask_close_0] ** 6 / 40320.)
-        coef_2[mask_close_0] = (1. / 6. - angle[mask_close_0] ** 2 / 120.
-                                + angle[mask_close_0] ** 4 / 5040.
-                                - angle[mask_close_0] ** 6 / 362880.)
+            coef_1[mask_0] = 1. / 2.
+            coef_2[mask_0] = 1. / 6.
 
-        coef_1[mask_else] = ((1. - gs.cos(angle[mask_else]))
-                             / angle[mask_else] ** 2)
-        coef_2[mask_else] = ((angle[mask_else] - gs.sin(angle[mask_else]))
-                             / angle[mask_else] ** 3)
+            coef_1[mask_close_0] = (1. / 2. - angle[mask_close_0] ** 2 / 24.
+                                    + angle[mask_close_0] ** 4 / 720.
+                                    - angle[mask_close_0] ** 6 / 40320.)
+            coef_2[mask_close_0] = (1. / 6. - angle[mask_close_0] ** 2 / 120.
+                                    + angle[mask_close_0] ** 4 / 5040.
+                                    - angle[mask_close_0] ** 6 / 362880.)
 
-        n_tangent_vecs, _ = tangent_vec.shape
-        group_exp_translation = gs.zeros((n_tangent_vecs, self.n))
-        for i in range(n_tangent_vecs):
-            translation_i = translation[i]
-            term_1_i = coef_1[i] * gs.dot(translation_i,
-                                          gs.transpose(skew_mat[i]))
-            term_2_i = coef_2[i] * gs.dot(translation_i,
-                                          gs.transpose(sq_skew_mat[i]))
+            coef_1[mask_else] = ((1. - gs.cos(angle[mask_else]))
+                                 / angle[mask_else] ** 2)
+            coef_2[mask_else] = ((angle[mask_else] - gs.sin(angle[mask_else]))
+                                 / angle[mask_else] ** 3)
 
-            group_exp_translation[i] = translation_i + term_1_i + term_2_i
+            n_tangent_vecs, _ = tangent_vec.shape
+            group_exp_translation = gs.zeros((n_tangent_vecs, self.n))
+            for i in range(n_tangent_vecs):
+                translation_i = translation[i]
+                term_1_i = coef_1[i] * gs.dot(translation_i,
+                                              gs.transpose(skew_mat[i]))
+                term_2_i = coef_2[i] * gs.dot(translation_i,
+                                              gs.transpose(sq_skew_mat[i]))
 
-        group_exp = gs.zeros_like(tangent_vec)
-        group_exp[:, :dim_rotations] = rot_vec
-        group_exp[:, dim_rotations:] = group_exp_translation
+                group_exp_translation[i] = translation_i + term_1_i + term_2_i
 
-        group_exp = self.regularize(group_exp)
-        return group_exp
+            group_exp = gs.zeros_like(tangent_vec)
+            group_exp[:, :dim_rotations] = rot_vec
+            group_exp[:, dim_rotations:] = group_exp_translation
 
-    def group_log_from_identity(self, point):
+            group_exp = self.regularize(group_exp, point_type=point_type)
+            return group_exp
+        elif point_type == 'matrix':
+            raise NotImplementedError()
+
+    def group_log_from_identity(self, point, point_type=None):
         """
         Compute the group logarithm of the point at the identity.
         """
-        assert self.belongs(point)
-        point = self.regularize(point)
+        if point_type is None:
+            point_type = self.point_type
+
+        assert self.belongs(point, point_type=point_type)
+        point = self.regularize(point, point_type=point_type)
 
         rotations = self.rotations
         dim_rotations = rotations.dimension
@@ -371,16 +409,68 @@ class SpecialEuclideanGroup(LieGroup):
 
         return group_log
 
-    def random_uniform(self, n_samples=1):
+    def group_exp(
+            self, tangent_vec, base_point=None, point_type=None):
+        """
+        Compute the group exponential of the tangent vector at the base point.
+        """
+        # TODO(nina): Delete this function, put everything in Lie group class.
+        if point_type is None:
+            point_type = self.point_type
+
+        base_point = self.regularize(
+            base_point, point_type=point_type)
+        if point_type == 'vector':
+            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        elif point_type == 'matrix':
+            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
+
+        point = super(SpecialEuclideanGroup, self).group_exp(
+                                     tangent_vec=tangent_vec,
+                                     base_point=base_point,
+                                     point_type=point_type)
+        point = self.regularize(
+            point, point_type=point_type)
+        return point
+
+    def group_log(self, point, base_point=None, point_type=None):
+        """
+        Compute the group logarithm of point point.
+        """
+        # TODO(nina): Delete this function, put everything in Lie group class.
+        if point_type is None:
+            point_type = self.point_type
+
+        point = self.regularize(
+            point, point_type=point_type)
+        base_point = self.regularize(
+            base_point, point_type=point_type)
+
+        if point_type == 'vector':
+            tangent_vec = super(SpecialEuclideanGroup, self).group_log(
+                                        point=point,
+                                        base_point=base_point)
+            assert gs.ndim(tangent_vec) == 2
+
+        elif point_type == 'matrix':
+            raise NotImplementedError()
+
+        return tangent_vec
+
+    def random_uniform(self, n_samples=1, point_type=None):
         """
         Sample in SE(n) with the uniform distribution.
         """
-        random_rot_vec = self.rotations.random_uniform(n_samples)
+        if point_type is None:
+            point_type = self.point_type
+
+        random_rot_vec = self.rotations.random_uniform(
+            n_samples, point_type=point_type)
         random_translation = self.translations.random_uniform(n_samples)
 
         random_transfo = gs.concatenate([random_rot_vec, random_translation],
                                         axis=1)
-        random_transfo = self.regularize(random_transfo)
+        random_transfo = self.regularize(random_transfo, point_type=point_type)
         return random_transfo
 
     def exponential_matrix(self, rot_vec):
