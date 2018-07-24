@@ -741,19 +741,10 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         if point_type is None:
             point_type = self.point_type
 
-        base_point = self.regularize(
-            base_point, point_type=point_type)
-        if point_type == 'vector':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        elif point_type == 'matrix':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
-
         point = super(SpecialOrthogonalGroup, self).group_exp(
                                      tangent_vec=tangent_vec,
                                      base_point=base_point,
                                      point_type=point_type)
-        point = self.regularize(
-            point, point_type=point_type)
         return point
 
     def group_log(self, point, base_point=None, point_type=None):

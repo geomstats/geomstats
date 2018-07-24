@@ -24,4 +24,4 @@ class Manifold(object):
         Regularize a point to the canonical representation
         chosen for the manifold.
         """
-        return point
+        raise NotImplementedError('regularize is not implemented.')
