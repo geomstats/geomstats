@@ -733,43 +733,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             tangent_vec = self.skew_matrix_from_vector(point)
         return tangent_vec
 
-    def group_exp(
-            self, tangent_vec, base_point=None, point_type=None):
-        """
-        Compute the group exponential of the tangent vector at the base point.
-        """
-        if point_type is None:
-            point_type = self.point_type
-
-        point = super(SpecialOrthogonalGroup, self).group_exp(
-                                     tangent_vec=tangent_vec,
-                                     base_point=base_point,
-                                     point_type=point_type)
-        return point
-
-    def group_log(self, point, base_point=None, point_type=None):
-        """
-        Compute the group logarithm of point point.
-        """
-        if point_type is None:
-            point_type = self.point_type
-
-        point = self.regularize(
-            point, point_type=point_type)
-        base_point = self.regularize(
-            base_point, point_type=point_type)
-
-        if point_type == 'vector':
-            tangent_vec = super(SpecialOrthogonalGroup, self).group_log(
-                                        point=point,
-                                        base_point=base_point)
-            assert gs.ndim(tangent_vec) == 2
-
-        elif point_type == 'matrix':
-            raise NotImplementedError()
-
-        return tangent_vec
-
     def group_exponential_barycenter(
             self, points, weights=None, point_type=None):
         """

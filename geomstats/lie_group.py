@@ -92,6 +92,9 @@ class LieGroup(Manifold):
         Compute the group exponential at point base_point
         of tangent vector tangent_vec.
         """
+        if point_type is None:
+            point_type = self.point_type
+
         identity = self.get_identity(point_type=point_type)
         identity = self.regularize(identity, point_type=point_type)
         if base_point is None:
@@ -142,6 +145,9 @@ class LieGroup(Manifold):
         Compute the group logarithm at point base_point
         of the point point.
         """
+        if point_type is None:
+            point_type = self.point_type
+
         identity = self.get_identity(point_type=point_type)
         identity = self.regularize(identity, point_type=point_type)
         if base_point is None:
