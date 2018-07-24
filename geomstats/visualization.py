@@ -1,6 +1,5 @@
 """Visualization for Geometric Statistics."""
 
-import geomstats.special_orthogonal_group as special_orthogonal_group
 import geomstats.vectorization as vectorization
 import matplotlib.pyplot as plt
 import numpy as np
@@ -193,7 +192,7 @@ def convert_to_trihedron(point, space=None):
                 'Trihedrons are only implemented for SO(3) and SE(3).')
 
     rot_mat = SO3_GROUP.matrix_from_rotation_vector(rot_vec)
-    rot_mat = special_orthogonal_group.closest_rotation_matrix(rot_mat)
+    rot_mat = SO3_GROUP.projection(rot_mat)
     basis_vec_1 = np.array([1, 0, 0])
     basis_vec_2 = np.array([0, 1, 0])
     basis_vec_3 = np.array([0, 0, 1])

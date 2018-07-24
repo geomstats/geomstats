@@ -27,42 +27,6 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
-def closest_rotation_matrix(mat):
-    """
-    Compute the closest rotation matrix of a given matrix mat,
-    in terms of the Frobenius norm.
-    """
-    mat = gs.to_ndarray(mat, to_ndim=3)
-
-    n_mats, mat_dim_1, mat_dim_2 = mat.shape
-    assert mat_dim_1 == mat_dim_2
-    n = mat_dim_1
-
-    if n == 3:
-        mat_unitary_u, diag_s, mat_unitary_v = gs.linalg.svd(mat)
-        rot_mat = gs.matmul(mat_unitary_u, mat_unitary_v)
-        mask = gs.nonzero(gs.linalg.det(rot_mat) < 0)
-        diag = gs.array([1, 1, -1])
-        new_mat_diag_s = gs.tile(gs.diag(diag), len(mask))
-
-        rot_mat[mask] = gs.matmul(gs.matmul(mat_unitary_u[mask],
-                                            new_mat_diag_s),
-                                  mat_unitary_v[mask])
-    else:
-        aux_mat = gs.matmul(gs.transpose(mat, axes=(0, 2, 1)), mat)
-
-        inv_sqrt_mat = gs.zeros_like(mat)
-        for i in range(n_mats):
-            sym_mat = aux_mat[i]
-
-            assert spd_matrices_space.is_symmetric(sym_mat)
-            inv_sqrt_mat[i] = gs.linalg.inv(spd_matrices_space.sqrtm(sym_mat))
-        rot_mat = gs.matmul(mat, inv_sqrt_mat)
-
-    assert gs.ndim(rot_mat) == 3
-    return rot_mat
-
-
 def skew_matrix_from_vector(vec):
     """
     In 3D, compute the skew-symmetric matrix,
@@ -212,7 +176,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             assert gs.ndim(regularized_point) == 2
 
         elif point_type == 'matrix':
-            regularized_point = closest_rotation_matrix(point)
+            regularized_point = self.projection(point)
 
         return regularized_point
 
@@ -315,6 +279,41 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         return regularized_tangent_vec
 
+    def projection(self, mat):
+        """
+        Project a matrix on SO(n), using the Frobenius norm.
+        """
+        # TODO(nina): projection when the point_type is not 'matrix'?
+        mat = gs.to_ndarray(mat, to_ndim=3)
+
+        n_mats, mat_dim_1, mat_dim_2 = mat.shape
+        assert mat_dim_1 == mat_dim_2 == self.n
+
+        if self.n == 3:
+            mat_unitary_u, diag_s, mat_unitary_v = gs.linalg.svd(mat)
+            rot_mat = gs.matmul(mat_unitary_u, mat_unitary_v)
+            mask = gs.nonzero(gs.linalg.det(rot_mat) < 0)
+            diag = gs.array([1, 1, -1])
+            new_mat_diag_s = gs.tile(gs.diag(diag), len(mask))
+
+            rot_mat[mask] = gs.matmul(gs.matmul(mat_unitary_u[mask],
+                                                new_mat_diag_s),
+                                      mat_unitary_v[mask])
+        else:
+            aux_mat = gs.matmul(gs.transpose(mat, axes=(0, 2, 1)), mat)
+
+            inv_sqrt_mat = gs.zeros_like(mat)
+            for i in range(n_mats):
+                sym_mat = aux_mat[i]
+
+                assert spd_matrices_space.is_symmetric(sym_mat)
+                inv_sqrt_mat[i] = gs.linalg.inv(
+                    spd_matrices_space.sqrtm(sym_mat))
+            rot_mat = gs.matmul(mat, inv_sqrt_mat)
+
+        assert gs.ndim(rot_mat) == 3
+        return rot_mat
+
     def rotation_vector_from_matrix(self, rot_mat):
         """
         In 3D, convert rotation matrix to rotation vector
@@ -340,7 +339,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         n_rot_mats, mat_dim_1, mat_dim_2 = rot_mat.shape
         assert mat_dim_1 == mat_dim_2 == self.n
 
-        rot_mat = closest_rotation_matrix(rot_mat)
+        rot_mat = self.projection(rot_mat)
 
         if self.n == 3:
             trace = gs.trace(rot_mat, axis1=1, axis2=2)
@@ -431,7 +430,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                              * gs.matmul(skew_rot_vec[i], skew_rot_vec[i]))
             rot_mat = term_1 + term_2
 
-            rot_mat = closest_rotation_matrix(rot_mat)
+            rot_mat = self.projection(rot_mat)
 
         else:
             skew_mat = skew_matrix_from_vector(rot_vec)
@@ -682,7 +681,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         elif point_type == 'matrix':
             # TODO(nina): does this give the uniform distribution on rotations?
             random_matrix = gs.random.rand(n_samples, self.n, self.n)
-            random_point = closest_rotation_matrix(random_matrix)
+            random_point = self.projection(random_matrix)
 
         return random_point
 

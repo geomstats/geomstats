@@ -133,22 +133,23 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         self.metrics = metrics
         self.n_samples = 10
 
-    def test_closest_rotation_matrix(self):
+    def test_projection(self):
         # Test 3D and nD cases
         for n in self.n_seq:
+            group = self.so[n]
             rot_mat = gs.eye(n)
             delta = 1e-12 * gs.random.rand(n, n)
             rot_mat_plus_delta = rot_mat + delta
-            result = special_orthogonal_group.closest_rotation_matrix(
-                                                       rot_mat_plus_delta)
+            result = group.projection(rot_mat_plus_delta)
             expected = rot_mat
             self.assertTrue(gs.allclose(result, expected))
 
-    def test_closest_rotation_matrix_vectorization(self):
+    def test_projection_vectorization(self):
         for n in self.n_seq:
+            group = self.so[n]
             n_samples = self.n_samples
             mats = gs.random.rand(n_samples, n, n)
-            result = special_orthogonal_group.closest_rotation_matrix(mats)
+            result = group.projection(mats)
             self.assertTrue(gs.allclose(result.shape,
                                         (n_samples, n, n)))
 
