@@ -43,17 +43,27 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         if point_type is None:
             self.point_type = 'vector' if n == 3 else 'matrix'
 
-        identity = gs.zeros(self.dimension)
-        if self.point_type == 'matrix':
-            identity = gs.eye(n)
-
         LieGroup.__init__(self,
                           dimension=self.dimension,
-                          identity=identity)
+                          identity=self.identity())
         EmbeddedManifold.__init__(self,
                                   dimension=self.dimension,
                                   embedding_manifold=GeneralLinearGroup(n=n))
         self.bi_invariant_metric = self.left_canonical_metric
+
+    def identity(self, point_type=None):
+        """
+        Get the identity of the group,
+        as a vector if point_type == 'vector',
+        as a matrix if point_type == 'matrix'.
+        """
+        if point_type is None:
+            point_type = self.point_type
+
+        identity = gs.zeros(self.dimension)
+        if self.point_type == 'matrix':
+            identity = gs.eye(self.n)
+        return identity
 
     def belongs(self, point, point_type=None):
         """
