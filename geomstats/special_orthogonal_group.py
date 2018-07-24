@@ -36,8 +36,9 @@ def closest_rotation_matrix(mat):
 
     n_mats, mat_dim_1, mat_dim_2 = mat.shape
     assert mat_dim_1 == mat_dim_2
+    n = mat_dim_1
 
-    if mat_dim_1 == 3:
+    if n == 3:
         mat_unitary_u, diag_s, mat_unitary_v = gs.linalg.svd(mat)
         rot_mat = gs.matmul(mat_unitary_u, mat_unitary_v)
         mask = gs.nonzero(gs.linalg.det(rot_mat) < 0)
@@ -75,10 +76,12 @@ def skew_matrix_from_vector(vec):
     n_vecs, vec_dim = vec.shape
 
     mat_dim = int((1 + gs.sqrt(1 + 8 * vec_dim)) / 2)
+    n = mat_dim
+
     skew_mat = gs.zeros((n_vecs,) + (mat_dim,) * 2)
-    if vec_dim == 3:
+    if n == 3:
         for i in range(n_vecs):
-            skew_mat[i] = gs.cross(gs.eye(vec_dim), vec[i])
+            skew_mat[i] = gs.cross(gs.eye(n), vec[i])
     else:
         upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
         for i in range(n_vecs):
@@ -100,11 +103,12 @@ def vector_from_skew_matrix(skew_mat):
     n_skew_mats, mat_dim_1, mat_dim_2 = skew_mat.shape
 
     assert mat_dim_1 == mat_dim_2
+    n = mat_dim_1
 
     vec_dim = int(mat_dim_1 * (mat_dim_1 - 1) / 2)
     vec = gs.zeros((n_skew_mats, vec_dim))
 
-    if vec_dim == 3:
+    if n == 3:
         vec[:] = skew_mat[:, (2, 0, 1), (1, 2, 0)]
     else:
         idx = 0
@@ -182,10 +186,10 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
             assert self.belongs(point, point_type)
-            n_points, vec_dim = point.shape
+            n_points, _ = point.shape
 
             regularized_point = gs.copy(point)
-            if vec_dim == 3:
+            if self.n == 3:
                 angle = gs.linalg.norm(regularized_point, axis=1)
                 mask_0 = gs.isclose(angle, 0)
                 mask_not_0 = ~mask_0
@@ -223,9 +227,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         if point_type == 'vector':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-            _, vec_dim = tangent_vec.shape
 
-            if vec_dim == 3:
+            if self.n == 3:
                 if metric is None:
                     metric = self.left_canonical_metric
                 tangent_vec_metric_norm = metric.norm(tangent_vec)
@@ -277,8 +280,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         if point_type == 'vector':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-            _, vec_dim = tangent_vec.shape
-            if vec_dim == 3:
+
+            if self.n == 3:
                 if metric is None:
                     metric = self.left_canonical_metric
                 base_point = self.regularize(base_point, point_type)
