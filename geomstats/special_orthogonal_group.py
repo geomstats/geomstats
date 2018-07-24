@@ -4,6 +4,7 @@ i.e. the Lie group of rotations in n dimensions.
 """
 
 # TODO(nina): make code robust to different types and input structures
+# TODO(nina): should the conversion functions be methods?
 import geomstats.backend as gs
 import geomstats.spd_matrices_space as spd_matrices_space
 
@@ -25,64 +26,6 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 4., - gs.pi / 48.,
                          - 1. / 48., - gs.pi / 480.,
                          - 1. / 480.]
-
-
-def skew_matrix_from_vector(vec):
-    """
-    In 3D, compute the skew-symmetric matrix,
-    known as the cross-product of a vector,
-    associated to the vector vec.
-
-    In nD, fill a skew-symmetric matrix with
-    the values of the vector.
-    """
-    vec = gs.to_ndarray(vec, to_ndim=2)
-    n_vecs, vec_dim = vec.shape
-
-    mat_dim = int((1 + gs.sqrt(1 + 8 * vec_dim)) / 2)
-    n = mat_dim
-
-    skew_mat = gs.zeros((n_vecs,) + (mat_dim,) * 2)
-    if n == 3:
-        for i in range(n_vecs):
-            skew_mat[i] = gs.cross(gs.eye(n), vec[i])
-    else:
-        upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
-        for i in range(n_vecs):
-            skew_mat[i][upper_triangle_indices] = vec[i]
-            skew_mat[i] = skew_mat[i] - skew_mat[i].transpose()
-    assert gs.ndim(skew_mat) == 3
-    return skew_mat
-
-
-def vector_from_skew_matrix(skew_mat):
-    """
-    In 3D, compute the vector defining the cross product
-    associated to the skew-symmetric matrix skew mat.
-
-    In nD, fill a vector by reading the values
-    of the upper triangle of skew_mat.
-    """
-    skew_mat = gs.to_ndarray(skew_mat, to_ndim=3)
-    n_skew_mats, mat_dim_1, mat_dim_2 = skew_mat.shape
-
-    assert mat_dim_1 == mat_dim_2
-    n = mat_dim_1
-
-    vec_dim = int(mat_dim_1 * (mat_dim_1 - 1) / 2)
-    vec = gs.zeros((n_skew_mats, vec_dim))
-
-    if n == 3:
-        vec[:] = skew_mat[:, (2, 0, 1), (1, 2, 0)]
-    else:
-        idx = 0
-        for j in range(mat_dim_1):
-            for i in range(j):
-                vec[:, idx] = skew_mat[:, i, j]
-                idx += 1
-
-    assert gs.ndim(vec) == 2
-    return vec
 
 
 class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
@@ -314,6 +257,61 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         assert gs.ndim(rot_mat) == 3
         return rot_mat
 
+    def skew_matrix_from_vector(self, vec):
+        """
+        In 3D, compute the skew-symmetric matrix,
+        known as the cross-product of a vector,
+        associated to the vector vec.
+
+        In nD, fill a skew-symmetric matrix with
+        the values of the vector.
+        """
+        vec = gs.to_ndarray(vec, to_ndim=2)
+        n_vecs, vec_dim = vec.shape
+
+        mat_dim = int((1 + gs.sqrt(1 + 8 * vec_dim)) / 2)
+        assert mat_dim == self.n
+
+        skew_mat = gs.zeros((n_vecs,) + (self.n,) * 2)
+        if self.n == 3:
+            for i in range(n_vecs):
+                skew_mat[i] = gs.cross(gs.eye(self.n), vec[i])
+        else:
+            upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
+            for i in range(n_vecs):
+                skew_mat[i][upper_triangle_indices] = vec[i]
+                skew_mat[i] = skew_mat[i] - skew_mat[i].transpose()
+        assert gs.ndim(skew_mat) == 3
+        return skew_mat
+
+    def vector_from_skew_matrix(self, skew_mat):
+        """
+        In 3D, compute the vector defining the cross product
+        associated to the skew-symmetric matrix skew mat.
+
+        In nD, fill a vector by reading the values
+        of the upper triangle of skew_mat.
+        """
+        skew_mat = gs.to_ndarray(skew_mat, to_ndim=3)
+        n_skew_mats, mat_dim_1, mat_dim_2 = skew_mat.shape
+
+        assert mat_dim_1 == mat_dim_2 == self.n
+
+        vec_dim = self.dimension
+        vec = gs.zeros((n_skew_mats, vec_dim))
+
+        if self.n == 3:
+            vec[:] = skew_mat[:, (2, 0, 1), (1, 2, 0)]
+        else:
+            idx = 0
+            for j in range(mat_dim_1):
+                for i in range(j):
+                    vec[:, idx] = skew_mat[:, i, j]
+                    idx += 1
+
+        assert gs.ndim(vec) == 2
+        return vec
+
     def rotation_vector_from_matrix(self, rot_mat):
         """
         In 3D, convert rotation matrix to rotation vector
@@ -351,7 +349,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             angle = gs.arccos(cos_angle)
 
             rot_mat_transpose = gs.transpose(rot_mat, axes=(0, 2, 1))
-            rot_vec = vector_from_skew_matrix(rot_mat - rot_mat_transpose)
+            rot_vec = self.vector_from_skew_matrix(rot_mat - rot_mat_transpose)
 
             mask_0 = gs.isclose(angle, 0)
             mask_0 = gs.squeeze(mask_0, axis=1)
@@ -391,7 +389,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                                   * rot_vec[mask_else])
         else:
             skew_mat = self.embedding_manifold.group_log_from_identity(rot_mat)
-            rot_vec = vector_from_skew_matrix(skew_mat)
+            rot_vec = self.vector_from_skew_matrix(skew_mat)
 
         return self.regularize(rot_vec, point_type='vector')
 
@@ -407,7 +405,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             angle = gs.linalg.norm(rot_vec, axis=1)
             angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
-            skew_rot_vec = skew_matrix_from_vector(rot_vec)
+            skew_rot_vec = self.skew_matrix_from_vector(rot_vec)
 
             coef_1 = gs.zeros_like(angle)
             coef_2 = gs.zeros_like(angle)
@@ -433,7 +431,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             rot_mat = self.projection(rot_mat)
 
         else:
-            skew_mat = skew_matrix_from_vector(rot_vec)
+            skew_mat = self.skew_matrix_from_vector(rot_vec)
             rot_mat = self.embedding_manifold.group_exp_from_identity(skew_mat)
 
         return rot_mat
@@ -651,7 +649,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                     jacobian[i] = (
                         coef_1[i] * gs.identity(self.dimension)
                         + coef_2[i] * gs.outer(point[i], point[i])
-                        + sign * skew_matrix_from_vector(point[i]) / 2)
+                        + sign * self.skew_matrix_from_vector(point[i]) / 2)
 
             else:
                 if left_or_right == 'right':
