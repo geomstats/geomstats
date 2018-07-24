@@ -40,14 +40,13 @@ class SpecialEuclideanGroup(LieGroup):
             self.point_type = 'vector' if n == 3 else 'matrix'
 
         super(SpecialEuclideanGroup, self).__init__(
-                          dimension=self.dimension,
-                          identity=self.identity(point_type))
+                          dimension=self.dimension)
 
         # TODO(nina): keep the names rotations and translations here?
         self.rotations = SpecialOrthogonalGroup(n=n)
         self.translations = EuclideanSpace(dimension=n)
 
-    def identity(self, point_type=None):
+    def get_identity(self, point_type=None):
         """
         Get the identity of the group,
         as a vector if point_type == 'vector',
@@ -60,6 +59,7 @@ class SpecialEuclideanGroup(LieGroup):
         if self.point_type == 'matrix':
             identity = gs.eye(self.n)
         return identity
+    identity = property(get_identity)
 
     def belongs(self, point, point_type=None):
         """

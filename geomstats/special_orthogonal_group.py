@@ -46,14 +46,13 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             self.point_type = 'vector' if n == 3 else 'matrix'
 
         LieGroup.__init__(self,
-                          dimension=self.dimension,
-                          identity=self.identity(point_type))
+                          dimension=self.dimension)
         EmbeddedManifold.__init__(self,
                                   dimension=self.dimension,
                                   embedding_manifold=GeneralLinearGroup(n=n))
         self.bi_invariant_metric = self.left_canonical_metric
 
-    def identity(self, point_type=None):
+    def get_identity(self, point_type=None):
         """
         Get the identity of the group,
         as a vector if point_type == 'vector',
@@ -66,6 +65,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         if self.point_type == 'matrix':
             identity = gs.eye(self.n)
         return identity
+    identity = property(get_identity)
 
     def belongs(self, point, point_type=None):
         """
@@ -131,7 +131,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             assert gs.ndim(regularized_point) == 2
 
         elif point_type == 'matrix':
-            regularized_point = self.projection(point)
+            point = gs.to_ndarray(point, to_ndim=3)
+            # TODO(nina): regularization for matrices?
+            regularized_point = point
 
         return regularized_point
 
@@ -559,11 +561,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         """
         Compose two elements of SO(n).
         """
-        point_1 = self.regularize(point_1)
-        point_2 = self.regularize(point_2)
-
         if point_type is None:
             point_type = self.point_type
+
+        point_1 = self.regularize(point_1, point_type=point_type)
+        point_2 = self.regularize(point_2, point_type=point_type)
 
         if point_type == 'vector':
             point_1 = self.matrix_from_rotation_vector(point_1)
@@ -588,7 +590,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         if point_type == 'vector':
             if self.n == 3:
-                inv_point = -self.regularize(point)
+                inv_point = -self.regularize(point, point_type=point_type)
                 return inv_point
             else:
                 point = self.matrix_from_rotation_vector(point)

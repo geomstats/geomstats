@@ -33,10 +33,9 @@ def grad(y_pred, y_true, group, metric=None):
 class LieGroup(Manifold):
     """ Class for Lie groups."""
 
-    def __init__(self, dimension, identity):
+    def __init__(self, dimension):
         assert dimension > 0
         Manifold.__init__(self, dimension)
-        self.identity = identity
 
         self.left_canonical_metric = InvariantMetric(
                     group=self,
@@ -49,6 +48,14 @@ class LieGroup(Manifold):
                     left_or_right='right')
 
         self.metrics = []
+
+    def get_identity(self, point_type=None):
+        """
+        Get the identity of the group.
+        """
+        raise NotImplementedError('The Lie group identity'
+                                  ' is not implemented.')
+    identity = property(get_identity)
 
     def compose(self, point_a, point_b, point_type=None):
         """
@@ -85,10 +92,12 @@ class LieGroup(Manifold):
         Compute the group exponential at point base_point
         of tangent vector tangent_vec.
         """
+        identity = self.get_identity(point_type=point_type)
+        identity = self.regularize(identity, point_type=point_type)
         if base_point is None:
-            base_point = self.identity
+            base_point = identity
         base_point = self.regularize(base_point, point_type=point_type)
-        if base_point is self.identity:
+        if gs.allclose(base_point, identity):
             return self.group_exp_from_identity(
                 tangent_vec, point_type=point_type)
 
@@ -133,10 +142,12 @@ class LieGroup(Manifold):
         Compute the group logarithm at point base_point
         of the point point.
         """
+        identity = self.get_identity(point_type=point_type)
+        identity = self.regularize(identity, point_type=point_type)
         if base_point is None:
-            base_point = self.identity
+            base_point = identity
         base_point = self.regularize(base_point, point_type=point_type)
-        if base_point is self.identity:
+        if gs.allclose(base_point, identity):
             return self.group_log_from_identity(point, point_type=point_type)
 
         point = self.regularize(point, point_type=point_type)
