@@ -428,36 +428,6 @@ class SpecialEuclideanGroup(LieGroup):
 
         return group_log
 
-    def group_exp(
-            self, tangent_vec, base_point=None, point_type=None):
-        """
-        Compute the group exponential of the tangent vector at the base point.
-        """
-        # TODO(nina): Delete this function, put everything in Lie group class.
-        if point_type is None:
-            point_type = self.point_type
-
-        point = super(SpecialEuclideanGroup, self).group_exp(
-                                     tangent_vec=tangent_vec,
-                                     base_point=base_point,
-                                     point_type=point_type)
-        return point
-
-    def group_log(self, point, base_point=None, point_type=None):
-        """
-        Compute the group logarithm of point point.
-        """
-        # TODO(nina): Delete this function, put everything in Lie group class.
-        if point_type is None:
-            point_type = self.point_type
-
-        tangent_vec = super(SpecialEuclideanGroup, self).group_log(
-                                    point=point,
-                                    base_point=base_point,
-                                    point_type=point_type)
-
-        return tangent_vec
-
     def random_uniform(self, n_samples=1, point_type=None):
         """
         Sample in SE(n) with the uniform distribution.
