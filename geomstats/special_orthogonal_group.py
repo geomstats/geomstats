@@ -40,27 +40,39 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         self.n = n
         self.dimension = int((n * (n - 1)) / 2)
-        if point_type is None:
-            self.point_type = 'vector' if n == 3 else 'matrix'
 
-        identity = gs.zeros(self.dimension)
-        if self.point_type == 'matrix':
-            identity = gs.eye(n)
+        self.default_point_type = point_type
+        if point_type is None:
+            self.default_point_type = 'vector' if n == 3 else 'matrix'
 
         LieGroup.__init__(self,
-                          dimension=self.dimension,
-                          identity=identity)
+                          dimension=self.dimension)
         EmbeddedManifold.__init__(self,
                                   dimension=self.dimension,
                                   embedding_manifold=GeneralLinearGroup(n=n))
         self.bi_invariant_metric = self.left_canonical_metric
+
+    def get_identity(self, point_type=None):
+        """
+        Get the identity of the group,
+        as a vector if point_type == 'vector',
+        as a matrix if point_type == 'matrix'.
+        """
+        if point_type is None:
+            point_type = self.default_point_type
+
+        identity = gs.zeros(self.dimension)
+        if self.default_point_type == 'matrix':
+            identity = gs.eye(self.n)
+        return identity
+    identity = property(get_identity)
 
     def belongs(self, point, point_type=None):
         """
         Evaluate if a point belongs to SO(n).
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
@@ -88,7 +100,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         inverts the direction of the rotation axis.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
@@ -119,7 +131,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             assert gs.ndim(regularized_point) == 2
 
         elif point_type == 'matrix':
-            regularized_point = self.projection(point)
+            point = gs.to_ndarray(point, to_ndim=3)
+            # TODO(nina): regularization for matrices?
+            regularized_point = gs.copy(point)
 
         return regularized_point
 
@@ -130,7 +144,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         determined by the metric, to be less than pi.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
@@ -169,8 +183,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             else:
                 # TODO(nina): regularization needed in nD?
                 regularized_vec = tangent_vec
+
         elif point_type == 'matrix':
-            raise NotImplementedError()
+                # TODO(nina): regularization in terms
+                # of skew-symmetric matrices?
+                regularized_vec = tangent_vec
 
         return regularized_vec
 
@@ -183,7 +200,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         to be less than pi.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
@@ -218,7 +235,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 regularized_tangent_vec = tangent_vec
 
         elif point_type == 'matrix':
-            raise NotImplementedError()
+            # TODO(nina): regularization in terms
+            # of skew-symmetric matrices?
+            regularized_tangent_vec = tangent_vec
 
         return regularized_tangent_vec
 
@@ -542,11 +561,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         """
         Compose two elements of SO(n).
         """
-        point_1 = self.regularize(point_1)
-        point_2 = self.regularize(point_2)
-
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
+
+        point_1 = self.regularize(point_1, point_type=point_type)
+        point_2 = self.regularize(point_2, point_type=point_type)
 
         if point_type == 'vector':
             point_1 = self.matrix_from_rotation_vector(point_1)
@@ -567,11 +586,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         """
 
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
             if self.n == 3:
-                inv_point = -self.regularize(point)
+                inv_point = -self.regularize(point, point_type=point_type)
                 return inv_point
             else:
                 point = self.matrix_from_rotation_vector(point)
@@ -592,7 +611,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         assert left_or_right in ('left', 'right')
 
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
         assert self.belongs(point, point_type)
 
         if point_type == 'vector':
@@ -670,7 +689,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         Sample in SO(n) with the uniform distribution.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
             random_point = gs.random.rand(n_samples, self.dimension) * 2 - 1
@@ -688,70 +707,30 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         Compute the group exponential of the tangent vector at the identity.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+            point = gs.to_ndarray(tangent_vec, to_ndim=2)
         elif point_type == 'matrix':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
+            tangent_vec = self.vector_from_skew_matrix(tangent_vec)
+            point = self.matrix_from_rotation_vector(tangent_vec)
 
-        return tangent_vec
+        return point
 
     def group_log_from_identity(self, point, point_type=None):
         """
         Compute the group logarithm of the point at the identity.
         """
-        point = self.regularize(
-            point, point_type=point_type)
-        return point
-
-    def group_exp(
-            self, tangent_vec, base_point=None, point_type=None):
-        """
-        Compute the group exponential of the tangent vector at the base point.
-        """
         if point_type is None:
-            point_type = self.point_type
-
-        base_point = self.regularize(
-            base_point, point_type=point_type)
-        if point_type == 'vector':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        elif point_type == 'matrix':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
+            point_type = self.default_point_type
 
         if point_type == 'vector':
-            point = super(SpecialOrthogonalGroup, self).group_exp(
-                                         tangent_vec=tangent_vec,
-                                         base_point=base_point)
+            tangent_vec = self.regularize(
+                point, point_type=point_type)
         elif point_type == 'matrix':
-            raise NotImplementedError()
-
-        point = self.regularize(
-            point, point_type=point_type)
-        return point
-
-    def group_log(self, point, base_point=None, point_type=None):
-        """
-        Compute the group logarithm of point point.
-        """
-        if point_type is None:
-            point_type = self.point_type
-
-        point = self.regularize(
-            point, point_type=point_type)
-        base_point = self.regularize(
-            base_point, point_type=point_type)
-
-        if point_type == 'vector':
-            tangent_vec = super(SpecialOrthogonalGroup, self).group_log(
-                                        point=point,
-                                        base_point=base_point)
-            assert gs.ndim(tangent_vec) == 2
-
-        elif point_type == 'matrix':
-            raise NotImplementedError()
-
+            point = self.rotation_vector_from_matrix(point)
+            tangent_vec = self.skew_matrix_from_vector(point)
         return tangent_vec
 
     def group_exponential_barycenter(
@@ -761,7 +740,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         Frechet mean of the canonical bi-invariant metric on SO(n).
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
             n_points = points.shape[0]

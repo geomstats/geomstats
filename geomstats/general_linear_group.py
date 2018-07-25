@@ -23,9 +23,12 @@ class GeneralLinearGroup(LieGroup):
     def __init__(self, n):
         assert isinstance(n, int) and n > 0
         super(GeneralLinearGroup, self).__init__(
-                                      dimension=n*n,
-                                      identity=gs.eye(n))
+                                      dimension=n*n)
         self.n = n
+
+    @property
+    def identity(self):
+        return gs.eye(self.n)
 
     def belongs(self, mat):
         """

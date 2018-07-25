@@ -300,7 +300,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         for point_type in ('vector', 'matrix'):
             for n in self.n_seq:
                 group = self.so[n]
-                group.point_type = point_type
+                group.default_point_type = point_type
 
                 n_samples = self.n_samples
                 rot_vecs = group.random_uniform(n_samples=n_samples)
@@ -712,7 +712,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         for point_type in ('vector', 'matrix'):
             for n in self.n_seq:
                 group = self.so[n]
-                group.point_type = point_type
+                group.default_point_type = point_type
 
                 n_samples = self.n_samples
                 n_points_a = group.random_uniform(n_samples=n_samples)
@@ -720,10 +720,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 one_point = group.random_uniform(n_samples=1)
 
                 result = group.compose(one_point, n_points_a)
-                if group.point_type == 'vector':
+                if point_type == 'vector':
                     self.assertTrue(
                         result.shape == (n_samples, group.dimension))
-                if group.point_type == 'matrix':
+                if point_type == 'matrix':
 
                     self.assertTrue(
                         result.shape == (n_samples, n, n))
@@ -736,7 +736,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 if point_type == 'vector':
                     self.assertTrue(
                         result.shape == (n_samples, group.dimension))
-                if group.point_type == 'matrix':
+                if point_type == 'matrix':
 
                     self.assertTrue(
                         result.shape == (n_samples, n, n))
@@ -749,7 +749,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 if point_type == 'vector':
                     self.assertTrue(
                         result.shape == (n_samples, group.dimension))
-                if group.point_type == 'matrix':
+                if point_type == 'matrix':
 
                     self.assertTrue(
                         result.shape == (n_samples, n, n))

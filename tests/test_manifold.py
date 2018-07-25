@@ -29,7 +29,8 @@ class TestManifoldMethods(unittest.TestCase):
 
     def test_regularize(self):
         point = gs.array([1, 2, 3])
-        self.assertTrue(gs.allclose(point, self.manifold.regularize(point)))
+        self.assertRaises(NotImplementedError,
+                          lambda: self.manifold.regularize(point))
 
 
 if __name__ == '__main__':
