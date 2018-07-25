@@ -41,9 +41,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         self.n = n
         self.dimension = int((n * (n - 1)) / 2)
 
-        self.point_type = point_type
+        self.default_point_type = point_type
         if point_type is None:
-            self.point_type = 'vector' if n == 3 else 'matrix'
+            self.default_point_type = 'vector' if n == 3 else 'matrix'
 
         LieGroup.__init__(self,
                           dimension=self.dimension)
@@ -59,10 +59,10 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         as a matrix if point_type == 'matrix'.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         identity = gs.zeros(self.dimension)
-        if self.point_type == 'matrix':
+        if self.default_point_type == 'matrix':
             identity = gs.eye(self.n)
         return identity
     identity = property(get_identity)
@@ -72,7 +72,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         Evaluate if a point belongs to SO(n).
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
@@ -100,7 +100,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         inverts the direction of the rotation axis.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
@@ -133,7 +133,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
             # TODO(nina): regularization for matrices?
-            regularized_point = point
+            regularized_point = gs.copy(point)
 
         return regularized_point
 
@@ -144,7 +144,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         determined by the metric, to be less than pi.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
@@ -200,7 +200,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         to be less than pi.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
@@ -562,7 +562,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         Compose two elements of SO(n).
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         point_1 = self.regularize(point_1, point_type=point_type)
         point_2 = self.regularize(point_2, point_type=point_type)
@@ -586,7 +586,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         """
 
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
             if self.n == 3:
@@ -611,7 +611,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         assert left_or_right in ('left', 'right')
 
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
         assert self.belongs(point, point_type)
 
         if point_type == 'vector':
@@ -689,7 +689,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         Sample in SO(n) with the uniform distribution.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
             random_point = gs.random.rand(n_samples, self.dimension) * 2 - 1
@@ -707,7 +707,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         Compute the group exponential of the tangent vector at the identity.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
             point = gs.to_ndarray(tangent_vec, to_ndim=2)
@@ -723,7 +723,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         Compute the group logarithm of the point at the identity.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
             tangent_vec = self.regularize(
@@ -740,7 +740,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         Frechet mean of the canonical bi-invariant metric on SO(n).
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
             n_points = points.shape[0]

@@ -93,7 +93,7 @@ class LieGroup(Manifold):
         of tangent vector tangent_vec.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         identity = self.get_identity(point_type=point_type)
         identity = self.regularize(identity, point_type=point_type)
@@ -104,16 +104,12 @@ class LieGroup(Manifold):
             return self.group_exp_from_identity(
                 tangent_vec, point_type=point_type)
 
-        if point_type == 'vector':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        elif point_type == 'matrix':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
-
         jacobian = self.jacobian_translation(point=base_point,
                                              left_or_right='left',
                                              point_type=point_type)
 
         if point_type == 'vector':
+            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
             inv_jacobian = gs.linalg.inv(jacobian)
 
             tangent_vec_at_id = gs.einsum('ij,ijk->ik',
@@ -130,6 +126,7 @@ class LieGroup(Manifold):
             return group_exp
 
         elif point_type == 'matrix':
+            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
             raise NotImplementedError()
 
     def group_log_from_identity(self, point, point_type=None):
@@ -146,7 +143,7 @@ class LieGroup(Manifold):
         of the point point.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         identity = self.get_identity(point_type=point_type)
         identity = self.regularize(identity, point_type=point_type)

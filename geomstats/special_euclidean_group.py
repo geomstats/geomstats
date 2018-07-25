@@ -35,9 +35,9 @@ class SpecialEuclideanGroup(LieGroup):
         self.n = n
         self.dimension = int((n * (n - 1)) / 2 + n)
 
-        self.point_type = point_type
+        self.default_point_type = point_type
         if point_type is None:
-            self.point_type = 'vector' if n == 3 else 'matrix'
+            self.default_point_type = 'vector' if n == 3 else 'matrix'
 
         super(SpecialEuclideanGroup, self).__init__(
                           dimension=self.dimension)
@@ -53,10 +53,10 @@ class SpecialEuclideanGroup(LieGroup):
         as a matrix if point_type == 'matrix'.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         identity = gs.zeros(self.dimension)
-        if self.point_type == 'matrix':
+        if self.default_point_type == 'matrix':
             identity = gs.eye(self.n)
         return identity
     identity = property(get_identity)
@@ -66,7 +66,7 @@ class SpecialEuclideanGroup(LieGroup):
         Evaluate if a point belongs to SE(n).
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         point = gs.to_ndarray(point, to_ndim=2)
         _, point_dim = point.shape
@@ -78,9 +78,9 @@ class SpecialEuclideanGroup(LieGroup):
         chosen for SE(n).
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
-        assert self.point_type == 'vector'
+        assert point_type == 'vector'
 
         point = gs.to_ndarray(point, to_ndim=2)
         assert self.belongs(point)
@@ -98,7 +98,7 @@ class SpecialEuclideanGroup(LieGroup):
     def regularize_tangent_vec_at_identity(
             self, tangent_vec, metric=None, point_type=None):
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         return self.regularize_tangent_vec(
                 tangent_vec, self.identity, metric, point_type=point_type)
@@ -106,7 +106,7 @@ class SpecialEuclideanGroup(LieGroup):
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None, point_type=None):
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if metric is None:
             metric = self.left_canonical_metric
@@ -148,7 +148,7 @@ class SpecialEuclideanGroup(LieGroup):
         t1, t2 are translation vectors.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         rotations = self.rotations
         dim_rotations = rotations.dimension
@@ -205,7 +205,7 @@ class SpecialEuclideanGroup(LieGroup):
         (R, t)^{-1} = (R^{-1}, R^{-1}.(-t))
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         rotations = self.rotations
         dim_rotations = rotations.dimension
@@ -239,7 +239,7 @@ class SpecialEuclideanGroup(LieGroup):
         of the left/right translations from the identity to point in SE(n).
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         assert self.belongs(point, point_type=point_type)
         assert left_or_right in ('left', 'right')
@@ -285,7 +285,7 @@ class SpecialEuclideanGroup(LieGroup):
         Compute the group exponential of the tangent vector at the identity.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         if point_type == 'vector':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
@@ -360,7 +360,7 @@ class SpecialEuclideanGroup(LieGroup):
         Compute the group logarithm of the point at the identity.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         assert self.belongs(point, point_type=point_type)
         point = self.regularize(point, point_type=point_type)
@@ -433,7 +433,7 @@ class SpecialEuclideanGroup(LieGroup):
         Sample in SE(n) with the uniform distribution.
         """
         if point_type is None:
-            point_type = self.point_type
+            point_type = self.default_point_type
 
         random_rot_vec = self.rotations.random_uniform(
             n_samples, point_type=point_type)
