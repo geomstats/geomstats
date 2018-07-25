@@ -612,20 +612,30 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         return rot_vec
 
     def yaw_pitch_roll_from_quaternion(self, quaternion):
-        assert self.n == 3, ('The quaternion representation does not exist'
+        """
+        Convert a quaternion
+        to a rotation given by the yaw, pitch, roll.
+        """
+        assert self.n == 3, ('The quaternion representation'
+                             ' and the yaw-pitch-roll representation'
+                             ' do not exist'
                              ' for rotations in %d dimensions.' % self.n)
         quaternion = gs.to_ndarray(quaternion, to_ndim=2)
 
         w, x, y, z = gs.hsplit(quaternion, 4)
 
         yaw = gs.asin(2 * x * y + 2 * z * w)
-        pitch = gs.atan2(2 * x * w - 2 * y * z, 1 - 2 * x * x - 2 * z * z)
-        roll = gs.atan2(2 * y * w - 2 * x * z, 1 - 2 * y * y - 2 * z * z)
+        pitch = gs.atan2(2 * x * w + 2 * y * z, 1 - 2 * x * x - 2 * z * z)
+        roll = gs.atan2(2 * y * w + 2 * x * z, 1 - 2 * y * y - 2 * z * z)
 
         yaw_pitch_roll = gs.concatenate([yaw, pitch, roll], axis=1)
         return yaw_pitch_roll
 
     def yaw_pitch_roll_from_rotation_vector(self, rot_vec):
+        """
+        Convert a rotation vector (axis-angle representation)
+        to a rotation given by the yaw, pitch, roll.
+        """
         assert self.n == 3, ('The yaw-pitch-roll representation does not exist'
                              ' for rotations in %d dimensions.' % self.n)
         rot_vec = gs.to_ndarray(rot_vec, to_ndim=2)
