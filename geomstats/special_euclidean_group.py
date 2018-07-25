@@ -293,28 +293,23 @@ class SpecialEuclideanGroup(LieGroup):
             rot_vec = point[:, :dim_rotations]
 
             jacobian = gs.zeros((n_points,) + (dim,) * 2)
+            jacobian_rot = self.rotations.jacobian_translation(
+                                          point=rot_vec,
+                                          left_or_right=left_or_right,
+                                          point_type=point_type)
+            jacobian[:, :dim_rotations, :dim_rotations] = jacobian_rot
 
             if left_or_right == 'left':
-                jacobian_rot = self.rotations.jacobian_translation(
-                                                      point=rot_vec,
-                                                      left_or_right='left',
-                                                      point_type=point_type)
                 rot_mat = self.rotations.matrix_from_rotation_vector(
                         rot_vec)
                 jacobian_trans = rot_mat
 
-                jacobian[:, :dim_rotations, :dim_rotations] = jacobian_rot
                 jacobian[:, dim_rotations:, dim_rotations:] = jacobian_trans
 
             else:
-                jacobian_rot = self.rotations.jacobian_translation(
-                                                      point=rot_vec,
-                                                      left_or_right='right',
-                                                      point_type=point_type)
-
                 inv_skew_mat = - self.rotations.skew_matrix_from_vector(
                     rot_vec)
-                jacobian[:, :dim_rotations, :dim_rotations] = jacobian_rot
+
                 jacobian[:, dim_rotations:, :dim_rotations] = inv_skew_mat
                 jacobian[:, dim_rotations:, dim_rotations:] = gs.eye(self.n)
 
@@ -615,8 +610,8 @@ class SpecialEuclideanGroup(LieGroup):
             exp_bar[0, dim_rotations:dim] = mean_translation
 
         elif point_type == 'matrix':
-            points = self.rotation_vector_from_matrix(points)
-            exp_bar = self.group_exponential_barycenter(
-                points, weights, point_type='vector')
-            exp_bar = self.matrix_from_rotation_vector(exp_bar)
+            vector_points = self.rotation_vector_from_matrix(points)
+            vector_exp_bar = self.group_exponential_barycenter(
+                vector_points, weights, point_type='vector')
+            exp_bar = self.matrix_from_rotation_vector(vector_exp_bar)
         return exp_bar
