@@ -433,6 +433,34 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                 ' expected = {}.'.format(result,
                                                          expected))
 
+    def test_rotation_vector_and_yaw_pitch_roll(self):
+        """
+        This tests that the composition of
+        rotation_vector_from_yaw_pitch_roll
+        and
+        yaw_pitch_roll_from_rotation_vector
+        is the identity.
+        """
+        n = 3
+        group = self.so[n]
+
+        for angle_type in self.elements[n]:
+            point = self.elements[n][angle_type]
+            if angle_type in self.angles_close_to_pi[n]:
+                continue
+
+            yaw_pitch_roll = group.yaw_pitch_roll_from_rotation_vector(point)
+            result = group.rotation_vector_from_yaw_pitch_roll(yaw_pitch_roll)
+
+            expected = group.regularize(point)
+
+            self.assertTrue(gs.allclose(result, expected),
+                            'for point {}:\n'
+                            ' result = {};'
+                            ' expected = {}.'.format(angle_type,
+                                                     result,
+                                                     expected))
+
     def test_rotation_vector_and_rotation_matrix_vectorization(self):
         for n in self.n_seq:
             group = self.so[n]

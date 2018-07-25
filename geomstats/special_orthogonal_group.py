@@ -624,9 +624,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         w, x, y, z = gs.hsplit(quaternion, 4)
 
-        yaw = gs.asin(2 * x * y + 2 * z * w)
-        pitch = gs.atan2(2 * x * w + 2 * y * z, 1 - 2 * x * x - 2 * z * z)
-        roll = gs.atan2(2 * y * w + 2 * x * z, 1 - 2 * y * y - 2 * z * z)
+        yaw = gs.arcsin(2 * x * y + 2 * z * w)
+        pitch = gs.arctan2(2 * x * w - 2 * y * z, 1 - 2 * x * x - 2 * z * z)
+        roll = gs.arctan2(2 * y * w - 2 * x * z, 1 - 2 * y * y - 2 * z * z)
 
         yaw_pitch_roll = gs.concatenate([yaw, pitch, roll], axis=1)
         return yaw_pitch_roll
