@@ -752,11 +752,15 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             n_weights = weights.shape[0]
             assert n_points == n_weights
 
-            barycenter = self.bi_invariant_metric.mean(points, weights)
+            exp_bar = self.bi_invariant_metric.mean(points, weights)
 
-            barycenter = gs.to_ndarray(barycenter, to_ndim=2)
-            assert gs.ndim(barycenter) == 2, gs.ndim(barycenter)
+            exp_bar = gs.to_ndarray(exp_bar, to_ndim=2)
+            assert gs.ndim(exp_bar) == 2, gs.ndim(exp_bar)
+
         elif point_type == 'matrix':
-            raise NotImplementedError()
+            points = self.rotation_vector_from_matrix(points)
+            exp_bar = self.group_exponential_barycenter(
+                points, weights, point_type='vector')
+            exp_bar = self.matrix_from_rotation_vector(exp_bar)
 
-        return barycenter
+        return exp_bar
