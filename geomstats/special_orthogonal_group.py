@@ -533,29 +533,107 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         quaternion = gs.to_ndarray(quaternion, to_ndim=2)
         n_quaternions, _ = quaternion.shape
 
-        a, b, c, d = gs.hsplit(quaternion, 4)
+        w, x, y, z = gs.hsplit(quaternion, 4)
 
         rot_mat = gs.zeros((n_quaternions,) + (self.n,) * 2)
 
         for i in range(n_quaternions):
             # TODO(nina): vectorize by applying the composition of
             # quaternions to the identity matrix
-            column_1 = [a[i] ** 2 + b[i] ** 2 - c[i] ** 2 - d[i] ** 2,
-                        2 * b[i] * c[i] - 2 * a[i] * d[i],
-                        2 * b[i] * d[i] + 2 * a[i] * c[i]]
+            column_1 = [w[i] ** 2 + x[i] ** 2 - y[i] ** 2 - z[i] ** 2,
+                        2 * x[i] * y[i] - 2 * w[i] * z[i],
+                        2 * x[i] * z[i] + 2 * w[i] * y[i]]
 
-            column_2 = [2 * b[i] * c[i] + 2 * a[i] * d[i],
-                        a[i] ** 2 - b[i] ** 2 + c[i] ** 2 - d[i] ** 2,
-                        2 * c[i] * d[i] - 2 * a[i] * b[i]]
+            column_2 = [2 * x[i] * y[i] + 2 * w[i] * z[i],
+                        w[i] ** 2 - x[i] ** 2 + y[i] ** 2 - z[i] ** 2,
+                        2 * y[i] * z[i] - 2 * w[i] * x[i]]
 
-            column_3 = [2 * b[i] * d[i] - 2 * a[i] * c[i],
-                        2 * c[i] * d[i] + 2 * a[i] * b[i],
-                        a[i] ** 2 - b[i] ** 2 - c[i] ** 2 + d[i] ** 2]
+            column_3 = [2 * x[i] * z[i] - 2 * w[i] * y[i],
+                        2 * y[i] * z[i] + 2 * w[i] * x[i],
+                        w[i] ** 2 - x[i] ** 2 - y[i] ** 2 + z[i] ** 2]
 
             rot_mat[i] = gs.hstack([column_1, column_2, column_3]).transpose()
 
         assert gs.ndim(rot_mat) == 3
         return rot_mat
+
+    def quaternion_from_yaw_pitch_roll(self, yaw_pitch_roll):
+        """
+        Convert a rotation given by the yaw, pitch, roll
+        into a unit quaternion.
+        """
+        assert self.n == 3, ('The quaternion representation'
+                             ' and the yaw-pitch-roll representation'
+                             ' do not exist'
+                             ' for rotations in %d dimensions.' % self.n)
+        yaw_pitch_roll = gs.to_ndarray(yaw_pitch_roll, to_ndim=2)
+        n_yaw_pitch_rolls, _ = yaw_pitch_roll.shape
+
+        yaw = yaw_pitch_roll[:, 0]
+        pitch = yaw_pitch_roll[:, 1]
+        roll = yaw_pitch_roll[:, 2]
+
+        cos_half_yaw = gs.cos(yaw / 2.)
+        sin_half_yaw = gs.sin(yaw / 2.)
+        cos_half_pitch = gs.cos(pitch / 2.)
+        sin_half_pitch = gs.sin(pitch / 2.)
+        cos_half_roll = gs.cos(roll / 2.)
+        sin_half_roll = gs.sin(roll / 2.)
+
+        quaternion = gs.zeros((n_yaw_pitch_rolls, 4))
+
+        cos_half_angle = (cos_half_yaw * cos_half_pitch * cos_half_roll
+                          + sin_half_yaw * sin_half_pitch * sin_half_roll)
+
+        quaternion[:, 0] = cos_half_angle
+
+        quaternion[:, 1] = (cos_half_yaw * cos_half_pitch * sin_half_roll
+                            - sin_half_yaw * sin_half_pitch * cos_half_roll)
+
+        quaternion[:, 2] = (cos_half_pitch * cos_half_roll * sin_half_yaw
+                            + sin_half_pitch * sin_half_roll * cos_half_yaw)
+
+        quaternion[:, 3] = (cos_half_roll * cos_half_yaw * sin_half_pitch
+                            - sin_half_roll * sin_half_yaw * cos_half_pitch)
+
+        return quaternion
+
+    def rotation_vector_from_yaw_pitch_roll(self, yaw_pitch_roll):
+        """
+        Convert a rotation given by the yaw, pitch, roll
+        into a rotation vector (axis-angle representation).
+        """
+        assert self.n == 3, ('The yaw-pitch-roll representation'
+                             ' does not exist'
+                             ' for rotations in %d dimensions.' % self.n)
+        quaternion = self.quaternion_from_yaw_pitch_roll(yaw_pitch_roll)
+        rot_vec = self.rotation_vector_from_quaternion(quaternion)
+
+        return rot_vec
+
+    def yaw_pitch_roll_from_quaternion(self, quaternion):
+        assert self.n == 3, ('The quaternion representation does not exist'
+                             ' for rotations in %d dimensions.' % self.n)
+        quaternion = gs.to_ndarray(quaternion, to_ndim=2)
+
+        w, x, y, z = gs.hsplit(quaternion, 4)
+
+        yaw = gs.asin(2 * x * y + 2 * z * w)
+        pitch = gs.atan2(2 * x * w - 2 * y * z, 1 - 2 * x * x - 2 * z * z)
+        roll = gs.atan2(2 * y * w - 2 * x * z, 1 - 2 * y * y - 2 * z * z)
+
+        yaw_pitch_roll = gs.concatenate([yaw, pitch, roll], axis=1)
+        return yaw_pitch_roll
+
+    def yaw_pitch_roll_from_rotation_vector(self, rot_vec):
+        assert self.n == 3, ('The yaw-pitch-roll representation does not exist'
+                             ' for rotations in %d dimensions.' % self.n)
+        rot_vec = gs.to_ndarray(rot_vec, to_ndim=2)
+
+        quaternion = self.quaternion_from_rotation_vector(rot_vec)
+        yaw_pitch_roll = self.yaw_pitch_roll_from_quaternion(quaternion)
+
+        return yaw_pitch_roll
 
     def compose(self, point_1, point_2, point_type=None):
         """
