@@ -22,6 +22,16 @@ PI8 = PI * PI7
 
 ATOL = 1e-5
 
+TAYLOR_COEFFS_1_AT_0 = [+ 1. / 2., 0.,
+                        - 1. / 24., 0.,
+                        + 1. / 720., 0.,
+                        - 1. / 40320.]
+
+TAYLOR_COEFFS_2_AT_0 = [+ 1. / 6., 0.,
+                        - 1. / 120., 0.,
+                        + 1. / 5040., 0.,
+                        - 1. / 362880.]
+
 
 class SpecialEuclideanGroup(LieGroup):
     """
@@ -323,12 +333,16 @@ class SpecialEuclideanGroup(LieGroup):
             coef_1[mask_0] = 1. / 2.
             coef_2[mask_0] = 1. / 6.
 
-            coef_1[mask_close_0] = (1. / 2. - angle[mask_close_0] ** 2 / 24.
-                                    + angle[mask_close_0] ** 4 / 720.
-                                    - angle[mask_close_0] ** 6 / 40320.)
-            coef_2[mask_close_0] = (1. / 6. - angle[mask_close_0] ** 2 / 120.
-                                    + angle[mask_close_0] ** 4 / 5040.
-                                    - angle[mask_close_0] ** 6 / 362880.)
+            coef_1[mask_close_0] = (
+                TAYLOR_COEFFS_1_AT_0[0]
+                + TAYLOR_COEFFS_1_AT_0[2] * angle[mask_close_0] ** 2
+                + TAYLOR_COEFFS_1_AT_0[4] * angle[mask_close_0] ** 4
+                + TAYLOR_COEFFS_1_AT_0[6] * angle[mask_close_0] ** 6)
+            coef_2[mask_close_0] = (
+                TAYLOR_COEFFS_2_AT_0[0]
+                + TAYLOR_COEFFS_2_AT_0[2] * angle[mask_close_0] ** 2
+                + TAYLOR_COEFFS_2_AT_0[4] * angle[mask_close_0] ** 4
+                + TAYLOR_COEFFS_2_AT_0[6] * angle[mask_close_0] ** 6)
 
             coef_1[mask_else] = ((1. - gs.cos(angle[mask_else]))
                                  / angle[mask_else] ** 2)
