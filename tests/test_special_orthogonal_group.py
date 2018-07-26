@@ -433,7 +433,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                 ' expected = {}.'.format(result,
                                                          expected))
 
-    def test_tait_bryan_angles_from_quaternion(self):
+    def test_tait_bryan_angles_from_quaternion_intrinsic(self):
         """
         This tests that the yaw pitch roll of the quaternion [1, 0, 0, 0],
         is [0, 0, 0] as expected.
@@ -442,7 +442,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         group = self.so[n]
 
         quaternion = gs.array([1., 0., 0., 0.])
-        result = group.tait_bryan_angles_from_quaternion(quaternion)
+        result = group.tait_bryan_angles_from_quaternion(
+            quaternion, extrinsic_or_intrinsic='intrinsic')
         expected = gs.array([[0., 0., 0.]])
 
         self.assertTrue(gs.allclose(result, expected),
@@ -450,7 +451,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                         ' expected = {}.'.format(result,
                                                  expected))
 
-    def test_quaternion_from_tait_bryan_angles(self):
+    def test_quaternion_from_tait_bryan_angles_intrinsic(self):
         """
         This tests that the quaternion computed from the
         yaw pitch roll[0, 0, 0] is [1, 0., 0., 0.] as expected.
@@ -459,7 +460,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         group = self.so[n]
 
         tait_bryan_angles = gs.array([0., 0., 0.])
-        result = group.quaternion_from_tait_bryan_angles(tait_bryan_angles)
+        result = group.quaternion_from_tait_bryan_angles(
+            tait_bryan_angles, extrinsic_or_intrinsic='intrinsic')
         expected = gs.array([[1., 0., 0., 0.]])
 
         self.assertTrue(gs.allclose(result, expected),
@@ -467,7 +469,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                         ' expected = {}.'.format(result,
                                                  expected))
 
-    def test_quaternion_and_tait_bryan_angles(self):
+    def test_quaternion_and_tait_bryan_angles_intrinsic(self):
         """
         This tests that the composition of
         rotation_vector_from_tait_bryan_angles
@@ -486,9 +488,9 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             quaternion = group.quaternion_from_rotation_vector(point)
 
             tait_bryan_angles = group.tait_bryan_angles_from_quaternion(
-                quaternion)
+                quaternion, extrinsic_or_intrinsic='intrinsic')
             result = group.quaternion_from_tait_bryan_angles(
-                tait_bryan_angles)
+                tait_bryan_angles, extrinsic_or_intrinsic='intrinsic')
 
             expected = quaternion
 
@@ -499,7 +501,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                      result,
                                                      expected))
 
-    def test_rotation_vector_and_tait_bryan_angles(self):
+    def test_rotation_vector_and_tait_bryan_angles_intrinsic(self):
         """
         This tests that the composition of
         rotation_vector_from_tait_bryan_angles
@@ -516,9 +518,9 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 continue
 
             tait_bryan_angles = group.tait_bryan_angles_from_rotation_vector(
-                point)
+                point, extrinsic_or_intrinsic='intrinsic')
             result = group.rotation_vector_from_tait_bryan_angles(
-                tait_bryan_angles)
+                tait_bryan_angles, extrinsic_or_intrinsic='intrinsic')
 
             expected = group.regularize(point)
 
