@@ -557,94 +557,180 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         assert gs.ndim(rot_mat) == 3
         return rot_mat
 
-    def quaternion_from_yaw_pitch_roll(self, yaw_pitch_roll):
+    def matrix_from_tait_bryan_angles(self, tait_bryan_angles):
+        """
+        Convert a rotation given in terms of the tait bryan angles,
+        [angle_x, angle_y, angle_z] in extrinsic (fixed) coordinate frame,
+        for the order zyx, into the rotation matrix rot_mat:
+        rot_mat = X(angle_x).Y(angle_y).Z(angle_z)
+        where:
+        - X(angle_x) is a rotation of angle angle_x around axis x.
+        - Y(angle_y) is a rotation of angle angle_y around axis y.
+        - Z(angle_z) is a rotation of angle angle_z around axis z.
+        """
+        assert self.n == 3, ('The tait-bryan angles representation'
+                             ' does not exist'
+                             ' for rotations in %d dimensions.' % self.n)
+        tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
+        n_tait_bryan_angles, _ = tait_bryan_angles.shape
+
+        angle_x = tait_bryan_angles[:, 0]
+        angle_y = tait_bryan_angles[:, 1]
+        angle_z = tait_bryan_angles[:, 2]
+
+        rot_mat = gs.zeros((n_tait_bryan_angles,) + (self.n,) * 2)
+        for i in range(n_tait_bryan_angles):
+            cos_angle_x = gs.cos(angle_x[i])
+            sin_angle_x = gs.sin(angle_x[i])
+            cos_angle_y = gs.cos(angle_y[i])
+            sin_angle_y = gs.sin(angle_y[i])
+            cos_angle_z = gs.cos(angle_z[i])
+            sin_angle_z = gs.sin(angle_z[i])
+
+            column_1 = [cos_angle_y * cos_angle_z,
+                        (cos_angle_x * sin_angle_z
+                         + cos_angle_z * sin_angle_x * sin_angle_y),
+                        (sin_angle_x * sin_angle_z
+                         - cos_angle_x * cos_angle_z * sin_angle_y)]
+
+            column_2 = [- cos_angle_y * sin_angle_z,
+                        (cos_angle_x * cos_angle_z
+                         - sin_angle_x * sin_angle_y * sin_angle_z),
+                        (cos_angle_z * sin_angle_x
+                         + cos_angle_x * sin_angle_y * sin_angle_z)]
+
+            column_3 = [sin_angle_y,
+                        - cos_angle_y * sin_angle_x,
+                        cos_angle_x * cos_angle_y]
+
+            rot_mat[i] = gs.hstack([column_1, column_2, column_3]).transpose()
+
+        return rot_mat
+
+    def tait_bryan_angles_from_matrix(self, rot_mat):
+        """
+        Convert a rotation matrix rot_mat into the tait bryan angles,
+        [angle_x, angle_y, angle_z] in extrinsic (fixed) coordinate frame,
+        for the order zyx, i.e.:
+        rot_mat = X(angle_x).Y(angle_y).Z(angle_z)
+        where:
+        - X(angle_x) is a rotation of angle angle_x around axis x.
+        - Y(angle_y) is a rotation of angle angle_y around axis y.
+        - Z(angle_z) is a rotation of angle angle_z around axis z.
+        """
+        rot_mat = gs.to_ndarray(rot_mat, to_ndim=3)
+        quaternion = self.quaternion_from_matrix(rot_mat)
+        tait_bryan_angle = self.tait_bryan_angle_from_quaternion(quaternion)
+
+        return tait_bryan_angle
+
+    def quaternion_from_tait_bryan_angles(self, tait_bryan_angle):
         """
         Convert a rotation given by the yaw, pitch, roll
         into a unit quaternion.
         """
         assert self.n == 3, ('The quaternion representation'
-                             ' and the yaw-pitch-roll representation'
+                             ' and the tait-bryan angles representation'
                              ' do not exist'
                              ' for rotations in %d dimensions.' % self.n)
-        yaw_pitch_roll = gs.to_ndarray(yaw_pitch_roll, to_ndim=2)
-        n_yaw_pitch_rolls, _ = yaw_pitch_roll.shape
+        tait_bryan_angle = gs.to_ndarray(tait_bryan_angle, to_ndim=2)
+        n_tait_bryan_angles, _ = tait_bryan_angle.shape
 
-        yaw = yaw_pitch_roll[:, 0]
-        pitch = yaw_pitch_roll[:, 1]
-        roll = yaw_pitch_roll[:, 2]
+        angle_x = tait_bryan_angle[:, 0]
+        angle_y = tait_bryan_angle[:, 1]
+        angle_z = tait_bryan_angle[:, 2]
 
-        cos_half_yaw = gs.cos(yaw / 2.)
-        sin_half_yaw = gs.sin(yaw / 2.)
-        cos_half_pitch = gs.cos(pitch / 2.)
-        sin_half_pitch = gs.sin(pitch / 2.)
-        cos_half_roll = gs.cos(roll / 2.)
-        sin_half_roll = gs.sin(roll / 2.)
+        cos_half_angle_x = gs.cos(angle_x / 2.)
+        sin_half_angle_x = gs.sin(angle_x / 2.)
+        cos_half_angle_y = gs.cos(angle_y / 2.)
+        sin_half_angle_y = gs.sin(angle_y / 2.)
+        cos_half_angle_z = gs.cos(angle_z / 2.)
+        sin_half_angle_z = gs.sin(angle_z / 2.)
 
-        quaternion = gs.zeros((n_yaw_pitch_rolls, 4))
+        quaternion = gs.zeros((n_tait_bryan_angles, 4))
 
-        cos_half_angle = (cos_half_yaw * cos_half_pitch * cos_half_roll
-                          + sin_half_yaw * sin_half_pitch * sin_half_roll)
+        cos_half_angle = (cos_half_angle_x
+                          * cos_half_angle_y
+                          * cos_half_angle_z
+                          + sin_half_angle_x
+                          * sin_half_angle_y
+                          * sin_half_angle_z)
 
         quaternion[:, 0] = cos_half_angle
 
-        quaternion[:, 1] = (cos_half_yaw * cos_half_pitch * sin_half_roll
-                            - sin_half_yaw * sin_half_pitch * cos_half_roll)
+        quaternion[:, 1] = (cos_half_angle_x
+                            * cos_half_angle_y
+                            * sin_half_angle_z
+                            - sin_half_angle_x
+                            * sin_half_angle_y
+                            * cos_half_angle_z)
 
-        quaternion[:, 2] = (cos_half_roll * cos_half_yaw * sin_half_pitch
-                            + sin_half_roll * sin_half_yaw * cos_half_pitch)
+        quaternion[:, 2] = (cos_half_angle_z
+                            * cos_half_angle_x
+                            * sin_half_angle_y
+                            + sin_half_angle_z
+                            * sin_half_angle_x
+                            * cos_half_angle_y)
 
-        quaternion[:, 3] = (cos_half_pitch * cos_half_roll * sin_half_yaw
-                            - sin_half_pitch * sin_half_roll * cos_half_yaw)
+        quaternion[:, 3] = (cos_half_angle_y
+                            * cos_half_angle_z
+                            * sin_half_angle_x
+                            - sin_half_angle_y
+                            * sin_half_angle_z
+                            * cos_half_angle_x)
 
         return quaternion
 
-    def rotation_vector_from_yaw_pitch_roll(self, yaw_pitch_roll):
+    def rotation_vector_from_tait_bryan_angles(self, tait_bryan_angle):
         """
-        Convert a rotation given by the yaw, pitch, roll
+        Convert a rotation given by the angle_x, angle_y, angle_z
         into a rotation vector (axis-angle representation).
         """
-        assert self.n == 3, ('The yaw-pitch-roll representation'
+        assert self.n == 3, ('The tait-bryan angles representation'
                              ' does not exist'
                              ' for rotations in %d dimensions.' % self.n)
-        quaternion = self.quaternion_from_yaw_pitch_roll(yaw_pitch_roll)
+        quaternion = self.quaternion_from_tait_bryan_angles(tait_bryan_angle)
         rot_vec = self.rotation_vector_from_quaternion(quaternion)
 
         rot_vec = self.regularize(rot_vec, point_type='vector')
         return rot_vec
 
-    def yaw_pitch_roll_from_quaternion(self, quaternion):
+    def tait_bryan_angles_from_quaternion(self, quaternion):
         """
         Convert a quaternion
-        to a rotation given by the yaw, pitch, roll.
+        to a rotation given by the angle_x, angle_y, angle_z.
         """
         assert self.n == 3, ('The quaternion representation'
-                             ' and the yaw-pitch-roll representation'
+                             ' and the tait-bryan angles representation'
                              ' do not exist'
                              ' for rotations in %d dimensions.' % self.n)
         quaternion = gs.to_ndarray(quaternion, to_ndim=2)
 
         w, x, y, z = gs.hsplit(quaternion, 4)
 
-        yaw = gs.arctan2(2. * (x * y + w * z), w * w + x * x - y * y - z * z)
-        pitch = gs.arcsin(- 2. * (x * z - w * y))
-        roll = gs.arctan2(2. * (y * z + w * x), w * w - x * x - y * y + z * z)
+        angle_x = gs.arctan2(2. * (x * y + w * z),
+                             w * w + x * x - y * y - z * z)
+        angle_y = gs.arcsin(- 2. * (x * z - w * y))
+        angle_z = gs.arctan2(2. * (y * z + w * x),
+                             w * w - x * x - y * y + z * z)
 
-        yaw_pitch_roll = gs.concatenate([yaw, pitch, roll], axis=1)
-        return yaw_pitch_roll
+        tait_bryan_angles = gs.concatenate([angle_x, angle_y, angle_z], axis=1)
+        return tait_bryan_angles
 
-    def yaw_pitch_roll_from_rotation_vector(self, rot_vec):
+    def tait_bryan_angles_from_rotation_vector(self, rot_vec):
         """
         Convert a rotation vector (axis-angle representation)
         to a rotation given by the yaw, pitch, roll.
         """
-        assert self.n == 3, ('The yaw-pitch-roll representation does not exist'
+        assert self.n == 3, ('The tait-bryan angles representation'
+                             ' does not exist'
                              ' for rotations in %d dimensions.' % self.n)
         rot_vec = gs.to_ndarray(rot_vec, to_ndim=2)
 
         quaternion = self.quaternion_from_rotation_vector(rot_vec)
-        yaw_pitch_roll = self.yaw_pitch_roll_from_quaternion(quaternion)
+        tait_bryan_angles = self.tait_bryan_angles_from_quaternion(quaternion)
 
-        return yaw_pitch_roll
+        return tait_bryan_angles
 
     def compose(self, point_1, point_2, point_type=None):
         """

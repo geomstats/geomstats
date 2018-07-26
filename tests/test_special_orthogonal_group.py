@@ -433,7 +433,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                 ' expected = {}.'.format(result,
                                                          expected))
 
-    def test_yaw_pitch_roll_from_quaternion(self):
+    def test_tait_bryan_angles_from_quaternion(self):
         """
         This tests that the yaw pitch roll of the quaternion [1, 0, 0, 0],
         is [0, 0, 0] as expected.
@@ -442,7 +442,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         group = self.so[n]
 
         quaternion = gs.array([1., 0., 0., 0.])
-        result = group.yaw_pitch_roll_from_quaternion(quaternion)
+        result = group.tait_bryan_angles_from_quaternion(quaternion)
         expected = gs.array([[0., 0., 0.]])
 
         self.assertTrue(gs.allclose(result, expected),
@@ -450,7 +450,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                         ' expected = {}.'.format(result,
                                                  expected))
 
-    def test_quaternion_from_yaw_pitch_roll(self):
+    def test_quaternion_from_tait_bryan_angles(self):
         """
         This tests that the quaternion computed from the
         yaw pitch roll[0, 0, 0] is [1, 0., 0., 0.] as expected.
@@ -458,8 +458,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         n = 3
         group = self.so[n]
 
-        yaw_pitch_roll = gs.array([0., 0., 0.])
-        result = group.quaternion_from_yaw_pitch_roll(yaw_pitch_roll)
+        tait_bryan_angles = gs.array([0., 0., 0.])
+        result = group.quaternion_from_tait_bryan_angles(tait_bryan_angles)
         expected = gs.array([[1., 0., 0., 0.]])
 
         self.assertTrue(gs.allclose(result, expected),
@@ -467,12 +467,12 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                         ' expected = {}.'.format(result,
                                                  expected))
 
-    def test_quaternion_and_yaw_pitch_roll(self):
+    def test_quaternion_and_tait_bryan_angles(self):
         """
         This tests that the composition of
-        rotation_vector_from_yaw_pitch_roll
+        rotation_vector_from_tait_bryan_angles
         and
-        yaw_pitch_roll_from_rotation_vector
+        tait_bryan_angles_from_rotation_vector
         is the identity.
         """
         n = 3
@@ -485,8 +485,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
             quaternion = group.quaternion_from_rotation_vector(point)
 
-            yaw_pitch_roll = group.yaw_pitch_roll_from_quaternion(quaternion)
-            result = group.quaternion_from_yaw_pitch_roll(yaw_pitch_roll)
+            tait_bryan_angles = group.tait_bryan_angles_from_quaternion(
+                quaternion)
+            result = group.quaternion_from_tait_bryan_angles(
+                tait_bryan_angles)
 
             expected = quaternion
 
@@ -497,12 +499,12 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                      result,
                                                      expected))
 
-    def test_rotation_vector_and_yaw_pitch_roll(self):
+    def test_rotation_vector_and_tait_bryan_angles(self):
         """
         This tests that the composition of
-        rotation_vector_from_yaw_pitch_roll
+        rotation_vector_from_tait_bryan_angles
         and
-        yaw_pitch_roll_from_rotation_vector
+        tait_bryan_angles_from_rotation_vector
         is the identity.
         """
         n = 3
@@ -513,8 +515,10 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             if angle_type in self.angles_close_to_pi[n]:
                 continue
 
-            yaw_pitch_roll = group.yaw_pitch_roll_from_rotation_vector(point)
-            result = group.rotation_vector_from_yaw_pitch_roll(yaw_pitch_roll)
+            tait_bryan_angles = group.tait_bryan_angles_from_rotation_vector(
+                point)
+            result = group.rotation_vector_from_tait_bryan_angles(
+                tait_bryan_angles)
 
             expected = group.regularize(point)
 
