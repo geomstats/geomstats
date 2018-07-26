@@ -590,11 +590,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         quaternion[:, 1] = (cos_half_yaw * cos_half_pitch * sin_half_roll
                             - sin_half_yaw * sin_half_pitch * cos_half_roll)
 
-        quaternion[:, 2] = (cos_half_pitch * cos_half_roll * sin_half_yaw
-                            + sin_half_pitch * sin_half_roll * cos_half_yaw)
+        quaternion[:, 2] = (cos_half_roll * cos_half_yaw * sin_half_pitch
+                            + sin_half_roll * sin_half_yaw * cos_half_pitch)
 
-        quaternion[:, 3] = (cos_half_roll * cos_half_yaw * sin_half_pitch
-                            - sin_half_roll * sin_half_yaw * cos_half_pitch)
+        quaternion[:, 3] = (cos_half_pitch * cos_half_roll * sin_half_yaw
+                            - sin_half_pitch * sin_half_roll * cos_half_yaw)
 
         return quaternion
 
@@ -609,6 +609,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         quaternion = self.quaternion_from_yaw_pitch_roll(yaw_pitch_roll)
         rot_vec = self.rotation_vector_from_quaternion(quaternion)
 
+        rot_vec = self.regularize(rot_vec, point_type='vector')
         return rot_vec
 
     def yaw_pitch_roll_from_quaternion(self, quaternion):
@@ -624,9 +625,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         w, x, y, z = gs.hsplit(quaternion, 4)
 
-        yaw = gs.arcsin(2 * x * y + 2 * z * w)
-        pitch = gs.arctan2(2 * x * w - 2 * y * z, 1 - 2 * x * x - 2 * z * z)
-        roll = gs.arctan2(2 * y * w - 2 * x * z, 1 - 2 * y * y - 2 * z * z)
+        yaw = gs.arctan2(2. * (x * y + w * z), w * w + x * x - y * y - z * z)
+        pitch = gs.arcsin(- 2. * (x * z - w * y))
+        roll = gs.arctan2(2. * (y * z + w * x), w * w - x * x - y * y + z * z)
 
         yaw_pitch_roll = gs.concatenate([yaw, pitch, roll], axis=1)
         return yaw_pitch_roll

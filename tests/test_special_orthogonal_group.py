@@ -433,6 +433,71 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                 ' expected = {}.'.format(result,
                                                          expected))
 
+    def test_yaw_pitch_roll_from_quaternion(self):
+        """
+        This tests that the yaw pitch roll of the quaternion [1, 0, 0, 0],
+        representing the identity rotation
+        is [0, 0, 0] as expected.
+        """
+        n = 3
+        group = self.so[n]
+
+        quaternion = gs.array([1., 0., 0., 0.])
+        result = group.yaw_pitch_roll_from_quaternion(quaternion)
+        expected = gs.array([[0., 0., 0.]])
+
+        self.assertTrue(gs.allclose(result, expected),
+                        ' result = {};'
+                        ' expected = {}.'.format(result,
+                                                 expected))
+
+    def test_quaternion_from_yaw_pitch_roll(self):
+        """
+        This tests that the quaternion computed from the
+        yaw pitch roll[0, 0, 0] is [1, 0., 0., 0.] as expected.
+        """
+        n = 3
+        group = self.so[n]
+
+        yaw_pitch_roll = gs.array([0., 0., 0.])
+        result = group.quaternion_from_yaw_pitch_roll(yaw_pitch_roll)
+        expected = gs.array([[1., 0., 0., 0.]])
+
+        self.assertTrue(gs.allclose(result, expected),
+                        ' result = {};'
+                        ' expected = {}.'.format(result,
+                                                 expected))
+
+    def test_quaternion_and_yaw_pitch_roll(self):
+        """
+        This tests that the composition of
+        rotation_vector_from_yaw_pitch_roll
+        and
+        yaw_pitch_roll_from_rotation_vector
+        is the identity.
+        """
+        n = 3
+        group = self.so[n]
+
+        for angle_type in self.elements[n]:
+            point = self.elements[n][angle_type]
+            if angle_type in self.angles_close_to_pi[n]:
+                continue
+
+            quaternion = group.quaternion_from_rotation_vector(point)
+
+            yaw_pitch_roll = group.yaw_pitch_roll_from_quaternion(quaternion)
+            result = group.quaternion_from_yaw_pitch_roll(yaw_pitch_roll)
+
+            expected = quaternion
+
+            self.assertTrue(gs.allclose(result, expected),
+                            'for point {}:\n'
+                            ' result = {};'
+                            ' expected = {}.'.format(angle_type,
+                                                     result,
+                                                     expected))
+
     def test_rotation_vector_and_yaw_pitch_roll(self):
         """
         This tests that the composition of
