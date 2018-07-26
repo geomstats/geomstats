@@ -612,10 +612,52 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
                     rot_mat[i] = gs.hstack(
                         [column_1, column_2, column_3]).transpose()
-                else:
-                    raise NotImplementedError()
-            else:
-                raise NotImplementedError()
+            elif order == 'xyz':
+                angle_z = tait_bryan_angles[:, 0]
+                angle_y = tait_bryan_angles[:, 1]
+                angle_x = tait_bryan_angles[:, 2]
+
+                for i in range(n_tait_bryan_angles):
+                    cos_angle_x = gs.cos(angle_x[i])
+                    sin_angle_x = gs.sin(angle_x[i])
+                    cos_angle_y = gs.cos(angle_y[i])
+                    sin_angle_y = gs.sin(angle_y[i])
+                    cos_angle_z = gs.cos(angle_z[i])
+                    sin_angle_z = gs.sin(angle_z[i])
+
+                    column_1 = [cos_angle_x * cos_angle_y,
+                                cos_angle_y * sin_angle_x,
+                                - sin_angle_y]
+                    column_2 = [(cos_angle_x * sin_angle_y * sin_angle_z
+                                 - cos_angle_z * sin_angle_x),
+                                (cos_angle_x * cos_angle_z
+                                 + sin_angle_x * sin_angle_y * sin_angle_z),
+                                cos_angle_y * sin_angle_z]
+                    column_3 = [(sin_angle_x * sin_angle_z
+                                 + cos_angle_x * cos_angle_z * sin_angle_y),
+                                (cos_angle_z * sin_angle_x * sin_angle_y
+                                 - cos_angle_x * sin_angle_z),
+                                cos_angle_y * cos_angle_z]
+
+                    rot_mat[i] = gs.hstack(
+                        [column_1, column_2, column_3]).transpose()
+
+        elif extrinsic_or_intrinsic == 'intrinsic':
+            if order == 'zyx':
+                rot_mat = self.matrix_from_tait_bryan_angles(
+                    tait_bryan_angles,
+                    extrinsic_or_intrinsic='extrinsic',
+                    order='xyz')
+
+            elif order == 'xyz':
+                rot_mat = self.matrix_from_tait_bryan_angles(
+                    tait_bryan_angles,
+                    extrinsic_or_intrinsic='extrinsic',
+                    order='zyx')
+
+        else:
+            raise ValueError('extrinsinc_or_intrinsic should be'
+                             ' \'extrinsic\' or \'intrinsic\'.')
 
         return rot_mat
 
@@ -641,7 +683,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         return tait_bryan_angles
 
-    def quaternion_from_tait_bryan_angles(self, tait_bryan_angle,
+    def quaternion_from_tait_bryan_angles(self, tait_bryan_angles,
                                           extrinsic_or_intrinsic='extrinsic',
                                           order='zyx'):
         """
@@ -652,17 +694,32 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                              ' and the tait-bryan angles representation'
                              ' do not exist'
                              ' for rotations in %d dimensions.' % self.n)
-        tait_bryan_angle = gs.to_ndarray(tait_bryan_angle, to_ndim=2)
-        n_tait_bryan_angles, _ = tait_bryan_angle.shape
+        tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
+        n_tait_bryan_angles, _ = tait_bryan_angles.shape
         if extrinsic_or_intrinsic == 'extrinsic':
-            raise NotImplementedError()
-        else:
             if order == 'zyx':
-                raise NotImplementedError()
+                quaternion = self.quaternion_from_tait_bryan_angles(
+                    tait_bryan_angles,
+                    extrinsic_or_intrinsic='intrinsic',
+                    order='xyz')
             elif order == 'xyz':
-                angle_z = tait_bryan_angle[:, 0]
-                angle_y = tait_bryan_angle[:, 1]
-                angle_x = tait_bryan_angle[:, 2]
+                rot_mat = self.matrix_from_tait_bryan_angles(
+                    tait_bryan_angles,
+                    extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                    order=order)
+                quaternion = self.quaternion_from_matrix(rot_mat)
+
+        elif extrinsic_or_intrinsic == 'intrinsic':
+            if order == 'zyx':
+                rot_mat = self.matrix_from_tait_bryan_angles(
+                    tait_bryan_angles,
+                    extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                    order=order)
+                quaternion = self.quaternion_from_matrix(rot_mat)
+            elif order == 'xyz':
+                angle_z = tait_bryan_angles[:, 0]
+                angle_y = tait_bryan_angles[:, 1]
+                angle_x = tait_bryan_angles[:, 2]
 
                 cos_half_angle_z = gs.cos(angle_z / 2.)
                 sin_half_angle_z = gs.sin(angle_z / 2.)
@@ -702,6 +759,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                                     - sin_half_angle_y
                                     * sin_half_angle_x
                                     * cos_half_angle_z)
+            else:
+                raise ValueError('extrinsinc_or_intrinsic should be'
+                                 ' \'extrinsic\' or \'intrinsic\'.')
 
         return quaternion
 
@@ -741,10 +801,25 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         w, x, y, z = gs.hsplit(quaternion, 4)
 
         if extrinsic_or_intrinsic == 'extrinsic':
-            raise NotImplementedError()
-        else:
             if order == 'zyx':
-                raise NotImplementedError()
+                tait_bryan_angles = self.tait_bryan_angles_from_quaternion(
+                    quaternion,
+                    extrinsic_or_intrinsic='intrinsic',
+                    order='xyz')
+            elif order == 'xyz':
+                tait_bryan_angles = self.tait_bryan_angles_from_quaternion(
+                    quaternion,
+                    extrinsic_or_intrinsic='intrinsic',
+                    order='zyx')
+
+        elif extrinsic_or_intrinsic == 'intrinsic':
+            if order == 'zyx':
+                angle_x = gs.arctan2(y * z + w * x,
+                                     1. / 2. - (x ** 2 + y ** 2))
+                angle_y = gs.arcsin(- 2 (x * z - w * y))
+                angle_z = gs.arctan2(x * y + w * z,
+                                     1. / 2. - (y ** 2 + z ** 2))
+
             elif order == 'xyz':
                 angle_z = gs.arctan2(2. * (x * y + w * z),
                                      w * w + x * x - y * y - z * z)
@@ -754,6 +829,10 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
                 tait_bryan_angles = gs.concatenate(
                     [angle_z, angle_y, angle_x], axis=1)
+
+        else:
+            raise ValueError('extrinsinc_or_intrinsic should be'
+                             ' \'extrinsic\' or \'intrinsic\'.')
         return tait_bryan_angles
 
     def tait_bryan_angles_from_rotation_vector(
