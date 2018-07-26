@@ -436,7 +436,6 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
     def test_yaw_pitch_roll_from_quaternion(self):
         """
         This tests that the yaw pitch roll of the quaternion [1, 0, 0, 0],
-        representing the identity rotation
         is [0, 0, 0] as expected.
         """
         n = 3
