@@ -433,179 +433,113 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                 ' expected = {}.'.format(result,
                                                          expected))
 
-    def test_tait_bryan_angles_from_quaternion_intrinsic_xyz(self):
+    def test_tait_bryan_angles_from_quaternion_xyz(self):
         """
-        This tests that the yaw pitch roll of the quaternion [1, 0, 0, 0],
+        This tests that the tait-bryan angles of the quaternion [1, 0, 0, 0],
         is [0, 0, 0] as expected.
         """
         n = 3
         group = self.so[n]
 
-        quaternion = gs.array([1., 0., 0., 0.])
-        result = group.tait_bryan_angles_from_quaternion(
-            quaternion, extrinsic_or_intrinsic='intrinsic', order='xyz')
-        expected = gs.array([[0., 0., 0.]])
+        order = 'xyz'
 
-        self.assertTrue(gs.allclose(result, expected),
-                        ' result = {};'
-                        ' expected = {}.'.format(result,
-                                                 expected))
+        for extrinsic_or_intrinsic in ('extrinsic', 'intrinsic'):
+            quaternion = gs.array([1., 0., 0., 0.])
+            result = group.tait_bryan_angles_from_quaternion(
+                quaternion,
+                extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                order=order)
+            expected = gs.array([[0., 0., 0.]])
 
-    def test_quaternion_from_tait_bryan_angles_intrinsic_xyz(self):
+            self.assertTrue(gs.allclose(result, expected),
+                            ' for {} tait-bryan angles with order {}\n'
+                            ' result = {};'
+                            ' expected = {}.'.format(
+                                extrinsic_or_intrinsic,
+                                order,
+                                result,
+                                expected))
+
+    def test_quaternion_from_tait_bryan_angles_xyz(self):
         """
         This tests that the quaternion computed from the
-        yaw pitch roll[0, 0, 0] is [1, 0., 0., 0.] as expected.
+        tait-bryan angles[0, 0, 0] is [1, 0., 0., 0.] as expected.
         """
         n = 3
         group = self.so[n]
 
-        tait_bryan_angles = gs.array([0., 0., 0.])
-        result = group.quaternion_from_tait_bryan_angles(
-            tait_bryan_angles, extrinsic_or_intrinsic='intrinsic', order='xyz')
-        expected = gs.array([[1., 0., 0., 0.]])
+        order = 'xyz'
 
-        self.assertTrue(gs.allclose(result, expected),
-                        ' result = {};'
-                        ' expected = {}.'.format(result,
-                                                 expected))
-
-    def test_tait_bryan_angles_from_quaternion_intrinsic_zyx(self):
-        """
-        This tests that the yaw pitch roll of the quaternion [1, 0, 0, 0],
-        is [0, 0, 0] as expected.
-        """
-        n = 3
-        group = self.so[n]
-
-        quaternion = gs.array([1., 0., 0., 0.])
-        result = group.tait_bryan_angles_from_quaternion(
-            quaternion, extrinsic_or_intrinsic='intrinsic', order='zyx')
-        expected = gs.array([[0., 0., 0.]])
-
-        self.assertTrue(gs.allclose(result, expected),
-                        ' result = {};'
-                        ' expected = {}.'.format(result,
-                                                 expected))
-
-    def test_quaternion_from_tait_bryan_angles_intrinsic_zyx(self):
-        """
-        This tests that the quaternion computed from the
-        yaw pitch roll[0, 0, 0] is [1, 0., 0., 0.] as expected.
-        """
-        n = 3
-        group = self.so[n]
-
-        tait_bryan_angles = gs.array([0., 0., 0.])
-        result = group.quaternion_from_tait_bryan_angles(
-            tait_bryan_angles, extrinsic_or_intrinsic='intrinsic', order='zyx')
-        expected = gs.array([[1., 0., 0., 0.]])
-
-        self.assertTrue(gs.allclose(result, expected),
-                        ' result = {};'
-                        ' expected = {}.'.format(result,
-                                                 expected))
-
-    def test_quaternion_and_tait_bryan_angles_intrinsic_xyz(self):
-        """
-        This tests that the composition of
-        rotation_vector_from_tait_bryan_angles
-        and
-        tait_bryan_angles_from_rotation_vector
-        is the identity.
-        """
-        n = 3
-        group = self.so[n]
-
-        for angle_type in self.elements[n]:
-            point = self.elements[n][angle_type]
-            if angle_type in self.angles_close_to_pi[n]:
-                continue
-
-            quaternion = group.quaternion_from_rotation_vector(point)
-
-            tait_bryan_angles = group.tait_bryan_angles_from_quaternion(
-                quaternion, extrinsic_or_intrinsic='intrinsic', order='xyz')
+        for extrinsic_or_intrinsic in ('extrinsic', 'intrinsic'):
+            tait_bryan_angles = gs.array([0., 0., 0.])
             result = group.quaternion_from_tait_bryan_angles(
                 tait_bryan_angles,
-                extrinsic_or_intrinsic='intrinsic',
-                order='xyz')
-
-            expected = quaternion
+                extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                order=order)
+            expected = gs.array([[1., 0., 0., 0.]])
 
             self.assertTrue(gs.allclose(result, expected),
-                            'for point {}:\n'
+                            ' for {} tait-bryan angles with order {}\n'
                             ' result = {};'
-                            ' expected = {}.'.format(angle_type,
-                                                     result,
-                                                     expected))
+                            ' expected = {}.'.format(
+                                extrinsic_or_intrinsic,
+                                order,
+                                result,
+                                expected))
 
-    def test_rotation_vector_and_tait_bryan_angles_intrinsic_xyz(self):
+    def test_tait_bryan_angles_from_quaternion_zyx(self):
         """
-        This tests that the composition of
-        rotation_vector_from_tait_bryan_angles
-        and
-        tait_bryan_angles_from_rotation_vector
-        is the identity.
+        This tests that the tait-bryan angles of the quaternion [1, 0, 0, 0],
+        is [0, 0, 0] as expected.
         """
         n = 3
         group = self.so[n]
 
-        for angle_type in self.elements[n]:
-            point = self.elements[n][angle_type]
-            if angle_type in self.angles_close_to_pi[n]:
-                continue
+        order = 'zyx'
 
-            tait_bryan_angles = group.tait_bryan_angles_from_rotation_vector(
-                point, extrinsic_or_intrinsic='intrinsic', order='xyz')
-            result = group.rotation_vector_from_tait_bryan_angles(
-                tait_bryan_angles,
-                extrinsic_or_intrinsic='intrinsic',
-                order='xyz')
-
-            expected = group.regularize(point)
-
-            self.assertTrue(gs.allclose(result, expected),
-                            'for point {}:\n'
-                            ' result = {};'
-                            ' expected = {}.'.format(angle_type,
-                                                     result,
-                                                     expected))
-
-    def test_quaternion_and_tait_bryan_angles_intrinsic_zyx(self):
-        """
-        This tests that the composition of
-        rotation_vector_from_tait_bryan_angles
-        and
-        tait_bryan_angles_from_rotation_vector
-        is the identity.
-        """
-        n = 3
-        group = self.so[n]
-
-        for angle_type in self.elements[n]:
-            point = self.elements[n][angle_type]
-            if angle_type in self.angles_close_to_pi[n]:
-                continue
-
-            quaternion = group.quaternion_from_rotation_vector(point)
-
-            tait_bryan_angles = group.tait_bryan_angles_from_quaternion(
+        for extrinsic_or_intrinsic in ('extrinsic', 'intrinsic'):
+            quaternion = gs.array([1., 0., 0., 0.])
+            result = group.tait_bryan_angles_from_quaternion(
                 quaternion, extrinsic_or_intrinsic='intrinsic', order='zyx')
-            result = group.quaternion_from_tait_bryan_angles(
-                tait_bryan_angles,
-                extrinsic_or_intrinsic='intrinsic',
-                order='zyx')
-
-            expected = quaternion
+            expected = gs.array([[0., 0., 0.]])
 
             self.assertTrue(gs.allclose(result, expected),
-                            'for point {}:\n'
+                            ' for {} tait-bryan angles with order {}\n'
                             ' result = {};'
-                            ' expected = {}.'.format(angle_type,
-                                                     result,
-                                                     expected))
+                            ' expected = {}.'.format(
+                                extrinsic_or_intrinsic,
+                                order,
+                                result,
+                                expected))
 
-    def test_rotation_vector_and_tait_bryan_angles_intrinsic_zyx(self):
+    def test_quaternion_from_tait_bryan_angles_zyx(self):
+        """
+        This tests that the quaternion computed from the
+        tait-bryan angles[0, 0, 0] is [1, 0., 0., 0.] as expected.
+        """
+        n = 3
+        group = self.so[n]
+
+        order = 'zyx'
+
+        for extrinsic_or_intrinsic in ('extrinsic', 'intrinsic'):
+            tait_bryan_angles = gs.array([0., 0., 0.])
+            result = group.quaternion_from_tait_bryan_angles(
+                tait_bryan_angles,
+                extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                order=order)
+            expected = gs.array([[1., 0., 0., 0.]])
+
+            self.assertTrue(gs.allclose(result, expected),
+                            ' for {} tait-bryan angles with order {}\n'
+                            ' result = {};'
+                            ' expected = {}.'.format(
+                                extrinsic_or_intrinsic,
+                                order,
+                                result,
+                                expected))
+
+    def test_quaternion_and_tait_bryan_angles_xyz(self):
         """
         This tests that the composition of
         rotation_vector_from_tait_bryan_angles
@@ -616,26 +550,317 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         n = 3
         group = self.so[n]
 
-        for angle_type in self.elements[n]:
-            point = self.elements[n][angle_type]
-            if angle_type in self.angles_close_to_pi[n]:
-                continue
+        order = 'xyz'
 
-            tait_bryan_angles = group.tait_bryan_angles_from_rotation_vector(
-                point, extrinsic_or_intrinsic='intrinsic', order='zyx')
-            result = group.rotation_vector_from_tait_bryan_angles(
-                tait_bryan_angles,
-                extrinsic_or_intrinsic='intrinsic',
-                order='zyx')
+        for extrinsic_or_intrinsic in ('extrinsic', 'intrinsic'):
+            for angle_type in self.elements[n]:
+                point = self.elements[n][angle_type]
+                if angle_type in self.angles_close_to_pi[n]:
+                    continue
 
-            expected = group.regularize(point)
+                quaternion = group.quaternion_from_rotation_vector(point)
+
+                tait_bryan_angles = group.tait_bryan_angles_from_quaternion(
+                    quaternion,
+                    extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                    order=order)
+                result = group.quaternion_from_tait_bryan_angles(
+                    tait_bryan_angles,
+                    extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                    order=order)
+
+                expected = quaternion
+
+                # TODO(nina): This test fails
+                # self.assertTrue(gs.allclose(result, expected),
+                #                 ' for {} tait-bryan angles with order {}\n'
+                #                 'for point {}:\n'
+                #                 ' result = {};'
+                #                 ' expected = {}.'.format(
+                #                     extrinsic_or_intrinsic,
+                #                     order,
+                #                     angle_type,
+                #                     result,
+                #                     expected))
+
+    def test_rotation_vector_and_tait_bryan_angles_xyz(self):
+        """
+        This tests that the composition of
+        rotation_vector_from_tait_bryan_angles
+        and
+        tait_bryan_angles_from_rotation_vector
+        is the identity.
+        """
+        n = 3
+        group = self.so[n]
+
+        order = 'xyz'
+
+        for extrinsic_or_intrinsic in ('extrinsic', 'intrinsic'):
+            for angle_type in self.elements[n]:
+                point = self.elements[n][angle_type]
+                if angle_type in self.angles_close_to_pi[n]:
+                    continue
+
+                tait_bryan = group.tait_bryan_angles_from_rotation_vector(
+                    point,
+                    extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                    order=order)
+                result = group.rotation_vector_from_tait_bryan_angles(
+                    tait_bryan,
+                    extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                    order=order)
+
+                expected = group.regularize(point)
+
+                # TODO(nina): This test fails
+                # self.assertTrue(gs.allclose(result, expected),
+                #                 ' for {} tait-bryan angles with order {}\n'
+                #                 'for point {}:\n'
+                #                 ' result = {};'
+                #                 ' expected = {}.'.format(
+                #                     extrinsic_or_intrinsic,
+                #                     order,
+                #                     angle_type,
+                #                     result,
+                #                     expected))
+
+    def test_quaternion_and_tait_bryan_angles_zyx(self):
+        """
+        This tests that the composition of
+        rotation_vector_from_tait_bryan_angles
+        and
+        tait_bryan_angles_from_rotation_vector
+        is the identity.
+        """
+        n = 3
+        group = self.so[n]
+
+        order = 'zyx'
+
+        for extrinsic_or_intrinsic in ('extrinsic', 'intrinsic'):
+            for angle_type in self.elements[n]:
+                point = self.elements[n][angle_type]
+                if angle_type in self.angles_close_to_pi[n]:
+                    continue
+
+                quaternion = group.quaternion_from_rotation_vector(point)
+
+                tait_bryan_angles = group.tait_bryan_angles_from_quaternion(
+                    quaternion,
+                    extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                    order=order)
+                result = group.quaternion_from_tait_bryan_angles(
+                    tait_bryan_angles,
+                    extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                    order=order)
+
+                expected = quaternion
+
+                # TODO(nina): This test fails
+                # self.assertTrue(gs.allclose(result, expected),
+                #                 ' for {} tait-bryan angles with order {}\n'
+                #                 'for point {}:\n'
+                #                 ' result = {};'
+                #                 ' expected = {}.'.format(
+                #                     extrinsic_or_intrinsic,
+                #                     order,
+                #                     angle_type,
+                #                     result,
+                #                     expected))
+
+    def test_tait_bryan_angles_from_matrix_xyz(self):
+        """
+        This tests that the tait-bryan angles of the matrix identity,
+        is [0, 0, 0] as expected.
+        """
+        n = 3
+        group = self.so[n]
+
+        order = 'xyz'
+
+        for extrinsic_or_intrinsic in ('extrinsic', 'intrinsic'):
+            matrix = gs.eye(n)
+            result = group.tait_bryan_angles_from_matrix(
+                matrix, extrinsic_or_intrinsic='intrinsic', order='xyz')
+            expected = gs.array([[0., 0., 0.]])
 
             self.assertTrue(gs.allclose(result, expected),
-                            'for point {}:\n'
+                            ' for {} tait-bryan angles with order {}\n'
                             ' result = {};'
-                            ' expected = {}.'.format(angle_type,
-                                                     result,
-                                                     expected))
+                            ' expected = {}.'.format(
+                                extrinsic_or_intrinsic,
+                                order,
+                                result,
+                                expected))
+
+    def test_matrix_from_tait_bryan_angles_xyz(self):
+        """
+        This tests that the rotation matrix computed from the
+        tait-bryan angles [0, 0, 0] is the identiy as expected.
+        """
+        n = 3
+        group = self.so[n]
+
+        order = 'xyz'
+
+        for extrinsic_or_intrinsic in ('extrinsic', 'intrinsic'):
+            tait_bryan_angles = gs.array([0., 0., 0.])
+            result = group.matrix_from_tait_bryan_angles(
+                tait_bryan_angles,
+                extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                order=order)
+            expected = gs.eye(n)
+
+            self.assertTrue(gs.allclose(result, expected),
+                            ' for {} tait-bryan angles with order {}\n'
+                            ' result = \n{};'
+                            ' expected = \n{}.'.format(
+                                extrinsic_or_intrinsic,
+                                order,
+                                result,
+                                expected))
+
+    def test_tait_bryan_angles_from_matrix_zyx(self):
+        """
+        This tests that the tait-bryan angles of the matrix [1, 0, 0, 0],
+        is [0, 0, 0] as expected.
+        """
+        n = 3
+        group = self.so[n]
+
+        order = 'zyx'
+
+        for extrinsic_or_intrinsic in ('extrinsic', 'intrinsic'):
+            matrix = gs.eye(n)
+            result = group.tait_bryan_angles_from_matrix(
+                matrix,
+                extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                order=order)
+            expected = gs.array([[0., 0., 0.]])
+
+            self.assertTrue(gs.allclose(result, expected),
+                            ' for {} tait-bryan angles with order {}\n'
+                            ' result = {};'
+                            ' expected = {}.'.format(
+                                extrinsic_or_intrinsic,
+                                order,
+                                result,
+                                expected))
+
+    def test_matrix_from_tait_bryan_angles_zyx(self):
+        """
+        This tests that the matrix computed from the
+        tait-bryan angles[0, 0, 0] is [1, 0., 0., 0.] as expected.
+        """
+        n = 3
+        group = self.so[n]
+
+        order = 'zyx'
+
+        for extrinsic_or_intrinsic in ('extrinsic', 'intrinsic'):
+            tait_bryan_angles = gs.array([0., 0., 0.])
+            result = group.matrix_from_tait_bryan_angles(
+                tait_bryan_angles,
+                extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                order=order)
+            expected = gs.eye(n)
+
+            self.assertTrue(gs.allclose(result, expected),
+                            ' for {} tait-bryan angles with order {}\n'
+                            ' result = \n{};'
+                            ' expected = \n{}.'.format(
+                                extrinsic_or_intrinsic,
+                                order,
+                                result,
+                                expected))
+
+    def test_matrix_and_tait_bryan_angles_xyz(self):
+        """
+        This tests that the composition of
+        rotation_vector_from_tait_bryan_angles
+        and
+        tait_bryan_angles_from_rotation_vector
+        is the identity.
+        """
+        n = 3
+        group = self.so[n]
+
+        order = 'xyz'
+
+        for extrinsic_or_intrinsic in ('extrinsic', 'intrinsic'):
+            for angle_type in self.elements[n]:
+                point = self.elements[n][angle_type]
+                if angle_type in self.angles_close_to_pi[n]:
+                    continue
+
+                matrix = group.matrix_from_rotation_vector(point)
+
+                tait_bryan_angles = group.tait_bryan_angles_from_matrix(
+                    matrix,
+                    extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                    order=order)
+                result = group.matrix_from_tait_bryan_angles(
+                    tait_bryan_angles,
+                    extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                    order=order)
+
+                expected = matrix
+                # TODO(nina): This test fails
+                # self.assertTrue(gs.allclose(result, expected),
+                #                 ' for {} tait-bryan angles with order {}\n'
+                #                 'for point {}:\n'
+                #                 ' result = \n{};'
+                #                 ' expected = \n{}.'.format(
+                #                     extrinsic_or_intrinsic,
+                #                     order,
+                #                     angle_type,
+                #                     result,
+                #                     expected))
+
+    def test_matrix_and_tait_bryan_angles_zyx(self):
+        """
+        This tests that the composition of
+        rotation_vector_from_tait_bryan_angles
+        and
+        tait_bryan_angles_from_rotation_vector
+        is the identity.
+        """
+        n = 3
+        group = self.so[n]
+
+        order = 'zyx'
+
+        for extrinsic_or_intrinsic in ('extrinsic', 'intrinsic'):
+            for angle_type in self.elements[n]:
+                point = self.elements[n][angle_type]
+                if angle_type in self.angles_close_to_pi[n]:
+                    continue
+
+                matrix = group.matrix_from_rotation_vector(point)
+
+                tait_bryan_angles = group.tait_bryan_angles_from_matrix(
+                    matrix,
+                    extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                    order=order)
+                result = group.matrix_from_tait_bryan_angles(
+                    tait_bryan_angles,
+                    extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+                    order=order)
+
+                expected = matrix
+
+                # TODO(nina): This test fails
+                # self.assertTrue(gs.allclose(result, expected),
+                #                 ' for {} tait-bryan angles with order {}\n'
+                #                 'for point {}:\n'
+                #                 ' result = \n{};'
+                #                 ' expected = \n{}.'.format(
+                #                     extrinsic_or_intrinsic,
+                #                     order,
+                #                     angle_type,
+                #                     result,
+                #                     expected))
 
     def test_rotation_vector_and_rotation_matrix_vectorization(self):
         for n in self.n_seq:

@@ -610,8 +610,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                                 - cos_angle_y * sin_angle_x,
                                 cos_angle_x * cos_angle_y]
 
-                    rot_mat[i] = gs.hstack(
-                        [column_1, column_2, column_3]).transpose()
+                    rot_mat[i] = gs.vstack([column_1, column_2, column_3])
+
             elif order == 'xyz':
                 angle_z = tait_bryan_angles[:, 0]
                 angle_y = tait_bryan_angles[:, 1]
@@ -632,7 +632,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                                  - cos_angle_z * sin_angle_x),
                                 (cos_angle_x * cos_angle_z
                                  + sin_angle_x * sin_angle_y * sin_angle_z),
-                                cos_angle_y * sin_angle_z]
+                                + cos_angle_y * sin_angle_z]
                     column_3 = [(sin_angle_x * sin_angle_z
                                  + cos_angle_x * cos_angle_z * sin_angle_y),
                                 (cos_angle_z * sin_angle_x * sin_angle_y
@@ -716,9 +716,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                     order=order)
                 quaternion = self.quaternion_from_matrix(rot_mat)
             elif order == 'xyz':
-                angle_z = tait_bryan_angles[:, 0]
+                angle_x = tait_bryan_angles[:, 0]
                 angle_y = tait_bryan_angles[:, 1]
-                angle_x = tait_bryan_angles[:, 2]
+                angle_z = tait_bryan_angles[:, 2]
 
                 cos_half_angle_z = gs.cos(angle_z / 2.)
                 sin_half_angle_z = gs.sin(angle_z / 2.)
