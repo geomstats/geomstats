@@ -557,7 +557,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         assert gs.ndim(rot_mat) == 3
         return rot_mat
 
-    def matrix_from_tait_bryan_angles_extrinsinc_xyz(self, tait_bryan_angles):
+    def matrix_from_tait_bryan_angles_extrinsic_xyz(self, tait_bryan_angles):
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -594,7 +594,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             rot_mat[i] = gs.vstack([column_1, column_2, column_3])
         return rot_mat
 
-    def matrix_from_tait_bryan_angles_extrinsinc_zyx(self, tait_bryan_angles):
+    def matrix_from_tait_bryan_angles_extrinsic_zyx(self, tait_bryan_angles):
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -665,14 +665,14 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                        or (extrinsic_or_intrinsic == 'intrinsic'
                            and order == 'zyx'))
         if condition_1:
-            rot_mat = self.matrix_from_tait_bryan_angles_extrinsinc_zyx(
+            rot_mat = self.matrix_from_tait_bryan_angles_extrinsic_zyx(
                 tait_bryan_angles)
         elif condition_2:
-            rot_mat = self.matrix_from_tait_bryan_angles_extrinsinc_xyz(
+            rot_mat = self.matrix_from_tait_bryan_angles_extrinsic_xyz(
                 tait_bryan_angles)
 
         else:
-            raise ValueError('extrinsinc_or_intrinsic should be'
+            raise ValueError('extrinsic_or_intrinsic should be'
                              ' \'extrinsic\' or \'intrinsic\''
                              ' and order should be \'xyz\' or \'zyx\'.')
 
@@ -787,7 +787,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 tait_bryan_angles)
             quat = self.quaternion_from_matrix(rot_mat)
         else:
-            raise ValueError('extrinsinc_or_intrinsic should be'
+            raise ValueError('extrinsic_or_intrinsic should be'
                              ' \'extrinsic\' or \'intrinsic\''
                              ' and order should be \'xyz\' or \'zyx\'.')
 
@@ -879,7 +879,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 quaternion)
 
         else:
-            raise ValueError('extrinsinc_or_intrinsic should be'
+            raise ValueError('extrinsic_or_intrinsic should be'
                              ' \'extrinsic\' or \'intrinsic\''
                              ' and order should be \'xyz\' or \'zyx\'.')
 
