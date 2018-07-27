@@ -557,6 +557,81 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         assert gs.ndim(rot_mat) == 3
         return rot_mat
 
+    def matrix_from_tait_bryan_angles_extrinsinc_xyz(self, tait_bryan_angles):
+        assert self.n == 3, ('The Tait-Bryan angles representation'
+                             ' does not exist'
+                             ' for rotations in %d dimensions.' % self.n)
+        tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
+        n_tait_bryan_angles, _ = tait_bryan_angles.shape
+
+        rot_mat = gs.zeros((n_tait_bryan_angles,) + (self.n,) * 2)
+        angle_x = tait_bryan_angles[:, 0]
+        angle_y = tait_bryan_angles[:, 1]
+        angle_z = tait_bryan_angles[:, 2]
+
+        for i in range(n_tait_bryan_angles):
+            cos_angle_x = gs.cos(angle_x[i])
+            sin_angle_x = gs.sin(angle_x[i])
+            cos_angle_y = gs.cos(angle_y[i])
+            sin_angle_y = gs.sin(angle_y[i])
+            cos_angle_z = gs.cos(angle_z[i])
+            sin_angle_z = gs.sin(angle_z[i])
+
+            column_1 = [cos_angle_x * cos_angle_y,
+                        cos_angle_y * sin_angle_x,
+                        - sin_angle_y]
+            column_2 = [(cos_angle_x * sin_angle_y * sin_angle_z
+                         - cos_angle_z * sin_angle_x),
+                        (cos_angle_x * cos_angle_z
+                         + sin_angle_x * sin_angle_y * sin_angle_z),
+                        + cos_angle_y * sin_angle_z]
+            column_3 = [(sin_angle_x * sin_angle_z
+                         + cos_angle_x * cos_angle_z * sin_angle_y),
+                        (cos_angle_z * sin_angle_x * sin_angle_y
+                         - cos_angle_x * sin_angle_z),
+                        cos_angle_y * cos_angle_z]
+
+            rot_mat[i] = gs.vstack([column_1, column_2, column_3])
+        return rot_mat
+
+    def matrix_from_tait_bryan_angles_extrinsinc_zyx(self, tait_bryan_angles):
+        assert self.n == 3, ('The Tait-Bryan angles representation'
+                             ' does not exist'
+                             ' for rotations in %d dimensions.' % self.n)
+        tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
+        n_tait_bryan_angles, _ = tait_bryan_angles.shape
+
+        rot_mat = gs.zeros((n_tait_bryan_angles,) + (self.n,) * 2)
+        angle_x = tait_bryan_angles[:, 0]
+        angle_y = tait_bryan_angles[:, 1]
+        angle_z = tait_bryan_angles[:, 2]
+
+        for i in range(n_tait_bryan_angles):
+            cos_angle_x = gs.cos(angle_x[i])
+            sin_angle_x = gs.sin(angle_x[i])
+            cos_angle_y = gs.cos(angle_y[i])
+            sin_angle_y = gs.sin(angle_y[i])
+            cos_angle_z = gs.cos(angle_z[i])
+            sin_angle_z = gs.sin(angle_z[i])
+
+            column_1 = [cos_angle_y * cos_angle_z,
+                        (cos_angle_x * sin_angle_z
+                         + cos_angle_z * sin_angle_x * sin_angle_y),
+                        (sin_angle_x * sin_angle_z
+                         - cos_angle_x * cos_angle_z * sin_angle_y)]
+
+            column_2 = [- cos_angle_y * sin_angle_z,
+                        (cos_angle_x * cos_angle_z
+                         - sin_angle_x * sin_angle_y * sin_angle_z),
+                        (cos_angle_z * sin_angle_x
+                         + cos_angle_x * sin_angle_y * sin_angle_z)]
+
+            column_3 = [sin_angle_y,
+                        - cos_angle_y * sin_angle_x,
+                        cos_angle_x * cos_angle_y]
+            rot_mat[i] = gs.vstack([column_1, column_2, column_3])
+        return rot_mat
+
     def matrix_from_tait_bryan_angles(self, tait_bryan_angles,
                                       extrinsic_or_intrinsic='extrinsic',
                                       order='zyx'):
@@ -571,92 +646,35 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         - X(angle_x) is a rotation of angle angle_x around axis x.
         - Y(angle_y) is a rotation of angle angle_y around axis y.
         - Z(angle_z) is a rotation of angle angle_z around axis z.
+
+        Exchanging 'extrinsic' and 'intrinsic' amounts to
+        exchanging the order.
         """
-        assert self.n == 3, ('The tait-bryan angles representation'
+        assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
                              ' for rotations in %d dimensions.' % self.n)
         tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
-        n_tait_bryan_angles, _ = tait_bryan_angles.shape
 
-        rot_mat = gs.zeros((n_tait_bryan_angles,) + (self.n,) * 2)
+        condition_1 = ((extrinsic_or_intrinsic == 'extrinsic'
+                        and order == 'zyx')
+                       or (extrinsic_or_intrinsic == 'intrinsic'
+                           and order == 'xyz'))
 
-        if extrinsic_or_intrinsic == 'extrinsic':
-            if order == 'zyx':
-                angle_x = tait_bryan_angles[:, 0]
-                angle_y = tait_bryan_angles[:, 1]
-                angle_z = tait_bryan_angles[:, 2]
-
-                for i in range(n_tait_bryan_angles):
-                    cos_angle_x = gs.cos(angle_x[i])
-                    sin_angle_x = gs.sin(angle_x[i])
-                    cos_angle_y = gs.cos(angle_y[i])
-                    sin_angle_y = gs.sin(angle_y[i])
-                    cos_angle_z = gs.cos(angle_z[i])
-                    sin_angle_z = gs.sin(angle_z[i])
-
-                    column_1 = [cos_angle_y * cos_angle_z,
-                                (cos_angle_x * sin_angle_z
-                                 + cos_angle_z * sin_angle_x * sin_angle_y),
-                                (sin_angle_x * sin_angle_z
-                                 - cos_angle_x * cos_angle_z * sin_angle_y)]
-
-                    column_2 = [- cos_angle_y * sin_angle_z,
-                                (cos_angle_x * cos_angle_z
-                                 - sin_angle_x * sin_angle_y * sin_angle_z),
-                                (cos_angle_z * sin_angle_x
-                                 + cos_angle_x * sin_angle_y * sin_angle_z)]
-
-                    column_3 = [sin_angle_y,
-                                - cos_angle_y * sin_angle_x,
-                                cos_angle_x * cos_angle_y]
-
-                    rot_mat[i] = gs.vstack([column_1, column_2, column_3])
-
-            elif order == 'xyz':
-                angle_z = tait_bryan_angles[:, 0]
-                angle_y = tait_bryan_angles[:, 1]
-                angle_x = tait_bryan_angles[:, 2]
-
-                for i in range(n_tait_bryan_angles):
-                    cos_angle_x = gs.cos(angle_x[i])
-                    sin_angle_x = gs.sin(angle_x[i])
-                    cos_angle_y = gs.cos(angle_y[i])
-                    sin_angle_y = gs.sin(angle_y[i])
-                    cos_angle_z = gs.cos(angle_z[i])
-                    sin_angle_z = gs.sin(angle_z[i])
-
-                    column_1 = [cos_angle_x * cos_angle_y,
-                                cos_angle_y * sin_angle_x,
-                                - sin_angle_y]
-                    column_2 = [(cos_angle_x * sin_angle_y * sin_angle_z
-                                 - cos_angle_z * sin_angle_x),
-                                (cos_angle_x * cos_angle_z
-                                 + sin_angle_x * sin_angle_y * sin_angle_z),
-                                + cos_angle_y * sin_angle_z]
-                    column_3 = [(sin_angle_x * sin_angle_z
-                                 + cos_angle_x * cos_angle_z * sin_angle_y),
-                                (cos_angle_z * sin_angle_x * sin_angle_y
-                                 - cos_angle_x * sin_angle_z),
-                                cos_angle_y * cos_angle_z]
-
-                    rot_mat[i] = gs.vstack([column_1, column_2, column_3])
-
-        elif extrinsic_or_intrinsic == 'intrinsic':
-            if order == 'zyx':
-                rot_mat = self.matrix_from_tait_bryan_angles(
-                    tait_bryan_angles,
-                    extrinsic_or_intrinsic='extrinsic',
-                    order='xyz')
-
-            elif order == 'xyz':
-                rot_mat = self.matrix_from_tait_bryan_angles(
-                    tait_bryan_angles,
-                    extrinsic_or_intrinsic='extrinsic',
-                    order='zyx')
+        condition_2 = ((extrinsic_or_intrinsic == 'extrinsic'
+                        and order == 'xyz')
+                       or (extrinsic_or_intrinsic == 'intrinsic'
+                           and order == 'zyx'))
+        if condition_1:
+            rot_mat = self.matrix_from_tait_bryan_angles_extrinsinc_zyx(
+                tait_bryan_angles)
+        elif condition_2:
+            rot_mat = self.matrix_from_tait_bryan_angles_extrinsinc_xyz(
+                tait_bryan_angles)
 
         else:
             raise ValueError('extrinsinc_or_intrinsic should be'
-                             ' \'extrinsic\' or \'intrinsic\'.')
+                             ' \'extrinsic\' or \'intrinsic\''
+                             ' and order should be \'xyz\' or \'zyx\'.')
 
         return rot_mat
 
@@ -682,87 +700,98 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         return tait_bryan_angles
 
-    def quaternion_from_tait_bryan_angles(self, tait_bryan_angles,
-                                          extrinsic_or_intrinsic='extrinsic',
-                                          order='zyx'):
-        """
-        Convert a rotation given by the yaw, pitch, roll
-        into a unit quaternion.
-        """
+    def quaternion_from_tait_bryan_angles_intrinsic_xyz(
+            self, tait_bryan_angles):
         assert self.n == 3, ('The quaternion representation'
-                             ' and the tait-bryan angles representation'
+                             ' and the Tait-Bryan angles representation'
                              ' do not exist'
                              ' for rotations in %d dimensions.' % self.n)
         tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
         n_tait_bryan_angles, _ = tait_bryan_angles.shape
-        if extrinsic_or_intrinsic == 'extrinsic':
-            if order == 'zyx':
-                quaternion = self.quaternion_from_tait_bryan_angles(
-                    tait_bryan_angles,
-                    extrinsic_or_intrinsic='intrinsic',
-                    order='xyz')
-            elif order == 'xyz':
-                rot_mat = self.matrix_from_tait_bryan_angles(
-                    tait_bryan_angles,
-                    extrinsic_or_intrinsic=extrinsic_or_intrinsic,
-                    order=order)
-                quaternion = self.quaternion_from_matrix(rot_mat)
+        quaternion = gs.zeros((n_tait_bryan_angles, 4))
 
-        elif extrinsic_or_intrinsic == 'intrinsic':
-            if order == 'zyx':
-                rot_mat = self.matrix_from_tait_bryan_angles(
-                    tait_bryan_angles,
-                    extrinsic_or_intrinsic=extrinsic_or_intrinsic,
-                    order=order)
-                quaternion = self.quaternion_from_matrix(rot_mat)
-            elif order == 'xyz':
-                angle_x = tait_bryan_angles[:, 0]
-                angle_y = tait_bryan_angles[:, 1]
-                angle_z = tait_bryan_angles[:, 2]
+        angle_x = tait_bryan_angles[:, 0]
+        angle_y = tait_bryan_angles[:, 1]
+        angle_z = tait_bryan_angles[:, 2]
 
-                cos_half_angle_z = gs.cos(angle_z / 2.)
-                sin_half_angle_z = gs.sin(angle_z / 2.)
-                cos_half_angle_y = gs.cos(angle_y / 2.)
-                sin_half_angle_y = gs.sin(angle_y / 2.)
-                cos_half_angle_x = gs.cos(angle_x / 2.)
-                sin_half_angle_x = gs.sin(angle_x / 2.)
+        cos_half_angle_z = gs.cos(angle_z / 2.)
+        sin_half_angle_z = gs.sin(angle_z / 2.)
+        cos_half_angle_y = gs.cos(angle_y / 2.)
+        sin_half_angle_y = gs.sin(angle_y / 2.)
+        cos_half_angle_x = gs.cos(angle_x / 2.)
+        sin_half_angle_x = gs.sin(angle_x / 2.)
 
-                quaternion = gs.zeros((n_tait_bryan_angles, 4))
+        cos_half_angle = (cos_half_angle_z
+                          * cos_half_angle_y
+                          * cos_half_angle_x
+                          + sin_half_angle_z
+                          * sin_half_angle_y
+                          * sin_half_angle_x)
 
-                cos_half_angle = (cos_half_angle_z
-                                  * cos_half_angle_y
-                                  * cos_half_angle_x
-                                  + sin_half_angle_z
-                                  * sin_half_angle_y
-                                  * sin_half_angle_x)
+        quaternion[:, 0] = cos_half_angle
 
-                quaternion[:, 0] = cos_half_angle
+        quaternion[:, 1] = (cos_half_angle_z
+                            * cos_half_angle_y
+                            * sin_half_angle_x
+                            - sin_half_angle_z
+                            * sin_half_angle_y
+                            * cos_half_angle_x)
 
-                quaternion[:, 1] = (cos_half_angle_z
-                                    * cos_half_angle_y
-                                    * sin_half_angle_x
-                                    - sin_half_angle_z
-                                    * sin_half_angle_y
-                                    * cos_half_angle_x)
+        quaternion[:, 2] = (cos_half_angle_x
+                            * cos_half_angle_z
+                            * sin_half_angle_y
+                            + sin_half_angle_x
+                            * sin_half_angle_z
+                            * cos_half_angle_y)
 
-                quaternion[:, 2] = (cos_half_angle_x
-                                    * cos_half_angle_z
-                                    * sin_half_angle_y
-                                    + sin_half_angle_x
-                                    * sin_half_angle_z
-                                    * cos_half_angle_y)
-
-                quaternion[:, 3] = (cos_half_angle_y
-                                    * cos_half_angle_x
-                                    * sin_half_angle_z
-                                    - sin_half_angle_y
-                                    * sin_half_angle_x
-                                    * cos_half_angle_z)
-            else:
-                raise ValueError('extrinsinc_or_intrinsic should be'
-                                 ' \'extrinsic\' or \'intrinsic\'.')
-
+        quaternion[:, 3] = (cos_half_angle_y
+                            * cos_half_angle_x
+                            * sin_half_angle_z
+                            - sin_half_angle_y
+                            * sin_half_angle_x
+                            * cos_half_angle_z)
         return quaternion
+
+    def quaternion_from_tait_bryan_angles(self, tait_bryan_angles,
+                                          extrinsic_or_intrinsic='extrinsic',
+                                          order='zyx'):
+        """
+        Convert a rotation given by Tait-Bryan angles
+        into a unit quaternion.
+        """
+        assert self.n == 3, ('The quaternion representation'
+                             ' and the Tait-Bryan angles representation'
+                             ' do not exist'
+                             ' for rotations in %d dimensions.' % self.n)
+        tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
+        n_tait_bryan_angles, _ = tait_bryan_angles.shape
+
+        condition_1 = ((extrinsic_or_intrinsic == 'extrinsic'
+                        and order == 'zyx')
+                       or (extrinsic_or_intrinsic == 'intrinsic'
+                           and order == 'xyz'))
+
+        condition_2 = ((extrinsic_or_intrinsic == 'extrinsic'
+                        and order == 'xyz')
+                       or (extrinsic_or_intrinsic == 'intrinsic'
+                           and order == 'zyx'))
+
+        if condition_1:
+            quat = self.quaternion_from_tait_bryan_angles_intrinsic_xyz(
+                tait_bryan_angles)
+
+        elif condition_2:
+            # TODO(nina): Put a direct implementation here,
+            # instead of converting to matrices first
+            rot_mat = self.matrix_from_tait_bryan_angles_extrinsic_xyz(
+                tait_bryan_angles)
+            quat = self.quaternion_from_matrix(rot_mat)
+        else:
+            raise ValueError('extrinsinc_or_intrinsic should be'
+                             ' \'extrinsic\' or \'intrinsic\''
+                             ' and order should be \'xyz\' or \'zyx\'.')
+
+        return quat
 
     def rotation_vector_from_tait_bryan_angles(
             self,
@@ -773,7 +802,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         Convert a rotation given by the angle_x, angle_y, angle_z
         into a rotation vector (axis-angle representation).
         """
-        assert self.n == 3, ('The tait-bryan angles representation'
+        assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
                              ' for rotations in %d dimensions.' % self.n)
         quaternion = self.quaternion_from_tait_bryan_angles(
@@ -785,6 +814,40 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         rot_vec = self.regularize(rot_vec, point_type='vector')
         return rot_vec
 
+    def tait_bryan_angles_from_quaternion_intrinsic_zyx(self, quaternion):
+        assert self.n == 3, ('The quaternion representation'
+                             ' and the Tait-Bryan angles representation'
+                             ' do not exist'
+                             ' for rotations in %d dimensions.' % self.n)
+        quaternion = gs.to_ndarray(quaternion, to_ndim=2)
+
+        w, x, y, z = gs.hsplit(quaternion, 4)
+        angle_x = gs.arctan2(y * z + w * x,
+                             1. / 2. - (x ** 2 + y ** 2))
+        angle_y = gs.arcsin(- 2. * (x * z - w * y))
+        angle_z = gs.arctan2(x * y + w * z,
+                             1. / 2. - (y ** 2 + z ** 2))
+        tait_bryan_angles = gs.concatenate(
+            [angle_x, angle_y, angle_z], axis=1)
+        return tait_bryan_angles
+
+    def tait_bryan_angles_from_quaternion_intrinsic_xyz(self, quaternion):
+        assert self.n == 3, ('The quaternion representation'
+                             ' and the Tait-Bryan angles representation'
+                             ' do not exist'
+                             ' for rotations in %d dimensions.' % self.n)
+        quaternion = gs.to_ndarray(quaternion, to_ndim=2)
+
+        w, x, y, z = gs.hsplit(quaternion, 4)
+        angle_z = gs.arctan2(2. * (x * y + w * z),
+                             w * w + x * x - y * y - z * z)
+        angle_y = gs.arcsin(- 2. * (x * z - w * y))
+        angle_x = gs.arctan2(2. * (y * z + w * x),
+                             w * w - x * x - y * y + z * z)
+        tait_bryan_angles = gs.concatenate(
+            [angle_x, angle_y, angle_z], axis=1)
+        return tait_bryan_angles
+
     def tait_bryan_angles_from_quaternion(
             self, quaternion, extrinsic_or_intrinsic='extrinsic', order='zyx'):
         """
@@ -792,57 +855,43 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         to a rotation given by the angle_x, angle_y, angle_z.
         """
         assert self.n == 3, ('The quaternion representation'
-                             ' and the tait-bryan angles representation'
+                             ' and the Tait-Bryan angles representation'
                              ' do not exist'
                              ' for rotations in %d dimensions.' % self.n)
         quaternion = gs.to_ndarray(quaternion, to_ndim=2)
 
-        w, x, y, z = gs.hsplit(quaternion, 4)
+        condition_1 = ((extrinsic_or_intrinsic == 'extrinsic'
+                        and order == 'zyx')
+                       or (extrinsic_or_intrinsic == 'intrinsic'
+                           and order == 'xyz'))
 
-        if extrinsic_or_intrinsic == 'extrinsic':
-            if order == 'zyx':
-                tait_bryan_angles = self.tait_bryan_angles_from_quaternion(
-                    quaternion,
-                    extrinsic_or_intrinsic='intrinsic',
-                    order='xyz')
-            elif order == 'xyz':
-                tait_bryan_angles = self.tait_bryan_angles_from_quaternion(
-                    quaternion,
-                    extrinsic_or_intrinsic='intrinsic',
-                    order='zyx')
+        condition_2 = ((extrinsic_or_intrinsic == 'extrinsic'
+                        and order == 'xyz')
+                       or (extrinsic_or_intrinsic == 'intrinsic'
+                           and order == 'zyx'))
 
-        elif extrinsic_or_intrinsic == 'intrinsic':
-            if order == 'zyx':
-                angle_x = gs.arctan2(y * z + w * x,
-                                     1. / 2. - (x ** 2 + y ** 2))
-                angle_y = gs.arcsin(- 2. * (x * z - w * y))
-                angle_z = gs.arctan2(x * y + w * z,
-                                     1. / 2. - (y ** 2 + z ** 2))
-                tait_bryan_angles = gs.concatenate(
-                    [angle_x, angle_y, angle_z], axis=1)
+        if condition_1:
+            tait_bryan = self.tait_bryan_angles_from_quaternion_intrinsic_xyz(
+                quaternion)
 
-            elif order == 'xyz':
-                angle_z = gs.arctan2(2. * (x * y + w * z),
-                                     w * w + x * x - y * y - z * z)
-                angle_y = gs.arcsin(- 2. * (x * z - w * y))
-                angle_x = gs.arctan2(2. * (y * z + w * x),
-                                     w * w - x * x - y * y + z * z)
-
-                tait_bryan_angles = gs.concatenate(
-                    [angle_z, angle_y, angle_x], axis=1)
+        elif condition_2:
+            tait_bryan = self.tait_bryan_angles_from_quaternion_intrinsic_zyx(
+                quaternion)
 
         else:
             raise ValueError('extrinsinc_or_intrinsic should be'
-                             ' \'extrinsic\' or \'intrinsic\'.')
-        return tait_bryan_angles
+                             ' \'extrinsic\' or \'intrinsic\''
+                             ' and order should be \'xyz\' or \'zyx\'.')
+
+        return tait_bryan
 
     def tait_bryan_angles_from_rotation_vector(
             self, rot_vec, extrinsic_or_intrinsic='extrinsic', order='zyx'):
         """
         Convert a rotation vector (axis-angle representation)
-        to a rotation given by the yaw, pitch, roll.
+        to a rotation given by the Tait-Bryan angles.
         """
-        assert self.n == 3, ('The tait-bryan angles representation'
+        assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
                              ' for rotations in %d dimensions.' % self.n)
         rot_vec = gs.to_ndarray(rot_vec, to_ndim=2)

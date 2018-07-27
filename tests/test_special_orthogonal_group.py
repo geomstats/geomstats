@@ -435,7 +435,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
     def test_tait_bryan_angles_from_quaternion_xyz(self):
         """
-        This tests that the tait-bryan angles of the quaternion [1, 0, 0, 0],
+        This tests that the Tait-Bryan angles of the quaternion [1, 0, 0, 0],
         is [0, 0, 0] as expected.
         """
         n = 3
@@ -452,7 +452,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             expected = gs.array([[0., 0., 0.]])
 
             self.assertTrue(gs.allclose(result, expected),
-                            ' for {} tait-bryan angles with order {}\n'
+                            ' for {} Tait-Bryan angles with order {}\n'
                             ' result = {};'
                             ' expected = {}.'.format(
                                 extrinsic_or_intrinsic,
@@ -463,7 +463,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
     def test_quaternion_from_tait_bryan_angles_xyz(self):
         """
         This tests that the quaternion computed from the
-        tait-bryan angles[0, 0, 0] is [1, 0., 0., 0.] as expected.
+        Tait-Bryan angles[0, 0, 0] is [1, 0., 0., 0.] as expected.
         """
         n = 3
         group = self.so[n]
@@ -479,7 +479,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             expected = gs.array([[1., 0., 0., 0.]])
 
             self.assertTrue(gs.allclose(result, expected),
-                            ' for {} tait-bryan angles with order {}\n'
+                            ' for {} Tait-Bryan angles with order {}\n'
                             ' result = {};'
                             ' expected = {}.'.format(
                                 extrinsic_or_intrinsic,
@@ -489,7 +489,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
     def test_tait_bryan_angles_from_quaternion_zyx(self):
         """
-        This tests that the tait-bryan angles of the quaternion [1, 0, 0, 0],
+        This tests that the Tait-Bryan angles of the quaternion [1, 0, 0, 0],
         is [0, 0, 0] as expected.
         """
         n = 3
@@ -504,7 +504,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             expected = gs.array([[0., 0., 0.]])
 
             self.assertTrue(gs.allclose(result, expected),
-                            ' for {} tait-bryan angles with order {}\n'
+                            ' for {} Tait-Bryan angles with order {}\n'
                             ' result = {};'
                             ' expected = {}.'.format(
                                 extrinsic_or_intrinsic,
@@ -515,7 +515,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
     def test_quaternion_from_tait_bryan_angles_zyx(self):
         """
         This tests that the quaternion computed from the
-        tait-bryan angles[0, 0, 0] is [1, 0., 0., 0.] as expected.
+        Tait-Bryan angles[0, 0, 0] is [1, 0., 0., 0.] as expected.
         """
         n = 3
         group = self.so[n]
@@ -531,7 +531,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             expected = gs.array([[1., 0., 0., 0.]])
 
             self.assertTrue(gs.allclose(result, expected),
-                            ' for {} tait-bryan angles with order {}\n'
+                            ' for {} Tait-Bryan angles with order {}\n'
                             ' result = {};'
                             ' expected = {}.'.format(
                                 extrinsic_or_intrinsic,
@@ -573,7 +573,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
                 # TODO(nina): This test fails
                 # self.assertTrue(gs.allclose(result, expected),
-                #                 ' for {} tait-bryan angles with order {}\n'
+                #                 ' for {} Tait-Bryan angles with order {}\n'
                 #                 'for point {}:\n'
                 #                 ' result = {};'
                 #                 ' expected = {}.'.format(
@@ -615,7 +615,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
                 # TODO(nina): This test fails
                 # self.assertTrue(gs.allclose(result, expected),
-                #                 ' for {} tait-bryan angles with order {}\n'
+                #                 ' for {} Tait-Bryan angles with order {}\n'
                 #                 'for point {}:\n'
                 #                 ' result = {};'
                 #                 ' expected = {}.'.format(
@@ -659,7 +659,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
                 # TODO(nina): This test fails
                 # self.assertTrue(gs.allclose(result, expected),
-                #                 ' for {} tait-bryan angles with order {}\n'
+                #                 ' for {} Tait-Bryan angles with order {}\n'
                 #                 'for point {}:\n'
                 #                 ' result = {};'
                 #                 ' expected = {}.'.format(
@@ -671,7 +671,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
     def test_tait_bryan_angles_from_matrix_xyz(self):
         """
-        This tests that the tait-bryan angles of the matrix identity,
+        This tests that the Tait-Bryan angles of the matrix identity,
         is [0, 0, 0] as expected.
         """
         n = 3
@@ -686,7 +686,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             expected = gs.array([[0., 0., 0.]])
 
             self.assertTrue(gs.allclose(result, expected),
-                            ' for {} tait-bryan angles with order {}\n'
+                            ' for {} Tait-Bryan angles with order {}\n'
                             ' result = {};'
                             ' expected = {}.'.format(
                                 extrinsic_or_intrinsic,
@@ -697,7 +697,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
     def test_matrix_from_tait_bryan_angles_xyz(self):
         """
         This tests that the rotation matrix computed from the
-        tait-bryan angles [0, 0, 0] is the identiy as expected.
+        Tait-Bryan angles [0, 0, 0] is the identiy as expected.
         """
         n = 3
         group = self.so[n]
@@ -713,7 +713,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             expected = gs.eye(n)
 
             self.assertTrue(gs.allclose(result, expected),
-                            ' for {} tait-bryan angles with order {}\n'
+                            ' for {} Tait-Bryan angles with order {}\n'
                             ' result = \n{};'
                             ' expected = \n{}.'.format(
                                 extrinsic_or_intrinsic,
@@ -723,7 +723,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
     def test_tait_bryan_angles_from_matrix_zyx(self):
         """
-        This tests that the tait-bryan angles of the matrix [1, 0, 0, 0],
+        This tests that the Tait-Bryan angles of the matrix [1, 0, 0, 0],
         is [0, 0, 0] as expected.
         """
         n = 3
@@ -740,7 +740,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             expected = gs.array([[0., 0., 0.]])
 
             self.assertTrue(gs.allclose(result, expected),
-                            ' for {} tait-bryan angles with order {}\n'
+                            ' for {} Tait-Bryan angles with order {}\n'
                             ' result = {};'
                             ' expected = {}.'.format(
                                 extrinsic_or_intrinsic,
@@ -751,7 +751,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
     def test_matrix_from_tait_bryan_angles_zyx(self):
         """
         This tests that the matrix computed from the
-        tait-bryan angles[0, 0, 0] is [1, 0., 0., 0.] as expected.
+        Tait-Bryan angles[0, 0, 0] is [1, 0., 0., 0.] as expected.
         """
         n = 3
         group = self.so[n]
@@ -767,7 +767,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             expected = gs.eye(n)
 
             self.assertTrue(gs.allclose(result, expected),
-                            ' for {} tait-bryan angles with order {}\n'
+                            ' for {} Tait-Bryan angles with order {}\n'
                             ' result = \n{};'
                             ' expected = \n{}.'.format(
                                 extrinsic_or_intrinsic,
@@ -808,7 +808,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 expected = matrix
                 # TODO(nina): This test fails
                 # self.assertTrue(gs.allclose(result, expected),
-                #                 ' for {} tait-bryan angles with order {}\n'
+                #                 ' for {} Tait-Bryan angles with order {}\n'
                 #                 'for point {}:\n'
                 #                 ' result = \n{};'
                 #                 ' expected = \n{}.'.format(
@@ -852,7 +852,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
                 # TODO(nina): This test fails
                 # self.assertTrue(gs.allclose(result, expected),
-                #                 ' for {} tait-bryan angles with order {}\n'
+                #                 ' for {} Tait-Bryan angles with order {}\n'
                 #                 'for point {}:\n'
                 #                 ' result = \n{};'
                 #                 ' expected = \n{}.'.format(
