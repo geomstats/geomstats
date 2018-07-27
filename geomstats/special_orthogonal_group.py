@@ -639,8 +639,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                                  - cos_angle_x * sin_angle_z),
                                 cos_angle_y * cos_angle_z]
 
-                    rot_mat[i] = gs.hstack(
-                        [column_1, column_2, column_3]).transpose()
+                    rot_mat[i] = gs.vstack([column_1, column_2, column_3])
 
         elif extrinsic_or_intrinsic == 'intrinsic':
             if order == 'zyx':
@@ -816,9 +815,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             if order == 'zyx':
                 angle_x = gs.arctan2(y * z + w * x,
                                      1. / 2. - (x ** 2 + y ** 2))
-                angle_y = gs.arcsin(- 2 (x * z - w * y))
+                angle_y = gs.arcsin(- 2. * (x * z - w * y))
                 angle_z = gs.arctan2(x * y + w * z,
                                      1. / 2. - (y ** 2 + z ** 2))
+                tait_bryan_angles = gs.concatenate(
+                    [angle_x, angle_y, angle_z], axis=1)
 
             elif order == 'xyz':
                 angle_z = gs.arctan2(2. * (x * y + w * z),
