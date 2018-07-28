@@ -565,33 +565,33 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         n_tait_bryan_angles, _ = tait_bryan_angles.shape
 
         rot_mat = gs.zeros((n_tait_bryan_angles,) + (self.n,) * 2)
-        angle_x = tait_bryan_angles[:, 0]
-        angle_y = tait_bryan_angles[:, 1]
-        angle_z = tait_bryan_angles[:, 2]
+        angle_1 = tait_bryan_angles[:, 0]
+        angle_2 = tait_bryan_angles[:, 1]
+        angle_3 = tait_bryan_angles[:, 2]
 
         for i in range(n_tait_bryan_angles):
-            cos_angle_x = gs.cos(angle_x[i])
-            sin_angle_x = gs.sin(angle_x[i])
-            cos_angle_y = gs.cos(angle_y[i])
-            sin_angle_y = gs.sin(angle_y[i])
-            cos_angle_z = gs.cos(angle_z[i])
-            sin_angle_z = gs.sin(angle_z[i])
+            cos_angle_1 = gs.cos(angle_1[i])
+            sin_angle_1 = gs.sin(angle_1[i])
+            cos_angle_2 = gs.cos(angle_2[i])
+            sin_angle_2 = gs.sin(angle_2[i])
+            cos_angle_3 = gs.cos(angle_3[i])
+            sin_angle_3 = gs.sin(angle_3[i])
 
-            column_1 = [cos_angle_x * cos_angle_y,
-                        cos_angle_y * sin_angle_x,
-                        - sin_angle_y]
-            column_2 = [(cos_angle_x * sin_angle_y * sin_angle_z
-                         - cos_angle_z * sin_angle_x),
-                        (cos_angle_x * cos_angle_z
-                         + sin_angle_x * sin_angle_y * sin_angle_z),
-                        + cos_angle_y * sin_angle_z]
-            column_3 = [(sin_angle_x * sin_angle_z
-                         + cos_angle_x * cos_angle_z * sin_angle_y),
-                        (cos_angle_z * sin_angle_x * sin_angle_y
-                         - cos_angle_x * sin_angle_z),
-                        cos_angle_y * cos_angle_z]
+            column_1 = [[cos_angle_1 * cos_angle_2],
+                        [cos_angle_2 * sin_angle_1],
+                        [- sin_angle_2]]
+            column_2 = [[(cos_angle_1 * sin_angle_2 * sin_angle_3
+                          - cos_angle_3 * sin_angle_1)],
+                        [(cos_angle_1 * cos_angle_3
+                          + sin_angle_1 * sin_angle_2 * sin_angle_3)],
+                        [+ cos_angle_2 * sin_angle_3]]
+            column_3 = [[(sin_angle_1 * sin_angle_3
+                          + cos_angle_1 * cos_angle_3 * sin_angle_2)],
+                        [(cos_angle_3 * sin_angle_1 * sin_angle_2
+                          - cos_angle_1 * sin_angle_3)],
+                        [cos_angle_2 * cos_angle_3]]
 
-            rot_mat[i] = gs.vstack([column_1, column_2, column_3])
+            rot_mat[i] = gs.hstack((column_1, column_2, column_3))
         return rot_mat
 
     def matrix_from_tait_bryan_angles_extrinsic_zyx(self, tait_bryan_angles):
@@ -602,34 +602,34 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         n_tait_bryan_angles, _ = tait_bryan_angles.shape
 
         rot_mat = gs.zeros((n_tait_bryan_angles,) + (self.n,) * 2)
-        angle_x = tait_bryan_angles[:, 0]
-        angle_y = tait_bryan_angles[:, 1]
-        angle_z = tait_bryan_angles[:, 2]
+        angle_1 = tait_bryan_angles[:, 0]
+        angle_2 = tait_bryan_angles[:, 1]
+        angle_3 = tait_bryan_angles[:, 2]
 
         for i in range(n_tait_bryan_angles):
-            cos_angle_x = gs.cos(angle_x[i])
-            sin_angle_x = gs.sin(angle_x[i])
-            cos_angle_y = gs.cos(angle_y[i])
-            sin_angle_y = gs.sin(angle_y[i])
-            cos_angle_z = gs.cos(angle_z[i])
-            sin_angle_z = gs.sin(angle_z[i])
+            cos_angle_1 = gs.cos(angle_1[i])
+            sin_angle_1 = gs.sin(angle_1[i])
+            cos_angle_2 = gs.cos(angle_2[i])
+            sin_angle_2 = gs.sin(angle_2[i])
+            cos_angle_3 = gs.cos(angle_3[i])
+            sin_angle_3 = gs.sin(angle_3[i])
 
-            column_1 = [cos_angle_y * cos_angle_z,
-                        (cos_angle_x * sin_angle_z
-                         + cos_angle_z * sin_angle_x * sin_angle_y),
-                        (sin_angle_x * sin_angle_z
-                         - cos_angle_x * cos_angle_z * sin_angle_y)]
+            column_1 = [[cos_angle_2 * cos_angle_3],
+                        [(cos_angle_1 * sin_angle_3
+                          + cos_angle_3 * sin_angle_1 * sin_angle_2)],
+                        [(sin_angle_1 * sin_angle_3
+                          - cos_angle_1 * cos_angle_3 * sin_angle_2)]]
 
-            column_2 = [- cos_angle_y * sin_angle_z,
-                        (cos_angle_x * cos_angle_z
-                         - sin_angle_x * sin_angle_y * sin_angle_z),
-                        (cos_angle_z * sin_angle_x
-                         + cos_angle_x * sin_angle_y * sin_angle_z)]
+            column_2 = [[- cos_angle_2 * sin_angle_3],
+                        [(cos_angle_1 * cos_angle_3
+                          - sin_angle_1 * sin_angle_2 * sin_angle_3)],
+                        [(cos_angle_3 * sin_angle_1
+                          + cos_angle_1 * sin_angle_2 * sin_angle_3)]]
 
-            column_3 = [sin_angle_y,
-                        - cos_angle_y * sin_angle_x,
-                        cos_angle_x * cos_angle_y]
-            rot_mat[i] = gs.vstack([column_1, column_2, column_3])
+            column_3 = [[sin_angle_2],
+                        [- cos_angle_2 * sin_angle_1],
+                        [cos_angle_1 * cos_angle_2]]
+            rot_mat[i] = gs.hstack((column_1, column_2, column_3))
         return rot_mat
 
     def matrix_from_tait_bryan_angles(self, tait_bryan_angles,
@@ -637,15 +637,15 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                                       order='zyx'):
         """
         Convert a rotation given in terms of the tait bryan angles,
-        [angle_x, angle_y, angle_z] in extrinsic (fixed) or
+        [angle_1, angle_2, angle_3] in extrinsic (fixed) or
         intrinsic (moving) coordinate frame into a rotation matrix.
 
         If the order is zyx, into the rotation matrix rot_mat:
-        rot_mat = X(angle_x).Y(angle_y).Z(angle_z)
+        rot_mat = X(angle_1).Y(angle_2).Z(angle_3)
         where:
-        - X(angle_x) is a rotation of angle angle_x around axis x.
-        - Y(angle_y) is a rotation of angle angle_y around axis y.
-        - Z(angle_z) is a rotation of angle angle_z around axis z.
+        - X(angle_1) is a rotation of angle angle_1 around axis x.
+        - Y(angle_2) is a rotation of angle angle_2 around axis y.
+        - Z(angle_3) is a rotation of angle angle_3 around axis z.
 
         Exchanging 'extrinsic' and 'intrinsic' amounts to
         exchanging the order.
@@ -683,13 +683,13 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                                       order='zyx'):
         """
         Convert a rotation matrix rot_mat into the tait bryan angles,
-        [angle_x, angle_y, angle_z] in extrinsic (fixed) coordinate frame,
+        [angle_1, angle_2, angle_3] in extrinsic (fixed) coordinate frame,
         for the order zyx, i.e.:
-        rot_mat = X(angle_x).Y(angle_y).Z(angle_z)
+        rot_mat = X(angle_1).Y(angle_2).Z(angle_3)
         where:
-        - X(angle_x) is a rotation of angle angle_x around axis x.
-        - Y(angle_y) is a rotation of angle angle_y around axis y.
-        - Z(angle_z) is a rotation of angle angle_z around axis z.
+        - X(angle_1) is a rotation of angle angle_1 around axis x.
+        - Y(angle_2) is a rotation of angle angle_2 around axis y.
+        - Z(angle_3) is a rotation of angle angle_3 around axis z.
         """
         rot_mat = gs.to_ndarray(rot_mat, to_ndim=3)
         quaternion = self.quaternion_from_matrix(rot_mat)
@@ -710,46 +710,46 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         n_tait_bryan_angles, _ = tait_bryan_angles.shape
         quaternion = gs.zeros((n_tait_bryan_angles, 4))
 
-        angle_x = tait_bryan_angles[:, 0]
-        angle_y = tait_bryan_angles[:, 1]
-        angle_z = tait_bryan_angles[:, 2]
+        angle_1 = tait_bryan_angles[:, 0]
+        angle_2 = tait_bryan_angles[:, 1]
+        angle_3 = tait_bryan_angles[:, 2]
 
-        cos_half_angle_z = gs.cos(angle_z / 2.)
-        sin_half_angle_z = gs.sin(angle_z / 2.)
-        cos_half_angle_y = gs.cos(angle_y / 2.)
-        sin_half_angle_y = gs.sin(angle_y / 2.)
-        cos_half_angle_x = gs.cos(angle_x / 2.)
-        sin_half_angle_x = gs.sin(angle_x / 2.)
+        cos_half_angle_3 = gs.cos(angle_3 / 2.)
+        sin_half_angle_3 = gs.sin(angle_3 / 2.)
+        cos_half_angle_2 = gs.cos(angle_2 / 2.)
+        sin_half_angle_2 = gs.sin(angle_2 / 2.)
+        cos_half_angle_1 = gs.cos(angle_1 / 2.)
+        sin_half_angle_1 = gs.sin(angle_1 / 2.)
 
-        cos_half_angle = (cos_half_angle_z
-                          * cos_half_angle_y
-                          * cos_half_angle_x
-                          + sin_half_angle_z
-                          * sin_half_angle_y
-                          * sin_half_angle_x)
+        cos_half_angle = (cos_half_angle_3
+                          * cos_half_angle_2
+                          * cos_half_angle_1
+                          + sin_half_angle_3
+                          * sin_half_angle_2
+                          * sin_half_angle_1)
 
         quaternion[:, 0] = cos_half_angle
 
-        quaternion[:, 1] = (cos_half_angle_z
-                            * cos_half_angle_y
-                            * sin_half_angle_x
-                            - sin_half_angle_z
-                            * sin_half_angle_y
-                            * cos_half_angle_x)
+        quaternion[:, 1] = (cos_half_angle_3
+                            * cos_half_angle_2
+                            * sin_half_angle_1
+                            - sin_half_angle_3
+                            * sin_half_angle_2
+                            * cos_half_angle_1)
 
-        quaternion[:, 2] = (cos_half_angle_x
-                            * cos_half_angle_z
-                            * sin_half_angle_y
-                            + sin_half_angle_x
-                            * sin_half_angle_z
-                            * cos_half_angle_y)
+        quaternion[:, 2] = (cos_half_angle_1
+                            * cos_half_angle_3
+                            * sin_half_angle_2
+                            + sin_half_angle_1
+                            * sin_half_angle_3
+                            * cos_half_angle_2)
 
-        quaternion[:, 3] = (cos_half_angle_y
-                            * cos_half_angle_x
-                            * sin_half_angle_z
-                            - sin_half_angle_y
-                            * sin_half_angle_x
-                            * cos_half_angle_z)
+        quaternion[:, 3] = (cos_half_angle_2
+                            * cos_half_angle_1
+                            * sin_half_angle_3
+                            - sin_half_angle_2
+                            * sin_half_angle_1
+                            * cos_half_angle_3)
         return quaternion
 
     def quaternion_from_tait_bryan_angles(self, tait_bryan_angles,
@@ -799,7 +799,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             extrinsic_or_intrinsic='extrinsic',
             order='zyx'):
         """
-        Convert a rotation given by the angle_x, angle_y, angle_z
+        Convert a rotation given by the angle_1, angle_2, angle_3
         into a rotation vector (axis-angle representation).
         """
         assert self.n == 3, ('The Tait-Bryan angles representation'
@@ -822,13 +822,13 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         quaternion = gs.to_ndarray(quaternion, to_ndim=2)
 
         w, x, y, z = gs.hsplit(quaternion, 4)
-        angle_x = gs.arctan2(y * z + w * x,
+        angle_1 = gs.arctan2(y * z + w * x,
                              1. / 2. - (x ** 2 + y ** 2))
-        angle_y = gs.arcsin(- 2. * (x * z - w * y))
-        angle_z = gs.arctan2(x * y + w * z,
+        angle_2 = gs.arcsin(- 2. * (x * z - w * y))
+        angle_3 = gs.arctan2(x * y + w * z,
                              1. / 2. - (y ** 2 + z ** 2))
         tait_bryan_angles = gs.concatenate(
-            [angle_x, angle_y, angle_z], axis=1)
+            [angle_1, angle_2, angle_3], axis=1)
         return tait_bryan_angles
 
     def tait_bryan_angles_from_quaternion_intrinsic_xyz(self, quaternion):
@@ -839,20 +839,20 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         quaternion = gs.to_ndarray(quaternion, to_ndim=2)
 
         w, x, y, z = gs.hsplit(quaternion, 4)
-        angle_z = gs.arctan2(2. * (x * y + w * z),
+        angle_3 = gs.arctan2(2. * (x * y + w * z),
                              w * w + x * x - y * y - z * z)
-        angle_y = gs.arcsin(- 2. * (x * z - w * y))
-        angle_x = gs.arctan2(2. * (y * z + w * x),
+        angle_2 = gs.arcsin(- 2. * (x * z - w * y))
+        angle_1 = gs.arctan2(2. * (y * z + w * x),
                              w * w - x * x - y * y + z * z)
         tait_bryan_angles = gs.concatenate(
-            [angle_x, angle_y, angle_z], axis=1)
+            [angle_1, angle_2, angle_3], axis=1)
         return tait_bryan_angles
 
     def tait_bryan_angles_from_quaternion(
             self, quaternion, extrinsic_or_intrinsic='extrinsic', order='zyx'):
         """
         Convert a quaternion
-        to a rotation given by the angle_x, angle_y, angle_z.
+        to a rotation given by the angle_1, angle_2, angle_3.
         """
         assert self.n == 3, ('The quaternion representation'
                              ' and the Tait-Bryan angles representation'

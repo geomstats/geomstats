@@ -433,6 +433,122 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                 ' expected = {}.'.format(result,
                                                          expected))
 
+    def test_matrix_from_tait_bryan_angles_extrinsic_xyz(self):
+        n = 3
+        group = self.so[n]
+
+        tait_bryan_angles = gs.array([0., 0., 0.])
+        result = group.matrix_from_tait_bryan_angles_extrinsic_xyz(
+            tait_bryan_angles)
+        expected = gs.eye(n)
+
+        self.assertTrue(gs.allclose(result, expected),
+                        ' result = \n{};'
+                        ' expected = \n{}.'.format(
+                            result,
+                            expected))
+
+        angle = gs.pi / 6.
+        cos_angle = gs.cos(angle)
+        sin_angle = gs.sin(angle)
+
+        tait_bryan_angles = gs.array([angle, 0., 0.])
+        result = group.matrix_from_tait_bryan_angles_extrinsic_xyz(
+            tait_bryan_angles)
+        expected = gs.array([[[cos_angle, - sin_angle, 0.],
+                              [sin_angle, cos_angle, 0.],
+                              [0., 0., 1.]]])
+
+        self.assertTrue(gs.allclose(result, expected),
+                        ' result = \n{};'
+                        ' expected = \n{}.'.format(
+                            result,
+                            expected))
+
+        tait_bryan_angles = gs.array([0., angle, 0.])
+        result = group.matrix_from_tait_bryan_angles_extrinsic_xyz(
+            tait_bryan_angles)
+        expected = gs.array([[[cos_angle, 0., sin_angle],
+                              [0., 1., 0.],
+                              [- sin_angle, 0., cos_angle]]])
+
+        self.assertTrue(gs.allclose(result, expected),
+                        ' result = \n{};'
+                        ' expected = \n{}.'.format(
+                            result,
+                            expected))
+
+        tait_bryan_angles = gs.array([0., 0., angle])
+        result = group.matrix_from_tait_bryan_angles_extrinsic_xyz(
+            tait_bryan_angles)
+        expected = gs.array([[[1., 0., 0.],
+                              [0., cos_angle, - sin_angle],
+                              [0., sin_angle, cos_angle]]])
+
+        self.assertTrue(gs.allclose(result, expected),
+                        ' result = \n{};'
+                        ' expected = \n{}.'.format(
+                            result,
+                            expected))
+
+    def test_matrix_from_tait_bryan_angles_extrinsic_zyx(self):
+        n = 3
+        group = self.so[n]
+
+        tait_bryan_angles = gs.array([0., 0., 0.])
+        result = group.matrix_from_tait_bryan_angles_extrinsic_zyx(
+            tait_bryan_angles)
+        expected = gs.eye(n)
+
+        self.assertTrue(gs.allclose(result, expected),
+                        ' result = \n{};'
+                        ' expected = \n{}.'.format(
+                            result,
+                            expected))
+
+        angle = gs.pi / 6.
+        cos_angle = gs.cos(angle)
+        sin_angle = gs.sin(angle)
+
+        tait_bryan_angles = gs.array([angle, 0., 0.])
+        result = group.matrix_from_tait_bryan_angles_extrinsic_zyx(
+            tait_bryan_angles)
+        expected = gs.array([[[1., 0., 0.],
+                              [0., cos_angle, - sin_angle],
+                              [0., sin_angle, cos_angle]]])
+
+        self.assertTrue(gs.allclose(result, expected),
+                        ' result = \n{};'
+                        ' expected = \n{}.'.format(
+                            result,
+                            expected))
+
+        tait_bryan_angles = gs.array([0., angle, 0.])
+        result = group.matrix_from_tait_bryan_angles_extrinsic_zyx(
+            tait_bryan_angles)
+        expected = gs.array([[[cos_angle, 0., sin_angle],
+                              [0., 1., 0.],
+                              [- sin_angle, 0., cos_angle]]])
+
+        self.assertTrue(gs.allclose(result, expected),
+                        ' result = \n{};'
+                        ' expected = \n{}.'.format(
+                            result,
+                            expected))
+
+        tait_bryan_angles = gs.array([0., 0., angle])
+        result = group.matrix_from_tait_bryan_angles_extrinsic_zyx(
+            tait_bryan_angles)
+        expected = gs.array([[[cos_angle, - sin_angle, 0.],
+                              [sin_angle, cos_angle, 0.],
+                              [0., 0., 1.]]])
+
+        self.assertTrue(gs.allclose(result, expected),
+                        ' result = \n{};'
+                        ' expected = \n{}.'.format(
+                            result,
+                            expected))
+
     def test_tait_bryan_angles_from_quaternion_xyz(self):
         """
         This tests that the Tait-Bryan angles of the quaternion [1, 0, 0, 0],
