@@ -828,7 +828,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         angle_3 = gs.arctan2(x * y + w * z,
                              1. / 2. - (y ** 2 + z ** 2))
         tait_bryan_angles = gs.concatenate(
-            [angle_1, angle_2, angle_3], axis=1)
+            [angle_3, angle_2, angle_1], axis=1)
         return tait_bryan_angles
 
     def tait_bryan_angles_from_quaternion_intrinsic_xyz(self, quaternion):
