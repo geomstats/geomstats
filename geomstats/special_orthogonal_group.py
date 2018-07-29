@@ -558,6 +558,12 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         return rot_mat
 
     def matrix_from_tait_bryan_angles_extrinsic_xyz(self, tait_bryan_angles):
+        """
+        Convert a rotation given in terms of the tait bryan angles,
+        [angle_1, angle_2, angle_3] in extrinsic coordinate system,
+        in order xyzm into a rotation matrix.
+        """
+
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -595,6 +601,17 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         return rot_mat
 
     def matrix_from_tait_bryan_angles_extrinsic_zyx(self, tait_bryan_angles):
+        """
+        Convert a rotation given in terms of the tait bryan angles,
+        [angle_1, angle_2, angle_3] in extrinsic (fixed) coordinate system
+        in order zyx, into a rotation matrix.
+
+        rot_mat = X(angle_1).Y(angle_2).Z(angle_3)
+        where:
+        - X(angle_1) is a rotation of angle angle_1 around axis x.
+        - Y(angle_2) is a rotation of angle angle_2 around axis y.
+        - Z(angle_3) is a rotation of angle angle_3 around axis z.
+        """
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -655,19 +672,21 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                              ' for rotations in %d dimensions.' % self.n)
         tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
 
-        condition_1 = ((extrinsic_or_intrinsic == 'extrinsic'
+        extrinsic_zyx_or_intrinsic_xyz = (
+                       (extrinsic_or_intrinsic == 'extrinsic'
                         and order == 'zyx')
                        or (extrinsic_or_intrinsic == 'intrinsic'
                            and order == 'xyz'))
 
-        condition_2 = ((extrinsic_or_intrinsic == 'extrinsic'
+        extrinsic_xyz_or_intrinsic_zyx = (
+                       (extrinsic_or_intrinsic == 'extrinsic'
                         and order == 'xyz')
                        or (extrinsic_or_intrinsic == 'intrinsic'
                            and order == 'zyx'))
-        if condition_1:
+        if extrinsic_zyx_or_intrinsic_xyz:
             rot_mat = self.matrix_from_tait_bryan_angles_extrinsic_zyx(
                 tait_bryan_angles)
-        elif condition_2:
+        elif extrinsic_xyz_or_intrinsic_zyx:
             rot_mat = self.matrix_from_tait_bryan_angles_extrinsic_xyz(
                 tait_bryan_angles)
 
@@ -702,6 +721,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
     def quaternion_from_tait_bryan_angles_intrinsic_xyz(
             self, tait_bryan_angles):
+        """
+        Convert a rotation given by Tait-Bryan angles in extrinsic
+        coordinate systems and order xyz into a unit quaternion.
+        """
+        # TODO(nina): Linear algebra for the subsequent operations?
         assert self.n == 3, ('The quaternion representation'
                              ' and the Tait-Bryan angles representation'
                              ' do not exist'
