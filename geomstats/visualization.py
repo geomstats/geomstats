@@ -22,6 +22,8 @@ AX_SCALE = 1.2
 IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'S2', 'H2']
 
 
+# TODO(nina): Clean-up OOP of this module
+
 class Arrow3D():
     "An arrow in 3d, i.e. a point and a vector."
     def __init__(self, point, vector):
@@ -196,7 +198,9 @@ class PoincareHalfPlane():
         return poincare_half_plane_coords
 
     def draw(self, ax, **kwargs):
-        raise NotImplementedError()
+        points_x = gs.vstack([point[0] for point in self.points])
+        points_y = gs.vstack([point[1] for point in self.points])
+        ax.scatter(points_x, points_y, **kwargs)
 
 
 class KleinDisk():
