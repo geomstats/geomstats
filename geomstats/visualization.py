@@ -2,6 +2,7 @@
 
 import geomstats.vectorization as vectorization
 import matplotlib.pyplot as plt
+import numpy as np
 
 import geomstats.backend as gs
 
@@ -67,7 +68,9 @@ class Sphere():
                  points=None):
         if n_circles_latitude is None:
             n_circles_latitude = max(n_meridians / 2, 4)
-        u, v = gs.mgrid[0:2 * gs.pi:n_meridians * 1j,
+
+        # TODO(nina): use backend for this
+        u, v = np.mgrid[0:2 * gs.pi:n_meridians * 1j,
                         0:gs.pi:n_circles_latitude * 1j]
 
         self.center = gs.zeros(3)
