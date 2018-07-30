@@ -167,6 +167,32 @@ class PoincareDisk():
         ax.scatter(points_x, points_y, **kwargs)
 
 
+class KleinModel():
+    def __init__(self, points=None):
+        self.center = np.array([0., 0.])
+        self.points = []
+        if points is not None:
+            self.add_points(points)
+
+    def add_points(self, points):
+        assert np.all(H2.belongs(points))
+        points = self.convert_to_klein_coordinates(points)
+        points_list = points.tolist()
+        self.points.extend(points_list)
+
+    def convert_to_klein_coordinates(self, points):
+        disk_coords = points[:, 1:] / (1 + points[:, :1])
+        klein_coords = 2 * disk_coords / (1 + disk_coords ** 2)
+        return klein_coords
+
+    def draw(self, ax, **kwargs):
+        circle = plt.Circle((0, 0), radius=1., color='black', fill=False)
+        ax.add_artist(circle)
+        points_x = np.vstack([point[0] for point in self.points])
+        points_y = np.vstack([point[1] for point in self.points])
+        ax.scatter(points_x, points_y, **kwargs)
+
+
 def convert_to_trihedron(point, space=None):
     """
     Transform a rigid pointrmation
