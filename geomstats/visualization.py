@@ -186,16 +186,16 @@ class PoincareHalfPlane():
         self.points.extend(points_list)
 
     def convert_to_half_plane_coordinates(self, points):
-        poincare_disk_coords = points[:, 1:] / (1 + points[:, :1])
-        disk_x = poincare_disk_coords[:, 0]
-        disk_y = poincare_disk_coords[:, 1]
+        disk_coords = points[:, 1:] / (1 + points[:, :1])
+        disk_x = disk_coords[:, 0]
+        disk_y = disk_coords[:, 1]
 
-        poincare_half_plane_coords = gs.zeros_like(poincare_disk_coords)
+        half_plane_coords = gs.zeros_like(disk_coords)
         denominator = (disk_x ** 2 + (1 - disk_y) ** 2)
-        poincare_half_plane_coords[:, 0] = 2 * disk_x / denominator
-        poincare_half_plane_coords[:, 1] = ((1 - disk_x ** 2 - disk_y ** 2)
-                                            / denominator)
-        return poincare_half_plane_coords
+        half_plane_coords[:, 0] = 2 * disk_x / denominator
+        half_plane_coords[:, 1] = ((1 - disk_x ** 2 - disk_y ** 2)
+                                   / denominator)
+        return half_plane_coords
 
     def draw(self, ax, **kwargs):
         points_x = gs.vstack([point[0] for point in self.points])
