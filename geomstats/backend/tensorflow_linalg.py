@@ -17,3 +17,11 @@ def matrix_rank(x):
 
 def eigvalsh(x):
     return tf.linalg.eigvalsh(x)
+
+
+def det(x):
+    return tf.linalg.det(x)
+
+
+def qr(x):
+    return tf.linalg.qr(x)

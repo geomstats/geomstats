@@ -318,3 +318,14 @@ def copy(x):
 
 def seed(x):
     torch.manual_seed(x)
+
+
+def sign(*args, **kwargs):
+    return torch.sign(*args, **kwargs)
+
+
+def mean(x, axis=None):
+    if axis==None:
+        return torch.mean(x)
+    else:
+        return np.mean(x, axis)

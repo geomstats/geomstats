@@ -32,3 +32,7 @@ def norm(x, ord=2, axis=None, keepdims=False):
     if axis is None:
         return torch.norm(x, p=ord)
     return torch.norm(x, p=ord, dim=axis)
+
+
+def qr(*args, **kwargs):
+    return torch.from_numpy(np.linalg.qr(*args, **kwargs))

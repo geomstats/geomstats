@@ -290,3 +290,11 @@ def nonzero(x):
 
 def copy(x):
     return np.copy(x)
+
+
+def sign(*args, **kwargs):
+    return np.sign(*args, **kwargs)
+
+
+def mean(x, axis=None):
+    return np.mean(x, axis)
