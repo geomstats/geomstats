@@ -1,3 +1,4 @@
+autograd
 codecov
 coverage
 matplotlib
