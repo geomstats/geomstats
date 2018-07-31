@@ -350,3 +350,7 @@ def logm(x):
 def sqrtm(x):
     return np.vectorize(
         scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)
+
+
+def mean(x, axis=None):
+    return np.mean(x, axis)
