@@ -27,12 +27,71 @@ class Connection(object):
         raise NotImplementedError(
                 'connection is not implemented.')
 
-    def parallel_transport(self, tangent_vector_a, tangent_vector_b):
+    def exp(self, tangent_vector_a, base_point):
         """
-        Parallel transport associated with the connection.
+        Connection applied to tangent_vector_b in the direction of
+        tangent_vector_a, both tangent at base_point.
         """
         raise NotImplementedError(
-                'Parallel transport is not implemented.')
+                'The affine connection exponential is not implemented.')
+
+    def log(self, point, base_point):
+        """
+        Connection applied to tangent_vector_b in the direction of
+        tangent_vector_a, both tangent at base_point.
+        """
+        raise NotImplementedError(
+                'The affine connection logarithm is not implemented.')
+
+    def pole_ladder_transport(
+            self, tangent_vector_a, tangent_vector_b, base_point):
+        """
+        One step of pole ladder (parallel transport associated with the
+        symmetric part of the connection using transvections).
+        """
+        mid_point = self.exp(base_point=base_point,
+                             tangent_vector=1. / 2. * tangent_vector_b)
+        end_point = self.exp(base_point=mid_point,
+                             tangent_vector=- self.log(mid_point, base_point))
+
+        base_shoot = self.exp(base_point=base_point,
+                              tangent_vector=tangent_vector_a)
+        end_shoot = self.exp(base_point=mid_point,
+                             tangent_vector=- self.log(mid_point, base_shoot))
+
+        tangent_vector = - self.log(base_point=end_point, point=end_shoot)
+        return tangent_vector
+
+    def parallel_transport(
+            self, tangent_vector_a, tangent_vector_b, base_point, n_points=1):
+        """
+        Parallel transport of tangent vector a integrating the connection
+        along the (affine connection) geodesic starting at the initial point
+        base_point with initial tangent vector the tangent vector b.
+
+        Returns a tangent vector at the point
+        exp_(base_point)(tangent_vector_b).
+        """
+        current_point = gs.copy(base_point)
+        geodesic_tangent_vector = 1. / n_points * tangent_vector_b
+        transported_tangent_vector = gs.copy(tangent_vector_a)
+        i_point = 1
+        while i_point < n_points:
+            transported_tangent_vector = self.pole_ladder_transport(
+                tangent_vector_a=transported_tangent_vector,
+                tangent_vector_b=geodesic_tangent_vector,
+                base_point=current_point)
+            current_point = self.exp(
+                base_point=current_point,
+                tangent_vector=geodesic_tangent_vector)
+            next_point = self.exp(
+                base_point=base_point,
+                tangent_vector=(i_point + 1) / n_points * tangent_vector_b)
+            geodesic_tangent_vector = self.log(
+                base_point=current_point,
+                point=next_point)
+
+        return transported_tangent_vector
 
     def riemannian_curvature(self, base_point):
         """
