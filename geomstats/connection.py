@@ -49,15 +49,27 @@ class Connection(object):
         One step of pole ladder (parallel transport associated with the
         symmetric part of the connection using transvections).
         """
-        mid_point = self.exp(base_point=base_point,
-                             tangent_vector=1. / 2. * tangent_vector_b)
-        end_point = self.exp(base_point=mid_point,
-                             tangent_vector=- self.log(mid_point, base_point))
+        half_tangent_vector_b = 1. / 2. * tangent_vector_b
+        mid_point = self.exp(
+                base_point=base_point,
+                tangent_vector=half_tangent_vector_b)
 
-        base_shoot = self.exp(base_point=base_point,
-                              tangent_vector=tangent_vector_a)
-        end_shoot = self.exp(base_point=mid_point,
-                             tangent_vector=- self.log(mid_point, base_shoot))
+        mid_tangent_vector = - self.log(
+                base_point=mid_point,
+                point=base_point)
+        end_point = self.exp(
+                base_point=mid_point,
+                tangent_vector=mid_tangent_vector)
+
+        base_shoot = self.exp(
+                base_point=base_point,
+                tangent_vector=tangent_vector_a)
+        mid_tangent_vector_to_shoot = - self.log(
+                base_point=mid_point,
+                end_point=base_shoot)
+        end_shoot = self.exp(
+                base_point=mid_point,
+                tangent_vector=mid_tangent_vector_to_shoot)
 
         tangent_vector = - self.log(base_point=end_point, point=end_shoot)
         return tangent_vector
@@ -75,8 +87,7 @@ class Connection(object):
         current_point = gs.copy(base_point)
         geodesic_tangent_vector = 1. / n_points * tangent_vector_b
         transported_tangent_vector = gs.copy(tangent_vector_a)
-        i_point = 1
-        while i_point < n_points:
+        for i_point in range(1, n_points):
             transported_tangent_vector = self.pole_ladder_transport(
                 tangent_vector_a=transported_tangent_vector,
                 tangent_vector_b=geodesic_tangent_vector,
@@ -84,9 +95,11 @@ class Connection(object):
             current_point = self.exp(
                 base_point=current_point,
                 tangent_vector=geodesic_tangent_vector)
+
+            frac_tangent_vector_b = (i_point + 1) / n_points * tangent_vector_b
             next_point = self.exp(
                 base_point=base_point,
-                tangent_vector=(i_point + 1) / n_points * tangent_vector_b)
+                tangent_vector=frac_tangent_vector_b)
             geodesic_tangent_vector = self.log(
                 base_point=current_point,
                 point=next_point)
