@@ -79,11 +79,15 @@ class LeviCivitaConnection(Connection):
         return metric_matrix
 
     def cometric_matrix(self, base_point):
+        """
+        The cometric is the inverse of the metric.
+        """
         metric_matrix = self.metric_matrix(base_point)
         cometric_matrix = gs.linalg.inv(metric_matrix)
         return cometric_matrix
 
     def metric_derivative(self, base_point):
+        # TODO(nina): same operation without autograd package?
         metric_derivative = autograd.jacobian(self.metric_matrix)
         return metric_derivative(base_point)
 
