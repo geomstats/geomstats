@@ -2,6 +2,8 @@
 Affine connections.
 """
 
+import autograd
+
 import geomstats.backend as gs
 
 
@@ -16,6 +18,14 @@ class Connection(object):
         """
         raise NotImplementedError(
                 'The Christoffel symbols are not implemented.')
+
+    def connection(self, tangent_vector_a, tangent_vector_b, base_point):
+        """
+        Connection applied to tangent_vector_b in the direction of
+        tangent_vector_a, both tangent at base_point.
+        """
+        raise NotImplementedError(
+                'connection is not implemented.')
 
     def parallel_transport(self, tangent_vector_a, tangent_vector_b):
         """
@@ -64,13 +74,39 @@ class LeviCivitaConnection(Connection):
         self.metric = metric
         self.dimension = metric.dimension
 
+    def metric_matrix(self, base_point):
+        metric_matrix = self.metric.inner_product_matrix(base_point)
+        return metric_matrix
+
+    def cometric_matrix(self, base_point):
+        """
+        The cometric is the inverse of the metric.
+        """
+        metric_matrix = self.metric_matrix(base_point)
+        cometric_matrix = gs.linalg.inv(metric_matrix)
+        return cometric_matrix
+
+    def metric_derivative(self, base_point):
+        # TODO(nina): same operation without autograd package?
+        metric_derivative = autograd.jacobian(self.metric_matrix)
+        return metric_derivative(base_point)
+
     def christoffel_symbols(self, base_point):
         """
         Christoffel symbols associated with the connection.
         """
-        # TODO(nina): implement with automatic differentiation.
-        raise NotImplementedError(
-                'The Christoffel symbols are not implemented.')
+        term_1 = gs.einsum('nim,nmkl->nikl',
+                           self.cometric_matrix(base_point),
+                           self.metric_derivative(base_point))
+        term_2 = gs.einsum('nim,nmlk->nilk',
+                           self.cometric_matrix(base_point),
+                           self.metric_derivative(base_point))
+        term_3 = - gs.einsum('nim,nklm->nikl',
+                             self.cometric_matrix(base_point),
+                             self.metric_derivative(base_point))
+
+        christoffel_symbols = 0.5 * (term_1 + term_2 + term_3)
+        return christoffel_symbols
 
     def torsion(self, base_point):
         """
