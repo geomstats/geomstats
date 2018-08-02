@@ -19,7 +19,8 @@ H2 = HyperbolicSpace(dimension=2)
 
 AX_SCALE = 1.2
 
-IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'S2', 'H2']
+IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'S2',
+               'H2_poincare_disk', 'H2_poincare_half_plane', 'H2_klein_disk']
 
 
 # TODO(nina): Clean-up OOP of this module
@@ -299,20 +300,26 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
     points = vectorization.to_ndarray(points, to_ndim=2)
 
     if ax is None:
-        if space is 'SE3_GROUP':
+        if space == 'SE3_GROUP':
             ax_s = AX_SCALE * gs.amax(gs.abs(points[:, 3:6]))
-        elif space is 'SO3_GROUP':
+        elif space == 'SO3_GROUP':
             ax_s = AX_SCALE * gs.amax(gs.abs(points[:, :3]))
         else:
             ax_s = AX_SCALE
 
-        if space is 'H2':
+        if (space == 'H2_poincare_disk') or (space == 'H2_klein_disk'):
             ax = plt.subplot(aspect='equal')
             plt.setp(ax,
                      xlim=(-ax_s, ax_s),
                      ylim=(-ax_s, ax_s),
                      xlabel='X', ylabel='Y')
 
+        elif space == 'H2_poincare_half_plane':
+            ax = plt.subplot(aspect='equal')
+            plt.setp(ax,
+                     xlim=(-ax_s, ax_s),
+                     ylim=(0., ax_s),
+                     xlabel='X', ylabel='Y')
         else:
             # The 3d projection needs the Axes3d module import.
             ax = plt.subplot(111, projection='3d', aspect='equal')
@@ -327,14 +334,24 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
         for t in trihedrons:
             t.draw(ax, **point_draw_kwargs)
 
-    elif space is 'S2':
+    elif space == 'S2':
         sphere = Sphere()
         sphere.add_points(points)
         sphere.draw(ax, **point_draw_kwargs)
 
-    elif space is 'H2':
+    elif space == 'H2_poincare_disk':
         poincare_disk = PoincareDisk()
         poincare_disk.add_points(points)
         poincare_disk.draw(ax, **point_draw_kwargs)
+
+    elif space == 'H2_poincare_half_plane':
+        poincare_half_plane = PoincareHalfPlane()
+        poincare_half_plane.add_points(points)
+        poincare_half_plane.draw(ax, **point_draw_kwargs)
+
+    elif space == 'H2_klein_disk':
+        klein_disk = KleinDisk()
+        klein_disk.add_points(points)
+        klein_disk.draw(ax, **point_draw_kwargs)
 
     return ax

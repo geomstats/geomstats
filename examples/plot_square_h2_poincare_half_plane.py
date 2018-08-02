@@ -31,8 +31,12 @@ def main():
                                    initial_tangent_vec=tangent_vec)
         t = np.linspace(0, 1, n_steps)
         edge_points = geodesic(t)
-        visualization.plot(edge_points, space='H2', marker='.',
-                           color='black')
+        visualization.plot(
+            edge_points,
+            space='H2_poincare_half_plane',
+            marker='.',
+            color='black')
+
     plt.show()
 
 

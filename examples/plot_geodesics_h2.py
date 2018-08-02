@@ -24,7 +24,7 @@ def plot_geodesic_between_two_points(initial_point,
 
     t = np.linspace(0, 1, n_steps)
     points = geodesic(t)
-    visualization.plot(points, space='H2')
+    visualization.plot(points, space='H2_poincare_disk')
 
 
 def plot_geodesic_with_initial_tangent_vector(initial_point,
@@ -37,7 +37,7 @@ def plot_geodesic_with_initial_tangent_vector(initial_point,
     t = np.linspace(0, 1, n_steps)
 
     points = geodesic(t)
-    visualization.plot(points, space='H2')
+    visualization.plot(points, space='H2_poincare_disk')
 
 
 def main():
