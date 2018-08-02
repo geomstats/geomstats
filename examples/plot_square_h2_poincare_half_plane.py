@@ -33,7 +33,7 @@ def main():
         edge_points = geodesic(t)
         visualization.plot(
             edge_points,
-            space='H2_poincare_disk',
+            space='H2_poincare_half_plane',
             marker='.',
             color='black')
 
