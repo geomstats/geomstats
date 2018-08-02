@@ -31,7 +31,7 @@ def main():
                                    initial_tangent_vec=tangent_vec)
         t = np.linspace(0, 1, n_steps)
         edge_points = geodesic(t)
-        visualization.plot(edge_points, space='H2', marker='.',
+        visualization.plot(edge_points, space='H2_poincare_disk', marker='.',
                            color='black')
     plt.show()
 

@@ -36,7 +36,8 @@ def main(left=-128,
 
         t = np.linspace(0, 1, n_steps)
         points_to_plot = geodesic(t)
-        visualization.plot(points_to_plot, space='H2', marker='.', s=1)
+        visualization.plot(
+            points_to_plot, space='H2_poincare_disk', marker='.', s=1)
     plt.show()
 
 
