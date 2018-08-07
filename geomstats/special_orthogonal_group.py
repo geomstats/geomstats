@@ -560,8 +560,14 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
     def matrix_from_tait_bryan_angles_extrinsic_xyz(self, tait_bryan_angles):
         """
         Convert a rotation given in terms of the tait bryan angles,
-        [angle_1, angle_2, angle_3] in extrinsic coordinate system,
-        in order xyzm into a rotation matrix.
+        [angle_1, angle_2, angle_3] in extrinsic (fixed) coordinate system
+        in order xyz, into a rotation matrix.
+
+        rot_mat = Z(angle_1).Y(angle_2).X(angle_3)
+        where:
+        - Z(angle_1) is a rotation of angle angle_1 around axis z.
+        - Y(angle_2) is a rotation of angle angle_2 around axis y.
+        - X(angle_3) is a rotation of angle angle_3 around axis x.
         """
 
         assert self.n == 3, ('The Tait-Bryan angles representation'
@@ -672,23 +678,31 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                              ' for rotations in %d dimensions.' % self.n)
         tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
 
-        extrinsic_zyx_or_intrinsic_xyz = (
-                       (extrinsic_or_intrinsic == 'extrinsic'
-                        and order == 'zyx')
-                       or (extrinsic_or_intrinsic == 'intrinsic'
-                           and order == 'xyz'))
+        extrinsic_zyx = (extrinsic_or_intrinsic == 'extrinsic'
+                         and order == 'zyx')
+        intrinsic_xyz = (extrinsic_or_intrinsic == 'intrinsic'
+                         and order == 'xyz')
 
-        extrinsic_xyz_or_intrinsic_zyx = (
-                       (extrinsic_or_intrinsic == 'extrinsic'
-                        and order == 'xyz')
-                       or (extrinsic_or_intrinsic == 'intrinsic'
-                           and order == 'zyx'))
-        if extrinsic_zyx_or_intrinsic_xyz:
+        extrinsic_xyz = (extrinsic_or_intrinsic == 'extrinsic'
+                         and order == 'xyz')
+        intrinsic_zyx = (extrinsic_or_intrinsic == 'intrinsic'
+                         and order == 'zyx')
+
+        if extrinsic_zyx:
             rot_mat = self.matrix_from_tait_bryan_angles_extrinsic_zyx(
                 tait_bryan_angles)
-        elif extrinsic_xyz_or_intrinsic_zyx:
+        elif intrinsic_xyz:
+            tait_bryan_angles_reversed = gs.flip(tait_bryan_angles, axis=1)
+            rot_mat = self.matrix_from_tait_bryan_angles_extrinsic_zyx(
+                tait_bryan_angles_reversed)
+
+        elif extrinsic_xyz:
             rot_mat = self.matrix_from_tait_bryan_angles_extrinsic_xyz(
                 tait_bryan_angles)
+        elif intrinsic_zyx:
+            tait_bryan_angles_reversed = gs.flip(tait_bryan_angles, axis=1)
+            rot_mat = self.matrix_from_tait_bryan_angles_extrinsic_xyz(
+                tait_bryan_angles_reversed)
 
         else:
             raise ValueError('extrinsic_or_intrinsic should be'
@@ -790,25 +804,38 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
         n_tait_bryan_angles, _ = tait_bryan_angles.shape
 
-        condition_1 = ((extrinsic_or_intrinsic == 'extrinsic'
-                        and order == 'zyx')
-                       or (extrinsic_or_intrinsic == 'intrinsic'
-                           and order == 'xyz'))
+        extrinsic_zyx = (extrinsic_or_intrinsic == 'extrinsic'
+                         and order == 'zyx')
+        intrinsic_xyz = (extrinsic_or_intrinsic == 'intrinsic'
+                         and order == 'xyz')
 
-        condition_2 = ((extrinsic_or_intrinsic == 'extrinsic'
-                        and order == 'xyz')
-                       or (extrinsic_or_intrinsic == 'intrinsic'
-                           and order == 'zyx'))
+        extrinsic_xyz = (extrinsic_or_intrinsic == 'extrinsic'
+                         and order == 'xyz')
+        intrinsic_zyx = (extrinsic_or_intrinsic == 'intrinsic'
+                         and order == 'zyx')
 
-        if condition_1:
+        if extrinsic_zyx:
+            tait_bryan_angles_reversed = gs.flip(tait_bryan_angles, axis=1)
+            quat = self.quaternion_from_tait_bryan_angles_intrinsic_xyz(
+                tait_bryan_angles_reversed)
+
+        elif intrinsic_xyz:
             quat = self.quaternion_from_tait_bryan_angles_intrinsic_xyz(
                 tait_bryan_angles)
 
-        elif condition_2:
+        elif extrinsic_xyz:
             # TODO(nina): Put a direct implementation here,
             # instead of converting to matrices first
             rot_mat = self.matrix_from_tait_bryan_angles_extrinsic_xyz(
                 tait_bryan_angles)
+            quat = self.quaternion_from_matrix(rot_mat)
+
+        elif intrinsic_zyx:
+            # TODO(nina): Put a direct implementation here,
+            # instead of converting to matrices first
+            tait_bryan_angles_reversed = gs.flip(tait_bryan_angles, axis=1)
+            rot_mat = self.matrix_from_tait_bryan_angles_extrinsic_xyz(
+                tait_bryan_angles_reversed)
             quat = self.quaternion_from_matrix(rot_mat)
         else:
             raise ValueError('extrinsic_or_intrinsic should be'
@@ -884,23 +911,32 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                              ' for rotations in %d dimensions.' % self.n)
         quaternion = gs.to_ndarray(quaternion, to_ndim=2)
 
-        condition_1 = ((extrinsic_or_intrinsic == 'extrinsic'
-                        and order == 'zyx')
-                       or (extrinsic_or_intrinsic == 'intrinsic'
-                           and order == 'xyz'))
+        extrinsic_zyx = (extrinsic_or_intrinsic == 'extrinsic'
+                         and order == 'zyx')
+        intrinsic_xyz = (extrinsic_or_intrinsic == 'intrinsic'
+                         and order == 'xyz')
 
-        condition_2 = ((extrinsic_or_intrinsic == 'extrinsic'
-                        and order == 'xyz')
-                       or (extrinsic_or_intrinsic == 'intrinsic'
-                           and order == 'zyx'))
+        extrinsic_xyz = (extrinsic_or_intrinsic == 'extrinsic'
+                         and order == 'xyz')
+        intrinsic_zyx = (extrinsic_or_intrinsic == 'intrinsic'
+                         and order == 'zyx')
 
-        if condition_1:
+        if extrinsic_zyx:
+            tait_bryan = self.tait_bryan_angles_from_quaternion_intrinsic_xyz(
+                quaternion)
+            tait_bryan = gs.flip(tait_bryan, axis=1)
+        elif intrinsic_xyz:
             tait_bryan = self.tait_bryan_angles_from_quaternion_intrinsic_xyz(
                 quaternion)
 
-        elif condition_2:
+        elif extrinsic_xyz:
             tait_bryan = self.tait_bryan_angles_from_quaternion_intrinsic_zyx(
                 quaternion)
+            tait_bryan = gs.flip(tait_bryan, axis=1)
+        elif intrinsic_zyx:
+            tait_bryan = self.tait_bryan_angles_from_quaternion_intrinsic_zyx(
+                quaternion)
+            tait_bryan = gs.flip(tait_bryan, axis=1)
 
         else:
             raise ValueError('extrinsic_or_intrinsic should be'

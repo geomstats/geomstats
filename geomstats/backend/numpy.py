@@ -8,6 +8,10 @@ double = np.float32
 float64 = np.float64
 
 
+def flip(*args, **kwargs):
+    return np.flip(*args, **kwargs)
+
+
 def amax(*args, **kwargs):
     return np.amax(*args, **kwargs)
 
