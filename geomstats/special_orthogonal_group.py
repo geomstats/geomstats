@@ -748,9 +748,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         n_tait_bryan_angles, _ = tait_bryan_angles.shape
         quaternion = gs.zeros((n_tait_bryan_angles, 4))
 
-        angle_1 = tait_bryan_angles[:, 0]
+        angle_3 = tait_bryan_angles[:, 0]
         angle_2 = tait_bryan_angles[:, 1]
-        angle_3 = tait_bryan_angles[:, 2]
+        angle_1 = tait_bryan_angles[:, 2]
 
         cos_half_angle_3 = gs.cos(angle_3 / 2.)
         sin_half_angle_3 = gs.sin(angle_3 / 2.)
@@ -879,7 +879,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         angle_3 = gs.arctan2(x * y + w * z,
                              1. / 2. - (y ** 2 + z ** 2))
         tait_bryan_angles = gs.concatenate(
-            [angle_3, angle_2, angle_1], axis=1)
+            [angle_1, angle_2, angle_3], axis=1)
         return tait_bryan_angles
 
     def tait_bryan_angles_from_quaternion_intrinsic_xyz(self, quaternion):
@@ -890,10 +890,10 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         quaternion = gs.to_ndarray(quaternion, to_ndim=2)
 
         w, x, y, z = gs.hsplit(quaternion, 4)
-        angle_3 = gs.arctan2(2. * (x * y + w * z),
+        angle_1 = gs.arctan2(2. * (x * y + w * z),
                              w * w + x * x - y * y - z * z)
         angle_2 = gs.arcsin(- 2. * (x * z - w * y))
-        angle_1 = gs.arctan2(2. * (y * z + w * x),
+        angle_3 = gs.arctan2(2. * (y * z + w * x),
                              w * w - x * x - y * y + z * z)
         tait_bryan_angles = gs.concatenate(
             [angle_1, angle_2, angle_3], axis=1)
@@ -936,7 +936,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         elif intrinsic_zyx:
             tait_bryan = self.tait_bryan_angles_from_quaternion_intrinsic_zyx(
                 quaternion)
-            tait_bryan = gs.flip(tait_bryan, axis=1)
 
         else:
             raise ValueError('extrinsic_or_intrinsic should be'
