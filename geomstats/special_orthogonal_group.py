@@ -676,6 +676,10 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
                              ' for rotations in %d dimensions.' % self.n)
+
+        assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
+        assert order in ('xyz', 'zyx')
+
         tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
 
         extrinsic_zyx = (extrinsic_or_intrinsic == 'extrinsic'
@@ -724,6 +728,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - Z(angle_3) is a rotation of angle angle_3 around axis z.
         """
+        assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
+        assert order in ('xyz', 'zyx')
+
         rot_mat = gs.to_ndarray(rot_mat, to_ndim=3)
         quaternion = self.quaternion_from_matrix(rot_mat)
         tait_bryan_angles = self.tait_bryan_angles_from_quaternion(
@@ -797,6 +804,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         Convert a rotation given by Tait-Bryan angles
         into a unit quaternion.
         """
+        assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
+        assert order in ('xyz', 'zyx')
+
         assert self.n == 3, ('The quaternion representation'
                              ' and the Tait-Bryan angles representation'
                              ' do not exist'
@@ -856,6 +866,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
                              ' for rotations in %d dimensions.' % self.n)
+        assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
+        assert order in ('xyz', 'zyx')
+
         quaternion = self.quaternion_from_tait_bryan_angles(
             tait_bryan_angles,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
@@ -909,6 +922,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                              ' and the Tait-Bryan angles representation'
                              ' do not exist'
                              ' for rotations in %d dimensions.' % self.n)
+        assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
+        assert order in ('xyz', 'zyx')
+
         quaternion = gs.to_ndarray(quaternion, to_ndim=2)
 
         extrinsic_zyx = (extrinsic_or_intrinsic == 'extrinsic'
@@ -953,6 +969,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
                              ' for rotations in %d dimensions.' % self.n)
+        assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
+        assert order in ('xyz', 'zyx')
+
         rot_vec = gs.to_ndarray(rot_vec, to_ndim=2)
 
         quaternion = self.quaternion_from_rotation_vector(rot_vec)
