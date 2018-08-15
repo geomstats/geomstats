@@ -298,3 +298,7 @@ def sign(*args, **kwargs):
 
 def mean(x, axis=None):
     return np.mean(x, axis)
+
+
+def normal(*args, **kwargs):
+    return np.random.normal(*args, **kwargs)
