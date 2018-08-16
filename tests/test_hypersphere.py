@@ -396,6 +396,34 @@ class TestHypersphereMethods(unittest.TestCase):
         result = self.metric.mean([point_a, point_b, point_c])
         self.assertTrue(self.space.belongs(result))
 
+    def test_random_vonMisesFisher(self):
+        """
+        Check that the maximum likelihood estimates of the mean and
+        concentration parameter are close to the real values for a large
+        sample size.
+        """
+        dim = 2
+        n_points = 1000000
+        sphere = Hypersphere(dim)
+
+        # check mean value for concentrated distribution
+        K = 10
+        points = sphere.random_vonMisesFisher(K, n_points)
+        S = gs.sum(points, axis=0)
+        mu_hat = S/gs.linalg.norm(S)
+        mu = gs.array([0, 0, 1])
+        error = sphere.metric.dist(mu, mu_hat)
+        assert error < 1e-2
+
+        # check concentration parameter for dispersed distribution
+        K = 0.5
+        points = sphere.random_vonMisesFisher(K, n_points)
+        S = gs.sum(points, axis=0)
+        R = gs.linalg.norm(S)/n_points
+        K_hat = R*(dim + 1 - R**2)/(1 - R**2)
+        error = gs.abs(K-K_hat)/K
+        assert error < 1e-2
+
 
 if __name__ == '__main__':
         unittest.main()
