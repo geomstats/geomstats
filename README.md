@@ -37,3 +37,7 @@ nose2
 * Nina Miolane
 * Xavier Pennec
 * Johan Mathe
+
+## Acknowledgements
+
+This work is partially supported by the National Science Foundation, grant NSF DMS RTG 1501767.
