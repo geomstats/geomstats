@@ -35,9 +35,5 @@ def eig(*args, **kwargs):
     return np.linalg.eig(*args, **kwargs)
 
 
-def exp(*args, **kwargs):
-    return np.exp(*args, **kwargs)
-
-
 def qr(*args, **kwargs):
     return np.linalg.qr(*args, **kwargs)
