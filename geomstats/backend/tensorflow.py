@@ -195,8 +195,5 @@ def diagonal(x):
     return tf.linalg.diag_part(x)
 
 
-def mean(x, axis=None):
-    return tf.reduce_mean(x, axis)
-
 def copy(x):
     return tf.identity(x)

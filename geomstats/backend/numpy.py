@@ -1,6 +1,8 @@
 """Numpy based computation backend."""
 
 import numpy as np
+from scipy.linalg import expm as _expm
+from scipy.linalg import logm as _logm
 
 int32 = np.int32
 int8 = np.int8
@@ -296,9 +298,13 @@ def sign(*args, **kwargs):
     return np.sign(*args, **kwargs)
 
 
-def mean(x, axis=None):
-    return np.mean(x, axis)
+def vectorize(A, function):
+    return np.vectorize(function, signature="(n,m)->(n,m)")(A)
 
 
-def normal(*args, **kwargs):
-    return np.random.normal(*args, **kwargs)
+def expm(A):
+    return vectorize(A, _expm)
+
+
+def logm(A):
+    return vectorize(A, _logm)
