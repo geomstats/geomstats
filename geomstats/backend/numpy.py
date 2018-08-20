@@ -3,6 +3,7 @@
 import numpy as np
 import scipy.linalg
 
+
 int32 = np.int32
 int8 = np.int8
 float32 = np.float32
