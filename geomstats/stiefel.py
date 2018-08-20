@@ -1,5 +1,5 @@
 """
-Stiefel manifold St(p,n),
+Stiefel manifold St(n,p),
 a set of all orthonormal p-frames in n-dimensional space,
 where p <= n
 """
@@ -29,15 +29,17 @@ def matrix_f(sq_mat, f):
 
 class Stiefel(EmbeddedManifold):
 
-    def __init__(self, p, n):
-        self.p = p
-        self.n = n
+    def __init__(self, n, p):
+        assert(n >= p)
 
-        self.dimension = int(p * n - (p * (p - 1) / 2))
+        self.n = n
+        self.p = p
+
+        self.dimension = int(p * n - (p * (p + 1) / 2))
 
     def belongs(self, point, tolerance=TOLERANCE):
         """
-        Evaluate if a point belongs to St(p,n),
+        Evaluate if a point belongs to St(n,p),
         i.e. if it is a p-frame in n-dimensional space,
         and it is orthonormal.
         """
@@ -47,8 +49,7 @@ class Stiefel(EmbeddedManifold):
         if (n, p) != (self.n, self.p):
             return gs.zeros((n_points,)).astype(bool)
 
-        diff = gs.matmul(
-            gs.transpose(point, axes=(0, 2, 1)), point) - gs.eye(p)
+        diff = gs.matmul(gs.transpose(point, axes=(0, 2, 1)), point) - gs.eye(p)
         point_norm = gs.norm(diff, axis=(1, 2))
 
         return gs.less_equal(point_norm, tolerance)
@@ -58,10 +59,10 @@ class Stiefel(EmbeddedManifold):
 
     def random_uniform(self, n_samples=1):
         """
-        Sample on St(p,n) with the uniform distribution.
+        Sample on St(n,p) with the uniform distribution.
 
-        If Z(p,n) ~ N(0,1), then St(p,n) ~ U, according to Haar measure:
-        St(p,n) := Z(Z^TZ)^{-1/2}
+        If Z(p,n) ~ N(0,1), then St(n,p) ~ U, according to Haar measure:
+        St(n,p) := Z(Z^TZ)^{-1/2}
         """
         Z = gs.random.normal(shape=(n_samples, self.n, self.p))
         return gs.matmul(Z, gs.linalg.inv(
@@ -76,7 +77,7 @@ class StiefelMetric(RiemannianMetric):
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """
         Compute the Frobenius inner product of tangent_vec_a and tangent_vec_b
-        at base_point using the canonical Riemannian metric on St(p,n).
+        at base_point using the canonical Riemannian metric on St(n,p).
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
         n_tangent_vecs_a, _, _ = tangent_vec_a.shape
