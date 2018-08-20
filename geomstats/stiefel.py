@@ -42,14 +42,14 @@ class Stiefel(EmbeddedManifold):
         and it is orthonormal.
         """
         point = gs.to_ndarray(point, to_ndim=3)
-        (_, point_dim) = point.shape
+        n_points, n, p = point.shape
 
-        if point_dim != (self.n, self.p):
-            return False
+        if (n, p) != (self.n, self.p):
+            return gs.zeros((n_points,)).astype(bool)
 
-        point_norm = gs.norm(
-            gs.dot(gs.transpose(point), point) - gs.eye(point_dim[1])
-        )
+        diff = gs.matmul(
+            gs.transpose(point, axes=(0, 2, 1)), point) - gs.eye(p)
+        point_norm = gs.norm(diff, axis=(1, 2))
 
         return gs.less_equal(point_norm, tolerance)
 
@@ -63,7 +63,7 @@ class Stiefel(EmbeddedManifold):
         If Z(p,n) ~ N(0,1), then St(p,n) ~ U, according to Haar measure:
         St(p,n) := Z(Z^TZ)^{-1/2}
         """
-        Z = gs.normal(size=(n_samples, self.n, self.p))
+        Z = gs.random.normal(shape=(n_samples, self.n, self.p))
         return gs.matmul(Z, gs.linalg.inv(
             matrix_f(gs.matmul(gs.transpose(Z, axes=(0, 2, 1)), Z), gs.sqrt)))
 
