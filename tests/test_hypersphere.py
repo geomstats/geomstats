@@ -9,6 +9,8 @@ import tests.helper as helper
 
 from geomstats.hypersphere import Hypersphere
 
+TOLERANCE = 1e-6
+
 
 class TestHypersphereMethods(unittest.TestCase):
     _multiprocess_can_split_ = True
@@ -395,6 +397,24 @@ class TestHypersphereMethods(unittest.TestCase):
         point_c = self.space.random_uniform()
         result = self.metric.mean([point_a, point_b, point_c])
         self.assertTrue(self.space.belongs(result))
+
+    def test_sample_von_mises_fisher(self):
+        """Check that the maximum likelihood estimate of the mean is
+        close to the real values for a large concentrated sample.
+        """
+        dim = 2
+        n_points = 1000000
+        sphere = Hypersphere(dim)
+
+        kappa = 1000000
+        points = sphere.random_von_mises_fisher(kappa, n_points)
+        sum_points = gs.sum(points, axis=0)
+        mean = gs.array([0, 0, 1])
+        mean_estimate = sum_points/gs.linalg.norm(sum_points)
+        expected = mean
+        result = mean_estimate
+
+        self.assertTrue(gs.allclose(result, expected, atol=TOLERANCE))
 
 
 if __name__ == '__main__':
