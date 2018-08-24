@@ -151,6 +151,8 @@ class Hypersphere(EmbeddedManifold):
         coord_xy = gs.sqrt(1 - coord_z**2) * unit_vector
         point = gs.vstack((coord_xy, coord_z))
 
+        return point.T
+
 
 class HypersphereMetric(RiemannianMetric):
 
