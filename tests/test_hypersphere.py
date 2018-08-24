@@ -410,7 +410,7 @@ class TestHypersphereMethods(unittest.TestCase):
         points = sphere.random_von_mises_fisher(kappa, n_points)
         sum_points = gs.sum(points, axis=0)
         mean = gs.array([0, 0, 1])
-        mean_estimate = sum_points/gs.linalg.norm(sum_points)
+        mean_estimate = sum_points / gs.linalg.norm(sum_points)
         expected = mean
         result = mean_estimate
 
