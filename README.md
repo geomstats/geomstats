@@ -34,9 +34,10 @@ nose2
 
 ## Authors & Contributors
 
+* Alice Le Brigant
+* Johan Mathe
 * Nina Miolane
 * Xavier Pennec
-* Johan Mathe
 
 ## Acknowledgements
 
