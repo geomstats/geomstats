@@ -2,8 +2,8 @@
 Unit tests for the Hypersphere.
 """
 
-import unittest
 import scipy.special
+import unittest
 
 import geomstats.backend as gs
 import tests.helper as helper
