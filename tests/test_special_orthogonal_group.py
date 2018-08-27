@@ -1865,7 +1865,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                             result,
                             expected))
 
-    def test_quaternion_from_tait_bryan_angles_xyz(self):
+    def test_quaternion_from_tait_bryan_angles_extrinsic_xyz(self):
         """
         This tests that the quaternion computed from the
         Tait-Bryan angles[0, 0, 0] is [1, 0., 0., 0.] as expected.
@@ -1874,50 +1874,25 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         group = self.so[n]
 
         order = 'xyz'
+        extrinsic_or_intrinsic = 'extrinsic'
 
-        for extrinsic_or_intrinsic in ('extrinsic', 'intrinsic'):
-            tait_bryan_angles = gs.array([0., 0., 0.])
-            result = group.quaternion_from_tait_bryan_angles(
-                tait_bryan_angles,
-                extrinsic_or_intrinsic=extrinsic_or_intrinsic,
-                order=order)
-            expected = gs.array([[1., 0., 0., 0.]])
+        tait_bryan_angles = gs.array([0., 0., 0.])
+        result = group.quaternion_from_tait_bryan_angles(
+            tait_bryan_angles,
+            extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+            order=order)
+        expected = gs.array([[1., 0., 0., 0.]])
 
-            self.assertTrue(gs.allclose(result, expected),
-                            ' for {} Tait-Bryan angles with order {}\n'
-                            ' result = {};'
-                            ' expected = {}.'.format(
-                                extrinsic_or_intrinsic,
-                                order,
-                                result,
-                                expected))
+        self.assertTrue(gs.allclose(result, expected),
+                        ' for {} Tait-Bryan angles with order {}\n'
+                        ' result = {};'
+                        ' expected = {}.'.format(
+                            extrinsic_or_intrinsic,
+                            order,
+                            result,
+                            expected))
 
-    def test_tait_bryan_angles_from_quaternion_zyx(self):
-        """
-        This tests that the Tait-Bryan angles of the quaternion [1, 0, 0, 0],
-        is [0, 0, 0] as expected.
-        """
-        n = 3
-        group = self.so[n]
-
-        order = 'zyx'
-
-        for extrinsic_or_intrinsic in ('extrinsic', 'intrinsic'):
-            quaternion = gs.array([1., 0., 0., 0.])
-            result = group.tait_bryan_angles_from_quaternion(
-                quaternion, extrinsic_or_intrinsic='intrinsic', order='zyx')
-            expected = gs.array([[0., 0., 0.]])
-
-            self.assertTrue(gs.allclose(result, expected),
-                            ' for {} Tait-Bryan angles with order {}\n'
-                            ' result = {};'
-                            ' expected = {}.'.format(
-                                extrinsic_or_intrinsic,
-                                order,
-                                result,
-                                expected))
-
-    def test_quaternion_from_tait_bryan_angles_zyx(self):
+    def test_quaternion_from_tait_bryan_angles_extrinsic_zyx(self):
         """
         This tests that the quaternion computed from the
         Tait-Bryan angles[0, 0, 0] is [1, 0., 0., 0.] as expected.
@@ -1926,23 +1901,73 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         group = self.so[n]
 
         order = 'zyx'
+        extrinsic_or_intrinsic = 'extrinsic'
 
-        for extrinsic_or_intrinsic in ('extrinsic', 'intrinsic'):
-            tait_bryan_angles = gs.array([0., 0., 0.])
-            result = group.quaternion_from_tait_bryan_angles(
-                tait_bryan_angles,
-                extrinsic_or_intrinsic=extrinsic_or_intrinsic,
-                order=order)
-            expected = gs.array([[1., 0., 0., 0.]])
+        tait_bryan_angles = gs.array([0., 0., 0.])
+        result = group.quaternion_from_tait_bryan_angles(
+            tait_bryan_angles,
+            extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+            order=order)
+        expected = gs.array([[1., 0., 0., 0.]])
 
-            self.assertTrue(gs.allclose(result, expected),
-                            ' for {} Tait-Bryan angles with order {}\n'
-                            ' result = {};'
-                            ' expected = {}.'.format(
-                                extrinsic_or_intrinsic,
-                                order,
-                                result,
-                                expected))
+        self.assertTrue(gs.allclose(result, expected),
+                        ' for {} Tait-Bryan angles with order {}\n'
+                        ' result = {};'
+                        ' expected = {}.'.format(
+                            extrinsic_or_intrinsic,
+                            order,
+                            result,
+                            expected))
+
+    def test_tait_bryan_angles_from_quaternion_extrinsic_xyz(self):
+        """
+        This tests that the Tait-Bryan angles of the quaternion [1, 0, 0, 0],
+        is [0, 0, 0] as expected.
+        """
+        n = 3
+        group = self.so[n]
+
+        order = 'xyz'
+        extrinsic_or_intrinsic = 'extrinsic'
+
+        quaternion = gs.array([1., 0., 0., 0.])
+        result = group.tait_bryan_angles_from_quaternion(
+            quaternion, extrinsic_or_intrinsic='intrinsic', order='zyx')
+        expected = gs.array([[0., 0., 0.]])
+
+        self.assertTrue(gs.allclose(result, expected),
+                        ' for {} Tait-Bryan angles with order {}\n'
+                        ' result = {};'
+                        ' expected = {}.'.format(
+                            extrinsic_or_intrinsic,
+                            order,
+                            result,
+                            expected))
+
+    def test_tait_bryan_angles_from_quaternion_extrinsic_zyx(self):
+        """
+        This tests that the Tait-Bryan angles of the quaternion [1, 0, 0, 0],
+        is [0, 0, 0] as expected.
+        """
+        n = 3
+        group = self.so[n]
+
+        order = 'zyx'
+        extrinsic_or_intrinsic = 'extrinsic'
+
+        quaternion = gs.array([1., 0., 0., 0.])
+        result = group.tait_bryan_angles_from_quaternion(
+            quaternion, extrinsic_or_intrinsic='intrinsic', order='zyx')
+        expected = gs.array([[0., 0., 0.]])
+
+        self.assertTrue(gs.allclose(result, expected),
+                        ' for {} Tait-Bryan angles with order {}\n'
+                        ' result = {};'
+                        ' expected = {}.'.format(
+                            extrinsic_or_intrinsic,
+                            order,
+                            result,
+                            expected))
 
     def test_quaternion_and_tait_bryan_angles_extrinsic_xyz(self):
         """
