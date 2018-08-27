@@ -2,12 +2,16 @@
 Unit tests for the Hypersphere.
 """
 
+import scipy.special
 import unittest
 
 import geomstats.backend as gs
 import tests.helper as helper
 
 from geomstats.hypersphere import Hypersphere
+
+MEAN_ESTIMATION_TOL = 1e-6
+KAPPA_ESTIMATION_TOL = 1e-3
 
 
 class TestHypersphereMethods(unittest.TestCase):
@@ -395,6 +399,48 @@ class TestHypersphereMethods(unittest.TestCase):
         point_c = self.space.random_uniform()
         result = self.metric.mean([point_a, point_b, point_c])
         self.assertTrue(self.space.belongs(result))
+
+    def test_sample_von_mises_fisher(self):
+        """
+        Check that the maximum likelihood estimates of the mean and
+        concentration parameter are close to the real values. A first
+        estimation of the concentration parameter is obtained by a
+        closed-form expression and improved through the Newton method.
+        """
+        dim = 2
+        n_points = 1000000
+        sphere = Hypersphere(dim)
+
+        # check mean value for concentrated distribution
+        kappa = 1000000
+        points = sphere.random_von_mises_fisher(kappa, n_points)
+        sum_points = gs.sum(points, axis=0)
+        mean = gs.array([0, 0, 1])
+        mean_estimate = sum_points / gs.linalg.norm(sum_points)
+        expected = mean
+        result = mean_estimate
+        self.assertTrue(
+                gs.allclose(result, expected, atol=MEAN_ESTIMATION_TOL)
+                )
+        # check concentration parameter for dispersed distribution
+        kappa = 1
+        points = sphere.random_von_mises_fisher(kappa, n_points)
+        sum_points = gs.sum(points, axis=0)
+        mean_norm = gs.linalg.norm(sum_points) / n_points
+        kappa_estimate = mean_norm*(dim + 1 - mean_norm**2)/(1 - mean_norm**2)
+        p = dim + 1
+        n_steps = 100
+        for i in range(n_steps):
+            bessel_func_1 = scipy.special.iv(p/2, kappa_estimate)
+            bessel_func_2 = scipy.special.iv(p/2-1, kappa_estimate)
+            ratio = bessel_func_1 / bessel_func_2
+            denominator = 1 - ratio**2 - (p-1)*ratio/kappa_estimate
+            kappa_estimate = kappa_estimate - (ratio-mean_norm)/denominator
+        expected = kappa
+        result = kappa_estimate
+        self.assertTrue(
+                gs.allclose(result, expected, atol=KAPPA_ESTIMATION_TOL)
+                )
 
 
 if __name__ == '__main__':
