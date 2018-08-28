@@ -746,7 +746,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         Convert a rotation given by Tait-Bryan angles in extrinsic
         coordinate systems and order xyz into a unit quaternion.
         """
-        # TODO(nina): Linear algebra for the subsequent operations?
         assert self.n == 3, ('The quaternion representation'
                              ' and the Tait-Bryan angles representation'
                              ' do not exist'
@@ -760,47 +759,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 extrinsic_or_intrinsic='intrinsic',
                 order='xyz')
         quaternion = self.quaternion_from_matrix(matrix)
-
-        # angle_3 = tait_bryan_angles[:, 0]
-        # angle_2 = tait_bryan_angles[:, 1]
-        # angle_1 = tait_bryan_angles[:, 2]
-
-        # cos_half_angle_3 = gs.cos(angle_3 / 2.)
-        # sin_half_angle_3 = gs.sin(angle_3 / 2.)
-        # cos_half_angle_2 = gs.cos(angle_2 / 2.)
-        # sin_half_angle_2 = gs.sin(angle_2 / 2.)
-        # cos_half_angle_1 = gs.cos(angle_1 / 2.)
-        # sin_half_angle_1 = gs.sin(angle_1 / 2.)
-
-        # cos_half_angle = (cos_half_angle_3
-        #                   * cos_half_angle_2
-        #                   * cos_half_angle_1
-        #                   + sin_half_angle_3
-        #                   * sin_half_angle_2
-        #                   * sin_half_angle_1)
-
-        # quaternion[:, 0] = cos_half_angle
-
-        # quaternion[:, 1] = (cos_half_angle_3
-        #                     * cos_half_angle_2
-        #                     * sin_half_angle_1
-        #                     - sin_half_angle_3
-        #                     * sin_half_angle_2
-        #                     * cos_half_angle_1)
-
-        # quaternion[:, 2] = (cos_half_angle_1
-        #                     * cos_half_angle_3
-        #                     * sin_half_angle_2
-        #                     + sin_half_angle_1
-        #                     * sin_half_angle_3
-        #                     * cos_half_angle_2)
-
-        # quaternion[:, 3] = (cos_half_angle_2
-        #                     * cos_half_angle_1
-        #                     * sin_half_angle_3
-        #                     - sin_half_angle_2
-        #                     * sin_half_angle_1
-        #                     * cos_half_angle_3)
         return quaternion
 
     def quaternion_from_tait_bryan_angles(self, tait_bryan_angles,
@@ -916,17 +874,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         angle_3 = gs.arctan2(2. * (- y * z + w * x),
                              w * w + z * z - x * x - y * y)
 
-        # angle_3 = gs.arctan2(2. * (y * z + w * x),
-        #                      w * w - x * x - y * y + z * z)
-        # angle_2 = gs.arcsin(- 2. * (x * z - w * y))
-        # angle_1 = gs.arctan2(2. * (x * y + w * z),
-        #                      w * w + x * x - y * y - z * z)
-
-        # angle_1 = gs.arctan2(2. * (x * y + w * z),
-        #                      w * w + x * x - y * y - z * z)
-        # angle_2 = gs.arcsin(- 2. * (x * z - w * y))
-        # angle_3 = gs.arctan2(2. * (y * z + w * x),
-        #                      w * w - x * x - y * y + z * z)
         tait_bryan_angles = gs.concatenate(
             [angle_1, angle_2, angle_3], axis=1)
         return tait_bryan_angles
