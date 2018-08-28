@@ -1196,7 +1196,6 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             order=order)
 
         expected = rot_mat
-        # TODO(nina): This test fails.
         self.assertTrue(gs.allclose(result, expected),
                         ' result = \n{};'
                         ' expected = \n{}.'.format(
@@ -1533,15 +1532,14 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
         expected = matrix
 
-        # TODO(nina): This test fails.
-        # self.assertTrue(gs.allclose(result, expected),
-        #                 ' for {} Tait-Bryan angles with order {}\n'
-        #                 ' result = \n{};'
-        #                 ' expected = \n{}.'.format(
-        #                     extrinsic_or_intrinsic,
-        #                     order,
-        #                     result,
-        #                     expected))
+        self.assertTrue(gs.allclose(result, expected),
+                        ' for {} Tait-Bryan angles with order {}\n'
+                        ' result = \n{};'
+                        ' expected = \n{}.'.format(
+                            extrinsic_or_intrinsic,
+                            order,
+                            result,
+                            expected))
 
     def test_matrix_and_tait_bryan_angles_intrinsic_zyx(self):
         """
@@ -1687,14 +1685,13 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
         expected = tait_bryan_angles
 
-        # TODO(nina): This test fails.
-        # self.assertTrue(gs.allclose(result, expected),
-        #                 ' for tait-bryan angles = {}'
-        #                 ' result = \n{};'
-        #                 ' expected = \n{}.'.format(
-        #                     tait_bryan_angles,
-        #                     result,
-        #                     expected))
+        self.assertTrue(gs.allclose(result, expected),
+                        ' for tait-bryan angles = {}'
+                        ' result = \n{};'
+                        ' expected = \n{}.'.format(
+                            tait_bryan_angles,
+                            result,
+                            expected))
 
     def test_tait_bryan_angles_and_matrix_intrinsic_zyx(self):
         """
@@ -2442,14 +2439,13 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
         expected = tait_bryan_angles
 
-        # TODO(nina): This test fails.
-        # self.assertTrue(gs.allclose(result, expected),
-        #                 ' for tait-bryan angles = {}'
-        #                 ' result = \n{};'
-        #                 ' expected = \n{}.'.format(
-        #                     tait_bryan_angles,
-        #                     result,
-        #                     expected))
+        self.assertTrue(gs.allclose(result, expected),
+                        ' for tait-bryan angles = {}'
+                        ' result = \n{};'
+                        ' expected = \n{}.'.format(
+                            tait_bryan_angles,
+                            result,
+                            expected))
 
     def test_rotation_vector_and_tait_bryan_angles_xyz(self):
         """
@@ -2751,7 +2747,6 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                     quaternion)
 
                 expected = rot_mat
-                # TODO(nina): This test fails.
                 self.assertTrue(gs.allclose(result, expected),
                                 ' result = \n{};'
                                 ' expected = \n{}.'.format(
