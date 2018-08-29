@@ -35,14 +35,19 @@ class TestHypersphereMethods(unittest.TestCase):
         gs.testing.assert_allclose(belongs.shape, (1, 1))
 
     def test_random_uniform(self):
-        point = self.space.random_uniform()
+        point_bound = self.space.random_uniform()
+        point_nobound = self.space.random_uniform(bound=None)
 
-        gs.testing.assert_allclose(point.shape, (1, self.dimension + 1))
+        gs.testing.assert_allclose(point_bound.shape, (1, self.dimension + 1))
+        gs.testing.assert_allclose(point_nobound.shape,
+                                   (1, self.dimension + 1))
 
     def test_random_uniform_and_belongs(self):
-        point = self.space.random_uniform()
+        point_bound = self.space.random_uniform()
+        point_nobound = self.space.random_uniform(bound=None)
 
-        self.assertTrue(self.space.belongs(point))
+        self.assertTrue(self.space.belongs(point_bound))
+        self.assertTrue(self.space.belongs(point_nobound))
 
     def test_projection_and_belongs(self):
         point = gs.array([1., 2., 3., 4., 5.])
@@ -402,6 +407,29 @@ class TestHypersphereMethods(unittest.TestCase):
         point_c = self.space.random_uniform()
         result = self.metric.mean([point_a, point_b, point_c])
         self.assertTrue(self.space.belongs(result))
+
+    def test_diameter(self):
+        n_samples = 10
+        points = self.space.random_uniform(n_samples=n_samples)
+        result = self.metric.diameter(points)
+        gs.testing.assert_allclose(result.size, 1)
+
+    def test_closest_neighbor(self):
+        """
+        Check that the closest neighbor is one of neighbors.
+        """
+        n_samples = 10
+        points = self.space.random_uniform(n_samples=n_samples)
+        point = points[0, :]
+        neighbors = points[1:, :]
+        index = self.metric.closest_neighbor(point, neighbors)
+        closest_neighbor = points[index, :]
+        result = False
+        for i in range(n_samples):
+            if gs.allclose(points[i, :], closest_neighbor):
+                result = True
+                break
+        self.assertTrue(result)
 
     def test_sample_von_mises_fisher(self):
         """
