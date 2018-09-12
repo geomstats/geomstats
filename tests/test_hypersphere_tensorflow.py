@@ -3,6 +3,7 @@ Unit tests for tensorflow backend.
 """
 
 import importlib
+import numpy as np
 import os
 import tensorflow as tf
 
@@ -34,8 +35,21 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
         os.environ['GEOMSTATS_BACKEND'] = 'numpy'
         importlib.reload(gs)
 
+    def test_belongs(self):
+        point = self.space.random_uniform()
+        bool_belongs = self.space.belongs(point)
+        expected = np.array([[True]])
+
+        with self.test_session():
+            self.assertAllClose(expected, gs.eval(bool_belongs))
+
+    def test_random_uniform(self):
+        point = self.space.random_uniform()
+
+        with self.test_session():
+            gs.testing.assert_allclose(point.shape, (1, self.dimension + 1))
+
     def test_random_uniform_and_belongs(self):
-        pass
         """
         Test that the random uniform method samples
         on the hypersphere space.
@@ -83,15 +97,6 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
             expected = gs.linalg.norm(tangent_vec, axis=-1) % (2 * gs.pi)
 
             expected = helper.to_scalar(expected)
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
-
-    def test_vstack(self):
-        with self.test_session():
-            tensor_1 = gs.array([[1., 2., 3.], [4., 5., 6.]])
-            tensor_2 = gs.array([[7., 8., 9.]])
-
-            result = gs.vstack([tensor_1, tensor_2])
-            expected = gs.array([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
 
