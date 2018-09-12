@@ -28,6 +28,7 @@ elif _BACKEND == 'tensorflow':
     from .tensorflow import *  # NOQA
     from . import tensorflow_linalg as linalg  # NOQA
     from . import tensorflow_random as random  # NOQA
+    from . import tensorflow_testing as testing  # NOQA
 
 
 def backend():

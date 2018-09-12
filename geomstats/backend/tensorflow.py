@@ -5,7 +5,20 @@
 import tensorflow as tf
 
 
+int8 = tf.int8
 int32 = tf.int32
+
+
+def exp(x):
+    return tf.exp(x)
+
+
+def log(x):
+    return tf.log(x)
+
+
+def vstack(x):
+    return tf.stack(x, axis=0)
 
 
 def cast(x, dtype):
