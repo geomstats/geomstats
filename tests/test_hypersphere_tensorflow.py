@@ -427,6 +427,46 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
             expected = helper.to_scalar(expected)
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
+    def test_geodesic_and_belongs(self):
+        initial_point = self.space.random_uniform()
+        vector = gs.array([2., 0., -1., -2., 1.])
+        initial_tangent_vec = self.space.projection_to_tangent_space(
+                                            vector=vector,
+                                            base_point=initial_point)
+        geodesic = self.metric.geodesic(
+                                   initial_point=initial_point,
+                                   initial_tangent_vec=initial_tangent_vec)
+
+        t = gs.linspace(start=0, stop=1, num=100)
+        points = geodesic(t)
+        with self.test_session():
+            self.assertTrue(gs.all(self.space.belongs(points)))
+
+    def test_variance(self):
+        point = self.space.random_uniform()
+        result = self.metric.variance([point, point])
+        expected = 0
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
+    def test_mean(self):
+        point = self.space.random_uniform()
+        result = self.metric.mean([point, point])
+        expected = point
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
+    def test_mean_and_belongs(self):
+        point_a = self.space.random_uniform()
+        point_b = self.space.random_uniform()
+        point_c = self.space.random_uniform()
+        result = self.metric.mean([point_a, point_b, point_c])
+
+        with self.test_session():
+            self.assertTrue(self.space.belongs(result))
+
 
 if __name__ == '__main__':
     tf.test.main()

@@ -191,30 +191,37 @@ class RiemannianMetric(object):
         """
         Variance of (weighted) points wrt a base point.
         """
-        points = gs.array(points)
+        if isinstance(points, list):
+            points = gs.vstack(points)
+        #points = gs.array(points)
         n_points = gs.shape(points)[0]
         assert n_points > 0
 
+        if isinstance(weights, list):
+            weights = gs.vstack(weights)
         if weights is None:
             weights = gs.ones(n_points)
 
         weights = gs.array(weights)
-        n_weights = gs.shape(weights)[0]
-        assert n_points == n_weights
+        #n_weights = gs.shape(weights)[0]
+
         sum_weights = gs.sum(weights)
 
         if base_point is None:
             base_point = self.mean(points, weights)
 
-        variance = 0
+        variance = 0.
 
-        for i in range(n_points):
-            weight_i = weights[i]
-            point_i = points[i]
+        sq_dists = self.squared_dist(base_point, points)
+        variance += gs.einsum('n,nj->nj', weights, sq_dists)
 
-            sq_dist = self.squared_dist(base_point, point_i)
+        #for i in range(n_points):
+        #    weight_i = weights[i]
+        #    point_i = points[i]
 
-            variance += weight_i * sq_dist
+        #    sq_dist = self.squared_dist(base_point, point_i)
+
+        #    variance += weight_i * sq_dist
         variance /= sum_weights
 
         return variance
@@ -227,16 +234,19 @@ class RiemannianMetric(object):
         # TODO(nina): profile this code to study performance,
         # i.e. what to do with sq_dists_between_iterates.
 
-        points = gs.array(points)
+        #points = gs.array(points)
+        if isinstance(points, list):
+            points = gs.vstack(points)
         n_points = gs.shape(points)[0]
         assert n_points > 0
 
+        if isinstance(weights, list):
+            weights = gs.vstack(weights)
         if weights is None:
             weights = gs.ones(n_points)
 
         weights = gs.array(weights)
-        n_weights = gs.shape(weights)[0]
-        assert n_points == n_weights
+
         sum_weights = gs.sum(weights)
 
         mean = points[0]
@@ -249,13 +259,16 @@ class RiemannianMetric(object):
             a_tangent_vector = self.log(mean, mean)
             tangent_mean = gs.zeros_like(a_tangent_vector)
 
-            for i in range(n_points):
-                # TODO(nina): abandon the for loop
-                point_i = points[i]
-                weight_i = weights[i]
-                tangent_mean = tangent_mean + weight_i * self.log(
-                                                    point=point_i,
-                                                    base_point=mean)
+            logs = self.log(point=points, base_point=mean)
+            tangent_mean += gs.einsum('n,nj->nj', weights, logs)
+
+           # for i in range(n_points):
+           #     # TODO(nina): abandon the for loop
+           #     point_i = points[i]
+           #     weight_i = weights[i]
+           #     tangent_mean = tangent_mean + weight_i * self.log(
+           #                                         point=point_i,
+           #                                         base_point=mean)
             tangent_mean /= sum_weights
 
             mean_next = self.exp(
@@ -268,7 +281,7 @@ class RiemannianMetric(object):
             variance = self.variance(points=points,
                                      weights=weights,
                                      base_point=mean_next)
-            if gs.isclose(variance, 0):
+            if gs.isclose(variance, 0.):
                 break
             if sq_dist <= epsilon * variance:
                 break
