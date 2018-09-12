@@ -213,7 +213,7 @@ class RiemannianMetric(object):
         variance = 0.
 
         sq_dists = self.squared_dist(base_point, points)
-        variance += gs.einsum('n,nj->nj', weights, sq_dists)
+        variance += gs.einsum('n,nj->j', weights, sq_dists)
 
         #for i in range(n_points):
         #    weight_i = weights[i]
@@ -260,7 +260,7 @@ class RiemannianMetric(object):
             tangent_mean = gs.zeros_like(a_tangent_vector)
 
             logs = self.log(point=points, base_point=mean)
-            tangent_mean += gs.einsum('n,nj->nj', weights, logs)
+            tangent_mean += gs.einsum('n,nj->j', weights, logs)
 
            # for i in range(n_points):
            #     # TODO(nina): abandon the for loop
@@ -281,7 +281,7 @@ class RiemannianMetric(object):
             variance = self.variance(points=points,
                                      weights=weights,
                                      base_point=mean_next)
-            if gs.isclose(variance, 0.):
+            if gs.isclose(variance, 0.)[0]:
                 break
             if sq_dist <= epsilon * variance:
                 break
@@ -292,6 +292,8 @@ class RiemannianMetric(object):
         if iteration is n_max_iterations:
             print('Maximum number of iterations {} reached.'
                   'The mean may be inaccurate'.format(n_max_iterations))
+
+        mean = gs.to_ndarray(mean, to_ndim=2)
         return mean
 
     def tangent_pca(self, points, base_point=None):
