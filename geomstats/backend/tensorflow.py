@@ -15,6 +15,10 @@ def copy(x):
     return tf.Variable(x)
 
 
+def boolean_mask(x, mask, name='boolean_mask', axis=None):
+    return tf.boolean_mask(x, mask, name, axis)
+
+
 def exp(x):
     return tf.exp(x)
 
@@ -23,8 +27,12 @@ def log(x):
     return tf.log(x)
 
 
+def hstack(x):
+    return tf.concat(x, axis=1)
+
+
 def vstack(x):
-    return tf.stack(x, axis=0)
+    return tf.concat(x, axis=0)
 
 
 def cast(x, dtype):
