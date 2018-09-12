@@ -2,6 +2,14 @@
 
 import tensorflow as tf
 
+def eigh(x):
+    return tf.linalg.eigh(x)
+
+def eig(x):
+    return tf.linalg.eig(x)
+
+def svd(x):
+    return tf.linalg.svd(x)
 
 def norm(x, axis=None):
     return tf.linalg.norm(x, axis=axis)
