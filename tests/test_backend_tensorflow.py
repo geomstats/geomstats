@@ -32,6 +32,14 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
             expected = gs.array([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
+    def test_tensor_addition(self):
+        with self.test_session():
+            tensor_1 = gs.ones((1, 1))
+            tensor_2 = gs.ones((0, 1))
+
+            result = tensor_1 + tensor_2
+            print(result)
+
 
 if __name__ == '__main__':
     tf.test.main()

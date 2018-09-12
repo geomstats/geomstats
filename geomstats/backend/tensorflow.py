@@ -7,8 +7,9 @@ import tensorflow as tf
 
 int8 = tf.int8
 int32 = tf.int32
+int64 = tf.int64
+float16 = tf.float16
 float32 = tf.float32
-int8 = tf.int8
 
 
 def copy(x):

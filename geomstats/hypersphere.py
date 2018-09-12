@@ -203,27 +203,43 @@ class HypersphereMetric(RiemannianMetric):
         cos_angle = gs.clip(cos_angle, -1.0, 1.0)
 
         angle = gs.arccos(cos_angle)
+        angle = gs.to_ndarray(angle, to_ndim=1)
+        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
         mask_0 = gs.isclose(angle, 0.0)
         mask_else = gs.equal(mask_0, gs.array(False))
-        # mask_else = gs.equal(mask_0, gs.cast(gs.array(False), gs.int8))
+
+        mask_0_float = gs.cast(mask_0, gs.float32)
+        mask_else_float = gs.cast(mask_else, gs.float32)
+
+        angle_0 = gs.boolean_mask(angle, mask_0)
+        angle_0 = gs.to_ndarray(angle_0, to_ndim=1)
+        angle_0 = gs.to_ndarray(angle_0, to_ndim=2, axis=1)
+        n_angle_0, _ = gs.shape(angle_0)
+
+        angle_else = gs.boolean_mask(angle, mask_else)
+        angle_else = gs.to_ndarray(angle_else, to_ndim=1)
+        angle_else = gs.to_ndarray(angle_else, to_ndim=2, axis=1)
+        n_angle_else, _ = gs.shape(angle_else)
 
         coef_1 = gs.zeros_like(angle)
         coef_2 = gs.zeros_like(angle)
 
-        coef_1[mask_0] = (
-                      1. + INV_SIN_TAYLOR_COEFFS[1] * gs.boolean_mask(angle, mask_0) ** 2
-                      + INV_SIN_TAYLOR_COEFFS[3] * gs.boolean_mask(angle, mask_0) ** 4
-                      + INV_SIN_TAYLOR_COEFFS[5] * gs.boolean_mask(angle, mask_0) ** 6
-                      + INV_SIN_TAYLOR_COEFFS[7] * gs.boolean_mask(angle, mask_0) ** 8)
-        coef_2[mask_0] = (
-                      1. + INV_TAN_TAYLOR_COEFFS[1] * gs.boolean_mask(angle, mask_0) ** 2
-                      + INV_TAN_TAYLOR_COEFFS[3] * gs.boolean_mask(angle, mask_0) ** 4
-                      + INV_TAN_TAYLOR_COEFFS[5] * gs.boolean_mask(angle, mask_0) ** 6
-                      + INV_TAN_TAYLOR_COEFFS[7] * gs.boolean_mask(angle, mask_0) ** 8)
+        print('BEFORE coef_1 shape:', gs.shape(coef_1))
 
-        coef_1[mask_else] = angle[mask_else] / gs.sin(angle[mask_else])
-        coef_2[mask_else] = angle[mask_else] / gs.tan(angle[mask_else])
+        coef_1 += mask_0_float * (
+           1. + INV_SIN_TAYLOR_COEFFS[1] * angle ** 2
+           + INV_SIN_TAYLOR_COEFFS[3] * angle ** 4
+           + INV_SIN_TAYLOR_COEFFS[5] * angle ** 6
+           + INV_SIN_TAYLOR_COEFFS[7] * angle ** 8)
+        coef_2 += mask_0_float * (
+           1. + INV_TAN_TAYLOR_COEFFS[1] * angle ** 2
+           + INV_TAN_TAYLOR_COEFFS[3] * angle ** 4
+           + INV_TAN_TAYLOR_COEFFS[5] * angle ** 6
+           + INV_TAN_TAYLOR_COEFFS[7] * angle ** 8)
+
+        coef_1 += mask_else_float * angle / gs.sin(angle)
+        coef_2 += mask_else_float * angle / gs.tan(angle)
 
         log = (gs.einsum('ni,nj->nj', coef_1, point)
                - gs.einsum('ni,nj->nj', coef_2, base_point))
