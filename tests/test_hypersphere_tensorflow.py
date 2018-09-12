@@ -45,9 +45,10 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
 
     def test_random_uniform(self):
         point = self.space.random_uniform()
+        point_numpy = np.random.uniform(size=(1, self.dimension + 1))
 
         with self.test_session():
-            gs.testing.assert_allclose(point.shape, (1, self.dimension + 1))
+            self.assertShapeEqual(point_numpy, point)
 
     def test_random_uniform_and_belongs(self):
         """
