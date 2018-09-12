@@ -180,40 +180,30 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
         one_tangent_vec = self.space.projection_to_tangent_space(
             one_vec, base_point=one_base_point)
         result = self.metric.exp(one_tangent_vec, one_base_point)
-        gs.testing.assert_allclose(result.shape, (1, dim))
+        point_numpy = np.random.uniform(size=(1, dim))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
 
         n_tangent_vecs = self.space.projection_to_tangent_space(
             n_vecs, base_point=one_base_point)
         result = self.metric.exp(n_tangent_vecs, one_base_point)
-        gs.testing.assert_allclose(result.shape, (n_samples, dim))
-
-        expected = gs.zeros((n_samples, dim))
-        for i in range(n_samples):
-            expected[i] = self.metric.exp(n_tangent_vecs[i], one_base_point)
-        expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected)
+        point_numpy = np.random.uniform(size=(n_samples, dim))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
 
         one_tangent_vec = self.space.projection_to_tangent_space(
             one_vec, base_point=n_base_points)
         result = self.metric.exp(one_tangent_vec, n_base_points)
-        gs.testing.assert_allclose(result.shape, (n_samples, dim))
-
-        expected = gs.zeros((n_samples, dim))
-        for i in range(n_samples):
-            expected[i] = self.metric.exp(one_tangent_vec[i], n_base_points[i])
-        expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected)
+        point_numpy = np.random.uniform(size=(n_samples, dim))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
 
         n_tangent_vecs = self.space.projection_to_tangent_space(
             n_vecs, base_point=n_base_points)
         result = self.metric.exp(n_tangent_vecs, n_base_points)
-        gs.testing.assert_allclose(result.shape, (n_samples, dim))
-
-        expected = gs.zeros((n_samples, dim))
-        for i in range(n_samples):
-            expected[i] = self.metric.exp(n_tangent_vecs[i], n_base_points[i])
-        expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected)
+        point_numpy = np.random.uniform(size=(n_samples, dim))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
 
     def test_log_vectorization(self):
         n_samples = self.n_samples
@@ -225,16 +215,24 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
         n_base_points = self.space.random_uniform(n_samples=n_samples)
 
         result = self.metric.log(one_point, one_base_point)
-        gs.testing.assert_allclose(result.shape, (1, dim))
+        point_numpy = np.random.uniform(size=(1, dim))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
 
         result = self.metric.log(n_points, one_base_point)
-        gs.testing.assert_allclose(result.shape, (n_samples, dim))
+        point_numpy = np.random.uniform(size=(n_samples, dim))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
 
         result = self.metric.log(one_point, n_base_points)
-        gs.testing.assert_allclose(result.shape, (n_samples, dim))
+        point_numpy = np.random.uniform(size=(n_samples, dim))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
 
         result = self.metric.log(n_points, n_base_points)
-        gs.testing.assert_allclose(result.shape, (n_samples, dim))
+        point_numpy = np.random.uniform(size=(n_samples, dim))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
 
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         with self.test_session():
