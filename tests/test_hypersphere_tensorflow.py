@@ -299,6 +299,93 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected), atol=1e-8)
 
+    def test_squared_norm_and_squared_dist(self):
+        """
+        Test that the squared distance between two points is
+        the squared norm of their logarithm.
+        """
+        point_a = self.space.random_uniform()
+        point_b = self.space.random_uniform()
+        log = self.metric.log(point=point_a, base_point=point_b)
+        result = self.metric.squared_norm(vector=log)
+        expected = self.metric.squared_dist(point_a, point_b)
+        expected = helper.to_scalar(expected)
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
+    def test_squared_dist_vectorization(self):
+        n_samples = self.n_samples
+
+        one_point_a = self.space.random_uniform()
+        one_point_b = self.space.random_uniform()
+        n_points_a = self.space.random_uniform(n_samples=n_samples)
+        n_points_b = self.space.random_uniform(n_samples=n_samples)
+
+        result = self.metric.squared_dist(one_point_a, one_point_b)
+        point_numpy = np.random.uniform(size=(1, 1))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
+
+        result = self.metric.squared_dist(n_points_a, one_point_b)
+        point_numpy = np.random.uniform(size=(n_samples, 1))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
+
+        result = self.metric.squared_dist(one_point_a, n_points_b)
+        point_numpy = np.random.uniform(size=(n_samples, 1))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
+
+        result = self.metric.squared_dist(n_points_a, n_points_b)
+        point_numpy = np.random.uniform(size=(n_samples, 1))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
+
+    def test_norm_and_dist(self):
+        """
+        Test that the distance between two points is
+        the norm of their logarithm.
+        """
+        point_a = self.space.random_uniform()
+        point_b = self.space.random_uniform()
+        log = self.metric.log(point=point_a, base_point=point_b)
+        result = self.metric.norm(vector=log)
+        expected = self.metric.dist(point_a, point_b)
+        expected = helper.to_scalar(expected)
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
+    def test_dist_point_and_itself(self):
+        # Distance between a point and itself is 0.
+        point_a = gs.array([10., -2., -.5, 2., 3.])
+        point_b = point_a
+        result = self.metric.dist(point_a, point_b)
+        expected = 0.
+        expected = helper.to_scalar(expected)
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
+    def test_dist_orthogonal_points(self):
+        # Distance between two orthogonal points is pi / 2.
+        point_a = gs.array([10., -2., -.5, 0., 0.])
+        point_b = gs.array([2., 10, 0., 0., 0.])
+        result = gs.dot(point_a, point_b)
+        result = helper.to_scalar(result)
+        expected = 0
+        expected = helper.to_scalar(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
+        result = self.metric.dist(point_a, point_b)
+        expected = gs.pi / 2
+        expected = helper.to_scalar(expected)
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         with self.test_session():
             base_point = gs.array([16., -2., -2.5, 84., 3.])

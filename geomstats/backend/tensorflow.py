@@ -107,6 +107,7 @@ def shape(x):
 
 
 def ndim(x):
+    x = array(x)
     dims = x.get_shape()._dims
     if dims is not None:
         return len(dims)
