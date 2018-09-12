@@ -88,7 +88,7 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
             expected = point_ext
             expected = helper.to_vector(expected)
 
-            self.assertAllClose(result, expected)
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     def test_intrinsic_and_extrinsic_coords_vectorization(self):
         """
@@ -108,7 +108,7 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
         expected = point_int
         expected = helper.to_vector(expected)
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(gs.eval(result), gs.eval(expected))
 
         n_samples = self.n_samples
         point_ext = self.space.random_uniform(n_samples=n_samples)
@@ -117,7 +117,7 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
         expected = point_ext
         expected = helper.to_vector(expected)
 
-        self.assertAllClose(result, expected)
+        self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     def test_log_and_exp_general_case(self):
         """
@@ -142,7 +142,7 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
         expected = helper.to_vector(expected)
 
         with self.test_session():
-            self.assertAllClose(result, expected, atol=1e-8)
+            self.assertAllClose(gs.eval(result), gs.eval(expected), atol=1e-8)
 
     def test_log_and_exp_edge_case(self):
         """
@@ -168,7 +168,7 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
         expected = helper.to_vector(expected)
 
         with self.test_session():
-            self.assertAllClose(result, expected)
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     def test_exp_vectorization(self):
         n_samples = self.n_samples
@@ -297,7 +297,7 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
         expected = helper.to_vector(expected)
 
         with self.test_session():
-            self.assertAllClose(result, expected, atol=1e-8)
+            self.assertAllClose(gs.eval(result), gs.eval(expected), atol=1e-8)
 
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         with self.test_session():
