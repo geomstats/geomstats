@@ -85,6 +85,15 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
             expected = helper.to_scalar(expected)
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
+    def test_vstack(self):
+        with self.test_session():
+            tensor_1 = gs.array([[1., 2., 3.], [4., 5., 6.]])
+            tensor_2 = gs.array([[7., 8., 9.]])
+
+            result = gs.vstack([tensor_1, tensor_2])
+            expected = gs.array([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
 
 if __name__ == '__main__':
     tf.test.main()

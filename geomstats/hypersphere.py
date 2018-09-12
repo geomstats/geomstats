@@ -144,14 +144,19 @@ class Hypersphere(EmbeddedManifold):
             raise NotImplementedError(
                     'Sampling from the von Mises Fisher distribution'
                     'is only implemented in dimension 2.')
-        angle = 2 * gs.pi * gs.random.rand(n_samples)
-        unit_vector = gs.vstack((gs.cos(angle), gs.sin(angle)))
+        angle = 2. * gs.pi * gs.random.rand(n_samples)
+        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
+        unit_vector = gs.hstack((gs.cos(angle), gs.sin(angle)))
         scalar = gs.random.rand(n_samples)
-        coord_z = 1 + 1/kappa*gs.log(scalar + (1-scalar)*gs.exp(-2*kappa))
-        coord_xy = gs.sqrt(1 - coord_z**2) * unit_vector
-        point = gs.vstack((coord_xy, coord_z))
 
-        return point.T
+        coord_z = 1. + 1./kappa*gs.log(scalar + (1.-scalar)*gs.exp(-2.*kappa))
+        coord_z = gs.to_ndarray(coord_z, to_ndim=2, axis=1)
+
+        coord_xy = gs.sqrt(1. - coord_z**2) * unit_vector
+
+        point = gs.hstack((coord_xy, coord_z))
+
+        return point
 
 
 class HypersphereMetric(RiemannianMetric):
@@ -207,15 +212,15 @@ class HypersphereMetric(RiemannianMetric):
         coef_2 = gs.zeros_like(angle)
 
         coef_1[mask_0] = (
-                      1. + INV_SIN_TAYLOR_COEFFS[1] * angle[mask_0] ** 2
-                      + INV_SIN_TAYLOR_COEFFS[3] * angle[mask_0] ** 4
-                      + INV_SIN_TAYLOR_COEFFS[5] * angle[mask_0] ** 6
-                      + INV_SIN_TAYLOR_COEFFS[7] * angle[mask_0] ** 8)
+                      1. + INV_SIN_TAYLOR_COEFFS[1] * gs.boolean_mask(angle, mask_0) ** 2
+                      + INV_SIN_TAYLOR_COEFFS[3] * gs.boolean_mask(angle, mask_0) ** 4
+                      + INV_SIN_TAYLOR_COEFFS[5] * gs.boolean_mask(angle, mask_0) ** 6
+                      + INV_SIN_TAYLOR_COEFFS[7] * gs.boolean_mask(angle, mask_0) ** 8)
         coef_2[mask_0] = (
-                      1. + INV_TAN_TAYLOR_COEFFS[1] * angle[mask_0] ** 2
-                      + INV_TAN_TAYLOR_COEFFS[3] * angle[mask_0] ** 4
-                      + INV_TAN_TAYLOR_COEFFS[5] * angle[mask_0] ** 6
-                      + INV_TAN_TAYLOR_COEFFS[7] * angle[mask_0] ** 8)
+                      1. + INV_TAN_TAYLOR_COEFFS[1] * gs.boolean_mask(angle, mask_0) ** 2
+                      + INV_TAN_TAYLOR_COEFFS[3] * gs.boolean_mask(angle, mask_0) ** 4
+                      + INV_TAN_TAYLOR_COEFFS[5] * gs.boolean_mask(angle, mask_0) ** 6
+                      + INV_TAN_TAYLOR_COEFFS[7] * gs.boolean_mask(angle, mask_0) ** 8)
 
         coef_1[mask_else] = angle[mask_else] / gs.sin(angle[mask_else])
         coef_2[mask_else] = angle[mask_else] / gs.tan(angle[mask_else])

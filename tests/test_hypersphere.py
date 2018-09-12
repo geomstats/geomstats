@@ -13,6 +13,9 @@ from geomstats.hypersphere import Hypersphere
 MEAN_ESTIMATION_TOL = 1e-6
 KAPPA_ESTIMATION_TOL = 1e-3
 
+# TODO(nina): Casting tensors to type tf.float32 at
+# the beginning of each function
+
 
 class TestHypersphereMethods(unittest.TestCase):
     _multiprocess_can_split_ = True
@@ -42,7 +45,7 @@ class TestHypersphereMethods(unittest.TestCase):
         self.assertTrue(self.space.belongs(point))
 
     def test_projection_and_belongs(self):
-        point = gs.array([1, 2, 3, 4, 5])
+        point = gs.array([1., 2., 3., 4., 5.])
         result = self.space.projection(point)
 
         self.assertTrue(self.space.belongs(result))
@@ -415,7 +418,7 @@ class TestHypersphereMethods(unittest.TestCase):
         kappa = 1000000
         points = sphere.random_von_mises_fisher(kappa, n_points)
         sum_points = gs.sum(points, axis=0)
-        mean = gs.array([0, 0, 1])
+        mean = gs.array([0., 0., 1.])
         mean_estimate = sum_points / gs.linalg.norm(sum_points)
         expected = mean
         result = mean_estimate
@@ -427,14 +430,15 @@ class TestHypersphereMethods(unittest.TestCase):
         points = sphere.random_von_mises_fisher(kappa, n_points)
         sum_points = gs.sum(points, axis=0)
         mean_norm = gs.linalg.norm(sum_points) / n_points
-        kappa_estimate = mean_norm*(dim + 1 - mean_norm**2)/(1 - mean_norm**2)
+        kappa_estimate = (mean_norm * (dim + 1. - mean_norm**2)
+                          / (1. - mean_norm**2))
         p = dim + 1
         n_steps = 100
         for i in range(n_steps):
-            bessel_func_1 = scipy.special.iv(p/2, kappa_estimate)
-            bessel_func_2 = scipy.special.iv(p/2-1, kappa_estimate)
+            bessel_func_1 = scipy.special.iv(p/2., kappa_estimate)
+            bessel_func_2 = scipy.special.iv(p/2.-1., kappa_estimate)
             ratio = bessel_func_1 / bessel_func_2
-            denominator = 1 - ratio**2 - (p-1)*ratio/kappa_estimate
+            denominator = 1. - ratio**2 - (p-1.)*ratio/kappa_estimate
             kappa_estimate = kappa_estimate - (ratio-mean_norm)/denominator
         expected = kappa
         result = kappa_estimate

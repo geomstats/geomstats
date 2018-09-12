@@ -8,6 +8,10 @@ double = np.float32
 float64 = np.float64
 
 
+def boolean_mask(x, mask):
+    return x[mask]
+
+
 def flip(*args, **kwargs):
     return np.flip(*args, **kwargs)
 
