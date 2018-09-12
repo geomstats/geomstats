@@ -5,6 +5,7 @@
 import tensorflow as tf
 
 
+int8 = tf.int8
 int32 = tf.int32
 float32 = tf.float32
 int8 = tf.int8
@@ -12,6 +13,19 @@ int8 = tf.int8
 
 def copy(x):
     return tf.Variable(x)
+
+
+def exp(x):
+    return tf.exp(x)
+
+
+def log(x):
+    return tf.log(x)
+
+
+def vstack(x):
+    return tf.stack(x, axis=0)
+
 
 def cast(x, dtype):
     return tf.cast(x, dtype)
@@ -161,6 +175,7 @@ def squeeze(x, **kwargs):
 def zeros_like(x):
     return tf.zeros_like(x)
 
+
 def ones_like(x):
     return tf.ones_like(x)
 
@@ -194,12 +209,14 @@ def expand_dims(x, axis=None):
 def clip(x, min_value, max_value):
     return tf.clip_by_value(x, min_value, max_value)
 
+
 def floor(x):
     return tf.floor(x)
 
 
 def diag(a):
     return tf.diag(a)
+
 
 def cross(a, b):
     return tf.cross(a, b)

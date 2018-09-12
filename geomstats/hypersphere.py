@@ -200,7 +200,8 @@ class HypersphereMetric(RiemannianMetric):
         angle = gs.arccos(cos_angle)
 
         mask_0 = gs.isclose(angle, 0.0)
-        mask_else = gs.equal(mask_0, gs.cast(gs.array(False), gs.int8))
+        mask_else = gs.equal(mask_0, gs.array(False))
+        # mask_else = gs.equal(mask_0, gs.cast(gs.array(False), gs.int8))
 
         coef_1 = gs.zeros_like(angle)
         coef_2 = gs.zeros_like(angle)

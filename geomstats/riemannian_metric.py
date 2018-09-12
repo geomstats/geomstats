@@ -190,15 +190,17 @@ class RiemannianMetric(object):
         """
         Variance of (weighted) points wrt a base point.
         """
-        n_points = len(points)
+        points = gs.array(points)
+        n_points = gs.shape(points)[0]
         assert n_points > 0
 
         if weights is None:
             weights = gs.ones(n_points)
 
-        n_weights = len(weights)
+        weights = gs.array(weights)
+        n_weights = gs.shape(weights)[0]
         assert n_points == n_weights
-        sum_weights = sum(weights)
+        sum_weights = gs.sum(weights)
 
         if base_point is None:
             base_point = self.mean(points, weights)
@@ -224,13 +226,15 @@ class RiemannianMetric(object):
         # TODO(nina): profile this code to study performance,
         # i.e. what to do with sq_dists_between_iterates.
 
-        n_points = len(points)
+        points = gs.array(points)
+        n_points = gs.shape(points)[0]
         assert n_points > 0
 
         if weights is None:
             weights = gs.ones(n_points)
 
-        n_weights = len(weights)
+        weights = gs.array(weights)
+        n_weights = gs.shape(weights)[0]
         assert n_points == n_weights
         sum_weights = gs.sum(weights)
 
