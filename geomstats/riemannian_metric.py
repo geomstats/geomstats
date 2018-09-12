@@ -64,17 +64,8 @@ class RiemannianMetric(object):
         n_inner_prod = gs.maximum(n_tangent_vec_a, n_tangent_vec_b)
         n_inner_prod = gs.maximum(n_inner_prod, n_mats)
 
-        print('n_tangent_vec_a:', n_tangent_vec_a)
         n_tiles_a = gs.divide(n_inner_prod, n_tangent_vec_a)
-        if n_tiles_a < 0:
-            print('FIRST n_tiles_a:', n_tiles_a)
-
         n_tiles_a = gs.cast(n_tiles_a, gs.int32)
-
-        if n_tiles_a < 0:
-            print('n_inner_prod:', n_inner_prod)
-            print('n_tangent_vec_a:', n_tangent_vec_a)
-            print('n_tiles_a:', n_tiles_a)
         tangent_vec_a = gs.tile(tangent_vec_a, [n_tiles_a, 1])
 
         n_tiles_b = gs.divide(n_inner_prod, n_tangent_vec_b)
