@@ -1532,7 +1532,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             point_step = metric.exp(
                 tangent_vec=i * tangent_vec_step,
                 base_point=initial_point)
-            assert gs.all(point_step == points[i])
+            self.assertTrue(gs.allclose(point_step, points[i]))
 
 
 if __name__ == '__main__':
