@@ -127,7 +127,6 @@ def equal(x, y):
 
 
 def to_ndarray(x, to_ndim, axis=0):
-
     if ndim(x) == to_ndim - 1:
         x = tf.expand_dims(x, axis=axis)
 
