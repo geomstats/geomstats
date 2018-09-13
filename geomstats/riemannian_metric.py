@@ -202,9 +202,10 @@ class RiemannianMetric(object):
         if isinstance(weights, list):
             weights = gs.vstack(weights)
         if weights is None:
-            weights = gs.ones(n_points)
+            weights = gs.ones((n_points, 1))
 
         weights = gs.array(weights)
+        weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
 
         sum_weights = gs.sum(weights)
 
@@ -214,7 +215,7 @@ class RiemannianMetric(object):
         variance = 0.
 
         sq_dists = self.squared_dist(base_point, points)
-        variance += gs.einsum('n,nj->j', weights, sq_dists)
+        variance += gs.einsum('nk,nj->j', weights, sq_dists)
 
         variance /= sum_weights
 
@@ -237,9 +238,10 @@ class RiemannianMetric(object):
         if isinstance(weights, list):
             weights = gs.vstack(weights)
         if weights is None:
-            weights = gs.ones(n_points)
+            weights = gs.ones((n_points, 1))
 
         weights = gs.array(weights)
+        weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
 
         sum_weights = gs.sum(weights)
 
@@ -254,7 +256,7 @@ class RiemannianMetric(object):
             tangent_mean = gs.zeros_like(a_tangent_vector)
 
             logs = self.log(point=points, base_point=mean)
-            tangent_mean += gs.einsum('n,nj->j', weights, logs)
+            tangent_mean += gs.einsum('nk,nj->j', weights, logs)
 
             tangent_mean /= sum_weights
 
