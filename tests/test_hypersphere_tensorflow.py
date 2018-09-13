@@ -438,7 +438,7 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
                                    initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
 
-        t = gs.linspace(start=0, stop=1, num=100)
+        t = gs.linspace(start=0., stop=1., num=100)
         points = geodesic(t)
         with self.test_session():
             self.assertTrue(gs.all(self.space.belongs(points)))

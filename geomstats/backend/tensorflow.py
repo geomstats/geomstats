@@ -16,6 +16,14 @@ def copy(x):
     return tf.Variable(x)
 
 
+def linspace(start, stop, num):
+    return tf.linspace(start, stop, num)
+
+
+def mod(x, y):
+    return tf.mod(x, y)
+
+
 def boolean_mask(x, mask, name='boolean_mask', axis=None):
     return tf.boolean_mask(x, mask, name, axis)
 
