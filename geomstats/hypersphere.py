@@ -245,6 +245,18 @@ class HypersphereMetric(RiemannianMetric):
         log = (gs.einsum('ni,nj->nj', coef_1, point)
                - gs.einsum('ni,nj->nj', coef_2, base_point))
 
+        # TODO(nina): This tries to solve the bug of dist not
+        # being 0 between a point and itself
+        mask_same_values = gs.isclose(point, base_point)
+        mask_else = gs.equal(mask_same_values, gs.array(False))
+        mask_else_float = gs.cast(mask_else, gs.float32)
+        mask_not_same_points = gs.sum(mask_else_float, axis=1)
+        mask_same_points = gs.isclose(mask_not_same_points, 0.)
+        mask_same_points = gs.cast(mask_same_points, gs.float32)
+        mask_same_points = gs.to_ndarray(mask_same_points, to_ndim=2, axis=1)
+
+        log -= gs.cast(mask_same_points, gs.float32) * log
+
         return log
 
     def dist(self, point_a, point_b):
