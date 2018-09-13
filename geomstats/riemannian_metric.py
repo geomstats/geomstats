@@ -173,6 +173,7 @@ class RiemannianMetric(object):
         """
         log = self.log(point=point_b, base_point=point_a)
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
+
         return sq_dist
 
     def dist(self, point_a, point_b):
