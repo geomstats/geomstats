@@ -446,6 +446,7 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
         point = self.space.random_uniform()
         result = self.metric.variance([point, point])
         expected = 0
+        expected = helper.to_scalar(expected)
 
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
@@ -465,7 +466,7 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
         result = self.metric.mean([point_a, point_b, point_c])
 
         with self.test_session():
-            self.assertTrue(self.space.belongs(result))
+            self.assertTrue(self.space.belongs(result)[0, 0])
 
 
 if __name__ == '__main__':
