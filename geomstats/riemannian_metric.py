@@ -120,7 +120,8 @@ class RiemannianMetric(object):
                 'The Riemannian logarithm is not implemented.')
 
     def geodesic(self, initial_point,
-                 end_point=None, initial_tangent_vec=None, point_ndim=1):
+                 end_point=None, initial_tangent_vec=None,
+                 point_type='vector'):
         """
         Geodesic curve defined by either:
         - an initial point and an initial tangent vector,
@@ -129,6 +130,11 @@ class RiemannianMetric(object):
 
         The geodesic is returned as a function parameterized by t.
         """
+
+        point_ndim = 1
+        if point_type == 'matrix':
+            point_ndim = 2
+
         initial_point = gs.to_ndarray(initial_point,
                                       to_ndim=point_ndim+1)
 
@@ -158,9 +164,15 @@ class RiemannianMetric(object):
                                           initial_tangent_vec,
                                           to_ndim=point_ndim+1)
 
-            tangent_vecs = gs.einsum('il,nk->ik',
-                                     t,
-                                     new_initial_tangent_vec)
+            if point_type == 'vector':
+                tangent_vecs = gs.einsum('il,nk->ik',
+                                         t,
+                                         new_initial_tangent_vec)
+            elif point_type == 'matrix':
+                tangent_vecs = gs.einsum('il,nkm->ikm',
+                                         t,
+                                         new_initial_tangent_vec)
+
             point_at_time_t = self.exp(tangent_vec=tangent_vecs,
                                        base_point=new_initial_point)
             return point_at_time_t
