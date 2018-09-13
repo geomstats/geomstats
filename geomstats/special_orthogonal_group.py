@@ -62,7 +62,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             point_type = self.default_point_type
 
         identity = gs.zeros(self.dimension)
-        if self.default_point_type == 'matrix':
+        if point_type == 'matrix':
             identity = gs.eye(self.n)
         return identity
     identity = property(get_identity)
