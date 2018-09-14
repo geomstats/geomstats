@@ -1,5 +1,5 @@
 """
-Unit tests for tensorflow backend.
+Unit tests for the hypersphere on tensorflow backend.
 """
 
 import importlib
@@ -26,7 +26,6 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        tf.enable_eager_execution()
         os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
         importlib.reload(gs)
 
@@ -468,7 +467,3 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
 
         with self.test_session():
             self.assertTrue(self.space.belongs(result)[0, 0])
-
-
-if __name__ == '__main__':
-    tf.test.main()

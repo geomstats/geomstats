@@ -14,7 +14,6 @@ class TestBackendTensorFlow(tf.test.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        tf.enable_eager_execution()
         os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
         importlib.reload(gs)
 
@@ -39,7 +38,3 @@ class TestBackendTensorFlow(tf.test.TestCase):
 
             result = tensor_1 + tensor_2
             print(result)
-
-
-if __name__ == '__main__':
-    tf.test.main()
