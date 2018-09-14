@@ -12,14 +12,11 @@ import tests.helper as helper
 
 from geomstats.hypersphere import Hypersphere
 
-tf.enable_eager_execution()
-
 
 class TestHypersphereOnTensorFlow(tf.test.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
-        #tf.enable_eager_execution()
         gs.random.seed(1234)
         self.dimension = 4
         self.space = Hypersphere(dimension=self.dimension)
@@ -29,7 +26,7 @@ class TestHypersphereOnTensorFlow(tf.test.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        #tf.enable_eager_execution()
+        tf.enable_eager_execution()
         os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
         importlib.reload(gs)
 
