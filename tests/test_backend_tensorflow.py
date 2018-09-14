@@ -8,13 +8,14 @@ import tensorflow as tf
 
 import geomstats.backend as gs
 
+tf.enable_eager_execution()
+
 
 class TestHypersphereOnTensorFlow(tf.test.TestCase):
     _multiprocess_can_split_ = True
 
     @classmethod
     def setUpClass(cls):
-        tf.enable_eager_execution()
         os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
         importlib.reload(gs)
 
