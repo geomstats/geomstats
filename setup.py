@@ -1,10 +1,14 @@
+import os
+import runpy
 from setuptools import setup, find_packages
-from geomstats.__about__ import __version__, install_requires, extras_require
+
+base_dir = os.path.dirname(os.path.abspath(__file__))
+about = runpy.run_path(os.path.join(base_dir, 'geomstats', '__about__.py'))
 
 setup(name='geomstats',
-      version=__version__,
-      install_requires=install_requires,
-      extras_require=extras_require,
+      version=about['__version__'],
+      install_requires=about['install_requires'],
+      extras_require=about['extras_require'],
       description='Geometric statistics on manifolds',
       url='http://github.com/geomstats/geomstats',
       author='Nina Miolane',
