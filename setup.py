@@ -1,11 +1,10 @@
 from setuptools import setup, find_packages
-
-with open('requirements.txt') as fp:
-        install_requires = fp.read()
+from geomstats.__about__ import __version__, install_requires, extras_require
 
 setup(name='geomstats',
-      version='1.11',
+      version=__version__,
       install_requires=install_requires,
+      extras_require=extras_require,
       description='Geometric statistics on manifolds',
       url='http://github.com/geomstats/geomstats',
       author='Nina Miolane',
