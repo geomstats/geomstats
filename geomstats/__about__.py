@@ -1,15 +1,18 @@
-__version__ = '1.11-dev'  # Remove -dev before releasing
+# Remove -dev before releasing
+__version__ = '1.11-dev'
+
+from itertools import chain
 
 install_requires = [
     'autograd',
+    'matplotlib',
     'numpy>=1.14.1',
     'scipy',
-    'matplotlib',
     ]
 
 extras_require = {
-    'test': ['nose2', 'coverage', 'codecov'],
+    'test': ['codecov', 'coverage', 'nose2'],
     'tf': ['tensorflow>=1.8'],
     'torch': ['torch==0.4.0'],
     }
-extras_require['all'] = sum(extras_require.values(), [])
+extras_require['all'] = list(chain(*extras_require.values()))
