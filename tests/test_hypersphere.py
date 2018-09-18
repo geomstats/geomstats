@@ -409,9 +409,14 @@ class TestHypersphereMethods(unittest.TestCase):
         self.assertTrue(self.space.belongs(result))
 
     def test_diameter(self):
-        n_samples = 10
-        points = self.space.random_uniform(n_samples=n_samples)
-        result = self.metric.diameter(points)
+        dim = 2
+        sphere = Hypersphere(dim)
+        point_a = [0., 0., 1.]
+        point_b = [1., 0., 0.]
+        point_c = [0., 0., -1.]
+        result = sphere.metric.diameter(gs.vstack((point_a, point_b, point_c)))
+        expected = gs.pi
+        gs.testing.assert_allclose(result, expected)
         gs.testing.assert_allclose(result.size, 1)
 
     def test_closest_neighbor(self):
@@ -422,13 +427,10 @@ class TestHypersphereMethods(unittest.TestCase):
         points = self.space.random_uniform(n_samples=n_samples)
         point = points[0, :]
         neighbors = points[1:, :]
-        index = self.metric.closest_neighbor(point, neighbors)
+        index = self.metric.closest_neighbor_index(point, neighbors)
         closest_neighbor = points[index, :]
-        result = False
-        for i in range(n_samples):
-            if gs.allclose(points[i, :], closest_neighbor):
-                result = True
-                break
+        test = gs.where((points == closest_neighbor).all(axis=1))
+        result = test[0].size > 0
         self.assertTrue(result)
 
     def test_sample_von_mises_fisher(self):

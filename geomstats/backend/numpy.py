@@ -272,6 +272,10 @@ def argmax(*args, **kwargs):
     return np.argmax(*args, **kwargs)
 
 
+def argmin(*args, **kwargs):
+    return np.argmin(*args, **kwargs)
+
+
 def diagonal(*args, **kwargs):
     return np.diagonal(*args, **kwargs)
 

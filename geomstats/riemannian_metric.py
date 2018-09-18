@@ -327,17 +327,16 @@ class RiemannianMetric(object):
 
         for i in range(n_points-1):
             dist_to_neighbors = self.dist(points[i, :], points[i+1:, :])
-            dist_to_farthest_neighbor = dist_to_neighbors.max()
-            diameter = gs.maximum(diameter, dist_to_farthest_neighbor * 2)
+            dist_to_farthest_neighbor = gs.amax(dist_to_neighbors)
+            diameter = gs.maximum(diameter, dist_to_farthest_neighbor)
 
         return diameter
 
-    def closest_neighbor(self, point, neighbors):
+    def closest_neighbor_index(self, point, neighbors):
         """
         Closest neighbor of point among neighbors.
         """
         dist = self.dist(point, neighbors)
-        index_closest_neighbor = dist.argmin()
+        closest_neighbor_index = gs.argmin(dist)
 
-        return index_closest_neighbor
-
+        return closest_neighbor_index
