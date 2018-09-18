@@ -419,7 +419,7 @@ class TestHypersphereMethods(unittest.TestCase):
         gs.testing.assert_allclose(result, expected)
         gs.testing.assert_allclose(result.size, 1)
 
-    def test_closest_neighbor(self):
+    def test_closest_neighbor_index(self):
         """
         Check that the closest neighbor is one of neighbors.
         """
