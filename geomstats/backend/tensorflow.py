@@ -5,13 +5,44 @@
 import tensorflow as tf
 
 
-int32 = tf.int32
-float32 = tf.float32
 int8 = tf.int8
+int32 = tf.int32
+int64 = tf.int64
+float16 = tf.float16
+float32 = tf.float32
 
 
 def copy(x):
     return tf.Variable(x)
+
+
+def linspace(start, stop, num):
+    return tf.linspace(start, stop, num)
+
+
+def mod(x, y):
+    return tf.mod(x, y)
+
+
+def boolean_mask(x, mask, name='boolean_mask', axis=None):
+    return tf.boolean_mask(x, mask, name, axis)
+
+
+def exp(x):
+    return tf.exp(x)
+
+
+def log(x):
+    return tf.log(x)
+
+
+def hstack(x):
+    return tf.concat(x, axis=1)
+
+
+def vstack(x):
+    return tf.concat(x, axis=0)
+
 
 def cast(x, dtype):
     return tf.cast(x, dtype)
@@ -84,6 +115,7 @@ def shape(x):
 
 
 def ndim(x):
+    x = array(x)
     dims = x.get_shape()._dims
     if dims is not None:
         return len(dims)
@@ -161,6 +193,7 @@ def squeeze(x, **kwargs):
 def zeros_like(x):
     return tf.zeros_like(x)
 
+
 def ones_like(x):
     return tf.ones_like(x)
 
@@ -194,12 +227,14 @@ def expand_dims(x, axis=None):
 def clip(x, min_value, max_value):
     return tf.clip_by_value(x, min_value, max_value)
 
+
 def floor(x):
     return tf.floor(x)
 
 
 def diag(a):
     return tf.diag(a)
+
 
 def cross(a, b):
     return tf.cross(a, b)

@@ -144,14 +144,20 @@ class Hypersphere(EmbeddedManifold):
             raise NotImplementedError(
                     'Sampling from the von Mises Fisher distribution'
                     'is only implemented in dimension 2.')
-        angle = 2 * gs.pi * gs.random.rand(n_samples)
-        unit_vector = gs.vstack((gs.cos(angle), gs.sin(angle)))
+        angle = 2. * gs.pi * gs.random.rand(n_samples)
+        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
+        unit_vector = gs.hstack((gs.cos(angle), gs.sin(angle)))
         scalar = gs.random.rand(n_samples)
-        coord_z = 1 + 1/kappa*gs.log(scalar + (1-scalar)*gs.exp(-2*kappa))
-        coord_xy = gs.sqrt(1 - coord_z**2) * unit_vector
-        point = gs.vstack((coord_xy, coord_z))
 
-        return point.T
+        coord_z = 1. + 1. / kappa * gs.log(
+                      scalar + (1. - scalar) * gs.exp(-2. * kappa))
+        coord_z = gs.to_ndarray(coord_z, to_ndim=2, axis=1)
+
+        coord_xy = gs.sqrt(1. - coord_z**2) * unit_vector
+
+        point = gs.hstack((coord_xy, coord_z))
+
+        return point
 
 
 class HypersphereMetric(RiemannianMetric):
@@ -198,29 +204,59 @@ class HypersphereMetric(RiemannianMetric):
         cos_angle = gs.clip(cos_angle, -1.0, 1.0)
 
         angle = gs.arccos(cos_angle)
+        angle = gs.to_ndarray(angle, to_ndim=1)
+        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
         mask_0 = gs.isclose(angle, 0.0)
-        mask_else = gs.equal(mask_0, gs.cast(gs.array(False), gs.int8))
+        mask_else = gs.equal(mask_0, gs.array(False))
+
+        mask_0_float = gs.cast(mask_0, gs.float32)
+        mask_else_float = gs.cast(mask_else, gs.float32)
+
+        angle_0 = gs.boolean_mask(angle, mask_0)
+        angle_0 = gs.to_ndarray(angle_0, to_ndim=1)
+        angle_0 = gs.to_ndarray(angle_0, to_ndim=2, axis=1)
+        n_angle_0, _ = gs.shape(angle_0)
+
+        angle_else = gs.boolean_mask(angle, mask_else)
+        angle_else = gs.to_ndarray(angle_else, to_ndim=1)
+        angle_else = gs.to_ndarray(angle_else, to_ndim=2, axis=1)
+        n_angle_else, _ = gs.shape(angle_else)
 
         coef_1 = gs.zeros_like(angle)
         coef_2 = gs.zeros_like(angle)
 
-        coef_1[mask_0] = (
-                      1. + INV_SIN_TAYLOR_COEFFS[1] * angle[mask_0] ** 2
-                      + INV_SIN_TAYLOR_COEFFS[3] * angle[mask_0] ** 4
-                      + INV_SIN_TAYLOR_COEFFS[5] * angle[mask_0] ** 6
-                      + INV_SIN_TAYLOR_COEFFS[7] * angle[mask_0] ** 8)
-        coef_2[mask_0] = (
-                      1. + INV_TAN_TAYLOR_COEFFS[1] * angle[mask_0] ** 2
-                      + INV_TAN_TAYLOR_COEFFS[3] * angle[mask_0] ** 4
-                      + INV_TAN_TAYLOR_COEFFS[5] * angle[mask_0] ** 6
-                      + INV_TAN_TAYLOR_COEFFS[7] * angle[mask_0] ** 8)
+        coef_1 += mask_0_float * (
+           1. + INV_SIN_TAYLOR_COEFFS[1] * angle ** 2
+           + INV_SIN_TAYLOR_COEFFS[3] * angle ** 4
+           + INV_SIN_TAYLOR_COEFFS[5] * angle ** 6
+           + INV_SIN_TAYLOR_COEFFS[7] * angle ** 8)
+        coef_2 += mask_0_float * (
+           1. + INV_TAN_TAYLOR_COEFFS[1] * angle ** 2
+           + INV_TAN_TAYLOR_COEFFS[3] * angle ** 4
+           + INV_TAN_TAYLOR_COEFFS[5] * angle ** 6
+           + INV_TAN_TAYLOR_COEFFS[7] * angle ** 8)
 
-        coef_1[mask_else] = angle[mask_else] / gs.sin(angle[mask_else])
-        coef_2[mask_else] = angle[mask_else] / gs.tan(angle[mask_else])
+        # This avoids division by 0.
+        angle += mask_0_float * 1.
+
+        coef_1 += mask_else_float * angle / gs.sin(angle)
+        coef_2 += mask_else_float * angle / gs.tan(angle)
 
         log = (gs.einsum('ni,nj->nj', coef_1, point)
                - gs.einsum('ni,nj->nj', coef_2, base_point))
+
+        # TODO(nina): This tries to solve the bug of dist not
+        # being 0 between a point and itself
+        mask_same_values = gs.isclose(point, base_point)
+        mask_else = gs.equal(mask_same_values, gs.array(False))
+        mask_else_float = gs.cast(mask_else, gs.float32)
+        mask_not_same_points = gs.sum(mask_else_float, axis=1)
+        mask_same_points = gs.isclose(mask_not_same_points, 0.)
+        mask_same_points = gs.cast(mask_same_points, gs.float32)
+        mask_same_points = gs.to_ndarray(mask_same_points, to_ndim=2, axis=1)
+
+        log -= gs.cast(mask_same_points, gs.float32) * log
 
         return log
 

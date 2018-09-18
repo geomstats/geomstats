@@ -67,6 +67,7 @@ class RiemannianMetric(object):
         n_tiles_a = gs.divide(n_inner_prod, n_tangent_vec_a)
         n_tiles_a = gs.cast(n_tiles_a, gs.int32)
         tangent_vec_a = gs.tile(tangent_vec_a, [n_tiles_a, 1])
+
         n_tiles_b = gs.divide(n_inner_prod, n_tangent_vec_b)
         n_tiles_b = gs.cast(n_tiles_b, gs.int32)
         tangent_vec_b = gs.tile(tangent_vec_b, [n_tiles_b, 1])
@@ -119,7 +120,8 @@ class RiemannianMetric(object):
                 'The Riemannian logarithm is not implemented.')
 
     def geodesic(self, initial_point,
-                 end_point=None, initial_tangent_vec=None, point_ndim=1):
+                 end_point=None, initial_tangent_vec=None,
+                 point_type='vector'):
         """
         Geodesic curve defined by either:
         - an initial point and an initial tangent vector,
@@ -128,6 +130,11 @@ class RiemannianMetric(object):
 
         The geodesic is returned as a function parameterized by t.
         """
+
+        point_ndim = 1
+        if point_type == 'matrix':
+            point_ndim = 2
+
         initial_point = gs.to_ndarray(initial_point,
                                       to_ndim=point_ndim+1)
 
@@ -147,6 +154,7 @@ class RiemannianMetric(object):
                                             to_ndim=point_ndim+1)
 
         def point_on_geodesic(t):
+            t = gs.cast(t, gs.float32)
             t = gs.to_ndarray(t, to_ndim=1)
             t = gs.to_ndarray(t, to_ndim=2, axis=1)
             new_initial_point = gs.to_ndarray(
@@ -156,9 +164,15 @@ class RiemannianMetric(object):
                                           initial_tangent_vec,
                                           to_ndim=point_ndim+1)
 
-            tangent_vecs = gs.einsum('il,k...->i...',
-                                     t,
-                                     new_initial_tangent_vec)
+            if point_type == 'vector':
+                tangent_vecs = gs.einsum('il,nk->ik',
+                                         t,
+                                         new_initial_tangent_vec)
+            elif point_type == 'matrix':
+                tangent_vecs = gs.einsum('il,nkm->ikm',
+                                         t,
+                                         new_initial_tangent_vec)
+
             point_at_time_t = self.exp(tangent_vec=tangent_vecs,
                                        base_point=new_initial_point)
             return point_at_time_t
@@ -171,6 +185,7 @@ class RiemannianMetric(object):
         """
         log = self.log(point=point_b, base_point=point_a)
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
+
         return sq_dist
 
     def dist(self, point_a, point_b):
@@ -190,30 +205,33 @@ class RiemannianMetric(object):
         """
         Variance of (weighted) points wrt a base point.
         """
-        n_points = len(points)
+        if isinstance(points, list):
+            points = gs.vstack(points)
+
+        n_points = gs.shape(points)[0]
         assert n_points > 0
 
+        if isinstance(weights, list):
+            weights = gs.vstack(weights)
         if weights is None:
-            weights = gs.ones(n_points)
+            weights = gs.ones((n_points, 1))
 
-        n_weights = len(weights)
-        assert n_points == n_weights
-        sum_weights = sum(weights)
+        weights = gs.array(weights)
+        weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
+
+        sum_weights = gs.sum(weights)
 
         if base_point is None:
             base_point = self.mean(points, weights)
 
-        variance = 0
+        variance = 0.
 
-        for i in range(n_points):
-            weight_i = weights[i]
-            point_i = points[i]
+        sq_dists = self.squared_dist(base_point, points)
+        variance += gs.einsum('nk,nj->j', weights, sq_dists)
 
-            sq_dist = self.squared_dist(base_point, point_i)
-
-            variance += weight_i * sq_dist
         variance /= sum_weights
 
+        variance = gs.to_ndarray(variance, to_ndim=2, axis=1)
         return variance
 
     def mean(self, points,
@@ -224,14 +242,19 @@ class RiemannianMetric(object):
         # TODO(nina): profile this code to study performance,
         # i.e. what to do with sq_dists_between_iterates.
 
-        n_points = len(points)
+        if isinstance(points, list):
+            points = gs.vstack(points)
+        n_points = gs.shape(points)[0]
         assert n_points > 0
 
+        if isinstance(weights, list):
+            weights = gs.vstack(weights)
         if weights is None:
-            weights = gs.ones(n_points)
+            weights = gs.ones((n_points, 1))
 
-        n_weights = len(weights)
-        assert n_points == n_weights
+        weights = gs.array(weights)
+        weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
+
         sum_weights = gs.sum(weights)
 
         mean = points[0]
@@ -244,13 +267,9 @@ class RiemannianMetric(object):
             a_tangent_vector = self.log(mean, mean)
             tangent_mean = gs.zeros_like(a_tangent_vector)
 
-            for i in range(n_points):
-                # TODO(nina): abandon the for loop
-                point_i = points[i]
-                weight_i = weights[i]
-                tangent_mean = tangent_mean + weight_i * self.log(
-                                                    point=point_i,
-                                                    base_point=mean)
+            logs = self.log(point=points, base_point=mean)
+            tangent_mean += gs.einsum('nk,nj->j', weights, logs)
+
             tangent_mean /= sum_weights
 
             mean_next = self.exp(
@@ -263,9 +282,9 @@ class RiemannianMetric(object):
             variance = self.variance(points=points,
                                      weights=weights,
                                      base_point=mean_next)
-            if gs.isclose(variance, 0):
+            if gs.isclose(variance, 0.)[0, 0]:
                 break
-            if sq_dist <= epsilon * variance:
+            if (sq_dist <= epsilon * variance)[0, 0]:
                 break
 
             mean = mean_next
@@ -274,6 +293,8 @@ class RiemannianMetric(object):
         if iteration is n_max_iterations:
             print('Maximum number of iterations {} reached.'
                   'The mean may be inaccurate'.format(n_max_iterations))
+
+        mean = gs.to_ndarray(mean, to_ndim=2)
         return mean
 
     def tangent_pca(self, points, base_point=None):

@@ -4064,7 +4064,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
         initial_point = group.random_uniform()
         initial_tangent_vec = gs.array([1., 1., 1.])
-        metric = self.metrics[3]['canonical']
+        metric = self.metrics[n]['canonical']
         geodesic = metric.geodesic(initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
         n_steps = 100
@@ -4075,7 +4075,8 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         for i in range(n_steps+1):
             point_step = metric.exp(tangent_vec=i * tangent_vec_step,
                                     base_point=initial_point)
-            assert gs.all(point_step == points[i])
+
+            self.assertTrue(gs.allclose(point_step, points[i]))
 
 
 if __name__ == '__main__':

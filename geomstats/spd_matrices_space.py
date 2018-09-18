@@ -278,4 +278,4 @@ class SPDMetric(RiemannianMetric):
         return super(SPDMetric, self).geodesic(
                                       initial_point=initial_point,
                                       initial_tangent_vec=initial_tangent_vec,
-                                      point_ndim=2)
+                                      point_type='matrix')

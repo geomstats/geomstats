@@ -4,8 +4,12 @@ import numpy as np
 
 int32 = np.int32
 int8 = np.int8
-double = np.float32
+float32 = np.float32
 float64 = np.float64
+
+
+def boolean_mask(x, mask):
+    return x[mask]
 
 
 def flip(*args, **kwargs):
