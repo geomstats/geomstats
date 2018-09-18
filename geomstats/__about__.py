@@ -1,5 +1,5 @@
 # Remove -dev before releasing
-__version__ = '1.11-dev'
+__version__ = '1.12'
 
 from itertools import chain
 
