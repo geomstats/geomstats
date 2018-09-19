@@ -21,7 +21,7 @@ class TestBackendTensorFlow(tf.test.TestCase):
         self.dimension = 4
         self.space = Hypersphere(dimension=self.dimension)
         self.metric = self.space.metric
-        self.n_samples = 10
+        self.n_samples = 3
         self.depth = 3
 
     @classmethod
@@ -112,59 +112,67 @@ class TestBackendTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    # def test_intrinsic_and_extrinsic_coords_vectorization(self):
-    #     """
-    #     Test that the composition of
-    #     intrinsic_to_extrinsic_coords and
-    #     extrinsic_to_intrinsic_coords
-    #     gives the identity.
-    #     """
-    #     point_int = gs.array([[.1, 0., 0., .1],
-    #                           [.1, .1, .1, .4],
-    #                           [.1, .3, 0., .1],
-    #                           [-0.1, .1, -.4, .1],
-    #                           [0., 0., .1, .1],
-    #                           [.1, .1, .1, .1]])
-    #     point_ext = self.space.intrinsic_to_extrinsic_coords(point_int)
-    #     result = self.space.extrinsic_to_intrinsic_coords(point_ext)
-    #     expected = point_int
-    #     expected = helper.to_vector(expected)
+    def test_intrinsic_and_extrinsic_coords_vectorization(self):
+        """
+        Test that the composition of
+        intrinsic_to_extrinsic_coords and
+        extrinsic_to_intrinsic_coords
+        gives the identity.
+        """
+        point_int = tf.convert_to_tensor(
+                [[.1, 0., 0., .1],
+                 [.1, .1, .1, .4],
+                 [.1, .3, 0., .1],
+                 [-0.1, .1, -.4, .1],
+                 [0., 0., .1, .1],
+                 [.1, .1, .1, .1]])
+        point_ext = self.space.intrinsic_to_extrinsic_coords(point_int)
+        result = self.space.extrinsic_to_intrinsic_coords(point_ext)
+        expected = point_int
+        expected = helper.to_vector(expected)
 
-    #     self.assertAllClose(gs.eval(result), gs.eval(expected))
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #     n_samples = self.n_samples
-    #     point_ext = self.space.random_uniform(n_samples=n_samples)
-    #     point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
-    #     result = self.space.intrinsic_to_extrinsic_coords(point_int)
-    #     expected = point_ext
-    #     expected = helper.to_vector(expected)
+        sqrt_3 = np.sqrt(3.)
+        point_ext = tf.convert_to_tensor(
+            [[1. / sqrt_3, 0., 0., 1. / sqrt_3, 1. / sqrt_3],
+             [1. / sqrt_3, 1. / sqrt_3, 1. / sqrt_3, 0., 0.],
+             [0., 0., 1. / sqrt_3, 1. / sqrt_3, 1. / sqrt_3]],
+            dtype=np.float64)
 
-    #     self.assertAllClose(gs.eval(result), gs.eval(expected))
+        point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
+        result = self.space.intrinsic_to_extrinsic_coords(point_int)
+        expected = point_ext
+        expected = helper.to_vector(expected)
 
-    # def test_log_and_exp_general_case(self):
-    #     """
-    #     Test that the riemannian exponential
-    #     and the riemannian logarithm are inverse.
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #     Expect their composition to give the identity function.
+    def test_log_and_exp_general_case(self):
+        """
+        Test that the riemannian exponential
+        and the riemannian logarithm are inverse.
 
-    #     NB: points on the n-dimensional sphere are
-    #     (n+1)-D vectors of norm 1.
-    #     """
-    #     # Riemannian Log then Riemannian Exp
-    #     # General case
-    #     base_point = gs.array([1., 2., 3., 4., 6.])
-    #     base_point = base_point / gs.linalg.norm(base_point)
-    #     point = gs.array([0., 5., 6., 2., -1])
-    #     point = point / gs.linalg.norm(point)
+        Expect their composition to give the identity function.
 
-    #     log = self.metric.log(point=point, base_point=base_point)
-    #     result = self.metric.exp(tangent_vec=log, base_point=base_point)
-    #     expected = point
-    #     expected = helper.to_vector(expected)
+        NB: points on the n-dimensional sphere are
+        (n+1)-D vectors of norm 1.
+        """
+        # Riemannian Log then Riemannian Exp
+        # General case
+        base_point = tf.convert_to_tensor([1., 2., 3., 4., 6.])
+        base_point = base_point / gs.linalg.norm(base_point)
+        point = tf.convert_to_tensor([0., 5., 6., 2., -1.])
+        point = point / gs.linalg.norm(point)
 
-    #     with self.test_session():
-    #         self.assertAllClose(gs.eval(result), gs.eval(expected), atol=1e-8)
+        log = self.metric.log(point=point, base_point=base_point)
+        result = self.metric.exp(tangent_vec=log, base_point=base_point)
+        expected = point
+        expected = helper.to_vector(expected)
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected), atol=1e-8)
 
     # def test_log_and_exp_edge_case(self):
     #     """

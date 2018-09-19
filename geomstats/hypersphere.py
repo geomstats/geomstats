@@ -216,12 +216,10 @@ class HypersphereMetric(RiemannianMetric):
         angle_0 = gs.boolean_mask(angle, mask_0)
         angle_0 = gs.to_ndarray(angle_0, to_ndim=1)
         angle_0 = gs.to_ndarray(angle_0, to_ndim=2, axis=1)
-        n_angle_0, _ = gs.shape(angle_0)
 
         angle_else = gs.boolean_mask(angle, mask_else)
         angle_else = gs.to_ndarray(angle_else, to_ndim=1)
         angle_else = gs.to_ndarray(angle_else, to_ndim=2, axis=1)
-        n_angle_else, _ = gs.shape(angle_else)
 
         coef_1 = gs.zeros_like(angle)
         coef_2 = gs.zeros_like(angle)
