@@ -86,29 +86,31 @@ class TestBackendTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertTrue(gs.eval(self.space.belongs(result)[0, 0]))
 
-    # def test_intrinsic_and_extrinsic_coords(self):
-    #     """
-    #     Test that the composition of
-    #     intrinsic_to_extrinsic_coords and
-    #     extrinsic_to_intrinsic_coords
-    #     gives the identity.
-    #     """
-    #     with self.test_session():
-    #         point_int = gs.array([.1, 0., 0., .1])
-    #         point_ext = self.space.intrinsic_to_extrinsic_coords(point_int)
-    #         result = self.space.extrinsic_to_intrinsic_coords(point_ext)
-    #         expected = point_int
-    #         expected = helper.to_vector(expected)
+    def test_intrinsic_and_extrinsic_coords(self):
+        """
+        Test that the composition of
+        intrinsic_to_extrinsic_coords and
+        extrinsic_to_intrinsic_coords
+        gives the identity.
+        """
+        point_int = tf.convert_to_tensor([.1, 0., 0., .1])
+        point_ext = self.space.intrinsic_to_extrinsic_coords(point_int)
+        result = self.space.extrinsic_to_intrinsic_coords(point_ext)
+        expected = point_int
+        expected = helper.to_vector(expected)
 
-    #         gs.testing.assert_allclose(result, expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #         point_ext = self.space.random_uniform()
-    #         point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
-    #         result = self.space.intrinsic_to_extrinsic_coords(point_int)
-    #         expected = point_ext
-    #         expected = helper.to_vector(expected)
+        # TODO(nina): This fails if point_ext generated with tf.random_uniform
+        point_ext = 1. / (gs.sqrt(6.)) * tf.convert_to_tensor([1., 0., 0., 1., 2.])
+        point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
+        result = self.space.intrinsic_to_extrinsic_coords(point_int)
+        expected = point_ext
+        expected = helper.to_vector(expected)
 
-    #         self.assertAllClose(gs.eval(result), gs.eval(expected))
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     # def test_intrinsic_and_extrinsic_coords_vectorization(self):
     #     """
