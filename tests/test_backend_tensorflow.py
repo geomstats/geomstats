@@ -174,31 +174,31 @@ class TestBackendTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected), atol=1e-8)
 
-    # def test_log_and_exp_edge_case(self):
-    #     """
-    #     Test that the riemannian exponential
-    #     and the riemannian logarithm are inverse.
+    def test_log_and_exp_edge_case(self):
+        """
+        Test that the riemannian exponential
+        and the riemannian logarithm are inverse.
 
-    #     Expect their composition to give the identity function.
+        Expect their composition to give the identity function.
 
-    #     NB: points on the n-dimensional sphere are
-    #     (n+1)-D vectors of norm 1.
-    #     """
-    #     # Riemannian Log then Riemannian Exp
-    #     # Edge case: two very close points, base_point_2 and point_2,
-    #     # form an angle < epsilon
-    #     base_point = gs.array([1., 2., 3., 4., 6.])
-    #     base_point = base_point / gs.linalg.norm(base_point)
-    #     point = base_point + 1e-12 * gs.array([-1., -2., 1., 1., .1])
-    #     point = point / gs.linalg.norm(point)
+        NB: points on the n-dimensional sphere are
+        (n+1)-D vectors of norm 1.
+        """
+        # Riemannian Log then Riemannian Exp
+        # Edge case: two very close points, base_point_2 and point_2,
+        # form an angle < epsilon
+        base_point = tf.convert_to_tensor([1., 2., 3., 4., 6.])
+        base_point = base_point / gs.linalg.norm(base_point)
+        point = base_point + 1e-12 * tf.convert_to_tensor([-1., -2., 1., 1., .1])
+        point = point / gs.linalg.norm(point)
 
-    #     log = self.metric.log(point=point, base_point=base_point)
-    #     result = self.metric.exp(tangent_vec=log, base_point=base_point)
-    #     expected = point
-    #     expected = helper.to_vector(expected)
+        log = self.metric.log(point=point, base_point=base_point)
+        result = self.metric.exp(tangent_vec=log, base_point=base_point)
+        expected = point
+        expected = helper.to_vector(expected)
 
-    #     with self.test_session():
-    #         self.assertAllClose(gs.eval(result), gs.eval(expected))
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     # def test_exp_vectorization(self):
     #     n_samples = self.n_samples
