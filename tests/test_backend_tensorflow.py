@@ -468,20 +468,24 @@ class TestBackendTensorFlow(tf.test.TestCase):
             expected = helper.to_scalar(expected)
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    # def test_geodesic_and_belongs(self):
-    #     initial_point = self.space.random_uniform()
-    #     vector = gs.array([2., 0., -1., -2., 1.])
-    #     initial_tangent_vec = self.space.projection_to_tangent_space(
-    #                                         vector=vector,
-    #                                         base_point=initial_point)
-    #     geodesic = self.metric.geodesic(
-    #                                initial_point=initial_point,
-    #                                initial_tangent_vec=initial_tangent_vec)
+    def test_geodesic_and_belongs(self):
+        initial_point = self.space.random_uniform()
+        vector = tf.convert_to_tensor([2., 0., -1., -2., 1.])
+        initial_tangent_vec = self.space.projection_to_tangent_space(
+                                            vector=vector,
+                                            base_point=initial_point)
+        geodesic = self.metric.geodesic(
+                                   initial_point=initial_point,
+                                   initial_tangent_vec=initial_tangent_vec)
 
-    #     t = gs.linspace(start=0., stop=1., num=100)
-    #     points = geodesic(t)
-    #     with self.test_session():
-    #         self.assertTrue(gs.all(self.space.belongs(points)))
+        t = gs.linspace(start=0., stop=1., num=100)
+        points = geodesic(t)
+
+        bool_belongs = self.space.belongs(points)
+        expected = tf.convert_to_tensor(100 * [[True]])
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(expected), gs.eval(bool_belongs))
 
     # def test_variance(self):
     #     point = self.space.random_uniform()
