@@ -124,7 +124,7 @@ class Hypersphere(EmbeddedManifold):
 
         return point_intrinsic
 
-    def random_uniform(self, bound=0.5, n_samples=1):
+    def random_uniform(self, n_samples=1, bound=0.5):
         """
         Sample in the Hypersphere with the uniform distribution.
         """
