@@ -26,7 +26,6 @@ class TestBackendTensorFlow(tf.test.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        #tf.enable_eager_execution()
         os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
         importlib.reload(gs)
 
@@ -103,7 +102,8 @@ class TestBackendTensorFlow(tf.test.TestCase):
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
         # TODO(nina): This fails if point_ext generated with tf.random_uniform
-        point_ext = 1. / (gs.sqrt(6.)) * tf.convert_to_tensor([1., 0., 0., 1., 2.])
+        point_ext = (1. / (gs.sqrt(6.))
+                     * tf.convert_to_tensor([1., 0., 0., 1., 2.]))
         point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
         result = self.space.intrinsic_to_extrinsic_coords(point_int)
         expected = point_ext
@@ -189,7 +189,8 @@ class TestBackendTensorFlow(tf.test.TestCase):
         # form an angle < epsilon
         base_point = tf.convert_to_tensor([1., 2., 3., 4., 6.])
         base_point = base_point / gs.linalg.norm(base_point)
-        point = base_point + 1e-12 * tf.convert_to_tensor([-1., -2., 1., 1., .1])
+        point = (base_point
+                 + 1e-12 * tf.convert_to_tensor([-1., -2., 1., 1., .1]))
         point = point / gs.linalg.norm(point)
 
         log = self.metric.log(point=point, base_point=base_point)
@@ -411,7 +412,9 @@ class TestBackendTensorFlow(tf.test.TestCase):
     def test_dist_orthogonal_points(self):
         # Distance between two orthogonal points is pi / 2.
         point_a = gs.array([10., -2., -.5, 0., 0.])
+        point_a = point_a / gs.linalg.norm(point_a)
         point_b = gs.array([2., 10, 0., 0., 0.])
+        point_b = point_b / gs.linalg.norm(point_b)
         result = gs.dot(point_a, point_b)
         result = helper.to_scalar(result)
         expected = 0
@@ -453,7 +456,9 @@ class TestBackendTensorFlow(tf.test.TestCase):
             scalar_norm = gs.linalg.norm(base_single_point)
 
             base_point = base_point / scalar_norm
-            vector = tf.convert_to_tensor([[9., 0., -1., -2., 1.], [9., 0., -1., -2., 1]])
+            vector = tf.convert_to_tensor(
+                    [[9., 0., -1., -2., 1.],
+                     [9., 0., -1., -2., 1]])
 
             tangent_vec = self.space.projection_to_tangent_space(
                     vector=vector,
@@ -487,31 +492,36 @@ class TestBackendTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(expected), gs.eval(bool_belongs))
 
-    # def test_variance(self):
-    #     point = self.space.random_uniform()
-    #     result = self.metric.variance([point, point])
-    #     expected = 0
-    #     expected = helper.to_scalar(expected)
+    def test_variance(self):
+        point = (1. / gs.sqrt(129.)
+                 * tf.convert_to_tensor([10., -2., -5., 0., 0.]))
+        # TODO(nina): This test fails.
+        # result = self.metric.variance([point, point])
+        # expected = 0.
+        # expected = helper.to_scalar(expected)
 
-    #     with self.test_session():
-    #         self.assertAllClose(gs.eval(result), gs.eval(expected))
+        # with self.test_session():
+        #     self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    # def test_mean(self):
-    #     point = self.space.random_uniform()
-    #     result = self.metric.mean([point, point])
-    #     expected = point
+    def test_mean(self):
+        point = (1. / gs.sqrt(129.)
+                 * tf.convert_to_tensor([10., -2., -5., 0., 0.]))
+        # TODO(nina): This test fails.
+        # result = self.metric.mean([point, point])
+        # expected = point
 
-    #     with self.test_session():
-    #         self.assertAllClose(gs.eval(result), gs.eval(expected))
+        # with self.test_session():
+        #     self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    # def test_mean_and_belongs(self):
-    #     point_a = self.space.random_uniform()
-    #     point_b = self.space.random_uniform()
-    #     point_c = self.space.random_uniform()
-    #     result = self.metric.mean([point_a, point_b, point_c])
+    def test_mean_and_belongs(self):
+        point_a = self.space.random_uniform()
+        point_b = self.space.random_uniform()
+        point_c = self.space.random_uniform()
+        # TODO(nina): This test fails.
+        # result = self.metric.mean([point_a, point_b, point_c])
 
-    #     with self.test_session():
-    #         self.assertTrue(self.space.belongs(result)[0, 0])
+        # with self.test_session():
+        #     self.assertTrue(self.space.belongs(result)[0, 0])
 
 
 if __name__ == '__main__':

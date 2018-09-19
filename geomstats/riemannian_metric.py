@@ -54,6 +54,8 @@ class RiemannianMetric(object):
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
+        print(gs.shape(tangent_vec_a), 'x')
+        print(tangent_vec_a.get_shape(), 'xx')
         n_tangent_vec_a = gs.shape(tangent_vec_a)[0]
         n_tangent_vec_b = gs.shape(tangent_vec_b)[0]
 
@@ -209,7 +211,6 @@ class RiemannianMetric(object):
             points = gs.vstack(points)
 
         n_points = gs.shape(points)[0]
-        assert n_points > 0
 
         if isinstance(weights, list):
             weights = gs.vstack(weights)
@@ -245,7 +246,6 @@ class RiemannianMetric(object):
         if isinstance(points, list):
             points = gs.vstack(points)
         n_points = gs.shape(points)[0]
-        assert n_points > 0
 
         if isinstance(weights, list):
             weights = gs.vstack(weights)
