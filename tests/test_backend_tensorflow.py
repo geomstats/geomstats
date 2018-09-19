@@ -379,20 +379,22 @@ class TestBackendTensorFlow(tf.test.TestCase):
             # TODO(nina): This test fails with assertShapeEqual
             self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
 
-    # def test_norm_and_dist(self):
-    #     """
-    #     Test that the distance between two points is
-    #     the norm of their logarithm.
-    #     """
-    #     point_a = self.space.random_uniform()
-    #     point_b = self.space.random_uniform()
-    #     log = self.metric.log(point=point_a, base_point=point_b)
-    #     result = self.metric.norm(vector=log)
-    #     expected = self.metric.dist(point_a, point_b)
-    #     expected = helper.to_scalar(expected)
+    def test_norm_and_dist(self):
+        """
+        Test that the distance between two points is
+        the norm of their logarithm.
+        """
+        point_a = (1. / gs.sqrt(129.)
+                   * tf.convert_to_tensor([10., -2., -5., 0., 0.]))
+        point_b = (1. / gs.sqrt(435.)
+                   * tf.convert_to_tensor([1., -20., -5., 0., 3.]))
+        log = self.metric.log(point=point_a, base_point=point_b)
+        result = self.metric.norm(vector=log)
+        expected = self.metric.dist(point_a, point_b)
+        expected = helper.to_scalar(expected)
 
-    #     with self.test_session():
-    #         self.assertAllClose(gs.eval(result), gs.eval(expected))
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     # def test_dist_point_and_itself(self):
     #     # Distance between a point and itself is 0.
