@@ -164,6 +164,10 @@ def rand(*args, **largs):
     return np.random.rand(*args, **largs)
 
 
+def randint(*args, **kwargs):
+    return np.random.randint(*args, **kwargs)
+
+
 def isclose(*args, **kwargs):
     return np.isclose(*args, **kwargs)
 
@@ -268,6 +272,10 @@ def argmax(*args, **kwargs):
     return np.argmax(*args, **kwargs)
 
 
+def argmin(*args, **kwargs):
+    return np.argmin(*args, **kwargs)
+
+
 def diagonal(*args, **kwargs):
     return np.diagonal(*args, **kwargs)
 
@@ -298,3 +306,15 @@ def nonzero(x):
 
 def copy(x):
     return np.copy(x)
+
+
+def ix_(*args):
+    return np.ix_(*args)
+
+
+def arange(*args, **kwargs):
+    return np.arange(*args, **kwargs)
+
+
+def prod(a, axis=None):
+    return np.prod(a, axis=axis)

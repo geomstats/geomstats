@@ -35,14 +35,19 @@ class TestHypersphereMethods(unittest.TestCase):
         gs.testing.assert_allclose(belongs.shape, (1, 1))
 
     def test_random_uniform(self):
-        point = self.space.random_uniform()
+        point_bound = self.space.random_uniform()
+        point_nobound = self.space.random_uniform(bound=None)
 
-        gs.testing.assert_allclose(point.shape, (1, self.dimension + 1))
+        gs.testing.assert_allclose(point_bound.shape, (1, self.dimension + 1))
+        gs.testing.assert_allclose(point_nobound.shape,
+                                   (1, self.dimension + 1))
 
     def test_random_uniform_and_belongs(self):
-        point = self.space.random_uniform()
+        point_bound = self.space.random_uniform()
+        point_nobound = self.space.random_uniform(bound=None)
 
-        self.assertTrue(self.space.belongs(point))
+        self.assertTrue(self.space.belongs(point_bound))
+        self.assertTrue(self.space.belongs(point_nobound))
 
     def test_projection_and_belongs(self):
         point = gs.array([1., 2., 3., 4., 5.])
@@ -402,6 +407,31 @@ class TestHypersphereMethods(unittest.TestCase):
         point_c = self.space.random_uniform()
         result = self.metric.mean([point_a, point_b, point_c])
         self.assertTrue(self.space.belongs(result))
+
+    def test_diameter(self):
+        dim = 2
+        sphere = Hypersphere(dim)
+        point_a = [0., 0., 1.]
+        point_b = [1., 0., 0.]
+        point_c = [0., 0., -1.]
+        result = sphere.metric.diameter(gs.vstack((point_a, point_b, point_c)))
+        expected = gs.pi
+        gs.testing.assert_allclose(result, expected)
+        gs.testing.assert_allclose(result.size, 1)
+
+    def test_closest_neighbor_index(self):
+        """
+        Check that the closest neighbor is one of neighbors.
+        """
+        n_samples = 10
+        points = self.space.random_uniform(n_samples=n_samples)
+        point = points[0, :]
+        neighbors = points[1:, :]
+        index = self.metric.closest_neighbor_index(point, neighbors)
+        closest_neighbor = points[index, :]
+        test = gs.where((points == closest_neighbor).all(axis=1))
+        result = test[0].size > 0
+        self.assertTrue(result)
 
     def test_sample_von_mises_fisher(self):
         """

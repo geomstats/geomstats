@@ -316,3 +316,27 @@ class RiemannianMetric(object):
         tangent_eigenvecs = tangent_eigenvecs[idx]
 
         return eigenvalues, tangent_eigenvecs
+
+    def diameter(self, points):
+        """
+        Distance between the two points that are farthest away from each other
+        in points.
+        """
+        diameter = 0.0
+        n_points = points.shape[0]
+
+        for i in range(n_points-1):
+            dist_to_neighbors = self.dist(points[i, :], points[i+1:, :])
+            dist_to_farthest_neighbor = gs.amax(dist_to_neighbors)
+            diameter = gs.maximum(diameter, dist_to_farthest_neighbor)
+
+        return diameter
+
+    def closest_neighbor_index(self, point, neighbors):
+        """
+        Closest neighbor of point among neighbors.
+        """
+        dist = self.dist(point, neighbors)
+        closest_neighbor_index = gs.argmin(dist)
+
+        return closest_neighbor_index
