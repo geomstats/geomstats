@@ -3,6 +3,7 @@ Unit tests for tensorflow backend.
 """
 
 import importlib
+import numpy as np
 import os
 import tensorflow as tf
 
@@ -62,28 +63,28 @@ class TestBackendTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(expected), gs.eval(bool_belongs))
 
-    # def test_random_uniform(self):
-    #     point = self.space.random_uniform()
-    #     point_numpy = np.random.uniform(size=(1, self.dimension + 1))
+    def test_random_uniform(self):
+        point = self.space.random_uniform()
+        point_numpy = np.random.uniform(size=(1, self.dimension + 1))
 
-    #     with self.test_session():
-    #         self.assertShapeEqual(point_numpy, point)
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, point)
 
-    # def test_random_uniform_and_belongs(self):
-    #     """
-    #     Test that the random uniform method samples
-    #     on the hypersphere space.
-    #     """
-    #     point = self.space.random_uniform()
-    #     with self.test_session():
-    #         self.assertTrue(gs.eval(self.space.belongs(point)[0, 0]))
+    def test_random_uniform_and_belongs(self):
+        """
+        Test that the random uniform method samples
+        on the hypersphere space.
+        """
+        point = self.space.random_uniform()
+        with self.test_session():
+            self.assertTrue(gs.eval(self.space.belongs(point)[0, 0]))
 
-    # def test_projection_and_belongs(self):
-    #     point = gs.array([1., 2., 3., 4., 5.])
-    #     result = self.space.projection(point)
+    def test_projection_and_belongs(self):
+        point = tf.convert_to_tensor([1., 2., 3., 4., 5.])
+        result = self.space.projection(point)
 
-    #     with self.test_session():
-    #         self.assertTrue(gs.eval(self.space.belongs(result)[0, 0]))
+        with self.test_session():
+            self.assertTrue(gs.eval(self.space.belongs(result)[0, 0]))
 
     # def test_intrinsic_and_extrinsic_coords(self):
     #     """
