@@ -203,7 +203,7 @@ def trace(x, **kwargs):
 
 
 def array(x):
-    return tf.constant(x)
+    return tf.convert_to_tensor(x)
 
 
 def all(bool_tensor, axis=None, keepdims=False):
