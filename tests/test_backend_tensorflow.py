@@ -347,33 +347,37 @@ class TestBackendTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    # def test_squared_dist_vectorization(self):
-    #     n_samples = self.n_samples
+    def test_squared_dist_vectorization(self):
+        n_samples = self.n_samples
 
-    #     one_point_a = self.space.random_uniform()
-    #     one_point_b = self.space.random_uniform()
-    #     n_points_a = self.space.random_uniform(n_samples=n_samples)
-    #     n_points_b = self.space.random_uniform(n_samples=n_samples)
+        one_point_a = self.space.random_uniform()
+        one_point_b = self.space.random_uniform()
+        n_points_a = self.space.random_uniform(n_samples=n_samples)
+        n_points_b = self.space.random_uniform(n_samples=n_samples)
 
-    #     result = self.metric.squared_dist(one_point_a, one_point_b)
-    #     point_numpy = np.random.uniform(size=(1, 1))
-    #     with self.test_session():
-    #         self.assertShapeEqual(point_numpy, result)
+        result = self.metric.squared_dist(one_point_a, one_point_b)
+        point_numpy = np.random.uniform(size=(1, 1))
+        with self.test_session():
+            # TODO(nina): This test fails with assertShapeEqual
+            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
 
-    #     result = self.metric.squared_dist(n_points_a, one_point_b)
-    #     point_numpy = np.random.uniform(size=(n_samples, 1))
-    #     with self.test_session():
-    #         self.assertShapeEqual(point_numpy, result)
+        result = self.metric.squared_dist(n_points_a, one_point_b)
+        point_numpy = np.random.uniform(size=(n_samples, 1))
+        with self.test_session():
+            # TODO(nina): This test fails with assertShapeEqual
+            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
 
-    #     result = self.metric.squared_dist(one_point_a, n_points_b)
-    #     point_numpy = np.random.uniform(size=(n_samples, 1))
-    #     with self.test_session():
-    #         self.assertShapeEqual(point_numpy, result)
+        result = self.metric.squared_dist(one_point_a, n_points_b)
+        point_numpy = np.random.uniform(size=(n_samples, 1))
+        with self.test_session():
+            # TODO(nina): This test fails with assertShapeEqual
+            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
 
-    #     result = self.metric.squared_dist(n_points_a, n_points_b)
-    #     point_numpy = np.random.uniform(size=(n_samples, 1))
-    #     with self.test_session():
-    #         self.assertShapeEqual(point_numpy, result)
+        result = self.metric.squared_dist(n_points_a, n_points_b)
+        point_numpy = np.random.uniform(size=(n_samples, 1))
+        with self.test_session():
+            # TODO(nina): This test fails with assertShapeEqual
+            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
 
     # def test_norm_and_dist(self):
     #     """
