@@ -426,21 +426,21 @@ class TestBackendTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    # def test_exp_and_dist_and_projection_to_tangent_space(self):
-    #     with self.test_session():
-    #         base_point = gs.array([16., -2., -2.5, 84., 3.])
-    #         base_point = base_point / gs.linalg.norm(base_point)
-    #         vector = gs.array([9., 0., -1., -2., 1.])
-    #         tangent_vec = self.space.projection_to_tangent_space(
-    #                                                   vector=vector,
-    #                                                   base_point=base_point)
+    def test_exp_and_dist_and_projection_to_tangent_space(self):
+        with self.test_session():
+            base_point = tf.convert_to_tensor([16., -2., -2.5, 84., 3.])
+            base_point = base_point / gs.linalg.norm(base_point)
+            vector = tf.convert_to_tensor([9., 0., -1., -2., 1.])
+            tangent_vec = self.space.projection_to_tangent_space(
+                                                      vector=vector,
+                                                      base_point=base_point)
 
-    #         exp = self.metric.exp(tangent_vec=tangent_vec,
-    #                               base_point=base_point)
-    #         result = self.metric.dist(base_point, exp)
-    #         expected = gs.linalg.norm(tangent_vec) % (2 * gs.pi)
-    #         expected = helper.to_scalar(expected)
-    #         self.assertAllClose(gs.eval(result), gs.eval(expected))
+            exp = self.metric.exp(tangent_vec=tangent_vec,
+                                  base_point=base_point)
+            result = self.metric.dist(base_point, exp)
+            expected = gs.linalg.norm(tangent_vec) % (2 * gs.pi)
+            expected = helper.to_scalar(expected)
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     # def test_exp_and_dist_and_projection_to_tangent_space_vec(self):
     #     with self.test_session():
