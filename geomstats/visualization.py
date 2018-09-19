@@ -14,12 +14,13 @@ from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 SE3_GROUP = SpecialEuclideanGroup(n=3)
 SO3_GROUP = SpecialOrthogonalGroup(n=3)
+S1 = Hypersphere(dimension=1)
 S2 = Hypersphere(dimension=2)
 H2 = HyperbolicSpace(dimension=2)
 
 AX_SCALE = 1.2
 
-IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'S2',
+IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'S1', 'S2',
                'H2_poincare_disk', 'H2_poincare_half_plane', 'H2_klein_disk']
 
 
@@ -61,6 +62,30 @@ class Trihedron():
             self.arrow_3.draw(ax, color='b', **arrow_draw_kwargs)
 
 
+class Circle():
+    def __init__(self, n_angles=100, points=None):
+        angles = gs.linspace(0, 2*gs.pi, n_angles)
+        self.circle_x = gs.cos(angles)
+        self.circle_y = gs.sin(angles)
+        self.points = []
+        if points is not None:
+            self.add_points(points)
+
+    def add_points(self, points):
+        assert gs.all(S1.belongs(points))
+        points_list = points.tolist()
+        self.points.extend(points_list)
+
+    def draw(self, **plot_kwargs):
+        plt.plot(self.circle_x, self.circle_y, color="black")
+        self.draw_points(**plot_kwargs)
+
+    def draw_points(self, **plot_kwargs):
+        points = gs.array(self.points)
+        plt.plot(points[:, 0], points[:, 1], marker='o', linestyle="None",
+                 **plot_kwargs)
+
+
 class Sphere():
     """
     Create the arrays sphere_x, sphere_y, sphere_z of values
@@ -95,7 +120,7 @@ class Sphere():
         ax.plot_wireframe(self.sphere_x,
                           self.sphere_y,
                           self.sphere_z,
-                          color="black", alpha=0.9)
+                          color="black", alpha=0.2)
         self.draw_points(ax, **scatter_kwargs)
 
     def draw_points(self, ax, **scatter_kwargs):
@@ -320,7 +345,7 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
                      xlim=(-ax_s, ax_s),
                      ylim=(0., ax_s),
                      xlabel='X', ylabel='Y')
-        else:
+        elif space in ('S2', 'SO3_GROUP', 'SE3_GROUP'):
             # The 3d projection needs the Axes3d module import.
             ax = plt.subplot(111, projection='3d', aspect='equal')
             plt.setp(ax,
@@ -333,6 +358,11 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
         trihedrons = convert_to_trihedron(points, space=space)
         for t in trihedrons:
             t.draw(ax, **point_draw_kwargs)
+
+    elif space == 'S1':
+        circle = Circle()
+        circle.add_points(points)
+        circle.draw(**point_draw_kwargs)
 
     elif space == 'S2':
         sphere = Sphere()
