@@ -396,35 +396,35 @@ class TestBackendTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    # def test_dist_point_and_itself(self):
-    #     # Distance between a point and itself is 0.
-    #     point_a = gs.array([10., -2., -.5, 2., 3.])
-    #     point_b = point_a
-    #     result = self.metric.dist(point_a, point_b)
-    #     expected = 0.
-    #     expected = helper.to_scalar(expected)
+    def test_dist_point_and_itself(self):
+        # Distance between a point and itself is 0
+        point_a = (1. / gs.sqrt(129.)
+                   * tf.convert_to_tensor([10., -2., -5., 0., 0.]))
+        point_b = point_a
+        result = self.metric.dist(point_a, point_b)
+        expected = 0.
+        expected = helper.to_scalar(expected)
 
-    #     # TODO(nina): This test fails
-    #     # with self.test_session():
-    #     #    self.assertAllClose(gs.eval(result), gs.eval(expected))
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    # def test_dist_orthogonal_points(self):
-    #     # Distance between two orthogonal points is pi / 2.
-    #     point_a = gs.array([10., -2., -.5, 0., 0.])
-    #     point_b = gs.array([2., 10, 0., 0., 0.])
-    #     result = gs.dot(point_a, point_b)
-    #     result = helper.to_scalar(result)
-    #     expected = 0
-    #     expected = helper.to_scalar(expected)
-    #     with self.test_session():
-    #         self.assertAllClose(gs.eval(result), gs.eval(expected))
+    def test_dist_orthogonal_points(self):
+        # Distance between two orthogonal points is pi / 2.
+        point_a = gs.array([10., -2., -.5, 0., 0.])
+        point_b = gs.array([2., 10, 0., 0., 0.])
+        result = gs.dot(point_a, point_b)
+        result = helper.to_scalar(result)
+        expected = 0
+        expected = helper.to_scalar(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #     result = self.metric.dist(point_a, point_b)
-    #     expected = gs.pi / 2
-    #     expected = helper.to_scalar(expected)
+        result = self.metric.dist(point_a, point_b)
+        expected = gs.pi / 2
+        expected = helper.to_scalar(expected)
 
-    #     with self.test_session():
-    #         self.assertAllClose(gs.eval(result), gs.eval(expected))
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     # def test_exp_and_dist_and_projection_to_tangent_space(self):
     #     with self.test_session():
