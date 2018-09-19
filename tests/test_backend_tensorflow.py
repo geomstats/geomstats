@@ -22,7 +22,6 @@ class TestBackendTensorFlow(tf.test.TestCase):
         self.space = Hypersphere(dimension=self.dimension)
         self.metric = self.space.metric
         self.n_samples = 3
-        self.depth = 3
 
     @classmethod
     def setUpClass(cls):

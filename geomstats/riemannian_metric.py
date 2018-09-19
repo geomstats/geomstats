@@ -54,8 +54,6 @@ class RiemannianMetric(object):
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
-        print(gs.shape(tangent_vec_a), 'x')
-        print(tangent_vec_a.get_shape(), 'xx')
         n_tangent_vec_a = gs.shape(tangent_vec_a)[0]
         n_tangent_vec_b = gs.shape(tangent_vec_b)[0]
 
