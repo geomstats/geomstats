@@ -268,83 +268,84 @@ class TestBackendTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertShapeEqual(point_numpy, result)
 
-    # def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
-    #     """
-    #     Test that the riemannian exponential
-    #     and the riemannian logarithm are inverse.
+    def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
+        """
+        Test that the riemannian exponential
+        and the riemannian logarithm are inverse.
 
-    #     Expect their composition to give the identity function.
+        Expect their composition to give the identity function.
 
-    #     NB: points on the n-dimensional sphere are
-    #     (n+1)-D vectors of norm 1.
-    #     """
-    #     # Riemannian Exp then Riemannian Log
-    #     # General case
-    #     # NB: Riemannian log gives a regularized tangent vector,
-    #     # so we take the norm modulo 2 * pi.
-    #     base_point = gs.array([0., -3., 0., 3., 4.])
-    #     base_point = base_point / gs.linalg.norm(base_point)
-    #     vector = gs.array([9., 5., 0., 0., -1.])
-    #     vector = self.space.projection_to_tangent_space(
-    #                                                vector=vector,
-    #                                                base_point=base_point)
+        NB: points on the n-dimensional sphere are
+        (n+1)-D vectors of norm 1.
+        """
+        # Riemannian Exp then Riemannian Log
+        # General case
+        # NB: Riemannian log gives a regularized tangent vector,
+        # so we take the norm modulo 2 * pi.
+        base_point = tf.convert_to_tensor([0., -3., 0., 3., 4.])
+        base_point = base_point / gs.linalg.norm(base_point)
+        vector = tf.convert_to_tensor([9., 5., 0., 0., -1.])
+        vector = self.space.projection_to_tangent_space(
+                                                   vector=vector,
+                                                   base_point=base_point)
 
-    #     exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
-    #     result = self.metric.log(point=exp, base_point=base_point)
+        exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
+        result = self.metric.log(point=exp, base_point=base_point)
 
-    #     expected = vector
-    #     norm_expected = gs.linalg.norm(expected)
-    #     regularized_norm_expected = gs.mod(norm_expected, 2 * gs.pi)
-    #     expected = expected / norm_expected * regularized_norm_expected
-    #     expected = helper.to_vector(expected)
-    #     # TODO(nina): this test fails
-    #     # self.assertTrue(
-    #     #    gs.allclose(result, expected),
-    #     #    'result = {}, expected = {}'.format(result, expected))
+        expected = vector
+        norm_expected = gs.linalg.norm(expected)
+        regularized_norm_expected = gs.mod(norm_expected, 2 * gs.pi)
+        expected = expected / norm_expected * regularized_norm_expected
+        expected = helper.to_vector(expected)
+        # TODO(nina): this test fails, in numpy
+        # with self.test_session():
+        #     self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    # def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
-    #     """
-    #     Test that the riemannian exponential
-    #     and the riemannian logarithm are inverse.
+    def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
+        """
+        Test that the riemannian exponential
+        and the riemannian logarithm are inverse.
 
-    #     Expect their composition to give the identity function.
+        Expect their composition to give the identity function.
 
-    #     NB: points on the n-dimensional sphere are
-    #     (n+1)-D vectors of norm 1.
-    #     """
-    #     # Riemannian Exp then Riemannian Log
-    #     # Edge case: tangent vector has norm < epsilon
-    #     base_point = gs.array([10., -2., -.5, 34., 3.])
-    #     base_point = base_point / gs.linalg.norm(base_point)
-    #     vector = 1e-10 * gs.array([.06, -51., 6., 5., 3.])
-    #     vector = self.space.projection_to_tangent_space(
-    #                                                 vector=vector,
-    #                                                 base_point=base_point)
+        NB: points on the n-dimensional sphere are
+        (n+1)-D vectors of norm 1.
+        """
+        # Riemannian Exp then Riemannian Log
+        # Edge case: tangent vector has norm < epsilon
+        base_point = tf.convert_to_tensor([10., -2., -.5, 34., 3.])
+        base_point = base_point / gs.linalg.norm(base_point)
+        vector = 1e-10 * tf.convert_to_tensor([.06, -51., 6., 5., 3.])
+        vector = self.space.projection_to_tangent_space(
+                                                    vector=vector,
+                                                    base_point=base_point)
 
-    #     exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
-    #     result = self.metric.log(point=exp, base_point=base_point)
-    #     expected = self.space.projection_to_tangent_space(
-    #                                                 vector=vector,
-    #                                                 base_point=base_point)
-    #     expected = helper.to_vector(expected)
+        exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
+        result = self.metric.log(point=exp, base_point=base_point)
+        expected = self.space.projection_to_tangent_space(
+                                                    vector=vector,
+                                                    base_point=base_point)
+        expected = helper.to_vector(expected)
 
-    #     with self.test_session():
-    #         self.assertAllClose(gs.eval(result), gs.eval(expected), atol=1e-8)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected), atol=1e-8)
 
-    # def test_squared_norm_and_squared_dist(self):
-    #     """
-    #     Test that the squared distance between two points is
-    #     the squared norm of their logarithm.
-    #     """
-    #     point_a = self.space.random_uniform()
-    #     point_b = self.space.random_uniform()
-    #     log = self.metric.log(point=point_a, base_point=point_b)
-    #     result = self.metric.squared_norm(vector=log)
-    #     expected = self.metric.squared_dist(point_a, point_b)
-    #     expected = helper.to_scalar(expected)
+    def test_squared_norm_and_squared_dist(self):
+        """
+        Test that the squared distance between two points is
+        the squared norm of their logarithm.
+        """
+        point_a = (1. / gs.sqrt(129.)
+                   * tf.convert_to_tensor([10., -2., -5., 0., 0.]))
+        point_b = (1. / gs.sqrt(435.)
+                   * tf.convert_to_tensor([1., -20., -5., 0., 3.]))
+        log = self.metric.log(point=point_a, base_point=point_b)
+        result = self.metric.squared_norm(vector=log)
+        expected = self.metric.squared_dist(point_a, point_b)
+        expected = helper.to_scalar(expected)
 
-    #     with self.test_session():
-    #         self.assertAllClose(gs.eval(result), gs.eval(expected))
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     # def test_squared_dist_vectorization(self):
     #     n_samples = self.n_samples
