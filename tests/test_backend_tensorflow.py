@@ -200,71 +200,73 @@ class TestBackendTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    # def test_exp_vectorization(self):
-    #     n_samples = self.n_samples
-    #     dim = self.dimension + 1
+    def test_exp_vectorization(self):
+        n_samples = self.n_samples
+        dim = self.dimension + 1
 
-    #     one_vec = self.space.random_uniform()
-    #     one_base_point = self.space.random_uniform()
-    #     n_vecs = self.space.random_uniform(n_samples=n_samples)
-    #     n_base_points = self.space.random_uniform(n_samples=n_samples)
+        with self.test_session():
+            one_vec = self.space.random_uniform()
+            one_base_point = self.space.random_uniform()
+            n_vecs = self.space.random_uniform(n_samples=n_samples)
+            n_base_points = self.space.random_uniform(n_samples=n_samples)
 
-    #     one_tangent_vec = self.space.projection_to_tangent_space(
-    #         one_vec, base_point=one_base_point)
-    #     result = self.metric.exp(one_tangent_vec, one_base_point)
-    #     point_numpy = np.random.uniform(size=(1, dim))
-    #     with self.test_session():
-    #         self.assertShapeEqual(point_numpy, result)
+            one_tangent_vec = self.space.projection_to_tangent_space(
+                one_vec, base_point=one_base_point)
+            result = self.metric.exp(one_tangent_vec, one_base_point)
+            point_numpy = np.random.uniform(size=(1, dim))
+            # TODO(nina): This test fails with assertShapeEqual
+            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
 
-    #     n_tangent_vecs = self.space.projection_to_tangent_space(
-    #         n_vecs, base_point=one_base_point)
-    #     result = self.metric.exp(n_tangent_vecs, one_base_point)
-    #     point_numpy = np.random.uniform(size=(n_samples, dim))
-    #     with self.test_session():
-    #         self.assertShapeEqual(point_numpy, result)
+        n_tangent_vecs = self.space.projection_to_tangent_space(
+            n_vecs, base_point=one_base_point)
+        result = self.metric.exp(n_tangent_vecs, one_base_point)
+        point_numpy = np.random.uniform(size=(n_samples, dim))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
 
-    #     one_tangent_vec = self.space.projection_to_tangent_space(
-    #         one_vec, base_point=n_base_points)
-    #     result = self.metric.exp(one_tangent_vec, n_base_points)
-    #     point_numpy = np.random.uniform(size=(n_samples, dim))
-    #     with self.test_session():
-    #         self.assertShapeEqual(point_numpy, result)
+        one_tangent_vec = self.space.projection_to_tangent_space(
+            one_vec, base_point=n_base_points)
+        result = self.metric.exp(one_tangent_vec, n_base_points)
+        point_numpy = np.random.uniform(size=(n_samples, dim))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
 
-    #     n_tangent_vecs = self.space.projection_to_tangent_space(
-    #         n_vecs, base_point=n_base_points)
-    #     result = self.metric.exp(n_tangent_vecs, n_base_points)
-    #     point_numpy = np.random.uniform(size=(n_samples, dim))
-    #     with self.test_session():
-    #         self.assertShapeEqual(point_numpy, result)
+        n_tangent_vecs = self.space.projection_to_tangent_space(
+            n_vecs, base_point=n_base_points)
+        result = self.metric.exp(n_tangent_vecs, n_base_points)
+        point_numpy = np.random.uniform(size=(n_samples, dim))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
 
-    # def test_log_vectorization(self):
-    #     n_samples = self.n_samples
-    #     dim = self.dimension + 1
+    def test_log_vectorization(self):
+        n_samples = self.n_samples
+        dim = self.dimension + 1
 
-    #     one_base_point = self.space.random_uniform()
-    #     one_point = self.space.random_uniform()
-    #     n_points = self.space.random_uniform(n_samples=n_samples)
-    #     n_base_points = self.space.random_uniform(n_samples=n_samples)
+        one_base_point = self.space.random_uniform()
+        one_point = self.space.random_uniform()
+        n_points = self.space.random_uniform(n_samples=n_samples)
+        n_base_points = self.space.random_uniform(n_samples=n_samples)
 
-    #     result = self.metric.log(one_point, one_base_point)
-    #     point_numpy = np.random.uniform(size=(1, dim))
-    #     with self.test_session():
-    #         self.assertShapeEqual(point_numpy, result)
+        result = self.metric.log(one_point, one_base_point)
+        point_numpy = np.random.uniform(size=(1, dim))
+        with self.test_session():
+            # TODO(nina): This test fails with assertShapeEqual
+            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
 
-    #     result = self.metric.log(n_points, one_base_point)
-    #     point_numpy = np.random.uniform(size=(n_samples, dim))
-    #     with self.test_session():
-    #         self.assertShapeEqual(point_numpy, result)
+        result = self.metric.log(n_points, one_base_point)
+        point_numpy = np.random.uniform(size=(n_samples, dim))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
 
-    #     result = self.metric.log(one_point, n_base_points)
-    #     point_numpy = np.random.uniform(size=(n_samples, dim))
-    #     with self.test_session():
-    #         self.assertShapeEqual(point_numpy, result)
+        result = self.metric.log(one_point, n_base_points)
+        point_numpy = np.random.uniform(size=(n_samples, dim))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
 
-    #     result = self.metric.log(n_points, n_base_points)
-    #     point_numpy = np.random.uniform(size=(n_samples, dim))
-    #     with self.test_session():
-    #         self.assertShapeEqual(point_numpy, result)
+        result = self.metric.log(n_points, n_base_points)
+        point_numpy = np.random.uniform(size=(n_samples, dim))
+        with self.test_session():
+            self.assertShapeEqual(point_numpy, result)
 
     # def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
     #     """
