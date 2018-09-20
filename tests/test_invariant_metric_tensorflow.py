@@ -24,9 +24,7 @@ class TestInvariantMetricMethodsTensorFlow(tf.test.TestCase):
         group = SpecialEuclideanGroup(n=n)
 
         # Diagonal left and right invariant metrics
-        diag_mat_at_identity = gs.zeros([group.dimension, group.dimension])
-        diag_mat_at_identity[0:3, 0:3] = 1 * gs.eye(3)
-        diag_mat_at_identity[3:6, 3:6] = 1 * gs.eye(3)
+        diag_mat_at_identity = gs.eye(group.dimension)
 
         left_diag_metric = InvariantMetric(
                    group=group,
