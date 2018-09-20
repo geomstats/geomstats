@@ -140,6 +140,10 @@ def maximum(a, b):
     return np.maximum(a, b)
 
 
+def greater(a, b):
+    return np.greater(a, b)
+
+
 def greater_equal(a, b):
     return np.greater_equal(a, b)
 
