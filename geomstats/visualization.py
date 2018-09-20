@@ -73,17 +73,19 @@ class Circle():
 
     def add_points(self, points):
         assert gs.all(S1.belongs(points))
-        points_list = points.tolist()
-        self.points.extend(points_list)
+        if not isinstance(points, list):
+            points = points.tolist()
+        self.points.append(points)
 
     def draw(self, **plot_kwargs):
         plt.plot(self.circle_x, self.circle_y, color="black")
         self.draw_points(**plot_kwargs)
 
     def draw_points(self, **plot_kwargs):
-        points = gs.array(self.points)
-        plt.plot(points[:, 0], points[:, 1], marker='o', linestyle="None",
-                 **plot_kwargs)
+        for points in self.points:
+            points = gs.array(points)
+            plt.plot(points[:, 0], points[:, 1], marker='o', linestyle="None",
+                     **plot_kwargs)
 
 
 class Sphere():
@@ -113,21 +115,24 @@ class Sphere():
 
     def add_points(self, points):
         assert gs.all(S2.belongs(points))
-        points_list = points.tolist()
-        self.points.extend(points_list)
+        if not isinstance(points, list):
+            points = points.tolist()
+        self.points.append(points)
 
     def draw(self, ax, **scatter_kwargs):
         ax.plot_wireframe(self.sphere_x,
                           self.sphere_y,
                           self.sphere_z,
                           color="black", alpha=0.2)
-        self.draw_points(ax, **scatter_kwargs)
+        if self.points:
+            self.draw_points(ax, **scatter_kwargs)
 
     def draw_points(self, ax, **scatter_kwargs):
-        points_x = gs.vstack([point[0] for point in self.points])
-        points_y = gs.vstack([point[1] for point in self.points])
-        points_z = gs.vstack([point[2] for point in self.points])
-        ax.scatter(points_x, points_y, points_z, **scatter_kwargs)
+        for points in self.points:
+            points_x = gs.vstack([point[0] for point in points])
+            points_y = gs.vstack([point[1] for point in points])
+            points_z = gs.vstack([point[2] for point in points])
+            ax.scatter(points_x, points_y, points_z, **scatter_kwargs)
 
     def fibonnaci_points(self, n_points=16000):
         """Spherical Fibonacci point sets yield nearly uniform point
@@ -184,8 +189,9 @@ class PoincareDisk():
     def add_points(self, points):
         assert gs.all(H2.belongs(points))
         points = self.convert_to_poincare_coordinates(points)
-        points_list = points.tolist()
-        self.points.extend(points_list)
+        if not isinstance(points, list):
+            points = points.tolist()
+        self.points.extend(points)
 
     def convert_to_poincare_coordinates(self, points):
         poincare_coords = points[:, 1:] / (1 + points[:, :1])
@@ -208,8 +214,9 @@ class PoincareHalfPlane():
     def add_points(self, points):
         assert gs.all(H2.belongs(points))
         points = self.convert_to_half_plane_coordinates(points)
-        points_list = points.tolist()
-        self.points.extend(points_list)
+        if not isinstance(points, list):
+            points = points.tolist()
+        self.points.extend(points)
 
     def convert_to_half_plane_coordinates(self, points):
         disk_coords = points[:, 1:] / (1 + points[:, :1])
@@ -239,8 +246,9 @@ class KleinDisk():
     def add_points(self, points):
         assert gs.all(H2.belongs(points))
         points = self.convert_to_klein_coordinates(points)
-        points_list = points.tolist()
-        self.points.extend(points_list)
+        if not isinstance(points, list):
+            points = points.tolist()
+        self.points.extend(points)
 
     def convert_to_klein_coordinates(self, points):
         poincare_coords = points[:, 1:] / (1 + points[:, :1])
