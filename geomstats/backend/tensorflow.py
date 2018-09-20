@@ -131,6 +131,10 @@ def maximum(x, y):
     return tf.maximum(x, y)
 
 
+def greater(x, y):
+    return tf.greater(x, y)
+
+
 def greater_equal(x, y):
     return tf.greater_equal(x, y)
 
