@@ -315,7 +315,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         vec = gs.to_ndarray(vec, to_ndim=2)
         n_vecs, vec_dim = vec.shape
 
-        vec_dim = float(vec_dim)  #gs.cast(vec_dim, gs.float32)
+        vec_dim = gs.cast(vec_dim, gs.float32)
         mat_dim = int((1. + gs.sqrt(1. + 8. * vec_dim)) / 2.)
         assert mat_dim == self.n
 
@@ -332,21 +332,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 cross_prod_2 = gs.cross(basis_vec_2, vec[i])
                 cross_prod_3 = gs.cross(basis_vec_3, vec[i])
 
-                cross_prod_1 = gs.to_ndarray(cross_prod_1, to_ndim=2)
-                cross_prod_2 = gs.to_ndarray(cross_prod_2, to_ndim=2)
-                cross_prod_3 = gs.to_ndarray(cross_prod_3, to_ndim=2)
-
-                cross_prod_i = gs.concatenate(
+                cross_prod = gs.concatenate(
                     [cross_prod_1, cross_prod_2, cross_prod_3], axis=0)
-
-                #print(gs.shape(n_vecs))
-                #n_vecs = gs.array([n_vecs])
-                #print(gs.shape(n_vecs))
-                #cross_prod_i = gs.to_ndarray(cross_prod_i, to_ndim=3)
-                #cross_prod_i = gs.tile(cross_prod_i, (n_vecs, 1, 1))
-
-                skew_mat += gs.einsum(
-                    'n,ij->nij', mask_i_float, cross_prod_i)
+                skew_mat += mask_i_float * cross_prod
         else:
             upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
             for i in range(n_vecs):
