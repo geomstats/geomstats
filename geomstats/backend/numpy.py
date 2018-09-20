@@ -180,6 +180,10 @@ def less_equal(a, b):
     return np.less_equal(a, b)
 
 
+def less(a, b):
+    return np.less(a, b)
+
+
 def eye(*args, **kwargs):
     return np.eye(*args, **kwargs)
 

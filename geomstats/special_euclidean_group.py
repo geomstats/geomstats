@@ -101,11 +101,14 @@ class SpecialEuclideanGroup(LieGroup):
             rotations = self.rotations
             dim_rotations = rotations.dimension
 
-            regularized_point = gs.zeros_like(point)
             rot_vec = point[:, :dim_rotations]
-            regularized_point[:, :dim_rotations] = rotations.regularize(
+            regularized_rot_vec = rotations.regularize(
                 rot_vec, point_type=point_type)
-            regularized_point[:, dim_rotations:] = point[:, dim_rotations:]
+
+            translation = point[:, dim_rotations:]
+
+            regularized_point = gs.concatenate(
+                [regularized_rot_vec, translation], axis=1)
 
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)

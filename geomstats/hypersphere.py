@@ -212,13 +212,13 @@ class HypersphereMetric(RiemannianMetric):
         norm_point = self.embedding_metric.norm(point)
         inner_prod = self.embedding_metric.inner_product(base_point, point)
         cos_angle = inner_prod / (norm_base_point * norm_point)
-        cos_angle = gs.clip(cos_angle, -1.0, 1.0)
+        cos_angle = gs.clip(cos_angle, -1., 1.)
 
         angle = gs.arccos(cos_angle)
         angle = gs.to_ndarray(angle, to_ndim=1)
         angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
-        mask_0 = gs.isclose(angle, 0.0)
+        mask_0 = gs.isclose(angle, 0.)
         mask_else = gs.equal(mask_0, gs.array(False))
 
         mask_0_float = gs.cast(mask_0, gs.float32)

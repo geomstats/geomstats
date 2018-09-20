@@ -14,7 +14,7 @@ float64 = tf.float64
 
 
 def copy(x):
-    return tf.Variable(x)
+    return tf.contrib.eager.Variable(x)
 
 
 def linspace(start, stop, num):
@@ -161,6 +161,10 @@ def isclose(x, y, rtol=1e-05, atol=1e-08):
 
 def allclose(x, y, rtol=1e-05, atol=1e-08):
     return tf.reduce_all(isclose(x, y, rtol=rtol, atol=atol))
+
+
+def less(x, y):
+    return tf.less(x, y)
 
 
 def less_equal(x, y):
