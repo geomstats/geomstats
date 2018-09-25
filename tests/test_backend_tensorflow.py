@@ -100,7 +100,7 @@ class TestBackendTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-        # TODO(nina): This fails if point_ext generated with tf.random_uniform
+        # TODO(nina): Fix that the test fails if point_ext generated with tf.random_uniform
         point_ext = (1. / (gs.sqrt(6.))
                      * tf.convert_to_tensor([1., 0., 0., 1., 2.]))
         point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
@@ -214,7 +214,7 @@ class TestBackendTensorFlow(tf.test.TestCase):
                 one_vec, base_point=one_base_point)
             result = self.metric.exp(one_tangent_vec, one_base_point)
             point_numpy = np.random.uniform(size=(1, dim))
-            # TODO(nina): This test fails with assertShapeEqual
+            # TODO(nina): Fix that this test fails with assertShapeEqual
             self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
 
         n_tangent_vecs = self.space.projection_to_tangent_space(
@@ -250,7 +250,7 @@ class TestBackendTensorFlow(tf.test.TestCase):
         result = self.metric.log(one_point, one_base_point)
         point_numpy = np.random.uniform(size=(1, dim))
         with self.test_session():
-            # TODO(nina): This test fails with assertShapeEqual
+            # TODO(nina): Fix that this test fails with assertShapeEqual
             self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
 
         result = self.metric.log(n_points, one_base_point)
@@ -297,7 +297,7 @@ class TestBackendTensorFlow(tf.test.TestCase):
         regularized_norm_expected = gs.mod(norm_expected, 2 * gs.pi)
         expected = expected / norm_expected * regularized_norm_expected
         expected = helper.to_vector(expected)
-        # TODO(nina): this test fails, in numpy
+        # TODO(nina): Fix that this test fails, in numpy
         # with self.test_session():
         #     self.assertAllClose(gs.eval(result), gs.eval(expected))
 
@@ -358,25 +358,25 @@ class TestBackendTensorFlow(tf.test.TestCase):
         result = self.metric.squared_dist(one_point_a, one_point_b)
         point_numpy = np.random.uniform(size=(1, 1))
         with self.test_session():
-            # TODO(nina): This test fails with assertShapeEqual
+            # TODO(nina): Fix that this test fails with assertShapeEqual
             self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
 
         result = self.metric.squared_dist(n_points_a, one_point_b)
         point_numpy = np.random.uniform(size=(n_samples, 1))
         with self.test_session():
-            # TODO(nina): This test fails with assertShapeEqual
+            # TODO(nina): Fix that this test fails with assertShapeEqual
             self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
 
         result = self.metric.squared_dist(one_point_a, n_points_b)
         point_numpy = np.random.uniform(size=(n_samples, 1))
         with self.test_session():
-            # TODO(nina): This test fails with assertShapeEqual
+            # TODO(nina): Fix that this test fails with assertShapeEqual
             self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
 
         result = self.metric.squared_dist(n_points_a, n_points_b)
         point_numpy = np.random.uniform(size=(n_samples, 1))
         with self.test_session():
-            # TODO(nina): This test fails with assertShapeEqual
+            # TODO(nina): Fix that this test fails with assertShapeEqual
             self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
 
     def test_norm_and_dist(self):
@@ -494,7 +494,7 @@ class TestBackendTensorFlow(tf.test.TestCase):
     def test_variance(self):
         point = (1. / gs.sqrt(129.)
                  * tf.convert_to_tensor([10., -2., -5., 0., 0.]))
-        # TODO(nina): This test fails.
+        # TODO(nina): Fix that this test fails.
         # result = self.metric.variance([point, point])
         # expected = 0.
         # expected = helper.to_scalar(expected)
@@ -505,7 +505,7 @@ class TestBackendTensorFlow(tf.test.TestCase):
     def test_mean(self):
         point = (1. / gs.sqrt(129.)
                  * tf.convert_to_tensor([10., -2., -5., 0., 0.]))
-        # TODO(nina): This test fails.
+        # TODO(nina): Fix that this test fails.
         # result = self.metric.mean([point, point])
         # expected = point
 
@@ -516,7 +516,7 @@ class TestBackendTensorFlow(tf.test.TestCase):
         point_a = self.space.random_uniform()
         point_b = self.space.random_uniform()
         point_c = self.space.random_uniform()
-        # TODO(nina): This test fails.
+        # TODO(nina): Fix that this test fails.
         # result = self.metric.mean([point_a, point_b, point_c])
 
         # with self.test_session():
