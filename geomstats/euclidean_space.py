@@ -28,7 +28,7 @@ class EuclideanSpace(Manifold):
         point = gs.to_ndarray(point, to_ndim=2)
         n_points, point_dim = point.shape
         belongs = point_dim == self.dimension
-        belongs = gs.repeat(belongs, repeats=n_points, axis=0)
+        belongs = gs.tile(belongs, (n_points, 1))
         belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
 
         return belongs
