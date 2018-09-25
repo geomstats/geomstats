@@ -74,8 +74,7 @@ def plot_and_save_video(geodesics,
     with writer.saving(fig, out, dpi=dpi):
         for points in geodesics[1:]:
             points = vectorization.to_ndarray(points, to_ndim=2)
-            sphere.add_points(points)
-            sphere.draw_points(ax, color=color, marker='.')
+            sphere.draw_points(ax, points=points, color=color, marker='.')
             writer.grab_frame()
 
 
