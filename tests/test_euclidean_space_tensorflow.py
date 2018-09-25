@@ -22,7 +22,6 @@ class TestEuclideanSpaceMethodsTensorFlow(tf.test.TestCase):
         self.dimension = 2
         self.space = EuclideanSpace(self.dimension)
         self.metric = self.space.metric
-
         self.n_samples = 3
 
     @classmethod
