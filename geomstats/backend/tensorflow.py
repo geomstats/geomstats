@@ -10,6 +10,7 @@ int32 = tf.int32
 int64 = tf.int64
 float16 = tf.float16
 float32 = tf.float32
+float64 = tf.float64
 
 
 def copy(x):
@@ -203,7 +204,7 @@ def trace(x, **kwargs):
 
 
 def array(x):
-    return tf.constant(x)
+    return tf.convert_to_tensor(x)
 
 
 def all(bool_tensor, axis=None, keepdims=False):
