@@ -75,17 +75,21 @@ class Circle():
         assert gs.all(S1.belongs(points))
         if not isinstance(points, list):
             points = points.tolist()
-        self.points.append(points)
+        self.points.extend(points)
 
     def draw(self, **plot_kwargs):
         plt.plot(self.circle_x, self.circle_y, color="black")
-        self.draw_points(**plot_kwargs)
+        if self.points:
+            self.draw_points(**plot_kwargs)
 
-    def draw_points(self, **plot_kwargs):
-        for points in self.points:
-            points = gs.array(points)
-            plt.plot(points[:, 0], points[:, 1], marker='o', linestyle="None",
-                     **plot_kwargs)
+    def draw_points(self, points=None, **plot_kwargs):
+        if points is None:
+            points = self.points
+        else:
+            points = points
+        points = gs.array(points)
+        plt.plot(points[:, 0], points[:, 1], marker='o', linestyle="None",
+                 **plot_kwargs)
 
 
 class Sphere():
@@ -117,7 +121,7 @@ class Sphere():
         assert gs.all(S2.belongs(points))
         if not isinstance(points, list):
             points = points.tolist()
-        self.points.append(points)
+        self.points.extend(points)
 
     def draw(self, ax, **scatter_kwargs):
         ax.plot_wireframe(self.sphere_x,
@@ -127,12 +131,15 @@ class Sphere():
         if self.points:
             self.draw_points(ax, **scatter_kwargs)
 
-    def draw_points(self, ax, **scatter_kwargs):
-        for points in self.points:
-            points_x = gs.vstack([point[0] for point in points])
-            points_y = gs.vstack([point[1] for point in points])
-            points_z = gs.vstack([point[2] for point in points])
-            ax.scatter(points_x, points_y, points_z, **scatter_kwargs)
+    def draw_points(self, ax, points=None, **scatter_kwargs):
+        if points is None:
+            points = self.points
+        else:
+            points = points
+        points_x = gs.vstack([point[0] for point in points])
+        points_y = gs.vstack([point[1] for point in points])
+        points_z = gs.vstack([point[2] for point in points])
+        ax.scatter(points_x, points_y, points_z, **scatter_kwargs)
 
     def fibonnaci_points(self, n_points=16000):
         """Spherical Fibonacci point sets yield nearly uniform point
