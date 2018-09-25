@@ -315,7 +315,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         vec = gs.to_ndarray(vec, to_ndim=2)
         n_vecs, vec_dim = vec.shape
 
-        vec_dim = gs.cast(vec_dim, gs.float32)
+        vec_dim = float(vec_dim)  #gs.cast(vec_dim, gs.float32)
         mat_dim = int((1. + gs.sqrt(1. + 8. * vec_dim)) / 2.)
         assert mat_dim == self.n
 
