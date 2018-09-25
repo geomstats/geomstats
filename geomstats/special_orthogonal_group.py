@@ -315,7 +315,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         vec = gs.to_ndarray(vec, to_ndim=2)
         n_vecs, vec_dim = vec.shape
 
-        vec_dim = gs.cast(vec_dim, gs.float32)
+        vec_dim = float(vec_dim)  #gs.cast(vec_dim, gs.float32)
         mat_dim = int((1. + gs.sqrt(1. + 8. * vec_dim)) / 2.)
         assert mat_dim == self.n
 
@@ -482,21 +482,35 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             coef_2 = gs.zeros_like(angle)
 
             mask_0 = gs.isclose(angle, 0.)
-            coef_1[mask_0] = 1 - (angle[mask_0] ** 2) / 6
-            coef_2[mask_0] = 1 / 2 - angle[mask_0] ** 2
+            mask_0_float = gs.cast(mask_0, gs.float32)
 
-            coef_1[~mask_0] = gs.sin(angle[~mask_0]) / angle[~mask_0]
-            coef_2[~mask_0] = ((1 - gs.cos(angle[~mask_0]))
-                               / (angle[~mask_0] ** 2))
+            coef_1 += mask_0_float * (1 - (angle ** 2) / 6)
+            coef_2 += mask_0_float * (1 / 2 - angle ** 2)
+
+            mask_else = ~mask_0
+            mask_else_float = gs.cast(mask_else, gs.float32)
+
+            # This avoids division by 0.
+            angle += mask_0_float * 1.
+
+            coef_1 += mask_else_float * (gs.sin(angle) / angle)
+            coef_2 += mask_else_float * (
+                (1 - gs.cos(angle)) / (angle ** 2))
 
             term_1 = gs.zeros((n_rot_vecs,) + (self.n,) * 2)
             term_2 = gs.zeros_like(term_1)
 
-            for i in range(n_rot_vecs):
-                term_1[i] = (gs.eye(self.dimension)
-                             + coef_1[i] * skew_rot_vec[i])
-                term_2[i] = (coef_2[i]
-                             * gs.matmul(skew_rot_vec[i], skew_rot_vec[i]))
+            coef_1 = gs.squeeze(coef_1, axis=0)
+            term_1 = (gs.eye(self.dimension)
+                      + gs.einsum('n,njk->njk', coef_1, skew_rot_vec))
+
+            term_2 = (coef_2
+                      + gs.einsum('nij,njk->nik', skew_rot_vec, skew_rot_vec))
+            #for i in range(n_rot_vecs):
+            #    term_1[i] = (gs.eye(self.dimension)
+            #                 + coef_1[i] * skew_rot_vec[i])
+            #    term_2[i] = (coef_2[i]
+            #                 * gs.matmul(skew_rot_vec[i], skew_rot_vec[i]))
             rot_mat = term_1 + term_2
 
             rot_mat = self.projection(rot_mat)
