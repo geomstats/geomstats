@@ -336,16 +336,17 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 cross_prod_2 = gs.to_ndarray(cross_prod_2, to_ndim=2)
                 cross_prod_3 = gs.to_ndarray(cross_prod_3, to_ndim=2)
 
-                cross_prod = gs.concatenate(
+                cross_prod_i = gs.concatenate(
                     [cross_prod_1, cross_prod_2, cross_prod_3], axis=0)
 
                 #print(gs.shape(n_vecs))
                 #n_vecs = gs.array([n_vecs])
                 #print(gs.shape(n_vecs))
-                cross_prod = gs.tile(cross_prod, (n_vecs, 1))
+                #cross_prod_i = gs.to_ndarray(cross_prod_i, to_ndim=3)
+                #cross_prod_i = gs.tile(cross_prod_i, (n_vecs, 1, 1))
 
                 skew_mat += gs.einsum(
-                    'n,nij->nij', mask_i_float, cross_prod)
+                    'n,ij->nij', mask_i_float, cross_prod_i)
         else:
             upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
             for i in range(n_vecs):
