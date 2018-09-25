@@ -286,7 +286,9 @@ class SpecialEuclideanGroup(LieGroup):
 
         dim = self.dimension
         rotations = self.rotations
+        translations = self.translations
         dim_rotations = rotations.dimension
+        dim_translations = translations.dimension
 
         point = self.regularize(point, point_type=point_type)
 
@@ -300,21 +302,33 @@ class SpecialEuclideanGroup(LieGroup):
                                           point=rot_vec,
                                           left_or_right=left_or_right,
                                           point_type=point_type)
-            jacobian[:, :dim_rotations, :dim_rotations] = jacobian_rot
+            block_zeros_1 = gs.zeros((1, dim_rotations, dim_translations))
+            jacobian_block_line_1 = gs.concatenate(
+                [jacobian_rot, block_zeros_1], axis=2)
+            #jacobian[:, :dim_rotations, :dim_rotations] = jacobian_rot
 
             if left_or_right == 'left':
                 rot_mat = self.rotations.matrix_from_rotation_vector(
                         rot_vec)
                 jacobian_trans = rot_mat
+                block_zeros_2 = gs.zeros((1, dim_translations, dim_rotations))
+                jacobian_block_line_2 = gs.concatenate(
 
-                jacobian[:, dim_rotations:, dim_rotations:] = jacobian_trans
+                        [block_zeros_2, jacobian_trans], axis=2)
+
+                #jacobian[:, dim_rotations:, dim_rotations:] = jacobian_trans
 
             else:
                 inv_skew_mat = - self.rotations.skew_matrix_from_vector(
                     rot_vec)
+                eye = gs.to_ndarray(gs.eye(self.n), to_ndim=3)
+                jacobian_block_line_2 = gs.concatenate(
+                    [inv_skew_mat, eye], axis=2)
 
-                jacobian[:, dim_rotations:, :dim_rotations] = inv_skew_mat
-                jacobian[:, dim_rotations:, dim_rotations:] = gs.eye(self.n)
+                #jacobian[:, dim_rotations:, :dim_rotations] = inv_skew_mat
+                #jacobian[:, dim_rotations:, dim_rotations:] = gs.eye(self.n)
+            jacobian = gs.concatenate(
+                [jacobian_block_line_1, jacobian_block_line_2], axis=1)
 
             assert jacobian.ndim == 3
 
