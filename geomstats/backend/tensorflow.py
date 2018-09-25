@@ -13,6 +13,10 @@ float32 = tf.float32
 float64 = tf.float64
 
 
+def outer(x, y):
+    return tf.einsum('i,j->ij', x, y)
+
+
 def copy(x):
     return tf.contrib.eager.Variable(x)
 

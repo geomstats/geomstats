@@ -28,6 +28,21 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
+def get_mask_i_float(i, n):
+    first_zeros = gs.array([])
+    if i != 0:
+        first_zeros = gs.zeros((i - 1,))
+    one = gs.ones((1,))
+    last_zeros = gs.array([])
+    if i != n - 1:
+        last_zeros = gs.zeros((n - i,))
+
+    mask_i_float = gs.concatenate(
+        [first_zeros, one, last_zeros], axis=0)
+
+    return mask_i_float
+
+
 class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
     """
     Class for the special orthogonal group SO(n),
@@ -307,16 +322,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         skew_mat = gs.zeros((n_vecs,) + (self.n,) * 2)
         if self.n == 3:
             for i in range(n_vecs):
-                first_zeros = gs.array([])
-                if i != 0:
-                    first_zeros = gs.zeros((i - 1,))
-                one = gs.ones((1,))
-                last_zeros = gs.array([])
-                if i != n_vecs - 1:
-                    last_zeros = gs.zeros((n_vecs - i,))
-
-                mask_i_float = gs.concatenate(
-                    [first_zeros, one, last_zeros], axis=0)
+                mask_i_float = get_mask_i_float(i, n_vecs)
 
                 basis_vec_1 = gs.array([1., 0., 0.])
                 basis_vec_2 = gs.array([0., 1., 0.])
@@ -330,16 +336,17 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 cross_prod_2 = gs.to_ndarray(cross_prod_2, to_ndim=2)
                 cross_prod_3 = gs.to_ndarray(cross_prod_3, to_ndim=2)
 
-                cross_prod = gs.concatenate(
+                cross_prod_i = gs.concatenate(
                     [cross_prod_1, cross_prod_2, cross_prod_3], axis=0)
 
                 #print(gs.shape(n_vecs))
                 #n_vecs = gs.array([n_vecs])
                 #print(gs.shape(n_vecs))
-                cross_prod = gs.tile(cross_prod, (n_vecs, 1))
+                #cross_prod_i = gs.to_ndarray(cross_prod_i, to_ndim=3)
+                #cross_prod_i = gs.tile(cross_prod_i, (n_vecs, 1, 1))
 
                 skew_mat += gs.einsum(
-                    'n,nij->nij', mask_i_float, cross_prod)
+                    'n,ij->nij', mask_i_float, cross_prod_i)
         else:
             upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
             for i in range(n_vecs):
@@ -1065,21 +1072,25 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
                 mask_0 = gs.isclose(angle, 0.)
                 mask_0 = gs.squeeze(mask_0, axis=1)
-                coef_1[mask_0] = (
+                mask_0_float = gs.cast(mask_0, gs.float32)
+
+                coef_1 += mask_0_float * (
                         TAYLOR_COEFFS_1_AT_0[0]
-                        + TAYLOR_COEFFS_1_AT_0[2] * angle[mask_0] ** 2
-                        + TAYLOR_COEFFS_1_AT_0[4] * angle[mask_0] ** 4
-                        + TAYLOR_COEFFS_1_AT_0[6] * angle[mask_0] ** 6)
-                coef_2[mask_0] = (
+                        + TAYLOR_COEFFS_1_AT_0[2] * angle ** 2
+                        + TAYLOR_COEFFS_1_AT_0[4] * angle ** 4
+                        + TAYLOR_COEFFS_1_AT_0[6] * angle ** 6)
+                coef_2 += mask_0_float * (
                         TAYLOR_COEFFS_2_AT_0[0]
-                        + TAYLOR_COEFFS_2_AT_0[2] * angle[mask_0] ** 2
-                        + TAYLOR_COEFFS_2_AT_0[4] * angle[mask_0] ** 4
-                        + TAYLOR_COEFFS_2_AT_0[6] * angle[mask_0] ** 6)
+                        + TAYLOR_COEFFS_2_AT_0[2] * angle ** 2
+                        + TAYLOR_COEFFS_2_AT_0[4] * angle ** 4
+                        + TAYLOR_COEFFS_2_AT_0[6] * angle ** 6)
 
                 mask_pi = gs.isclose(angle, gs.pi)
                 mask_pi = gs.squeeze(mask_pi, axis=1)
-                delta_angle = angle[mask_pi] - gs.pi
-                coef_1[mask_pi] = (
+                mask_pi_float = gs.cast(mask_pi, gs.float32)
+
+                delta_angle = angle - gs.pi
+                coef_1 += mask_pi_float * (
                         TAYLOR_COEFFS_1_AT_PI[1] * delta_angle
                         + TAYLOR_COEFFS_1_AT_PI[2] * delta_angle ** 2
                         + TAYLOR_COEFFS_1_AT_PI[3] * delta_angle ** 3
@@ -1087,24 +1098,34 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                         + TAYLOR_COEFFS_1_AT_PI[5] * delta_angle ** 5
                         + TAYLOR_COEFFS_1_AT_PI[6] * delta_angle ** 6)
 
-                coef_2[mask_pi] = (1 - coef_1[mask_pi]) / angle[mask_pi] ** 2
+                # This avoids division by 0.
+                angle += mask_0_float * 1.
+                coef_2 += (1 - coef_1) / angle ** 2
 
                 mask_else = ~mask_0 & ~mask_pi
-                coef_1[mask_else] = ((angle[mask_else] / 2)
-                                     / gs.tan(angle[mask_else] / 2))
-                coef_2[mask_else] = ((1 - coef_1[mask_else])
-                                     / angle[mask_else] ** 2)
+                mask_else_float = gs.cast(mask_else, gs.float32)
+
+                # This avoids division by 0.
+                angle += mask_pi_float * 1.
+                coef_1 += mask_else_float * (angle / 2) / gs.tan(angle / 2)
+                coef_2 += mask_else_float * (1 - coef_1) / angle ** 2
 
                 jacobian = gs.zeros((n_points, self.dimension, self.dimension))
                 for i in range(n_points):
+                    mask_i_float = get_mask_i_float(i, n_points)
+
                     sign = - 1
                     if left_or_right == 'left':
                         sign = + 1
 
-                    jacobian[i] = (
-                        coef_1[i] * gs.identity(self.dimension)
+                    jacobian_i = (
+                        coef_1[i] * gs.eye(self.dimension)
                         + coef_2[i] * gs.outer(point[i], point[i])
                         + sign * self.skew_matrix_from_vector(point[i]) / 2)
+                    jacobian_i = gs.squeeze(jacobian_i, axis=0)
+
+                    jacobian += gs.einsum(
+                        'n,ij->nij', mask_i_float, jacobian_i)
 
             else:
                 if left_or_right == 'right':
