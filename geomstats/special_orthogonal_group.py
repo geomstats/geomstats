@@ -501,12 +501,14 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             term_1 = gs.zeros((n_rot_vecs,) + (self.n,) * 2)
             term_2 = gs.zeros_like(term_1)
 
-            coef_1 = gs.squeeze(coef_1, axis=0)
+            coef_1 = gs.squeeze(coef_1, axis=1)
+            coef_2 = gs.squeeze(coef_2, axis=1)
             term_1 = (gs.eye(self.dimension)
                       + gs.einsum('n,njk->njk', coef_1, skew_rot_vec))
 
-            term_2 = (coef_2
-                      + gs.einsum('nij,njk->nik', skew_rot_vec, skew_rot_vec))
+            squared_skew_rot_vec = gs.einsum(
+                    'nij,njk->nik', skew_rot_vec, skew_rot_vec)
+            term_2 = gs.einsum('n, njk->njk', coef_2, squared_skew_rot_vec)
             #for i in range(n_rot_vecs):
             #    term_1[i] = (gs.eye(self.dimension)
             #                 + coef_1[i] * skew_rot_vec[i])

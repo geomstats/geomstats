@@ -296,142 +296,142 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 expected = point
                 self.assertTrue(gs.allclose(result, expected))
 
-    #def test_regularize_vectorization(self):
-    #    for point_type in ('vector', 'matrix'):
-    #        for n in self.n_seq:
-    #            group = self.so[n]
-    #            group.default_point_type = point_type
+    def test_regularize_vectorization(self):
+        for point_type in ('vector', 'matrix'):
+            for n in self.n_seq:
+                group = self.so[n]
+                group.default_point_type = point_type
 
-    #            n_samples = self.n_samples
-    #            rot_vecs = group.random_uniform(n_samples=n_samples)
-    #            result = group.regularize(rot_vecs)
+                n_samples = self.n_samples
+                rot_vecs = group.random_uniform(n_samples=n_samples)
+                result = group.regularize(rot_vecs)
 
-    #            if point_type == 'vector':
-    #                self.assertTrue(
-    #                    gs.allclose(
-    #                        result.shape, (n_samples, group.dimension)))
-    #            if point_type == 'matrix':
+                if point_type == 'vector':
+                    self.assertTrue(
+                        gs.allclose(
+                            result.shape, (n_samples, group.dimension)))
+                if point_type == 'matrix':
 
-    #                self.assertTrue(
-    #                    gs.allclose(
-    #                        result.shape, (n_samples, n, n)))
+                    self.assertTrue(
+                        gs.allclose(
+                            result.shape, (n_samples, n, n)))
 
-    #            expected = gs.zeros_like(rot_vecs)
-    #            for i in range(n_samples):
-    #                expected[i] = group.regularize(rot_vecs[i])
+                expected = gs.zeros_like(rot_vecs)
+                for i in range(n_samples):
+                    expected[i] = group.regularize(rot_vecs[i])
 
-    #            self.assertTrue(gs.allclose(expected, result))
+                self.assertTrue(gs.allclose(expected, result))
 
-    #def test_matrix_from_rotation_vector(self):
-    #    n = 3
-    #    group = self.so[n]
+    def test_matrix_from_rotation_vector(self):
+        n = 3
+        group = self.so[n]
 
-    #    rot_vec_0 = group.identity
-    #    rot_mat_0 = group.matrix_from_rotation_vector(rot_vec_0)
-    #    expected_rot_mat_0 = gs.eye(3)
-    #    self.assertTrue(gs.allclose(rot_mat_0, expected_rot_mat_0))
+        rot_vec_0 = group.identity
+        rot_mat_0 = group.matrix_from_rotation_vector(rot_vec_0)
+        expected_rot_mat_0 = gs.eye(3)
+        self.assertTrue(gs.allclose(rot_mat_0, expected_rot_mat_0))
 
-    #    rot_vec_1 = gs.array([gs.pi / 3., 0., 0.])
-    #    rot_mat_1 = group.matrix_from_rotation_vector(rot_vec_1)
-    #    expected_rot_mat_1 = gs.array([[1., 0., 0.],
-    #                                   [0., 0.5, -gs.sqrt(3) / 2],
-    #                                   [0., gs.sqrt(3) / 2, 0.5]])
-    #    self.assertTrue(gs.allclose(rot_mat_1, expected_rot_mat_1))
+        rot_vec_1 = gs.array([gs.pi / 3., 0., 0.])
+        rot_mat_1 = group.matrix_from_rotation_vector(rot_vec_1)
+        expected_rot_mat_1 = gs.array([[1., 0., 0.],
+                                       [0., 0.5, -gs.sqrt(3) / 2],
+                                       [0., gs.sqrt(3) / 2, 0.5]])
+        self.assertTrue(gs.allclose(rot_mat_1, expected_rot_mat_1))
 
-    #    rot_vec_3 = 1e-11 * gs.array([12., 1., -81.])
-    #    angle = gs.linalg.norm(rot_vec_3)
-    #    skew_rot_vec_3 = 1e-11 * gs.array([[0., 81., 1.],
-    #                                       [-81., 0., -12.],
-    #                                       [-1., 12., 0.]])
-    #    coef_1 = gs.sin(angle) / angle
-    #    coef_2 = (1 - gs.cos(angle)) / (angle ** 2)
-    #    expected_rot_mat_3 = (gs.identity(3)
-    #                          + coef_1 * skew_rot_vec_3
-    #                          + coef_2 * gs.dot(skew_rot_vec_3,
-    #                                            skew_rot_vec_3))
-    #    rot_mat_3 = group.matrix_from_rotation_vector(rot_vec_3)
-    #    self.assertTrue(gs.allclose(rot_mat_3, expected_rot_mat_3))
+        rot_vec_3 = 1e-11 * gs.array([12., 1., -81.])
+        angle = gs.linalg.norm(rot_vec_3)
+        skew_rot_vec_3 = 1e-11 * gs.array([[0., 81., 1.],
+                                           [-81., 0., -12.],
+                                           [-1., 12., 0.]])
+        coef_1 = gs.sin(angle) / angle
+        coef_2 = (1 - gs.cos(angle)) / (angle ** 2)
+        expected_rot_mat_3 = (gs.identity(3)
+                              + coef_1 * skew_rot_vec_3
+                              + coef_2 * gs.dot(skew_rot_vec_3,
+                                                skew_rot_vec_3))
+        rot_mat_3 = group.matrix_from_rotation_vector(rot_vec_3)
+        self.assertTrue(gs.allclose(rot_mat_3, expected_rot_mat_3))
 
-    #    rot_vec_6 = gs.array([.1, 1.3, -.5])
-    #    angle = gs.linalg.norm(rot_vec_6)
-    #    skew_rot_vec_6 = gs.array([[0., .5, 1.3],
-    #                               [-.5, 0., -.1],
-    #                               [-1.3, .1, 0.]])
+        rot_vec_6 = gs.array([.1, 1.3, -.5])
+        angle = gs.linalg.norm(rot_vec_6)
+        skew_rot_vec_6 = gs.array([[0., .5, 1.3],
+                                   [-.5, 0., -.1],
+                                   [-1.3, .1, 0.]])
 
-    #    coef_1 = gs.sin(angle) / angle
-    #    coef_2 = (1 - gs.cos(angle)) / (angle ** 2)
-    #    rot_mat_6 = group.matrix_from_rotation_vector(rot_vec_6)
-    #    expected_rot_mat_6 = (gs.identity(3)
-    #                          + coef_1 * skew_rot_vec_6
-    #                          + coef_2 * gs.dot(skew_rot_vec_6,
-    #                                            skew_rot_vec_6))
-    #    self.assertTrue(gs.allclose(rot_mat_6, expected_rot_mat_6))
+        coef_1 = gs.sin(angle) / angle
+        coef_2 = (1 - gs.cos(angle)) / (angle ** 2)
+        rot_mat_6 = group.matrix_from_rotation_vector(rot_vec_6)
+        expected_rot_mat_6 = (gs.identity(3)
+                              + coef_1 * skew_rot_vec_6
+                              + coef_2 * gs.dot(skew_rot_vec_6,
+                                                skew_rot_vec_6))
+        self.assertTrue(gs.allclose(rot_mat_6, expected_rot_mat_6))
 
-    #def test_matrix_from_rotation_vector_vectorization(self):
-    #    for n in self.n_seq:
-    #        group = self.so[n]
+    def test_matrix_from_rotation_vector_vectorization(self):
+        for n in self.n_seq:
+            group = self.so[n]
 
-    #        n_samples = self.n_samples
-    #        rot_vecs = group.random_uniform(
-    #            n_samples=n_samples, point_type='vector')
+            n_samples = self.n_samples
+            rot_vecs = group.random_uniform(
+                n_samples=n_samples, point_type='vector')
 
-    #        rot_mats = group.matrix_from_rotation_vector(rot_vecs)
+            rot_mats = group.matrix_from_rotation_vector(rot_vecs)
 
-    #        self.assertTrue(gs.allclose(rot_mats.shape,
-    #                                    (n_samples, group.n, group.n)))
+            self.assertTrue(gs.allclose(rot_mats.shape,
+                                        (n_samples, group.n, group.n)))
 
-    #def test_rotation_vector_from_matrix(self):
-    #    n = 3
-    #    group = self.so[n]
+    def test_rotation_vector_from_matrix(self):
+        n = 3
+        group = self.so[n]
 
-    #    rot_mat = gs.array([[1., 0., 0.],
-    #                        [0., gs.cos(.12), -gs.sin(.12)],
-    #                        [0, gs.sin(.12), gs.cos(.12)]])
-    #    rot_vec = group.rotation_vector_from_matrix(rot_mat)
-    #    expected_rot_vec = .12 * gs.array([1., 0., 0.])
+        rot_mat = gs.array([[1., 0., 0.],
+                            [0., gs.cos(.12), -gs.sin(.12)],
+                            [0, gs.sin(.12), gs.cos(.12)]])
+        rot_vec = group.rotation_vector_from_matrix(rot_mat)
+        expected_rot_vec = .12 * gs.array([1., 0., 0.])
 
-    #    self.assertTrue(gs.allclose(rot_vec, expected_rot_vec))
+        self.assertTrue(gs.allclose(rot_vec, expected_rot_vec))
 
-    #def test_rotation_vector_and_rotation_matrix(self):
-    #    """
-    #    This tests that the composition of
-    #    rotation_vector_from_matrix
-    #    and
-    #    matrix_from_rotation_vector
-    #    is the identity.
-    #    """
-    #    for n in self.n_seq:
-    #        group = self.so[n]
+    def test_rotation_vector_and_rotation_matrix(self):
+        """
+        This tests that the composition of
+        rotation_vector_from_matrix
+        and
+        matrix_from_rotation_vector
+        is the identity.
+        """
+        for n in self.n_seq:
+            group = self.so[n]
 
-    #        if n == 3:
-    #            for angle_type in self.elements[3]:
-    #                point = self.elements[3][angle_type]
-    #                if angle_type in self.angles_close_to_pi[3]:
-    #                    continue
+            if n == 3:
+                for angle_type in self.elements[3]:
+                    point = self.elements[3][angle_type]
+                    if angle_type in self.angles_close_to_pi[3]:
+                        continue
 
-    #                rot_mat = group.matrix_from_rotation_vector(point)
-    #                result = group.rotation_vector_from_matrix(rot_mat)
+                    rot_mat = group.matrix_from_rotation_vector(point)
+                    result = group.rotation_vector_from_matrix(rot_mat)
 
-    #                expected = group.regularize(point)
+                    expected = group.regularize(point)
 
-    #                self.assertTrue(gs.allclose(result, expected),
-    #                                'for point {}:\n'
-    #                                'result = {};'
-    #                                ' expected = {}.'.format(angle_type,
-    #                                                         result,
-    #                                                         expected))
-    #        else:
-    #            point = group.random_uniform(point_type='vector')
+                    self.assertTrue(gs.allclose(result, expected),
+                                    'for point {}:\n'
+                                    'result = {};'
+                                    ' expected = {}.'.format(angle_type,
+                                                             result,
+                                                             expected))
+            else:
+                point = group.random_uniform(point_type='vector')
 
-    #            rot_mat = group.matrix_from_rotation_vector(point)
-    #            result = group.rotation_vector_from_matrix(rot_mat)
+                rot_mat = group.matrix_from_rotation_vector(point)
+                result = group.rotation_vector_from_matrix(rot_mat)
 
-    #            expected = point
+                expected = point
 
-    #            self.assertTrue(gs.allclose(result, expected),
-    #                            'result = {};'
-    #                            ' expected = {}.'.format(result,
-    #                                                     expected))
+                self.assertTrue(gs.allclose(result, expected),
+                                'result = {};'
+                                ' expected = {}.'.format(result,
+                                                         expected))
 
     #def test_matrix_from_tait_bryan_angles_extrinsic_xyz(self):
     #    n = 3
