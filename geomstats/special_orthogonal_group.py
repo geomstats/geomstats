@@ -144,7 +144,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 norms_ratio += mask_not_0_float * (
                     1. - 2. * gs.pi * k / angle)
                 norms_ratio += mask_0_float * 1.
-                norms_ratio += mask_pi_float * gs.pi / angle
+                norms_ratio += mask_pi_float * (
+                        gs.pi / angle
+                        - (1. - 2. * gs.pi * k / angle))
 
                 regularized_point = gs.einsum(
                     'n,ni->ni', norms_ratio, regularized_point)
