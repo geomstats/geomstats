@@ -98,7 +98,7 @@ class EuclideanMetric(RiemannianMetric):
 
         if isinstance(weights, list):
             weights = gs.vstack(weights)
-        if weights is None:
+        elif weights is None:
             weights = gs.ones((n_points,))
 
         weighted_points = gs.einsum('n,nj->nj', weights, points)

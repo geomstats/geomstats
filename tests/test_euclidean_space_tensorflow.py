@@ -93,19 +93,19 @@ class TestEuclideanSpaceMethodsTensorFlow(tf.test.TestCase):
 
         result = self.metric.inner_product(n_points_a, one_point_b)
         point_numpy = np.random.uniform(size=(n_samples, 1))
-        # TODO(nina): Fix that this test fails with assertShapeEqual
+        # TODO(nina): Fix this test with assertShapeEqual
         with self.test_session():
             self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
 
         result = self.metric.inner_product(one_point_a, n_points_b)
         point_numpy = np.random.uniform(size=(n_samples, 1))
-        # TODO(nina): Fix that this test fails with assertShapeEqual
+        # TODO(nina): Fix this test with assertShapeEqual
         with self.test_session():
             self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
 
         result = self.metric.inner_product(n_points_a, n_points_b)
         point_numpy = np.random.uniform(size=(n_samples, 1))
-        # TODO(nina): Fix that this test fails with assertShapeEqual
+        # TODO(nina): Fix this test with assertShapeEqual
         with self.test_session():
             self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
 
