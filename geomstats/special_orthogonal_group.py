@@ -31,11 +31,11 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
 def get_mask_i_float(i, n):
     first_zeros = gs.array([])
     if i != 0:
-        first_zeros = gs.zeros((i - 1,))
+        first_zeros = gs.zeros((i,))
     one = gs.ones((1,))
     last_zeros = gs.array([])
     if i != n - 1:
-        last_zeros = gs.zeros((n - i,))
+        last_zeros = gs.zeros((n - i - 1,))
 
     mask_i_float = gs.concatenate(
         [first_zeros, one, last_zeros], axis=0)
@@ -346,7 +346,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 #print(gs.shape(n_vecs))
                 #cross_prod_i = gs.to_ndarray(cross_prod_i, to_ndim=3)
                 #cross_prod_i = gs.tile(cross_prod_i, (n_vecs, 1, 1))
-
                 skew_mat += gs.einsum(
                     'n,ij->nij', mask_i_float, cross_prod_i)
         else:
