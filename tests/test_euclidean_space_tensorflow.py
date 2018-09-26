@@ -175,6 +175,63 @@ class TestEuclideanSpaceMethodsTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
+    def test_geodesic_and_belongs(self):
+        n_geodesic_points = 100
+        initial_point = self.space.random_uniform()
+        initial_tangent_vec = tf.convert_to_tensor([2., 0.])
+        geodesic = self.metric.geodesic(
+                                   initial_point=initial_point,
+                                   initial_tangent_vec=initial_tangent_vec)
+
+        t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
+        points = geodesic(t)
+
+        bool_belongs = self.space.belongs(points)
+        expected = tf.convert_to_tensor(n_geodesic_points * [[True]])
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(expected), gs.eval(bool_belongs))
+
+    def test_mean(self):
+        # TODO(nina): Fix the fact that it doesn't work for [1., 4.]
+        point = tf.convert_to_tensor([[1., 4.]])
+        result = self.metric.mean(points=[point, point, point])
+        expected = point
+        expected = helper.to_vector(expected)
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
+        points = tf.convert_to_tensor([
+            [1., 2.],
+            [2., 3.],
+            [3., 4.],
+            [4., 5.]])
+        weights = gs.array([1., 2., 1., 2.])
+
+        result = self.metric.mean(points, weights)
+        expected = tf.convert_to_tensor([16. / 6., 22. / 6.])
+        expected = helper.to_vector(expected)
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
+    def test_variance(self):
+        points = tf.convert_to_tensor([
+            [1., 2.],
+            [2., 3.],
+            [3., 4.],
+            [4., 5.]])
+        weights = tf.convert_to_tensor([1., 2., 1., 2.])
+        base_point = gs.zeros(2)
+        result = self.metric.variance(points, weights, base_point)
+        # we expect the average of the points' sq norms.
+        expected = (1 * 5. + 2 * 13. + 1 * 25. + 2 * 41.) / 6.
+        expected = helper.to_scalar(expected)
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
 
 if __name__ == '__main__':
         tf.test.main()

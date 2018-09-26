@@ -473,6 +473,7 @@ class TestBackendTensorFlow(tf.test.TestCase):
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     def test_geodesic_and_belongs(self):
+        n_geodesic_points = 100
         initial_point = self.space.random_uniform()
         vector = tf.convert_to_tensor([2., 0., -1., -2., 1.])
         initial_tangent_vec = self.space.projection_to_tangent_space(
@@ -482,11 +483,11 @@ class TestBackendTensorFlow(tf.test.TestCase):
                                    initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
 
-        t = gs.linspace(start=0., stop=1., num=100)
+        t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)
 
         bool_belongs = self.space.belongs(points)
-        expected = tf.convert_to_tensor(100 * [[True]])
+        expected = tf.convert_to_tensor(n_geodesic_points * [[True]])
 
         with self.test_session():
             self.assertAllClose(gs.eval(expected), gs.eval(bool_belongs))

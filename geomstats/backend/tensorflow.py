@@ -167,10 +167,6 @@ def eye(N, M=None):
     return tf.eye(num_rows=N, num_columns=M)
 
 
-def average(x):
-    return tf.reduce_sum(x)
-
-
 def matmul(x, y):
     return tf.matmul(x, y)
 
