@@ -289,12 +289,17 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             diag = gs.to_ndarray(gs.diag(diag), to_ndim=3)
             new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
-            rot_mat += gs.einsum('n,njk->njk', mask_float, gs.einsum(
+            aux_mat = gs.einsum(
                     'nij,njk->nik',
-                    gs.einsum('nij,njk->nik',
-                        mat_unitary_u,
-                        new_mat_diag_s),
-                    mat_unitary_v))
+                    mat_unitary_u,
+                    new_mat_diag_s)
+            rot_mat += gs.einsum(
+                    'n,njk->njk',
+                    mask_float,
+                    gs.einsum(
+                        'nij,njk->nik',
+                        aux_mat,
+                        mat_unitary_v))
         else:
             aux_mat = gs.matmul(gs.transpose(mat, axes=(0, 2, 1)), mat)
 
