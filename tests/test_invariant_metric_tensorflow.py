@@ -114,14 +114,14 @@ class TestInvariantMetricMethodsTensorFlow(tf.test.TestCase):
             self.assertAllClose(
                 gs.eval(left_exp_from_id), gs.eval(exp_from_id))
 
-    #def test_left_log_and_log_from_identity_left_diag_metrics(self):
-    #    left_log_from_id = self.left_diag_metric.left_log_from_identity(
-    #                                                          self.point_1)
-    #    log_from_id = self.left_diag_metric.log_from_identity(self.point_1)
+    def test_left_log_and_log_from_identity_left_diag_metrics(self):
+        left_log_from_id = self.left_diag_metric.left_log_from_identity(
+                                                              self.point_1)
+        log_from_id = self.left_diag_metric.log_from_identity(self.point_1)
 
-    #    with self.test_session():
-    #        self.assertAllClose(
-    #            gs.eval(left_log_from_id), gs.eval(log_from_id))
+        with self.test_session():
+            self.assertAllClose(
+                gs.eval(left_log_from_id), gs.eval(log_from_id))
 
     #def test_left_exp_and_log_from_identity_left_diag_metrics(self):
     #    """
