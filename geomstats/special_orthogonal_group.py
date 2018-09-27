@@ -242,21 +242,21 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                               left_or_right=metric.left_or_right,
                               point_type=point_type)
                 inv_jacobian = gs.linalg.inv(jacobian)
-                tangent_vec_at_id = gs.dot(
+                tangent_vec_at_id = gs.einsum(
+                        'ni,nij->nj',
                         tangent_vec,
                         gs.transpose(inv_jacobian, axes=(0, 2, 1)))
-                tangent_vec_at_id = gs.squeeze(tangent_vec_at_id, axis=1)
 
                 tangent_vec_at_id = self.regularize_tangent_vec_at_identity(
                                               tangent_vec_at_id,
                                               metric,
                                               point_type)
 
-                regularized_tangent_vec = gs.dot(tangent_vec_at_id,
-                                                 gs.transpose(jacobian,
-                                                              axes=(0, 2, 1)))
-                regularized_tangent_vec = gs.squeeze(regularized_tangent_vec,
-                                                     axis=1)
+                regularized_tangent_vec = gs.einsum(
+                        'ni,nij->nj',
+                        tangent_vec_at_id,
+                        gs.transpose(jacobian,
+                                     axes=(0, 2, 1)))
             else:
                 # TODO(nina): is regularization needed in nD?
                 regularized_tangent_vec = tangent_vec

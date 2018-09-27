@@ -55,10 +55,10 @@ class TestInvariantMetricMethodsTensorFlow(tf.test.TestCase):
                    'right': right_metric}
 
         # General case for the point
-        point_1 = gs.array([-0.2, 0.9, 0.5, 5., 5., 5.])
-        point_2 = gs.array([0., 2., -0.1, 30., 400., 2.])
+        point_1 = tf.convert_to_tensor([-0.2, 0.9, 0.5, 5., 5., 5.])
+        point_2 = tf.convert_to_tensor([0., 2., -0.1, 30., 400., 2.])
         # Edge case for the point, angle < epsilon,
-        point_small = gs.array([-1e-7, 0., -7 * 1e-8, 6., 5., 9.])
+        point_small = tf.convert_to_tensor([[-1e-7, 0., -7 * 1e-8, 6., 5., 9.]])
 
         self.group = group
         self.metrics = metrics
@@ -105,14 +105,14 @@ class TestInvariantMetricMethodsTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #def test_left_exp_and_exp_from_identity_left_diag_metrics(self):
-    #    left_exp_from_id = self.left_diag_metric.left_exp_from_identity(
-    #                                                          self.point_1)
-    #    exp_from_id = self.left_diag_metric.exp_from_identity(self.point_1)
+    def test_left_exp_and_exp_from_identity_left_diag_metrics(self):
+        left_exp_from_id = self.left_diag_metric.left_exp_from_identity(
+                                                              self.point_1)
+        exp_from_id = self.left_diag_metric.exp_from_identity(self.point_1)
 
-    #    with self.test_session():
-    #        self.assertAllClose(
-    #            gs.eval(left_exp_from_id), gs.eval(exp_from_id))
+        with self.test_session():
+            self.assertAllClose(
+                gs.eval(left_exp_from_id), gs.eval(exp_from_id))
 
     #def test_left_log_and_log_from_identity_left_diag_metrics(self):
     #    left_log_from_id = self.left_diag_metric.left_log_from_identity(
