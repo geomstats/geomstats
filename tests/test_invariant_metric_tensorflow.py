@@ -166,157 +166,173 @@ class TestInvariantMetricMethodsTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #def test_left_exp_and_log_from_identity_left_metrics(self):
-    #    """
-    #    Test that the riemannian left exponential and the
-    #    riemannian left logarithm are inverse.
-    #    Expect their composition to give the identity function.
-    #    """
-    #    # - exp then log
-    #    # For left metric: point_1 and point_small
-    #    result = helper.left_exp_then_log_from_identity(
-    #                                    metric=self.left_metric,
-    #                                    tangent_vec=self.point_1)
-    #    expected = self.point_1
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+    def test_left_exp_and_log_from_identity_left_metrics(self):
+        """
+        Test that the riemannian left exponential and the
+        riemannian left logarithm are inverse.
+        Expect their composition to give the identity function.
+        """
+        # - exp then log
+        # For left metric: point_1 and point_small
+        result = helper.left_exp_then_log_from_identity(
+                                        metric=self.left_metric,
+                                        tangent_vec=self.point_1)
+        expected = self.point_1
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #    result = helper.left_exp_then_log_from_identity(
-    #                                    metric=self.left_metric,
-    #                                    tangent_vec=self.point_small)
-    #    expected = self.point_small
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+        result = helper.left_exp_then_log_from_identity(
+                                        metric=self.left_metric,
+                                        tangent_vec=self.point_small)
+        expected = self.point_small
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #    # - log then exp
-    #    # For left metric: point_1 and point_small
-    #    result = helper.left_log_then_exp_from_identity(
-    #                                    metric=self.left_metric,
-    #                                    point=self.point_1)
-    #    expected = self.point_1
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+        # - log then exp
+        # For left metric: point_1 and point_small
+        result = helper.left_log_then_exp_from_identity(
+                                        metric=self.left_metric,
+                                        point=self.point_1)
+        expected = self.point_1
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #    result = helper.left_log_then_exp_from_identity(
-    #                                    metric=self.left_metric,
-    #                                    point=self.point_small)
-    #    expected = self.point_small
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+        result = helper.left_log_then_exp_from_identity(
+                                        metric=self.left_metric,
+                                        point=self.point_small)
+        expected = self.point_small
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #def test_exp_and_log_from_identity_left_diag_metrics(self):
-    #    """
-    #    Test that the riemannian exponential and the
-    #    riemannian logarithm are inverse.
-    #    Expect their composition to give the identity function.
-    #    """
-    #    # - exp then log
-    #    # For left diagonal metric, point and point_small
-    #    result = helper.exp_then_log_from_identity(
-    #                                    metric=self.left_diag_metric,
-    #                                    tangent_vec=self.point_1)
-    #    expected = self.point_1
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+    def test_exp_and_log_from_identity_left_diag_metrics(self):
+        """
+        Test that the riemannian exponential and the
+        riemannian logarithm are inverse.
+        Expect their composition to give the identity function.
+        """
+        # - exp then log
+        # For left diagonal metric, point and point_small
+        result = helper.exp_then_log_from_identity(
+                                        metric=self.left_diag_metric,
+                                        tangent_vec=self.point_1)
+        expected = self.point_1
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #    result = helper.exp_then_log_from_identity(
-    #                                    metric=self.left_diag_metric,
-    #                                    tangent_vec=self.point_small)
-    #    expected = self.point_small
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+        result = helper.exp_then_log_from_identity(
+                                        metric=self.left_diag_metric,
+                                        tangent_vec=self.point_small)
+        expected = self.point_small
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #    # - log then exp
-    #    # For left diagonal metric, point and point_small
-    #    result = helper.log_then_exp_from_identity(
-    #                                    metric=self.left_diag_metric,
-    #                                    point=self.point_1)
-    #    expected = self.point_1
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+        # - log then exp
+        # For left diagonal metric, point and point_small
+        result = helper.log_then_exp_from_identity(
+                                        metric=self.left_diag_metric,
+                                        point=self.point_1)
+        expected = self.point_1
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #    result = helper.log_then_exp_from_identity(
-    #                                    metric=self.left_diag_metric,
-    #                                    point=self.point_small)
-    #    expected = self.point_small
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+        result = helper.log_then_exp_from_identity(
+                                        metric=self.left_diag_metric,
+                                        point=self.point_small)
+        expected = self.point_small
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #def test_exp_and_log_from_identity_left_metrics(self):
-    #    """
-    #    Test that the riemannian exponential and the
-    #    riemannian logarithm are inverse.
-    #    Expect their composition to give the identity function.
-    #    """
-    #    # - exp then log
-    #    # For left metric, point and point_small
-    #    result = helper.exp_then_log_from_identity(
-    #                                    metric=self.left_metric,
-    #                                    tangent_vec=self.point_1)
-    #    expected = self.point_1
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+    def test_exp_and_log_from_identity_left_metrics(self):
+        """
+        Test that the riemannian exponential and the
+        riemannian logarithm are inverse.
+        Expect their composition to give the identity function.
+        """
+        # - exp then log
+        # For left metric, point and point_small
+        result = helper.exp_then_log_from_identity(
+                                        metric=self.left_metric,
+                                        tangent_vec=self.point_1)
+        expected = self.point_1
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #    result = helper.exp_then_log_from_identity(
-    #                                    metric=self.left_metric,
-    #                                    tangent_vec=self.point_small)
-    #    expected = self.point_small
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+        result = helper.exp_then_log_from_identity(
+                                        metric=self.left_metric,
+                                        tangent_vec=self.point_small)
+        expected = self.point_small
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #    # - log then exp
-    #    # For left metric, point and point_small
-    #    result = helper.log_then_exp_from_identity(
-    #                                    metric=self.left_metric,
-    #                                    point=self.point_1)
-    #    expected = self.point_1
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+        # - log then exp
+        # For left metric, point and point_small
+        result = helper.log_then_exp_from_identity(
+                                        metric=self.left_metric,
+                                        point=self.point_1)
+        expected = self.point_1
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #    result = helper.log_then_exp_from_identity(
-    #                                    metric=self.left_metric,
-    #                                    point=self.point_small)
-    #    expected = self.point_small
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+        result = helper.log_then_exp_from_identity(
+                                        metric=self.left_metric,
+                                        point=self.point_small)
+        expected = self.point_small
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #def test_exp_and_log_from_identity_right_diag_metrics(self):
-    #    """
-    #    Test that the riemannian exponential and the
-    #    riemannian logarithm are inverse.
-    #    Expect their composition to give the identity function.
-    #    """
-    #    # - exp then log
-    #    # For right diagonal metric, point and point_small
-    #    result = helper.exp_then_log_from_identity(
-    #                                    metric=self.right_diag_metric,
-    #                                    tangent_vec=self.point_1)
-    #    expected = self.point_1
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+    def test_exp_and_log_from_identity_right_diag_metrics(self):
+        """
+        Test that the riemannian exponential and the
+        riemannian logarithm are inverse.
+        Expect their composition to give the identity function.
+        """
+        # - exp then log
+        # For right diagonal metric, point and point_small
+        result = helper.exp_then_log_from_identity(
+                                        metric=self.right_diag_metric,
+                                        tangent_vec=self.point_1)
+        expected = self.point_1
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #    result = helper.exp_then_log_from_identity(
-    #                                    metric=self.right_diag_metric,
-    #                                    tangent_vec=self.point_small)
-    #    expected = self.point_small
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+        result = helper.exp_then_log_from_identity(
+                                        metric=self.right_diag_metric,
+                                        tangent_vec=self.point_small)
+        expected = self.point_small
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #    # - log then exp
-    #    # For right diagonal metric, point and point_small
-    #    result = helper.log_then_exp_from_identity(
-    #                                    metric=self.right_diag_metric,
-    #                                    point=self.point_1)
-    #    expected = self.point_1
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+        # - log then exp
+        # For right diagonal metric, point and point_small
+        result = helper.log_then_exp_from_identity(
+                                        metric=self.right_diag_metric,
+                                        point=self.point_1)
+        expected = self.point_1
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #    result = helper.log_then_exp_from_identity(
-    #                                    metric=self.right_diag_metric,
-    #                                    point=self.point_small)
-    #    expected = self.point_small
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+        result = helper.log_then_exp_from_identity(
+                                        metric=self.right_diag_metric,
+                                        point=self.point_small)
+        expected = self.point_small
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     #def test_exp_and_log_from_identity_right_metrics(self):
     #    """
