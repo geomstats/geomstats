@@ -82,7 +82,7 @@ class RiemannianMetric(object):
 
         assert gs.ndim(inner_prod) == 2, inner_prod.shape
         return inner_prod
-        
+
     def squared_norm(self, vector, base_point=None):
         """
         Squared norm of a vector associated to the inner product
@@ -95,12 +95,10 @@ class RiemannianMetric(object):
         """
         Norm of a vector associated to the inner product
         at the tangent space at a base point.
+
+        Note: This only works for positive-definite
+        Riemannian metrics and inner products.
         """
-        n_negative_eigenvalues = self.signature[1]
-        if n_negative_eigenvalues > 0:
-            raise ValueError(
-                    'The method \'norm\' only works for positive-definite'
-                    ' Riemannian metrics and inner products.')
         sq_norm = self.squared_norm(vector, base_point)
         norm = gs.sqrt(sq_norm)
         return norm
