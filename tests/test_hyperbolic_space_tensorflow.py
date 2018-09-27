@@ -10,6 +10,7 @@ import tensorflow as tf
 
 import geomstats.backend as gs
 import tests.helper as helper
+
 from geomstats.hyperbolic_space import HyperbolicSpace
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
@@ -355,57 +356,73 @@ class TestHyperbolicSpaceTensorFlow(tf.test.TestCase):
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
 
-#     def test_exp_and_dist_and_projection_to_tangent_space(self):
-#         # TODO(nina): this fails for high norms of vector
-#         base_point = self.space.random_uniform()
-#         vector = gs.array([2., 0., -1., -2., 7., 4., 1.])
-#         tangent_vec = self.space.projection_to_tangent_space(
-#                                                 vector=vector,
-#                                                 base_point=base_point)
-#         exp = self.metric.exp(tangent_vec=tangent_vec,
-#                               base_point=base_point)
-# 
-#         result = self.metric.dist(base_point, exp)
-#         sq_norm = self.metric.embedding_metric.squared_norm(
-#                                                  tangent_vec)
-#         expected = math.sqrt(sq_norm)
-#         gs.testing.assert_allclose(result, expected)
-# 
-#     def test_geodesic_and_belongs(self):
-#         # TODO(nina): this tests fails when geodesic goes "too far"
-#         initial_point = self.space.random_uniform()
-#         vector = gs.array([2., 0., -1., -2., 7., 4., 1.])
-#         initial_tangent_vec = self.space.projection_to_tangent_space(
-#                                             vector=vector,
-#                                             base_point=initial_point)
-#         geodesic = self.metric.geodesic(
-#                                    initial_point=initial_point,
-#                                    initial_tangent_vec=initial_tangent_vec)
-# 
-#         t = gs.linspace(start=0, stop=1, num=100)
-#         points = geodesic(t)
-#         self.assertTrue(gs.all(self.space.belongs(points)))
-# 
-#     def test_variance(self):
-#         point = self.space.random_uniform()
-#         result = self.metric.variance([point, point])
-#         expected = 0
-# 
-#         gs.testing.assert_allclose(result, expected)
-# 
+    def test_exp_and_dist_and_projection_to_tangent_space(self):
+        # TODO(nina): this fails for high norms of vector
+        base_point = tf.convert_to_tensor([4.0, 1., 3.0, math.sqrt(5)])
+        vector = tf.convert_to_tensor([0.001, 0., -.00001, -.00003])
+        tangent_vec = self.space.projection_to_tangent_space(
+                                                vector=vector,
+                                                base_point=base_point)
+        exp = self.metric.exp(tangent_vec=tangent_vec,
+                              base_point=base_point)
+
+        result = self.metric.dist(base_point, exp)
+        sq_norm = self.metric.embedding_metric.squared_norm(
+                                                 tangent_vec)
+        #expected = tf.convert_to_tensor([[sq_norm]])
+        expected  = sq_norm
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected), atol =1e-2)
+
+    def test_geodesic_and_belongs(self):
+        # TODO(nina): this tests fails when geodesic goes "too far"
+        initial_point = tf.convert_to_tensor([4.0, 1., 3.0, math.sqrt(5)])
+        n_geodesic_points = 100
+        vector = tf.convert_to_tensor([1., 0., 0., 0.])
+
+        initial_tangent_vec = self.space.projection_to_tangent_space(
+                                            vector=vector,
+                                            base_point=initial_point)
+        geodesic = self.metric.geodesic(
+                                   initial_point=initial_point,
+                                   initial_tangent_vec=initial_tangent_vec)
+
+        t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
+        points = geodesic(t)
+
+        bool_belongs = self.space.belongs(points)
+        expected = tf.convert_to_tensor(n_geodesic_points * [[True]])
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(expected), gs.eval(bool_belongs))
+ 
+ 
 #     def test_mean(self):
-#         point = self.space.random_uniform()
+#         point = tf.convert_to_tensor([1., 0., 0., 0.])
 #         result = self.metric.mean([point, point])
 #         expected = point
 # 
-#         gs.testing.assert_allclose(result, expected)
+#         with self.test_session():
+#             self.assertAllClose(gs.eval(result), gs.eval(expected))
+#            
+#     def test_variance(self):
+#         point = tf.convert_to_tensor([1., 0., 0., 0.])
+#         result = self.metric.variance([point, point])
+#         expected = tf.convert_to_tensor([0.])
 # 
+#         with self.test_session():
+#             print(gs.eval(result), gs.eval(expected))
+#             self.assertAllClose(gs.eval(result), gs.eval(expected))
+# 
+
 #     def test_mean_and_belongs(self):
-#         point_a = self.space.random_uniform()
-#         point_b = self.space.random_uniform()
-#         point_c = self.space.random_uniform()
+#         point_a = tf.convert_to_tensor([1., 0., 0., 0.])
+#         point_b = tf.convert_to_tensor([4.0, 1., 3.0, math.sqrt(5)])
+#         point_c = tf.convert_to_tensor([2.0, 1.0, 1.0, 1.0])
 # 
 #         result = self.metric.mean([point_a, point_b, point_c])
+#         with self.test_session():
+#             self.assertAllClose(gs.eval(result), gs.eval(expected))
 #         self.assertTrue(self.space.belongs(result))
 # 
 # 
