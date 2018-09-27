@@ -1117,7 +1117,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
                 # This avoids division by 0.
                 angle += mask_0_float * 1.
-                coef_2 += (1 - coef_1) / angle ** 2
+                coef_2 += mask_pi_float * (1 - coef_1) / angle ** 2
 
                 mask_else = ~mask_0 & ~mask_pi
                 mask_else_float = gs.cast(mask_else, gs.float32)

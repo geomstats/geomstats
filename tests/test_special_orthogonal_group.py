@@ -2961,31 +2961,31 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 self.assertTrue(gs.allclose(
                     result[i], group.inverse(points[i])))
 
-    #def test_left_jacobian_through_its_determinant(self):
-    #    n = 3
-    #    group = self.so[n]
+    def test_left_jacobian_through_its_determinant(self):
+        n = 3
+        group = self.so[n]
 
-    #    for angle_type in self.elements[3]:
-    #        point = self.elements[3][angle_type]
-    #        jacobian = group.jacobian_translation(point=point,
-    #                                              left_or_right='left')
-    #        result = gs.linalg.det(jacobian)
-    #        point = group.regularize(point)
-    #        angle = gs.linalg.norm(point)
-    #        if angle_type in ['with_angle_0',
-    #                          'with_angle_close_0',
-    #                          'with_angle_2pi',
-    #                          'with_angle_close_2pi_high']:
-    #            expected = 1. + angle ** 2 / 12. + angle ** 4 / 240.
-    #        else:
-    #            expected = angle ** 2 / (4 * gs.sin(angle / 2) ** 2)
+        for angle_type in self.elements[3]:
+            point = self.elements[3][angle_type]
+            jacobian = group.jacobian_translation(point=point,
+                                                  left_or_right='left')
+            result = gs.linalg.det(jacobian)
+            point = group.regularize(point)
+            angle = gs.linalg.norm(point)
+            if angle_type in ['with_angle_0',
+                              'with_angle_close_0',
+                              'with_angle_2pi',
+                              'with_angle_close_2pi_high']:
+                expected = 1. + angle ** 2 / 12. + angle ** 4 / 240.
+            else:
+                expected = angle ** 2 / (4 * gs.sin(angle / 2) ** 2)
 
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'for point {}:\n'
-    #                        'result = {}; expected = {}.'.format(
-    #                                                 angle_type,
-    #                                                 result,
-    #                                                 expected))
+            self.assertTrue(gs.allclose(result, expected),
+                            'for point {}:\n'
+                            'result = {}; expected = {}.'.format(
+                                                     angle_type,
+                                                     result,
+                                                     expected))
 
     #def test_left_jacobian_vectorization(self):
     #    n = 3
