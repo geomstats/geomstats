@@ -131,121 +131,147 @@ class TestHyperbolicSpaceTensorFlow(tf.test.TestCase):
         point = tf.convert_to_tensor([2.0, 1.0, 1.0, 1.0])
 
         with self.test_session():
-            print("here")
             log = self.metric.log(point=point, base_point=base_point)
-            print(gs.eval(log))
+
             result = self.metric.exp(tangent_vec=log, base_point=base_point)
             expected = helper.to_vector(point)
             self.assertAllClose(gs.eval(result), gs.eval(expected))
-# 
-#     def test_exp_and_belongs(self):
-#         H2 = HyperbolicSpace(dimension=2)
-#         METRIC = H2.metric
-# 
-#         base_point = gs.array([1., 0., 0.])
-#         assert H2.belongs(base_point)
-# 
-#         tangent_vec = H2.projection_to_tangent_space(
-#                 vector=gs.array([10., 200., 1.]),
-#                 base_point=base_point)
-#         exp = METRIC.exp(tangent_vec=tangent_vec,
-#                          base_point=base_point)
-#         self.assertTrue(H2.belongs(exp))
-# 
-#     def test_exp_vectorization(self):
-#         n_samples = self.n_samples
-#         dim = self.dimension + 1
-# 
-#         one_vec = self.space.random_uniform()
-#         one_base_point = self.space.random_uniform()
-#         n_vecs = self.space.random_uniform(n_samples=n_samples)
-#         n_base_points = self.space.random_uniform(n_samples=n_samples)
-# 
-#         one_tangent_vec = self.space.projection_to_tangent_space(
-#             one_vec, base_point=one_base_point)
-#         result = self.metric.exp(one_tangent_vec, one_base_point)
-#         gs.testing.assert_allclose(result.shape, (1, dim))
-# 
-#         n_tangent_vecs = self.space.projection_to_tangent_space(
-#             n_vecs, base_point=one_base_point)
-#         result = self.metric.exp(n_tangent_vecs, one_base_point)
-#         gs.testing.assert_allclose(result.shape, (n_samples, dim))
-# 
-#         expected = gs.zeros((n_samples, dim))
-#         for i in range(n_samples):
-#             expected[i] = self.metric.exp(n_tangent_vecs[i], one_base_point)
-#         expected = helper.to_vector(expected)
-#         gs.testing.assert_allclose(result, expected)
-# 
-#         one_tangent_vec = self.space.projection_to_tangent_space(
-#             one_vec, base_point=n_base_points)
-#         result = self.metric.exp(one_tangent_vec, n_base_points)
-#         gs.testing.assert_allclose(result.shape, (n_samples, dim))
-# 
-#         expected = gs.zeros((n_samples, dim))
-#         for i in range(n_samples):
-#             expected[i] = self.metric.exp(one_tangent_vec[i], n_base_points[i])
-#         expected = helper.to_vector(expected)
-#         gs.testing.assert_allclose(result, expected)
-# 
-#         n_tangent_vecs = self.space.projection_to_tangent_space(
-#             n_vecs, base_point=n_base_points)
-#         result = self.metric.exp(n_tangent_vecs, n_base_points)
-#         gs.testing.assert_allclose(result.shape, (n_samples, dim))
-# 
-#         expected = gs.zeros((n_samples, dim))
-#         for i in range(n_samples):
-#             expected[i] = self.metric.exp(n_tangent_vecs[i], n_base_points[i])
-#         expected = helper.to_vector(expected)
-#         gs.testing.assert_allclose(result, expected)
-# 
-#     def test_log_vectorization(self):
-#         n_samples = self.n_samples
-#         dim = self.dimension + 1
-# 
-#         one_point = self.space.random_uniform()
-#         one_base_point = self.space.random_uniform()
-#         n_points = self.space.random_uniform(n_samples=n_samples)
-#         n_base_points = self.space.random_uniform(n_samples=n_samples)
-# 
-#         result = self.metric.log(one_point, one_base_point)
-#         gs.testing.assert_allclose(result.shape, (1, dim))
-# 
-#         result = self.metric.log(n_points, one_base_point)
-#         gs.testing.assert_allclose(result.shape, (n_samples, dim))
-# 
-#         result = self.metric.log(one_point, n_base_points)
-#         gs.testing.assert_allclose(result.shape, (n_samples, dim))
-# 
-#         result = self.metric.log(n_points, n_base_points)
-#         gs.testing.assert_allclose(result.shape, (n_samples, dim))
-# 
-#     def test_squared_norm_and_squared_dist(self):
-#         """
-#         Test that the squared distance between two points is
-#         the squared norm of their logarithm.
-#         """
-#         point_a = self.space.random_uniform()
-#         point_b = self.space.random_uniform()
-#         log = self.metric.log(point=point_a, base_point=point_b)
-#         result = self.metric.squared_norm(vector=log)
-#         expected = self.metric.squared_dist(point_a, point_b)
-# 
-#         gs.testing.assert_allclose(result, expected)
-# 
-#     def test_norm_and_dist(self):
-#         """
-#         Test that the distance between two points is
-#         the norm of their logarithm.
-#         """
-#         point_a = self.space.random_uniform()
-#         point_b = self.space.random_uniform()
-#         log = self.metric.log(point=point_a, base_point=point_b)
-#         result = self.metric.norm(vector=log)
-#         expected = self.metric.dist(point_a, point_b)
-# 
-#         gs.testing.assert_allclose(result, expected)
-# 
+
+    def test_exp_and_belongs(self):
+        H2 = HyperbolicSpace(dimension=2)
+        METRIC = H2.metric
+
+        base_point = tf.convert_to_tensor([1., 0., 0.])
+        with self.test_session():
+            self.assertTrue(gs.eval(H2.belongs(base_point)))
+
+
+        tangent_vec = H2.projection_to_tangent_space(
+                vector=tf.convert_to_tensor([1., 2., 1.]),
+                base_point=base_point)
+        exp = METRIC.exp(tangent_vec=tangent_vec,
+                         base_point=base_point)
+        with self.test_session():
+            self.assertTrue(gs.eval(H2.belongs(exp)))
+
+    def test_exp_vectorization(self):
+        n_samples = 3
+        dim = self.dimension + 1
+
+        one_vec = tf.convert_to_tensor([2.0, 1.0, 1.0, 1.0])
+        one_base_point = tf.convert_to_tensor([4.0, 3., 1.0, math.sqrt(5)])
+        n_vecs = tf.convert_to_tensor([[2.0, 1.0, 1.0, 1.0],
+                                          [4.0, 1., 3.0, math.sqrt(5)],
+                                          [3.0, 2.0, 0.0, 2.0]])
+        n_base_points = tf.convert_to_tensor([[2.0, 0.0, 1.0, math.sqrt(2)],
+                                          [5.0, math.sqrt(8), math.sqrt(8), math.sqrt(8)],
+                                          [1.0, 0.0, 0.0, 0.0]])
+
+        one_tangent_vec = self.space.projection_to_tangent_space(
+            one_vec, base_point=one_base_point)
+        result = self.metric.exp(one_tangent_vec, one_base_point)
+        with self.test_session():
+             self.assertAllClose(gs.eval(result).shape, (1, dim))
+
+        n_tangent_vecs = self.space.projection_to_tangent_space(
+            n_vecs, base_point=one_base_point)
+        result = self.metric.exp(n_tangent_vecs, one_base_point)
+        with self.test_session():
+             self.assertAllClose(gs.eval(result).shape,  (n_samples, dim))
+
+        expected = np.zeros((n_samples, dim))
+
+        with self.test_session():
+            for i in range(n_samples):
+                expected[i] = gs.eval(self.metric.exp(n_tangent_vecs[i], one_base_point))
+            expected = helper.to_vector(tf.convert_to_tensor(expected))
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
+        one_tangent_vec = self.space.projection_to_tangent_space(
+            one_vec, base_point=n_base_points)
+        result = self.metric.exp(one_tangent_vec, n_base_points)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result).shape, (n_samples, dim))
+
+        expected = np.zeros((n_samples, dim))
+        with self.test_session():
+            for i in range(n_samples):
+                expected[i] = gs.eval(self.metric.exp(one_tangent_vec[i],
+                                      n_base_points[i]))
+            expected = helper.to_vector(tf.convert_to_tensor(expected))
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
+        n_tangent_vecs = self.space.projection_to_tangent_space(
+            n_vecs, base_point=n_base_points)
+        result = self.metric.exp(n_tangent_vecs, n_base_points)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result).shape, (n_samples, dim))
+
+        expected = np.zeros((n_samples, dim))
+        with self.test_session():
+            for i in range(n_samples):
+                expected[i] = gs.eval(self.metric.exp(n_tangent_vecs[i],
+                                      n_base_points[i]))
+            expected = helper.to_vector(tf.convert_to_tensor(expected))
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
+    def test_log_vectorization(self):
+        n_samples = 3
+        dim = self.dimension + 1
+
+        one_point = tf.convert_to_tensor([2.0, 1.0, 1.0, 1.0])
+        one_base_point = tf.convert_to_tensor([4.0, 3., 1.0, math.sqrt(5)])
+        n_points = tf.convert_to_tensor([[2.0, 1.0, 1.0, 1.0],
+                                          [4.0, 1., 3.0, math.sqrt(5)],
+                                          [3.0, 2.0, 0.0, 2.0]])
+        n_base_points = tf.convert_to_tensor([[2.0, 0.0, 1.0, math.sqrt(2)],
+                                          [5.0, math.sqrt(8), math.sqrt(8), math.sqrt(8)],
+                                          [1.0, 0.0, 0.0, 0.0]])
+
+        result = self.metric.log(one_point, one_base_point)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result).shape, (1, dim))
+
+        result = self.metric.log(n_points, one_base_point)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result).shape, (n_samples, dim))
+
+        result = self.metric.log(one_point, n_base_points)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result).shape, (n_samples, dim))
+
+        result = self.metric.log(n_points, n_base_points)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result).shape, (n_samples, dim))
+
+    def test_squared_norm_and_squared_dist(self):
+        """
+        Test that the squared distance between two points is
+        the squared norm of their logarithm.
+        """
+        point_a = tf.convert_to_tensor([2.0, 1.0, 1.0, 1.0])
+        point_b = tf.convert_to_tensor([4.0, 1., 3.0, math.sqrt(5)])
+        log = self.metric.log(point=point_a, base_point=point_b)
+        result = self.metric.squared_norm(vector=log)
+        expected = self.metric.squared_dist(point_a, point_b)
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
+    def test_norm_and_dist(self):
+        """
+        Test that the distance between two points is
+        the norm of their logarithm.
+        """
+        point_a = tf.convert_to_tensor([2.0, 1.0, 1.0, 1.0])
+        point_b = tf.convert_to_tensor([4.0, 1., 3.0, math.sqrt(5)])
+        log = self.metric.log(point=point_a, base_point=point_b)
+        result = self.metric.norm(vector=log)
+        expected = self.metric.dist(point_a, point_b)
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
 #     def test_log_and_exp_edge_case(self):
 #         """
 #         Test that the riemannian exponential
