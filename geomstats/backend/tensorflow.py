@@ -96,7 +96,7 @@ def tanh(x):
 
 
 def arccosh(x):
-    return tf.arccosh(x)
+    return tf.acosh(x)
 
 
 def tan(x):

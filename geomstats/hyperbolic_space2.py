@@ -39,7 +39,6 @@ class HyperbolicSpace(EmbeddedManifold):
     """
     Class for the n-dimensional Hyperbolic space
     as embedded in (n+1)-dimensional Minkowski space.
-
     By default, points are parameterized by their extrinsic (n+1)-coordinates.
     """
 
@@ -63,7 +62,7 @@ class HyperbolicSpace(EmbeddedManifold):
                 logging.warning(
                     'Use the extrinsic coordinates to '
                     'represent points on the hyperbolic space.')
-                return gs.array([[False]])
+            return False
 
         sq_norm = self.embedding_metric.squared_norm(point)
         euclidean_sq_norm = gs.linalg.norm(point, axis=-1) ** 2
@@ -77,19 +76,19 @@ class HyperbolicSpace(EmbeddedManifold):
         Regularize a point to the canonical representation
         chosen for the Hyperbolic space, to avoid numerical issues.
         """
+        assert gs.all(self.belongs(point))
         point = gs.to_ndarray(point, to_ndim=2)
 
         sq_norm = self.embedding_metric.squared_norm(point)
         real_norm = gs.sqrt(gs.abs(sq_norm))
 
-        mask_0 = gs.isclose(real_norm, 0.)
+        mask_0 = gs.isclose(real_norm, 0)
+        mask_0 = gs.squeeze(mask_0, axis=1)
         mask_not_0 = ~mask_0
-        mask_not_0_float = gs.cast(mask_not_0, gs.float32)
-        mask_0_float = gs.cast(mask_0, gs.float32)
         projected_point = point
 
-        projected_point = mask_not_0_float * (point
-                                       / real_norm)
+        projected_point[mask_not_0] = (point[mask_not_0]
+                                       / real_norm[mask_not_0])
         return projected_point
 
     def projection_to_tangent_space(self, vector, base_point):
@@ -97,6 +96,7 @@ class HyperbolicSpace(EmbeddedManifold):
         Project a vector in Minkowski space
         on the tangent space of the Hyperbolic space at a base point.
         """
+        assert gs.all(self.belongs(base_point))
         vector = gs.to_ndarray(vector, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
@@ -173,31 +173,28 @@ class HyperbolicMetric(RiemannianMetric):
                 tangent_vec)
         norm_tangent_vec = gs.sqrt(sq_norm_tangent_vec)
 
-        mask_0 = gs.isclose(sq_norm_tangent_vec, 0.)
+        mask_0 = gs.isclose(sq_norm_tangent_vec, 0)
         mask_0 = gs.to_ndarray(mask_0, to_ndim=1)
         mask_else = ~mask_0
-        mask_else = gs.to_ndarray(mask_else, to_ndim=1) 
-        mask_0_float = gs.cast(mask_0, gs.float32)
-        mask_else_float = gs.cast(mask_else, gs.float32)
+        mask_else = gs.to_ndarray(mask_else, to_ndim=1)
 
         coef_1 = gs.zeros_like(norm_tangent_vec)
         coef_2 = gs.zeros_like(norm_tangent_vec)
 
-        coef_1 += mask_0_float * (
-                  1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
-                  + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
-                  + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
-                  + COSH_TAYLOR_COEFFS[8] * norm_tangent_vec ** 8)
-        coef_2 += mask_0_float * (
-                  1. + SINH_TAYLOR_COEFFS[3] * norm_tangent_vec ** 2
-                  + SINH_TAYLOR_COEFFS[5] * norm_tangent_vec ** 4
-                  + SINH_TAYLOR_COEFFS[7] * norm_tangent_vec ** 6
-                  + SINH_TAYLOR_COEFFS[9] * norm_tangent_vec ** 8)
-        # This avoids dividing by 0.
-        norm_tangent_vec += mask_0_float * 1.0
-        coef_1 += mask_else_float * (gs.cosh(norm_tangent_vec))
-        coef_2 += mask_else_float * ((gs.sinh(norm_tangent_vec)
-                             / (norm_tangent_vec)))
+        coef_1[mask_0] = (
+                  1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec[mask_0] ** 2
+                  + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec[mask_0] ** 4
+                  + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec[mask_0] ** 6
+                  + COSH_TAYLOR_COEFFS[8] * norm_tangent_vec[mask_0] ** 8)
+        coef_2[mask_0] = (
+                  1. + SINH_TAYLOR_COEFFS[3] * norm_tangent_vec[mask_0] ** 2
+                  + SINH_TAYLOR_COEFFS[5] * norm_tangent_vec[mask_0] ** 4
+                  + SINH_TAYLOR_COEFFS[7] * norm_tangent_vec[mask_0] ** 6
+                  + SINH_TAYLOR_COEFFS[9] * norm_tangent_vec[mask_0] ** 8)
+
+        coef_1[mask_else] = gs.cosh(norm_tangent_vec[mask_else])
+        coef_2[mask_else] = (gs.sinh(norm_tangent_vec[mask_else])
+                             / norm_tangent_vec[mask_else])
 
         exp = (gs.einsum('ni,nj->nj', coef_1, base_point)
                + gs.einsum('ni,nj->nj', coef_2, tangent_vec))
@@ -217,31 +214,25 @@ class HyperbolicMetric(RiemannianMetric):
         angle = gs.to_ndarray(angle, to_ndim=1)
         angle = gs.to_ndarray(angle, to_ndim=2)
 
-        mask_0 = gs.isclose(angle, 0.)
+        mask_0 = gs.isclose(angle, 0)
         mask_else = ~mask_0
-        
-        mask_0_float = gs.cast(mask_0, gs.float32)
-        mask_else_float = gs.cast(mask_else, gs.float32)
 
         coef_1 = gs.zeros_like(angle)
         coef_2 = gs.zeros_like(angle)
 
-        coef_1 += mask_0_float * (
-                  1. + INV_SINH_TAYLOR_COEFFS[1] * angle ** 2
-                  + INV_SINH_TAYLOR_COEFFS[3] * angle ** 4
-                  + INV_SINH_TAYLOR_COEFFS[5] * angle ** 6
-                  + INV_SINH_TAYLOR_COEFFS[7] * angle ** 8)
-        coef_2 += mask_0_float * (
-                  1. + INV_TANH_TAYLOR_COEFFS[1] * angle ** 2
-                  + INV_TANH_TAYLOR_COEFFS[3] * angle ** 4
-                  + INV_TANH_TAYLOR_COEFFS[5] * angle ** 6
-                  + INV_TANH_TAYLOR_COEFFS[7] * angle ** 8)
-        
-        # This avoids dividing by 0.
-        angle += mask_0_float * 1.
+        coef_1[mask_0] = (
+                  1. + INV_SINH_TAYLOR_COEFFS[1] * angle[mask_0] ** 2
+                  + INV_SINH_TAYLOR_COEFFS[3] * angle[mask_0] ** 4
+                  + INV_SINH_TAYLOR_COEFFS[5] * angle[mask_0] ** 6
+                  + INV_SINH_TAYLOR_COEFFS[7] * angle[mask_0] ** 8)
+        coef_2[mask_0] = (
+                  1. + INV_TANH_TAYLOR_COEFFS[1] * angle[mask_0] ** 2
+                  + INV_TANH_TAYLOR_COEFFS[3] * angle[mask_0] ** 4
+                  + INV_TANH_TAYLOR_COEFFS[5] * angle[mask_0] ** 6
+                  + INV_TANH_TAYLOR_COEFFS[7] * angle[mask_0] ** 8)
 
-        coef_1 += mask_else_float * (angle / gs.sinh(angle))
-        coef_2 += mask_else_float * (angle / gs.tanh(angle))
+        coef_1[mask_else] = angle[mask_else] / gs.sinh(angle[mask_else])
+        coef_2[mask_else] = angle[mask_else] / gs.tanh(angle[mask_else])
 
         log = (gs.einsum('ni,nj->nj', coef_1, point)
                - gs.einsum('ni,nj->nj', coef_2, base_point))
@@ -251,7 +242,7 @@ class HyperbolicMetric(RiemannianMetric):
         """
         Geodesic distance between two points.
         """
-        if gs.allclose(point_a, point_b) == True:
+        if gs.all(gs.equal(point_a, point_b)):
             return 0.
 
         sq_norm_a = self.embedding_metric.squared_norm(point_a)
@@ -259,8 +250,7 @@ class HyperbolicMetric(RiemannianMetric):
         inner_prod = self.embedding_metric.inner_product(point_a, point_b)
 
         cosh_angle = - inner_prod / gs.sqrt(sq_norm_a * sq_norm_b)
-        print(cosh_angle)
-        cosh_angle = gs.clip(cosh_angle, 1.0, 1e24)
+        cosh_angle = gs.clip(cosh_angle, 1, None)
 
         dist = gs.arccosh(cosh_angle)
 
