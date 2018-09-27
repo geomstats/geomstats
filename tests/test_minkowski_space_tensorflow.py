@@ -259,7 +259,7 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
 
 
     def test_mean(self):
-        point = tf.convert_to_tensor([2., -math.sqrt(3)])
+        point = tf.convert_to_tensor([[2., -math.sqrt(3)]])
         result = self.metric.mean(points=[point, point, point])
         expected = point
         expected = helper.to_vector(expected)
@@ -274,23 +274,27 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
             [4., math.sqrt(24)]])
         weights = gs.array([1., 2., 1., 2.])
         result = self.metric.mean(points, weights)
+        result = self.space.belongs(result)
         expected = tf.convert_to_tensor([[True]])
         with self.test_session():
-            self.assertTrue(gs.eval(result), gs.eval(expected) )
+            self.assertAllClose(gs.eval(result), gs.eval(expected) )
 
 
-#     def test_variance(self):
-#         points = gs.array([[1, 2],
-#                            [2, 3],
-#                            [3, 4],
-#                            [4, 5]])
-#         weights = gs.array([1, 2, 1, 2])
-#         base_point = gs.zeros(2)
-#         result = self.metric.variance(points, weights, base_point)
-#         # we expect the average of the points' Minkowski sq norms.
-#         expected = (1 * 3. + 2 * 5. + 1 * 7. + 2 * 9.) / 6.
-#         expected = helper.to_scalar(expected)
-#         gs.testing.assert_allclose(result, expected)
+
+    def test_variance(self):
+        points = tf.convert_to_tensor([
+            [1., 0.],
+            [2., math.sqrt(3)],
+            [3., math.sqrt(8)],
+            [4., math.sqrt(24)]])
+        weights = tf.convert_to_tensor([1., 2., 1., 2.])
+        base_point = tf.convert_to_tensor([-1., 0.])
+        result = self.metric.variance(points, weights, base_point)
+        # we expect the average of the points' Minkowski sq norms.
+        expected = helper.to_scalar(tf.convert_to_tensor([True]))
+        with self.test_session():            
+            self.assertAllClose(gs.eval(result)!=0, gs.eval(expected) )
+
 
 
 if __name__ == '__main__':
