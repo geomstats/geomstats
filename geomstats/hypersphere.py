@@ -59,7 +59,7 @@ class Hypersphere(EmbeddedManifold):
                 logging.warning(
                     'Use the extrinsic coordinates to '
                     'represent points on the hypersphere.')
-            return False
+            return gs.array([[False]])
         sq_norm = self.embedding_metric.squared_norm(point)
         diff = gs.abs(sq_norm - 1)
         return gs.less_equal(diff, tolerance)
