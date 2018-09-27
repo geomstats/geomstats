@@ -25,8 +25,9 @@ class TestEuclideanSpaceMethods(unittest.TestCase):
     def test_belongs(self):
         point = self.space.random_uniform()
         belongs = self.space.belongs(point)
+        expected = gs.array([[True]])
 
-        gs.testing.assert_allclose(belongs.shape, (1, 1))
+        gs.testing.assert_allclose(belongs, expected)
 
     def test_random_uniform(self):
         point = self.space.random_uniform()
