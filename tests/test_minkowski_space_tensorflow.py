@@ -1,5 +1,5 @@
 """
-Unit tests for Minkowski space.
+Unit tests for Minkowski space with tensorflow backend.
 """
 
 import importlib
@@ -7,8 +7,7 @@ import math
 import numpy as np
 import os
 import tensorflow as tf
-import sys
-sys.path.append("~/Desktop/")
+
 import geomstats.backend as gs
 import tests.helper as helper
 
@@ -68,10 +67,11 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
  
         result = self.metric.inner_product(point_a, point_b)
         expected = helper.to_scalar(gs.dot(point_a, point_b))
+        expected -= (2 * point_a[self.time_like_dim]
+                      * point_b[self.time_like_dim])
         
         with self.test_session():
-            expected -= (2 * point_a[self.time_like_dim]
-                      * point_b[self.time_like_dim])
+
             self.assertAllClose(gs.eval(result), gs.eval(expected))
  
     def test_inner_product_vectorization(self):
@@ -120,7 +120,7 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
             expected = helper.to_scalar(tf.convert_to_tensor(expected))
             
 
-            self.assertAllClose(gs.eval(result_nn), gs.eval(expected) )
+            self.assertAllClose(gs.eval(result_nn), gs.eval(expected))
 
     def test_squared_norm(self):
         point = tf.convert_to_tensor([-2., 4.])
@@ -130,7 +130,7 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
         expected -= 2 * point[self.time_like_dim] * point[self.time_like_dim]
         expected = helper.to_scalar(expected)
         with self.test_session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected) )
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
  
     def test_squared_norm_vectorization(self):
         n_samples = 3
@@ -153,7 +153,7 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
         expected = base_point + vector
         expected = helper.to_vector(expected)
         with self.test_session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected) )
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     def test_exp_vectorization(self):
         dim = self.dimension
@@ -194,7 +194,7 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
         expected = point - base_point
         expected = helper.to_vector(expected)
         with self.test_session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected) )
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     def test_log_vectorization(self):
 
@@ -216,7 +216,7 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
         expected = one_point - one_base_point
         expected = helper.to_vector(expected)
         with self.test_session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected) )
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
             result = self.metric.log(n_points, one_base_point)
             self.assertAllClose(gs.eval(result).shape, (n_samples, dim))
@@ -237,7 +237,7 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
         expected -= 2 * vec[self.time_like_dim] * vec[self.time_like_dim]
         expected = helper.to_scalar(expected)
         with self.test_session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected) )
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     def test_geodesic_and_belongs(self):
         n_geodesic_points = 100
@@ -264,7 +264,7 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
         expected = helper.to_vector(expected)
 
         with self.test_session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected) )
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
         points = tf.convert_to_tensor([
             [1., 0.],
@@ -290,7 +290,7 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
         # we expect the average of the points' Minkowski sq norms.
         expected = helper.to_scalar(tf.convert_to_tensor([True]))
         with self.test_session():            
-            self.assertAllClose(gs.eval(result)!=0, gs.eval(expected) )
+            self.assertAllClose(gs.eval(result)!=0, gs.eval(expected))
 
 
 
