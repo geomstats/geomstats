@@ -193,20 +193,27 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 mask_0 = mask_norm_0 | mask_canonical_norm_0
                 mask_else = ~mask_0
 
-                mask_0 = gs.squeeze(mask_0, axis=1)
-                mask_else = gs.squeeze(mask_else, axis=1)
+                mask_0_float = gs.cast(mask_0, gs.float32)
+                mask_else_float = gs.cast(mask_else, gs.float32)
 
-                coef = gs.empty_like(tangent_vec_metric_norm)
-                regularized_vec = tangent_vec
+                coef = gs.zeros_like(tangent_vec_metric_norm)
 
-                regularized_vec[mask_0] = tangent_vec[mask_0]
+                regularized_vec = gs.zeros_like(tangent_vec)
 
-                coef[mask_else] = (tangent_vec_metric_norm[mask_else]
-                                   / tangent_vec_canonical_norm[mask_else])
-                regularized_vec[mask_else] = self.regularize(
-                        coef[mask_else] * tangent_vec[mask_else])
-                regularized_vec[mask_else] = (regularized_vec[mask_else]
-                                              / coef[mask_else])
+                regularized_vec += mask_0_float * tangent_vec
+
+                # This avoids dividing by 0.
+                tangent_vec_canonical_norm += mask_0_float * 1.
+
+                coef += mask_else_float * (
+                        tangent_vec_metric_norm
+                        / tangent_vec_canonical_norm)
+                regularized_vec += mask_else_float * self.regularize(
+                        coef * tangent_vec)
+                # This avois dividing by 0.
+                coef += mask_0_float * 1.
+                regularized_vec = mask_else_float * (
+                        regularized_vec / coef)
             else:
                 # TODO(nina): regularization needed in nD?
                 regularized_vec = tangent_vec
