@@ -4044,39 +4044,39 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
-    #def test_geodesic_and_belongs(self):
-    #    n = 3
-    #    group = self.so[n]
+    def test_geodesic_and_belongs(self):
+        n = 3
+        group = self.so[n]
 
-    #    initial_point = group.random_uniform()
-    #    initial_tangent_vec = gs.array([2., 0., -1.])
-    #    metric = self.metrics[3]['canonical']
-    #    geodesic = metric.geodesic(initial_point=initial_point,
-    #                               initial_tangent_vec=initial_tangent_vec)
+        initial_point = group.random_uniform()
+        initial_tangent_vec = gs.array([2., 0., -1.])
+        metric = self.metrics[3]['canonical']
+        geodesic = metric.geodesic(initial_point=initial_point,
+                                   initial_tangent_vec=initial_tangent_vec)
 
-    #    t = gs.linspace(start=0, stop=1, num=100)
-    #    points = geodesic(t)
-    #    self.assertTrue(gs.all(group.belongs(points)))
+        t = gs.linspace(start=0, stop=1, num=100)
+        points = geodesic(t)
+        self.assertTrue(gs.all(group.belongs(points)))
 
-    #def test_geodesic_subsample(self):
-    #    n = 3
-    #    group = self.so[n]
+    def test_geodesic_subsample(self):
+        n = 3
+        group = self.so[n]
 
-    #    initial_point = group.random_uniform()
-    #    initial_tangent_vec = gs.array([1., 1., 1.])
-    #    metric = self.metrics[n]['canonical']
-    #    geodesic = metric.geodesic(initial_point=initial_point,
-    #                               initial_tangent_vec=initial_tangent_vec)
-    #    n_steps = 100
-    #    t = gs.linspace(start=0, stop=1, num=n_steps+1)
-    #    points = geodesic(t)
+        initial_point = group.random_uniform()
+        initial_tangent_vec = gs.array([1., 1., 1.])
+        metric = self.metrics[n]['canonical']
+        geodesic = metric.geodesic(initial_point=initial_point,
+                                   initial_tangent_vec=initial_tangent_vec)
+        n_steps = 100
+        t = gs.linspace(start=0, stop=1, num=n_steps+1)
+        points = geodesic(t)
 
-    #    tangent_vec_step = initial_tangent_vec / n_steps
-    #    for i in range(n_steps+1):
-    #        point_step = metric.exp(tangent_vec=i * tangent_vec_step,
-    #                                base_point=initial_point)
+        tangent_vec_step = initial_tangent_vec / n_steps
+        for i in range(n_steps+1):
+            point_step = metric.exp(tangent_vec=i * tangent_vec_step,
+                                    base_point=initial_point)
 
-    #        self.assertTrue(gs.allclose(point_step, points[i]))
+            self.assertTrue(gs.allclose(point_step, points[i]))
 
 
 if __name__ == '__main__':
