@@ -297,60 +297,64 @@ class TestHyperbolicSpaceTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-#     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
-#         """
-#         Test that the riemannian exponential
-#         and the riemannian logarithm are inverse.
-# 
-#         Expect their composition to give the identity function.
-#         """
-#         # Riemannian Exp then Riemannian Log
-#         # General case
-#         base_point = self.space.random_uniform()
-#         # TODO(nina): this fails for high euclidean norms of vector_1
-#         vector = gs.array([9., 4., 0., 0., -1., -3., 2.])
-#         vector = self.space.projection_to_tangent_space(
-#                                                   vector=vector,
-#                                                   base_point=base_point)
-#         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
-#         result = self.metric.log(point=exp, base_point=base_point)
-# 
-#         expected = vector
-#         norm = gs.linalg.norm(expected)
-#         atol = RTOL
-#         if norm != 0:
-#             atol = RTOL * norm
-#         gs.testing.assert_allclose(result, expected, atol=atol)
-# 
-#     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
-#         """
-#         Test that the riemannian exponential
-#         and the riemannian logarithm are inverse.
-# 
-#         Expect their composition to give the identity function.
-#         """
-#         # Riemannian Exp then Riemannian Log
-#         # Edge case: tangent vector has norm < epsilon
-#         base_point = self.space.random_uniform()
-#         vector = 1e-10 * gs.array([.06, -51., 6., 5., 6., 6., 6.])
-# 
-#         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
-#         result = self.metric.log(point=exp, base_point=base_point)
-#         expected = self.space.projection_to_tangent_space(
-#                                                    vector=vector,
-#                                                    base_point=base_point)
-# 
-#         gs.testing.assert_allclose(result, expected, atol=1e-8)
-# 
-#     def test_dist(self):
-#         # Distance between a point and itself is 0.
-#         point_a = self.space.random_uniform()
-#         point_b = point_a
-#         result = self.metric.dist(point_a, point_b)
-#         expected = 0.
-# 
-#         gs.testing.assert_allclose(result, expected)
-# 
+    def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
+        """
+        Test that the riemannian exponential
+        and the riemannian logarithm are inverse.
+
+        Expect their composition to give the identity function.
+        """
+        # Riemannian Exp then Riemannian Log
+        # General case
+        base_point = tf.convert_to_tensor([4.0, 1., 3.0, math.sqrt(5)])
+        # TODO(nina): this fails for high euclidean norms of vector_1
+        vector = tf.convert_to_tensor([2.0, 1.0, 1.0, 1.0])
+        vector = self.space.projection_to_tangent_space(
+                                                  vector=vector,
+                                                  base_point=base_point)
+        exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
+        result = self.metric.log(point=exp, base_point=base_point)
+
+        expected = vector
+        norm = gs.linalg.norm(expected)
+        atol = RTOL
+        if norm != 0:
+            atol = RTOL * norm
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
+    def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
+        """
+        Test that the riemannian exponential
+        and the riemannian logarithm are inverse.
+
+        Expect their composition to give the identity function.
+        """
+        # Riemannian Exp then Riemannian Log
+        # Edge case: tangent vector has norm < epsilon
+        base_point = tf.convert_to_tensor([4.0, 1., 3.0, math.sqrt(5)])
+        vector = 1e-10 * tf.convert_to_tensor([.06, -51., 6., 5.])
+
+        exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
+        result = self.metric.log(point=exp, base_point=base_point)
+        expected = self.space.projection_to_tangent_space(
+                                                   vector=vector,
+                                                   base_point=base_point)
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected), atol=1e-8)
+
+    def test_dist(self):
+        # Distance between a point and itself is 0.
+        point_a = tf.convert_to_tensor([4.0, 1., 3.0, math.sqrt(5)])
+        point_b = point_a
+        result = self.metric.dist(point_a, point_b)
+        expected = tf.convert_to_tensor([[0]])
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
+
 #     def test_exp_and_dist_and_projection_to_tangent_space(self):
 #         # TODO(nina): this fails for high norms of vector
 #         base_point = self.space.random_uniform()
