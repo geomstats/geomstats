@@ -63,7 +63,7 @@ class HyperbolicSpace(EmbeddedManifold):
                 logging.warning(
                     'Use the extrinsic coordinates to '
                     'represent points on the hyperbolic space.')
-            return False
+                return gs.array([[False]])
 
         sq_norm = self.embedding_metric.squared_norm(point)
         euclidean_sq_norm = gs.linalg.norm(point, axis=-1) ** 2

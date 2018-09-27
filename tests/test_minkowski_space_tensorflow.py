@@ -257,7 +257,6 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(expected), gs.eval(bool_belongs))
 
-
     def test_mean(self):
         point = tf.convert_to_tensor([[2., -math.sqrt(3)]])
         result = self.metric.mean(points=[point, point, point])
@@ -278,8 +277,6 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
         expected = tf.convert_to_tensor([[True]])
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected) )
-
-
 
     def test_variance(self):
         points = tf.convert_to_tensor([
