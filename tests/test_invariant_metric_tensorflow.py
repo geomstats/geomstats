@@ -405,104 +405,103 @@ class TestInvariantMetricMethodsTensorFlow(tf.test.TestCase):
         expected = self.point_small
         # self.assertTrue(gs.allclose(result, expected))
 
-    #def test_exp_and_log_right_diag_metrics(self):
-    #    """
-    #    Test that the riemannian exponential and the
-    #    riemannian logarithm are inverse.
-    #    Expect their composition to give the identity function.
-    #    """
-    #    # General case for the reference point
-    #    base_point = self.point_2
-    #    # For right diagonal metric: point and point_small
-    #    result = helper.log_then_exp(self.right_diag_metric,
-    #                                 base_point, self.point_1)
-    #    expected = self.group.regularize(self.point_1)
-    #    # self.assertTrue(gs.allclose(result, expected))
+    def test_exp_and_log_right_diag_metrics(self):
+        """
+        Test that the riemannian exponential and the
+        riemannian logarithm are inverse.
+        Expect their composition to give the identity function.
+        """
+        # General case for the reference point
+        base_point = self.point_2
+        # For right diagonal metric: point and point_small
+        result = helper.log_then_exp(self.right_diag_metric,
+                                     base_point, self.point_1)
+        expected = self.group.regularize(self.point_1)
+        # self.assertTrue(gs.allclose(result, expected))
 
-    #    result = helper.log_then_exp(self.right_diag_metric,
-    #                                 base_point, self.point_small)
-    #    expected = self.group.regularize(self.point_small)
-    #    # self.assertTrue(gs.allclose(result, expected))
+        result = helper.log_then_exp(self.right_diag_metric,
+                                     base_point, self.point_small)
+        expected = self.group.regularize(self.point_small)
+        # self.assertTrue(gs.allclose(result, expected))
 
-    #def test_exp_and_log_right_metrics(self):
-    #    """
-    #    Test that the riemannian exponential and the
-    #    riemannian logarithm are inverse.
-    #    Expect their composition to give the identity function.
-    #    """
-    #    # General case for the reference point
-    #    base_point = self.point_2
-    #    # For right metric: point and point_small
-    #    result = helper.log_then_exp(self.right_metric,
-    #                                 base_point, self.point_1)
-    #    expected = self.point_1
-    #    # self.assertTrue(gs.allclose(result, expected))
+    def test_exp_and_log_right_metrics(self):
+        """
+        Test that the riemannian exponential and the
+        riemannian logarithm are inverse.
+        Expect their composition to give the identity function.
+        """
+        # General case for the reference point
+        base_point = self.point_2
+        # For right metric: point and point_small
+        result = helper.log_then_exp(self.right_metric,
+                                     base_point, self.point_1)
+        expected = self.point_1
+        # self.assertTrue(gs.allclose(result, expected))
 
-    #    result = helper.log_then_exp(self.right_metric,
-    #                                 base_point, self.point_small)
-    #    expected = self.point_small
-    #    # self.assertTrue(gs.allclose(result, expected))
+        result = helper.log_then_exp(self.right_metric,
+                                     base_point, self.point_small)
+        expected = self.point_small
+        # self.assertTrue(gs.allclose(result, expected))
 
-    #def test_squared_dist_left_diag_metrics(self):
-    #    sq_dist_1_2 = self.left_diag_metric.squared_dist(self.point_1,
-    #                                                     self.point_2)
-    #    sq_dist_2_1 = self.left_diag_metric.squared_dist(self.point_2,
-    #                                                     self.point_1)
-    #    self.assertTrue(gs.allclose(sq_dist_1_2, sq_dist_2_1))
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(sq_dist_1_2), gs.eval(sq_dist_2_1))
+    def test_squared_dist_left_diag_metrics(self):
+        sq_dist_1_2 = self.left_diag_metric.squared_dist(self.point_1,
+                                                         self.point_2)
+        sq_dist_2_1 = self.left_diag_metric.squared_dist(self.point_2,
+                                                         self.point_1)
+        # with self.test_session():
+        #     self.assertAllClose(gs.eval(sq_dist_1_2), gs.eval(sq_dist_2_1))
 
-    #def test_squared_dist_left_metrics(self):
-    #    sq_dist_1_2 = self.left_metric.squared_dist(self.point_1,
-    #                                                self.point_2)
-    #    sq_dist_2_1 = self.left_metric.squared_dist(self.point_2,
-    #                                                self.point_1)
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(sq_dist_1_2), gs.eval(sq_dist_2_1))
+    def test_squared_dist_left_metrics(self):
+        sq_dist_1_2 = self.left_metric.squared_dist(self.point_1,
+                                                    self.point_2)
+        sq_dist_2_1 = self.left_metric.squared_dist(self.point_2,
+                                                    self.point_1)
+        # with self.test_session():
+        #     self.assertAllClose(gs.eval(sq_dist_1_2), gs.eval(sq_dist_2_1))
 
-    #def test_squared_dist_and_squared_norm_left_diag_metrics(self):
-    #    result = self.left_diag_metric.squared_dist(self.point_1,
-    #                                                self.point_2)
-    #    log = self.left_diag_metric.log(base_point=self.point_1,
-    #                                    point=self.point_2)
-    #    expected = self.left_diag_metric.squared_norm(
-    #                                             vector=log,
-    #                                             base_point=self.point_1)
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+    def test_squared_dist_and_squared_norm_left_diag_metrics(self):
+        result = self.left_diag_metric.squared_dist(self.point_1,
+                                                    self.point_2)
+        log = self.left_diag_metric.log(base_point=self.point_1,
+                                        point=self.point_2)
+        expected = self.left_diag_metric.squared_norm(
+                                                 vector=log,
+                                                 base_point=self.point_1)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #def test_squared_dist_and_squared_norm_left_metrics(self):
-    #    result = self.left_metric.squared_dist(self.point_1,
-    #                                           self.point_2)
-    #    log = self.left_diag_metric.log(base_point=self.point_1,
-    #                                    point=self.point_2)
-    #    expected = self.left_metric.squared_norm(
-    #                                         vector=log,
-    #                                         base_point=self.point_1)
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+    def test_squared_dist_and_squared_norm_left_metrics(self):
+        result = self.left_metric.squared_dist(self.point_1,
+                                               self.point_2)
+        log = self.left_diag_metric.log(base_point=self.point_1,
+                                        point=self.point_2)
+        expected = self.left_metric.squared_norm(
+                                             vector=log,
+                                             base_point=self.point_1)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #def test_squared_dist_and_squared_norm_right_diag_metrics(self):
-    #    result = self.right_diag_metric.squared_dist(self.point_1,
-    #                                                 self.point_2)
-    #    log = self.right_diag_metric.log(base_point=self.point_1,
-    #                                     point=self.point_2)
-    #    expected = self.right_diag_metric.squared_norm(
-    #                                             vector=log,
-    #                                             base_point=self.point_1)
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+    def test_squared_dist_and_squared_norm_right_diag_metrics(self):
+        result = self.right_diag_metric.squared_dist(self.point_1,
+                                                     self.point_2)
+        log = self.right_diag_metric.log(base_point=self.point_1,
+                                         point=self.point_2)
+        expected = self.right_diag_metric.squared_norm(
+                                                 vector=log,
+                                                 base_point=self.point_1)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #def test_squared_dist_and_squared_norm_right_metrics(self):
-    #    result = self.right_metric.squared_dist(self.point_1,
-    #                                            self.point_2)
-    #    log = self.right_diag_metric.log(base_point=self.point_1,
-    #                                     point=self.point_2)
-    #    expected = self.right_metric.squared_norm(
-    #                                         vector=log,
-    #                                         base_point=self.point_1)
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+    def test_squared_dist_and_squared_norm_right_metrics(self):
+        result = self.right_metric.squared_dist(self.point_1,
+                                                self.point_2)
+        log = self.right_diag_metric.log(base_point=self.point_1,
+                                         point=self.point_2)
+        expected = self.right_metric.squared_norm(
+                                             vector=log,
+                                             base_point=self.point_1)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
 
 if __name__ == '__main__':
