@@ -401,7 +401,10 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         vec = gs.zeros((n_skew_mats, vec_dim))
 
         if self.n == 3:
-            vec = skew_mat[:, (2, 0, 1), (1, 2, 0)]
+            vec_1 = gs.to_ndarray(skew_mat[:, 2, 1], to_ndim=2, axis=1)
+            vec_2 = gs.to_ndarray(skew_mat[:, 0, 2], to_ndim=2, axis=1)
+            vec_3 = gs.to_ndarray(skew_mat[:, 1, 0], to_ndim=2, axis=1)
+            vec = gs.concatenate([vec_1, vec_2, vec_3], axis=1)
         else:
             idx = 0
             for j in range(mat_dim_1):
@@ -452,9 +455,12 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             rot_vec = self.vector_from_skew_matrix(rot_mat - rot_mat_transpose)
 
             mask_0 = gs.isclose(angle, 0.)
-            mask_0 = gs.squeeze(mask_0, axis=1)
-            rot_vec[mask_0] = (rot_vec[mask_0]
-                               * (.5 - (trace[mask_0] - 3.) / 12.))
+            #mask_0 = gs.squeeze(mask_0, axis=1)
+            mask_0_float = gs.cast(mask_0, gs.float32)
+
+            #rot_vec_before = (rot_vec[mask_0]
+            #                  * (.5 - (trace[mask_0] - 3.) / 12.))
+            rot_vec *= (1. + mask_0_float * (.5 - (trace - 3.) / 12. - 1.))
 
             mask_pi = gs.isclose(angle, gs.pi)
             mask_pi = gs.squeeze(mask_pi, axis=1)
@@ -483,10 +489,24 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             rot_vec[mask_pi] = (angle[mask_pi] * rot_vec_pi
                                 / gs.linalg.norm(rot_vec_pi))
 
+            mask_pi = gs.to_ndarray(mask_pi, to_ndim=2, axis=1)
             mask_else = ~mask_0 & ~mask_pi
-            rot_vec[mask_else] = (angle[mask_else]
-                                  / (2. * gs.sin(angle[mask_else]))
-                                  * rot_vec[mask_else])
+            mask_else_float = gs.cast(mask_else, gs.float32)
+
+            # This avoid dividing by zero
+            angle += mask_0_float * 1.
+
+            angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
+            fact = gs.einsum(
+                'ni,ni->ni',
+                mask_else_float,
+                (angle / (2. * gs.sin(angle)) - 1.))
+            #print(gs.shape(mask_0))
+            #print(gs.shape(mask_pi))
+            #print(gs.shape(mask_else_float))
+            #print(gs.shape(angle / (2. * gs.sin(angle)) - 1.))
+            #print(gs.shape(multiplication_fact))
+            rot_vec *= (1. + fact)
         else:
             skew_mat = self.embedding_manifold.group_log_from_identity(rot_mat)
             rot_vec = self.vector_from_skew_matrix(skew_mat)
