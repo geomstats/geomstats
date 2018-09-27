@@ -272,30 +272,31 @@ class TestHyperbolicSpaceTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-#     def test_log_and_exp_edge_case(self):
-#         """
-#         Test that the riemannian exponential
-#         and the riemannian logarithm are inverse.
-# 
-#         Expect their composition to give the identity function.
-#         """
-#         # Riemannian Log then Riemannian Exp
-#         # Edge case: two very close points, base_point_2 and point_2,
-#         # form an angle < epsilon
-#         base_point_intrinsic = gs.array([1., 2., 3., 4., 5., 6.])
-#         base_point = self.space.intrinsic_to_extrinsic_coords(
-#                                                        base_point_intrinsic)
-#         point_intrinsic = (base_point_intrinsic
-#                            + 1e-12 * gs.array([-1., -2., 1., 1., 2., 1.]))
-#         point = self.space.intrinsic_to_extrinsic_coords(
-#                                                        point_intrinsic)
-# 
-#         log = self.metric.log(point=point, base_point=base_point)
-#         result = self.metric.exp(tangent_vec=log, base_point=base_point)
-#         expected = point
-# 
-#         gs.testing.assert_allclose(result, expected)
-# 
+    def test_log_and_exp_edge_case(self):
+        """
+        Test that the riemannian exponential
+        and the riemannian logarithm are inverse.
+
+        Expect their composition to give the identity function.
+        """
+        # Riemannian Log then Riemannian Exp
+        # Edge case: two very close points, base_point_2 and point_2,
+        # form an angle < epsilon
+        base_point_intrinsic = tf.convert_to_tensor([1., 2., 3.])
+        base_point = self.space.intrinsic_to_extrinsic_coords(
+                                                       base_point_intrinsic)
+        point_intrinsic = (base_point_intrinsic
+                           + 1e-12 * tf.convert_to_tensor([-1., -2., 1.]))
+        point = self.space.intrinsic_to_extrinsic_coords(
+                                                       point_intrinsic)
+
+        log = self.metric.log(point=point, base_point=base_point)
+        result = self.metric.exp(tangent_vec=log, base_point=base_point)
+        expected = point
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
 #     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
 #         """
 #         Test that the riemannian exponential
