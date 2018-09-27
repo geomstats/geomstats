@@ -2,9 +2,9 @@
 Minkowski space.
 """
 
-import geomstats.backend as gs
 
 from geomstats.manifold import Manifold
+import geomstats.backend as gs
 from geomstats.riemannian_metric import RiemannianMetric
 
 
@@ -55,8 +55,18 @@ class MinkowskiMetric(RiemannianMetric):
         """
         Inner product matrix, independent of the base point.
         """
-        inner_prod_mat = gs.eye(self.dimension)
-        inner_prod_mat[0, 0] = -1
+        inner_prod_mat = gs.eye(self.dimension-1, self.dimension-1)
+        first_row = gs.array([0.] * (self.dimension - 1))
+        first_row = gs.to_ndarray(first_row, to_ndim=2, axis=1)
+        inner_prod_mat = gs.vstack([gs.transpose(first_row),
+                                    inner_prod_mat])
+        
+        first_column = gs.array([-1.] + [0.] * (self.dimension - 1))
+        first_column = gs.to_ndarray(first_column, to_ndim=2, axis=1)
+        inner_prod_mat = gs.hstack([first_column,
+                                    inner_prod_mat])
+                                    
+        
         return inner_prod_mat
 
     def exp(self, tangent_vec, base_point):
