@@ -24,7 +24,7 @@ class TestExamples(unittest.TestCase):
     _multiprocess_can_split_ = True
 
     def test_gradient_descent_s2(self):
-        gradient_descent_s2.main(max_iter=3, output_file=None)
+        gradient_descent_s2.main(max_iter=32, output_file=None)
 
     def test_loss_and_gradient_so3(self):
         loss_and_gradient_so3.main()

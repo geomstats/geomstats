@@ -34,7 +34,7 @@ def gradient_descent(start,
                      grad,
                      manifold,
                      lr=0.01,
-                     max_iter=128,
+                     max_iter=256,
                      precision=1e-5):
     """Operate a gradient descent on a given manifold until either max_iter or
     a given precision is reached."""
