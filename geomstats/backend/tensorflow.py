@@ -18,7 +18,7 @@ def outer(x, y):
 
 
 def copy(x):
-    return tf.contrib.eager.Variable(x)
+    return tf.Variable(x)
 
 
 def linspace(start, stop, num):

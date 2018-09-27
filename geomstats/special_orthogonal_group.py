@@ -129,7 +129,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             assert self.belongs(point, point_type)
             n_points, _ = point.shape
 
-            regularized_point = gs.copy(point)
+            regularized_point = point
             if self.n == 3:
                 angle = gs.linalg.norm(regularized_point, axis=1)
 
@@ -337,12 +337,12 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         the values of the vector.
         """
         vec = gs.to_ndarray(vec, to_ndim=2)
-        n_vecs, vec_dim = gs.shape(vec)
+        n_vecs = gs.shape(vec)[0]
+        vec_dim = gs.shape(vec)[1]
 
         # TODO(nina): Change gs.cast function for elementary types
         vec_dim = gs.cast(gs.array([vec_dim]), gs.float32)[0]
-        mat_dim = int((1. + gs.sqrt(1. + 8. * vec_dim)) / 2.)
-        assert mat_dim == self.n
+        mat_dim = gs.cast(((1. + gs.sqrt(1. + 8. * vec_dim)) / 2.), gs.int32)
 
         skew_mat = gs.zeros((n_vecs,) + (self.n,) * 2)
         if self.n == 3:
@@ -1253,8 +1253,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                         'The jacobian of the right translation'
                         ' is not implemented.')
                 jacobian = self.matrix_from_rotation_vector(point)
-
-            assert gs.ndim(jacobian) == 3
 
         elif point_type == 'matrix':
             raise NotImplementedError()
