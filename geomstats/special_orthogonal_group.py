@@ -43,6 +43,13 @@ def get_mask_i_float(i, n):
     return mask_i_float
 
 
+def get_mask_i(i, n):
+    mask_i_float = get_mask_i_float(i, n)
+    mask_i = gs.isclose(mask_i_float, 1.)
+
+    return mask_i
+
+
 class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
     """
     Class for the special orthogonal group SO(n),
@@ -455,21 +462,17 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             rot_vec = self.vector_from_skew_matrix(rot_mat - rot_mat_transpose)
 
             mask_0 = gs.isclose(angle, 0.)
-            #mask_0 = gs.squeeze(mask_0, axis=1)
             mask_0_float = gs.cast(mask_0, gs.float32)
 
-            #rot_vec_before = (rot_vec[mask_0]
-            #                  * (.5 - (trace[mask_0] - 3.) / 12.))
             rot_vec *= (1. + mask_0_float * (.5 - (trace - 3.) / 12. - 1.))
 
             mask_pi = gs.isclose(angle, gs.pi)
-            mask_pi = gs.to_ndarray(mask_pi, to_ndim=2, axis=1)
             mask_pi_float = gs.cast(mask_pi, gs.float32)
 
             mask_else = ~mask_0 & ~mask_pi
             mask_else_float = gs.cast(mask_else, gs.float32)
+
             mask_pi = gs.squeeze(mask_pi, axis=1)
-            #mask_pi = gs.to_ndarray(mask_pi, to_ndim=2, axis=1)
 
             # choose the largest diagonal element
             # to avoid a square root of a negative number
@@ -481,16 +484,19 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
             # compute the axis vector
             sq_root = gs.zeros((n_rot_mats, 1))
-            #print(gs.shape(mask_pi_float))
-            sq_root = gs.sqrt((
-                rot_mat[mask_pi, a, a]
-                - rot_mat[mask_pi, b, b]
-                - rot_mat[mask_pi, c, c] + 1.))
+
+            #test = rot_mat[mask_pi]  #, mask_a, mask_a]
+
+            #sq_root = gs.sqrt((
+            #    rot_mat[mask_pi, a, a]
+            #    - rot_mat[mask_pi, b, b]
+            #    - rot_mat[mask_pi, c, c] + 1.))
             sq_root += mask_pi_float * gs.sqrt(
                 rot_mat[:, a, a]
                 - rot_mat[:, b, b]
                 - rot_mat[:, c, c] + 1.)
-            rot_vec_pi = gs.zeros((sum(mask_pi), self.dimension))
+
+            rot_vec_pi = gs.zeros((n_rot_mats, self.dimension))
             mask_a_float = get_mask_i_float(a, 3)
             mask_b_float = get_mask_i_float(b, 3)
             mask_c_float = get_mask_i_float(c, 3)
@@ -508,23 +514,23 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             mask_b_float = gs.tile(mask_b_float, (n_rot_mats, 1))
             mask_c_float = gs.tile(mask_c_float, (n_rot_mats, 1))
 
-            rot_vec_pi += mask_a_float * sq_root / 2.
+            rot_vec_pi += mask_pi_float * mask_a_float * sq_root / 2.
 
             # This avoids division by 0.
             sq_root += mask_0_float * 1.
             sq_root += mask_else_float * 1.
-            rot_vec_pi += mask_b_float * (
+            rot_vec_pi += mask_pi_float * mask_b_float * (
                     (rot_mat[:, b, a]
                      + rot_mat[:, a, b])
                     / (2. * sq_root))
-            rot_vec_pi += mask_c_float * (
+            rot_vec_pi += mask_pi_float * mask_c_float * (
                     (rot_mat[:, c, a]
                      + rot_mat[:, a, c])
                     / (2. * sq_root))
 
-            rot_vec[mask_pi] = (angle[mask_pi] * rot_vec_pi
-                                / gs.linalg.norm(rot_vec_pi))
-
+            rot_vec += mask_pi_float * (
+                    angle * rot_vec_pi
+                    / gs.linalg.norm(rot_vec_pi))
 
             # This avoid dividing by zero
             angle += mask_0_float * 1.

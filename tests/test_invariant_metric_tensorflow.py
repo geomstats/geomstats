@@ -11,7 +11,7 @@ import geomstats.backend as gs
 import tests.helper as helper
 
 from geomstats.invariant_metric import InvariantMetric
-from geomstats.special_euclidean_group import SpecialEuclideanGroup
+from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
 
 class TestInvariantMetricMethodsTensorFlow(tf.test.TestCase):
@@ -21,7 +21,7 @@ class TestInvariantMetricMethodsTensorFlow(tf.test.TestCase):
         gs.random.seed(1234)
 
         n = 3
-        group = SpecialEuclideanGroup(n=n)
+        group = SpecialOrthogonalGroup(n=n)
 
         # Diagonal left and right invariant metrics
         diag_mat_at_identity = gs.eye(group.dimension)
@@ -55,10 +55,10 @@ class TestInvariantMetricMethodsTensorFlow(tf.test.TestCase):
                    'right': right_metric}
 
         # General case for the point
-        point_1 = tf.convert_to_tensor([-0.2, 0.9, 0.5, 5., 5., 5.])
-        point_2 = tf.convert_to_tensor([0., 2., -0.1, 30., 400., 2.])
+        point_1 = tf.convert_to_tensor([-0.2, 0.9, 0.5])
+        point_2 = tf.convert_to_tensor([0., 2., -0.1])
         # Edge case for the point, angle < epsilon,
-        point_small = tf.convert_to_tensor([[-1e-7, 0., -7 * 1e-8, 6., 5., 9.]])
+        point_small = tf.convert_to_tensor([[-1e-7, 0., -7 * 1e-8]])
 
         self.group = group
         self.metrics = metrics
