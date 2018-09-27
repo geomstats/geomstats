@@ -150,9 +150,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
                 regularized_point = gs.einsum(
                     'n,ni->ni', norms_ratio, regularized_point)
-                #for i in range(n_points):
-                #    regularized_point[i, :] = (norms_ratio[i]
-                #                               * regularized_point[i, :])
+
             else:
                 # TODO(nina): regularization needed in nD?
                 regularized_point = gs.copy(point)
@@ -327,8 +325,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         vec = gs.to_ndarray(vec, to_ndim=2)
         n_vecs, vec_dim = gs.shape(vec)
 
+        # TODO(nina): Change gs.cast function for elementary types
         vec_dim = gs.cast(gs.array([vec_dim]), gs.float32)[0]
-        #float(vec_dim)  #
         mat_dim = int((1. + gs.sqrt(1. + 8. * vec_dim)) / 2.)
         assert mat_dim == self.n
 
@@ -345,8 +343,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                  [-1., 0., 0.],
                  [0., 0., 0.]]
                 ])
-            #for i in range(n_vecs):
-                #mask_i_float = get_mask_i_float(i, n_vecs)
 
             basis_vec_1 = gs.array([[1., 0., 0.]])
             basis_vec_2 = gs.array([[0., 1., 0.]])
@@ -366,13 +362,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 levi_civita_symbol,
                 basis_vec_3,
                 vec)
-                #cross_prod_1 = gs.cross(basis_vec_1, vec[i])
-                #cross_prod_2 = gs.cross(basis_vec_2, vec[i])
-                #cross_prod_3 = gs.cross(basis_vec_3, vec[i])
-
-                #cross_prod_1 = gs.to_ndarray(cross_prod_1, to_ndim=2)
-                #cross_prod_2 = gs.to_ndarray(cross_prod_2, to_ndim=2)
-                #cross_prod_3 = gs.to_ndarray(cross_prod_3, to_ndim=2)
 
             cross_prod_1 = gs.to_ndarray(cross_prod_1, to_ndim=3, axis=1)
             cross_prod_2 = gs.to_ndarray(cross_prod_2, to_ndim=3, axis=1)
@@ -380,17 +369,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             skew_mat = gs.concatenate(
                 [cross_prod_1, cross_prod_2, cross_prod_3], axis=1)
 
-                #cross_prod_i = gs.concatenate(
-                #    [cross_prod_1, cross_prod_2, cross_prod_3], axis=0)
-
-                #print(gs.shape(n_vecs))
-                #n_vecs = gs.array([n_vecs])
-                #print(gs.shape(n_vecs))
-                #cross_prod_i = gs.to_ndarray(cross_prod_i, to_ndim=3)
-                #cross_prod_i = gs.tile(cross_prod_i, (n_vecs, 1, 1))
-
-                #skew_mat += gs.einsum(
-                #    'n,ij->nij', mask_i_float, cross_prod_i)
         else:
             upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
             for i in range(n_vecs):
@@ -554,11 +532,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
             term_2 = gs.einsum('n,njk->njk', coef_2, squared_skew_rot_vec)
 
-            #for i in range(n_rot_vecs):
-            #    term_1[i] = (gs.eye(self.dimension)
-            #                 + coef_1[i] * skew_rot_vec[i])
-            #    term_2[i] = (coef_2[i]
-            #                 * gs.matmul(skew_rot_vec[i], skew_rot_vec[i]))
             rot_mat = term_1 + term_2
             rot_mat = self.projection(rot_mat)
 
@@ -1134,14 +1107,13 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 mask_0 = gs.isclose(angle, 0.)
                 mask_0_float = gs.cast(mask_0, gs.float32)
 
-
                 coef_1 += mask_0_float * (
                         TAYLOR_COEFFS_1_AT_0[0]
                         + TAYLOR_COEFFS_1_AT_0[2] * angle ** 2
                         + TAYLOR_COEFFS_1_AT_0[4] * angle ** 4
                         + TAYLOR_COEFFS_1_AT_0[6] * angle ** 6)
 
-                coef_2 += mask_0_float *(
+                coef_2 += mask_0_float * (
                         TAYLOR_COEFFS_2_AT_0[0]
                         + TAYLOR_COEFFS_2_AT_0[2] * angle ** 2
                         + TAYLOR_COEFFS_2_AT_0[4] * angle ** 4
