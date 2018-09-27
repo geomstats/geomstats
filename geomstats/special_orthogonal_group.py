@@ -401,7 +401,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         vec = gs.zeros((n_skew_mats, vec_dim))
 
         if self.n == 3:
-            vec[:] = skew_mat[:, (2, 0, 1), (1, 2, 0)]
+            vec = skew_mat[:, (2, 0, 1), (1, 2, 0)]
         else:
             idx = 0
             for j in range(mat_dim_1):
