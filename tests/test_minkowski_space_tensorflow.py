@@ -276,7 +276,7 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
         result = self.space.belongs(result)
         expected = tf.convert_to_tensor([[True]])
         with self.test_session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected) )
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     def test_variance(self):
         points = tf.convert_to_tensor([
@@ -291,7 +291,6 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
         expected = helper.to_scalar(tf.convert_to_tensor([True]))
         with self.test_session():            
             self.assertAllClose(gs.eval(result)!=0, gs.eval(expected))
-
 
 
 if __name__ == '__main__':
