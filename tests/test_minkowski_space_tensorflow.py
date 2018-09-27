@@ -25,7 +25,7 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
         self.space = MinkowskiSpace(self.dimension)
         self.metric = self.space.metric
         self.n_samples = 10
-        
+
     @classmethod
     def setUpClass(cls):
         os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
@@ -43,11 +43,11 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
 
         with self.test_session():
             self.assertAllClose(gs.eval(belongs), gs.eval(expected))
-    
+
     def test_random_uniform(self):
-         point = self.space.random_uniform()
-         with self.test_session():
-             self.assertAllClose(gs.eval(point).shape, (1, self.dimension))
+        point = self.space.random_uniform()
+        with self.test_session():
+            self.assertAllClose(gs.eval(point).shape, (1, self.dimension))
 
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
@@ -56,24 +56,24 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
 
     def test_inner_product_matrix(self):
         result = self.metric.inner_product_matrix()
- 
+
         expected = tf.convert_to_tensor([[-1.0, 0.], [0., 1.]])
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
-  
+
     def test_inner_product(self):
         point_a = tf.convert_to_tensor([0., 1.])
         point_b = tf.convert_to_tensor([2., 10.])
- 
+
         result = self.metric.inner_product(point_a, point_b)
         expected = helper.to_scalar(gs.dot(point_a, point_b))
         expected -= (2 * point_a[self.time_like_dim]
-                      * point_b[self.time_like_dim])
-        
+                     * point_b[self.time_like_dim])
+
         with self.test_session():
 
             self.assertAllClose(gs.eval(result), gs.eval(expected))
- 
+
     def test_inner_product_vectorization(self):
         n_samples = 3
         one_point_a = tf.convert_to_tensor([[-1., 0.]])
@@ -88,61 +88,57 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
             [4.0, math.sqrt(15)],
             [-4.0, math.sqrt(15)]])
 
-        
         result = self.metric.inner_product(one_point_a, one_point_b)
         expected = gs.dot(one_point_a, gs.transpose(one_point_b))
         expected -= (2 * one_point_a[:, self.time_like_dim]
                      * one_point_b[:, self.time_like_dim])
         expected = helper.to_scalar(expected)
-         
+
         result_no = self.metric.inner_product(n_points_a,
-                                               one_point_b)
+                                              one_point_b)
         result_on = self.metric.inner_product(one_point_a, n_points_b)
-         
+
         result_nn = self.metric.inner_product(n_points_a, n_points_b)
-         
+
         with self.test_session():
-            #print(one_point_b, gs.eval(self.space.belongs(n_points_a)))
             self.assertAllClose(gs.eval(result), gs.eval(expected))
             self.assertAllClose(gs.eval(result_no).shape,
                                 (n_samples, 1))
             self.assertAllClose(gs.eval(result_on).shape,
                                 (n_samples, 1))
             self.assertAllClose(gs.eval(result_nn).shape, (n_samples, 1))
-            
+
             expected = np.zeros(n_samples)
             for i in range(n_samples):
                 expected[i] = gs.eval(gs.dot(n_points_a[i],
                                              n_points_b[i])
                                       )
                 expected[i] -= (2 * gs.eval(n_points_a[i, self.time_like_dim])
-                             * gs.eval(n_points_b[i, self.time_like_dim]))
+                                * gs.eval(n_points_b[i, self.time_like_dim]))
             expected = helper.to_scalar(tf.convert_to_tensor(expected))
-            
 
             self.assertAllClose(gs.eval(result_nn), gs.eval(expected))
 
     def test_squared_norm(self):
         point = tf.convert_to_tensor([-2., 4.])
-  
+
         result = self.metric.squared_norm(point)
         expected = gs.dot(point, point)
         expected -= 2 * point[self.time_like_dim] * point[self.time_like_dim]
         expected = helper.to_scalar(expected)
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
- 
+
     def test_squared_norm_vectorization(self):
         n_samples = 3
         n_points = tf.convert_to_tensor([
             [-1., 0.],
             [1., 0.],
             [2., math.sqrt(3)]])
- 
+
         result = self.metric.squared_norm(n_points)
         with self.test_session():
             self.assertAllClose(gs.eval(result).shape, (n_samples, 1))
- 
 
     def test_exp(self):
         base_point = tf.convert_to_tensor([1.0, 0.])
@@ -170,12 +166,11 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
             [4.0, math.sqrt(15)],
             [-4.0, math.sqrt(15)]])
 
-
         result = self.metric.exp(one_tangent_vec, one_base_point)
         expected = one_tangent_vec + one_base_point
         expected = helper.to_vector(expected)
         with self.test_session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected) )
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
             result = self.metric.exp(n_tangent_vecs, one_base_point)
             self.assertAllClose(gs.eval(result).shape, (n_samples, dim))
@@ -289,9 +284,9 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
         result = self.metric.variance(points, weights, base_point)
         # we expect the average of the points' Minkowski sq norms.
         expected = helper.to_scalar(tf.convert_to_tensor([True]))
-        with self.test_session():            
-            self.assertAllClose(gs.eval(result)!=0, gs.eval(expected))
+        with self.test_session():
+            self.assertAllClose(gs.eval(result) != 0, gs.eval(expected))
 
 
 if __name__ == '__main__':
-        tf.test.main()
+    tf.test.main()
