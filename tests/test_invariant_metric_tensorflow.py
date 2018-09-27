@@ -95,15 +95,15 @@ class TestInvariantMetricMethodsTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-    #def test_inner_product_matrix_and_its_inverse(self):
-    #    inner_prod_mat = self.left_diag_metric.inner_product_mat_at_identity
-    #    inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
-    #    result = gs.matmul(inv_inner_prod_mat, inner_prod_mat)
-    #    expected = gs.eye(self.group.dimension)
-    #    expected = gs.to_ndarray(expected, to_ndim=3, axis=0)
+    def test_inner_product_matrix_and_its_inverse(self):
+        inner_prod_mat = self.left_diag_metric.inner_product_mat_at_identity
+        inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
+        result = gs.matmul(inv_inner_prod_mat, inner_prod_mat)
+        expected = gs.eye(self.group.dimension)
+        expected = gs.to_ndarray(expected, to_ndim=3, axis=0)
 
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     #def test_left_exp_and_exp_from_identity_left_diag_metrics(self):
     #    left_exp_from_id = self.left_diag_metric.left_exp_from_identity(
