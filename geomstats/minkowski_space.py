@@ -4,8 +4,9 @@ Minkowski space.
 
 
 from geomstats.manifold import Manifold
-import geomstats.backend as gs
 from geomstats.riemannian_metric import RiemannianMetric
+import geomstats.backend as gs
+
 
 
 class MinkowskiSpace(Manifold):
