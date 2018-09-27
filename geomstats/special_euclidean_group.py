@@ -157,8 +157,8 @@ class SpecialEuclideanGroup(LieGroup):
                                              metric=rot_metric,
                                              point_type=point_type)
 
-            regularized_vec[:, :dim_rotations] = rotations_vec
-            regularized_vec[:, dim_rotations:] = tangent_vec[:, dim_rotations:]
+            regularized_vec = gs.concatenate(
+                [rotations_vec, tangent_vec[:, dim_rotations:]], axis=1)
 
         elif point_type == 'matrix':
                 # TODO(nina): regularization in terms

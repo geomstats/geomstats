@@ -148,8 +148,7 @@ class InvariantMetric(RiemannianMetric):
         sqrt_inner_product_mat = spd_matrices_space.sqrtm(
             self.inner_product_mat_at_identity)
         mat = gs.transpose(sqrt_inner_product_mat, axes=(0, 2, 1))
-        exp = gs.matmul(tangent_vec, mat)
-        exp = gs.squeeze(exp, axis=0)
+        exp = gs.einsum('ni,nij->nj', tangent_vec, mat)
 
         exp = self.group.regularize(exp)
         return exp
