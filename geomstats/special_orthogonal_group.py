@@ -346,6 +346,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 #print(gs.shape(n_vecs))
                 #cross_prod_i = gs.to_ndarray(cross_prod_i, to_ndim=3)
                 #cross_prod_i = gs.tile(cross_prod_i, (n_vecs, 1, 1))
+
                 skew_mat += gs.einsum(
                     'n,ij->nij', mask_i_float, cross_prod_i)
         else:
@@ -509,6 +510,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             squared_skew_rot_vec = gs.einsum(
                     'nij,njk->nik', skew_rot_vec, skew_rot_vec)
             term_2 = gs.einsum('n, njk->njk', coef_2, squared_skew_rot_vec)
+
             #for i in range(n_rot_vecs):
             #    term_1[i] = (gs.eye(self.dimension)
             #                 + coef_1[i] * skew_rot_vec[i])
