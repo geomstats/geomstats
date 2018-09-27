@@ -132,128 +132,153 @@ class TestMinkowskiSpaceTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected) )
  
-#     def test_squared_norm_vectorization(self):
-#         n_samples = self.n_samples
-#         n_points = self.space.random_uniform(n_samples=n_samples)
-# 
-#         result = self.metric.squared_norm(n_points)
-#         gs.testing.assert_allclose(result.shape, (n_samples, 1))
-# 
-#     def test_norm(self):
-#         point = gs.array([-1, 4])
-#         self.assertRaises(ValueError,
-#                           lambda: self.metric.norm(point))
-# 
-#     def test_exp(self):
-#         base_point = gs.array([0, 1])
-#         vector = gs.array([2, 10])
-# 
-#         result = self.metric.exp(tangent_vec=vector,
-#                                  base_point=base_point)
-#         expected = base_point + vector
-#         expected = helper.to_vector(expected)
-#         gs.testing.assert_allclose(result, expected)
-# 
-#     def test_exp_vectorization(self):
-#         n_samples = self.n_samples
-#         dim = self.dimension
-#         one_tangent_vec = self.space.random_uniform(n_samples=1)
-#         one_base_point = self.space.random_uniform(n_samples=1)
-#         n_tangent_vecs = self.space.random_uniform(n_samples=n_samples)
-#         n_base_points = self.space.random_uniform(n_samples=n_samples)
-# 
-#         result = self.metric.exp(one_tangent_vec, one_base_point)
-#         expected = one_tangent_vec + one_base_point
-#         expected = helper.to_vector(expected)
-#         gs.testing.assert_allclose(result, expected)
-# 
-#         result = self.metric.exp(n_tangent_vecs, one_base_point)
-#         gs.testing.assert_allclose(result.shape, (n_samples, dim))
-# 
-#         result = self.metric.exp(one_tangent_vec, n_base_points)
-#         gs.testing.assert_allclose(result.shape, (n_samples, dim))
-# 
-#         result = self.metric.exp(n_tangent_vecs, n_base_points)
-#         gs.testing.assert_allclose(result.shape, (n_samples, dim))
-# 
-#     def test_log(self):
-#         base_point = gs.array([0, 1])
-#         point = gs.array([2, 10])
-# 
-#         result = self.metric.log(point=point, base_point=base_point)
-#         expected = point - base_point
-#         expected = helper.to_vector(expected)
-#         gs.testing.assert_allclose(result, expected)
-# 
-#     def test_log_vectorization(self):
-#         n_samples = self.n_samples
-#         dim = self.dimension
-#         one_point = self.space.random_uniform(n_samples=1)
-#         one_base_point = self.space.random_uniform(n_samples=1)
-#         n_points = self.space.random_uniform(n_samples=n_samples)
-#         n_base_points = self.space.random_uniform(n_samples=n_samples)
-# 
-#         result = self.metric.log(one_point, one_base_point)
-#         expected = one_point - one_base_point
-#         expected = helper.to_vector(expected)
-#         gs.testing.assert_allclose(result, expected)
-# 
-#         result = self.metric.log(n_points, one_base_point)
-#         gs.testing.assert_allclose(result.shape, (n_samples, dim))
-# 
-#         result = self.metric.log(one_point, n_base_points)
-#         gs.testing.assert_allclose(result.shape, (n_samples, dim))
-# 
-#         result = self.metric.log(n_points, n_base_points)
-#         gs.testing.assert_allclose(result.shape, (n_samples, dim))
-# 
-#     def test_squared_dist(self):
-#         point_a = gs.array([-1, 4])
-#         point_b = gs.array([1, 1])
-# 
-#         result = self.metric.squared_dist(point_a, point_b)
-#         vec = point_b - point_a
-#         expected = gs.dot(vec, vec)
-#         expected -= 2 * vec[self.time_like_dim] * vec[self.time_like_dim]
-#         expected = helper.to_scalar(expected)
-#         gs.testing.assert_allclose(result, expected)
-# 
-#     def test_dist(self):
-#         point_a = gs.array([-1, 4])
-#         point_b = gs.array([1, 1])
-#         self.assertRaises(ValueError,
-#                           lambda: self.metric.dist(point_a, point_b))
-# 
-#     def test_geodesic_and_belongs(self):
-#         initial_point = self.space.random_uniform()
-#         initial_tangent_vec = gs.array([2., 0.])
-#         geodesic = self.metric.geodesic(
-#                                    initial_point=initial_point,
-#                                    initial_tangent_vec=initial_tangent_vec)
-# 
-#         t = gs.linspace(start=0, stop=1, num=100)
-#         points = geodesic(t)
-#         self.assertTrue(gs.all(self.space.belongs(points)))
-# 
-#     def test_mean(self):
-#         point = gs.array([1, 4])
-#         result = self.metric.mean(points=[point, point, point])
-#         expected = point
-#         expected = helper.to_vector(expected)
-# 
-#         gs.testing.assert_allclose(result, expected)
-# 
-#         points = gs.array([[1, 2],
-#                            [2, 3],
-#                            [3, 4],
-#                            [4, 5]])
-#         weights = gs.array([1, 2, 1, 2])
-# 
-#         result = self.metric.mean(points, weights)
-#         expected = gs.array([16., 22.]) / 6.
-#         expected = helper.to_vector(expected)
-#         gs.testing.assert_allclose(result, expected)
-# 
+    def test_squared_norm_vectorization(self):
+        n_samples = 3
+        n_points = tf.convert_to_tensor([
+            [-1., 0.],
+            [1., 0.],
+            [2., math.sqrt(3)]])
+ 
+        result = self.metric.squared_norm(n_points)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result).shape, (n_samples, 1))
+ 
+
+    def test_exp(self):
+        base_point = tf.convert_to_tensor([1.0, 0.])
+        vector = tf.convert_to_tensor([2., math.sqrt(3)])
+
+        result = self.metric.exp(tangent_vec=vector,
+                                 base_point=base_point)
+        expected = base_point + vector
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected) )
+
+    def test_exp_vectorization(self):
+        dim = self.dimension
+        n_samples = 3
+        one_tangent_vec = tf.convert_to_tensor([[-1., 0.]])
+        one_base_point = tf.convert_to_tensor([[1.0, 0.]])
+
+        n_tangent_vecs = tf.convert_to_tensor([
+            [-1., 0.],
+            [1., 0.],
+            [2., math.sqrt(3)]])
+        n_base_points = tf.convert_to_tensor([
+            [2., -math.sqrt(3)],
+            [4.0, math.sqrt(15)],
+            [-4.0, math.sqrt(15)]])
+
+
+        result = self.metric.exp(one_tangent_vec, one_base_point)
+        expected = one_tangent_vec + one_base_point
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected) )
+
+            result = self.metric.exp(n_tangent_vecs, one_base_point)
+            self.assertAllClose(gs.eval(result).shape, (n_samples, dim))
+
+            result = self.metric.exp(one_tangent_vec, n_base_points)
+            self.assertAllClose(gs.eval(result).shape, (n_samples, dim))
+
+            result = self.metric.exp(n_tangent_vecs, n_base_points)
+            self.assertAllClose(gs.eval(result).shape, (n_samples, dim))
+
+    def test_log(self):
+        base_point = tf.convert_to_tensor([-1., 0.])
+        point = tf.convert_to_tensor([2., math.sqrt(3)])
+
+        result = self.metric.log(point=point, base_point=base_point)
+        expected = point - base_point
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected) )
+
+    def test_log_vectorization(self):
+
+        dim = self.dimension
+        n_samples = 3
+        one_point = tf.convert_to_tensor([[-1., 0.]])
+        one_base_point = tf.convert_to_tensor([[1.0, 0.]])
+
+        n_points = tf.convert_to_tensor([
+            [-1., 0.],
+            [1., 0.],
+            [2., math.sqrt(3)]])
+        n_base_points = tf.convert_to_tensor([
+            [2., -math.sqrt(3)],
+            [4.0, math.sqrt(15)],
+            [-4.0, math.sqrt(15)]])
+
+        result = self.metric.log(one_point, one_base_point)
+        expected = one_point - one_base_point
+        expected = helper.to_vector(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected) )
+
+            result = self.metric.log(n_points, one_base_point)
+            self.assertAllClose(gs.eval(result).shape, (n_samples, dim))
+
+            result = self.metric.log(one_point, n_base_points)
+            self.assertAllClose(gs.eval(result).shape, (n_samples, dim))
+
+            result = self.metric.log(n_points, n_base_points)
+            self.assertAllClose(gs.eval(result).shape, (n_samples, dim))
+
+    def test_squared_dist(self):
+        point_a = tf.convert_to_tensor([2., -math.sqrt(3)])
+        point_b = tf.convert_to_tensor([4.0, math.sqrt(15)])
+
+        result = self.metric.squared_dist(point_a, point_b)
+        vec = point_b - point_a
+        expected = gs.dot(vec, vec)
+        expected -= 2 * vec[self.time_like_dim] * vec[self.time_like_dim]
+        expected = helper.to_scalar(expected)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected) )
+
+    def test_geodesic_and_belongs(self):
+        n_geodesic_points = 100
+        initial_point = tf.convert_to_tensor([2., -math.sqrt(3)])
+        initial_tangent_vec = tf.convert_to_tensor([2., 0.])
+
+        geodesic = self.metric.geodesic(
+                                   initial_point=initial_point,
+                                   initial_tangent_vec=initial_tangent_vec)
+
+        t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
+        points = geodesic(t)
+
+        bool_belongs = self.space.belongs(points)
+        expected = tf.convert_to_tensor(n_geodesic_points * [[True]])
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(expected), gs.eval(bool_belongs))
+
+
+    def test_mean(self):
+        point = tf.convert_to_tensor([2., -math.sqrt(3)])
+        result = self.metric.mean(points=[point, point, point])
+        expected = point
+        expected = helper.to_vector(expected)
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected) )
+
+        points = tf.convert_to_tensor([
+            [1., 0.],
+            [2., math.sqrt(3)],
+            [3., math.sqrt(8)],
+            [4., math.sqrt(24)]])
+        weights = gs.array([1., 2., 1., 2.])
+        result = self.metric.mean(points, weights)
+        expected = tf.convert_to_tensor([[True]])
+        with self.test_session():
+            self.assertTrue(gs.eval(result), gs.eval(expected) )
+
+
 #     def test_variance(self):
 #         points = gs.array([[1, 2],
 #                            [2, 3],
