@@ -21,7 +21,7 @@ RTOL = 1e-6
 
 class TestHyperbolicSpaceTensorFlow(tf.test.TestCase):
     _multiprocess_can_split_ = True
-    
+
     def setUp(self):
         gs.random.seed(1234)
 
@@ -39,8 +39,7 @@ class TestHyperbolicSpaceTensorFlow(tf.test.TestCase):
     def tearDownClass(cls):
         os.environ['GEOMSTATS_BACKEND'] = 'numpy'
         importlib.reload(gs)
-    
-        
+
     def test_belongs(self):
         point = self.space.random_uniform()
         bool_belongs = self.space.belongs(point)
@@ -48,10 +47,10 @@ class TestHyperbolicSpaceTensorFlow(tf.test.TestCase):
 
         with self.test_session():
             self.assertAllClose(gs.eval(expected), gs.eval(bool_belongs))
-            
+
     def test_random_uniform(self):
         point = self.space.random_uniform()
- 
+
         with self.test_session():
             self.assertAllClose(gs.eval(point).shape, (1, self.dimension + 1))
 
@@ -83,7 +82,7 @@ class TestHyperbolicSpaceTensorFlow(tf.test.TestCase):
 
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
- 
+
     def test_intrinsic_and_extrinsic_coords_vectorization(self):
         """
         Test that the composition of
@@ -105,14 +104,12 @@ class TestHyperbolicSpaceTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-        n_samples = self.n_samples
         point_ext = tf.convert_to_tensor([[2.0, 1.0, 1.0, 1.0],
                                           [4.0, 1., 3.0, math.sqrt(5)],
                                           [3.0, 2.0, 0.0, 2.0]])
-        #self.space.random_uniform(n_samples=n_samples)
         point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
         result = self.space.intrinsic_to_extrinsic_coords(point_int)
-        ### TO DO: make sure this holds for (x, y,z, ..) AND (-x, y,z)
+        # TODO(nina): Make sure this holds for (x, y, z, ..) AND (-x, y,z)
         expected = point_ext
         expected = helper.to_vector(expected)
 
@@ -146,7 +143,6 @@ class TestHyperbolicSpaceTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertTrue(gs.eval(H2.belongs(base_point)))
 
-
         tangent_vec = H2.projection_to_tangent_space(
                 vector=tf.convert_to_tensor([1., 2., 1.]),
                 base_point=base_point)
@@ -162,29 +158,31 @@ class TestHyperbolicSpaceTensorFlow(tf.test.TestCase):
         one_vec = tf.convert_to_tensor([2.0, 1.0, 1.0, 1.0])
         one_base_point = tf.convert_to_tensor([4.0, 3., 1.0, math.sqrt(5)])
         n_vecs = tf.convert_to_tensor([[2.0, 1.0, 1.0, 1.0],
-                                          [4.0, 1., 3.0, math.sqrt(5)],
-                                          [3.0, 2.0, 0.0, 2.0]])
-        n_base_points = tf.convert_to_tensor([[2.0, 0.0, 1.0, math.sqrt(2)],
-                                          [5.0, math.sqrt(8), math.sqrt(8), math.sqrt(8)],
-                                          [1.0, 0.0, 0.0, 0.0]])
+                                       [4.0, 1., 3.0, math.sqrt(5)],
+                                       [3.0, 2.0, 0.0, 2.0]])
+        n_base_points = tf.convert_to_tensor([
+            [2.0, 0.0, 1.0, math.sqrt(2)],
+            [5.0, math.sqrt(8), math.sqrt(8), math.sqrt(8)],
+            [1.0, 0.0, 0.0, 0.0]])
 
         one_tangent_vec = self.space.projection_to_tangent_space(
             one_vec, base_point=one_base_point)
         result = self.metric.exp(one_tangent_vec, one_base_point)
         with self.test_session():
-             self.assertAllClose(gs.eval(result).shape, (1, dim))
+            self.assertAllClose(gs.eval(result).shape, (1, dim))
 
         n_tangent_vecs = self.space.projection_to_tangent_space(
             n_vecs, base_point=one_base_point)
         result = self.metric.exp(n_tangent_vecs, one_base_point)
         with self.test_session():
-             self.assertAllClose(gs.eval(result).shape,  (n_samples, dim))
+            self.assertAllClose(gs.eval(result).shape,  (n_samples, dim))
 
         expected = np.zeros((n_samples, dim))
 
         with self.test_session():
             for i in range(n_samples):
-                expected[i] = gs.eval(self.metric.exp(n_tangent_vecs[i], one_base_point))
+                expected[i] = gs.eval(
+                    self.metric.exp(n_tangent_vecs[i], one_base_point))
             expected = helper.to_vector(tf.convert_to_tensor(expected))
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
@@ -223,11 +221,12 @@ class TestHyperbolicSpaceTensorFlow(tf.test.TestCase):
         one_point = tf.convert_to_tensor([2.0, 1.0, 1.0, 1.0])
         one_base_point = tf.convert_to_tensor([4.0, 3., 1.0, math.sqrt(5)])
         n_points = tf.convert_to_tensor([[2.0, 1.0, 1.0, 1.0],
-                                          [4.0, 1., 3.0, math.sqrt(5)],
-                                          [3.0, 2.0, 0.0, 2.0]])
-        n_base_points = tf.convert_to_tensor([[2.0, 0.0, 1.0, math.sqrt(2)],
-                                          [5.0, math.sqrt(8), math.sqrt(8), math.sqrt(8)],
-                                          [1.0, 0.0, 0.0, 0.0]])
+                                         [4.0, 1., 3.0, math.sqrt(5)],
+                                         [3.0, 2.0, 0.0, 2.0]])
+        n_base_points = tf.convert_to_tensor([
+            [2.0, 0.0, 1.0, math.sqrt(2)],
+            [5.0, math.sqrt(8), math.sqrt(8), math.sqrt(8)],
+            [1.0, 0.0, 0.0, 0.0]])
 
         result = self.metric.log(one_point, one_base_point)
         with self.test_session():
@@ -355,7 +354,6 @@ class TestHyperbolicSpaceTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         # TODO(nina): this fails for high norms of vector
         base_point = tf.convert_to_tensor([4.0, 1., 3.0, math.sqrt(5)])
@@ -369,10 +367,9 @@ class TestHyperbolicSpaceTensorFlow(tf.test.TestCase):
         result = self.metric.dist(base_point, exp)
         sq_norm = self.metric.embedding_metric.squared_norm(
                                                  tangent_vec)
-        #expected = tf.convert_to_tensor([[sq_norm]])
-        expected  = sq_norm
+        expected = sq_norm
         with self.test_session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected), atol =1e-2)
+            self.assertAllClose(gs.eval(result), gs.eval(expected), atol=1e-2)
 
     def test_geodesic_and_belongs(self):
         # TODO(nina): this tests fails when geodesic goes "too far"
@@ -395,36 +392,7 @@ class TestHyperbolicSpaceTensorFlow(tf.test.TestCase):
 
         with self.test_session():
             self.assertAllClose(gs.eval(expected), gs.eval(bool_belongs))
- 
- 
-#     def test_mean(self):
-#         point = tf.convert_to_tensor([1., 0., 0., 0.])
-#         result = self.metric.mean([point, point])
-#         expected = point
-# 
-#         with self.test_session():
-#             self.assertAllClose(gs.eval(result), gs.eval(expected))
-#            
-#     def test_variance(self):
-#         point = tf.convert_to_tensor([1., 0., 0., 0.])
-#         result = self.metric.variance([point, point])
-#         expected = tf.convert_to_tensor([0.])
-# 
-#         with self.test_session():
-#             print(gs.eval(result), gs.eval(expected))
-#             self.assertAllClose(gs.eval(result), gs.eval(expected))
-# 
 
-#     def test_mean_and_belongs(self):
-#         point_a = tf.convert_to_tensor([1., 0., 0., 0.])
-#         point_b = tf.convert_to_tensor([4.0, 1., 3.0, math.sqrt(5)])
-#         point_c = tf.convert_to_tensor([2.0, 1.0, 1.0, 1.0])
-# 
-#         result = self.metric.mean([point_a, point_b, point_c])
-#         with self.test_session():
-#             self.assertAllClose(gs.eval(result), gs.eval(expected))
-#         self.assertTrue(self.space.belongs(result))
-# 
-# 
+
 if __name__ == '__main__':
     tf.test.main()
