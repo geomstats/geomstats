@@ -1088,22 +1088,22 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 coef_2 = gs.zeros([n_points, 1])
 
                 mask_0 = gs.isclose(angle, 0.)
-                mask_0 = gs.squeeze(mask_0, axis=1)
                 mask_0_float = gs.cast(mask_0, gs.float32)
+
 
                 coef_1 += mask_0_float * (
                         TAYLOR_COEFFS_1_AT_0[0]
                         + TAYLOR_COEFFS_1_AT_0[2] * angle ** 2
                         + TAYLOR_COEFFS_1_AT_0[4] * angle ** 4
                         + TAYLOR_COEFFS_1_AT_0[6] * angle ** 6)
-                coef_2 += mask_0_float * (
+
+                coef_2 += mask_0_float *(
                         TAYLOR_COEFFS_2_AT_0[0]
                         + TAYLOR_COEFFS_2_AT_0[2] * angle ** 2
                         + TAYLOR_COEFFS_2_AT_0[4] * angle ** 4
                         + TAYLOR_COEFFS_2_AT_0[6] * angle ** 6)
 
                 mask_pi = gs.isclose(angle, gs.pi)
-                mask_pi = gs.squeeze(mask_pi, axis=1)
                 mask_pi_float = gs.cast(mask_pi, gs.float32)
 
                 delta_angle = angle - gs.pi
@@ -1115,18 +1115,19 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                         + TAYLOR_COEFFS_1_AT_PI[5] * delta_angle ** 5
                         + TAYLOR_COEFFS_1_AT_PI[6] * delta_angle ** 6)
 
-                # This avoids division by 0.
                 angle += mask_0_float * 1.
-                coef_2 += mask_pi_float * (1 - coef_1) / angle ** 2
+                coef_2 += mask_pi_float * (
+                        (1 - coef_1) / angle ** 2)
 
                 mask_else = ~mask_0 & ~mask_pi
                 mask_else_float = gs.cast(mask_else, gs.float32)
 
                 # This avoids division by 0.
                 angle += mask_pi_float * 1.
-                coef_1 += mask_else_float * (angle / 2) / gs.tan(angle / 2)
-                coef_2 += mask_else_float * (1 - coef_1) / angle ** 2
-
+                coef_1 += mask_else_float * (
+                        (angle / 2) / gs.tan(angle / 2))
+                coef_2 += mask_else_float * (
+                        (1 - coef_1) / angle ** 2)
                 jacobian = gs.zeros((n_points, self.dimension, self.dimension))
                 for i in range(n_points):
                     mask_i_float = get_mask_i_float(i, n_points)
@@ -1142,7 +1143,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                     jacobian_i = gs.squeeze(jacobian_i, axis=0)
 
                     jacobian += gs.einsum(
-                        'n,ij->nij', mask_i_float, jacobian_i)
+                        'n,ij->nij',
+                        mask_i_float,
+                        jacobian_i)
 
             else:
                 if left_or_right == 'right':

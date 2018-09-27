@@ -2987,1062 +2987,1062 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                                                      result,
                                                      expected))
 
-    #def test_left_jacobian_vectorization(self):
-    #    n = 3
-    #    group = self.so[n]
-
-    #    n_samples = self.n_samples
-    #    points = group.random_uniform(n_samples=n_samples)
-    #    jacobians = group.jacobian_translation(point=points,
-    #                                           left_or_right='left')
-    #    self.assertTrue(gs.allclose(
-    #                     jacobians.shape,
-    #                     (n_samples,
-    #                      group.dimension, group.dimension)))
-
-    #def test_exp(self):
-    #    """
-    #    The Riemannian exp and log are inverse functions of each other.
-    #    This test is the inverse of test_log's.
-    #    """
-    #    n = 3
-    #    group = self.so[n]
-
-    #    metric = self.metrics[3]['canonical']
-    #    theta = gs.pi / 5
-    #    rot_vec_base_point = theta / gs.sqrt(3.) * gs.array([1., 1., 1.])
-    #    # Note: the rotation vector for the reference point
-    #    # needs to be regularized.
-
-    #    # 1: Exponential of 0 gives the reference point
-    #    rot_vec_1 = gs.array([0, 0, 0])
-    #    expected_1 = rot_vec_base_point
-
-    #    exp_1 = metric.exp(base_point=rot_vec_base_point,
-    #                       tangent_vec=rot_vec_1)
-    #    self.assertTrue(gs.allclose(exp_1, expected_1))
-
-    #    # 2: General case - computed manually
-    #    rot_vec_2 = gs.pi / 4 * gs.array([1, 0, 0])
-    #    phi = (gs.pi / 10) / (gs.tan(gs.pi / 10))
-    #    skew = gs.array([[0., -1., 1.],
-    #                     [1., 0., -1.],
-    #                     [-1., 1., 0.]])
-    #    jacobian = (phi * gs.eye(3)
-    #                + (1 - phi) / 3 * gs.ones([3, 3])
-    #                + gs.pi / (10 * gs.sqrt(3)) * skew)
-    #    inv_jacobian = gs.linalg.inv(jacobian)
-    #    expected_2 = group.compose(rot_vec_base_point,
-    #                               gs.dot(inv_jacobian, rot_vec_2))
-
-    #    exp_2 = metric.exp(base_point=rot_vec_base_point,
-    #                       tangent_vec=rot_vec_2)
-    #    self.assertTrue(gs.allclose(exp_2, expected_2))
-
-    #def test_exp_vectorization(self):
-    #    n = 3
-    #    group = self.so[n]
-
-    #    n_samples = self.n_samples
-    #    for metric_type in self.metrics[3]:
-    #        metric = self.metrics[3][metric_type]
-
-    #        one_tangent_vec = group.random_uniform(n_samples=1)
-    #        one_base_point = group.random_uniform(n_samples=1)
-    #        n_tangent_vec = group.random_uniform(n_samples=n_samples)
-    #        n_base_point = group.random_uniform(n_samples=n_samples)
-
-    #        # Test with the 1 base point, and n tangent vecs
-    #        result = metric.exp(n_tangent_vec, one_base_point)
-    #        self.assertTrue(gs.allclose(result.shape,
-    #                                    (n_samples, group.dimension)))
-    #        expected = gs.vstack([metric.exp(tangent_vec, one_base_point)
-    #                              for tangent_vec in n_tangent_vec])
-    #        self.assertTrue(gs.allclose(expected.shape,
-    #                                    (n_samples, group.dimension)))
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'with metric {}'.format(metric_type))
-
-    #        # Test with the several base point, and one tangent vec
-    #        result = metric.exp(one_tangent_vec, n_base_point)
-    #        self.assertTrue(gs.allclose(result.shape,
-    #                                    (n_samples, group.dimension)))
-    #        expected = gs.vstack([metric.exp(one_tangent_vec, base_point)
-    #                              for base_point in n_base_point])
-    #        self.assertTrue(gs.allclose(expected.shape,
-    #                                    (n_samples, group.dimension)))
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'with metric {}'.format(metric_type))
-
-    #        # Test with the same number n of base point and n tangent vec
-    #        result = metric.exp(n_tangent_vec, n_base_point)
-    #        self.assertTrue(gs.allclose(result.shape,
-    #                                    (n_samples, group.dimension)))
-    #        expected = gs.vstack([metric.exp(tangent_vec, base_point)
-    #                              for tangent_vec, base_point in zip(
-    #                                                           n_tangent_vec,
-    #                                                           n_base_point)])
-    #        self.assertTrue(gs.allclose(expected.shape,
-    #                                    (n_samples, group.dimension)))
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'with metric {}'.format(metric_type))
-
-    #def test_log(self):
-    #    """
-    #    The Riemannian exp and log are inverse functions of each other.
-    #    This test is the inverse of test_exp's.
-    #    """
-    #    n = 3
-    #    group = self.so[n]
-
-    #    metric = self.metrics[3]['canonical']
-    #    theta = gs.pi / 5.
-    #    rot_vec_base_point = theta / gs.sqrt(3.) * gs.array([1., 1., 1.])
-    #    # Note: the rotation vector for the reference point
-    #    # needs to be regularized.
-
-    #    # The Logarithm of a point at itself gives 0.
-    #    rot_vec_1 = rot_vec_base_point
-    #    expected_1 = gs.array([0, 0, 0])
-    #    log_1 = metric.log(base_point=rot_vec_base_point,
-    #                       point=rot_vec_1)
-    #    self.assertTrue(gs.allclose(log_1, expected_1))
-
-    #    # General case: this is the inverse test of test 1 for riemannian exp
-    #    expected_2 = gs.pi / 4 * gs.array([1, 0, 0])
-    #    phi = (gs.pi / 10) / (gs.tan(gs.pi / 10))
-    #    skew = gs.array([[0., -1., 1.],
-    #                     [1., 0., -1.],
-    #                     [-1., 1., 0.]])
-    #    jacobian = (phi * gs.eye(3)
-    #                + (1 - phi) / 3 * gs.ones([3, 3])
-    #                + gs.pi / (10 * gs.sqrt(3)) * skew)
-    #    inv_jacobian = gs.linalg.inv(jacobian)
-    #    rot_vec_2 = group.compose(rot_vec_base_point,
-    #                              gs.dot(inv_jacobian, expected_2))
-
-    #    log_2 = metric.log(base_point=rot_vec_base_point,
-    #                       point=rot_vec_2)
-    #    self.assertTrue(gs.allclose(log_2, expected_2))
-
-    #def test_log_vectorization(self):
-    #    n = 3
-    #    group = self.so[n]
-
-    #    n_samples = self.n_samples
-    #    for metric_type in self.metrics[3]:
-    #        metric = self.metrics[3][metric_type]
-
-    #        one_point = group.random_uniform(n_samples=1)
-    #        one_base_point = group.random_uniform(n_samples=1)
-    #        n_point = group.random_uniform(n_samples=n_samples)
-    #        n_base_point = group.random_uniform(n_samples=n_samples)
-
-    #        # Test with the 1 base point, and several different points
-    #        result = metric.log(n_point, one_base_point)
-    #        self.assertTrue(gs.allclose(result.shape,
-    #                                    (n_samples, group.dimension)))
-    #        expected = gs.vstack([metric.log(point, one_base_point)
-    #                              for point in n_point])
-
-    #        self.assertTrue(gs.allclose(expected.shape,
-    #                                    (n_samples, group.dimension)))
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'with metric {}'.format(metric_type))
-
-    #        # Test with the several base point, and 1 point
-    #        result = metric.log(one_point, n_base_point)
-    #        self.assertTrue(gs.allclose(result.shape,
-    #                                    (n_samples, group.dimension)))
-    #        expected = gs.vstack([metric.log(one_point, base_point)
-    #                              for base_point in n_base_point])
-
-    #        self.assertTrue(gs.allclose(expected.shape,
-    #                                    (n_samples, group.dimension)))
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'with metric {}'.format(metric_type))
-
-    #        # Test with the same number n of base point and point
-    #        result = metric.log(n_point, n_base_point)
-    #        self.assertTrue(gs.allclose(result.shape,
-    #                                    (n_samples, group.dimension)))
-    #        expected = gs.vstack([metric.log(point, base_point)
-    #                              for point, base_point in zip(n_point,
-    #                                                           n_base_point)])
-    #        self.assertTrue(gs.allclose(expected.shape,
-    #                                    (n_samples, group.dimension)))
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'with metric {}'.format(metric_type))
-
-    #def test_exp_from_identity_vectorization(self):
-    #    n = 3
-    #    group = self.so[n]
-
-    #    n_samples = self.n_samples
-    #    metric = self.metrics[3]['canonical']
-
-    #    tangent_vecs = group.random_uniform(n_samples=n_samples)
-    #    results = metric.exp_from_identity(tangent_vecs)
-
-    #    self.assertTrue(gs.allclose(results.shape,
-    #                                (n_samples, group.dimension)))
-
-    #def test_log_from_identity_vectorization(self):
-    #    n = 3
-    #    group = self.so[n]
-
-    #    n_samples = self.n_samples
-    #    metric = self.metrics[3]['canonical']
-
-    #    points = group.random_uniform(n_samples=n_samples)
-    #    results = metric.log_from_identity(points)
-
-    #    self.assertTrue(gs.allclose(results.shape,
-    #                                (n_samples, group.dimension)))
-
-    #def test_exp_then_log_from_identity(self):
-    #    """
-    #    This tests that the composition of
-    #    log and exp gives identity.
-    #    """
-    #    n = 3
-    #    group = self.so[n]
-
-    #    for metric_type in self.metrics[3]:
-    #        for angle_type in self.elements[3]:
-    #            if angle_type in self.angles_close_to_pi[3]:
-    #                continue
-
-    #            metric = self.metrics[3][metric_type]
-    #            tangent_vec = self.elements[3][angle_type]
-
-    #            result = helper.exp_then_log_from_identity(metric, tangent_vec)
-    #            reg_result = group.regularize_tangent_vec_at_identity(
-    #                                     tangent_vec=result,
-    #                                     metric=metric)
-
-    #            reg_vec = group.regularize_tangent_vec_at_identity(
-    #                                         tangent_vec=tangent_vec,
-    #                                         metric=metric)
-    #            expected = reg_vec
-
-    #            reg_expected = group.regularize_tangent_vec_at_identity(
-    #                                         tangent_vec=expected,
-    #                                         metric=metric)
-
-    #            self.assertTrue(gs.allclose(result, expected),
-    #                            '\nmetric {}:\n'
-    #                            '- on tangent_vec {}: {} -> {}\n'
-    #                            'result = {} -> {}\n'
-    #                            'expected = {} -> {}'.format(
-    #                     metric_type,
-    #                     angle_type,
-    #                     tangent_vec, reg_vec,
-    #                     result, reg_result,
-    #                     expected, reg_expected))
-
-    #def test_exp_then_log_from_identity_with_angles_close_to_pi(self):
-    #    """
-    #    This tests that the composition of
-    #    log and exp gives identity.
-    #    """
-    #    n = 3
-    #    group = self.so[n]
-
-    #    angle_types = self.angles_close_to_pi[3]
-
-    #    for metric_type in self.metrics[3]:
-    #        for angle_type in angle_types:
-
-    #            metric = self.metrics[3][metric_type]
-    #            tangent_vec = self.elements[3][angle_type]
-
-    #            result = helper.exp_then_log_from_identity(metric, tangent_vec)
-
-    #            expected = group.regularize_tangent_vec_at_identity(
-    #                                            tangent_vec=tangent_vec,
-    #                                            metric=metric)
-    #            inv_expected = - expected
-
-    #            self.assertTrue(gs.allclose(result, expected)
-    #                            or gs.allclose(result, inv_expected),
-    #                            '\nmetric {}\n'
-    #                            '- on tangent_vec {}: {}\n'
-    #                            'result = {}\n'
-    #                            'expected = {}'.format(
-    #                                                 metric_type,
-    #                                                 angle_type,
-    #                                                 tangent_vec,
-    #                                                 result,
-    #                                                 expected))
-
-    #def test_log_then_exp_from_identity(self):
-    #    """
-    #    This tests that the composition of
-    #    log and exp gives identity.
-    #    """
-
-    #    n = 3
-    #    group = self.so[n]
-
-    #    for metric_type in self.metrics[3]:
-    #        for angle_type in self.elements[3]:
-    #            if angle_type in self.angles_close_to_pi[3]:
-    #                continue
-
-    #            metric = self.metrics[3][metric_type]
-    #            point = self.elements[3][angle_type]
-
-    #            result = helper.log_then_exp_from_identity(metric, point)
-    #            expected = group.regularize(point)
-
-    #            self.assertTrue(gs.allclose(result, expected),
-    #                            '\nmetric {}\n'
-    #                            '- on point {}: {}\n'
-    #                            'result = {}\n'
-    #                            'expected = {}'.format(
-    #                                                     metric_type,
-    #                                                     angle_type,
-    #                                                     point,
-    #                                                     result,
-    #                                                     expected))
-
-    #def test_log_then_exp_from_identity_with_angles_close_to_pi(self):
-    #    """
-    #    This tests that the composition of
-    #    log and exp gives identity.
-    #    """
-    #    n = 3
-    #    group = self.so[n]
-
-    #    angle_types = self.angles_close_to_pi[3]
-
-    #    for metric_type in self.metrics[3]:
-    #        for angle_type in angle_types:
-
-    #            metric = self.metrics[3][metric_type]
-    #            point = self.elements[3][angle_type]
-
-    #            result = helper.log_then_exp_from_identity(metric, point)
-    #            expected = group.regularize(point)
-    #            inv_expected = - expected
-    #            self.assertTrue(gs.allclose(result, expected)
-    #                            or gs.allclose(result, inv_expected),
-    #                            '\nmetric {}\n'
-    #                            '- on point {}: {}\n'
-    #                            'result = {}\n'
-    #                            'expected = {}'.format(
-    #                                                     metric_type,
-    #                                                     angle_type,
-    #                                                     point,
-    #                                                     result,
-    #                                                     expected))
-
-    #def test_exp_then_log(self):
-    #    """
-    #    This tests that the composition of
-    #    log and exp gives identity.
-    #    """
-    #    n = 3
-    #    group = self.so[n]
-
-    #    # TODO(nina): absolute tolerance for infinitesimal angles?
-    #    # It fails for a tolerance under 1e-4.
-    #    for metric_type in self.metrics[3]:
-    #        for angle_type in self.elements[3]:
-    #            if angle_type in self.angles_close_to_pi[3]:
-    #                continue
-    #            for angle_type_base in self.elements[3]:
-
-    #                metric = self.metrics[3][metric_type]
-    #                tangent_vec = self.elements[3][angle_type]
-    #                base_point = self.elements[3][angle_type_base]
-
-    #                result = helper.exp_then_log(metric=metric,
-    #                                             tangent_vec=tangent_vec,
-    #                                             base_point=base_point)
-    #                regularized_result = group.regularize_tangent_vec(
-    #                                         tangent_vec=result,
-    #                                         base_point=base_point,
-    #                                         metric=metric)
-
-    #                reg_tangent_vec = group.regularize_tangent_vec(
-    #                                             tangent_vec=tangent_vec,
-    #                                             base_point=base_point,
-    #                                             metric=metric)
-    #                expected = reg_tangent_vec
-
-    #                regularized_expected = group.regularize_tangent_vec(
-    #                                             tangent_vec=expected,
-    #                                             base_point=base_point,
-    #                                             metric=metric)
-
-    #                self.assertTrue(gs.allclose(result, expected, atol=1e-4),
-    #                                '\nmetric {}:\n'
-    #                                '- on tangent_vec {}: {} -> {}\n'
-    #                                '- base_point {}: {} -> {}\n'
-    #                                'result = {} -> {}\n'
-    #                                'expected = {} -> {}'.format(
-    #                         metric_type,
-    #                         angle_type,
-    #                         tangent_vec, reg_tangent_vec,
-    #                         angle_type_base,
-    #                         base_point, group.regularize(base_point),
-    #                         result, regularized_result,
-    #                         expected, regularized_expected))
-
-    #def test_exp_then_log_with_angles_close_to_pi(self):
-    #    """
-    #    This tests that the composition of
-    #    log and exp gives identity.
-    #    """
-    #    n = 3
-    #    group = self.so[n]
-
-    #    # TODO(nina): the cut locus is not at pi for non
-    #    # canonical metrics. Address this edge case.
-    #    angle_types = self.angles_close_to_pi[3]
-    #    for metric_type in self.metrics[3]:
-    #        for angle_type in angle_types:
-    #            for angle_type_base in self.elements[3]:
-
-    #                metric = self.metrics[3][metric_type]
-    #                tangent_vec = self.elements[3][angle_type]
-    #                base_point = self.elements[3][angle_type_base]
-
-    #                result = helper.exp_then_log(metric=metric,
-    #                                             tangent_vec=tangent_vec,
-    #                                             base_point=base_point)
-
-    #                regularized_result = group.regularize_tangent_vec(
-    #                                         tangent_vec=result,
-    #                                         base_point=base_point,
-    #                                         metric=metric)
-
-    #                reg_tangent_vec = group.regularize_tangent_vec(
-    #                                             tangent_vec=tangent_vec,
-    #                                             base_point=base_point,
-    #                                             metric=metric)
-    #                expected = reg_tangent_vec
-    #                inv_expected = - expected
-    #                regularized_expected = group.regularize_tangent_vec(
-    #                                             tangent_vec=expected,
-    #                                             base_point=base_point,
-    #                                             metric=metric)
-
-    #                self.assertTrue((gs.allclose(result, expected,
-    #                                             atol=1e-5)
-    #                                 or gs.allclose(result, inv_expected,
-    #                                                atol=1e-5)),
-    #                                '\nmetric {}:\n'
-    #                                '- on tangent_vec {}: {} -> {}\n'
-    #                                '- base_point {}: {} -> {}\n'
-    #                                'result = {} -> {}\n'
-    #                                'expected = {} -> {}'.format(
-    #                         metric_type,
-    #                         angle_type,
-    #                         tangent_vec, reg_tangent_vec,
-    #                         angle_type_base,
-    #                         base_point, group.regularize(base_point),
-    #                         result, regularized_result,
-    #                         expected, regularized_expected))
-
-    #def test_log_then_exp(self):
-    #    """
-    #    This tests that the composition of
-    #    log and exp gives identity.
-    #    """
-
-    #    n = 3
-    #    group = self.so[n]
-
-    #    for metric_type in self.metrics[3]:
-    #        for angle_type in self.elements[3]:
-    #            if angle_type in self.angles_close_to_pi[3]:
-    #                continue
-    #            for angle_type_base in self.elements[3]:
-    #                # TODO(nina): address the edge case with base close to pi
-    #                if angle_type_base in self.angles_close_to_pi[3]:
-    #                    continue
-    #                metric = self.metrics[3][metric_type]
-    #                point = self.elements[3][angle_type]
-    #                base_point = self.elements[3][angle_type_base]
-
-    #                result = helper.log_then_exp(metric=metric,
-    #                                             base_point=base_point,
-    #                                             point=point)
-
-    #                expected = group.regularize(point)
-    #                inv_expected = - expected
-    #                self.assertTrue((gs.allclose(result, expected)
-    #                                 or gs.allclose(result, inv_expected)),
-    #                                '\nmetric {}:\n'
-    #                                '- on point {}: {} -> {}\n'
-    #                                '- base_point {}: {} -> {}\n'
-    #                                'result = {} -> {}\n'
-    #                                'expected = {} -> {}'.format(
-    #                             metric_type,
-    #                             angle_type,
-    #                             point, group.regularize(point),
-    #                             angle_type_base,
-    #                             base_point, group.regularize(base_point),
-    #                             result, group.regularize(result),
-    #                             expected, group.regularize(expected)))
-
-    #def test_log_then_exp_with_angles_close_to_pi(self):
-    #    """
-    #    This tests that the composition of
-    #    log and exp gives identity.
-    #    """
-    #    n = 3
-    #    group = self.so[n]
-
-    #    angle_types = self.angles_close_to_pi[3]
-    #    for metric_type in self.metrics[3]:
-    #        for angle_type in angle_types:
-    #            for angle_type_base in self.elements[3]:
-    #                metric = self.metrics[3][metric_type]
-    #                point = self.elements[3][angle_type]
-    #                base_point = self.elements[3][angle_type_base]
-
-    #                result = helper.log_then_exp(metric=metric,
-    #                                             base_point=base_point,
-    #                                             point=point)
-
-    #                expected = group.regularize(point)
-    #                inv_expected = - expected
-    #                self.assertTrue((gs.allclose(result, expected)
-    #                                 or gs.allclose(result, inv_expected)),
-    #                                '\nmetric {}:\n'
-    #                                '- on point {}: {} -> {}\n'
-    #                                '- base_point {}: {} -> {}\n'
-    #                                'result = {} -> {}\n'
-    #                                'expected = {} -> {}'.format(
-    #                             metric_type,
-    #                             angle_type,
-    #                             point, group.regularize(point),
-    #                             angle_type_base,
-    #                             base_point, group.regularize(base_point),
-    #                             result, group.regularize(result),
-    #                             expected, group.regularize(expected)))
-
-    #def test_group_exp_from_identity_vectorization(self):
-    #    n = 3
-    #    group = self.so[n]
-
-    #    n_samples = self.n_samples
-    #    tangent_vecs = group.random_uniform(n_samples=n_samples)
-    #    results = group.group_exp_from_identity(tangent_vecs)
-
-    #    self.assertTrue(gs.allclose(results.shape,
-    #                                (n_samples, group.dimension)))
-
-    #def test_group_log_from_identity_vectorization(self):
-    #    n = 3
-    #    group = self.so[n]
-
-    #    n_samples = self.n_samples
-    #    points = group.random_uniform(n_samples=n_samples)
-    #    results = group.group_log_from_identity(points)
-
-    #    self.assertTrue(gs.allclose(results.shape,
-    #                                (n_samples, group.dimension)))
-
-    #def test_group_exp_vectorization(self):
-    #    n = 3
-    #    group = self.so[n]
-
-    #    n_samples = self.n_samples
-    #    # Test with the 1 base_point, and several different tangent_vecs
-    #    tangent_vecs = group.random_uniform(n_samples=n_samples)
-    #    base_point = group.random_uniform(n_samples=1)
-    #    results = group.group_exp(tangent_vecs, base_point)
-
-    #    self.assertTrue(gs.allclose(results.shape,
-    #                                (n_samples, group.dimension)))
-
-    #    # Test with the same number of base_points and tangent_vecs
-    #    tangent_vecs = group.random_uniform(n_samples=n_samples)
-    #    base_points = group.random_uniform(n_samples=n_samples)
-    #    results = group.group_exp(tangent_vecs, base_points)
-
-    #    self.assertTrue(gs.allclose(results.shape,
-    #                                (n_samples, group.dimension)))
-
-    #    # Test with the several base_points, and 1 tangent_vec
-    #    tangent_vec = group.random_uniform(n_samples=1)
-    #    base_points = group.random_uniform(n_samples=n_samples)
-    #    results = group.group_exp(tangent_vec, base_points)
-
-    #    self.assertTrue(gs.allclose(results.shape,
-    #                                (n_samples, group.dimension)))
-
-    #def test_group_log_vectorization(self):
-    #    n = 3
-    #    group = self.so[n]
-
-    #    n_samples = self.n_samples
-    #    # Test with the 1 base point, and several different points
-    #    points = group.random_uniform(n_samples=n_samples)
-    #    base_point = group.random_uniform(n_samples=1)
-    #    results = group.group_log(points, base_point)
-
-    #    self.assertTrue(gs.allclose(results.shape,
-    #                                (n_samples, group.dimension)))
-
-    #    # Test with the same number of base points and points
-    #    points = group.random_uniform(n_samples=n_samples)
-    #    base_points = group.random_uniform(n_samples=n_samples)
-    #    results = group.group_log(points, base_points)
-
-    #    self.assertTrue(gs.allclose(results.shape,
-    #                                (n_samples, group.dimension)))
-
-    #    # Test with the several base points, and 1 point
-    #    point = group.random_uniform(n_samples=1)
-    #    base_points = group.random_uniform(n_samples=n_samples)
-    #    results = group.group_log(point, base_points)
-
-    #    self.assertTrue(gs.allclose(results.shape,
-    #                                (n_samples, group.dimension)))
-
-    #def test_group_exp_then_log_from_identity(self):
-    #    """
-    #    Test that the group exponential
-    #    and the group logarithm are inverse.
-    #    Expect their composition to give the identity function.
-    #    """
-    #    n = 3
-    #    group = self.so[n]
-
-    #    for angle_type in self.elements[3]:
-    #        if angle_type in self.angles_close_to_pi[3]:
-    #            continue
-    #        tangent_vec = self.elements[3][angle_type]
-    #        result = helper.group_exp_then_log_from_identity(
-    #                                     group=group,
-    #                                     tangent_vec=tangent_vec)
-    #        expected = group.regularize(tangent_vec)
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'on tangent_vec {}'.format(angle_type))
-
-    #def test_group_exp_then_log_from_identity_with_angles_close_to_pi(self):
-    #    """
-    #    Test that the group exponential
-    #    and the group logarithm are inverse.
-    #    Expect their composition to give the identity function.
-    #    """
-    #    n = 3
-    #    group = self.so[n]
-
-    #    angle_types = self.angles_close_to_pi[3]
-    #    for angle_type in angle_types:
-    #        tangent_vec = self.elements[3][angle_type]
-    #        result = helper.group_exp_then_log_from_identity(
-    #                                     group=group,
-    #                                     tangent_vec=tangent_vec)
-    #        expected = group.regularize(tangent_vec)
-    #        inv_expected = - expected
-    #        self.assertTrue(gs.allclose(result, expected)
-    #                        or gs.allclose(result, inv_expected),
-    #                        'on tangent_vec {}'.format(angle_type))
-
-    #def test_group_log_then_exp_from_identity(self):
-    #    """
-    #    Test that the group exponential
-    #    and the group logarithm are inverse.
-    #    Expect their composition to give the identity function.
-    #    """
-    #    n = 3
-    #    group = self.so[n]
-
-    #    for angle_type in self.elements[3]:
-    #        point = self.elements[3][angle_type]
-    #        result = helper.group_log_then_exp_from_identity(
-    #                                     group=group,
-    #                                     point=point)
-    #        expected = group.regularize(point)
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'on point {}'.format(angle_type))
-
-    #def test_group_log_then_exp_from_identity_with_angles_close_to_pi(self):
-    #    """
-    #    Test that the group exponential
-    #    and the group logarithm are inverse.
-    #    Expect their composition to give the identity function.
-    #    """
-    #    n = 3
-    #    group = self.so[n]
-
-    #    angle_types = self.angles_close_to_pi[3]
-    #    for angle_type in angle_types:
-    #        point = self.elements[3][angle_type]
-    #        result = helper.group_log_then_exp_from_identity(
-    #                                     group=group,
-    #                                     point=point)
-    #        expected = group.regularize(point)
-    #        inv_expected = - expected
-    #        self.assertTrue(gs.allclose(result, expected)
-    #                        or gs.allclose(result, inv_expected),
-    #                        'on point {}'.format(angle_type))
-
-    #def test_group_exp_then_log(self):
-    #    """
-    #    This tests that the composition of
-    #    log and exp gives identity.
-
-    #    """
-    #    n = 3
-    #    group = self.so[n]
-
-    #    # TODO(nina): absolute tolerance for infinitesimal angles
-    #    for angle_type in self.elements[3]:
-    #        if angle_type in self.angles_close_to_pi[3]:
-    #            continue
-    #        for angle_type_base in self.elements[3]:
-    #            tangent_vec = self.elements[3][angle_type]
-    #            base_point = self.elements[3][angle_type_base]
-
-    #            result = helper.group_exp_then_log(
-    #                                         group=group,
-    #                                         tangent_vec=tangent_vec,
-    #                                         base_point=base_point)
-
-    #            # TODO(nina): what does it mean to regularize the tangent
-    #            # vector when there is no metric?
-    #            metric = group.left_canonical_metric
-    #            expected = group.regularize_tangent_vec(
-    #                                 tangent_vec=tangent_vec,
-    #                                 base_point=base_point,
-    #                                 metric=metric)
-
-    #            self.assertTrue(gs.allclose(result, expected, atol=1e-6),
-    #                            '\n- on tangent_vec {}: {} -> {}\n'
-    #                            '- base_point {}: {} -> {}\n'
-    #                            'result = {} -> {}\n'
-    #                            'expected = {} -> {}'.format(
-    #                         angle_type,
-    #                         tangent_vec, group.regularize(tangent_vec),
-    #                         angle_type_base,
-    #                         base_point, group.regularize(base_point),
-    #                         result, group.regularize(result),
-    #                         expected, group.regularize(expected)))
-
-    #def test_group_exp_then_log_with_angles_close_to_pi(self):
-    #    """
-    #    This tests that the composition of
-    #    log and exp gives identity.
-    #    """
-    #    n = 3
-    #    group = self.so[n]
-
-    #    angle_types = self.angles_close_to_pi[3]
-    #    for angle_type in angle_types:
-    #        for angle_type_base in self.elements[3]:
-    #            tangent_vec = self.elements[3][angle_type]
-    #            base_point = self.elements[3][angle_type_base]
-
-    #            result = helper.group_exp_then_log(
-    #                                         group=group,
-    #                                         tangent_vec=tangent_vec,
-    #                                         base_point=base_point)
-
-    #            # TODO(nina): what does it mean to regularize the tangent
-    #            # vector when there is no metric?
-    #            metric = group.left_canonical_metric
-    #            reg_tangent_vec = group.regularize_tangent_vec(
-    #                                 tangent_vec=tangent_vec,
-    #                                 base_point=base_point,
-    #                                 metric=metric)
-    #            expected = reg_tangent_vec
-    #            inv_expected = - expected
-
-    #            self.assertTrue((gs.allclose(result, expected)
-    #                             or gs.allclose(result, inv_expected)),
-    #                            '\n- on tangent_vec {}: {} -> {}\n'
-    #                            '- base_point {}: {} -> {}\n'
-    #                            'result = {} -> {}\n'
-    #                            'expected = {} -> {}'.format(
-    #                         angle_type,
-    #                         tangent_vec, group.regularize(tangent_vec),
-    #                         angle_type_base,
-    #                         base_point, group.regularize(base_point),
-    #                         result, group.regularize(result),
-    #                         expected, group.regularize(expected)))
-
-    #def test_group_log_then_exp(self):
-    #    """
-    #    This tests that the composition of
-    #    log and exp gives identity.
-    #    """
-
-    #    n = 3
-    #    group = self.so[n]
-
-    #    for angle_type in self.elements[3]:
-    #        if angle_type in self.angles_close_to_pi[3]:
-    #            continue
-    #        for angle_type_base in self.elements[3]:
-    #            point = self.elements[3][angle_type]
-    #            base_point = self.elements[3][angle_type_base]
-
-    #            result = helper.group_log_then_exp(
-    #                                         group=group,
-    #                                         point=point,
-    #                                         base_point=base_point)
-    #            expected = group.regularize(point)
-
-    #            self.assertTrue(gs.allclose(result, expected, atol=ATOL),
-    #                            '\n- on point {}: {} -> {}\n'
-    #                            '- base_point {}: {} -> {}\n'
-    #                            'result = {} -> {}\n'
-    #                            'expected = {} -> {}'.format(
-    #                             angle_type,
-    #                             point, group.regularize(point),
-    #                             angle_type_base,
-    #                             base_point, group.regularize(base_point),
-    #                             result, group.regularize(result),
-    #                             expected, group.regularize(expected)))
-
-    #def test_group_log_then_exp_with_angles_close_to_pi(self):
-    #    """
-    #    This tests that the composition of
-    #    log and exp gives identity.
-    #    """
-    #    n = 3
-    #    group = self.so[n]
-
-    #    angle_types = self.angles_close_to_pi[3]
-    #    for angle_type in angle_types:
-    #        for angle_type_base in self.elements[3]:
-    #            point = self.elements[3][angle_type]
-    #            base_point = self.elements[3][angle_type_base]
-
-    #            result = helper.group_log_then_exp(
-    #                                         group=group,
-    #                                         point=point,
-    #                                         base_point=base_point)
-    #            expected = group.regularize(point)
-    #            inv_expected = - expected
-
-    #            self.assertTrue((gs.allclose(result, expected)
-    #                             or gs.allclose(result, inv_expected)),
-    #                            '\n- on point {}: {} -> {}\n'
-    #                            '- base_point {}: {} -> {}\n'
-    #                            'result = {} -> {}\n'
-    #                            'expected = {} -> {}'.format(
-    #                             angle_type,
-    #                             point, group.regularize(point),
-    #                             angle_type_base,
-    #                             base_point, group.regularize(base_point),
-    #                             result, group.regularize(result),
-    #                             expected, group.regularize(expected)))
-
-    #def test_group_exponential_barycenter(self):
-    #    n = 3
-    #    group = self.so[n]
-
-    #    rot_vec = group.random_uniform()
-    #    points = gs.vstack([rot_vec, rot_vec])
-    #    result = group.group_exponential_barycenter(
-    #                            points=points)
-    #    expected = rot_vec
-    #    self.assertTrue(gs.allclose(result, expected))
-
-    #    rot_vec = group.random_uniform()
-    #    points = gs.vstack([rot_vec, rot_vec])
-    #    weights = gs.array([1., 2.])
-    #    result = group.group_exponential_barycenter(
-    #                            points=points,
-    #                            weights=weights)
-    #    expected = rot_vec
-    #    self.assertTrue(gs.allclose(result, expected))
-
-    #    points = gs.vstack([rot_vec, rot_vec])
-    #    weights = gs.array([1., 2.])
-    #    result = group.group_exponential_barycenter(
-    #                            points=points,
-    #                            weights=weights)
-
-    #    self.assertTrue(group.belongs(result))
-
-    #def test_squared_dist_is_symmetric(self):
-    #    n = 3
-    #    group = self.so[n]
-
-    #    for metric in self.metrics[3].values():
-    #        for angle_type_1 in self.elements[3]:
-    #            for angle_type_2 in self.elements[3]:
-    #                point_1 = self.elements[3][angle_type_1]
-    #                point_2 = self.elements[3][angle_type_2]
-    #                point_1 = group.regularize(point_1)
-    #                point_2 = group.regularize(point_2)
-
-    #                sq_dist_1_2 = metric.squared_dist(point_1, point_2)
-    #                sq_dist_2_1 = metric.squared_dist(point_2, point_1)
-
-    #                self.assertTrue(gs.allclose(sq_dist_1_2, sq_dist_2_1),
-    #                                'for point_1 {} and point_2 {}:\n'
-    #                                'squared dist from 1 to 2: {}\n'
-    #                                'squared dist from 2 to 1: {}\n'.format(
-    #                                             angle_type_1,
-    #                                             angle_type_2,
-    #                                             sq_dist_1_2,
-    #                                             sq_dist_2_1))
-
-    #def test_squared_dist_is_less_than_squared_pi(self):
-    #    """
-    #    This test only concerns the canonical metric.
-    #    For other metrics, the scaling factor can give
-    #    distances above pi.
-    #    """
-    #    n = 3
-    #    group = self.so[n]
-
-    #    metric = self.metrics[3]['canonical']
-    #    for angle_type_1 in self.elements[3]:
-    #        for angle_type_2 in self.elements[3]:
-    #            point_1 = self.elements[3][angle_type_1]
-    #            point_2 = self.elements[3][angle_type_2]
-    #            point_1 = group.regularize(point_1)
-    #            point_2 = group.regularize(point_2)
-
-    #            sq_dist = metric.squared_dist(point_1, point_2)
-    #            diff = sq_dist - gs.pi ** 2
-    #            self.assertTrue(diff <= 0 or abs(diff) < EPSILON,
-    #                            'sq_dist = {}'.format(sq_dist))
-
-    #def test_squared_dist_vectorization(self):
-    #    n = 3
-    #    group = self.so[n]
-
-    #    n_samples = self.n_samples
-    #    for metric_type in self.metrics[3]:
-    #        metric = self.metrics[3][metric_type]
-    #        point_id = group.identity
-
-    #        one_point_1 = group.random_uniform(n_samples=1)
-    #        one_point_2 = group.random_uniform(n_samples=1)
-    #        one_point_1 = group.regularize(one_point_1)
-    #        one_point_2 = group.regularize(one_point_2)
-
-    #        n_point_1 = group.random_uniform(n_samples=n_samples)
-    #        n_point_2 = group.random_uniform(n_samples=n_samples)
-    #        n_point_1 = group.regularize(n_point_1)
-    #        n_point_2 = group.regularize(n_point_2)
-
-    #        # Identity and n points 2
-    #        result = metric.squared_dist(point_id, n_point_2)
-    #        gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-    #        expected = gs.vstack([metric.squared_dist(point_id, point_2)
-    #                              for point_2 in n_point_2])
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'with metric {}'.format(metric_type))
-
-    #        # n points 1 and identity
-    #        result = metric.squared_dist(n_point_1, point_id)
-
-    #        gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-    #        expected = gs.vstack([metric.squared_dist(point_1, point_id)
-    #                              for point_1 in n_point_1])
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'with metric {}'.format(metric_type))
-
-    #        # one point 1 and n points 2
-    #        result = metric.squared_dist(one_point_1, n_point_2)
-    #        gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-    #        expected = gs.vstack([metric.squared_dist(one_point_1, point_2)
-    #                              for point_2 in n_point_2])
-
-    #        # n points 1 and one point 2
-    #        result = metric.squared_dist(n_point_1, one_point_2)
-    #        gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-    #        expected = gs.vstack([metric.squared_dist(point_1, one_point_2)
-    #                              for point_1 in n_point_1])
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'with metric {}'.format(metric_type))
-
-    #        # n points 1 and n points 2
-    #        result = metric.squared_dist(n_point_1, n_point_2)
-    #        gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-    #        expected = gs.vstack([metric.squared_dist(point_1, point_2)
-    #                              for point_1, point_2 in zip(n_point_1,
-    #                                                          n_point_2)])
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'with metric {}'.format(metric_type))
-
-    #def test_dist_vectorization(self):
-    #    n = 3
-    #    group = self.so[n]
-
-    #    n_samples = self.n_samples
-    #    for metric_type in self.metrics[3]:
-    #        metric = self.metrics[3][metric_type]
-    #        point_id = group.identity
-
-    #        one_point_1 = group.random_uniform(n_samples=1)
-    #        one_point_2 = group.random_uniform(n_samples=1)
-    #        one_point_1 = group.regularize(one_point_1)
-    #        one_point_2 = group.regularize(one_point_2)
-
-    #        n_point_1 = group.random_uniform(n_samples=n_samples)
-    #        n_point_2 = group.random_uniform(n_samples=n_samples)
-    #        n_point_1 = group.regularize(n_point_1)
-    #        n_point_2 = group.regularize(n_point_2)
-
-    #        # Identity and n points 2
-    #        result = metric.dist(point_id, n_point_2)
-    #        gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-    #        expected = gs.vstack([metric.dist(point_id, point_2)
-    #                              for point_2 in n_point_2])
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'result = {}, expected = {}\n'
-    #                        'with metric {}'.format(
-    #                            result, expected, metric_type))
-
-    #        # n points 1 and identity
-    #        result = metric.dist(n_point_1, point_id)
-
-    #        gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-    #        expected = gs.vstack([metric.dist(point_1, point_id)
-    #                              for point_1 in n_point_1])
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'with metric {}'.format(metric_type))
-
-    #        # one point 1 and n points 2
-    #        result = metric.dist(one_point_1, n_point_2)
-    #        gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-    #        expected = gs.vstack([metric.dist(one_point_1, point_2)
-    #                              for point_2 in n_point_2])
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'with metric {}'.format(metric_type))
-
-    #        # n points 1 and one point 2
-    #        result = metric.dist(n_point_1, one_point_2)
-    #        gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-    #        expected = gs.vstack([metric.dist(point_1, one_point_2)
-    #                              for point_1 in n_point_1])
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'with metric {}'.format(metric_type))
-
-    #        # n points 1 and n points 2
-    #        result = metric.dist(n_point_1, n_point_2)
-    #        gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-    #        expected = gs.vstack([metric.dist(point_1, point_2)
-    #                              for point_1, point_2 in zip(n_point_1,
-    #                                                          n_point_2)])
-    #        self.assertTrue(gs.allclose(result, expected),
-    #                        'with metric {}'.format(metric_type))
+    def test_left_jacobian_vectorization(self):
+        n = 3
+        group = self.so[n]
+
+        n_samples = self.n_samples
+        points = group.random_uniform(n_samples=n_samples)
+        jacobians = group.jacobian_translation(point=points,
+                                               left_or_right='left')
+        self.assertTrue(gs.allclose(
+                         jacobians.shape,
+                         (n_samples,
+                          group.dimension, group.dimension)))
+
+    def test_exp(self):
+        """
+        The Riemannian exp and log are inverse functions of each other.
+        This test is the inverse of test_log's.
+        """
+        n = 3
+        group = self.so[n]
+
+        metric = self.metrics[3]['canonical']
+        theta = gs.pi / 5
+        rot_vec_base_point = theta / gs.sqrt(3.) * gs.array([1., 1., 1.])
+        # Note: the rotation vector for the reference point
+        # needs to be regularized.
+
+        # 1: Exponential of 0 gives the reference point
+        rot_vec_1 = gs.array([0, 0, 0])
+        expected_1 = rot_vec_base_point
+
+        exp_1 = metric.exp(base_point=rot_vec_base_point,
+                           tangent_vec=rot_vec_1)
+        self.assertTrue(gs.allclose(exp_1, expected_1))
+
+        # 2: General case - computed manually
+        rot_vec_2 = gs.pi / 4 * gs.array([1, 0, 0])
+        phi = (gs.pi / 10) / (gs.tan(gs.pi / 10))
+        skew = gs.array([[0., -1., 1.],
+                         [1., 0., -1.],
+                         [-1., 1., 0.]])
+        jacobian = (phi * gs.eye(3)
+                    + (1 - phi) / 3 * gs.ones([3, 3])
+                    + gs.pi / (10 * gs.sqrt(3)) * skew)
+        inv_jacobian = gs.linalg.inv(jacobian)
+        expected_2 = group.compose(rot_vec_base_point,
+                                   gs.dot(inv_jacobian, rot_vec_2))
+
+        exp_2 = metric.exp(base_point=rot_vec_base_point,
+                           tangent_vec=rot_vec_2)
+        self.assertTrue(gs.allclose(exp_2, expected_2))
+
+    def test_exp_vectorization(self):
+        n = 3
+        group = self.so[n]
+
+        n_samples = self.n_samples
+        for metric_type in self.metrics[3]:
+            metric = self.metrics[3][metric_type]
+
+            one_tangent_vec = group.random_uniform(n_samples=1)
+            one_base_point = group.random_uniform(n_samples=1)
+            n_tangent_vec = group.random_uniform(n_samples=n_samples)
+            n_base_point = group.random_uniform(n_samples=n_samples)
+
+            # Test with the 1 base point, and n tangent vecs
+            result = metric.exp(n_tangent_vec, one_base_point)
+            self.assertTrue(gs.allclose(result.shape,
+                                        (n_samples, group.dimension)))
+            expected = gs.vstack([metric.exp(tangent_vec, one_base_point)
+                                  for tangent_vec in n_tangent_vec])
+            self.assertTrue(gs.allclose(expected.shape,
+                                        (n_samples, group.dimension)))
+            self.assertTrue(gs.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
+
+            # Test with the several base point, and one tangent vec
+            result = metric.exp(one_tangent_vec, n_base_point)
+            self.assertTrue(gs.allclose(result.shape,
+                                        (n_samples, group.dimension)))
+            expected = gs.vstack([metric.exp(one_tangent_vec, base_point)
+                                  for base_point in n_base_point])
+            self.assertTrue(gs.allclose(expected.shape,
+                                        (n_samples, group.dimension)))
+            self.assertTrue(gs.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
+
+            # Test with the same number n of base point and n tangent vec
+            result = metric.exp(n_tangent_vec, n_base_point)
+            self.assertTrue(gs.allclose(result.shape,
+                                        (n_samples, group.dimension)))
+            expected = gs.vstack([metric.exp(tangent_vec, base_point)
+                                  for tangent_vec, base_point in zip(
+                                                               n_tangent_vec,
+                                                               n_base_point)])
+            self.assertTrue(gs.allclose(expected.shape,
+                                        (n_samples, group.dimension)))
+            self.assertTrue(gs.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
+
+    def test_log(self):
+        """
+        The Riemannian exp and log are inverse functions of each other.
+        This test is the inverse of test_exp's.
+        """
+        n = 3
+        group = self.so[n]
+
+        metric = self.metrics[3]['canonical']
+        theta = gs.pi / 5.
+        rot_vec_base_point = theta / gs.sqrt(3.) * gs.array([1., 1., 1.])
+        # Note: the rotation vector for the reference point
+        # needs to be regularized.
+
+        # The Logarithm of a point at itself gives 0.
+        rot_vec_1 = rot_vec_base_point
+        expected_1 = gs.array([0, 0, 0])
+        log_1 = metric.log(base_point=rot_vec_base_point,
+                           point=rot_vec_1)
+        self.assertTrue(gs.allclose(log_1, expected_1))
+
+        # General case: this is the inverse test of test 1 for riemannian exp
+        expected_2 = gs.pi / 4 * gs.array([1, 0, 0])
+        phi = (gs.pi / 10) / (gs.tan(gs.pi / 10))
+        skew = gs.array([[0., -1., 1.],
+                         [1., 0., -1.],
+                         [-1., 1., 0.]])
+        jacobian = (phi * gs.eye(3)
+                    + (1 - phi) / 3 * gs.ones([3, 3])
+                    + gs.pi / (10 * gs.sqrt(3)) * skew)
+        inv_jacobian = gs.linalg.inv(jacobian)
+        rot_vec_2 = group.compose(rot_vec_base_point,
+                                  gs.dot(inv_jacobian, expected_2))
+
+        log_2 = metric.log(base_point=rot_vec_base_point,
+                           point=rot_vec_2)
+        self.assertTrue(gs.allclose(log_2, expected_2))
+
+    def test_log_vectorization(self):
+        n = 3
+        group = self.so[n]
+
+        n_samples = self.n_samples
+        for metric_type in self.metrics[3]:
+            metric = self.metrics[3][metric_type]
+
+            one_point = group.random_uniform(n_samples=1)
+            one_base_point = group.random_uniform(n_samples=1)
+            n_point = group.random_uniform(n_samples=n_samples)
+            n_base_point = group.random_uniform(n_samples=n_samples)
+
+            # Test with the 1 base point, and several different points
+            result = metric.log(n_point, one_base_point)
+            self.assertTrue(gs.allclose(result.shape,
+                                        (n_samples, group.dimension)))
+            expected = gs.vstack([metric.log(point, one_base_point)
+                                  for point in n_point])
+
+            self.assertTrue(gs.allclose(expected.shape,
+                                        (n_samples, group.dimension)))
+            self.assertTrue(gs.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
+
+            # Test with the several base point, and 1 point
+            result = metric.log(one_point, n_base_point)
+            self.assertTrue(gs.allclose(result.shape,
+                                        (n_samples, group.dimension)))
+            expected = gs.vstack([metric.log(one_point, base_point)
+                                  for base_point in n_base_point])
+
+            self.assertTrue(gs.allclose(expected.shape,
+                                        (n_samples, group.dimension)))
+            self.assertTrue(gs.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
+
+            # Test with the same number n of base point and point
+            result = metric.log(n_point, n_base_point)
+            self.assertTrue(gs.allclose(result.shape,
+                                        (n_samples, group.dimension)))
+            expected = gs.vstack([metric.log(point, base_point)
+                                  for point, base_point in zip(n_point,
+                                                               n_base_point)])
+            self.assertTrue(gs.allclose(expected.shape,
+                                        (n_samples, group.dimension)))
+            self.assertTrue(gs.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
+
+    def test_exp_from_identity_vectorization(self):
+        n = 3
+        group = self.so[n]
+
+        n_samples = self.n_samples
+        metric = self.metrics[3]['canonical']
+
+        tangent_vecs = group.random_uniform(n_samples=n_samples)
+        results = metric.exp_from_identity(tangent_vecs)
+
+        self.assertTrue(gs.allclose(results.shape,
+                                    (n_samples, group.dimension)))
+
+    def test_log_from_identity_vectorization(self):
+        n = 3
+        group = self.so[n]
+
+        n_samples = self.n_samples
+        metric = self.metrics[3]['canonical']
+
+        points = group.random_uniform(n_samples=n_samples)
+        results = metric.log_from_identity(points)
+
+        self.assertTrue(gs.allclose(results.shape,
+                                    (n_samples, group.dimension)))
+
+    def test_exp_then_log_from_identity(self):
+        """
+        This tests that the composition of
+        log and exp gives identity.
+        """
+        n = 3
+        group = self.so[n]
+
+        for metric_type in self.metrics[3]:
+            for angle_type in self.elements[3]:
+                if angle_type in self.angles_close_to_pi[3]:
+                    continue
+
+                metric = self.metrics[3][metric_type]
+                tangent_vec = self.elements[3][angle_type]
+
+                result = helper.exp_then_log_from_identity(metric, tangent_vec)
+                reg_result = group.regularize_tangent_vec_at_identity(
+                                         tangent_vec=result,
+                                         metric=metric)
+
+                reg_vec = group.regularize_tangent_vec_at_identity(
+                                             tangent_vec=tangent_vec,
+                                             metric=metric)
+                expected = reg_vec
+
+                reg_expected = group.regularize_tangent_vec_at_identity(
+                                             tangent_vec=expected,
+                                             metric=metric)
+
+                self.assertTrue(gs.allclose(result, expected),
+                                '\nmetric {}:\n'
+                                '- on tangent_vec {}: {} -> {}\n'
+                                'result = {} -> {}\n'
+                                'expected = {} -> {}'.format(
+                         metric_type,
+                         angle_type,
+                         tangent_vec, reg_vec,
+                         result, reg_result,
+                         expected, reg_expected))
+
+    def test_exp_then_log_from_identity_with_angles_close_to_pi(self):
+        """
+        This tests that the composition of
+        log and exp gives identity.
+        """
+        n = 3
+        group = self.so[n]
+
+        angle_types = self.angles_close_to_pi[3]
+
+        for metric_type in self.metrics[3]:
+            for angle_type in angle_types:
+
+                metric = self.metrics[3][metric_type]
+                tangent_vec = self.elements[3][angle_type]
+
+                result = helper.exp_then_log_from_identity(metric, tangent_vec)
+
+                expected = group.regularize_tangent_vec_at_identity(
+                                                tangent_vec=tangent_vec,
+                                                metric=metric)
+                inv_expected = - expected
+
+                self.assertTrue(gs.allclose(result, expected)
+                                or gs.allclose(result, inv_expected),
+                                '\nmetric {}\n'
+                                '- on tangent_vec {}: {}\n'
+                                'result = {}\n'
+                                'expected = {}'.format(
+                                                     metric_type,
+                                                     angle_type,
+                                                     tangent_vec,
+                                                     result,
+                                                     expected))
+
+    def test_log_then_exp_from_identity(self):
+        """
+        This tests that the composition of
+        log and exp gives identity.
+        """
+
+        n = 3
+        group = self.so[n]
+
+        for metric_type in self.metrics[3]:
+            for angle_type in self.elements[3]:
+                if angle_type in self.angles_close_to_pi[3]:
+                    continue
+
+                metric = self.metrics[3][metric_type]
+                point = self.elements[3][angle_type]
+
+                result = helper.log_then_exp_from_identity(metric, point)
+                expected = group.regularize(point)
+
+                self.assertTrue(gs.allclose(result, expected),
+                                '\nmetric {}\n'
+                                '- on point {}: {}\n'
+                                'result = {}\n'
+                                'expected = {}'.format(
+                                                         metric_type,
+                                                         angle_type,
+                                                         point,
+                                                         result,
+                                                         expected))
+
+    def test_log_then_exp_from_identity_with_angles_close_to_pi(self):
+        """
+        This tests that the composition of
+        log and exp gives identity.
+        """
+        n = 3
+        group = self.so[n]
+
+        angle_types = self.angles_close_to_pi[3]
+
+        for metric_type in self.metrics[3]:
+            for angle_type in angle_types:
+
+                metric = self.metrics[3][metric_type]
+                point = self.elements[3][angle_type]
+
+                result = helper.log_then_exp_from_identity(metric, point)
+                expected = group.regularize(point)
+                inv_expected = - expected
+                self.assertTrue(gs.allclose(result, expected)
+                                or gs.allclose(result, inv_expected),
+                                '\nmetric {}\n'
+                                '- on point {}: {}\n'
+                                'result = {}\n'
+                                'expected = {}'.format(
+                                                         metric_type,
+                                                         angle_type,
+                                                         point,
+                                                         result,
+                                                         expected))
+
+    def test_exp_then_log(self):
+        """
+        This tests that the composition of
+        log and exp gives identity.
+        """
+        n = 3
+        group = self.so[n]
+
+        # TODO(nina): absolute tolerance for infinitesimal angles?
+        # It fails for a tolerance under 1e-4.
+        for metric_type in self.metrics[3]:
+            for angle_type in self.elements[3]:
+                if angle_type in self.angles_close_to_pi[3]:
+                    continue
+                for angle_type_base in self.elements[3]:
+
+                    metric = self.metrics[3][metric_type]
+                    tangent_vec = self.elements[3][angle_type]
+                    base_point = self.elements[3][angle_type_base]
+
+                    result = helper.exp_then_log(metric=metric,
+                                                 tangent_vec=tangent_vec,
+                                                 base_point=base_point)
+                    regularized_result = group.regularize_tangent_vec(
+                                             tangent_vec=result,
+                                             base_point=base_point,
+                                             metric=metric)
+
+                    reg_tangent_vec = group.regularize_tangent_vec(
+                                                 tangent_vec=tangent_vec,
+                                                 base_point=base_point,
+                                                 metric=metric)
+                    expected = reg_tangent_vec
+
+                    regularized_expected = group.regularize_tangent_vec(
+                                                 tangent_vec=expected,
+                                                 base_point=base_point,
+                                                 metric=metric)
+
+                    self.assertTrue(gs.allclose(result, expected, atol=1e-4),
+                                    '\nmetric {}:\n'
+                                    '- on tangent_vec {}: {} -> {}\n'
+                                    '- base_point {}: {} -> {}\n'
+                                    'result = {} -> {}\n'
+                                    'expected = {} -> {}'.format(
+                             metric_type,
+                             angle_type,
+                             tangent_vec, reg_tangent_vec,
+                             angle_type_base,
+                             base_point, group.regularize(base_point),
+                             result, regularized_result,
+                             expected, regularized_expected))
+
+    def test_exp_then_log_with_angles_close_to_pi(self):
+        """
+        This tests that the composition of
+        log and exp gives identity.
+        """
+        n = 3
+        group = self.so[n]
+
+        # TODO(nina): the cut locus is not at pi for non
+        # canonical metrics. Address this edge case.
+        angle_types = self.angles_close_to_pi[3]
+        for metric_type in self.metrics[3]:
+            for angle_type in angle_types:
+                for angle_type_base in self.elements[3]:
+
+                    metric = self.metrics[3][metric_type]
+                    tangent_vec = self.elements[3][angle_type]
+                    base_point = self.elements[3][angle_type_base]
+
+                    result = helper.exp_then_log(metric=metric,
+                                                 tangent_vec=tangent_vec,
+                                                 base_point=base_point)
+
+                    regularized_result = group.regularize_tangent_vec(
+                                             tangent_vec=result,
+                                             base_point=base_point,
+                                             metric=metric)
+
+                    reg_tangent_vec = group.regularize_tangent_vec(
+                                                 tangent_vec=tangent_vec,
+                                                 base_point=base_point,
+                                                 metric=metric)
+                    expected = reg_tangent_vec
+                    inv_expected = - expected
+                    regularized_expected = group.regularize_tangent_vec(
+                                                 tangent_vec=expected,
+                                                 base_point=base_point,
+                                                 metric=metric)
+
+                    self.assertTrue((gs.allclose(result, expected,
+                                                 atol=1e-5)
+                                     or gs.allclose(result, inv_expected,
+                                                    atol=1e-5)),
+                                    '\nmetric {}:\n'
+                                    '- on tangent_vec {}: {} -> {}\n'
+                                    '- base_point {}: {} -> {}\n'
+                                    'result = {} -> {}\n'
+                                    'expected = {} -> {}'.format(
+                             metric_type,
+                             angle_type,
+                             tangent_vec, reg_tangent_vec,
+                             angle_type_base,
+                             base_point, group.regularize(base_point),
+                             result, regularized_result,
+                             expected, regularized_expected))
+
+    def test_log_then_exp(self):
+        """
+        This tests that the composition of
+        log and exp gives identity.
+        """
+
+        n = 3
+        group = self.so[n]
+
+        for metric_type in self.metrics[3]:
+            for angle_type in self.elements[3]:
+                if angle_type in self.angles_close_to_pi[3]:
+                    continue
+                for angle_type_base in self.elements[3]:
+                    # TODO(nina): address the edge case with base close to pi
+                    if angle_type_base in self.angles_close_to_pi[3]:
+                        continue
+                    metric = self.metrics[3][metric_type]
+                    point = self.elements[3][angle_type]
+                    base_point = self.elements[3][angle_type_base]
+
+                    result = helper.log_then_exp(metric=metric,
+                                                 base_point=base_point,
+                                                 point=point)
+
+                    expected = group.regularize(point)
+                    inv_expected = - expected
+                    self.assertTrue((gs.allclose(result, expected)
+                                     or gs.allclose(result, inv_expected)),
+                                    '\nmetric {}:\n'
+                                    '- on point {}: {} -> {}\n'
+                                    '- base_point {}: {} -> {}\n'
+                                    'result = {} -> {}\n'
+                                    'expected = {} -> {}'.format(
+                                 metric_type,
+                                 angle_type,
+                                 point, group.regularize(point),
+                                 angle_type_base,
+                                 base_point, group.regularize(base_point),
+                                 result, group.regularize(result),
+                                 expected, group.regularize(expected)))
+
+    def test_log_then_exp_with_angles_close_to_pi(self):
+        """
+        This tests that the composition of
+        log and exp gives identity.
+        """
+        n = 3
+        group = self.so[n]
+
+        angle_types = self.angles_close_to_pi[3]
+        for metric_type in self.metrics[3]:
+            for angle_type in angle_types:
+                for angle_type_base in self.elements[3]:
+                    metric = self.metrics[3][metric_type]
+                    point = self.elements[3][angle_type]
+                    base_point = self.elements[3][angle_type_base]
+
+                    result = helper.log_then_exp(metric=metric,
+                                                 base_point=base_point,
+                                                 point=point)
+
+                    expected = group.regularize(point)
+                    inv_expected = - expected
+                    self.assertTrue((gs.allclose(result, expected)
+                                     or gs.allclose(result, inv_expected)),
+                                    '\nmetric {}:\n'
+                                    '- on point {}: {} -> {}\n'
+                                    '- base_point {}: {} -> {}\n'
+                                    'result = {} -> {}\n'
+                                    'expected = {} -> {}'.format(
+                                 metric_type,
+                                 angle_type,
+                                 point, group.regularize(point),
+                                 angle_type_base,
+                                 base_point, group.regularize(base_point),
+                                 result, group.regularize(result),
+                                 expected, group.regularize(expected)))
+
+    def test_group_exp_from_identity_vectorization(self):
+        n = 3
+        group = self.so[n]
+
+        n_samples = self.n_samples
+        tangent_vecs = group.random_uniform(n_samples=n_samples)
+        results = group.group_exp_from_identity(tangent_vecs)
+
+        self.assertTrue(gs.allclose(results.shape,
+                                    (n_samples, group.dimension)))
+
+    def test_group_log_from_identity_vectorization(self):
+        n = 3
+        group = self.so[n]
+
+        n_samples = self.n_samples
+        points = group.random_uniform(n_samples=n_samples)
+        results = group.group_log_from_identity(points)
+
+        self.assertTrue(gs.allclose(results.shape,
+                                    (n_samples, group.dimension)))
+
+    def test_group_exp_vectorization(self):
+        n = 3
+        group = self.so[n]
+
+        n_samples = self.n_samples
+        # Test with the 1 base_point, and several different tangent_vecs
+        tangent_vecs = group.random_uniform(n_samples=n_samples)
+        base_point = group.random_uniform(n_samples=1)
+        results = group.group_exp(tangent_vecs, base_point)
+
+        self.assertTrue(gs.allclose(results.shape,
+                                    (n_samples, group.dimension)))
+
+        # Test with the same number of base_points and tangent_vecs
+        tangent_vecs = group.random_uniform(n_samples=n_samples)
+        base_points = group.random_uniform(n_samples=n_samples)
+        results = group.group_exp(tangent_vecs, base_points)
+
+        self.assertTrue(gs.allclose(results.shape,
+                                    (n_samples, group.dimension)))
+
+        # Test with the several base_points, and 1 tangent_vec
+        tangent_vec = group.random_uniform(n_samples=1)
+        base_points = group.random_uniform(n_samples=n_samples)
+        results = group.group_exp(tangent_vec, base_points)
+
+        self.assertTrue(gs.allclose(results.shape,
+                                    (n_samples, group.dimension)))
+
+    def test_group_log_vectorization(self):
+        n = 3
+        group = self.so[n]
+
+        n_samples = self.n_samples
+        # Test with the 1 base point, and several different points
+        points = group.random_uniform(n_samples=n_samples)
+        base_point = group.random_uniform(n_samples=1)
+        results = group.group_log(points, base_point)
+
+        self.assertTrue(gs.allclose(results.shape,
+                                    (n_samples, group.dimension)))
+
+        # Test with the same number of base points and points
+        points = group.random_uniform(n_samples=n_samples)
+        base_points = group.random_uniform(n_samples=n_samples)
+        results = group.group_log(points, base_points)
+
+        self.assertTrue(gs.allclose(results.shape,
+                                    (n_samples, group.dimension)))
+
+        # Test with the several base points, and 1 point
+        point = group.random_uniform(n_samples=1)
+        base_points = group.random_uniform(n_samples=n_samples)
+        results = group.group_log(point, base_points)
+
+        self.assertTrue(gs.allclose(results.shape,
+                                    (n_samples, group.dimension)))
+
+    def test_group_exp_then_log_from_identity(self):
+        """
+        Test that the group exponential
+        and the group logarithm are inverse.
+        Expect their composition to give the identity function.
+        """
+        n = 3
+        group = self.so[n]
+
+        for angle_type in self.elements[3]:
+            if angle_type in self.angles_close_to_pi[3]:
+                continue
+            tangent_vec = self.elements[3][angle_type]
+            result = helper.group_exp_then_log_from_identity(
+                                         group=group,
+                                         tangent_vec=tangent_vec)
+            expected = group.regularize(tangent_vec)
+            self.assertTrue(gs.allclose(result, expected),
+                            'on tangent_vec {}'.format(angle_type))
+
+    def test_group_exp_then_log_from_identity_with_angles_close_to_pi(self):
+        """
+        Test that the group exponential
+        and the group logarithm are inverse.
+        Expect their composition to give the identity function.
+        """
+        n = 3
+        group = self.so[n]
+
+        angle_types = self.angles_close_to_pi[3]
+        for angle_type in angle_types:
+            tangent_vec = self.elements[3][angle_type]
+            result = helper.group_exp_then_log_from_identity(
+                                         group=group,
+                                         tangent_vec=tangent_vec)
+            expected = group.regularize(tangent_vec)
+            inv_expected = - expected
+            self.assertTrue(gs.allclose(result, expected)
+                            or gs.allclose(result, inv_expected),
+                            'on tangent_vec {}'.format(angle_type))
+
+    def test_group_log_then_exp_from_identity(self):
+        """
+        Test that the group exponential
+        and the group logarithm are inverse.
+        Expect their composition to give the identity function.
+        """
+        n = 3
+        group = self.so[n]
+
+        for angle_type in self.elements[3]:
+            point = self.elements[3][angle_type]
+            result = helper.group_log_then_exp_from_identity(
+                                         group=group,
+                                         point=point)
+            expected = group.regularize(point)
+            self.assertTrue(gs.allclose(result, expected),
+                            'on point {}'.format(angle_type))
+
+    def test_group_log_then_exp_from_identity_with_angles_close_to_pi(self):
+        """
+        Test that the group exponential
+        and the group logarithm are inverse.
+        Expect their composition to give the identity function.
+        """
+        n = 3
+        group = self.so[n]
+
+        angle_types = self.angles_close_to_pi[3]
+        for angle_type in angle_types:
+            point = self.elements[3][angle_type]
+            result = helper.group_log_then_exp_from_identity(
+                                         group=group,
+                                         point=point)
+            expected = group.regularize(point)
+            inv_expected = - expected
+            self.assertTrue(gs.allclose(result, expected)
+                            or gs.allclose(result, inv_expected),
+                            'on point {}'.format(angle_type))
+
+    def test_group_exp_then_log(self):
+        """
+        This tests that the composition of
+        log and exp gives identity.
+
+        """
+        n = 3
+        group = self.so[n]
+
+        # TODO(nina): absolute tolerance for infinitesimal angles
+        for angle_type in self.elements[3]:
+            if angle_type in self.angles_close_to_pi[3]:
+                continue
+            for angle_type_base in self.elements[3]:
+                tangent_vec = self.elements[3][angle_type]
+                base_point = self.elements[3][angle_type_base]
+
+                result = helper.group_exp_then_log(
+                                             group=group,
+                                             tangent_vec=tangent_vec,
+                                             base_point=base_point)
+
+                # TODO(nina): what does it mean to regularize the tangent
+                # vector when there is no metric?
+                metric = group.left_canonical_metric
+                expected = group.regularize_tangent_vec(
+                                     tangent_vec=tangent_vec,
+                                     base_point=base_point,
+                                     metric=metric)
+
+                self.assertTrue(gs.allclose(result, expected, atol=1e-6),
+                                '\n- on tangent_vec {}: {} -> {}\n'
+                                '- base_point {}: {} -> {}\n'
+                                'result = {} -> {}\n'
+                                'expected = {} -> {}'.format(
+                             angle_type,
+                             tangent_vec, group.regularize(tangent_vec),
+                             angle_type_base,
+                             base_point, group.regularize(base_point),
+                             result, group.regularize(result),
+                             expected, group.regularize(expected)))
+
+    def test_group_exp_then_log_with_angles_close_to_pi(self):
+        """
+        This tests that the composition of
+        log and exp gives identity.
+        """
+        n = 3
+        group = self.so[n]
+
+        angle_types = self.angles_close_to_pi[3]
+        for angle_type in angle_types:
+            for angle_type_base in self.elements[3]:
+                tangent_vec = self.elements[3][angle_type]
+                base_point = self.elements[3][angle_type_base]
+
+                result = helper.group_exp_then_log(
+                                             group=group,
+                                             tangent_vec=tangent_vec,
+                                             base_point=base_point)
+
+                # TODO(nina): what does it mean to regularize the tangent
+                # vector when there is no metric?
+                metric = group.left_canonical_metric
+                reg_tangent_vec = group.regularize_tangent_vec(
+                                     tangent_vec=tangent_vec,
+                                     base_point=base_point,
+                                     metric=metric)
+                expected = reg_tangent_vec
+                inv_expected = - expected
+
+                self.assertTrue((gs.allclose(result, expected)
+                                 or gs.allclose(result, inv_expected)),
+                                '\n- on tangent_vec {}: {} -> {}\n'
+                                '- base_point {}: {} -> {}\n'
+                                'result = {} -> {}\n'
+                                'expected = {} -> {}'.format(
+                             angle_type,
+                             tangent_vec, group.regularize(tangent_vec),
+                             angle_type_base,
+                             base_point, group.regularize(base_point),
+                             result, group.regularize(result),
+                             expected, group.regularize(expected)))
+
+    def test_group_log_then_exp(self):
+        """
+        This tests that the composition of
+        log and exp gives identity.
+        """
+
+        n = 3
+        group = self.so[n]
+
+        for angle_type in self.elements[3]:
+            if angle_type in self.angles_close_to_pi[3]:
+                continue
+            for angle_type_base in self.elements[3]:
+                point = self.elements[3][angle_type]
+                base_point = self.elements[3][angle_type_base]
+
+                result = helper.group_log_then_exp(
+                                             group=group,
+                                             point=point,
+                                             base_point=base_point)
+                expected = group.regularize(point)
+
+                self.assertTrue(gs.allclose(result, expected, atol=ATOL),
+                                '\n- on point {}: {} -> {}\n'
+                                '- base_point {}: {} -> {}\n'
+                                'result = {} -> {}\n'
+                                'expected = {} -> {}'.format(
+                                 angle_type,
+                                 point, group.regularize(point),
+                                 angle_type_base,
+                                 base_point, group.regularize(base_point),
+                                 result, group.regularize(result),
+                                 expected, group.regularize(expected)))
+
+    def test_group_log_then_exp_with_angles_close_to_pi(self):
+        """
+        This tests that the composition of
+        log and exp gives identity.
+        """
+        n = 3
+        group = self.so[n]
+
+        angle_types = self.angles_close_to_pi[3]
+        for angle_type in angle_types:
+            for angle_type_base in self.elements[3]:
+                point = self.elements[3][angle_type]
+                base_point = self.elements[3][angle_type_base]
+
+                result = helper.group_log_then_exp(
+                                             group=group,
+                                             point=point,
+                                             base_point=base_point)
+                expected = group.regularize(point)
+                inv_expected = - expected
+
+                self.assertTrue((gs.allclose(result, expected)
+                                 or gs.allclose(result, inv_expected)),
+                                '\n- on point {}: {} -> {}\n'
+                                '- base_point {}: {} -> {}\n'
+                                'result = {} -> {}\n'
+                                'expected = {} -> {}'.format(
+                                 angle_type,
+                                 point, group.regularize(point),
+                                 angle_type_base,
+                                 base_point, group.regularize(base_point),
+                                 result, group.regularize(result),
+                                 expected, group.regularize(expected)))
+
+    def test_group_exponential_barycenter(self):
+        n = 3
+        group = self.so[n]
+
+        rot_vec = group.random_uniform()
+        points = gs.vstack([rot_vec, rot_vec])
+        result = group.group_exponential_barycenter(
+                                points=points)
+        expected = rot_vec
+        self.assertTrue(gs.allclose(result, expected))
+
+        rot_vec = group.random_uniform()
+        points = gs.vstack([rot_vec, rot_vec])
+        weights = gs.array([1., 2.])
+        result = group.group_exponential_barycenter(
+                                points=points,
+                                weights=weights)
+        expected = rot_vec
+        self.assertTrue(gs.allclose(result, expected))
+
+        points = gs.vstack([rot_vec, rot_vec])
+        weights = gs.array([1., 2.])
+        result = group.group_exponential_barycenter(
+                                points=points,
+                                weights=weights)
+
+        self.assertTrue(group.belongs(result))
+
+    def test_squared_dist_is_symmetric(self):
+        n = 3
+        group = self.so[n]
+
+        for metric in self.metrics[3].values():
+            for angle_type_1 in self.elements[3]:
+                for angle_type_2 in self.elements[3]:
+                    point_1 = self.elements[3][angle_type_1]
+                    point_2 = self.elements[3][angle_type_2]
+                    point_1 = group.regularize(point_1)
+                    point_2 = group.regularize(point_2)
+
+                    sq_dist_1_2 = metric.squared_dist(point_1, point_2)
+                    sq_dist_2_1 = metric.squared_dist(point_2, point_1)
+
+                    self.assertTrue(gs.allclose(sq_dist_1_2, sq_dist_2_1),
+                                    'for point_1 {} and point_2 {}:\n'
+                                    'squared dist from 1 to 2: {}\n'
+                                    'squared dist from 2 to 1: {}\n'.format(
+                                                 angle_type_1,
+                                                 angle_type_2,
+                                                 sq_dist_1_2,
+                                                 sq_dist_2_1))
+
+    def test_squared_dist_is_less_than_squared_pi(self):
+        """
+        This test only concerns the canonical metric.
+        For other metrics, the scaling factor can give
+        distances above pi.
+        """
+        n = 3
+        group = self.so[n]
+
+        metric = self.metrics[3]['canonical']
+        for angle_type_1 in self.elements[3]:
+            for angle_type_2 in self.elements[3]:
+                point_1 = self.elements[3][angle_type_1]
+                point_2 = self.elements[3][angle_type_2]
+                point_1 = group.regularize(point_1)
+                point_2 = group.regularize(point_2)
+
+                sq_dist = metric.squared_dist(point_1, point_2)
+                diff = sq_dist - gs.pi ** 2
+                self.assertTrue(diff <= 0 or abs(diff) < EPSILON,
+                                'sq_dist = {}'.format(sq_dist))
+
+    def test_squared_dist_vectorization(self):
+        n = 3
+        group = self.so[n]
+
+        n_samples = self.n_samples
+        for metric_type in self.metrics[3]:
+            metric = self.metrics[3][metric_type]
+            point_id = group.identity
+
+            one_point_1 = group.random_uniform(n_samples=1)
+            one_point_2 = group.random_uniform(n_samples=1)
+            one_point_1 = group.regularize(one_point_1)
+            one_point_2 = group.regularize(one_point_2)
+
+            n_point_1 = group.random_uniform(n_samples=n_samples)
+            n_point_2 = group.random_uniform(n_samples=n_samples)
+            n_point_1 = group.regularize(n_point_1)
+            n_point_2 = group.regularize(n_point_2)
+
+            # Identity and n points 2
+            result = metric.squared_dist(point_id, n_point_2)
+            gs.testing.assert_allclose(result.shape, (n_samples, 1))
+
+            expected = gs.vstack([metric.squared_dist(point_id, point_2)
+                                  for point_2 in n_point_2])
+            self.assertTrue(gs.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
+
+            # n points 1 and identity
+            result = metric.squared_dist(n_point_1, point_id)
+
+            gs.testing.assert_allclose(result.shape, (n_samples, 1))
+
+            expected = gs.vstack([metric.squared_dist(point_1, point_id)
+                                  for point_1 in n_point_1])
+            self.assertTrue(gs.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
+
+            # one point 1 and n points 2
+            result = metric.squared_dist(one_point_1, n_point_2)
+            gs.testing.assert_allclose(result.shape, (n_samples, 1))
+
+            expected = gs.vstack([metric.squared_dist(one_point_1, point_2)
+                                  for point_2 in n_point_2])
+
+            # n points 1 and one point 2
+            result = metric.squared_dist(n_point_1, one_point_2)
+            gs.testing.assert_allclose(result.shape, (n_samples, 1))
+
+            expected = gs.vstack([metric.squared_dist(point_1, one_point_2)
+                                  for point_1 in n_point_1])
+            self.assertTrue(gs.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
+
+            # n points 1 and n points 2
+            result = metric.squared_dist(n_point_1, n_point_2)
+            gs.testing.assert_allclose(result.shape, (n_samples, 1))
+
+            expected = gs.vstack([metric.squared_dist(point_1, point_2)
+                                  for point_1, point_2 in zip(n_point_1,
+                                                              n_point_2)])
+            self.assertTrue(gs.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
+
+    def test_dist_vectorization(self):
+        n = 3
+        group = self.so[n]
+
+        n_samples = self.n_samples
+        for metric_type in self.metrics[3]:
+            metric = self.metrics[3][metric_type]
+            point_id = group.identity
+
+            one_point_1 = group.random_uniform(n_samples=1)
+            one_point_2 = group.random_uniform(n_samples=1)
+            one_point_1 = group.regularize(one_point_1)
+            one_point_2 = group.regularize(one_point_2)
+
+            n_point_1 = group.random_uniform(n_samples=n_samples)
+            n_point_2 = group.random_uniform(n_samples=n_samples)
+            n_point_1 = group.regularize(n_point_1)
+            n_point_2 = group.regularize(n_point_2)
+
+            # Identity and n points 2
+            result = metric.dist(point_id, n_point_2)
+            gs.testing.assert_allclose(result.shape, (n_samples, 1))
+
+            expected = gs.vstack([metric.dist(point_id, point_2)
+                                  for point_2 in n_point_2])
+            self.assertTrue(gs.allclose(result, expected),
+                            'result = {}, expected = {}\n'
+                            'with metric {}'.format(
+                                result, expected, metric_type))
+
+            # n points 1 and identity
+            result = metric.dist(n_point_1, point_id)
+
+            gs.testing.assert_allclose(result.shape, (n_samples, 1))
+
+            expected = gs.vstack([metric.dist(point_1, point_id)
+                                  for point_1 in n_point_1])
+            self.assertTrue(gs.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
+
+            # one point 1 and n points 2
+            result = metric.dist(one_point_1, n_point_2)
+            gs.testing.assert_allclose(result.shape, (n_samples, 1))
+
+            expected = gs.vstack([metric.dist(one_point_1, point_2)
+                                  for point_2 in n_point_2])
+            self.assertTrue(gs.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
+
+            # n points 1 and one point 2
+            result = metric.dist(n_point_1, one_point_2)
+            gs.testing.assert_allclose(result.shape, (n_samples, 1))
+
+            expected = gs.vstack([metric.dist(point_1, one_point_2)
+                                  for point_1 in n_point_1])
+            self.assertTrue(gs.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
+
+            # n points 1 and n points 2
+            result = metric.dist(n_point_1, n_point_2)
+            gs.testing.assert_allclose(result.shape, (n_samples, 1))
+
+            expected = gs.vstack([metric.dist(point_1, point_2)
+                                  for point_1, point_2 in zip(n_point_1,
+                                                              n_point_2)])
+            self.assertTrue(gs.allclose(result, expected),
+                            'with metric {}'.format(metric_type))
 
     #def test_geodesic_and_belongs(self):
     #    n = 3
