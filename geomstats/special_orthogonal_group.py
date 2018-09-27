@@ -315,39 +315,72 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         the values of the vector.
         """
         vec = gs.to_ndarray(vec, to_ndim=2)
-        n_vecs, vec_dim = vec.shape
+        n_vecs, vec_dim = gs.shape(vec)
 
-        vec_dim = float(vec_dim)  #gs.cast(vec_dim, gs.float32)
+        vec_dim = gs.cast(gs.array([vec_dim]), gs.float32)[0]
+        #float(vec_dim)  #
         mat_dim = int((1. + gs.sqrt(1. + 8. * vec_dim)) / 2.)
         assert mat_dim == self.n
 
         skew_mat = gs.zeros((n_vecs,) + (self.n,) * 2)
         if self.n == 3:
-            for i in range(n_vecs):
-                mask_i_float = get_mask_i_float(i, n_vecs)
+            levi_civita_symbol = gs.array([
+                [[0., 0., 0.],
+                 [0., 0., 1.],
+                 [0., -1., 0.]],
+                [[0., 0., -1.],
+                 [0., 0., 0.],
+                 [1., 0., 0.]],
+                [[0., 1., 0.],
+                 [-1., 0., 0.],
+                 [0., 0., 0.]]
+                ])
+            #for i in range(n_vecs):
+                #mask_i_float = get_mask_i_float(i, n_vecs)
 
-                basis_vec_1 = gs.array([1., 0., 0.])
-                basis_vec_2 = gs.array([0., 1., 0.])
-                basis_vec_3 = gs.array([0., 0., 1.])
+            basis_vec_1 = gs.array([[1., 0., 0.]])
+            basis_vec_2 = gs.array([[0., 1., 0.]])
+            basis_vec_3 = gs.array([[0., 0., 1.]])
+            cross_prod_1 = gs.einsum(
+                'ijk,ni,nj->nk',
+                levi_civita_symbol,
+                basis_vec_1,
+                vec)
+            cross_prod_2 = gs.einsum(
+                'ijk,ni,nj->nk',
+                levi_civita_symbol,
+                basis_vec_2,
+                vec)
+            cross_prod_3 = gs.einsum(
+                'ijk,ni,nj->nk',
+                levi_civita_symbol,
+                basis_vec_3,
+                vec)
+                #cross_prod_1 = gs.cross(basis_vec_1, vec[i])
+                #cross_prod_2 = gs.cross(basis_vec_2, vec[i])
+                #cross_prod_3 = gs.cross(basis_vec_3, vec[i])
 
-                cross_prod_1 = gs.cross(basis_vec_1, vec[i])
-                cross_prod_2 = gs.cross(basis_vec_2, vec[i])
-                cross_prod_3 = gs.cross(basis_vec_3, vec[i])
+                #cross_prod_1 = gs.to_ndarray(cross_prod_1, to_ndim=2)
+                #cross_prod_2 = gs.to_ndarray(cross_prod_2, to_ndim=2)
+                #cross_prod_3 = gs.to_ndarray(cross_prod_3, to_ndim=2)
 
-                cross_prod_1 = gs.to_ndarray(cross_prod_1, to_ndim=2)
-                cross_prod_2 = gs.to_ndarray(cross_prod_2, to_ndim=2)
-                cross_prod_3 = gs.to_ndarray(cross_prod_3, to_ndim=2)
+            cross_prod_1 = gs.to_ndarray(cross_prod_1, to_ndim=3, axis=1)
+            cross_prod_2 = gs.to_ndarray(cross_prod_2, to_ndim=3, axis=1)
+            cross_prod_3 = gs.to_ndarray(cross_prod_3, to_ndim=3, axis=1)
+            skew_mat = gs.concatenate(
+                [cross_prod_1, cross_prod_2, cross_prod_3], axis=1)
 
-                cross_prod_i = gs.concatenate(
-                    [cross_prod_1, cross_prod_2, cross_prod_3], axis=0)
+                #cross_prod_i = gs.concatenate(
+                #    [cross_prod_1, cross_prod_2, cross_prod_3], axis=0)
 
                 #print(gs.shape(n_vecs))
                 #n_vecs = gs.array([n_vecs])
                 #print(gs.shape(n_vecs))
                 #cross_prod_i = gs.to_ndarray(cross_prod_i, to_ndim=3)
                 #cross_prod_i = gs.tile(cross_prod_i, (n_vecs, 1, 1))
-                skew_mat += gs.einsum(
-                    'n,ij->nij', mask_i_float, cross_prod_i)
+
+                #skew_mat += gs.einsum(
+                #    'n,ij->nij', mask_i_float, cross_prod_i)
         else:
             upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
             for i in range(n_vecs):
