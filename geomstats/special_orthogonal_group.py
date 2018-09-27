@@ -282,14 +282,19 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         if self.n == 3:
             mat_unitary_u, diag_s, mat_unitary_v = gs.linalg.svd(mat)
-            rot_mat = gs.matmul(mat_unitary_u, mat_unitary_v)
-            mask = gs.nonzero(gs.linalg.det(rot_mat) < 0)
-            diag = gs.array([1, 1, -1])
-            new_mat_diag_s = gs.tile(gs.diag(diag), len(mask))
+            rot_mat = gs.einsum('nij,njk->nik', mat_unitary_u, mat_unitary_v)
+            mask = gs.less(gs.linalg.det(rot_mat), 0.)
+            mask_float = gs.cast(mask, gs.float32)
+            diag = gs.array([1., 1., -1.])
+            diag = gs.to_ndarray(gs.diag(diag), to_ndim=3)
+            new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
-            rot_mat[mask] = gs.matmul(gs.matmul(mat_unitary_u[mask],
-                                                new_mat_diag_s),
-                                      mat_unitary_v[mask])
+            rot_mat += gs.einsum('n,njk->njk', mask_float, gs.einsum(
+                    'nij,njk->nik',
+                    gs.einsum('nij,njk->nik',
+                        mat_unitary_u,
+                        new_mat_diag_s),
+                    mat_unitary_v))
         else:
             aux_mat = gs.matmul(gs.transpose(mat, axes=(0, 2, 1)), mat)
 
@@ -541,14 +546,15 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
             squared_skew_rot_vec = gs.einsum(
                     'nij,njk->nik', skew_rot_vec, skew_rot_vec)
-            term_2 = gs.einsum('n, njk->njk', coef_2, squared_skew_rot_vec)
+
+            term_2 = gs.einsum('n,njk->njk', coef_2, squared_skew_rot_vec)
+
             #for i in range(n_rot_vecs):
             #    term_1[i] = (gs.eye(self.dimension)
             #                 + coef_1[i] * skew_rot_vec[i])
             #    term_2[i] = (coef_2[i]
             #                 * gs.matmul(skew_rot_vec[i], skew_rot_vec[i]))
             rot_mat = term_1 + term_2
-
             rot_mat = self.projection(rot_mat)
 
         else:

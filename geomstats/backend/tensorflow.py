@@ -191,8 +191,8 @@ def einsum(equation, *inputs, **kwargs):
     return tf.einsum(equation, *inputs, **kwargs)
 
 
-def transpose(x):
-    return tf.transpose(x)
+def transpose(x, axes=None):
+    return tf.transpose(x, perm=axes)
 
 
 def squeeze(x, **kwargs):
