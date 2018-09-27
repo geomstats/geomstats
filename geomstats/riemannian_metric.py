@@ -82,7 +82,7 @@ class RiemannianMetric(object):
 
         assert gs.ndim(inner_prod) == 2, inner_prod.shape
         return inner_prod
-
+        
     def squared_norm(self, vector, base_point=None):
         """
         Squared norm of a vector associated to the inner product

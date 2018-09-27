@@ -473,37 +473,6 @@ class TestHypersphereTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(expected), gs.eval(bool_belongs))
 
-    def test_variance(self):
-        point = (1. / gs.sqrt(129.)
-                 * tf.convert_to_tensor([10., -2., -5., 0., 0.]))
-        # TODO(nina): Fix that this test fails.
-        # result = self.metric.variance([point, point])
-        # expected = 0.
-        # expected = helper.to_scalar(expected)
-
-        # with self.test_session():
-        #     self.assertAllClose(gs.eval(result), gs.eval(expected))
-
-    def test_mean(self):
-        point = (1. / gs.sqrt(129.)
-                 * tf.convert_to_tensor([10., -2., -5., 0., 0.]))
-        # TODO(nina): Fix that this test fails.
-        # result = self.metric.mean([point, point])
-        # expected = point
-
-        # with self.test_session():
-        #     self.assertAllClose(gs.eval(result), gs.eval(expected))
-
-    def test_mean_and_belongs(self):
-        point_a = self.space.random_uniform()
-        point_b = self.space.random_uniform()
-        point_c = self.space.random_uniform()
-        # TODO(nina): Fix that this test fails.
-        # result = self.metric.mean([point_a, point_b, point_c])
-
-        # with self.test_session():
-        #     self.assertTrue(self.space.belongs(result)[0, 0])
-
 
 if __name__ == '__main__':
     tf.test.main()

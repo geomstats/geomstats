@@ -2,10 +2,11 @@
 Minkowski space.
 """
 
-import geomstats.backend as gs
 
 from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
+import geomstats.backend as gs
+
 
 
 class MinkowskiSpace(Manifold):
@@ -55,8 +56,18 @@ class MinkowskiMetric(RiemannianMetric):
         """
         Inner product matrix, independent of the base point.
         """
-        inner_prod_mat = gs.eye(self.dimension)
-        inner_prod_mat[0, 0] = -1
+        inner_prod_mat = gs.eye(self.dimension-1, self.dimension-1)
+        first_row = gs.array([0.] * (self.dimension - 1))
+        first_row = gs.to_ndarray(first_row, to_ndim=2, axis=1)
+        inner_prod_mat = gs.vstack([gs.transpose(first_row),
+                                    inner_prod_mat])
+        
+        first_column = gs.array([-1.] + [0.] * (self.dimension - 1))
+        first_column = gs.to_ndarray(first_column, to_ndim=2, axis=1)
+        inner_prod_mat = gs.hstack([first_column,
+                                    inner_prod_mat])
+                                    
+        
         return inner_prod_mat
 
     def exp(self, tangent_vec, base_point):
@@ -80,6 +91,18 @@ class MinkowskiMetric(RiemannianMetric):
         The Frechet mean of (weighted) points is the weighted average of
         the points in the Minkowski space.
         """
-        mean = gs.average(points, axis=0, weights=weights)
+        if isinstance(points, list):
+            points = gs.vstack(points)
+        points = gs.to_ndarray(points, to_ndim=2)
+        n_points = gs.shape(points)[0]
+
+        if isinstance(weights, list):
+            weights = gs.vstack(weights)
+        elif weights is None:
+            weights = gs.ones((n_points,))
+
+        weighted_points = gs.einsum('n,nj->nj', weights, points)
+        mean = (gs.sum(weighted_points, axis=0)
+                / gs.sum(weights))
         mean = gs.to_ndarray(mean, to_ndim=2)
         return mean
