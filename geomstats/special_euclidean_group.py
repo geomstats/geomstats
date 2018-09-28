@@ -258,13 +258,10 @@ class SpecialEuclideanGroup(LieGroup):
             inv_rot_mat = rotations.matrix_from_rotation_vector(
                 inverse_rotation)
 
-            #print(translation, 'trans')
             inverse_translation = gs.einsum(
                     'ni,nij->nj',
                     -translation,
                     gs.transpose(inv_rot_mat, axes=(0, 2, 1)))
-            #print(inverse_translation, 'inv_trans')
-            #print(inverse_rotation, 'inv_rot')
 
             inverse_point = gs.concatenate(
                 [inverse_rotation, inverse_translation], axis=1)
@@ -305,23 +302,19 @@ class SpecialEuclideanGroup(LieGroup):
                                           point=rot_vec,
                                           left_or_right=left_or_right,
                                           point_type=point_type)
-            block_zeros_1 = gs.zeros((n_points, dim_rotations, dim_translations))
-            #print(gs.shape(jacobian_rot))
-            #print(gs.shape(block_zeros_1))
+            block_zeros_1 = gs.zeros(
+                (n_points, dim_rotations, dim_translations))
             jacobian_block_line_1 = gs.concatenate(
                 [jacobian_rot, block_zeros_1], axis=2)
-            #jacobian[:, :dim_rotations, :dim_rotations] = jacobian_rot
 
             if left_or_right == 'left':
                 rot_mat = self.rotations.matrix_from_rotation_vector(
                         rot_vec)
                 jacobian_trans = rot_mat
-                block_zeros_2 = gs.zeros((n_points, dim_translations, dim_rotations))
+                block_zeros_2 = gs.zeros(
+                    (n_points, dim_translations, dim_rotations))
                 jacobian_block_line_2 = gs.concatenate(
-
                         [block_zeros_2, jacobian_trans], axis=2)
-
-                #jacobian[:, dim_rotations:, dim_rotations:] = jacobian_trans
 
             else:
                 inv_skew_mat = - self.rotations.skew_matrix_from_vector(
@@ -331,8 +324,6 @@ class SpecialEuclideanGroup(LieGroup):
                 jacobian_block_line_2 = gs.concatenate(
                     [inv_skew_mat, eye], axis=2)
 
-                #jacobian[:, dim_rotations:, :dim_rotations] = inv_skew_mat
-                #jacobian[:, dim_rotations:, dim_rotations:] = gs.eye(self.n)
             jacobian = gs.concatenate(
                 [jacobian_block_line_1, jacobian_block_line_2], axis=1)
 
