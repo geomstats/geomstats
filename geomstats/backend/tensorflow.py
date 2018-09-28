@@ -183,6 +183,10 @@ def matmul(x, y):
     return tf.matmul(x, y)
 
 
+def argmax(*args, **kwargs):
+    return tf.argmax(*args, **kwargs)
+
+
 def sum(*args, **kwargs):
     return tf.reduce_sum(*args, **kwargs)
 

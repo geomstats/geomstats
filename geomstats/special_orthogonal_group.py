@@ -476,9 +476,22 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
             # choose the largest diagonal element
             # to avoid a square root of a negative number
+            rot_mat_pi = gs.einsum(
+                        'ni,njk->njk',
+                        mask_pi_float,
+                        rot_mat)
             a = gs.array(0)
-            if gs.any(mask_pi):
-                a = gs.argmax(gs.diagonal(rot_mat[mask_pi], axis1=1, axis2=2))
+            rot_mat_pi_00 = gs.to_ndarray(
+                rot_mat_pi[:, 0, 0], to_ndim=2, axis=1)
+            rot_mat_pi_11 = gs.to_ndarray(
+                rot_mat_pi[:, 1, 1], to_ndim=2, axis=1)
+            rot_mat_pi_22 = gs.to_ndarray(
+                rot_mat_pi[:, 2, 2], to_ndim=2, axis=1)
+            rot_mat_pi_diagonal = gs.hstack(
+                    [rot_mat_pi_00,
+                     rot_mat_pi_11,
+                     rot_mat_pi_22])
+            a = gs.argmax(rot_mat_pi_diagonal, axis=1)[0]
             b = (a + 1) % 3
             c = (a + 2) % 3
 
