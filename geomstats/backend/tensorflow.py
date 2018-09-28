@@ -13,6 +13,14 @@ float32 = tf.float32
 float64 = tf.float64
 
 
+def arange(*args, **kwargs):
+    return tf.range(*args, **kwargs)
+
+
+def outer(x, y):
+    return tf.einsum('i,j->ij', x, y)
+
+
 def copy(x):
     return tf.Variable(x)
 
@@ -131,6 +139,10 @@ def maximum(x, y):
     return tf.maximum(x, y)
 
 
+def greater(x, y):
+    return tf.greater(x, y)
+
+
 def greater_equal(x, y):
     return tf.greater_equal(x, y)
 
@@ -159,6 +171,10 @@ def allclose(x, y, rtol=1e-05, atol=1e-08):
     return tf.reduce_all(isclose(x, y, rtol=rtol, atol=atol))
 
 
+def less(x, y):
+    return tf.less(x, y)
+
+
 def less_equal(x, y):
     return tf.less_equal(x, y)
 
@@ -171,6 +187,10 @@ def matmul(x, y):
     return tf.matmul(x, y)
 
 
+def argmax(*args, **kwargs):
+    return tf.argmax(*args, **kwargs)
+
+
 def sum(*args, **kwargs):
     return tf.reduce_sum(*args, **kwargs)
 
@@ -179,8 +199,8 @@ def einsum(equation, *inputs, **kwargs):
     return tf.einsum(equation, *inputs, **kwargs)
 
 
-def transpose(x):
-    return tf.transpose(x)
+def transpose(x, axes=None):
+    return tf.transpose(x, perm=axes)
 
 
 def squeeze(x, **kwargs):

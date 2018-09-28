@@ -32,11 +32,12 @@ class InvariantMetric(RiemannianMetric):
 
         assert left_or_right in ('left', 'right')
         eigenvalues = gs.linalg.eigvalsh(inner_product_mat_at_identity)
-        n_pos_eigval = gs.sum(eigenvalues > 0)
-        n_neg_eigval = gs.sum(eigenvalues < 0)
-        n_null_eigval = gs.sum(eigenvalues == 0)
-        n_eigval = n_pos_eigval + n_neg_eigval + n_null_eigval
-        assert n_eigval == group.dimension
+        mask_pos_eigval = gs.greater(eigenvalues, 0.)
+        n_pos_eigval = gs.sum(gs.cast(mask_pos_eigval, gs.int32))
+        mask_neg_eigval = gs.less(eigenvalues, 0.)
+        n_neg_eigval = gs.sum(gs.cast(mask_neg_eigval, gs.int32))
+        mask_null_eigval = gs.isclose(eigenvalues, 0.)
+        n_null_eigval = gs.sum(gs.cast(mask_null_eigval, gs.int32))
 
         self.group = group
         if inner_product_mat_at_identity is None:
@@ -147,8 +148,7 @@ class InvariantMetric(RiemannianMetric):
         sqrt_inner_product_mat = spd_matrices_space.sqrtm(
             self.inner_product_mat_at_identity)
         mat = gs.transpose(sqrt_inner_product_mat, axes=(0, 2, 1))
-        exp = gs.matmul(tangent_vec, mat)
-        exp = gs.squeeze(exp, axis=0)
+        exp = gs.einsum('ni,nij->nj', tangent_vec, mat)
 
         exp = self.group.regularize(exp)
         return exp

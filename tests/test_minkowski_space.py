@@ -100,11 +100,6 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
         result = self.metric.squared_norm(n_points)
         gs.testing.assert_allclose(result.shape, (n_samples, 1))
 
-    def test_norm(self):
-        point = gs.array([-1, 4])
-        self.assertRaises(ValueError,
-                          lambda: self.metric.norm(point))
-
     def test_exp(self):
         base_point = gs.array([0, 1])
         vector = gs.array([2, 10])

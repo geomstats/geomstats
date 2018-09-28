@@ -140,6 +140,10 @@ def maximum(a, b):
     return np.maximum(a, b)
 
 
+def greater(a, b):
+    return np.greater(a, b)
+
+
 def greater_equal(a, b):
     return np.greater_equal(a, b)
 
@@ -174,6 +178,10 @@ def isclose(*args, **kwargs):
 
 def less_equal(a, b):
     return np.less_equal(a, b)
+
+
+def less(a, b):
+    return np.less(a, b)
 
 
 def eye(*args, **kwargs):

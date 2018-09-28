@@ -28,6 +28,14 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
+def get_mask_i_float(i, n):
+    range_n = gs.arange(n)
+    i_float = gs.cast(gs.array([i]), gs.int32)[0]
+    mask_i = gs.equal(range_n, i_float)
+    mask_i_float = gs.cast(mask_i, gs.float32)
+    return mask_i_float
+
+
 class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
     """
     Class for the special orthogonal group SO(n),
@@ -107,23 +115,35 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             assert self.belongs(point, point_type)
             n_points, _ = point.shape
 
-            regularized_point = gs.copy(point)
+            regularized_point = point
             if self.n == 3:
                 angle = gs.linalg.norm(regularized_point, axis=1)
-                mask_0 = gs.isclose(angle, 0)
-                mask_not_0 = ~mask_0
 
+                mask_0 = gs.isclose(angle, 0.)
+                mask_not_0 = ~mask_0
                 mask_pi = gs.isclose(angle, gs.pi)
 
+                mask_0_float = gs.cast(mask_0, gs.float32)
+                mask_not_0_float = gs.cast(mask_not_0, gs.float32)
+                mask_pi_float = gs.cast(mask_pi, gs.float32)
+
                 k = gs.floor(angle / (2 * gs.pi) + .5)
+
                 norms_ratio = gs.zeros_like(angle)
-                norms_ratio[mask_not_0] = (
-                      1. - 2. * gs.pi * k[mask_not_0] / angle[mask_not_0])
-                norms_ratio[mask_0] = 1
-                norms_ratio[mask_pi] = gs.pi / angle[mask_pi]
-                for i in range(n_points):
-                    regularized_point[i, :] = (norms_ratio[i]
-                                               * regularized_point[i, :])
+
+                # This avoids division by 0.
+                angle += mask_0_float * 1.
+
+                norms_ratio += mask_not_0_float * (
+                    1. - 2. * gs.pi * k / angle)
+                norms_ratio += mask_0_float * 1.
+                norms_ratio += mask_pi_float * (
+                        gs.pi / angle
+                        - (1. - 2. * gs.pi * k / angle))
+
+                regularized_point = gs.einsum(
+                    'n,ni->ni', norms_ratio, regularized_point)
+
             else:
                 # TODO(nina): regularization needed in nD?
                 regularized_point = gs.copy(point)
@@ -159,27 +179,34 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                     tangent_vec_canonical_norm = gs.expand_dims(
                                    tangent_vec_canonical_norm, axis=1)
 
-                mask_norm_0 = gs.isclose(tangent_vec_metric_norm, 0)
+                mask_norm_0 = gs.isclose(tangent_vec_metric_norm, 0.)
                 mask_canonical_norm_0 = gs.isclose(
-                    tangent_vec_canonical_norm, 0)
+                    tangent_vec_canonical_norm, 0.)
 
                 mask_0 = mask_norm_0 | mask_canonical_norm_0
                 mask_else = ~mask_0
 
-                mask_0 = gs.squeeze(mask_0, axis=1)
-                mask_else = gs.squeeze(mask_else, axis=1)
+                mask_0_float = gs.cast(mask_0, gs.float32)
+                mask_else_float = gs.cast(mask_else, gs.float32)
 
-                coef = gs.empty_like(tangent_vec_metric_norm)
-                regularized_vec = tangent_vec
+                coef = gs.zeros_like(tangent_vec_metric_norm)
 
-                regularized_vec[mask_0] = tangent_vec[mask_0]
+                regularized_vec = gs.zeros_like(tangent_vec)
 
-                coef[mask_else] = (tangent_vec_metric_norm[mask_else]
-                                   / tangent_vec_canonical_norm[mask_else])
-                regularized_vec[mask_else] = self.regularize(
-                        coef[mask_else] * tangent_vec[mask_else])
-                regularized_vec[mask_else] = (regularized_vec[mask_else]
-                                              / coef[mask_else])
+                regularized_vec += mask_0_float * tangent_vec
+
+                # This avoids dividing by 0.
+                tangent_vec_canonical_norm += mask_0_float * 1.
+
+                coef += mask_else_float * (
+                        tangent_vec_metric_norm
+                        / tangent_vec_canonical_norm)
+                regularized_vec += mask_else_float * self.regularize(
+                        coef * tangent_vec)
+                # This avois dividing by 0.
+                coef += mask_0_float * 1.
+                regularized_vec = mask_else_float * (
+                        regularized_vec / coef)
             else:
                 # TODO(nina): regularization needed in nD?
                 regularized_vec = tangent_vec
@@ -215,21 +242,21 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                               left_or_right=metric.left_or_right,
                               point_type=point_type)
                 inv_jacobian = gs.linalg.inv(jacobian)
-                tangent_vec_at_id = gs.dot(
+                tangent_vec_at_id = gs.einsum(
+                        'ni,nij->nj',
                         tangent_vec,
                         gs.transpose(inv_jacobian, axes=(0, 2, 1)))
-                tangent_vec_at_id = gs.squeeze(tangent_vec_at_id, axis=1)
 
                 tangent_vec_at_id = self.regularize_tangent_vec_at_identity(
                                               tangent_vec_at_id,
                                               metric,
                                               point_type)
 
-                regularized_tangent_vec = gs.dot(tangent_vec_at_id,
-                                                 gs.transpose(jacobian,
-                                                              axes=(0, 2, 1)))
-                regularized_tangent_vec = gs.squeeze(regularized_tangent_vec,
-                                                     axis=1)
+                regularized_tangent_vec = gs.einsum(
+                        'ni,nij->nj',
+                        tangent_vec_at_id,
+                        gs.transpose(jacobian,
+                                     axes=(0, 2, 1)))
             else:
                 # TODO(nina): is regularization needed in nD?
                 regularized_tangent_vec = tangent_vec
@@ -253,14 +280,24 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         if self.n == 3:
             mat_unitary_u, diag_s, mat_unitary_v = gs.linalg.svd(mat)
-            rot_mat = gs.matmul(mat_unitary_u, mat_unitary_v)
-            mask = gs.nonzero(gs.linalg.det(rot_mat) < 0)
-            diag = gs.array([1, 1, -1])
-            new_mat_diag_s = gs.tile(gs.diag(diag), len(mask))
+            rot_mat = gs.einsum('nij,njk->nik', mat_unitary_u, mat_unitary_v)
+            mask = gs.less(gs.linalg.det(rot_mat), 0.)
+            mask_float = gs.cast(mask, gs.float32)
+            diag = gs.array([1., 1., -1.])
+            diag = gs.to_ndarray(gs.diag(diag), to_ndim=3)
+            new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
-            rot_mat[mask] = gs.matmul(gs.matmul(mat_unitary_u[mask],
-                                                new_mat_diag_s),
-                                      mat_unitary_v[mask])
+            aux_mat = gs.einsum(
+                    'nij,njk->nik',
+                    mat_unitary_u,
+                    new_mat_diag_s)
+            rot_mat += gs.einsum(
+                    'n,njk->njk',
+                    mask_float,
+                    gs.einsum(
+                        'nij,njk->nik',
+                        aux_mat,
+                        mat_unitary_v))
         else:
             aux_mat = gs.matmul(gs.transpose(mat, axes=(0, 2, 1)), mat)
 
@@ -286,15 +323,52 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         the values of the vector.
         """
         vec = gs.to_ndarray(vec, to_ndim=2)
-        n_vecs, vec_dim = vec.shape
+        n_vecs = gs.shape(vec)[0]
+        vec_dim = gs.shape(vec)[1]
 
-        mat_dim = int((1 + gs.sqrt(1 + 8 * vec_dim)) / 2)
-        assert mat_dim == self.n
+        # TODO(nina): Change gs.cast function for elementary types
+        vec_dim = gs.cast(gs.array([vec_dim]), gs.float32)[0]
+        mat_dim = gs.cast(((1. + gs.sqrt(1. + 8. * vec_dim)) / 2.), gs.int32)
 
         skew_mat = gs.zeros((n_vecs,) + (self.n,) * 2)
         if self.n == 3:
-            for i in range(n_vecs):
-                skew_mat[i] = gs.cross(gs.eye(self.n), vec[i])
+            levi_civita_symbol = gs.array([
+                [[0., 0., 0.],
+                 [0., 0., 1.],
+                 [0., -1., 0.]],
+                [[0., 0., -1.],
+                 [0., 0., 0.],
+                 [1., 0., 0.]],
+                [[0., 1., 0.],
+                 [-1., 0., 0.],
+                 [0., 0., 0.]]
+                ])
+
+            basis_vec_1 = gs.array([[1., 0., 0.]])
+            basis_vec_2 = gs.array([[0., 1., 0.]])
+            basis_vec_3 = gs.array([[0., 0., 1.]])
+            cross_prod_1 = gs.einsum(
+                'ijk,ni,nj->nk',
+                levi_civita_symbol,
+                basis_vec_1,
+                vec)
+            cross_prod_2 = gs.einsum(
+                'ijk,ni,nj->nk',
+                levi_civita_symbol,
+                basis_vec_2,
+                vec)
+            cross_prod_3 = gs.einsum(
+                'ijk,ni,nj->nk',
+                levi_civita_symbol,
+                basis_vec_3,
+                vec)
+
+            cross_prod_1 = gs.to_ndarray(cross_prod_1, to_ndim=3, axis=1)
+            cross_prod_2 = gs.to_ndarray(cross_prod_2, to_ndim=3, axis=1)
+            cross_prod_3 = gs.to_ndarray(cross_prod_3, to_ndim=3, axis=1)
+            skew_mat = gs.concatenate(
+                [cross_prod_1, cross_prod_2, cross_prod_3], axis=1)
+
         else:
             upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
             for i in range(n_vecs):
@@ -320,7 +394,10 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         vec = gs.zeros((n_skew_mats, vec_dim))
 
         if self.n == 3:
-            vec[:] = skew_mat[:, (2, 0, 1), (1, 2, 0)]
+            vec_1 = gs.to_ndarray(skew_mat[:, 2, 1], to_ndim=2, axis=1)
+            vec_2 = gs.to_ndarray(skew_mat[:, 0, 2], to_ndim=2, axis=1)
+            vec_3 = gs.to_ndarray(skew_mat[:, 1, 0], to_ndim=2, axis=1)
+            vec = gs.concatenate([vec_1, vec_2, vec_3], axis=1)
         else:
             idx = 0
             for j in range(mat_dim_1):
@@ -370,42 +447,126 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             rot_mat_transpose = gs.transpose(rot_mat, axes=(0, 2, 1))
             rot_vec = self.vector_from_skew_matrix(rot_mat - rot_mat_transpose)
 
-            mask_0 = gs.isclose(angle, 0)
-            mask_0 = gs.squeeze(mask_0, axis=1)
-            rot_vec[mask_0] = (rot_vec[mask_0]
-                               * (.5 - (trace[mask_0] - 3.) / 12.))
+            mask_0 = gs.isclose(angle, 0.)
+            mask_0_float = gs.cast(mask_0, gs.float32)
+
+            rot_vec *= (1. + mask_0_float * (.5 - (trace - 3.) / 12. - 1.))
 
             mask_pi = gs.isclose(angle, gs.pi)
+            mask_pi_float = gs.cast(mask_pi, gs.float32)
+
+            mask_else = ~mask_0 & ~mask_pi
+            mask_else_float = gs.cast(mask_else, gs.float32)
+
             mask_pi = gs.squeeze(mask_pi, axis=1)
 
             # choose the largest diagonal element
             # to avoid a square root of a negative number
+            rot_mat_pi = gs.einsum(
+                        'ni,njk->njk',
+                        mask_pi_float,
+                        rot_mat)
             a = gs.array(0)
-            if gs.any(mask_pi):
-                a = gs.argmax(gs.diagonal(rot_mat[mask_pi], axis1=1, axis2=2))
+            rot_mat_pi_00 = gs.to_ndarray(
+                rot_mat_pi[:, 0, 0], to_ndim=2, axis=1)
+            rot_mat_pi_11 = gs.to_ndarray(
+                rot_mat_pi[:, 1, 1], to_ndim=2, axis=1)
+            rot_mat_pi_22 = gs.to_ndarray(
+                rot_mat_pi[:, 2, 2], to_ndim=2, axis=1)
+            rot_mat_pi_diagonal = gs.hstack(
+                    [rot_mat_pi_00,
+                     rot_mat_pi_11,
+                     rot_mat_pi_22])
+            a = gs.argmax(rot_mat_pi_diagonal, axis=1)[0]
             b = (a + 1) % 3
             c = (a + 2) % 3
 
             # compute the axis vector
-            sq_root = gs.sqrt((rot_mat[mask_pi, a, a]
-                               - rot_mat[mask_pi, b, b]
-                               - rot_mat[mask_pi, c, c] + 1.))
-            rot_vec_pi = gs.zeros((sum(mask_pi), self.dimension))
-            rot_vec_pi[:, a] = sq_root / 2.
-            rot_vec_pi[:, b] = ((rot_mat[mask_pi, b, a]
-                                 + rot_mat[mask_pi, a, b])
-                                / (2. * sq_root))
-            rot_vec_pi[:, c] = ((rot_mat[mask_pi, c, a]
-                                + rot_mat[mask_pi, a, c])
-                                / (2. * sq_root))
+            sq_root = gs.zeros((n_rot_mats, 1))
 
-            rot_vec[mask_pi] = (angle[mask_pi] * rot_vec_pi
-                                / gs.linalg.norm(rot_vec_pi))
+            aux = gs.sqrt(
+                mask_pi_float * (
+                    rot_mat[:, a, a]
+                    - rot_mat[:, b, b]
+                    - rot_mat[:, c, c]) + 1.)
+            sq_root_pi = gs.einsum(
+                    'ni,nk->ni',
+                    mask_pi_float,
+                    aux)
 
-            mask_else = ~mask_0 & ~mask_pi
-            rot_vec[mask_else] = (angle[mask_else]
-                                  / (2. * gs.sin(angle[mask_else]))
-                                  * rot_vec[mask_else])
+            sq_root += sq_root_pi
+
+            rot_vec_pi = gs.zeros((n_rot_mats, self.dimension))
+            mask_a_float = get_mask_i_float(a, 3)
+            mask_b_float = get_mask_i_float(b, 3)
+            mask_c_float = get_mask_i_float(c, 3)
+
+            mask_a_float = gs.to_ndarray(mask_a_float, to_ndim=2, axis=1)
+            mask_b_float = gs.to_ndarray(mask_b_float, to_ndim=2, axis=1)
+            mask_c_float = gs.to_ndarray(mask_c_float, to_ndim=2, axis=1)
+
+            mask_a_float = gs.transpose(mask_a_float)
+            mask_b_float = gs.transpose(mask_b_float)
+            mask_c_float = gs.transpose(mask_c_float)
+
+            mask_a_float = gs.tile(mask_a_float, (n_rot_mats, 1))
+            mask_b_float = gs.tile(mask_b_float, (n_rot_mats, 1))
+            mask_c_float = gs.tile(mask_c_float, (n_rot_mats, 1))
+
+            rot_vec_pi += mask_pi_float * mask_a_float * sq_root / 2.
+
+            # This avoids division by 0.
+            sq_root += mask_0_float * 1.
+            sq_root += mask_else_float * 1.
+
+            rot_vec_pi_b = gs.zeros_like(rot_vec_pi)
+            rot_vec_pi_c = gs.zeros_like(rot_vec_pi)
+
+            rot_vec_pi_b += gs.einsum(
+                    'nk,ni->nk',
+                    mask_b_float,
+                    ((rot_mat[:, b, a]
+                     + rot_mat[:, a, b])
+                     / (2. * sq_root)))
+            rot_vec_pi += mask_pi_float * gs.einsum(
+                     'ni,nk->nk',
+                     mask_pi_float,
+                     rot_vec_pi_b)
+
+            rot_vec_pi_c += gs.einsum(
+                    'nk,ni->nk',
+                    mask_c_float,
+                    ((rot_mat[:, c, a]
+                     + rot_mat[:, a, c])
+                     / (2. * sq_root)))
+
+            rot_vec_pi += mask_pi_float * gs.einsum(
+                     'ni,nk->nk',
+                     mask_pi_float,
+                     rot_vec_pi_c)
+
+            norm_rot_vec_pi = gs.linalg.norm(rot_vec_pi, axis=1)
+
+            # This avoids division by 0.
+            norm_rot_vec_pi += gs.squeeze(mask_0_float * 1., axis=1)
+            norm_rot_vec_pi += gs.squeeze(mask_else_float * 1., axis=1)
+
+            rot_vec += mask_pi_float * (
+                    gs.einsum(
+                        'nk,n->nk',
+                        angle * rot_vec_pi,
+                        1. / norm_rot_vec_pi))
+
+            # This avoid dividing by zero
+            angle += mask_0_float * 1.
+
+            angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
+            fact = gs.einsum(
+                'ni,ni->ni',
+                mask_else_float,
+                (angle / (2. * gs.sin(angle)) - 1.))
+
+            rot_vec *= (1. + fact)
         else:
             skew_mat = self.embedding_manifold.group_log_from_identity(rot_mat)
             rot_vec = self.vector_from_skew_matrix(skew_mat)
@@ -429,24 +590,36 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             coef_1 = gs.zeros_like(angle)
             coef_2 = gs.zeros_like(angle)
 
-            mask_0 = gs.isclose(angle, 0.0)
-            coef_1[mask_0] = 1 - (angle[mask_0] ** 2) / 6
-            coef_2[mask_0] = 1 / 2 - angle[mask_0] ** 2
+            mask_0 = gs.isclose(angle, 0.)
+            mask_0_float = gs.cast(mask_0, gs.float32)
 
-            coef_1[~mask_0] = gs.sin(angle[~mask_0]) / angle[~mask_0]
-            coef_2[~mask_0] = ((1 - gs.cos(angle[~mask_0]))
-                               / (angle[~mask_0] ** 2))
+            coef_1 += mask_0_float * (1 - (angle ** 2) / 6)
+            coef_2 += mask_0_float * (1 / 2 - angle ** 2)
+
+            mask_else = ~mask_0
+            mask_else_float = gs.cast(mask_else, gs.float32)
+
+            # This avoids division by 0.
+            angle += mask_0_float * 1.
+
+            coef_1 += mask_else_float * (gs.sin(angle) / angle)
+            coef_2 += mask_else_float * (
+                (1 - gs.cos(angle)) / (angle ** 2))
 
             term_1 = gs.zeros((n_rot_vecs,) + (self.n,) * 2)
             term_2 = gs.zeros_like(term_1)
 
-            for i in range(n_rot_vecs):
-                term_1[i] = (gs.eye(self.dimension)
-                             + coef_1[i] * skew_rot_vec[i])
-                term_2[i] = (coef_2[i]
-                             * gs.matmul(skew_rot_vec[i], skew_rot_vec[i]))
-            rot_mat = term_1 + term_2
+            coef_1 = gs.squeeze(coef_1, axis=1)
+            coef_2 = gs.squeeze(coef_2, axis=1)
+            term_1 = (gs.eye(self.dimension)
+                      + gs.einsum('n,njk->njk', coef_1, skew_rot_vec))
 
+            squared_skew_rot_vec = gs.einsum(
+                    'nij,njk->nik', skew_rot_vec, skew_rot_vec)
+
+            term_2 = gs.einsum('n,njk->njk', coef_2, squared_skew_rot_vec)
+
+            rot_mat = term_1 + term_2
             rot_mat = self.projection(rot_mat)
 
         else:
@@ -483,7 +656,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         rotation_axis = gs.zeros_like(rot_vec)
 
-        mask_0 = gs.isclose(angle, 0)
+        mask_0 = gs.isclose(angle, 0.)
         mask_0 = gs.squeeze(mask_0, axis=1)
         mask_not_0 = ~mask_0
         rotation_axis[mask_not_0] = rot_vec[mask_not_0] / angle[mask_not_0]
@@ -513,7 +686,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         rot_vec = gs.zeros_like(quaternion[:, 1:])
 
-        mask_0 = gs.isclose(half_angle, 0)
+        mask_0 = gs.isclose(half_angle, 0.)
         mask_0 = gs.squeeze(mask_0, axis=1)
         mask_not_0 = ~mask_0
         rotation_axis = (quaternion[mask_not_0, 1:]
@@ -1018,23 +1191,26 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 coef_1 = gs.zeros([n_points, 1])
                 coef_2 = gs.zeros([n_points, 1])
 
-                mask_0 = gs.isclose(angle, 0)
-                mask_0 = gs.squeeze(mask_0, axis=1)
-                coef_1[mask_0] = (
+                mask_0 = gs.isclose(angle, 0.)
+                mask_0_float = gs.cast(mask_0, gs.float32)
+
+                coef_1 += mask_0_float * (
                         TAYLOR_COEFFS_1_AT_0[0]
-                        + TAYLOR_COEFFS_1_AT_0[2] * angle[mask_0] ** 2
-                        + TAYLOR_COEFFS_1_AT_0[4] * angle[mask_0] ** 4
-                        + TAYLOR_COEFFS_1_AT_0[6] * angle[mask_0] ** 6)
-                coef_2[mask_0] = (
+                        + TAYLOR_COEFFS_1_AT_0[2] * angle ** 2
+                        + TAYLOR_COEFFS_1_AT_0[4] * angle ** 4
+                        + TAYLOR_COEFFS_1_AT_0[6] * angle ** 6)
+
+                coef_2 += mask_0_float * (
                         TAYLOR_COEFFS_2_AT_0[0]
-                        + TAYLOR_COEFFS_2_AT_0[2] * angle[mask_0] ** 2
-                        + TAYLOR_COEFFS_2_AT_0[4] * angle[mask_0] ** 4
-                        + TAYLOR_COEFFS_2_AT_0[6] * angle[mask_0] ** 6)
+                        + TAYLOR_COEFFS_2_AT_0[2] * angle ** 2
+                        + TAYLOR_COEFFS_2_AT_0[4] * angle ** 4
+                        + TAYLOR_COEFFS_2_AT_0[6] * angle ** 6)
 
                 mask_pi = gs.isclose(angle, gs.pi)
-                mask_pi = gs.squeeze(mask_pi, axis=1)
-                delta_angle = angle[mask_pi] - gs.pi
-                coef_1[mask_pi] = (
+                mask_pi_float = gs.cast(mask_pi, gs.float32)
+
+                delta_angle = angle - gs.pi
+                coef_1 += mask_pi_float * (
                         TAYLOR_COEFFS_1_AT_PI[1] * delta_angle
                         + TAYLOR_COEFFS_1_AT_PI[2] * delta_angle ** 2
                         + TAYLOR_COEFFS_1_AT_PI[3] * delta_angle ** 3
@@ -1042,24 +1218,38 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                         + TAYLOR_COEFFS_1_AT_PI[5] * delta_angle ** 5
                         + TAYLOR_COEFFS_1_AT_PI[6] * delta_angle ** 6)
 
-                coef_2[mask_pi] = (1 - coef_1[mask_pi]) / angle[mask_pi] ** 2
+                angle += mask_0_float * 1.
+                coef_2 += mask_pi_float * (
+                        (1 - coef_1) / angle ** 2)
 
                 mask_else = ~mask_0 & ~mask_pi
-                coef_1[mask_else] = ((angle[mask_else] / 2)
-                                     / gs.tan(angle[mask_else] / 2))
-                coef_2[mask_else] = ((1 - coef_1[mask_else])
-                                     / angle[mask_else] ** 2)
+                mask_else_float = gs.cast(mask_else, gs.float32)
 
+                # This avoids division by 0.
+                angle += mask_pi_float * 1.
+                coef_1 += mask_else_float * (
+                        (angle / 2) / gs.tan(angle / 2))
+                coef_2 += mask_else_float * (
+                        (1 - coef_1) / angle ** 2)
                 jacobian = gs.zeros((n_points, self.dimension, self.dimension))
+                n_points_tensor = gs.array(n_points)
                 for i in range(n_points):
+                    mask_i_float = get_mask_i_float(i, n_points_tensor)
+
                     sign = - 1
                     if left_or_right == 'left':
                         sign = + 1
 
-                    jacobian[i] = (
-                        coef_1[i] * gs.identity(self.dimension)
+                    jacobian_i = (
+                        coef_1[i] * gs.eye(self.dimension)
                         + coef_2[i] * gs.outer(point[i], point[i])
                         + sign * self.skew_matrix_from_vector(point[i]) / 2)
+                    jacobian_i = gs.squeeze(jacobian_i, axis=0)
+
+                    jacobian += gs.einsum(
+                        'n,ij->nij',
+                        mask_i_float,
+                        jacobian_i)
 
             else:
                 if left_or_right == 'right':
@@ -1067,8 +1257,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                         'The jacobian of the right translation'
                         ' is not implemented.')
                 jacobian = self.matrix_from_rotation_vector(point)
-
-            assert gs.ndim(jacobian) == 3
 
         elif point_type == 'matrix':
             raise NotImplementedError()

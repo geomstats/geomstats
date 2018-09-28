@@ -2,14 +2,23 @@
 
 import tensorflow as tf
 
+
+def det(x):
+    return tf.linalg.det(x)
+
+
 def eigh(x):
     return tf.linalg.eigh(x)
+
 
 def eig(x):
     return tf.linalg.eig(x)
 
+
 def svd(x):
-    return tf.linalg.svd(x)
+    s, u, v = tf.linalg.svd(x)
+    return u, s, v
+
 
 def norm(x, axis=None):
     return tf.linalg.norm(x, axis=axis)
