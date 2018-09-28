@@ -29,7 +29,7 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
 
 
 def get_mask_i_float(i, n):
-    range_n = gs.arange(n)  #, dtype=gs.float32)
+    range_n = gs.arange(n)
     i_float = gs.cast(gs.array([i]), gs.int32)[0]
     mask_i = gs.equal(range_n, i_float)
     mask_i_float = gs.cast(mask_i, gs.float32)
@@ -546,11 +546,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                      rot_vec_pi_c)
 
             norm_rot_vec_pi = gs.linalg.norm(rot_vec_pi, axis=1)
+
             # This avoids division by 0.
-            #if not gs.any(mask_pi):
             norm_rot_vec_pi += gs.squeeze(mask_0_float * 1., axis=1)
             norm_rot_vec_pi += gs.squeeze(mask_else_float * 1., axis=1)
-            #norm_rot_vec_pi += 1.
+
             rot_vec += mask_pi_float * (
                     gs.einsum(
                         'nk,n->nk',
