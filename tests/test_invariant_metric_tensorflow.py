@@ -459,16 +459,16 @@ class TestInvariantMetricMethodsTensorFlow(tf.test.TestCase):
         # with self.test_session():
         #     self.assertAllClose(gs.eval(sq_dist_1_2), gs.eval(sq_dist_2_1))
 
-    #def test_squared_dist_and_squared_norm_left_diag_metrics(self):
-    #    result = self.left_diag_metric.squared_dist(self.point_1,
-    #                                                self.point_2)
-    #    log = self.left_diag_metric.log(base_point=self.point_1,
-    #                                    point=self.point_2)
-    #    expected = self.left_diag_metric.squared_norm(
-    #                                             vector=log,
-    #                                             base_point=self.point_1)
-    #    with self.test_session():
-    #        self.assertAllClose(gs.eval(result), gs.eval(expected))
+    def test_squared_dist_and_squared_norm_left_diag_metrics(self):
+        result = self.left_diag_metric.squared_dist(self.point_1,
+                                                    self.point_2)
+        log = self.left_diag_metric.log(base_point=self.point_1,
+                                        point=self.point_2)
+        expected = self.left_diag_metric.squared_norm(
+                                                 vector=log,
+                                                 base_point=self.point_1)
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     #def test_squared_dist_and_squared_norm_left_metrics(self):
     #    result = self.left_metric.squared_dist(self.point_1,
