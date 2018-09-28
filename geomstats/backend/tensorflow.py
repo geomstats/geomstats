@@ -13,6 +13,10 @@ float32 = tf.float32
 float64 = tf.float64
 
 
+def arange(*args, **kwargs):
+    return tf.range(*args, **kwargs)
+
+
 def outer(x, y):
     return tf.einsum('i,j->ij', x, y)
 

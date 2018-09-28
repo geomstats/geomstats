@@ -29,25 +29,11 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
 
 
 def get_mask_i_float(i, n):
-    first_zeros = gs.array([])
-    if i != 0:
-        first_zeros = gs.zeros((i,))
-    one = gs.ones((1,))
-    last_zeros = gs.array([])
-    if i != n - 1:
-        last_zeros = gs.zeros((n - i - 1,))
-
-    mask_i_float = gs.concatenate(
-        [first_zeros, one, last_zeros], axis=0)
-
+    range_n = gs.arange(n, dtype=gs.float32)
+    i_float = gs.cast(gs.array([i]), gs.float32)[0]
+    mask_i = gs.isclose(range_n, i_float)
+    mask_i_float = gs.cast(mask_i, gs.float32)
     return mask_i_float
-
-
-def get_mask_i(i, n):
-    mask_i_float = get_mask_i_float(i, n)
-    mask_i = gs.isclose(mask_i_float, 1.)
-
-    return mask_i
 
 
 class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
@@ -559,13 +545,17 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                      mask_pi_float,
                      rot_vec_pi_c)
 
-            norm_rot_vec_pi = gs.linalg.norm(rot_vec_pi)
+            norm_rot_vec_pi = gs.linalg.norm(rot_vec_pi, axis=1)
             # This avoids division by 0.
-            if not gs.any(mask_pi):
-                norm_rot_vec_pi += 1.
+            #if not gs.any(mask_pi):
+            norm_rot_vec_pi += gs.squeeze(mask_0_float * 1., axis=1)
+            norm_rot_vec_pi += gs.squeeze(mask_else_float * 1., axis=1)
+            #norm_rot_vec_pi += 1.
             rot_vec += mask_pi_float * (
-                    angle * rot_vec_pi
-                    / norm_rot_vec_pi)
+                    gs.einsum(
+                        'nk,n->nk',
+                        angle * rot_vec_pi,
+                        1. / norm_rot_vec_pi))
 
             # This avoid dividing by zero
             angle += mask_0_float * 1.
