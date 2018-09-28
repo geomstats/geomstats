@@ -29,9 +29,9 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
 
 
 def get_mask_i_float(i, n):
-    range_n = gs.arange(n, dtype=gs.float32)
-    i_float = gs.cast(gs.array([i]), gs.float32)[0]
-    mask_i = gs.isclose(range_n, i_float)
+    range_n = gs.arange(n)  #, dtype=gs.float32)
+    i_float = gs.cast(gs.array([i]), gs.int32)[0]
+    mask_i = gs.equal(range_n, i_float)
     mask_i_float = gs.cast(mask_i, gs.float32)
     return mask_i_float
 
@@ -1232,8 +1232,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 coef_2 += mask_else_float * (
                         (1 - coef_1) / angle ** 2)
                 jacobian = gs.zeros((n_points, self.dimension, self.dimension))
+                n_points_tensor = gs.array(n_points)
                 for i in range(n_points):
-                    mask_i_float = get_mask_i_float(i, n_points)
+                    mask_i_float = get_mask_i_float(i, n_points_tensor)
 
                     sign = - 1
                     if left_or_right == 'left':
