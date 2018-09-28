@@ -70,7 +70,7 @@ class TestHypersphereMethods(unittest.TestCase):
 
         gs.testing.assert_allclose(result, expected)
 
-        point_ext = self.space.random_uniform()
+        point_ext = 1. / (gs.sqrt(6.)) * gs.array([1., 0., 0., 1., 2.])
         point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
         result = self.space.intrinsic_to_extrinsic_coords(point_int)
         expected = point_ext

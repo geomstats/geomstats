@@ -10,6 +10,7 @@ int32 = tf.int32
 int64 = tf.int64
 float16 = tf.float16
 float32 = tf.float32
+float64 = tf.float64
 
 
 def copy(x):
@@ -95,7 +96,7 @@ def tanh(x):
 
 
 def arccosh(x):
-    return tf.arccosh(x)
+    return tf.acosh(x)
 
 
 def tan(x):
@@ -166,10 +167,6 @@ def eye(N, M=None):
     return tf.eye(num_rows=N, num_columns=M)
 
 
-def average(x):
-    return tf.reduce_sum(x)
-
-
 def matmul(x, y):
     return tf.matmul(x, y)
 
@@ -203,7 +200,7 @@ def trace(x, **kwargs):
 
 
 def array(x):
-    return tf.constant(x)
+    return tf.convert_to_tensor(x)
 
 
 def all(bool_tensor, axis=None, keepdims=False):

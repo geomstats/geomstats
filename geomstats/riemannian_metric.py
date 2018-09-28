@@ -54,12 +54,12 @@ class RiemannianMetric(object):
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
-        n_tangent_vec_a, _ = tangent_vec_a.shape
-        n_tangent_vec_b, _ = tangent_vec_b.shape
+        n_tangent_vec_a = gs.shape(tangent_vec_a)[0]
+        n_tangent_vec_b = gs.shape(tangent_vec_b)[0]
 
         inner_prod_mat = self.inner_product_matrix(base_point)
         inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
-        n_mats, _, _ = inner_prod_mat.shape
+        n_mats = gs.shape(inner_prod_mat)[0]
 
         n_inner_prod = gs.maximum(n_tangent_vec_a, n_tangent_vec_b)
         n_inner_prod = gs.maximum(n_inner_prod, n_mats)
@@ -82,7 +82,7 @@ class RiemannianMetric(object):
 
         assert gs.ndim(inner_prod) == 2, inner_prod.shape
         return inner_prod
-
+        
     def squared_norm(self, vector, base_point=None):
         """
         Squared norm of a vector associated to the inner product
@@ -209,7 +209,6 @@ class RiemannianMetric(object):
             points = gs.vstack(points)
 
         n_points = gs.shape(points)[0]
-        assert n_points > 0
 
         if isinstance(weights, list):
             weights = gs.vstack(weights)
@@ -245,7 +244,6 @@ class RiemannianMetric(object):
         if isinstance(points, list):
             points = gs.vstack(points)
         n_points = gs.shape(points)[0]
-        assert n_points > 0
 
         if isinstance(weights, list):
             weights = gs.vstack(weights)
