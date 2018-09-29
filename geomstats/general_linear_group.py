@@ -56,6 +56,7 @@ class GeneralLinearGroup(LieGroup):
         """
         Matrix inverse.
         """
+        mat = gs.to_ndarray(mat, to_ndim=3)
         return gs.linalg.inv(mat)
 
     def group_exp_from_identity(self, tangent_vec):

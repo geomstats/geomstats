@@ -3,8 +3,6 @@ Unit tests for General Linear group.
 """
 
 import importlib
-import math
-import numpy as np
 import os
 import tensorflow as tf
 
@@ -78,40 +76,42 @@ class TestGeneralLinearGroupTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected), atol=atol)
 
-#     def test_compose_and_inverse(self):
-#         # 1. Compose transformation by its inverse on the right
-#         # Expect the group identity
-#         rot_vec_1 = self.so3_group.random_uniform()
-#         mat_1 = self.so3_group.matrix_from_rotation_vector(rot_vec_1)
-#         inv_mat_1 = self.group.inverse(mat_1)
-#
-#         result_1 = self.group.compose(mat_1, inv_mat_1)
-#         expected_1 = self.group.identity
-#
-#         norm = gs.linalg.norm(expected_1)
-#         atol = RTOL
-#         if norm != 0:
-#             atol = RTOL * norm
-#
-#         with self.test_session():
-#             self.assertAllClose(gs.eval(result_1), gs.eval(expected_1), atol=atol)
-#
-#         # 2. Compose transformation by its inverse on the left
-#         # Expect the group identity
-#         rot_vec_2 = self.so3_group.random_uniform()
-#         mat_2 = self.so3_group.matrix_from_rotation_vector(rot_vec_2)
-#         inv_mat_2 = self.group.inverse(mat_2)
-#
-#         result_2 = self.group.compose(inv_mat_2, mat_2)
-#         expected_2 = self.group.identity
-#
-#         norm = gs.linalg.norm(expected_2)
-#         atol = RTOL
-#         if norm != 0:
-#             atol = RTOL * norm
-#
-#         with self.test_session():
-#             self.assertAllClose(gs.eval(result_2), gs.eval(expected_2), atol=atol)
+    def test_compose_and_inverse(self):
+        # 1. Compose transformation by its inverse on the right
+        # Expect the group identity
+        rot_vec = self.so3_group.random_uniform()
+        mat = self.so3_group.matrix_from_rotation_vector(rot_vec)
+        inv_mat = self.group.inverse(mat)
+
+        result = self.group.compose(mat, inv_mat)
+        expected = self.group.identity
+        expected = helper.to_matrix(expected)
+
+        norm = gs.linalg.norm(expected)
+        atol = RTOL
+        if norm != 0:
+            atol = RTOL * norm
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected), atol=atol)
+
+        # 2. Compose transformation by its inverse on the left
+        # Expect the group identity
+        rot_vec = self.so3_group.random_uniform()
+        mat = self.so3_group.matrix_from_rotation_vector(rot_vec)
+        inv_mat = self.group.inverse(mat)
+
+        result = self.group.compose(inv_mat, mat)
+        expected = self.group.identity
+        expected = helper.to_matrix(expected)
+
+        norm = gs.linalg.norm(expected)
+        atol = RTOL
+        if norm != 0:
+            atol = RTOL * norm
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected), atol=atol)
 
 
 if __name__ == '__main__':
