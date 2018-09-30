@@ -477,7 +477,7 @@ class TestHypersphereMethods(unittest.TestCase):
                 gs.allclose(result, expected, atol=KAPPA_ESTIMATION_TOL)
                 )
 
-    def test_riemannian_quantization(self):
+    def test_optimal_quantization(self):
             """
             Check that optimal quantization yields the same result as
             the karcher flow algorithm when we look for one center.
@@ -491,7 +491,7 @@ class TestHypersphereMethods(unittest.TestCase):
                     )
             mean = sphere.metric.mean(points)
             centers, weights, clusters, n_iterations = sphere.metric.\
-                riemannian_quantization(points=points, n_centers=n_centers)
+                optimal_quantization(points=points, n_centers=n_centers)
             error = sphere.metric.dist(mean, centers)
             diameter = sphere.metric.diameter(points)
             result = error / diameter

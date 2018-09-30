@@ -343,7 +343,7 @@ class RiemannianMetric(object):
 
         return closest_neighbor_index
 
-    def riemannian_quantization(self, points, n_centers=N_CENTERS,
+    def optimal_quantization(self, points, n_centers=N_CENTERS,
                                 n_repetitions=N_REPETITIONS,
                                 tolerance=TOLERANCE,
                                 n_max_iterations=N_MAX_ITERATIONS):

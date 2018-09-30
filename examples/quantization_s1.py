@@ -20,7 +20,7 @@ TOLERANCE = 1e-6
 def main():
     points = CIRCLE.random_uniform(n_samples=N_POINTS, bound=None)
 
-    centers, weights, clusters, n_iterations = METRIC.riemannian_quantization(
+    centers, weights, clusters, n_iterations = METRIC.optimal_quantization(
                 points=points, n_centers=N_CENTERS,
                 n_repetitions=N_REPETITIONS, tolerance=TOLERANCE
                 )

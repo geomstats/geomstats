@@ -20,7 +20,7 @@ KAPPA = 10
 def main():
     points = SPHERE2.random_von_mises_fisher(kappa=KAPPA, n_samples=N_POINTS)
 
-    centers, weights, clusters, n_steps = METRIC.riemannian_quantization(
+    centers, weights, clusters, n_steps = METRIC.optimal_quantization(
                 points=points, n_centers=N_CENTERS,
                 n_repetitions=N_REPETITIONS
                 )
