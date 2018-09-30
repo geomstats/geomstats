@@ -12,6 +12,7 @@ from geomstats.hypersphere import Hypersphere
 
 MEAN_ESTIMATION_TOL = 1e-6
 KAPPA_ESTIMATION_TOL = 1e-3
+OPTIMAL_QUANTIZATION_TOL = 5e-3
 
 # TODO(nina): Casting tensors to type tf.float32 at
 # the beginning of each function
@@ -475,6 +476,28 @@ class TestHypersphereMethods(unittest.TestCase):
         self.assertTrue(
                 gs.allclose(result, expected, atol=KAPPA_ESTIMATION_TOL)
                 )
+
+    def test_riemannian_quantization(self):
+            """
+            Check that optimal quantization yields the same result as
+            the karcher flow algorithm when we look for one center.
+            """
+            dim = 2
+            n_points = 1000
+            n_centers = 1
+            sphere = Hypersphere(dim)
+            points = sphere.random_von_mises_fisher(
+                    kappa=10, n_samples=n_points
+                    )
+            mean = sphere.metric.mean(points)
+            centers, weights, clusters, n_iterations = sphere.metric.\
+                riemannian_quantization(points=points, n_centers=n_centers)
+            error = sphere.metric.dist(mean, centers)
+            diameter = sphere.metric.diameter(points)
+            result = error / diameter
+            expected = 0.0
+            self.assertTrue(gs.allclose(result, expected,
+                                        atol=OPTIMAL_QUANTIZATION_TOL))
 
 
 if __name__ == '__main__':

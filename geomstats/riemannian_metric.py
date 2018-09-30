@@ -6,6 +6,10 @@ import geomstats.backend as gs
 
 
 EPSILON = 1e-4
+N_CENTERS = 10
+TOLERANCE = 1e-5
+N_REPETITIONS = 20
+N_MAX_ITERATIONS = 50000
 
 
 def loss(y_pred, y_true, metric):
@@ -82,7 +86,7 @@ class RiemannianMetric(object):
 
         assert gs.ndim(inner_prod) == 2, inner_prod.shape
         return inner_prod
-        
+
     def squared_norm(self, vector, base_point=None):
         """
         Squared norm of a vector associated to the inner product
@@ -338,3 +342,76 @@ class RiemannianMetric(object):
         closest_neighbor_index = gs.argmin(dist)
 
         return closest_neighbor_index
+
+    def riemannian_quantization(self, points, n_centers=N_CENTERS,
+                                n_repetitions=N_REPETITIONS,
+                                tolerance=TOLERANCE,
+                                n_max_iterations=N_MAX_ITERATIONS):
+        """
+        Compute the optimal approximation of points by a smaller number
+        of weighted centers using the Competitive Learning Riemannian
+        Quantization algorithm. The centers are updated using decreasing
+        step sizes, each of which stays constant for n_repetitions iterations
+        to allow a better exploration of the data points.
+        See https://arxiv.org/abs/1806.07605.
+        Return :
+            - n_centers centers
+            - n_centers weights between 0 and 1
+            - a dictionary containing the clusters, where each key is the
+              cluster index, and its value is the lists of points belonging
+              to the cluster
+            - the number of steps needed to converge.
+        """
+        n_points = points.shape[0]
+        dimension = points.shape[-1]
+
+        random_indices = gs.random.randint(low=0, high=n_points,
+                                           size=(n_centers,))
+        centers = points[gs.ix_(random_indices, gs.arange(dimension))]
+
+        gap = 1.0
+        iteration = 0
+
+        while iteration < n_max_iterations:
+            iteration += 1
+            step_size = gs.floor(iteration / n_repetitions) + 1
+
+            random_index = gs.random.randint(low=0, high=n_points, size=(1,))
+            point = points[gs.ix_(random_index, gs.arange(dimension))]
+
+            index_to_update = self.closest_neighbor_index(point, centers)
+            center_to_update = centers[index_to_update, :]
+
+            tangent_vec_update = self.log(
+                    point=point, base_point=center_to_update
+                    ) / (step_size+1)
+            new_center = self.exp(
+                    tangent_vec=tangent_vec_update, base_point=center_to_update
+                    )
+            gap = self.dist(center_to_update, new_center)
+            gap = (gap != 0) * gap + (gap == 0)
+
+            centers[index_to_update, :] = new_center
+
+            if gs.isclose(gap, 0, atol=tolerance):
+                    break
+
+        if iteration == n_max_iterations-1:
+            print('Maximum number of iterations {} reached. The'
+                  'quantization may be inaccurate'.format(n_max_iterations))
+
+        clusters = dict()
+        weights = gs.zeros((n_centers,))
+        index_list = list()
+
+        for point in points:
+            index = self.closest_neighbor_index(point, centers)
+            if index not in index_list:
+                clusters[index] = list()
+                index_list.append(index)
+            clusters[index].append(point)
+            weights[index] += 1
+
+        weights = weights / n_points
+
+        return centers, weights, clusters, iteration
