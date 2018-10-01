@@ -72,6 +72,21 @@ class TestGeneralLinearGroupTensorFlow(tf.test.TestCase):
         with self.test_session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
+    def test_inverse(self):
+        mat = tf.convert_to_tensor([
+            [1., 2., 3.],
+            [4., 5., 6.],
+            [7., 8., 10.]])
+        result = self.group.inverse(mat)
+        expected = 1. / 3. * tf.convert_to_tensor([
+            [-2., -4., 3.],
+            [-2., 11., -6.],
+            [3., -6., 3.]])
+        expected = helper.to_matrix(expected)
+
+        with self.test_session():
+            self.assertAllClose(gs.eval(result), gs.eval(expected))
+
     def test_compose_and_inverse(self):
         # 1. Compose transformation by its inverse on the right
         # Expect the group identity
