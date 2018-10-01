@@ -38,21 +38,25 @@ class GeneralLinearGroup(LieGroup):
         n_mats, _, _ = mat.shape
 
         mat_rank = gs.zeros((n_mats, 1))
-        for i in range(n_mats):
-            mat_rank[i] = gs.linalg.matrix_rank(mat[i])
+        mat_rank = gs.linalg.matrix_rank(mat)
+        mat_rank = gs.to_ndarray(mat_rank, to_ndim=1)
 
-        return mat_rank == self.n
+        return gs.equal(mat_rank, self.n)
 
     def compose(self, mat_a, mat_b):
         """
         Matrix composition.
         """
-        return gs.matmul(mat_a, mat_b)
+        mat_a = gs.to_ndarray(mat_a, to_ndim=3)
+        mat_b = gs.to_ndarray(mat_b, to_ndim=3)
+        composition = gs.einsum('nij,njk->nik', mat_a, mat_b)
+        return composition
 
     def inverse(self, mat):
         """
         Matrix inverse.
         """
+        mat = gs.to_ndarray(mat, to_ndim=3)
         return gs.linalg.inv(mat)
 
     def group_exp_from_identity(self, tangent_vec):

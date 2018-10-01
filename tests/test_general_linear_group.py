@@ -5,6 +5,7 @@ Unit tests for General Linear group.
 import unittest
 
 import geomstats.backend as gs
+import tests.helper as helper
 
 from geomstats.general_linear_group import GeneralLinearGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
@@ -59,6 +60,19 @@ class TestGeneralLinearGroupMethods(unittest.TestCase):
                         '\nresult:\n{}'
                         '\nexpected:\n{}'.format(result_2,
                                                  expected_2))
+
+    def test_inverse(self):
+        mat = gs.array([
+            [1., 2., 3.],
+            [4., 5., 6.],
+            [7., 8., 10.]])
+        result = self.group.inverse(mat)
+        expected = 1. / 3. * gs.array([
+            [-2., -4., 3.],
+            [-2., 11., -6.],
+            [3., -6., 3.]])
+        expected = helper.to_matrix(expected)
+        self.assertTrue(gs.allclose(result, expected))
 
     def test_compose_and_inverse(self):
         # 1. Compose transformation by its inverse on the right
