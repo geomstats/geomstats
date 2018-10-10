@@ -1,9 +1,12 @@
 # Geomstats
-[![Build Status](https://travis-ci.org/ninamiolane/geomstats.svg?branch=master)](https://travis-ci.org/ninamiolane/geomstats)  [![Coverage Status](https://codecov.io/gh/ninamiolane/geomstats/branch/master/graph/badge.svg)](https://codecov.io/gh/ninamiolane/geomstats)
+[![Build Status](https://travis-ci.org/geomstats/geomstats.svg?branch=master)](https://travis-ci.org/geomstats/geomstats) [![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg)](https://codecov.io/gh/geomstats/geomstats)
 
-Computations and statistics on manifolds with geometric structures such as (pseudo-/sub-) Riemannian manifolds, Lie groups, quotient spaces, etc.
+Computations and statistics on manifolds with geometric structures.
 
-<img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/gradient_descent.gif" width=384 height=384><img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=256 height=256>
+- [Geomstats paper](https://arxiv.org/abs/1805.08308) on arxiv.
+- For more in-detph examples, see the [examples repository](https://github.com/geomstats/examples/).
+
+<img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/gradient_descent.gif" width=384 height=384><img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=200 height=200>
 
 
 ## Installation
@@ -17,8 +20,8 @@ pip3 install geomstats
 ## Running tests
 
 ```
-pip3 install nose
-python3 -m nose tests/*
+pip3 install nose2
+nose2
 ```
 
 ## Contributing
@@ -31,6 +34,11 @@ python3 -m nose tests/*
 
 ## Authors & Contributors
 
+* Alice Le Brigant
+* Johan Mathe
 * Nina Miolane
 * Xavier Pennec
-* Johan Mathe
+
+## Acknowledgements
+
+This work is partially supported by the National Science Foundation, grant NSF DMS RTG 1501767.

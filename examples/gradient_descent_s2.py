@@ -17,23 +17,24 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
 
-from geomstats.hypersphere import Hypersphere
-from geomstats.spd_matrices_space import SPDMatricesSpace
+import geomstats.backend as gs
 import geomstats.vectorization as vectorization
 import geomstats.visualization as visualization
+
+from geomstats.hypersphere import Hypersphere
+from geomstats.spd_matrices_space import SPDMatricesSpace
 
 
 SPHERE2 = Hypersphere(dimension=2)
 METRIC = SPHERE2.metric
-np.random.seed(1983)
 
 
 def gradient_descent(start,
                      loss,
                      grad,
                      manifold,
-                     lr=0.1,
-                     max_iter=128,
+                     lr=0.01,
+                     max_iter=256,
                      precision=1e-5):
     """Operate a gradient descent on a given manifold until either max_iter or
     a given precision is reached."""
@@ -44,7 +45,8 @@ def gradient_descent(start,
         tangent_vec = manifold.projection_to_tangent_space(
                 vector=euclidean_grad, base_point=x)
         x = manifold.metric.exp(base_point=x, tangent_vec=tangent_vec)[0]
-        if np.abs(loss(x) - loss(x_prev)) <= precision:
+        if (gs.abs(loss(x, use_gs=True) - loss(x_prev, use_gs=True))
+                <= precision):
             print('x: %s' % x)
             print('reached precision %s' % precision)
             print('iterations: %d' % i)
@@ -72,29 +74,38 @@ def plot_and_save_video(geodesics,
     with writer.saving(fig, out, dpi=dpi):
         for points in geodesics[1:]:
             points = vectorization.to_ndarray(points, to_ndim=2)
-            sphere.add_points(points)
-            sphere.draw_points(ax, color=color, marker='.')
+            sphere.draw_points(ax, points=points, color=color, marker='.')
             writer.grab_frame()
 
 
 def generate_well_behaved_matrix():
-    """Generate a matrix with real eig."""
+    """Generate a matrix with real eigenvalues."""
     matrix = 2 * SPDMatricesSpace(n=3).random_uniform()[0]
     assert np.linalg.det(matrix) > 0
     return matrix
 
 
-def main():
+def main(output_file='out.mp4', max_iter=128):
+    gs.random.seed(1985)
     A = generate_well_behaved_matrix()
-    loss = lambda x: x.T @ A @ x  # NOQA
-    grad = lambda x: 2 * A @ x  # NOQA
-    initial_point = np.array([0., 1., 0.])
+
+    def grad(x):
+        return 2 * gs.matmul(A, x)
+
+    def loss(x, use_gs=False):
+        if use_gs:
+            return gs.matmul(x, gs.matmul(A, x))
+        return np.matmul(x, np.matmul(A, x))
+
+    initial_point = gs.array([0., 1., 0.])
     previous_x = initial_point
     geodesics = []
     n_steps = 20
-    # TODO(johmathe): auto differentiation
-    # TODO(johmathe): gpu implementation
-    for x, fx in gradient_descent(initial_point, loss, grad, manifold=SPHERE2):
+    for x, fx in gradient_descent(initial_point,
+                                  loss,
+                                  grad,
+                                  max_iter=max_iter,
+                                  manifold=SPHERE2):
         initial_tangent_vec = METRIC.log(point=x, base_point=previous_x)
         geodesic = METRIC.geodesic(initial_point=previous_x,
                                    initial_tangent_vec=initial_tangent_vec)
@@ -102,7 +113,8 @@ def main():
         t = np.linspace(0, 1, n_steps)
         geodesics.append(geodesic(t))
         previous_x = x
-    plot_and_save_vid(geodesics, loss)
+    if output_file:
+        plot_and_save_video(geodesics, loss, out=output_file)
     eig, _ = np.linalg.eig(A)
     np.testing.assert_almost_equal(loss(x), np.min(eig), decimal=2)
 

@@ -1,16 +1,17 @@
-"""Unit tests for visualization module."""
+"""
+Unit tests for visualization.
+"""
 
+import matplotlib
+matplotlib.use('Agg')  # NOQA
 import unittest
 
 import geomstats.visualization as visualization
+
+from geomstats.hyperbolic_space import HyperbolicSpace
 from geomstats.hypersphere import Hypersphere
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
-
-
-SO3_GROUP = SpecialOrthogonalGroup(n=3)
-SE3_GROUP = SpecialEuclideanGroup(n=3)
-S2 = Hypersphere(dimension=2)
 
 
 # TODO(nina): add tests for examples
@@ -20,18 +21,39 @@ class TestVisualizationMethods(unittest.TestCase):
 
     def setUp(self):
         self.n_samples = 10
+        self.SO3_GROUP = SpecialOrthogonalGroup(n=3)
+        self.SE3_GROUP = SpecialEuclideanGroup(n=3)
+        self.S1 = Hypersphere(dimension=1)
+        self.S2 = Hypersphere(dimension=2)
+        self.H2 = HyperbolicSpace(dimension=2)
 
     def test_plot_points_so3(self):
-        points = SO3_GROUP.random_uniform(self.n_samples)
+        points = self.SO3_GROUP.random_uniform(self.n_samples)
         visualization.plot(points, space='SO3_GROUP')
 
     def test_plot_points_se3(self):
-        points = SE3_GROUP.random_uniform(self.n_samples)
+        points = self.SE3_GROUP.random_uniform(self.n_samples)
         visualization.plot(points, space='SE3_GROUP')
 
+    def test_plot_points_s1(self):
+        points = self.S1.random_uniform(self.n_samples)
+        visualization.plot(points, space='S1')
+
     def test_plot_points_s2(self):
-        points = S2.random_uniform(self.n_samples)
+        points = self.S2.random_uniform(self.n_samples)
         visualization.plot(points, space='S2')
+
+    def test_plot_points_h2_poincare_disk(self):
+        points = self.H2.random_uniform(self.n_samples)
+        visualization.plot(points, space='H2_poincare_disk')
+
+    def test_plot_points_h2_poincare_half_plane(self):
+        points = self.H2.random_uniform(self.n_samples)
+        visualization.plot(points, space='H2_poincare_half_plane')
+
+    def test_plot_points_h2_klein_disk(self):
+        points = self.H2.random_uniform(self.n_samples)
+        visualization.plot(points, space='H2_klein_disk')
 
 
 if __name__ == '__main__':

@@ -1,3 +1,5 @@
+from .__about__ import __version__
+
 import geomstats.manifold
 import geomstats.euclidean_space
 import geomstats.hyperbolic_space

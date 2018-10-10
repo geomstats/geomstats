@@ -6,8 +6,9 @@ Performs tangent PCA at the mean.
 import matplotlib.pyplot as plt
 import numpy as np
 
-from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 import geomstats.visualization as visualization
+
+from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
 SO3_GROUP = SpecialOrthogonalGroup(n=3)
 METRIC = SO3_GROUP.bi_invariant_metric

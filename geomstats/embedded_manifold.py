@@ -1,6 +1,5 @@
 """
-Base for differentiable manifolds
-that are embedded in another manifold.
+Manifold embedded in another manifold.
 """
 
 from geomstats.manifold import Manifold
@@ -8,8 +7,7 @@ from geomstats.manifold import Manifold
 
 class EmbeddedManifold(Manifold):
     """
-    Base class for differentiable manifolds
-    that are embedded in another manifold.
+    Class for manifolds embedded in another manifold.
     """
 
     def __init__(self, dimension, embedding_manifold):
@@ -25,6 +23,10 @@ class EmbeddedManifold(Manifold):
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         raise NotImplementedError(
             'extrinsic_to_intrinsic_coords is not implemented.')
+
+    def projection(self, point):
+        raise NotImplementedError(
+            'projection is not implemented.')
 
     def projection_to_tangent_space(self, vector, base_point):
         raise NotImplementedError(

@@ -2,11 +2,12 @@
 Plot a geodesic on the sphere S2
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
+import geomstats.visualization as visualization
 
 from geomstats.hypersphere import Hypersphere
-import geomstats.visualization as visualization
 
 SPHERE2 = Hypersphere(dimension=2)
 METRIC = SPHERE2.metric

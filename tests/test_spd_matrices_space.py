@@ -1,9 +1,13 @@
-"""Unit tests for symmetric positive definite matrices."""
+"""
+Unit tests for the manifold of symmetric positive definite matrices.
+"""
 
-import numpy as np
+import scipy.linalg
 import unittest
 
+import geomstats.backend as gs
 import geomstats.spd_matrices_space as spd_matrices_space
+
 from geomstats.spd_matrices_space import SPDMatricesSpace
 
 
@@ -11,17 +15,19 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
+        gs.random.seed(1234)
+
         self.n = 3
         self.space = SPDMatricesSpace(n=self.n)
         self.metric = self.space.metric
         self.n_samples = 10
 
     def test_is_symmetric(self):
-        sym_mat = np.array([[1, 2],
+        sym_mat = gs.array([[1, 2],
                             [2, 1]])
         self.assertTrue(spd_matrices_space.is_symmetric(sym_mat))
 
-        not_a_sym_mat = np.array([[1., 0.6, -3.],
+        not_a_sym_mat = gs.array([[1., 0.6, -3.],
                                   [6., -7., 0.],
                                   [0., 7., 8.]])
         self.assertFalse(spd_matrices_space.is_symmetric(not_a_sym_mat))
@@ -29,30 +35,41 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
     def test_is_symmetric_vectorization(self):
         n_samples = self.n_samples
         points = self.space.random_uniform(n_samples=n_samples)
-        self.assertTrue(np.all(spd_matrices_space.is_symmetric(points)))
+        self.assertTrue(gs.all(spd_matrices_space.is_symmetric(points)))
 
     def test_make_symmetric(self):
-        sym_mat = np.array([[1, 2],
+        sym_mat = gs.array([[1, 2],
                             [2, 1]])
         result = spd_matrices_space.make_symmetric(sym_mat)
         expected = sym_mat
-        self.assertTrue(np.allclose(result, expected))
+        self.assertTrue(gs.allclose(result, expected))
 
-        mat = np.array([[1, 2, 3],
+        mat = gs.array([[1, 2, 3],
                         [0, 0, 0],
                         [3, 1, 1]])
         result = spd_matrices_space.make_symmetric(mat)
-        expected = np.array([[1, 1, 3],
+        expected = gs.array([[1, 1, 3],
                             [1, 0, 0.5],
                             [3, 0.5, 1]])
-        self.assertTrue(np.allclose(result, expected))
+        self.assertTrue(gs.allclose(result, expected))
 
     def test_make_symmetric_and_is_symmetric_vectorization(self):
         n_samples = self.n_samples
-        mats = np.random.rand(n_samples, 5, 5)
+        mats = gs.random.rand(n_samples, 5, 5)
 
         results = spd_matrices_space.make_symmetric(mats)
-        self.assertTrue(np.all(spd_matrices_space.is_symmetric(results)))
+        self.assertTrue(gs.all(spd_matrices_space.is_symmetric(results)))
+
+    def test_sqrtm(self):
+        n_samples = self.n_samples
+        points = self.space.random_uniform(n_samples=n_samples)
+
+        result = spd_matrices_space.sqrtm(points)
+        expected = gs.zeros((n_samples, self.n, self.n))
+        for i in range(n_samples):
+            expected[i] = scipy.linalg.sqrtm(points[i])
+
+        self.assertTrue(gs.allclose(result, expected))
 
     def test_random_uniform_and_belongs(self):
         self.assertTrue(self.space.belongs(self.space.random_uniform()))
@@ -64,48 +81,48 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         """
         n_samples = self.n_samples
         points = self.space.random_uniform(n_samples=n_samples)
-        self.assertTrue(np.all(self.space.belongs(points)))
+        self.assertTrue(gs.all(self.space.belongs(points)))
 
     def vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(self):
-        sym_mat_1 = np.array([[1., 0.6, -3.],
+        sym_mat_1 = gs.array([[1., 0.6, -3.],
                               [0.6, 7., 0.],
                               [-3., 0., 8.]])
         vector_1 = self.space.vector_from_symmetric_matrix(sym_mat_1)
         result_1 = self.space.symmetric_matrix_from_vector(vector_1)
         expected_1 = sym_mat_1
 
-        self.assertTrue(np.allclose(result_1, expected_1))
+        self.assertTrue(gs.allclose(result_1, expected_1))
 
-        vector_2 = np.array([1, 2, 3, 4, 5, 6])
+        vector_2 = gs.array([1, 2, 3, 4, 5, 6])
         sym_mat_2 = self.space.symmetric_matrix_from_vector(vector_2)
         result_2 = self.space.vector_from_symmetric_matrix(sym_mat_2)
         expected_2 = vector_2
 
-        self.assertTrue(np.allclose(result_2, expected_2))
+        self.assertTrue(gs.allclose(result_2, expected_2))
 
     def vector_and_symmetric_matrix_vectorization(self):
         n_samples = self.n_samples
-        vector = np.random.rand(n_samples, 6)
+        vector = gs.random.rand(n_samples, 6)
         sym_mat = self.space.symmetric_matrix_from_vector(vector)
         result = self.space.vector_from_symmetric_matrix(sym_mat)
         expected = vector
 
-        self.assertTrue(np.allclose(result, expected))
+        self.assertTrue(gs.allclose(result, expected))
 
         sym_mat = self.space.random_uniform(n_samples)
         vector = self.space.vector_from_symmetric_matrix(sym_mat)
         result = self.space.symmetric_matrix_from_vector(vector)
         expected = sym_mat
 
-        self.assertTrue(np.allclose(result, expected))
+        self.assertTrue(gs.allclose(result, expected))
 
     def test_group_log_and_exp(self):
-        point_1 = 5 * np.eye(4)
+        point_1 = 5 * gs.eye(4)
         group_log_1 = spd_matrices_space.group_log(point_1)
         result_1 = spd_matrices_space.group_exp(group_log_1)
         expected_1 = point_1
 
-        self.assertTrue(np.allclose(result_1, expected_1))
+        self.assertTrue(gs.allclose(result_1, expected_1))
 
     def test_group_log_and_exp_vectorization(self):
         n_samples = self.n_samples
@@ -114,13 +131,13 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         result = spd_matrices_space.group_exp(group_log)
         expected = point
 
-        self.assertTrue(np.allclose(result, expected))
+        self.assertTrue(gs.allclose(result, expected))
 
     def test_log_and_exp(self):
-        base_point_1 = np.array([[5., 0., 0.],
+        base_point_1 = gs.array([[5., 0., 0.],
                                 [0., 7., 2.],
                                 [0., 2., 8.]])
-        point_1 = np.array([[9., 0., 0.],
+        point_1 = gs.array([[9., 0., 0.],
                             [0., 5., 0.],
                             [0., 0., 1.]])
 
@@ -128,7 +145,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         result_1 = self.metric.exp(tangent_vec=log_1, base_point=base_point_1)
         expected_1 = point_1
 
-        self.assertTrue(np.allclose(result_1, expected_1))
+        self.assertTrue(gs.allclose(result_1, expected_1))
 
     def test_exp_and_belongs(self):
         n_samples = self.n_samples
@@ -138,7 +155,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
                                                base_point=base_point)
         results = self.metric.exp(tangent_vec, base_point)
 
-        self.assertTrue(np.all(self.space.belongs(results)))
+        self.assertTrue(gs.all(self.space.belongs(results)))
 
     def test_exp_vectorization(self):
         n_samples = self.n_samples
@@ -155,7 +172,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         # Test with the 1 base_point, and several different tangent_vecs
         results = self.metric.exp(n_tangent_vec_same_base, one_base_point)
 
-        self.assertTrue(np.allclose(results.shape,
+        self.assertTrue(gs.allclose(results.shape,
                                     (n_samples,
                                      self.space.n,
                                      self.space.n)))
@@ -163,7 +180,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         # Test with the same number of base_points and tangent_vecs
         results = self.metric.exp(n_tangent_vec, n_base_point)
 
-        self.assertTrue(np.allclose(results.shape,
+        self.assertTrue(gs.allclose(results.shape,
                                     (n_samples,
                                      self.space.n,
                                      self.space.n)))
@@ -179,7 +196,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         # Test with different points, one base point
         results = self.metric.log(n_point, one_base_point)
 
-        self.assertTrue(np.allclose(results.shape,
+        self.assertTrue(gs.allclose(results.shape,
                                     (n_samples,
                                      self.space.n,
                                      self.space.n)))
@@ -187,7 +204,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         # Test with the same number of points and base points
         results = self.metric.log(n_point, n_base_point)
 
-        self.assertTrue(np.allclose(results.shape,
+        self.assertTrue(gs.allclose(results.shape,
                                     (n_samples,
                                      self.space.n,
                                      self.space.n)))
@@ -195,7 +212,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         # Test with the one point and n base points
         results = self.metric.log(one_point, n_base_point)
 
-        self.assertTrue(np.allclose(results.shape,
+        self.assertTrue(gs.allclose(results.shape,
                                     (n_samples,
                                      self.space.n,
                                      self.space.n)))
@@ -217,14 +234,14 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         results = self.metric.log(exps, one_base_point)
         expected = n_tangent_vec_same_base
 
-        self.assertTrue(np.allclose(results, expected))
+        self.assertTrue(gs.allclose(results, expected))
 
         # Test with the same number of base_points and tangent_vecs
         exps = self.metric.exp(n_tangent_vec, n_base_point)
         results = self.metric.log(exps, n_base_point)
         expected = n_tangent_vec
 
-        self.assertTrue(np.allclose(results, expected))
+        self.assertTrue(gs.allclose(results, expected))
 
     def test_geodesic_and_belongs(self):
         initial_point = self.space.random_uniform()
@@ -235,9 +252,9 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
                                    initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
 
-        t = np.linspace(start=0, stop=1, num=100)
+        t = gs.linspace(start=0, stop=1, num=100)
         points = geodesic(t)
-        self.assertTrue(np.all(self.space.belongs(points)))
+        self.assertTrue(gs.all(self.space.belongs(points)))
 
     def test_squared_dist_is_symmetric(self):
         n_samples = self.n_samples
@@ -248,7 +265,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = self.metric.squared_dist(point_2, point_1)
 
-        self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1))
+        self.assertTrue(gs.allclose(sq_dist_1_2, sq_dist_2_1))
 
         point_1 = self.space.random_uniform(n_samples=1)
         point_2 = self.space.random_uniform(n_samples=n_samples)
@@ -256,7 +273,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = self.metric.squared_dist(point_2, point_1)
 
-        self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1))
+        self.assertTrue(gs.allclose(sq_dist_1_2, sq_dist_2_1))
 
         point_1 = self.space.random_uniform(n_samples=n_samples)
         point_2 = self.space.random_uniform(n_samples=1)
@@ -264,7 +281,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = self.metric.squared_dist(point_2, point_1)
 
-        self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1))
+        self.assertTrue(gs.allclose(sq_dist_1_2, sq_dist_2_1))
 
         point_1 = self.space.random_uniform(n_samples=n_samples)
         point_2 = self.space.random_uniform(n_samples=n_samples)
@@ -272,7 +289,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = self.metric.squared_dist(point_2, point_1)
 
-        self.assertTrue(np.allclose(sq_dist_1_2, sq_dist_2_1))
+        self.assertTrue(gs.allclose(sq_dist_1_2, sq_dist_2_1))
 
     def test_squared_dist_vectorization(self):
         n_samples = self.n_samples

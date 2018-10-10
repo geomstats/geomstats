@@ -1,19 +1,17 @@
 """
-Base class for the General Linear Group,
-i.e. the matrix group GL(n).
+The General Linear Group, i.e. the matrix group GL(n).
 """
 
-import numpy as np
 import scipy.linalg
 
+import geomstats.backend as gs
+
 from geomstats.lie_group import LieGroup
-import geomstats.vectorization as vectorization
 
 
 class GeneralLinearGroup(LieGroup):
     """
-    Base class for the General Linear Group,
-    i.e. the matrix group GL(n).
+    Class for the General Linear Group, i.e. the matrix group GL(n).
 
 
     Note: The default representation for elements of GL(n)
@@ -25,34 +23,41 @@ class GeneralLinearGroup(LieGroup):
     def __init__(self, n):
         assert isinstance(n, int) and n > 0
         super(GeneralLinearGroup, self).__init__(
-                                      dimension=n*n,
-                                      identity=np.eye(n))
+                                      dimension=n*n)
         self.n = n
+
+    @property
+    def identity(self):
+        return gs.eye(self.n)
 
     def belongs(self, mat):
         """
         Check if mat belongs to GL(n).
         """
-        mat = vectorization.to_ndarray(mat, to_ndim=3)
+        mat = gs.to_ndarray(mat, to_ndim=3)
         n_mats, _, _ = mat.shape
 
-        mat_rank = np.zeros((n_mats, 1))
-        for i in range(n_mats):
-            mat_rank[i] = np.linalg.matrix_rank(mat[i])
+        mat_rank = gs.zeros((n_mats, 1))
+        mat_rank = gs.linalg.matrix_rank(mat)
+        mat_rank = gs.to_ndarray(mat_rank, to_ndim=1)
 
-        return mat_rank == self.n
+        return gs.equal(mat_rank, self.n)
 
     def compose(self, mat_a, mat_b):
         """
         Matrix composition.
         """
-        return np.matmul(mat_a, mat_b)
+        mat_a = gs.to_ndarray(mat_a, to_ndim=3)
+        mat_b = gs.to_ndarray(mat_b, to_ndim=3)
+        composition = gs.einsum('nij,njk->nik', mat_a, mat_b)
+        return composition
 
     def inverse(self, mat):
         """
         Matrix inverse.
         """
-        return np.linalg.inv(mat)
+        mat = gs.to_ndarray(mat, to_ndim=3)
+        return gs.linalg.inv(mat)
 
     def group_exp_from_identity(self, tangent_vec):
         """
@@ -62,7 +67,7 @@ class GeneralLinearGroup(LieGroup):
         if tangent_vec.ndim == 2:
             return scipy.linalg.expm(tangent_vec)
 
-        exp = np.zeros_like(tangent_vec)
+        exp = gs.zeros_like(tangent_vec)
         n_vecs, _, _ = tangent_vec.shape
         for i in range(n_vecs):
             exp[i] = scipy.linalg.expm(tangent_vec[i])
@@ -77,7 +82,7 @@ class GeneralLinearGroup(LieGroup):
         if point.ndim == 2:
             return scipy.linalg.logm(point)
 
-        log = np.zeros_like(point)
+        log = gs.zeros_like(point)
         n_points, _, _ = point.shape
         for i in range(n_points):
             log[i] = scipy.linalg.logm(point[i])

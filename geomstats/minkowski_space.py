@@ -1,16 +1,16 @@
 """
-Computations on the (n+1)-dimensional Minkowski space.
+Minkowski space.
 """
 
-import numpy as np
 
 from geomstats.manifold import Manifold
 from geomstats.riemannian_metric import RiemannianMetric
-import geomstats.vectorization as vectorization
+import geomstats.backend as gs
+
 
 
 class MinkowskiSpace(Manifold):
-    """The Minkowski Space."""
+    """Class for Minkowski Space."""
 
     def __init__(self, dimension):
         assert isinstance(dimension, int) and dimension > 0
@@ -19,26 +19,33 @@ class MinkowskiSpace(Manifold):
 
     def belongs(self, point):
         """
-        Check if point belongs to the Minkowski space.
+        Evaluate if a point belongs to the Minkowski space.
         """
-        point = vectorization.to_ndarray(point, to_ndim=2)
-        _, point_dim = point.shape
+        point = gs.to_ndarray(point, to_ndim=2)
+        n_points, point_dim = point.shape
+        belongs = point_dim == self.dimension
+        belongs = gs.repeat(belongs, repeats=n_points, axis=0)
+        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
+
+        return belongs
+
+        point_dim = point.shape[-1]
         return point_dim == self.dimension
 
     def random_uniform(self, n_samples=1):
         """
-        Sample a vector uniformly in the Minkowski space,
-        with coordinates each between -1. and 1.
+        Sample in the Minkowski space with the uniform distribution.
         """
-        point = np.random.rand(n_samples, self.dimension) * 2 - 1
+        size = (n_samples, self.dimension)
+        point = gs.random.rand(*size) * 2 - 1
+
         return point
 
 
 class MinkowskiMetric(RiemannianMetric):
     """
     Class for the pseudo-Riemannian Minkowski metric.
-    The metric is flat: inner product independent of the reference point.
-    The metric has signature (-1, n) on the (n+1)-D vector space.
+    The metric is flat: the inner product is independent of the base point.
     """
     def __init__(self, dimension):
         super(MinkowskiMetric, self).__init__(
@@ -47,28 +54,55 @@ class MinkowskiMetric(RiemannianMetric):
 
     def inner_product_matrix(self, base_point=None):
         """
-        Minkowski inner product matrix.
-
-        Note: the matrix is independent on the base_point.
+        Inner product matrix, independent of the base point.
         """
-        inner_prod_mat = np.eye(self.dimension)
-        inner_prod_mat[0, 0] = -1
+        inner_prod_mat = gs.eye(self.dimension-1, self.dimension-1)
+        first_row = gs.array([0.] * (self.dimension - 1))
+        first_row = gs.to_ndarray(first_row, to_ndim=2, axis=1)
+        inner_prod_mat = gs.vstack([gs.transpose(first_row),
+                                    inner_prod_mat])
+        
+        first_column = gs.array([-1.] + [0.] * (self.dimension - 1))
+        first_column = gs.to_ndarray(first_column, to_ndim=2, axis=1)
+        inner_prod_mat = gs.hstack([first_column,
+                                    inner_prod_mat])
+                                    
+        
         return inner_prod_mat
 
-    def exp_basis(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point):
         """
         The Riemannian exponential is the addition in the Minkowski space.
         """
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
         return base_point + tangent_vec
 
-    def log_basis(self, point, base_point):
+    def log(self, point, base_point):
         """
         The Riemannian logarithm is the subtraction in the Minkowski space.
         """
+        point = gs.to_ndarray(point, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
         return point - base_point
 
     def mean(self, points, weights=None):
         """
-        Weighted mean of the points.
+        The Frechet mean of (weighted) points is the weighted average of
+        the points in the Minkowski space.
         """
-        return np.average(points, axis=0, weights=weights)
+        if isinstance(points, list):
+            points = gs.vstack(points)
+        points = gs.to_ndarray(points, to_ndim=2)
+        n_points = gs.shape(points)[0]
+
+        if isinstance(weights, list):
+            weights = gs.vstack(weights)
+        elif weights is None:
+            weights = gs.ones((n_points,))
+
+        weighted_points = gs.einsum('n,nj->nj', weights, points)
+        mean = (gs.sum(weighted_points, axis=0)
+                / gs.sum(weights))
+        mean = gs.to_ndarray(mean, to_ndim=2)
+        return mean
