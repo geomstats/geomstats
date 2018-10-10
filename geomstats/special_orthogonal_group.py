@@ -348,24 +348,24 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             basis_vec_2 = gs.array([[0., 1., 0.]]*vec.shape[0])
             basis_vec_3 = gs.array([[0., 0., 1.]]*vec.shape[0])
             cross_prod_1 = gs.einsum(
-                'hijk,ni,nj->hnk',
+                'hijk,hi,hj->hk',
                 levi_civita_symbol,
                 basis_vec_1,
                 vec)
             cross_prod_2 = gs.einsum(
-                'hijk,ni,nj->hnk',
+                'hijk,hi,hj->hk',
                 levi_civita_symbol,
                 basis_vec_2,
                 vec)
             cross_prod_3 = gs.einsum(
-                'hijk,ni,nj->hnk',
+                'hijk,hi,hj->hk',
                 levi_civita_symbol,
                 basis_vec_3,
                 vec)
 
-            cross_prod_1 = gs.to_ndarray(cross_prod_1[0], to_ndim=3, axis=1)
-            cross_prod_2 = gs.to_ndarray(cross_prod_2[0], to_ndim=3, axis=1)
-            cross_prod_3 = gs.to_ndarray(cross_prod_3[0], to_ndim=3, axis=1)
+            cross_prod_1 = gs.to_ndarray(cross_prod_1, to_ndim=3, axis=1)
+            cross_prod_2 = gs.to_ndarray(cross_prod_2, to_ndim=3, axis=1)
+            cross_prod_3 = gs.to_ndarray(cross_prod_3, to_ndim=3, axis=1)
             skew_mat = gs.concatenate(
                 [cross_prod_1, cross_prod_2, cross_prod_3], axis=1)
 
