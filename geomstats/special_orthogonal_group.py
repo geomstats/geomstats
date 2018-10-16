@@ -323,8 +323,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         the values of the vector.
         """
         vec = gs.to_ndarray(vec, to_ndim=2)
-        n_vecs = gs.shape(vec)[0]
-        vec_dim = gs.shape(vec)[1]
+        n_vecs = vec.shape[0]
+        vec_dim = vec.shape[1]
 
         # TODO(nina): Change gs.cast function for elementary types
         vec_dim = gs.cast(gs.array([vec_dim]), gs.float32)[0]
@@ -342,23 +342,23 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 [[0., 1., 0.],
                  [-1., 0., 0.],
                  [0., 0., 0.]]
-                ]]*vec.shape[0])
+                ]] * n_vecs)
 
-            basis_vec_1 = gs.array([[1., 0., 0.]]*vec.shape[0])
-            basis_vec_2 = gs.array([[0., 1., 0.]]*vec.shape[0])
-            basis_vec_3 = gs.array([[0., 0., 1.]]*vec.shape[0])
+            basis_vec_1 = gs.array([[1., 0., 0.]] * n_vecs)
+            basis_vec_2 = gs.array([[0., 1., 0.]] * n_vecs)
+            basis_vec_3 = gs.array([[0., 0., 1.]] * n_vecs)
             cross_prod_1 = gs.einsum(
-                'hijk,hi,hj->hk',
+                'nijk,ni,nj->nk',
                 levi_civita_symbol,
                 basis_vec_1,
                 vec)
             cross_prod_2 = gs.einsum(
-                'hijk,hi,hj->hk',
+                'nijk,ni,nj->nk',
                 levi_civita_symbol,
                 basis_vec_2,
                 vec)
             cross_prod_3 = gs.einsum(
-                'hijk,hi,hj->hk',
+                'nijk,ni,nj->nk',
                 levi_civita_symbol,
                 basis_vec_3,
                 vec)

@@ -259,7 +259,3 @@ def cross(a, b):
 
 def stack(*args, **kwargs):
     return tf.stack(*args, **kwargs)
-
-
-def concatenate(*args, **kwargs):
-    return tf.concat(*args, **kwargs)
