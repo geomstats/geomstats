@@ -324,7 +324,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         """
         vec = gs.to_ndarray(vec, to_ndim=2)
         n_vecs = vec.shape[0]
-        vec_dim = vec.shape[1]
+        vec_dim = gs.shape(vec)[1]
 
         # TODO(nina): Change gs.cast function for elementary types
         vec_dim = gs.cast(gs.array([vec_dim]), gs.float32)[0]
