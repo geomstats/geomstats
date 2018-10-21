@@ -85,7 +85,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
             _, vec_dim = point.shape
-            return vec_dim == self.dimension
+            return [vec_dim == self.dimension]
 
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
@@ -143,17 +143,17 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
                 regularized_point = gs.einsum(
                     'n,ni->ni', norms_ratio, regularized_point)
-
+            '''
             else:
                 # TODO(nina): regularization needed in nD?
                 regularized_point = gs.copy(point)
-
+            '''
             assert gs.ndim(regularized_point) == 2
 
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
             # TODO(nina): regularization for matrices?
-            regularized_point = gs.copy(point)
+            regularized_point = gs.to_ndarray(point, to_ndim=3)
 
         return regularized_point
 
@@ -301,13 +301,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         else:
             aux_mat = gs.matmul(gs.transpose(mat, axes=(0, 2, 1)), mat)
 
-            inv_sqrt_mat = gs.zeros_like(mat)
-            for i in range(n_mats):
-                sym_mat = aux_mat[i]
+            assert spd_matrices_space.is_symmetric(aux_mat)[0]
 
-                assert spd_matrices_space.is_symmetric(sym_mat)
-                inv_sqrt_mat[i] = gs.linalg.inv(
-                    spd_matrices_space.sqrtm(sym_mat))
+            inv_sqrt_mat = gs.linalg.inv(
+                    spd_matrices_space.sqrtm(aux_mat))
+
             rot_mat = gs.matmul(mat, inv_sqrt_mat)
 
         assert gs.ndim(rot_mat) == 3
@@ -327,11 +325,14 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         vec_dim = gs.shape(vec)[1]
 
         # TODO(nina): Change gs.cast function for elementary types
-        vec_dim = gs.cast(gs.array([vec_dim]), gs.float32)[0]
-        mat_dim = gs.cast(((1. + gs.sqrt(1. + 8. * vec_dim)) / 2.), gs.int32)
+        # vec_dim = gs.cast(gs.array([vec_dim]), gs.float32)[0]
+        # mat_dim = gs.cast(((1. + gs.sqrt(1. + 8. * vec_dim)) / 2.), gs.int32)
 
-        skew_mat = gs.zeros((n_vecs,) + (self.n,) * 2)
-        if self.n == 3:
+        if self.n == 2: # SO(2)
+            id_skew = gs.array([[[0., 1.], [-1., 0.]]] * n_vecs)
+            skew_mat = gs.einsum('nij,ni->nij', gs.cast(id_skew, gs.float32), vec)
+
+        elif self.n == 3: # SO(3)
             levi_civita_symbol = gs.array([[
                 [[0., 0., 0.],
                  [0., 0., 1.],
@@ -369,7 +370,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             skew_mat = gs.concatenate(
                 [cross_prod_1, cross_prod_2, cross_prod_3], axis=1)
 
-        else:
+        else: # SO(n)
+            mat_dim = gs.cast(((1. + gs.sqrt(1. + 8. * vec_dim)) / 2.), gs.int32)
+            skew_mat = gs.zeros((n_vecs,) + (self.n,) * 2)
             upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
             for i in range(n_vecs):
                 skew_mat[i][upper_triangle_indices] = vec[i]
@@ -393,12 +396,16 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         vec_dim = self.dimension
         vec = gs.zeros((n_skew_mats, vec_dim))
 
-        if self.n == 3:
+        if self.n == 2: # SO(2)
+            vec = gs.expand_dims(skew_mat[:, 0, 1], axis=1)
+
+        elif self.n == 3: # SO(3)
             vec_1 = gs.to_ndarray(skew_mat[:, 2, 1], to_ndim=2, axis=1)
             vec_2 = gs.to_ndarray(skew_mat[:, 0, 2], to_ndim=2, axis=1)
             vec_3 = gs.to_ndarray(skew_mat[:, 1, 0], to_ndim=2, axis=1)
             vec = gs.concatenate([vec_1, vec_2, vec_3], axis=1)
-        else:
+
+        else: # SO(n)
             idx = 0
             for j in range(mat_dim_1):
                 for i in range(j):

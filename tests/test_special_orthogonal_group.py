@@ -33,18 +33,18 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         # and closely larger than 2pi
         with_angle_0 = gs.zeros(3)
         with_angle_close_0 = 1e-10 * gs.array([1., -1., 1.])
-        with_angle_close_pi_low = ((gs.pi - 1e-9) / gs.sqrt(2)
-                                   * gs.array([0., 1., -1]))
-        with_angle_pi = gs.pi / gs.sqrt(3) * gs.array([1., 1., -1])
-        with_angle_close_pi_high = ((gs.pi + 1e-9) / gs.sqrt(3)
+        with_angle_close_pi_low = ((gs.pi - 1e-9) / gs.sqrt(2.)
+                                   * gs.array([0., 1., -1.]))
+        with_angle_pi = gs.pi / gs.sqrt(3.) * gs.array([1., 1., -1.])
+        with_angle_close_pi_high = ((gs.pi + 1e-9) / gs.sqrt(3.)
                                     * gs.array([-1., 1., -1]))
-        with_angle_in_pi_2pi = ((gs.pi + 0.3) / gs.sqrt(5)
-                                * gs.array([-2., 1., 0]))
-        with_angle_close_2pi_low = ((2 * gs.pi - 1e-9) / gs.sqrt(6)
+        with_angle_in_pi_2pi = ((gs.pi + 0.3) / gs.sqrt(5.)
+                                * gs.array([-2., 1., 0.]))
+        with_angle_close_2pi_low = ((2. * gs.pi - 1e-9) / gs.sqrt(6.)
                                     * gs.array([2., 1., -1]))
-        with_angle_2pi = 2 * gs.pi / gs.sqrt(3) * gs.array([1., 1., -1])
-        with_angle_close_2pi_high = ((2 * gs.pi + 1e-9) / gs.sqrt(2)
-                                     * gs.array([1., 0., -1]))
+        with_angle_2pi = 2. * gs.pi / gs.sqrt(3.) * gs.array([1., 1., -1.])
+        with_angle_close_2pi_high = ((2. * gs.pi + 1e-9) / gs.sqrt(2.)
+                                     * gs.array([1., 0., -1.]))
 
         elements = {
             3: {'with_angle_0': with_angle_0,
@@ -149,15 +149,14 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
             n_samples = self.n_samples
             mats = gs.random.rand(n_samples, n, n)
             result = group.projection(mats)
-            self.assertTrue(gs.allclose(result.shape,
-                                        (n_samples, n, n)))
+            self.assertTrue(result.shape == (n_samples, n, n))
 
     def test_skew_matrix_from_vector(self):
         # Specific to 3D case
         n = 3
         group = self.so[n]
         rot_vec = gs.random.rand(n)
-        result = group.skew_matrix_from_vector(rot_vec)
+        result = group.skew_matrix_from_vector(rot_vec)[0]
 
         self.assertTrue(gs.allclose(gs.dot(result, rot_vec), gs.zeros(n)))
 
@@ -186,23 +185,21 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
                 n_samples=n_samples, point_type=point_type)
             result = group.skew_matrix_from_vector(rot_vecs)
 
-            self.assertTrue(gs.allclose(result.shape,
-                                        (n_samples, n, n)))
+            self.assertTrue(result.shape == (n_samples, n, n))
 
     def test_random_and_belongs(self):
         for n in self.n_seq:
             group = self.so[n]
             point = group.random_uniform()
-            self.assertTrue(group.belongs(point),
-                            'n = {}\n'
-                            'point = {}'.format(n, point))
+            self.assertTrue(group.belongs(point)[0],
+                            'n = {}\npoint = {}'.format(n, point))
 
     def test_random_and_belongs_vectorization(self):
         n_samples = self.n_samples
         for n in self.n_seq:
             group = self.so[n]
             points = group.random_uniform(n_samples=n_samples)
-            self.assertTrue(gs.all(group.belongs(points)))
+            self.assertTrue(gs.all(group.belongs(points)[0]))
 
     def test_regularize(self):
         # Specific to 3D
@@ -211,7 +208,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
             if n == 3:
                 point = self.elements[3]['with_angle_0']
-                self.assertFalse(gs.linalg.norm(point) != 0)
+                self.assertTrue(gs.isclose(gs.linalg.norm(point), 0.))
                 result = group.regularize(point)
                 expected = point
                 self.assertTrue(gs.allclose(result, expected), '! angle 0 !')

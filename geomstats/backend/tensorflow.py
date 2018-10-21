@@ -132,7 +132,7 @@ def ndim(x):
 
 
 def dot(x, y):
-    return tf.reduce_sum(tf.multiply(x, y))
+    return tf.tensordot(x, y, 1)
 
 
 def maximum(x, y):

@@ -4,3 +4,4 @@ dist
 *.egg
 *.pyc
 *.png
+.idea
