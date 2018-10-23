@@ -191,7 +191,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         for n in self.n_seq:
             group = self.so[n]
             point = group.random_uniform()
-            self.assertTrue(group.belongs(point)[0],
+            self.assertTrue(group.belongs(point),
                             'n = {}\npoint = {}'.format(n, point))
 
     def test_random_and_belongs_vectorization(self):
@@ -199,7 +199,7 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         for n in self.n_seq:
             group = self.so[n]
             points = group.random_uniform(n_samples=n_samples)
-            self.assertTrue(gs.all(group.belongs(points)[0]))
+            self.assertTrue(gs.all(group.belongs(points)))
 
     def test_regularize(self):
         # Specific to 3D

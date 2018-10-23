@@ -85,7 +85,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
             _, vec_dim = point.shape
-            return [vec_dim == self.dimension]
+            return gs.array(vec_dim == self.dimension)
 
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
@@ -143,11 +143,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
                 regularized_point = gs.einsum(
                     'n,ni->ni', norms_ratio, regularized_point)
-            '''
-            else:
-                # TODO(nina): regularization needed in nD?
-                regularized_point = gs.copy(point)
-            '''
+
             assert gs.ndim(regularized_point) == 2
 
         elif point_type == 'matrix':
@@ -323,10 +319,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         vec = gs.to_ndarray(vec, to_ndim=2)
         n_vecs = vec.shape[0]
         vec_dim = gs.shape(vec)[1]
-
-        # TODO(nina): Change gs.cast function for elementary types
-        # vec_dim = gs.cast(gs.array([vec_dim]), gs.float32)[0]
-        # mat_dim = gs.cast(((1. + gs.sqrt(1. + 8. * vec_dim)) / 2.), gs.int32)
 
         if self.n == 2: # SO(2)
             id_skew = gs.array([[[0., 1.], [-1., 0.]]] * n_vecs)
