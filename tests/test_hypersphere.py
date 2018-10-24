@@ -35,6 +35,14 @@ class TestHypersphereMethods(unittest.TestCase):
 
         gs.testing.assert_allclose(belongs.shape, (1, 1))
 
+    def test_inner_product_matrix(self):
+        result = self.metric.inner_product_matrix()
+
+        expected = gs.eye(self.dimension + 1)
+        expected = helper.to_matrix(expected)
+
+        gs.testing.assert_allclose(result, expected)
+
     def test_random_uniform(self):
         point_bound = self.space.random_uniform()
         point_nobound = self.space.random_uniform(bound=None)

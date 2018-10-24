@@ -3,6 +3,8 @@ Manifold, i.e. a topological space that locally resembles
 Euclidean space near each point.
 """
 
+import math
+
 
 class Manifold(object):
     """
@@ -10,6 +12,11 @@ class Manifold(object):
     """
 
     def __init__(self, dimension):
+<<<<<<< 1622dc5173f84a9014ac936d097347507a0c8ed2
+=======
+        assert isinstance(dimension, int) or dimension == math.inf
+        assert dimension > 0
+>>>>>>> Rebase
         self.dimension = dimension
 
     def belongs(self, point):
