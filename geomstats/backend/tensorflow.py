@@ -132,7 +132,7 @@ def ndim(x):
 
 
 def dot(x, y):
-    return tf.reduce_sum(tf.multiply(x, y))
+    return tf.tensordot(x, y, axes=1)
 
 
 def maximum(x, y):
@@ -255,3 +255,7 @@ def diag(a):
 
 def cross(a, b):
     return tf.cross(a, b)
+
+
+def stack(*args, **kwargs):
+    return tf.stack(*args, **kwargs)

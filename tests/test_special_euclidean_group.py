@@ -43,26 +43,26 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         with_angle_0 = gs.zeros(6)
         with_angle_close_0 = (1e-10 * gs.array([1., -1., 1., 0., 0., 0.])
                               + gs.array([0., 0., 0., 1., 5., 2]))
-        with_angle_close_pi_low = ((gs.pi - 1e-9) / gs.sqrt(2)
-                                   * gs.array([0., 1., -1, 0., 0., 0.])
+        with_angle_close_pi_low = ((gs.pi - 1e-9) / gs.sqrt(2.)
+                                   * gs.array([0., 1., -1., 0., 0., 0.])
                                    + gs.array([0., 0., 0., -100., 0., 2.]))
-        with_angle_pi = (gs.pi / gs.sqrt(3)
-                         * gs.array([1., 1., -1, 0., 0., 0.])
+        with_angle_pi = (gs.pi / gs.sqrt(3.)
+                         * gs.array([1., 1., -1., 0., 0., 0.])
                          + gs.array([0., 0., 0., -10.2, 0., 2.6]))
-        with_angle_close_pi_high = ((gs.pi + 1e-9) / gs.sqrt(3)
-                                    * gs.array([-1., 1., -1, 0., 0., 0.])
+        with_angle_close_pi_high = ((gs.pi + 1e-9) / gs.sqrt(3.)
+                                    * gs.array([-1., 1., -1., 0., 0., 0.])
                                     + gs.array([0., 0., 0., -100., 0., 2.]))
-        with_angle_in_pi_2pi = ((gs.pi + 0.3) / gs.sqrt(5)
+        with_angle_in_pi_2pi = ((gs.pi + 0.3) / gs.sqrt(5.)
                                 * gs.array([-2., 1., 0., 0., 0., 0.])
                                 + gs.array([0., 0., 0., -100., 0., 2.]))
-        with_angle_close_2pi_low = ((2 * gs.pi - 1e-9) / gs.sqrt(6)
-                                    * gs.array([2., 1., -1, 0., 0., 0.])
+        with_angle_close_2pi_low = ((2 * gs.pi - 1e-9) / gs.sqrt(6.)
+                                    * gs.array([2., 1., -1., 0., 0., 0.])
                                     + gs.array([0., 0., 0., 8., 555., -2.]))
-        with_angle_2pi = (2 * gs.pi / gs.sqrt(3)
-                          * gs.array([1., 1., -1, 0., 0., 0.])
+        with_angle_2pi = (2. * gs.pi / gs.sqrt(3.)
+                          * gs.array([1., 1., -1., 0., 0., 0.])
                           + gs.array([0., 0., 0., 1., 8., -10.]))
-        with_angle_close_2pi_high = ((2 * gs.pi + 1e-9) / gs.sqrt(2)
-                                     * gs.array([1., 0., -1, 0., 0., 0.])
+        with_angle_close_2pi_high = ((2. * gs.pi + 1e-9) / gs.sqrt(2.)
+                                     * gs.array([1., 0., -1., 0., 0., 0.])
                                      + gs.array([0., 0., 0., 1., 8., -10.]))
 
         point_1 = gs.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
@@ -89,9 +89,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                     'rot_with_parallel_trans': rot_with_parallel_trans}
 
         # Metrics - only diagonals
-        diag_mat_at_identity = gs.zeros([group.dimension, group.dimension])
-        diag_mat_at_identity[0:3, 0:3] = 2 * gs.eye(3)
-        diag_mat_at_identity[3:6, 3:6] = 3 * gs.eye(3)
+        diag_mat_at_identity = gs.eye(6) * gs.array([2., 2., 2., 3., 3., 3.])
 
         left_diag_metric = InvariantMetric(
                    group=group,
@@ -744,8 +742,8 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         # General case
         tangent_rot_vec = gs.array([1., 1., 1.])  # NB: Regularized
         tangent_translation = gs.array([1., 0., -3.])
-        tangent_vec = gs.concatenate([tangent_rot_vec,
-                                      tangent_translation])
+        tangent_vec = gs.concatenate((tangent_rot_vec,
+                                      tangent_translation))
         result = metric.exp_from_identity(tangent_vec)
         expected = tangent_vec
         expected = helper.to_vector(expected)

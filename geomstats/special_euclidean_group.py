@@ -194,6 +194,12 @@ class SpecialEuclideanGroup(LieGroup):
                     or n_points_1 == 1
                     or n_points_2 == 1)
 
+            if n_points_1 == 1:
+                point_1 = gs.stack([point_1[0]] * n_points_2)
+
+            if n_points_2 == 1:
+                point_2 = gs.stack([point_2[0]] * n_points_1)
+
             rot_vec_1 = point_1[:, :dim_rotations]
             rot_mat_1 = rotations.matrix_from_rotation_vector(rot_vec_1)
             rot_mat_1 = rotations.projection(rot_mat_1)
@@ -205,25 +211,15 @@ class SpecialEuclideanGroup(LieGroup):
             translation_1 = point_1[:, dim_rotations:]
             translation_2 = point_2[:, dim_rotations:]
 
-            n_compositions = gs.maximum(n_points_1, n_points_2)
             composition_rot_mat = gs.matmul(rot_mat_1, rot_mat_2)
             composition_rot_vec = rotations.rotation_vector_from_matrix(
                                                           composition_rot_mat)
-            composition_translation = gs.zeros((n_compositions, self.n))
-            for i in range(n_compositions):
-                translation_1_i = (translation_1[0] if n_points_1 == 1
-                                   else translation_1[i])
-                rot_mat_1_i = (rot_mat_1[0] if n_points_1 == 1
-                               else rot_mat_1[i])
-                translation_2_i = (translation_2[0] if n_points_2 == 1
-                                   else translation_2[i])
-                composition_translation[i] = (gs.dot(translation_2_i,
-                                                     gs.transpose(rot_mat_1_i))
-                                              + translation_1_i)
 
-            composition = gs.zeros((n_compositions, self.dimension))
-            composition[:, :dim_rotations] = composition_rot_vec
-            composition[:, dim_rotations:] = composition_translation
+            composition_translation = gs.einsum('ij,ikj->ik', translation_2,
+                                                rot_mat_1) + translation_1
+
+            composition = gs.concatenate((composition_rot_vec,
+                                          composition_translation), axis=1)
 
         elif point_type == 'matrix':
             raise NotImplementedError()
