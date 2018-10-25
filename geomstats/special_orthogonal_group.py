@@ -85,7 +85,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
             _, vec_dim = point.shape
-            return gs.array(vec_dim == self.dimension)
+            return vec_dim == self.dimension
 
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
