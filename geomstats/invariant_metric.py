@@ -60,7 +60,7 @@ class InvariantMetric(RiemannianMetric):
             n_tangent_vec_a = tangent_vec_a.shape[0]
             n_tangent_vec_b = tangent_vec_b.shape[0]
 
-            assert (tangent_vec_a.shape == tangent_vec_a.shape
+            assert (tangent_vec_a.shape == tangent_vec_b.shape
                     or n_tangent_vec_a == 1
                     or n_tangent_vec_b == 1)
 

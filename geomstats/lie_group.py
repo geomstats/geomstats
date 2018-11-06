@@ -146,7 +146,6 @@ class LieGroup(Manifold):
             point_type = self.default_point_type
 
         identity = self.get_identity(point_type=point_type)
-        #identity = self.regularize(identity, point_type=point_type)
         if base_point is None:
             base_point = identity
 
