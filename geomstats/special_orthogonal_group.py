@@ -232,11 +232,14 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 if metric is None:
                     metric = self.left_canonical_metric
                 base_point = self.regularize(base_point, point_type)
+                # TODO: what is the output of this function with N base_points?
+                n_vecs = tangent_vec.shape[0]
 
                 jacobian = self.jacobian_translation(
                               point=base_point,
                               left_or_right=metric.left_or_right,
                               point_type=point_type)
+                jacobian = gs.array([jacobian[0]] * n_vecs)
                 inv_jacobian = gs.linalg.inv(jacobian)
                 tangent_vec_at_id = gs.einsum(
                         'ni,nij->nj',
@@ -1133,6 +1136,19 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         if point_type == 'vector':
             point_1 = self.matrix_from_rotation_vector(point_1)
             point_2 = self.matrix_from_rotation_vector(point_2)
+
+        n_points_1 = point_1.shape[0]
+        n_points_2 = point_2.shape[0]
+
+        assert (point_1.shape == point_2.shape
+                or n_points_1 == 1
+                or n_points_2 == 1)
+
+        if n_points_1 == 1:
+            point_1 = gs.stack([point_1[0]] * n_points_2)
+
+        if n_points_2 == 1:
+            point_2 = gs.stack([point_2[0]] * n_points_1)
 
         point_prod = gs.einsum('ijk,ikl->ijl', point_1, point_2)
 

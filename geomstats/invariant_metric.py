@@ -57,9 +57,16 @@ class InvariantMetric(RiemannianMetric):
             tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
             tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
 
+            n_vecs_a = tangent_vec_a.shape[0]
+            n_vecs_b = tangent_vec_b.shape[0]
+            assert n_vecs_a == n_vecs_b
+
+            inner_product_mat_at_identity = gs.array(
+                [self.inner_product_mat_at_identity[0]] * n_vecs_a)
+
             inner_prod = gs.einsum('ij,ijk,ik->i',
                                    tangent_vec_a,
-                                   self.inner_product_mat_at_identity,
+                                   inner_product_mat_at_identity,
                                    tangent_vec_b)
 
             inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
@@ -121,9 +128,9 @@ class InvariantMetric(RiemannianMetric):
         inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = gs.transpose(inv_jacobian, axes=(0, 2, 1))
 
-        inner_product_mat_at_id = self.inner_product_mat_at_identity
-        inner_product_mat_at_id = gs.to_ndarray(
-            inner_product_mat_at_id, to_ndim=3)
+        n_base_points = base_point.shape[0]
+        inner_product_mat_at_id = gs.array(
+            [self.inner_product_mat_at_identity[0]] * n_base_points)
 
         metric_mat = gs.matmul(inv_jacobian_transposed,
                                inner_product_mat_at_id)
