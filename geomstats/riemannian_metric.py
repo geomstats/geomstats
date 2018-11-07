@@ -31,7 +31,10 @@ def grad(y_pred, y_true, metric):
 
     inner_prod_mat = metric.inner_product_matrix(base_point=y_pred)
 
-    grad = gs.dot(grad_vec, gs.transpose(inner_prod_mat, axes=(0, 2, 1)))
+    grad = gs.einsum('ni,nij->ni',
+                     grad_vec,
+                     gs.transpose(inner_prod_mat, axes=(0, 2, 1)))
+
     return grad
 
 

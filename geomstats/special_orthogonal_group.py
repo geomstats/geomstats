@@ -686,15 +686,17 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         half_angle = gs.to_ndarray(half_angle, to_ndim=2, axis=1)
         assert half_angle.shape == (n_quaternions, 1)
 
-        rot_vec = gs.zeros_like(quaternion[:, 1:])
-
         mask_0 = gs.isclose(half_angle, 0.)
         mask_0 = gs.squeeze(mask_0, axis=1)
         mask_not_0 = ~mask_0
-        rotation_axis = (quaternion[mask_not_0, 1:]
-                         / gs.sin(half_angle[mask_not_0]))
-        rot_vec[mask_not_0] = (2 * half_angle[mask_not_0]
-                               * rotation_axis)
+
+        rotation_axis = gs.divide(quaternion[:, 1:],
+                                  gs.sin(half_angle) *
+                                  gs.cast(mask_0, gs.float32) +
+                                  gs.cast(mask_not_0, gs.float32))
+        rot_vec = gs.array(2 * half_angle *
+                           rotation_axis *
+                           gs.cast(mask_not_0, gs.float32))
 
         rot_vec = self.regularize(rot_vec, point_type='vector')
         return rot_vec
