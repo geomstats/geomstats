@@ -656,17 +656,16 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         angle = gs.linalg.norm(rot_vec, axis=1)
         angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
-        rotation_axis = gs.zeros_like(rot_vec)
-
         mask_0 = gs.isclose(angle, 0.)
-        mask_0 = gs.squeeze(mask_0, axis=1)
         mask_not_0 = ~mask_0
-        rotation_axis[mask_not_0] = rot_vec[mask_not_0] / angle[mask_not_0]
 
-        n_quaternions, _ = rot_vec.shape
-        quaternion = gs.zeros((n_quaternions, 4))
-        quaternion[:, :1] = gs.cos(angle / 2)
-        quaternion[:, 1:] = gs.sin(angle / 2) * rotation_axis[:]
+        rotation_axis = gs.divide(rot_vec,
+                                  angle *
+                                  gs.cast(mask_not_0, gs.float32) +
+                                  gs.cast(mask_0, gs.float32))
+
+        quaternion = gs.concatenate((gs.cos(angle / 2),
+                        gs.sin(angle / 2) * rotation_axis[:]), axis=1)
 
         return quaternion
 
@@ -687,13 +686,12 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         assert half_angle.shape == (n_quaternions, 1)
 
         mask_0 = gs.isclose(half_angle, 0.)
-        mask_0 = gs.squeeze(mask_0, axis=1)
         mask_not_0 = ~mask_0
 
         rotation_axis = gs.divide(quaternion[:, 1:],
                                   gs.sin(half_angle) *
-                                  gs.cast(mask_0, gs.float32) +
-                                  gs.cast(mask_not_0, gs.float32))
+                                  gs.cast(mask_not_0, gs.float32) +
+                                  gs.cast(mask_0, gs.float32))
         rot_vec = gs.array(2 * half_angle *
                            rotation_axis *
                            gs.cast(mask_not_0, gs.float32))
