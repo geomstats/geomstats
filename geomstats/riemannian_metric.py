@@ -2,6 +2,8 @@
 Riemannian and pseudo-Riemannian metrics.
 """
 
+import math
+
 import geomstats.backend as gs
 
 
@@ -40,7 +42,8 @@ class RiemannianMetric(object):
     Class for Riemannian and pseudo-Riemannian metrics.
     """
     def __init__(self, dimension, signature=None):
-        assert isinstance(dimension, int) and dimension > 0
+        assert isinstance(dimension, int) or dimension == math.inf
+        assert dimension > 0
         self.dimension = dimension
         self.signature = signature
 
