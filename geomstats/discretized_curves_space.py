@@ -54,9 +54,7 @@ class L2Metric(RiemannianMetric):
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
         base_curve = gs.to_ndarray(base_curve, to_ndim=3)
 
-        n_curves = tangent_vec_a.shape[0]
-        n_sampling_points = tangent_vec_a.shape[1]
-        n_coords = tangent_vec_a.shape[2]
+        n_curves, n_sampling_points, n_coords = tangent_vec_a.shape
 
         new_dim = n_curves * n_sampling_points
         tangent_vec_a = tangent_vec_a.reshape(new_dim, n_coords)
@@ -78,9 +76,7 @@ class L2Metric(RiemannianMetric):
         curve_a = gs.to_ndarray(curve_a, to_ndim=3)
         curve_b = gs.to_ndarray(curve_b, to_ndim=3)
 
-        n_curves = curve_a.shape[0]
-        n_sampling_points = curve_a.shape[1]
-        n_coords = curve_a.shape[2]
+        n_curves, n_sampling_points, n_coords = curve_a.shape
 
         curve_a = curve_a.reshape(n_curves * n_sampling_points, n_coords)
         curve_b = curve_b.reshape(n_curves * n_sampling_points, n_coords)
@@ -98,9 +94,7 @@ class L2Metric(RiemannianMetric):
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         base_curve = gs.to_ndarray(base_curve, to_ndim=3)
 
-        n_curves = base_curve.shape[0]
-        n_sampling_points = base_curve.shape[1]
-        n_coords = base_curve.shape[2]
+        n_curves, n_sampling_points, n_coords = base_curve.shape
         n_tangent_vecs = tangent_vec.shape[0]
 
         new_dim = n_curves * n_sampling_points
@@ -121,9 +115,7 @@ class L2Metric(RiemannianMetric):
         curve = gs.to_ndarray(curve, to_ndim=3)
         base_curve = gs.to_ndarray(base_curve, to_ndim=3)
 
-        n_curves = curve.shape[0]
-        n_sampling_points = curve.shape[1]
-        n_coords = curve.shape[2]
+        n_curves, n_sampling_points, n_coords = curve.shape
 
         curve = curve.reshape(n_curves * n_sampling_points, n_coords)
         base_curve = base_curve.reshape(n_curves * n_sampling_points, n_coords)
@@ -230,17 +222,20 @@ class SRVMetric(RiemannianMetric):
     def square_root_velocity(self, curve):
         """
         Compute the square root velocity representation of a curve.
+
+        The velocity is computed using the log map. The case of several curves
+        is handled through vectorization. In that case, an index selection
+        procedure allows to get rid of the log between the end point of
+        curve[k, :, :] and the starting point of curve[k + 1, :, :].
         """
         srv_shape = gs.array(curve.shape)
         srv_shape[-2] -= 1
 
         curve = gs.to_ndarray(curve, to_ndim=3)
-        n_curves = curve.shape[0]
-        n_sampling_points = curve.shape[1]
-        n_coords = curve.shape[2]
+        n_curves, n_sampling_points, n_coords = curve.shape
 
         curve = curve.reshape(n_curves * n_sampling_points, n_coords)
-        velocity = n_sampling_points * self.embedding_metric.log(
+        velocity = (n_sampling_points - 1) * self.embedding_metric.log(
                 point=curve[1:, :], base_point=curve[:-1, :])
         velocity_norm = self.embedding_metric.norm(velocity, curve[:-1, :])
         assert gs.all(velocity_norm != 0)
@@ -267,13 +262,11 @@ class SRVMetric(RiemannianMetric):
                     )
         srv_shape = srv.shape
         srv = gs.to_ndarray(srv, to_ndim=3)
-        n_curves = srv.shape[0]
-        n_sampling_points = srv.shape[1] + 1
-        n_coords = srv.shape[2]
+        n_curves, n_sampling_points_minus_one, n_coords = srv.shape
 
-        srv = srv.reshape(n_curves * (n_sampling_points - 1), n_coords)
+        srv = srv.reshape(n_curves * n_sampling_points_minus_one, n_coords)
         srv_norm = self.embedding_metric.norm(srv)
-        delta_points = 1 / n_sampling_points * srv_norm * srv
+        delta_points = 1 / n_sampling_points_minus_one * srv_norm * srv
         delta_points = delta_points.reshape(srv_shape)
         curve = np.concatenate((starting_point, delta_points), -2)
         curve = np.cumsum(curve, -2)
@@ -294,23 +287,22 @@ class SRVMetric(RiemannianMetric):
 
         base_curve_srv = self.square_root_velocity(base_curve)
 
-        tangent_vec_derivative = n_sampling_points * (
+        tangent_vec_derivative = (n_sampling_points - 1) * (
                 tangent_vec[:, 1:, :] - tangent_vec[:, :-1, :])
-        base_curve_velocity = n_sampling_points * (
+        base_curve_velocity = (n_sampling_points - 1) * (
                 base_curve[:, 1:, :] - base_curve[:, :-1, :])
-        base_curve_velocity_norm = self.pointwise_norm(base_curve_velocity,
-                                                       base_curve[:, :-1, :])
+        base_curve_velocity_norm = self.pointwise_norm(
+                base_curve_velocity, base_curve[:, :-1, :])
 
+        inner_prod = self.pointwise_inner_product(tangent_vec_derivative,
+                                                  base_curve_velocity,
+                                                  base_curve[:, :-1, :])
         coef_1 = 1 / gs.sqrt(base_curve_velocity_norm)
-        coef_2 = - 1 / (2 * base_curve_velocity_norm ** (5/2)) * \
-            self.pointwise_inner_product(tangent_vec_derivative,
-                                         base_curve_velocity,
-                                         base_curve[:, :-1, :])
-        srv_initial_derivative = gs.transpose(coef_1) * \
-            gs.transpose(tangent_vec_derivative, (2, 1, 0)) + \
-            gs.transpose(coef_2) * gs.transpose(base_curve_velocity, (2, 1, 0))
-        srv_initial_derivative = gs.transpose(srv_initial_derivative,
-                                              (2, 1, 0))
+        coef_2 = - 1 / (2 * base_curve_velocity_norm ** (5/2)) * inner_prod
+
+        term_1 = gs.einsum('ij,ijk->ijk', coef_1, tangent_vec_derivative)
+        term_2 = gs.einsum('ij,ijk->ijk', coef_2, base_curve_velocity)
+        srv_initial_derivative = term_1 + term_2
 
         end_curve_srv = self.l2_metric.exp(tangent_vec=srv_initial_derivative,
                                            base_curve=base_curve_srv)
@@ -332,34 +324,34 @@ class SRVMetric(RiemannianMetric):
                                  'Euclidean space.')
         curve = gs.to_ndarray(curve, to_ndim=3)
         base_curve = gs.to_ndarray(base_curve, to_ndim=3)
-        n_curves = curve.shape[0]
-        n_sampling_points = curve.shape[1]
-        n_coords = curve.shape[2]
+        n_curves, n_sampling_points, n_coords = curve.shape
 
         curve_srv = self.square_root_velocity(curve)
         base_curve_srv = self.square_root_velocity(base_curve)
 
-        base_curve_velocity = n_sampling_points * (
+        base_curve_velocity = (n_sampling_points - 1) * (
                 base_curve[:, 1:, :] - base_curve[:, :-1, :])
-        base_curve_velocity_norm = self.pointwise_norm(base_curve_velocity,
-                                                       base_curve[:, :-1, :])
+        base_curve_velocity_norm = self.pointwise_norm(
+                base_curve_velocity, base_curve[:, :-1, :])
 
+        inner_prod = self.pointwise_inner_product(curve_srv - base_curve_srv,
+                                                  base_curve_velocity,
+                                                  base_curve[:, :-1, :])
         coef_1 = gs.sqrt(base_curve_velocity_norm)
-        coef_2 = 1 / base_curve_velocity_norm ** (3/2) * \
-            self.pointwise_inner_product(curve_srv - base_curve_srv,
-                                         base_curve_velocity,
-                                         base_curve[:, :-1, :])
-        log_derivative = gs.transpose(coef_1) * \
-            gs.transpose(curve_srv - base_curve_srv, (2, 1, 0)) + \
-            gs.transpose(coef_2) * gs.transpose(base_curve_velocity, (2, 1, 0))
-        log_derivative = gs.transpose(log_derivative, (2, 1, 0))
-        log_0 = self.embedding_metric.log(point=curve[:, 0, :],
-                                          base_point=base_curve[:, 0, :])
-        log_0 = gs.transpose(np.tile(log_0, (1, 1, 1)), (1, 0, 2))
+        coef_2 = 1 / base_curve_velocity_norm ** (3/2) * inner_prod
+
+        term_1 = gs.einsum('ij,ijk->ijk', coef_1, curve_srv - base_curve_srv)
+        term_2 = gs.einsum('ij,ijk->ijk', coef_2, base_curve_velocity)
+        log_derivative = term_1 + term_2
+
+        log_starting_points = self.embedding_metric.log(
+                point=curve[:, 0, :], base_point=base_curve[:, 0, :])
+        log_starting_points = gs.transpose(
+                np.tile(log_starting_points, (1, 1, 1)), (1, 0, 2))
 
         log_cumsum = gs.hstack([gs.zeros((n_curves, 1, n_coords)),
                                 np.cumsum(log_derivative, -2)])
-        log = log_0 + 1 / n_sampling_points * log_cumsum
+        log = log_starting_points + 1 / (n_sampling_points - 1) * log_cumsum
 
         return log
 
