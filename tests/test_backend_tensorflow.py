@@ -41,7 +41,6 @@ class TestBackendTensorFlow(tf.test.TestCase):
             tensor_2 = gs.ones((0, 1))
 
             result = tensor_1 + tensor_2
-            print(result)
 
 
 if __name__ == '__main__':
