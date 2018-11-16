@@ -51,8 +51,8 @@ class TestExamples(unittest.TestCase):
         plot_geodesics_so3.main()
 
     # TODO(nina): this test fails
-    # def test_plot_grid_h2(self):
-    #    plot_grid_h2.main()
+    def test_plot_grid_h2(self):
+       plot_grid_h2.main()
 
     def test_plot_square_h2_square_poincare_disk(self):
         plot_square_h2_poincare_disk.main()
@@ -64,8 +64,8 @@ class TestExamples(unittest.TestCase):
         plot_square_h2_klein_disk.main()
 
     # TODO(johmathe): this test fails
-    # def test_gradient_descent_s2(self):
-    #     gradient_descent_s2.main()
+    def test_gradient_descent_s2(self):
+        gradient_descent_s2.main()
 
     def test_tangent_pca_so3(self):
         tangent_pca_so3.main()
