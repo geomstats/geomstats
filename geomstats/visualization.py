@@ -26,6 +26,7 @@ IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'S1', 'S2',
 
 # TODO(nina): Clean-up OOP of this module
 
+
 class Arrow3D():
     "An arrow in 3d, i.e. a point and a vector."
     def __init__(self, point, vector):
@@ -117,6 +118,19 @@ class Sphere():
         if points is not None:
             self.add_points(points)
 
+    def set_ax(self, ax=None):
+        if ax is None:
+            ax = plt.subplot(111, projection='3d')
+
+        ax_s = AX_SCALE
+        plt.setp(ax,
+                 xlim=(-ax_s, ax_s),
+                 ylim=(-ax_s, ax_s),
+                 zlim=(-ax_s, ax_s),
+                 xlabel='X', ylabel='Y', zlabel='Z')
+        ax.set_aspect('equal')
+        return ax
+
     def add_points(self, points):
         assert gs.all(S2.belongs(points))
         if not isinstance(points, list):
@@ -193,6 +207,17 @@ class PoincareDisk():
         if points is not None:
             self.add_points(points)
 
+    def set_ax(self, ax=None):
+        if ax is None:
+            ax = plt.subplot()
+        ax_s = AX_SCALE
+        plt.setp(ax,
+                 xlim=(-ax_s, ax_s),
+                 ylim=(-ax_s, ax_s),
+                 xlabel='X', ylabel='Y')
+        ax.set_aspect('equal')
+        return ax
+
     def add_points(self, points):
         assert gs.all(H2.belongs(points))
         points = self.convert_to_poincare_coordinates(points)
@@ -225,6 +250,16 @@ class PoincareHalfPlane():
             points = points.tolist()
         self.points.extend(points)
 
+    def set_ax(self, ax=None):
+        if ax is None:
+            ax = plt.subplot()
+        ax_s = AX_SCALE
+        plt.setp(ax,
+                 xlim=(-ax_s, ax_s),
+                 ylim=(0., ax_s),
+                 xlabel='X', ylabel='Y')
+        return ax
+
     def convert_to_half_plane_coordinates(self, points):
         disk_coords = points[:, 1:] / (1 + points[:, :1])
         disk_x = disk_coords[:, 0]
@@ -249,6 +284,17 @@ class KleinDisk():
         self.points = []
         if points is not None:
             self.add_points(points)
+
+    def set_ax(self, ax=None):
+        if ax is None:
+            ax = plt.subplot()
+        ax_s = AX_SCALE
+        plt.setp(ax,
+                 xlim=(-ax_s, ax_s),
+                 ylim=(-ax_s, ax_s),
+                 xlabel='X', ylabel='Y')
+        ax.set_aspect('equal')
+        return ax
 
     def add_points(self, points):
         assert gs.all(H2.belongs(points))
@@ -339,37 +385,19 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
 
     points = vectorization.to_ndarray(points, to_ndim=2)
 
-    if ax is None:
+    if space in ('SO3_GROUP', 'SE3_GROUP'):
+        if ax is None:
+            ax = plt.subplot(111, projection='3d')
         if space == 'SE3_GROUP':
             ax_s = AX_SCALE * gs.amax(gs.abs(points[:, 3:6]))
         elif space == 'SO3_GROUP':
             ax_s = AX_SCALE * gs.amax(gs.abs(points[:, :3]))
-        else:
-            ax_s = AX_SCALE
-
-        if (space == 'H2_poincare_disk') or (space == 'H2_klein_disk'):
-            ax = plt.subplot(aspect='equal')
-            plt.setp(ax,
-                     xlim=(-ax_s, ax_s),
-                     ylim=(-ax_s, ax_s),
-                     xlabel='X', ylabel='Y')
-
-        elif space == 'H2_poincare_half_plane':
-            ax = plt.subplot(aspect='equal')
-            plt.setp(ax,
-                     xlim=(-ax_s, ax_s),
-                     ylim=(0., ax_s),
-                     xlabel='X', ylabel='Y')
-        elif space in ('S2', 'SO3_GROUP', 'SE3_GROUP'):
-            # The 3d projection needs the Axes3d module import.
-            ax = plt.subplot(111, projection='3d', aspect='equal')
-            plt.setp(ax,
-                     xlim=(-ax_s, ax_s),
-                     ylim=(-ax_s, ax_s),
-                     zlim=(-ax_s, ax_s),
-                     xlabel='X', ylabel='Y', zlabel='Z')
-
-    if space in ('SO3_GROUP', 'SE3_GROUP'):
+        plt.setp(ax,
+                 xlim=(-ax_s, ax_s),
+                 ylim=(-ax_s, ax_s),
+                 zlim=(-ax_s, ax_s),
+                 xlabel='X', ylabel='Y', zlabel='Z')
+        ax.set_aspect('equal')
         trihedrons = convert_to_trihedron(points, space=space)
         for t in trihedrons:
             t.draw(ax, **point_draw_kwargs)
@@ -386,16 +414,19 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
 
     elif space == 'H2_poincare_disk':
         poincare_disk = PoincareDisk()
+        poincare_disk.set_ax(ax=ax)
         poincare_disk.add_points(points)
         poincare_disk.draw(ax, **point_draw_kwargs)
 
     elif space == 'H2_poincare_half_plane':
         poincare_half_plane = PoincareHalfPlane()
+        poincare_half_plane.set_ax(ax=ax)
         poincare_half_plane.add_points(points)
         poincare_half_plane.draw(ax, **point_draw_kwargs)
 
     elif space == 'H2_klein_disk':
         klein_disk = KleinDisk()
+        klein_disk.set_ax(ax=ax)
         klein_disk.add_points(points)
         klein_disk.draw(ax, **point_draw_kwargs)
 
