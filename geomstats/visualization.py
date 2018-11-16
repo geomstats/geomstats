@@ -57,9 +57,9 @@ class Trihedron():
             self.arrow_2.draw(ax, **arrow_draw_kwargs)
             self.arrow_3.draw(ax, **arrow_draw_kwargs)
         else:
-            self.arrow_1.draw(ax, color='g', **arrow_draw_kwargs)
-            self.arrow_2.draw(ax, color='r', **arrow_draw_kwargs)
-            self.arrow_3.draw(ax, color='b', **arrow_draw_kwargs)
+            self.arrow_1.draw(ax, color='#1f77b4', **arrow_draw_kwargs)
+            self.arrow_2.draw(ax, color='#ff7f0e', **arrow_draw_kwargs)
+            self.arrow_3.draw(ax, color='#2ca02c', **arrow_draw_kwargs)
 
 
 class Circle():

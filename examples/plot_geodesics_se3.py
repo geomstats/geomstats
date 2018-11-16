@@ -20,14 +20,14 @@ def main():
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                initial_tangent_vec=initial_tangent_vec)
 
-    n_steps = 10
-    t = np.linspace(0, 1, n_steps)
+    n_steps = 40
+    t = np.linspace(0, 5, n_steps)
 
     points = geodesic(t)
     ax = plt.subplot(111, projection="3d", aspect="equal")
-    plt.setp(ax,
-             xlim=(-1, 4), ylim=(-1, 4), zlim=(-1, 2),
-             xlabel="X", ylabel="Y", zlabel="Z")
+    plt.setp(ax, xlim=(-1, 18), ylim=(-1, 18), zlim=(-1, 5),
+             xlabel='X', ylabel='Y', zlabel='Z')
+    ax.tick_params(axis='both', labelsize=7)
 
     visualization.plot(points, ax, space='SE3_GROUP')
     plt.show()
