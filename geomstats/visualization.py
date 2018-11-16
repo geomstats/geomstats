@@ -72,6 +72,17 @@ class Circle():
         if points is not None:
             self.add_points(points)
 
+    def set_ax(self, ax=None):
+        if ax is None:
+            ax = plt.subplot()
+        ax_s = AX_SCALE
+        plt.setp(ax,
+                 xlim=(-ax_s, ax_s),
+                 ylim=(-ax_s, ax_s),
+                 xlabel='X', ylabel='Y')
+        ax.set_aspect('equal')
+        return ax
+
     def add_points(self, points):
         assert gs.all(S1.belongs(points))
         if not isinstance(points, list):
@@ -404,29 +415,31 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
 
     elif space == 'S1':
         circle = Circle()
+        ax = circle.set_ax(ax=ax)
         circle.add_points(points)
         circle.draw(**point_draw_kwargs)
 
     elif space == 'S2':
         sphere = Sphere()
+        ax = sphere.set_ax(ax=ax)
         sphere.add_points(points)
         sphere.draw(ax, **point_draw_kwargs)
 
     elif space == 'H2_poincare_disk':
         poincare_disk = PoincareDisk()
-        poincare_disk.set_ax(ax=ax)
+        ax = poincare_disk.set_ax(ax=ax)
         poincare_disk.add_points(points)
         poincare_disk.draw(ax, **point_draw_kwargs)
 
     elif space == 'H2_poincare_half_plane':
         poincare_half_plane = PoincareHalfPlane()
-        poincare_half_plane.set_ax(ax=ax)
+        ax = poincare_half_plane.set_ax(ax=ax)
         poincare_half_plane.add_points(points)
         poincare_half_plane.draw(ax, **point_draw_kwargs)
 
     elif space == 'H2_klein_disk':
         klein_disk = KleinDisk()
-        klein_disk.set_ax(ax=ax)
+        ax = klein_disk.set_ax(ax=ax)
         klein_disk.add_points(points)
         klein_disk.draw(ax, **point_draw_kwargs)
 
