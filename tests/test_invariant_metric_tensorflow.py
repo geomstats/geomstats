@@ -75,6 +75,7 @@ class TestInvariantMetricMethodsTensorFlow(tf.test.TestCase):
     def setUpClass(cls):
         #tf.enable_eager_execution()
         os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
         importlib.reload(gs)
 
     @classmethod
