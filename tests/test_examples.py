@@ -2,8 +2,10 @@
 Unit tests for the examples.
 """
 
+import os
 import matplotlib
 matplotlib.use('Agg')  # NOQA
+import sys
 import unittest
 
 import examples.gradient_descent_s2 as gradient_descent_s2
@@ -22,6 +24,10 @@ import examples.tangent_pca_so3 as tangent_pca_so3
 
 class TestExamples(unittest.TestCase):
     _multiprocess_can_split_ = True
+
+    @classmethod
+    def setUpClass(cls):
+        sys.stdout = open(os.devnull, 'w')
 
     def test_gradient_descent_s2(self):
         gradient_descent_s2.main(max_iter=32, output_file=None)

@@ -28,6 +28,7 @@ class TestGeneralLinearGroupMethods(unittest.TestCase):
         A rotation matrix belongs to the matrix Lie group
         of invertible matrices.
         """
+        print('test')
         rot_vec = self.so3_group.random_uniform()
         rot_mat = self.so3_group.matrix_from_rotation_vector(rot_vec)
 
