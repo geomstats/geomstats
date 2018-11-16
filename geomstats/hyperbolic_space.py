@@ -258,9 +258,6 @@ class HyperbolicMetric(RiemannianMetric):
         """
         Geodesic distance between two points.
         """
-        if gs.allclose(point_a, point_b) == True:
-            return 0.
-
         sq_norm_a = self.embedding_metric.squared_norm(point_a)
         sq_norm_b = self.embedding_metric.squared_norm(point_b)
         inner_prod = self.embedding_metric.inner_product(point_a, point_b)
