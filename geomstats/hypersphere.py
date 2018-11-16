@@ -178,12 +178,14 @@ class HypersphereMetric(RiemannianMetric):
         self.signature = (dimension, 0, 0)
         self.embedding_metric = EuclideanMetric(dimension + 1)
 
-    def inner_product_matrix(self, base_point=None):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """
-        Inner product matrix.
+        Inner product.
         """
-        mat = self.embedding_metric.inner_product_matrix(base_point)
-        return mat
+        inner_prod = self.embedding_metric.inner_product(
+                tangent_vec_a, tangent_vec_b, base_point)
+
+        return inner_prod
 
     def squared_norm(self, vector, base_point=None):
         """
