@@ -5,6 +5,7 @@ Unit tests for the examples.
 import os
 import matplotlib
 matplotlib.use('Agg')  # NOQA
+import matplotlib.pyplot as plt
 import sys
 import unittest
 
@@ -28,6 +29,9 @@ class TestExamples(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         sys.stdout = open(os.devnull, 'w')
+
+    def setUp(self):
+        plt.figure()
 
     def test_gradient_descent_s2(self):
         gradient_descent_s2.main(max_iter=32, output_file=None)
