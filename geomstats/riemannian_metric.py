@@ -2,6 +2,8 @@
 Riemannian and pseudo-Riemannian metrics.
 """
 
+import math
+
 import geomstats.backend as gs
 
 
@@ -40,7 +42,8 @@ class RiemannianMetric(object):
     Class for Riemannian and pseudo-Riemannian metrics.
     """
     def __init__(self, dimension, signature=None):
-        assert isinstance(dimension, int) and dimension > 0
+        assert isinstance(dimension, int) or dimension == math.inf
+        assert dimension > 0
         self.dimension = dimension
         self.signature = signature
 
@@ -342,9 +345,9 @@ class RiemannianMetric(object):
         return closest_neighbor_index
 
     def optimal_quantization(self, points, n_centers=N_CENTERS,
-                                n_repetitions=N_REPETITIONS,
-                                tolerance=TOLERANCE,
-                                n_max_iterations=N_MAX_ITERATIONS):
+                             n_repetitions=N_REPETITIONS,
+                             tolerance=TOLERANCE,
+                             n_max_iterations=N_MAX_ITERATIONS):
         """
         Compute the optimal approximation of points by a smaller number
         of weighted centers using the Competitive Learning Riemannian
