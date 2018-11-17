@@ -89,19 +89,19 @@ class Circle():
             points = points.tolist()
         self.points.extend(points)
 
-    def draw(self, **plot_kwargs):
-        plt.plot(self.circle_x, self.circle_y, color="black")
+    def draw(self, ax, **plot_kwargs):
+        ax.plot(self.circle_x, self.circle_y, color="black")
         if self.points:
-            self.draw_points(**plot_kwargs)
+            self.draw_points(ax, **plot_kwargs)
 
-    def draw_points(self, points=None, **plot_kwargs):
+    def draw_points(self, ax, points=None, **plot_kwargs):
         if points is None:
             points = self.points
         else:
             points = points
         points = gs.array(points)
-        plt.plot(points[:, 0], points[:, 1], marker='o', linestyle="None",
-                 **plot_kwargs)
+        ax.plot(points[:, 0], points[:, 1], marker='o', linestyle="None",
+                **plot_kwargs)
 
 
 class Sphere():
@@ -417,7 +417,7 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
         circle = Circle()
         ax = circle.set_ax(ax=ax)
         circle.add_points(points)
-        circle.draw(**point_draw_kwargs)
+        circle.draw(ax, **point_draw_kwargs)
 
     elif space == 'S2':
         sphere = Sphere()

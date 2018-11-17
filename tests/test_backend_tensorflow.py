@@ -24,7 +24,6 @@ class TestBackendTensorFlow(tf.test.TestCase):
         importlib.reload(gs)
 
     def test_vstack(self):
-        print('test before')
         with self.test_session():
             tensor_1 = tf.convert_to_tensor([[1., 2., 3.], [4., 5., 6.]])
             tensor_2 = tf.convert_to_tensor([[7., 8., 9.]])

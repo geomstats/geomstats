@@ -14,8 +14,6 @@ from geomstats.special_euclidean_group import SpecialEuclideanGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
 
-# TODO(nina): add tests for examples
-
 class TestVisualizationMethods(unittest.TestCase):
     _multiprocess_can_split_ = True
 
@@ -36,6 +34,7 @@ class TestVisualizationMethods(unittest.TestCase):
         visualization.plot(points, space='SE3_GROUP')
 
     def test_plot_points_s1(self):
+        # TODO(nina): Address warning
         points = self.S1.random_uniform(self.n_samples)
         visualization.plot(points, space='S1')
 
@@ -44,14 +43,17 @@ class TestVisualizationMethods(unittest.TestCase):
         visualization.plot(points, space='S2')
 
     def test_plot_points_h2_poincare_disk(self):
+        # TODO(nina): Address warning
         points = self.H2.random_uniform(self.n_samples)
         visualization.plot(points, space='H2_poincare_disk')
 
     def test_plot_points_h2_poincare_half_plane(self):
+        # TODO(nina): Address warning
         points = self.H2.random_uniform(self.n_samples)
         visualization.plot(points, space='H2_poincare_half_plane')
 
     def test_plot_points_h2_klein_disk(self):
+        # TODO(nina): Address warning
         points = self.H2.random_uniform(self.n_samples)
         visualization.plot(points, space='H2_klein_disk')
 
