@@ -30,13 +30,13 @@ def main(left=-128,
         ends.append(np.array([p, right]))
     starts = [H2.intrinsic_to_extrinsic_coords(s) for s in starts]
     ends = [H2.intrinsic_to_extrinsic_coords(e) for e in ends]
+    ax = plt.gca()
     for start, end in zip(starts, ends):
         geodesic = METRIC.geodesic(initial_point=start,
                                    end_point=end)
 
         t = np.linspace(0, 1, n_steps)
         points_to_plot = geodesic(t)
-        ax = plt.gca()
         visualization.plot(
             points_to_plot, ax=ax, space='H2_poincare_disk', marker='.', s=1)
     plt.show()

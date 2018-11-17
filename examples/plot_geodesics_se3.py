@@ -24,12 +24,8 @@ def main():
     t = np.linspace(0, 1, n_steps)
 
     points = geodesic(t)
-    ax = plt.subplot(111, projection="3d", aspect="equal")
-    plt.setp(ax,
-             xlim=(-1, 4), ylim=(-1, 4), zlim=(-1, 2),
-             xlabel="X", ylabel="Y", zlabel="Z")
 
-    visualization.plot(points, ax, space='SE3_GROUP')
+    visualization.plot(points, space='SE3_GROUP')
     plt.show()
 
 
