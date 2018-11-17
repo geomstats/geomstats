@@ -146,10 +146,25 @@ class LieGroup(Manifold):
             point_type = self.default_point_type
 
         identity = self.get_identity(point_type=point_type)
-        identity = self.regularize(identity, point_type=point_type)
         if base_point is None:
             base_point = identity
+
+        point = self.regularize(point, point_type=point_type)
         base_point = self.regularize(base_point, point_type=point_type)
+
+        n_points = point.shape[0]
+        n_base_points = base_point.shape[0]
+
+        assert (point.shape == base_point.shape
+                or n_points == 1
+                or n_base_points == 1)
+
+        if n_points == 1:
+            point = gs.array([point[0]] * n_base_points)
+
+        if n_base_points == 1:
+            base_point = gs.array([base_point[0]] * n_points)
+
         if gs.allclose(base_point, identity):
             return self.group_log_from_identity(point, point_type=point_type)
 

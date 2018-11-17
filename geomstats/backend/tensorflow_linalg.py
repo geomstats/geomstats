@@ -16,8 +16,8 @@ def eig(x):
 
 
 def svd(x):
-    s, u, v = tf.linalg.svd(x)
-    return u, s, v
+    s, u, v_t = tf.svd(x, full_matrices=True)
+    return u, s, tf.transpose(v_t, perm=(0, 2, 1))
 
 
 def norm(x, axis=None):

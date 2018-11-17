@@ -259,3 +259,7 @@ def cross(a, b):
 
 def stack(*args, **kwargs):
     return tf.stack(*args, **kwargs)
+
+
+def arctan2(*args, **kwargs):
+    return tf.atan2(*args, **kwargs)

@@ -232,11 +232,14 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 if metric is None:
                     metric = self.left_canonical_metric
                 base_point = self.regularize(base_point, point_type)
+                # TODO: what is the output of this function with N base_points?
+                n_vecs = tangent_vec.shape[0]
 
                 jacobian = self.jacobian_translation(
                               point=base_point,
                               left_or_right=metric.left_or_right,
                               point_type=point_type)
+                jacobian = gs.array([jacobian[0]] * n_vecs)
                 inv_jacobian = gs.linalg.inv(jacobian)
                 tangent_vec_at_id = gs.einsum(
                         'ni,nij->nj',
@@ -653,17 +656,16 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         angle = gs.linalg.norm(rot_vec, axis=1)
         angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
-        rotation_axis = gs.zeros_like(rot_vec)
-
         mask_0 = gs.isclose(angle, 0.)
-        mask_0 = gs.squeeze(mask_0, axis=1)
         mask_not_0 = ~mask_0
-        rotation_axis[mask_not_0] = rot_vec[mask_not_0] / angle[mask_not_0]
 
-        n_quaternions, _ = rot_vec.shape
-        quaternion = gs.zeros((n_quaternions, 4))
-        quaternion[:, :1] = gs.cos(angle / 2)
-        quaternion[:, 1:] = gs.sin(angle / 2) * rotation_axis[:]
+        rotation_axis = gs.divide(rot_vec,
+                                  angle *
+                                  gs.cast(mask_not_0, gs.float32) +
+                                  gs.cast(mask_0, gs.float32))
+
+        quaternion = gs.concatenate((gs.cos(angle / 2),
+                        gs.sin(angle / 2) * rotation_axis[:]), axis=1)
 
         return quaternion
 
@@ -683,15 +685,16 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         half_angle = gs.to_ndarray(half_angle, to_ndim=2, axis=1)
         assert half_angle.shape == (n_quaternions, 1)
 
-        rot_vec = gs.zeros_like(quaternion[:, 1:])
-
         mask_0 = gs.isclose(half_angle, 0.)
-        mask_0 = gs.squeeze(mask_0, axis=1)
         mask_not_0 = ~mask_0
-        rotation_axis = (quaternion[mask_not_0, 1:]
-                         / gs.sin(half_angle[mask_not_0]))
-        rot_vec[mask_not_0] = (2 * half_angle[mask_not_0]
-                               * rotation_axis)
+
+        rotation_axis = gs.divide(quaternion[:, 1:],
+                                  gs.sin(half_angle) *
+                                  gs.cast(mask_not_0, gs.float32) +
+                                  gs.cast(mask_0, gs.float32))
+        rot_vec = gs.array(2 * half_angle *
+                           rotation_axis *
+                           gs.cast(mask_not_0, gs.float32))
 
         rot_vec = self.regularize(rot_vec, point_type='vector')
         return rot_vec
@@ -1133,6 +1136,19 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         if point_type == 'vector':
             point_1 = self.matrix_from_rotation_vector(point_1)
             point_2 = self.matrix_from_rotation_vector(point_2)
+
+        n_points_1 = point_1.shape[0]
+        n_points_2 = point_2.shape[0]
+
+        assert (point_1.shape == point_2.shape
+                or n_points_1 == 1
+                or n_points_2 == 1)
+
+        if n_points_1 == 1:
+            point_1 = gs.stack([point_1[0]] * n_points_2)
+
+        if n_points_2 == 1:
+            point_2 = gs.stack([point_2[0]] * n_points_1)
 
         point_prod = gs.einsum('ijk,ikl->ijl', point_1, point_2)
 

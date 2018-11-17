@@ -3584,24 +3584,21 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
         base_point = group.random_uniform(n_samples=1)
         results = group.group_log(points, base_point)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, group.dimension)))
+        self.assertTrue(results.shape == (n_samples, group.dimension))
 
         # Test with the same number of base points and points
         points = group.random_uniform(n_samples=n_samples)
         base_points = group.random_uniform(n_samples=n_samples)
         results = group.group_log(points, base_points)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, group.dimension)))
+        self.assertTrue(results.shape == (n_samples, group.dimension))
 
         # Test with the several base points, and 1 point
         point = group.random_uniform(n_samples=1)
         base_points = group.random_uniform(n_samples=n_samples)
         results = group.group_log(point, base_points)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, group.dimension)))
+        self.assertTrue(results.shape == (n_samples, group.dimension))
 
     def test_group_exp_then_log_from_identity(self):
         """
