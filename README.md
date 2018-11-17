@@ -35,6 +35,7 @@ nose2
 ## Authors & Contributors
 
 * Alice Le Brigant
+* Claire Donnat
 * Benjamin Hou
 * Johan Mathe
 * Nina Miolane
