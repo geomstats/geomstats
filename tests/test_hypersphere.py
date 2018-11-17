@@ -35,11 +35,13 @@ class TestHypersphereMethods(unittest.TestCase):
 
         gs.testing.assert_allclose(belongs.shape, (1, 1))
 
-    def test_inner_product_matrix(self):
-        result = self.metric.inner_product_matrix()
-
-        expected = gs.eye(self.dimension + 1)
-        expected = helper.to_matrix(expected)
+    def test_inner_product(self):
+        tangent_vec_a = gs.array([1., 0., 0., 0., 0.])
+        tangent_vec_b = gs.array([0., 1., 0., 0., 0.])
+        base_point = gs.array([0., 0., 0., 0., 1.])
+        result = self.metric.inner_product(
+                tangent_vec_a, tangent_vec_b, base_point)
+        expected = 0
 
         gs.testing.assert_allclose(result, expected)
 
