@@ -2,8 +2,11 @@
 Unit tests for the examples.
 """
 
+import os
 import matplotlib
 matplotlib.use('Agg')  # NOQA
+import matplotlib.pyplot as plt
+import sys
 import unittest
 
 import examples.gradient_descent_s2 as gradient_descent_s2
@@ -22,6 +25,13 @@ import examples.tangent_pca_so3 as tangent_pca_so3
 
 class TestExamples(unittest.TestCase):
     _multiprocess_can_split_ = True
+
+    @classmethod
+    def setUpClass(cls):
+        sys.stdout = open(os.devnull, 'w')
+
+    def setUp(self):
+        plt.figure()
 
     def test_gradient_descent_s2(self):
         gradient_descent_s2.main(max_iter=32, output_file=None)
@@ -44,9 +54,8 @@ class TestExamples(unittest.TestCase):
     def test_plot_geodesics_so3(self):
         plot_geodesics_so3.main()
 
-    # TODO(nina): this test fails
-    # def test_plot_grid_h2(self):
-    #    plot_grid_h2.main()
+    def test_plot_grid_h2(self):
+        plot_grid_h2.main()
 
     def test_plot_square_h2_square_poincare_disk(self):
         plot_square_h2_poincare_disk.main()
@@ -56,10 +65,6 @@ class TestExamples(unittest.TestCase):
 
     def test_plot_square_h2_square_klein_disk(self):
         plot_square_h2_klein_disk.main()
-
-    # TODO(johmathe): this test fails
-    # def test_gradient_descent_s2(self):
-    #     gradient_descent_s2.main()
 
     def test_tangent_pca_so3(self):
         tangent_pca_so3.main()

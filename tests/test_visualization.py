@@ -4,6 +4,7 @@ Unit tests for visualization.
 
 import matplotlib
 matplotlib.use('Agg')  # NOQA
+import matplotlib.pyplot as plt
 import unittest
 
 import geomstats.visualization as visualization
@@ -13,8 +14,6 @@ from geomstats.hypersphere import Hypersphere
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
-
-# TODO(nina): add tests for examples
 
 class TestVisualizationMethods(unittest.TestCase):
     _multiprocess_can_split_ = True
@@ -26,6 +25,8 @@ class TestVisualizationMethods(unittest.TestCase):
         self.S1 = Hypersphere(dimension=1)
         self.S2 = Hypersphere(dimension=2)
         self.H2 = HyperbolicSpace(dimension=2)
+
+        plt.figure()
 
     def test_plot_points_so3(self):
         points = self.SO3_GROUP.random_uniform(self.n_samples)

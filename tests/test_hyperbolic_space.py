@@ -9,6 +9,7 @@ import geomstats.backend as gs
 import tests.helper as helper
 
 from geomstats.hyperbolic_space import HyperbolicSpace
+from geomstats.minkowski_space import MinkowskiSpace
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
 # of the vector, as opposed to the standard behavior of gs.allclose
@@ -194,6 +195,30 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
 
         result = self.metric.log(n_points, n_base_points)
         gs.testing.assert_allclose(result.shape, (n_samples, dim))
+
+    def test_inner_product(self):
+        """
+        Test that the inner product between two tangent vectors
+        is the Minkowski inner product.
+        """
+        minkowski_space = MinkowskiSpace(self.dimension+1)
+        base_point = self.space.random_uniform()
+
+        tangent_vec_a = self.space.projection_to_tangent_space(
+                vector=gs.array([10., 200., 1., 1., 3., 6., 9.]),
+                base_point=base_point)
+
+        tangent_vec_b = self.space.projection_to_tangent_space(
+                vector=gs.array([11., 20., -21., 0., -9., 1., -8.]),
+                base_point=base_point)
+
+        result = self.metric.inner_product(
+                tangent_vec_a, tangent_vec_b, base_point)
+
+        expected = minkowski_space.metric.inner_product(
+                tangent_vec_a, tangent_vec_b, base_point)
+
+        gs.testing.assert_allclose(result, expected)
 
     def test_squared_norm_and_squared_dist(self):
         """

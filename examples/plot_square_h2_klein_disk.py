@@ -23,6 +23,7 @@ def main():
     corners_int = [(bot, left), (bot, right), (top, right), (top, left)]
     corners_ext = H2.intrinsic_to_extrinsic_coords(corners_int)
     n_steps = 20
+    ax = plt.gca()
     for i, src in enumerate(corners_ext):
         dst_id = (i+1) % len(corners_ext)
         dst = corners_ext[dst_id]
@@ -31,7 +32,11 @@ def main():
                                    initial_tangent_vec=tangent_vec)
         t = np.linspace(0, 1, n_steps)
         edge_points = geodesic(t)
-        visualization.plot(edge_points, space='H2_klein_disk', marker='.',
+
+        visualization.plot(edge_points,
+                           ax=ax,
+                           space='H2_klein_disk',
+                           marker='.',
                            color='black')
     plt.show()
 

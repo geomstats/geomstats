@@ -25,9 +25,7 @@ def main():
     t = np.linspace(0, 1, n_steps)
 
     points = geodesic(t)
-    ax = plt.subplot(111, projection="3d", aspect="equal")
-
-    visualization.plot(points, ax, space='S2')
+    visualization.plot(points, space='S2')
     plt.show()
 
 

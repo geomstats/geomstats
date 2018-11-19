@@ -15,7 +15,9 @@ METRIC = H2.metric
 
 
 def plot_geodesic_between_two_points(initial_point,
-                                     end_point, n_steps=10):
+                                     end_point,
+                                     n_steps=10,
+                                     ax=None):
     assert H2.belongs(initial_point)
     assert H2.belongs(end_point)
 
@@ -24,12 +26,13 @@ def plot_geodesic_between_two_points(initial_point,
 
     t = np.linspace(0, 1, n_steps)
     points = geodesic(t)
-    visualization.plot(points, space='H2_poincare_disk')
+    visualization.plot(points, ax=ax, space='H2_poincare_disk')
 
 
 def plot_geodesic_with_initial_tangent_vector(initial_point,
                                               initial_tangent_vec,
-                                              n_steps=10):
+                                              n_steps=10,
+                                              ax=None):
     assert H2.belongs(initial_point)
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                initial_tangent_vec=initial_tangent_vec)
@@ -37,7 +40,7 @@ def plot_geodesic_with_initial_tangent_vector(initial_point,
     t = np.linspace(0, 1, n_steps)
 
     points = geodesic(t)
-    visualization.plot(points, space='H2_poincare_disk')
+    visualization.plot(points, ax=ax, space='H2_poincare_disk')
 
 
 def main():
@@ -47,10 +50,13 @@ def main():
                                         vector=[3.5, 0.6, 0.8],
                                         base_point=initial_point)
 
+    ax = plt.gca()
     plot_geodesic_between_two_points(initial_point,
-                                     end_point)
+                                     end_point,
+                                     ax=ax)
     plot_geodesic_with_initial_tangent_vector(initial_point,
-                                              initial_tangent_vec)
+                                              initial_tangent_vec,
+                                              ax=ax)
     plt.show()
 
 

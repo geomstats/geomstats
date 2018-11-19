@@ -15,6 +15,7 @@ class TestBackendTensorFlow(tf.test.TestCase):
     @classmethod
     def setUpClass(cls):
         os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
         importlib.reload(gs)
 
     @classmethod
@@ -40,7 +41,6 @@ class TestBackendTensorFlow(tf.test.TestCase):
             tensor_2 = gs.ones((0, 1))
 
             result = tensor_1 + tensor_2
-            print(result)
 
 
 if __name__ == '__main__':

@@ -22,6 +22,7 @@ class TestManifoldMethodsTensorFlow(tf.test.TestCase):
     @classmethod
     def setUpClass(cls):
         os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
         importlib.reload(gs)
 
     @classmethod
