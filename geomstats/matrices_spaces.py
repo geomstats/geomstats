@@ -7,6 +7,9 @@ import geomstats.backend as gs
 from geomstats.euclidean_space import EuclideanSpace
 
 
+TOLERANCE = 1e-5
+
+
 class MatrixSpace(EuclideanSpace):
     """Class for the space of matrices (m, n)."""
 
@@ -54,7 +57,7 @@ class MatrixSpace(EuclideanSpace):
         assert self.m == self.n
         matrix = gs.to_ndarray(matrix, to_ndim=3)
 
-        if gs.all(is_symmetric(matrix)):
+        if gs.all(self.is_symmetric(matrix)):
             [eigenvalues, vectors] = gs.linalg.eigh(matrix)
         else:
             [eigenvalues, vectors] = gs.linalg.eig(matrix)
