@@ -23,8 +23,8 @@ class GeneralLinearGroup(LieGroup, MatrixSpace):
 
     def __init__(self, n):
         assert isinstance(n, int) and n > 0
-        LieGroup.__init__(dimension=n*n)
-        MatrixSpace.__init__(m=n, n=n)
+        LieGroup.__init__(self, dimension=n*n)
+        MatrixSpace.__init__(self, m=n, n=n)
 
     @property
     def identity(self):
