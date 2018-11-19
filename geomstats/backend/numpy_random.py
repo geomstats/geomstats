@@ -13,3 +13,7 @@ def randint(*args, **kwargs):
 
 def seed(*args, **kwargs):
     return np.random.seed(*args, **kwargs)
+
+
+def normal(*args, **kwargs):
+    return np.random.normal(*args, **kwargs)

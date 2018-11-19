@@ -1,6 +1,7 @@
 """Numpy based computation backend."""
 
 import numpy as np
+import scipy.linalg
 
 int32 = np.int32
 int8 = np.int8
@@ -324,5 +325,21 @@ def arange(*args, **kwargs):
     return np.arange(*args, **kwargs)
 
 
-def prod(a, axis=None):
-    return np.prod(a, axis=axis)
+def prod(x, axis=None):
+    return np.prod(x, axis=axis)
+
+
+def sign(*args, **kwargs):
+    return np.sign(*args, **kwargs)
+
+
+def vectorize(x, function):
+    return np.vectorize(function, signature="(n,m)->(n,m)")(x)
+
+
+def expm(x):
+    return vectorize(x, scipy.linalg.expm)
+
+
+def logm(x):
+    return vectorize(x, scipy.linalg.logm)

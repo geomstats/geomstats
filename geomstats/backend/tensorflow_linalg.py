@@ -34,3 +34,7 @@ def matrix_rank(x):
 
 def eigvalsh(x):
     return tf.linalg.eigvalsh(x)
+
+
+def qr(x):
+    return tf.linalg.qr(x)

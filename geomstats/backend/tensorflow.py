@@ -263,3 +263,7 @@ def stack(*args, **kwargs):
 
 def arctan2(*args, **kwargs):
     return tf.atan2(*args, **kwargs)
+
+
+def diagonal(x):
+    return tf.linalg.diag_part(x)
