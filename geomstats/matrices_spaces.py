@@ -12,7 +12,7 @@ class MatrixSpace(EuclideanSpace):
 
     def __init__(self, m, n):
         assert isinstance(m, int) and isinstance(n, int) and m > 0 and n > 0
-        super().init(dimension=m*n)
+        super(MatrixSpace, self).__init__(dimension=m*n)
         self.m = m
         self.n = n
 
@@ -31,3 +31,38 @@ class MatrixSpace(EuclideanSpace):
         matrix = gs.to_ndarray(matrix, to_ndim=3)
         n_mats, m, n = matrix.shape
         return gs.reshape(matrix, (n_mats, m*n))
+
+    def is_symmetric(self, matrix, tolerance=TOLERANCE):
+        """Check if a matrix is symmetric."""
+        assert self.m == self.n
+
+        matrix = gs.to_ndarray(matrix, to_ndim=3)
+        matrix_transpose = gs.transpose(matrix, axes=(0, 2, 1))
+
+        mask = gs.isclose(matrix, matrix_transpose, atol=tolerance)
+        mask = gs.all(mask, axis=(1, 2))
+
+        return mask
+
+    def make_symmetric(self, matrix):
+        """Make a matrix fully symmetric to avoid numerical issues."""
+        assert self.m == self.n
+        matrix = gs.to_ndarray(matrix, to_ndim=3)
+        return (matrix + gs.transpose(matrix, axes=(0, 2, 1))) / 2
+
+    def sqrtm(self, matrix):
+        assert self.m == self.n
+        matrix = gs.to_ndarray(matrix, to_ndim=3)
+
+        if gs.all(is_symmetric(matrix)):
+            [eigenvalues, vectors] = gs.linalg.eigh(matrix)
+        else:
+            [eigenvalues, vectors] = gs.linalg.eig(matrix)
+
+        sqrt_eigenvalues = gs.sqrt(eigenvalues)
+
+        aux = gs.einsum('ijk,ik->ijk', vectors, sqrt_eigenvalues)
+        sqrt_mat = gs.einsum('ijk,ilk->ijl', aux, vectors)
+
+        sqrt_mat = gs.to_ndarray(sqrt_mat, to_ndim=3)
+        return sqrt_mat.real
