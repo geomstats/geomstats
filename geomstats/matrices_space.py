@@ -10,12 +10,12 @@ from geomstats.euclidean_space import EuclideanSpace
 TOLERANCE = 1e-5
 
 
-class MatrixSpace(EuclideanSpace):
+class MatricesSpace(EuclideanSpace):
     """Class for the space of matrices (m, n)."""
 
     def __init__(self, m, n):
         assert isinstance(m, int) and isinstance(n, int) and m > 0 and n > 0
-        super(MatrixSpace, self).__init__(dimension=m*n)
+        super(MatricesSpace, self).__init__(dimension=m*n)
         self.m = m
         self.n = n
 

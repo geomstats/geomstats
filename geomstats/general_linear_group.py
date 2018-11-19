@@ -7,10 +7,10 @@ import scipy.linalg
 import geomstats.backend as gs
 
 from geomstats.lie_group import LieGroup
-from geomstats.matrices_spaces import MatrixSpace
+from geomstats.matrices_space import MatricesSpace
 
 
-class GeneralLinearGroup(LieGroup, MatrixSpace):
+class GeneralLinearGroup(LieGroup, MatricesSpace):
     """
     Class for the General Linear Group, i.e. the matrix group GL(n).
 
@@ -24,7 +24,7 @@ class GeneralLinearGroup(LieGroup, MatrixSpace):
     def __init__(self, n):
         assert isinstance(n, int) and n > 0
         LieGroup.__init__(self, dimension=n*n)
-        MatrixSpace.__init__(self, m=n, n=n)
+        MatricesSpace.__init__(self, m=n, n=n)
 
     @property
     def identity(self):
