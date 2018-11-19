@@ -12,38 +12,6 @@ EPSILON = 1e-6
 TOLERANCE = 1e-12
 
 
-def is_symmetric(mat, tolerance=TOLERANCE):
-    """Check if a matrix is symmetric."""
-    mat = gs.to_ndarray(mat, to_ndim=3)
-    n_mats, _, _ = mat.shape
-    mat_transpose = gs.transpose(mat, axes=(0, 2, 1))
-
-    mask = gs.isclose(mat, mat_transpose, atol=tolerance)
-    mask = gs.all(mask, axis=(1, 2))
-
-    return mask
-
-
-def make_symmetric(mat):
-    """Make a matrix fully symmetric to avoid numerical issues."""
-    mat = gs.to_ndarray(mat, to_ndim=3)
-    return (mat + gs.transpose(mat, axes=(0, 2, 1))) / 2
-
-
-def sqrtm(sym_mat):
-    sym_mat = gs.to_ndarray(sym_mat, to_ndim=3)
-
-    [eigenvalues, vectors] = gs.linalg.eigh(sym_mat)
-
-    sqrt_eigenvalues = gs.sqrt(eigenvalues)
-
-    aux = gs.einsum('ijk,ik->ijk', vectors, sqrt_eigenvalues)
-    sqrt_mat = gs.einsum('ijk,ilk->ijl', aux, vectors)
-
-    sqrt_mat = gs.to_ndarray(sqrt_mat, to_ndim=3)
-    return sqrt_mat
-
-
 # TODO(nina): The manifold of sym matrices is not a Lie group.
 # Use 'group_exp' and 'group_log'?
 def group_exp(sym_mat):
