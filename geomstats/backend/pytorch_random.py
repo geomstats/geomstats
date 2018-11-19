@@ -13,3 +13,7 @@ def randint(*args, **kwargs):
 
 def seed(*args, **kwargs):
     return torch.manual_seed(*args, **kwargs)
+
+
+def normal(loc=0.0, scale=1.0, size=(1, 1)):
+    return torch.normal(torch.ones(size) * 0, torch.ones(size) * 1)

@@ -23,3 +23,7 @@ def rand(*args):
 
 def seed(*args):
     return tf.set_random_seed(*args)
+
+
+def normal(loc=0.0, scale=1.0, size=(1, 1)):
+    tf.random_normal(mean=loc, stddev=scale, shape=size)
