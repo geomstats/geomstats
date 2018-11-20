@@ -71,7 +71,7 @@ class InvariantMetric(RiemannianMetric):
                 tangent_vec_b = gs.array([tangent_vec_b[0]] * n_tangent_vec_a)
 
             inner_product_mat_at_identity = gs.array(
-                [self.inner_product_mat_at_identity[0]] * \
+                [self.inner_product_mat_at_identity[0]] *
                 max(n_tangent_vec_a, n_tangent_vec_b))
 
             inner_prod = gs.einsum('ij,ijk,ik->i',
@@ -156,13 +156,12 @@ class InvariantMetric(RiemannianMetric):
         left-invariant metric associated to the same inner-product matrix
         at the identity.
         """
-        import geomstats.spd_matrices_space as spd_matrices_space
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
 
         tangent_vec = self.group.regularize_tangent_vec_at_identity(
                                         tangent_vec=tangent_vec,
                                         metric=self)
-        sqrt_inner_product_mat = spd_matrices_space.sqrtm(
+        sqrt_inner_product_mat = gs.sqrtm(
             self.inner_product_mat_at_identity)
         mat = gs.transpose(sqrt_inner_product_mat, axes=(0, 2, 1))
         exp = gs.einsum('ni,nij->nj', tangent_vec, mat)
@@ -232,12 +231,10 @@ class InvariantMetric(RiemannianMetric):
         left-invariant metric associated to the same inner-product matrix
         at the identity.
         """
-        import geomstats.spd_matrices_space as spd_matrices_space
-
         point = self.group.regularize(point)
         inner_prod_mat = self.inner_product_mat_at_identity
         inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
-        sqrt_inv_inner_prod_mat = spd_matrices_space.sqrtm(inv_inner_prod_mat)
+        sqrt_inv_inner_prod_mat = gs.sqrtm(inv_inner_prod_mat)
         assert sqrt_inv_inner_prod_mat.shape == ((1,)
                                                  + (self.group.dimension,) * 2)
         aux = gs.squeeze(sqrt_inv_inner_prod_mat, axis=0)
