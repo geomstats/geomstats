@@ -12,7 +12,7 @@ class MatrixSpace(EuclideanSpace):
 
     def __init__(self, m, n):
         assert isinstance(m, int) and isinstance(n, int) and m > 0 and n > 0
-        super().init(dimension=m*n)
+        super().__init__(dimension=m*n)
         self.m = m
         self.n = n
 
