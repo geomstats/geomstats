@@ -76,15 +76,16 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
         if gs.all(self.is_symmetric(tangent_vec)):
             tangent_vec = self.make_symmetric(tangent_vec)
             [eigenvalues, vectors] = gs.linalg.eigh(tangent_vec)
+            exp_eigenvalues = gs.exp(eigenvalues)
+
+            aux = gs.einsum('ijk,ik->ijk', vectors, exp_eigenvalues)
+            group_exp = gs.einsum('ijk,ilk->ijl', aux, vectors)
+
+            group_exp = gs.to_ndarray(group_exp, to_ndim=3)
+
         else:
-            [eigenvalues, vectors] = gs.linalg.eig(tangent_vec)
+            group_exp = gs.expm(tangent_vec)
 
-        exp_eigenvalues = gs.exp(eigenvalues)
-
-        aux = gs.einsum('ijk,ik->ijk', vectors, exp_eigenvalues)
-        group_exp = gs.einsum('ijk,ilk->ijl', aux, vectors)
-
-        group_exp = gs.to_ndarray(group_exp, to_ndim=3)
         return group_exp.real
 
     def group_log_from_identity(self, point, point_type=None):
@@ -94,17 +95,16 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
         computation for symmetric positive definite matrices.
         """
         point = gs.to_ndarray(point, to_ndim=3)
-        n_points, mat_dim, _ = point.shape
-
         if gs.all(self.is_symmetric(point)):
             point = self.make_symmetric(point)
             [eigenvalues, vectors] = gs.linalg.eigh(point)
-            assert gs.all(eigenvalues > 0)
+
+            log_eigenvalues = gs.log(eigenvalues.real)
+
+            aux = gs.einsum('ijk,ik->ijk', vectors, log_eigenvalues)
+            group_log = gs.einsum('ijk,ilk->ijl', aux, vectors)
+
         else:
-            [eigenvalues, vectors] = gs.linalg.eig(point)
+            group_log = gs.logm(point)
 
-        log_eigenvalues = gs.log(eigenvalues)
-
-        aux = gs.einsum('ijk,ik->ijk', vectors, log_eigenvalues)
-        group_log = gs.einsum('ijk,ilk->ijl', aux, vectors)
         return group_log.real
