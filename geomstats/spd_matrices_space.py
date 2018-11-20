@@ -12,53 +12,6 @@ EPSILON = 1e-6
 TOLERANCE = 1e-12
 
 
-# TODO(nina): The manifold of sym matrices is not a Lie group.
-# Use 'group_exp' and 'group_log'?
-def group_exp(sym_mat):
-    """
-    Group exponential of the Lie group of
-    all invertible matrices has a straight-forward
-    computation for symmetric positive definite matrices.
-    """
-    sym_mat = gs.to_ndarray(sym_mat, to_ndim=3)
-    n_sym_mats, mat_dim, _ = sym_mat.shape
-
-    assert gs.all(is_symmetric(sym_mat))
-    sym_mat = make_symmetric(sym_mat)
-
-    [eigenvalues, vectors] = gs.linalg.eigh(sym_mat)
-    exp_eigenvalues = gs.exp(eigenvalues)
-
-    aux = gs.einsum('ijk,ik->ijk', vectors, exp_eigenvalues)
-    exp_mat = gs.einsum('ijk,ilk->ijl', aux, vectors)
-
-    exp_mat = gs.to_ndarray(exp_mat, to_ndim=3)
-    return exp_mat
-
-
-def group_log(sym_mat):
-    """
-    Group logarithm of the Lie group of
-    all invertible matrices has a straight-forward
-    computation for symmetric positive definite matrices.
-    """
-    sym_mat = gs.to_ndarray(sym_mat, to_ndim=3)
-    n_sym_mats, mat_dim, _ = sym_mat.shape
-
-    assert gs.all(is_symmetric(sym_mat))
-    sym_mat = make_symmetric(sym_mat)
-    [eigenvalues, vectors] = gs.linalg.eigh(sym_mat)
-    assert gs.all(eigenvalues > 0)
-
-    log_eigenvalues = gs.log(eigenvalues)
-
-    aux = gs.einsum('ijk,ik->ijk', vectors, log_eigenvalues)
-    log_mat = gs.einsum('ijk,ilk->ijl', aux, vectors)
-
-    log_mat = gs.to_ndarray(log_mat, to_ndim=3)
-    return log_mat
-
-
 class SPDMatricesSpace(EmbeddedManifold):
     """
     Class for the manifold of symmetric positive definite (SPD) matrices.
@@ -79,7 +32,8 @@ class SPDMatricesSpace(EmbeddedManifold):
         mat = gs.to_ndarray(mat, to_ndim=3)
         n_mats, mat_dim, _ = mat.shape
 
-        mask_is_symmetric = is_symmetric(mat, tolerance=tolerance)
+        mask_is_symmetric = self.embedding_manifold.is_symmetric(
+                mat, tolerance=tolerance)
         eigenvalues = gs.zeros((n_mats, mat_dim))
         eigenvalues[mask_is_symmetric] = gs.linalg.eigvalsh(
                                               mat[mask_is_symmetric])
@@ -93,8 +47,8 @@ class SPDMatricesSpace(EmbeddedManifold):
         into a vector.
         """
         mat = gs.to_ndarray(mat, to_ndim=3)
-        assert gs.all(is_symmetric(mat))
-        mat = make_symmetric(mat)
+        assert gs.all(self.embedding_manifold.is_symmetric(mat))
+        mat = self.embedding_manifold.make_symmetric(mat)
 
         _, mat_dim, _ = mat.shape
         vec_dim = int(mat_dim * (mat_dim + 1) / 2)
@@ -126,13 +80,14 @@ class SPDMatricesSpace(EmbeddedManifold):
         mat[lower_triangle_indices] = 2 * vec
         mat[diag_indices] = vec
 
-        mat = make_symmetric(mat)
+        mat = self.embedding_manifold.make_symmetric(mat)
         return mat
 
     def random_uniform(self, n_samples=1):
         mat = 2 * gs.random.rand(n_samples, self.n, self.n) - 1
 
-        spd_mat = group_exp(mat + gs.transpose(mat, axes=(0, 2, 1)))
+        spd_mat = self.embedding_manifold.group_exp(
+                mat + gs.transpose(mat, axes=(0, 2, 1)))
         return spd_mat
 
     def random_tangent_vec_uniform(self, n_samples=1, base_point=None):
@@ -144,7 +99,7 @@ class SPDMatricesSpace(EmbeddedManifold):
 
         assert n_base_points == n_samples or n_base_points == 1
 
-        sqrt_base_point = sqrtm(base_point)
+        sqrt_base_point = gs.sqrtm(base_point)
 
         tangent_vec_at_id = (2 * gs.random.rand(n_samples,
                                                 self.n,
@@ -163,6 +118,7 @@ class SPDMatricesSpace(EmbeddedManifold):
 class SPDMetric(RiemannianMetric):
 
     def __init__(self, n):
+        self.n = n
         super(SPDMetric, self).__init__(dimension=int(n * (n + 1) / 2))
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -196,7 +152,7 @@ class SPDMetric(RiemannianMetric):
                 or n_tangent_vecs == 1
                 or n_base_points == 1)
 
-        sqrt_base_point = sqrtm(base_point)
+        sqrt_base_point = gs.sqrtm(base_point)
 
         inv_sqrt_base_point = gs.linalg.inv(sqrt_base_point)
 
@@ -204,7 +160,7 @@ class SPDMetric(RiemannianMetric):
                                       tangent_vec)
         tangent_vec_at_id = gs.matmul(tangent_vec_at_id,
                                       inv_sqrt_base_point)
-        exp_from_id = group_exp(tangent_vec_at_id)
+        exp_from_id = gs.expm(tangent_vec_at_id)
 
         exp = gs.matmul(exp_from_id, sqrt_base_point)
         exp = gs.matmul(sqrt_base_point, exp)
@@ -214,8 +170,7 @@ class SPDMetric(RiemannianMetric):
     def log(self, point, base_point):
         """
         Compute the Riemannian logarithm at point base_point,
-        of point wrt the metric defined in
-        inner_product.
+        of point wrt the metric defined in inner_product.
 
         This gives a tangent vector at point base_point.
         """
@@ -230,12 +185,12 @@ class SPDMetric(RiemannianMetric):
                 or n_base_points == 1)
 
         sqrt_base_point = gs.zeros((n_base_points,) + (mat_dim,) * 2)
-        sqrt_base_point = sqrtm(base_point)
+        sqrt_base_point = gs.sqrtm(base_point)
 
         inv_sqrt_base_point = gs.linalg.inv(sqrt_base_point)
         point_near_id = gs.matmul(inv_sqrt_base_point, point)
         point_near_id = gs.matmul(point_near_id, inv_sqrt_base_point)
-        log_at_id = group_log(point_near_id)
+        log_at_id = gs.logm(point_near_id)
 
         log = gs.matmul(sqrt_base_point, log_at_id)
         log = gs.matmul(log, sqrt_base_point)

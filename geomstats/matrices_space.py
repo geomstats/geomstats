@@ -18,6 +18,7 @@ class MatricesSpace(EuclideanSpace):
         super(MatricesSpace, self).__init__(dimension=m*n)
         self.m = m
         self.n = n
+        self.default_point_type = 'matrix'
 
     def belongs(self, point):
         """
@@ -53,19 +54,6 @@ class MatricesSpace(EuclideanSpace):
         matrix = gs.to_ndarray(matrix, to_ndim=3)
         return (matrix + gs.transpose(matrix, axes=(0, 2, 1))) / 2
 
-    def sqrtm(self, matrix):
-        assert self.m == self.n
-        matrix = gs.to_ndarray(matrix, to_ndim=3)
-
-        if gs.all(self.is_symmetric(matrix)):
-            [eigenvalues, vectors] = gs.linalg.eigh(matrix)
-        else:
-            [eigenvalues, vectors] = gs.linalg.eig(matrix)
-
-        sqrt_eigenvalues = gs.sqrt(eigenvalues)
-
-        aux = gs.einsum('ijk,ik->ijk', vectors, sqrt_eigenvalues)
-        sqrt_mat = gs.einsum('ijk,ilk->ijl', aux, vectors)
-
-        sqrt_mat = gs.to_ndarray(sqrt_mat, to_ndim=3)
-        return sqrt_mat.real
+    def random_uniform(self, n_samples=1):
+        point = gs.random.rand(n_samples, self.m, self.n)
+        return point

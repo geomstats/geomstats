@@ -149,6 +149,13 @@ class LieGroup(Manifold):
         if base_point is None:
             base_point = identity
 
+        if point_type == 'vector':
+            point = gs.to_ndarray(point, to_ndim=2)
+            base_point = gs.to_ndarray(base_point, to_ndim=2)
+        if point_type == 'matrix':
+            point = gs.to_ndarray(point, to_ndim=3)
+            base_point = gs.to_ndarray(base_point, to_ndim=3)
+
         point = self.regularize(point, point_type=point_type)
         base_point = self.regularize(base_point, point_type=point_type)
 
@@ -167,8 +174,6 @@ class LieGroup(Manifold):
 
         if gs.allclose(base_point, identity):
             return self.group_log_from_identity(point, point_type=point_type)
-
-        point = self.regularize(point, point_type=point_type)
 
         jacobian = self.jacobian_translation(point=base_point,
                                              left_or_right='left',
