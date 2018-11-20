@@ -43,8 +43,10 @@ class TestManifoldMethodsTensorFlow(tf.test.TestCase):
 
     def test_regularize(self):
         point = gs.array([1, 2, 3])
-        self.assertRaises(NotImplementedError,
-                          lambda: self.manifold.regularize(point))
+        result = self.manifold.regularize(point)
+        expected = point
+        with self.test_session():
+            self.assertAllClose(result, expected)
 
 
 if __name__ == '__main__':
