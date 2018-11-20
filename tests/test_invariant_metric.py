@@ -3,6 +3,7 @@ Unit tests for the invariant metrics on Lie groups.
 """
 
 import unittest
+import warnings
 
 import geomstats.backend as gs
 import tests.helper as helper
@@ -15,6 +16,8 @@ class TestInvariantMetricMethods(unittest.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
+        warnings.simplefilter('ignore', category=ImportWarning)
+
         gs.random.seed(1234)
 
         n = 3
