@@ -159,7 +159,7 @@ class TestGeneralLinearGroupMethods(unittest.TestCase):
 
         self.assertTrue(gs.allclose(result, expected))
 
-    def test_expm_and_logm_vectorization(self):
+    def test_expm_and_logm_vectorization_symmetric(self):
         point = gs.array([[[2., 0., 0.],
                            [0., 3., 0.],
                            [0., 0., 4.]],
@@ -167,6 +167,14 @@ class TestGeneralLinearGroupMethods(unittest.TestCase):
                            [0., 5., 0.],
                            [0., 0., 6.]]])
         result = self.group.group_exp(self.group.group_log(point))
+        expected = point
+
+        self.assertTrue(gs.allclose(result, expected))
+
+    def test_expm_and_logm_vectorization_random_rotations(self):
+        point = self.so3_group.random_uniform(self.n_samples)
+        point = self.so3_group.matrix_from_rotation_vector(point)
+        result = self.group.group_log(self.group.group_exp(point))
         expected = point
 
         self.assertTrue(gs.allclose(result, expected))

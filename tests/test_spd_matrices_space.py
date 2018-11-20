@@ -14,13 +14,14 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
+        warnings.simplefilter('ignore', category=ImportWarning)
+
         gs.random.seed(1234)
 
         self.n = 3
         self.space = SPDMatricesSpace(n=self.n)
         self.metric = self.space.metric
         self.n_samples = 10
-        warnings.simplefilter('ignore', category=ImportWarning)
 
     def test_random_uniform_and_belongs(self):
         self.assertTrue(self.space.belongs(self.space.random_uniform()))

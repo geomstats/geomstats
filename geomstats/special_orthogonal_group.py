@@ -6,7 +6,6 @@ i.e. the Lie group of rotations in n dimensions.
 # TODO(nina): make code robust to different types and input structures
 # TODO(nina): should the conversion functions be methods?
 import geomstats.backend as gs
-import geomstats.spd_matrices_space as spd_matrices_space
 
 from geomstats.embedded_manifold import EmbeddedManifold
 from geomstats.general_linear_group import GeneralLinearGroup
@@ -300,10 +299,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         else:
             aux_mat = gs.matmul(gs.transpose(mat, axes=(0, 2, 1)), mat)
 
-            assert spd_matrices_space.is_symmetric(aux_mat)[0]
-
             inv_sqrt_mat = gs.linalg.inv(
-                    spd_matrices_space.sqrtm(aux_mat))
+                    gs.sqrtm(aux_mat))
 
             rot_mat = gs.matmul(mat, inv_sqrt_mat)
 
@@ -323,11 +320,12 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         n_vecs = vec.shape[0]
         vec_dim = gs.shape(vec)[1]
 
-        if self.n == 2: # SO(2)
+        if self.n == 2:  # SO(2)
             id_skew = gs.array([[[0., 1.], [-1., 0.]]] * n_vecs)
-            skew_mat = gs.einsum('nij,ni->nij', gs.cast(id_skew, gs.float32), vec)
+            skew_mat = gs.einsum(
+                'nij,ni->nij', gs.cast(id_skew, gs.float32), vec)
 
-        elif self.n == 3: # SO(3)
+        elif self.n == 3:  # SO(3)
             levi_civita_symbol = gs.array([[
                 [[0., 0., 0.],
                  [0., 0., 1.],
@@ -365,8 +363,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             skew_mat = gs.concatenate(
                 [cross_prod_1, cross_prod_2, cross_prod_3], axis=1)
 
-        else: # SO(n)
-            mat_dim = gs.cast(((1. + gs.sqrt(1. + 8. * vec_dim)) / 2.), gs.int32)
+        else:  # SO(n)
+            mat_dim = gs.cast(
+                ((1. + gs.sqrt(1. + 8. * vec_dim)) / 2.), gs.int32)
             skew_mat = gs.zeros((n_vecs,) + (self.n,) * 2)
             upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
             for i in range(n_vecs):
@@ -391,16 +390,16 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         vec_dim = self.dimension
         vec = gs.zeros((n_skew_mats, vec_dim))
 
-        if self.n == 2: # SO(2)
+        if self.n == 2:  # SO(2)
             vec = gs.expand_dims(skew_mat[:, 0, 1], axis=1)
 
-        elif self.n == 3: # SO(3)
+        elif self.n == 3:  # SO(3)
             vec_1 = gs.to_ndarray(skew_mat[:, 2, 1], to_ndim=2, axis=1)
             vec_2 = gs.to_ndarray(skew_mat[:, 0, 2], to_ndim=2, axis=1)
             vec_3 = gs.to_ndarray(skew_mat[:, 1, 0], to_ndim=2, axis=1)
             vec = gs.concatenate([vec_1, vec_2, vec_3], axis=1)
 
-        else: # SO(n)
+        else:  # SO(n)
             idx = 0
             for j in range(mat_dim_1):
                 for i in range(j):
@@ -664,8 +663,10 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                                   gs.cast(mask_not_0, gs.float32) +
                                   gs.cast(mask_0, gs.float32))
 
-        quaternion = gs.concatenate((gs.cos(angle / 2),
-                        gs.sin(angle / 2) * rotation_axis[:]), axis=1)
+        quaternion = gs.concatenate(
+            (gs.cos(angle / 2),
+             gs.sin(angle / 2) * rotation_axis[:]),
+            axis=1)
 
         return quaternion
 
