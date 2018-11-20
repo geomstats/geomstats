@@ -3,6 +3,7 @@ Unit tests for General Linear group.
 """
 
 import unittest
+import warnings
 
 import geomstats.backend as gs
 import tests.helper as helper
@@ -18,10 +19,13 @@ class TestGeneralLinearGroupMethods(unittest.TestCase):
 
     def setUp(self):
         gs.random.seed(1234)
-        n = 3
-        self.group = GeneralLinearGroup(n=n)
+        self.n = 3
+        self.n_samples = 2
+        self.group = GeneralLinearGroup(n=self.n)
         # We generate invertible matrices using so3_group
-        self.so3_group = SpecialOrthogonalGroup(n=n)
+        self.so3_group = SpecialOrthogonalGroup(n=self.n)
+
+        warnings.simplefilter('ignore', category=ImportWarning)
 
     def test_belongs(self):
         """
@@ -108,6 +112,64 @@ class TestGeneralLinearGroupMethods(unittest.TestCase):
             atol = RTOL * norm
 
         self.assertTrue(gs.allclose(result_2, expected_2, atol=atol))
+
+    def test_group_log_and_exp(self):
+        point_1 = 5 * gs.eye(4)
+        group_log_1 = self.group.group_log(point_1)
+        result_1 = self.group.group_exp(group_log_1)
+        expected_1 = point_1
+
+        self.assertTrue(gs.allclose(result_1, expected_1))
+
+    def test_group_exp_vectorization(self):
+        point = gs.array([[[2., 0., 0.],
+                           [0., 3., 0.],
+                           [0., 0., 4.]],
+                          [[1., 0., 0.],
+                           [0., 5., 0.],
+                           [0., 0., 6.]]])
+
+        expected = gs.array([[[7.38905609, 0., 0.],
+                              [0., 20.0855369, 0.],
+                              [0., 0., 54.5981500]],
+                             [[2.718281828, 0., 0.],
+                              [0., 148.413159, 0.],
+                              [0., 0., 403.42879349]]])
+
+        result = self.group.group_exp(point)
+
+        self.assertTrue(gs.allclose(result, expected))
+
+    def test_group_log_vectorization(self):
+        point = gs.array([[[2., 0., 0.],
+                           [0., 3., 0.],
+                           [0., 0., 4.]],
+                          [[1., 0., 0.],
+                           [0., 5., 0.],
+                           [0., 0., 6.]]])
+
+        expected = gs.array([[[0.693147180, 0., 0.],
+                              [0., 1.09861228866, 0.],
+                              [0., 0., 1.38629436]],
+                             [[0., 0., 0.],
+                              [0., 1.609437912, 0.],
+                              [0., 0., 1.79175946]]])
+
+        result = self.group.group_log(point)
+
+        self.assertTrue(gs.allclose(result, expected))
+
+    def test_expm_and_logm_vectorization(self):
+        point = gs.array([[[2., 0., 0.],
+                           [0., 3., 0.],
+                           [0., 0., 4.]],
+                          [[1., 0., 0.],
+                           [0., 5., 0.],
+                           [0., 0., 6.]]])
+        result = self.group.group_exp(self.group.group_log(point))
+        expected = point
+
+        self.assertTrue(gs.allclose(result, expected))
 
 
 if __name__ == '__main__':

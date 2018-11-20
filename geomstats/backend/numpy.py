@@ -9,6 +9,10 @@ float32 = np.float32
 float64 = np.float64
 
 
+def cast_to_complex(x):
+    return np.vectorize(complex)(x)
+
+
 def boolean_mask(x, mask):
     return x[mask]
 
@@ -333,13 +337,16 @@ def sign(*args, **kwargs):
     return np.sign(*args, **kwargs)
 
 
-def vectorize(x, function):
-    return np.vectorize(function, signature="(n,m)->(n,m)")(x)
-
-
 def expm(x):
-    return vectorize(x, scipy.linalg.expm)
+    return np.vectorize(
+        scipy.linalg.expm, signature='(n,m)->(n,m)')(x)
 
 
 def logm(x):
-    return vectorize(x, scipy.linalg.logm)
+    return np.vectorize(
+        scipy.linalg.logm, signature='(n,m)->(n,m)')(x)
+
+
+def sqrtm(x):
+    return np.vectorize(
+        scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)
