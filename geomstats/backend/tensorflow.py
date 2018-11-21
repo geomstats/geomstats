@@ -267,3 +267,7 @@ def arctan2(*args, **kwargs):
 
 def diagonal(x):
     return tf.linalg.diag_part(x)
+
+
+def mean(x, axis=None):
+    return tf.reduce_mean(x, axis)

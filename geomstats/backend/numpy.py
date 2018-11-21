@@ -3,6 +3,7 @@
 import numpy as np
 import scipy.linalg
 
+
 int32 = np.int32
 int8 = np.int8
 float32 = np.float32
@@ -350,3 +351,11 @@ def logm(x):
 def sqrtm(x):
     return np.vectorize(
         scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)
+
+
+def mean(x, axis=None):
+    return np.mean(x, axis)
+
+
+def normal(*args, **kwargs):
+    return np.random.normal(*args, **kwargs)
