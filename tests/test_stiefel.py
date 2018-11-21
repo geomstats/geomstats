@@ -109,7 +109,7 @@ class TestStiefelMethods(unittest.TestCase):
 
         gs.testing.assert_allclose(result, expected)
 
-    def test_log_and_exp_general_case(self):
+    def test_log_and_exp(self):
         """
         Test that the riemannian exponential
         and the riemannian logarithm are inverse.
@@ -189,6 +189,25 @@ class TestStiefelMethods(unittest.TestCase):
 
         result = self.metric.log(n_points, n_base_points)
         gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+
+    def test_retractation_and_lifting(self):
+        """
+        Test that the riemannian exponential
+        and the riemannian logarithm are inverse.
+
+        Expect their composition to give the identity function.
+        """
+        # Riemannian Log then Riemannian Exp
+        # General case
+        base_point = self.point_a
+        point = self.point_b
+
+        lifted = self.metric.lifting(point=point, base_point=base_point)
+        result = self.metric.retraction(
+            tangent_vec=lifted, base_point=base_point)
+        expected = helper.to_matrix(point)
+
+        gs.testing.assert_allclose(result, expected, atol=ATOL)
 
 
 if __name__ == '__main__':

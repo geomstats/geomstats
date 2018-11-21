@@ -232,3 +232,104 @@ class StiefelEuclideanMetric(RiemannianMetric):
         matrix_qv = gs.matmul(matrix_q, matrix_lv[:, p:2*p, 0:p])
 
         return matrix_xv + matrix_qv
+
+    def retraction(self, tangent_vec, base_point):
+        """
+        Retraction map, based on QR-decomposion:
+        P_x(V) = qf(X + V)
+        """
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
+        n_tangent_vecs, _, _ = tangent_vec.shape
+
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
+        n_base_points, n, p = base_point.shape
+
+        assert (n_tangent_vecs == n_base_points
+                or n_tangent_vecs == 1
+                or n_base_points == 1)
+
+        # Q, R = gs.linalg.qr(base_point + tangent_vec)
+        # TODO: remove cycle, when qr will be vectorized
+        matrix_q = gs.zeros_like(base_point)
+        matrix_r = gs.zeros((
+            base_point.shape[0], base_point.shape[2], base_point.shape[2]))
+        for i, k in enumerate(base_point + tangent_vec):
+            matrix_q[i], matrix_r[i] = gs.linalg.qr(k)
+
+        # flipping signs
+        # Q = gs.matmul(Q, gs.diag(gs.sign(gs.sign(gs.diagonal(R)) + 0.5)))
+        # TODO: remove cycle, when diag, diangonal will be vectorized
+        result = gs.zeros_like(base_point)
+        for i, _ in enumerate(matrix_r):
+            result[i] = gs.matmul(
+                matrix_q,
+                gs.diag(gs.sign(gs.sign(gs.diagonal(matrix_r[i])) + 0.5)))
+
+        return result
+
+    def lifting(self, point, base_point):
+        """
+        Lifting map, based on QR-decomposion:
+        P_x^{-1}(Q) = QR - X
+        """
+        point = gs.to_ndarray(point, to_ndim=3)
+        n_points, _, _ = point.shape
+
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
+        n_base_points, p, n = base_point.shape
+
+        assert (n_points == n_base_points
+                or n_points == 1
+                or n_base_points == 1)
+
+        def make_minor(i, matrix):
+            return matrix[:i+1, :i+1]
+
+        def make_matrix_r(i, matrix):
+            if i == 0:
+                if (matrix[0, 0] > 0):
+                    return gs.array([1. / matrix[0, 0]])
+                else:
+                    raise Exception("M[0,0] <= 0")
+            else:
+                return matrix[:i+1, i]
+
+        def make_matrix_b(i, matrix, list_matrices_r):
+            b = gs.ones(i+1)
+
+            for j in range(i):
+                b[j] = - gs.matmul(
+                    matrix[i, :j+1], list_matrices_r[j])
+
+            return b
+
+        matrix_r = gs.zeros((n_base_points, n, n))
+        matrix_m = gs.matmul(gs.transpose(base_point, axes=(0, 2, 1)), point)
+
+        for k in range(n_base_points):
+            r = []
+
+            # construct r_0
+            r.append(make_matrix_r(0, matrix_m[k]))
+
+            for i in range(1, n):
+
+                # get principal minor
+                matrix_m_i = make_minor(i, matrix_m[k])
+
+                if (gs.linalg.det(matrix_m_i) != 0):
+                    matrix_b_i = make_matrix_b(i, matrix_m[k], r)
+                    matrix_r_i = gs.matmul(
+                        gs.linalg.inv(matrix_m_i), matrix_b_i)
+
+                    if matrix_r_i[i] <= 0:
+                        raise Exception("(r_i)_i <= 0")
+                    else:
+                        r.append(matrix_r_i)
+                else:
+                    raise Exception("det(M_i) == 0, not invertible")
+
+            for i, item in enumerate(r):
+                matrix_r[k, :len(item), i] = gs.array(item)
+
+        return gs.matmul(point, matrix_r) - base_point
