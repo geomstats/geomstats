@@ -195,7 +195,9 @@ class SPDMatricesSpace(EmbeddedManifold):
 class SPDMetric(RiemannianMetric):
 
     def __init__(self, n):
-        super(SPDMetric, self).__init__(dimension=int(n * (n + 1) / 2))
+        super(SPDMetric, self).__init__(
+                dimension=int(n * (n + 1) / 2),
+                signature=(int(n * (n + 1) / 2), 0, 0))
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """
