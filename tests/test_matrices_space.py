@@ -52,6 +52,18 @@ class TestMatricesSpaceMethods(unittest.TestCase):
                             [3, 0.5, 1]])
         self.assertTrue(gs.allclose(result, expected))
 
+        mat = gs.array([[1e100, 1e-100, 1e100],
+                        [1e100, 1e-100, 1e100],
+                        [1e-100, 1e-100, 1e100]])
+        result = self.space.make_symmetric(mat)
+
+        res = 0.5 * (1e100 + 1e-100)
+
+        expected = gs.array([[1e100, res, res],
+                             [res, 1e-100, res],
+                             [res, res, 1e100]])
+        self.assertTrue(gs.allclose(result, expected))
+
     def test_make_symmetric_and_is_symmetric_vectorization(self):
         n_samples = self.n_samples
         mats = gs.random.rand(n_samples, 5, 5)
