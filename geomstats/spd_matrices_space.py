@@ -121,6 +121,7 @@ class SPDMetric(RiemannianMetric):
         super(SPDMetric, self).__init__(
                 dimension=int(n * (n + 1) / 2),
                 signature=(int(n * (n + 1) / 2), 0, 0))
+        self.n = n
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """
