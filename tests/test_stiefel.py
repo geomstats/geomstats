@@ -168,6 +168,28 @@ class TestStiefelMethods(unittest.TestCase):
         expected = helper.to_vector(expected)
         gs.testing.assert_allclose(result, expected)
 
+    def test_log_vectorization(self):
+        n_samples = self.n_samples
+        n = self.n
+        p = self.p
+
+        one_point = self.space.random_uniform()
+        one_base_point = self.space.random_uniform()
+        n_points = self.space.random_uniform(n_samples=n_samples)
+        n_base_points = self.space.random_uniform(n_samples=n_samples)
+
+        result = self.metric.log(one_point, one_base_point)
+        gs.testing.assert_allclose(result.shape, (1, n, p))
+
+        result = self.metric.log(n_points, one_base_point)
+        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+
+        result = self.metric.log(one_point, n_base_points)
+        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+
+        result = self.metric.log(n_points, n_base_points)
+        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+
 
 if __name__ == '__main__':
         unittest.main()

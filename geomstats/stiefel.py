@@ -220,8 +220,8 @@ class StiefelEuclideanMetric(RiemannianMetric):
             matrix_c = matrix_lv[:, p:2*p, p:2*p]
             norm_matrix_c = gs.linalg.norm(matrix_c, ord=2, axis=(1, 2))
 
-            if norm_matrix_c < tol:
-                # print("Converged in {} iterations".format(k+1))
+            if gs.all(norm_matrix_c < tol):
+                # Convergence achieved
                 break
 
             matrix_phi = gs.expm(-matrix_c)
