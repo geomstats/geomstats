@@ -1,0 +1,7 @@
+flags:
+  numpy:
+    paths:
+      - /tests/test_*.py
+  tensorflow:
+    paths:
+      - /tests/test_*_tensorflow.py

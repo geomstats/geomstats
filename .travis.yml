@@ -17,4 +17,4 @@ script:
     - nose2 --with-coverage --verbose
 
 after_success:
-    - codecov
+    - bash < (curl -s https://codecov.io/bash)
