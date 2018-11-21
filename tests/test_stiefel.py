@@ -43,6 +43,9 @@ class TestStiefelMethods(unittest.TestCase):
 
         gs.testing.assert_allclose(point.shape, (1, self.n, self.p))
 
+    def test_inner_product(self):
+
+
 
 if __name__ == '__main__':
         unittest.main()
