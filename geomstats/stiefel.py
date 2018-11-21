@@ -112,11 +112,13 @@ class StiefelEuclideanMetric(RiemannianMetric):
                 or n_tangent_vecs == 1
                 or n_base_points == 1)
 
-        matrix_a = gs.matmul(
+        matrix_a = gs.einsum(
+            'nij, njk->nik',
             gs.transpose(base_point, axes=(0, 2, 1)), tangent_vec)
-        matrix_k = tangent_vec - gs.matmul(base_point, matrix_a)
+        matrix_k = (tangent_vec
+                    - gs.einsum('nij,njk->nik', base_point, matrix_a))
 
-        matrix_q = gs.zeros(matrix_k.shape)
+        matrix_q = gs.zeros_like(matrix_k)
         matrix_r = gs.zeros(
             (matrix_k.shape[0], matrix_k.shape[2], matrix_k.shape[2]))
         for i, k in enumerate(matrix_k):
@@ -126,14 +128,29 @@ class StiefelEuclideanMetric(RiemannianMetric):
             [matrix_a,
              -gs.transpose(matrix_r, axes=(0, 2, 1))],
             axis=2)
+
+        n_matrix_r = matrix_r.shape[0]
+        if n_matrix_r == 1:
+            matrix_r = gs.tile(matrix_r, (n_base_points, 1, 1))
+
+        zeros = gs.zeros((n_base_points, p, p))
+        if n_base_points == 1:
+            zeros = gs.zeros((n_tangent_vecs, p, p))
         matrix_rz = gs.concatenate(
             [matrix_r,
-             gs.zeros((n_base_points, p, p))],
+             zeros],
             axis=2)
         block = gs.concatenate([matrix_ar, matrix_rz], axis=1)
         matrix_mn_e = gs.expm(block)
 
-        exp = gs.matmul(
+        if n_base_points == 1:
+            base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
+        n_matrix_q = matrix_q.shape[0]
+        if n_matrix_q == 1:
+            matrix_q = gs.tile(matrix_q, (n_base_points, 1, 1))
+
+        exp = gs.einsum(
+            'nij,njk->nik',
             gs.concatenate(
                 [base_point,
                  matrix_q],

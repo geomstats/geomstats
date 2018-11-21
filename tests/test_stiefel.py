@@ -136,6 +136,38 @@ class TestStiefelMethods(unittest.TestCase):
             base_point=base_point)
         self.assertTrue(self.space.belongs(exp))
 
+    def test_exp_vectorization(self):
+        n_samples = self.n_samples
+        n = self.n
+        p = self.p
+
+        one_base_point = self.point_a
+        n_base_points = gs.tile(self.point_a, (n_samples, 1, 1))
+
+        one_tangent_vec = self.tangent_vector_1
+        result = self.metric.exp(one_tangent_vec, one_base_point)
+        gs.testing.assert_allclose(result.shape, (1, n, p))
+
+        n_tangent_vecs = gs.tile(self.tangent_vector_2, (n_samples, 1, 1))
+
+        result = self.metric.exp(n_tangent_vecs, one_base_point)
+        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+
+        expected = gs.zeros((n_samples, n, p))
+        for i in range(n_samples):
+            expected[i] = self.metric.exp(n_tangent_vecs[i], one_base_point)
+        expected = helper.to_vector(expected)
+        gs.testing.assert_allclose(result, expected)
+
+        result = self.metric.exp(one_tangent_vec, n_base_points)
+        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+
+        expected = gs.zeros((n_samples, n, p))
+        for i in range(n_samples):
+            expected[i] = self.metric.exp(one_tangent_vec, n_base_points[i])
+        expected = helper.to_vector(expected)
+        gs.testing.assert_allclose(result, expected)
+
 
 if __name__ == '__main__':
         unittest.main()
