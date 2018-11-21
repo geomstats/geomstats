@@ -97,3 +97,121 @@ class StiefelEuclideanMetric(RiemannianMetric):
         inner_prod = gs.einsum("nij,nij->n", tangent_vec_a, tangent_vec_b)
 
         return inner_prod
+
+    def exp(self, tangent_vec, base_point):
+        """
+        Riemannian exponential of a tangent vector wrt to a base point.
+        """
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
+        n_tangent_vecs, _, _ = tangent_vec.shape
+
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
+        n_base_points, n, p = base_point.shape
+
+        assert (n_tangent_vecs == n_base_points
+                or n_tangent_vecs == 1
+                or n_base_points == 1)
+
+        matrix_a = gs.matmul(
+            gs.transpose(base_point, axes=(0, 2, 1)), tangent_vec)
+        matrix_k = tangent_vec - gs.matmul(base_point, matrix_a)
+
+        matrix_q = gs.zeros(matrix_k.shape)
+        matrix_r = gs.zeros(
+            (matrix_k.shape[0], matrix_k.shape[2], matrix_k.shape[2]))
+        for i, k in enumerate(matrix_k):
+            matrix_q[i], matrix_r[i] = gs.linalg.qr(k)
+
+        matrix_ar = gs.concatenate(
+            [matrix_a,
+             -gs.transpose(matrix_r, axes=(0, 2, 1))],
+            axis=2)
+        matrix_rz = gs.concatenate(
+            [matrix_r,
+             gs.zeros((n_base_points, p, p))],
+            axis=2)
+        block = gs.concatenate([matrix_ar, matrix_rz], axis=1)
+        matrix_mn_e = gs.expm(block)
+
+        exp = gs.matmul(
+            gs.concatenate(
+                [base_point,
+                 matrix_q],
+                axis=2),
+            matrix_mn_e[:, :, 0:p])
+
+        return exp
+
+    def log(self, point, base_point, max_iter=100, tol=1e-6):
+        """
+        Riemannian logarithm of a point wrt a base point.
+
+        Based on:
+        Zimmermann, Ralf
+        "A Matrix-Algebraic Algorithm for the Riemannian Logarithm
+        on the Stiefel Manifold under the Canonical Metric"
+        SIAM J. Matrix Anal. & Appl., 38(2), 322–342.
+        """
+        point = gs.to_ndarray(point, to_ndim=3)
+        n_points, _, _ = point.shape
+
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
+        n_base_points, n, p = base_point.shape
+
+        assert (n_points == n_base_points
+                or n_points == 1
+                or n_base_points == 1)
+
+        matrix_m = gs.matmul(gs.transpose(base_point, (0, 2, 1)), point)
+
+        # QR of normal component of a point
+        matrix_k = point - gs.matmul(base_point, matrix_m)
+
+        matrix_q = gs.zeros(matrix_k.shape)
+        matrix_n = gs.zeros(
+            (matrix_k.shape[0], matrix_k.shape[2], matrix_k.shape[2]))
+        for i, k in enumerate(matrix_k):
+            matrix_q[i], matrix_n[i] = gs.linalg.qr(k)
+
+        # orthogonal completion
+        matrix_w = gs.concatenate([matrix_m, matrix_n], axis=1)
+
+        matrix_v = gs.zeros((
+            matrix_w.shape[0],
+            max(matrix_w.shape[1], matrix_w.shape[2]),
+            max(matrix_w.shape[1], matrix_w.shape[2])
+            ))
+
+        for i, w in enumerate(matrix_w):
+            matrix_v[i], _ = gs.linalg.qr(w, mode="complete")
+
+        # Procrustes preprocessing
+        [matrix_d, matrix_s, matrix_r] = gs.linalg.svd(
+            matrix_v[:, p:2*p, p:2*p])
+
+        matrix_rd = gs.matmul(matrix_r, gs.transpose(matrix_d, axes=(0, 2, 1)))
+        matrix_v[:, :, p:2*p] = gs.matmul(matrix_v[:, :, p:2*p], matrix_rd)
+        matrix_v = gs.concatenate(
+            [gs.concatenate([matrix_m, matrix_n], axis=1),
+             matrix_v[:, :, p:2*p]],
+            axis=2)
+
+        for k in range(max_iter):
+
+            matrix_lv = gs.logm(matrix_v)
+
+            matrix_c = matrix_lv[:, p:2*p, p:2*p]
+            norm_matrix_c = gs.linalg.norm(matrix_c, ord=2, axis=(1, 2))
+
+            if norm_matrix_c < tol:
+                # print("Converged in {} iterations".format(k+1))
+                break
+
+            matrix_phi = gs.expm(-matrix_c)
+            matrix_v[:, :, p:2*p] = gs.matmul(
+                matrix_v[:, :, p:2*p], matrix_phi)
+
+        matrix_xv = gs.matmul(base_point, matrix_lv[:, 0:p, 0:p])
+        matrix_qv = gs.matmul(matrix_q, matrix_lv[:, p:2*p, 0:p])
+
+        return matrix_xv + matrix_qv

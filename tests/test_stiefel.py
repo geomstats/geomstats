@@ -6,8 +6,11 @@ import unittest
 import warnings
 
 import geomstats.backend as gs
+import tests.helper as helper
 
 from geomstats.stiefel import Stiefel
+
+ATOL = 1e-6
 
 
 class TestStiefelMethods(unittest.TestCase):
@@ -29,11 +32,17 @@ class TestStiefelMethods(unittest.TestCase):
         self.dimension = int(
             self.p * self.n - (self.p * (self.p + 1) / 2))
 
-        self.point = gs.array([
+        self.point_a = gs.array([
             [1., 0., 0.],
             [0., 1., 0.],
             [0., 0., 1.],
             [0., 0., 0.]])
+
+        self.point_b = gs.array([
+            [1. / gs.sqrt(2), 0., 0.],
+            [0., 1., 0.],
+            [0., 0., 1.],
+            [1. / gs.sqrt(2), 0., 0.]])
 
         point_perp = gs.array([
             [0.],
@@ -58,11 +67,11 @@ class TestStiefelMethods(unittest.TestCase):
             [-2., 1., 4.]])
 
         self.tangent_vector_1 = (
-            gs.matmul(self.point, matrix_a_1)
+            gs.matmul(self.point_a, matrix_a_1)
             + gs.matmul(point_perp, matrix_b_1))
 
         self.tangent_vector_2 = (
-            gs.matmul(self.point, matrix_a_2)
+            gs.matmul(self.point_a, matrix_a_2)
             + gs.matmul(point_perp, matrix_b_2))
 
         self.metric = self.space.euclidean_metric
@@ -86,7 +95,7 @@ class TestStiefelMethods(unittest.TestCase):
         gs.testing.assert_allclose(point.shape, (1, self.n, self.p))
 
     def test_inner_product(self):
-        base_point = self.point
+        base_point = self.point_a
 
         result = self.metric.inner_product(
             self.tangent_vector_1,
@@ -99,6 +108,24 @@ class TestStiefelMethods(unittest.TestCase):
                 self.tangent_vector_2))
 
         gs.testing.assert_allclose(result, expected)
+
+    def test_log_and_exp_general_case(self):
+        """
+        Test that the riemannian exponential
+        and the riemannian logarithm are inverse.
+
+        Expect their composition to give the identity function.
+        """
+        # Riemannian Log then Riemannian Exp
+        # General case
+        base_point = self.point_a
+        point = self.point_b
+
+        log = self.metric.log(point=point, base_point=base_point)
+        result = self.metric.exp(tangent_vec=log, base_point=base_point)
+        expected = helper.to_matrix(point)
+
+        gs.testing.assert_allclose(result, expected, atol=ATOL)
 
 
 if __name__ == '__main__':
