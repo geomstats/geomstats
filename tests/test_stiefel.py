@@ -127,6 +127,15 @@ class TestStiefelMethods(unittest.TestCase):
 
         gs.testing.assert_allclose(result, expected, atol=ATOL)
 
+    def test_exp_and_belongs(self):
+        base_point = self.point_a
+        tangent_vec = self.tangent_vector_1
+
+        exp = self.metric.exp(
+            tangent_vec=tangent_vec,
+            base_point=base_point)
+        self.assertTrue(self.space.belongs(exp))
+
 
 if __name__ == '__main__':
         unittest.main()
