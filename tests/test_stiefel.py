@@ -201,6 +201,7 @@ class TestStiefelMethods(unittest.TestCase):
         # General case
         base_point = self.point_a
         point = self.point_b
+        tangent_vec = self.tangent_vector_1
 
         lifted = self.metric.lifting(point=point, base_point=base_point)
         result = self.metric.retraction(
@@ -208,6 +209,57 @@ class TestStiefelMethods(unittest.TestCase):
         expected = helper.to_matrix(point)
 
         gs.testing.assert_allclose(result, expected, atol=ATOL)
+
+        retract = self.metric.retraction(
+            tangent_vec=tangent_vec, base_point=base_point)
+        result = self.metric.lifting(point=retract, base_point=base_point)
+        expected = helper.to_matrix(point)
+
+        gs.testing.assert_allclose(result, expected, atol=ATOL)
+
+    def test_lifting_vectorization(self):
+        n_samples = self.n_samples
+        n = self.n
+        p = self.p
+
+        one_point = self.space.random_uniform()
+        one_base_point = self.space.random_uniform()
+        n_points = self.space.random_uniform(n_samples=n_samples)
+        n_base_points = self.space.random_uniform(n_samples=n_samples)
+
+        result = self.metric.lifting(one_point, one_base_point)
+        gs.testing.assert_allclose(result.shape, (1, n, p))
+
+        result = self.metric.lifting(n_points, one_base_point)
+        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+
+        result = self.metric.lifting(one_point, n_base_points)
+        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+
+        result = self.metric.lifting(n_points, n_base_points)
+        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+
+    def test_retraction_vectorization(self):
+        n_samples = self.n_samples
+        n = self.n
+        p = self.p
+
+        one_point = self.point_a
+        n_points = gs.tile(self.point_a, (n_samples, 1, 1))
+        one_tangent_vec = self.tangent_vector_1
+        n_tangent_vecs = gs.tile(self.tangent_vector_2, (n_samples, 1, 1))
+
+        result = self.metric.retraction(one_tangent_vec, one_point)
+        gs.testing.assert_allclose(result.shape, (1, n, p))
+
+        result = self.metric.retraction(n_tangent_vecs, one_point)
+        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+
+        result = self.metric.retraction(one_tangent_vec, n_points)
+        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+
+        result = self.metric.retraction(n_tangent_vecs, n_points)
+        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
 
 
 if __name__ == '__main__':

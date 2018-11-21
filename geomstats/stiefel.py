@@ -86,6 +86,7 @@ class StiefelEuclideanMetric(RiemannianMetric):
         Compute the Frobenius inner product of tangent_vec_a and tangent_vec_b
         at base_point using the metric of the embedding space.
         """
+        # TODO(nina): This is for the euclidean metric, not canonical. change.
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
         n_tangent_vecs_a, _, _ = tangent_vec_a.shape
 
@@ -179,18 +180,23 @@ class StiefelEuclideanMetric(RiemannianMetric):
                 or n_points == 1
                 or n_base_points == 1)
 
+        if n_base_points == 1:
+            base_point = gs.tile(base_point, (n_points, 1, 1))
+        if n_points == 1:
+            point = gs.tile(point, (n_base_points, 1, 1))
+        n_logs = gs.maximum(n_base_points, n_points)
+
         matrix_m = gs.matmul(gs.transpose(base_point, (0, 2, 1)), point)
 
         # QR of normal component of a point
         matrix_k = point - gs.matmul(base_point, matrix_m)
 
         matrix_q = gs.zeros(matrix_k.shape)
-        matrix_n = gs.zeros(
-            (matrix_k.shape[0], matrix_k.shape[2], matrix_k.shape[2]))
+        matrix_n = gs.zeros((n_logs, p, p))
         for i, k in enumerate(matrix_k):
             matrix_q[i], matrix_n[i] = gs.linalg.qr(k)
 
-        # orthogonal completion
+        # Orthogonal completion
         matrix_w = gs.concatenate([matrix_m, matrix_n], axis=1)
 
         matrix_v = gs.zeros((
@@ -248,11 +254,16 @@ class StiefelEuclideanMetric(RiemannianMetric):
                 or n_tangent_vecs == 1
                 or n_base_points == 1)
 
+        if n_base_points == 1:
+            base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
+        if n_tangent_vecs == 1:
+            tangent_vec = gs.tile(tangent_vec, (n_base_points, 1, 1))
+        n_retractions = gs.maximum(n_base_points, n_tangent_vecs)
         # Q, R = gs.linalg.qr(base_point + tangent_vec)
         # TODO: remove cycle, when qr will be vectorized
         matrix_q = gs.zeros_like(base_point)
-        matrix_r = gs.zeros((
-            base_point.shape[0], base_point.shape[2], base_point.shape[2]))
+        matrix_r = gs.zeros((n_retractions, p, p))
+
         for i, k in enumerate(base_point + tangent_vec):
             matrix_q[i], matrix_r[i] = gs.linalg.qr(k)
 
@@ -262,7 +273,7 @@ class StiefelEuclideanMetric(RiemannianMetric):
         result = gs.zeros_like(base_point)
         for i, _ in enumerate(matrix_r):
             result[i] = gs.matmul(
-                matrix_q,
+                matrix_q[i],
                 gs.diag(gs.sign(gs.sign(gs.diagonal(matrix_r[i])) + 0.5)))
 
         return result
@@ -282,10 +293,16 @@ class StiefelEuclideanMetric(RiemannianMetric):
                 or n_points == 1
                 or n_base_points == 1)
 
+        if n_base_points == 1:
+            base_point = gs.tile(base_point, (n_points, 1, 1))
+        if n_points == 1:
+            point = gs.tile(point, (n_base_points, 1, 1))
+        n_liftings = gs.maximum(n_base_points, n_points)
+
         def make_minor(i, matrix):
             return matrix[:i+1, :i+1]
 
-        def make_matrix_r(i, matrix):
+        def make_column_r(i, matrix):
             if i == 0:
                 if (matrix[0, 0] > 0):
                     return gs.array([1. / matrix[0, 0]])
@@ -294,7 +311,7 @@ class StiefelEuclideanMetric(RiemannianMetric):
             else:
                 return matrix[:i+1, i]
 
-        def make_matrix_b(i, matrix, list_matrices_r):
+        def make_b(i, matrix, list_matrices_r):
             b = gs.ones(i+1)
 
             for j in range(i):
@@ -303,33 +320,34 @@ class StiefelEuclideanMetric(RiemannianMetric):
 
             return b
 
-        matrix_r = gs.zeros((n_base_points, n, n))
+        matrix_r = gs.zeros((n_liftings, n, n))
         matrix_m = gs.matmul(gs.transpose(base_point, axes=(0, 2, 1)), point)
 
-        for k in range(n_base_points):
-            r = []
+        for k in range(n_liftings):
+            columns_list = []
+            matrix_m_k = matrix_m[k]
 
             # construct r_0
-            r.append(make_matrix_r(0, matrix_m[k]))
+            columns_list.append(make_column_r(0, matrix_m_k))
 
             for i in range(1, n):
 
                 # get principal minor
-                matrix_m_i = make_minor(i, matrix_m[k])
+                matrix_m_i = make_minor(i, matrix_m_k)
 
                 if (gs.linalg.det(matrix_m_i) != 0):
-                    matrix_b_i = make_matrix_b(i, matrix_m[k], r)
-                    matrix_r_i = gs.matmul(
-                        gs.linalg.inv(matrix_m_i), matrix_b_i)
+                    b_i = make_b(i, matrix_m_k, columns_list)
+                    column_r_i = gs.matmul(
+                        gs.linalg.inv(matrix_m_i), b_i)
 
-                    if matrix_r_i[i] <= 0:
+                    if column_r_i[i] <= 0:
                         raise Exception("(r_i)_i <= 0")
                     else:
-                        r.append(matrix_r_i)
+                        columns_list.append(column_r_i)
                 else:
                     raise Exception("det(M_i) == 0, not invertible")
 
-            for i, item in enumerate(r):
+            for i, item in enumerate(columns_list):
                 matrix_r[k, :len(item), i] = gs.array(item)
 
         return gs.matmul(point, matrix_r) - base_point
