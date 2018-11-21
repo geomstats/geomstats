@@ -2,11 +2,10 @@
 Unit tests for the manifold of symmetric positive definite matrices.
 """
 
-import scipy.linalg
 import unittest
+import warnings
 
 import geomstats.backend as gs
-import geomstats.spd_matrices_space as spd_matrices_space
 
 from geomstats.spd_matrices_space import SPDMatricesSpace
 
@@ -15,61 +14,14 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
+        warnings.simplefilter('ignore', category=ImportWarning)
+
         gs.random.seed(1234)
 
         self.n = 3
         self.space = SPDMatricesSpace(n=self.n)
         self.metric = self.space.metric
         self.n_samples = 10
-
-    def test_is_symmetric(self):
-        sym_mat = gs.array([[1, 2],
-                            [2, 1]])
-        self.assertTrue(spd_matrices_space.is_symmetric(sym_mat))
-
-        not_a_sym_mat = gs.array([[1., 0.6, -3.],
-                                  [6., -7., 0.],
-                                  [0., 7., 8.]])
-        self.assertFalse(spd_matrices_space.is_symmetric(not_a_sym_mat))
-
-    def test_is_symmetric_vectorization(self):
-        n_samples = self.n_samples
-        points = self.space.random_uniform(n_samples=n_samples)
-        self.assertTrue(gs.all(spd_matrices_space.is_symmetric(points)))
-
-    def test_make_symmetric(self):
-        sym_mat = gs.array([[1, 2],
-                            [2, 1]])
-        result = spd_matrices_space.make_symmetric(sym_mat)
-        expected = sym_mat
-        self.assertTrue(gs.allclose(result, expected))
-
-        mat = gs.array([[1, 2, 3],
-                        [0, 0, 0],
-                        [3, 1, 1]])
-        result = spd_matrices_space.make_symmetric(mat)
-        expected = gs.array([[1, 1, 3],
-                            [1, 0, 0.5],
-                            [3, 0.5, 1]])
-        self.assertTrue(gs.allclose(result, expected))
-
-    def test_make_symmetric_and_is_symmetric_vectorization(self):
-        n_samples = self.n_samples
-        mats = gs.random.rand(n_samples, 5, 5)
-
-        results = spd_matrices_space.make_symmetric(mats)
-        self.assertTrue(gs.all(spd_matrices_space.is_symmetric(results)))
-
-    def test_sqrtm(self):
-        n_samples = self.n_samples
-        points = self.space.random_uniform(n_samples=n_samples)
-
-        result = spd_matrices_space.sqrtm(points)
-        expected = gs.zeros((n_samples, self.n, self.n))
-        for i in range(n_samples):
-            expected[i] = scipy.linalg.sqrtm(points[i])
-
-        self.assertTrue(gs.allclose(result, expected))
 
     def test_random_uniform_and_belongs(self):
         self.assertTrue(self.space.belongs(self.space.random_uniform()))
@@ -113,23 +65,6 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         vector = self.space.vector_from_symmetric_matrix(sym_mat)
         result = self.space.symmetric_matrix_from_vector(vector)
         expected = sym_mat
-
-        self.assertTrue(gs.allclose(result, expected))
-
-    def test_group_log_and_exp(self):
-        point_1 = 5 * gs.eye(4)
-        group_log_1 = spd_matrices_space.group_log(point_1)
-        result_1 = spd_matrices_space.group_exp(group_log_1)
-        expected_1 = point_1
-
-        self.assertTrue(gs.allclose(result_1, expected_1))
-
-    def test_group_log_and_exp_vectorization(self):
-        n_samples = self.n_samples
-        point = self.space.random_uniform(n_samples)
-        group_log = spd_matrices_space.group_log(point)
-        result = spd_matrices_space.group_exp(group_log)
-        expected = point
 
         self.assertTrue(gs.allclose(result, expected))
 
@@ -324,4 +259,4 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
 
 
 if __name__ == '__main__':
-        unittest.main()
+    unittest.main()

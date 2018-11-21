@@ -8,6 +8,7 @@ matplotlib.use('Agg')  # NOQA
 import matplotlib.pyplot as plt
 import sys
 import unittest
+import warnings
 
 import examples.gradient_descent_s2 as gradient_descent_s2
 import examples.loss_and_gradient_se3 as loss_and_gradient_se3
@@ -31,6 +32,7 @@ class TestExamples(unittest.TestCase):
         sys.stdout = open(os.devnull, 'w')
 
     def setUp(self):
+        warnings.simplefilter('ignore', category=ImportWarning)
         plt.figure()
 
     def test_gradient_descent_s2(self):

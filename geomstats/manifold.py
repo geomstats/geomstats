@@ -18,15 +18,15 @@ class Manifold(object):
 
         self.dimension = dimension
 
-    def belongs(self, point):
+    def belongs(self, point, point_type=None):
         """
         Evaluate if a point belongs to the manifold.
         """
         raise NotImplementedError('belongs is not implemented.')
 
-    def regularize(self, point):
+    def regularize(self, point, point_type=None):
         """
         Regularize a point to the canonical representation
         chosen for the manifold.
         """
-        raise NotImplementedError('regularize is not implemented.')
+        return point

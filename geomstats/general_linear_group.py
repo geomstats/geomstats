@@ -2,14 +2,13 @@
 The General Linear Group, i.e. the matrix group GL(n).
 """
 
-import scipy.linalg
-
 import geomstats.backend as gs
 
 from geomstats.lie_group import LieGroup
+from geomstats.matrices_space import MatricesSpace
 
 
-class GeneralLinearGroup(LieGroup):
+class GeneralLinearGroup(LieGroup, MatricesSpace):
     """
     Class for the General Linear Group, i.e. the matrix group GL(n).
 
@@ -22,13 +21,19 @@ class GeneralLinearGroup(LieGroup):
 
     def __init__(self, n):
         assert isinstance(n, int) and n > 0
-        super(GeneralLinearGroup, self).__init__(
-                                      dimension=n*n)
-        self.n = n
+        LieGroup.__init__(self, dimension=n*n)
+        MatricesSpace.__init__(self, m=n, n=n)
 
-    @property
-    def identity(self):
-        return gs.eye(self.n)
+    def get_identity(self, point_type=None):
+        if point_type is None:
+            point_type = self.default_point_type
+        if point_type == 'matrix':
+            return gs.eye(self.n)
+        else:
+            raise NotImplementedError(
+                'The identity of the general linear group is not'
+                ' implemented for a point_type that is not \'matrix\'.')
+    identity = property(get_identity)
 
     def belongs(self, mat):
         """
@@ -59,32 +64,47 @@ class GeneralLinearGroup(LieGroup):
         mat = gs.to_ndarray(mat, to_ndim=3)
         return gs.linalg.inv(mat)
 
-    def group_exp_from_identity(self, tangent_vec):
+    def group_exp_from_identity(self, tangent_vec, point_type=None):
         """
-        Compute the group exponential
-        of tangent vector tangent_vec from the identity.
+        Group exponential of the Lie group of
+        all invertible matrices has a straight-forward
+        computation for symmetric positive definite matrices.
         """
-        if tangent_vec.ndim == 2:
-            return scipy.linalg.expm(tangent_vec)
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
+        n_tangent_vecs, mat_dim, _ = tangent_vec.shape
 
-        exp = gs.zeros_like(tangent_vec)
-        n_vecs, _, _ = tangent_vec.shape
-        for i in range(n_vecs):
-            exp[i] = scipy.linalg.expm(tangent_vec[i])
+        if gs.all(self.is_symmetric(tangent_vec)):
+            tangent_vec = self.make_symmetric(tangent_vec)
+            [eigenvalues, vectors] = gs.linalg.eigh(tangent_vec)
+            exp_eigenvalues = gs.exp(eigenvalues)
 
-        return exp
+            aux = gs.einsum('ijk,ik->ijk', vectors, exp_eigenvalues)
+            group_exp = gs.einsum('ijk,ilk->ijl', aux, vectors)
 
-    def group_log_from_identity(self, point):
+            group_exp = gs.to_ndarray(group_exp, to_ndim=3)
+
+        else:
+            group_exp = gs.expm(tangent_vec)
+
+        return group_exp.real
+
+    def group_log_from_identity(self, point, point_type=None):
         """
-        Compute the group logarithm
-        of the point point from the identity.
+        Group logarithm of the Lie group of
+        all invertible matrices has a straight-forward
+        computation for symmetric positive definite matrices.
         """
-        if point.ndim == 2:
-            return scipy.linalg.logm(point)
+        point = gs.to_ndarray(point, to_ndim=3)
+        if gs.all(self.is_symmetric(point)):
+            point = self.make_symmetric(point)
+            [eigenvalues, vectors] = gs.linalg.eigh(point)
 
-        log = gs.zeros_like(point)
-        n_points, _, _ = point.shape
-        for i in range(n_points):
-            log[i] = scipy.linalg.logm(point[i])
+            log_eigenvalues = gs.log(eigenvalues.real)
 
-        return log
+            aux = gs.einsum('ijk,ik->ijk', vectors, log_eigenvalues)
+            group_log = gs.einsum('ijk,ilk->ijl', aux, vectors)
+
+        else:
+            group_log = gs.logm(point)
+
+        return group_log.real
