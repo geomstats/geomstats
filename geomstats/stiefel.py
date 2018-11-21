@@ -33,7 +33,7 @@ class Stiefel(EmbeddedManifold):
               dimension=dimension,
               embedding_manifold=MatricesSpace(n, p))
 
-        self.euclidean_metric = StiefelEuclideanMetric(n, p)
+        self.canonical_metric = StiefelCanonicalMetric(n, p)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """
@@ -72,11 +72,11 @@ class Stiefel(EmbeddedManifold):
         return gs.matmul(std_normal, inv_sqrt_aux)
 
 
-class StiefelEuclideanMetric(RiemannianMetric):
+class StiefelCanonicalMetric(RiemannianMetric):
 
     def __init__(self, n, p):
         dimension = int(p * n - (p * (p + 1) / 2))
-        super(StiefelEuclideanMetric, self).__init__(
+        super(StiefelCanonicalMetric, self).__init__(
                 dimension=dimension,
                 signature=(dimension, 0, 0))
         self.embedding_metric = EuclideanMetric(n*p)

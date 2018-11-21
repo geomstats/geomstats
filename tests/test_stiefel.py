@@ -74,7 +74,7 @@ class TestStiefelMethods(unittest.TestCase):
             gs.matmul(self.point_a, matrix_a_2)
             + gs.matmul(point_perp, matrix_b_2))
 
-        self.metric = self.space.euclidean_metric
+        self.metric = self.space.canonical_metric
 
     def test_belongs(self):
         point = self.space.random_uniform()
