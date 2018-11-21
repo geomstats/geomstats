@@ -28,7 +28,8 @@ class MatricesSpace(EuclideanSpace):
         _, mat_dim_1, mat_dim_2 = point.shape
         return mat_dim_1 == self.m & mat_dim_2 == self.n
 
-    def vector_from_matrix(self, matrix):
+    @staticmethod
+    def vector_from_matrix(matrix):
         """
         Conversion function from (_, m, n) to (_, mn).
         """
@@ -36,11 +37,12 @@ class MatricesSpace(EuclideanSpace):
         n_mats, m, n = matrix.shape
         return gs.reshape(matrix, (n_mats, m*n))
 
-    def is_symmetric(self, matrix, tolerance=TOLERANCE):
+    @staticmethod
+    def is_symmetric(matrix, tolerance=TOLERANCE):
         """Check if a matrix is symmetric."""
-        assert self.m == self.n
-
         matrix = gs.to_ndarray(matrix, to_ndim=3)
+        n_mats, m, n = matrix.shape
+        assert m == n
         matrix_transpose = gs.transpose(matrix, axes=(0, 2, 1))
 
         mask = gs.isclose(matrix, matrix_transpose, atol=tolerance)
@@ -48,9 +50,12 @@ class MatricesSpace(EuclideanSpace):
 
         return mask
 
-    def make_symmetric(self, matrix):
+    @staticmethod
+    def make_symmetric(matrix):
         """Make a matrix fully symmetric to avoid numerical issues."""
-        assert self.m == self.n
+        matrix = gs.to_ndarray(matrix, to_ndim=3)
+        n_mats, m, n = matrix.shape
+        assert m == n
         matrix = gs.to_ndarray(matrix, to_ndim=3)
         return (matrix + gs.transpose(matrix, axes=(0, 2, 1))) / 2
 
