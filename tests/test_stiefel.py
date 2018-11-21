@@ -213,7 +213,7 @@ class TestStiefelMethods(unittest.TestCase):
         retract = self.metric.retraction(
             tangent_vec=tangent_vec, base_point=base_point)
         result = self.metric.lifting(point=retract, base_point=base_point)
-        expected = helper.to_matrix(point)
+        expected = helper.to_matrix(tangent_vec)
 
         gs.testing.assert_allclose(result, expected, atol=ATOL)
 
@@ -222,10 +222,10 @@ class TestStiefelMethods(unittest.TestCase):
         n = self.n
         p = self.p
 
-        one_point = self.space.random_uniform()
-        one_base_point = self.space.random_uniform()
-        n_points = self.space.random_uniform(n_samples=n_samples)
-        n_base_points = self.space.random_uniform(n_samples=n_samples)
+        one_point = self.point_a
+        one_base_point = self.point_b
+        n_points = gs.tile(self.point_a, (n_samples, 1, 1))
+        n_base_points = gs.tile(self.point_b, (n_samples, 1, 1))
 
         result = self.metric.lifting(one_point, one_base_point)
         gs.testing.assert_allclose(result.shape, (1, n, p))
