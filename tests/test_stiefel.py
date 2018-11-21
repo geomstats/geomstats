@@ -18,8 +18,8 @@ class TestStiefelMethods(unittest.TestCase):
 
         gs.random.seed(1234)
 
-        self.p = 6
-        self.n = 10
+        self.p = 3
+        self.n = 4
         self.space = Stiefel(self.n, self.p)
         self.n_samples = 10
         self.dimension = int(
@@ -44,6 +44,19 @@ class TestStiefelMethods(unittest.TestCase):
         gs.testing.assert_allclose(point.shape, (1, self.n, self.p))
 
     def test_inner_product(self):
+        point_a = gs.array([
+            [1., 0., 0.],
+            [0., 1., 0.],
+            [0., 0., 1.],
+            [0., 0., 0.]])
+
+        point_b = gs.array([
+            [1., 0., 0.],
+            [0., 1., 0.],
+            [0., 0., 1.],
+            [1., 0., 0.]])
+
+        result = self.metric.inner_product(point_a, point_b)
 
 
 
