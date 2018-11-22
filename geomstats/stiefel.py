@@ -81,22 +81,23 @@ class StiefelCanonicalMetric(RiemannianMetric):
                 signature=(dimension, 0, 0))
         self.embedding_metric = EuclideanMetric(n*p)
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """
-        Compute the Frobenius inner product of tangent_vec_a and tangent_vec_b
-        at base_point using the metric of the embedding space.
+        Canonical inner product on the tangent space at base_point,
+        which is different from the inner product induced by the embedding.
+
+        Formula from:
+        http://noodle.med.yale.edu/hdtag/notes/steifel_notes.pdf
         """
-        # TODO(nina): This is for the euclidean metric, not canonical. change.
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
-        n_tangent_vecs_a, _, _ = tangent_vec_a.shape
+        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
+        base_point_transpose = gs.transpose(base_point, axes=(0, 2, 1))
 
-        tangent_vec_b = gs.to_ndarray(tangent_vec_a, to_ndim=3)
-        n_tangent_vecs_b, _, _ = tangent_vec_b.shape
-
-        assert n_tangent_vecs_a == n_tangent_vecs_b
-
-        inner_prod = gs.einsum("nij,nij->n", tangent_vec_a, tangent_vec_b)
-
+        aux = gs.matmul(
+            gs.transpose(tangent_vec_a, axes=(0, 2, 1)),
+            gs.eye(self.n) - 0.5 * gs.matmul(base_point, base_point_transpose))
+        inner_prod = gs.trace(gs.matmul(aux, tangent_vec_b))
         return inner_prod
 
     def exp(self, tangent_vec, base_point):

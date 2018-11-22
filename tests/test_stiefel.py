@@ -94,21 +94,6 @@ class TestStiefelMethods(unittest.TestCase):
 
         gs.testing.assert_allclose(point.shape, (1, self.n, self.p))
 
-    def test_inner_product(self):
-        base_point = self.point_a
-
-        result = self.metric.inner_product(
-            self.tangent_vector_1,
-            self.tangent_vector_2,
-            base_point=base_point)
-
-        expected = gs.trace(
-            gs.matmul(
-                self.tangent_vector_1.T,
-                self.tangent_vector_2))
-
-        gs.testing.assert_allclose(result, expected)
-
     def test_log_and_exp(self):
         """
         Test that the riemannian exponential
