@@ -80,6 +80,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
                 dimension=dimension,
                 signature=(dimension, 0, 0))
         self.embedding_metric = EuclideanMetric(n*p)
+        self.n = n
+        self.p = p
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """
@@ -97,7 +99,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
         aux = gs.matmul(
             gs.transpose(tangent_vec_a, axes=(0, 2, 1)),
             gs.eye(self.n) - 0.5 * gs.matmul(base_point, base_point_transpose))
-        inner_prod = gs.trace(gs.matmul(aux, tangent_vec_b))
+        inner_prod = gs.trace(gs.matmul(aux, tangent_vec_b), axis1=1, axis2=2)
+
+        inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
         return inner_prod
 
     def exp(self, tangent_vec, base_point):

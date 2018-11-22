@@ -246,6 +246,18 @@ class TestStiefelMethods(unittest.TestCase):
         result = self.metric.retraction(n_tangent_vecs, n_points)
         gs.testing.assert_allclose(result.shape, (n_samples, n, p))
 
+    def test_inner_product(self):
+        base_point = self.point_a
+        tangent_vector_1 = self.tangent_vector_1
+        tangent_vector_2 = self.tangent_vector_2
+
+        result = self.metric.inner_product(
+            tangent_vector_1,
+            tangent_vector_2,
+            base_point=base_point)
+        print(result)
+        gs.testing.assert_allclose(result.shape, (1, 1))
+
 
 if __name__ == '__main__':
         unittest.main()
