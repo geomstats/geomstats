@@ -255,7 +255,6 @@ class TestStiefelMethods(unittest.TestCase):
             tangent_vector_1,
             tangent_vector_2,
             base_point=base_point)
-        print(result)
         gs.testing.assert_allclose(result.shape, (1, 1))
 
 
