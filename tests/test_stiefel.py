@@ -21,7 +21,7 @@ class TestStiefelMethods(unittest.TestCase):
         Tangent vectors constructed following:
         http://noodle.med.yale.edu/hdtag/notes/steifel_notes.pdf
         """
-        warnings.simplefilter('ignore', category=ImportWarning)
+        warnings.filterwarnings('ignore')
 
         gs.random.seed(1234)
 
