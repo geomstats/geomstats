@@ -177,6 +177,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         https://arxiv.org/pdf/1604.05054.pdf
         """
+        # TODO(nina): Add unit tests for auxiliary functions
 
         def normal_component_qr(point, base_point, matrix_m):
             """
