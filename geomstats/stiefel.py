@@ -174,7 +174,50 @@ class StiefelCanonicalMetric(RiemannianMetric):
         "A Matrix-Algebraic Algorithm for the Riemannian Logarithm
         on the Stiefel Manifold under the Canonical Metric"
         SIAM J. Matrix Anal. & Appl., 38(2), 322–342.
+
+        https://arxiv.org/pdf/1604.05054.pdf
         """
+
+        def normal_component_qr(point, base_point, matrix_m):
+            """
+            Computes the QR decomposition of the normal component
+            of a point.
+            """
+            matrix_k = point - gs.matmul(base_point, matrix_m)
+
+            matrix_q = gs.zeros(matrix_k.shape)
+            matrix_n = gs.zeros((n_logs, p, p))
+            for i, k in enumerate(matrix_k):
+                matrix_q[i], matrix_n[i] = gs.linalg.qr(k)
+            return matrix_q, matrix_n
+
+        def orthogonal_completion(matrix_m, matrix_n):
+            matrix_w = gs.concatenate([matrix_m, matrix_n], axis=1)
+
+            matrix_v = gs.zeros((
+                matrix_w.shape[0],
+                max(matrix_w.shape[1], matrix_w.shape[2]),
+                max(matrix_w.shape[1], matrix_w.shape[2])
+                ))
+
+            for i, w in enumerate(matrix_w):
+                matrix_v[i], _ = gs.linalg.qr(w, mode="complete")
+
+            return matrix_v
+
+        def procrustes_preprocessing(matrix_v, matrix_m, matrix_n):
+            [matrix_d, matrix_s, matrix_r] = gs.linalg.svd(
+                matrix_v[:, p:2*p, p:2*p])
+
+            matrix_rd = gs.matmul(
+                matrix_r, gs.transpose(matrix_d, axes=(0, 2, 1)))
+            matrix_v[:, :, p:2*p] = gs.matmul(matrix_v[:, :, p:2*p], matrix_rd)
+            matrix_v = gs.concatenate(
+                [gs.concatenate([matrix_m, matrix_n], axis=1),
+                 matrix_v[:, :, p:2*p]],
+                axis=2)
+            return matrix_v
+
         point = gs.to_ndarray(point, to_ndim=3)
         n_points, _, _ = point.shape
 
@@ -193,39 +236,13 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         matrix_m = gs.matmul(gs.transpose(base_point, (0, 2, 1)), point)
 
-        # QR of normal component of a point
-        matrix_k = point - gs.matmul(base_point, matrix_m)
+        matrix_q, matrix_n = normal_component_qr(point, base_point, matrix_m)
 
-        matrix_q = gs.zeros(matrix_k.shape)
-        matrix_n = gs.zeros((n_logs, p, p))
-        for i, k in enumerate(matrix_k):
-            matrix_q[i], matrix_n[i] = gs.linalg.qr(k)
+        matrix_v = orthogonal_completion(matrix_m, matrix_n)
 
-        # Orthogonal completion
-        matrix_w = gs.concatenate([matrix_m, matrix_n], axis=1)
-
-        matrix_v = gs.zeros((
-            matrix_w.shape[0],
-            max(matrix_w.shape[1], matrix_w.shape[2]),
-            max(matrix_w.shape[1], matrix_w.shape[2])
-            ))
-
-        for i, w in enumerate(matrix_w):
-            matrix_v[i], _ = gs.linalg.qr(w, mode="complete")
-
-        # Procrustes preprocessing
-        [matrix_d, matrix_s, matrix_r] = gs.linalg.svd(
-            matrix_v[:, p:2*p, p:2*p])
-
-        matrix_rd = gs.matmul(matrix_r, gs.transpose(matrix_d, axes=(0, 2, 1)))
-        matrix_v[:, :, p:2*p] = gs.matmul(matrix_v[:, :, p:2*p], matrix_rd)
-        matrix_v = gs.concatenate(
-            [gs.concatenate([matrix_m, matrix_n], axis=1),
-             matrix_v[:, :, p:2*p]],
-            axis=2)
+        matrix_v = procrustes_preprocessing(matrix_v, matrix_m, matrix_n)
 
         for k in range(max_iter):
-
             matrix_lv = gs.logm(matrix_v)
 
             matrix_c = matrix_lv[:, p:2*p, p:2*p]
@@ -264,8 +281,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
         if n_tangent_vecs == 1:
             tangent_vec = gs.tile(tangent_vec, (n_base_points, 1, 1))
         n_retractions = gs.maximum(n_base_points, n_tangent_vecs)
-        # Q, R = gs.linalg.qr(base_point + tangent_vec)
-        # TODO: remove cycle, when qr will be vectorized
+
+        # TODO(nina): remove for loop, when qr is vectorized
         matrix_q = gs.zeros_like(base_point)
         matrix_r = gs.zeros((n_retractions, p, p))
 
@@ -273,8 +290,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             matrix_q[i], matrix_r[i] = gs.linalg.qr(k)
 
         # flipping signs
-        # Q = gs.matmul(Q, gs.diag(gs.sign(gs.sign(gs.diagonal(R)) + 0.5)))
-        # TODO: remove cycle, when diag, diangonal will be vectorized
+        # TODO(nina): remove for loop, when diag and diagonal are vectorized
         result = gs.zeros_like(base_point)
         for i, _ in enumerate(matrix_r):
             result[i] = gs.matmul(
@@ -309,12 +325,21 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         def make_column_r(i, matrix):
             if i == 0:
-                if (matrix[0, 0] > 0):
-                    return gs.array([1. / matrix[0, 0]])
-                else:
-                    raise Exception("M[0,0] <= 0")
+                assert matrix[0, 0] > 0, 'M[0,0] <= 0'
+                return gs.array([1. / matrix[0, 0]])
             else:
-                return matrix[:i+1, i]
+                # get principal minor
+                matrix_m_i = make_minor(i, matrix_m_k)
+
+                assert gs.linalg.det(matrix_m_i) != 0
+                inv_matrix_m_i = gs.linalg.inv(matrix_m_i)
+
+                b_i = make_b(i, matrix_m_k, columns_list)
+
+                column_r_i = gs.matmul(inv_matrix_m_i, b_i)
+
+                assert column_r_i[i] > 0, '(r_i)_i <= 0'
+                return column_r_i
 
         def make_b(i, matrix, list_matrices_r):
             b = gs.ones(i+1)
@@ -332,27 +357,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
             columns_list = []
             matrix_m_k = matrix_m[k]
 
-            # construct r_0
-            columns_list.append(make_column_r(0, matrix_m_k))
-
-            for i in range(1, n):
-
-                # get principal minor
-                matrix_m_i = make_minor(i, matrix_m_k)
-
-                if (gs.linalg.det(matrix_m_i) != 0):
-                    b_i = make_b(i, matrix_m_k, columns_list)
-                    column_r_i = gs.matmul(
-                        gs.linalg.inv(matrix_m_i), b_i)
-
-                    if column_r_i[i] <= 0:
-                        raise Exception("(r_i)_i <= 0")
-                    else:
-                        columns_list.append(column_r_i)
-                else:
-                    raise Exception("det(M_i) == 0, not invertible")
-
-            for i, item in enumerate(columns_list):
-                matrix_r[k, :len(item), i] = gs.array(item)
+            for i in range(n):
+                column_r_i = make_column_r(i, matrix_m_k)
+                columns_list.append(column_r_i)
+                matrix_r[k, :len(column_r_i), i] = gs.array(column_r_i)
 
         return gs.matmul(point, matrix_r) - base_point
