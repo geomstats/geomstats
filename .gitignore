@@ -1,5 +1,6 @@
 build
 dist
+*.mp4
 *egg-info
 *.egg
 *.pyc
