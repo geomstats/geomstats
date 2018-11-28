@@ -149,9 +149,8 @@ class HyperbolicSpace(EmbeddedManifold):
 class HyperbolicMetric(RiemannianMetric):
 
     def __init__(self, dimension):
-        super(HyperbolicMetric, self).__init__(
-                dimension=dimension,
-                signature=(dimension, 0, 0))
+        self.dimension = dimension
+        self.signature = (dimension, 0, 0)
         self.embedding_metric = MinkowskiMetric(dimension + 1)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):

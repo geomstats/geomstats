@@ -71,34 +71,6 @@ class TestMatricesSpaceMethods(unittest.TestCase):
         results = self.space.make_symmetric(mats)
         self.assertTrue(gs.all(self.space.is_symmetric(results)))
 
-    def test_inner_product(self):
-        base_point = gs.array([
-            [1., 2., 3.],
-            [0., 0., 0.],
-            [3., 1., 1.]])
-
-        tangent_vector_1 = gs.array([
-            [1., 2., 3.],
-            [0., -10., 0.],
-            [30., 1., 1.]])
-
-        tangent_vector_2 = gs.array([
-            [1., 4., 3.],
-            [5., 0., 0.],
-            [3., 1., 1.]])
-
-        result = self.metric.inner_product(
-            tangent_vector_1,
-            tangent_vector_2,
-            base_point=base_point)
-
-        expected = gs.trace(
-            gs.matmul(
-                tangent_vector_1.T,
-                tangent_vector_2))
-
-        gs.testing.assert_allclose(result, expected)
-
 
 if __name__ == '__main__':
         unittest.main()
