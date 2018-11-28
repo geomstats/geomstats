@@ -36,6 +36,7 @@ nose2
 
 * Alice Le Brigant
 * Claire Donnat
+* Oleg Kachan
 * Benjamin Hou
 * Johan Mathe
 * Nina Miolane
