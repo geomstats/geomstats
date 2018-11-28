@@ -5,6 +5,7 @@ The space of matrices (m, n), which is the Euclidean space R^{mn}.
 import geomstats.backend as gs
 
 from geomstats.euclidean_space import EuclideanSpace
+from geomstats.riemannian_metric import RiemannianMetric
 
 
 TOLERANCE = 1e-5
@@ -19,6 +20,7 @@ class MatricesSpace(EuclideanSpace):
         self.m = m
         self.n = n
         self.default_point_type = 'matrix'
+        self.metric = MatricesMetric(m, n)
 
     def belongs(self, point):
         """
@@ -62,3 +64,32 @@ class MatricesSpace(EuclideanSpace):
     def random_uniform(self, n_samples=1):
         point = gs.random.rand(n_samples, self.m, self.n)
         return point
+
+
+class MatricesMetric(RiemannianMetric):
+    """
+    Euclidean metric on matrices given by the Frobenius inner product.
+    """
+    # TODO(nina): Inheritance from Euclidean Metric here?
+    def __init__(self, m, n):
+        dimension = m*n
+        super(MatricesMetric, self).__init__(
+                dimension=dimension,
+                signature=(dimension, 0, 0))
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+        """
+        Compute the Frobenius inner product of tangent_vec_a and tangent_vec_b
+        at base_point.
+        """
+        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
+        n_tangent_vecs_a, _, _ = tangent_vec_a.shape
+
+        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
+        n_tangent_vecs_b, _, _ = tangent_vec_b.shape
+
+        assert n_tangent_vecs_a == n_tangent_vecs_b
+
+        inner_prod = gs.einsum("nij,nij->n", tangent_vec_a, tangent_vec_b)
+
+        return inner_prod
