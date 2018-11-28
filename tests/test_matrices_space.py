@@ -73,19 +73,19 @@ class TestMatricesSpaceMethods(unittest.TestCase):
 
     def test_inner_product(self):
         base_point = gs.array([
-            [1, 2, 3],
-            [0, 0, 0],
-            [3, 1, 1]])
+            [1., 2., 3.],
+            [0., 0., 0.],
+            [3., 1., 1.]])
 
         tangent_vector_1 = gs.array([
-            [1, 2, 3],
-            [0, -10, 0],
-            [30, 1, 1]])
+            [1., 2., 3.],
+            [0., -10., 0.],
+            [30., 1., 1.]])
 
         tangent_vector_2 = gs.array([
-            [1, 4, 3],
-            [5, 0, 0],
-            [3, 1, 1]])
+            [1., 4., 3.],
+            [5., 0., 0.],
+            [3., 1., 1.]])
 
         result = self.metric.inner_product(
             tangent_vector_1,
