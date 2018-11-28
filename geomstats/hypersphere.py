@@ -174,9 +174,8 @@ class Hypersphere(EmbeddedManifold):
 class HypersphereMetric(RiemannianMetric):
 
     def __init__(self, dimension):
-        super(HypersphereMetric, self).__init__(
-                dimension=dimension,
-                signature=(dimension, 0, 0))
+        self.dimension = dimension
+        self.signature = (dimension, 0, 0)
         self.embedding_metric = EuclideanMetric(dimension + 1)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
