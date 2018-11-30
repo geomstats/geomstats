@@ -136,12 +136,14 @@ class Hypersphere(EmbeddedManifold):
 
             point = gs.zeros((n_samples, self.dimension+1))
             for i in range(self.dimension):
-                point[:, i] = gs.prod(gs.sin(spherical_coord[:, :i]), axis=1)\
-                            * gs.cos(spherical_coord[:, i])
+                point[:, i] = (
+                        gs.prod(gs.sin(spherical_coord[:, :i]), axis=1)
+                        * gs.cos(spherical_coord[:, i]))
             point[:, -1] = gs.prod(gs.sin(spherical_coord), axis=1)
 
         else:
-            point = bound * (2*gs.random.rand(*size) - 1)
+            assert bound <= 0.5
+            point = bound * (2 * gs.random.rand(*size) - 1)
             point = self.intrinsic_to_extrinsic_coords(point)
 
         return point

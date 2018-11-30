@@ -8,7 +8,6 @@ from geomstats.riemannian_metric import RiemannianMetric
 import geomstats.backend as gs
 
 
-
 class MinkowskiSpace(Manifold):
     """Class for Minkowski Space."""
 
@@ -32,12 +31,12 @@ class MinkowskiSpace(Manifold):
         point_dim = point.shape[-1]
         return point_dim == self.dimension
 
-    def random_uniform(self, n_samples=1):
+    def random_uniform(self, n_samples=1, bound=1.):
         """
         Sample in the Minkowski space with the uniform distribution.
         """
         size = (n_samples, self.dimension)
-        point = gs.random.rand(*size) * 2 - 1
+        point = bound * gs.random.rand(*size) * 2 - 1
 
         return point
 
@@ -61,13 +60,12 @@ class MinkowskiMetric(RiemannianMetric):
         first_row = gs.to_ndarray(first_row, to_ndim=2, axis=1)
         inner_prod_mat = gs.vstack([gs.transpose(first_row),
                                     inner_prod_mat])
-        
+
         first_column = gs.array([-1.] + [0.] * (self.dimension - 1))
         first_column = gs.to_ndarray(first_column, to_ndim=2, axis=1)
         inner_prod_mat = gs.hstack([first_column,
                                     inner_prod_mat])
-                                    
-        
+
         return inner_prod_mat
 
     def exp(self, tangent_vec, base_point):

@@ -34,12 +34,12 @@ class EuclideanSpace(Manifold):
 
         return belongs
 
-    def random_uniform(self, n_samples=1):
+    def random_uniform(self, n_samples=1, bound=1.):
         """
         Sample in the Euclidean space with the uniform distribution.
         """
         size = (n_samples, self.dimension)
-        point = (gs.random.rand(*size) - 0.5) * 2
+        point = bound * (gs.random.rand(*size) - 0.5) * 2
 
         return point
 
