@@ -45,7 +45,7 @@ class SpecialEuclideanGroup(LieGroup):
         self.n = n
         self.dimension = int((n * (n - 1)) / 2 + n)
 
-        self.e = epsilon
+        self.epsilon = epsilon
 
         self.default_point_type = point_type
         if point_type is None:

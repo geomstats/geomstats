@@ -48,7 +48,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         self.n = n
         self.dimension = int((n * (n - 1)) / 2)
 
-        self.e = epsilon
+        self.epsilon = epsilon
 
         self.default_point_type = point_type
         if point_type is None:
@@ -125,9 +125,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 mask_pi = gs.isclose(angle, gs.pi)
 
                 # This avoids division by 0.
-                mask_0_float = gs.cast(mask_0, gs.float32) + self.e
-                mask_not_0_float = gs.cast(mask_not_0, gs.float32) + self.e
-                mask_pi_float = gs.cast(mask_pi, gs.float32) + self.e
+                mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
+                mask_not_0_float = gs.cast(mask_not_0, gs.float32) + self.epsilon
+                mask_pi_float = gs.cast(mask_pi, gs.float32) + self.epsilon
 
                 k = gs.floor(angle / (2 * gs.pi) + .5)
                 angle += mask_0_float
@@ -182,8 +182,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 mask_else = ~mask_0
 
                 # This avoids division by 0.
-                mask_0_float = gs.cast(mask_0, gs.float32) + self.e
-                mask_else_float = gs.cast(mask_else, gs.float32) + self.e
+                mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
+                mask_else_float = gs.cast(mask_else, gs.float32) + self.epsilon
 
                 regularized_vec = gs.zeros_like(tangent_vec)
                 regularized_vec += mask_0_float * tangent_vec
@@ -277,9 +277,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             mat_unitary_u, diag_s, mat_unitary_v = gs.linalg.svd(mat)
             rot_mat = gs.einsum('nij,njk->nik', mat_unitary_u, mat_unitary_v)
             mask = gs.less(gs.linalg.det(rot_mat), 0.)
-            mask_float = gs.cast(mask, gs.float32) + self.e
+            mask_float = gs.cast(mask, gs.float32) + self.epsilon
             diag = gs.array([1., 1., -1.])
-            diag = gs.to_ndarray(gs.diag(diag), to_ndim=3) + self.e
+            diag = gs.to_ndarray(gs.diag(diag), to_ndim=3) + self.epsilon
             new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
             aux_mat = gs.einsum(
@@ -334,12 +334,12 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 [[0., 1., 0.],
                  [-1., 0., 0.],
                  [0., 0., 0.]]
-                ]] * n_vecs) + self.e
+                ]] * n_vecs) + self.epsilon
 
             # This avois dividing by 0.
-            basis_vec_1 = gs.array([[1., 0., 0.]] * n_vecs) + self.e
-            basis_vec_2 = gs.array([[0., 1., 0.]] * n_vecs) + self.e
-            basis_vec_3 = gs.array([[0., 0., 1.]] * n_vecs) + self.e
+            basis_vec_1 = gs.array([[1., 0., 0.]] * n_vecs) + self.epsilon
+            basis_vec_2 = gs.array([[0., 1., 0.]] * n_vecs) + self.epsilon
+            basis_vec_3 = gs.array([[0., 0., 1.]] * n_vecs) + self.epsilon
             cross_prod_1 = gs.einsum(
                 'nijk,ni,nj->nk',
                 levi_civita_symbol,
@@ -449,17 +449,17 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
             # This avois dividing by 0.
             mask_0 = gs.isclose(angle, 0.)
-            mask_0_float = gs.cast(mask_0, gs.float32) + self.e
+            mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
 
             rot_vec *= (1. + mask_0_float * (.5 - (trace - 3.) / 12. - 1.))
 
             # This avois dividing by 0.
             mask_pi = gs.isclose(angle, gs.pi)
-            mask_pi_float = gs.cast(mask_pi, gs.float32) + self.e
+            mask_pi_float = gs.cast(mask_pi, gs.float32) + self.epsilon
 
             # This avois dividing by 0.
             mask_else = ~mask_0 & ~mask_pi
-            mask_else_float = gs.cast(mask_else, gs.float32) + self.e
+            mask_else_float = gs.cast(mask_else, gs.float32) + self.epsilon
 
             mask_pi = gs.squeeze(mask_pi, axis=1)
 
@@ -502,9 +502,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             rot_vec_pi = gs.zeros((n_rot_mats, self.dimension))
 
             # This avois dividing by 0.
-            mask_a_float = get_mask_i_float(a, 3) + self.e
-            mask_b_float = get_mask_i_float(b, 3) + self.e
-            mask_c_float = get_mask_i_float(c, 3) + self.e
+            mask_a_float = get_mask_i_float(a, 3) + self.epsilon
+            mask_b_float = get_mask_i_float(b, 3) + self.epsilon
+            mask_c_float = get_mask_i_float(c, 3) + self.epsilon
 
             mask_a_float = gs.to_ndarray(mask_a_float, to_ndim=2, axis=1)
             mask_b_float = gs.to_ndarray(mask_b_float, to_ndim=2, axis=1)
@@ -592,14 +592,14 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
             # This avois dividing by 0.
             mask_0 = gs.isclose(angle, 0.)
-            mask_0_float = gs.cast(mask_0, gs.float32) + self.e
+            mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
 
             coef_1 += mask_0_float * (1. - (angle ** 2) / 6.)
             coef_2 += mask_0_float * (1. / 2. - angle ** 2)
 
             # This avois dividing by 0.
             mask_else = ~mask_0
-            mask_else_float = gs.cast(mask_else, gs.float32) + self.e
+            mask_else_float = gs.cast(mask_else, gs.float32) + self.epsilon
 
             angle += mask_0_float
 
@@ -1209,7 +1209,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
                 # This avois dividing by 0.
                 mask_0 = gs.isclose(angle, 0.)
-                mask_0_float = gs.cast(mask_0, gs.float32) + self.e
+                mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
 
                 coef_1 += mask_0_float * (
                         TAYLOR_COEFFS_1_AT_0[0]
@@ -1225,7 +1225,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
                 # This avois dividing by 0.
                 mask_pi = gs.isclose(angle, gs.pi)
-                mask_pi_float = gs.cast(mask_pi, gs.float32) + self.e
+                mask_pi_float = gs.cast(mask_pi, gs.float32) + self.epsilon
 
                 delta_angle = angle - gs.pi
                 coef_1 += mask_pi_float * (
@@ -1242,7 +1242,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
                 # This avois dividing by 0.
                 mask_else = ~mask_0 & ~mask_pi
-                mask_else_float = gs.cast(mask_else, gs.float32) + self.e
+                mask_else_float = gs.cast(mask_else, gs.float32) + self.epsilon
 
                 # This avoids division by 0.
                 angle += mask_pi_float
@@ -1254,7 +1254,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 n_points_tensor = gs.array(n_points)
                 for i in range(n_points):
                     # This avois dividing by 0.
-                    mask_i_float = get_mask_i_float(i, n_points_tensor) + self.e
+                    mask_i_float = get_mask_i_float(i, n_points_tensor) + self.epsilon
 
                     sign = - 1
                     if left_or_right == 'left':
