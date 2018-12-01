@@ -134,12 +134,12 @@ class HyperbolicSpace(EmbeddedManifold):
 
         return point_intrinsic
 
-    def random_uniform(self, n_samples=1):
+    def random_uniform(self, n_samples=1, bound=1.):
         """
         Sample in the Hyperbolic space with the uniform distribution.
         """
         size = (n_samples, self.dimension)
-        point = gs.random.rand(*size) - 0.5
+        point = bound * 2. * (gs.random.rand(*size) - 0.5)
 
         point = self.intrinsic_to_extrinsic_coords(point)
 

@@ -413,9 +413,9 @@ class TestHypersphereMethods(unittest.TestCase):
         gs.testing.assert_allclose(result, expected)
 
     def test_mean_and_belongs(self):
-        point_a = self.space.random_uniform()
-        point_b = self.space.random_uniform()
-        point_c = self.space.random_uniform()
+        point_a = self.space.random_uniform(bound=0.5)
+        point_b = self.space.random_uniform(bound=0.5)
+        point_c = self.space.random_uniform(bound=0.5)
         result = self.metric.mean([point_a, point_b, point_c])
         self.assertTrue(self.space.belongs(result))
 
