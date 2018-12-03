@@ -433,8 +433,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         n_rot_mats, mat_dim_1, mat_dim_2 = rot_mat.shape
         assert mat_dim_1 == mat_dim_2 == self.n
 
-        rot_mat = self.projection(rot_mat)
-
         if self.n == 3:
             trace = gs.trace(rot_mat, axis1=1, axis2=2)
             trace = gs.to_ndarray(trace, to_ndim=2, axis=1)
@@ -607,9 +605,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             coef_2 += mask_else_float * (
                 (1. - gs.cos(angle)) / (angle ** 2))
 
-            term_1 = gs.zeros((n_rot_vecs,) + (self.n,) * 2)
-            term_2 = gs.zeros_like(term_1)
-
             coef_1 = gs.squeeze(coef_1, axis=1)
             coef_2 = gs.squeeze(coef_2, axis=1)
             term_1 = (gs.eye(self.dimension)
@@ -621,7 +616,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             term_2 = gs.einsum('n,njk->njk', coef_2, squared_skew_rot_vec)
 
             rot_mat = term_1 + term_2
-            # rot_mat = self.projection(rot_mat)
 
         else:
             skew_mat = self.skew_matrix_from_vector(rot_vec)

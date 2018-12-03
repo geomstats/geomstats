@@ -204,11 +204,9 @@ class SpecialEuclideanGroup(LieGroup):
 
             rot_vec_1 = point_1[:, :dim_rotations]
             rot_mat_1 = rotations.matrix_from_rotation_vector(rot_vec_1)
-            rot_mat_1 = rotations.projection(rot_mat_1)
 
             rot_vec_2 = point_2[:, :dim_rotations]
             rot_mat_2 = rotations.matrix_from_rotation_vector(rot_vec_2)
-            rot_mat_2 = rotations.projection(rot_mat_2)
 
             translation_1 = point_1[:, dim_rotations:]
             translation_2 = point_2[:, dim_rotations:]
