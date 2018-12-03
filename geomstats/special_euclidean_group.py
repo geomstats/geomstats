@@ -39,11 +39,13 @@ class SpecialEuclideanGroup(LieGroup):
     i.e. the Lie group of rigid transformations.
     """
 
-    def __init__(self, n, point_type=None):
+    def __init__(self, n, point_type=None, epsilon=0.):
         assert isinstance(n, int) and n > 1
 
         self.n = n
         self.dimension = int((n * (n - 1)) / 2 + n)
+
+        self.epsilon = epsilon
 
         self.default_point_type = point_type
         if point_type is None:
@@ -53,7 +55,7 @@ class SpecialEuclideanGroup(LieGroup):
                           dimension=self.dimension)
 
         # TODO(nina): keep the names rotations and translations here?
-        self.rotations = SpecialOrthogonalGroup(n=n)
+        self.rotations = SpecialOrthogonalGroup(n=n, epsilon=epsilon)
         self.translations = EuclideanSpace(dimension=n)
 
     def get_identity(self, point_type=None):
@@ -202,11 +204,9 @@ class SpecialEuclideanGroup(LieGroup):
 
             rot_vec_1 = point_1[:, :dim_rotations]
             rot_mat_1 = rotations.matrix_from_rotation_vector(rot_vec_1)
-            rot_mat_1 = rotations.projection(rot_mat_1)
 
             rot_vec_2 = point_2[:, :dim_rotations]
             rot_mat_2 = rotations.matrix_from_rotation_vector(rot_vec_2)
-            rot_mat_2 = rotations.projection(rot_mat_2)
 
             translation_1 = point_1[:, dim_rotations:]
             translation_2 = point_2[:, dim_rotations:]
