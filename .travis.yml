@@ -15,6 +15,8 @@ install:
     - pip install -r requirements.txt --only-binary=numpy,scipy
 script:
     - nose2 --with-coverage --verbose
-
+env:
+    - GEOMSTATS_BACKEND=tensorflow
+    - GEOMSTATS_BACKEND=numpy
 after_success:
     - bash < (curl -s https://codecov.io/bash)
