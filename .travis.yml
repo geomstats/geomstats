@@ -12,7 +12,7 @@ python:
 
 install:
     - pip install --upgrade pip setuptools wheel
-    - pip install -r requirements.txt --only-binary=numpy,scipy
+    - pip install -q -r requirements.txt --only-binary=numpy,scipy
 script:
     - nose2 --with-coverage --verbose
 
