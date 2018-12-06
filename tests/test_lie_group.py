@@ -2,9 +2,8 @@
 Unit tests for Lie groups.
 """
 
-import geomstats.tests
-
 import geomstats.backend as gs
+import geomstats.tests
 
 from geomstats.lie_group import LieGroup
 
@@ -12,14 +11,17 @@ from geomstats.lie_group import LieGroup
 class TestLieGroupMethods(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
-    dimension = 4
-    group = LieGroup(dimension=dimension)
+    def setUp(self):
+        gs.random.seed(1234)
+        self.dimension = 4
+        self.group = LieGroup(self.dimension)
 
-    @geomstats.tests.np_only
     def test_dimension(self):
         result = self.group.dimension
         expected = self.dimension
-        self.assertTrue(gs.allclose(result, expected))
+
+        with self.session():
+            self.assertAllClose(result, expected)
 
 
 if __name__ == '__main__':

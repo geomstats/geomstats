@@ -117,11 +117,12 @@ class L2Metric(RiemannianMetric):
 
         n_curves, n_sampling_points, n_coords = curve.shape
 
-        curve = curve.reshape(n_curves * n_sampling_points, n_coords)
-        base_curve = base_curve.reshape(n_curves * n_sampling_points, n_coords)
+        curve = gs.reshape(curve, (n_curves * n_sampling_points, n_coords))
+        base_curve = gs.reshape(base_curve,
+                                (n_curves * n_sampling_points, n_coords))
         log = self.embedding_metric.log(curve, base_curve)
-        log = log.reshape(n_curves, n_sampling_points, n_coords)
-        log = log.squeeze()
+        log = gs.reshape(log, (n_curves, n_sampling_points, n_coords))
+        log = gs.squeeze(log)
 
         return log
 
@@ -131,7 +132,7 @@ class L2Metric(RiemannianMetric):
         Geodesic specified either by an initial point and an end point,
         either by an initial point and an initial tangent vector.
         """
-        #TODO(alice): vectorize
+        # TODO(alice): vectorize
         curve_ndim = 2
         initial_curve = gs.to_ndarray(initial_curve,
                                       to_ndim=curve_ndim+1)
@@ -361,7 +362,7 @@ class SRVMetric(RiemannianMetric):
         Geodesic specified either by an initial curve and an end curve,
         either by an initial curve and an initial tangent vector.
         """
-        #TODO(alice): vectorize
+        # TODO(alice): vectorize
 
         if not isinstance(self.embedding_metric, EuclideanMetric):
             raise AssertionError('The geodesics are only implemented for '

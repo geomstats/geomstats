@@ -24,7 +24,7 @@ class TestBackendTensorFlow(tf.test.TestCase):
         importlib.reload(gs)
 
     def test_vstack(self):
-        with self.test_session():
+        with self.session():
             tensor_1 = tf.convert_to_tensor([[1., 2., 3.], [4., 5., 6.]])
             tensor_2 = tf.convert_to_tensor([[7., 8., 9.]])
 
@@ -36,7 +36,7 @@ class TestBackendTensorFlow(tf.test.TestCase):
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
     def test_tensor_addition(self):
-        with self.test_session():
+        with self.session():
             tensor_1 = gs.ones((1, 1))
             tensor_2 = gs.ones((0, 1))
 

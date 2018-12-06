@@ -3,7 +3,7 @@ Unit tests for the Hypersphere.
 """
 
 import scipy.special
-import unittest
+import geomstats.tests
 
 import geomstats.backend as gs
 import tests.helper as helper
@@ -18,7 +18,7 @@ OPTIMAL_QUANTIZATION_TOL = 5e-3
 # the beginning of each function
 
 
-class TestHypersphereMethods(unittest.TestCase):
+class TestHypersphereMethods(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
@@ -511,4 +511,4 @@ class TestHypersphereMethods(unittest.TestCase):
 
 
 if __name__ == '__main__':
-        unittest.main()
+        geomstats.tests.main()

@@ -4,7 +4,6 @@
 
 import tensorflow as tf
 
-
 int8 = tf.int8
 int32 = tf.int32
 int64 = tf.int64
@@ -272,6 +271,7 @@ def diagonal(x):
 def mean(x, axis=None):
     return tf.reduce_mean(x, axis)
 
+
 def sqrtm(sym_mat):
     sym_mat = to_ndarray(sym_mat, to_ndim=3)
 
@@ -284,3 +284,7 @@ def sqrtm(sym_mat):
 
     sqrt_mat = to_ndarray(sqrt_mat, to_ndim=3)
     return sqrt_mat
+
+
+def reshape(a, b):
+    return tf.reshape(a, b)

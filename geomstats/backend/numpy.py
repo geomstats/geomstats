@@ -359,3 +359,7 @@ def mean(x, axis=None):
 
 def normal(*args, **kwargs):
     return np.random.normal(*args, **kwargs)
+
+
+def reshape(a, b):
+    return np.reshape(a, b)

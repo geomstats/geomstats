@@ -2,7 +2,7 @@
 Unit tests for Minkowski space.
 """
 
-import unittest
+import geomstats.tests
 
 import geomstats.backend as gs
 import tests.helper as helper
@@ -10,7 +10,7 @@ import tests.helper as helper
 from geomstats.minkowski_space import MinkowskiSpace
 
 
-class TestMinkowskiSpaceMethods(unittest.TestCase):
+class TestMinkowskiSpaceMethods(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
@@ -225,4 +225,4 @@ class TestMinkowskiSpaceMethods(unittest.TestCase):
 
 
 if __name__ == '__main__':
-        unittest.main()
+        geomstats.tests.main()

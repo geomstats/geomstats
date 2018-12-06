@@ -7,7 +7,7 @@ import matplotlib
 matplotlib.use('Agg')  # NOQA
 import matplotlib.pyplot as plt
 import sys
-import unittest
+import geomstats.tests
 import warnings
 
 import examples.gradient_descent_s2 as gradient_descent_s2
@@ -24,7 +24,7 @@ import examples.plot_square_h2_klein_disk as plot_square_h2_klein_disk
 import examples.tangent_pca_so3 as tangent_pca_so3
 
 
-class TestExamples(unittest.TestCase):
+class TestExamples(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     @classmethod
@@ -38,9 +38,11 @@ class TestExamples(unittest.TestCase):
     def test_gradient_descent_s2(self):
         gradient_descent_s2.main(max_iter=32, output_file=None)
 
+    @geomstats.tests.np_only
     def test_loss_and_gradient_so3(self):
         loss_and_gradient_so3.main()
 
+    @geomstats.tests.np_only
     def test_loss_and_gradient_se3(self):
         loss_and_gradient_se3.main()
 
@@ -50,9 +52,11 @@ class TestExamples(unittest.TestCase):
     def test_plot_geodesics_s2(self):
         plot_geodesics_s2.main()
 
+    @geomstats.tests.np_only
     def test_plot_geodesics_se3(self):
         plot_geodesics_se3.main()
 
+    @geomstats.tests.np_only
     def test_plot_geodesics_so3(self):
         plot_geodesics_so3.main()
 
@@ -68,9 +72,10 @@ class TestExamples(unittest.TestCase):
     def test_plot_square_h2_square_klein_disk(self):
         plot_square_h2_klein_disk.main()
 
+    @geomstats.tests.np_only
     def test_tangent_pca_so3(self):
         tangent_pca_so3.main()
 
 
 if __name__ == '__main__':
-        unittest.main()
+        geomstats.tests.main()

@@ -2,7 +2,7 @@
 Unit tests for special orthogonal group SO(n).
 """
 
-import unittest
+import geomstats.tests
 import warnings
 
 import geomstats.backend as gs
@@ -17,7 +17,7 @@ EPSILON = 1e-5
 ATOL = 1e-5
 
 
-class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
+class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
@@ -4077,4 +4077,4 @@ class TestSpecialOrthogonalGroupMethods(unittest.TestCase):
 
 
 if __name__ == '__main__':
-        unittest.main()
+        geomstats.tests.main()

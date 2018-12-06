@@ -2,14 +2,14 @@
 Unit tests for numpy backend.
 """
 
-import unittest
+import geomstats.tests
 import warnings
 
 import geomstats.backend as gs
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
 
-class TestBackendNumpy(unittest.TestCase):
+class TestBackendNumpy(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
@@ -99,4 +99,4 @@ class TestBackendNumpy(unittest.TestCase):
 
 
 if __name__ == '__main__':
-        unittest.main()
+        geomstats.tests.main()

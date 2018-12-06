@@ -3,7 +3,7 @@ Unit tests for the Hyperbolic space.
 """
 
 import math
-import unittest
+import geomstats.tests
 
 import geomstats.backend as gs
 import tests.helper as helper
@@ -17,7 +17,7 @@ from geomstats.minkowski_space import MinkowskiSpace
 RTOL = 1e-6
 
 
-class TestHyperbolicSpaceMethods(unittest.TestCase):
+class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
@@ -380,4 +380,4 @@ class TestHyperbolicSpaceMethods(unittest.TestCase):
 
 
 if __name__ == '__main__':
-        unittest.main()
+        geomstats.tests.main()

@@ -2,14 +2,13 @@
 Unit tests for the manifold of matrices.
 """
 
-import unittest
-
 import geomstats.backend as gs
+import geomstats.tests
 
 from geomstats.matrices_space import MatricesSpace
 
 
-class TestMatricesSpaceMethods(unittest.TestCase):
+class TestMatricesSpaceMethods(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
@@ -20,22 +19,28 @@ class TestMatricesSpaceMethods(unittest.TestCase):
         self.metric = self.space.metric
         self.n_samples = 2
 
+    @geomstats.tests.np_only
     def test_is_symmetric(self):
-        sym_mat = gs.array([[1, 2],
-                            [2, 1]])
-        self.assertTrue(self.space.is_symmetric(sym_mat))
+        sym_mat = gs.array([[1., 2.],
+                            [2., 1.]])
+        with self.session():
+            self.assertTrue(self.space.is_symmetric(sym_mat))
 
         not_a_sym_mat = gs.array([[1., 0.6, -3.],
                                   [6., -7., 0.],
                                   [0., 7., 8.]])
-        self.assertFalse(self.space.is_symmetric(not_a_sym_mat))
+        with self.session():
+            self.assertFalse(self.space.is_symmetric(not_a_sym_mat))
 
+    @geomstats.tests.np_only
     def test_is_symmetric_vectorization(self):
         n_samples = self.n_samples
         points = self.space.random_uniform(n_samples=n_samples)
         points = self.space.make_symmetric(points)
-        self.assertTrue(gs.all(self.space.is_symmetric(points)))
+        with self.session():
+            self.assertTrue(gs.all(self.space.is_symmetric(points)))
 
+    @geomstats.tests.np_only
     def test_make_symmetric(self):
         sym_mat = gs.array([[1, 2],
                             [2, 1]])
@@ -64,6 +69,7 @@ class TestMatricesSpaceMethods(unittest.TestCase):
                              [res, res, 1e100]])
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_make_symmetric_and_is_symmetric_vectorization(self):
         n_samples = self.n_samples
         mats = gs.random.rand(n_samples, 5, 5)
@@ -71,6 +77,7 @@ class TestMatricesSpaceMethods(unittest.TestCase):
         results = self.space.make_symmetric(mats)
         self.assertTrue(gs.all(self.space.is_symmetric(results)))
 
+    @geomstats.tests.np_only
     def test_inner_product(self):
         base_point = gs.array([
             [1., 2., 3.],
@@ -101,4 +108,4 @@ class TestMatricesSpaceMethods(unittest.TestCase):
 
 
 if __name__ == '__main__':
-        unittest.main()
+    geomstats.tests.main()
