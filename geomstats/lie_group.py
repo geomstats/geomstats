@@ -100,6 +100,7 @@ class LieGroup(Manifold):
         if base_point is None:
             base_point = identity
         base_point = self.regularize(base_point, point_type=point_type)
+
         if gs.allclose(base_point, identity):
             return self.group_exp_from_identity(
                 tangent_vec, point_type=point_type)

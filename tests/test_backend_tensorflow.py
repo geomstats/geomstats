@@ -12,15 +12,14 @@ import geomstats.backend as gs
 class TestBackendTensorFlow(tf.test.TestCase):
     _multiprocess_can_split_ = True
 
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
+        self.previous_backend = os.environ['GEOMSTATS_BACKEND']
         os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
         importlib.reload(gs)
 
-    @classmethod
-    def tearDownClass(cls):
-        os.environ['GEOMSTATS_BACKEND'] = 'numpy'
+    def tearDown(self):
+        os.environ['GEOMSTATS_BACKEND'] = self.previous_backend
         importlib.reload(gs)
 
     def test_vstack(self):

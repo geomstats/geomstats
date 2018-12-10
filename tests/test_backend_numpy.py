@@ -2,14 +2,14 @@
 Unit tests for numpy backend.
 """
 
-import unittest
+import geomstats.tests
 import warnings
 
 import geomstats.backend as gs
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
 
-class TestBackendNumpy(unittest.TestCase):
+class TestBackendNumpy(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
@@ -18,6 +18,7 @@ class TestBackendNumpy(unittest.TestCase):
         self.so3_group = SpecialOrthogonalGroup(n=3)
         self.n_samples = 2
 
+    @geomstats.tests.np_only
     def test_logm(self):
         point = gs.array([[2., 0., 0.],
                           [0., 3., 0.],
@@ -29,6 +30,7 @@ class TestBackendNumpy(unittest.TestCase):
 
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_expm_and_logm(self):
         point = gs.array([[2., 0., 0.],
                           [0., 3., 0.],
@@ -38,6 +40,7 @@ class TestBackendNumpy(unittest.TestCase):
 
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_expm_vectorization(self):
         point = gs.array([[[2., 0., 0.],
                            [0., 3., 0.],
@@ -57,6 +60,7 @@ class TestBackendNumpy(unittest.TestCase):
 
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_logm_vectorization_diagonal(self):
         point = gs.array([[[2., 0., 0.],
                            [0., 3., 0.],
@@ -76,6 +80,7 @@ class TestBackendNumpy(unittest.TestCase):
 
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_expm_and_logm_vectorization_random_rotation(self):
         point = self.so3_group.random_uniform(self.n_samples)
         point = self.so3_group.matrix_from_rotation_vector(point)
@@ -85,6 +90,7 @@ class TestBackendNumpy(unittest.TestCase):
 
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_expm_and_logm_vectorization(self):
         point = gs.array([[[2., 0., 0.],
                            [0., 3., 0.],
@@ -99,4 +105,4 @@ class TestBackendNumpy(unittest.TestCase):
 
 
 if __name__ == '__main__':
-        unittest.main()
+        geomstats.tests.main()

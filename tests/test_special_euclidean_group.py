@@ -7,14 +7,13 @@ metrics are tested with the tests of the invariant_metric
 module.
 """
 
-import unittest
+import geomstats.tests
 import warnings
 
 import geomstats.backend as gs
 import tests.helper as helper
 
 from geomstats.invariant_metric import InvariantMetric
-from geomstats.spd_matrices_space import SPDMatricesSpace
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
@@ -27,7 +26,7 @@ RTOL = 1e-5
 # TODO(nina): add local functions to decrease the number of for loops
 
 
-class TestSpecialEuclideanGroupMethods(unittest.TestCase):
+class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
@@ -36,7 +35,6 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
         n = 3
         group = SpecialEuclideanGroup(n=n)
-        spd_matrices_space = SPDMatricesSpace(n=group.dimension)
 
         # Points
 
@@ -104,7 +102,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                    inner_product_mat_at_identity=diag_mat_at_identity,
                    left_or_right='right')
 
-        mat_at_identity = spd_matrices_space.random_uniform()
+        mat_at_identity = 7 * gs.eye(group.dimension)
 
         left_metric = InvariantMetric(
                    group=group,
@@ -130,6 +128,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                    'with_angle_close_pi_high']
         self.n_samples = 3
 
+    @geomstats.tests.np_only
     def test_random_and_belongs(self):
         """
         Test that the random uniform method samples
@@ -138,11 +137,13 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         base_point = self.group.random_uniform()
         self.assertTrue(self.group.belongs(base_point))
 
+    @geomstats.tests.np_only
     def test_random_and_belongs_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
         self.assertTrue(self.group.belongs(points))
 
+    @geomstats.tests.np_only
     def test_regularize(self):
         point = self.elements['with_angle_0']
         result = self.group.regularize(point)
@@ -234,6 +235,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                         result,
                                         expected))
 
+    @geomstats.tests.np_only
     def test_regularize_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
@@ -242,6 +244,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         self.assertTrue(gs.allclose(regularized_points.shape,
                                     (n_samples, self.group.dimension)))
 
+    @geomstats.tests.np_only
     def test_compose(self):
         # Composition by identity, on the right
         # Expect the original transformation
@@ -269,6 +272,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected = helper.to_vector(expected)
         gs.testing.assert_allclose(result, expected)
 
+    @geomstats.tests.np_only
     def test_compose_and_inverse(self):
         point = self.elements['point_1']
         inv_point = self.group.inverse(point)
@@ -286,6 +290,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected = helper.to_vector(expected)
         gs.testing.assert_allclose(result, expected, atol=1e-8)
 
+    @geomstats.tests.np_only
     def test_compose_vectorization(self):
         n_samples = self.n_samples
         n_points_a = self.group.random_uniform(n_samples=n_samples)
@@ -304,12 +309,14 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                     n_points_b)
         self.assertTrue(result.shape == (n_samples, self.group.dimension))
 
+    @geomstats.tests.np_only
     def test_inverse_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
         result = self.group.inverse(points)
         self.assertTrue(result.shape == (n_samples, self.group.dimension))
 
+    @geomstats.tests.np_only
     def test_left_jacobian_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
@@ -320,6 +327,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                          (n_samples,
                           self.group.dimension, self.group.dimension)))
 
+    @geomstats.tests.np_only
     def test_exp_from_identity_vectorization(self):
         n_samples = self.n_samples
         for metric in self.metrics.values():
@@ -329,6 +337,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             self.assertTrue(gs.allclose(results.shape,
                                         (n_samples, self.group.dimension)))
 
+    @geomstats.tests.np_only
     def test_log_from_identity_vectorization(self):
         n_samples = self.n_samples
         for metric in self.metrics.values():
@@ -338,6 +347,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             self.assertTrue(gs.allclose(results.shape,
                                         (n_samples, self.group.dimension)))
 
+    @geomstats.tests.np_only
     def test_exp_vectorization(self):
         n_samples = self.n_samples
 
@@ -389,6 +399,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
+    @geomstats.tests.np_only
     def test_log_vectorization(self):
         n_samples = self.n_samples
         for metric_type in self.metrics:
@@ -435,6 +446,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
+    @geomstats.tests.np_only
     def test_group_exp_from_identity_vectorization(self):
         n_samples = self.n_samples
         tangent_vecs = self.group.random_uniform(n_samples=n_samples)
@@ -443,6 +455,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         self.assertTrue(gs.allclose(results.shape,
                                     (n_samples, self.group.dimension)))
 
+    @geomstats.tests.np_only
     def test_group_log_from_identity_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
@@ -451,6 +464,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         self.assertTrue(gs.allclose(results.shape,
                                     (n_samples, self.group.dimension)))
 
+    @geomstats.tests.np_only
     def test_group_exp_vectorization(self):
         n_samples = self.n_samples
         # Test with the 1 base_point, and several different tangent_vecs
@@ -477,6 +491,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         self.assertTrue(gs.allclose(results.shape,
                                     (n_samples, self.group.dimension)))
 
+    @geomstats.tests.np_only
     def test_group_log_vectorization(self):
         n_samples = self.n_samples
         # Test with the 1 base point, and several different points
@@ -503,6 +518,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         self.assertTrue(gs.allclose(results.shape,
                                     (n_samples, self.group.dimension)))
 
+    @geomstats.tests.np_only
     def test_group_exp_from_identity(self):
         # Group exponential of a translation (no rotational part)
         # Expect the original translation
@@ -524,6 +540,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected = helper.to_vector(expected)
         gs.testing.assert_allclose(result, expected)
 
+    @geomstats.tests.np_only
     def test_group_log_from_identity(self):
         # Group logarithm of a translation (no rotational part)
         # Expect the original translation
@@ -544,6 +561,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected = helper.to_vector(expected)
         self.assertTrue(gs.allclose(expected, result))
 
+    @geomstats.tests.np_only
     def test_group_log_then_exp_from_identity(self):
         """
         Test that the group exponential from the identity
@@ -562,6 +580,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             expected = helper.to_vector(expected)
             gs.testing.assert_allclose(result, expected, atol=1e-8)
 
+    @geomstats.tests.np_only
     def test_group_log_then_exp_from_identity_with_angles_close_to_pi(self):
         """
         Test that the group exponential from the identity
@@ -596,6 +615,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                expected,
                                inv_rot_expected))
 
+    @geomstats.tests.np_only
     def test_group_exp_then_log_from_identity(self):
         """
         Test that the group exponential from the identity
@@ -622,6 +642,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                result, self.group.regularize(result),
                                expected, self.group.regularize(expected),))
 
+    @geomstats.tests.np_only
     def test_group_exp_then_log_from_identity_with_angles_close_to_pi(self):
         """
         Test that the group exponential from the identity
@@ -654,6 +675,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                expected,
                                inv_rot_expected))
 
+    @geomstats.tests.np_only
     def test_group_exp(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
@@ -669,6 +691,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected = helper.to_vector(expected)
         gs.testing.assert_allclose(result, expected)
 
+    @geomstats.tests.np_only
     def test_group_log(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
@@ -685,6 +708,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected = helper.to_vector(expected)
         gs.testing.assert_allclose(result, expected)
 
+    @geomstats.tests.np_only
     def test_group_log_then_exp(self):
         """
         Test that the group exponential
@@ -712,6 +736,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                result,
                                expected))
 
+    @geomstats.tests.np_only
     def test_group_exp_then_log(self):
         """
         Test that the group exponential
@@ -736,6 +761,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                    metric=metric)
                 expected = helper.to_vector(expected)
 
+    @geomstats.tests.np_only
     def test_exp_from_identity_left(self):
         # Riemannian left-invariant metric given by
         # the canonical inner product on the lie algebra
@@ -754,6 +780,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_log_from_identity_left(self):
         # Riemannian left-invariant metric given by
         # the canonical inner product on the lie algebra
@@ -784,6 +811,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_exp_then_log_from_identity_left(self):
         """
         Test that the riemannian left exponential from the identity
@@ -814,6 +842,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                    result,
                                    expected))
 
+    @geomstats.tests.np_only
     def test_exp_then_log_from_identity_left_with_angles_close_to_pi(self):
         """
         Test that the riemannian left exponential from the identity
@@ -850,6 +879,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                    expected,
                                    inv_rot_expected))
 
+    @geomstats.tests.np_only
     def test_exp_then_log_from_identity_right(self):
         """
         Test that the riemannian right exponential from the identity
@@ -880,6 +910,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                    result,
                                    expected))
 
+    @geomstats.tests.np_only
     def test_exp_then_log_from_identity_right_with_angles_close_to_pi(self):
         """
         Test that the riemannian right exponential from the identity
@@ -916,6 +947,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                    expected,
                                    inv_rot_expected))
 
+    @geomstats.tests.np_only
     def test_exp_left(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
@@ -940,6 +972,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected = helper.to_vector(expected)
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_log_left(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
@@ -967,6 +1000,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_log_then_exp_left(self):
         """
         Test that the riemannian left exponential and the
@@ -995,6 +1029,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                    result,
                                    expected))
 
+    @geomstats.tests.np_only
     def test_log_then_exp_left_with_angles_close_to_pi(self):
         """
         Test that the riemannian left exponential and the
@@ -1032,6 +1067,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                        expected,
                                        inv_rot_expected))
 
+    @geomstats.tests.np_only
     def test_exp_then_log_left(self):
         """
         Test that the riemannian left exponential and the
@@ -1067,6 +1103,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                    result,
                                    expected))
 
+    @geomstats.tests.np_only
     def test_exp_then_log_left_with_angles_close_to_pi(self):
         """
         Test that the riemannian left exponential and the
@@ -1107,6 +1144,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                        expected,
                                        inv_rot_expected))
 
+    @geomstats.tests.np_only
     def test_log_then_exp_right(self):
         """
         Test that the riemannian right exponential and the
@@ -1139,6 +1177,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                    result,
                                    expected))
 
+    @geomstats.tests.np_only
     def test_log_then_exp_right_with_angles_close_to_pi(self):
         """
         Test that the riemannian right exponential and the
@@ -1181,6 +1220,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                        expected,
                                        inv_rot_expected))
 
+    @geomstats.tests.np_only
     def test_exp_then_log_right(self):
         """
         Test that the riemannian left exponential and the
@@ -1206,6 +1246,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                 base_point=base_point,
                                                 metric=metric)
 
+    @geomstats.tests.np_only
     def test_exp_then_log_right_with_angles_close_to_pi(self):
         """
         Test that the riemannian right exponential and the
@@ -1238,6 +1279,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                     if norm != 0:
                         atol = RTOL * norm
 
+    @geomstats.tests.np_only
     def test_inner_product_at_identity_vectorization(self):
         n_samples = self.n_samples
         for metric in self.metrics.values():
@@ -1262,6 +1304,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                           n_vector_b)])
             gs.testing.assert_allclose(result, expected)
 
+    @geomstats.tests.np_only
     def test_inner_product_one_base_point_vectorization(self):
         n_samples = self.n_samples
         for metric in self.metrics.values():
@@ -1294,6 +1337,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                           n_vector_b)])
             gs.testing.assert_allclose(result, expected)
 
+    @geomstats.tests.np_only
     def test_inner_product_n_base_point_vectorization(self):
         n_samples = self.n_samples
         for metric in self.metrics.values():
@@ -1330,6 +1374,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                                 n_base_point)])
             gs.testing.assert_allclose(result, expected)
 
+    @geomstats.tests.np_only
     def test_squared_dist_is_symmetric(self):
         for metric_type in self.metrics:
             metric = self.metrics[metric_type]
@@ -1349,6 +1394,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                         sq_dist_b_a,
                                         metric_type))
 
+    @geomstats.tests.np_only
     def test_dist_is_symmetric(self):
         for metric in self.metrics.values():
             for point_a in self.elements.values():
@@ -1360,6 +1406,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                     dist_b_a = metric.dist(point_b, point_a)
                     self.assertTrue(gs.allclose(dist_a_b, dist_b_a))
 
+    @geomstats.tests.np_only
     def test_squared_dist_vectorization(self):
         n_samples = self.n_samples
         for metric_type in self.metrics:
@@ -1421,6 +1468,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
+    @geomstats.tests.np_only
     def test_dist_vectorization(self):
         n_samples = self.n_samples
         for metric_type in self.metrics:
@@ -1484,6 +1532,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             self.assertTrue(gs.allclose(result, expected),
                             'with metric {}'.format(metric_type))
 
+    @geomstats.tests.np_only
     def test_group_exponential_barycenter(self):
         # TODO(nina): this test fails, the barycenter is not accurate.
         point_1 = self.group.random_uniform()
@@ -1508,6 +1557,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
         self.assertTrue(self.group.belongs(result_3))
 
+    @geomstats.tests.np_only
     def test_geodesic_and_belongs(self):
         initial_point = self.group.random_uniform()
         initial_tangent_vec = gs.array([2., 0., -1., 0., 2., 3.])
@@ -1519,6 +1569,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         points = geodesic(t)
         self.assertTrue(gs.all(self.group.belongs(points)))
 
+    @geomstats.tests.np_only
     def test_geodesic_subsample(self):
         initial_point = self.group.random_uniform()
         initial_tangent_vec = gs.array([1., 0., 2., 1., 1., 1.])
@@ -1538,4 +1589,4 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
 
 if __name__ == '__main__':
-        unittest.main()
+        geomstats.tests.main()
