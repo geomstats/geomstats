@@ -1,6 +1,6 @@
-# Contributing to fMRIPrep
+# Contributing to geomstats
 
-Welcome to the fMRIPrep repository!
+Welcome to the geomstats repository!
 We're excited you're here and want to contribute.
 
 ## Practical guide to submitting your contribution
@@ -18,14 +18,14 @@ Already know what you're looking for in this guide? Jump to the following sectio
 * [Contributing through Github](#contributing-through-github)
 * [Understanding issues](#understanding-issues)
 * [Making a change](#making-a-change)
-* [Structuring contributions](#fMRIPrep-coding-style-guide)
+* [Structuring contributions](#geomstats-coding-style-guide)
 * [Licensing](#licensing)
 * [Recognizing contributors](#recognizing-contributions)
 
 
 ## Joining the conversation
 
-`fMRIPrep` is maintained by a growing group of enthusiastic developers&mdash;
+`geomstats` is maintained by a growing group of enthusiastic developers&mdash;
 and we're excited to have you join!
 Most of our discussions will take place on open [issues][link_issues].
 
@@ -58,7 +58,7 @@ GitHub has a really helpful page for getting started with
 
 Every project on GitHub uses [issues][link_issues] slightly differently.
 
-The following outlines how the ``fMRIPrep`` developers think about these tools.
+The following outlines how the ``geomstats`` developers think about these tools.
 
 * **Issues** are individual pieces of work that need to be completed to move the project forwards.
 A general guideline: if you find yourself tempted to write a great big issue that
@@ -94,31 +94,31 @@ The current list of issue labels are [here][link_labels] and include:
 
 ## Making a change
 
-We appreciate all contributions to ``fMRIPrep``,
+We appreciate all contributions to ``geomstats``,
 but those accepted fastest will follow a workflow similar to the following:
 
 **1. Comment on an existing issue or open a new issue referencing your addition.**
 
-This allows other members of the ``fMRIPrep`` development team to confirm that you aren't
+This allows other members of the ``geomstats`` development team to confirm that you aren't
 overlapping with work that's currently underway and that everyone is on the same page
 with the goal of the work you're going to carry out.
 
 [This blog][link_pushpullblog] is a nice explanation of why putting this work in up front
 is so useful to everyone involved.
 
-**2. [Fork][link_fork] the [fMRIPrep repository][link_fMRIPrep] to your profile.**
+**2. [Fork][link_fork] the [geomstats repository][link_geomstats] to your profile.**
 
-This is now your own unique copy of ``fMRIPrep``.
+This is now your own unique copy of ``geomstats``.
 Changes here won't effect anyone else's work, so it's a safe space to explore edits to the code!
 
 Make sure to [keep your fork up to date][link_updateupstreamwiki] with the master repository.
 
-**3. Make the changes you've discussed, following the [fMRIPrep coding style guide](#fMRIPrep-coding-style-guide).**
+**3. Make the changes you've discussed, following the [geomstats coding style guide](#geomstats-coding-style-guide).**
 
 Try to keep the changes focused.
 If you feel tempted to "branch out" then please make a [new branch][link_branches].
 It can also be helpful to test your changes locally,
-using an [fMRIPrep development environment][link_devel].
+using an [geomstats development environment][link_devel].
 
 **4. Submit a [pull request][link_pullrequest].**
 
@@ -141,7 +141,7 @@ For example: `[ENH] Support for SB-reference in multi-band datasets`
 For works-in-progress, add the ``WIP`` tag in addition to the descriptive prefix.
 Pull-requests tagged with ``[WIP]`` will not be merged until the tag is removed.
 
-## fMRIPrep coding style guide
+## geomstats coding style guide
 
 Whenever possible, instances of Nodes and Workflows should use the same names
 as the variables they are assigned to.
@@ -188,8 +188,8 @@ myworkflow_rh_wf = init_workflow_wf(name='myworkflow_rh_wf')
 
 ## Licensing
 
-``fMRIPrep`` is licensed under the BSD 3-clause license.
-By contributing to `fMRIPrep`,
+``geomstats`` is licensed under the BSD 3-clause license.
+By contributing to `geomstats`,
 you acknowledge that any contributions will be licensed under the same terms.
 
 
@@ -208,7 +208,7 @@ You're awesome. :wave::smiley:
 *&mdash; Based on contributing guidelines from the [STEMMRoleModels][link_stemmrolemodels] project.*
 
 [link_github]: https://github.com/
-[link_fMRIPrep]: https://github.com/poldracklab/fmriprep
+[link_geomstats]: https://github.com/poldracklab/fmriprep
 [link_signupinstructions]: https://help.github.com/articles/signing-up-for-a-new-github-account
 
 [link_stars]: https://neurostars.org/
