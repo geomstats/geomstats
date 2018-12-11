@@ -393,7 +393,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         # Riemannian Exp then Riemannian Log
         # Edge case: tangent vector has norm < epsilon
         base_point = self.space.random_uniform()
-        vector = 1e-10 * gs.array([.06, -51., 6., 5., 6., 6., 6.])
+        vector = 1e-10 * gs.array([.06, -51., 6., 5.])
 
         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
         result = self.metric.log(point=exp, base_point=base_point)

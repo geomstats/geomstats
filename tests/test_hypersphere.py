@@ -112,13 +112,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         with self.session():
             self.assertAllClose(gs.eval(result), gs.eval(expected))
 
-        sqrt_3 = np.sqrt(3.)
-        point_ext = gs.array(
-            [[1. / sqrt_3, 0., 0., 1. / sqrt_3, 1. / sqrt_3],
-             [1. / sqrt_3, 1. / sqrt_3, 1. / sqrt_3, 0., 0.],
-             [0., 0., 1. / sqrt_3, 1. / sqrt_3, 1. / sqrt_3]],
-            dtype=np.float64)
-
         point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
         result = self.space.intrinsic_to_extrinsic_coords(point_int)
         expected = point_ext

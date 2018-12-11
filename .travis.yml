@@ -16,5 +16,9 @@ install:
 script:
     - nose2 --with-coverage --verbose
 
+env:
+    - GEOMSTATS_BACKEND=numpy
+    - GEOMSTATS_BACKEND=tensorflow
+
 after_success:
     - bash < (curl -s https://codecov.io/bash)

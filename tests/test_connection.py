@@ -3,7 +3,6 @@ Unit tests for the affine connections.
 """
 
 import geomstats.tests
-
 import geomstats.backend as gs
 
 from geomstats.connection import LeviCivitaConnection
