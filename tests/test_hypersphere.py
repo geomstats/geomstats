@@ -30,7 +30,11 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         self.metric = self.space.metric
         self.n_samples = 10
 
-    def test_belongs(self):
+    def test_random_uniform_and_belongs(self):
+        """
+        Test that the random uniform method samples
+        on the hypersphere space.
+        """
         point = self.space.random_uniform()
         result = self.space.belongs(point)
         expected = gs.array([[True]])
@@ -45,21 +49,14 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         with self.session():
             self.assertShapeEqual(point_numpy, point)
 
-    def test_random_uniform_and_belongs(self):
-        """
-        Test that the random uniform method samples
-        on the hypersphere space.
-        """
-        point = self.space.random_uniform()
-        with self.session():
-            self.assertTrue(gs.eval(self.space.belongs(point)[0, 0]))
-
     def test_projection_and_belongs(self):
         point = gs.array([1., 2., 3., 4., 5.])
-        result = self.space.projection(point)
+        proj = self.space.projection(point)
+        result = self.space.belongs(proj)
+        expected = gs.array([[True]])
 
         with self.session():
-            self.assertTrue(gs.eval(self.space.belongs(result)[0, 0]))
+            self.assertAllClose(expected, result)
 
     def test_intrinsic_and_extrinsic_coords(self):
         """
@@ -187,7 +184,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
             result = self.metric.exp(one_tangent_vec, one_base_point)
             point_numpy = np.random.uniform(size=(1, dim))
             # TODO(nina): Fix that this test fails with assertShapeEqual
-            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
+            self.assertAllClose(point_numpy.shape, gs.shape(result))
 
         n_tangent_vecs = self.space.projection_to_tangent_space(
             n_vecs, base_point=one_base_point)
