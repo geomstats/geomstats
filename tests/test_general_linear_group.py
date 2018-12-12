@@ -38,7 +38,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         expected = gs.array([True])
 
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
     def test_compose(self):
         # 1. Composition by identity, on the right
@@ -51,7 +51,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         expected = helper.to_matrix(mat)
 
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
         # 2. Composition by identity, on the left
         # Expect the original transformation
@@ -62,7 +62,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         expected = mat
 
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
     def test_inverse(self):
         mat = gs.array([
@@ -77,7 +77,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         expected = helper.to_matrix(expected)
 
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
     def test_compose_and_inverse(self):
         # 1. Compose transformation by its inverse on the right
@@ -91,7 +91,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         expected = helper.to_matrix(expected)
 
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
         # 2. Compose transformation by its inverse on the left
         # Expect the group identity
@@ -104,7 +104,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         expected = helper.to_matrix(expected)
 
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_group_log_and_exp(self):
