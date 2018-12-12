@@ -2,8 +2,6 @@
 Unit tests for the Euclidean space.
 """
 
-import numpy as np
-
 import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
@@ -43,7 +41,10 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
 
     def test_squared_norm_vectorization(self):
         n_samples = self.n_samples
-        n_points = self.n_points_a
+        n_points = gs.array([
+            [2., 1.],
+            [-2., -4.],
+            [-5., 1.]])
         result = self.metric.squared_norm(n_points)
 
         expected = gs.array([[5.], [20.], [26.]])
@@ -53,7 +54,10 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
 
     def test_norm_vectorization(self):
         n_samples = self.n_samples
-        n_points = self.n_points_a
+        n_points = gs.array([
+            [2., 1.],
+            [-2., -4.],
+            [-5., 1.]])
 
         result = self.metric.norm(n_points)
 
@@ -66,10 +70,16 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
         n_samples = self.n_samples
         dim = self.dimension
 
-        one_tangent_vec = self.one_point_a
-        one_base_point = self.one_point_b
-        n_tangent_vecs = self.n_points_a
-        n_base_points = self.n_points_b
+        one_tangent_vec = gs.array([0., 1.])
+        one_base_point = gs.array([2., 10.])
+        n_tangent_vecs = gs.array([
+            [2., 1.],
+            [-2., -4.],
+            [-5., 1.]])
+        n_base_points = gs.array([
+            [2., 10.],
+            [8., -1.],
+            [-3., 6.]])
 
         result = self.metric.exp(one_tangent_vec, one_base_point)
         expected = one_tangent_vec + one_base_point
@@ -90,10 +100,16 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
         n_samples = self.n_samples
         dim = self.dimension
 
-        one_point = self.one_point_a
-        one_base_point = self.one_point_b
-        n_points = self.n_points_a
-        n_base_points = self.n_points_b
+        one_point = gs.array([0., 1.])
+        one_base_point = gs.array([2., 10.])
+        n_points = gs.array([
+            [2., 1.],
+            [-2., -4.],
+            [-5., 1.]])
+        n_base_points = gs.array([
+            [2., 10.],
+            [8., -1.],
+            [-3., 6.]])
 
         result = self.metric.log(one_point, one_base_point)
         expected = one_point - one_base_point
@@ -112,10 +128,16 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
     def test_squared_dist_vectorization(self):
         n_samples = self.n_samples
 
-        one_point_a = self.one_point_a
-        one_point_b = self.one_point_b
-        n_points_a = self.n_points_a
-        n_points_b = self.n_points_b
+        one_point_a = gs.array([0., 1.])
+        one_point_b = gs.array([2., 10.])
+        n_points_a = gs.array([
+            [2., 1.],
+            [-2., -4.],
+            [-5., 1.]])
+        n_points_b = gs.array([
+            [2., 10.],
+            [8., -1.],
+            [-3., 6.]])
 
         result = self.metric.squared_dist(one_point_a, one_point_b)
         vec = one_point_a - one_point_b
@@ -137,10 +159,16 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
     def test_dist_vectorization(self):
         n_samples = self.n_samples
 
-        one_point_a = self.one_point_a
-        one_point_b = self.one_point_b
-        n_points_a = self.n_points_a
-        n_points_b = self.n_points_b
+        one_point_a = gs.array([0., 1.])
+        one_point_b = gs.array([2., 10.])
+        n_points_a = gs.array([
+            [2., 1.],
+            [-2., -4.],
+            [-5., 1.]])
+        n_points_b = gs.array([
+            [2., 10.],
+            [8., -1.],
+            [-3., 6.]])
 
         result = self.metric.dist(one_point_a, one_point_b)
         vec = one_point_a - one_point_b
@@ -161,17 +189,17 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_belongs(self):
-        point = self.space.random_uniform()
+        point = gs.array([0., 1.])
+
         result = self.space.belongs(point)
         expected = gs.array([[True]])
 
         self.assertAllClose(result, expected)
 
     def test_random_uniform(self):
-        point = self.space.random_uniform()
-        point_numpy = np.random.uniform(size=(1, self.dimension))
+        result = self.space.random_uniform()
 
-        self.assertShapeEqual(point_numpy, point)
+        self.assertAllClose(gs.shape(result), (1, self.dimension))
 
     def test_inner_product_matrix(self):
         result = self.metric.inner_product_matrix()
@@ -182,23 +210,27 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_inner_product(self):
-        point_a = self.one_point_a
-        point_b = self.one_point_b
+        point_a = gs.array([0., 1.])
+        point_b = gs.array([2., 10.])
 
         result = self.metric.inner_product(point_a, point_b)
-        expected = gs.dot(point_a, point_b)
-        expected = helper.to_scalar(expected)
+        expected = gs.array([[10.]])
 
         self.assertAllClose(result, expected)
 
     def test_inner_product_vectorization(self):
         n_samples = 3
 
-        one_point_a = self.one_point_a
-        one_point_b = self.one_point_b
-
-        n_points_a = self.n_points_a
-        n_points_b = self.n_points_b
+        one_point_a = gs.array([0., 1.])
+        one_point_b = gs.array([2., 10.])
+        n_points_a = gs.array([
+            [2., 1.],
+            [-2., -4.],
+            [-5., 1.]])
+        n_points_b = gs.array([
+            [2., 10.],
+            [8., -1.],
+            [-3., 6.]])
 
         result = self.metric.inner_product(one_point_a, one_point_b)
         expected = gs.array([[10.]])
@@ -279,11 +311,11 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
 
     def test_geodesic_and_belongs(self):
         n_geodesic_points = 100
-        initial_point = self.space.random_uniform()
+        initial_point = gs.array([[2., -1.]])
         initial_tangent_vec = gs.array([2., 0.])
         geodesic = self.metric.geodesic(
-                                   initial_point=initial_point,
-                                   initial_tangent_vec=initial_tangent_vec)
+                   initial_point=initial_point,
+                   initial_tangent_vec=initial_tangent_vec)
 
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)
