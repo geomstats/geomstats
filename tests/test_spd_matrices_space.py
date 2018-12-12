@@ -2,15 +2,15 @@
 Unit tests for the manifold of symmetric positive definite matrices.
 """
 
-import unittest
 import warnings
 
 import geomstats.backend as gs
+import geomstats.tests
 
 from geomstats.spd_matrices_space import SPDMatricesSpace
 
 
-class TestSPDMatricesSpaceMethods(unittest.TestCase):
+class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
@@ -23,9 +23,11 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         self.metric = self.space.metric
         self.n_samples = 10
 
+    @geomstats.tests.np_only
     def test_random_uniform_and_belongs(self):
         self.assertTrue(self.space.belongs(self.space.random_uniform()))
 
+    @geomstats.tests.np_only
     def test_random_uniform_and_belongs_vectorization(self):
         """
         Test that the random uniform method samples
@@ -68,6 +70,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
 
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_log_and_exp(self):
         base_point_1 = gs.array([[5., 0., 0.],
                                 [0., 7., 2.],
@@ -82,6 +85,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
 
         self.assertTrue(gs.allclose(result_1, expected_1))
 
+    @geomstats.tests.np_only
     def test_exp_and_belongs(self):
         n_samples = self.n_samples
         base_point = self.space.random_uniform(n_samples=1)
@@ -92,6 +96,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
 
         self.assertTrue(gs.all(self.space.belongs(results)))
 
+    @geomstats.tests.np_only
     def test_exp_vectorization(self):
         n_samples = self.n_samples
         one_base_point = self.space.random_uniform(n_samples=1)
@@ -120,6 +125,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
                                      self.space.n,
                                      self.space.n)))
 
+    @geomstats.tests.np_only
     def test_log_vectorization(self):
         n_samples = self.n_samples
         one_base_point = self.space.random_uniform(n_samples=1)
@@ -152,6 +158,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
                                      self.space.n,
                                      self.space.n)))
 
+    @geomstats.tests.np_only
     def test_exp_then_log_vectorization(self):
         n_samples = self.n_samples
         one_base_point = self.space.random_uniform(n_samples=1)
@@ -178,6 +185,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
 
         self.assertTrue(gs.allclose(results, expected))
 
+    @geomstats.tests.np_only
     def test_geodesic_and_belongs(self):
         initial_point = self.space.random_uniform()
         initial_tangent_vec = self.space.random_tangent_vec_uniform(
@@ -191,6 +199,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
         points = geodesic(t)
         self.assertTrue(gs.all(self.space.belongs(points)))
 
+    @geomstats.tests.np_only
     def test_squared_dist_is_symmetric(self):
         n_samples = self.n_samples
 
@@ -226,6 +235,7 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
 
         self.assertTrue(gs.allclose(sq_dist_1_2, sq_dist_2_1))
 
+    @geomstats.tests.np_only
     def test_squared_dist_vectorization(self):
         n_samples = self.n_samples
         point_1 = self.space.random_uniform(n_samples=n_samples)
@@ -259,4 +269,4 @@ class TestSPDMatricesSpaceMethods(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    geomstats.tests.main()

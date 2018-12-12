@@ -10,6 +10,10 @@ float32 = np.float32
 float64 = np.float64
 
 
+def reshape(*args, **kwargs):
+    return np.reshape(*args, **kwargs)
+
+
 def cast_to_complex(x):
     return np.vectorize(complex)(x)
 

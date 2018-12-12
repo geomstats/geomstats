@@ -2,10 +2,10 @@
 Unit tests for Stiefel manifolds.
 """
 
-import unittest
 import warnings
 
 import geomstats.backend as gs
+import geomstats.tests
 import tests.helper as helper
 
 from geomstats.stiefel import Stiefel
@@ -13,7 +13,7 @@ from geomstats.stiefel import Stiefel
 ATOL = 1e-6
 
 
-class TestStiefelMethods(unittest.TestCase):
+class TestStiefelMethods(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
@@ -39,10 +39,10 @@ class TestStiefelMethods(unittest.TestCase):
             [0., 0., 0.]])
 
         self.point_b = gs.array([
-            [1. / gs.sqrt(2), 0., 0.],
+            [1. / gs.sqrt(2.), 0., 0.],
             [0., 1., 0.],
             [0., 0., 1.],
-            [1. / gs.sqrt(2), 0., 0.]])
+            [1. / gs.sqrt(2.), 0., 0.]])
 
         point_perp = gs.array([
             [0.],
@@ -76,12 +76,14 @@ class TestStiefelMethods(unittest.TestCase):
 
         self.metric = self.space.canonical_metric
 
+    @geomstats.tests.np_only
     def test_belongs(self):
         point = self.space.random_uniform()
         belongs = self.space.belongs(point)
 
         gs.testing.assert_allclose(belongs.shape, (1, 1))
 
+    @geomstats.tests.np_only
     def test_random_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
@@ -89,11 +91,13 @@ class TestStiefelMethods(unittest.TestCase):
 
         gs.testing.assert_allclose(result, expected)
 
+    @geomstats.tests.np_only
     def test_random_uniform(self):
         point = self.space.random_uniform()
 
         gs.testing.assert_allclose(point.shape, (1, self.n, self.p))
 
+    @geomstats.tests.np_only
     def test_log_and_exp(self):
         """
         Test that the riemannian exponential
@@ -112,6 +116,7 @@ class TestStiefelMethods(unittest.TestCase):
 
         gs.testing.assert_allclose(result, expected, atol=ATOL)
 
+    @geomstats.tests.np_only
     def test_exp_and_belongs(self):
         base_point = self.point_a
         tangent_vec = self.tangent_vector_1
@@ -121,6 +126,7 @@ class TestStiefelMethods(unittest.TestCase):
             base_point=base_point)
         self.assertTrue(self.space.belongs(exp))
 
+    @geomstats.tests.np_only
     def test_exp_vectorization(self):
         n_samples = self.n_samples
         n = self.n
@@ -153,6 +159,7 @@ class TestStiefelMethods(unittest.TestCase):
         expected = helper.to_vector(expected)
         gs.testing.assert_allclose(result, expected)
 
+    @geomstats.tests.np_only
     def test_log_vectorization(self):
         n_samples = self.n_samples
         n = self.n
@@ -175,6 +182,7 @@ class TestStiefelMethods(unittest.TestCase):
         result = self.metric.log(n_points, n_base_points)
         gs.testing.assert_allclose(result.shape, (n_samples, n, p))
 
+    @geomstats.tests.np_only
     def test_retractation_and_lifting(self):
         """
         Test that the riemannian exponential
@@ -202,6 +210,7 @@ class TestStiefelMethods(unittest.TestCase):
 
         gs.testing.assert_allclose(result, expected, atol=ATOL)
 
+    @geomstats.tests.np_only
     def test_lifting_vectorization(self):
         n_samples = self.n_samples
         n = self.n
@@ -224,6 +233,7 @@ class TestStiefelMethods(unittest.TestCase):
         result = self.metric.lifting(n_points, n_base_points)
         gs.testing.assert_allclose(result.shape, (n_samples, n, p))
 
+    @geomstats.tests.np_only
     def test_retraction_vectorization(self):
         n_samples = self.n_samples
         n = self.n
@@ -246,6 +256,7 @@ class TestStiefelMethods(unittest.TestCase):
         result = self.metric.retraction(n_tangent_vecs, n_points)
         gs.testing.assert_allclose(result.shape, (n_samples, n, p))
 
+    @geomstats.tests.np_only
     def test_inner_product(self):
         base_point = self.point_a
         tangent_vector_1 = self.tangent_vector_1
@@ -259,4 +270,4 @@ class TestStiefelMethods(unittest.TestCase):
 
 
 if __name__ == '__main__':
-        unittest.main()
+        geomstats.tests.main()
