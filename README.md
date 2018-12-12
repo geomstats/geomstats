@@ -1,5 +1,8 @@
 # Geomstats
-[![Build Status](https://travis-ci.org/geomstats/geomstats.svg?branch=master)](https://travis-ci.org/geomstats/geomstats) [![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg)](https://codecov.io/gh/geomstats/geomstats)
+[![Build Status](https://travis-ci.org/geomstats/geomstats.svg?branch=master)](https://travis-ci.org/geomstats/geomstats)
+Backend numpy: [![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy)](https://codecov.io/gh/geomstats/geomstats)
+Backend tensorflow: [![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=tensorflow)](https://codecov.io/gh/geomstats/geomstats)
+
 
 Computations and statistics on manifolds with geometric structures.
 
