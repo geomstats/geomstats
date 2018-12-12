@@ -23,6 +23,11 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
 
         self.n_samples = 3
 
+        self.n_points_a = gs.array([
+            [2., 1.],
+            [-2., -4.],
+            [-5., 1.]])
+
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
@@ -31,29 +36,24 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
         with self.session():
             self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_squared_norm_vectorization(self):
         n_samples = self.n_samples
-        n_points = self.space.random_uniform(n_samples=n_samples)
-
+        n_points = self.n_points_a
         result = self.metric.squared_norm(n_points)
 
-        expected = gs.linalg.norm(n_points, axis=1)
-        expected = helper.to_scalar(expected)
+        expected = gs.array([[5.], [20.], [26.]])
 
         with self.session():
             self.assertAllClose(gs.shape(result), (n_samples, 1))
             self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_norm_vectorization(self):
         n_samples = self.n_samples
-        n_points = self.space.random_uniform(n_samples=n_samples)
+        n_points = self.n_points_a
 
         result = self.metric.norm(n_points)
 
-        expected = gs.linalg.norm(n_points, axis=1)
-        expected = helper.to_scalar(expected)
+        expected = gs.array([[2.2360679775], [4.472135955], [5.09901951359]])
 
         with self.session():
             self.assertAllClose(gs.shape(result), (n_samples, 1))
