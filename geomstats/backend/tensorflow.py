@@ -13,6 +13,10 @@ float32 = tf.float32
 float64 = tf.float64
 
 
+def reshape(*args, **kwargs):
+    return tf.reshape(*args, **kwargs)
+
+
 def arange(*args, **kwargs):
     return tf.range(*args, **kwargs)
 
@@ -271,6 +275,7 @@ def diagonal(x):
 
 def mean(x, axis=None):
     return tf.reduce_mean(x, axis)
+
 
 def sqrtm(sym_mat):
     sym_mat = to_ndarray(sym_mat, to_ndim=3)

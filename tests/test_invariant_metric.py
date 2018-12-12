@@ -2,17 +2,17 @@
 Unit tests for the invariant metrics on Lie groups.
 """
 
-import unittest
 import warnings
 
 import geomstats.backend as gs
+import geomstats.tests
 import tests.helper as helper
 
 from geomstats.invariant_metric import InvariantMetric
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
 
 
-class TestInvariantMetricMethods(unittest.TestCase):
+class TestInvariantMetricMethods(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
@@ -24,9 +24,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
         group = SpecialEuclideanGroup(n=n)
 
         # Diagonal left and right invariant metrics
-        diag_mat_at_identity = gs.zeros([group.dimension, group.dimension])
-        diag_mat_at_identity[0:3, 0:3] = 1 * gs.eye(3)
-        diag_mat_at_identity[3:6, 3:6] = 1 * gs.eye(3)
+        diag_mat_at_identity = gs.eye(group.dimension)
 
         left_diag_metric = InvariantMetric(
                    group=group,
@@ -73,6 +71,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
         self.point_2 = point_2
         self.point_small = point_small
 
+    @geomstats.tests.np_only
     def test_inner_product_matrix(self):
         base_point = self.group.identity
         result = self.left_metric.inner_product_matrix(base_point=base_point)
@@ -85,6 +84,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
         expected = self.right_metric.inner_product_mat_at_identity
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_inner_product_matrix_and_its_inverse(self):
         inner_prod_mat = self.left_diag_metric.inner_product_mat_at_identity
         inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
@@ -93,6 +93,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
         expected = gs.to_ndarray(expected, to_ndim=3, axis=0)
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_left_exp_and_exp_from_identity_left_diag_metrics(self):
         left_exp_from_id = self.left_diag_metric.left_exp_from_identity(
                                                               self.point_1)
@@ -100,6 +101,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
 
         self.assertTrue(gs.allclose(left_exp_from_id, exp_from_id))
 
+    @geomstats.tests.np_only
     def test_left_log_and_log_from_identity_left_diag_metrics(self):
         left_log_from_id = self.left_diag_metric.left_log_from_identity(
                                                               self.point_1)
@@ -107,6 +109,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
 
         self.assertTrue(gs.allclose(left_log_from_id, log_from_id))
 
+    @geomstats.tests.np_only
     def test_left_exp_and_log_from_identity_left_diag_metrics(self):
         """
         Test that the riemannian left exponential and the
@@ -142,6 +145,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
         expected = self.point_small
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_left_exp_and_log_from_identity_left_metrics(self):
         """
         Test that the riemannian left exponential and the
@@ -176,6 +180,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
         expected = self.point_small
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_exp_and_log_from_identity_left_diag_metrics(self):
         """
         Test that the riemannian exponential and the
@@ -210,6 +215,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
         expected = self.point_small
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_exp_and_log_from_identity_left_metrics(self):
         """
         Test that the riemannian exponential and the
@@ -244,6 +250,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
         expected = self.point_small
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_exp_and_log_from_identity_right_diag_metrics(self):
         """
         Test that the riemannian exponential and the
@@ -278,6 +285,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
         expected = self.point_small
         self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_exp_and_log_from_identity_right_metrics(self):
         """
         Test that the riemannian exponential and the
@@ -307,6 +315,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
         expected = self.point_small
         # self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_exp_and_log_left_diag_metrics(self):
         """
         Test that the riemannian exponential and the
@@ -328,6 +337,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
         expected = self.group.regularize(self.point_small)
         # self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_exp_and_log_left_metrics(self):
         """
         Test that the riemannian exponential and the
@@ -348,6 +358,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
         expected = self.point_small
         # self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_exp_and_log_right_diag_metrics(self):
         """
         Test that the riemannian exponential and the
@@ -367,6 +378,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
         expected = self.group.regularize(self.point_small)
         # self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_exp_and_log_right_metrics(self):
         """
         Test that the riemannian exponential and the
@@ -386,6 +398,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
         expected = self.point_small
         # self.assertTrue(gs.allclose(result, expected))
 
+    @geomstats.tests.np_only
     def test_squared_dist_left_diag_metrics(self):
         sq_dist_1_2 = self.left_diag_metric.squared_dist(self.point_1,
                                                          self.point_2)
@@ -393,6 +406,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
                                                          self.point_1)
         self.assertTrue(gs.allclose(sq_dist_1_2, sq_dist_2_1))
 
+    @geomstats.tests.np_only
     def test_squared_dist_left_metrics(self):
         sq_dist_1_2 = self.left_metric.squared_dist(self.point_1,
                                                     self.point_2)
@@ -400,6 +414,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
                                                     self.point_1)
         self.assertTrue(gs.allclose(sq_dist_1_2, sq_dist_2_1))
 
+    @geomstats.tests.np_only
     def test_squared_dist_and_squared_norm_left_diag_metrics(self):
         result = self.left_diag_metric.squared_dist(self.point_1,
                                                     self.point_2)
@@ -410,6 +425,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
                                                  base_point=self.point_1)
         self.assertTrue(result, expected)
 
+    @geomstats.tests.np_only
     def test_squared_dist_and_squared_norm_left_metrics(self):
         result = self.left_metric.squared_dist(self.point_1,
                                                self.point_2)
@@ -420,6 +436,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
                                              base_point=self.point_1)
         self.assertTrue(result, expected)
 
+    @geomstats.tests.np_only
     def test_squared_dist_and_squared_norm_right_diag_metrics(self):
         result = self.right_diag_metric.squared_dist(self.point_1,
                                                      self.point_2)
@@ -430,6 +447,7 @@ class TestInvariantMetricMethods(unittest.TestCase):
                                                  base_point=self.point_1)
         self.assertTrue(result, expected)
 
+    @geomstats.tests.np_only
     def test_squared_dist_and_squared_norm_right_metrics(self):
         result = self.right_metric.squared_dist(self.point_1,
                                                 self.point_2)
@@ -442,4 +460,4 @@ class TestInvariantMetricMethods(unittest.TestCase):
 
 
 if __name__ == '__main__':
-        unittest.main()
+        geomstats.tests.main()
