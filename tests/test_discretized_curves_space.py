@@ -36,7 +36,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         self.n_discretized_curves = 5
         self.times = gs.linspace(0., 1., self.n_discretized_curves)
-        self.ATOL = 1e-8
+        self.atol = 1e-8
         gs.random.seed(1234)
         self.space_curves_in_euclidean_3d = DiscretizedCurvesSpace(
                 embedding_manifold=r3)
@@ -80,7 +80,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                                        base_curve=self.curve_a)
         expected = self.curve_b
 
-        gs.testing.assert_allclose(result, expected, atol=self.ATOL)
+        gs.testing.assert_allclose(result, expected, atol=self.atol)
 
     @geomstats.tests.np_only
     def test_l2_metric_inner_product_vectorization(self):
@@ -247,7 +247,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                                         base_curve=curves_ab)
         expected = curves_bc
 
-        gs.testing.assert_allclose(result.squeeze(), expected, atol=self.ATOL)
+        gs.testing.assert_allclose(result.squeeze(), expected, atol=self.atol)
 
     @geomstats.tests.np_only
     def test_srv_metric_geodesic(self):
@@ -275,7 +275,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         expected = self.srv_metric_r3.square_root_velocity_inverse(
                 geod_srv, starting_points)
 
-        gs.testing.assert_allclose(result, expected, atol=self.ATOL)
+        gs.testing.assert_allclose(result, expected, atol=self.atol)
 
     @geomstats.tests.np_only
     def test_srv_metric_dist_and_geod(self):

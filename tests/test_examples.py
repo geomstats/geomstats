@@ -7,7 +7,6 @@ import matplotlib
 matplotlib.use('Agg')  # NOQA
 import matplotlib.pyplot as plt
 import sys
-import geomstats.tests
 import warnings
 
 import examples.gradient_descent_s2 as gradient_descent_s2
@@ -22,6 +21,7 @@ import examples.plot_square_h2_poincare_disk as plot_square_h2_poincare_disk
 import examples.plot_square_h2_poincare_half_plane as plot_square_h2_poincare_half_plane  # NOQA
 import examples.plot_square_h2_klein_disk as plot_square_h2_klein_disk
 import examples.tangent_pca_so3 as tangent_pca_so3
+import geomstats.tests
 
 
 class TestExamples(geomstats.tests.TestCase):
