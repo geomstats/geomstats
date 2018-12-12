@@ -23,11 +23,13 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
 
         self.n_samples = 10
 
-    @geomstats.tests.np_only
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
+        result = self.space.belongs(point)
+        expected = gs.array([[True]])
 
-        self.assertTrue(self.space.belongs(point))
+        with self.session():
+            self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_squared_norm_vectorization(self):
