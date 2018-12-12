@@ -49,8 +49,8 @@ The following outlines how the ``geomstats`` developers think about these tools.
 A general guideline: if you find yourself tempted to write a great big issue that
 is difficult to describe as one unit of work, please consider splitting it into two or more issues.
 
-    Issues are assigned [labels](#issue-labels) which explain how they relate to the overall project's
-    goals and immediate next steps.
+* Issues are assigned [labels](#issue-labels) which explain how they relate to the overall project's
+goals and immediate next steps.
 
 
 ## Making a change
