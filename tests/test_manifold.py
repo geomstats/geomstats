@@ -2,9 +2,10 @@
 Unit tests for manifolds.
 """
 
-from geomstats.manifold import Manifold
 import geomstats.backend as gs
 import geomstats.tests
+
+from geomstats.manifold import Manifold
 
 
 class TestManifoldMethods(geomstats.tests.TestCase):
