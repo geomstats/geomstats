@@ -27,7 +27,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         self.metric = self.space.metric
         self.n_samples = 10
 
-    def test_belongs(self):
+    def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
         expected = helper.to_scalar(gs.array([[True]]))
@@ -36,15 +36,10 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
             self.assertAllClose(expected, result)
 
     def test_random_uniform(self):
-        point = self.space.random_uniform()
+        result = self.space.random_uniform()
 
         with self.session():
-            self.assertAllClose(gs.eval(point).shape, (1, self.dimension + 1))
-
-    def test_random_uniform_and_belongs(self):
-        point = self.space.random_uniform()
-        with self.session():
-            self.assertTrue(gs.eval(self.space.belongs(point)))
+            self.assertAllClose(gs.shape(result), (1, self.dimension + 1))
 
     def test_intrinsic_and_extrinsic_coords(self):
         """
@@ -376,11 +371,11 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)
 
-        bool_belongs = self.space.belongs(points)
+        result = self.space.belongs(points)
         expected = gs.array(n_geodesic_points * [[True]])
 
         with self.session():
-            self.assertAllClose(expected, gs.eval(bool_belongs))
+            self.assertAllClose(expected, result)
 
     @geomstats.tests.np_only
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
