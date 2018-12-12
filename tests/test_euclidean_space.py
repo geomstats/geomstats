@@ -312,11 +312,11 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)
 
-        bool_belongs = self.space.belongs(points)
+        result = self.space.belongs(points)
         expected = gs.array(n_geodesic_points * [[True]])
 
         with self.session():
-            self.assertAllClose(expected, gs.eval(bool_belongs))
+            self.assertAllClose(expected, result)
 
     def test_mean(self):
         # TODO(nina): Fix the fact that it doesn't work for [1., 4.]
