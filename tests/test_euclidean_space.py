@@ -23,10 +23,16 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
 
         self.n_samples = 3
 
+        self.one_point_a = gs.array([0., 1.])
+        self.one_point_b = gs.array([2., 10.])
         self.n_points_a = gs.array([
             [2., 1.],
             [-2., -4.],
             [-5., 1.]])
+        self.n_points_b = gs.array([
+            [2., 10.],
+            [8., -1.],
+            [-3., 6.]])
 
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
@@ -59,15 +65,14 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
             self.assertAllClose(gs.shape(result), (n_samples, 1))
             self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_exp_vectorization(self):
         n_samples = self.n_samples
         dim = self.dimension
 
-        one_tangent_vec = self.space.random_uniform(n_samples=1)
-        one_base_point = self.space.random_uniform(n_samples=1)
-        n_tangent_vecs = self.space.random_uniform(n_samples=n_samples)
-        n_base_points = self.space.random_uniform(n_samples=n_samples)
+        one_tangent_vec = self.one_point_a
+        one_base_point = self.one_point_b
+        n_tangent_vecs = self.n_points_a
+        n_base_points = self.n_points_b
 
         result = self.metric.exp(one_tangent_vec, one_base_point)
         expected = one_tangent_vec + one_base_point
@@ -85,15 +90,14 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
             result = self.metric.exp(n_tangent_vecs, n_base_points)
             self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-    @geomstats.tests.np_only
     def test_log_vectorization(self):
         n_samples = self.n_samples
         dim = self.dimension
 
-        one_point = self.space.random_uniform(n_samples=1)
-        one_base_point = self.space.random_uniform(n_samples=1)
-        n_points = self.space.random_uniform(n_samples=n_samples)
-        n_base_points = self.space.random_uniform(n_samples=n_samples)
+        one_point = self.one_point_a
+        one_base_point = self.one_point_b
+        n_points = self.n_points_a
+        n_base_points = self.n_points_b
 
         result = self.metric.log(one_point, one_base_point)
         expected = one_point - one_base_point
@@ -109,18 +113,17 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
         result = self.metric.log(n_points, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-    @geomstats.tests.np_only
     def test_squared_dist_vectorization(self):
         n_samples = self.n_samples
 
-        one_point_a = self.space.random_uniform(n_samples=1)
-        one_point_b = self.space.random_uniform(n_samples=1)
-        n_points_a = self.space.random_uniform(n_samples=n_samples)
-        n_points_b = self.space.random_uniform(n_samples=n_samples)
+        one_point_a = self.one_point_a
+        one_point_b = self.one_point_b
+        n_points_a = self.n_points_a
+        n_points_b = self.n_points_b
 
         result = self.metric.squared_dist(one_point_a, one_point_b)
         vec = one_point_a - one_point_b
-        expected = gs.dot(vec, vec.transpose())
+        expected = gs.dot(vec, gs.transpose(vec))
         expected = helper.to_scalar(expected)
         self.assertAllClose(result, expected)
 
@@ -131,26 +134,21 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
         self.assertAllClose(gs.shape(result), (n_samples, 1))
 
         result = self.metric.squared_dist(n_points_a, n_points_b)
-        expected = gs.zeros(n_samples)
-        for i in range(n_samples):
-            vec = n_points_a[i] - n_points_b[i]
-            expected[i] = gs.dot(vec, vec.transpose())
-        expected = helper.to_scalar(expected)
+        expected = gs.array([[81.], [109.], [29.]])
         self.assertAllClose(gs.shape(result), (n_samples, 1))
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_dist_vectorization(self):
         n_samples = self.n_samples
 
-        one_point_a = self.space.random_uniform(n_samples=1)
-        one_point_b = self.space.random_uniform(n_samples=1)
-        n_points_a = self.space.random_uniform(n_samples=n_samples)
-        n_points_b = self.space.random_uniform(n_samples=n_samples)
+        one_point_a = self.one_point_a
+        one_point_b = self.one_point_b
+        n_points_a = self.n_points_a
+        n_points_b = self.n_points_b
 
         result = self.metric.dist(one_point_a, one_point_b)
         vec = one_point_a - one_point_b
-        expected = gs.sqrt(gs.dot(vec, vec.transpose()))
+        expected = gs.sqrt(gs.dot(vec, gs.transpose(vec)))
         expected = helper.to_scalar(expected)
         self.assertAllClose(result, expected)
 
@@ -161,11 +159,8 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
         self.assertAllClose(gs.shape(result), (n_samples, 1))
 
         result = self.metric.dist(n_points_a, n_points_b)
-        expected = gs.zeros(n_samples)
-        for i in range(n_samples):
-            vec = n_points_a[i] - n_points_b[i]
-            expected[i] = gs.sqrt(gs.dot(vec, vec.transpose()))
-        expected = helper.to_scalar(expected)
+        expected = gs.array([[9.], [gs.sqrt(109.)], [gs.sqrt(29.)]])
+
         self.assertAllClose(gs.shape(result), (n_samples, 1))
         self.assertAllClose(result, expected)
 
@@ -194,8 +189,8 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
             self.assertAllClose(result, expected)
 
     def test_inner_product(self):
-        point_a = gs.array([0., 1.])
-        point_b = gs.array([2., 10.])
+        point_a = self.one_point_a
+        point_b = self.one_point_b
 
         result = self.metric.inner_product(point_a, point_b)
         expected = gs.dot(point_a, point_b)
@@ -207,17 +202,11 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
     def test_inner_product_vectorization(self):
         n_samples = 3
 
-        one_point_a = gs.array([[0., 1.]])
-        one_point_b = gs.array([[2., 10.]])
+        one_point_a = self.one_point_a
+        one_point_b = self.one_point_b
 
-        n_points_a = gs.array([
-            [2., 1.],
-            [-2., -4.],
-            [-5., 1.]])
-        n_points_b = gs.array([
-            [2., 10.],
-            [8., -1.],
-            [-3., 6.]])
+        n_points_a = self.n_points_a
+        n_points_b = self.n_points_b
 
         result = self.metric.inner_product(one_point_a, one_point_b)
         expected = gs.array([[10.]])
