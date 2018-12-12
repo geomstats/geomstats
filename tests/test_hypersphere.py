@@ -30,13 +30,17 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         self.metric = self.space.metric
         self.n_samples = 10
 
-    def test_belongs(self):
+    def test_random_uniform_and_belongs(self):
+        """
+        Test that the random uniform method samples
+        on the hypersphere space.
+        """
         point = self.space.random_uniform()
-        bool_belongs = self.space.belongs(point)
+        result = self.space.belongs(point)
         expected = gs.array([[True]])
 
         with self.session():
-            self.assertAllClose(gs.eval(expected), gs.eval(bool_belongs))
+            self.assertAllClose(expected, result)
 
     def test_random_uniform(self):
         point = self.space.random_uniform()
@@ -45,21 +49,14 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         with self.session():
             self.assertShapeEqual(point_numpy, point)
 
-    def test_random_uniform_and_belongs(self):
-        """
-        Test that the random uniform method samples
-        on the hypersphere space.
-        """
-        point = self.space.random_uniform()
-        with self.session():
-            self.assertTrue(gs.eval(self.space.belongs(point)[0, 0]))
-
     def test_projection_and_belongs(self):
         point = gs.array([1., 2., 3., 4., 5.])
-        result = self.space.projection(point)
+        proj = self.space.projection(point)
+        result = self.space.belongs(proj)
+        expected = gs.array([[True]])
 
         with self.session():
-            self.assertTrue(gs.eval(self.space.belongs(result)[0, 0]))
+            self.assertAllClose(expected, result)
 
     def test_intrinsic_and_extrinsic_coords(self):
         """
@@ -75,7 +72,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = helper.to_vector(expected)
 
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
         # TODO(nina): Fix that the test fails if point_ext generated
         # with tf.random_uniform
@@ -87,7 +84,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = helper.to_vector(expected)
 
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_intrinsic_and_extrinsic_coords_vectorization(self):
@@ -110,7 +107,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = helper.to_vector(expected)
 
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
         point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
         result = self.space.intrinsic_to_extrinsic_coords(point_int)
@@ -118,7 +115,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = helper.to_vector(expected)
 
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
     def test_log_and_exp_general_case(self):
         """
@@ -143,7 +140,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = helper.to_vector(expected)
 
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected), atol=1e-8)
+            self.assertAllClose(result, expected, atol=1e-8)
 
     def test_log_and_exp_edge_case(self):
         """
@@ -170,7 +167,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = helper.to_vector(expected)
 
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
     def test_exp_vectorization(self):
         n_samples = self.n_samples
@@ -187,7 +184,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
             result = self.metric.exp(one_tangent_vec, one_base_point)
             point_numpy = np.random.uniform(size=(1, dim))
             # TODO(nina): Fix that this test fails with assertShapeEqual
-            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
+            self.assertAllClose(point_numpy.shape, gs.shape(result))
 
         n_tangent_vecs = self.space.projection_to_tangent_space(
             n_vecs, base_point=one_base_point)
@@ -223,7 +220,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         point_numpy = np.random.uniform(size=(1, dim))
         with self.session():
             # TODO(nina): Fix that this test fails with assertShapeEqual
-            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
+            self.assertAllClose(point_numpy.shape, gs.shape(result))
 
         result = self.metric.log(n_points, one_base_point)
         point_numpy = np.random.uniform(size=(n_samples, dim))
@@ -271,7 +268,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = helper.to_vector(expected)
         # TODO(nina): Fix that this test fails, in numpy
         # with self.session():
-        #     self.assertAllClose(gs.eval(result), gs.eval(expected))
+        #     self.assertAllClose(result, expected)
 
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """
@@ -300,7 +297,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = helper.to_vector(expected)
 
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected), atol=1e-8)
+            self.assertAllClose(result, expected, atol=1e-8)
 
     def test_squared_norm_and_squared_dist(self):
         """
@@ -317,7 +314,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = helper.to_scalar(expected)
 
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
     def test_squared_dist_vectorization(self):
         n_samples = self.n_samples
@@ -331,25 +328,25 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         point_numpy = np.random.uniform(size=(1, 1))
         with self.session():
             # TODO(nina): Fix that this test fails with assertShapeEqual
-            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
+            self.assertAllClose(point_numpy.shape, gs.shape(result))
 
         result = self.metric.squared_dist(n_points_a, one_point_b)
         point_numpy = np.random.uniform(size=(n_samples, 1))
         with self.session():
             # TODO(nina): Fix that this test fails with assertShapeEqual
-            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
+            self.assertAllClose(point_numpy.shape, gs.shape(result))
 
         result = self.metric.squared_dist(one_point_a, n_points_b)
         point_numpy = np.random.uniform(size=(n_samples, 1))
         with self.session():
             # TODO(nina): Fix that this test fails with assertShapeEqual
-            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
+            self.assertAllClose(point_numpy.shape, gs.shape(result))
 
         result = self.metric.squared_dist(n_points_a, n_points_b)
         point_numpy = np.random.uniform(size=(n_samples, 1))
         with self.session():
             # TODO(nina): Fix that this test fails with assertShapeEqual
-            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
+            self.assertAllClose(point_numpy.shape, gs.shape(result))
 
     def test_norm_and_dist(self):
         """
@@ -366,7 +363,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = helper.to_scalar(expected)
 
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
     def test_dist_point_and_itself(self):
         # Distance between a point and itself is 0
@@ -378,7 +375,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = helper.to_scalar(expected)
 
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
     def test_dist_orthogonal_points(self):
         # Distance between two orthogonal points is pi / 2.
@@ -391,14 +388,14 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = 0
         expected = helper.to_scalar(expected)
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
         result = self.metric.dist(point_a, point_b)
         expected = gs.pi / 2
         expected = helper.to_scalar(expected)
 
         with self.session():
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         with self.session():
@@ -414,7 +411,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
             result = self.metric.dist(base_point, exp)
             expected = gs.linalg.norm(tangent_vec) % (2 * gs.pi)
             expected = helper.to_scalar(expected)
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
     def test_exp_and_dist_and_projection_to_tangent_space_vec(self):
         with self.session():
@@ -442,7 +439,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
             expected = gs.linalg.norm(tangent_vec, axis=-1) % (2 * gs.pi)
 
             expected = helper.to_scalar(expected)
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
     def test_geodesic_and_belongs(self):
         n_geodesic_points = 100
@@ -458,11 +455,11 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)
 
-        bool_belongs = self.space.belongs(points)
+        result = self.space.belongs(points)
         expected = gs.array(n_geodesic_points * [[True]])
 
         with self.session():
-            self.assertAllClose(gs.eval(expected), gs.eval(bool_belongs))
+            self.assertAllClose(expected, result)
 
     @geomstats.tests.np_only
     def test_inner_product(self):
