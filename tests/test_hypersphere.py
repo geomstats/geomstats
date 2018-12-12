@@ -220,7 +220,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         point_numpy = np.random.uniform(size=(1, dim))
         with self.session():
             # TODO(nina): Fix that this test fails with assertShapeEqual
-            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
+            self.assertAllClose(point_numpy.shape, gs.shape(result))
 
         result = self.metric.log(n_points, one_base_point)
         point_numpy = np.random.uniform(size=(n_samples, dim))
@@ -328,25 +328,25 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         point_numpy = np.random.uniform(size=(1, 1))
         with self.session():
             # TODO(nina): Fix that this test fails with assertShapeEqual
-            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
+            self.assertAllClose(point_numpy.shape, gs.shape(result))
 
         result = self.metric.squared_dist(n_points_a, one_point_b)
         point_numpy = np.random.uniform(size=(n_samples, 1))
         with self.session():
             # TODO(nina): Fix that this test fails with assertShapeEqual
-            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
+            self.assertAllClose(point_numpy.shape, gs.shape(result))
 
         result = self.metric.squared_dist(one_point_a, n_points_b)
         point_numpy = np.random.uniform(size=(n_samples, 1))
         with self.session():
             # TODO(nina): Fix that this test fails with assertShapeEqual
-            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
+            self.assertAllClose(point_numpy.shape, gs.shape(result))
 
         result = self.metric.squared_dist(n_points_a, n_points_b)
         point_numpy = np.random.uniform(size=(n_samples, 1))
         with self.session():
             # TODO(nina): Fix that this test fails with assertShapeEqual
-            self.assertAllClose(point_numpy.shape, gs.eval(gs.shape(result)))
+            self.assertAllClose(point_numpy.shape, gs.shape(result))
 
     def test_norm_and_dist(self):
         """
