@@ -90,34 +90,28 @@ class TestMinkowskiSpaceMethods(geomstats.tests.TestCase):
 
         result_nn = self.metric.inner_product(n_points_a, n_points_b)
 
-        with self.session():
-            self.assertAllClose(result, expected)
-            self.assertAllClose(gs.eval(result_no).shape,
-                                (n_samples, 1))
-            self.assertAllClose(gs.eval(result_on).shape,
-                                (n_samples, 1))
-            self.assertAllClose(gs.eval(result_nn).shape, (n_samples, 1))
+        self.assertAllClose(result, expected)
+        self.assertAllClose(gs.shape(result_no), (n_samples, 1))
+        self.assertAllClose(gs.shape(result_on), (n_samples, 1))
+        self.assertAllClose(gs.shape(result_nn), (n_samples, 1))
 
+        with self.session():
             expected = np.zeros(n_samples)
             for i in range(n_samples):
                 expected[i] = gs.eval(gs.dot(n_points_a[i],
-                                             n_points_b[i])
-                                      )
+                                             n_points_b[i]))
                 expected[i] -= (2 * gs.eval(n_points_a[i, self.time_like_dim])
                                 * gs.eval(n_points_b[i, self.time_like_dim]))
             expected = helper.to_scalar(gs.array(expected))
 
-            self.assertAllClose(gs.eval(result_nn), expected)
+            self.assertAllClose(result_nn, expected)
 
     def test_squared_norm(self):
         point = gs.array([-2., 4.])
 
         result = self.metric.squared_norm(point)
-        expected = gs.dot(point, point)
-        expected -= 2 * point[self.time_like_dim] * point[self.time_like_dim]
-        expected = helper.to_scalar(expected)
-        with self.session():
-            self.assertAllClose(result, expected)
+        expected = gs.array([[12.]])
+        self.assertAllClose(result, expected)
 
     def test_squared_norm_vectorization(self):
         n_samples = 3
@@ -127,8 +121,7 @@ class TestMinkowskiSpaceMethods(geomstats.tests.TestCase):
             [2., math.sqrt(3)]])
 
         result = self.metric.squared_norm(n_points)
-        with self.session():
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+        self.assertAllClose(gs.shape(result), (n_samples, 1))
 
     def test_exp(self):
         base_point = gs.array([1.0, 0.])
@@ -138,8 +131,7 @@ class TestMinkowskiSpaceMethods(geomstats.tests.TestCase):
                                  base_point=base_point)
         expected = base_point + vector
         expected = helper.to_vector(expected)
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     def test_exp_vectorization(self):
         dim = self.dimension
@@ -159,17 +151,16 @@ class TestMinkowskiSpaceMethods(geomstats.tests.TestCase):
         result = self.metric.exp(one_tangent_vec, one_base_point)
         expected = one_tangent_vec + one_base_point
         expected = helper.to_vector(expected)
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
-            result = self.metric.exp(n_tangent_vecs, one_base_point)
-            self.assertAllClose(gs.shape(result), (n_samples, dim))
+        result = self.metric.exp(n_tangent_vecs, one_base_point)
+        self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-            result = self.metric.exp(one_tangent_vec, n_base_points)
-            self.assertAllClose(gs.shape(result), (n_samples, dim))
+        result = self.metric.exp(one_tangent_vec, n_base_points)
+        self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-            result = self.metric.exp(n_tangent_vecs, n_base_points)
-            self.assertAllClose(gs.shape(result), (n_samples, dim))
+        result = self.metric.exp(n_tangent_vecs, n_base_points)
+        self.assertAllClose(gs.shape(result), (n_samples, dim))
 
     def test_log(self):
         base_point = gs.array([-1., 0.])
@@ -178,11 +169,9 @@ class TestMinkowskiSpaceMethods(geomstats.tests.TestCase):
         result = self.metric.log(point=point, base_point=base_point)
         expected = point - base_point
         expected = helper.to_vector(expected)
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     def test_log_vectorization(self):
-
         dim = self.dimension
         n_samples = 3
         one_point = gs.array([[-1., 0.]])
