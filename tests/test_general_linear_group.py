@@ -100,14 +100,14 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_group_log_and_exp(self):
         point = 5 * gs.eye(4)
-        with self.session():
-            group_log = self.group.group_exp(point)
-            result = self.group.group_log(group_log)
-            expected = point
+        group_log = self.group.group_log(point)
+        result = self.group.group_exp(group_log)
+        expected = point
 
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_group_exp_vectorization(self):
@@ -127,7 +127,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
 
         result = self.group.group_exp(point)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_group_log_vectorization(self):
@@ -147,7 +147,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
 
         result = self.group.group_log(point)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_expm_and_logm_vectorization_symmetric(self):
@@ -160,7 +160,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         result = self.group.group_exp(self.group.group_log(point))
         expected = point
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_expm_and_logm_vectorization_random_rotations(self):
@@ -169,7 +169,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         result = self.group.group_log(self.group.group_exp(point))
         expected = point
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
 
 if __name__ == '__main__':
