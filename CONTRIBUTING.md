@@ -106,10 +106,9 @@ Pull-requests tagged with ``[WIP]`` will not be merged until the tag is removed.
 ## Geomstats coding style guide
 
 Ensure that your code is compliant with [PEP8][link_pep8],
-the coding style guide for python.
+the coding style guide for python, as enforced by [flake8][link_flake8].
 
-There are tools, called [linters][link_linters], automatically enforcing this style.
-For example you can use the linter [flake8][link_flake8].
+Flake8 is a tool, called a [linter][link_linters] that automatically enforces this style.
 
 ## Recognizing contributions
 
