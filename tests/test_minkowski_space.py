@@ -51,6 +51,7 @@ class TestMinkowskiSpaceMethods(geomstats.tests.TestCase):
         result = self.metric.inner_product_matrix()
 
         expected = gs.array([[-1., 0.], [0., 1.]])
+
         self.assertAllClose(result, expected)
 
     def test_inner_product(self):
