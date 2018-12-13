@@ -167,7 +167,8 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         point_type = 'vector'
         for n in self.n_seq:
             group = self.so[n]
-            rot_vec = self.group.random_uniform()
+            rot_vec = group.random_uniform(
+                point_type=point_type)
 
             skew_mat = group.skew_matrix_from_vector(rot_vec)
             result = group.vector_from_skew_matrix(skew_mat)
