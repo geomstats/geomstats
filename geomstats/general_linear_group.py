@@ -84,9 +84,9 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
             group_exp = gs.to_ndarray(group_exp, to_ndim=3)
 
         else:
-            group_exp = gs.expm(tangent_vec)
+            group_exp = gs.linalg.expm(tangent_vec)
 
-        return group_exp.real
+        return gs.real(group_exp)
 
     def group_log_from_identity(self, point, point_type=None):
         """
@@ -105,6 +105,6 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
             group_log = gs.einsum('ijk,ilk->ijl', aux, vectors)
 
         else:
-            group_log = gs.logm(point)
+            group_log = gs.linalg.logm(point)
 
-        return group_log.real
+        return gs.real(group_log)

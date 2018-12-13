@@ -1,13 +1,16 @@
 """Numpy based computation backend."""
 
 import numpy as np
-import scipy.linalg
 
 
 int32 = np.int32
 int8 = np.int8
 float32 = np.float32
 float64 = np.float64
+
+
+def real(x):
+    return np.real(x)
 
 
 def reshape(*args, **kwargs):
@@ -340,21 +343,6 @@ def prod(x, axis=None):
 
 def sign(*args, **kwargs):
     return np.sign(*args, **kwargs)
-
-
-def expm(x):
-    return np.vectorize(
-        scipy.linalg.expm, signature='(n,m)->(n,m)')(x)
-
-
-def logm(x):
-    return np.vectorize(
-        scipy.linalg.logm, signature='(n,m)->(n,m)')(x)
-
-
-def sqrtm(x):
-    return np.vectorize(
-        scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)
 
 
 def mean(x, axis=None):
