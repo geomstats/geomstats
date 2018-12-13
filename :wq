@@ -140,39 +140,44 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             delta = 1e-12 * gs.ones((n, n))
             rot_mat_plus_delta = rot_mat + delta
             result = group.projection(rot_mat_plus_delta)
-            expected = helper.to_matrix(rot_mat)
+            expected = rot_mat
             self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_projection_vectorization(self):
         for n in self.n_seq:
             group = self.so[n]
             n_samples = self.n_samples
-            mats = gs.ones((n_samples, n, n))
+            mats = gs.random.rand(n_samples, n, n)
             result = group.projection(mats)
-            self.assertAllClose(gs.shape(result), (n_samples, n, n))
+            self.assertTrue(result.shape == (n_samples, n, n))
 
+    @geomstats.tests.np_only
     def test_skew_matrix_from_vector(self):
         # Specific to 3D case
         n = 3
         group = self.so[n]
-        rot_vec = gs.array([0.9, -0.5, 1.1])
-        skew_matrix = group.skew_matrix_from_vector(rot_vec)
-        result = gs.dot(skew_matrix[0], rot_vec)
-        expected = gs.zeros(n)
+        rot_vec = gs.random.rand(n)
+        result = group.skew_matrix_from_vector(rot_vec)[0]
 
-        self.assertAllClose(result, expected)
+        self.assertTrue(gs.allclose(gs.dot(result, rot_vec), gs.zeros(n)))
 
+    @geomstats.tests.np_only
     def test_skew_matrix_and_vector(self):
         point_type = 'vector'
         for n in self.n_seq:
             group = self.so[n]
-            rot_vec = gs.ones(n * (n - 1) / 2)
+            rot_vec = group.random_uniform(
+                point_type=point_type)
 
             skew_mat = group.skew_matrix_from_vector(rot_vec)
             result = group.vector_from_skew_matrix(skew_mat)
-            expected = helper.to_vector(rot_vec)
+            expected = rot_vec
 
-            self.assertAllClose(result, expected)
+            self.assertTrue(gs.allclose(result, expected),
+                            'result = {};'
+                            ' expected = {}.'.format(result,
+                                                     expected))
 
     @geomstats.tests.np_only
     def test_skew_matrix_from_vector_vectorization(self):
@@ -184,16 +189,15 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 n_samples=n_samples, point_type=point_type)
             result = group.skew_matrix_from_vector(rot_vecs)
 
-            self.assertAllClose(gs.shape(result), (n_samples, n, n))
+            self.assertTrue(result.shape == (n_samples, n, n))
 
     @geomstats.tests.np_only
     def test_random_and_belongs(self):
         for n in self.n_seq:
             group = self.so[n]
             point = group.random_uniform()
-            result = group.belongs(point)
-            expected = gs.array([[True]])
-            self.assertAllClose(result, expected)
+            self.assertTrue(group.belongs(point),
+                            'n = {}\npoint = {}'.format(n, point))
 
     @geomstats.tests.np_only
     def test_random_and_belongs_vectorization(self):
@@ -201,10 +205,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         for n in self.n_seq:
             group = self.so[n]
             points = group.random_uniform(n_samples=n_samples)
-            result = gs.all(group.belongs(points))
-            result = helper.to_scalar(result)
-            expected = gs.array([[True]])
-            self.assertAllClose(result, expected)
+            self.assertTrue(gs.all(group.belongs(points)))
 
     @geomstats.tests.np_only
     def test_regularize(self):
