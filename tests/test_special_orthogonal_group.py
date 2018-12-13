@@ -162,11 +162,12 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_skew_matrix_and_vector(self):
         point_type = 'vector'
         for n in self.n_seq:
             group = self.so[n]
-            rot_vec = gs.ones(n * (n - 1) / 2)
+            rot_vec = self.group.random_uniform()
 
             skew_mat = group.skew_matrix_from_vector(rot_vec)
             result = group.vector_from_skew_matrix(skew_mat)
