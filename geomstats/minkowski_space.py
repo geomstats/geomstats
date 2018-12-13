@@ -23,7 +23,8 @@ class MinkowskiSpace(Manifold):
         point = gs.to_ndarray(point, to_ndim=2)
         n_points, point_dim = point.shape
         belongs = point_dim == self.dimension
-        belongs = gs.repeat(belongs, repeats=n_points, axis=0)
+        belongs = gs.to_ndarray(belongs, to_ndim=1)
+        belongs = gs.tile(belongs, (n_points,))
         belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
 
         return belongs
