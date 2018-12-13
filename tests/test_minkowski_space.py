@@ -44,14 +44,12 @@ class TestMinkowskiSpaceMethods(geomstats.tests.TestCase):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
         expected = gs.array([[True]])
-
         self.assertAllClose(result, expected)
 
     def test_inner_product_matrix(self):
         result = self.metric.inner_product_matrix()
 
         expected = gs.array([[-1., 0.], [0., 1.]])
-
         self.assertAllClose(result, expected)
 
     def test_inner_product(self):
@@ -261,7 +259,6 @@ class TestMinkowskiSpaceMethods(geomstats.tests.TestCase):
         result = helper.to_scalar(variance != 0)
         # we expect the average of the points' Minkowski sq norms.
         expected = helper.to_scalar(gs.array([True]))
-
         self.assertAllClose(result, expected)
 
 
