@@ -3,7 +3,7 @@
 Welcome to the geomstats repository!
 We're excited you're here and want to contribute.
 
-## Practical guide to submitting your contribution
+## Practical Guide to Submitting your Contribution
 
 These guidelines are designed to make it as easy as possible to get involved.
 If you have any questions that aren't discussed below,
@@ -13,7 +13,7 @@ Before you start you'll need to set up a free [GitHub][link_github] account and 
 Here are some [instructions][link_signupinstructions].
 
 
-## Joining the conversation
+## Joining the Conversation
 
 `geomstats` is maintained by a growing group of enthusiastic developers!
 Most of our discussions will take place on open [issues][link_issues].
@@ -38,7 +38,7 @@ GitHub has a really helpful page for getting started with
 [writing and formatting Markdown on GitHub][writing_formatting_github].
 
 
-## Understanding issues
+## Understanding Issues
 
 Every project on GitHub uses [issues][link_issues] slightly differently.
 
@@ -52,7 +52,7 @@ is difficult to describe as one unit of work, please consider splitting it into 
 goals and immediate next steps.
 
 
-## Making a change
+## Making a Change
 
 We appreciate all contributions to ``geomstats``,
 but those accepted fastest will follow a workflow similar to the following:
@@ -103,22 +103,20 @@ For example: `[ENH] Implementation of Grassmanians`.
 For works-in-progress, add the ``WIP`` tag in addition to the descriptive prefix.
 Pull-requests tagged with ``[WIP]`` will not be merged until the tag is removed.
 
-## Geomstats coding style guide
+## Geomstats Coding Style Guide
 
 Ensure that your code is compliant with [PEP8][link_pep8],
 the coding style guide for python, as enforced by [flake8][link_flake8].
 
 Flake8 is a tool, called a [linter][link_linters] that automatically enforces this style.
 
-## Recognizing contributions
+## Recognizing Contributions
 
 We welcome and recognize all contributions from documentation to testing to code development.
 You can see a list of current contributors in our [README.md][link_readme].
 If you are new to the project, don't forget to add your name and affiliation there!
 
-## Thank you!
-
-You're awesome. :wave::smiley:
+## Thank You!
 
 <br>
 
