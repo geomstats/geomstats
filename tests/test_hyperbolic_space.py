@@ -3,6 +3,7 @@ Unit tests for the Hyperbolic space.
 """
 
 import math
+import numpy as np
 
 import geomstats.backend as gs
 import geomstats.tests
@@ -32,14 +33,12 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         result = self.space.belongs(point)
         expected = helper.to_scalar(gs.array([[True]]))
 
-        with self.session():
-            self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result)
 
     def test_random_uniform(self):
         result = self.space.random_uniform()
 
-        with self.session():
-            self.assertAllClose(gs.shape(result), (1, self.dimension + 1))
+        self.assertAllClose(gs.shape(result), (1, self.dimension + 1))
 
     def test_intrinsic_and_extrinsic_coords(self):
         """
@@ -53,8 +52,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         result = self.space.extrinsic_to_intrinsic_coords(point_ext)
         expected = point_int
         expected = helper.to_vector(expected)
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
         point_ext = gs.array([2.0, 1.0, 1.0, 1.0])
         point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
@@ -62,8 +60,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         expected = point_ext
         expected = helper.to_vector(expected)
 
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     def test_intrinsic_and_extrinsic_coords_vectorization(self):
         """
@@ -83,8 +80,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         expected = point_int
         expected = helper.to_vector(expected)
 
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
         point_ext = gs.array([[2., 1., 1., 1.],
                               [4., 1., 3., math.sqrt(5.)],
@@ -95,8 +91,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         expected = point_ext
         expected = helper.to_vector(expected)
 
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     def test_log_and_exp_general_case(self):
         """
@@ -110,12 +105,11 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         base_point = gs.array([4.0, 1., 3.0, math.sqrt(5.)])
         point = gs.array([2.0, 1.0, 1.0, 1.0])
 
-        with self.session():
-            log = self.metric.log(point=point, base_point=base_point)
+        log = self.metric.log(point=point, base_point=base_point)
 
-            result = self.metric.exp(tangent_vec=log, base_point=base_point)
-            expected = helper.to_vector(point)
-            self.assertAllClose(result, expected)
+        result = self.metric.exp(tangent_vec=log, base_point=base_point)
+        expected = helper.to_vector(point)
+        self.assertAllClose(result, expected)
 
     def test_exp_and_belongs(self):
         H2 = HyperbolicSpace(dimension=2)
@@ -133,7 +127,6 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         with self.session():
             self.assertTrue(gs.eval(H2.belongs(exp)))
 
-    @geomstats.tests.np_only
     def test_exp_vectorization(self):
         n_samples = 3
         dim = self.dimension + 1
@@ -160,7 +153,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         with self.session():
             self.assertAllClose(gs.shape(result),  (n_samples, dim))
 
-        expected = gs.zeros((n_samples, dim))
+        expected = np.zeros((n_samples, dim))
 
         with self.session():
             for i in range(n_samples):
@@ -175,7 +168,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         with self.session():
             self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-        expected = gs.zeros((n_samples, dim))
+        expected = np.zeros((n_samples, dim))
         with self.session():
             for i in range(n_samples):
                 expected[i] = gs.eval(self.metric.exp(one_tangent_vec[i],
@@ -189,7 +182,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         with self.session():
             self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-        expected = gs.zeros((n_samples, dim))
+        expected = np.zeros((n_samples, dim))
         with self.session():
             for i in range(n_samples):
                 expected[i] = gs.eval(self.metric.exp(n_tangent_vecs[i],
@@ -377,7 +370,6 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         with self.session():
             self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """
         Test that the riemannian exponential
@@ -387,7 +379,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         """
         # Riemannian Exp then Riemannian Log
         # Edge case: tangent vector has norm < epsilon
-        base_point = self.space.random_uniform()
+        base_point = gs.array([2., 1., 1., 1.])
         vector = 1e-10 * gs.array([.06, -51., 6., 5.])
 
         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
@@ -396,23 +388,23 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
                                                    vector=vector,
                                                    base_point=base_point)
 
-        gs.testing.assert_allclose(result, expected, atol=1e-8)
+        self.assertAllClose(result, expected, atol=1e-8)
 
     @geomstats.tests.np_only
     def test_variance(self):
-        point = self.space.random_uniform()
+        point = gs.array([2., 1., 1., 1.])
         result = self.metric.variance([point, point])
-        expected = 0
+        expected = 0.
 
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_mean(self):
-        point = self.space.random_uniform()
+        point = gs.array([2., 1., 1., 1.])
         result = self.metric.mean([point, point])
         expected = point
 
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_mean_and_belongs(self):
@@ -420,8 +412,11 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         point_b = self.space.random_uniform()
         point_c = self.space.random_uniform()
 
-        result = self.metric.mean([point_a, point_b, point_c])
-        self.assertTrue(self.space.belongs(result))
+        mean = self.metric.mean([point_a, point_b, point_c])
+        result = self.space.belongs(mean)
+        expected = gs.array([[True]])
+
+        self.assertAllClose(result, expected)
 
 
 if __name__ == '__main__':
