@@ -17,8 +17,7 @@ class TestLieGroupMethods(geomstats.tests.TestCase):
         result = self.group.dimension
         expected = self.dimension
 
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
 
 if __name__ == '__main__':
