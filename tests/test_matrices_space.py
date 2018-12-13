@@ -56,20 +56,20 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
                         [3., 1., 1.]])
         result = self.space.make_symmetric(mat)
         expected = gs.array([[[1., 1., 3.],
-                            [1., 0., 0.5],
-                            [3., 0.5, 1.]]])
+                              [1., 0., 0.5],
+                              [3., 0.5, 1.]]])
         self.assertAllClose(result, expected)
 
         mat = gs.array([[[1e100, 1e-100, 1e100],
-                        [1e100, 1e-100, 1e100],
-                        [1e-100, 1e-100, 1e100]]])
+                         [1e100, 1e-100, 1e100],
+                         [1e-100, 1e-100, 1e100]]])
         result = self.space.make_symmetric(mat)
 
         res = 0.5 * (1e100 + 1e-100)
 
         expected = gs.array([[[1e100, res, res],
-                             [res, 1e-100, res],
-                             [res, res, 1e100]]])
+                              [res, 1e-100, res],
+                              [res, res, 1e100]]])
         self.assertAllClose(result, expected)
 
     def test_make_symmetric_and_is_symmetric_vectorization(self):
