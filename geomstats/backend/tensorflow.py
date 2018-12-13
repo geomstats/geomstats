@@ -1,7 +1,5 @@
 """Tensorflow based computation backend."""
 
-# TODO(johmathe): Reproduce all unit tests with tensorflow backend.
-
 import tensorflow as tf
 
 
@@ -11,6 +9,18 @@ int64 = tf.int64
 float16 = tf.float16
 float32 = tf.float32
 float64 = tf.float64
+
+
+def amax(x):
+    return tf.reduce_max(x)
+
+
+def real(x):
+    return tf.real(x)
+
+
+def cond(*args, **kwargs):
+    return tf.cond(*args, **kwargs)
 
 
 def reshape(*args, **kwargs):

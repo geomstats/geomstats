@@ -18,8 +18,7 @@ class TestManifoldMethods(geomstats.tests.TestCase):
     def test_dimension(self):
         result = self.manifold.dimension
         expected = self.dimension
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     def test_belongs(self):
         point = gs.array([1., 2., 3.])
@@ -30,8 +29,7 @@ class TestManifoldMethods(geomstats.tests.TestCase):
         point = gs.array([1., 2., 3.])
         result = self.manifold.regularize(point)
         expected = point
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
 
 if __name__ == '__main__':

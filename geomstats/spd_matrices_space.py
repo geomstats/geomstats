@@ -99,7 +99,7 @@ class SPDMatricesSpace(EmbeddedManifold):
 
         assert n_base_points == n_samples or n_base_points == 1
 
-        sqrt_base_point = gs.sqrtm(base_point)
+        sqrt_base_point = gs.linalg.sqrtm(base_point)
 
         tangent_vec_at_id = (2 * gs.random.rand(n_samples,
                                                 self.n,
@@ -154,7 +154,7 @@ class SPDMetric(RiemannianMetric):
                 or n_tangent_vecs == 1
                 or n_base_points == 1)
 
-        sqrt_base_point = gs.sqrtm(base_point)
+        sqrt_base_point = gs.linalg.sqrtm(base_point)
 
         inv_sqrt_base_point = gs.linalg.inv(sqrt_base_point)
 
@@ -162,7 +162,7 @@ class SPDMetric(RiemannianMetric):
                                       tangent_vec)
         tangent_vec_at_id = gs.matmul(tangent_vec_at_id,
                                       inv_sqrt_base_point)
-        exp_from_id = gs.expm(tangent_vec_at_id)
+        exp_from_id = gs.linalg.expm(tangent_vec_at_id)
 
         exp = gs.matmul(exp_from_id, sqrt_base_point)
         exp = gs.matmul(sqrt_base_point, exp)
@@ -187,12 +187,12 @@ class SPDMetric(RiemannianMetric):
                 or n_base_points == 1)
 
         sqrt_base_point = gs.zeros((n_base_points,) + (mat_dim,) * 2)
-        sqrt_base_point = gs.sqrtm(base_point)
+        sqrt_base_point = gs.linalg.sqrtm(base_point)
 
         inv_sqrt_base_point = gs.linalg.inv(sqrt_base_point)
         point_near_id = gs.matmul(inv_sqrt_base_point, point)
         point_near_id = gs.matmul(point_near_id, inv_sqrt_base_point)
-        log_at_id = gs.logm(point_near_id)
+        log_at_id = gs.linalg.logm(point_near_id)
 
         log = gs.matmul(sqrt_base_point, log_at_id)
         log = gs.matmul(log, sqrt_base_point)

@@ -22,7 +22,7 @@ class TestBackendNumpy(unittest.TestCase):
         point = gs.array([[2., 0., 0.],
                           [0., 3., 0.],
                           [0., 0., 4.]])
-        result = gs.logm(point)
+        result = gs.linalg.logm(point)
         expected = gs.array([[0.693147180, 0., 0.],
                              [0., 1.098612288, 0.],
                              [0., 0., 1.38629436]])
@@ -33,7 +33,7 @@ class TestBackendNumpy(unittest.TestCase):
         point = gs.array([[2., 0., 0.],
                           [0., 3., 0.],
                           [0., 0., 4.]])
-        result = gs.expm(gs.logm(point))
+        result = gs.linalg.expm(gs.linalg.logm(point))
         expected = point
 
         self.assertTrue(gs.allclose(result, expected))
@@ -53,7 +53,7 @@ class TestBackendNumpy(unittest.TestCase):
                               [0., 148.413159, 0.],
                               [0., 0., 403.42879349]]])
 
-        result = gs.expm(point)
+        result = gs.linalg.expm(point)
 
         self.assertTrue(gs.allclose(result, expected))
 
@@ -72,7 +72,7 @@ class TestBackendNumpy(unittest.TestCase):
                               [0., 1.609437912, 0.],
                               [0., 0., 1.79175946]]])
 
-        result = gs.logm(point)
+        result = gs.linalg.logm(point)
 
         self.assertTrue(gs.allclose(result, expected))
 
@@ -80,7 +80,7 @@ class TestBackendNumpy(unittest.TestCase):
         point = self.so3_group.random_uniform(self.n_samples)
         point = self.so3_group.matrix_from_rotation_vector(point)
 
-        result = gs.expm(gs.logm(point))
+        result = gs.linalg.expm(gs.linalg.logm(point))
         expected = point
 
         self.assertTrue(gs.allclose(result, expected))
@@ -92,7 +92,7 @@ class TestBackendNumpy(unittest.TestCase):
                           [[1., 0., 0.],
                            [0., 5., 0.],
                            [0., 0., 6.]]])
-        result = gs.expm(gs.logm(point))
+        result = gs.linalg.expm(gs.linalg.logm(point))
         expected = point
 
         self.assertTrue(gs.allclose(result, expected))

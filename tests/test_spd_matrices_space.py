@@ -25,7 +25,10 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_random_uniform_and_belongs(self):
-        self.assertTrue(self.space.belongs(self.space.random_uniform()))
+        point = self.space.random_uniform()
+        result = self.space.belongs(point)
+        expected = gs.array([[True]])
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_random_uniform_and_belongs_vectorization(self):

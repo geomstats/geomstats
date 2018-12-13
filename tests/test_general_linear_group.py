@@ -37,8 +37,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         result = self.group.belongs(rot_mat)
         expected = gs.array([True])
 
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     def test_compose(self):
         # 1. Composition by identity, on the right
@@ -50,8 +49,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         expected = mat
         expected = helper.to_matrix(mat)
 
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
         # 2. Composition by identity, on the left
         # Expect the original transformation
@@ -61,8 +59,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         result = self.group.compose(self.group.identity, mat)
         expected = mat
 
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     def test_inverse(self):
         mat = gs.array([
@@ -76,8 +73,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
             [3., -6., 3.]])
         expected = helper.to_matrix(expected)
 
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     def test_compose_and_inverse(self):
         # 1. Compose transformation by its inverse on the right
@@ -90,8 +86,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         expected = self.group.identity
         expected = helper.to_matrix(expected)
 
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
         # 2. Compose transformation by its inverse on the left
         # Expect the group identity
@@ -103,17 +98,16 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         expected = self.group.identity
         expected = helper.to_matrix(expected)
 
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_group_log_and_exp(self):
-        point_1 = 5 * gs.eye(4)
-        group_log_1 = self.group.group_log(point_1)
-        result_1 = self.group.group_exp(group_log_1)
-        expected_1 = point_1
+        point = 5 * gs.eye(4)
+        group_log = self.group.group_log(point)
+        result = self.group.group_exp(group_log)
+        expected = point
 
-        self.assertTrue(gs.allclose(result_1, expected_1))
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_group_exp_vectorization(self):
@@ -133,7 +127,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
 
         result = self.group.group_exp(point)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_group_log_vectorization(self):
@@ -153,7 +147,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
 
         result = self.group.group_log(point)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_expm_and_logm_vectorization_symmetric(self):
@@ -166,7 +160,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         result = self.group.group_exp(self.group.group_log(point))
         expected = point
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_expm_and_logm_vectorization_random_rotations(self):
@@ -175,7 +169,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         result = self.group.group_log(self.group.group_exp(point))
         expected = point
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
 
 if __name__ == '__main__':

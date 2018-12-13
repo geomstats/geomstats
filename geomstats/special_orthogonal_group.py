@@ -86,7 +86,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
             _, vec_dim = point.shape
-            return vec_dim == self.dimension
+            belongs = vec_dim == self.dimension
+            return belongs
 
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
@@ -297,7 +298,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             aux_mat = gs.matmul(gs.transpose(mat, axes=(0, 2, 1)), mat)
 
             inv_sqrt_mat = gs.linalg.inv(
-                    gs.sqrtm(aux_mat))
+                    gs.linalg.sqrtm(aux_mat))
 
             rot_mat = gs.matmul(mat, inv_sqrt_mat)
 

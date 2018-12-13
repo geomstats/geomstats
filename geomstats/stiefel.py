@@ -66,7 +66,7 @@ class Stiefel(EmbeddedManifold):
         std_normal = gs.random.normal(size=(n_samples, self.n, self.p))
         std_normal_transpose = gs.transpose(std_normal, axes=(0, 2, 1))
         aux = gs.matmul(std_normal_transpose, std_normal)
-        sqrt_aux = gs.sqrtm(aux)
+        sqrt_aux = gs.linalg.sqrtm(aux)
         inv_sqrt_aux = gs.linalg.inv(sqrt_aux)
 
         return gs.matmul(std_normal, inv_sqrt_aux)
@@ -147,7 +147,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
              zeros],
             axis=2)
         block = gs.concatenate([matrix_ar, matrix_rz], axis=1)
-        matrix_mn_e = gs.expm(block)
+        matrix_mn_e = gs.linalg.expm(block)
 
         if n_base_points == 1:
             base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
@@ -244,7 +244,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         matrix_v = procrustes_preprocessing(matrix_v, matrix_m, matrix_n)
 
         for k in range(max_iter):
-            matrix_lv = gs.logm(matrix_v)
+            matrix_lv = gs.linalg.logm(matrix_v)
 
             matrix_c = matrix_lv[:, p:2*p, p:2*p]
             norm_matrix_c = gs.linalg.norm(matrix_c, ord=2, axis=(1, 2))
@@ -253,7 +253,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
                 # Convergence achieved
                 break
 
-            matrix_phi = gs.expm(-matrix_c)
+            matrix_phi = gs.linalg.expm(-matrix_c)
             matrix_v[:, :, p:2*p] = gs.matmul(
                 matrix_v[:, :, p:2*p], matrix_phi)
 
