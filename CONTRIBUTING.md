@@ -1,4 +1,4 @@
-# Contributing to geomstats
+# Contributing to Geomstats
 
 Welcome to the geomstats repository!
 We're excited you're here and want to contribute.
@@ -15,8 +15,7 @@ Here are some [instructions][link_signupinstructions].
 
 ## Joining the conversation
 
-`geomstats` is maintained by a growing group of enthusiastic developers&mdash;
-and we're excited to have you join!
+`geomstats` is maintained by a growing group of enthusiastic developers!
 Most of our discussions will take place on open [issues][link_issues].
 
 
@@ -76,6 +75,10 @@ Make sure to [keep your fork up to date][link_updateupstreamwiki] with the maste
 
 **3. Make the changes you've discussed, following the [geomstats coding style guide](#geomstats-coding-style-guide).**
 
+- Create your feature branch (`git checkout -b feature/fooBar`)
+- Commit your changes (`git commit -am 'Add some fooBar'`)
+- Push to the branch (`git push origin feature/fooBar`)
+
 Try to keep the changes focused.
 If you feel tempted to "branch out" then please make a [new branch][link_branches].
 
@@ -95,24 +98,18 @@ Pull requests titles should begin with a descriptive prefix:
 * ``CI``: updates to continous integration infrastructure
 * ``MAINT``: general maintenance
 
-For example: `[ENH] Implementation of Grassmanians`
+For example: `[ENH] Implementation of Grassmanians`.
 
 For works-in-progress, add the ``WIP`` tag in addition to the descriptive prefix.
 Pull-requests tagged with ``[WIP]`` will not be merged until the tag is removed.
 
-## geomstats coding style guide
+## Geomstats coding style guide
 
 Ensure that your code is compliant with [PEP8][link_pep8],
 the coding style guide for python.
 
 There are tools, called [linters][link_linters], automatically enforcing this style.
 For example you can use the linter [flake8][link_flake8].
-
-## Licensing
-
-``geomstats`` is licensed under the MIT license.
-By contributing to `geomstats`,
-you acknowledge that any contributions will be licensed under the same terms.
 
 
 ## Recognizing contributions

@@ -26,11 +26,7 @@ nose2
 
 ## Contributing
 
-1. Fork it (<https://github.com/yourname/yourproject/fork>)
-2. Create your feature branch (`git checkout -b feature/fooBar`)
-3. Commit your changes (`git commit -am 'Add some fooBar'`)
-4. Push to the branch (`git push origin feature/fooBar`)
-5. Create a new Pull Request
+See our [CONTRIBUTING.md][link_contributing] file!
 
 ## Authors & Contributors
 
@@ -45,3 +41,5 @@ nose2
 ## Acknowledgements
 
 This work is partially supported by the National Science Foundation, grant NSF DMS RTG 1501767.
+
+[link_contributing]: https://github.com/geomstats/geomstats/CONTRIBUTING.md
