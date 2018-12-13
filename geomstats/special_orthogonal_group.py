@@ -298,7 +298,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             aux_mat = gs.matmul(gs.transpose(mat, axes=(0, 2, 1)), mat)
 
             inv_sqrt_mat = gs.linalg.inv(
-                    gs.sqrtm(aux_mat))
+                    gs.linalg.sqrtm(aux_mat))
 
             rot_mat = gs.matmul(mat, inv_sqrt_mat)
 
