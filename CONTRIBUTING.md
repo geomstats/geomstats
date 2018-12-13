@@ -111,7 +111,6 @@ the coding style guide for python.
 There are tools, called [linters][link_linters], automatically enforcing this style.
 For example you can use the linter [flake8][link_flake8].
 
-
 ## Recognizing contributions
 
 We welcome and recognize all contributions from documentation to testing to code development.
