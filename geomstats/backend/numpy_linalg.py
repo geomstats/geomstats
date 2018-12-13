@@ -1,6 +1,22 @@
 """Numpy based linear algebra backend."""
 
 import numpy as np
+import scipy.linalg
+
+
+def expm(x):
+    return np.vectorize(
+        scipy.linalg.expm, signature='(n,m)->(n,m)')(x)
+
+
+def logm(x):
+    return np.vectorize(
+        scipy.linalg.logm, signature='(n,m)->(n,m)')(x)
+
+
+def sqrtm(x):
+    return np.vectorize(
+        scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)
 
 
 def det(*args, **kwargs):
