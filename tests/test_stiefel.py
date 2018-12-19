@@ -76,26 +76,23 @@ class TestStiefelMethods(geomstats.tests.TestCase):
 
         self.metric = self.space.canonical_metric
 
-    @geomstats.tests.np_only
     def test_belongs(self):
         point = self.space.random_uniform()
         belongs = self.space.belongs(point)
 
-        gs.testing.assert_allclose(belongs.shape, (1, 1))
+        self.assertAllClose(gs.shape(belongs), (1, 1))
 
-    @geomstats.tests.np_only
-    def test_random_and_belongs(self):
+    def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
         expected = gs.array([[True]])
 
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_random_uniform(self):
-        point = self.space.random_uniform()
+        result = self.space.random_uniform()
 
-        gs.testing.assert_allclose(point.shape, (1, self.n, self.p))
+        self.assertAllClose(gs.shape(result), (1, self.n, self.p))
 
     @geomstats.tests.np_only
     def test_log_and_exp(self):

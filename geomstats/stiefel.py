@@ -50,10 +50,11 @@ class Stiefel(EmbeddedManifold):
         point_transpose = gs.transpose(point, axes=(0, 2, 1))
         diff = gs.matmul(point_transpose, point) - gs.eye(p)
 
-        diff_norm = gs.norm(diff, axis=(1, 2))
+        diff_norm = gs.linalg.norm(diff, axis=(1, 2))
         belongs = gs.less_equal(diff_norm, tolerance)
 
-        belongs = gs.to_ndarray(belongs, to_ndim=2)
+        belongs = gs.to_ndarray(belongs, to_ndim=1)
+        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
         return belongs
 
     def random_uniform(self, n_samples=1):
@@ -68,8 +69,9 @@ class Stiefel(EmbeddedManifold):
         aux = gs.matmul(std_normal_transpose, std_normal)
         sqrt_aux = gs.linalg.sqrtm(aux)
         inv_sqrt_aux = gs.linalg.inv(sqrt_aux)
+        point = gs.matmul(std_normal, inv_sqrt_aux)
 
-        return gs.matmul(std_normal, inv_sqrt_aux)
+        return point
 
 
 class StiefelCanonicalMetric(RiemannianMetric):

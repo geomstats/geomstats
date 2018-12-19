@@ -193,8 +193,12 @@ def less_equal(x, y):
     return tf.less_equal(x, y)
 
 
-def eye(N, M=None):
-    return tf.eye(num_rows=N, num_columns=M)
+def eye(n, m=None):
+    if m is None:
+        m = n
+    n = cast(n, dtype=int32)
+    m = cast(m, dtype=int32)
+    return tf.eye(num_rows=n, num_columns=m)
 
 
 def matmul(x, y):

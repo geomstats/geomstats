@@ -31,9 +31,9 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
-        expected = helper.to_scalar(gs.array([[True]]))
+        expected = gs.array([[True]])
 
-        self.assertAllClose(expected, result)
+        self.assertAllClose(result, expected)
 
     def test_random_uniform(self):
         result = self.space.random_uniform()
