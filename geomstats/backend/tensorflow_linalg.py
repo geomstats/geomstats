@@ -2,6 +2,22 @@
 
 import tensorflow as tf
 
+from geomstats.backend.tensorflow import to_ndarray
+
+
+def sqrtm(sym_mat):
+    sym_mat = to_ndarray(sym_mat, to_ndim=3)
+
+    [eigenvalues, vectors] = tf.linalg.eigh(sym_mat)
+
+    sqrt_eigenvalues = tf.sqrt(eigenvalues)
+
+    aux = tf.einsum('ijk,ik->ijk', vectors, sqrt_eigenvalues)
+    sqrt_mat = tf.einsum('ijk,ilk->ijl', aux, vectors)
+
+    sqrt_mat = to_ndarray(sqrt_mat, to_ndim=3)
+    return sqrt_mat
+
 
 def expm(x):
     return tf.linalg.expm(x)
