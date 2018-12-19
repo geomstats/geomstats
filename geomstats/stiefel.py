@@ -69,7 +69,7 @@ class Stiefel(EmbeddedManifold):
         aux = gs.matmul(std_normal_transpose, std_normal)
         sqrt_aux = gs.linalg.sqrtm(aux)
         inv_sqrt_aux = gs.linalg.inv(sqrt_aux)
-        point = gs.matmul(std_normal, inv_sqrt_aux)
+        point = gs.einsum('nij,njk->njk', std_normal, inv_sqrt_aux)
 
         return point
 
