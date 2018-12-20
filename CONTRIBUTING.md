@@ -16,7 +16,7 @@ Here are some [instructions][link_signupinstructions].
 ## Joining the Conversation
 
 `geomstats` is maintained by a growing group of enthusiastic developers!
-Most of our discussions will take place on open [issues][link_issues].
+Most of our discussions take place on [issues][link_issues].
 
 
 ## Contributing through GitHub
@@ -28,7 +28,7 @@ If you're not yet familiar with `git`, there are lots of great resources to help
 Some of our favorites include the [git Handbook][link_handbook] and
 the [Software Carpentry introduction to git][link_swc_intro].
 
-On GitHub, You'll use [Markdown][markdown] to chat in issues and pull requests.
+On GitHub, you'll use [Markdown][markdown] to chat in issues and pull requests.
 You can think of Markdown as a few little symbols around your text that will allow GitHub
 to render the text with a little bit of formatting.
 For example you could write words as bold (`**bold**`), or in italics (`*italics*`),
@@ -42,7 +42,7 @@ GitHub has a really helpful page for getting started with
 
 Every project on GitHub uses [issues][link_issues] slightly differently.
 
-The following outlines how the ``geomstats`` developers think about these tools.
+The following outlines how ``geomstats`` developers think about these tools.
 
 * **Issues** are individual pieces of work that need to be completed to move the project forwards.
 A general guideline: if you find yourself tempted to write a great big issue that
@@ -81,6 +81,9 @@ Make sure to [keep your fork up to date][link_updateupstreamwiki] with the maste
 
 Try to keep the changes focused.
 If you feel tempted to "branch out" then please make a [new branch][link_branches].
+
+If you are adding a new feature, don't forget to add the corresponding [unit tests][link_unit_tests].
+As ``geomstats`` enables numpy and tensorflow, your unit tests should run on these two backends.
 
 **4. Submit a [pull request][link_pullrequest].**
 
@@ -142,6 +145,7 @@ If you are new to the project, don't forget to add your name and affiliation the
 [link_fork]: https://help.github.com/articles/fork-a-repo/
 [link_pushpullblog]: https://www.igvita.com/2011/12/19/dont-push-your-pull-requests/
 [link_branches]: https://help.github.com/articles/creating-and-deleting-branches-within-your-repository/
+[link_unit_tests]: https://github.com/geomstats/geomstats/tree/master/tests
 [link_updateupstreamwiki]: https://help.github.com/articles/syncing-a-fork/
 [link_pep8]: https://www.python.org/dev/peps/pep-0008/
 [link_linters]: https://en.wikipedia.org/wiki/Lint_(software)
