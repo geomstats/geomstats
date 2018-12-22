@@ -66,10 +66,10 @@ class Stiefel(EmbeddedManifold):
         """
         std_normal = gs.random.normal(size=(n_samples, self.n, self.p))
         std_normal_transpose = gs.transpose(std_normal, axes=(0, 2, 1))
-        aux = gs.matmul(std_normal_transpose, std_normal)
+        aux = gs.einsum('nij,njk->nik', std_normal_transpose, std_normal)
         sqrt_aux = gs.linalg.sqrtm(aux)
         inv_sqrt_aux = gs.linalg.inv(sqrt_aux)
-        point = gs.einsum('nij,njk->njk', std_normal, inv_sqrt_aux)
+        point = gs.einsum('nij,njk->nik', std_normal, inv_sqrt_aux)
 
         return point
 

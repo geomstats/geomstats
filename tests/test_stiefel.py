@@ -87,8 +87,6 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         result = self.space.belongs(point)
         expected = gs.array([[True]])
 
-        print(result, 'result')
-        print(expected, 'expected')
         self.assertAllClose(result, expected)
 
     def test_random_uniform(self):
