@@ -111,7 +111,7 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         expected = helper.to_matrix(point)
 
-        gs.testing.assert_allclose(result, expected, atol=ATOL)
+        self.assertAllClose(result, expected, atol=ATOL)
 
     @geomstats.tests.np_only
     def test_exp_and_belongs(self):
@@ -121,7 +121,9 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         exp = self.metric.exp(
             tangent_vec=tangent_vec,
             base_point=base_point)
-        self.assertTrue(self.space.belongs(exp))
+        result = self.space.belongs(exp)
+        expected = gs.array([[True]])
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_exp_vectorization(self):
@@ -134,27 +136,27 @@ class TestStiefelMethods(geomstats.tests.TestCase):
 
         one_tangent_vec = self.tangent_vector_1
         result = self.metric.exp(one_tangent_vec, one_base_point)
-        gs.testing.assert_allclose(result.shape, (1, n, p))
+        self.assertAllClose(gs.shape(result), (1, n, p))
 
         n_tangent_vecs = gs.tile(self.tangent_vector_2, (n_samples, 1, 1))
 
         result = self.metric.exp(n_tangent_vecs, one_base_point)
-        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+        self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
         expected = gs.zeros((n_samples, n, p))
         for i in range(n_samples):
             expected[i] = self.metric.exp(n_tangent_vecs[i], one_base_point)
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
         result = self.metric.exp(one_tangent_vec, n_base_points)
-        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+        self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
         expected = gs.zeros((n_samples, n, p))
         for i in range(n_samples):
             expected[i] = self.metric.exp(one_tangent_vec, n_base_points[i])
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_log_vectorization(self):
@@ -168,16 +170,16 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         n_base_points = self.space.random_uniform(n_samples=n_samples)
 
         result = self.metric.log(one_point, one_base_point)
-        gs.testing.assert_allclose(result.shape, (1, n, p))
+        self.assertAllClose(gs.shape(result), (1, n, p))
 
         result = self.metric.log(n_points, one_base_point)
-        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+        self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
         result = self.metric.log(one_point, n_base_points)
-        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+        self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
         result = self.metric.log(n_points, n_base_points)
-        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+        self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
     @geomstats.tests.np_only
     def test_retractation_and_lifting(self):
@@ -198,14 +200,14 @@ class TestStiefelMethods(geomstats.tests.TestCase):
             tangent_vec=lifted, base_point=base_point)
         expected = helper.to_matrix(point)
 
-        gs.testing.assert_allclose(result, expected, atol=ATOL)
+        self.assertAllClose(result, expected, atol=ATOL)
 
         retract = self.metric.retraction(
             tangent_vec=tangent_vec, base_point=base_point)
         result = self.metric.lifting(point=retract, base_point=base_point)
         expected = helper.to_matrix(tangent_vec)
 
-        gs.testing.assert_allclose(result, expected, atol=ATOL)
+        self.assertAllClose(result, expected, atol=ATOL)
 
     @geomstats.tests.np_only
     def test_lifting_vectorization(self):
@@ -215,20 +217,24 @@ class TestStiefelMethods(geomstats.tests.TestCase):
 
         one_point = self.point_a
         one_base_point = self.point_b
-        n_points = gs.tile(self.point_a, (n_samples, 1, 1))
-        n_base_points = gs.tile(self.point_b, (n_samples, 1, 1))
+        n_points = gs.tile(
+            gs.to_ndarray(self.point_a, to_ndim=3),
+            (n_samples, 1, 1))
+        n_base_points = gs.tile(
+            gs.to_ndarray(self.point_b, to_ndim=3),
+            (n_samples, 1, 1))
 
         result = self.metric.lifting(one_point, one_base_point)
-        gs.testing.assert_allclose(result.shape, (1, n, p))
+        self.assertAllClose(gs.shape(result), (1, n, p))
 
         result = self.metric.lifting(n_points, one_base_point)
-        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+        self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
         result = self.metric.lifting(one_point, n_base_points)
-        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+        self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
         result = self.metric.lifting(n_points, n_base_points)
-        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+        self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
     @geomstats.tests.np_only
     def test_retraction_vectorization(self):
@@ -237,23 +243,26 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         p = self.p
 
         one_point = self.point_a
-        n_points = gs.tile(self.point_a, (n_samples, 1, 1))
+        n_points = gs.tile(
+            gs.to_ndarray(one_point, to_ndim=3),
+            (n_samples, 1, 1))
         one_tangent_vec = self.tangent_vector_1
-        n_tangent_vecs = gs.tile(self.tangent_vector_2, (n_samples, 1, 1))
+        n_tangent_vecs = gs.tile(
+            gs.to_ndarray(self.tangent_vector_2, to_ndim=3),
+            (n_samples, 1, 1))
 
         result = self.metric.retraction(one_tangent_vec, one_point)
-        gs.testing.assert_allclose(result.shape, (1, n, p))
+        self.assertAllClose(gs.shape(result), (1, n, p))
 
         result = self.metric.retraction(n_tangent_vecs, one_point)
-        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+        self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
         result = self.metric.retraction(one_tangent_vec, n_points)
-        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+        self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
         result = self.metric.retraction(n_tangent_vecs, n_points)
-        gs.testing.assert_allclose(result.shape, (n_samples, n, p))
+        self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
-    @geomstats.tests.np_only
     def test_inner_product(self):
         base_point = self.point_a
         tangent_vector_1 = self.tangent_vector_1
@@ -263,7 +272,7 @@ class TestStiefelMethods(geomstats.tests.TestCase):
             tangent_vector_1,
             tangent_vector_2,
             base_point=base_point)
-        gs.testing.assert_allclose(result.shape, (1, 1))
+        self.assertAllClose(gs.shape(result), (1, 1))
 
 
 if __name__ == '__main__':
