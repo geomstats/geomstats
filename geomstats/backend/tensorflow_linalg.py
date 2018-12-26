@@ -56,5 +56,12 @@ def eigvalsh(x):
     return tf.linalg.eigvalsh(x)
 
 
-def qr(x):
-    return tf.linalg.qr(x)
+def qr(*args, **kwargs):
+    def qr_aux(x, **kwargs):
+        aux = tf.linalg.qr(x, **kwargs)
+        return (aux.q, aux.r)
+
+    return tf.map_fn(
+        lambda x: qr_aux(x, **kwargs),
+        *args,
+        dtype=(tf.float32, tf.float32))
