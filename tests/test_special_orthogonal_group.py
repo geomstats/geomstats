@@ -2997,7 +2997,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         self.assertAllClose(
             gs.shape(result), (n_samples, group.dimension))
 
-    @geomstats.tests.np_only
     def test_exp_then_log_from_identity(self):
         """
         This tests that the composition of
@@ -3027,17 +3026,8 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 reg_expected = group.regularize_tangent_vec_at_identity(
                                              tangent_vec=expected,
                                              metric=metric)
+                self.assertAllClose(result, expected)
 
-                self.assertTrue(gs.allclose(result, expected),
-                                '\nmetric {}:\n'
-                                '- on tangent_vec {}: {} -> {}\n'
-                                'result = {} -> {}\n'
-                                'expected = {} -> {}'.format(
-                         metric_type,
-                         angle_type,
-                         tangent_vec, reg_vec,
-                         result, reg_result,
-                         expected, reg_expected))
 
     @geomstats.tests.np_only
     def test_exp_then_log_from_identity_with_angles_close_to_pi(self):
