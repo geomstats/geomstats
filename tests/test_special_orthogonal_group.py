@@ -2801,7 +2801,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 self.assertAllClose(
                     gs.shape(result), (n_samples, n, n))
 
-    @geomstats.tests.np_only
     def test_left_jacobian_through_its_determinant(self):
         n = 3
         group = self.so[n]
@@ -2821,12 +2820,8 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             else:
                 expected = angle ** 2 / (4 * gs.sin(angle / 2) ** 2)
 
-            self.assertTrue(gs.allclose(result, expected),
-                            'for point {}:\n'
-                            'result = {}; expected = {}.'.format(
-                                                     angle_type,
-                                                     result,
-                                                     expected))
+            expected = gs.to_ndarray(expected, to_ndim=1)
+            self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_left_jacobian_vectorization(self):
