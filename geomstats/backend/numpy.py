@@ -277,9 +277,9 @@ def diag(x):
         signature='(m,n)->(k,k)')(x)
     k, k = shape(aux)
     m = int(k / n)
-    result = [
-        aux[i*n:(i+1)*n, i*n:(i+1)*n]
-        for i in range(m)]
+    result = zeros(m)
+    for i in range(m):
+        result[i] = aux[i*n:(i+1)*n, i*n:(i+1)*n]
     return result
 
 
