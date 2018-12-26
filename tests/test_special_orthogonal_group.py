@@ -2823,7 +2823,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             expected = gs.to_ndarray(expected, to_ndim=1)
             self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_left_jacobian_vectorization(self):
         n = 3
         group = self.so[n]
@@ -2832,10 +2831,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         points = group.random_uniform(n_samples=n_samples)
         jacobians = group.jacobian_translation(point=points,
                                                left_or_right='left')
-        self.assertTrue(gs.allclose(
-                         jacobians.shape,
-                         (n_samples,
-                          group.dimension, group.dimension)))
+        self.assertAllClose(
+            gs.shape(jacobians),
+            (n_samples, group.dimension, group.dimension))
 
     @geomstats.tests.np_only
     def test_exp(self):
