@@ -185,6 +185,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
             self.assertAllClose(gs.shape(result), (n_samples, n, n))
 
+    @geomstats.tests.np_only
     def test_random_and_belongs(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -193,6 +194,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             expected = gs.array([[True]])
             self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_random_and_belongs_vectorization(self):
         n_samples = self.n_samples
         for n in self.n_seq:
@@ -890,7 +892,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         order = 'xyz'
         extrinsic_or_intrinsic = 'extrinsic'
 
-        point = gs.pi / (6 * gs.sqrt(3)) * gs.array([1., 1., 1.])
+        point = gs.pi / (6. * gs.sqrt(3.)) * gs.array([1., 1., 1.])
         matrix = group.matrix_from_rotation_vector(point)
 
         tait_bryan_angles = group.tait_bryan_angles_from_matrix(
@@ -1018,7 +1020,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                             result,
                             expected))
 
-        point = gs.pi / (6 * gs.sqrt(3)) * gs.array([0., 2., 1.])
+        point = gs.pi / (6. * gs.sqrt(3.)) * gs.array([0., 2., 1.])
         rot_mat = group.matrix_from_rotation_vector(point)
 
         tait_bryan_angles = group.tait_bryan_angles_from_matrix(
@@ -1356,7 +1358,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                             result,
                             expected))
 
-        point = gs.pi / (6 * gs.sqrt(3)) * gs.array([1., 1., 1.])
+        point = gs.pi / (6. * gs.sqrt(3.)) * gs.array([1., 1., 1.])
         matrix = group.matrix_from_rotation_vector(point)
 
         tait_bryan_angles = group.tait_bryan_angles_from_matrix(
@@ -1394,7 +1396,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         order = 'zyx'
         extrinsic_or_intrinsic = 'intrinsic'
 
-        point = gs.pi / (6 * gs.sqrt(3)) * gs.array([1., 1., 1.])
+        point = gs.pi / (6. * gs.sqrt(3.)) * gs.array([1., 1., 1.])
         matrix = group.matrix_from_rotation_vector(point)
 
         tait_bryan_angles = group.tait_bryan_angles_from_matrix(
@@ -2095,7 +2097,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                 result,
                                 expected))
 
-        point = gs.pi / (6 * gs.sqrt(3)) * gs.array([1., 1., 1.])
+        point = gs.pi / (6. * gs.sqrt(3.)) * gs.array([1., 1., 1.])
         quaternion = group.quaternion_from_rotation_vector(point)
 
         tait_bryan_angles = group.tait_bryan_angles_from_quaternion(
@@ -2164,7 +2166,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                 result,
                                 expected))
 
-        point = gs.pi / (6 * gs.sqrt(3)) * gs.array([1., 1., 1.])
+        point = gs.pi / (6 * gs.sqrt(3.)) * gs.array([1., 1., 1.])
         quaternion = group.quaternion_from_rotation_vector(point)
 
         tait_bryan_angles = group.tait_bryan_angles_from_quaternion(
@@ -2544,7 +2546,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         expected = group.regularize(rot_vecs)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_quaternion_and_matrix(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -2562,12 +2563,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                     expected = matrix
 
-                    self.assertTrue(gs.allclose(result, expected),
-                                    'for point {}:\n'
-                                    '\nresult = \n{};'
-                                    '\nexpected = \n{}.'.format(angle_type,
-                                                                result,
-                                                                expected))
+                    self.assertAllClose(result, expected)
 
                 angle = gs.pi / 9.
                 cos_angle = gs.cos(angle)
@@ -2591,13 +2587,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     quaternion)
 
                 expected = rot_mat
-                self.assertTrue(gs.allclose(result, expected),
-                                ' result = \n{};'
-                                ' expected = \n{}.'.format(
-                                    result,
-                                    expected))
+                self.assertAllClose(result, expected)
 
-                point = gs.pi / (6 * gs.sqrt(3)) * gs.array([0., 2., 1.])
+                point = gs.pi / (6 * gs.sqrt(3.)) * gs.array([0., 2., 1.])
                 rot_mat = group.matrix_from_rotation_vector(point)
 
                 quaternion = group.quaternion_from_matrix(
@@ -2606,11 +2598,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     quaternion)
 
                 expected = rot_mat
-                self.assertTrue(gs.allclose(result, expected),
-                                ' result = \n{};'
-                                ' expected = \n{}.'.format(
-                                    result,
-                                    expected))
+                self.assertAllClose(result, expected)
 
             else:
                 rot_vec = group.random_uniform(point_type='vector')
@@ -2898,7 +2886,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                          [-1., 1., 0.]])
         jacobian = (phi * gs.eye(3)
                     + (1 - phi) / 3 * gs.ones([3, 3])
-                    + gs.pi / (10 * gs.sqrt(3)) * skew)
+                    + gs.pi / (10 * gs.sqrt(3.)) * skew)
         inv_jacobian = gs.linalg.inv(jacobian)
         expected_2 = group.compose(rot_vec_base_point,
                                    gs.dot(inv_jacobian, rot_vec_2))
@@ -2986,7 +2974,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                          [-1., 1., 0.]])
         jacobian = (phi * gs.eye(3)
                     + (1 - phi) / 3 * gs.ones([3, 3])
-                    + gs.pi / (10 * gs.sqrt(3)) * skew)
+                    + gs.pi / (10 * gs.sqrt(3.)) * skew)
         inv_jacobian = gs.linalg.inv(jacobian)
         rot_vec_2 = group.compose(rot_vec_base_point,
                                   gs.dot(inv_jacobian, expected_2))

@@ -15,6 +15,10 @@ def sign(x):
     return tf.sign(x)
 
 
+def hsplit(x, n_splits):
+    return tf.split(x, num_or_size_splits=n_splits, axis=1)
+
+
 def amax(x):
     return tf.reduce_max(x)
 

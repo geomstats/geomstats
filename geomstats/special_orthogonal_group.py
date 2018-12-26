@@ -728,7 +728,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                         2 * y[i] * z[i] + 2 * w[i] * x[i],
                         w[i] ** 2 - x[i] ** 2 - y[i] ** 2 + z[i] ** 2]
 
-            rot_mat[i] = gs.hstack([column_1, column_2, column_3]).transpose()
+            mask_i = get_mask_i_float(i, n_quaternions)
+            rot_mat_i = gs.transpose(
+                gs.hstack([column_1, column_2, column_3]))
+            rot_mat_i = gs.to_ndarray(rot_mat_i, to_ndim=3)
+            rot_mat += gs.einsum('n,nij->nij', mask_i, rot_mat_i)
 
         assert gs.ndim(rot_mat) == 3
         return rot_mat
