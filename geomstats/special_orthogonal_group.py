@@ -772,7 +772,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                           - cos_angle_3 * sin_angle_1)],
                         [(cos_angle_1 * cos_angle_3
                           + sin_angle_1 * sin_angle_2 * sin_angle_3)],
-                        [+ cos_angle_2 * sin_angle_3]]
+                        [cos_angle_2 * sin_angle_3]]
             column_3 = [[(sin_angle_1 * sin_angle_3
                           + cos_angle_1 * cos_angle_3 * sin_angle_2)],
                         [(cos_angle_3 * sin_angle_1 * sin_angle_2
