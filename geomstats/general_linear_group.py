@@ -71,20 +71,7 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
         computation for symmetric positive definite matrices.
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
-        n_tangent_vecs, mat_dim, _ = tangent_vec.shape
-
-        if gs.all(self.is_symmetric(tangent_vec)):
-            tangent_vec = self.make_symmetric(tangent_vec)
-            [eigenvalues, vectors] = gs.linalg.eigh(tangent_vec)
-            exp_eigenvalues = gs.exp(eigenvalues)
-
-            aux = gs.einsum('ijk,ik->ijk', vectors, exp_eigenvalues)
-            group_exp = gs.einsum('ijk,ilk->ijl', aux, vectors)
-
-            group_exp = gs.to_ndarray(group_exp, to_ndim=3)
-
-        else:
-            group_exp = gs.linalg.expm(tangent_vec)
+        group_exp = gs.linalg.expm(tangent_vec)
 
         return gs.real(group_exp)
 
@@ -95,16 +82,6 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
         computation for symmetric positive definite matrices.
         """
         point = gs.to_ndarray(point, to_ndim=3)
-        if gs.all(self.is_symmetric(point)):
-            point = self.make_symmetric(point)
-            [eigenvalues, vectors] = gs.linalg.eigh(point)
-
-            log_eigenvalues = gs.log(eigenvalues.real)
-
-            aux = gs.einsum('ijk,ik->ijk', vectors, log_eigenvalues)
-            group_log = gs.einsum('ijk,ilk->ijl', aux, vectors)
-
-        else:
-            group_log = gs.linalg.logm(point)
+        group_log = gs.linalg.logm(point)
 
         return gs.real(group_log)

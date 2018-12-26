@@ -343,7 +343,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                               skew_rot_vec_6))
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_matrix_from_rotation_vector_vectorization(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -354,8 +353,8 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
             rot_mats = group.matrix_from_rotation_vector(rot_vecs)
 
-            self.assertTrue(gs.allclose(rot_mats.shape,
-                                        (n_samples, group.n, group.n)))
+            self.assertAllClose(
+                gs.shape(rot_mats), (n_samples, group.n, group.n))
 
     @geomstats.tests.np_only
     def test_rotation_vector_from_matrix(self):
