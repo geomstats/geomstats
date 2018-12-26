@@ -2902,7 +2902,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             self.assertAllClose(
                 gs.shape(result), (n_samples, group.dimension))
 
-    @geomstats.tests.np_only
     def test_log(self):
         """
         The Riemannian exp and log are inverse functions of each other.
@@ -2919,13 +2918,13 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         # The Logarithm of a point at itself gives 0.
         rot_vec_1 = rot_vec_base_point
-        expected_1 = gs.array([0, 0, 0])
-        log_1 = metric.log(base_point=rot_vec_base_point,
-                           point=rot_vec_1)
-        self.assertTrue(gs.allclose(log_1, expected_1))
+        expected = gs.array([[0., 0., 0.]])
+        result = metric.log(base_point=rot_vec_base_point,
+                            point=rot_vec_1)
+        self.assertAllClose(result, expected)
 
         # General case: this is the inverse test of test 1 for riemannian exp
-        expected_2 = gs.pi / 4 * gs.array([1, 0, 0])
+        expected = gs.pi / 4 * gs.array([1., 0., 0.])
         phi = (gs.pi / 10) / (gs.tan(gs.pi / 10))
         skew = gs.array([[0., -1., 1.],
                          [1., 0., -1.],
@@ -2934,12 +2933,15 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     + (1 - phi) / 3 * gs.ones([3, 3])
                     + gs.pi / (10 * gs.sqrt(3.)) * skew)
         inv_jacobian = gs.linalg.inv(jacobian)
+        aux = gs.dot(inv_jacobian, expected)
         rot_vec_2 = group.compose(rot_vec_base_point,
-                                  gs.dot(inv_jacobian, expected_2))
+                                  aux)
 
-        log_2 = metric.log(base_point=rot_vec_base_point,
-                           point=rot_vec_2)
-        self.assertTrue(gs.allclose(log_2, expected_2))
+        result = metric.log(base_point=rot_vec_base_point,
+                            point=rot_vec_2)
+
+        expected = helper.to_vector(expected)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_log_vectorization(self):
