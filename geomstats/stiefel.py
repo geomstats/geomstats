@@ -11,7 +11,7 @@ from geomstats.euclidean_space import EuclideanMetric
 from geomstats.matrices_space import MatricesSpace
 from geomstats.riemannian_metric import RiemannianMetric
 
-TOLERANCE = 1e-6
+TOLERANCE = 1e-5
 EPSILON = 1e-6
 
 
@@ -48,7 +48,9 @@ class Stiefel(EmbeddedManifold):
             return gs.array([[False]] * n_points)
 
         point_transpose = gs.transpose(point, axes=(0, 2, 1))
-        diff = gs.matmul(point_transpose, point) - gs.eye(p)
+        identity = gs.to_ndarray(gs.eye(p), to_ndim=3)
+        identity = gs.tile(identity, (n_points, 1, 1))
+        diff = gs.einsum('nij,njk->nik', point_transpose, point) - identity
 
         diff_norm = gs.linalg.norm(diff, axis=(1, 2))
         belongs = gs.less_equal(diff_norm, tolerance)
