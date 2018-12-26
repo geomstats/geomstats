@@ -279,13 +279,10 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         matrix_q, matrix_r = gs.linalg.qr(base_point+tangent_vec)
 
-        # flipping signs
-        # TODO(nina): remove for loop, when diag and diagonal are vectorized
-        result = gs.zeros_like(base_point)
-        for i, _ in enumerate(matrix_r):
-            result[i] = gs.matmul(
-                matrix_q[i],
-                gs.diag(gs.sign(gs.sign(gs.diagonal(matrix_r[i])) + 0.5)))
+        diagonal = gs.diagonal(matrix_r, axis1=1, axis2=2)
+        sign = gs.sign(gs.sign(diagonal) + 0.5)
+        diag = gs.diag(sign)
+        result = gs.einsum('nij,njk->nik', matrix_q, diag)
 
         return result
 

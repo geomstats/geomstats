@@ -225,7 +225,6 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         result = self.metric.lifting(n_points, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
-    @geomstats.tests.np_only
     def test_retraction_vectorization(self):
         n_samples = self.n_samples
         n = self.n
