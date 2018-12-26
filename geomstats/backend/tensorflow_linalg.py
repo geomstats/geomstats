@@ -56,12 +56,16 @@ def eigvalsh(x):
     return tf.linalg.eigvalsh(x)
 
 
-def qr(*args, **kwargs):
-    def qr_aux(x, **kwargs):
-        aux = tf.linalg.qr(x, **kwargs)
+def qr(*args, mode='reduced'):
+    def qr_aux(x, mode):
+        if mode == 'complete':
+            aux = tf.linalg.qr(x, full_matrices=True)
+        else:
+            aux = tf.linalg.qr(x)
+
         return (aux.q, aux.r)
 
     return tf.map_fn(
-        lambda x: qr_aux(x, **kwargs),
+        lambda x: qr_aux(x, mode),
         *args,
         dtype=(tf.float32, tf.float32))
