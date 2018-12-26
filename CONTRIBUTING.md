@@ -90,21 +90,14 @@ As ``geomstats`` enables numpy and tensorflow, your unit tests should run on the
 A member of the development team will review your changes to confirm
 that they can be merged into the main code base.
 
-Pull requests titles should begin with a descriptive prefix:
-
-* ``ENH``: enhancements or new features
-* ``FIX``: bug fixes
-* ``TST``: new or updated tests
-* ``DOC``: new or updated documentation
-* ``STY``: style changes
-* ``REF``: refactoring existing code
-* ``CI``: updates to continous integration infrastructure
-* ``MAINT``: general maintenance
-
-For example: `[ENH] Implementation of Grassmanians`.
-
-For works-in-progress, add the ``WIP`` tag in addition to the descriptive prefix.
-Pull-requests tagged with ``[WIP]`` will not be merged until the tag is removed.
+Use the Github labels to label your pull request:
+* ``enhancement``: enhancements or new features
+* ``bug``: bug fixes
+* ``test``: new or updated tests
+* ``documentation``: new or updated documentation
+* ``style``: style changes
+* ``refactoring``: refactoring existing code
+* ``continuous integration``: updates to continous integration infrastructure
 
 ## Geomstats Coding Style Guide
 
