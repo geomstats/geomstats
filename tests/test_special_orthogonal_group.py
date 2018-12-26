@@ -2714,7 +2714,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 expected = group.regularize(point)
                 self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_compose_and_inverse(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -2725,38 +2724,33 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     # Compose transformation by its inverse on the right
                     # Expect the group identity
                     result = group.compose(point, inv_point)
-                    expected = group.identity
-                    self.assertTrue(gs.allclose(result, expected),
-                                    'result = {}; expected = {}'.format(
-                                        result, expected))
+                    expected = helper.to_vector(group.identity)
+                    self.assertAllClose(result, expected)
 
                     # Compose transformation by its inverse on the left
                     # Expect the group identity
                     result = group.compose(inv_point, point)
-                    expected = group.identity
-                    self.assertTrue(gs.allclose(result, expected),
-                                    'result = {}; expected = {}'.format(
-                                        result, expected))
+                    expected = helper.to_vector(group.identity)
+                    self.assertAllClose(result, expected)
             else:
-                point = group.random_uniform()
+                angle = 0.986
+                point = gs.array([
+                    [gs.cos(angle), -gs.sin(angle)],
+                    [gs.sin(angle), gs.cos(angle)]])
+
                 inv_point = group.inverse(point)
                 # Compose transformation by its inverse on the right
                 # Expect the group identity
                 result = group.compose(point, inv_point)
-                expected = group.identity
-                self.assertTrue(gs.allclose(result, expected),
-                                'result = {}; expected = {}'.format(result,
-                                                                    expected))
+                expected = helper.to_matrix(group.identity)
+                self.assertAllClose(result, expected)
 
                 # Compose transformation by its inverse on the left
                 # Expect the group identity
                 result = group.compose(inv_point, point)
-                expected = group.identity
-                self.assertTrue(gs.allclose(result, expected),
-                                'result = {}; expected = {}'.format(result,
-                                                                    expected))
+                expected = helper.to_matrix(group.identity)
+                self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_compose_vectorization(self):
         for point_type in ('vector', 'matrix'):
             for n in self.n_seq:
@@ -2770,43 +2764,27 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                 result = group.compose(one_point, n_points_a)
                 if point_type == 'vector':
-                    self.assertTrue(
-                        result.shape == (n_samples, group.dimension))
+                    self.assertAllClose(
+                        gs.shape(result), (n_samples, group.dimension))
                 if point_type == 'matrix':
-
-                    self.assertTrue(
-                        result.shape == (n_samples, n, n))
-
-                for i in range(n_samples):
-                    self.assertTrue(gs.allclose(
-                        result[i], group.compose(one_point, n_points_a[i])))
+                    self.assertAllClose(
+                        gs.shape(result), (n_samples, n, n))
 
                 result = group.compose(n_points_a, one_point)
                 if point_type == 'vector':
-                    self.assertTrue(
-                        result.shape == (n_samples, group.dimension))
+                    self.assertAllClose(
+                        gs.shape(result), (n_samples, group.dimension))
                 if point_type == 'matrix':
-
-                    self.assertTrue(
-                        result.shape == (n_samples, n, n))
-
-                for i in range(n_samples):
-                    self.assertTrue(gs.allclose(
-                        result[i], group.compose(n_points_a[i], one_point)))
+                    self.assertAllClose(
+                        gs.shape(result), (n_samples, n, n))
 
                 result = group.compose(n_points_a, n_points_b)
                 if point_type == 'vector':
-                    self.assertTrue(
-                        result.shape == (n_samples, group.dimension))
+                    self.assertAllClose(
+                        gs.shape(result), (n_samples, group.dimension))
                 if point_type == 'matrix':
-
-                    self.assertTrue(
-                        result.shape == (n_samples, n, n))
-                for i in range(n_samples):
-                    self.assertTrue(
-                        gs.allclose(
-                            result[i],
-                            group.compose(n_points_a[i], n_points_b[i])))
+                    self.assertAllClose(
+                        gs.shape(result), (n_samples, n, n))
 
     @geomstats.tests.np_only
     def test_inverse_vectorization(self):
