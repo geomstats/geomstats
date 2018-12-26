@@ -368,7 +368,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_rotation_vector_and_rotation_matrix(self):
         """
         This tests that the composition of
@@ -391,24 +390,17 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                     expected = group.regularize(point)
 
-                    self.assertTrue(gs.allclose(result, expected),
-                                    'for point {}:\n'
-                                    'result = {};'
-                                    ' expected = {}.'.format(angle_type,
-                                                             result,
-                                                             expected))
-            else:
-                point = group.random_uniform(point_type='vector')
+                    self.assertAllClose(result, expected)
+
+            else:  # n == 2
+                point = gs.array([[0.78]])
 
                 rot_mat = group.matrix_from_rotation_vector(point)
                 result = group.rotation_vector_from_matrix(rot_mat)
 
                 expected = point
 
-                self.assertTrue(gs.allclose(result, expected),
-                                'result = {};'
-                                ' expected = {}.'.format(result,
-                                                         expected))
+                self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_matrix_from_tait_bryan_angles_extrinsic_xyz(self):
