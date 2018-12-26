@@ -122,6 +122,12 @@ class StiefelCanonicalMetric(RiemannianMetric):
                 or n_tangent_vecs == 1
                 or n_base_points == 1)
 
+        if n_tangent_vecs == 1:
+            tangent_vec = gs.tile(tangent_vec, (n_base_points, 1, 1))
+
+        if n_base_points == 1:
+            base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
+
         matrix_a = gs.einsum(
             'nij, njk->nik',
             gs.transpose(base_point, axes=(0, 2, 1)), tangent_vec)
@@ -135,25 +141,15 @@ class StiefelCanonicalMetric(RiemannianMetric):
              -gs.transpose(matrix_r, axes=(0, 2, 1))],
             axis=2)
 
-        n_matrix_r = matrix_r.shape[0]
-        if n_matrix_r == 1:
-            matrix_r = gs.tile(matrix_r, (n_base_points, 1, 1))
+        zeros = gs.zeros(
+            (gs.maximum(n_base_points, n_tangent_vecs), p, p))
 
-        zeros = gs.zeros((n_base_points, p, p))
-        if n_base_points == 1:
-            zeros = gs.zeros((n_tangent_vecs, p, p))
         matrix_rz = gs.concatenate(
             [matrix_r,
              zeros],
             axis=2)
         block = gs.concatenate([matrix_ar, matrix_rz], axis=1)
         matrix_mn_e = gs.linalg.expm(block)
-
-        if n_base_points == 1:
-            base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
-        n_matrix_q = matrix_q.shape[0]
-        if n_matrix_q == 1:
-            matrix_q = gs.tile(matrix_q, (n_base_points, 1, 1))
 
         exp = gs.einsum(
             'nij,njk->nik',
@@ -165,7 +161,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         return exp
 
-    def log(self, point, base_point, max_iter=100, tol=1e-6):
+    def log(self, point, base_point, max_iter=30):
         """
         Riemannian logarithm of a point wrt a base point.
 
@@ -242,15 +238,19 @@ class StiefelCanonicalMetric(RiemannianMetric):
             matrix_lv = gs.linalg.logm(matrix_v)
 
             matrix_c = matrix_lv[:, p:2*p, p:2*p]
-            norm_matrix_c = gs.linalg.norm(matrix_c, axis=(1, 2))
 
-            if gs.all(norm_matrix_c < tol):
-                # Convergence achieved
-                break
+            # TODO(nina): Add break condition
+            # of the form: if gs.all(gs.less_equal(norm_matrix_c, tol)):
 
             matrix_phi = gs.linalg.expm(-matrix_c)
-            matrix_v[:, :, p:2*p] = gs.matmul(
+
+            aux_matrix = gs.matmul(
                 matrix_v[:, :, p:2*p], matrix_phi)
+
+            matrix_v = gs.concatenate(
+                [matrix_v[:, :, 0:p],
+                 aux_matrix],
+                axis=2)
 
         matrix_xv = gs.matmul(base_point, matrix_lv[:, 0:p, 0:p])
         matrix_qv = gs.matmul(matrix_q, matrix_lv[:, p:2*p, 0:p])
