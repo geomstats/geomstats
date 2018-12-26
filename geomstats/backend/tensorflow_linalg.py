@@ -65,7 +65,9 @@ def qr(*args, mode='reduced'):
 
         return (aux.q, aux.r)
 
-    return tf.map_fn(
+    qr = tf.map_fn(
         lambda x: qr_aux(x, mode),
         *args,
         dtype=(tf.float32, tf.float32))
+
+    return qr
