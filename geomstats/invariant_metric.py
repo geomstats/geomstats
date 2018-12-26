@@ -164,6 +164,14 @@ class InvariantMetric(RiemannianMetric):
         sqrt_inner_product_mat = gs.linalg.sqrtm(
             self.inner_product_mat_at_identity)
         mat = gs.transpose(sqrt_inner_product_mat, axes=(0, 2, 1))
+
+        n_tangent_vecs, _ = tangent_vec.shape
+        n_mats, _, _ = mat.shape
+
+        if n_mats == 1:
+            mat = gs.tile(mat, (n_tangent_vecs, 1, 1))
+        if n_tangent_vecs == 1:
+            tangent_vec = gs.tile(tangent_vec, (n_mats, 1))
         exp = gs.einsum('ni,nij->nj', tangent_vec, mat)
 
         exp = self.group.regularize(exp)
@@ -196,9 +204,15 @@ class InvariantMetric(RiemannianMetric):
             return self.exp_from_identity(tangent_vec)
 
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        assert gs.ndim(tangent_vec) == 2
 
         n_tangent_vecs, _ = tangent_vec.shape
         n_base_points, _ = base_point.shape
+
+        if n_tangent_vecs == 1:
+            tangent_vec = gs.tile(tangent_vec, (n_base_points, 1))
+        if n_base_points == 1:
+            base_point = gs.tile(base_point, (n_tangent_vecs, 1))
 
         jacobian = self.group.jacobian_translation(
                                  point=base_point,
@@ -206,8 +220,9 @@ class InvariantMetric(RiemannianMetric):
         assert gs.ndim(jacobian) == 3
         inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = gs.transpose(inv_jacobian, axes=(0, 2, 1))
-
-        tangent_vec_at_id = gs.einsum('ij,ijk->ik',
+        #print(tangent_vec)
+        #print(inv_jacobian_transposed)
+        tangent_vec_at_id = gs.einsum('ni,nij->nj',
                                       tangent_vec,
                                       inv_jacobian_transposed)
         exp_from_id = self.exp_from_identity(tangent_vec_at_id)
