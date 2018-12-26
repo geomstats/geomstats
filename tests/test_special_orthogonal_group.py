@@ -2786,7 +2786,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     self.assertAllClose(
                         gs.shape(result), (n_samples, n, n))
 
-    @geomstats.tests.np_only
     def test_inverse_vectorization(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -2796,13 +2795,11 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             result = group.inverse(points)
 
             if n == 3:
-                self.assertTrue(result.shape == (n_samples, group.dimension))
+                self.assertAllClose(
+                    gs.shape(result), (n_samples, group.dimension))
             else:
-                self.assertTrue(result.shape == (n_samples, n, n))
-
-            for i in range(n_samples):
-                self.assertTrue(gs.allclose(
-                    result[i], group.inverse(points[i])))
+                self.assertAllClose(
+                    gs.shape(result), (n_samples, n, n))
 
     @geomstats.tests.np_only
     def test_left_jacobian_through_its_determinant(self):
