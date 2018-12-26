@@ -307,6 +307,13 @@ class InvariantMetric(RiemannianMetric):
                                        base_point,
                                        left_or_right=self.left_or_right)
 
+        n_logs, _ = log_from_id.shape
+        n_jacobians, _, _ = jacobian.shape
+
+        if n_logs == 1:
+            log_from_id = gs.tile(log_from_id, (n_jacobians, 1))
+        if n_jacobians == 1:
+            jacobian = gs.tile(jacobian, (n_logs, 1, 1))
         log = gs.einsum('ij,ijk->ik',
                         log_from_id,
                         gs.transpose(jacobian, axes=(0, 2, 1)))
