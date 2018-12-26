@@ -1,15 +1,15 @@
 # Contributing to Geomstats
 
 Welcome to the geomstats repository!
-We're excited you're here and want to contribute.
+We are excited you are here and want to contribute.
 
 ## Practical Guide to Submitting your Contribution
 
 These guidelines are designed to make it as easy as possible to get involved.
-If you have any questions that aren't discussed below,
+If you have any questions that are not discussed below,
 please let us know by opening an [issue][link_issues]!
 
-Before you start you'll need to set up a free [GitHub][link_github] account and sign in.
+Before you start you will need to set up a free [GitHub][link_github] account and sign in.
 Here are some [instructions][link_signupinstructions].
 
 
@@ -28,7 +28,7 @@ If you're not yet familiar with `git`, there are lots of great resources to help
 Some of our favorites include the [git Handbook][link_handbook] and
 the [Software Carpentry introduction to git][link_swc_intro].
 
-On GitHub, you'll use [Markdown][markdown] to chat in issues and pull requests.
+On GitHub, you will use [Markdown][markdown] to chat in issues and pull requests.
 You can think of Markdown as a few little symbols around your text that will allow GitHub
 to render the text with a little bit of formatting.
 For example you could write words as bold (`**bold**`), or in italics (`*italics*`),
@@ -69,7 +69,7 @@ is so useful to everyone involved.
 **2. [Fork][link_fork] the [geomstats repository][link_geomstats] to your profile.**
 
 This is now your own unique copy of ``geomstats``.
-Changes here won't effect anyone else's work, so it's a safe space to explore edits to the code!
+Changes here will not effect anyone else's work, so it is a safe space to explore edits to the code!
 
 Make sure to [keep your fork up to date][link_updateupstreamwiki] with the master repository.
 
@@ -90,21 +90,14 @@ As ``geomstats`` enables numpy and tensorflow, your unit tests should run on the
 A member of the development team will review your changes to confirm
 that they can be merged into the main code base.
 
-Pull requests titles should begin with a descriptive prefix:
-
-* ``ENH``: enhancements or new features
-* ``FIX``: bug fixes
-* ``TST``: new or updated tests
-* ``DOC``: new or updated documentation
-* ``STY``: style changes
-* ``REF``: refactoring existing code
-* ``CI``: updates to continous integration infrastructure
-* ``MAINT``: general maintenance
-
-For example: `[ENH] Implementation of Grassmanians`.
-
-For works-in-progress, add the ``WIP`` tag in addition to the descriptive prefix.
-Pull-requests tagged with ``[WIP]`` will not be merged until the tag is removed.
+Use the Github labels to label your pull request:
+* ``enhancement``: enhancements or new features
+* ``bug``: bug fixes
+* ``test``: new or updated tests
+* ``documentation``: new or updated documentation
+* ``style``: style changes
+* ``refactoring``: refactoring existing code
+* ``continuous integration``: updates to continous integration infrastructure
 
 ## Geomstats Coding Style Guide
 
