@@ -1196,7 +1196,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         if point_type is None:
             point_type = self.default_point_type
-        assert self.belongs(point, point_type)
 
         if point_type == 'vector':
             if self.n == 3:

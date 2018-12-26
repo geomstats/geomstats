@@ -2690,8 +2690,16 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                         self.assertAllClose(result, expected)
                     else:
                         inv_expected = - expected
-                        # self.assertTrue(gs.allclose(result, expected)
-                        #                 or gs.allclose(result, inv_expected))
+                        with self.session():
+                            result = gs.eval(result)
+                            expected = gs.eval(expected)
+                            inv_expected = gs.eval(inv_expected)
+                            bool_1 = gs.eval(gs.allclose(
+                                result, expected))
+                            bool_2 = gs.eval(gs.allclose(
+                                result, inv_expected))
+                            # self.assertTrue(bool_1 or bool_2)
+
             else:
                 angle = 0.986
                 point = gs.array([
