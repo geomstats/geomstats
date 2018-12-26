@@ -11,6 +11,10 @@ float32 = tf.float32
 float64 = tf.float64
 
 
+def sign(x):
+    return tf.sign(x)
+
+
 def amax(x):
     return tf.reduce_max(x)
 
@@ -268,7 +272,9 @@ def floor(x):
 
 
 def diag(a):
-    return tf.diag(a)
+    return tf.map_fn(
+        lambda x: tf.diag(x),
+        a)
 
 
 def cross(a, b):
@@ -283,8 +289,8 @@ def arctan2(*args, **kwargs):
     return tf.atan2(*args, **kwargs)
 
 
-def diagonal(x):
-    return tf.linalg.diag_part(x)
+def diagonal(*args, **kwargs):
+    return tf.linalg.diag_part(*args)
 
 
 def mean(x, axis=None):

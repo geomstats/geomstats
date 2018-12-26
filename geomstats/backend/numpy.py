@@ -269,8 +269,18 @@ def clip(*args, **kwargs):
     return np.clip(*args, **kwargs)
 
 
-def diag(*args, **kwargs):
-    return np.diag(*args, **kwargs)
+def diag(x):
+    x = to_ndarray(x, to_ndim=2)
+    _, n = shape(x)
+    aux = np.vectorize(
+        np.diagflat,
+        signature='(m,n)->(k,k)')(x)
+    k, k = shape(aux)
+    m = int(k / n)
+    result = zeros(m)
+    for i in range(m):
+        result[i] = aux[i*n:(i+1)*n, i*n:(i+1)*n]
+    return result
 
 
 def any(*args, **kwargs):

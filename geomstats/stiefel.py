@@ -122,6 +122,12 @@ class StiefelCanonicalMetric(RiemannianMetric):
                 or n_tangent_vecs == 1
                 or n_base_points == 1)
 
+        if n_tangent_vecs == 1:
+            tangent_vec = gs.tile(tangent_vec, (n_base_points, 1, 1))
+
+        if n_base_points == 1:
+            base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
+
         matrix_a = gs.einsum(
             'nij, njk->nik',
             gs.transpose(base_point, axes=(0, 2, 1)), tangent_vec)
@@ -135,25 +141,15 @@ class StiefelCanonicalMetric(RiemannianMetric):
              -gs.transpose(matrix_r, axes=(0, 2, 1))],
             axis=2)
 
-        n_matrix_r = matrix_r.shape[0]
-        if n_matrix_r == 1:
-            matrix_r = gs.tile(matrix_r, (n_base_points, 1, 1))
+        zeros = gs.zeros(
+            (gs.maximum(n_base_points, n_tangent_vecs), p, p))
 
-        zeros = gs.zeros((n_base_points, p, p))
-        if n_base_points == 1:
-            zeros = gs.zeros((n_tangent_vecs, p, p))
         matrix_rz = gs.concatenate(
             [matrix_r,
              zeros],
             axis=2)
         block = gs.concatenate([matrix_ar, matrix_rz], axis=1)
         matrix_mn_e = gs.linalg.expm(block)
-
-        if n_base_points == 1:
-            base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
-        n_matrix_q = matrix_q.shape[0]
-        if n_matrix_q == 1:
-            matrix_q = gs.tile(matrix_q, (n_base_points, 1, 1))
 
         exp = gs.einsum(
             'nij,njk->nik',
@@ -165,7 +161,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         return exp
 
-    def log(self, point, base_point, max_iter=100, tol=1e-6):
+    def log(self, point, base_point, max_iter=30):
         """
         Riemannian logarithm of a point wrt a base point.
 
@@ -208,10 +204,10 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
             matrix_rd = gs.matmul(
                 matrix_r, gs.transpose(matrix_d, axes=(0, 2, 1)))
-            matrix_v[:, :, p:2*p] = gs.matmul(matrix_v[:, :, p:2*p], matrix_rd)
+            sub_matrix_v = gs.matmul(matrix_v[:, :, p:2*p], matrix_rd)
             matrix_v = gs.concatenate(
                 [gs.concatenate([matrix_m, matrix_n], axis=1),
-                 matrix_v[:, :, p:2*p]],
+                 sub_matrix_v],
                 axis=2)
             return matrix_v
 
@@ -242,15 +238,19 @@ class StiefelCanonicalMetric(RiemannianMetric):
             matrix_lv = gs.linalg.logm(matrix_v)
 
             matrix_c = matrix_lv[:, p:2*p, p:2*p]
-            norm_matrix_c = gs.linalg.norm(matrix_c, ord=2, axis=(1, 2))
 
-            if gs.all(norm_matrix_c < tol):
-                # Convergence achieved
-                break
+            # TODO(nina): Add break condition
+            # of the form: if gs.all(gs.less_equal(norm_matrix_c, tol)):
 
             matrix_phi = gs.linalg.expm(-matrix_c)
-            matrix_v[:, :, p:2*p] = gs.matmul(
+
+            aux_matrix = gs.matmul(
                 matrix_v[:, :, p:2*p], matrix_phi)
+
+            matrix_v = gs.concatenate(
+                [matrix_v[:, :, 0:p],
+                 aux_matrix],
+                axis=2)
 
         matrix_xv = gs.matmul(base_point, matrix_lv[:, 0:p, 0:p])
         matrix_qv = gs.matmul(matrix_q, matrix_lv[:, p:2*p, 0:p])
@@ -279,13 +279,10 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         matrix_q, matrix_r = gs.linalg.qr(base_point+tangent_vec)
 
-        # flipping signs
-        # TODO(nina): remove for loop, when diag and diagonal are vectorized
-        result = gs.zeros_like(base_point)
-        for i, _ in enumerate(matrix_r):
-            result[i] = gs.matmul(
-                matrix_q[i],
-                gs.diag(gs.sign(gs.sign(gs.diagonal(matrix_r[i])) + 0.5)))
+        diagonal = gs.diagonal(matrix_r, axis1=1, axis2=2)
+        sign = gs.sign(gs.sign(diagonal) + 0.5)
+        diag = gs.diag(sign)
+        result = gs.einsum('nij,njk->nik', matrix_q, diag)
 
         return result
 
