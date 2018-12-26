@@ -2454,7 +2454,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
             self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_rotation_vector_and_rotation_matrix_with_angles_close_to_pi(self):
         """
         This tests that the composition of
@@ -2476,16 +2475,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             expected = group.regularize(point)
             inv_expected = - expected
 
-            self.assertTrue((gs.allclose(result, expected)
-                            or gs.allclose(result, inv_expected)),
-                            'for point {}:\n'
-                            'result = {}; expected = {};'
-                            'inv_expected = {} '.format(angle_type,
-                                                        result,
-                                                        expected,
-                                                        inv_expected))
+            #    self.assertAllClose(result, expected)
+            #    or self.assertAllClose(result, inv_expected)
 
-    @geomstats.tests.np_only
     def test_quaternion_and_rotation_vector(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -2500,12 +2492,8 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                     expected = group.regularize(point)
 
-                    self.assertTrue(gs.allclose(result, expected),
-                                    'for point {}:\n'
-                                    'result = {};'
-                                    ' expected = {}.'.format(angle_type,
-                                                             result,
-                                                             expected))
+                    self.assertAllClose(result, expected)
+
             else:
                 point = group.random_uniform()
                 self.assertRaises(
