@@ -206,7 +206,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             expected = gs.array([[True]] * n_samples)
             self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_regularize(self):
         # Specific to 3D
         for n in self.n_seq:
@@ -214,38 +213,33 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
             if n == 3:
                 point = self.elements[3]['with_angle_0']
-                self.assertTrue(gs.isclose(gs.linalg.norm(point), 0.))
+                self.assertAllClose(gs.linalg.norm(point), 0.)
                 result = group.regularize(point)
-                expected = point
-                self.assertTrue(gs.allclose(result, expected), '! angle 0 !')
+                expected = helper.to_vector(point)
+                self.assertAllClose(result, expected)
 
                 less_than_pi = ['with_angle_close_0',
                                 'with_angle_close_pi_low']
                 for angle_type in less_than_pi:
                     point = self.elements[3][angle_type]
                     result = group.regularize(point)
-                    expected = point
-                    self.assertTrue(gs.allclose(result, expected),
-                                    'angle_type = {};'
-                                    'result = {};'
-                                    ' expected = {}.'.format(angle_type,
-                                                             result,
-                                                             expected))
+                    expected = helper.to_vector(point)
+                    self.assertAllClose(result, expected)
 
                 # Note: by default, the rotation vector is inverted by
                 # the function regularize when the angle of the rotation is pi.
-                # TODO(nina): should we modify this?
                 angle_type = 'with_angle_pi'
                 point = self.elements[3][angle_type]
                 result = group.regularize(point)
-                expected = point
-                self.assertTrue(gs.allclose(result, expected), angle_type)
+                expected = helper.to_vector(point)
+                self.assertAllClose(result, expected)
 
                 angle_type = 'with_angle_close_pi_high'
                 point = self.elements[3][angle_type]
                 result = group.regularize(point)
-                expected = point / gs.linalg.norm(point) * gs.pi
-                self.assertTrue(gs.allclose(result, expected), angle_type)
+                expected = helper.to_vector(
+                    point / gs.linalg.norm(point) * gs.pi)
+                self.assertAllClose(result, expected)
 
                 in_pi_2pi = ['with_angle_in_pi_2pi',
                              'with_angle_close_2pi_low']
@@ -259,30 +253,15 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     point_initial = point
                     result = group.regularize(point)
 
-                    expected = - (new_angle / angle) * point_initial
-                    self.assertTrue(gs.allclose(result, expected),
-                                    'angle_type = {}\n'
-                                    'point = {}\n'
-                                    'angle = {}\n'
-                                    'new_angle = {}\n'
-                                    'result = {}\n'
-                                    'norm(result) = {}\n'
-                                    'expected = {}\n'
-                                    'norm(expected) = {}'.format(
-                                        angle_type,
-                                        point,
-                                        angle,
-                                        new_angle,
-                                        result,
-                                        gs.linalg.norm(result),
-                                        expected,
-                                        gs.linalg.norm(expected)))
+                    expected = helper.to_vector(
+                        - (new_angle / angle) * point_initial)
+                    self.assertAllClose(result, expected)
 
                 angle_type = 'with_angle_2pi'
                 point = self.elements[3][angle_type]
                 result = group.regularize(point)
-                expected = gs.array([0., 0., 0.])
-                self.assertTrue(gs.allclose(result, expected), angle_type)
+                expected = gs.array([[0., 0., 0.]])
+                self.assertAllClose(result, expected)
 
                 angle_type = 'with_angle_close_2pi_high'
                 point = self.elements[3][angle_type]
@@ -290,11 +269,15 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 new_angle = angle - 2 * gs.pi
 
                 result = group.regularize(point)
-                expected = new_angle * point / angle
-                self.assertTrue(gs.allclose(result, expected), angle_type)
+                expected = helper.to_vector(
+                    new_angle * point / angle)
+                self.assertAllClose(result, expected)
 
             else:
-                point = group.random_uniform(n_samples=1)
+                angle = 0.345
+                point = gs.array([[
+                    [gs.cos(angle), -gs.sin(angle)],
+                    [gs.sin(angle), gs.cos(angle)]]])
                 result = group.regularize(point)
                 expected = point
                 self.assertAllClose(result, expected)
