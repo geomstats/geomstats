@@ -2835,7 +2835,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             gs.shape(jacobians),
             (n_samples, group.dimension, group.dimension))
 
-    @geomstats.tests.np_only
     def test_exp(self):
         """
         The Riemannian exp and log are inverse functions of each other.
@@ -2845,21 +2844,21 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         group = self.so[n]
 
         metric = self.metrics[3]['canonical']
-        theta = gs.pi / 5
+        theta = gs.pi / 5.
         rot_vec_base_point = theta / gs.sqrt(3.) * gs.array([1., 1., 1.])
         # Note: the rotation vector for the reference point
         # needs to be regularized.
 
         # 1: Exponential of 0 gives the reference point
-        rot_vec_1 = gs.array([0, 0, 0])
-        expected_1 = rot_vec_base_point
+        rot_vec_1 = gs.array([0., 0., 0.])
+        expected = helper.to_vector(rot_vec_base_point)
 
-        exp_1 = metric.exp(base_point=rot_vec_base_point,
-                           tangent_vec=rot_vec_1)
-        self.assertTrue(gs.allclose(exp_1, expected_1))
+        result = metric.exp(base_point=rot_vec_base_point,
+                            tangent_vec=rot_vec_1)
+        self.assertAllClose(result, expected)
 
         # 2: General case - computed manually
-        rot_vec_2 = gs.pi / 4 * gs.array([1, 0, 0])
+        rot_vec_2 = gs.pi / 4 * gs.array([1., 0., 0.])
         phi = (gs.pi / 10) / (gs.tan(gs.pi / 10))
         skew = gs.array([[0., -1., 1.],
                          [1., 0., -1.],
@@ -2868,12 +2867,12 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     + (1 - phi) / 3 * gs.ones([3, 3])
                     + gs.pi / (10 * gs.sqrt(3.)) * skew)
         inv_jacobian = gs.linalg.inv(jacobian)
-        expected_2 = group.compose(rot_vec_base_point,
-                                   gs.dot(inv_jacobian, rot_vec_2))
+        expected = group.compose(rot_vec_base_point,
+                                 gs.dot(inv_jacobian, rot_vec_2))
 
-        exp_2 = metric.exp(base_point=rot_vec_base_point,
-                           tangent_vec=rot_vec_2)
-        self.assertTrue(gs.allclose(exp_2, expected_2))
+        result = metric.exp(base_point=rot_vec_base_point,
+                            tangent_vec=rot_vec_2)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_exp_vectorization(self):
