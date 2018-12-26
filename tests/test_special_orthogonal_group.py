@@ -163,7 +163,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_skew_matrix_and_vector(self):
-        point_type = 'vector'
         n = 3
 
         group = self.so[n]
@@ -194,7 +193,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             expected = gs.array([[True]])
             self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_random_and_belongs_vectorization(self):
         n_samples = self.n_samples
         for n in self.n_seq:
@@ -297,22 +295,22 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     self.assertAllClose(
                         gs.shape(result), (n_samples, n, n))
 
-    @geomstats.tests.np_only
     def test_matrix_from_rotation_vector(self):
         n = 3
         group = self.so[n]
 
         rot_vec_0 = group.identity
-        rot_mat_0 = group.matrix_from_rotation_vector(rot_vec_0)
-        expected_rot_mat_0 = gs.eye(3)
-        self.assertTrue(gs.allclose(rot_mat_0, expected_rot_mat_0))
+        result = group.matrix_from_rotation_vector(rot_vec_0)
+        expected = helper.to_matrix(gs.eye(3))
+        self.assertAllClose(result, expected)
 
         rot_vec_1 = gs.array([gs.pi / 3., 0., 0.])
-        rot_mat_1 = group.matrix_from_rotation_vector(rot_vec_1)
-        expected_rot_mat_1 = gs.array([[1., 0., 0.],
-                                       [0., 0.5, -gs.sqrt(3) / 2],
-                                       [0., gs.sqrt(3) / 2, 0.5]])
-        self.assertTrue(gs.allclose(rot_mat_1, expected_rot_mat_1))
+        result = group.matrix_from_rotation_vector(rot_vec_1)
+        expected = gs.array([[
+            [1., 0., 0.],
+            [0., 0.5, -gs.sqrt(3.) / 2],
+            [0., gs.sqrt(3.) / 2, 0.5]]])
+        self.assertAllClose(result, expected)
 
         rot_vec_3 = 1e-11 * gs.array([12., 1., -81.])
         angle = gs.linalg.norm(rot_vec_3)
@@ -320,13 +318,14 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                            [-81., 0., -12.],
                                            [-1., 12., 0.]])
         coef_1 = gs.sin(angle) / angle
-        coef_2 = (1 - gs.cos(angle)) / (angle ** 2)
-        expected_rot_mat_3 = (gs.identity(3)
-                              + coef_1 * skew_rot_vec_3
-                              + coef_2 * gs.dot(skew_rot_vec_3,
-                                                skew_rot_vec_3))
-        rot_mat_3 = group.matrix_from_rotation_vector(rot_vec_3)
-        self.assertTrue(gs.allclose(rot_mat_3, expected_rot_mat_3))
+        coef_2 = (1. - gs.cos(angle)) / (angle ** 2)
+        expected = helper.to_matrix(
+            gs.eye(3)
+            + coef_1 * skew_rot_vec_3
+            + coef_2 * gs.dot(skew_rot_vec_3,
+                              skew_rot_vec_3))
+        result = group.matrix_from_rotation_vector(rot_vec_3)
+        self.assertAllClose(result, expected)
 
         rot_vec_6 = gs.array([.1, 1.3, -.5])
         angle = gs.linalg.norm(rot_vec_6)
@@ -336,12 +335,13 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         coef_1 = gs.sin(angle) / angle
         coef_2 = (1 - gs.cos(angle)) / (angle ** 2)
-        rot_mat_6 = group.matrix_from_rotation_vector(rot_vec_6)
-        expected_rot_mat_6 = (gs.identity(3)
-                              + coef_1 * skew_rot_vec_6
-                              + coef_2 * gs.dot(skew_rot_vec_6,
-                                                skew_rot_vec_6))
-        self.assertTrue(gs.allclose(rot_mat_6, expected_rot_mat_6))
+        result = group.matrix_from_rotation_vector(rot_vec_6)
+        expected = helper.to_matrix(
+            gs.eye(3)
+            + coef_1 * skew_rot_vec_6
+            + coef_2 * gs.dot(skew_rot_vec_6,
+                              skew_rot_vec_6))
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_matrix_from_rotation_vector_vectorization(self):
