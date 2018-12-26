@@ -2971,7 +2971,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             self.assertAllClose(
                 gs.shape(result), (n_samples, group.dimension))
 
-    @geomstats.tests.np_only
     def test_exp_from_identity_vectorization(self):
         n = 3
         group = self.so[n]
@@ -2980,12 +2979,11 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         metric = self.metrics[3]['canonical']
 
         tangent_vecs = group.random_uniform(n_samples=n_samples)
-        results = metric.exp_from_identity(tangent_vecs)
+        result = metric.exp_from_identity(tangent_vecs)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
-    @geomstats.tests.np_only
     def test_log_from_identity_vectorization(self):
         n = 3
         group = self.so[n]
@@ -2994,10 +2992,10 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         metric = self.metrics[3]['canonical']
 
         points = group.random_uniform(n_samples=n_samples)
-        results = metric.log_from_identity(points)
+        result = metric.log_from_identity(points)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
     @geomstats.tests.np_only
     def test_exp_then_log_from_identity(self):
