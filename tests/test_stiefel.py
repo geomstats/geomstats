@@ -113,7 +113,6 @@ class TestStiefelMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=ATOL)
 
-    @geomstats.tests.np_only
     def test_exp_and_belongs(self):
         base_point = self.point_a
         tangent_vec = self.tangent_vector_1

@@ -128,11 +128,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         matrix_k = (tangent_vec
                     - gs.einsum('nij,njk->nik', base_point, matrix_a))
 
-        matrix_q = gs.zeros_like(matrix_k)
-        matrix_r = gs.zeros(
-            (matrix_k.shape[0], matrix_k.shape[2], matrix_k.shape[2]))
-        for i, k in enumerate(matrix_k):
-            matrix_q[i], matrix_r[i] = gs.linalg.qr(k)
+        matrix_q, matrix_r = gs.linalg.qr(matrix_k)
 
         matrix_ar = gs.concatenate(
             [matrix_a,
@@ -190,10 +186,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             """
             matrix_k = point - gs.matmul(base_point, matrix_m)
 
-            matrix_q = gs.zeros(matrix_k.shape)
-            matrix_n = gs.zeros((n_logs, p, p))
-            for i, k in enumerate(matrix_k):
-                matrix_q[i], matrix_n[i] = gs.linalg.qr(k)
+            matrix_q, matrix_n = gs.linalg.qr(matrix_k)
             return matrix_q, matrix_n
 
         def orthogonal_completion(matrix_m, matrix_n):
@@ -205,8 +198,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
                 max(matrix_w.shape[1], matrix_w.shape[2])
                 ))
 
-            for i, w in enumerate(matrix_w):
-                matrix_v[i], _ = gs.linalg.qr(w, mode="complete")
+            matrix_v, _ = gs.linalg.qr(matrix_w, mode='complete')
 
             return matrix_v
 
@@ -237,7 +229,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
             base_point = gs.tile(base_point, (n_points, 1, 1))
         if n_points == 1:
             point = gs.tile(point, (n_base_points, 1, 1))
-        n_logs = gs.maximum(n_base_points, n_points)
 
         matrix_m = gs.matmul(gs.transpose(base_point, (0, 2, 1)), point)
 
@@ -285,14 +276,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
             base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
         if n_tangent_vecs == 1:
             tangent_vec = gs.tile(tangent_vec, (n_base_points, 1, 1))
-        n_retractions = gs.maximum(n_base_points, n_tangent_vecs)
 
-        # TODO(nina): remove for loop, when qr is vectorized
-        matrix_q = gs.zeros_like(base_point)
-        matrix_r = gs.zeros((n_retractions, p, p))
-
-        for i, k in enumerate(base_point + tangent_vec):
-            matrix_q[i], matrix_r[i] = gs.linalg.qr(k)
+        matrix_q, matrix_r = gs.linalg.qr(base_point+tangent_vec)
 
         # flipping signs
         # TODO(nina): remove for loop, when diag and diagonal are vectorized
