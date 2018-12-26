@@ -356,7 +356,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             self.assertAllClose(
                 gs.shape(rot_mats), (n_samples, group.n, group.n))
 
-    @geomstats.tests.np_only
     def test_rotation_vector_from_matrix(self):
         n = 3
         group = self.so[n]
@@ -364,10 +363,10 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         rot_mat = gs.array([[1., 0., 0.],
                             [0., gs.cos(.12), -gs.sin(.12)],
                             [0, gs.sin(.12), gs.cos(.12)]])
-        rot_vec = group.rotation_vector_from_matrix(rot_mat)
-        expected_rot_vec = .12 * gs.array([1., 0., 0.])
+        result = group.rotation_vector_from_matrix(rot_mat)
+        expected = .12 * gs.array([[1., 0., 0.]])
 
-        self.assertTrue(gs.allclose(rot_vec, expected_rot_vec))
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_rotation_vector_and_rotation_matrix(self):
