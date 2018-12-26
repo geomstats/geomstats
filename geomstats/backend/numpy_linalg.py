@@ -56,4 +56,7 @@ def exp(*args, **kwargs):
 
 
 def qr(*args, **kwargs):
-    return np.linalg.qr(*args, **kwargs)
+    return np.vectorize(
+        np.linalg.qr,
+        signature='(n,m)->(n,k),(k,m)',
+        excluded=['mode'])(*args, **kwargs)

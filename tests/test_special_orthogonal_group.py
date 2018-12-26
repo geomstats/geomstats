@@ -165,18 +165,18 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_skew_matrix_and_vector(self):
         point_type = 'vector'
-        for n in self.n_seq:
-            group = self.so[n]
-            rot_vec = group.random_uniform(
-                point_type=point_type)
+        # Specific to 3D case
+        n = 3
+        group = self.so[n]
+        rot_vec = group.random_uniform(
+            point_type=point_type)
 
-            skew_mat = group.skew_matrix_from_vector(rot_vec)
-            result = group.vector_from_skew_matrix(skew_mat)
-            expected = helper.to_vector(rot_vec)
+        skew_mat = group.skew_matrix_from_vector(rot_vec)
+        result = group.vector_from_skew_matrix(skew_mat)
+        expected = helper.to_vector(rot_vec)
 
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_skew_matrix_from_vector_vectorization(self):
         point_type = 'vector'
         n_samples = self.n_samples
@@ -188,7 +188,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
             self.assertAllClose(gs.shape(result), (n_samples, n, n))
 
-    @geomstats.tests.np_only
     def test_random_and_belongs(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -203,9 +202,8 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         for n in self.n_seq:
             group = self.so[n]
             points = group.random_uniform(n_samples=n_samples)
-            result = gs.all(group.belongs(points))
-            result = helper.to_scalar(result)
-            expected = gs.array([[True]])
+            result = group.belongs(points)
+            expected = gs.array([[True]] * n_samples)
             self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only

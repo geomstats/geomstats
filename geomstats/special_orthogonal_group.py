@@ -87,6 +87,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             point = gs.to_ndarray(point, to_ndim=2)
             _, vec_dim = point.shape
             belongs = vec_dim == self.dimension
+            belongs = gs.to_ndarray(belongs, to_ndim=1)
+            belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
             return belongs
 
         elif point_type == 'matrix':
@@ -97,6 +99,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             mask = gs.isclose(point_inverse, point_transpose)
             mask = gs.all(mask, axis=(1, 2))
 
+            mask = gs.to_ndarray(mask, to_ndim=1)
+            mask = gs.to_ndarray(mask, to_ndim=2, axis=1)
             return mask
 
     def regularize(self, point, point_type=None):
@@ -114,7 +118,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
-            assert self.belongs(point, point_type)
             n_points, _ = point.shape
 
             regularized_point = point

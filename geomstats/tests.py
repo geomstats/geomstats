@@ -43,7 +43,6 @@ class DummySession():
 class TestCase(test_class):
 
     def assertAllClose(self, a, b, rtol=1e-6, atol=1e-6):
-        # TODO(johmathe): check if it makes more sense to do the eval here.
         if tf_backend():
             return super().assertAllClose(a, b, rtol=rtol, atol=atol)
         return self.assertTrue(gs.allclose(a, b, rtol=rtol, atol=atol))
