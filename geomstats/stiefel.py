@@ -208,10 +208,10 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
             matrix_rd = gs.matmul(
                 matrix_r, gs.transpose(matrix_d, axes=(0, 2, 1)))
-            matrix_v[:, :, p:2*p] = gs.matmul(matrix_v[:, :, p:2*p], matrix_rd)
+            sub_matrix_v = gs.matmul(matrix_v[:, :, p:2*p], matrix_rd)
             matrix_v = gs.concatenate(
                 [gs.concatenate([matrix_m, matrix_n], axis=1),
-                 matrix_v[:, :, p:2*p]],
+                 sub_matrix_v],
                 axis=2)
             return matrix_v
 
@@ -242,7 +242,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             matrix_lv = gs.linalg.logm(matrix_v)
 
             matrix_c = matrix_lv[:, p:2*p, p:2*p]
-            norm_matrix_c = gs.linalg.norm(matrix_c, ord=2, axis=(1, 2))
+            norm_matrix_c = gs.linalg.norm(matrix_c, axis=(1, 2))
 
             if gs.all(norm_matrix_c < tol):
                 # Convergence achieved

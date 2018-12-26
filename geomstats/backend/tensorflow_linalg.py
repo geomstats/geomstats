@@ -23,6 +23,10 @@ def expm(x):
     return tf.linalg.expm(x)
 
 
+def logm(x):
+    return tf.linalg.expm(x)
+
+
 def det(x):
     return tf.linalg.det(x)
 

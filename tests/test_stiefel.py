@@ -94,7 +94,6 @@ class TestStiefelMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (1, self.n, self.p))
 
-    @geomstats.tests.np_only
     def test_log_and_exp(self):
         """
         Test that the riemannian exponential
