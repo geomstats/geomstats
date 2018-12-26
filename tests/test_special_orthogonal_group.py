@@ -2638,20 +2638,22 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                                         expected,
                                                         inv_expected))
 
-    @geomstats.tests.np_only
     def test_quaternion_and_rotation_vector_and_matrix_vectorization(self):
         n = 3
         group = self.so[n]
 
-        n_samples = self.n_samples
-        rot_vecs = group.random_uniform(n_samples=n_samples)
+        rot_vecs = gs.array([
+            [0.2, 0., -0.3],
+            [0.11, 0.11, 0.11],
+            [-0.4, 0.2, 0.2],
+            [0.66, -0.99, 0.]])
         rot_mats = group.matrix_from_rotation_vector(rot_vecs)
 
         quaternions = group.quaternion_from_matrix(rot_mats)
-        results = group.matrix_from_quaternion(quaternions)
+        result = group.matrix_from_quaternion(quaternions)
 
         expected = rot_mats
-        self.assertTrue(gs.allclose(results, expected))
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_compose(self):
