@@ -362,7 +362,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             self.assertAllClose(
                 gs.shape(result), (n_samples, self.group.dimension))
 
-    @geomstats.tests.np_only
     def test_log_vectorization(self):
         n_samples = self.n_samples
         for metric_type in self.metrics:
@@ -375,39 +374,18 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
             # Test with the 1 base point, and several different points
             result = metric.log(n_point, one_base_point)
-            self.assertTrue(gs.allclose(result.shape,
-                                        (n_samples, self.group.dimension)))
-            expected = gs.vstack([metric.log(point, one_base_point)
-                                  for point in n_point])
-
-            self.assertTrue(gs.allclose(expected.shape,
-                                        (n_samples, self.group.dimension)))
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(
+                gs.shape(result), (n_samples, self.group.dimension))
 
             # Test with the several base point, and 1 point
             result = metric.log(one_point, n_base_point)
-            self.assertTrue(gs.allclose(result.shape,
-                                        (n_samples, self.group.dimension)))
-            expected = gs.vstack([metric.log(one_point, base_point)
-                                  for base_point in n_base_point])
-
-            self.assertTrue(gs.allclose(expected.shape,
-                                        (n_samples, self.group.dimension)))
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(
+                gs.shape(result), (n_samples, self.group.dimension))
 
             # Test with the same number n of base point and point
             result = metric.log(n_point, n_base_point)
-            self.assertTrue(gs.allclose(result.shape,
-                                        (n_samples, self.group.dimension)))
-            expected = gs.vstack([metric.log(point, base_point)
-                                  for point, base_point in zip(n_point,
-                                                               n_base_point)])
-            self.assertTrue(gs.allclose(expected.shape,
-                                        (n_samples, self.group.dimension)))
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(
+                gs.shape(result), (n_samples, self.group.dimension))
 
     @geomstats.tests.np_only
     def test_group_exp_from_identity_vectorization(self):
