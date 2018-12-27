@@ -87,33 +87,17 @@ class LieGroup(Manifold):
         raise NotImplementedError(
                 'The group exponential from the identity is not implemented.')
 
-    def group_exp(self, tangent_vec, base_point=None, point_type=None):
-        """
-        Compute the group exponential at point base_point
-        of tangent vector tangent_vec.
-        """
-        if point_type is None:
-            point_type = self.default_point_type
-
-        identity = self.get_identity(point_type=point_type)
-        identity = self.regularize(identity, point_type=point_type)
-        if base_point is None:
-            base_point = identity
-        base_point = self.regularize(base_point, point_type=point_type)
-
-        if gs.allclose(base_point, identity):
-            return self.group_exp_from_identity(
-                tangent_vec, point_type=point_type)
-
-        jacobian = self.jacobian_translation(point=base_point,
-                                             left_or_right='left',
-                                             point_type=point_type)
+    def group_exp_not_from_identity(self, tangent_vec, base_point, point_type):
+        jacobian = self.jacobian_translation(
+            point=base_point,
+            left_or_right='left',
+            point_type=point_type)
 
         if point_type == 'vector':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
             inv_jacobian = gs.linalg.inv(jacobian)
 
-            tangent_vec_at_id = gs.einsum('ij,ijk->ik',
+            tangent_vec_at_id = gs.einsum('ni,nij->nj',
                                           tangent_vec,
                                           gs.transpose(inv_jacobian,
                                                        axes=(0, 2, 1)))
@@ -130,6 +114,41 @@ class LieGroup(Manifold):
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
             raise NotImplementedError()
 
+    def group_exp(self, tangent_vec, base_point=None, point_type=None):
+        """
+        Compute the group exponential at point base_point
+        of tangent vector tangent_vec.
+        """
+        if point_type is None:
+            point_type = self.default_point_type
+
+        identity = self.get_identity(point_type=point_type)
+        identity = self.regularize(identity, point_type=point_type)
+        if base_point is None:
+            base_point = identity
+        base_point = self.regularize(base_point, point_type=point_type)
+
+        n_tangent_vecs = tangent_vec.shape[0]
+        n_base_points = base_point.shape[0]
+
+        assert (tangent_vec.shape == base_point.shape
+                or n_tangent_vecs == 1
+                or n_base_points == 1)
+
+        if n_tangent_vecs == 1:
+            tangent_vec = gs.array([tangent_vec[0]] * n_base_points)
+
+        if n_base_points == 1:
+            base_point = gs.array([base_point[0]] * n_tangent_vecs)
+
+        result = gs.cond(
+            pred=gs.allclose(base_point, identity),
+            true_fn=lambda: self.group_exp_from_identity(
+                tangent_vec, point_type=point_type),
+            false_fn=lambda: self.group_exp_not_from_identity(
+                tangent_vec, base_point, point_type))
+        return result
+
     def group_log_from_identity(self, point, point_type=None):
         """
         Compute the group logarithm
@@ -137,6 +156,23 @@ class LieGroup(Manifold):
         """
         raise NotImplementedError(
                 'The group logarithm from the identity is not implemented.')
+
+    def group_log_not_from_identity(self, point, base_point, point_type):
+        jacobian = self.jacobian_translation(point=base_point,
+                                             left_or_right='left',
+                                             point_type=point_type)
+        point_near_id = self.compose(
+            self.inverse(base_point), point, point_type=point_type)
+        group_log_from_id = self.group_log_from_identity(
+                                           point=point_near_id,
+                                           point_type=point_type)
+
+        group_log = gs.einsum('ni,nij->nj',
+                              group_log_from_id,
+                              gs.transpose(jacobian, axes=(0, 2, 1)))
+
+        assert gs.ndim(group_log) == 2
+        return group_log
 
     def group_log(self, point, base_point=None, point_type=None):
         """
@@ -173,24 +209,14 @@ class LieGroup(Manifold):
         if n_base_points == 1:
             base_point = gs.array([base_point[0]] * n_points)
 
-        if gs.allclose(base_point, identity):
-            return self.group_log_from_identity(point, point_type=point_type)
+        result = gs.cond(
+            pred=gs.allclose(base_point, identity),
+            true_fn=lambda: self.group_log_from_identity(
+                point, point_type=point_type),
+            false_fn=lambda: self.group_log_not_from_identity(
+                point, base_point, point_type))
 
-        jacobian = self.jacobian_translation(point=base_point,
-                                             left_or_right='left',
-                                             point_type=point_type)
-        point_near_id = self.compose(
-            self.inverse(base_point), point, point_type=point_type)
-        group_log_from_id = self.group_log_from_identity(
-                                           point=point_near_id,
-                                           point_type=point_type)
-
-        group_log = gs.einsum('ij,ijk->ik',
-                              group_log_from_id,
-                              gs.transpose(jacobian, axes=(0, 2, 1)))
-
-        assert group_log.ndim == 2
-        return group_log
+        return result
 
     def group_exponential_barycenter(
            self, points, weights=None, point_type=None):

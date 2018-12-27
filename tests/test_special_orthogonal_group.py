@@ -3135,10 +3135,10 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     result = helper.exp_then_log(metric=metric,
                                                  tangent_vec=tangent_vec,
                                                  base_point=base_point)
-                    regularized_result = group.regularize_tangent_vec(
-                                             tangent_vec=result,
-                                             base_point=base_point,
-                                             metric=metric)
+                    #regularized_result = group.regularize_tangent_vec(
+                    #                         tangent_vec=result,
+                    #                         base_point=base_point,
+                    #                         metric=metric)
 
                     reg_tangent_vec = group.regularize_tangent_vec(
                                                  tangent_vec=tangent_vec,
@@ -3146,11 +3146,11 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                                  metric=metric)
                     expected = reg_tangent_vec
 
-                    regularized_expected = group.regularize_tangent_vec(
-                                                 tangent_vec=expected,
-                                                 base_point=base_point,
-                                                 metric=metric)
-
+                    #regularized_expected = group.regularize_tangent_vec(
+                    #                             tangent_vec=expected,
+                    #                             base_point=base_point,
+                    #                             metric=metric)
+                    print('before test')
                     self.assertAllClose(result, expected, atol=1e-4)
 
     @geomstats.tests.np_only
@@ -3291,31 +3291,28 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                  result, group.regularize(result),
                                  expected, group.regularize(expected)))
 
-    @geomstats.tests.np_only
     def test_group_exp_from_identity_vectorization(self):
         n = 3
         group = self.so[n]
 
         n_samples = self.n_samples
         tangent_vecs = group.random_uniform(n_samples=n_samples)
-        results = group.group_exp_from_identity(tangent_vecs)
+        result = group.group_exp_from_identity(tangent_vecs)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
-    @geomstats.tests.np_only
     def test_group_log_from_identity_vectorization(self):
         n = 3
         group = self.so[n]
 
         n_samples = self.n_samples
         points = group.random_uniform(n_samples=n_samples)
-        results = group.group_log_from_identity(points)
+        result = group.group_log_from_identity(points)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
-    @geomstats.tests.np_only
     def test_group_exp_vectorization(self):
         n = 3
         group = self.so[n]
@@ -3324,28 +3321,27 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         # Test with the 1 base_point, and several different tangent_vecs
         tangent_vecs = group.random_uniform(n_samples=n_samples)
         base_point = group.random_uniform(n_samples=1)
-        results = group.group_exp(tangent_vecs, base_point)
+        result = group.group_exp(tangent_vecs, base_point)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
         # Test with the same number of base_points and tangent_vecs
         tangent_vecs = group.random_uniform(n_samples=n_samples)
         base_points = group.random_uniform(n_samples=n_samples)
-        results = group.group_exp(tangent_vecs, base_points)
+        result = group.group_exp(tangent_vecs, base_points)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
         # Test with the several base_points, and 1 tangent_vec
         tangent_vec = group.random_uniform(n_samples=1)
         base_points = group.random_uniform(n_samples=n_samples)
-        results = group.group_exp(tangent_vec, base_points)
+        result = group.group_exp(tangent_vec, base_points)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
-    @geomstats.tests.np_only
     def test_group_log_vectorization(self):
         n = 3
         group = self.so[n]
@@ -3354,23 +3350,26 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         # Test with the 1 base point, and several different points
         points = group.random_uniform(n_samples=n_samples)
         base_point = group.random_uniform(n_samples=1)
-        results = group.group_log(points, base_point)
+        result = group.group_log(points, base_point)
 
-        self.assertTrue(results.shape == (n_samples, group.dimension))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
         # Test with the same number of base points and points
         points = group.random_uniform(n_samples=n_samples)
         base_points = group.random_uniform(n_samples=n_samples)
-        results = group.group_log(points, base_points)
+        result = group.group_log(points, base_points)
 
-        self.assertTrue(results.shape == (n_samples, group.dimension))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
         # Test with the several base points, and 1 point
         point = group.random_uniform(n_samples=1)
         base_points = group.random_uniform(n_samples=n_samples)
-        results = group.group_log(point, base_points)
+        result = group.group_log(point, base_points)
 
-        self.assertTrue(results.shape == (n_samples, group.dimension))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
     @geomstats.tests.np_only
     def test_group_exp_then_log_from_identity(self):

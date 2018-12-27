@@ -9,6 +9,13 @@ float32 = np.float32
 float64 = np.float64
 
 
+def cond(pred, true_fn, false_fn):
+    if pred:
+        return true_fn
+    else:
+        return false_fn
+
+
 def real(x):
     return np.real(x)
 
