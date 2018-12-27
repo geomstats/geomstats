@@ -12,8 +12,7 @@ float64 = np.float64
 def cond(pred, true_fn, false_fn):
     if pred:
         return true_fn()
-    else:
-        return false_fn()
+    return false_fn()
 
 
 def real(x):
