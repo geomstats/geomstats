@@ -101,11 +101,11 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (n_samples, 1))
 
-    @geomstats.tests.np_only
     def test_l2_metric_dist_vectorization(self):
         """
         Test the vectorization of dist.
         """
+        n_samples = self.n_discretized_curves
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
         curves_ab = curves_ab(self.times)
@@ -113,12 +113,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         result = self.l2_metric_s2.dist(
                 curves_ab, curves_bc)
-        expected = gs.zeros(self.n_discretized_curves)
-        for k in range(self.n_discretized_curves):
-            expected[k] = self.l2_metric_s2.dist(
-                    curves_ab[k, :], curves_bc[k, :])
-
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(gs.shape(result), (n_samples, 1))
 
     @geomstats.tests.np_only
     def test_l2_metric_exp_vectorization(self):

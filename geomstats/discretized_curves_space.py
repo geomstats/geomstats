@@ -103,6 +103,8 @@ class L2Metric(RiemannianMetric):
         n_sampling_points_float = gs.array(n_sampling_points)
         n_sampling_points_float = gs.cast(n_sampling_points_float, gs.float32)
         dist = gs.sqrt(gs.sum(dist ** 2, -1) / n_sampling_points_float)
+        dist = gs.to_ndarray(dist, to_ndim=1)
+        dist = gs.to_ndarray(dist, to_ndim=2, axis=1)
 
         return dist
 
