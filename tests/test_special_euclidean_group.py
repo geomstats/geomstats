@@ -1018,7 +1018,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                     atol = RTOL
                     if norm != 0:
                         atol = RTOL * norm
-                    self.assertAllClose(result, expected)
+                    self.assertAllClose(result, expected, atol=1e-5)
 
     @geomstats.tests.np_only
     def test_exp_then_log_left_with_angles_close_to_pi(self):
@@ -1061,7 +1061,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                        expected,
                                        inv_rot_expected))
 
-    @geomstats.tests.np_only
     def test_log_then_exp_right(self):
         """
         Test that the riemannian right exponential and the
@@ -1086,13 +1085,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                     atol = RTOL
                     if norm != 0:
                         atol = RTOL * norm
-                    self.assertTrue(gs.allclose(result, expected, atol=atol),
-                                    '\npoint = {}'
-                                    '\nresult = {}'
-                                    '\nexpected = {}'.format(
-                                   point,
-                                   result,
-                                   expected))
+                    self.assertAllClose(result, expected, atol=1e-5)
 
     @geomstats.tests.np_only
     def test_log_then_exp_right_with_angles_close_to_pi(self):
