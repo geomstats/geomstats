@@ -23,12 +23,6 @@ class TestMinkowskiSpaceMethods(geomstats.tests.TestCase):
         self.metric = self.space.metric
         self.n_samples = 10
 
-    def test_dist(self):
-        point_a = gs.array([-1, 4])
-        point_b = gs.array([1, 1])
-        self.assertRaises(ValueError,
-                          lambda: self.metric.dist(point_a, point_b))
-
     def test_belongs(self):
         point = gs.array([-1., 3.])
         result = self.space.belongs(point)

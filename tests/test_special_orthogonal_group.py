@@ -3135,21 +3135,12 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     result = helper.exp_then_log(metric=metric,
                                                  tangent_vec=tangent_vec,
                                                  base_point=base_point)
-                    regularized_result = group.regularize_tangent_vec(
-                                             tangent_vec=result,
-                                             base_point=base_point,
-                                             metric=metric)
 
                     reg_tangent_vec = group.regularize_tangent_vec(
                                                  tangent_vec=tangent_vec,
                                                  base_point=base_point,
                                                  metric=metric)
                     expected = reg_tangent_vec
-
-                    regularized_expected = group.regularize_tangent_vec(
-                                                 tangent_vec=expected,
-                                                 base_point=base_point,
-                                                 metric=metric)
 
                     self.assertAllClose(result, expected, atol=1e-4)
 
@@ -3291,31 +3282,28 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                  result, group.regularize(result),
                                  expected, group.regularize(expected)))
 
-    @geomstats.tests.np_only
     def test_group_exp_from_identity_vectorization(self):
         n = 3
         group = self.so[n]
 
         n_samples = self.n_samples
         tangent_vecs = group.random_uniform(n_samples=n_samples)
-        results = group.group_exp_from_identity(tangent_vecs)
+        result = group.group_exp_from_identity(tangent_vecs)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
-    @geomstats.tests.np_only
     def test_group_log_from_identity_vectorization(self):
         n = 3
         group = self.so[n]
 
         n_samples = self.n_samples
         points = group.random_uniform(n_samples=n_samples)
-        results = group.group_log_from_identity(points)
+        result = group.group_log_from_identity(points)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
-    @geomstats.tests.np_only
     def test_group_exp_vectorization(self):
         n = 3
         group = self.so[n]
@@ -3324,28 +3312,27 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         # Test with the 1 base_point, and several different tangent_vecs
         tangent_vecs = group.random_uniform(n_samples=n_samples)
         base_point = group.random_uniform(n_samples=1)
-        results = group.group_exp(tangent_vecs, base_point)
+        result = group.group_exp(tangent_vecs, base_point)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
         # Test with the same number of base_points and tangent_vecs
         tangent_vecs = group.random_uniform(n_samples=n_samples)
         base_points = group.random_uniform(n_samples=n_samples)
-        results = group.group_exp(tangent_vecs, base_points)
+        result = group.group_exp(tangent_vecs, base_points)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
         # Test with the several base_points, and 1 tangent_vec
         tangent_vec = group.random_uniform(n_samples=1)
         base_points = group.random_uniform(n_samples=n_samples)
-        results = group.group_exp(tangent_vec, base_points)
+        result = group.group_exp(tangent_vec, base_points)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
-    @geomstats.tests.np_only
     def test_group_log_vectorization(self):
         n = 3
         group = self.so[n]
@@ -3354,25 +3341,27 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         # Test with the 1 base point, and several different points
         points = group.random_uniform(n_samples=n_samples)
         base_point = group.random_uniform(n_samples=1)
-        results = group.group_log(points, base_point)
+        result = group.group_log(points, base_point)
 
-        self.assertTrue(results.shape == (n_samples, group.dimension))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
         # Test with the same number of base points and points
         points = group.random_uniform(n_samples=n_samples)
         base_points = group.random_uniform(n_samples=n_samples)
-        results = group.group_log(points, base_points)
+        result = group.group_log(points, base_points)
 
-        self.assertTrue(results.shape == (n_samples, group.dimension))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
         # Test with the several base points, and 1 point
         point = group.random_uniform(n_samples=1)
         base_points = group.random_uniform(n_samples=n_samples)
-        results = group.group_log(point, base_points)
+        result = group.group_log(point, base_points)
 
-        self.assertTrue(results.shape == (n_samples, group.dimension))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, group.dimension))
 
-    @geomstats.tests.np_only
     def test_group_exp_then_log_from_identity(self):
         """
         Test that the group exponential
@@ -3390,8 +3379,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                          group=group,
                                          tangent_vec=tangent_vec)
             expected = group.regularize(tangent_vec)
-            self.assertTrue(gs.allclose(result, expected),
-                            'on tangent_vec {}'.format(angle_type))
+            self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_group_exp_then_log_from_identity_with_angles_close_to_pi(self):
@@ -3415,7 +3403,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                             or gs.allclose(result, inv_expected),
                             'on tangent_vec {}'.format(angle_type))
 
-    @geomstats.tests.np_only
     def test_group_log_then_exp_from_identity(self):
         """
         Test that the group exponential
@@ -3431,8 +3418,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                          group=group,
                                          point=point)
             expected = group.regularize(point)
-            self.assertTrue(gs.allclose(result, expected),
-                            'on point {}'.format(angle_type))
+            self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_group_log_then_exp_from_identity_with_angles_close_to_pi(self):
@@ -3456,7 +3442,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                             or gs.allclose(result, inv_expected),
                             'on point {}'.format(angle_type))
 
-    @geomstats.tests.np_only
     def test_group_exp_then_log(self):
         """
         This tests that the composition of
@@ -3487,17 +3472,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                      base_point=base_point,
                                      metric=metric)
 
-                self.assertTrue(gs.allclose(result, expected, atol=1e-6),
-                                '\n- on tangent_vec {}: {} -> {}\n'
-                                '- base_point {}: {} -> {}\n'
-                                'result = {} -> {}\n'
-                                'expected = {} -> {}'.format(
-                             angle_type,
-                             tangent_vec, group.regularize(tangent_vec),
-                             angle_type_base,
-                             base_point, group.regularize(base_point),
-                             result, group.regularize(result),
-                             expected, group.regularize(expected)))
+                self.assertAllClose(result, expected, atol=1e-6)
 
     @geomstats.tests.np_only
     def test_group_exp_then_log_with_angles_close_to_pi(self):
@@ -3542,7 +3517,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                              result, group.regularize(result),
                              expected, group.regularize(expected)))
 
-    @geomstats.tests.np_only
     def test_group_log_then_exp(self):
         """
         This tests that the composition of
@@ -3556,6 +3530,8 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             if angle_type in self.angles_close_to_pi[3]:
                 continue
             for angle_type_base in self.elements[3]:
+                if angle_type_base in self.angles_close_to_pi[3]:
+                    continue
                 point = self.elements[3][angle_type]
                 base_point = self.elements[3][angle_type_base]
 
@@ -3565,17 +3541,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                              base_point=base_point)
                 expected = group.regularize(point)
 
-                self.assertTrue(gs.allclose(result, expected, atol=ATOL),
-                                '\n- on point {}: {} -> {}\n'
-                                '- base_point {}: {} -> {}\n'
-                                'result = {} -> {}\n'
-                                'expected = {} -> {}'.format(
-                                 angle_type,
-                                 point, group.regularize(point),
-                                 angle_type_base,
-                                 base_point, group.regularize(base_point),
-                                 result, group.regularize(result),
-                                 expected, group.regularize(expected)))
+                self.assertAllClose(result, expected, atol=ATOL)
 
     @geomstats.tests.np_only
     def test_group_log_then_exp_with_angles_close_to_pi(self):
@@ -3635,13 +3601,13 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         points = gs.vstack([rot_vec, rot_vec])
         weights = gs.array([1., 2.])
-        result = group.group_exponential_barycenter(
-                                points=points,
-                                weights=weights)
+        group_bar = group.group_exponential_barycenter(
+            points=points, weights=weights)
+        result = group.belongs(group_bar)
+        expected = gs.array([[True]])
 
-        self.assertTrue(group.belongs(result))
+        self.assertTrue(result, expected)
 
-    @geomstats.tests.np_only
     def test_squared_dist_is_symmetric(self):
         n = 3
         group = self.so[n]
@@ -3654,17 +3620,14 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     point_1 = group.regularize(point_1)
                     point_2 = group.regularize(point_2)
 
-                    sq_dist_1_2 = metric.squared_dist(point_1, point_2)
-                    sq_dist_2_1 = metric.squared_dist(point_2, point_1)
+                    sq_dist_1_2 = gs.mod(
+                        metric.squared_dist(point_1, point_2)+1e-4,
+                        gs.pi**2)
+                    sq_dist_2_1 = gs.mod(
+                        metric.squared_dist(point_2, point_1)+1e-4,
+                        gs.pi**2)
 
-                    self.assertTrue(gs.allclose(sq_dist_1_2, sq_dist_2_1),
-                                    'for point_1 {} and point_2 {}:\n'
-                                    'squared dist from 1 to 2: {}\n'
-                                    'squared dist from 2 to 1: {}\n'.format(
-                                                 angle_type_1,
-                                                 angle_type_2,
-                                                 sq_dist_1_2,
-                                                 sq_dist_2_1))
+                    self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=1e-4)
 
     @geomstats.tests.np_only
     def test_squared_dist_is_less_than_squared_pi(self):
@@ -3689,7 +3652,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 self.assertTrue(diff <= 0 or abs(diff) < EPSILON,
                                 'sq_dist = {}'.format(sq_dist))
 
-    @geomstats.tests.np_only
     def test_squared_dist_vectorization(self):
         n = 3
         group = self.so[n]
@@ -3711,50 +3673,24 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
             # Identity and n points 2
             result = metric.squared_dist(point_id, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.squared_dist(point_id, point_2)
-                                  for point_2 in n_point_2])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and identity
             result = metric.squared_dist(n_point_1, point_id)
-
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.squared_dist(point_1, point_id)
-                                  for point_1 in n_point_1])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # one point 1 and n points 2
             result = metric.squared_dist(one_point_1, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.squared_dist(one_point_1, point_2)
-                                  for point_2 in n_point_2])
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and one point 2
             result = metric.squared_dist(n_point_1, one_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.squared_dist(point_1, one_point_2)
-                                  for point_1 in n_point_1])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and n points 2
             result = metric.squared_dist(n_point_1, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
-            expected = gs.vstack([metric.squared_dist(point_1, point_2)
-                                  for point_1, point_2 in zip(n_point_1,
-                                                              n_point_2)])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
-
-    @geomstats.tests.np_only
     def test_dist_vectorization(self):
         n = 3
         group = self.so[n]
@@ -3776,54 +3712,24 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
             # Identity and n points 2
             result = metric.dist(point_id, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.dist(point_id, point_2)
-                                  for point_2 in n_point_2])
-            self.assertTrue(gs.allclose(result, expected),
-                            'result = {}, expected = {}\n'
-                            'with metric {}'.format(
-                                result, expected, metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and identity
             result = metric.dist(n_point_1, point_id)
-
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.dist(point_1, point_id)
-                                  for point_1 in n_point_1])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # one point 1 and n points 2
             result = metric.dist(one_point_1, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.dist(one_point_1, point_2)
-                                  for point_2 in n_point_2])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and one point 2
             result = metric.dist(n_point_1, one_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.dist(point_1, one_point_2)
-                                  for point_1 in n_point_1])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and n points 2
             result = metric.dist(n_point_1, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
-            expected = gs.vstack([metric.dist(point_1, point_2)
-                                  for point_1, point_2 in zip(n_point_1,
-                                                              n_point_2)])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
-
-    @geomstats.tests.np_only
     def test_geodesic_and_belongs(self):
         n = 3
         group = self.so[n]
@@ -3834,11 +3740,12 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         geodesic = metric.geodesic(initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
 
-        t = gs.linspace(start=0, stop=1, num=100)
+        t = gs.linspace(start=0., stop=1., num=100)
         points = geodesic(t)
-        self.assertTrue(gs.all(group.belongs(points)))
+        result = gs.all(group.belongs(points))
+        expected = True
+        self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_geodesic_subsample(self):
         # TODO(nina): Fix this test
         n = 3
@@ -3850,7 +3757,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         geodesic = metric.geodesic(initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
         n_steps = 100
-        t = gs.linspace(start=0, stop=1, num=n_steps+1)
+        t = gs.linspace(start=0., stop=1., num=n_steps+1)
         points = geodesic(t)
 
         tangent_vec_step = initial_tangent_vec / n_steps
