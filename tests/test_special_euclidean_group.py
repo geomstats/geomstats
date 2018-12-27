@@ -391,19 +391,19 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
     def test_group_exp_from_identity_vectorization(self):
         n_samples = self.n_samples
         tangent_vecs = self.group.random_uniform(n_samples=n_samples)
-        results = self.group.group_exp_from_identity(tangent_vecs)
+        result = self.group.group_exp_from_identity(tangent_vecs)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, self.group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
     @geomstats.tests.np_only
     def test_group_log_from_identity_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
-        results = self.group.group_log_from_identity(points)
+        result = self.group.group_log_from_identity(points)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, self.group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
     @geomstats.tests.np_only
     def test_group_exp_vectorization(self):
@@ -702,7 +702,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                                    metric=metric)
                 expected = helper.to_vector(expected)
 
-    @geomstats.tests.np_only
     def test_exp_from_identity_left(self):
         # Riemannian left-invariant metric given by
         # the canonical inner product on the lie algebra
@@ -713,15 +712,15 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         # General case
         tangent_rot_vec = gs.array([1., 1., 1.])  # NB: Regularized
         tangent_translation = gs.array([1., 0., -3.])
-        tangent_vec = gs.concatenate((tangent_rot_vec,
-                                      tangent_translation))
+        tangent_vec = gs.concatenate(
+            [tangent_rot_vec, tangent_translation],
+            axis=0)
         result = metric.exp_from_identity(tangent_vec)
         expected = tangent_vec
         expected = helper.to_vector(expected)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_log_from_identity_left(self):
         # Riemannian left-invariant metric given by
         # the canonical inner product on the lie algebra
@@ -732,25 +731,27 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         metric = self.metrics['left_canonical']
         # General case
         rot_vec = gs.array([0.1, 1, 0.9])  # NB: Regularized
-        translation = gs.array([1, -19, -3])
-        transfo = gs.concatenate([rot_vec, translation])
+        translation = gs.array([1., -19., -3.])
+        transfo = gs.concatenate(
+            [rot_vec, translation], axis=0)
 
         expected = transfo
         expected = helper.to_vector(expected)
         result = metric.log_from_identity(transfo)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
         # Edge case: angle < epsilon, where angle = norm(rot_vec)
         rot_vec = gs.array([1e-8, 0., 1e-9])  # NB: Regularized
-        translation = gs.array([10000, -5.9, -93])
-        transfo = gs.concatenate([rot_vec, translation])
+        translation = gs.array([10000., -5.9, -93])
+        transfo = gs.concatenate(
+            [rot_vec, translation], axis=0)
 
         expected = transfo
         expected = helper.to_vector(expected)
         result = metric.log_from_identity(transfo)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_exp_then_log_from_identity_left(self):
