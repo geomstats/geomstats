@@ -1249,7 +1249,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                           n_base_point)
             self.assertAllClose(gs.shape(result), (n_samples, 1))
 
-    @geomstats.tests.np_only
     def test_squared_dist_is_symmetric(self):
         for metric_type in self.metrics:
             metric = self.metrics[metric_type]
@@ -1261,15 +1260,8 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                     sq_dist_a_b = metric.squared_dist(point_a, point_b)
                     sq_dist_b_a = metric.squared_dist(point_b, point_a)
 
-                    self.assertTrue(gs.allclose(sq_dist_a_b, sq_dist_b_a),
-                                    'Squared dist a - b: {}\n'
-                                    'Squared dist b - a: {}\n'
-                                    ' for metric {}'.format(
-                                        sq_dist_a_b,
-                                        sq_dist_b_a,
-                                        metric_type))
+                    self.assertAllClose(sq_dist_a_b, sq_dist_b_a)
 
-    @geomstats.tests.np_only
     def test_dist_is_symmetric(self):
         for metric in self.metrics.values():
             for point_a in self.elements.values():
@@ -1279,9 +1271,8 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
                     dist_a_b = metric.dist(point_a, point_b)
                     dist_b_a = metric.dist(point_b, point_a)
-                    self.assertTrue(gs.allclose(dist_a_b, dist_b_a))
+                    self.assertAllClose(dist_a_b, dist_b_a)
 
-    @geomstats.tests.np_only
     def test_squared_dist_vectorization(self):
         n_samples = self.n_samples
         for metric_type in self.metrics:
@@ -1300,48 +1291,23 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
             # Identity and n points 2
             result = metric.squared_dist(point_id, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.squared_dist(point_id, point_2)
-                                  for point_2 in n_point_2])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and identity
             result = metric.squared_dist(n_point_1, point_id)
-
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.squared_dist(point_1, point_id)
-                                  for point_1 in n_point_1])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # one point 1 and n points 2
             result = metric.squared_dist(one_point_1, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.squared_dist(one_point_1, point_2)
-                                  for point_2 in n_point_2])
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and one point 2
             result = metric.squared_dist(n_point_1, one_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.squared_dist(point_1, one_point_2)
-                                  for point_1 in n_point_1])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and n points 2
             result = metric.squared_dist(n_point_1, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.squared_dist(point_1, point_2)
-                                  for point_1, point_2 in zip(n_point_1,
-                                                              n_point_2)])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
     @geomstats.tests.np_only
     def test_dist_vectorization(self):
