@@ -194,12 +194,12 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             new_angle = gs.pi - (angle - gs.pi)
 
             result = self.group.regularize(point)
-            expected_rot = gs.hstack(
+            expected_rot = gs.concatenate(
                 [- new_angle * (point[:3] / angle),
-                 gs.zeros(3)])
-            expected_trans = gs.hstack(
+                 gs.zeros(3)], axis=0)
+            expected_trans = gs.concatenate(
                 [gs.zeros(3),
-                 point[3:6]])
+                 point[3:6]], axis=0)
             expected = expected_rot + expected_trans
             expected = helper.to_vector(expected)
 
@@ -208,7 +208,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         angle_type = 'with_angle_2pi'
         point = self.elements[angle_type]
         result = self.group.regularize(point)
-        expected = gs.hstack([gs.zeros(3), point[3:6]])
+        expected = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
         expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
@@ -219,11 +219,11 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
         result = self.group.regularize(point)
 
-        expected_rot = gs.hstack(
+        expected_rot = gs.concatenate(
             [new_angle * point[:3] / angle,
-             gs.zeros(3)])
-        expected_trans = gs.hstack(
-            [gs.zeros(3), point[3:6]])
+             gs.zeros(3)], axis=0)
+        expected_trans = gs.concatenate(
+            [gs.zeros(3), point[3:6]], axis=0)
         expected = expected_rot + expected_trans
         expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
