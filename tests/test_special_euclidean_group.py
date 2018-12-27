@@ -145,13 +145,12 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         expected = gs.array([[True]] * n_samples)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_regularize(self):
         point = self.elements['with_angle_0']
         result = self.group.regularize(point)
         expected = point
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
         less_than_pi = ['with_angle_close_0',
                         'with_angle_close_pi_low']
@@ -160,7 +159,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             result = self.group.regularize(point)
             expected = point
             expected = helper.to_vector(expected)
-            self.assertTrue(gs.allclose(result, expected), angle_type)
+            self.assertAllClose(result, expected)
 
         # Note: by default, the rotation vector is inverted by
         # the function regularize when the angle of the rotation is pi.
@@ -169,27 +168,22 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         point = self.elements[angle_type]
         result = self.group.regularize(point)
 
-        expected = gs.zeros(6)
-        expected[:3] = point[:3]
-        expected[3:6] = point[3:6]
+        expected = point
         expected = helper.to_vector(expected)
 
-        self.assertTrue(gs.allclose(result, expected),
-                        '\n{}'
-                        '\npoint = {}'
-                        '\nresult = {}'
-                        '\nexpected = {}'.format(
-                            angle_type,
-                            point,
-                            result,
-                            expected))
+        self.assertAllClose(result, expected)
+
         angle_type = 'with_angle_close_pi_high'
         point = self.elements[angle_type]
         result = self.group.regularize(point)
-        expected = gs.zeros(6)
-        expected[:3] = point[:3] / gs.linalg.norm(point[:3]) * gs.pi
-        expected[3:6] = point[3:6]
-        self.assertTrue(gs.allclose(result, expected), angle_type)
+        expected_rot = gs.vstack(
+            [point[:3] / gs.linalg.norm(point[:3]) * gs.pi,
+             gs.zeros(3)])
+        expected_trans = gs.vstack(
+            [gs.zeros(3), point[3:6]])
+        expected = expected_rot + expected_trans
+        expected = helper.to_vector(expected)
+        self.assertAllClose(result, expected)
 
         in_pi_2pi = ['with_angle_in_pi_2pi',
                      'with_angle_close_2pi_low']
@@ -200,21 +194,23 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             new_angle = gs.pi - (angle - gs.pi)
 
             result = self.group.regularize(point)
-            expected = gs.zeros(6)
-            expected[:3] = - new_angle * (point[:3] / angle)
-            expected[3:6] = point[3:6]
+            expected_rot = gs.vstack(
+                [- new_angle * (point[:3] / angle),
+                 gs.zeros(3)])
+            expected_trans = gs.vstack(
+                [gs.zeros(3),
+                 point[3:6]])
+            expected = expected_rot + expected_trans
             expected = helper.to_vector(expected)
 
-            self.assertTrue(gs.allclose(result, expected), angle_type)
+            self.assertAllClose(result, expected)
 
         angle_type = 'with_angle_2pi'
         point = self.elements[angle_type]
         result = self.group.regularize(point)
-        expected = gs.zeros(6)
-        expected[:3] = gs.array([0., 0., 0.])
-        expected[3:6] = point[3:6]
+        expected = gs.vstack([gs.zeros(3), point[3:6]])
         expected = helper.to_vector(expected)
-        self.assertTrue(gs.allclose(result, expected), angle_type)
+        self.assertAllClose(result, expected)
 
         angle_type = 'with_angle_close_2pi_high'
         point = self.elements[angle_type]
@@ -223,19 +219,14 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
         result = self.group.regularize(point)
 
-        expected = gs.zeros(6)
-        expected[:3] = new_angle * point[:3] / angle
-        expected[3:6] = point[3:6]
+        expected_rot = gs.vstack(
+            [new_angle * point[:3] / angle,
+             gs.zeros(3)])
+        expected_trans = gs.vstack(
+            [gs.zeros(3), point[3:6]])
+        expected = expected_rot + expected_trans
         expected = helper.to_vector(expected)
-        self.assertTrue(gs.allclose(result, expected),
-                        '\n{}'
-                        '\npoint = {}'
-                        '\nresult = {}'
-                        '\nexpected = {}'.format(
-                                        angle_type,
-                                        point,
-                                        result,
-                                        expected))
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_regularize_vectorization(self):
