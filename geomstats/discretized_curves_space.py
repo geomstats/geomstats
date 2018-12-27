@@ -262,22 +262,21 @@ class SRVMetric(RiemannianMetric):
         procedure allows to get rid of the log between the end point of
         curve[k, :, :] and the starting point of curve[k + 1, :, :].
         """
-        srv_shape = gs.array(curve.shape)
-        srv_shape[-2] -= 1
-
         curve = gs.to_ndarray(curve, to_ndim=3)
         n_curves, n_sampling_points, n_coords = curve.shape
+        srv_shape = (n_curves, n_sampling_points-1, n_coords)
 
         curve = gs.reshape(curve, (n_curves * n_sampling_points, n_coords))
-        velocity = (n_sampling_points - 1) * self.embedding_metric.log(
+        coef = gs.cast(gs.array(n_sampling_points - 1), gs.float32)
+        velocity = coef * self.embedding_metric.log(
                 point=curve[1:, :], base_point=curve[:-1, :])
         velocity_norm = self.embedding_metric.norm(velocity, curve[:-1, :])
-        assert gs.all(velocity_norm != 0)
         srv = velocity / gs.sqrt(velocity_norm)
 
         index = gs.arange(n_curves * n_sampling_points - 1)
-        index_select = index[(index + 1) % n_sampling_points != 0]
-        srv = gs.reshape(srv[index_select, :], srv_shape)
+        mask = ~gs.equal((index + 1) % n_sampling_points, 0)
+        index_select = gs.gather(index, gs.squeeze(gs.where(mask)))
+        srv = gs.reshape(gs.gather(srv, index_select), srv_shape)
 
         return srv
 
@@ -290,10 +289,10 @@ class SRVMetric(RiemannianMetric):
             raise AssertionError('The square root velocity inverse is only '
                                  'implemented for dicretized curves embedded '
                                  'in a Euclidean space.')
-        if srv.ndim != starting_point.ndim:
+        if gs.ndim(srv) != gs.ndim(starting_point):
             starting_point = gs.transpose(
-                    np.tile(starting_point, (1, 1, 1)), (1, 0, 2)
-                    )
+                    np.tile(starting_point, (1, 1, 1)),
+                    axes=(1, 0, 2))
         srv_shape = srv.shape
         srv = gs.to_ndarray(srv, to_ndim=3)
         n_curves, n_sampling_points_minus_one, n_coords = srv.shape

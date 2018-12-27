@@ -198,12 +198,12 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         curves = curves_ab
         srv_curves = self.srv_metric_r3.square_root_velocity(curves)
-        starting_points = curves[:, [0], :]
+        starting_points = curves[:, 0, :]
         result = self.srv_metric_r3.square_root_velocity_inverse(
                 srv_curves, starting_points)
         expected = curves
 
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_srv_metric_exp_and_log(self):
@@ -222,7 +222,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                                         base_curve=curves_ab)
         expected = curves_bc
 
-        gs.testing.assert_allclose(result.squeeze(), expected, atol=self.atol)
+        self.assertAllClose(gs.squeeze(result), expected)
 
     @geomstats.tests.np_only
     def test_srv_metric_geodesic(self):
