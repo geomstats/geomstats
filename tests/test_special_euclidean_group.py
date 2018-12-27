@@ -264,7 +264,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_compose_and_inverse(self):
         point = self.elements['point_1']
         inv_point = self.group.inverse(point)
@@ -273,14 +272,14 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         result = self.group.compose(point, inv_point)
         expected = self.group.identity
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected, atol=1e-8)
+        self.assertAllClose(result, expected)
 
         # Compose transformation by its inverse on the left
         # Expect the group identity
         result = self.group.compose(inv_point, point)
         expected = self.group.identity
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected, atol=1e-8)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_compose_vectorization(self):
