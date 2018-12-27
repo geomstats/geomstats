@@ -228,14 +228,14 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_regularize_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
         regularized_points = self.group.regularize(points)
 
-        self.assertTrue(gs.allclose(regularized_points.shape,
-                                    (n_samples, self.group.dimension)))
+        self.assertAllClose(
+            gs.shape(regularized_points),
+            (n_samples, self.group.dimension))
 
     @geomstats.tests.np_only
     def test_compose(self):
