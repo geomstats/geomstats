@@ -199,12 +199,9 @@ class RiemannianMetric(object):
     def dist(self, point_a, point_b):
         """
         Geodesic distance between two points.
+        Note: It only works for positive definite
+        Riemannian metrics.
         """
-        n_negative_eigenvalues = self.signature[1]
-        if n_negative_eigenvalues > 0:
-            raise ValueError(
-                    'The method \'dist\' only works for positive-definite'
-                    ' Riemannian metrics and inner products.')
         sq_dist = self.squared_dist(point_a, point_b)
         dist = gs.sqrt(sq_dist)
         return dist
