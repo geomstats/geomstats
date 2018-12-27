@@ -281,7 +281,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_compose_vectorization(self):
         n_samples = self.n_samples
         n_points_a = self.group.random_uniform(n_samples=n_samples)
@@ -290,22 +289,25 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
         result = self.group.compose(one_point,
                                     n_points_a)
-        self.assertTrue(result.shape == (n_samples, self.group.dimension))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
         result = self.group.compose(n_points_a,
                                     one_point)
-        self.assertTrue(result.shape == (n_samples, self.group.dimension))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
         result = self.group.compose(n_points_a,
                                     n_points_b)
-        self.assertTrue(result.shape == (n_samples, self.group.dimension))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
-    @geomstats.tests.np_only
     def test_inverse_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
         result = self.group.inverse(points)
-        self.assertTrue(result.shape == (n_samples, self.group.dimension))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
     @geomstats.tests.np_only
     def test_left_jacobian_vectorization(self):
