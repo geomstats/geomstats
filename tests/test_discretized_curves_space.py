@@ -50,10 +50,11 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         self.curve_b = discretized_curve_b
         self.curve_c = discretized_curve_c
 
-    @geomstats.tests.np_only
     def test_belongs(self):
         result = self.space_curves_in_sphere_2d.belongs(self.curve_a)
-        self.assertTrue(gs.all(result))
+        expected = gs.array([[True]])
+
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_l2_metric_log_and_squared_norm_and_dist(self):

@@ -38,7 +38,10 @@ class DiscretizedCurvesSpace(EmbeddedManifold):
         self.square_root_velocity_metric = SRVMetric(self.embedding_manifold)
 
     def belongs(self, point):
-        return gs.all(self.embedding_manifold.belongs(point))
+        belongs = gs.all(self.embedding_manifold.belongs(point))
+        belongs = gs.to_ndarray(belongs, to_ndim=1)
+        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
+        return belongs
 
 
 class L2Metric(RiemannianMetric):
