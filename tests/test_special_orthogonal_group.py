@@ -3451,7 +3451,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                             or gs.allclose(result, inv_expected),
                             'on point {}'.format(angle_type))
 
-    @geomstats.tests.np_only
     def test_group_exp_then_log(self):
         """
         This tests that the composition of
@@ -3482,17 +3481,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                      base_point=base_point,
                                      metric=metric)
 
-                self.assertTrue(gs.allclose(result, expected, atol=1e-6),
-                                '\n- on tangent_vec {}: {} -> {}\n'
-                                '- base_point {}: {} -> {}\n'
-                                'result = {} -> {}\n'
-                                'expected = {} -> {}'.format(
-                             angle_type,
-                             tangent_vec, group.regularize(tangent_vec),
-                             angle_type_base,
-                             base_point, group.regularize(base_point),
-                             result, group.regularize(result),
-                             expected, group.regularize(expected)))
+                self.assertAllClose(result, expected, atol=1e-6)
 
     @geomstats.tests.np_only
     def test_group_exp_then_log_with_angles_close_to_pi(self):
@@ -3537,7 +3526,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                              result, group.regularize(result),
                              expected, group.regularize(expected)))
 
-    @geomstats.tests.np_only
     def test_group_log_then_exp(self):
         """
         This tests that the composition of
@@ -3551,6 +3539,8 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             if angle_type in self.angles_close_to_pi[3]:
                 continue
             for angle_type_base in self.elements[3]:
+                if angle_type_base in self.angles_close_to_pi[3]:
+                    continue
                 point = self.elements[3][angle_type]
                 base_point = self.elements[3][angle_type_base]
 
@@ -3560,17 +3550,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                              base_point=base_point)
                 expected = group.regularize(point)
 
-                self.assertTrue(gs.allclose(result, expected, atol=ATOL),
-                                '\n- on point {}: {} -> {}\n'
-                                '- base_point {}: {} -> {}\n'
-                                'result = {} -> {}\n'
-                                'expected = {} -> {}'.format(
-                                 angle_type,
-                                 point, group.regularize(point),
-                                 angle_type_base,
-                                 base_point, group.regularize(base_point),
-                                 result, group.regularize(result),
-                                 expected, group.regularize(expected)))
+                self.assertAllClose(result, expected, atol=ATOL)
 
     @geomstats.tests.np_only
     def test_group_log_then_exp_with_angles_close_to_pi(self):

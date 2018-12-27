@@ -128,6 +128,13 @@ class LieGroup(Manifold):
             base_point = identity
         base_point = self.regularize(base_point, point_type=point_type)
 
+        if point_type == 'vector':
+            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+            base_point = gs.to_ndarray(base_point, to_ndim=2)
+        if point_type == 'matrix':
+            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
+            base_point = gs.to_ndarray(base_point, to_ndim=3)
+
         n_tangent_vecs = tangent_vec.shape[0]
         n_base_points = base_point.shape[0]
 
