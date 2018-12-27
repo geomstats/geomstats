@@ -876,32 +876,31 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                    expected,
                                    inv_rot_expected))
 
-    @geomstats.tests.np_only
     def test_exp_left(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
         # is the 6x6 identity matrix
         metric = self.metrics['left_canonical']
         rot_vec_base_point = gs.array([0., 0., 0.])
-        translation_base_point = gs.array([4, -1, 10000])
-        transfo_base_point = gs.concatenate([rot_vec_base_point,
-                                            translation_base_point])
+        translation_base_point = gs.array([4., -1., 10000.])
+        transfo_base_point = gs.concatenate(
+            [rot_vec_base_point, translation_base_point], axis=0)
 
         # Tangent vector is a translation (no infinitesimal rotational part)
         # Expect the sum of the translation
         # with the translation of the reference point
         rot_vec = gs.array([0., 0., 0.])
-        translation = gs.array([1, 0, -3])
-        tangent_vec = gs.concatenate([rot_vec, translation])
+        translation = gs.array([1., 0., -3.])
+        tangent_vec = gs.concatenate([rot_vec, translation], axis=0)
 
         result = metric.exp(base_point=transfo_base_point,
                             tangent_vec=tangent_vec)
-        expected = gs.concatenate([gs.array([0., 0., 0.]),
-                                   gs.array([5, -1, 9997])])
+        expected = gs.concatenate(
+            [gs.array([0., 0., 0.]), gs.array([5., -1., 9997.])],
+            axis=0)
         expected = helper.to_vector(expected)
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_log_left(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
@@ -909,25 +908,26 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         metric = self.metrics['left_canonical']
         rot_vec_base_point = gs.array([0., 0., 0.])
         translation_base_point = gs.array([4., 0., 0.])
-        transfo_base_point = gs.concatenate([rot_vec_base_point,
-                                            translation_base_point])
+        transfo_base_point = gs.concatenate(
+            [rot_vec_base_point, translation_base_point], axis=0)
 
         # Point is a translation (no rotational part)
         # Expect the difference of the translation
         # by the translation of the reference point
         rot_vec = gs.array([0., 0., 0.])
         translation = gs.array([-1., -1., -1.2])
-        point = gs.concatenate([rot_vec,
-                                translation])
+        point = gs.concatenate(
+            [rot_vec, translation], axis=0)
 
-        expected = gs.concatenate([gs.array([0., 0., 0.]),
-                                   gs.array([-5., -1., -1.2])])
+        expected = gs.concatenate(
+            [gs.array([0., 0., 0.]), gs.array([-5., -1., -1.2])],
+            axis=0)
         expected = helper.to_vector(expected)
 
         result = metric.log(base_point=transfo_base_point,
                             point=point)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_log_then_exp_left(self):
