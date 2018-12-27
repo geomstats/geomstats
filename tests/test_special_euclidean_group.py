@@ -1227,7 +1227,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                           one_base_point)
             self.assertAllClose(gs.shape(result), (n_samples, 1))
 
-    @geomstats.tests.np_only
     def test_inner_product_n_base_point_vectorization(self):
         n_samples = self.n_samples
         for metric in self.metrics.values():
@@ -1240,29 +1239,15 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
             result = metric.inner_product(one_vector_a, n_vector_b,
                                           n_base_point)
-            expected = gs.vstack([metric.inner_product(one_vector_a, vec_b,
-                                                       base_point)
-                                  for vec_b, base_point in zip(n_vector_b,
-                                                               n_base_point)])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             result = metric.inner_product(n_vector_a, one_vector_b,
                                           n_base_point)
-            expected = gs.vstack([metric.inner_product(vec_a, one_vector_b,
-                                                       base_point)
-                                  for vec_a, base_point in zip(n_vector_a,
-                                                               n_base_point)])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             result = metric.inner_product(n_vector_a, n_vector_b,
                                           n_base_point)
-            expected = gs.vstack([metric.inner_product(vec_a, vec_b,
-                                                       base_point)
-                                  for vec_a, vec_b, base_point in zip(
-                                                                n_vector_a,
-                                                                n_vector_b,
-                                                                n_base_point)])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
     @geomstats.tests.np_only
     def test_squared_dist_is_symmetric(self):
