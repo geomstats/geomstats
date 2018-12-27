@@ -336,7 +336,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             self.assertAllClose(
                 gs.shape(result), (n_samples, self.group.dimension))
 
-    @geomstats.tests.np_only
     def test_exp_vectorization(self):
         n_samples = self.n_samples
 
@@ -350,43 +349,18 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
             # Test with the 1 base point, and n tangent vecs
             result = metric.exp(n_tangent_vec, one_base_point)
-            self.assertTrue(gs.allclose(result.shape,
-                                        (n_samples, self.group.dimension)))
-            expected = gs.vstack([metric.exp(tangent_vec, one_base_point)
-                                  for tangent_vec in n_tangent_vec])
-            self.assertTrue(gs.allclose(expected.shape,
-                                        (n_samples, self.group.dimension)))
-
-            self.assertTrue(gs.allclose(expected, result),
-                            'with metric {}:\n'
-                            'result:\n{}\n'
-                            'expected:\n{}'.format(metric_type,
-                                                   result,
-                                                   expected))
+            self.assertAllClose(
+                gs.shape(result), (n_samples, self.group.dimension))
 
             # Test with the several base point, and one tangent vec
             result = metric.exp(one_tangent_vec, n_base_point)
-            self.assertTrue(gs.allclose(result.shape,
-                                        (n_samples, self.group.dimension)))
-            expected = gs.vstack([metric.exp(one_tangent_vec, base_point)
-                                  for base_point in n_base_point])
-            self.assertTrue(gs.allclose(expected.shape,
-                                        (n_samples, self.group.dimension)))
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(
+                gs.shape(result), (n_samples, self.group.dimension))
 
             # Test with the same number n of base point and n tangent vec
             result = metric.exp(n_tangent_vec, n_base_point)
-            self.assertTrue(gs.allclose(result.shape,
-                                        (n_samples, self.group.dimension)))
-            expected = gs.vstack([metric.exp(tangent_vec, base_point)
-                                  for tangent_vec, base_point in zip(
-                                                               n_tangent_vec,
-                                                               n_base_point)])
-            self.assertTrue(gs.allclose(expected.shape,
-                                        (n_samples, self.group.dimension)))
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(
+                gs.shape(result), (n_samples, self.group.dimension))
 
     @geomstats.tests.np_only
     def test_log_vectorization(self):
