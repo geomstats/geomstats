@@ -11,6 +11,12 @@ float32 = tf.float32
 float64 = tf.float64
 
 
+def vectorize(x, pyfunc, **kwargs):
+    return tf.map_fn(
+        pyfunc,
+        elems=x)
+
+
 def sign(x):
     return tf.sign(x)
 

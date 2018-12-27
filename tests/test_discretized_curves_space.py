@@ -4,6 +4,7 @@ Unit tests for parameterized manifolds.
 
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 
 from geomstats.discretized_curves_space import DiscretizedCurvesSpace
 from geomstats.hypersphere import Hypersphere
@@ -66,6 +67,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         result = self.l2_metric_s2.squared_norm(
                 vector=log_ab, base_point=self.curve_a)
         expected = self.l2_metric_s2.dist(self.curve_a, self.curve_b) ** 2
+        expected = helper.to_scalar(expected)
 
         self.assertAllClose(result, expected)
 
@@ -81,11 +83,11 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=self.atol)
 
-    @geomstats.tests.np_only
     def test_l2_metric_inner_product_vectorization(self):
         """
         Test the vectorization inner_product.
         """
+        n_samples = self.n_discretized_curves
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
         curves_ab = curves_ab(self.times)
@@ -96,14 +98,8 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         result = self.l2_metric_s2.inner_product(
                 tangent_vecs, tangent_vecs, curves_ab)
-        expected = gs.zeros(self.n_discretized_curves)
-        for k in range(self.n_discretized_curves):
-            expected[k] = self.l2_metric_s2.inner_product(
-                    tangent_vecs[k, :],
-                    tangent_vecs[k, :],
-                    curves_ab[k, :])
 
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(gs.shape(result), (n_samples, 1))
 
     @geomstats.tests.np_only
     def test_l2_metric_dist_vectorization(self):
@@ -274,7 +270,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         expected = self.srv_metric_r3.square_root_velocity_inverse(
                 geod_srv, starting_points)
 
-        gs.testing.assert_allclose(result, expected, atol=self.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_srv_metric_dist_and_geod(self):
@@ -293,7 +289,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         result = gs.sum(result, 0) / self.n_discretized_curves
         expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)
 
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
 
 if __name__ == '__main__':

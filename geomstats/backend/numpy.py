@@ -9,6 +9,10 @@ float32 = np.float32
 float64 = np.float64
 
 
+def vectorize(x, pyfunc, **kwargs):
+    return np.vectorize(pyfunc, **kwargs)(x)
+
+
 def cond(pred, true_fn, false_fn):
     if pred:
         return true_fn()

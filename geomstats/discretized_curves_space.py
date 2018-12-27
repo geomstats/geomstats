@@ -2,6 +2,8 @@
 Parameterized manifold.
 """
 
+import tensorflow as tf
+
 import math
 
 import numpy as np
@@ -80,6 +82,8 @@ class L2Metric(RiemannianMetric):
         n_sampling_points_float = gs.array(n_sampling_points)
         n_sampling_points_float = gs.cast(n_sampling_points_float, gs.float32)
         inner_prod = inner_prod / n_sampling_points_float
+        inner_prod = gs.to_ndarray(inner_prod, to_ndim=1)
+        inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
         return inner_prod
 
@@ -184,19 +188,31 @@ class L2Metric(RiemannianMetric):
 
             tangent_vecs = gs.einsum('il,nkm->ikm', t, new_initial_tangent_vec)
 
-            curve_shape_at_time_t = (n_times, n_sampling_points, n_coords)
-            curve_at_time_t = gs.zeros(curve_shape_at_time_t)
-            for i in range(gs.eval(n_times)):
-                mask_i = get_mask_i_float(i, n_times)
+            def point_on_curve(tangent_vec):
+                assert gs.ndim(tangent_vec) >= 2
                 exp = self.exp(
-                            tangent_vec=tangent_vecs[i, :],
-                            base_curve=new_initial_curve)
-                exp = gs.tile(exp, (n_times, 1, 1))
-                curve_at_time_t += gs.einsum(
-                        'n,nij->nij',
-                        mask_i,
-                        exp)
+                    tangent_vec=tangent_vec,
+                    base_curve=new_initial_curve)
+                return exp
+
+            curve_at_time_t = gs.vectorize(
+                x=tangent_vecs,
+                pyfunc=point_on_curve,
+                signature='(i,j)->(i,j)')
+
             return curve_at_time_t
+
+           # for i in range(n_times):
+           #     mask_i = get_mask_i_float(i, n_times)
+           #     exp = self.exp(
+           #                 tangent_vec=tangent_vecs[i, :],
+           #                 base_curve=new_initial_curve)
+           #     exp = gs.tile(exp, (n_times, 1, 1))
+           #     curve_at_time_t += gs.einsum(
+           #             'n,nij->nij',
+           #             mask_i,
+           #             exp)
+           # return curve_at_time_t
 
         return curve_on_geodesic
 
