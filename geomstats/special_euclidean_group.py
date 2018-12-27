@@ -82,14 +82,15 @@ class SpecialEuclideanGroup(LieGroup):
 
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
-            _, point_dim = point.shape
+            n_points, point_dim = point.shape
             belongs = point_dim == self.dimension
+            belongs = gs.to_ndarray(belongs, to_ndim=1)
+            belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
+            belongs = gs.tile(belongs, (n_points, 1))
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
             raise NotImplementedError()
 
-        belongs = gs.to_ndarray(belongs, to_ndim=1)
-        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
         return belongs
 
     def regularize(self, point, point_type=None):

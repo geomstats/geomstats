@@ -138,11 +138,12 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         expected = gs.array([[True]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_random_and_belongs_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
-        self.assertTrue(self.group.belongs(points))
+        result = self.group.belongs(points)
+        expected = gs.array([[True]] * n_samples)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_regularize(self):
