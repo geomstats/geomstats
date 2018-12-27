@@ -1370,7 +1370,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
         self.assertTrue(self.group.belongs(result_3))
 
-    @geomstats.tests.np_only
     def test_geodesic_and_belongs(self):
         initial_point = self.group.random_uniform()
         initial_tangent_vec = gs.array([2., 0., -1., 0., 2., 3.])
@@ -1378,19 +1377,20 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         geodesic = metric.geodesic(initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
 
-        t = gs.linspace(start=0, stop=1, num=100)
+        t = gs.linspace(start=0., stop=1., num=100)
         points = geodesic(t)
-        self.assertTrue(gs.all(self.group.belongs(points)))
+        result = gs.all(self.group.belongs(points))
+        expected = True
+        self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_geodesic_subsample(self):
-        initial_point = self.group.random_uniform()
+        initial_point = gs.array([-1.1, 0., 0.99, 10., 2., 3.])
         initial_tangent_vec = gs.array([1., 0., 2., 1., 1., 1.])
         metric = self.metrics['left_canonical']
         geodesic = metric.geodesic(initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
-        n_steps = 100
-        t = gs.linspace(start=0, stop=1, num=n_steps+1)
+        n_steps = 10
+        t = gs.linspace(start=0., stop=1., num=n_steps+1)
         points = geodesic(t)
 
         tangent_vec_step = initial_tangent_vec / n_steps
@@ -1398,7 +1398,9 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             point_step = metric.exp(
                 tangent_vec=i * tangent_vec_step,
                 base_point=initial_point)
-            self.assertTrue(gs.allclose(point_step, points[i]))
+            result = point_step
+            expected = helper.to_vector(points[i])
+            self.assertAllClose(result, expected)
 
 
 if __name__ == '__main__':
