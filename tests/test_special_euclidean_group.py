@@ -309,16 +309,14 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         self.assertAllClose(
             gs.shape(result), (n_samples, self.group.dimension))
 
-    @geomstats.tests.np_only
     def test_left_jacobian_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
-        jacobians = self.group.jacobian_translation(point=points,
-                                                    left_or_right='left')
-        self.assertTrue(gs.allclose(
-                         jacobians.shape,
-                         (n_samples,
-                          self.group.dimension, self.group.dimension)))
+        result = self.group.jacobian_translation(
+            point=points, left_or_right='left')
+        self.assertAllClose(
+            gs.shape(result),
+            (n_samples, self.group.dimension, self.group.dimension))
 
     @geomstats.tests.np_only
     def test_exp_from_identity_vectorization(self):

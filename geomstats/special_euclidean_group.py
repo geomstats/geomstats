@@ -281,7 +281,6 @@ class SpecialEuclideanGroup(LieGroup):
         if point_type is None:
             point_type = self.default_point_type
 
-        assert self.belongs(point, point_type=point_type)
         assert left_or_right in ('left', 'right')
 
         dim = self.dimension
