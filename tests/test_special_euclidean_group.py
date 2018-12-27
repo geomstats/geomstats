@@ -815,7 +815,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                    expected,
                                    inv_rot_expected))
 
-    @geomstats.tests.np_only
     def test_exp_then_log_from_identity_right(self):
         """
         Test that the riemannian right exponential from the identity
@@ -838,13 +837,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                         metric=metric)
                 expected = helper.to_vector(expected)
 
-                self.assertTrue(gs.allclose(result, expected),
-                                '\ntangent_vec = {}'
-                                '\nresult = {}'
-                                '\nexpected = {}'.format(
-                                   tangent_vec,
-                                   result,
-                                   expected))
+                self.assertAllClose(result, expected, atol=1e-4)
 
     @geomstats.tests.np_only
     def test_exp_then_log_from_identity_right_with_angles_close_to_pi(self):
