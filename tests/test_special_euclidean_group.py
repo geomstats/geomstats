@@ -991,7 +991,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                        expected,
                                        inv_rot_expected))
 
-    @geomstats.tests.np_only
     def test_exp_then_log_left(self):
         """
         Test that the riemannian left exponential and the
@@ -1019,13 +1018,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                     atol = RTOL
                     if norm != 0:
                         atol = RTOL * norm
-                    self.assertTrue(gs.allclose(result, expected, atol=atol),
-                                    '\ntangent_vec = {}'
-                                    '\nresult = {}'
-                                    '\nexpected = {}'.format(
-                                   tangent_vec,
-                                   result,
-                                   expected))
+                    self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_exp_then_log_left_with_angles_close_to_pi(self):
