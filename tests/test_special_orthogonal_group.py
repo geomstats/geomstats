@@ -3739,7 +3739,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             result = metric.dist(n_point_1, n_point_2)
             self.assertAllClose(gs.shape(result), (n_samples, 1))
 
-    @geomstats.tests.np_only
     def test_geodesic_and_belongs(self):
         n = 3
         group = self.so[n]
@@ -3750,9 +3749,11 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         geodesic = metric.geodesic(initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
 
-        t = gs.linspace(start=0, stop=1, num=100)
+        t = gs.linspace(start=0., stop=1., num=100)
         points = geodesic(t)
-        self.assertTrue(gs.all(group.belongs(points)))
+        result = gs.all(group.belongs(points))
+        expected = True
+        self.assertAllClose(result, expected)
 
     def test_geodesic_subsample(self):
         # TODO(nina): Fix this test
