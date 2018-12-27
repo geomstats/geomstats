@@ -237,7 +237,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             gs.shape(regularized_points),
             (n_samples, self.group.dimension))
 
-    @geomstats.tests.np_only
     def test_compose(self):
         # Composition by identity, on the right
         # Expect the original transformation
@@ -246,7 +245,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                     self.group.identity)
         expected = point
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
         # Composition by identity, on the left
         # Expect the original transformation
@@ -254,7 +253,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                     point)
         expected = point
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
         # Composition of translations (no rotational part)
         # Expect the sum of the translations
@@ -263,7 +262,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         expected = (self.elements['translation_small']
                     + self.elements['translation_large'])
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_compose_and_inverse(self):
