@@ -3412,7 +3412,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                             or gs.allclose(result, inv_expected),
                             'on tangent_vec {}'.format(angle_type))
 
-    @geomstats.tests.np_only
     def test_group_log_then_exp_from_identity(self):
         """
         Test that the group exponential
@@ -3428,8 +3427,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                          group=group,
                                          point=point)
             expected = group.regularize(point)
-            self.assertTrue(gs.allclose(result, expected),
-                            'on point {}'.format(angle_type))
+            self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_group_log_then_exp_from_identity_with_angles_close_to_pi(self):
