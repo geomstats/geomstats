@@ -1309,7 +1309,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             result = metric.squared_dist(n_point_1, n_point_2)
             self.assertAllClose(gs.shape(result), (n_samples, 1))
 
-    @geomstats.tests.np_only
     def test_dist_vectorization(self):
         n_samples = self.n_samples
         for metric_type in self.metrics:
@@ -1328,50 +1327,23 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
             # Identity and n points 2
             result = metric.dist(point_id, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.dist(point_id, point_2)
-                                  for point_2 in n_point_2])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and identity
             result = metric.dist(n_point_1, point_id)
-
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.dist(point_1, point_id)
-                                  for point_1 in n_point_1])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # one point 1 and n points 2
             result = metric.dist(one_point_1, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.dist(one_point_1, point_2)
-                                  for point_2 in n_point_2])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and one point 2
             result = metric.dist(n_point_1, one_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.dist(point_1, one_point_2)
-                                  for point_1 in n_point_1])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and n points 2
             result = metric.dist(n_point_1, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.dist(point_1, point_2)
-                                  for point_1, point_2 in zip(n_point_1,
-                                                              n_point_2)])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
     @geomstats.tests.np_only
     def test_group_exponential_barycenter(self):
