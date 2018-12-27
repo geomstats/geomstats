@@ -3754,7 +3754,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         points = geodesic(t)
         self.assertTrue(gs.all(group.belongs(points)))
 
-    @geomstats.tests.np_only
     def test_geodesic_subsample(self):
         # TODO(nina): Fix this test
         n = 3
@@ -3766,7 +3765,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         geodesic = metric.geodesic(initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
         n_steps = 100
-        t = gs.linspace(start=0, stop=1, num=n_steps+1)
+        t = gs.linspace(start=0., stop=1., num=n_steps+1)
         points = geodesic(t)
 
         tangent_vec_step = initial_tangent_vec / n_steps
