@@ -3135,10 +3135,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     result = helper.exp_then_log(metric=metric,
                                                  tangent_vec=tangent_vec,
                                                  base_point=base_point)
-                    #regularized_result = group.regularize_tangent_vec(
-                    #                         tangent_vec=result,
-                    #                         base_point=base_point,
-                    #                         metric=metric)
 
                     reg_tangent_vec = group.regularize_tangent_vec(
                                                  tangent_vec=tangent_vec,
@@ -3146,11 +3142,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                                  metric=metric)
                     expected = reg_tangent_vec
 
-                    #regularized_expected = group.regularize_tangent_vec(
-                    #                             tangent_vec=expected,
-                    #                             base_point=base_point,
-                    #                             metric=metric)
-                    print('before test')
                     self.assertAllClose(result, expected, atol=1e-4)
 
     @geomstats.tests.np_only
