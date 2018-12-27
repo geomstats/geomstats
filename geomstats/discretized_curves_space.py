@@ -75,7 +75,11 @@ class L2Metric(RiemannianMetric):
         inner_prod = self.embedding_metric.inner_product(
                 tangent_vec_a, tangent_vec_b, base_curve)
         inner_prod = gs.reshape(inner_prod, (n_curves, n_sampling_points))
-        inner_prod = gs.sum(inner_prod, -1) / n_sampling_points
+        inner_prod = gs.sum(inner_prod, -1)
+
+        n_sampling_points_float = gs.array(n_sampling_points)
+        n_sampling_points_float = gs.cast(n_sampling_points_float, gs.float32)
+        inner_prod = inner_prod / n_sampling_points_float
 
         return inner_prod
 
@@ -94,7 +98,9 @@ class L2Metric(RiemannianMetric):
 
         dist = self.embedding_metric.dist(curve_a, curve_b)
         dist = gs.reshape(dist, (n_curves, n_sampling_points))
-        dist = gs.sqrt(gs.sum(dist ** 2, -1) / n_sampling_points)
+        n_sampling_points_float = gs.array(n_sampling_points)
+        n_sampling_points_float = gs.cast(n_sampling_points_float, gs.float32)
+        dist = gs.sqrt(gs.sum(dist ** 2, -1) / n_sampling_points_float)
 
         return dist
 
@@ -114,7 +120,7 @@ class L2Metric(RiemannianMetric):
 
         exp = self.embedding_metric.exp(new_tangent_vec, new_base_curve)
         exp = gs.reshape(exp, (n_tangent_vecs, n_sampling_points, n_coords))
-        exp = exp.squeeze()
+        exp = gs.squeeze(exp)
 
         return exp
 
@@ -134,7 +140,7 @@ class L2Metric(RiemannianMetric):
             base_curve, (n_curves * n_sampling_points, n_coords))
         log = self.embedding_metric.log(curve, base_curve)
         log = gs.reshape(log, (n_curves, n_sampling_points, n_coords))
-        log = log.squeeze()
+        log = gs.squeeze(log)
 
         return log
 
