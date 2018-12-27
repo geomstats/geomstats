@@ -318,25 +318,23 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             gs.shape(result),
             (n_samples, self.group.dimension, self.group.dimension))
 
-    @geomstats.tests.np_only
     def test_exp_from_identity_vectorization(self):
         n_samples = self.n_samples
         for metric in self.metrics.values():
             tangent_vecs = self.group.random_uniform(n_samples=n_samples)
-            results = metric.exp_from_identity(tangent_vecs)
+            result = metric.exp_from_identity(tangent_vecs)
 
-            self.assertTrue(gs.allclose(results.shape,
-                                        (n_samples, self.group.dimension)))
+            self.assertAllClose(
+                gs.shape(result), (n_samples, self.group.dimension))
 
-    @geomstats.tests.np_only
     def test_log_from_identity_vectorization(self):
         n_samples = self.n_samples
         for metric in self.metrics.values():
             points = self.group.random_uniform(n_samples=n_samples)
-            results = metric.log_from_identity(points)
+            result = metric.log_from_identity(points)
 
-            self.assertTrue(gs.allclose(results.shape,
-                                        (n_samples, self.group.dimension)))
+            self.assertAllClose(
+                gs.shape(result), (n_samples, self.group.dimension))
 
     @geomstats.tests.np_only
     def test_exp_vectorization(self):
