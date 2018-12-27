@@ -128,14 +128,15 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                    'with_angle_close_pi_high']
         self.n_samples = 3
 
-    @geomstats.tests.np_only
     def test_random_and_belongs(self):
         """
         Test that the random uniform method samples
         on the special euclidean group.
         """
         base_point = self.group.random_uniform()
-        self.assertTrue(self.group.belongs(base_point))
+        result = self.group.belongs(base_point)
+        expected = gs.array([[True]])
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_random_and_belongs_vectorization(self):
