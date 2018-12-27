@@ -193,8 +193,8 @@ class L2Metric(RiemannianMetric):
                 return exp
 
             curve_at_time_t = gs.vectorize(
-                x=tangent_vecs,
-                pyfunc=point_on_curve,
+                tangent_vecs,
+                point_on_curve,
                 signature='(i,j)->(i,j)')
 
             return curve_at_time_t
@@ -227,10 +227,18 @@ class SRVMetric(RiemannianMetric):
         n_tangent_vecs = tangent_vec_a.shape[0]
         n_sampling_points = tangent_vec_a.shape[1]
         inner_prod = gs.zeros([n_tangent_vecs, n_sampling_points])
-        for k in range(n_tangent_vecs):
-            inner_prod[k, :] = self.embedding_metric.inner_product(
-                    tangent_vec_a[k, :], tangent_vec_b[k, :],
-                    base_curve[k, :]).squeeze()
+
+        def inner_prod_aux(vec_a, vec_b, curve):
+            inner_prod = self.embedding_metric.inner_product(
+                vec_a, vec_b, curve)
+            return gs.squeeze(inner_prod)
+
+        inner_prod = gs.vectorize(
+            (tangent_vec_a, tangent_vec_b, base_curve),
+            lambda x, y, z: inner_prod_aux(x, y, z),
+            dtype=gs.float32,
+            multiple_args=True,
+            signature='(i,j),(i,j),(i,j)->(i)')
 
         return inner_prod
 

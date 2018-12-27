@@ -171,7 +171,6 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                 initial_curve=curves_ab,
                 end_curve=curves_bc)
 
-    @geomstats.tests.np_only
     def test_srv_metric_pointwise_inner_product(self):
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
@@ -185,8 +184,8 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                 tangent_vec_a=tangent_vecs,
                 tangent_vec_b=tangent_vecs,
                 base_curve=curves_ab)
-        expected_shape = [self.n_discretized_curves, self.n_sampling_points]
-        gs.testing.assert_allclose(result.shape, expected_shape)
+        expected_shape = (self.n_discretized_curves, self.n_sampling_points)
+        self.assertAllClose(gs.shape(result), expected_shape)
 
     @geomstats.tests.np_only
     def test_square_root_velocity_and_inverse(self):

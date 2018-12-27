@@ -11,10 +11,10 @@ float32 = tf.float32
 float64 = tf.float64
 
 
-def vectorize(x, pyfunc, **kwargs):
-    return tf.map_fn(
-        pyfunc,
-        elems=x)
+def vectorize(x, pyfunc, multiple_args=False, dtype=None, **kwargs):
+    if multiple_args:
+        return tf.map_fn(lambda x: pyfunc(*x), elems=x, dtype=dtype)
+    return tf.map_fn(pyfunc, elems=x, dtype=dtype)
 
 
 def sign(x):
