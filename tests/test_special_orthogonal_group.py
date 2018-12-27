@@ -3610,13 +3610,13 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         points = gs.vstack([rot_vec, rot_vec])
         weights = gs.array([1., 2.])
-        result = group.group_exponential_barycenter(
-                                points=points,
-                                weights=weights)
+        group_bar = group.group_exponential_barycenter(
+            points=points, weights=weights)
+        result = group.belongs(group_bar)
+        expected = gs.array([[True]])
 
-        self.assertTrue(group.belongs(result))
+        self.assertTrue(result, expected)
 
-    @geomstats.tests.np_only
     def test_squared_dist_is_symmetric(self):
         n = 3
         group = self.so[n]
@@ -3629,17 +3629,14 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     point_1 = group.regularize(point_1)
                     point_2 = group.regularize(point_2)
 
-                    sq_dist_1_2 = metric.squared_dist(point_1, point_2)
-                    sq_dist_2_1 = metric.squared_dist(point_2, point_1)
+                    sq_dist_1_2 = gs.mod(
+                        metric.squared_dist(point_1, point_2)+1e-4,
+                        gs.pi**2)
+                    sq_dist_2_1 = gs.mod(
+                        metric.squared_dist(point_2, point_1)+1e-4,
+                        gs.pi**2)
 
-                    self.assertTrue(gs.allclose(sq_dist_1_2, sq_dist_2_1),
-                                    'for point_1 {} and point_2 {}:\n'
-                                    'squared dist from 1 to 2: {}\n'
-                                    'squared dist from 2 to 1: {}\n'.format(
-                                                 angle_type_1,
-                                                 angle_type_2,
-                                                 sq_dist_1_2,
-                                                 sq_dist_2_1))
+                    self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=1e-4)
 
     @geomstats.tests.np_only
     def test_squared_dist_is_less_than_squared_pi(self):
