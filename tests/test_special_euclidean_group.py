@@ -753,7 +753,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_exp_then_log_from_identity_left(self):
         """
         Test that the riemannian left exponential from the identity
@@ -776,13 +775,8 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                                 tangent_vec,
                                                 metric=metric)
                 expected = helper.to_vector(expected)
-                self.assertTrue(gs.allclose(result, expected),
-                                '\ntangent_vec = {}'
-                                '\nresult = {}'
-                                '\nexpected = {}'.format(
-                                   tangent_vec,
-                                   result,
-                                   expected))
+                self.assertAllClose(result, expected)
+
 
     @geomstats.tests.np_only
     def test_exp_then_log_from_identity_left_with_angles_close_to_pi(self):
