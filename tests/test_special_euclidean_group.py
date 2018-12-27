@@ -1130,7 +1130,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                        expected,
                                        inv_rot_expected))
 
-    @geomstats.tests.np_only
     def test_exp_then_log_right(self):
         """
         Test that the riemannian left exponential and the
@@ -1189,7 +1188,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                     if norm != 0:
                         atol = RTOL * norm
 
-    @geomstats.tests.np_only
     def test_inner_product_at_identity_vectorization(self):
         n_samples = self.n_samples
         for metric in self.metrics.values():
@@ -1199,22 +1197,14 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             n_vector_b = self.group.random_uniform(n_samples=n_samples)
 
             result = metric.inner_product(one_vector_a, n_vector_b)
-            expected = gs.vstack([metric.inner_product(one_vector_a, vec_b)
-                                  for vec_b in n_vector_b])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             result = metric.inner_product(n_vector_a, one_vector_b)
-            expected = gs.vstack([metric.inner_product(vec_a, one_vector_b)
-                                  for vec_a in n_vector_a])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             result = metric.inner_product(n_vector_a, n_vector_b)
-            expected = gs.vstack([metric.inner_product(vec_a, vec_b)
-                                  for vec_a, vec_b in zip(n_vector_a,
-                                                          n_vector_b)])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
-    @geomstats.tests.np_only
     def test_inner_product_one_base_point_vectorization(self):
         n_samples = self.n_samples
         for metric in self.metrics.values():
@@ -1227,25 +1217,15 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
             result = metric.inner_product(one_vector_a, n_vector_b,
                                           one_base_point)
-            expected = gs.vstack([metric.inner_product(one_vector_a, vec_b,
-                                                       one_base_point)
-                                  for vec_b in n_vector_b])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             result = metric.inner_product(n_vector_a, one_vector_b,
                                           one_base_point)
-            expected = gs.vstack([metric.inner_product(vec_a, one_vector_b,
-                                                       one_base_point)
-                                  for vec_a in n_vector_a])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             result = metric.inner_product(n_vector_a, n_vector_b,
                                           one_base_point)
-            expected = gs.vstack([metric.inner_product(vec_a, vec_b,
-                                                       one_base_point)
-                                  for vec_a, vec_b in zip(n_vector_a,
-                                                          n_vector_b)])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
     @geomstats.tests.np_only
     def test_inner_product_n_base_point_vectorization(self):
