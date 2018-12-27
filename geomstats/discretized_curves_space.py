@@ -2,8 +2,6 @@
 Parameterized manifold.
 """
 
-import tensorflow as tf
-
 import math
 
 import numpy as np
@@ -158,8 +156,6 @@ class L2Metric(RiemannianMetric):
         curve_ndim = 2
         initial_curve = gs.to_ndarray(initial_curve,
                                       to_ndim=curve_ndim+1)
-        n_sampling_points = initial_curve.shape[1]
-        n_coords = initial_curve.shape[2]
 
         if end_curve is None and initial_tangent_vec is None:
             raise ValueError('Specify an end curve or an initial tangent '
@@ -180,7 +176,6 @@ class L2Metric(RiemannianMetric):
             t = gs.cast(t, gs.float32)
             t = gs.to_ndarray(t, to_ndim=1)
             t = gs.to_ndarray(t, to_ndim=2, axis=1)
-            n_times = gs.shape(t)[0]
             new_initial_curve = gs.to_ndarray(initial_curve,
                                               to_ndim=curve_ndim+1)
             new_initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
@@ -201,18 +196,6 @@ class L2Metric(RiemannianMetric):
                 signature='(i,j)->(i,j)')
 
             return curve_at_time_t
-
-           # for i in range(n_times):
-           #     mask_i = get_mask_i_float(i, n_times)
-           #     exp = self.exp(
-           #                 tangent_vec=tangent_vecs[i, :],
-           #                 base_curve=new_initial_curve)
-           #     exp = gs.tile(exp, (n_times, 1, 1))
-           #     curve_at_time_t += gs.einsum(
-           #             'n,nij->nij',
-           #             mask_i,
-           #             exp)
-           # return curve_at_time_t
 
         return curve_on_geodesic
 
