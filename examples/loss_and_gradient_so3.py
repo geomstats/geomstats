@@ -34,9 +34,6 @@ def grad(y_pred, y_true,
         grad = lie_group.grad(y_pred, y_true, SO3, metric)
 
     if representation == 'quaternion':
-        differential = gs.zeros((1, 6, 7))
-
-        differential = gs.zeros((1, 3, 4))
         quat_scalar = y_pred[:, :1]
         quat_vec = y_pred[:, 1:]
 
@@ -45,13 +42,19 @@ def grad(y_pred, y_true,
 
         quat_arctan2 = gs.arctan2(quat_vec_norm, quat_scalar)
         differential_scalar = - 2 * quat_vec / (quat_sq_norm)
+        differential_scalar = gs.to_ndarray(differential_scalar, to_ndim=2)
+        differential_scalar = gs.transpose(differential_scalar)
+
         differential_vec = (2 * (quat_scalar / quat_sq_norm
                                  - 2 * quat_arctan2 / quat_vec_norm)
-                            * gs.outer(quat_vec, quat_vec) / quat_vec_norm ** 2
+                            * (gs.einsum('ni,nj->nij', quat_vec, quat_vec)
+                               / quat_vec_norm ** 2)
                             + 2 * quat_arctan2 / quat_vec_norm * gs.eye(3))
+        differential_vec = gs.squeeze(differential_vec)
 
-        differential[0, :, :1] = differential_scalar.transpose()
-        differential[0, :, 1:] = differential_vec
+        differential = gs.concatenate(
+            [differential_scalar, differential_vec],
+            axis=1)
 
         y_pred = SO3.rotation_vector_from_quaternion(y_pred)
         y_true = SO3.rotation_vector_from_quaternion(y_true)
@@ -80,18 +83,18 @@ def main():
     sin = gs.sin(angle / 2)
     u = gs.array([1., 2., 3.])
     u = u / gs.linalg.norm(u)
-    scalar = gs.array(cos)
+    scalar = gs.to_ndarray(cos, to_ndim=1)
     vec = sin * u
-    y_pred_quaternion = gs.hstack([scalar, vec])
+    y_pred_quaternion = gs.concatenate([scalar, vec], axis=0)
 
     angle = gs.pi / 7
     cos = gs.cos(angle / 2)
     sin = gs.sin(angle / 2)
     u = gs.array([1., 2., 3.])
     u = u / gs.linalg.norm(u)
-    scalar = gs.array(cos)
+    scalar = gs.to_ndarray(cos, to_ndim=1)
     vec = sin * u
-    y_true_quaternion = gs.hstack([scalar, vec])
+    y_true_quaternion = gs.concatenate([scalar, vec], axis=0)
 
     loss_quaternion = loss(y_pred_quaternion, y_true_quaternion,
                            representation='quaternion')
