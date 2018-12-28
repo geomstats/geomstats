@@ -1,6 +1,10 @@
 """
 Predict on SE3: losses.
 """
+
+import os
+import tensorflow as tf
+
 import geomstats.backend as gs
 import geomstats.lie_group as lie_group
 
@@ -99,7 +103,11 @@ def main():
 
     loss_rot_vec = loss(y_pred, y_true)
     grad_rot_vec = grad(y_pred, y_true)
-    print('The loss between the rotation vectors is: {}'.format(
+    if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
+        with tf.Session() as sess:
+            loss_rot_vec = sess.run(loss_rot_vec)
+            grad_rot_vec = sess.run(grad_rot_vec)
+    print('The loss between the poses using rotation vectors is: {}'.format(
         loss_rot_vec[0, 0]))
     print('The riemannian gradient is: {}'.format(grad_rot_vec))
 
@@ -127,7 +135,11 @@ def main():
                            representation='quaternion')
     grad_quaternion = grad(y_pred_quaternion, y_true_quaternion,
                            representation='quaternion')
-    print('The loss between the quaternions is: {}'.format(
+    if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
+        with tf.Session() as sess:
+            loss_quaternion = sess.run(loss_quaternion)
+            grad_quaternion = sess.run(grad_quaternion)
+    print('The loss between the poses using quaternions is: {}'.format(
         loss_quaternion[0, 0]))
     print('The riemannian gradient is: {}'.format(
         grad_quaternion))
