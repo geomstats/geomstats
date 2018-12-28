@@ -4,6 +4,7 @@ Unit tests for parameterized manifolds.
 
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 
 from geomstats.discretized_curves_space import DiscretizedCurvesSpace
 from geomstats.hypersphere import Hypersphere
@@ -36,7 +37,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         self.n_discretized_curves = 5
         self.times = gs.linspace(0., 1., self.n_discretized_curves)
-        self.atol = 1e-8
+        self.atol = 1e-6
         gs.random.seed(1234)
         self.space_curves_in_euclidean_3d = DiscretizedCurvesSpace(
                 embedding_manifold=r3)
@@ -50,12 +51,12 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         self.curve_b = discretized_curve_b
         self.curve_c = discretized_curve_c
 
-    @geomstats.tests.np_only
     def test_belongs(self):
         result = self.space_curves_in_sphere_2d.belongs(self.curve_a)
-        self.assertTrue(gs.all(result))
+        expected = gs.array([[True]])
 
-    @geomstats.tests.np_only
+        self.assertAllClose(result, expected)
+
     def test_l2_metric_log_and_squared_norm_and_dist(self):
         """
         Test that squared norm of logarithm is squared dist.
@@ -66,10 +67,10 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         result = self.l2_metric_s2.squared_norm(
                 vector=log_ab, base_point=self.curve_a)
         expected = self.l2_metric_s2.dist(self.curve_a, self.curve_b) ** 2
+        expected = helper.to_scalar(expected)
 
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_l2_metric_log_and_exp(self):
         """
         Test that exp and log are inverse maps.
@@ -80,13 +81,13 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                                        base_curve=self.curve_a)
         expected = self.curve_b
 
-        gs.testing.assert_allclose(result, expected, atol=self.atol)
+        self.assertAllClose(result, expected, atol=self.atol)
 
-    @geomstats.tests.np_only
     def test_l2_metric_inner_product_vectorization(self):
         """
         Test the vectorization inner_product.
         """
+        n_samples = self.n_discretized_curves
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
         curves_ab = curves_ab(self.times)
@@ -97,20 +98,14 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         result = self.l2_metric_s2.inner_product(
                 tangent_vecs, tangent_vecs, curves_ab)
-        expected = gs.zeros(self.n_discretized_curves)
-        for k in range(self.n_discretized_curves):
-            expected[k] = self.l2_metric_s2.inner_product(
-                    tangent_vecs[k, :],
-                    tangent_vecs[k, :],
-                    curves_ab[k, :])
 
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(gs.shape(result), (n_samples, 1))
 
-    @geomstats.tests.np_only
     def test_l2_metric_dist_vectorization(self):
         """
         Test the vectorization of dist.
         """
+        n_samples = self.n_discretized_curves
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
         curves_ab = curves_ab(self.times)
@@ -118,14 +113,8 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         result = self.l2_metric_s2.dist(
                 curves_ab, curves_bc)
-        expected = gs.zeros(self.n_discretized_curves)
-        for k in range(self.n_discretized_curves):
-            expected[k] = self.l2_metric_s2.dist(
-                    curves_ab[k, :], curves_bc[k, :])
+        self.assertAllClose(gs.shape(result), (n_samples, 1))
 
-        gs.testing.assert_allclose(result, expected)
-
-    @geomstats.tests.np_only
     def test_l2_metric_exp_vectorization(self):
         """
         Test the vectorization of exp.
@@ -141,15 +130,8 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         result = self.l2_metric_s2.exp(
                 tangent_vec=tangent_vecs,
                 base_curve=curves_ab)
-        expected = gs.zeros(curves_ab.shape)
-        for k in range(self.n_discretized_curves):
-            expected[k, :] = self.l2_metric_s2.exp(
-                    tangent_vec=tangent_vecs[k, :],
-                    base_curve=curves_ab[k, :])
+        self.assertAllClose(gs.shape(result), gs.shape(curves_ab))
 
-        gs.testing.assert_allclose(result, expected)
-
-    @geomstats.tests.np_only
     def test_l2_metric_log_vectorization(self):
         """
         Test the vectorization of log.
@@ -163,13 +145,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                 curve=curves_bc, base_curve=curves_ab)
 
         result = tangent_vecs
-        expected = gs.zeros(curves_ab.shape)
-        for k in range(self.n_discretized_curves):
-            expected[k, :] = self.l2_metric_s2.log(
-                    curve=curves_bc[k, :],
-                    base_curve=curves_ab[k, :])
-
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(gs.shape(result), gs.shape(curves_ab))
 
     @geomstats.tests.np_only
     def test_l2_metric_geodesic(self):
@@ -195,7 +171,6 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                 initial_curve=curves_ab,
                 end_curve=curves_bc)
 
-    @geomstats.tests.np_only
     def test_srv_metric_pointwise_inner_product(self):
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
@@ -209,8 +184,8 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                 tangent_vec_a=tangent_vecs,
                 tangent_vec_b=tangent_vecs,
                 base_curve=curves_ab)
-        expected_shape = [self.n_discretized_curves, self.n_sampling_points]
-        gs.testing.assert_allclose(result.shape, expected_shape)
+        expected_shape = (self.n_discretized_curves, self.n_sampling_points)
+        self.assertAllClose(gs.shape(result), expected_shape)
 
     @geomstats.tests.np_only
     def test_square_root_velocity_and_inverse(self):
@@ -223,12 +198,12 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         curves = curves_ab
         srv_curves = self.srv_metric_r3.square_root_velocity(curves)
-        starting_points = curves[:, [0], :]
+        starting_points = curves[:, 0, :]
         result = self.srv_metric_r3.square_root_velocity_inverse(
                 srv_curves, starting_points)
         expected = curves
 
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_srv_metric_exp_and_log(self):
@@ -247,7 +222,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                                         base_curve=curves_ab)
         expected = curves_bc
 
-        gs.testing.assert_allclose(result.squeeze(), expected, atol=self.atol)
+        self.assertAllClose(gs.squeeze(result), expected)
 
     @geomstats.tests.np_only
     def test_srv_metric_geodesic(self):
@@ -275,7 +250,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         expected = self.srv_metric_r3.square_root_velocity_inverse(
                 geod_srv, starting_points)
 
-        gs.testing.assert_allclose(result, expected, atol=self.atol)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_srv_metric_dist_and_geod(self):
@@ -294,7 +269,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         result = gs.sum(result, 0) / self.n_discretized_curves
         expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)
 
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
 
 if __name__ == '__main__':

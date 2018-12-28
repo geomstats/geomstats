@@ -9,6 +9,16 @@ float32 = np.float32
 float64 = np.float64
 
 
+def gather(x, indices):
+    return x[indices]
+
+
+def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
+    if multiple_args:
+        return np.vectorize(pyfunc, signature=signature)(*x)
+    return np.vectorize(pyfunc, signature=signature)(x)
+
+
 def cond(pred, true_fn, false_fn):
     if pred:
         return true_fn()
