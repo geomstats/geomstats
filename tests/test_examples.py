@@ -2,10 +2,10 @@
 Unit tests for the examples.
 """
 
-import os
 import matplotlib
 matplotlib.use('Agg')  # NOQA
 import matplotlib.pyplot as plt
+import os
 import sys
 import warnings
 
