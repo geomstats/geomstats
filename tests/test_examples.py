@@ -42,7 +42,6 @@ class TestExamples(geomstats.tests.TestCase):
     def test_loss_and_gradient_so3(self):
         loss_and_gradient_so3.main()
 
-    @geomstats.tests.np_only
     def test_loss_and_gradient_se3(self):
         loss_and_gradient_se3.main()
 
