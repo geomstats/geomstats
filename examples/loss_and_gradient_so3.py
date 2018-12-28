@@ -76,7 +76,7 @@ def main():
     print('The loss between the rotation vectors is: {}'.format(
         loss_rot_vec[0, 0]))
     print('The riemannian gradient is: {}'.format(
-        grad_rot_vec[0]))
+        grad_rot_vec))
 
     angle = gs.pi / 6
     cos = gs.cos(angle / 2)
@@ -103,7 +103,7 @@ def main():
     print('The loss between the quaternions is: {}'.format(
         loss_quaternion[0, 0]))
     print('The riemannian gradient is: {}'.format(
-        grad_quaternion[0]))
+        grad_quaternion))
 
 
 if __name__ == "__main__":
