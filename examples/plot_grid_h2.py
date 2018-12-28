@@ -5,6 +5,9 @@ with Poincare Disk visualization.
 
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+# Examples with visualizations are only implemented with numpy
+os.environ['GEOMSTATS_BACKEND'] = 'numpy'  # NOQA
 
 import geomstats.visualization as visualization
 
