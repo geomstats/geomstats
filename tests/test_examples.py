@@ -20,9 +20,9 @@ import examples.plot_grid_h2 as plot_grid_h2
 import examples.plot_square_h2_poincare_disk as plot_square_h2_poincare_disk
 import examples.plot_square_h2_poincare_half_plane as plot_square_h2_poincare_half_plane  # NOQA
 import examples.plot_square_h2_klein_disk as plot_square_h2_klein_disk
-import examples.tangent_pca_so3 as tangent_pca_so3
 import examples.plot_quantization_s1 as plot_quantization_s1
 import examples.plot_quantization_s2 as plot_quantization_s2
+import examples.tangent_pca_so3 as tangent_pca_so3
 import geomstats.tests
 
 

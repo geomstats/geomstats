@@ -5,8 +5,6 @@ Plot a geodesic on the sphere S2
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-# Examples with visualizations are only implemented with numpy
-os.environ['GEOMSTATS_BACKEND'] = 'numpy'  # NOQA
 
 import geomstats.visualization as visualization
 
@@ -33,4 +31,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
+        print('Examples with visualizations are only implemented '
+              'with numpy backend.\n'
+              'To change backend, write: '
+              'export GEOMSTATS_BACKEND = \'numpy\'.')
+    else:
+        main()
