@@ -2477,8 +2477,10 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             expected = group.regularize(point)
             inv_expected = - expected
 
-            #    self.assertAllClose(result, expected)
-            #    or self.assertAllClose(result, inv_expected)
+            with self.session():
+                self.assertTrue(
+                    gs.eval(gs.allclose(result, expected))
+                    or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_quaternion_and_rotation_vector(self):
         for n in self.n_seq:
@@ -2507,7 +2509,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     lambda: group.rotation_vector_from_quaternion(
                         fake_quaternion))
 
-    @geomstats.tests.np_only
     def test_quaternion_and_rotation_vector_with_angles_close_to_pi(self):
         n = 3
         group = self.so[n]
@@ -2522,14 +2523,10 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             expected = group.regularize(point)
             inv_expected = - expected
 
-            self.assertTrue((gs.allclose(result, expected)
-                            or gs.allclose(result, inv_expected)),
-                            'for point {}:\n'
-                            'result = {}; expected = {};'
-                            'inv_expected = {} '.format(angle_type,
-                                                        result,
-                                                        expected,
-                                                        inv_expected))
+            with self.session():
+                self.assertTrue(
+                    gs.eval(gs.allclose(result, expected))
+                    or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_quaternion_and_rotation_vector_vectorization(self):
         n = 3
@@ -2613,7 +2610,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     lambda: group.matrix_from_quaternion(
                         fake_quaternion))
 
-    @geomstats.tests.np_only
     def test_quaternion_and_matrix_with_angles_close_to_pi(self):
         n = 3
         group = self.so[n]
@@ -2629,14 +2625,10 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             expected = matrix
             inv_expected = gs.linalg.inv(matrix)
 
-            self.assertTrue((gs.allclose(result, expected)
-                            or gs.allclose(result, inv_expected)),
-                            'for point {}:\n'
-                            'result = {}; expected = {};'
-                            'inv_expected = {} '.format(angle_type,
-                                                        result,
-                                                        expected,
-                                                        inv_expected))
+            with self.session():
+                self.assertTrue(
+                    gs.eval(gs.allclose(result, expected))
+                    or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_quaternion_and_rotation_vector_and_matrix_vectorization(self):
         n = 3
@@ -2671,15 +2663,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     else:
                         inv_expected = - expected
                         with self.session():
-                            result = gs.eval(result)
-                            expected = gs.eval(expected)
-                            inv_expected = gs.eval(inv_expected)
-                            bool_1 = gs.eval(gs.allclose(
-                                result, expected))
-                            bool_2 = gs.eval(gs.allclose(
-                                result, inv_expected))
-
-                            # self.assertTrue(bool_1 or bool_2)
+                            self.assertTrue(
+                                gs.eval(gs.allclose(result, expected))
+                                or gs.eval(gs.allclose(result, inv_expected)))
 
                     # Composition by identity, on the left
                     # Expect the original transformation
@@ -2691,14 +2677,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     else:
                         inv_expected = - expected
                         with self.session():
-                            result = gs.eval(result)
-                            expected = gs.eval(expected)
-                            inv_expected = gs.eval(inv_expected)
-                            bool_1 = gs.eval(gs.allclose(
-                                result, expected))
-                            bool_2 = gs.eval(gs.allclose(
-                                result, inv_expected))
-                            # self.assertTrue(bool_1 or bool_2)
+                            self.assertTrue(
+                                gs.eval(gs.allclose(result, expected))
+                                or gs.eval(gs.allclose(result, inv_expected)))
 
             else:
                 angle = 0.986
@@ -3022,7 +3003,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                 self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_exp_then_log_from_identity_with_angles_close_to_pi(self):
         """
         This tests that the composition of
@@ -3045,18 +3025,10 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                                 tangent_vec=tangent_vec,
                                                 metric=metric)
                 inv_expected = - expected
-
-                self.assertTrue(gs.allclose(result, expected)
-                                or gs.allclose(result, inv_expected),
-                                '\nmetric {}\n'
-                                '- on tangent_vec {}: {}\n'
-                                'result = {}\n'
-                                'expected = {}'.format(
-                                                     metric_type,
-                                                     angle_type,
-                                                     tangent_vec,
-                                                     result,
-                                                     expected))
+                with self.session():
+                    self.assertTrue(
+                        gs.eval(gs.allclose(result, expected))
+                        or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_log_then_exp_from_identity(self):
         """
@@ -3080,7 +3052,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                 self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_log_then_exp_from_identity_with_angles_close_to_pi(self):
         """
         This tests that the composition of
@@ -3100,17 +3071,11 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 result = helper.log_then_exp_from_identity(metric, point)
                 expected = group.regularize(point)
                 inv_expected = - expected
-                self.assertTrue(gs.allclose(result, expected)
-                                or gs.allclose(result, inv_expected),
-                                '\nmetric {}\n'
-                                '- on point {}: {}\n'
-                                'result = {}\n'
-                                'expected = {}'.format(
-                                                         metric_type,
-                                                         angle_type,
-                                                         point,
-                                                         result,
-                                                         expected))
+
+                with self.session():
+                    self.assertTrue(
+                        gs.eval(gs.allclose(result, expected))
+                        or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_exp_then_log(self):
         """
@@ -3144,7 +3109,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                     self.assertAllClose(result, expected, atol=1e-4)
 
-    @geomstats.tests.np_only
     def test_exp_then_log_with_angles_close_to_pi(self):
         """
         This tests that the composition of
@@ -3168,40 +3132,20 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                                  tangent_vec=tangent_vec,
                                                  base_point=base_point)
 
-                    regularized_result = group.regularize_tangent_vec(
-                                             tangent_vec=result,
-                                             base_point=base_point,
-                                             metric=metric)
-
                     reg_tangent_vec = group.regularize_tangent_vec(
                                                  tangent_vec=tangent_vec,
                                                  base_point=base_point,
                                                  metric=metric)
                     expected = reg_tangent_vec
                     inv_expected = - expected
-                    regularized_expected = group.regularize_tangent_vec(
-                                                 tangent_vec=expected,
-                                                 base_point=base_point,
-                                                 metric=metric)
 
-                    self.assertTrue((gs.allclose(result, expected,
-                                                 atol=1e-5)
-                                     or gs.allclose(result, inv_expected,
-                                                    atol=1e-5)),
-                                    '\nmetric {}:\n'
-                                    '- on tangent_vec {}: {} -> {}\n'
-                                    '- base_point {}: {} -> {}\n'
-                                    'result = {} -> {}\n'
-                                    'expected = {} -> {}'.format(
-                             metric_type,
-                             angle_type,
-                             tangent_vec, reg_tangent_vec,
-                             angle_type_base,
-                             base_point, group.regularize(base_point),
-                             result, regularized_result,
-                             expected, regularized_expected))
+                    with self.session():
+                        self.assertTrue(
+                            gs.eval(gs.allclose(
+                                result, expected, atol=1e-5))
+                            or gs.eval(gs.allclose(
+                                result, inv_expected, atol=1e-5)))
 
-    @geomstats.tests.np_only
     def test_log_then_exp(self):
         """
         This tests that the composition of
@@ -3229,22 +3173,12 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                     expected = group.regularize(point)
                     inv_expected = - expected
-                    self.assertTrue((gs.allclose(result, expected)
-                                     or gs.allclose(result, inv_expected)),
-                                    '\nmetric {}:\n'
-                                    '- on point {}: {} -> {}\n'
-                                    '- base_point {}: {} -> {}\n'
-                                    'result = {} -> {}\n'
-                                    'expected = {} -> {}'.format(
-                                 metric_type,
-                                 angle_type,
-                                 point, group.regularize(point),
-                                 angle_type_base,
-                                 base_point, group.regularize(base_point),
-                                 result, group.regularize(result),
-                                 expected, group.regularize(expected)))
 
-    @geomstats.tests.np_only
+                    with self.session():
+                        self.assertTrue(
+                            gs.eval(gs.allclose(result, expected))
+                            or gs.eval(gs.allclose(result, inv_expected)))
+
     def test_log_then_exp_with_angles_close_to_pi(self):
         """
         This tests that the composition of
@@ -3267,20 +3201,11 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                     expected = group.regularize(point)
                     inv_expected = - expected
-                    self.assertTrue((gs.allclose(result, expected)
-                                     or gs.allclose(result, inv_expected)),
-                                    '\nmetric {}:\n'
-                                    '- on point {}: {} -> {}\n'
-                                    '- base_point {}: {} -> {}\n'
-                                    'result = {} -> {}\n'
-                                    'expected = {} -> {}'.format(
-                                 metric_type,
-                                 angle_type,
-                                 point, group.regularize(point),
-                                 angle_type_base,
-                                 base_point, group.regularize(base_point),
-                                 result, group.regularize(result),
-                                 expected, group.regularize(expected)))
+
+                    with self.session():
+                        self.assertTrue(
+                            gs.eval(gs.allclose(result, expected))
+                            or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_group_exp_from_identity_vectorization(self):
         n = 3
@@ -3381,7 +3306,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             expected = group.regularize(tangent_vec)
             self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_group_exp_then_log_from_identity_with_angles_close_to_pi(self):
         """
         Test that the group exponential
@@ -3399,9 +3323,11 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                          tangent_vec=tangent_vec)
             expected = group.regularize(tangent_vec)
             inv_expected = - expected
-            self.assertTrue(gs.allclose(result, expected)
-                            or gs.allclose(result, inv_expected),
-                            'on tangent_vec {}'.format(angle_type))
+
+            with self.session():
+                self.assertTrue(
+                    gs.eval(gs.allclose(result, expected))
+                    or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_group_log_then_exp_from_identity(self):
         """
@@ -3420,7 +3346,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             expected = group.regularize(point)
             self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_group_log_then_exp_from_identity_with_angles_close_to_pi(self):
         """
         Test that the group exponential
@@ -3438,9 +3363,11 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                          point=point)
             expected = group.regularize(point)
             inv_expected = - expected
-            self.assertTrue(gs.allclose(result, expected)
-                            or gs.allclose(result, inv_expected),
-                            'on point {}'.format(angle_type))
+
+            with self.session():
+                self.assertTrue(
+                    gs.eval(gs.allclose(result, expected))
+                    or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_group_exp_then_log(self):
         """
@@ -3474,7 +3401,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                 self.assertAllClose(result, expected, atol=1e-6)
 
-    @geomstats.tests.np_only
     def test_group_exp_then_log_with_angles_close_to_pi(self):
         """
         This tests that the composition of
@@ -3504,18 +3430,10 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 expected = reg_tangent_vec
                 inv_expected = - expected
 
-                self.assertTrue((gs.allclose(result, expected)
-                                 or gs.allclose(result, inv_expected)),
-                                '\n- on tangent_vec {}: {} -> {}\n'
-                                '- base_point {}: {} -> {}\n'
-                                'result = {} -> {}\n'
-                                'expected = {} -> {}'.format(
-                             angle_type,
-                             tangent_vec, group.regularize(tangent_vec),
-                             angle_type_base,
-                             base_point, group.regularize(base_point),
-                             result, group.regularize(result),
-                             expected, group.regularize(expected)))
+                with self.session():
+                    self.assertTrue(
+                        gs.eval(gs.allclose(result, expected))
+                        or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_group_log_then_exp(self):
         """
@@ -3543,7 +3461,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                 self.assertAllClose(result, expected, atol=ATOL)
 
-    @geomstats.tests.np_only
     def test_group_log_then_exp_with_angles_close_to_pi(self):
         """
         This tests that the composition of
@@ -3565,18 +3482,10 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 expected = group.regularize(point)
                 inv_expected = - expected
 
-                self.assertTrue((gs.allclose(result, expected)
-                                 or gs.allclose(result, inv_expected)),
-                                '\n- on point {}: {} -> {}\n'
-                                '- base_point {}: {} -> {}\n'
-                                'result = {} -> {}\n'
-                                'expected = {} -> {}'.format(
-                                 angle_type,
-                                 point, group.regularize(point),
-                                 angle_type_base,
-                                 base_point, group.regularize(base_point),
-                                 result, group.regularize(result),
-                                 expected, group.regularize(expected)))
+                with self.session():
+                    self.assertTrue(
+                        gs.eval(gs.allclose(result, expected))
+                        or gs.eval(gs.allclose(result, inv_expected)))
 
     @geomstats.tests.np_only
     def test_group_exponential_barycenter(self):
