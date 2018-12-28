@@ -1,8 +1,6 @@
 """
 Predict on SE3: losses.
 """
-import os
-#os.environ['GEOMSTATS_BACKEND'] = 'pytorch'  # NOQA
 import geomstats.backend as gs
 import geomstats.lie_group as lie_group
 
@@ -69,13 +67,16 @@ def grad(y_pred, y_true,
 
         quat_arctan2 = gs.arctan2(quat_vec_norm, quat_scalar)
         differential_scalar = - 2 * quat_vec / (quat_sq_norm)
-        differential_vec = (2 * (quat_scalar / quat_sq_norm - 2 * quat_arctan2 / quat_vec_norm)
-                            * gs.einsum('ni,nj->nij',quat_vec, quat_vec) / quat_vec_norm * quat_vec_norm
+        differential_vec = (2 * (quat_scalar / quat_sq_norm
+                                 - 2 * quat_arctan2 / quat_vec_norm)
+                            * (gs.einsum('ni,nj->nij', quat_vec, quat_vec)
+                               / quat_vec_norm * quat_vec_norm)
                             + 2 * quat_arctan2 / quat_vec_norm * gs.eye(3))
 
-        differential_scalar_t = gs.transpose(differential_scalar,axes=(1,0))
+        differential_scalar_t = gs.transpose(differential_scalar, axes=(1, 0))
 
-        upper_left_block = gs.hstack((differential_scalar_t, differential_vec[0]))
+        upper_left_block = gs.hstack(
+            (differential_scalar_t, differential_vec[0]))
         upper_right_block = gs.zeros((3, 3))
         lower_right_block = gs.eye(3)
         lower_left_block = gs.zeros((3, 4))
@@ -100,7 +101,7 @@ def main():
     grad_rot_vec = grad(y_pred, y_true)
     print('The loss between the rotation vectors is: {}'.format(
         loss_rot_vec[0, 0]))
-    print('The riemannian gradient is: {}'.format(grad_rot_vec[0]))
+    print('The riemannian gradient is: {}'.format(grad_rot_vec))
 
     angle = gs.pi / 6
     cos = gs.cos(angle / 2)
@@ -129,7 +130,7 @@ def main():
     print('The loss between the quaternions is: {}'.format(
         loss_quaternion[0, 0]))
     print('The riemannian gradient is: {}'.format(
-        grad_quaternion[0]))
+        grad_quaternion))
 
 
 if __name__ == "__main__":
