@@ -538,23 +538,15 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             expected = self.group.regularize(point)
             expected = helper.to_vector(expected)
 
-            inv_rot_expected = gs.zeros_like(expected)
-            inv_rot_expected[:, :3] = - expected[:, :3]
-            inv_rot_expected[:, 3:6] = expected[:, 3:6]
-            inv_rot_expected = helper.to_vector(inv_rot_expected)
+            inv_expected = gs.concatenate(
+                [- expected[:, :3], expected[:, 3:6]],
+                axis=1)
+            inv_expected = helper.to_vector(inv_expected)
 
-            self.assertTrue(gs.allclose(result, expected)
-                            or gs.allclose(result, inv_rot_expected),
-                            '\n{}'
-                            '\npoint = {}'
-                            '\nresult = {}'
-                            '\nexpected = {}'
-                            '\nexpected with opp rotation = {}'.format(
-                               element_type,
-                               point,
-                               result,
-                               expected,
-                               inv_rot_expected))
+            with self.session():
+                self.assertTrue(
+                    gs.eval(gs.allclose(result, expected))
+                    or gs.eval(gs.allclose(result, inv_expected)))
 
     @geomstats.tests.np_only
     def test_group_exp_then_log_from_identity(self):
@@ -600,21 +592,15 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             expected = self.group.regularize(tangent_vec)
             expected = helper.to_vector(expected)
 
-            inv_rot_expected = gs.zeros_like(expected)
-            inv_rot_expected[:, :3] = - expected[:, :3]
-            inv_rot_expected[:, 3:6] = expected[:, 3:6]
-            inv_rot_expected = helper.to_vector(inv_rot_expected)
+            inv_expected = gs.concatenate(
+                    [- expected[:, :3], expected[:, 3:6]],
+                    axis=1)
+            inv_expected = helper.to_vector(inv_expected)
 
-            self.assertTrue(gs.allclose(result, expected)
-                            or gs.allclose(result, inv_rot_expected),
-                            '\ntangent_vec = {}'
-                            '\nresult = {}'
-                            '\nexpected = {}'
-                            '\nexpected with opp rotation = {}'.format(
-                               tangent_vec,
-                               result,
-                               expected,
-                               inv_rot_expected))
+            with self.session():
+                self.assertTrue(
+                    gs.eval(gs.allclose(result, expected))
+                    or gs.eval(gs.allclose(result, inv_expected)))
 
     @geomstats.tests.np_only
     def test_group_exp(self):
@@ -777,8 +763,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                 expected = helper.to_vector(expected)
                 self.assertAllClose(result, expected)
 
-
-    @geomstats.tests.np_only
     def test_exp_then_log_from_identity_left_with_angles_close_to_pi(self):
         """
         Test that the riemannian left exponential from the identity
@@ -799,21 +783,15 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                                 tangent_vec=tangent_vec,
                                                 metric=metric)
                 expected = helper.to_vector(expected)
-                inv_rot_expected = gs.zeros_like(expected)
-                inv_rot_expected[:, :3] = - expected[:, :3]
-                inv_rot_expected[:, 3:6] = expected[:, 3:6]
-                inv_rot_expected = helper.to_vector(inv_rot_expected)
+                inv_expected = gs.concatenate(
+                    [- expected[:, :3], expected[:, 3:6]],
+                    axis=1)
+                inv_expected = helper.to_vector(inv_expected)
 
-                self.assertTrue(gs.allclose(result, expected)
-                                or gs.allclose(result, inv_rot_expected),
-                                '\ntangent_vec = {}'
-                                '\nresult = {}'
-                                '\nexpected = {}'
-                                '\nexpected with opp rotation = {}'.format(
-                                   tangent_vec,
-                                   result,
-                                   expected,
-                                   inv_rot_expected))
+                with self.session():
+                    self.assertTrue(
+                        gs.eval(gs.allclose(result, expected))
+                        or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_exp_then_log_from_identity_right(self):
         """
@@ -839,7 +817,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
                 self.assertAllClose(result, expected, atol=1e-4)
 
-    @geomstats.tests.np_only
     def test_exp_then_log_from_identity_right_with_angles_close_to_pi(self):
         """
         Test that the riemannian right exponential from the identity
@@ -860,21 +837,15 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                                 tangent_vec=tangent_vec,
                                                 metric=metric)
                 expected = helper.to_vector(expected)
-                inv_rot_expected = gs.zeros_like(expected)
-                inv_rot_expected[:, :3] = - expected[:, :3]
-                inv_rot_expected[:, 3:6] = expected[:, 3:6]
-                inv_rot_expected = helper.to_vector(inv_rot_expected)
+                inv_expected = gs.concatenate(
+                    [- expected[:, :3], expected[:, 3:6]],
+                    axis=1)
+                inv_expected = helper.to_vector(inv_expected)
 
-                self.assertTrue(gs.allclose(result, expected)
-                                or gs.allclose(result, inv_rot_expected),
-                                '\ntangent_vec = {}'
-                                '\nresult = {}'
-                                '\nexpected = {}'
-                                '\nexpected with opp rotation = {}'.format(
-                                   tangent_vec,
-                                   result,
-                                   expected,
-                                   inv_rot_expected))
+                with self.session():
+                    self.assertTrue(
+                        gs.eval(gs.allclose(result, expected))
+                        or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_exp_left(self):
         # Reference point is a translation (no rotational part)
@@ -953,7 +924,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
                     self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_log_then_exp_left_with_angles_close_to_pi(self):
         """
         Test that the riemannian left exponential and the
@@ -975,21 +945,15 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                     expected = self.group.regularize(point)
                     expected = helper.to_vector(expected)
 
-                    inv_rot_expected = gs.zeros_like(expected)
-                    inv_rot_expected[:, :3] = - expected[:, :3]
-                    inv_rot_expected[:, 3:6] = expected[:, 3:6]
-                    inv_rot_expected = helper.to_vector(inv_rot_expected)
+                    inv_expected = gs.concatenate(
+                        [- expected[:, :3], expected[:, 3:6]],
+                        axis=1)
+                    inv_expected = helper.to_vector(inv_expected)
 
-                    self.assertTrue(gs.allclose(result, expected)
-                                    or gs.allclose(result, inv_rot_expected),
-                                    '\npoint = {}'
-                                    '\nresult = {}'
-                                    '\nexpected = {}'
-                                    '\nexpected with opp rotation = {}'.format(
-                                       point,
-                                       result,
-                                       expected,
-                                       inv_rot_expected))
+                    with self.session():
+                        self.assertTrue(
+                            gs.eval(gs.allclose(result, expected))
+                            or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_exp_then_log_left(self):
         """
@@ -1020,7 +984,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                         atol = RTOL * norm
                     self.assertAllClose(result, expected, atol=1e-5)
 
-    @geomstats.tests.np_only
     def test_exp_then_log_left_with_angles_close_to_pi(self):
         """
         Test that the riemannian left exponential and the
@@ -1045,21 +1008,15 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                                 metric=metric)
                     expected = helper.to_vector(expected)
 
-                    inv_rot_expected = gs.zeros_like(expected)
-                    inv_rot_expected[:, :3] = - expected[:, :3]
-                    inv_rot_expected[:, 3:6] = expected[:, 3:6]
-                    inv_rot_expected = helper.to_vector(inv_rot_expected)
+                    inv_expected = gs.concatenate(
+                        [- expected[:, :3], expected[:, 3:6]],
+                        axis=1)
+                    inv_expected = helper.to_vector(inv_expected)
 
-                    self.assertTrue(gs.allclose(result, expected)
-                                    or gs.allclose(result, inv_rot_expected),
-                                    '\ntangent_vec = {}'
-                                    '\nresult = {}'
-                                    '\nexpected = {}'
-                                    '\nexpected with opp rotation = {}'.format(
-                                       tangent_vec,
-                                       result,
-                                       expected,
-                                       inv_rot_expected))
+                    with self.session():
+                        self.assertTrue(
+                            gs.eval(gs.allclose(result, expected))
+                            or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_log_then_exp_right(self):
         """
@@ -1087,7 +1044,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                         atol = RTOL * norm
                     self.assertAllClose(result, expected, atol=1e-5)
 
-    @geomstats.tests.np_only
     def test_log_then_exp_right_with_angles_close_to_pi(self):
         """
         Test that the riemannian right exponential and the
@@ -1109,26 +1065,20 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                     expected = self.group.regularize(point)
                     expected = helper.to_vector(expected)
 
-                    inv_rot_expected = gs.zeros_like(expected)
-                    inv_rot_expected[:, :3] = - expected[:, :3]
-                    inv_rot_expected[:, 3:6] = expected[:, 3:6]
-                    inv_rot_expected = helper.to_vector(inv_rot_expected)
+                    inv_expected = gs.concatenate(
+                        [- expected[:, :3], expected[:, 3:6]],
+                        axis=1)
+                    inv_expected = helper.to_vector(inv_expected)
+
                     norm = gs.linalg.norm(expected)
                     atol = RTOL
                     if norm != 0:
                         atol = RTOL * norm
 
-                    self.assertTrue(gs.allclose(result, expected, atol=atol)
-                                    or gs.allclose(result, inv_rot_expected,
-                                                   atol=atol),
-                                    '\npoint = {}'
-                                    '\nresult = {}'
-                                    '\nexpected = {}'
-                                    '\nexpected with opp rotation = {}'.format(
-                                       point,
-                                       result,
-                                       expected,
-                                       inv_rot_expected))
+                    with self.session():
+                        self.assertTrue(
+                            gs.eval(gs.allclose(result, expected))
+                            or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_exp_then_log_right(self):
         """
@@ -1155,7 +1105,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                                 base_point=base_point,
                                                 metric=metric)
 
-    @geomstats.tests.np_only
     def test_exp_then_log_right_with_angles_close_to_pi(self):
         """
         Test that the riemannian right exponential and the
@@ -1180,9 +1129,9 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                                 base_point=base_point,
                                                 metric=metric)
 
-                    inv_rot_expected = gs.zeros_like(expected)
-                    inv_rot_expected[:, :3] = - expected[:, :3]
-                    inv_rot_expected[:, 3:6] = expected[:, 3:6]
+                    inv_expected = gs.concatenate(
+                        [- expected[:, :3], expected[:, 3:6]],
+                        axis=1)
                     norm = gs.linalg.norm(expected)
                     atol = RTOL
                     if norm != 0:
