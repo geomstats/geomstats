@@ -27,12 +27,15 @@ def main():
 
     plt.figure(0)
     visualization.plot(points=centers, space='S1', color='red')
+    plt.show()
 
     plt.figure(1)
+    ax = plt.axes()
     circle = visualization.Circle()
-    circle.draw()
+    circle.draw(ax=ax)
     for i in range(N_CENTERS):
-        circle.draw_points(points=clusters[i])
+        circle.draw_points(ax=ax, points=clusters[i])
+    plt.show()
 
 
 if __name__ == "__main__":

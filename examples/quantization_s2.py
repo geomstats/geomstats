@@ -36,6 +36,7 @@ def main():
     sphere.draw(ax=ax)
     for i in range(N_CENTERS):
         sphere.draw_points(ax=ax, points=clusters[i])
+    plt.show()
 
 
 if __name__ == "__main__":
