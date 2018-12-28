@@ -98,7 +98,7 @@ def main():
 
     loss_rot_vec = loss(y_pred, y_true)
     grad_rot_vec = grad(y_pred, y_true)
-    print('The loss between the rotation vectors is: {0:.2f}'.format(
+    print('The loss between the rotation vectors is: {}'.format(
         loss_rot_vec[0, 0]))
     print('The riemannian gradient is: {}'.format(grad_rot_vec[0]))
 
@@ -126,7 +126,7 @@ def main():
                            representation='quaternion')
     grad_quaternion = grad(y_pred_quaternion, y_true_quaternion,
                            representation='quaternion')
-    print('The loss between the quaternions is: {0:.2f}'.format(
+    print('The loss between the quaternions is: {}'.format(
         loss_quaternion[0, 0]))
     print('The riemannian gradient is: {}'.format(
         grad_quaternion[0]))
