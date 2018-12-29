@@ -85,8 +85,12 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
-            _, vec_dim = point.shape
-            return vec_dim == self.dimension
+            n_points, vec_dim = point.shape
+            belongs = vec_dim == self.dimension
+            belongs = gs.to_ndarray(belongs, to_ndim=1)
+            belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
+            belongs = gs.tile(belongs, (n_points, 1))
+            return belongs
 
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
@@ -96,6 +100,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             mask = gs.isclose(point_inverse, point_transpose)
             mask = gs.all(mask, axis=(1, 2))
 
+            mask = gs.to_ndarray(mask, to_ndim=1)
+            mask = gs.to_ndarray(mask, to_ndim=2, axis=1)
             return mask
 
     def regularize(self, point, point_type=None):
@@ -113,7 +119,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
-            assert self.belongs(point, point_type)
             n_points, _ = point.shape
 
             regularized_point = point
@@ -126,7 +131,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
                 # This avoids division by 0.
                 mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
-                mask_not_0_float = gs.cast(mask_not_0, gs.float32) + self.epsilon
+                mask_not_0_float = (
+                    gs.cast(mask_not_0, gs.float32)
+                    + self.epsilon)
                 mask_pi_float = gs.cast(mask_pi, gs.float32) + self.epsilon
 
                 k = gs.floor(angle / (2 * gs.pi) + .5)
@@ -278,7 +285,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             rot_mat = gs.einsum('nij,njk->nik', mat_unitary_u, mat_unitary_v)
             mask = gs.less(gs.linalg.det(rot_mat), 0.)
             mask_float = gs.cast(mask, gs.float32) + self.epsilon
-            diag = gs.array([1., 1., -1.])
+            diag = gs.array([[1., 1., -1.]])
             diag = gs.to_ndarray(gs.diag(diag), to_ndim=3) + self.epsilon
             new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
@@ -297,7 +304,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             aux_mat = gs.matmul(gs.transpose(mat, axes=(0, 2, 1)), mat)
 
             inv_sqrt_mat = gs.linalg.inv(
-                    gs.sqrtm(aux_mat))
+                    gs.linalg.sqrtm(aux_mat))
 
             rot_mat = gs.matmul(mat, inv_sqrt_mat)
 
@@ -575,7 +582,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         """
         Convert rotation vector to rotation matrix.
         """
-        assert self.belongs(rot_vec, point_type='vector')
         rot_vec = self.regularize(rot_vec, point_type='vector')
         n_rot_vecs, _ = rot_vec.shape
 
@@ -722,7 +728,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                         2 * y[i] * z[i] + 2 * w[i] * x[i],
                         w[i] ** 2 - x[i] ** 2 - y[i] ** 2 + z[i] ** 2]
 
-            rot_mat[i] = gs.hstack([column_1, column_2, column_3]).transpose()
+            mask_i = get_mask_i_float(i, n_quaternions)
+            rot_mat_i = gs.transpose(
+                gs.hstack([column_1, column_2, column_3]))
+            rot_mat_i = gs.to_ndarray(rot_mat_i, to_ndim=3)
+            rot_mat += gs.einsum('n,nij->nij', mask_i, rot_mat_i)
 
         assert gs.ndim(rot_mat) == 3
         return rot_mat
@@ -766,7 +776,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                           - cos_angle_3 * sin_angle_1)],
                         [(cos_angle_1 * cos_angle_3
                           + sin_angle_1 * sin_angle_2 * sin_angle_3)],
-                        [+ cos_angle_2 * sin_angle_3]]
+                        [cos_angle_2 * sin_angle_3]]
             column_3 = [[(sin_angle_1 * sin_angle_3
                           + cos_angle_1 * cos_angle_3 * sin_angle_2)],
                         [(cos_angle_3 * sin_angle_1 * sin_angle_2
@@ -1186,7 +1196,6 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         if point_type is None:
             point_type = self.default_point_type
-        assert self.belongs(point, point_type)
 
         if point_type == 'vector':
             if self.n == 3:
@@ -1248,7 +1257,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 n_points_tensor = gs.array(n_points)
                 for i in range(n_points):
                     # This avois dividing by 0.
-                    mask_i_float = get_mask_i_float(i, n_points_tensor) + self.epsilon
+                    mask_i_float = (
+                        get_mask_i_float(i, n_points_tensor)
+                        + self.epsilon)
 
                     sign = - 1
                     if left_or_right == 'left':

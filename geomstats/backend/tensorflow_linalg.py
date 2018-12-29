@@ -2,6 +2,37 @@
 
 import tensorflow as tf
 
+from geomstats.backend.tensorflow import to_ndarray
+
+
+def sqrtm(sym_mat):
+    sym_mat = to_ndarray(sym_mat, to_ndim=3)
+
+    [eigenvalues, vectors] = tf.linalg.eigh(sym_mat)
+
+    sqrt_eigenvalues = tf.sqrt(eigenvalues)
+
+    aux = tf.einsum('ijk,ik->ijk', vectors, sqrt_eigenvalues)
+    sqrt_mat = tf.einsum('ijk,ilk->ijl', aux, vectors)
+
+    sqrt_mat = to_ndarray(sqrt_mat, to_ndim=3)
+    return sqrt_mat
+
+
+def expm(x):
+    return tf.linalg.expm(x)
+
+
+def logm(x):
+    return tf.linalg.expm(x)
+
+
+def logm(x):
+    x = tf.cast(x, tf.complex64)
+    logm = tf.linalg.logm(x)
+    logm = tf.cast(logm, tf.float32)
+    return logm
+
 
 def det(x):
     return tf.linalg.det(x)
@@ -36,5 +67,18 @@ def eigvalsh(x):
     return tf.linalg.eigvalsh(x)
 
 
-def qr(x):
-    return tf.linalg.qr(x)
+def qr(*args, mode='reduced'):
+    def qr_aux(x, mode):
+        if mode == 'complete':
+            aux = tf.linalg.qr(x, full_matrices=True)
+        else:
+            aux = tf.linalg.qr(x)
+
+        return (aux.q, aux.r)
+
+    qr = tf.map_fn(
+        lambda x: qr_aux(x, mode),
+        *args,
+        dtype=(tf.float32, tf.float32))
+
+    return qr

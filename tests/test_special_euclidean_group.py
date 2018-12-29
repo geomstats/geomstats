@@ -7,14 +7,13 @@ metrics are tested with the tests of the invariant_metric
 module.
 """
 
-import unittest
 import warnings
 
 import geomstats.backend as gs
+import geomstats.tests
 import tests.helper as helper
 
 from geomstats.invariant_metric import InvariantMetric
-from geomstats.spd_matrices_space import SPDMatricesSpace
 from geomstats.special_euclidean_group import SpecialEuclideanGroup
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
@@ -27,7 +26,7 @@ RTOL = 1e-5
 # TODO(nina): add local functions to decrease the number of for loops
 
 
-class TestSpecialEuclideanGroupMethods(unittest.TestCase):
+class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
@@ -36,7 +35,6 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
         n = 3
         group = SpecialEuclideanGroup(n=n)
-        spd_matrices_space = SPDMatricesSpace(n=group.dimension)
 
         # Points
 
@@ -104,7 +102,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                    inner_product_mat_at_identity=diag_mat_at_identity,
                    left_or_right='right')
 
-        mat_at_identity = spd_matrices_space.random_uniform()
+        mat_at_identity = 7 * gs.eye(group.dimension)
 
         left_metric = InvariantMetric(
                    group=group,
@@ -136,19 +134,23 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         on the special euclidean group.
         """
         base_point = self.group.random_uniform()
-        self.assertTrue(self.group.belongs(base_point))
+        result = self.group.belongs(base_point)
+        expected = gs.array([[True]])
+        self.assertAllClose(result, expected)
 
     def test_random_and_belongs_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
-        self.assertTrue(self.group.belongs(points))
+        result = self.group.belongs(points)
+        expected = gs.array([[True]] * n_samples)
+        self.assertAllClose(result, expected)
 
     def test_regularize(self):
         point = self.elements['with_angle_0']
         result = self.group.regularize(point)
         expected = point
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
         less_than_pi = ['with_angle_close_0',
                         'with_angle_close_pi_low']
@@ -157,7 +159,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             result = self.group.regularize(point)
             expected = point
             expected = helper.to_vector(expected)
-            self.assertTrue(gs.allclose(result, expected), angle_type)
+            self.assertAllClose(result, expected)
 
         # Note: by default, the rotation vector is inverted by
         # the function regularize when the angle of the rotation is pi.
@@ -166,27 +168,22 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         point = self.elements[angle_type]
         result = self.group.regularize(point)
 
-        expected = gs.zeros(6)
-        expected[:3] = point[:3]
-        expected[3:6] = point[3:6]
+        expected = point
         expected = helper.to_vector(expected)
 
-        self.assertTrue(gs.allclose(result, expected),
-                        '\n{}'
-                        '\npoint = {}'
-                        '\nresult = {}'
-                        '\nexpected = {}'.format(
-                            angle_type,
-                            point,
-                            result,
-                            expected))
+        self.assertAllClose(result, expected)
+
         angle_type = 'with_angle_close_pi_high'
         point = self.elements[angle_type]
         result = self.group.regularize(point)
-        expected = gs.zeros(6)
-        expected[:3] = point[:3] / gs.linalg.norm(point[:3]) * gs.pi
-        expected[3:6] = point[3:6]
-        self.assertTrue(gs.allclose(result, expected), angle_type)
+        expected_rot = gs.concatenate(
+            [point[:3] / gs.linalg.norm(point[:3]) * gs.pi,
+             gs.zeros(3)], axis=0)
+        expected_trans = gs.concatenate(
+            [gs.zeros(3), point[3:6]], axis=0)
+        expected = expected_rot + expected_trans
+        expected = helper.to_vector(expected)
+        self.assertAllClose(result, expected)
 
         in_pi_2pi = ['with_angle_in_pi_2pi',
                      'with_angle_close_2pi_low']
@@ -197,21 +194,23 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             new_angle = gs.pi - (angle - gs.pi)
 
             result = self.group.regularize(point)
-            expected = gs.zeros(6)
-            expected[:3] = - new_angle * (point[:3] / angle)
-            expected[3:6] = point[3:6]
+            expected_rot = gs.concatenate(
+                [- new_angle * (point[:3] / angle),
+                 gs.zeros(3)], axis=0)
+            expected_trans = gs.concatenate(
+                [gs.zeros(3),
+                 point[3:6]], axis=0)
+            expected = expected_rot + expected_trans
             expected = helper.to_vector(expected)
 
-            self.assertTrue(gs.allclose(result, expected), angle_type)
+            self.assertAllClose(result, expected)
 
         angle_type = 'with_angle_2pi'
         point = self.elements[angle_type]
         result = self.group.regularize(point)
-        expected = gs.zeros(6)
-        expected[:3] = gs.array([0., 0., 0.])
-        expected[3:6] = point[3:6]
+        expected = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
         expected = helper.to_vector(expected)
-        self.assertTrue(gs.allclose(result, expected), angle_type)
+        self.assertAllClose(result, expected)
 
         angle_type = 'with_angle_close_2pi_high'
         point = self.elements[angle_type]
@@ -220,27 +219,23 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
         result = self.group.regularize(point)
 
-        expected = gs.zeros(6)
-        expected[:3] = new_angle * point[:3] / angle
-        expected[3:6] = point[3:6]
+        expected_rot = gs.concatenate(
+            [new_angle * point[:3] / angle,
+             gs.zeros(3)], axis=0)
+        expected_trans = gs.concatenate(
+            [gs.zeros(3), point[3:6]], axis=0)
+        expected = expected_rot + expected_trans
         expected = helper.to_vector(expected)
-        self.assertTrue(gs.allclose(result, expected),
-                        '\n{}'
-                        '\npoint = {}'
-                        '\nresult = {}'
-                        '\nexpected = {}'.format(
-                                        angle_type,
-                                        point,
-                                        result,
-                                        expected))
+        self.assertAllClose(result, expected)
 
     def test_regularize_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
         regularized_points = self.group.regularize(points)
 
-        self.assertTrue(gs.allclose(regularized_points.shape,
-                                    (n_samples, self.group.dimension)))
+        self.assertAllClose(
+            gs.shape(regularized_points),
+            (n_samples, self.group.dimension))
 
     def test_compose(self):
         # Composition by identity, on the right
@@ -250,7 +245,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                     self.group.identity)
         expected = point
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
         # Composition by identity, on the left
         # Expect the original transformation
@@ -258,7 +253,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                     point)
         expected = point
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
         # Composition of translations (no rotational part)
         # Expect the sum of the translations
@@ -267,7 +262,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected = (self.elements['translation_small']
                     + self.elements['translation_large'])
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
     def test_compose_and_inverse(self):
         point = self.elements['point_1']
@@ -277,14 +272,14 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         result = self.group.compose(point, inv_point)
         expected = self.group.identity
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected, atol=1e-8)
+        self.assertAllClose(result, expected)
 
         # Compose transformation by its inverse on the left
         # Expect the group identity
         result = self.group.compose(inv_point, point)
         expected = self.group.identity
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected, atol=1e-8)
+        self.assertAllClose(result, expected)
 
     def test_compose_vectorization(self):
         n_samples = self.n_samples
@@ -294,49 +289,52 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
         result = self.group.compose(one_point,
                                     n_points_a)
-        self.assertTrue(result.shape == (n_samples, self.group.dimension))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
         result = self.group.compose(n_points_a,
                                     one_point)
-        self.assertTrue(result.shape == (n_samples, self.group.dimension))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
         result = self.group.compose(n_points_a,
                                     n_points_b)
-        self.assertTrue(result.shape == (n_samples, self.group.dimension))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
     def test_inverse_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
         result = self.group.inverse(points)
-        self.assertTrue(result.shape == (n_samples, self.group.dimension))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
     def test_left_jacobian_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
-        jacobians = self.group.jacobian_translation(point=points,
-                                                    left_or_right='left')
-        self.assertTrue(gs.allclose(
-                         jacobians.shape,
-                         (n_samples,
-                          self.group.dimension, self.group.dimension)))
+        result = self.group.jacobian_translation(
+            point=points, left_or_right='left')
+        self.assertAllClose(
+            gs.shape(result),
+            (n_samples, self.group.dimension, self.group.dimension))
 
     def test_exp_from_identity_vectorization(self):
         n_samples = self.n_samples
         for metric in self.metrics.values():
             tangent_vecs = self.group.random_uniform(n_samples=n_samples)
-            results = metric.exp_from_identity(tangent_vecs)
+            result = metric.exp_from_identity(tangent_vecs)
 
-            self.assertTrue(gs.allclose(results.shape,
-                                        (n_samples, self.group.dimension)))
+            self.assertAllClose(
+                gs.shape(result), (n_samples, self.group.dimension))
 
     def test_log_from_identity_vectorization(self):
         n_samples = self.n_samples
         for metric in self.metrics.values():
             points = self.group.random_uniform(n_samples=n_samples)
-            results = metric.log_from_identity(points)
+            result = metric.log_from_identity(points)
 
-            self.assertTrue(gs.allclose(results.shape,
-                                        (n_samples, self.group.dimension)))
+            self.assertAllClose(
+                gs.shape(result), (n_samples, self.group.dimension))
 
     def test_exp_vectorization(self):
         n_samples = self.n_samples
@@ -351,43 +349,18 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
             # Test with the 1 base point, and n tangent vecs
             result = metric.exp(n_tangent_vec, one_base_point)
-            self.assertTrue(gs.allclose(result.shape,
-                                        (n_samples, self.group.dimension)))
-            expected = gs.vstack([metric.exp(tangent_vec, one_base_point)
-                                  for tangent_vec in n_tangent_vec])
-            self.assertTrue(gs.allclose(expected.shape,
-                                        (n_samples, self.group.dimension)))
-
-            self.assertTrue(gs.allclose(expected, result),
-                            'with metric {}:\n'
-                            'result:\n{}\n'
-                            'expected:\n{}'.format(metric_type,
-                                                   result,
-                                                   expected))
+            self.assertAllClose(
+                gs.shape(result), (n_samples, self.group.dimension))
 
             # Test with the several base point, and one tangent vec
             result = metric.exp(one_tangent_vec, n_base_point)
-            self.assertTrue(gs.allclose(result.shape,
-                                        (n_samples, self.group.dimension)))
-            expected = gs.vstack([metric.exp(one_tangent_vec, base_point)
-                                  for base_point in n_base_point])
-            self.assertTrue(gs.allclose(expected.shape,
-                                        (n_samples, self.group.dimension)))
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(
+                gs.shape(result), (n_samples, self.group.dimension))
 
             # Test with the same number n of base point and n tangent vec
             result = metric.exp(n_tangent_vec, n_base_point)
-            self.assertTrue(gs.allclose(result.shape,
-                                        (n_samples, self.group.dimension)))
-            expected = gs.vstack([metric.exp(tangent_vec, base_point)
-                                  for tangent_vec, base_point in zip(
-                                                               n_tangent_vec,
-                                                               n_base_point)])
-            self.assertTrue(gs.allclose(expected.shape,
-                                        (n_samples, self.group.dimension)))
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(
+                gs.shape(result), (n_samples, self.group.dimension))
 
     def test_log_vectorization(self):
         n_samples = self.n_samples
@@ -401,56 +374,38 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
             # Test with the 1 base point, and several different points
             result = metric.log(n_point, one_base_point)
-            self.assertTrue(gs.allclose(result.shape,
-                                        (n_samples, self.group.dimension)))
-            expected = gs.vstack([metric.log(point, one_base_point)
-                                  for point in n_point])
-
-            self.assertTrue(gs.allclose(expected.shape,
-                                        (n_samples, self.group.dimension)))
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(
+                gs.shape(result), (n_samples, self.group.dimension))
 
             # Test with the several base point, and 1 point
             result = metric.log(one_point, n_base_point)
-            self.assertTrue(gs.allclose(result.shape,
-                                        (n_samples, self.group.dimension)))
-            expected = gs.vstack([metric.log(one_point, base_point)
-                                  for base_point in n_base_point])
-
-            self.assertTrue(gs.allclose(expected.shape,
-                                        (n_samples, self.group.dimension)))
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(
+                gs.shape(result), (n_samples, self.group.dimension))
 
             # Test with the same number n of base point and point
             result = metric.log(n_point, n_base_point)
-            self.assertTrue(gs.allclose(result.shape,
-                                        (n_samples, self.group.dimension)))
-            expected = gs.vstack([metric.log(point, base_point)
-                                  for point, base_point in zip(n_point,
-                                                               n_base_point)])
-            self.assertTrue(gs.allclose(expected.shape,
-                                        (n_samples, self.group.dimension)))
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(
+                gs.shape(result), (n_samples, self.group.dimension))
 
+    @geomstats.tests.np_only
     def test_group_exp_from_identity_vectorization(self):
         n_samples = self.n_samples
         tangent_vecs = self.group.random_uniform(n_samples=n_samples)
-        results = self.group.group_exp_from_identity(tangent_vecs)
+        result = self.group.group_exp_from_identity(tangent_vecs)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, self.group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
+    @geomstats.tests.np_only
     def test_group_log_from_identity_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
-        results = self.group.group_log_from_identity(points)
+        result = self.group.group_log_from_identity(points)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, self.group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
+    @geomstats.tests.np_only
     def test_group_exp_vectorization(self):
         n_samples = self.n_samples
         # Test with the 1 base_point, and several different tangent_vecs
@@ -477,6 +432,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         self.assertTrue(gs.allclose(results.shape,
                                     (n_samples, self.group.dimension)))
 
+    @geomstats.tests.np_only
     def test_group_log_vectorization(self):
         n_samples = self.n_samples
         # Test with the 1 base point, and several different points
@@ -503,6 +459,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         self.assertTrue(gs.allclose(results.shape,
                                     (n_samples, self.group.dimension)))
 
+    @geomstats.tests.np_only
     def test_group_exp_from_identity(self):
         # Group exponential of a translation (no rotational part)
         # Expect the original translation
@@ -524,6 +481,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected = helper.to_vector(expected)
         gs.testing.assert_allclose(result, expected)
 
+    @geomstats.tests.np_only
     def test_group_log_from_identity(self):
         # Group logarithm of a translation (no rotational part)
         # Expect the original translation
@@ -544,6 +502,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected = helper.to_vector(expected)
         self.assertTrue(gs.allclose(expected, result))
 
+    @geomstats.tests.np_only
     def test_group_log_then_exp_from_identity(self):
         """
         Test that the group exponential from the identity
@@ -562,6 +521,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             expected = helper.to_vector(expected)
             gs.testing.assert_allclose(result, expected, atol=1e-8)
 
+    @geomstats.tests.np_only
     def test_group_log_then_exp_from_identity_with_angles_close_to_pi(self):
         """
         Test that the group exponential from the identity
@@ -578,24 +538,17 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             expected = self.group.regularize(point)
             expected = helper.to_vector(expected)
 
-            inv_rot_expected = gs.zeros_like(expected)
-            inv_rot_expected[:, :3] = - expected[:, :3]
-            inv_rot_expected[:, 3:6] = expected[:, 3:6]
-            inv_rot_expected = helper.to_vector(inv_rot_expected)
+            inv_expected = gs.concatenate(
+                [- expected[:, :3], expected[:, 3:6]],
+                axis=1)
+            inv_expected = helper.to_vector(inv_expected)
 
-            self.assertTrue(gs.allclose(result, expected)
-                            or gs.allclose(result, inv_rot_expected),
-                            '\n{}'
-                            '\npoint = {}'
-                            '\nresult = {}'
-                            '\nexpected = {}'
-                            '\nexpected with opp rotation = {}'.format(
-                               element_type,
-                               point,
-                               result,
-                               expected,
-                               inv_rot_expected))
+            with self.session():
+                self.assertTrue(
+                    gs.eval(gs.allclose(result, expected))
+                    or gs.eval(gs.allclose(result, inv_expected)))
 
+    @geomstats.tests.np_only
     def test_group_exp_then_log_from_identity(self):
         """
         Test that the group exponential from the identity
@@ -622,6 +575,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                result, self.group.regularize(result),
                                expected, self.group.regularize(expected),))
 
+    @geomstats.tests.np_only
     def test_group_exp_then_log_from_identity_with_angles_close_to_pi(self):
         """
         Test that the group exponential from the identity
@@ -638,22 +592,17 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             expected = self.group.regularize(tangent_vec)
             expected = helper.to_vector(expected)
 
-            inv_rot_expected = gs.zeros_like(expected)
-            inv_rot_expected[:, :3] = - expected[:, :3]
-            inv_rot_expected[:, 3:6] = expected[:, 3:6]
-            inv_rot_expected = helper.to_vector(inv_rot_expected)
+            inv_expected = gs.concatenate(
+                    [- expected[:, :3], expected[:, 3:6]],
+                    axis=1)
+            inv_expected = helper.to_vector(inv_expected)
 
-            self.assertTrue(gs.allclose(result, expected)
-                            or gs.allclose(result, inv_rot_expected),
-                            '\ntangent_vec = {}'
-                            '\nresult = {}'
-                            '\nexpected = {}'
-                            '\nexpected with opp rotation = {}'.format(
-                               tangent_vec,
-                               result,
-                               expected,
-                               inv_rot_expected))
+            with self.session():
+                self.assertTrue(
+                    gs.eval(gs.allclose(result, expected))
+                    or gs.eval(gs.allclose(result, inv_expected)))
 
+    @geomstats.tests.np_only
     def test_group_exp(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
@@ -669,6 +618,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected = helper.to_vector(expected)
         gs.testing.assert_allclose(result, expected)
 
+    @geomstats.tests.np_only
     def test_group_log(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
@@ -685,6 +635,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         expected = helper.to_vector(expected)
         gs.testing.assert_allclose(result, expected)
 
+    @geomstats.tests.np_only
     def test_group_log_then_exp(self):
         """
         Test that the group exponential
@@ -712,6 +663,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                result,
                                expected))
 
+    @geomstats.tests.np_only
     def test_group_exp_then_log(self):
         """
         Test that the group exponential
@@ -746,13 +698,14 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         # General case
         tangent_rot_vec = gs.array([1., 1., 1.])  # NB: Regularized
         tangent_translation = gs.array([1., 0., -3.])
-        tangent_vec = gs.concatenate((tangent_rot_vec,
-                                      tangent_translation))
+        tangent_vec = gs.concatenate(
+            [tangent_rot_vec, tangent_translation],
+            axis=0)
         result = metric.exp_from_identity(tangent_vec)
         expected = tangent_vec
         expected = helper.to_vector(expected)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     def test_log_from_identity_left(self):
         # Riemannian left-invariant metric given by
@@ -764,25 +717,27 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         metric = self.metrics['left_canonical']
         # General case
         rot_vec = gs.array([0.1, 1, 0.9])  # NB: Regularized
-        translation = gs.array([1, -19, -3])
-        transfo = gs.concatenate([rot_vec, translation])
+        translation = gs.array([1., -19., -3.])
+        transfo = gs.concatenate(
+            [rot_vec, translation], axis=0)
 
         expected = transfo
         expected = helper.to_vector(expected)
         result = metric.log_from_identity(transfo)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
         # Edge case: angle < epsilon, where angle = norm(rot_vec)
         rot_vec = gs.array([1e-8, 0., 1e-9])  # NB: Regularized
-        translation = gs.array([10000, -5.9, -93])
-        transfo = gs.concatenate([rot_vec, translation])
+        translation = gs.array([10000., -5.9, -93])
+        transfo = gs.concatenate(
+            [rot_vec, translation], axis=0)
 
         expected = transfo
         expected = helper.to_vector(expected)
         result = metric.log_from_identity(transfo)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     def test_exp_then_log_from_identity_left(self):
         """
@@ -806,13 +761,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                 tangent_vec,
                                                 metric=metric)
                 expected = helper.to_vector(expected)
-                self.assertTrue(gs.allclose(result, expected),
-                                '\ntangent_vec = {}'
-                                '\nresult = {}'
-                                '\nexpected = {}'.format(
-                                   tangent_vec,
-                                   result,
-                                   expected))
+                self.assertAllClose(result, expected)
 
     def test_exp_then_log_from_identity_left_with_angles_close_to_pi(self):
         """
@@ -834,21 +783,15 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                 tangent_vec=tangent_vec,
                                                 metric=metric)
                 expected = helper.to_vector(expected)
-                inv_rot_expected = gs.zeros_like(expected)
-                inv_rot_expected[:, :3] = - expected[:, :3]
-                inv_rot_expected[:, 3:6] = expected[:, 3:6]
-                inv_rot_expected = helper.to_vector(inv_rot_expected)
+                inv_expected = gs.concatenate(
+                    [- expected[:, :3], expected[:, 3:6]],
+                    axis=1)
+                inv_expected = helper.to_vector(inv_expected)
 
-                self.assertTrue(gs.allclose(result, expected)
-                                or gs.allclose(result, inv_rot_expected),
-                                '\ntangent_vec = {}'
-                                '\nresult = {}'
-                                '\nexpected = {}'
-                                '\nexpected with opp rotation = {}'.format(
-                                   tangent_vec,
-                                   result,
-                                   expected,
-                                   inv_rot_expected))
+                with self.session():
+                    self.assertTrue(
+                        gs.eval(gs.allclose(result, expected))
+                        or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_exp_then_log_from_identity_right(self):
         """
@@ -872,13 +815,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                         metric=metric)
                 expected = helper.to_vector(expected)
 
-                self.assertTrue(gs.allclose(result, expected),
-                                '\ntangent_vec = {}'
-                                '\nresult = {}'
-                                '\nexpected = {}'.format(
-                                   tangent_vec,
-                                   result,
-                                   expected))
+                self.assertAllClose(result, expected, atol=1e-4)
 
     def test_exp_then_log_from_identity_right_with_angles_close_to_pi(self):
         """
@@ -900,21 +837,15 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                 tangent_vec=tangent_vec,
                                                 metric=metric)
                 expected = helper.to_vector(expected)
-                inv_rot_expected = gs.zeros_like(expected)
-                inv_rot_expected[:, :3] = - expected[:, :3]
-                inv_rot_expected[:, 3:6] = expected[:, 3:6]
-                inv_rot_expected = helper.to_vector(inv_rot_expected)
+                inv_expected = gs.concatenate(
+                    [- expected[:, :3], expected[:, 3:6]],
+                    axis=1)
+                inv_expected = helper.to_vector(inv_expected)
 
-                self.assertTrue(gs.allclose(result, expected)
-                                or gs.allclose(result, inv_rot_expected),
-                                '\ntangent_vec = {}'
-                                '\nresult = {}'
-                                '\nexpected = {}'
-                                '\nexpected with opp rotation = {}'.format(
-                                   tangent_vec,
-                                   result,
-                                   expected,
-                                   inv_rot_expected))
+                with self.session():
+                    self.assertTrue(
+                        gs.eval(gs.allclose(result, expected))
+                        or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_exp_left(self):
         # Reference point is a translation (no rotational part)
@@ -922,23 +853,24 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         # is the 6x6 identity matrix
         metric = self.metrics['left_canonical']
         rot_vec_base_point = gs.array([0., 0., 0.])
-        translation_base_point = gs.array([4, -1, 10000])
-        transfo_base_point = gs.concatenate([rot_vec_base_point,
-                                            translation_base_point])
+        translation_base_point = gs.array([4., -1., 10000.])
+        transfo_base_point = gs.concatenate(
+            [rot_vec_base_point, translation_base_point], axis=0)
 
         # Tangent vector is a translation (no infinitesimal rotational part)
         # Expect the sum of the translation
         # with the translation of the reference point
         rot_vec = gs.array([0., 0., 0.])
-        translation = gs.array([1, 0, -3])
-        tangent_vec = gs.concatenate([rot_vec, translation])
+        translation = gs.array([1., 0., -3.])
+        tangent_vec = gs.concatenate([rot_vec, translation], axis=0)
 
         result = metric.exp(base_point=transfo_base_point,
                             tangent_vec=tangent_vec)
-        expected = gs.concatenate([gs.array([0., 0., 0.]),
-                                   gs.array([5, -1, 9997])])
+        expected = gs.concatenate(
+            [gs.array([0., 0., 0.]), gs.array([5., -1., 9997.])],
+            axis=0)
         expected = helper.to_vector(expected)
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     def test_log_left(self):
         # Reference point is a translation (no rotational part)
@@ -947,25 +879,26 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         metric = self.metrics['left_canonical']
         rot_vec_base_point = gs.array([0., 0., 0.])
         translation_base_point = gs.array([4., 0., 0.])
-        transfo_base_point = gs.concatenate([rot_vec_base_point,
-                                            translation_base_point])
+        transfo_base_point = gs.concatenate(
+            [rot_vec_base_point, translation_base_point], axis=0)
 
         # Point is a translation (no rotational part)
         # Expect the difference of the translation
         # by the translation of the reference point
         rot_vec = gs.array([0., 0., 0.])
         translation = gs.array([-1., -1., -1.2])
-        point = gs.concatenate([rot_vec,
-                                translation])
+        point = gs.concatenate(
+            [rot_vec, translation], axis=0)
 
-        expected = gs.concatenate([gs.array([0., 0., 0.]),
-                                   gs.array([-5., -1., -1.2])])
+        expected = gs.concatenate(
+            [gs.array([0., 0., 0.]), gs.array([-5., -1., -1.2])],
+            axis=0)
         expected = helper.to_vector(expected)
 
         result = metric.log(base_point=transfo_base_point,
                             point=point)
 
-        self.assertTrue(gs.allclose(result, expected))
+        self.assertAllClose(result, expected)
 
     def test_log_then_exp_left(self):
         """
@@ -989,11 +922,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                     expected = self.group.regularize(point)
                     expected = helper.to_vector(expected)
 
-                    self.assertTrue(gs.allclose(result, expected),
-                                    '\nresult = {}'
-                                    '\nexpected = {}'.format(
-                                   result,
-                                   expected))
+                    self.assertAllClose(result, expected)
 
     def test_log_then_exp_left_with_angles_close_to_pi(self):
         """
@@ -1016,21 +945,15 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                     expected = self.group.regularize(point)
                     expected = helper.to_vector(expected)
 
-                    inv_rot_expected = gs.zeros_like(expected)
-                    inv_rot_expected[:, :3] = - expected[:, :3]
-                    inv_rot_expected[:, 3:6] = expected[:, 3:6]
-                    inv_rot_expected = helper.to_vector(inv_rot_expected)
+                    inv_expected = gs.concatenate(
+                        [- expected[:, :3], expected[:, 3:6]],
+                        axis=1)
+                    inv_expected = helper.to_vector(inv_expected)
 
-                    self.assertTrue(gs.allclose(result, expected)
-                                    or gs.allclose(result, inv_rot_expected),
-                                    '\npoint = {}'
-                                    '\nresult = {}'
-                                    '\nexpected = {}'
-                                    '\nexpected with opp rotation = {}'.format(
-                                       point,
-                                       result,
-                                       expected,
-                                       inv_rot_expected))
+                    with self.session():
+                        self.assertTrue(
+                            gs.eval(gs.allclose(result, expected))
+                            or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_exp_then_log_left(self):
         """
@@ -1059,13 +982,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                     atol = RTOL
                     if norm != 0:
                         atol = RTOL * norm
-                    self.assertTrue(gs.allclose(result, expected, atol=atol),
-                                    '\ntangent_vec = {}'
-                                    '\nresult = {}'
-                                    '\nexpected = {}'.format(
-                                   tangent_vec,
-                                   result,
-                                   expected))
+                    self.assertAllClose(result, expected, atol=1e-5)
 
     def test_exp_then_log_left_with_angles_close_to_pi(self):
         """
@@ -1091,21 +1008,15 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                 metric=metric)
                     expected = helper.to_vector(expected)
 
-                    inv_rot_expected = gs.zeros_like(expected)
-                    inv_rot_expected[:, :3] = - expected[:, :3]
-                    inv_rot_expected[:, 3:6] = expected[:, 3:6]
-                    inv_rot_expected = helper.to_vector(inv_rot_expected)
+                    inv_expected = gs.concatenate(
+                        [- expected[:, :3], expected[:, 3:6]],
+                        axis=1)
+                    inv_expected = helper.to_vector(inv_expected)
 
-                    self.assertTrue(gs.allclose(result, expected)
-                                    or gs.allclose(result, inv_rot_expected),
-                                    '\ntangent_vec = {}'
-                                    '\nresult = {}'
-                                    '\nexpected = {}'
-                                    '\nexpected with opp rotation = {}'.format(
-                                       tangent_vec,
-                                       result,
-                                       expected,
-                                       inv_rot_expected))
+                    with self.session():
+                        self.assertTrue(
+                            gs.eval(gs.allclose(result, expected))
+                            or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_log_then_exp_right(self):
         """
@@ -1131,13 +1042,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                     atol = RTOL
                     if norm != 0:
                         atol = RTOL * norm
-                    self.assertTrue(gs.allclose(result, expected, atol=atol),
-                                    '\npoint = {}'
-                                    '\nresult = {}'
-                                    '\nexpected = {}'.format(
-                                   point,
-                                   result,
-                                   expected))
+                    self.assertAllClose(result, expected, atol=1e-5)
 
     def test_log_then_exp_right_with_angles_close_to_pi(self):
         """
@@ -1160,26 +1065,20 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                     expected = self.group.regularize(point)
                     expected = helper.to_vector(expected)
 
-                    inv_rot_expected = gs.zeros_like(expected)
-                    inv_rot_expected[:, :3] = - expected[:, :3]
-                    inv_rot_expected[:, 3:6] = expected[:, 3:6]
-                    inv_rot_expected = helper.to_vector(inv_rot_expected)
+                    inv_expected = gs.concatenate(
+                        [- expected[:, :3], expected[:, 3:6]],
+                        axis=1)
+                    inv_expected = helper.to_vector(inv_expected)
+
                     norm = gs.linalg.norm(expected)
                     atol = RTOL
                     if norm != 0:
                         atol = RTOL * norm
 
-                    self.assertTrue(gs.allclose(result, expected, atol=atol)
-                                    or gs.allclose(result, inv_rot_expected,
-                                                   atol=atol),
-                                    '\npoint = {}'
-                                    '\nresult = {}'
-                                    '\nexpected = {}'
-                                    '\nexpected with opp rotation = {}'.format(
-                                       point,
-                                       result,
-                                       expected,
-                                       inv_rot_expected))
+                    with self.session():
+                        self.assertTrue(
+                            gs.eval(gs.allclose(result, expected))
+                            or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_exp_then_log_right(self):
         """
@@ -1230,9 +1129,9 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                                                 base_point=base_point,
                                                 metric=metric)
 
-                    inv_rot_expected = gs.zeros_like(expected)
-                    inv_rot_expected[:, :3] = - expected[:, :3]
-                    inv_rot_expected[:, 3:6] = expected[:, 3:6]
+                    inv_expected = gs.concatenate(
+                        [- expected[:, :3], expected[:, 3:6]],
+                        axis=1)
                     norm = gs.linalg.norm(expected)
                     atol = RTOL
                     if norm != 0:
@@ -1247,20 +1146,13 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             n_vector_b = self.group.random_uniform(n_samples=n_samples)
 
             result = metric.inner_product(one_vector_a, n_vector_b)
-            expected = gs.vstack([metric.inner_product(one_vector_a, vec_b)
-                                  for vec_b in n_vector_b])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             result = metric.inner_product(n_vector_a, one_vector_b)
-            expected = gs.vstack([metric.inner_product(vec_a, one_vector_b)
-                                  for vec_a in n_vector_a])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             result = metric.inner_product(n_vector_a, n_vector_b)
-            expected = gs.vstack([metric.inner_product(vec_a, vec_b)
-                                  for vec_a, vec_b in zip(n_vector_a,
-                                                          n_vector_b)])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
     def test_inner_product_one_base_point_vectorization(self):
         n_samples = self.n_samples
@@ -1274,25 +1166,15 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
             result = metric.inner_product(one_vector_a, n_vector_b,
                                           one_base_point)
-            expected = gs.vstack([metric.inner_product(one_vector_a, vec_b,
-                                                       one_base_point)
-                                  for vec_b in n_vector_b])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             result = metric.inner_product(n_vector_a, one_vector_b,
                                           one_base_point)
-            expected = gs.vstack([metric.inner_product(vec_a, one_vector_b,
-                                                       one_base_point)
-                                  for vec_a in n_vector_a])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             result = metric.inner_product(n_vector_a, n_vector_b,
                                           one_base_point)
-            expected = gs.vstack([metric.inner_product(vec_a, vec_b,
-                                                       one_base_point)
-                                  for vec_a, vec_b in zip(n_vector_a,
-                                                          n_vector_b)])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
     def test_inner_product_n_base_point_vectorization(self):
         n_samples = self.n_samples
@@ -1306,29 +1188,15 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
             result = metric.inner_product(one_vector_a, n_vector_b,
                                           n_base_point)
-            expected = gs.vstack([metric.inner_product(one_vector_a, vec_b,
-                                                       base_point)
-                                  for vec_b, base_point in zip(n_vector_b,
-                                                               n_base_point)])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             result = metric.inner_product(n_vector_a, one_vector_b,
                                           n_base_point)
-            expected = gs.vstack([metric.inner_product(vec_a, one_vector_b,
-                                                       base_point)
-                                  for vec_a, base_point in zip(n_vector_a,
-                                                               n_base_point)])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             result = metric.inner_product(n_vector_a, n_vector_b,
                                           n_base_point)
-            expected = gs.vstack([metric.inner_product(vec_a, vec_b,
-                                                       base_point)
-                                  for vec_a, vec_b, base_point in zip(
-                                                                n_vector_a,
-                                                                n_vector_b,
-                                                                n_base_point)])
-            gs.testing.assert_allclose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
     def test_squared_dist_is_symmetric(self):
         for metric_type in self.metrics:
@@ -1341,13 +1209,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
                     sq_dist_a_b = metric.squared_dist(point_a, point_b)
                     sq_dist_b_a = metric.squared_dist(point_b, point_a)
 
-                    self.assertTrue(gs.allclose(sq_dist_a_b, sq_dist_b_a),
-                                    'Squared dist a - b: {}\n'
-                                    'Squared dist b - a: {}\n'
-                                    ' for metric {}'.format(
-                                        sq_dist_a_b,
-                                        sq_dist_b_a,
-                                        metric_type))
+                    self.assertAllClose(sq_dist_a_b, sq_dist_b_a)
 
     def test_dist_is_symmetric(self):
         for metric in self.metrics.values():
@@ -1358,7 +1220,7 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
                     dist_a_b = metric.dist(point_a, point_b)
                     dist_b_a = metric.dist(point_b, point_a)
-                    self.assertTrue(gs.allclose(dist_a_b, dist_b_a))
+                    self.assertAllClose(dist_a_b, dist_b_a)
 
     def test_squared_dist_vectorization(self):
         n_samples = self.n_samples
@@ -1378,48 +1240,23 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
             # Identity and n points 2
             result = metric.squared_dist(point_id, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.squared_dist(point_id, point_2)
-                                  for point_2 in n_point_2])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and identity
             result = metric.squared_dist(n_point_1, point_id)
-
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.squared_dist(point_1, point_id)
-                                  for point_1 in n_point_1])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # one point 1 and n points 2
             result = metric.squared_dist(one_point_1, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.squared_dist(one_point_1, point_2)
-                                  for point_2 in n_point_2])
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and one point 2
             result = metric.squared_dist(n_point_1, one_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.squared_dist(point_1, one_point_2)
-                                  for point_1 in n_point_1])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and n points 2
             result = metric.squared_dist(n_point_1, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.squared_dist(point_1, point_2)
-                                  for point_1, point_2 in zip(n_point_1,
-                                                              n_point_2)])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
     def test_dist_vectorization(self):
         n_samples = self.n_samples
@@ -1439,51 +1276,25 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
 
             # Identity and n points 2
             result = metric.dist(point_id, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.dist(point_id, point_2)
-                                  for point_2 in n_point_2])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and identity
             result = metric.dist(n_point_1, point_id)
-
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.dist(point_1, point_id)
-                                  for point_1 in n_point_1])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # one point 1 and n points 2
             result = metric.dist(one_point_1, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.dist(one_point_1, point_2)
-                                  for point_2 in n_point_2])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and one point 2
             result = metric.dist(n_point_1, one_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
-
-            expected = gs.vstack([metric.dist(point_1, one_point_2)
-                                  for point_1 in n_point_1])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
             # n points 1 and n points 2
             result = metric.dist(n_point_1, n_point_2)
-            gs.testing.assert_allclose(result.shape, (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples, 1))
 
-            expected = gs.vstack([metric.dist(point_1, point_2)
-                                  for point_1, point_2 in zip(n_point_1,
-                                                              n_point_2)])
-            self.assertTrue(gs.allclose(result, expected),
-                            'with metric {}'.format(metric_type))
-
+    @geomstats.tests.np_only
     def test_group_exponential_barycenter(self):
         # TODO(nina): this test fails, the barycenter is not accurate.
         point_1 = self.group.random_uniform()
@@ -1515,18 +1326,20 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
         geodesic = metric.geodesic(initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
 
-        t = gs.linspace(start=0, stop=1, num=100)
+        t = gs.linspace(start=0., stop=1., num=100)
         points = geodesic(t)
-        self.assertTrue(gs.all(self.group.belongs(points)))
+        result = gs.all(self.group.belongs(points))
+        expected = True
+        self.assertAllClose(result, expected)
 
     def test_geodesic_subsample(self):
-        initial_point = self.group.random_uniform()
+        initial_point = gs.array([-1.1, 0., 0.99, 10., 2., 3.])
         initial_tangent_vec = gs.array([1., 0., 2., 1., 1., 1.])
         metric = self.metrics['left_canonical']
         geodesic = metric.geodesic(initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
-        n_steps = 100
-        t = gs.linspace(start=0, stop=1, num=n_steps+1)
+        n_steps = 10
+        t = gs.linspace(start=0., stop=1., num=n_steps+1)
         points = geodesic(t)
 
         tangent_vec_step = initial_tangent_vec / n_steps
@@ -1534,8 +1347,10 @@ class TestSpecialEuclideanGroupMethods(unittest.TestCase):
             point_step = metric.exp(
                 tangent_vec=i * tangent_vec_step,
                 base_point=initial_point)
-            self.assertTrue(gs.allclose(point_step, points[i]))
+            result = point_step
+            expected = helper.to_vector(points[i])
+            self.assertAllClose(result, expected)
 
 
 if __name__ == '__main__':
-        unittest.main()
+        geomstats.tests.main()

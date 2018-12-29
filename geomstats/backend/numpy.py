@@ -1,13 +1,36 @@
 """Numpy based computation backend."""
 
 import numpy as np
-import scipy.linalg
 
 
 int32 = np.int32
 int8 = np.int8
 float32 = np.float32
 float64 = np.float64
+
+
+def gather(x, indices):
+    return x[indices]
+
+
+def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
+    if multiple_args:
+        return np.vectorize(pyfunc, signature=signature)(*x)
+    return np.vectorize(pyfunc, signature=signature)(x)
+
+
+def cond(pred, true_fn, false_fn):
+    if pred:
+        return true_fn()
+    return false_fn()
+
+
+def real(x):
+    return np.real(x)
+
+
+def reshape(*args, **kwargs):
+    return np.reshape(*args, **kwargs)
 
 
 def cast_to_complex(x):
@@ -262,8 +285,18 @@ def clip(*args, **kwargs):
     return np.clip(*args, **kwargs)
 
 
-def diag(*args, **kwargs):
-    return np.diag(*args, **kwargs)
+def diag(x):
+    x = to_ndarray(x, to_ndim=2)
+    _, n = shape(x)
+    aux = np.vectorize(
+        np.diagflat,
+        signature='(m,n)->(k,k)')(x)
+    k, k = shape(aux)
+    m = int(k / n)
+    result = zeros((m, n, n))
+    for i in range(m):
+        result[i] = aux[i*n:(i+1)*n, i*n:(i+1)*n]
+    return result
 
 
 def any(*args, **kwargs):
@@ -336,21 +369,6 @@ def prod(x, axis=None):
 
 def sign(*args, **kwargs):
     return np.sign(*args, **kwargs)
-
-
-def expm(x):
-    return np.vectorize(
-        scipy.linalg.expm, signature='(n,m)->(n,m)')(x)
-
-
-def logm(x):
-    return np.vectorize(
-        scipy.linalg.logm, signature='(n,m)->(n,m)')(x)
-
-
-def sqrtm(x):
-    return np.vectorize(
-        scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)
 
 
 def mean(x, axis=None):

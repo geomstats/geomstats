@@ -2,15 +2,14 @@
 Unit tests for the affine connections.
 """
 
-import unittest
-
 import geomstats.backend as gs
+import geomstats.tests
 
 from geomstats.connection import LeviCivitaConnection
 from geomstats.euclidean_space import EuclideanMetric
 
 
-class TestConnectionMethods(unittest.TestCase):
+class TestConnectionMethods(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
@@ -24,7 +23,8 @@ class TestConnectionMethods(unittest.TestCase):
         result = self.connection.metric_matrix(base_point)
         expected = gs.array([gs.eye(self.dimension)])
 
-        gs.testing.assert_allclose(result, expected)
+        with self.session():
+            self.assertAllClose(result, expected)
 
     def test_cometric_matrix(self):
         base_point = gs.array([0., 1., 0., 0.])
@@ -32,8 +32,10 @@ class TestConnectionMethods(unittest.TestCase):
         result = self.connection.cometric_matrix(base_point)
         expected = gs.array([gs.eye(self.dimension)])
 
-        gs.testing.assert_allclose(result, expected)
+        with self.session():
+            self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_metric_derivative(self):
         base_point = gs.array([0., 1., 0., 0.])
 
@@ -42,6 +44,7 @@ class TestConnectionMethods(unittest.TestCase):
 
         gs.testing.assert_allclose(result, expected)
 
+    @geomstats.tests.np_only
     def test_christoffel_symbols(self):
         base_point = gs.array([0., 1., 0., 0.])
 
@@ -52,4 +55,4 @@ class TestConnectionMethods(unittest.TestCase):
 
 
 if __name__ == '__main__':
-        unittest.main()
+        geomstats.tests.main()

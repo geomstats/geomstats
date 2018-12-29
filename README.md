@@ -1,5 +1,6 @@
 # Geomstats
-[![Build Status](https://travis-ci.org/geomstats/geomstats.svg?branch=master)](https://travis-ci.org/geomstats/geomstats) [![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg)](https://codecov.io/gh/geomstats/geomstats)
+[![Build Status](https://travis-ci.org/geomstats/geomstats.svg?branch=master)](https://travis-ci.org/geomstats/geomstats)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy)](https://codecov.io/gh/geomstats/geomstats)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=tensorflow)](https://codecov.io/gh/geomstats/geomstats) (Coverages for: numpy, tensorflow)
+
 
 Computations and statistics on manifolds with geometric structures.
 
@@ -26,11 +27,7 @@ nose2
 
 ## Contributing
 
-1. Fork it (<https://github.com/yourname/yourproject/fork>)
-2. Create your feature branch (`git checkout -b feature/fooBar`)
-3. Commit your changes (`git commit -am 'Add some fooBar'`)
-4. Push to the branch (`git push origin feature/fooBar`)
-5. Create a new Pull Request
+See our [CONTRIBUTING.md][link_contributing] file!
 
 ## Authors & Contributors
 
@@ -45,3 +42,5 @@ nose2
 ## Acknowledgements
 
 This work is partially supported by the National Science Foundation, grant NSF DMS RTG 1501767.
+
+[link_contributing]: https://github.com/geomstats/geomstats/CONTRIBUTING.md

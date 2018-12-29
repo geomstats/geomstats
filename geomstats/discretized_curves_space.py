@@ -18,6 +18,14 @@ R2 = EuclideanSpace(dimension=2)
 R3 = EuclideanSpace(dimension=3)
 
 
+def get_mask_i_float(i, n):
+    range_n = gs.arange(n)
+    i_float = gs.cast(gs.array([i]), gs.int32)[0]
+    mask_i = gs.equal(range_n, i_float)
+    mask_i_float = gs.cast(mask_i, gs.float32)
+    return mask_i_float
+
+
 class DiscretizedCurvesSpace(EmbeddedManifold):
     """
     Space of discretized curves sampled at points in embedding_manifold.
@@ -30,7 +38,10 @@ class DiscretizedCurvesSpace(EmbeddedManifold):
         self.square_root_velocity_metric = SRVMetric(self.embedding_manifold)
 
     def belongs(self, point):
-        return gs.all(self.embedding_manifold.belongs(point))
+        belongs = gs.all(self.embedding_manifold.belongs(point))
+        belongs = gs.to_ndarray(belongs, to_ndim=1)
+        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
+        return belongs
 
 
 class L2Metric(RiemannianMetric):
@@ -57,14 +68,20 @@ class L2Metric(RiemannianMetric):
         n_curves, n_sampling_points, n_coords = tangent_vec_a.shape
 
         new_dim = n_curves * n_sampling_points
-        tangent_vec_a = tangent_vec_a.reshape(new_dim, n_coords)
-        tangent_vec_b = tangent_vec_b.reshape(new_dim, n_coords)
-        base_curve = base_curve.reshape(new_dim, n_coords)
+        tangent_vec_a = gs.reshape(tangent_vec_a, (new_dim, n_coords))
+        tangent_vec_b = gs.reshape(tangent_vec_b, (new_dim, n_coords))
+        base_curve = gs.reshape(base_curve, (new_dim, n_coords))
 
         inner_prod = self.embedding_metric.inner_product(
                 tangent_vec_a, tangent_vec_b, base_curve)
-        inner_prod = inner_prod.reshape(n_curves, n_sampling_points)
-        inner_prod = gs.sum(inner_prod, -1) / n_sampling_points
+        inner_prod = gs.reshape(inner_prod, (n_curves, n_sampling_points))
+        inner_prod = gs.sum(inner_prod, -1)
+
+        n_sampling_points_float = gs.array(n_sampling_points)
+        n_sampling_points_float = gs.cast(n_sampling_points_float, gs.float32)
+        inner_prod = inner_prod / n_sampling_points_float
+        inner_prod = gs.to_ndarray(inner_prod, to_ndim=1)
+        inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
         return inner_prod
 
@@ -78,12 +95,16 @@ class L2Metric(RiemannianMetric):
 
         n_curves, n_sampling_points, n_coords = curve_a.shape
 
-        curve_a = curve_a.reshape(n_curves * n_sampling_points, n_coords)
-        curve_b = curve_b.reshape(n_curves * n_sampling_points, n_coords)
+        curve_a = gs.reshape(curve_a, (n_curves * n_sampling_points, n_coords))
+        curve_b = gs.reshape(curve_b, (n_curves * n_sampling_points, n_coords))
 
         dist = self.embedding_metric.dist(curve_a, curve_b)
-        dist = dist.reshape(n_curves, n_sampling_points)
-        dist = gs.sqrt(gs.sum(dist ** 2, -1) / n_sampling_points)
+        dist = gs.reshape(dist, (n_curves, n_sampling_points))
+        n_sampling_points_float = gs.array(n_sampling_points)
+        n_sampling_points_float = gs.cast(n_sampling_points_float, gs.float32)
+        dist = gs.sqrt(gs.sum(dist ** 2, -1) / n_sampling_points_float)
+        dist = gs.to_ndarray(dist, to_ndim=1)
+        dist = gs.to_ndarray(dist, to_ndim=2, axis=1)
 
         return dist
 
@@ -98,12 +119,12 @@ class L2Metric(RiemannianMetric):
         n_tangent_vecs = tangent_vec.shape[0]
 
         new_dim = n_curves * n_sampling_points
-        new_base_curve = base_curve.reshape(new_dim, n_coords)
-        new_tangent_vec = tangent_vec.reshape(new_dim, n_coords)
+        new_base_curve = gs.reshape(base_curve, (new_dim, n_coords))
+        new_tangent_vec = gs.reshape(tangent_vec, (new_dim, n_coords))
 
         exp = self.embedding_metric.exp(new_tangent_vec, new_base_curve)
-        exp = exp.reshape(n_tangent_vecs, n_sampling_points, n_coords)
-        exp = exp.squeeze()
+        exp = gs.reshape(exp, (n_tangent_vecs, n_sampling_points, n_coords))
+        exp = gs.squeeze(exp)
 
         return exp
 
@@ -117,11 +138,13 @@ class L2Metric(RiemannianMetric):
 
         n_curves, n_sampling_points, n_coords = curve.shape
 
-        curve = curve.reshape(n_curves * n_sampling_points, n_coords)
-        base_curve = base_curve.reshape(n_curves * n_sampling_points, n_coords)
+        curve = gs.reshape(
+            curve, (n_curves * n_sampling_points, n_coords))
+        base_curve = gs.reshape(
+            base_curve, (n_curves * n_sampling_points, n_coords))
         log = self.embedding_metric.log(curve, base_curve)
-        log = log.reshape(n_curves, n_sampling_points, n_coords)
-        log = log.squeeze()
+        log = gs.reshape(log, (n_curves, n_sampling_points, n_coords))
+        log = gs.squeeze(log)
 
         return log
 
@@ -131,12 +154,10 @@ class L2Metric(RiemannianMetric):
         Geodesic specified either by an initial point and an end point,
         either by an initial point and an initial tangent vector.
         """
-        #TODO(alice): vectorize
+        # TODO(alice): vectorize
         curve_ndim = 2
         initial_curve = gs.to_ndarray(initial_curve,
                                       to_ndim=curve_ndim+1)
-        n_sampling_points = initial_curve.shape[1]
-        n_coords = initial_curve.shape[2]
 
         if end_curve is None and initial_tangent_vec is None:
             raise ValueError('Specify an end curve or an initial tangent '
@@ -164,13 +185,18 @@ class L2Metric(RiemannianMetric):
 
             tangent_vecs = gs.einsum('il,nkm->ikm', t, new_initial_tangent_vec)
 
-            curve_shape_at_time_t = gs.hstack(
-                    [len(t), n_sampling_points, n_coords])
-            curve_at_time_t = gs.zeros(curve_shape_at_time_t)
-            for k in range(len(t)):
-                curve_at_time_t[k, :] = self.exp(
-                        tangent_vec=tangent_vecs[k, :],
-                        base_curve=new_initial_curve)
+            def point_on_curve(tangent_vec):
+                assert gs.ndim(tangent_vec) >= 2
+                exp = self.exp(
+                    tangent_vec=tangent_vec,
+                    base_curve=new_initial_curve)
+                return exp
+
+            curve_at_time_t = gs.vectorize(
+                tangent_vecs,
+                point_on_curve,
+                signature='(i,j)->(i,j)')
+
             return curve_at_time_t
 
         return curve_on_geodesic
@@ -201,10 +227,18 @@ class SRVMetric(RiemannianMetric):
         n_tangent_vecs = tangent_vec_a.shape[0]
         n_sampling_points = tangent_vec_a.shape[1]
         inner_prod = gs.zeros([n_tangent_vecs, n_sampling_points])
-        for k in range(n_tangent_vecs):
-            inner_prod[k, :] = self.embedding_metric.inner_product(
-                    tangent_vec_a[k, :], tangent_vec_b[k, :],
-                    base_curve[k, :]).squeeze()
+
+        def inner_prod_aux(vec_a, vec_b, curve):
+            inner_prod = self.embedding_metric.inner_product(
+                vec_a, vec_b, curve)
+            return gs.squeeze(inner_prod)
+
+        inner_prod = gs.vectorize(
+            (tangent_vec_a, tangent_vec_b, base_curve),
+            lambda x, y, z: inner_prod_aux(x, y, z),
+            dtype=gs.float32,
+            multiple_args=True,
+            signature='(i,j),(i,j),(i,j)->(i)')
 
         return inner_prod
 
@@ -228,22 +262,21 @@ class SRVMetric(RiemannianMetric):
         procedure allows to get rid of the log between the end point of
         curve[k, :, :] and the starting point of curve[k + 1, :, :].
         """
-        srv_shape = gs.array(curve.shape)
-        srv_shape[-2] -= 1
-
         curve = gs.to_ndarray(curve, to_ndim=3)
         n_curves, n_sampling_points, n_coords = curve.shape
+        srv_shape = (n_curves, n_sampling_points-1, n_coords)
 
-        curve = curve.reshape(n_curves * n_sampling_points, n_coords)
-        velocity = (n_sampling_points - 1) * self.embedding_metric.log(
+        curve = gs.reshape(curve, (n_curves * n_sampling_points, n_coords))
+        coef = gs.cast(gs.array(n_sampling_points - 1), gs.float32)
+        velocity = coef * self.embedding_metric.log(
                 point=curve[1:, :], base_point=curve[:-1, :])
         velocity_norm = self.embedding_metric.norm(velocity, curve[:-1, :])
-        assert gs.all(velocity_norm != 0)
         srv = velocity / gs.sqrt(velocity_norm)
 
         index = gs.arange(n_curves * n_sampling_points - 1)
-        index_select = index[(index + 1) % n_sampling_points != 0]
-        srv = srv[index_select, :].reshape(srv_shape)
+        mask = ~gs.equal((index + 1) % n_sampling_points, 0)
+        index_select = gs.gather(index, gs.squeeze(gs.where(mask)))
+        srv = gs.reshape(gs.gather(srv, index_select), srv_shape)
 
         return srv
 
@@ -256,18 +289,19 @@ class SRVMetric(RiemannianMetric):
             raise AssertionError('The square root velocity inverse is only '
                                  'implemented for dicretized curves embedded '
                                  'in a Euclidean space.')
-        if srv.ndim != starting_point.ndim:
+        if gs.ndim(srv) != gs.ndim(starting_point):
             starting_point = gs.transpose(
-                    np.tile(starting_point, (1, 1, 1)), (1, 0, 2)
-                    )
+                    np.tile(starting_point, (1, 1, 1)),
+                    axes=(1, 0, 2))
         srv_shape = srv.shape
         srv = gs.to_ndarray(srv, to_ndim=3)
         n_curves, n_sampling_points_minus_one, n_coords = srv.shape
 
-        srv = srv.reshape(n_curves * n_sampling_points_minus_one, n_coords)
+        srv = gs.reshape(
+            srv, (n_curves * n_sampling_points_minus_one, n_coords))
         srv_norm = self.embedding_metric.norm(srv)
         delta_points = 1 / n_sampling_points_minus_one * srv_norm * srv
-        delta_points = delta_points.reshape(srv_shape)
+        delta_points = gs.reshape(delta_points, srv_shape)
         curve = np.concatenate((starting_point, delta_points), -2)
         curve = np.cumsum(curve, -2)
 
@@ -361,7 +395,7 @@ class SRVMetric(RiemannianMetric):
         Geodesic specified either by an initial curve and an end curve,
         either by an initial curve and an initial tangent vector.
         """
-        #TODO(alice): vectorize
+        # TODO(alice): vectorize
 
         if not isinstance(self.embedding_metric, EuclideanMetric):
             raise AssertionError('The geodesics are only implemented for '

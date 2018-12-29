@@ -1,7 +1,5 @@
 """Tensorflow based computation backend."""
 
-# TODO(johmathe): Reproduce all unit tests with tensorflow backend.
-
 import tensorflow as tf
 
 
@@ -11,6 +9,44 @@ int64 = tf.int64
 float16 = tf.float16
 float32 = tf.float32
 float64 = tf.float64
+
+
+def gather(*args, **kwargs):
+    return tf.gather(*args, **kwargs)
+
+
+def where(*args, **kwargs):
+    return tf.where(*args, **kwargs)
+
+
+def vectorize(x, pyfunc, multiple_args=False, dtype=None, **kwargs):
+    if multiple_args:
+        return tf.map_fn(lambda x: pyfunc(*x), elems=x, dtype=dtype)
+    return tf.map_fn(pyfunc, elems=x, dtype=dtype)
+
+
+def sign(x):
+    return tf.sign(x)
+
+
+def hsplit(x, n_splits):
+    return tf.split(x, num_or_size_splits=n_splits, axis=1)
+
+
+def amax(x):
+    return tf.reduce_max(x)
+
+
+def real(x):
+    return tf.real(x)
+
+
+def cond(*args, **kwargs):
+    return tf.cond(*args, **kwargs)
+
+
+def reshape(*args, **kwargs):
+    return tf.reshape(*args, **kwargs)
 
 
 def arange(*args, **kwargs):
@@ -179,8 +215,12 @@ def less_equal(x, y):
     return tf.less_equal(x, y)
 
 
-def eye(N, M=None):
-    return tf.eye(num_rows=N, num_columns=M)
+def eye(n, m=None):
+    if m is None:
+        m = n
+    n = cast(n, dtype=int32)
+    m = cast(m, dtype=int32)
+    return tf.eye(num_rows=n, num_columns=m)
 
 
 def matmul(x, y):
@@ -250,7 +290,9 @@ def floor(x):
 
 
 def diag(a):
-    return tf.diag(a)
+    return tf.map_fn(
+        lambda x: tf.diag(x),
+        a)
 
 
 def cross(a, b):
@@ -265,22 +307,9 @@ def arctan2(*args, **kwargs):
     return tf.atan2(*args, **kwargs)
 
 
-def diagonal(x):
-    return tf.linalg.diag_part(x)
+def diagonal(*args, **kwargs):
+    return tf.linalg.diag_part(*args)
 
 
 def mean(x, axis=None):
     return tf.reduce_mean(x, axis)
-
-def sqrtm(sym_mat):
-    sym_mat = to_ndarray(sym_mat, to_ndim=3)
-
-    [eigenvalues, vectors] = tf.linalg.eigh(sym_mat)
-
-    sqrt_eigenvalues = tf.sqrt(eigenvalues)
-
-    aux = tf.einsum('ijk,ik->ijk', vectors, sqrt_eigenvalues)
-    sqrt_mat = tf.einsum('ijk,ilk->ijl', aux, vectors)
-
-    sqrt_mat = to_ndarray(sqrt_mat, to_ndim=3)
-    return sqrt_mat

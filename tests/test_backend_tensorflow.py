@@ -33,7 +33,7 @@ class TestBackendTensorFlow(tf.test.TestCase):
                 [1., 2., 3.],
                 [4., 5., 6.],
                 [7., 8., 9.]])
-            self.assertAllClose(gs.eval(result), gs.eval(expected))
+            self.assertAllClose(result, expected)
 
     def test_tensor_addition(self):
         with self.test_session():
