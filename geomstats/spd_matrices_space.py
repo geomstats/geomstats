@@ -98,6 +98,8 @@ class SPDMatricesSpace(EmbeddedManifold):
         n_base_points, _, _ = base_point.shape
 
         assert n_base_points == n_samples or n_base_points == 1
+        if n_base_points == 1:
+            base_point = gs.tile(base_point, (n_samples, 1, 1))
 
         sqrt_base_point = gs.linalg.sqrtm(base_point)
 
@@ -153,6 +155,11 @@ class SPDMetric(RiemannianMetric):
         assert (n_tangent_vecs == n_base_points
                 or n_tangent_vecs == 1
                 or n_base_points == 1)
+
+        if n_tangent_vecs == 1:
+            tangent_vec = gs.tile(tangent_vec, (n_base_points, 1, 1))
+        if n_base_points == 1:
+            base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
 
         sqrt_base_point = gs.linalg.sqrtm(base_point)
 

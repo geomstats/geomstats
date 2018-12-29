@@ -87,16 +87,17 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_exp_and_belongs(self):
         n_samples = self.n_samples
         base_point = self.space.random_uniform(n_samples=1)
         tangent_vec = self.space.random_tangent_vec_uniform(
                                                n_samples=n_samples,
                                                base_point=base_point)
-        results = self.metric.exp(tangent_vec, base_point)
+        exps = self.metric.exp(tangent_vec, base_point)
+        result = self.space.belongs(exps)
+        expected = gs.array([[True]] * n_samples)
 
-        self.assertTrue(gs.all(self.space.belongs(results)))
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_exp_vectorization(self):
