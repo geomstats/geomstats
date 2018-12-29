@@ -6,6 +6,7 @@ import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 
 from geomstats.spd_matrices_space import SPDMatricesSpace
 
@@ -72,7 +73,6 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertTrue(gs.allclose(result, expected))
 
-    @geomstats.tests.np_only
     def test_log_and_exp(self):
         base_point = gs.array([[5., 0., 0.],
                                [0., 7., 2.],
@@ -83,7 +83,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         log = self.metric.log(point=point, base_point=base_point)
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
-        expected = point
+        expected = helper.to_matrix(point)
 
         self.assertAllClose(result, expected)
 
