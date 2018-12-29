@@ -74,18 +74,18 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_log_and_exp(self):
-        base_point_1 = gs.array([[5., 0., 0.],
-                                [0., 7., 2.],
-                                [0., 2., 8.]])
-        point_1 = gs.array([[9., 0., 0.],
-                            [0., 5., 0.],
-                            [0., 0., 1.]])
+        base_point = gs.array([[5., 0., 0.],
+                               [0., 7., 2.],
+                               [0., 2., 8.]])
+        point = gs.array([[9., 0., 0.],
+                          [0., 5., 0.],
+                          [0., 0., 1.]])
 
-        log_1 = self.metric.log(point=point_1, base_point=base_point_1)
-        result_1 = self.metric.exp(tangent_vec=log_1, base_point=base_point_1)
-        expected_1 = point_1
+        log = self.metric.log(point=point, base_point=base_point)
+        result = self.metric.exp(tangent_vec=log, base_point=base_point)
+        expected = point
 
-        self.assertTrue(gs.allclose(result_1, expected_1))
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_exp_and_belongs(self):
