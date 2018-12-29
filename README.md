@@ -5,7 +5,7 @@
 Computations and statistics on manifolds with geometric structures.
 
 - [Geomstats paper](https://arxiv.org/abs/1805.08308) on arxiv.
-- For more in-detph examples, see the [examples repository](https://github.com/geomstats/examples/).
+- For more in-depth applications of ``geomstats``, see the [applications repository](https://github.com/geomstats/applications/).
 
 <img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/gradient_descent.gif" width=384 height=384><img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=200 height=200>
 
