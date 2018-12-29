@@ -6,6 +6,7 @@ matplotlib
 numpy>=1.14.1
 pytest
 pytest-cov
+pytest-xdist
 scipy
 tensorflow>=1.12
 torch==0.4.0
