@@ -130,6 +130,37 @@ class SPDMetric(RiemannianMetric):
         Compute the inner product of tangent_vec_a and tangent_vec_b
         at point base_point using the affine invariant Riemannian metric.
         """
+        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
+        n_tangent_vecs_a, _, _ = tangent_vec_a.shape
+        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
+        n_tangent_vecs_b, _, _ = tangent_vec_b.shape
+
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
+        n_base_points, _, _ = base_point.shape
+
+        assert (n_tangent_vecs_a == n_tangent_vecs_b == n_base_points
+                or n_tangent_vecs_a == n_tangent_vecs_b and n_base_points == 1
+                or n_base_points == n_tangent_vecs_a and n_tangent_vecs_b == 1
+                or n_base_points == n_tangent_vecs_b and n_tangent_vecs_a == 1
+                or n_tangent_vecs_a == 1 and n_tangent_vecs_b == 1
+                or n_base_points == 1 and n_tangent_vecs_a == 1
+                or n_base_points == 1 and n_tangent_vecs_b == 1)
+
+        if n_tangent_vecs_a == 1:
+            tangent_vec_a = gs.tile(
+                tangent_vec_a,
+                (gs.maximum(n_base_points, n_tangent_vecs_b), 1, 1))
+
+        if n_tangent_vecs_b == 1:
+            tangent_vec_b = gs.tile(
+                tangent_vec_b,
+                (gs.maximum(n_base_points, n_tangent_vecs_a), 1, 1))
+
+        if n_base_points == 1:
+            base_point = gs.tile(
+                base_point,
+                (gs.maximum(n_tangent_vecs_a, n_tangent_vecs_b), 1, 1))
+
         inv_base_point = gs.linalg.inv(base_point)
 
         aux_a = gs.matmul(inv_base_point, tangent_vec_a)
@@ -192,6 +223,11 @@ class SPDMetric(RiemannianMetric):
         assert (n_points == n_base_points
                 or n_points == 1
                 or n_base_points == 1)
+
+        if n_points == 1:
+            point = gs.tile(point, (n_base_points, 1, 1))
+        if n_base_points == 1:
+            base_point = gs.tile(base_point, (n_points, 1, 1))
 
         sqrt_base_point = gs.zeros((n_base_points,) + (mat_dim,) * 2)
         sqrt_base_point = gs.linalg.sqrtm(base_point)
