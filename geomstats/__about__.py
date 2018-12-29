@@ -16,4 +16,5 @@ extras_require = {
     'tf': ['tensorflow>=1.12'],
     'torch': ['torch==0.4.0'],
     }
+
 extras_require['all'] = list(chain(*extras_require.values()))
