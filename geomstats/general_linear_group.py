@@ -40,13 +40,14 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
         Check if mat belongs to GL(n).
         """
         mat = gs.to_ndarray(mat, to_ndim=3)
-        n_mats, _, _ = mat.shape
 
-        mat_rank = gs.zeros((n_mats, 1))
-        mat_rank = gs.linalg.matrix_rank(mat)
-        mat_rank = gs.to_ndarray(mat_rank, to_ndim=1)
+        det = gs.linalg.det(mat)
+        belongs = ~gs.isclose(det, 0.)
 
-        return gs.equal(mat_rank, self.n)
+        belongs = gs.to_ndarray(belongs, to_ndim=1)
+        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
+
+        return belongs
 
     def compose(self, mat_a, mat_b):
         """

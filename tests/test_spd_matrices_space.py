@@ -21,7 +21,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         self.n = 3
         self.space = SPDMatricesSpace(n=self.n)
         self.metric = self.space.metric
-        self.n_samples = 10
+        self.n_samples = 4
 
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
@@ -29,7 +29,6 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         expected = gs.array([[True]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_random_uniform_and_belongs_vectorization(self):
         """
         Test that the random uniform method samples
@@ -37,7 +36,8 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         """
         n_samples = self.n_samples
         points = self.space.random_uniform(n_samples=n_samples)
-        self.assertTrue(gs.all(self.space.belongs(points)))
+        result = self.space.belongs(points)
+        self.assertAllClose(gs.shape(result), (n_samples, 1))
 
     def vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(self):
         sym_mat_1 = gs.array([[1., 0.6, -3.],

@@ -50,6 +50,8 @@ class MatricesSpace(EuclideanSpace):
         mask = gs.isclose(matrix, matrix_transpose, atol=tolerance)
         mask = gs.all(mask, axis=(1, 2))
 
+        mask = gs.to_ndarray(mask, to_ndim=1)
+        mask = gs.to_ndarray(mask, to_ndim=2, axis=1)
         return mask
 
     @staticmethod
