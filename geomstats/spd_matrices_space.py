@@ -34,12 +34,12 @@ class SPDMatricesSpace(EmbeddedManifold):
 
         mask_is_symmetric = self.embedding_manifold.is_symmetric(
                 mat, tolerance=tolerance)
-        eigenvalues = gs.zeros((n_mats, mat_dim))
-        eigenvalues[mask_is_symmetric] = gs.linalg.eigvalsh(
-                                              mat[mask_is_symmetric])
+        mask_is_invertible = self.embedding_manifold.belongs(mat)
 
-        mask_pos_eigenvalues = gs.all(eigenvalues > 0)
-        return mask_is_symmetric & mask_pos_eigenvalues
+        belongs = mask_is_symmetric & mask_is_invertible
+        belongs = gs.to_ndarray(belongs, to_ndim=1)
+        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
+        return belongs
 
     def vector_from_symmetric_matrix(self, mat):
         """
