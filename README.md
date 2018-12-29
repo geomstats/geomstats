@@ -21,7 +21,6 @@ pip3 install geomstats
 ## Running tests
 
 ```
-pip3 install -r requirements.txt
 pytest
 ```
 
