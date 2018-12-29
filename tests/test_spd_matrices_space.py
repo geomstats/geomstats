@@ -99,7 +99,6 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_exp_vectorization(self):
         n_samples = self.n_samples
         one_base_point = self.space.random_uniform(n_samples=1)
@@ -113,20 +112,16 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                                                  base_point=n_base_point)
 
         # Test with the 1 base_point, and several different tangent_vecs
-        results = self.metric.exp(n_tangent_vec_same_base, one_base_point)
+        result = self.metric.exp(n_tangent_vec_same_base, one_base_point)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples,
-                                     self.space.n,
-                                     self.space.n)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.space.n, self.space.n))
 
         # Test with the same number of base_points and tangent_vecs
-        results = self.metric.exp(n_tangent_vec, n_base_point)
+        result = self.metric.exp(n_tangent_vec, n_base_point)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples,
-                                     self.space.n,
-                                     self.space.n)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.space.n, self.space.n))
 
     @geomstats.tests.np_only
     def test_log_vectorization(self):
@@ -138,28 +133,22 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         n_point = self.space.random_uniform(n_samples=n_samples)
 
         # Test with different points, one base point
-        results = self.metric.log(n_point, one_base_point)
+        result = self.metric.log(n_point, one_base_point)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples,
-                                     self.space.n,
-                                     self.space.n)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.space.n, self.space.n))
 
         # Test with the same number of points and base points
-        results = self.metric.log(n_point, n_base_point)
+        result = self.metric.log(n_point, n_base_point)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples,
-                                     self.space.n,
-                                     self.space.n)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.space.n, self.space.n))
 
         # Test with the one point and n base points
-        results = self.metric.log(one_point, n_base_point)
+        result = self.metric.log(one_point, n_base_point)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples,
-                                     self.space.n,
-                                     self.space.n)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.space.n, self.space.n))
 
     @geomstats.tests.np_only
     def test_exp_then_log_vectorization(self):
