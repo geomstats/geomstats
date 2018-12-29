@@ -354,16 +354,20 @@ class SpecialEuclideanGroup(LieGroup):
             angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
             mask_close_pi = gs.isclose(angle, gs.pi)
-            mask_close_pi = gs.squeeze(mask_close_pi, axis=1)
-            rot_vec[mask_close_pi] = rotations.regularize(
-                                           rot_vec[mask_close_pi],
-                                           point_type=point_type)
+            mask_close_pi = gs.to_ndarray(mask_close_pi, to_ndim=1)
+            mask_close_pi = gs.to_ndarray(mask_close_pi, to_ndim=2, axis=1)
+            mask_close_pi_float = gs.cast(mask_close_pi, gs.float32)
+            rot_vec += gs.einsum(
+                'ni,nj->nj',
+                mask_close_pi_float,
+                rotations.regularize(
+                    rot_vec, point_type=point_type))
 
             skew_mat = self.rotations.skew_matrix_from_vector(rot_vec)
             sq_skew_mat = gs.matmul(skew_mat, skew_mat)
 
-            mask_0 = gs.equal(angle, 0)
-            mask_close_0 = gs.isclose(angle, 0) & ~mask_0
+            mask_0 = gs.equal(angle, 0.)
+            mask_close_0 = gs.isclose(angle, 0.) & ~mask_0
 
             mask_0 = gs.squeeze(mask_0, axis=1)
             mask_close_0 = gs.squeeze(mask_close_0, axis=1)
@@ -403,9 +407,8 @@ class SpecialEuclideanGroup(LieGroup):
 
                 group_exp_translation[i] = translation_i + term_1_i + term_2_i
 
-            group_exp = gs.zeros_like(tangent_vec)
-            group_exp[:, :dim_rotations] = rot_vec
-            group_exp[:, dim_rotations:] = group_exp_translation
+            group_exp = gs.concatenate(
+                [rot_vec, group_exp_translation], axis=1)
 
             group_exp = self.regularize(group_exp, point_type=point_type)
             return group_exp
