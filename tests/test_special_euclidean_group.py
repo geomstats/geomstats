@@ -484,8 +484,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                       point=point)
         expected = point
         expected = helper.to_vector(expected)
-        print(result, 'res')
-        print(expected, 'exp')
         self.assertAllClose(result, expected)
 
         # Group logarithm of a transformation
