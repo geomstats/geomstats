@@ -496,7 +496,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_group_log_then_exp_from_identity(self):
         """
         Test that the group exponential from the identity
@@ -513,7 +512,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                                  point=point)
             expected = self.group.regularize(point)
             expected = helper.to_vector(expected)
-            gs.testing.assert_allclose(result, expected, atol=1e-8)
+            self.assertAllClose(result, expected, atol=1e-8)
 
     @geomstats.tests.np_only
     def test_group_log_then_exp_from_identity_with_angles_close_to_pi(self):
