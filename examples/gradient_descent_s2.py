@@ -18,7 +18,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.backend as gs
-import geomstats.vectorization as vectorization
 import geomstats.visualization as visualization
 
 from geomstats.hypersphere import Hypersphere
@@ -68,12 +67,12 @@ def plot_and_save_video(geodesics,
     ax = fig.add_subplot(111, projection='3d', aspect='equal')
     sphere = visualization.Sphere()
     sphere.plot_heatmap(ax, loss)
-    points = vectorization.to_ndarray(geodesics[0], to_ndim=2)
+    points = gs.to_ndarray(geodesics[0], to_ndim=2)
     sphere.add_points(points)
     sphere.draw(ax, color=color, marker='.')
     with writer.saving(fig, out, dpi=dpi):
         for points in geodesics[1:]:
-            points = vectorization.to_ndarray(points, to_ndim=2)
+            points = gs.to_ndarray(points, to_ndim=2)
             sphere.draw_points(ax, points=points, color=color, marker='.')
             writer.grab_frame()
 

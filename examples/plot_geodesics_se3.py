@@ -5,6 +5,7 @@ with its left-invariant canonical METRIC.
 
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 import geomstats.visualization as visualization
 
@@ -30,4 +31,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
+        print('Examples with visualizations are only implemented '
+              'with numpy backend.\n'
+              'To change backend, write: '
+              'export GEOMSTATS_BACKEND = \'numpy\'.')
+    else:
+        main()
