@@ -590,14 +590,12 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                 expected = helper.to_vector(expected)
                 self.assertAllClose(result, expected, rtol=1e-4, atol=1e-4)
 
-    @geomstats.tests.np_only
     def test_group_exp_then_log(self):
         """
         Test that the group exponential
         and the group logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        # TODO(nina): this test fails
         for base_point_type in self.elements:
             base_point = self.elements[base_point_type]
             for element_type in self.elements:
@@ -614,6 +612,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                                    base_point=base_point,
                                                    metric=metric)
                 expected = helper.to_vector(expected)
+                self.assertAllClose(result, expected, rtol=1e-4, atol=1e-4)
 
     def test_exp_from_identity_left(self):
         # Riemannian left-invariant metric given by
