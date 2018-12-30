@@ -429,32 +429,31 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         self.assertAllClose(
             gs.shape(result), (n_samples, self.group.dimension))
 
-    @geomstats.tests.np_only
     def test_group_log_vectorization(self):
         n_samples = self.n_samples
         # Test with the 1 base point, and several different points
         points = self.group.random_uniform(n_samples=n_samples)
         base_point = self.group.random_uniform(n_samples=1)
-        results = self.group.group_log(points, base_point)
+        result = self.group.group_log(points, base_point)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, self.group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
         # Test with the same number of base points and points
         points = self.group.random_uniform(n_samples=n_samples)
         base_points = self.group.random_uniform(n_samples=n_samples)
-        results = self.group.group_log(points, base_points)
+        result = self.group.group_log(points, base_points)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, self.group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
         # Test with the several base points, and 1 point
         point = self.group.random_uniform(n_samples=1)
         base_points = self.group.random_uniform(n_samples=n_samples)
-        results = self.group.group_log(point, base_points)
+        result = self.group.group_log(point, base_points)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, self.group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
     @geomstats.tests.np_only
     def test_group_exp_from_identity(self):
