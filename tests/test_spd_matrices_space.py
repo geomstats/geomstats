@@ -6,6 +6,7 @@ import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
+import tests.helper as helper
 
 from geomstats.spd_matrices_space import SPDMatricesSpace
 
@@ -21,16 +22,14 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         self.n = 3
         self.space = SPDMatricesSpace(n=self.n)
         self.metric = self.space.metric
-        self.n_samples = 10
+        self.n_samples = 4
 
-    @geomstats.tests.np_only
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
         expected = gs.array([[True]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_random_uniform_and_belongs_vectorization(self):
         """
         Test that the random uniform method samples
@@ -38,7 +37,8 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         """
         n_samples = self.n_samples
         points = self.space.random_uniform(n_samples=n_samples)
-        self.assertTrue(gs.all(self.space.belongs(points)))
+        result = self.space.belongs(points)
+        self.assertAllClose(gs.shape(result), (n_samples, 1))
 
     def vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(self):
         sym_mat_1 = gs.array([[1., 0.6, -3.],
@@ -73,33 +73,32 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertTrue(gs.allclose(result, expected))
 
-    @geomstats.tests.np_only
     def test_log_and_exp(self):
-        base_point_1 = gs.array([[5., 0., 0.],
-                                [0., 7., 2.],
-                                [0., 2., 8.]])
-        point_1 = gs.array([[9., 0., 0.],
-                            [0., 5., 0.],
-                            [0., 0., 1.]])
+        base_point = gs.array([[5., 0., 0.],
+                               [0., 7., 2.],
+                               [0., 2., 8.]])
+        point = gs.array([[9., 0., 0.],
+                          [0., 5., 0.],
+                          [0., 0., 1.]])
 
-        log_1 = self.metric.log(point=point_1, base_point=base_point_1)
-        result_1 = self.metric.exp(tangent_vec=log_1, base_point=base_point_1)
-        expected_1 = point_1
+        log = self.metric.log(point=point, base_point=base_point)
+        result = self.metric.exp(tangent_vec=log, base_point=base_point)
+        expected = helper.to_matrix(point)
 
-        self.assertTrue(gs.allclose(result_1, expected_1))
+        self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_exp_and_belongs(self):
         n_samples = self.n_samples
         base_point = self.space.random_uniform(n_samples=1)
         tangent_vec = self.space.random_tangent_vec_uniform(
                                                n_samples=n_samples,
                                                base_point=base_point)
-        results = self.metric.exp(tangent_vec, base_point)
+        exps = self.metric.exp(tangent_vec, base_point)
+        result = self.space.belongs(exps)
+        expected = gs.array([[True]] * n_samples)
 
-        self.assertTrue(gs.all(self.space.belongs(results)))
+        self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_exp_vectorization(self):
         n_samples = self.n_samples
         one_base_point = self.space.random_uniform(n_samples=1)
@@ -113,22 +112,17 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                                                  base_point=n_base_point)
 
         # Test with the 1 base_point, and several different tangent_vecs
-        results = self.metric.exp(n_tangent_vec_same_base, one_base_point)
+        result = self.metric.exp(n_tangent_vec_same_base, one_base_point)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples,
-                                     self.space.n,
-                                     self.space.n)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.space.n, self.space.n))
 
         # Test with the same number of base_points and tangent_vecs
-        results = self.metric.exp(n_tangent_vec, n_base_point)
+        result = self.metric.exp(n_tangent_vec, n_base_point)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples,
-                                     self.space.n,
-                                     self.space.n)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.space.n, self.space.n))
 
-    @geomstats.tests.np_only
     def test_log_vectorization(self):
         n_samples = self.n_samples
         one_base_point = self.space.random_uniform(n_samples=1)
@@ -138,57 +132,23 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         n_point = self.space.random_uniform(n_samples=n_samples)
 
         # Test with different points, one base point
-        results = self.metric.log(n_point, one_base_point)
+        result = self.metric.log(n_point, one_base_point)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples,
-                                     self.space.n,
-                                     self.space.n)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.space.n, self.space.n))
 
         # Test with the same number of points and base points
-        results = self.metric.log(n_point, n_base_point)
+        result = self.metric.log(n_point, n_base_point)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples,
-                                     self.space.n,
-                                     self.space.n)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.space.n, self.space.n))
 
         # Test with the one point and n base points
-        results = self.metric.log(one_point, n_base_point)
+        result = self.metric.log(one_point, n_base_point)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples,
-                                     self.space.n,
-                                     self.space.n)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.space.n, self.space.n))
 
-    @geomstats.tests.np_only
-    def test_exp_then_log_vectorization(self):
-        n_samples = self.n_samples
-        one_base_point = self.space.random_uniform(n_samples=1)
-        n_base_point = self.space.random_uniform(n_samples=n_samples)
-
-        n_tangent_vec_same_base = self.space.random_tangent_vec_uniform(
-                                                 n_samples=n_samples,
-                                                 base_point=one_base_point)
-        n_tangent_vec = self.space.random_tangent_vec_uniform(
-                                                 n_samples=n_samples,
-                                                 base_point=n_base_point)
-
-        # Test with the 1 base_point, and several different tangent_vecs
-        exps = self.metric.exp(n_tangent_vec_same_base, one_base_point)
-        results = self.metric.log(exps, one_base_point)
-        expected = n_tangent_vec_same_base
-
-        self.assertTrue(gs.allclose(results, expected))
-
-        # Test with the same number of base_points and tangent_vecs
-        exps = self.metric.exp(n_tangent_vec, n_base_point)
-        results = self.metric.log(exps, n_base_point)
-        expected = n_tangent_vec
-
-        self.assertTrue(gs.allclose(results, expected))
-
-    @geomstats.tests.np_only
     def test_geodesic_and_belongs(self):
         initial_point = self.space.random_uniform()
         initial_tangent_vec = self.space.random_tangent_vec_uniform(
@@ -198,9 +158,13 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                                    initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
 
-        t = gs.linspace(start=0, stop=1, num=100)
+        n_points = 10
+        t = gs.linspace(start=0., stop=1., num=n_points)
         points = geodesic(t)
-        self.assertTrue(gs.all(self.space.belongs(points)))
+        result = self.space.belongs(points)
+        expected = gs.array([[True]] * n_points)
+
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_squared_dist_is_symmetric(self):
@@ -212,7 +176,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = self.metric.squared_dist(point_2, point_1)
 
-        self.assertTrue(gs.allclose(sq_dist_1_2, sq_dist_2_1))
+        self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
         point_1 = self.space.random_uniform(n_samples=1)
         point_2 = self.space.random_uniform(n_samples=n_samples)
@@ -220,7 +184,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = self.metric.squared_dist(point_2, point_1)
 
-        self.assertTrue(gs.allclose(sq_dist_1_2, sq_dist_2_1))
+        self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
         point_1 = self.space.random_uniform(n_samples=n_samples)
         point_2 = self.space.random_uniform(n_samples=1)
@@ -228,7 +192,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = self.metric.squared_dist(point_2, point_1)
 
-        self.assertTrue(gs.allclose(sq_dist_1_2, sq_dist_2_1))
+        self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
         point_1 = self.space.random_uniform(n_samples=n_samples)
         point_2 = self.space.random_uniform(n_samples=n_samples)
@@ -236,39 +200,37 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
         sq_dist_2_1 = self.metric.squared_dist(point_2, point_1)
 
-        self.assertTrue(gs.allclose(sq_dist_1_2, sq_dist_2_1))
+        self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
-    @geomstats.tests.np_only
     def test_squared_dist_vectorization(self):
         n_samples = self.n_samples
         point_1 = self.space.random_uniform(n_samples=n_samples)
         point_2 = self.space.random_uniform(n_samples=n_samples)
 
-        sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
+        result = self.metric.squared_dist(point_1, point_2)
 
-        self.assertTrue(sq_dist_1_2.shape == (n_samples, 1),
-                        'sq_dist_1_2.shape = {}'.format(sq_dist_1_2.shape))
+        self.assertAllClose(gs.shape(result), (n_samples, 1))
 
         point_1 = self.space.random_uniform(n_samples=1)
         point_2 = self.space.random_uniform(n_samples=n_samples)
 
-        sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
+        result = self.metric.squared_dist(point_1, point_2)
 
-        self.assertTrue(sq_dist_1_2.shape == (n_samples, 1))
+        self.assertAllClose(gs.shape(result), (n_samples, 1))
 
         point_1 = self.space.random_uniform(n_samples=n_samples)
         point_2 = self.space.random_uniform(n_samples=1)
 
-        sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
+        result = self.metric.squared_dist(point_1, point_2)
 
-        self.assertTrue(sq_dist_1_2.shape == (n_samples, 1))
+        self.assertAllClose(gs.shape(result), (n_samples, 1))
 
         point_1 = self.space.random_uniform(n_samples=1)
         point_2 = self.space.random_uniform(n_samples=1)
 
-        sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
+        result = self.metric.squared_dist(point_1, point_2)
 
-        self.assertTrue(sq_dist_1_2.shape == (1, 1))
+        self.assertAllClose(gs.shape(result), (1, 1))
 
 
 if __name__ == '__main__':
