@@ -353,14 +353,6 @@ class SpecialEuclideanGroup(LieGroup):
             angle = gs.linalg.norm(rot_vec, axis=1)
             angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
-            mask_close_pi = gs.isclose(angle, gs.pi)
-            mask_close_pi_float = gs.cast(mask_close_pi, gs.float32)
-            mask_close_pi_float = gs.to_ndarray(mask_close_pi_float, to_ndim=1)
-            mask_close_pi_float = gs.to_ndarray(
-                    mask_close_pi_float, to_ndim=2, axis=1)
-            #rot_vec += mask_close_pi_float * rotations.regularize(
-            #    rot_vec, point_type=point_type)
-
             skew_mat = self.rotations.skew_matrix_from_vector(rot_vec)
             sq_skew_mat = gs.matmul(skew_mat, skew_mat)
 
