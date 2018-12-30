@@ -11,6 +11,14 @@ float32 = tf.float32
 float64 = tf.float64
 
 
+def get_mask_i_float(i, n):
+    range_n = arange(n)
+    i_float = cast(array([i]), int32)[0]
+    mask_i = equal(range_n, i_float)
+    mask_i_float = cast(mask_i, float32)
+    return mask_i_float
+
+
 def gather(*args, **kwargs):
     return tf.gather(*args, **kwargs)
 

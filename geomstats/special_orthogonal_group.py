@@ -27,14 +27,6 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
-def get_mask_i_float(i, n):
-    range_n = gs.arange(n)
-    i_float = gs.cast(gs.array([i]), gs.int32)[0]
-    mask_i = gs.equal(range_n, i_float)
-    mask_i_float = gs.cast(mask_i, gs.float32)
-    return mask_i_float
-
-
 class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
     """
     Class for the special orthogonal group SO(n),
@@ -507,9 +499,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             rot_vec_pi = gs.zeros((n_rot_mats, self.dimension))
 
             # This avois dividing by 0.
-            mask_a_float = get_mask_i_float(a, 3) + self.epsilon
-            mask_b_float = get_mask_i_float(b, 3) + self.epsilon
-            mask_c_float = get_mask_i_float(c, 3) + self.epsilon
+            mask_a_float = gs.get_mask_i_float(a, 3) + self.epsilon
+            mask_b_float = gs.get_mask_i_float(b, 3) + self.epsilon
+            mask_c_float = gs.get_mask_i_float(c, 3) + self.epsilon
 
             mask_a_float = gs.to_ndarray(mask_a_float, to_ndim=2, axis=1)
             mask_b_float = gs.to_ndarray(mask_b_float, to_ndim=2, axis=1)
@@ -728,7 +720,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                         2 * y[i] * z[i] + 2 * w[i] * x[i],
                         w[i] ** 2 - x[i] ** 2 - y[i] ** 2 + z[i] ** 2]
 
-            mask_i = get_mask_i_float(i, n_quaternions)
+            mask_i = gs.get_mask_i_float(i, n_quaternions)
             rot_mat_i = gs.transpose(
                 gs.hstack([column_1, column_2, column_3]))
             rot_mat_i = gs.to_ndarray(rot_mat_i, to_ndim=3)
@@ -1258,7 +1250,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 for i in range(n_points):
                     # This avois dividing by 0.
                     mask_i_float = (
-                        get_mask_i_float(i, n_points_tensor)
+                        gs.get_mask_i_float(i, n_points_tensor)
                         + self.epsilon)
 
                     sign = - 1
