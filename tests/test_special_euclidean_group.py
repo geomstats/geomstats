@@ -540,61 +540,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                     gs.eval(gs.allclose(result, expected, atol=1e-4))
                     or gs.eval(gs.allclose(result, inv_expected, atol=1e-4)))
 
-    @geomstats.tests.np_only
-    def test_group_exp_then_log_from_identity(self):
-        """
-        Test that the group exponential from the identity
-        and the group logarithm from the identity
-        are inverse.
-        Expect their composition to give the identity function.
-        """
-        for element_type in self.elements:
-            if element_type in self.angles_close_to_pi:
-                continue
-            tangent_vec = self.elements[element_type]
-            result = helper.group_exp_then_log_from_identity(
-                                                group=self.group,
-                                                tangent_vec=tangent_vec)
-            expected = self.group.regularize(tangent_vec)
-            expected = helper.to_vector(expected)
-            self.assertTrue(gs.allclose(result, expected),
-                            '\n {}'
-                            '\ntangent_vec = {} -> {}'
-                            '\nresult = {} -> {}'
-                            '\nexpected = {} -> {}'.format(
-                               element_type,
-                               tangent_vec, self.group.regularize(tangent_vec),
-                               result, self.group.regularize(result),
-                               expected, self.group.regularize(expected),))
-
-    @geomstats.tests.np_only
-    def test_group_exp_then_log_from_identity_with_angles_close_to_pi(self):
-        """
-        Test that the group exponential from the identity
-        and the group logarithm from the identity
-        are inverse.
-        Expect their composition to give the identity function.
-        """
-        angle_types = self.angles_close_to_pi
-        for element_type in angle_types:
-            tangent_vec = self.elements[element_type]
-            result = helper.group_exp_then_log_from_identity(
-                                                group=self.group,
-                                                tangent_vec=tangent_vec)
-            expected = self.group.regularize(tangent_vec)
-            expected = helper.to_vector(expected)
-
-            inv_expected = gs.concatenate(
-                    [- expected[:, :3], expected[:, 3:6]],
-                    axis=1)
-            inv_expected = helper.to_vector(inv_expected)
-
-            with self.session():
-                self.assertTrue(
-                    gs.eval(gs.allclose(result, expected))
-                    or gs.eval(gs.allclose(result, inv_expected)))
-
-    @geomstats.tests.np_only
     def test_group_exp(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
@@ -608,9 +553,8 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         expected = (self.elements['translation_small']
                     + self.elements['translation_large'])
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_group_log(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
@@ -625,9 +569,8 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                     - self.elements['translation_small'])
 
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_group_log_then_exp(self):
         """
         Test that the group exponential
@@ -645,15 +588,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                                    base_point=base_point)
                 expected = self.group.regularize(point)
                 expected = helper.to_vector(expected)
-                self.assertTrue(gs.allclose(result, expected),
-                                '\n{}'
-                                '\npoint = {}'
-                                '\nresult = {}'
-                                '\nexpected = {}'.format(
-                               element_type,
-                               point,
-                               result,
-                               expected))
+                self.assertAllClose(result, expected))
 
     @geomstats.tests.np_only
     def test_group_exp_then_log(self):
