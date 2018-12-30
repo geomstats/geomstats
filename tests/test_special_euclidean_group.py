@@ -404,32 +404,31 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         self.assertAllClose(
             gs.shape(result), (n_samples, self.group.dimension))
 
-    @geomstats.tests.np_only
     def test_group_exp_vectorization(self):
         n_samples = self.n_samples
         # Test with the 1 base_point, and several different tangent_vecs
         tangent_vecs = self.group.random_uniform(n_samples=n_samples)
         base_point = self.group.random_uniform(n_samples=1)
-        results = self.group.group_exp(tangent_vecs, base_point)
+        result = self.group.group_exp(tangent_vecs, base_point)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, self.group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
         # Test with the same number of base_points and tangent_vecs
         tangent_vecs = self.group.random_uniform(n_samples=n_samples)
         base_points = self.group.random_uniform(n_samples=n_samples)
-        results = self.group.group_exp(tangent_vecs, base_points)
+        result = self.group.group_exp(tangent_vecs, base_points)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, self.group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
         # Test with the several base_points, and 1 tangent_vec
         tangent_vec = self.group.random_uniform(n_samples=1)
         base_points = self.group.random_uniform(n_samples=n_samples)
-        results = self.group.group_exp(tangent_vec, base_points)
+        result = self.group.group_exp(tangent_vec, base_points)
 
-        self.assertTrue(gs.allclose(results.shape,
-                                    (n_samples, self.group.dimension)))
+        self.assertAllClose(
+            gs.shape(result), (n_samples, self.group.dimension))
 
     @geomstats.tests.np_only
     def test_group_log_vectorization(self):
