@@ -455,7 +455,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         self.assertAllClose(
             gs.shape(result), (n_samples, self.group.dimension))
 
-    @geomstats.tests.np_only
     def test_group_exp_from_identity(self):
         # Group exponential of a translation (no rotational part)
         # Expect the original translation
@@ -464,7 +463,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                       tangent_vec=tangent_vec)
         expected = tangent_vec
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
         # Group exponential of a transformation
         # where translation is parallel to rotation axis
@@ -475,9 +474,8 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                   tangent_vec=tangent_vec)
         expected = tangent_vec
         expected = helper.to_vector(expected)
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_group_log_from_identity(self):
         # Group logarithm of a translation (no rotational part)
         # Expect the original translation
@@ -486,7 +484,9 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                       point=point)
         expected = point
         expected = helper.to_vector(expected)
-        self.assertTrue(gs.allclose(expected, result))
+        print(result, 'res')
+        print(expected, 'exp')
+        self.assertAllClose(result, expected)
 
         # Group logarithm of a transformation
         # where translation is parallel to rotation axis
@@ -496,7 +496,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                       point=point)
         expected = point
         expected = helper.to_vector(expected)
-        self.assertTrue(gs.allclose(expected, result))
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_group_log_then_exp_from_identity(self):

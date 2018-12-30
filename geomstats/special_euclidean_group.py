@@ -372,6 +372,8 @@ class SpecialEuclideanGroup(LieGroup):
             mask_close_0_float = gs.cast(mask_close_0, gs.float32)
             mask_else_float = gs.cast(mask_else, gs.float32)
 
+            angle += mask_0_float * gs.ones_like(angle)
+
             coef_1 = gs.zeros_like(angle)
             coef_2 = gs.zeros_like(angle)
 
