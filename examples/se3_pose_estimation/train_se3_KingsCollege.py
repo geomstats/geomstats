@@ -47,6 +47,9 @@ ARGPARSER.add_argument(
     '--logs_path', type=str, default='./logs',
     help='The path to the logs directory.')
 ARGPARSER.add_argument(
+    '--resume', default=False, action='store_true',
+    help="Resume training from previous saved checkpoint.")
+ARGPARSER.add_argument(
     '--cuda', type=str, default='0',
     help='Specify default GPU to use.')
 ARGPARSER.add_argument(
@@ -121,7 +124,7 @@ def main(args):
         train_op = tf.train.AdamOptimizer(FLAGS.init_lr).minimize(loss)
 
     # Initialize the variables (i.e. assign their default value)
-    print('Initalizing Variables...')
+    print('Initializing Variables...')
     init_op = tf.group(tf.global_variables_initializer(),
                        tf.local_variables_initializer())
 
@@ -144,8 +147,10 @@ def main(args):
         summary_writer = tf.summary.FileWriter(FLAGS.logs_path, graph=tf.get_default_graph())
 
         saver = tf.train.Saver()
-        # latest_checkpoint = tf.train.latest_checkpoint(_model_ckpt)
-        # saver.restore(sess, latest_checkpoint)
+        if FLAGS.resume:
+            print('Resuming training.')
+            latest_checkpoint = tf.train.latest_checkpoint(FLAGS.model_dir)
+            saver.restore(sess, latest_checkpoint)
 
         # Training cycle
         try:

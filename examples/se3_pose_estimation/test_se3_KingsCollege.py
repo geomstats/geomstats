@@ -93,7 +93,7 @@ def main(args):
         loss = tf.reduce_mean(
             lie_group.loss(y_pred, y_true, SE3_GROUP, metric))
 
-    print('Initalizing Variables...')
+    print('Initializing Variables...')
     init_op = tf.group(tf.global_variables_initializer(),
                        tf.local_variables_initializer())
 
