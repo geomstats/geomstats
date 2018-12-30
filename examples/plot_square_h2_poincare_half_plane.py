@@ -48,7 +48,7 @@ if __name__ == "__main__":
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
         print('Examples with visualizations are only implemented '
               'with numpy backend.\n'
-              'To change backend, write: '
-              'export GEOMSTATS_BACKEND = \'numpy\'.')
+              'To change backend, change '
+              'the environmental variable GEOMSTATS_BACKEND.')
     else:
         main()
