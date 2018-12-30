@@ -536,13 +536,9 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             inv_expected = helper.to_vector(inv_expected)
 
             with self.session():
-                print(gs.eval(result), 'res')
-                print(gs.eval(expected), 'exp')
-                print(gs.eval(inv_expected), 'inv exp')
-
                 self.assertTrue(
-                    gs.eval(gs.allclose(result, expected))
-                    or gs.eval(gs.allclose(result, inv_expected)))
+                    gs.eval(gs.allclose(result, expected, atol=1e-4))
+                    or gs.eval(gs.allclose(result, inv_expected, atol=1e-4)))
 
     @geomstats.tests.np_only
     def test_group_exp_then_log_from_identity(self):
