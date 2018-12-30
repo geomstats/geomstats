@@ -588,7 +588,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                                                    base_point=base_point)
                 expected = self.group.regularize(point)
                 expected = helper.to_vector(expected)
-                self.assertAllClose(result, expected))
+                self.assertAllClose(result, expected, rtol=1e-4, atol=1e-4)
 
     @geomstats.tests.np_only
     def test_group_exp_then_log(self):
