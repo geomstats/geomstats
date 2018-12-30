@@ -362,35 +362,33 @@ class SpecialEuclideanGroup(LieGroup):
             skew_mat = self.rotations.skew_matrix_from_vector(rot_vec)
             sq_skew_mat = gs.matmul(skew_mat, skew_mat)
 
-            mask_0 = gs.equal(angle, 0)
-            mask_close_0 = gs.isclose(angle, 0) & ~mask_0
-
-            mask_0 = gs.squeeze(mask_0, axis=1)
-            mask_close_0 = gs.squeeze(mask_close_0, axis=1)
-
+            mask_0 = gs.equal(angle, 0.)
+            mask_close_0 = gs.isclose(angle, 0.) & ~mask_0
             mask_else = ~mask_0 & ~mask_close_0
+
+            mask_0_float = gs.cast(mask_0, gs.float32)
+            mask_close_0_float = gs.cast(mask_close_0, gs.float32)
+            mask_else_float = gs.cast(mask_else, gs.float32)
 
             coef_1 = gs.zeros_like(angle)
             coef_2 = gs.zeros_like(angle)
 
-            coef_1[mask_0] = 1. / 2.
-            coef_2[mask_0] = 1. / 6.
+            coef_1 += mask_0_float * 1. / 2. * gs.ones_like(angle)
+            coef_2 += mask_0_float * 1. / 6. * gs.ones_like(angle)
 
-            coef_1[mask_close_0] = (
+            coef_1 += mask_close_0_float * (
                 TAYLOR_COEFFS_1_AT_0[0]
-                + TAYLOR_COEFFS_1_AT_0[2] * angle[mask_close_0] ** 2
-                + TAYLOR_COEFFS_1_AT_0[4] * angle[mask_close_0] ** 4
-                + TAYLOR_COEFFS_1_AT_0[6] * angle[mask_close_0] ** 6)
-            coef_2[mask_close_0] = (
+                + TAYLOR_COEFFS_1_AT_0[2] * angle ** 2
+                + TAYLOR_COEFFS_1_AT_0[4] * angle ** 4
+                + TAYLOR_COEFFS_1_AT_0[6] * angle ** 6)
+            coef_2 += mask_close_0_float * (
                 TAYLOR_COEFFS_2_AT_0[0]
-                + TAYLOR_COEFFS_2_AT_0[2] * angle[mask_close_0] ** 2
-                + TAYLOR_COEFFS_2_AT_0[4] * angle[mask_close_0] ** 4
-                + TAYLOR_COEFFS_2_AT_0[6] * angle[mask_close_0] ** 6)
+                + TAYLOR_COEFFS_2_AT_0[2] * angle ** 2
+                + TAYLOR_COEFFS_2_AT_0[4] * angle ** 4
+                + TAYLOR_COEFFS_2_AT_0[6] * angle ** 6)
 
-            coef_1[mask_else] = ((1. - gs.cos(angle[mask_else]))
-                                 / angle[mask_else] ** 2)
-            coef_2[mask_else] = ((angle[mask_else] - gs.sin(angle[mask_else]))
-                                 / angle[mask_else] ** 3)
+            coef_1 += mask_else_float * ((1. - gs.cos(angle)) / angle ** 2)
+            coef_2 += mask_else_float * ((angle - gs.sin(angle)) / angle ** 3)
 
             n_tangent_vecs, _ = tangent_vec.shape
             group_exp_translation = gs.zeros((n_tangent_vecs, self.n))
