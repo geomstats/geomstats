@@ -126,7 +126,6 @@ class Connection(object):
         """
         Geodesic associated with the connection.
         """
-        # TODO(nina): integrate the ODE
         raise NotImplementedError(
                 'Geodesics are not implemented.')
 
@@ -159,7 +158,6 @@ class LeviCivitaConnection(Connection):
         return cometric_matrix
 
     def metric_derivative(self, base_point):
-        # TODO(nina): same operation without autograd package?
         metric_derivative = autograd.jacobian(self.metric_matrix)
         return metric_derivative(base_point)
 
@@ -184,5 +182,4 @@ class LeviCivitaConnection(Connection):
         """
         Torsion tensor associated with the Levi-Civita connection is zero.
         """
-        # TODO(nina)
         return gs.zeros((self.dimension,) * 3)
