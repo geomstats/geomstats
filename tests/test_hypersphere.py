@@ -430,11 +430,13 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
     def test_mean(self):
         point = gs.array([0., 0., 0., 0., 1.])
-        result = self.metric.mean([point, point])
-        expected = point #helper.to_vector(point)
+        points = gs.array([
+            point,
+            point])
+        result = self.metric.mean(points)
+        expected = helper.to_vector(point)
 
         self.assertAllClose(expected, result)
 

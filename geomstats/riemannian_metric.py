@@ -206,17 +206,20 @@ class RiemannianMetric(object):
         dist = gs.sqrt(sq_dist)
         return dist
 
-    def variance(self, points, weights=None, base_point=None):
+    def variance(self,
+                 points,
+                 weights=None,
+                 base_point=None,
+                 point_type='vector'):
         """
         Variance of (weighted) points wrt a base point.
         """
-        if isinstance(points, list):
-            points = gs.vstack(points)
-
+        if point_type == 'vector':
+            points = gs.to_ndarray(points, to_ndim=2)
+        if point_type == 'matrix':
+            points = gs.to_ndarray(points, to_ndim=3)
         n_points = gs.shape(points)[0]
 
-        if isinstance(weights, list):
-            weights = gs.vstack(weights)
         if weights is None:
             weights = gs.ones((n_points, 1))
 
@@ -235,6 +238,7 @@ class RiemannianMetric(object):
 
         variance /= sum_weights
 
+        variance = gs.to_ndarray(variance, to_ndim=1)
         variance = gs.to_ndarray(variance, to_ndim=2, axis=1)
         return variance
 
@@ -248,18 +252,12 @@ class RiemannianMetric(object):
         """
         # TODO(nina): profile this code to study performance,
         # i.e. what to do with sq_dists_between_iterates.
-
-        if isinstance(points, list):
-            points = gs.vstack(points)
-
         if point_type == 'vector':
             points = gs.to_ndarray(points, to_ndim=2)
         if point_type == 'matrix':
             points = gs.to_ndarray(points, to_ndim=3)
         n_points = gs.shape(points)[0]
 
-        if isinstance(weights, list):
-            weights = gs.vstack(weights)
         if weights is None:
             weights = gs.ones((n_points, 1))
 
@@ -269,14 +267,23 @@ class RiemannianMetric(object):
         sum_weights = gs.sum(weights)
 
         mean = points[0]
+        if point_type == 'vector':
+            mean = gs.to_ndarray(mean, to_ndim=2)
+        if point_type == 'matrix':
+            mean = gs.to_ndarray(mean, to_ndim=3)
+
         if n_points == 1:
             return mean
 
         sq_dists_between_iterates = []
         iteration = 0
-        while iteration < n_max_iterations:
-            a_tangent_vector = self.log(mean, mean)
-            tangent_mean = gs.zeros_like(a_tangent_vector)
+        sq_dist = gs.array([[0.]])
+        variance = gs.array([[0.]])
+
+        #iteration = gs.constant(0)
+
+        def while_loop_body(iteration, mean, variance, sq_dist):
+            tangent_mean = gs.zeros_like(mean)
 
             logs = self.log(point=points, base_point=mean)
             tangent_mean += gs.einsum('nk,nj->j', weights, logs)
@@ -293,15 +300,30 @@ class RiemannianMetric(object):
             variance = self.variance(points=points,
                                      weights=weights,
                                      base_point=mean_next)
-            if gs.isclose(variance, 0.)[0, 0]:
-                break
-            if (sq_dist <= epsilon * variance)[0, 0]:
-                break
 
             mean = mean_next
             iteration += 1
+            return [iteration, mean, variance, sq_dist]
 
-        if iteration is n_max_iterations:
+        def while_loop_cond(iteration, mean, variance, sq_dist):
+            result = gs.logical_or(
+                gs.isclose(variance, 0.),
+                gs.less_equal(sq_dist, epsilon * variance))
+            return result[0, 0]
+
+        last_iteration, mean, variance, sq_dist = gs.while_loop(
+            lambda i, m, v, sq: while_loop_cond(i, m, v, sq),
+            lambda i, m, v, sq: while_loop_body(i, m, v, sq),
+            loop_vars=[iteration, mean, variance, sq_dist],
+            maximum_iterations=n_max_iterations)
+        #while iteration < n_max_iterations:
+
+        #    if gs.isclose(variance, 0.)[0, 0]:
+        #        break
+        #    if (sq_dist <= epsilon * variance)[0, 0]:
+        #        break
+
+        if last_iteration == n_max_iterations:
             print('Maximum number of iterations {} reached.'
                   'The mean may be inaccurate'.format(n_max_iterations))
 
