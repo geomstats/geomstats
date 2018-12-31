@@ -434,11 +434,13 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
     def test_mean_and_belongs(self):
         point_a = gs.array([1., 0., 0., 0., 0.])
         point_b = gs.array([0., 1., 0., 0., 0.])
-        mean = self.metric.mean([point_a, point_b])
+        points = gs.array([
+            point_a,
+            point_b])
+        mean = self.metric.mean(points)
         result = self.space.belongs(mean)
         expected = gs.array([[True]])
         self.assertAllClose(result, expected)
