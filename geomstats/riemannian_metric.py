@@ -240,7 +240,10 @@ class RiemannianMetric(object):
         return variance
 
     def mean(self, points,
-             weights=None, n_max_iterations=32, epsilon=EPSILON):
+             weights=None,
+             n_max_iterations=32,
+             epsilon=EPSILON,
+             point_type='vector'):
         """
         Frechet mean of (weighted) points.
         """
@@ -249,6 +252,11 @@ class RiemannianMetric(object):
 
         if isinstance(points, list):
             points = gs.vstack(points)
+
+        if point_type == 'vector':
+            points = gs.to_ndarray(points, to_ndim=2)
+        if point_type == 'matrix':
+            points = gs.to_ndarray(points, to_ndim=3)
         n_points = gs.shape(points)[0]
 
         if isinstance(weights, list):
