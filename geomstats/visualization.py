@@ -1,6 +1,5 @@
 """Visualization for Geometric Statistics."""
 
-import geomstats.vectorization as vectorization
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -349,7 +348,7 @@ def convert_to_trihedron(point, space=None):
     - the trihedron's orientation is the rotation of the canonical basis
     of R^3 by the rotation part of point.
     """
-    point = vectorization.to_ndarray(point, to_ndim=2)
+    point = gs.to_ndarray(point, to_ndim=2)
     n_points, _ = point.shape
 
     dim_rotations = SO3_GROUP.dimension
@@ -397,7 +396,7 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
     if points is None:
         raise ValueError("No points given for plotting.")
 
-    points = vectorization.to_ndarray(points, to_ndim=2)
+    points = gs.to_ndarray(points, to_ndim=2)
 
     if space in ('SO3_GROUP', 'SE3_GROUP'):
         if ax is None:
