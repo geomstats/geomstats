@@ -252,6 +252,35 @@ class RiemannianMetric(object):
         """
         # TODO(nina): profile this code to study performance,
         # i.e. what to do with sq_dists_between_iterates.
+        def while_loop_cond(iteration, mean, variance, sq_dist):
+            result = gs.logical_or(
+                gs.isclose(variance, 0.),
+                gs.less_equal(sq_dist, epsilon * variance))
+            return result[0, 0]
+
+        def while_loop_body(iteration, mean, variance, sq_dist):
+            tangent_mean = gs.zeros_like(mean)
+
+            logs = self.log(point=points, base_point=mean)
+            tangent_mean += gs.einsum('nk,nj->j', weights, logs)
+
+            tangent_mean /= sum_weights
+
+            mean_next = self.exp(
+                tangent_vec=tangent_mean,
+                base_point=mean)
+
+            sq_dist = self.squared_dist(mean_next, mean)
+            sq_dists_between_iterates.append(sq_dist)
+
+            variance = self.variance(points=points,
+                                     weights=weights,
+                                     base_point=mean_next)
+
+            mean = mean_next
+            iteration += 1
+            return [iteration, mean, variance, sq_dist]
+
         if point_type == 'vector':
             points = gs.to_ndarray(points, to_ndim=2)
         if point_type == 'matrix':
@@ -280,48 +309,11 @@ class RiemannianMetric(object):
         sq_dist = gs.array([[0.]])
         variance = gs.array([[0.]])
 
-        #iteration = gs.constant(0)
-
-        def while_loop_body(iteration, mean, variance, sq_dist):
-            tangent_mean = gs.zeros_like(mean)
-
-            logs = self.log(point=points, base_point=mean)
-            tangent_mean += gs.einsum('nk,nj->j', weights, logs)
-
-            tangent_mean /= sum_weights
-
-            mean_next = self.exp(
-                tangent_vec=tangent_mean,
-                base_point=mean)
-
-            sq_dist = self.squared_dist(mean_next, mean)
-            sq_dists_between_iterates.append(sq_dist)
-
-            variance = self.variance(points=points,
-                                     weights=weights,
-                                     base_point=mean_next)
-
-            mean = mean_next
-            iteration += 1
-            return [iteration, mean, variance, sq_dist]
-
-        def while_loop_cond(iteration, mean, variance, sq_dist):
-            result = gs.logical_or(
-                gs.isclose(variance, 0.),
-                gs.less_equal(sq_dist, epsilon * variance))
-            return result[0, 0]
-
         last_iteration, mean, variance, sq_dist = gs.while_loop(
             lambda i, m, v, sq: while_loop_cond(i, m, v, sq),
             lambda i, m, v, sq: while_loop_body(i, m, v, sq),
             loop_vars=[iteration, mean, variance, sq_dist],
             maximum_iterations=n_max_iterations)
-        #while iteration < n_max_iterations:
-
-        #    if gs.isclose(variance, 0.)[0, 0]:
-        #        break
-        #    if (sq_dist <= epsilon * variance)[0, 0]:
-        #        break
 
         if last_iteration == n_max_iterations:
             print('Maximum number of iterations {} reached.'
@@ -330,12 +322,14 @@ class RiemannianMetric(object):
         mean = gs.to_ndarray(mean, to_ndim=2)
         return mean
 
-    def tangent_pca(self, points, base_point=None):
+    def tangent_pca(self, points, base_point=None, point_type='vector'):
         """
         Tangent Principal Component Analysis (tPCA) of points
         on the tangent space at a base point.
         """
-        # TODO(nina): It only works for points of ndim=2, adapt to other ndims.
+        if point_type == 'matrix':
+            raise NotImplementedError(
+                'This is currently only implemented for vectors.')
         if base_point is None:
             base_point = self.mean(points)
 
