@@ -379,29 +379,29 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=1e-8)
 
-    @geomstats.tests.np_only
     def test_variance(self):
         point = gs.array([2., 1., 1., 1.])
-        result = self.metric.variance([point, point])
-        expected = 0.
+        points = gs.array([point, point])
+        result = self.metric.variance(points)
+        expected = helper.to_scalar(0.)
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_mean(self):
         point = gs.array([2., 1., 1., 1.])
-        result = self.metric.mean([point, point])
-        expected = point
+        points = gs.array([point, point])
+        result = self.metric.mean(points)
+        expected = helper.to_vector(point)
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_mean_and_belongs(self):
         point_a = self.space.random_uniform()
         point_b = self.space.random_uniform()
         point_c = self.space.random_uniform()
+        points = gs.array([point_a, point_b, point_c])
 
-        mean = self.metric.mean([point_a, point_b, point_c])
+        mean = self.metric.mean(points)
         result = self.space.belongs(mean)
         expected = gs.array([[True]])
 

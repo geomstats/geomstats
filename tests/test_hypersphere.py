@@ -513,8 +513,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = kappa
         result = kappa_estimate
         self.assertTrue(
-                gs.allclose(result, expected, atol=KAPPA_ESTIMATION_TOL)
-                )
+                gs.allclose(result, expected, atol=KAPPA_ESTIMATION_TOL))
 
     @geomstats.tests.np_only
     def test_optimal_quantization(self):
@@ -536,6 +535,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
             diameter = sphere.metric.diameter(points)
             result = error / diameter
             expected = 0.0
+            print(result, 'res')
             self.assertTrue(gs.allclose(result, expected,
                                         atol=OPTIMAL_QUANTIZATION_TOL))
 
