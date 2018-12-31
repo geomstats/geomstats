@@ -422,11 +422,13 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
     def test_variance(self):
         point = gs.array([0., 0., 0., 0., 1.])
-        result = self.metric.variance([point, point])
-        expected = 0
+        points = gs.array([
+            point,
+            point])
+        result = self.metric.variance(points)
+        expected = helper.to_scalar(0.)
 
         self.assertAllClose(expected, result)
 
