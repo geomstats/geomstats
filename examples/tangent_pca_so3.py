@@ -14,7 +14,6 @@ SO3_GROUP = SpecialOrthogonalGroup(n=3)
 METRIC = SO3_GROUP.bi_invariant_metric
 
 N_SAMPLES = 20
-# TODO(nina): find real data set
 
 
 def main():
