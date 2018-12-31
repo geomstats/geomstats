@@ -14,9 +14,6 @@ MEAN_ESTIMATION_TOL = 1e-6
 KAPPA_ESTIMATION_TOL = 1e-3
 OPTIMAL_QUANTIZATION_TOL = 5e-3
 
-# TODO(nina): Casting tensors to type tf.float32 at
-# the beginning of each function
-
 
 class TestHypersphereMethods(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
@@ -68,8 +65,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-        # TODO(nina): Fix that the test fails if point_ext generated
-        # with tf.random_uniform
         point_ext = (1. / (gs.sqrt(6.))
                      * gs.array([1., 0., 0., 1., 2.]))
         point_int = self.space.extrinsic_to_intrinsic_coords(point_ext)
@@ -221,6 +216,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         NB: points on the n-dimensional sphere are
         (n+1)-D vectors of norm 1.
         """
+        # TODO(nina): Fix that this test fails, also in numpy
         # Riemannian Exp then Riemannian Log
         # General case
         # NB: Riemannian log gives a regularized tangent vector,
@@ -233,15 +229,13 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
                                                    base_point=base_point)
 
         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
-        self.metric.log(point=exp, base_point=base_point)
+        result = self.metric.log(point=exp, base_point=base_point)
 
         expected = vector
         norm_expected = gs.linalg.norm(expected)
         regularized_norm_expected = gs.mod(norm_expected, 2 * gs.pi)
         expected = expected / norm_expected * regularized_norm_expected
         expected = helper.to_vector(expected)
-        # TODO(nina): Fix that this test fails, in numpy
-        # self.assertAllClose(result, expected)
 
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """
