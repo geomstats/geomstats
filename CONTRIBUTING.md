@@ -69,7 +69,7 @@ Changes here will not effect anyone else's work, so it is a safe space to explor
 
 Make sure to [keep your fork up to date][link_updateupstreamwiki] with the master repository.
 
-**3. Make the changes you've discussed, following the [geomstats coding style guide](#geomstats-coding-style-guide).**
+**3. Make the changes you have discussed, following the [geomstats coding style guide](#geomstats-coding-style-guide).**
 
 - Create your feature branch (`git checkout -b feature/fooBar`)
 - Commit your changes (`git commit -am 'Add some fooBar'`)
@@ -78,10 +78,12 @@ Make sure to [keep your fork up to date][link_updateupstreamwiki] with the maste
 Try to keep the changes focused.
 If you feel tempted to "branch out" then please make a [new branch][link_branches].
 
+**4. Add the corresponding unit tests.**
+
 If you are adding a new feature, do not forget to add the corresponding [unit tests][link_unit_tests].
 As ``geomstats`` enables numpy and tensorflow, your unit tests should run on these two backends.
 
-**4. Ensure Geomstats Coding Style Guide**
+**5. Ensure Geomstats Coding Style Guide.**
 
 Ensure that your code is compliant with [PEP8][link_pep8],
 the coding style guide for python.
@@ -89,7 +91,7 @@ the coding style guide for python.
 Use [flake8][link_flake8] or [yapf][link_yapf] to automatically enforces this style.
 
 
-**5. Submit a [pull request][link_pullrequest].**
+**6. Submit a [pull request][link_pullrequest].**
 
 A member of the development team will review your changes to confirm
 that they can be merged into the main code base.
