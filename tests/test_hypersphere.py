@@ -434,17 +434,18 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
     def test_mean(self):
         point = gs.array([0., 0., 0., 0., 1.])
         result = self.metric.mean([point, point])
-        expected = point
+        expected = point #helper.to_vector(point)
 
         self.assertAllClose(expected, result)
 
     @geomstats.tests.np_only
     def test_mean_and_belongs(self):
-        point_a = self.space.random_uniform(bound=0.5)
-        point_b = self.space.random_uniform(bound=0.5)
-        point_c = self.space.random_uniform(bound=0.5)
-        result = self.metric.mean([point_a, point_b, point_c])
-        self.assertTrue(self.space.belongs(result))
+        point_a = gs.array([1., 0., 0., 0., 0.])
+        point_b = gs.array([0., 1., 0., 0., 0.])
+        mean = self.metric.mean([point_a, point_b])
+        result = self.space.belongs(mean)
+        expected = gs.array([[True]])
+        self.assertAllClose(result, expected)
 
     def test_diameter(self):
         dim = 2
