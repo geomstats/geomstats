@@ -36,7 +36,7 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
                    left_or_right='right')
 
         # General left and right invariant metrics
-        # TODO(nina): replace by general SPD matrix
+        # TODO(nina): Replace the matrix below by a general SPD matrix.
         sym_mat_at_identity = gs.eye(group.dimension)
 
         left_metric = InvariantMetric(

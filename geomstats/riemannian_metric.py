@@ -243,7 +243,7 @@ class RiemannianMetric(object):
         """
         Frechet mean of (weighted) points.
         """
-        # TODO(nina): profile this code to study performance,
+        # TODO(nina): Profile this code to study performance,
         # i.e. what to do with sq_dists_between_iterates.
 
         if isinstance(points, list):

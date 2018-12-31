@@ -67,7 +67,6 @@ def grad(y_pred, y_true,
 
         quat_vec_norm = gs.linalg.norm(quat_vec, axis=1)
         quat_sq_norm = quat_vec_norm ** 2 + quat_scalar ** 2
-        # TODO(nina): check that this sq norm is 1?
 
         quat_arctan2 = gs.arctan2(quat_vec_norm, quat_scalar)
         differential_scalar = - 2 * quat_vec / (quat_sq_norm)

@@ -326,7 +326,6 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
         self.assertAllClose(expected, result)
 
     def test_mean(self):
-        # TODO(nina): Fix the fact that it doesn't work for [1., 4.]
         point = gs.array([[1., 4.]])
         result = self.metric.mean(points=[point, point, point])
         expected = point

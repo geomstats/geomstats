@@ -72,7 +72,6 @@ class MatricesMetric(RiemannianMetric):
     """
     Euclidean metric on matrices given by the Frobenius inner product.
     """
-    # TODO(nina): Inheritance from Euclidean Metric here?
     def __init__(self, m, n):
         dimension = m*n
         super(MatricesMetric, self).__init__(

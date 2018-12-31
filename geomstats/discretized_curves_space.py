@@ -154,7 +154,6 @@ class L2Metric(RiemannianMetric):
         Geodesic specified either by an initial point and an end point,
         either by an initial point and an initial tangent vector.
         """
-        # TODO(alice): vectorize
         curve_ndim = 2
         initial_curve = gs.to_ndarray(initial_curve,
                                       to_ndim=curve_ndim+1)
@@ -395,8 +394,6 @@ class SRVMetric(RiemannianMetric):
         Geodesic specified either by an initial curve and an end curve,
         either by an initial curve and an initial tangent vector.
         """
-        # TODO(alice): vectorize
-
         if not isinstance(self.embedding_metric, EuclideanMetric):
             raise AssertionError('The geodesics are only implemented for '
                                  'dicretized curves embedded in a '

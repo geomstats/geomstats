@@ -23,9 +23,6 @@ IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'S1', 'S2',
                'H2_poincare_disk', 'H2_poincare_half_plane', 'H2_klein_disk']
 
 
-# TODO(nina): Clean-up OOP of this module
-
-
 class Arrow3D():
     "An arrow in 3d, i.e. a point and a vector."
     def __init__(self, point, vector):
@@ -117,7 +114,6 @@ class Sphere():
         if n_circles_latitude is None:
             n_circles_latitude = max(n_meridians / 2, 4)
 
-        # TODO(nina): use backend for this
         u, v = np.mgrid[0:2 * gs.pi:n_meridians * 1j,
                         0:gs.pi:n_circles_latitude * 1j]
 

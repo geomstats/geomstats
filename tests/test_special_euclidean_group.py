@@ -21,10 +21,6 @@ from geomstats.special_euclidean_group import SpecialEuclideanGroup
 # where it is relative to each element of the array
 RTOL = 1e-5
 
-# TODO(nina): factorize tests vectorization se3 and so3
-# TODO(nina): check docstrings
-# TODO(nina): add local functions to decrease the number of for loops
-
 
 class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
@@ -163,7 +159,6 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
         # Note: by default, the rotation vector is inverted by
         # the function regularize when the angle of the rotation is pi.
-        # TODO(nina): should we modify this?
         angle_type = 'with_angle_pi'
         point = self.elements[angle_type]
         result = self.group.regularize(point)
@@ -1012,7 +1007,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         riemannian left logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        # TODO(nina): this test fails.
+        # TODO(nina): Fix this test.
         for metric in [self.metrics['right_canonical'],
                        self.metrics['right_diag']]:
             for base_point_type in self.elements:
@@ -1037,7 +1032,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         riemannian right logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        # TODO(nina): This test fails
+        # TODO(nina): Fix this test.
         angle_types = self.angles_close_to_pi
         # Canonical inner product on the lie algebra
         for metric in [self.metrics['right_canonical'],
@@ -1222,7 +1217,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_group_exponential_barycenter(self):
-        # TODO(nina): this test fails, the barycenter is not accurate.
+        # TODO(nina): Fix this test, the barycenter is not accurate.
         point_1 = self.group.random_uniform()
         points = gs.vstack([point_1, point_1])
         result_1 = self.group.group_exponential_barycenter(
