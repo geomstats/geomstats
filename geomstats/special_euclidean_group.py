@@ -54,7 +54,6 @@ class SpecialEuclideanGroup(LieGroup):
         super(SpecialEuclideanGroup, self).__init__(
                           dimension=self.dimension)
 
-        # TODO(nina): keep the names rotations and translations here?
         self.rotations = SpecialOrthogonalGroup(n=n, epsilon=epsilon)
         self.translations = EuclideanSpace(dimension=n)
 
@@ -118,7 +117,6 @@ class SpecialEuclideanGroup(LieGroup):
 
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
-            # TODO(nina): regularization for matrices?
             regularized_point = gs.copy(point)
 
         return regularized_point
@@ -167,8 +165,6 @@ class SpecialEuclideanGroup(LieGroup):
                 [rotations_vec, tangent_vec[:, dim_rotations:]], axis=1)
 
         elif point_type == 'matrix':
-                # TODO(nina): regularization in terms
-                # of skew-symmetric matrices?
                 regularized_vec = tangent_vec
 
         return regularized_vec
@@ -537,7 +533,7 @@ class SpecialEuclideanGroup(LieGroup):
         coef_2[mask_close_to_0] = (1. / 6.
                                    - angle[mask_close_to_0] ** 3 / 120.)
 
-        # TODO(nina): check if the discountinuity as 0 is expected.
+        # TODO(nina): Check if the discountinuity at 0 is expected.
         coef_1[mask_0] = 0
         coef_2[mask_0] = 0
 
@@ -598,7 +594,6 @@ class SpecialEuclideanGroup(LieGroup):
 
             inv_rot_mats = rotations.matrix_from_rotation_vector(
                     -rotation_vectors)
-            # TODO(nina): this is the same mat multiplied several times
             matrix_aux = gs.matmul(mean_rotation_mat, inv_rot_mats)
             assert matrix_aux.shape == (n_points,) + (dim_rotations,) * 2
 
