@@ -8,8 +8,6 @@ python:
     - "3.6"
     - "3.6-dev"
 
-# TODO: Add the test for python 3.3
-
 install:
     - pip install --upgrade pip setuptools wheel
     - pip install -q -r requirements.txt --only-binary=numpy,scipy
