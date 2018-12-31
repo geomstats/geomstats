@@ -220,6 +220,7 @@ class HypersphereMetric(RiemannianMetric):
         point = gs.to_ndarray(point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
+        print(base_point, 'base point in log')
         norm_base_point = self.embedding_metric.norm(base_point)
         norm_point = self.embedding_metric.norm(point)
         inner_prod = self.embedding_metric.inner_product(base_point, point)
