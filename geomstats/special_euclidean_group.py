@@ -353,44 +353,38 @@ class SpecialEuclideanGroup(LieGroup):
             angle = gs.linalg.norm(rot_vec, axis=1)
             angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
-            mask_close_pi = gs.isclose(angle, gs.pi)
-            mask_close_pi = gs.squeeze(mask_close_pi, axis=1)
-            rot_vec[mask_close_pi] = rotations.regularize(
-                                           rot_vec[mask_close_pi],
-                                           point_type=point_type)
-
             skew_mat = self.rotations.skew_matrix_from_vector(rot_vec)
             sq_skew_mat = gs.matmul(skew_mat, skew_mat)
 
-            mask_0 = gs.equal(angle, 0)
-            mask_close_0 = gs.isclose(angle, 0) & ~mask_0
-
-            mask_0 = gs.squeeze(mask_0, axis=1)
-            mask_close_0 = gs.squeeze(mask_close_0, axis=1)
-
+            mask_0 = gs.equal(angle, 0.)
+            mask_close_0 = gs.isclose(angle, 0.) & ~mask_0
             mask_else = ~mask_0 & ~mask_close_0
+
+            mask_0_float = gs.cast(mask_0, gs.float32)
+            mask_close_0_float = gs.cast(mask_close_0, gs.float32)
+            mask_else_float = gs.cast(mask_else, gs.float32)
+
+            angle += mask_0_float * gs.ones_like(angle)
 
             coef_1 = gs.zeros_like(angle)
             coef_2 = gs.zeros_like(angle)
 
-            coef_1[mask_0] = 1. / 2.
-            coef_2[mask_0] = 1. / 6.
+            coef_1 += mask_0_float * 1. / 2. * gs.ones_like(angle)
+            coef_2 += mask_0_float * 1. / 6. * gs.ones_like(angle)
 
-            coef_1[mask_close_0] = (
+            coef_1 += mask_close_0_float * (
                 TAYLOR_COEFFS_1_AT_0[0]
-                + TAYLOR_COEFFS_1_AT_0[2] * angle[mask_close_0] ** 2
-                + TAYLOR_COEFFS_1_AT_0[4] * angle[mask_close_0] ** 4
-                + TAYLOR_COEFFS_1_AT_0[6] * angle[mask_close_0] ** 6)
-            coef_2[mask_close_0] = (
+                + TAYLOR_COEFFS_1_AT_0[2] * angle ** 2
+                + TAYLOR_COEFFS_1_AT_0[4] * angle ** 4
+                + TAYLOR_COEFFS_1_AT_0[6] * angle ** 6)
+            coef_2 += mask_close_0_float * (
                 TAYLOR_COEFFS_2_AT_0[0]
-                + TAYLOR_COEFFS_2_AT_0[2] * angle[mask_close_0] ** 2
-                + TAYLOR_COEFFS_2_AT_0[4] * angle[mask_close_0] ** 4
-                + TAYLOR_COEFFS_2_AT_0[6] * angle[mask_close_0] ** 6)
+                + TAYLOR_COEFFS_2_AT_0[2] * angle ** 2
+                + TAYLOR_COEFFS_2_AT_0[4] * angle ** 4
+                + TAYLOR_COEFFS_2_AT_0[6] * angle ** 6)
 
-            coef_1[mask_else] = ((1. - gs.cos(angle[mask_else]))
-                                 / angle[mask_else] ** 2)
-            coef_2[mask_else] = ((angle[mask_else] - gs.sin(angle[mask_else]))
-                                 / angle[mask_else] ** 3)
+            coef_1 += mask_else_float * ((1. - gs.cos(angle)) / angle ** 2)
+            coef_2 += mask_else_float * ((angle - gs.sin(angle)) / angle ** 3)
 
             n_tangent_vecs, _ = tangent_vec.shape
             group_exp_translation = gs.zeros((n_tangent_vecs, self.n))
@@ -400,12 +394,12 @@ class SpecialEuclideanGroup(LieGroup):
                                               gs.transpose(skew_mat[i]))
                 term_2_i = coef_2[i] * gs.dot(translation_i,
                                               gs.transpose(sq_skew_mat[i]))
+                mask_i_float = gs.get_mask_i_float(i, n_tangent_vecs)
+                group_exp_translation += mask_i_float * (
+                    translation_i + term_1_i + term_2_i)
 
-                group_exp_translation[i] = translation_i + term_1_i + term_2_i
-
-            group_exp = gs.zeros_like(tangent_vec)
-            group_exp[:, :dim_rotations] = rot_vec
-            group_exp[:, dim_rotations:] = group_exp_translation
+            group_exp = gs.concatenate(
+                [rot_vec, group_exp_translation], axis=1)
 
             group_exp = self.regularize(group_exp, point_type=point_type)
             return group_exp
@@ -431,43 +425,46 @@ class SpecialEuclideanGroup(LieGroup):
 
             translation = point[:, dim_rotations:]
 
-            group_log = gs.zeros_like(point)
-            group_log[:, :dim_rotations] = rot_vec
             skew_rot_vec = rotations.skew_matrix_from_vector(rot_vec)
             sq_skew_rot_vec = gs.matmul(skew_rot_vec, skew_rot_vec)
 
-            mask_close_0 = gs.isclose(angle, 0)
-            mask_close_0 = gs.squeeze(mask_close_0, axis=1)
-
+            mask_close_0 = gs.isclose(angle, 0.)
             mask_close_pi = gs.isclose(angle, gs.pi)
-            mask_close_pi = gs.squeeze(mask_close_pi, axis=1)
-
             mask_else = ~mask_close_0 & ~mask_close_pi
+
+            mask_close_0_float = gs.cast(mask_close_0, gs.float32)
+            mask_close_pi_float = gs.cast(mask_close_pi, gs.float32)
+            mask_else_float = gs.cast(mask_else, gs.float32)
+
+            mask_0 = gs.isclose(angle, 0., atol=1e-6)
+            mask_0_float = gs.cast(mask_0, gs.float32)
+            angle += mask_0_float * gs.ones_like(angle)
 
             coef_1 = - 0.5 * gs.ones_like(angle)
             coef_2 = gs.zeros_like(angle)
 
-            coef_2[mask_close_0] = (1. / 12. + angle[mask_close_0] ** 2 / 720.
-                                    + angle[mask_close_0] ** 4 / 30240.
-                                    + angle[mask_close_0] ** 6 / 1209600.)
+            coef_2 += mask_close_0_float * (
+                1. / 12. + angle ** 2 / 720.
+                + angle ** 4 / 30240.
+                + angle ** 6 / 1209600.)
 
-            delta_angle = angle[mask_close_pi] - gs.pi
-            coef_2[mask_close_pi] = (1. / PI2
-                                     + (PI2 - 8.) * delta_angle / (4. * PI3)
-                                     - ((PI2 - 12.)
-                                        * delta_angle ** 2 / (4. * PI4))
-                                     + ((-192. + 12. * PI2 + PI4)
-                                        * delta_angle ** 3 / (48. * PI5))
-                                     - ((-240. + 12. * PI2 + PI4)
-                                        * delta_angle ** 4 / (48. * PI6))
-                                     + ((-2880. + 120. * PI2 + 10. * PI4 + PI6)
-                                        * delta_angle ** 5 / (480. * PI7))
-                                     - ((-3360 + 120. * PI2 + 10. * PI4 + PI6)
-                                        * delta_angle ** 6 / (480. * PI8)))
+            delta_angle = angle - gs.pi
+            coef_2 += mask_close_pi_float * (
+                1. / PI2
+                + (PI2 - 8.) * delta_angle / (4. * PI3)
+                - ((PI2 - 12.)
+                   * delta_angle ** 2 / (4. * PI4))
+                + ((-192. + 12. * PI2 + PI4)
+                   * delta_angle ** 3 / (48. * PI5))
+                - ((-240. + 12. * PI2 + PI4)
+                   * delta_angle ** 4 / (48. * PI6))
+                + ((-2880. + 120. * PI2 + 10. * PI4 + PI6)
+                   * delta_angle ** 5 / (480. * PI7))
+                - ((-3360 + 120. * PI2 + 10. * PI4 + PI6)
+                   * delta_angle ** 6 / (480. * PI8)))
 
-            psi = (0.5 * angle[mask_else]
-                   * gs.sin(angle[mask_else]) / (1 - gs.cos(angle[mask_else])))
-            coef_2[mask_else] = (1 - psi) / (angle[mask_else] ** 2)
+            psi = 0.5 * angle * gs.sin(angle) / (1 - gs.cos(angle))
+            coef_2 += mask_else_float * (1 - psi) / (angle ** 2)
 
             n_points, _ = point.shape
             group_log_translation = gs.zeros((n_points, self.n))
@@ -477,11 +474,14 @@ class SpecialEuclideanGroup(LieGroup):
                                               gs.transpose(skew_rot_vec[i]))
                 term_2_i = coef_2[i] * gs.dot(translation_i,
                                               gs.transpose(sq_skew_rot_vec[i]))
-                group_log_translation[i] = translation_i + term_1_i + term_2_i
+                mask_i_float = gs.get_mask_i_float(i, n_points)
+                group_log_translation += mask_i_float * (
+                    translation_i + term_1_i + term_2_i)
 
-            group_log[:, dim_rotations:] = group_log_translation
+            group_log = gs.concatenate(
+                [rot_vec, group_log_translation], axis=1)
 
-            assert group_log.ndim == 2
+            assert gs.ndim(group_log) == 2
 
         elif point_type == 'matrix':
             raise NotImplementedError()
