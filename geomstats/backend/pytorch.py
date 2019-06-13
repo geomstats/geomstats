@@ -81,6 +81,11 @@ def all(x, axis=None):
 
 
 def allclose(a, b, **kwargs):
+    if type(a) != torch.Tensor:
+        a = torch.Tensor([a])
+
+    if type(b) != torch.Tensor:
+        b = torch.Tensor([b])
     return torch.allclose(a, b, **kwargs)
 
 

@@ -23,6 +23,7 @@ elif _BACKEND == 'pytorch':
     from .pytorch import *  # NOQA
     from . import pytorch_linalg as linalg  # NOQA
     from . import pytorch_random as random  # NOQA
+    from . import pytorch_testing as testing  # NOQA
 elif _BACKEND == 'tensorflow':
     sys.stderr.write('Using tensorflow backend\n')
     from .tensorflow import *  # NOQA
