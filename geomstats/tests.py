@@ -11,6 +11,10 @@ import unittest
 import geomstats.backend as gs
 
 
+def pytorch_backend():
+    return os.environ['GEOMSTATS_BACKEND'] == 'numpy'
+
+
 def tf_backend():
     return os.environ['GEOMSTATS_BACKEND'] == 'tensorflow'
 
