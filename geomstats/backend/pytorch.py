@@ -128,6 +128,12 @@ def cosh(*args, **kwargs):
     return torch.cosh(*args, **kwargs)
 
 
+def arccosh(x):
+    c0 = torch.log(x)
+    c1 = torch.log1p(torch.sqrt(x * x - 1) / x)
+    return c0 + c1
+
+
 def sinh(*args, **kwargs):
     return torch.sinh(*args, **kwargs)
 
