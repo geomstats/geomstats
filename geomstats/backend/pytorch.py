@@ -74,13 +74,11 @@ def abs(val):
 
 
 def zeros(*args):
-    zeros = np.zeros(*args, dtype=np.float64)
-    return torch.from_numpy(zeros)
+    return torch.from_numpy(np.zeros(*args)).double()
 
 
 def ones(*args):
-    ones = np.ones(*args, dtype=np.float64)
-    return torch.from_numpy(ones)
+    return torch.from_numpy(np.ones(*args)).double()
 
 
 def ones_like(*args, **kwargs):
@@ -100,8 +98,8 @@ def all(x, axis=None):
 def allclose(a, b, **kwargs):
     a = torch.tensor(a)
     b = torch.tensor(b)
-    a = a.type(torch.FloatTensor)
-    b = b.type(torch.FloatTensor)
+    a = a.double()
+    b = b.double()
     return torch.allclose(a, b, **kwargs)
 
 
@@ -151,7 +149,7 @@ def shape(val):
 
 def dot(a, b):
     dot = np.dot(a, b)
-    return array(dot)
+    return torch.tensor(dot).double()
 
 
 def maximum(a, b):
