@@ -236,14 +236,6 @@ class HypersphereMetric(RiemannianMetric):
         mask_0_float = gs.cast(mask_0, gs.float32)
         mask_else_float = gs.cast(mask_else, gs.float32)
 
-        angle_0 = gs.boolean_mask(angle, mask_0)
-        angle_0 = gs.to_ndarray(angle_0, to_ndim=1)
-        angle_0 = gs.to_ndarray(angle_0, to_ndim=2, axis=1)
-
-        angle_else = gs.boolean_mask(angle, mask_else)
-        angle_else = gs.to_ndarray(angle_else, to_ndim=1)
-        angle_else = gs.to_ndarray(angle_else, to_ndim=2, axis=1)
-
         coef_1 = gs.zeros_like(angle)
         coef_2 = gs.zeros_like(angle)
 
@@ -268,14 +260,19 @@ class HypersphereMetric(RiemannianMetric):
                - gs.einsum('ni,nj->nj', coef_2, base_point))
 
         mask_same_values = gs.isclose(point, base_point)
+
         mask_else = gs.equal(mask_same_values, gs.array(False))
         mask_else_float = gs.cast(mask_else, gs.float32)
+        mask_else_float = gs.to_ndarray(mask_else_float, to_ndim=1)
+        mask_else_float = gs.to_ndarray(mask_else_float, to_ndim=2)
         mask_not_same_points = gs.sum(mask_else_float, axis=1)
         mask_same_points = gs.isclose(mask_not_same_points, 0.)
         mask_same_points = gs.cast(mask_same_points, gs.float32)
         mask_same_points = gs.to_ndarray(mask_same_points, to_ndim=2, axis=1)
 
-        log -= gs.cast(mask_same_points, gs.float32) * log
+        mask_same_points_float = gs.cast(mask_same_points, gs.float32)
+
+        log -= mask_same_points_float * log
 
         return log
 

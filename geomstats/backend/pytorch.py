@@ -11,11 +11,21 @@ int32 = 'torch.LongTensor'
 int8 = 'torch.ByteTensor'
 
 
+def amax(x):
+    return torch.max(x)
+
+
+def boolean_mask(x, mask):
+    idx = np.argwhere(np.asarray(mask))
+    return x[idx]
+
+
 def arctan2(*args, **kwargs):
     return torch.arctan2(*args, **kwargs)
 
 
 def cast(x, dtype):
+    x = array(x)
     return x.type(dtype)
 
 
@@ -32,7 +42,7 @@ def asarray(x):
 
 
 def concatenate(seq, axis=0, out=None):
-    seq = [t.double() for t in seq]
+    seq = [t.float() for t in seq]
     return torch.cat(seq, dim=axis, out=out)
 
 
@@ -55,18 +65,20 @@ def vstack(seq):
 def array(val):
     if type(val) == list:
         val = np.copy(np.array(val))
+    if type(val) == bool:
+        val = np.array(val)
     if type(val) == np.ndarray:
         if val.dtype == bool:
             val = torch.from_numpy(np.array(val, dtype=np.uint8))
         elif val.dtype == np.float32 or val.dtype == np.float64:
-            val = torch.from_numpy(np.array(val, dtype=np.float64))
+            val = torch.from_numpy(np.array(val, dtype=np.float32))
         else:
             val = torch.from_numpy(val)
 
     if type(val) != torch.Tensor:
         val = torch.Tensor([val])
-    if val.dtype == torch.float32:
-        val = val.double()
+    if val.dtype == torch.float64:
+        val = val.float()
     return val
 
 
@@ -75,11 +87,11 @@ def abs(val):
 
 
 def zeros(*args):
-    return torch.from_numpy(np.zeros(*args)).double()
+    return torch.from_numpy(np.zeros(*args)).float()
 
 
 def ones(*args):
-    return torch.from_numpy(np.ones(*args)).double()
+    return torch.from_numpy(np.ones(*args)).float()
 
 
 def ones_like(*args, **kwargs):
@@ -99,8 +111,8 @@ def all(x, axis=None):
 def allclose(a, b, **kwargs):
     a = torch.tensor(a)
     b = torch.tensor(b)
-    a = a.double()
-    b = b.double()
+    a = a.float()
+    b = b.float()
     return torch.allclose(a, b, **kwargs)
 
 
@@ -150,7 +162,7 @@ def shape(val):
 
 def dot(a, b):
     dot = np.dot(a, b)
-    return torch.tensor(dot).double()
+    return torch.from_numpy(np.array(dot)).float()
 
 
 def maximum(a, b):
@@ -170,7 +182,7 @@ def to_ndarray(x, to_ndim, axis=0):
 
 
 def sqrt(val):
-    return torch.sqrt(torch.tensor(val).double())
+    return torch.sqrt(torch.tensor(val).float())
 
 
 def norm(val, axis):
@@ -208,7 +220,7 @@ def sum(x, axis=None, **kwargs):
 
 
 def einsum(*args, **kwargs):
-    return torch.from_numpy(np.einsum(*args, **kwargs)).double()
+    return torch.from_numpy(np.einsum(*args, **kwargs)).float()
 
 
 def T(x):
@@ -243,8 +255,12 @@ def linspace(start, stop, num):
     return torch.linspace(start=start, end=stop, steps=num)
 
 
-def equal(*args, **kwargs):
-    return torch.equal(*args, **kwargs)
+def equal(a, b, **kwargs):
+    if a.dtype == torch.ByteTensor:
+        a = cast(a, torch.uint8).float()
+    if b.dtype == torch.ByteTensor:
+        b = cast(b, torch.uint8).float()
+    return torch.equal(a, b, **kwargs)
 
 
 def floor(*args, **kwargs):
