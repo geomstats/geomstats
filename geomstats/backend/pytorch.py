@@ -32,6 +32,7 @@ def asarray(x):
 
 
 def concatenate(seq, axis=0, out=None):
+    seq = [t.double() for t in seq]
     return torch.cat(seq, dim=axis, out=out)
 
 
@@ -39,8 +40,8 @@ def identity(val):
     return torch.eye(val)
 
 
-def hstack(val):
-    return torch.hstack(val)
+def hstack(seq):
+    return concatenate(seq, axis=1)
 
 
 def stack(*args, **kwargs):
