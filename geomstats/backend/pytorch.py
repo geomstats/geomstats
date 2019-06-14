@@ -250,7 +250,8 @@ def zeros_like(*args, **kwargs):
 
 
 def trace(*args, **kwargs):
-    return torch.from_numpy(np.trace(*args, **kwargs))
+    trace = np.trace(*args, **kwargs)
+    return torch.from_numpy(np.array(trace)).float()
 
 
 def mod(*args, **kwargs):
