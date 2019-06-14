@@ -11,6 +11,12 @@ int32 = 'torch.LongTensor'
 int8 = 'torch.ByteTensor'
 
 
+def cond(pred, true_fn, false_fn):
+    if pred:
+        return true_fn()
+    return false_fn()
+
+
 def amax(x):
     return torch.max(x)
 
@@ -64,7 +70,11 @@ def vstack(seq):
 
 def array(val):
     if type(val) == list:
-        val = np.copy(np.array(val))
+        if type(val[0]) != torch.Tensor:
+            val = np.copy(np.array(val))
+        else:
+            val = concatenate(val)
+
     if type(val) == bool:
         val = np.array(val)
     if type(val) == np.ndarray:
@@ -113,6 +123,15 @@ def allclose(a, b, **kwargs):
     b = torch.tensor(b)
     a = a.float()
     b = b.float()
+    n_a = a.shape[0]
+    n_b = b.shape[0]
+    ndim = len(a.shape)
+    if n_a > n_b:
+        reps = (int(n_a / n_b),) + (ndim-1) * (1,)
+        b = tile(b, reps)
+    elif n_a < n_b:
+        reps = (int(n_b / n_a),) + (ndim-1) * (1,)
+        a = tile(a, reps)
     return torch.allclose(a, b, **kwargs)
 
 
@@ -175,6 +194,10 @@ def maximum(a, b):
     return torch.max(array(a), array(b))
 
 
+def greater(a, b):
+    return torch.gt(a, b)
+
+
 def greater_equal(a, b):
     return torch.greater_equal(a, b)
 
@@ -201,6 +224,10 @@ def rand(*args, **largs):
 
 def isclose(*args, **kwargs):
     return torch.from_numpy(np.isclose(*args, **kwargs).astype(int)).byte()
+
+
+def less(a, b):
+    return torch.le(a, b)
 
 
 def less_equal(a, b):

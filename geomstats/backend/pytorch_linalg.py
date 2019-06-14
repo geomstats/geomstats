@@ -1,7 +1,14 @@
 """Pytorch based linear algebra backend."""
 
 import numpy as np
+import scipy.linalg
 import torch
+
+
+def expm(x):
+    np_expm = np.vectorize(
+        scipy.linalg.expm, signature='(n,m)->(n,m)')(x)
+    return torch.from_numpy(np_expm)
 
 
 def inv(*args, **kwargs):
