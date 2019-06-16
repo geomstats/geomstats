@@ -61,8 +61,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         if geomstats.tests.tf_backend():
             # Tf is extremely slow
             elements = {
-                'with_angle_in_pi_2pi': with_angle_in_pi_2pi,
-                'with_angle_close_2pi_high': with_angle_close_2pi_high}
+                3: {
+                    'with_angle_in_pi_2pi': with_angle_in_pi_2pi,
+                    'with_angle_close_pi_low': with_angle_close_pi_low}}
         # -- Metrics - only diagonals for now
         canonical_metrics = {n: group.bi_invariant_metric
                              for n, group in so.items()}
@@ -133,7 +134,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             }
         angles_close_to_pi = angles_close_to_pi_all
         if geomstats.tests.tf_backend():
-            angles_close_to_pi = ['with_angle_close_pi_low']
+            angles_close_to_pi = {
+                3: ['with_angle_close_pi_low']
+                }
 
         # -- Set attributes
         self.n_seq = n_seq
