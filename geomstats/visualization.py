@@ -136,7 +136,6 @@ class Sphere():
                  ylim=(-ax_s, ax_s),
                  zlim=(-ax_s, ax_s),
                  xlabel='X', ylabel='Y', zlabel='Z')
-        ax.set_aspect('equal')
         return ax
 
     def add_points(self, points):
@@ -223,7 +222,6 @@ class PoincareDisk():
                  xlim=(-ax_s, ax_s),
                  ylim=(-ax_s, ax_s),
                  xlabel='X', ylabel='Y')
-        ax.set_aspect('equal')
         return ax
 
     def add_points(self, points):
@@ -301,7 +299,6 @@ class KleinDisk():
                  xlim=(-ax_s, ax_s),
                  ylim=(-ax_s, ax_s),
                  xlabel='X', ylabel='Y')
-        ax.set_aspect('equal')
         return ax
 
     def add_points(self, points):
@@ -405,7 +402,6 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
                  ylim=(-ax_s, ax_s),
                  zlim=(-ax_s, ax_s),
                  xlabel='X', ylabel='Y', zlabel='Z')
-        ax.set_aspect('equal')
         trihedrons = convert_to_trihedron(points, space=space)
         for t in trihedrons:
             t.draw(ax, **point_draw_kwargs)
