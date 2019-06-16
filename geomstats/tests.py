@@ -11,6 +11,10 @@ import unittest
 import geomstats.backend as gs
 
 
+def pytorch_backend():
+    return os.environ['GEOMSTATS_BACKEND'] == 'pytorch'
+
+
 def tf_backend():
     return os.environ['GEOMSTATS_BACKEND'] == 'tensorflow'
 
@@ -59,5 +63,5 @@ class TestCase(test_class):
 
     @classmethod
     def setUpClass(cls):
-        if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
+        if tf_backend():
             os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'

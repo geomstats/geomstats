@@ -233,6 +233,7 @@ class RiemannianMetric(object):
         sq_dists = self.squared_dist(base_point, points)
         variance += gs.einsum('nk,nj->j', weights, sq_dists)
 
+        variance = gs.array(variance)
         variance /= sum_weights
 
         variance = gs.to_ndarray(variance, to_ndim=2, axis=1)

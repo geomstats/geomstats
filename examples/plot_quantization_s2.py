@@ -27,12 +27,12 @@ def main():
                 )
 
     plt.figure(0)
-    ax = plt.subplot(111, projection="3d", aspect="equal")
+    ax = plt.subplot(111, projection="3d")
     visualization.plot(points=centers, ax=ax, space='S2', c='r')
     plt.show()
 
     plt.figure(1)
-    ax = plt.subplot(111, projection="3d", aspect="equal")
+    ax = plt.subplot(111, projection="3d")
     sphere = visualization.Sphere()
     sphere.draw(ax=ax)
     for i in range(N_CENTERS):

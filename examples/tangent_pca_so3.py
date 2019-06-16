@@ -41,7 +41,7 @@ def main():
     ax_var.set_xlabel('Number of Principal Components')
     ax_var.plot(xticks, explained_variances)
 
-    ax = fig.add_subplot(133, projection="3d", aspect="equal")
+    ax = fig.add_subplot(133, projection="3d")
     plt.setp(ax,
              xlim=(-1, 1), ylim=(-1, 1), zlim=(-1, 1),
              xlabel="X", ylabel="Y", zlabel="Z")
