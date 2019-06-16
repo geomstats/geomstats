@@ -399,7 +399,9 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         point_a = self.space.random_uniform()
         point_b = self.space.random_uniform()
         point_c = self.space.random_uniform()
-        points = gs.array([point_a, point_b, point_c])
+        points = gs.concatenate([point_a, point_b, point_c], axis=0)
+        print('hello')
+        print(points.shape)
 
         mean = self.metric.mean(points)
         result = self.space.belongs(mean)
