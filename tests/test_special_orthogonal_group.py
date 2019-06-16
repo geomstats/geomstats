@@ -46,7 +46,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         with_angle_close_2pi_high = ((2. * gs.pi + 1e-9) / gs.sqrt(2.)
                                      * gs.array([1., 0., -1.]))
 
-        elements = {
+        elements_all = {
             3: {'with_angle_0': with_angle_0,
                 'with_angle_close_0': with_angle_close_0,
                 'with_angle_close_pi_low': with_angle_close_pi_low,
@@ -57,7 +57,12 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 'with_angle_2pi': with_angle_2pi,
                 'with_angle_close_2pi_high': with_angle_close_2pi_high}
             }
-
+        elements = elements_all
+        if geomstats.tests.tf_backend():
+            # Tf is extremely slow
+            elements = {
+                'with_angle_in_pi_2pi': with_angle_in_pi_2pi,
+                'with_angle_close_2pi_high': with_angle_close_2pi_high}
         # -- Metrics - only diagonals for now
         canonical_metrics = {n: group.bi_invariant_metric
                              for n, group in so.items()}
@@ -109,7 +114,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                           left_metrics.values(),
                           right_metrics.values())
 
-        metrics = {
+        metrics_all = {
             n: {'canonical': canonical,
                 'left_diag': left_diag,
                 'right_diag': right_diag,
@@ -117,17 +122,29 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 'right': right}
             for n, canonical, left_diag, right_diag, left, right in all_metrics
             }
+        metrics = metrics_all
+        if geomstats.tests.tf_backend():
+            metrics = right_metrics
+
+        angles_close_to_pi_all = {
+            3: ['with_angle_close_pi_low',
+                'with_angle_pi',
+                'with_angle_close_pi_high']
+            }
+        angles_close_to_pi = angles_close_to_pi_all
+        if geomstats.tests.tf_backend():
+            angles_close_to_pi = ['with_angle_close_pi_low']
 
         # -- Set attributes
         self.n_seq = n_seq
         self.so = so
         self.elements = elements
-        self.angles_close_to_pi = {
-            3: ['with_angle_close_pi_low',
-                'with_angle_pi',
-                'with_angle_close_pi_high']
-            }
+        self.elements_all = elements_all
+
         self.metrics = metrics
+        self.metrics_all = metrics_all
+        self.angles_close_to_pi = angles_close_to_pi
+        self.angles_close_to_pi_all = angles_close_to_pi_all
         self.n_samples = 4
 
     def test_projection(self):
