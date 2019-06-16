@@ -71,7 +71,8 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         rot_with_parallel_trans = gs.array([gs.pi / 3., 0., 0.,
                                            1., 0., 0.])
 
-        elements = {'with_angle_0': with_angle_0,
+        elements_all = {
+                    'with_angle_0': with_angle_0,
                     'with_angle_close_0': with_angle_close_0,
                     'with_angle_close_pi_low': with_angle_close_pi_low,
                     'with_angle_pi': with_angle_pi,
@@ -85,6 +86,12 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                     'point_1': point_1,
                     'point_2': point_2,
                     'rot_with_parallel_trans': rot_with_parallel_trans}
+        elements = elements_all
+        if geomstats.tests.tf_backend():
+            # Tf is extremely slow
+            elements = {
+                    'point_1': point_1,
+                    'point_2': point_2}
 
         # Metrics - only diagonals
         diag_mat_at_identity = gs.eye(6) * gs.array([2., 2., 2., 3., 3., 3.])
@@ -109,19 +116,29 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                    inner_product_mat_at_identity=mat_at_identity,
                    left_or_right='right')
 
-        metrics = {'left_canonical': group.left_canonical_metric,
-                   'right_canonical': group.right_canonical_metric,
-                   'left_diag': left_diag_metric,
-                   'right_diag': right_diag_metric}
+        metrics_all = {
+            'left_canonical': group.left_canonical_metric,
+            'right_canonical': group.right_canonical_metric,
+            'left_diag': left_diag_metric,
+            'right_diag': right_diag_metric}
         # 'left': left_metric,
         # 'right': right_metric}
+        metrics = metrics_all
+        if geomstats.tests.tf_backend():
+            metrics = {'left_diag': left_diag_metric}
 
         self.group = group
+        self.metrics_all = metrics_all
         self.metrics = metrics
+        self.elements_all = elements_all
         self.elements = elements
-        self.angles_close_to_pi = ['with_angle_close_pi_low',
-                                   'with_angle_pi',
-                                   'with_angle_close_pi_high']
+        self.angles_close_to_pi_all = [
+            'with_angle_close_pi_low',
+            'with_angle_pi',
+            'with_angle_close_pi_high']
+        self.angles_close_to_pi = self.angles_close_to_pi_all
+        if geomstats.tests.tf_backend():
+            self.angles_close_to_pi = ['with_angle_close_pi_low']
         self.n_samples = 3
 
     def test_random_and_belongs(self):
@@ -142,7 +159,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_regularize(self):
-        point = self.elements['with_angle_0']
+        point = self.elements_all['with_angle_0']
         result = self.group.regularize(point)
         expected = point
         expected = helper.to_vector(expected)
@@ -151,7 +168,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         less_than_pi = ['with_angle_close_0',
                         'with_angle_close_pi_low']
         for angle_type in less_than_pi:
-            point = self.elements[angle_type]
+            point = self.elements_all[angle_type]
             result = self.group.regularize(point)
             expected = point
             expected = helper.to_vector(expected)
@@ -160,7 +177,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         # Note: by default, the rotation vector is inverted by
         # the function regularize when the angle of the rotation is pi.
         angle_type = 'with_angle_pi'
-        point = self.elements[angle_type]
+        point = self.elements_all[angle_type]
         result = self.group.regularize(point)
 
         expected = point
@@ -169,7 +186,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
         angle_type = 'with_angle_close_pi_high'
-        point = self.elements[angle_type]
+        point = self.elements_all[angle_type]
         result = self.group.regularize(point)
         expected_rot = gs.concatenate(
             [point[:3] / gs.linalg.norm(point[:3]) * gs.pi,
@@ -184,7 +201,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                      'with_angle_close_2pi_low']
 
         for angle_type in in_pi_2pi:
-            point = self.elements[angle_type]
+            point = self.elements_all[angle_type]
             angle = gs.linalg.norm(point[:3])
             new_angle = gs.pi - (angle - gs.pi)
 
@@ -201,14 +218,14 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             self.assertAllClose(result, expected)
 
         angle_type = 'with_angle_2pi'
-        point = self.elements[angle_type]
+        point = self.elements_all[angle_type]
         result = self.group.regularize(point)
         expected = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
         expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
         angle_type = 'with_angle_close_2pi_high'
-        point = self.elements[angle_type]
+        point = self.elements_all[angle_type]
         angle = gs.linalg.norm(point[:3])
         new_angle = angle - 2 * gs.pi
 
@@ -235,7 +252,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
     def test_compose(self):
         # Composition by identity, on the right
         # Expect the original transformation
-        point = self.elements['point_1']
+        point = self.elements_all['point_1']
         result = self.group.compose(point,
                                     self.group.identity)
         expected = point
@@ -252,15 +269,15 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
         # Composition of translations (no rotational part)
         # Expect the sum of the translations
-        result = self.group.compose(self.elements['translation_small'],
-                                    self.elements['translation_large'])
-        expected = (self.elements['translation_small']
-                    + self.elements['translation_large'])
+        result = self.group.compose(self.elements_all['translation_small'],
+                                    self.elements_all['translation_large'])
+        expected = (self.elements_all['translation_small']
+                    + self.elements_all['translation_large'])
         expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
     def test_compose_and_inverse(self):
-        point = self.elements['point_1']
+        point = self.elements_all['point_1']
         inv_point = self.group.inverse(point)
         # Compose transformation by its inverse on the right
         # Expect the group identity
@@ -453,7 +470,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
     def test_group_exp_from_identity(self):
         # Group exponential of a translation (no rotational part)
         # Expect the original translation
-        tangent_vec = self.elements['translation_small']
+        tangent_vec = self.elements_all['translation_small']
         result = self.group.group_exp(base_point=self.group.identity,
                                       tangent_vec=tangent_vec)
         expected = tangent_vec
@@ -463,7 +480,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         # Group exponential of a transformation
         # where translation is parallel to rotation axis
         # Expect the original transformation
-        tangent_vec = self.elements['rot_with_parallel_trans']
+        tangent_vec = self.elements_all['rot_with_parallel_trans']
         result = self.group.group_exp(
                                   base_point=self.group.identity,
                                   tangent_vec=tangent_vec)
@@ -474,7 +491,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
     def test_group_log_from_identity(self):
         # Group logarithm of a translation (no rotational part)
         # Expect the original translation
-        point = self.elements['translation_small']
+        point = self.elements_all['translation_small']
         result = self.group.group_log(base_point=self.group.identity,
                                       point=point)
         expected = point
@@ -484,7 +501,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         # Group logarithm of a transformation
         # where translation is parallel to rotation axis
         # Expect the original transformation
-        point = self.elements['rot_with_parallel_trans']
+        point = self.elements_all['rot_with_parallel_trans']
         result = self.group.group_log(base_point=self.group.identity,
                                       point=point)
         expected = point
@@ -518,7 +535,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         """
         angle_types = self.angles_close_to_pi
         for element_type in angle_types:
-            point = self.elements[element_type]
+            point = self.elements_all[element_type]
             result = helper.group_log_then_exp_from_identity(
                                                  group=self.group,
                                                  point=point)
@@ -543,10 +560,10 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         # Expect the sum of the translation
         # with the translation of the reference point
         result = self.group.group_exp(
-                           base_point=self.elements['translation_small'],
-                           tangent_vec=self.elements['translation_large'])
-        expected = (self.elements['translation_small']
-                    + self.elements['translation_large'])
+                           base_point=self.elements_all['translation_small'],
+                           tangent_vec=self.elements_all['translation_large'])
+        expected = (self.elements_all['translation_small']
+                    + self.elements_all['translation_large'])
         expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
@@ -558,10 +575,10 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         # Expect the difference of the translation
         # by the translation of the reference point
         result = self.group.group_log(
-                             base_point=self.elements['translation_small'],
-                             point=self.elements['translation_large'])
-        expected = (self.elements['translation_large']
-                    - self.elements['translation_small'])
+                             base_point=self.elements_all['translation_small'],
+                             point=self.elements_all['translation_large'])
+        expected = (self.elements_all['translation_large']
+                    - self.elements_all['translation_small'])
 
         expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
@@ -601,7 +618,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                 result = helper.group_exp_then_log(group=self.group,
                                                    tangent_vec=tangent_vec,
                                                    base_point=base_point)
-                metric = self.metrics['left_canonical']
+                metric = self.metrics_all['left_canonical']
                 expected = self.group.regularize_tangent_vec(
                                                    tangent_vec=tangent_vec,
                                                    base_point=base_point,
@@ -615,7 +632,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         # Expect the identity function
         # because we use the riemannian left logarithm with canonical
         # inner product to parameterize the transformations
-        metric = self.metrics['left_canonical']
+        metric = self.metrics_all['left_canonical']
         # General case
         tangent_rot_vec = gs.array([1., 1., 1.])  # NB: Regularized
         tangent_translation = gs.array([1., 0., -3.])
@@ -635,7 +652,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         # because we use the riemannian left logarithm with canonical
         # inner product to parameterize the transformations
 
-        metric = self.metrics['left_canonical']
+        metric = self.metrics_all['left_canonical']
         # General case
         rot_vec = gs.array([0.1, 1, 0.9])  # NB: Regularized
         translation = gs.array([1., -19., -3.])
@@ -669,8 +686,8 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         """
         # Canonical inner product on the lie algebra
 
-        for metric in [self.metrics['left_canonical'],
-                       self.metrics['left_diag']]:
+        for metric in [self.metrics_all['left_canonical'],
+                       self.metrics_all['left_diag']]:
             for angle_type in self.elements:
                 if angle_type in self.angles_close_to_pi:
                     continue
@@ -693,10 +710,10 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         """
         angle_types = self.angles_close_to_pi
         # Canonical inner product on the lie algebra
-        for metric in [self.metrics['left_canonical'],
-                       self.metrics['left_diag']]:
+        for metric in [self.metrics_all['left_canonical'],
+                       self.metrics_all['left_diag']]:
             for angle_type in angle_types:
-                tangent_vec = self.elements[angle_type]
+                tangent_vec = self.elements_all[angle_type]
                 result = helper.exp_then_log_from_identity(
                                                 metric=metric,
                                                 tangent_vec=tangent_vec)
@@ -722,8 +739,8 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         Expect their composition to give the identity function.
         """
         # Canonical inner product on the lie algebra
-        for metric in [self.metrics['right_canonical'],
-                       self.metrics['right_diag']]:
+        for metric in [self.metrics_all['right_canonical'],
+                       self.metrics_all['right_diag']]:
             for angle_type in self.elements:
                 if angle_type in self.angles_close_to_pi:
                     continue
@@ -747,10 +764,10 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         """
         angle_types = self.angles_close_to_pi
         # Canonical inner product on the lie algebra
-        for metric in [self.metrics['right_canonical'],
-                       self.metrics['right_diag']]:
+        for metric in [self.metrics_all['right_canonical'],
+                       self.metrics_all['right_diag']]:
             for angle_type in angle_types:
-                tangent_vec = self.elements[angle_type]
+                tangent_vec = self.elements_all[angle_type]
                 result = helper.exp_then_log_from_identity(
                                                 metric=metric,
                                                 tangent_vec=tangent_vec)
@@ -765,14 +782,16 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
 
                 with self.session():
                     self.assertTrue(
-                        gs.eval(gs.allclose(result, expected))
-                        or gs.eval(gs.allclose(result, inv_expected)))
+                        gs.eval(gs.allclose(
+                            result, expected, atol=1e-5))
+                        or gs.eval(gs.allclose(
+                            result, inv_expected, atol=1e-5)))
 
     def test_exp_left(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
         # is the 6x6 identity matrix
-        metric = self.metrics['left_canonical']
+        metric = self.metrics_all['left_canonical']
         rot_vec_base_point = gs.array([0., 0., 0.])
         translation_base_point = gs.array([4., -1., 10000.])
         transfo_base_point = gs.concatenate(
@@ -797,7 +816,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
         # is the 6x6 identity matrix
-        metric = self.metrics['left_canonical']
+        metric = self.metrics_all['left_canonical']
         rot_vec_base_point = gs.array([0., 0., 0.])
         translation_base_point = gs.array([4., 0., 0.])
         transfo_base_point = gs.concatenate(
@@ -827,8 +846,8 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         riemannian left logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        for metric in [self.metrics['left_canonical'],
-                       self.metrics['left_diag']]:
+        for metric in [self.metrics_all['left_canonical'],
+                       self.metrics_all['left_diag']]:
             for base_point_type in self.elements:
                 base_point = self.elements[base_point_type]
                 for element_type in self.elements:
@@ -843,7 +862,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                     expected = self.group.regularize(point)
                     expected = helper.to_vector(expected)
 
-                    self.assertAllClose(result, expected)
+                    self.assertAllClose(result, expected, atol=1e-4)
 
     def test_log_then_exp_left_with_angles_close_to_pi(self):
         """
@@ -853,11 +872,11 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         """
         angle_types = self.angles_close_to_pi
         # Canonical inner product on the lie algebra
-        for metric in [self.metrics['left_canonical'],
-                       self.metrics['left_diag']]:
+        for metric in [self.metrics_all['left_canonical'],
+                       self.metrics_all['left_diag']]:
             for base_point in self.elements.values():
                 for element_type in angle_types:
-                    point = self.elements[element_type]
+                    point = self.elements_all[element_type]
                     result = helper.log_then_exp(
                                                 metric=metric,
                                                 point=point,
@@ -882,8 +901,8 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         riemannian left logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        for metric in [self.metrics['left_canonical'],
-                       self.metrics['left_diag']]:
+        for metric in [self.metrics_all['left_canonical'],
+                       self.metrics_all['left_diag']]:
             for base_point in self.elements.values():
                 for element_type in self.elements:
                     if element_type in self.angles_close_to_pi:
@@ -913,11 +932,11 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         """
         angle_types = self.angles_close_to_pi
         # Canonical inner product on the lie algebra
-        for metric in [self.metrics['left_canonical'],
-                       self.metrics['left_diag']]:
+        for metric in [self.metrics_all['left_canonical'],
+                       self.metrics_all['left_diag']]:
             for base_point in self.elements.values():
                 for element_type in angle_types:
-                    tangent_vec = self.elements[element_type]
+                    tangent_vec = self.elements_all[element_type]
                     result = helper.exp_then_log(
                                                 metric=metric,
                                                 tangent_vec=tangent_vec,
@@ -945,8 +964,8 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         riemannian right logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        for metric in [self.metrics['right_canonical'],
-                       self.metrics['right_diag']]:
+        for metric in [self.metrics_all['right_canonical'],
+                       self.metrics_all['right_diag']]:
             for base_point in self.elements.values():
                 for element_type in self.elements:
                     if element_type in self.angles_close_to_pi:
@@ -973,11 +992,11 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         """
         angle_types = self.angles_close_to_pi
         # Canonical inner product on the lie algebra
-        for metric in [self.metrics['right_canonical'],
-                       self.metrics['right_diag']]:
+        for metric in [self.metrics_all['right_canonical'],
+                       self.metrics_all['right_diag']]:
             for base_point in self.elements.values():
                 for element_type in angle_types:
-                    point = self.elements[element_type]
+                    point = self.elements_all[element_type]
                     result = helper.log_then_exp(
                                                 metric=metric,
                                                 point=point,
@@ -1008,8 +1027,8 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         Expect their composition to give the identity function.
         """
         # TODO(nina): Fix this test.
-        for metric in [self.metrics['right_canonical'],
-                       self.metrics['right_diag']]:
+        for metric in [self.metrics_all['right_canonical'],
+                       self.metrics_all['right_diag']]:
             for base_point_type in self.elements:
                 base_point = self.elements[base_point_type]
                 for element_type in self.elements:
@@ -1035,11 +1054,11 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         # TODO(nina): Fix this test.
         angle_types = self.angles_close_to_pi
         # Canonical inner product on the lie algebra
-        for metric in [self.metrics['right_canonical'],
-                       self.metrics['right_diag']]:
+        for metric in [self.metrics_all['right_canonical'],
+                       self.metrics_all['right_diag']]:
             for base_point in self.elements.values():
                 for element_type in angle_types:
-                    tangent_vec = self.elements[element_type]
+                    tangent_vec = self.elements_all[element_type]
                     result = helper.exp_then_log(
                                                 metric=metric,
                                                 tangent_vec=tangent_vec,
@@ -1120,8 +1139,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             self.assertAllClose(gs.shape(result), (n_samples, 1))
 
     def test_squared_dist_is_symmetric(self):
-        for metric_type in self.metrics:
-            metric = self.metrics[metric_type]
+        for metric in self.metrics.values():
             for point_a in self.elements.values():
                 for point_b in self.elements.values():
                     point_a = self.group.regularize(point_a)
@@ -1243,7 +1261,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
     def test_geodesic_and_belongs(self):
         initial_point = self.group.random_uniform()
         initial_tangent_vec = gs.array([2., 0., -1., 0., 2., 3.])
-        metric = self.metrics['left_canonical']
+        metric = self.metrics_all['left_canonical']
         geodesic = metric.geodesic(initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
 
@@ -1256,7 +1274,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
     def test_geodesic_subsample(self):
         initial_point = gs.array([-1.1, 0., 0.99, 10., 2., 3.])
         initial_tangent_vec = gs.array([1., 0., 2., 1., 1., 1.])
-        metric = self.metrics['left_canonical']
+        metric = self.metrics_all['left_canonical']
         geodesic = metric.geodesic(initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
         n_steps = 10
