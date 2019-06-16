@@ -124,8 +124,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = point
         expected = helper.to_vector(expected)
 
-        print(result)
-        print(expected)
         self.assertAllClose(result, expected, atol=1e-8)
 
     def test_log_and_exp_edge_case(self):
@@ -317,8 +315,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = self.metric.dist(point_a, point_b)
         expected = helper.to_scalar(expected)
 
-        #print('normresult', result)
-        #print('normexpected', expected)
         self.assertAllClose(result, expected)
 
     def test_dist_point_and_itself(self):

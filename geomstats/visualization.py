@@ -79,7 +79,6 @@ class Circle():
                  xlim=(-ax_s, ax_s),
                  ylim=(-ax_s, ax_s),
                  xlabel='X', ylabel='Y')
-        ax.set_aspect('equal')
         return ax
 
     def add_points(self, points):
