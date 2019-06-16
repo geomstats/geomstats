@@ -3221,8 +3221,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                     with self.session():
                         self.assertTrue(
-                            gs.eval(gs.allclose(result, expected))
-                            or gs.eval(gs.allclose(result, inv_expected)))
+                            gs.eval(gs.allclose(result, expected, atol=1e-5))
+                            or gs.eval(gs.allclose(
+                                result, inv_expected, atol=1e-5)))
 
     def test_group_exp_from_identity_vectorization(self):
         n = 3
@@ -3448,8 +3449,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                 with self.session():
                     self.assertTrue(
-                        gs.eval(gs.allclose(result, expected))
-                        or gs.eval(gs.allclose(result, inv_expected)))
+                        gs.eval(gs.allclose(result, expected, atol=1e-5))
+                        or gs.eval(gs.allclose(
+                            result, inv_expected, atol=1e-5)))
 
     def test_group_log_then_exp(self):
         """
@@ -3500,8 +3502,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                 with self.session():
                     self.assertTrue(
-                        gs.eval(gs.allclose(result, expected))
-                        or gs.eval(gs.allclose(result, inv_expected)))
+                        gs.eval(gs.allclose(result, expected, atol=1e-5))
+                        or gs.eval(gs.allclose(
+                            result, inv_expected, atol=1e-5)))
 
     @geomstats.tests.np_only
     def test_group_exponential_barycenter(self):
@@ -3678,7 +3681,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         initial_point = group.random_uniform()
         initial_tangent_vec = gs.array([1., 1., 1.])
-        metric = self.metrics[n]['canonical']
+        metric = self.metrics_all[n]['canonical']
         geodesic = metric.geodesic(initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
         n_steps = 100
