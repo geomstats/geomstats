@@ -12,7 +12,7 @@ from geomstats.hypersphere import Hypersphere
 
 MEAN_ESTIMATION_TOL = 1e-6
 KAPPA_ESTIMATION_TOL = 1e-3
-OPTIMAL_QUANTIZATION_TOL = 2e-2
+OPTIMAL_QUANTIZATION_TOL = 5e-2
 
 
 class TestHypersphereMethods(geomstats.tests.TestCase):
