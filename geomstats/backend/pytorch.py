@@ -123,6 +123,8 @@ def allclose(a, b, **kwargs):
     b = torch.tensor(b)
     a = a.float()
     b = b.float()
+    a = to_ndarray(a, to_ndim=1)
+    b = to_ndarray(b, to_ndim=1)
     n_a = a.shape[0]
     n_b = b.shape[0]
     ndim = len(a.shape)
@@ -330,7 +332,7 @@ def any(x):
     return x.byte().any()
 
 
-def expand_dims(x, axis):
+def expand_dims(x, axis=0):
     return torch.unsqueeze(x, dim=axis)
 
 
