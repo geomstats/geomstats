@@ -12,7 +12,7 @@ from geomstats.hypersphere import Hypersphere
 
 MEAN_ESTIMATION_TOL = 1e-6
 KAPPA_ESTIMATION_TOL = 1e-3
-OPTIMAL_QUANTIZATION_TOL = 5e-3
+OPTIMAL_QUANTIZATION_TOL = 2e-2
 
 
 class TestHypersphereMethods(geomstats.tests.TestCase):
@@ -416,29 +416,36 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
     def test_variance(self):
         point = gs.array([0., 0., 0., 0., 1.])
-        result = self.metric.variance([point, point])
-        expected = 0
+        points = gs.array([
+            point,
+            point])
+        result = self.metric.variance(points)
+        expected = helper.to_scalar(0.)
 
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
     def test_mean(self):
         point = gs.array([0., 0., 0., 0., 1.])
-        result = self.metric.mean([point, point])
-        expected = point
+        points = gs.array([
+            point,
+            point])
+        result = self.metric.mean(points)
+        expected = helper.to_vector(point)
 
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
     def test_mean_and_belongs(self):
-        point_a = self.space.random_uniform(bound=0.5)
-        point_b = self.space.random_uniform(bound=0.5)
-        point_c = self.space.random_uniform(bound=0.5)
-        result = self.metric.mean([point_a, point_b, point_c])
-        self.assertTrue(self.space.belongs(result))
+        point_a = gs.array([1., 0., 0., 0., 0.])
+        point_b = gs.array([0., 1., 0., 0., 0.])
+        points = gs.array([
+            point_a,
+            point_b])
+        mean = self.metric.mean(points)
+        result = self.space.belongs(mean)
+        expected = gs.array([[True]])
+        self.assertAllClose(result, expected)
 
     def test_diameter(self):
         dim = 2
@@ -506,8 +513,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = kappa
         result = kappa_estimate
         self.assertTrue(
-                gs.allclose(result, expected, atol=KAPPA_ESTIMATION_TOL)
-                )
+                gs.allclose(result, expected, atol=KAPPA_ESTIMATION_TOL))
 
     @geomstats.tests.np_only
     def test_optimal_quantization(self):
@@ -529,8 +535,8 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
             diameter = sphere.metric.diameter(points)
             result = error / diameter
             expected = 0.0
-            self.assertTrue(gs.allclose(result, expected,
-                                        atol=OPTIMAL_QUANTIZATION_TOL))
+            self.assertAllClose(
+                result, expected, atol=OPTIMAL_QUANTIZATION_TOL)
 
 
 if __name__ == '__main__':

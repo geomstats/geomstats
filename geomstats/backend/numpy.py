@@ -9,6 +9,21 @@ float32 = np.float32
 float64 = np.float64
 
 
+def while_loop(cond, body, loop_vars, maximum_iterations):
+    iteration = 0
+    while cond(*loop_vars):
+        loop_vars = body(*loop_vars)
+        iteration += 1
+        if iteration >= maximum_iterations:
+            break
+    return loop_vars
+
+
+def logical_or(x, y):
+    bool_result = x or y
+    return bool_result
+
+
 def get_mask_i_float(i, n):
     range_n = arange(n)
     i_float = cast(array([i]), int32)[0]

@@ -46,7 +46,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         with_angle_close_2pi_high = ((2. * gs.pi + 1e-9) / gs.sqrt(2.)
                                      * gs.array([1., 0., -1.]))
 
-        elements = {
+        elements_all = {
             3: {'with_angle_0': with_angle_0,
                 'with_angle_close_0': with_angle_close_0,
                 'with_angle_close_pi_low': with_angle_close_pi_low,
@@ -57,7 +57,13 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 'with_angle_2pi': with_angle_2pi,
                 'with_angle_close_2pi_high': with_angle_close_2pi_high}
             }
-
+        elements = elements_all
+        if geomstats.tests.tf_backend():
+            # Tf is extremely slow
+            elements = {
+                3: {
+                    'with_angle_in_pi_2pi': with_angle_in_pi_2pi,
+                    'with_angle_close_pi_low': with_angle_close_pi_low}}
         # -- Metrics - only diagonals for now
         canonical_metrics = {n: group.bi_invariant_metric
                              for n, group in so.items()}
@@ -109,7 +115,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                           left_metrics.values(),
                           right_metrics.values())
 
-        metrics = {
+        metrics_all = {
             n: {'canonical': canonical,
                 'left_diag': left_diag,
                 'right_diag': right_diag,
@@ -117,17 +123,37 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 'right': right}
             for n, canonical, left_diag, right_diag, left, right in all_metrics
             }
+        metrics = metrics_all
+        if geomstats.tests.tf_backend():
+            metrics = {
+                n: {'right': InvariantMetric(
+                   group=group,
+                   inner_product_mat_at_identity=mat,
+                   left_or_right='right')}
+                for n, group, mat in zip(n_seq, so.values(), mats.values())
+            }
+
+        angles_close_to_pi_all = {
+            3: ['with_angle_close_pi_low',
+                'with_angle_pi',
+                'with_angle_close_pi_high']
+            }
+        angles_close_to_pi = angles_close_to_pi_all
+        if geomstats.tests.tf_backend():
+            angles_close_to_pi = {
+                3: ['with_angle_close_pi_low']
+                }
 
         # -- Set attributes
         self.n_seq = n_seq
         self.so = so
         self.elements = elements
-        self.angles_close_to_pi = {
-            3: ['with_angle_close_pi_low',
-                'with_angle_pi',
-                'with_angle_close_pi_high']
-            }
+        self.elements_all = elements_all
+
         self.metrics = metrics
+        self.metrics_all = metrics_all
+        self.angles_close_to_pi = angles_close_to_pi
+        self.angles_close_to_pi_all = angles_close_to_pi_all
         self.n_samples = 4
 
     def test_projection(self):
@@ -206,7 +232,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             group = self.so[n]
 
             if n == 3:
-                point = self.elements[3]['with_angle_0']
+                point = self.elements_all[3]['with_angle_0']
                 self.assertAllClose(gs.linalg.norm(point), 0.)
                 result = group.regularize(point)
                 expected = helper.to_vector(point)
@@ -215,7 +241,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 less_than_pi = ['with_angle_close_0',
                                 'with_angle_close_pi_low']
                 for angle_type in less_than_pi:
-                    point = self.elements[3][angle_type]
+                    point = self.elements_all[3][angle_type]
                     result = group.regularize(point)
                     expected = helper.to_vector(point)
                     self.assertAllClose(result, expected)
@@ -223,13 +249,13 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 # Note: by default, the rotation vector is inverted by
                 # the function regularize when the angle of the rotation is pi.
                 angle_type = 'with_angle_pi'
-                point = self.elements[3][angle_type]
+                point = self.elements_all[3][angle_type]
                 result = group.regularize(point)
                 expected = helper.to_vector(point)
                 self.assertAllClose(result, expected)
 
                 angle_type = 'with_angle_close_pi_high'
-                point = self.elements[3][angle_type]
+                point = self.elements_all[3][angle_type]
                 result = group.regularize(point)
                 expected = helper.to_vector(
                     point / gs.linalg.norm(point) * gs.pi)
@@ -239,7 +265,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                              'with_angle_close_2pi_low']
 
                 for angle_type in in_pi_2pi:
-                    point = self.elements[3][angle_type]
+                    point = self.elements_all[3][angle_type]
                     point_initial = point
                     angle = gs.linalg.norm(point)
                     new_angle = gs.pi - (angle - gs.pi)
@@ -252,13 +278,13 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     self.assertAllClose(result, expected)
 
                 angle_type = 'with_angle_2pi'
-                point = self.elements[3][angle_type]
+                point = self.elements_all[3][angle_type]
                 result = group.regularize(point)
                 expected = gs.array([[0., 0., 0.]])
                 self.assertAllClose(result, expected)
 
                 angle_type = 'with_angle_close_2pi_high'
-                point = self.elements[3][angle_type]
+                point = self.elements_all[3][angle_type]
                 angle = gs.linalg.norm(point)
                 new_angle = angle - 2 * gs.pi
 
@@ -2820,7 +2846,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         n = 3
         group = self.so[n]
 
-        metric = self.metrics[3]['canonical']
+        metric = self.metrics_all[3]['canonical']
         theta = gs.pi / 5.
         rot_vec_base_point = theta / gs.sqrt(3.) * gs.array([1., 1., 1.])
         # Note: the rotation vector for the reference point
@@ -2887,7 +2913,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         n = 3
         group = self.so[n]
 
-        metric = self.metrics[3]['canonical']
+        metric = self.metrics_all[3]['canonical']
         theta = gs.pi / 5.
         rot_vec_base_point = theta / gs.sqrt(3.) * gs.array([1., 1., 1.])
         # Note: the rotation vector for the reference point
@@ -2953,7 +2979,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         group = self.so[n]
 
         n_samples = self.n_samples
-        metric = self.metrics[3]['canonical']
+        metric = self.metrics_all[3]['canonical']
 
         tangent_vecs = group.random_uniform(n_samples=n_samples)
         result = metric.exp_from_identity(tangent_vecs)
@@ -2966,7 +2992,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         group = self.so[n]
 
         n_samples = self.n_samples
-        metric = self.metrics[3]['canonical']
+        metric = self.metrics_all[3]['canonical']
 
         points = group.random_uniform(n_samples=n_samples)
         result = metric.log_from_identity(points)
@@ -3195,8 +3221,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                     with self.session():
                         self.assertTrue(
-                            gs.eval(gs.allclose(result, expected))
-                            or gs.eval(gs.allclose(result, inv_expected)))
+                            gs.eval(gs.allclose(result, expected, atol=1e-5))
+                            or gs.eval(gs.allclose(
+                                result, inv_expected, atol=1e-5)))
 
     def test_group_exp_from_identity_vectorization(self):
         n = 3
@@ -3422,8 +3449,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                 with self.session():
                     self.assertTrue(
-                        gs.eval(gs.allclose(result, expected))
-                        or gs.eval(gs.allclose(result, inv_expected)))
+                        gs.eval(gs.allclose(result, expected, atol=1e-5))
+                        or gs.eval(gs.allclose(
+                            result, inv_expected, atol=1e-5)))
 
     def test_group_log_then_exp(self):
         """
@@ -3474,8 +3502,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                 with self.session():
                     self.assertTrue(
-                        gs.eval(gs.allclose(result, expected))
-                        or gs.eval(gs.allclose(result, inv_expected)))
+                        gs.eval(gs.allclose(result, expected, atol=1e-5))
+                        or gs.eval(gs.allclose(
+                            result, inv_expected, atol=1e-5)))
 
     @geomstats.tests.np_only
     def test_group_exponential_barycenter(self):
@@ -3538,7 +3567,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         n = 3
         group = self.so[n]
 
-        metric = self.metrics[3]['canonical']
+        metric = self.metrics_all[3]['canonical']
         for angle_type_1 in self.elements[3]:
             for angle_type_2 in self.elements[3]:
                 point_1 = self.elements[3][angle_type_1]
@@ -3635,7 +3664,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         initial_point = group.random_uniform()
         initial_tangent_vec = gs.array([2., 0., -1.])
-        metric = self.metrics[3]['canonical']
+        metric = self.metrics_all[3]['canonical']
         geodesic = metric.geodesic(initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
 
@@ -3652,7 +3681,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         initial_point = group.random_uniform()
         initial_tangent_vec = gs.array([1., 1., 1.])
-        metric = self.metrics[n]['canonical']
+        metric = self.metrics_all[n]['canonical']
         geodesic = metric.geodesic(initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
         n_steps = 100
