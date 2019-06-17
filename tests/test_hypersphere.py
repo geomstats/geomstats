@@ -12,7 +12,7 @@ from geomstats.hypersphere import Hypersphere
 
 MEAN_ESTIMATION_TOL = 1e-6
 KAPPA_ESTIMATION_TOL = 1e-3
-OPTIMAL_QUANTIZATION_TOL = 5e-2
+OPTIMAL_QUANTIZATION_TOL = 2e-2
 
 
 class TestHypersphereMethods(geomstats.tests.TestCase):
@@ -535,7 +535,8 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
             diameter = sphere.metric.diameter(points)
             result = error / diameter
             expected = 0.0
-            self.assertAllClose(result, expected, atol=OPTIMAL_QUANTIZATION_TOL)
+            self.assertAllClose(
+                result, expected, atol=OPTIMAL_QUANTIZATION_TOL)
 
 
 if __name__ == '__main__':
