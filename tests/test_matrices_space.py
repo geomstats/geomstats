@@ -20,6 +20,7 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
         self.metric = self.space.metric
         self.n_samples = 2
 
+    @geomstats.tests.np_and_tf_only
     def test_is_symmetric(self):
         sym_mat = gs.array([[1., 2.],
                             [2., 1.]])
@@ -34,6 +35,7 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
         expected = gs.array([False])
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_is_symmetric_vectorization(self):
         points = gs.array([
             [[1., 2.],
@@ -72,6 +74,7 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
                               [res, res, 1e100]]])
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_make_symmetric_and_is_symmetric_vectorization(self):
         points = gs.array([
             [[1., 2.],
