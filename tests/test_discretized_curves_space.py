@@ -57,6 +57,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_l2_metric_log_and_squared_norm_and_dist(self):
         """
         Test that squared norm of logarithm is squared dist.
@@ -71,6 +72,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_l2_metric_log_and_exp(self):
         """
         Test that exp and log are inverse maps.
@@ -83,6 +85,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=self.atol)
 
+    @geomstats.tests.np_and_tf_only
     def test_l2_metric_inner_product_vectorization(self):
         """
         Test the vectorization inner_product.
@@ -101,6 +104,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (n_samples, 1))
 
+    @geomstats.tests.np_and_tf_only
     def test_l2_metric_dist_vectorization(self):
         """
         Test the vectorization of dist.
@@ -115,6 +119,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                 curves_ab, curves_bc)
         self.assertAllClose(gs.shape(result), (n_samples, 1))
 
+    @geomstats.tests.np_and_tf_only
     def test_l2_metric_exp_vectorization(self):
         """
         Test the vectorization of exp.
@@ -132,6 +137,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                 base_curve=curves_ab)
         self.assertAllClose(gs.shape(result), gs.shape(curves_ab))
 
+    @geomstats.tests.np_and_tf_only
     def test_l2_metric_log_vectorization(self):
         """
         Test the vectorization of log.
@@ -171,6 +177,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                 initial_curve=curves_ab,
                 end_curve=curves_bc)
 
+    @geomstats.tests.np_and_tf_only
     def test_srv_metric_pointwise_inner_product(self):
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
