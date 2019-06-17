@@ -102,6 +102,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_log_and_exp_general_case(self):
         """
         Test that the riemannian exponential
@@ -301,6 +302,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         result = self.metric.squared_dist(n_points_a, n_points_b)
         self.assertAllClose(gs.shape(result), (n_samples, 1))
 
+    @geomstats.tests.np_and_tf_only
     def test_norm_and_dist(self):
         """
         Test that the distance between two points is
@@ -416,6 +418,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
+    @geomstats.tests.np_and_tf_only
     def test_variance(self):
         point = gs.array([0., 0., 0., 0., 1.])
         points = gs.array([
@@ -426,6 +429,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
+    @geomstats.tests.np_and_tf_only
     def test_mean(self):
         point = gs.array([0., 0., 0., 0., 1.])
         points = gs.array([
@@ -436,6 +440,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
+    @geomstats.tests.np_and_tf_only
     def test_mean_and_belongs(self):
         point_a = gs.array([1., 0., 0., 0., 0.])
         point_b = gs.array([0., 1., 0., 0., 0.])
