@@ -76,12 +76,14 @@ class TestStiefelMethods(geomstats.tests.TestCase):
 
         self.metric = self.space.canonical_metric
 
+    @geomstats.tests.np_and_tf_only
     def test_belongs(self):
         point = self.space.random_uniform()
         belongs = self.space.belongs(point)
 
         self.assertAllClose(gs.shape(belongs), (1, 1))
 
+    @geomstats.tests.np_and_tf_only
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
@@ -89,6 +91,7 @@ class TestStiefelMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_random_uniform(self):
         result = self.space.random_uniform()
 
@@ -113,6 +116,7 @@ class TestStiefelMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=ATOL)
 
+    @geomstats.tests.np_and_tf_only
     def test_exp_and_belongs(self):
         base_point = self.point_a
         tangent_vec = self.tangent_vector_1
@@ -124,6 +128,7 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         expected = gs.array([[True]])
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_exp_vectorization(self):
         n_samples = self.n_samples
         n = self.n
@@ -148,6 +153,7 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         result = self.metric.exp(one_tangent_vec, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
+    @geomstats.tests.np_and_tf_only
     def test_log_vectorization(self):
         n_samples = self.n_samples
         n = self.n
@@ -225,6 +231,7 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         result = self.metric.lifting(n_points, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
+    @geomstats.tests.np_and_tf_only
     def test_retraction_vectorization(self):
         n_samples = self.n_samples
         n = self.n
