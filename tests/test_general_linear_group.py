@@ -27,6 +27,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
 
         warnings.simplefilter('ignore', category=ImportWarning)
 
+    @geomstats.tests.np_only
     def test_belongs(self):
         """
         A rotation matrix belongs to the matrix Lie group
