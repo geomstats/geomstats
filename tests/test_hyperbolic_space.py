@@ -290,6 +290,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         with self.session():
             self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
         """
         Test that the riemannian exponential
@@ -379,6 +380,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=1e-8)
 
+    @geomstats.tests.np_and_tf_only
     def test_variance(self):
         point = gs.array([2., 1., 1., 1.])
         points = gs.array([point, point])
@@ -387,6 +389,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_mean(self):
         point = gs.array([2., 1., 1., 1.])
         points = gs.array([point, point])
@@ -395,6 +398,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_mean_and_belongs(self):
         point_a = self.space.random_uniform()
         point_b = self.space.random_uniform()

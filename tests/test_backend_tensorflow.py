@@ -14,13 +14,14 @@ class TestBackendTensorFlow(tf.test.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        cls.initial_backend = os.environ['GEOMSTATS_BACKEND']
         os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
         importlib.reload(gs)
 
     @classmethod
     def tearDownClass(cls):
-        os.environ['GEOMSTATS_BACKEND'] = 'numpy'
+        os.environ['GEOMSTATS_BACKEND'] = cls.initial_backend
         importlib.reload(gs)
 
     def test_vstack(self):

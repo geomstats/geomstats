@@ -32,7 +32,26 @@ def np_only(test_item):
     """Decorator to filter tests for numpy only."""
     if not np_backend():
         test_item.__unittest_skip__ = True
-        test_item.__unittest_skip_why__ = 'This test for numpy backend only.'
+        test_item.__unittest_skip_why__ = (
+            'Test for numpy backend only.')
+    return test_item
+
+
+def np_and_tf_only(test_item):
+    """Decorator to filter tests for numpy and tensorflow only."""
+    if not (np_backend() or tf_backend()):
+        test_item.__unittest_skip__ = True
+        test_item.__unittest_skip_why__ = (
+            'Test for numpy and tensorflow backends only.')
+    return test_item
+
+
+def np_and_pytorch_only(test_item):
+    """Decorator to filter tests for numpy and pytorch only."""
+    if not (np_backend() or pytorch_backend()):
+        test_item.__unittest_skip__ = True
+        test_item.__unittest_skip_why__ = (
+            'Test for numpy and pytorch backends only.')
     return test_item
 
 

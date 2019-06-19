@@ -27,6 +27,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
 
         warnings.simplefilter('ignore', category=ImportWarning)
 
+    @geomstats.tests.np_only
     def test_belongs(self):
         """
         A rotation matrix belongs to the matrix Lie group
@@ -100,6 +101,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_group_log_and_exp(self):
         point = 5 * gs.eye(self.n)
 
@@ -110,6 +112,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_group_exp_vectorization(self):
         point = gs.array([[[2., 0., 0.],
                            [0., 3., 0.],
@@ -129,6 +132,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, rtol=1e-3)
 
+    @geomstats.tests.np_and_tf_only
     def test_group_log_vectorization(self):
         point = gs.array([[[2., 0., 0.],
                            [0., 3., 0.],
@@ -148,6 +152,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=1e-4)
 
+    @geomstats.tests.np_and_tf_only
     def test_expm_and_logm_vectorization_symmetric(self):
         point = gs.array([[[2., 0., 0.],
                            [0., 3., 0.],

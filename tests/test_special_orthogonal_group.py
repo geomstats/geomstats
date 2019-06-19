@@ -16,6 +16,9 @@ EPSILON = 1e-5
 ATOL = 1e-5
 
 
+# TODO(nina): Speed up tf tests
+
+
 class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
@@ -156,6 +159,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         self.angles_close_to_pi_all = angles_close_to_pi_all
         self.n_samples = 4
 
+    @geomstats.tests.np_only
     def test_projection(self):
         # Test 3D and nD cases
         for n in self.n_seq:
@@ -167,6 +171,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             expected = helper.to_matrix(rot_mat)
             self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_projection_vectorization(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -209,6 +214,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
             self.assertAllClose(gs.shape(result), (n_samples, n, n))
 
+    @geomstats.tests.np_only
     def test_random_and_belongs(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -217,6 +223,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             expected = gs.array([[True]])
             self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_random_and_belongs_vectorization(self):
         n_samples = self.n_samples
         for n in self.n_seq:
@@ -226,6 +233,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             expected = gs.array([[True]] * n_samples)
             self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_regularize(self):
         # Specific to 3D
         for n in self.n_seq:
@@ -302,6 +310,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 expected = point
                 self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_regularize_vectorization(self):
         for point_type in ('vector', 'matrix'):
             for n in self.n_seq:
@@ -367,6 +376,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                               skew_rot_vec_6))
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_matrix_from_rotation_vector_vectorization(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -380,6 +390,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             self.assertAllClose(
                 gs.shape(rot_mats), (n_samples, group.n, group.n))
 
+    @geomstats.tests.np_only
     def test_rotation_vector_from_matrix(self):
         n = 3
         group = self.so[n]
@@ -392,6 +403,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_rotation_vector_and_rotation_matrix(self):
         """
         This tests that the composition of
@@ -2453,6 +2465,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                 result,
                                 expected))
 
+    @geomstats.tests.np_only
     def test_rotation_vector_and_rotation_matrix_vectorization(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -2478,6 +2491,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
             self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_rotation_vector_and_rotation_matrix_with_angles_close_to_pi(self):
         """
         This tests that the composition of
@@ -2504,6 +2518,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     gs.eval(gs.allclose(result, expected))
                     or gs.eval(gs.allclose(result, inv_expected)))
 
+    @geomstats.tests.np_only
     def test_quaternion_and_rotation_vector(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -2565,6 +2580,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         expected = group.regularize(rot_vecs)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_quaternion_and_matrix(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -2632,6 +2648,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     lambda: group.matrix_from_quaternion(
                         fake_quaternion))
 
+    @geomstats.tests.np_only
     def test_quaternion_and_matrix_with_angles_close_to_pi(self):
         n = 3
         group = self.so[n]
@@ -2652,6 +2669,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     gs.eval(gs.allclose(result, expected))
                     or gs.eval(gs.allclose(result, inv_expected)))
 
+    @geomstats.tests.np_only
     def test_quaternion_and_rotation_vector_and_matrix_vectorization(self):
         n = 3
         group = self.so[n]
@@ -2669,6 +2687,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         expected = rot_mats
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_compose(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -2717,6 +2736,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 expected = group.regularize(point)
                 self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_compose_and_inverse(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -2754,6 +2774,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 expected = helper.to_matrix(group.identity)
                 self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_compose_vectorization(self):
         for point_type in ('vector', 'matrix'):
             for n in self.n_seq:
@@ -2789,6 +2810,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     self.assertAllClose(
                         gs.shape(result), (n_samples, n, n))
 
+    @geomstats.tests.np_only
     def test_inverse_vectorization(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -2804,6 +2826,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 self.assertAllClose(
                     gs.shape(result), (n_samples, n, n))
 
+    @geomstats.tests.np_only
     def test_left_jacobian_through_its_determinant(self):
         n = 3
         group = self.so[n]
@@ -2826,6 +2849,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             expected = gs.to_ndarray(expected, to_ndim=1)
             self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_left_jacobian_vectorization(self):
         n = 3
         group = self.so[n]
@@ -2838,6 +2862,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             gs.shape(jacobians),
             (n_samples, group.dimension, group.dimension))
 
+    @geomstats.tests.np_only
     def test_exp(self):
         """
         The Riemannian exp and log are inverse functions of each other.
@@ -2877,6 +2902,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                             tangent_vec=rot_vec_2)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_exp_vectorization(self):
         n = 3
         group = self.so[n]
@@ -2905,6 +2931,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             self.assertAllClose(
                 gs.shape(result), (n_samples, group.dimension))
 
+    @geomstats.tests.np_only
     def test_log(self):
         """
         The Riemannian exp and log are inverse functions of each other.
@@ -2946,6 +2973,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_log_vectorization(self):
         n = 3
         group = self.so[n]
@@ -2974,6 +3002,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             self.assertAllClose(
                 gs.shape(result), (n_samples, group.dimension))
 
+    @geomstats.tests.np_only
     def test_exp_from_identity_vectorization(self):
         n = 3
         group = self.so[n]
@@ -2987,6 +3016,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         self.assertAllClose(
             gs.shape(result), (n_samples, group.dimension))
 
+    @geomstats.tests.np_only
     def test_log_from_identity_vectorization(self):
         n = 3
         group = self.so[n]
@@ -3000,6 +3030,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         self.assertAllClose(
             gs.shape(result), (n_samples, group.dimension))
 
+    @geomstats.tests.np_only
     def test_exp_then_log_from_identity(self):
         """
         This tests that the composition of
@@ -3025,6 +3056,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                 self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_exp_then_log_from_identity_with_angles_close_to_pi(self):
         """
         This tests that the composition of
@@ -3052,6 +3084,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                         gs.eval(gs.allclose(result, expected))
                         or gs.eval(gs.allclose(result, inv_expected)))
 
+    @geomstats.tests.np_only
     def test_log_then_exp_from_identity(self):
         """
         This tests that the composition of
@@ -3074,6 +3107,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                 self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_log_then_exp_from_identity_with_angles_close_to_pi(self):
         """
         This tests that the composition of
@@ -3099,6 +3133,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                         gs.eval(gs.allclose(result, expected))
                         or gs.eval(gs.allclose(result, inv_expected)))
 
+    @geomstats.tests.np_only
     def test_exp_then_log(self):
         """
         This tests that the composition of
@@ -3129,6 +3164,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                     self.assertAllClose(result, expected, atol=1e-4)
 
+    @geomstats.tests.np_only
     def test_exp_then_log_with_angles_close_to_pi(self):
         """
         This tests that the composition of
@@ -3164,6 +3200,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                             or gs.eval(gs.allclose(
                                 result, inv_expected, atol=1e-5)))
 
+    @geomstats.tests.np_only
     def test_log_then_exp(self):
         """
         This tests that the composition of
@@ -3196,6 +3233,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                             gs.eval(gs.allclose(result, expected))
                             or gs.eval(gs.allclose(result, inv_expected)))
 
+    @geomstats.tests.np_only
     def test_log_then_exp_with_angles_close_to_pi(self):
         """
         This tests that the composition of
@@ -3247,6 +3285,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         self.assertAllClose(
             gs.shape(result), (n_samples, group.dimension))
 
+    @geomstats.tests.np_only
     def test_group_exp_vectorization(self):
         n = 3
         group = self.so[n]
@@ -3276,6 +3315,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         self.assertAllClose(
             gs.shape(result), (n_samples, group.dimension))
 
+    @geomstats.tests.np_only
     def test_group_log_vectorization(self):
         n = 3
         group = self.so[n]
@@ -3387,6 +3427,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     gs.eval(gs.allclose(result, expected))
                     or gs.eval(gs.allclose(result, inv_expected)))
 
+    @geomstats.tests.np_only
     def test_group_exp_then_log(self):
         """
         This tests that the composition of
@@ -3418,6 +3459,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                 self.assertAllClose(result, expected, atol=1e-6)
 
+    @geomstats.tests.np_only
     def test_group_exp_then_log_with_angles_close_to_pi(self):
         """
         This tests that the composition of
@@ -3453,6 +3495,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                         or gs.eval(gs.allclose(
                             result, inv_expected, atol=1e-5)))
 
+    @geomstats.tests.np_only
     def test_group_log_then_exp(self):
         """
         This tests that the composition of
@@ -3479,6 +3522,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                 self.assertAllClose(result, expected, atol=ATOL)
 
+    @geomstats.tests.np_only
     def test_group_log_then_exp_with_angles_close_to_pi(self):
         """
         This tests that the composition of
@@ -3536,6 +3580,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         self.assertTrue(result, expected)
 
+    @geomstats.tests.np_only
     def test_squared_dist_is_symmetric(self):
         n = 3
         group = self.so[n]
@@ -3580,6 +3625,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 self.assertTrue(diff <= 0 or abs(diff) < EPSILON,
                                 'sq_dist = {}'.format(sq_dist))
 
+    @geomstats.tests.np_only
     def test_squared_dist_vectorization(self):
         n = 3
         group = self.so[n]
@@ -3619,6 +3665,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             result = metric.squared_dist(n_point_1, n_point_2)
             self.assertAllClose(gs.shape(result), (n_samples, 1))
 
+    @geomstats.tests.np_only
     def test_dist_vectorization(self):
         n = 3
         group = self.so[n]
@@ -3658,6 +3705,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             result = metric.dist(n_point_1, n_point_2)
             self.assertAllClose(gs.shape(result), (n_samples, 1))
 
+    @geomstats.tests.np_only
     def test_geodesic_and_belongs(self):
         n = 3
         group = self.so[n]
@@ -3674,6 +3722,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_geodesic_subsample(self):
         # TODO(nina): Fix this test.
         n = 3
