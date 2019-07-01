@@ -11,7 +11,7 @@ int32 = 'torch.LongTensor'
 int8 = 'torch.ByteTensor'
 
 CUDA = torch.cuda.is_available()
-DEVICE = torch.device("cuda" if CUDA else "cpu")
+DEVICE = torch.device('cuda' if CUDA else 'cpu')
 
 
 def to_bool(x):
