@@ -334,6 +334,7 @@ def where(*args, **kwargs):
 
 def tile(x, y):
     y = [int(one_y) for one_y in y]
+    # TODO(nina): Remove the above line
     # TODO(johmathe): Native tile implementation
     return array(np.tile(x, y))
 
