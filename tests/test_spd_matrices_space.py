@@ -24,7 +24,6 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         self.metric = self.space.metric
         self.n_samples = 4
 
-    @geomstats.tests.np_and_tf_only
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)

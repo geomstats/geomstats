@@ -10,6 +10,16 @@ float64 = 'torch.DoubleTensor'
 int32 = 'torch.LongTensor'
 int8 = 'torch.ByteTensor'
 
+CUDA = torch.cuda.is_available()
+DEVICE = torch.device("cuda" if CUDA else "cpu")
+
+
+def real(x):
+    x_np = x.cpu().numpy()
+    x_real = np.real(x_np)
+    x_real = torch.from_numpy(x_real).to(DEVICE)
+    return x_real
+
 
 def cond(pred, true_fn, false_fn):
     if pred:
@@ -354,13 +364,6 @@ def diagonal(*args, **kwargs):
 
 def exp(*args, **kwargs):
     return torch.exp(*args, **kwargs)
-
-
-def log(*args, **kwargs):
-    return torch.log(*args, **kwargs)
-
-
-def cov(*args, **kwargs):
     return torch.cov(*args, **kwargs)
 
 
