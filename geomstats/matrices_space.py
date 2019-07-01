@@ -52,6 +52,7 @@ class MatricesSpace(EuclideanSpace):
 
         mask = gs.to_ndarray(mask, to_ndim=1)
         mask = gs.to_ndarray(mask, to_ndim=2, axis=1)
+        mask = gs.cast(mask, gs.int8)
         return mask
 
     @staticmethod

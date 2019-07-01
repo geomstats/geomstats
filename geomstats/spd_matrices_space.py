@@ -35,8 +35,6 @@ class SPDMatricesSpace(EmbeddedManifold):
         mask_is_symmetric = self.embedding_manifold.is_symmetric(
                 mat, tolerance=tolerance)
         mask_is_invertible = self.embedding_manifold.belongs(mat)
-        print(type(mask_is_symmetric))
-        print(type(mask_is_invertible))
         belongs = mask_is_symmetric & mask_is_invertible
         belongs = gs.to_ndarray(belongs, to_ndim=1)
         belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)

@@ -203,7 +203,7 @@ def dot(a, b):
 
 
 def maximum(a, b):
-    return torch.max(array(a), array(b))
+    return int(torch.max(array(a), array(b)))
 
 
 def greater(a, b):

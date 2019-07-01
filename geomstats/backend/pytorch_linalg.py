@@ -5,10 +5,16 @@ import scipy.linalg
 import torch
 
 
+def sqrtm(x):
+    np_sqrtm = np.vectorize(
+        scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)
+    return torch.from_numpy(np_sqrtm)
+
+
 def logm(x):
     np_logm = np.vectorize(
         scipy.linalg.logm, signature='(n,m)->(n,m)')(x)
-    return torch.from_numpy(np_logm)
+    return torch.from_numpy(np_logm).float()
 
 
 def expm(x):
