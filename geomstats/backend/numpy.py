@@ -9,6 +9,10 @@ float32 = np.float32
 float64 = np.float64
 
 
+def to_bool(x):
+    return x.astype(bool)
+
+
 def while_loop(cond, body, loop_vars, maximum_iterations):
     iteration = 0
     while cond(*loop_vars):

@@ -11,6 +11,11 @@ float32 = tf.float32
 float64 = tf.float64
 
 
+def to_bool(x):
+    x = cast(x, tf.bool)
+    return x
+
+
 def while_loop(*args, **kwargs):
     return tf.while_loop(*args, **kwargs)
 

@@ -14,6 +14,10 @@ CUDA = torch.cuda.is_available()
 DEVICE = torch.device("cuda" if CUDA else "cpu")
 
 
+def to_bool(x):
+    return cast(x, int8)
+
+
 def real(x):
     x_np = x.cpu().numpy()
     x_real = np.real(x_np)
