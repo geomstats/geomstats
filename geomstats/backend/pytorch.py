@@ -129,7 +129,10 @@ def empty_like(*args, **kwargs):
 def all(x, axis=None):
     if axis is None:
         return x.byte().all()
-    return torch.from_numpy(np.all(x, axis=axis).astype(int))
+    result = np.concatenate(
+        [np.array([np.all(one_x)]) for one_x in x], axis=0)
+    assert result.shape == (len(x),), result.shape
+    return torch.from_numpy(result.astype(int))
 
 
 def allclose(a, b, **kwargs):
@@ -331,7 +334,7 @@ def where(*args, **kwargs):
 
 def tile(x, y):
     # TODO(johmathe): Native tile implementation
-    y = tuple([int(one_y) for one_y in y])
+    y = [int(one_y) for one_y in y]
     return array(np.tile(x, y))
 
 
