@@ -130,7 +130,7 @@ def all(x, axis=None):
     if axis is None:
         return x.byte().all()
     result = np.concatenate(
-        [np.array([np.all(one_x)]) for one_x in x], axis=0)
+        [np.array([one_x.byte().all()]) for one_x in x], axis=0)
     assert result.shape == (len(x),), result.shape
     return torch.from_numpy(result.astype(int))
 
@@ -333,8 +333,8 @@ def where(*args, **kwargs):
 
 
 def tile(x, y):
-    # TODO(johmathe): Native tile implementation
     y = [int(one_y) for one_y in y]
+    # TODO(johmathe): Native tile implementation
     return array(np.tile(x, y))
 
 

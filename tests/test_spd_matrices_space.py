@@ -167,6 +167,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_squared_dist_is_symmetric(self):
         n_samples = self.n_samples
 
