@@ -8,6 +8,7 @@ import torch
 def sqrtm(x):
     np_sqrtm = np.vectorize(
         scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)
+    np_sqrtm = np.real(np_sqrtm)  # HACK ALERT
     return torch.from_numpy(np_sqrtm)
 
 
