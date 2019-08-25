@@ -393,7 +393,7 @@ class RiemannianMetric(object):
 
         random_indices = gs.random.randint(low=0, high=n_points,
                                            size=(n_centers,))
-        centers = points[gs.ix_(random_indices, gs.arange(dimension))]
+        centers = points[gs.indexing(random_indices), :]
 
         gap = 1.0
         iteration = 0
@@ -403,7 +403,7 @@ class RiemannianMetric(object):
             step_size = gs.floor(iteration / n_repetitions) + 1
 
             random_index = gs.random.randint(low=0, high=n_points, size=(1,))
-            point = points[gs.ix_(random_index, gs.arange(dimension))]
+            point = points[gs.indexing(random_index), :]
 
             index_to_update = self.closest_neighbor_index(point, centers)
             center_to_update = centers[index_to_update, :]
@@ -415,12 +415,12 @@ class RiemannianMetric(object):
                     tangent_vec=tangent_vec_update, base_point=center_to_update
                     )
             gap = self.dist(center_to_update, new_center)
-            gap = (gap != 0) * gap + (gap == 0)
+            gap = gs.byte_to_float(gap != 0) * gap + gs.byte_to_float(gap == 0)
 
             centers[index_to_update, :] = new_center
 
             if gs.isclose(gap, 0, atol=tolerance):
-                    break
+                break
 
         if iteration == n_max_iterations-1:
             print('Maximum number of iterations {} reached. The'
@@ -432,6 +432,7 @@ class RiemannianMetric(object):
 
         for point in points:
             index = self.closest_neighbor_index(point, centers)
+            index = index.item()
             if index not in index_list:
                 clusters[index] = list()
                 index_list.append(index)

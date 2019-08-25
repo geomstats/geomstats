@@ -11,6 +11,33 @@ int32 = 'torch.LongTensor'
 int8 = 'torch.ByteTensor'
 
 
+def indexing(x):
+    return x.type(torch.LongTensor)
+
+
+def float_to_double(x):
+    return x.double()
+
+
+def byte_to_float(x):
+    return x.type(torch.FloatTensor)
+
+
+def while_loop(cond, body, loop_vars, maximum_iterations):
+    iteration = 0
+    while cond(*loop_vars):
+        loop_vars = body(*loop_vars)
+        iteration += 1
+        if iteration >= maximum_iterations:
+            break
+    return loop_vars
+
+
+def logical_or(x, y):
+    bool_result = x or y
+    return bool_result
+
+
 def cond(pred, true_fn, false_fn):
     if pred:
         return true_fn()
@@ -115,7 +142,7 @@ def empty_like(*args, **kwargs):
 def all(x, axis=None):
     if axis is None:
         return x.byte().all()
-    return torch.from_numpy(np.all(x, axis=axis).astype(int))
+    return torch.from_numpy(np.all(np.array(x), axis=axis).astype(int))
 
 
 def allclose(a, b, **kwargs):
@@ -296,11 +323,11 @@ def equal(a, b, **kwargs):
         a = cast(a, torch.uint8).float()
     if b.dtype == torch.ByteTensor:
         b = cast(b, torch.uint8).float()
-    return torch.equal(a, b, **kwargs)
+    return torch.eq(a, b, **kwargs)
 
 
 def floor(*args, **kwargs):
-    return torch.floor(*args, **kwargs)
+    return np.floor(*args, **kwargs)
 
 
 def cross(x, y):
@@ -352,8 +379,8 @@ def diagonal(*args, **kwargs):
     return torch.diagonal(*args, **kwargs)
 
 
-def exp(*args, **kwargs):
-    return torch.exp(*args, **kwargs)
+def exp(input):
+    return torch.exp(torch.tensor(input))
 
 
 def log(*args, **kwargs):
@@ -401,3 +428,7 @@ def mean(x, axis=None):
         return torch.mean(x)
     else:
         return np.mean(x, axis)
+
+
+def argmin(*args, **kwargs):
+    return torch.argmin(*args, **kwargs)
