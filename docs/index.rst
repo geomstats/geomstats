@@ -1,22 +1,14 @@
 Geomstats
 =========
 
-*Geomstats does some cool stuff.*
-
-Familiar user interface
------------------------
+*Geomstats provides code for computations and statistics on manifolds with geometric structures.*
 
 **Quick install**
 
 .. code-block:: bash
 
-    pip install geomstats
-
-**A python exampple.**
-.. code-block:: python
-
-    import geomstats as gs
-
+    pip3 install geomstats
+    export GEOMSTATS_BACKEND=numpy
 
 .. toctree::
    :maxdepth: 1
