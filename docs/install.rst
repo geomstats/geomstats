@@ -2,11 +2,6 @@ Install Geomstats
 =================
 
 
-You can install geomstats with ``pip``, or by installing from source.
+You can install geomstats with ``pip3`` as follow::
 
-Pip
----
-
-You can install geomstats as follow::
-
-    pip install geomstats
+    pip3 install geomstats
