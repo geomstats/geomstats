@@ -9,7 +9,7 @@ Computations and statistics on manifolds with geometric structures.
 - For more in-depth applications of ``geomstats``, see the [applications repository](https://github.com/geomstats/applications/).
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/gradient_descent.gif" width=300 height=300><img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=200 height=200></p>
+<img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/gradient_descent.gif" width=300 height=300><img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" style="vertical-align:middle" width=200 height=200></p>
 
 
 ## Installation
