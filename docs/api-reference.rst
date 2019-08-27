@@ -5,3 +5,4 @@ Here is the definition of the main client library:
 
 .. autoclass:: geomstats.manifold.Manifold
    :members: regularize
+   :members: belongs

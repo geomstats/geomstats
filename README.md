@@ -4,10 +4,12 @@
 
 Computations and statistics on manifolds with geometric structures.
 
-- [Geomstats paper](https://arxiv.org/abs/1805.08308) on arxiv.
+- To get started with ```geomstats```, see the [examples directory](https://github.com/geomstats/geomstats/examples).
 - For more in-depth applications of ``geomstats``, see the [applications repository](https://github.com/geomstats/applications/).
+- The documentation of ```geomstats``` can be found [here](https://geomstats.github.io/).
+- If you use ``geomstats``, please kindly cite our [paper](https://arxiv.org/abs/1805.08308).
 
-<img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/gradient_descent.gif" width=384 height=384><img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=200 height=200>
+<img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/gradient_descent.gif" width=350 height=350><img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=300 height=300>
 
 
 ## Installation
@@ -23,6 +25,20 @@ pip3 install geomstats
 ```
 pip3 install nose2
 nose2
+```
+
+## Getting started
+
+Define your backend by setting the environment variable ```GEOMSTATS_BACKEND``` to ```numpy```, ```tensorflow```, or ```pytorch```:
+
+```
+export GEOMSTATS_BACKEND=numpy
+```
+
+Then, run example scripts:
+
+```
+python3 examples/plot_grid_h2.py
 ```
 
 ## Contributing
