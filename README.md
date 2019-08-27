@@ -4,7 +4,7 @@
 
 Computations and statistics on manifolds with geometric structures.
 
-- [Geomstats paper](https://arxiv.org/abs/1805.08308) on arxiv.
+- If you use ``geomstats``, please kindly cite our paper: [Geomstats paper](https://arxiv.org/abs/1805.08308).
 - For more in-depth applications of ``geomstats``, see the [applications repository](https://github.com/geomstats/applications/).
 
 <img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/gradient_descent.gif" width=384 height=384><img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=200 height=200>
@@ -23,6 +23,17 @@ pip3 install geomstats
 ```
 pip3 install nose2
 nose2
+```
+
+## Getting started
+
+First define your backend: numpy, tensorflow, or pytorch.
+
+Then, run example scripts to get started:
+
+```
+export GEOMSTATS_BACKEND=numpy
+python3 examples/plot_grid_h2.py
 ```
 
 ## Contributing
