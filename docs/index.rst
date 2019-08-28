@@ -16,6 +16,7 @@ Geomstats
 
    install.rst
    api-reference.rst
+   contributing.rst
    tutorials.rst
    changelog.rst
 
