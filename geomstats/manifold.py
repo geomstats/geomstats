@@ -21,6 +21,15 @@ class Manifold(object):
     def belongs(self, point, point_type=None):
         """
         Evaluate if a point belongs to the manifold.
+
+        Parameters
+        ----------
+        points : array-like, shape=[n_samples, dimension]
+                 Input points.
+
+        Returns
+        -------
+        belongs : array-like, shape=[n_samples, 1]
         """
         raise NotImplementedError('belongs is not implemented.')
 
@@ -28,5 +37,15 @@ class Manifold(object):
         """
         Regularize a point to the canonical representation
         chosen for the manifold.
+
+        Parameters
+        ----------
+        points : array-like, shape=[n_samples, dimension]
+                 Input points.
+
+        Returns
+        -------
+        regularized_point : array-like, shape=[n_samples, dimension]
         """
-        return point
+        regularized_point = point
+        return regularized_point

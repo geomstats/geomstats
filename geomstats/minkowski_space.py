@@ -19,6 +19,15 @@ class MinkowskiSpace(Manifold):
     def belongs(self, point):
         """
         Evaluate if a point belongs to the Minkowski space.
+
+        Parameters
+        ----------
+        points : array-like, shape=[n_samples, dimension]
+                 Input points.
+
+        Returns
+        -------
+        belongs : array-like, shape=[n_samples, 1]
         """
         point = gs.to_ndarray(point, to_ndim=2)
         n_points, point_dim = point.shape
@@ -35,6 +44,11 @@ class MinkowskiSpace(Manifold):
     def random_uniform(self, n_samples=1, bound=1.):
         """
         Sample in the Minkowski space with the uniform distribution.
+
+        Returns
+        -------
+        points : array-like, shape=[n_samples, dimension]
+                 Sampled points.
         """
         size = (n_samples, self.dimension)
         point = bound * gs.random.rand(*size) * 2 - 1
@@ -55,6 +69,10 @@ class MinkowskiMetric(RiemannianMetric):
     def inner_product_matrix(self, base_point=None):
         """
         Inner product matrix, independent of the base point.
+
+        Parameters
+        ----------
+        base_point: array-like, shape=[n_samples, dimension]
         """
         inner_prod_mat = gs.eye(self.dimension-1, self.dimension-1)
         first_row = gs.array([0.] * (self.dimension - 1))
@@ -72,6 +90,14 @@ class MinkowskiMetric(RiemannianMetric):
     def exp(self, tangent_vec, base_point):
         """
         The Riemannian exponential is the addition in the Minkowski space.
+
+        Parameters
+        ----------
+        tangent_vec: array-like, shape=[n_samples, dimension]
+                                 or shape=[1, dimension]
+
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -80,6 +106,14 @@ class MinkowskiMetric(RiemannianMetric):
     def log(self, point, base_point):
         """
         The Riemannian logarithm is the subtraction in the Minkowski space.
+
+        Parameters
+        ----------
+        point: array-like, shape=[n_samples, dimension]
+                           or shape=[1, dimension]
+
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         point = gs.to_ndarray(point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -89,6 +123,12 @@ class MinkowskiMetric(RiemannianMetric):
         """
         The Frechet mean of (weighted) points is the weighted average of
         the points in the Minkowski space.
+
+        Parameters
+        ----------
+        points: array-like, shape=[n_samples, dimension]
+
+        weights: array-like, shape=[n_samples, 1], optional
         """
         if isinstance(points, list):
             points = gs.vstack(points)
