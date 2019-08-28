@@ -1,5 +1,5 @@
 """
-Compute the mean of a data set of 3D rotations.
+Compute the mean of a data set on the sphere.
 Performs tangent PCA at the mean.
 """
 
@@ -65,5 +65,5 @@ def main():
 
 
 if __name__ == "__main__":
-    warnings.simplefilter('ignore', category=DeprecationWarning)
+    warnings.simplefilter('ignore')
     main()
