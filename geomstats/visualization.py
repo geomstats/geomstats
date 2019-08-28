@@ -148,7 +148,7 @@ class Sphere():
         ax.plot_wireframe(self.sphere_x,
                           self.sphere_y,
                           self.sphere_z,
-                          color="black", alpha=0.2)
+                          color="grey", alpha=0.2)
         if self.points:
             self.draw_points(ax, **scatter_kwargs)
 
