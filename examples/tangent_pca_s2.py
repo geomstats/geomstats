@@ -5,7 +5,6 @@ Performs tangent PCA at the mean.
 
 import matplotlib.pyplot as plt
 import numpy as np
-import warnings
 
 import geomstats.visualization as visualization
 
@@ -65,5 +64,4 @@ def main():
 
 
 if __name__ == "__main__":
-    warnings.simplefilter('ignore')
     main()
