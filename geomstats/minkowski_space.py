@@ -38,9 +38,6 @@ class MinkowskiSpace(Manifold):
 
         return belongs
 
-        point_dim = point.shape[-1]
-        return point_dim == self.dimension
-
     def random_uniform(self, n_samples=1, bound=1.):
         """
         Sample in the Minkowski space with the uniform distribution.
