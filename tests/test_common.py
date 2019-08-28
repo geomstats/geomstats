@@ -2,9 +2,9 @@ import pytest
 
 from sklearn.utils.estimator_checks import check_estimator
 
-from skltemplate import TemplateEstimator
-from skltemplate import TemplateClassifier
-from skltemplate import TemplateTransformer
+from geomstats.learning._template import TemplateEstimator
+from geomstats.learning._template import TemplateClassifier
+from geomstats.learning._template import TemplateTransformer
 
 
 @pytest.mark.parametrize(
