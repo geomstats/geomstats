@@ -15,6 +15,10 @@ class Connection(object):
     def christoffel_symbol(self, base_point):
         """
         Christoffel symbols associated with the connection.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[n_samples, dimension]
         """
         raise NotImplementedError(
                 'The Christoffel symbols are not implemented.')
@@ -23,22 +27,47 @@ class Connection(object):
         """
         Connection applied to tangent_vector_b in the direction of
         tangent_vector_a, both tangent at base_point.
+
+        Parameters
+        ----------
+        tangent_vec_a: array-like, shape=[n_samples, dimension]
+                                   or shape=[1, dimension]
+
+        tangent_vec_b: array-like, shape=[n_samples, dimension]
+                                   or shape=[1, dimension]
+
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         raise NotImplementedError(
                 'connection is not implemented.')
 
-    def exp(self, tangent_vector_a, base_point):
+    def exp(self, tangent_vector, base_point):
         """
-        Connection applied to tangent_vector_b in the direction of
-        tangent_vector_a, both tangent at base_point.
+        Exponential map associated to the affine connection.
+
+        Parameters
+        ----------
+        tangent_vec: array-like, shape=[n_samples, dimension]
+                                 or shape=[1, dimension]
+
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         raise NotImplementedError(
                 'The affine connection exponential is not implemented.')
 
     def log(self, point, base_point):
         """
-        Connection applied to tangent_vector_b in the direction of
-        tangent_vector_a, both tangent at base_point.
+        Logarithm map associated to the affine connection.
+
+        Parameters
+        ----------
+        point: array-like, shape=[n_samples, dimension]
+                           or shape=[1, dimension]
+
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         raise NotImplementedError(
                 'The affine connection logarithm is not implemented.')
@@ -48,6 +77,17 @@ class Connection(object):
         """
         One step of pole ladder (parallel transport associated with the
         symmetric part of the connection using transvections).
+
+        Parameters
+        ----------
+        tangent_vec_a: array-like, shape=[n_samples, dimension]
+                                   or shape=[1, dimension]
+
+        tangent_vec_b: array-like, shape=[n_samples, dimension]
+                                   or shape=[1, dimension]
+
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         half_tangent_vector_b = 1. / 2. * tangent_vector_b
         mid_point = self.exp(
@@ -83,6 +123,17 @@ class Connection(object):
 
         Returns a tangent vector at the point
         exp_(base_point)(tangent_vector_b).
+
+        Parameters
+        ----------
+        tangent_vec_a: array-like, shape=[n_samples, dimension]
+                                   or shape=[1, dimension]
+
+        tangent_vec_b: array-like, shape=[n_samples, dimension]
+                                   or shape=[1, dimension]
+
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         current_point = gs.copy(base_point)
         geodesic_tangent_vector = 1. / n_points * tangent_vector_b
@@ -109,6 +160,11 @@ class Connection(object):
     def riemannian_curvature(self, base_point):
         """
         Riemannian curvature tensor associated with the connection.
+
+        Parameters
+        ----------
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         raise NotImplementedError(
                 'The Riemannian curvature tensor is not implemented.')
@@ -132,6 +188,11 @@ class Connection(object):
     def torsion(self, base_point):
         """
         Torsion tensor associated with the connection.
+
+        Parameters
+        ----------
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         raise NotImplementedError(
                 'The torsion tensor is not implemented.')
@@ -152,18 +213,35 @@ class LeviCivitaConnection(Connection):
     def cometric_matrix(self, base_point):
         """
         The cometric is the inverse of the metric.
+
+        Parameters
+        ----------
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         metric_matrix = self.metric_matrix(base_point)
         cometric_matrix = gs.linalg.inv(metric_matrix)
         return cometric_matrix
 
     def metric_derivative(self, base_point):
+        """
+
+        Parameters
+        ----------
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
+        """
         metric_derivative = autograd.jacobian(self.metric_matrix)
         return metric_derivative(base_point)
 
     def christoffel_symbols(self, base_point):
         """
         Christoffel symbols associated with the connection.
+
+        Parameters
+        ----------
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         term_1 = gs.einsum('nim,nmkl->nikl',
                            self.cometric_matrix(base_point),
@@ -181,5 +259,10 @@ class LeviCivitaConnection(Connection):
     def torsion(self, base_point):
         """
         Torsion tensor associated with the Levi-Civita connection is zero.
+
+        Parameters
+        ----------
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         return gs.zeros((self.dimension,) * 3)
