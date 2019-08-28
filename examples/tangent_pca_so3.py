@@ -9,7 +9,6 @@ import numpy as np
 import geomstats.visualization as visualization
 
 from geomstats.learning.pca import TangentPCA
-
 from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
 
 SO3_GROUP = SpecialOrthogonalGroup(n=3)
@@ -42,9 +41,7 @@ def main():
     ax_var.plot(xticks, tpca.explained_variance_ratio_)
 
     ax = fig.add_subplot(122, projection="3d")
-    plt.setp(ax,
-             xlim=(-3, 3), ylim=(-3, 3), zlim=(-3, 3),
-             xlabel="X", ylabel="Y", zlabel="Z")
+    plt.setp(ax, xlabel="X", ylabel="Y", zlabel="Z")
 
     ax.set_title('Data in SO3 (black) and Frechet mean (color)')
     visualization.plot(data, ax, space='SO3_GROUP', color='black')
