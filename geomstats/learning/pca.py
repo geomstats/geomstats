@@ -156,7 +156,6 @@ class TangentPCA(_BasePCA):
 
     def _fit(self, X, base_point=None, point_type='vector'):
         """Fit the model by computing full SVD on X"""
-        print('hello')
         if point_type == 'matrix':
             raise NotImplementedError(
                 'This is currently only implemented for vectors.')
@@ -227,7 +226,6 @@ class TangentPCA(_BasePCA):
         else:
             self.noise_variance_ = 0.
 
-        print('bonsoir')
         self.n_samples_, self.n_features_ = n_samples, n_features
         self.components_ = components_[:n_components]
         self.n_components_ = n_components
