@@ -22,8 +22,8 @@ class MinkowskiSpace(Manifold):
 
         Parameters
         ----------
-        points : array-like, shape=[n_samples, dimension]
-                 Input points.
+        point : array-like, shape=[n_samples, dimension]
+                Input points.
 
         Returns
         -------

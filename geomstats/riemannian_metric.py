@@ -53,6 +53,9 @@ class RiemannianMetric(object):
     def inner_product_matrix(self, base_point=None):
         """
         Inner product matrix at the tangent space at a base point.
+        Parameters
+        ----------
+        base_point : array-like, shape=[n_samples, dimension], optional
         """
         raise NotImplementedError(
                 'The computation of the inner product matrix'
@@ -61,6 +64,17 @@ class RiemannianMetric(object):
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """
         Inner product between two tangent vectors at a base point.
+
+        Parameters
+        ----------
+        tangent_vec_a: array-like, shape=[n_samples, dimension]
+                                   or shape=[1, dimension]
+
+        tangent_vec_b: array-like, shape=[n_samples, dimension]
+                                   or shape=[1, dimension]
+
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
@@ -97,6 +111,14 @@ class RiemannianMetric(object):
         """
         Squared norm of a vector associated to the inner product
         at the tangent space at a base point.
+
+        Parameters
+        ----------
+        vector: array-like, shape=[n_samples, dimension]
+                            or shape=[1, dimension]
+
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         sq_norm = self.inner_product(vector, vector, base_point)
         return sq_norm
@@ -108,6 +130,14 @@ class RiemannianMetric(object):
 
         Note: This only works for positive-definite
         Riemannian metrics and inner products.
+
+        Parameters
+        ----------
+        vector: array-like, shape=[n_samples, dimension]
+                            or shape=[1, dimension]
+
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         sq_norm = self.squared_norm(vector, base_point)
         norm = gs.sqrt(sq_norm)
@@ -116,6 +146,14 @@ class RiemannianMetric(object):
     def exp(self, tangent_vec, base_point=None):
         """
         Riemannian exponential of a tangent vector wrt to a base point.
+
+        Parameters
+        ----------
+        tangent_vec: array-like, shape=[n_samples, dimension]
+                                 or shape=[1, dimension]
+
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         raise NotImplementedError(
                 'The Riemannian exponential is not implemented.')
@@ -123,6 +161,14 @@ class RiemannianMetric(object):
     def log(self, point, base_point=None):
         """
         Riemannian logarithm of a point wrt a base point.
+
+        Parameters
+        ----------
+        point: array-like, shape=[n_samples, dimension]
+                           or shape=[1, dimension]
+
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         raise NotImplementedError(
                 'The Riemannian logarithm is not implemented.')
@@ -190,6 +236,14 @@ class RiemannianMetric(object):
     def squared_dist(self, point_a, point_b):
         """
         Squared geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a: array-like, shape=[n_samples, dimension]
+                             or shape=[1, dimension]
+
+        point_b: array-like, shape=[n_samples, dimension]
+                             or shape=[1, dimension]
         """
         log = self.log(point=point_b, base_point=point_a)
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
@@ -201,6 +255,14 @@ class RiemannianMetric(object):
         Geodesic distance between two points.
         Note: It only works for positive definite
         Riemannian metrics.
+
+        Parameters
+        ----------
+        point_a: array-like, shape=[n_samples, dimension]
+                             or shape=[1, dimension]
+
+        point_b: array-like, shape=[n_samples, dimension]
+                             or shape=[1, dimension]
         """
         sq_dist = self.squared_dist(point_a, point_b)
         dist = gs.sqrt(sq_dist)
@@ -213,6 +275,12 @@ class RiemannianMetric(object):
                  point_type='vector'):
         """
         Variance of (weighted) points wrt a base point.
+
+        Parameters
+        ----------
+        points: array-like, shape=[n_samples, dimension]
+
+        weights: array-like, shape=[n_samples, 1], optional
         """
         if point_type == 'vector':
             points = gs.to_ndarray(points, to_ndim=2)
@@ -250,6 +318,12 @@ class RiemannianMetric(object):
              point_type='vector'):
         """
         Frechet mean of (weighted) points.
+
+        Parameters
+        ----------
+        points: array-like, shape=[n_samples, dimension]
+
+        weights: array-like, shape=[n_samples, 1], optional
         """
         # TODO(nina): Profile this code to study performance,
         # i.e. what to do with sq_dists_between_iterates.
