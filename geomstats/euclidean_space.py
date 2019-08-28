@@ -24,6 +24,15 @@ class EuclideanSpace(Manifold):
     def belongs(self, point):
         """
         Evaluate if a point belongs to the Euclidean space.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dimension]
+                Input points.
+
+        Returns
+        -------
+        belongs : array-like, shape=[n_samples, 1]
         """
         point = gs.to_ndarray(point, to_ndim=2)
         n_points, point_dim = point.shape
