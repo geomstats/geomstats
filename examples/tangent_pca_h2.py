@@ -1,5 +1,5 @@
 """
-Compute the mean of a data set on the sphere.
+Compute the mean of a data set on the hyperbolic_plane.
 Performs tangent PCA at the mean.
 """
 
@@ -9,25 +9,25 @@ import numpy as np
 import geomstats.visualization as visualization
 
 from geomstats.learning.pca import TangentPCA
-from geomstats.hypersphere import Hypersphere
+from geomstats.hyperbolic_space import HyperbolicSpace
 
 
 def main():
     fig = plt.figure(figsize=(15, 5))
 
-    sphere = Hypersphere(dimension=2)
+    hyperbolic_plane = HyperbolicSpace(dimension=2)
 
-    data = sphere.random_von_mises_fisher(kappa=15, n_samples=140)
-    mean = sphere.metric.mean(data)
+    data = hyperbolic_plane.random_uniform(n_samples=140)
+    mean = hyperbolic_plane.metric.mean(data)
 
-    tpca = TangentPCA(metric=sphere.metric, n_components=2)
+    tpca = TangentPCA(metric=hyperbolic_plane.metric, n_components=2)
     tpca = tpca.fit(data, base_point=mean)
     tangent_projected_data = tpca.transform(data)
 
-    geodesic_0 = sphere.metric.geodesic(
+    geodesic_0 = hyperbolic_plane.metric.geodesic(
         initial_point=mean,
         initial_tangent_vec=tpca.components_[0])
-    geodesic_1 = sphere.metric.geodesic(
+    geodesic_1 = hyperbolic_plane.metric.geodesic(
         initial_point=mean,
         initial_tangent_vec=tpca.components_[1])
 
@@ -49,16 +49,16 @@ def main():
     ax_var.set_ylim((0, 1))
     ax_var.plot(xticks, tpca.explained_variance_ratio_)
 
-    ax = fig.add_subplot(122, projection="3d")
+    ax = fig.add_subplot(122)
 
     visualization.plot(
-        mean, ax, space='S2', color='darkgreen', s=10)
+        mean, ax, space='H2_poincare_disk', color='darkgreen', s=10)
     visualization.plot(
-        geodesic_points_0, ax, space='S2', linewidth=2)
+        geodesic_points_0, ax, space='H2_poincare_disk', linewidth=2)
     visualization.plot(
-        geodesic_points_1, ax, space='S2', linewidth=2)
+        geodesic_points_1, ax, space='H2_poincare_disk', linewidth=2)
     visualization.plot(
-        data, ax, space='S2', color='black', alpha=0.7)
+        data, ax, space='H2_poincare_disk', color='black', alpha=0.7)
 
     plt.show()
 
