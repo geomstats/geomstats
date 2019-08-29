@@ -23,6 +23,7 @@ import examples.plot_square_h2_klein_disk as plot_square_h2_klein_disk
 import examples.plot_quantization_s1 as plot_quantization_s1
 import examples.plot_quantization_s2 as plot_quantization_s2
 import examples.tangent_pca_so3 as tangent_pca_so3
+import examples.tangent_pca_s2 as tangent_pca_s2
 import geomstats.tests
 
 
@@ -80,6 +81,10 @@ class TestExamples(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_plot_square_h2_square_klein_disk(self):
         plot_square_h2_klein_disk.main()
+
+    @geomstats.tests.np_only
+    def test_tangent_pca_s2(self):
+        tangent_pca_s2.main()
 
     @geomstats.tests.np_only
     def test_tangent_pca_so3(self):
