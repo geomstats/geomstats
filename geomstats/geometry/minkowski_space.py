@@ -2,10 +2,10 @@
 Minkowski space.
 """
 
-
-from geomstats.manifold import Manifold
-from geomstats.riemannian_metric import RiemannianMetric
 import geomstats.backend as gs
+
+from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class MinkowskiSpace(Manifold):

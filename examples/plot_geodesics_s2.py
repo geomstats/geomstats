@@ -8,7 +8,7 @@ import os
 
 import geomstats.visualization as visualization
 
-from geomstats.hypersphere import Hypersphere
+from geomstats.geometry.hypersphere import Hypersphere
 
 SPHERE2 = Hypersphere(dimension=2)
 METRIC = SPHERE2.metric

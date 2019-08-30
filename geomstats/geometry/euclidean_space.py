@@ -4,8 +4,8 @@ Euclidean space.
 
 import geomstats.backend as gs
 
-from geomstats.manifold import Manifold
-from geomstats.riemannian_metric import RiemannianMetric
+from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class EuclideanSpace(Manifold):
