@@ -80,6 +80,14 @@ class EuclideanMetric(RiemannianMetric):
     def inner_product_matrix(self, base_point=None):
         """
         Inner product matrix, independent of the base point.
+
+        Parameters
+        ----------
+        base_point: array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        inner_prod_mat: array-like, shape=[n_samples, dimension, dimension]
         """
         mat = gs.eye(self.dimension)
         mat = gs.to_ndarray(mat, to_ndim=3)
@@ -88,6 +96,19 @@ class EuclideanMetric(RiemannianMetric):
     def exp(self, tangent_vec, base_point):
         """
         The Riemannian exponential is the addition in the Euclidean space.
+
+        Parameters
+        ----------
+        tangent_vec: array-like, shape=[n_samples, dimension]
+                                 or shape=[1, dimension]
+
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
+
+        Returns
+        -------
+        exp: array-like, shape=[n_samples, dimension]
+                          or shape-[n_samples, dimension]
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -97,6 +118,19 @@ class EuclideanMetric(RiemannianMetric):
     def log(self, point, base_point):
         """
         The Riemannian logarithm is the subtraction in the Euclidean space.
+
+        Parameters
+        ----------
+        point: array-like, shape=[n_samples, dimension]
+                           or shape=[1, dimension]
+
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
+
+        Returns
+        -------
+        log: array-like, shape=[n_samples, dimension]
+                          or shape-[n_samples, dimension]
         """
         point = gs.to_ndarray(point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -108,6 +142,16 @@ class EuclideanMetric(RiemannianMetric):
         The Frechet mean of (weighted) points computed with the
         Euclidean metric is the weighted average of the points
         in the Euclidean space.
+
+        Parameters
+        ----------
+        points: array-like, shape=[n_samples, dimension]
+
+        weights: array-like, shape=[n_samples, 1], optional
+
+        Returns
+        -------
+        mean: array-like, shape=[1, dimension]
         """
         if isinstance(points, list):
             points = gs.vstack(points)
