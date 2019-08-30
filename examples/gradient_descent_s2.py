@@ -20,8 +20,8 @@ import numpy as np
 import geomstats.backend as gs
 import geomstats.visualization as visualization
 
-from geomstats.hypersphere import Hypersphere
-from geomstats.spd_matrices_space import SPDMatricesSpace
+from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.spd_matrices_space import SPDMatricesSpace
 
 
 SPHERE2 = Hypersphere(dimension=2)

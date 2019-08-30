@@ -4,7 +4,7 @@ Manifold embedded in another manifold.
 
 import math
 
-from geomstats.manifold import Manifold
+from geomstats.geometry.manifold import Manifold
 
 
 class EmbeddedManifold(Manifold):
