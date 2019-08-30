@@ -8,7 +8,7 @@ import unittest
 import warnings
 
 import geomstats.backend as gs
-from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 
 
 class TestBackendNumpy(unittest.TestCase):

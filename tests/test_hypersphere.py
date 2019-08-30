@@ -8,7 +8,7 @@ import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
 
-from geomstats.hypersphere import Hypersphere
+from geomstats.geometry.hypersphere import Hypersphere
 
 MEAN_ESTIMATION_TOL = 1e-6
 KAPPA_ESTIMATION_TOL = 1e-3

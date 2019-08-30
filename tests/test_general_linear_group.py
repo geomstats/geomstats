@@ -8,8 +8,8 @@ import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
 
-from geomstats.general_linear_group import GeneralLinearGroup
-from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.geometry.general_linear_group import GeneralLinearGroup
+from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 
 RTOL = 1e-5
 
