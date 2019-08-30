@@ -9,10 +9,10 @@ import matplotlib.pyplot as plt
 import geomstats.tests
 import geomstats.visualization as visualization
 
-from geomstats.hyperbolic_space import HyperbolicSpace
-from geomstats.hypersphere import Hypersphere
-from geomstats.special_euclidean_group import SpecialEuclideanGroup
-from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.geometry.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup
+from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 
 
 class TestVisualizationMethods(geomstats.tests.TestCase):

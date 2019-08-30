@@ -8,7 +8,7 @@ import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
 
-from geomstats.minkowski_space import MinkowskiSpace
+from geomstats.geometry.minkowski_space import MinkowskiSpace
 
 
 class TestMinkowskiSpaceMethods(geomstats.tests.TestCase):

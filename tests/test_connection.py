@@ -5,8 +5,8 @@ Unit tests for the affine connections.
 import geomstats.backend as gs
 import geomstats.tests
 
-from geomstats.connection import LeviCivitaConnection
-from geomstats.euclidean_space import EuclideanMetric
+from geomstats.geometry.connection import LeviCivitaConnection
+from geomstats.geometry.euclidean_space import EuclideanMetric
 
 
 class TestConnectionMethods(geomstats.tests.TestCase):

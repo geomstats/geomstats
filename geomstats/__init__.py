@@ -1,13 +1,13 @@
 from .__about__ import __version__
 
-import geomstats.manifold
-import geomstats.euclidean_space
-import geomstats.hyperbolic_space
-import geomstats.hypersphere
-import geomstats.invariant_metric
-import geomstats.lie_group
-import geomstats.minkowski_space
-import geomstats.spd_matrices_space
-import geomstats.special_euclidean_group
-import geomstats.special_orthogonal_group
-import geomstats.riemannian_metric
+import geomstats.geometry.manifold
+import geomstats.geometry.euclidean_space
+import geomstats.geometry.hyperbolic_space
+import geomstats.geometry.hypersphere
+import geomstats.geometry.invariant_metric
+import geomstats.geometry.lie_group
+import geomstats.geometry.minkowski_space
+import geomstats.geometry.spd_matrices_space
+import geomstats.geometry.special_euclidean_group
+import geomstats.geometry.special_orthogonal_group
+import geomstats.geometry.riemannian_metric

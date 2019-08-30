@@ -6,7 +6,7 @@ import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
 
-from geomstats.matrices_space import MatricesSpace
+from geomstats.geometry.matrices_space import MatricesSpace
 
 
 class TestMatricesSpaceMethods(geomstats.tests.TestCase):
