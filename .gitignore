@@ -5,3 +5,4 @@ dist
 *.egg
 *.pyc
 *.png
+examples/.ipynb_checkpoints
