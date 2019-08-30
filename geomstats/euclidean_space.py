@@ -46,6 +46,15 @@ class EuclideanSpace(Manifold):
     def random_uniform(self, n_samples=1, bound=1.):
         """
         Sample in the Euclidean space with the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples: int, optional
+        bound: float, optional
+
+        Returns
+        -------
+        point : array-like, shape=[n_samples, dimension]
         """
         size = (n_samples, self.dimension)
         point = bound * (gs.random.rand(*size) - 0.5) * 2
@@ -59,7 +68,7 @@ class EuclideanMetric(RiemannianMetric):
 
     As a Riemannian metric, the Euclidean metric is:
     - flat: the inner product is independent of the base point.
-    - positive definite: it has signature (0, dimension),
+    - positive definite: it has signature (dimension, 0, 0),
     where dimension is the dimension of the Euclidean space.
     """
     def __init__(self, dimension):
