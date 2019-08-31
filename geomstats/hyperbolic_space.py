@@ -55,6 +55,16 @@ class HyperbolicSpace(EmbeddedManifold):
         """
         Evaluate if a point belongs to the Hyperbolic space,
         i.e. evaluate if its squared norm in the Minkowski space is -1.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dimension + 1]
+                Input points.
+        tolerance : float, optional
+
+        Returns
+        -------
+        belongs : array-like, shape=[n_samples, 1]
         """
         point = gs.to_ndarray(point, to_ndim=2)
         _, point_dim = point.shape
@@ -76,6 +86,15 @@ class HyperbolicSpace(EmbeddedManifold):
         """
         Regularize a point to the canonical representation
         chosen for the Hyperbolic space, to avoid numerical issues.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dimension + 1]
+                Input points.
+
+        Returns
+        -------
+        projected_point : array-like, shape=[n_samples, dimension + 1]
         """
         point = gs.to_ndarray(point, to_ndim=2)
 
@@ -95,6 +114,15 @@ class HyperbolicSpace(EmbeddedManifold):
         """
         Project a vector in Minkowski space
         on the tangent space of the Hyperbolic space at a base point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[n_samples, dimension + 1]
+        base_point : array-like, shape=[n_samples, dimension + 1]
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[n_samples, dimension + 1]
         """
         vector = gs.to_ndarray(vector, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -112,6 +140,14 @@ class HyperbolicSpace(EmbeddedManifold):
         Convert the parameterization of a point on the Hyperbolic space
         from its intrinsic coordinates, to its extrinsic coordinates
         in Minkowski space.
+
+        Parameters
+        ----------
+        point_intrinsic : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        point_extrinsic : array-like, shape=[n_samples, dimension + 1]
         """
         point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
 
@@ -127,6 +163,14 @@ class HyperbolicSpace(EmbeddedManifold):
         Convert the parameterization of a point on the Hyperbolic space
         from its extrinsic coordinates in Minkowski space, to its
         intrinsic coordinates.
+
+        Parameters
+        ----------
+        point_extrinsic : array-like, shape=[n_samples, dimension + 1]
+
+        Returns
+        -------
+        point_intrinsic : array-like, shape=[n_samples, dimension]
         """
         point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=2)
 
@@ -137,6 +181,15 @@ class HyperbolicSpace(EmbeddedManifold):
     def random_uniform(self, n_samples=1, bound=1.):
         """
         Sample in the Hyperbolic space with the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int, optional
+        bound: float, optional
+
+        Returns
+        -------
+        point : array-like, shape=[n_samples, dimension + 1]
         """
         size = (n_samples, self.dimension)
         point = bound * 2. * (gs.random.rand(*size) - 0.5)
@@ -157,6 +210,20 @@ class HyperbolicMetric(RiemannianMetric):
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """
         Inner product.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[n_samples, dimension + 1]
+                                    or shape=[1, dimension + 1]
+        tangent_vec_b : array-like, shape=[n_samples, dimension + 1]
+                                    or shape=[1, dimension + 1]
+        base_point : array-like, shape=[n_samples, dimension + 1]
+                                 or shape=[1, dimension + 1]
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[n_samples, 1]
+                                 or shape=[1, 1]
         """
         inner_prod = self.embedding_metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point)
@@ -166,6 +233,18 @@ class HyperbolicMetric(RiemannianMetric):
         """
         Squared norm of a vector associated with the inner product
         at the tangent space at a base point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[n_samples, dimension + 1]
+                             or shape=[1, dimension + 1]
+        base_point : array-like, shape=[n_samples, dimension + 1]
+                                 or shape=[1, dimension + 1]
+
+        Returns
+        -------
+        sq_norm : array-like, shape=[n_samples, 1]
+                              or shape=[1, 1]
         """
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
@@ -173,6 +252,18 @@ class HyperbolicMetric(RiemannianMetric):
     def exp(self, tangent_vec, base_point):
         """
         Riemannian exponential of a tangent vector wrt to a base point.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[n_samples, dimension + 1]
+                                  or shape=[1, dimension + 1]
+        base_point : array-like, shape=[n_samples, dimension + 1]
+                                 or shape=[1, dimension + 1]
+
+        Returns
+        -------
+        exp : array-like, shape=[n_samples, dimension + 1]
+                          or shape=[1, dimension + 1]
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -217,6 +308,18 @@ class HyperbolicMetric(RiemannianMetric):
     def log(self, point, base_point):
         """
         Riemannian logarithm of a point wrt a base point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dimension + 1]
+                            or shape=[1, dimension + 1]
+        base_point : array-like, shape=[n_samples, dimension + 1]
+                                 or shape=[1, dimension + 1]
+
+        Returns
+        -------
+        log : array-like, shape=[n_samples, dimension + 1]
+                          or shape=[1, dimension + 1]
         """
         point = gs.to_ndarray(point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -258,6 +361,18 @@ class HyperbolicMetric(RiemannianMetric):
     def dist(self, point_a, point_b):
         """
         Geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[n_samples, dimension + 1]
+                              or shape=[1, dimension + 1]
+        point_b : array-like, shape=[n_samples, dimension + 1]
+                              or shape=[1, dimension + 1]
+
+        Returns
+        -------
+        dist : array-like, shape=[n_samples, 1]
+                           or shape=[1, 1]
         """
         sq_norm_a = self.embedding_metric.squared_norm(point_a)
         sq_norm_b = self.embedding_metric.squared_norm(point_b)
