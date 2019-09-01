@@ -17,7 +17,6 @@ class TestGrassmannianMethods(geomstats.tests.TestCase):
         self.n = 4
         self.p = 2
         self.space = Grassmannian(self.n, self.p)
-        self.metric = self.space.canonical_metric
 
 
 if __name__ == '__main__':
