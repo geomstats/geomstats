@@ -8,7 +8,7 @@ import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
 
-from geomstats.stiefel import Stiefel
+from geomstats.geometry.stiefel import Stiefel
 
 ATOL = 1e-6
 

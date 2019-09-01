@@ -8,8 +8,8 @@ import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
 
-from geomstats.invariant_metric import InvariantMetric
-from geomstats.special_euclidean_group import SpecialEuclideanGroup
+from geomstats.geometry.invariant_metric import InvariantMetric
+from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup
 
 
 class TestInvariantMetricMethods(geomstats.tests.TestCase):

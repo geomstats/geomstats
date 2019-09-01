@@ -9,7 +9,7 @@ import numpy as np
 import geomstats.visualization as visualization
 
 from geomstats.learning.pca import TangentPCA
-from geomstats.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hyperbolic_space import HyperbolicSpace
 
 
 def main():

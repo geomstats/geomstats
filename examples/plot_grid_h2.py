@@ -9,7 +9,7 @@ import os
 
 import geomstats.visualization as visualization
 
-from geomstats.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hyperbolic_space import HyperbolicSpace
 
 H2 = HyperbolicSpace(dimension=2)
 METRIC = H2.metric

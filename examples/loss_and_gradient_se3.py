@@ -6,10 +6,10 @@ import os
 import tensorflow as tf
 
 import geomstats.backend as gs
-import geomstats.lie_group as lie_group
+import geomstats.geometry.lie_group as lie_group
 
-from geomstats.special_euclidean_group import SpecialEuclideanGroup
-from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup
+from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 
 
 SE3 = SpecialEuclideanGroup(n=3)

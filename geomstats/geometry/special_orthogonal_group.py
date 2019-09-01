@@ -5,9 +5,9 @@ i.e. the Lie group of rotations in n dimensions.
 
 import geomstats.backend as gs
 
-from geomstats.embedded_manifold import EmbeddedManifold
-from geomstats.general_linear_group import GeneralLinearGroup
-from geomstats.lie_group import LieGroup
+from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.general_linear_group import GeneralLinearGroup
+from geomstats.geometry.lie_group import LieGroup
 
 ATOL = 1e-5
 

@@ -6,8 +6,8 @@ import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
 
-from geomstats.discretized_curves_space import DiscretizedCurvesSpace
-from geomstats.hypersphere import Hypersphere
+from geomstats.geometry.discretized_curves_space import DiscretizedCurvesSpace
+from geomstats.geometry.hypersphere import Hypersphere
 
 
 class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):

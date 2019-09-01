@@ -6,7 +6,7 @@ import logging
 
 import geomstats.backend as gs
 
-from geomstats.riemannian_metric import RiemannianMetric
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class InvariantMetric(RiemannianMetric):
