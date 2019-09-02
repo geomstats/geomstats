@@ -11,17 +11,6 @@ int32 = 'torch.LongTensor'
 int8 = 'torch.ByteTensor'
 
 
-def indexing(x):
-    return x.type(torch.LongTensor)
-
-
-def float_to_double(x):
-    return x.double()
-
-
-def byte_to_float(x):
-    return x.type(torch.FloatTensor)
-
 
 def while_loop(cond, body, loop_vars, maximum_iterations):
     iteration = 0
@@ -327,7 +316,7 @@ def equal(a, b, **kwargs):
 
 
 def floor(*args, **kwargs):
-    return np.floor(*args, **kwargs)
+    return torch.floor(*args, **kwargs)
 
 
 def cross(x, y):
@@ -380,7 +369,7 @@ def diagonal(*args, **kwargs):
 
 
 def exp(input):
-    return torch.exp(torch.tensor(input))
+    return torch.exp(input)
 
 
 def log(*args, **kwargs):

@@ -162,8 +162,8 @@ class Hypersphere(EmbeddedManifold):
         unit_vector = gs.hstack((gs.cos(angle), gs.sin(angle)))
         scalar = gs.random.rand(n_samples)
 
-        coord_z = 1. + 1. / kappa * gs.log(
-                      scalar + (1. - scalar) * gs.exp(-2. * kappa))
+        coord_z = 1. + 1. / kappa * gs.log(scalar + (1. - scalar) *
+                gs.exp(gs.array(-2. * kappa)))
         coord_z = gs.to_ndarray(coord_z, to_ndim=2, axis=1)
 
         coord_xy = gs.sqrt(1. - coord_z**2) * unit_vector

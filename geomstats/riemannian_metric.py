@@ -393,7 +393,7 @@ class RiemannianMetric(object):
 
         random_indices = gs.random.randint(low=0, high=n_points,
                                            size=(n_centers,))
-        centers = points[gs.indexing(random_indices), :]
+        centers = points[gs.cast(random_indices, gs.int32), :]
 
         gap = 1.0
         iteration = 0
@@ -415,7 +415,7 @@ class RiemannianMetric(object):
                     tangent_vec=tangent_vec_update, base_point=center_to_update
                     )
             gap = self.dist(center_to_update, new_center)
-            gap = gs.byte_to_float(gap != 0) * gap + gs.byte_to_float(gap == 0)
+            gap = gs.cast(gap != 0, gs.float32) * gap + gs.cast(gap == 0, gs.float32)
 
             centers[index_to_update, :] = new_center
 

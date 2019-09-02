@@ -301,7 +301,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         result = self.metric.squared_dist(n_points_a, n_points_b)
         self.assertAllClose(gs.shape(result), (n_samples, 1))
 
-    #@geomstats.tests.np_and_tf_only
     def test_norm_and_dist(self):
         """
         Test that the distance between two points is
@@ -417,6 +416,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_variance(self):
         point = gs.array([0., 0., 0., 0., 1.])
         points = gs.zeros((2, point.shape[0]))
@@ -427,6 +427,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_mean(self):
         point = gs.array([0., 0., 0., 0., 1.])
         points = gs.zeros((2, point.shape[0]))
@@ -437,6 +438,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_mean_and_belongs(self):
         point_a = gs.array([1., 0., 0., 0., 0.])
         point_b = gs.array([0., 1., 0., 0., 0.])
@@ -504,7 +506,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         mean_norm = gs.linalg.norm(sum_points) / n_points
         kappa_estimate = (mean_norm * (dim + 1. - mean_norm**2)
                           / (1. - mean_norm**2))
-        kappa_estimate = gs.float_to_double(kappa_estimate)
+        kappa_estimate = gs.cast(kappa_estimate, gs.float64)
         p = dim + 1
         n_steps = 100
         for i in range(n_steps):
@@ -512,7 +514,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
             bessel_func_2 = scipy.special.iv(p/2.-1., kappa_estimate)
             ratio = bessel_func_1 / bessel_func_2
             denominator = 1. - ratio**2 - (p-1.)*ratio/kappa_estimate
-            mean_norm = gs.float_to_double(mean_norm)
+            mean_norm = gs.cast(mean_norm, gs.float64)
             kappa_estimate = kappa_estimate - (ratio-mean_norm)/denominator
         expected = kappa
         result = kappa_estimate
