@@ -119,7 +119,22 @@ class SPDMatricesSpace(EmbeddedManifold):
 
 class SPDMetric(RiemannianMetric):
 
-    def __init__(self, n, power_p=1, power_q=-1):
+    def __init__(self, n, power_affine=1):
+        """
+        Parameters
+        ----------
+        n : int
+            Matrix dimension.
+        power_affine : int, optional
+                       Power transformation of the classical SPD metric.
+        Based on:
+        Thanwerdas, Pennec
+        "Is affine-invariance well defined on SPD matrices?
+        A principled continuum of metrics"
+        Proc. of GSI 2019
+
+        https://arxiv.org/abs/1906.01349
+        """
         super(SPDMetric, self).__init__(
                 dimension=int(n * (n + 1) / 2),
                 signature=(int(n * (n + 1) / 2), 0, 0))
