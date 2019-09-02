@@ -119,7 +119,7 @@ class SPDMatricesSpace(EmbeddedManifold):
 
 class SPDMetric(RiemannianMetric):
 
-    def __init__(self, n):
+    def __init__(self, n, power_p=1, power_q=-1):
         super(SPDMetric, self).__init__(
                 dimension=int(n * (n + 1) / 2),
                 signature=(int(n * (n + 1) / 2), 0, 0))
