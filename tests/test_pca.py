@@ -3,8 +3,7 @@ import numpy as np
 
 from sklearn.utils.testing import assert_allclose
 
-from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
-
+from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 from geomstats.learning.pca import TangentPCA
 
 

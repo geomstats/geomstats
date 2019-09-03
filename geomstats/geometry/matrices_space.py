@@ -4,8 +4,8 @@ The space of matrices (m, n), which is the Euclidean space R^{mn}.
 
 import geomstats.backend as gs
 
-from geomstats.euclidean_space import EuclideanSpace
-from geomstats.riemannian_metric import RiemannianMetric
+from geomstats.geometry.euclidean_space import EuclideanSpace
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 TOLERANCE = 1e-5

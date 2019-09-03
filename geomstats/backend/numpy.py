@@ -9,6 +9,18 @@ float32 = np.float32
 float64 = np.float64
 
 
+def indexing(x):
+    return x
+
+
+def float_to_double(x):
+    return x
+
+
+def byte_to_float(x):
+    return x
+
+
 def while_loop(cond, body, loop_vars, maximum_iterations):
     iteration = 0
     while cond(*loop_vars):

@@ -6,10 +6,10 @@ where p <= n
 
 import geomstats.backend as gs
 
-from geomstats.embedded_manifold import EmbeddedManifold
-from geomstats.euclidean_space import EuclideanMetric
-from geomstats.matrices_space import MatricesSpace
-from geomstats.riemannian_metric import RiemannianMetric
+from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.euclidean_space import EuclideanMetric
+from geomstats.geometry.matrices_space import MatricesSpace
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-5
 EPSILON = 1e-6

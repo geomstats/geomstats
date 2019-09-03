@@ -2,10 +2,10 @@
 Minkowski space.
 """
 
-
-from geomstats.manifold import Manifold
-from geomstats.riemannian_metric import RiemannianMetric
 import geomstats.backend as gs
+
+from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class MinkowskiSpace(Manifold):
@@ -42,6 +42,11 @@ class MinkowskiSpace(Manifold):
         """
         Sample in the Minkowski space with the uniform distribution.
 
+        Parameters
+        ----------
+        n_samples: int, optional
+        bound: float, optional
+
         Returns
         -------
         points : array-like, shape=[n_samples, dimension]
@@ -70,6 +75,10 @@ class MinkowskiMetric(RiemannianMetric):
         Parameters
         ----------
         base_point: array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        inner_prod_mat: array-like, shape=[n_samples, dimension, dimension]
         """
         inner_prod_mat = gs.eye(self.dimension-1, self.dimension-1)
         first_row = gs.array([0.] * (self.dimension - 1))
@@ -95,10 +104,16 @@ class MinkowskiMetric(RiemannianMetric):
 
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
+
+        Returns
+        -------
+        exp: array-like, shape=[n_samples, dimension]
+                          or shape-[n_samples, dimension]
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
-        return base_point + tangent_vec
+        exp = base_point + tangent_vec
+        return exp
 
     def log(self, point, base_point):
         """
@@ -111,10 +126,16 @@ class MinkowskiMetric(RiemannianMetric):
 
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
+
+        Returns
+        -------
+        log: array-like, shape=[n_samples, dimension]
+                          or shape-[n_samples, dimension]
         """
         point = gs.to_ndarray(point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
-        return point - base_point
+        log = point - base_point
+        return log
 
     def mean(self, points, weights=None):
         """
@@ -126,6 +147,10 @@ class MinkowskiMetric(RiemannianMetric):
         points: array-like, shape=[n_samples, dimension]
 
         weights: array-like, shape=[n_samples, 1], optional
+
+        Returns
+        -------
+        mean: array-like, shape=[1, dimension]
         """
         if isinstance(points, list):
             points = gs.vstack(points)

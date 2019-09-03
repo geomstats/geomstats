@@ -88,6 +88,11 @@ class Connection(object):
 
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
+
+        Returns
+        -------
+        transported_tangent_vector: array-like, shape=[n_samples, dimension]
+                                                or shape=[1, dimension]
         """
         half_tangent_vector_b = 1. / 2. * tangent_vector_b
         mid_point = self.exp(
@@ -111,8 +116,9 @@ class Connection(object):
                 base_point=mid_point,
                 tangent_vector=mid_tangent_vector_to_shoot)
 
-        tangent_vector = - self.log(base_point=end_point, point=end_shoot)
-        return tangent_vector
+        transported_tangent_vector = - self.log(
+            base_point=end_point, point=end_shoot)
+        return transported_tangent_vector
 
     def parallel_transport(
             self, tangent_vector_a, tangent_vector_b, base_point, n_points=1):
@@ -134,6 +140,11 @@ class Connection(object):
 
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
+
+        Returns
+        -------
+        transported_tangent_vector: array-like, shape=[n_samples, dimension]
+                                                or shape=[1, dimension]
         """
         current_point = gs.copy(base_point)
         geodesic_tangent_vector = 1. / n_points * tangent_vector_b
@@ -207,6 +218,19 @@ class LeviCivitaConnection(Connection):
         self.dimension = metric.dimension
 
     def metric_matrix(self, base_point):
+        """
+        Metric matrix defining the connection.
+
+        Parameters
+        ----------
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
+
+        Returns
+        -------
+        metric_matrix: array-like, shape=[n_samples, dimension, dimension]
+                                   or shape=[1, dimension, dimension]
+        """
         metric_matrix = self.metric.inner_product_matrix(base_point)
         return metric_matrix
 
@@ -218,6 +242,11 @@ class LeviCivitaConnection(Connection):
         ----------
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
+
+        Returns
+        -------
+        cometric_matrix: array-like, shape=[n_samples, dimension, dimension]
+                                     or shape=[1, dimension, dimension]
         """
         metric_matrix = self.metric_matrix(base_point)
         cometric_matrix = gs.linalg.inv(metric_matrix)
@@ -242,16 +271,24 @@ class LeviCivitaConnection(Connection):
         ----------
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
+
+        Returns
+        -------
+        christoffel_symbols: array-like,
+                             shape=[n_samples, dimension, dimension, dimension]
+                             or shape=[1, dimension, dimension, dimension]
         """
+        cometric_mat_at_point = self.cometric_matrix(base_point)
+        metric_derivative_at_point = self.metric_derivative(base_point)
         term_1 = gs.einsum('nim,nmkl->nikl',
-                           self.cometric_matrix(base_point),
-                           self.metric_derivative(base_point))
+                           cometric_mat_at_point,
+                           metric_derivative_at_point)
         term_2 = gs.einsum('nim,nmlk->nilk',
-                           self.cometric_matrix(base_point),
-                           self.metric_derivative(base_point))
+                           cometric_mat_at_point,
+                           metric_derivative_at_point)
         term_3 = - gs.einsum('nim,nklm->nikl',
-                             self.cometric_matrix(base_point),
-                             self.metric_derivative(base_point))
+                             cometric_mat_at_point,
+                             metric_derivative_at_point)
 
         christoffel_symbols = 0.5 * (term_1 + term_2 + term_3)
         return christoffel_symbols
@@ -264,5 +301,10 @@ class LeviCivitaConnection(Connection):
         ----------
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
+
+        Returns
+        -------
+        torsion: array-like, shape=[dimension, dimension, dimension]
         """
-        return gs.zeros((self.dimension,) * 3)
+        torsion = gs.zeros((self.dimension,) * 3)
+        return torsion

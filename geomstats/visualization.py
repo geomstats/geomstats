@@ -5,10 +5,10 @@ import numpy as np
 
 import geomstats.backend as gs
 
-from geomstats.hyperbolic_space import HyperbolicSpace
-from geomstats.hypersphere import Hypersphere
-from geomstats.special_euclidean_group import SpecialEuclideanGroup
-from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.geometry.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup
+from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 SE3_GROUP = SpecialEuclideanGroup(n=3)
@@ -148,7 +148,7 @@ class Sphere():
         ax.plot_wireframe(self.sphere_x,
                           self.sphere_y,
                           self.sphere_z,
-                          color="black", alpha=0.2)
+                          color="grey", alpha=0.2)
         if self.points:
             self.draw_points(ax, **scatter_kwargs)
 

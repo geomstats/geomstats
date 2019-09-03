@@ -4,9 +4,9 @@ The manifold of symmetric positive definite (SPD) matrices.
 
 import geomstats.backend as gs
 
-from geomstats.embedded_manifold import EmbeddedManifold
-from geomstats.general_linear_group import GeneralLinearGroup
-from geomstats.riemannian_metric import RiemannianMetric
+from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.general_linear_group import GeneralLinearGroup
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 EPSILON = 1e-6
 TOLERANCE = 1e-12
@@ -119,7 +119,22 @@ class SPDMatricesSpace(EmbeddedManifold):
 
 class SPDMetric(RiemannianMetric):
 
-    def __init__(self, n):
+    def __init__(self, n, power_affine=1):
+        """
+        Parameters
+        ----------
+        n : int
+            Matrix dimension.
+        power_affine : int, optional
+                       Power transformation of the classical SPD metric.
+        Based on:
+        Thanwerdas, Pennec
+        "Is affine-invariance well defined on SPD matrices?
+        A principled continuum of metrics"
+        Proc. of GSI 2019
+
+        https://arxiv.org/abs/1906.01349
+        """
         super(SPDMetric, self).__init__(
                 dimension=int(n * (n + 1) / 2),
                 signature=(int(n * (n + 1) / 2), 0, 0))

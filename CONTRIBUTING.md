@@ -3,6 +3,8 @@
 Welcome to the geomstats repository!
 We are excited you are here and want to contribute.
 
+More details on contributing can be found on the [documentation website][link_doc].
+
 ## Practical Guide to Submitting your Contribution
 
 These guidelines are designed to make it as easy as possible to get involved.
@@ -146,3 +148,4 @@ If you are new to the project, do not forget to add your name and affiliation th
 [link_yapf]: https://github.com/google/yapf
 [link_readme]: https://github.com/geomstats/geomstats/blob/master/README.md
 [link_fmriprep]: https://github.com/poldracklab/fmriprep/
+[link_doc]: https://geomstats.github.io/contributing.html

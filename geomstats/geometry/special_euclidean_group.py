@@ -5,10 +5,10 @@ i.e. the Lie group of rigid transformations in n dimensions.
 
 import geomstats.backend as gs
 
-from geomstats.euclidean_space import EuclideanSpace
-from geomstats.invariant_metric import InvariantMetric
-from geomstats.lie_group import LieGroup
-from geomstats.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.geometry.euclidean_space import EuclideanSpace
+from geomstats.geometry.invariant_metric import InvariantMetric
+from geomstats.geometry.lie_group import LieGroup
+from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 
 PI = gs.pi
 PI2 = PI * PI

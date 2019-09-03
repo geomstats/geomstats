@@ -4,7 +4,7 @@ Unit tests for Lie groups.
 
 import geomstats.tests
 
-from geomstats.lie_group import LieGroup
+from geomstats.geometry.lie_group import LieGroup
 
 
 class TestLieGroupMethods(geomstats.tests.TestCase):

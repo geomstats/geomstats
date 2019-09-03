@@ -2,10 +2,10 @@
 
 
 import geomstats.backend as gs
-import geomstats.riemannian_metric as riemannian_metric
+import geomstats.geometry.riemannian_metric as riemannian_metric
 
-from geomstats.invariant_metric import InvariantMetric
-from geomstats.manifold import Manifold
+from geomstats.geometry.invariant_metric import InvariantMetric
+from geomstats.geometry.manifold import Manifold
 
 
 def loss(y_pred, y_true, group, metric=None):
