@@ -4,7 +4,7 @@
 
 Diagram of manifolds
 
-<img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/geomstats_diagram.png" width=350 height=350>
+<img src=" https://github.com/geomstats/geomstats/blob/master/examples/imgs/geomstats_diagram.png" width=500 height=500>
 
 ## Metrics
 
