@@ -40,9 +40,9 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         self.atol = 1e-6
         gs.random.seed(1234)
         self.space_curves_in_euclidean_3d = DiscretizedCurvesSpace(
-                embedding_manifold=r3)
+                ambient_manifold=r3)
         self.space_curves_in_sphere_2d = DiscretizedCurvesSpace(
-                embedding_manifold=s2)
+                ambient_manifold=s2)
         self.l2_metric_s2 = self.space_curves_in_sphere_2d.l2_metric
         self.l2_metric_r3 = self.space_curves_in_euclidean_3d.l2_metric
         self.srv_metric_r3 = self.space_curves_in_euclidean_3d.\
@@ -166,7 +166,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         result = curves_ab
         expected = gs.zeros(curves_ab.shape)
         for k in range(self.n_sampling_points):
-            geod = self.l2_metric_s2.embedding_metric.geodesic(
+            geod = self.l2_metric_s2.ambient_metric.geodesic(
                     initial_point=self.curve_a[k, :],
                     end_point=self.curve_b[k, :])
             expected[:, k, :] = geod(self.times)
@@ -249,7 +249,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                                               end_curve=srv_b)
         geod_srv = geod_srv(self.times)
 
-        starting_points = self.srv_metric_r3.embedding_metric.geodesic(
+        starting_points = self.srv_metric_r3.ambient_metric.geodesic(
                 initial_point=self.curve_a[0, :],
                 end_point=self.curve_b[0, :])
         starting_points = starting_points(self.times)
