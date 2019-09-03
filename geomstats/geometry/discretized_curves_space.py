@@ -8,7 +8,7 @@ import numpy as np
 
 import geomstats.backend as gs
 
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.euclidean_space import EuclideanMetric
 from geomstats.geometry.euclidean_space import EuclideanSpace
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -26,19 +26,19 @@ def get_mask_i_float(i, n):
     return mask_i_float
 
 
-class DiscretizedCurvesSpace(EmbeddedManifold):
+class DiscretizedCurvesSpace(Manifold):
     """
-    Space of discretized curves sampled at points in embedding_manifold.
+    Space of discretized curves sampled at points in ambient_manifold.
     """
-    def __init__(self, embedding_manifold):
+    def __init__(self, ambient_manifold):
         super(DiscretizedCurvesSpace, self).__init__(
-                dimension=math.inf,
-                embedding_manifold=embedding_manifold)
-        self.l2_metric = L2Metric(self.embedding_manifold)
-        self.square_root_velocity_metric = SRVMetric(self.embedding_manifold)
+             dimension=math.inf)
+        self.ambient_manifold = ambient_manifold
+        self.l2_metric = L2Metric(self.ambient_manifold)
+        self.square_root_velocity_metric = SRVMetric(self.ambient_manifold)
 
     def belongs(self, point):
-        belongs = gs.all(self.embedding_manifold.belongs(point))
+        belongs = gs.all(self.ambient_manifold.belongs(point))
         belongs = gs.to_ndarray(belongs, to_ndim=1)
         belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
         return belongs
@@ -48,12 +48,12 @@ class L2Metric(RiemannianMetric):
     """
     L2 Riemannian metric on the space of discretized curves.
     """
-    def __init__(self, embedding_manifold):
+    def __init__(self, ambient_manifold):
         super(L2Metric, self).__init__(
                 dimension=math.inf,
                 signature=(math.inf, 0, 0))
-        self.embedding_manifold = embedding_manifold
-        self.embedding_metric = embedding_manifold.metric
+        self.ambient_manifold = ambient_manifold
+        self.ambient_metric = ambient_manifold.metric
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_curve):
         """
@@ -72,7 +72,7 @@ class L2Metric(RiemannianMetric):
         tangent_vec_b = gs.reshape(tangent_vec_b, (new_dim, n_coords))
         base_curve = gs.reshape(base_curve, (new_dim, n_coords))
 
-        inner_prod = self.embedding_metric.inner_product(
+        inner_prod = self.ambient_metric.inner_product(
                 tangent_vec_a, tangent_vec_b, base_curve)
         inner_prod = gs.reshape(inner_prod, (n_curves, n_sampling_points))
         inner_prod = gs.sum(inner_prod, -1)
@@ -98,7 +98,7 @@ class L2Metric(RiemannianMetric):
         curve_a = gs.reshape(curve_a, (n_curves * n_sampling_points, n_coords))
         curve_b = gs.reshape(curve_b, (n_curves * n_sampling_points, n_coords))
 
-        dist = self.embedding_metric.dist(curve_a, curve_b)
+        dist = self.ambient_metric.dist(curve_a, curve_b)
         dist = gs.reshape(dist, (n_curves, n_sampling_points))
         n_sampling_points_float = gs.array(n_sampling_points)
         n_sampling_points_float = gs.cast(n_sampling_points_float, gs.float32)
@@ -122,7 +122,7 @@ class L2Metric(RiemannianMetric):
         new_base_curve = gs.reshape(base_curve, (new_dim, n_coords))
         new_tangent_vec = gs.reshape(tangent_vec, (new_dim, n_coords))
 
-        exp = self.embedding_metric.exp(new_tangent_vec, new_base_curve)
+        exp = self.ambient_metric.exp(new_tangent_vec, new_base_curve)
         exp = gs.reshape(exp, (n_tangent_vecs, n_sampling_points, n_coords))
         exp = gs.squeeze(exp)
 
@@ -142,7 +142,7 @@ class L2Metric(RiemannianMetric):
             curve, (n_curves * n_sampling_points, n_coords))
         base_curve = gs.reshape(
             base_curve, (n_curves * n_sampling_points, n_coords))
-        log = self.embedding_metric.log(curve, base_curve)
+        log = self.ambient_metric.log(curve, base_curve)
         log = gs.reshape(log, (n_curves, n_sampling_points, n_coords))
         log = gs.squeeze(log)
 
@@ -206,12 +206,12 @@ class SRVMetric(RiemannianMetric):
     Elastic metric defined using the Square Root Velocity Function
     (see Srivastava et al. 2011).
     """
-    def __init__(self, embedding_manifold):
+    def __init__(self, ambient_manifold):
         super(SRVMetric, self).__init__(
                 dimension=math.inf,
                 signature=(math.inf, 0, 0))
-        self.embedding_metric = embedding_manifold.metric
-        self.l2_metric = L2Metric(embedding_manifold=embedding_manifold)
+        self.ambient_metric = ambient_manifold.metric
+        self.l2_metric = L2Metric(ambient_manifold=ambient_manifold)
 
     def pointwise_inner_product(self, tangent_vec_a, tangent_vec_b,
                                 base_curve):
@@ -228,7 +228,7 @@ class SRVMetric(RiemannianMetric):
         inner_prod = gs.zeros([n_tangent_vecs, n_sampling_points])
 
         def inner_prod_aux(vec_a, vec_b, curve):
-            inner_prod = self.embedding_metric.inner_product(
+            inner_prod = self.ambient_metric.inner_product(
                 vec_a, vec_b, curve)
             return gs.squeeze(inner_prod)
 
@@ -267,9 +267,9 @@ class SRVMetric(RiemannianMetric):
 
         curve = gs.reshape(curve, (n_curves * n_sampling_points, n_coords))
         coef = gs.cast(gs.array(n_sampling_points - 1), gs.float32)
-        velocity = coef * self.embedding_metric.log(
+        velocity = coef * self.ambient_metric.log(
                 point=curve[1:, :], base_point=curve[:-1, :])
-        velocity_norm = self.embedding_metric.norm(velocity, curve[:-1, :])
+        velocity_norm = self.ambient_metric.norm(velocity, curve[:-1, :])
         srv = velocity / gs.sqrt(velocity_norm)
 
         index = gs.arange(n_curves * n_sampling_points - 1)
@@ -284,7 +284,7 @@ class SRVMetric(RiemannianMetric):
         Retreive a curve from its square root velocity representation
         and starting point.
         """
-        if not isinstance(self.embedding_metric, EuclideanMetric):
+        if not isinstance(self.ambient_metric, EuclideanMetric):
             raise AssertionError('The square root velocity inverse is only '
                                  'implemented for dicretized curves embedded '
                                  'in a Euclidean space.')
@@ -298,7 +298,7 @@ class SRVMetric(RiemannianMetric):
 
         srv = gs.reshape(
             srv, (n_curves * n_sampling_points_minus_one, n_coords))
-        srv_norm = self.embedding_metric.norm(srv)
+        srv_norm = self.ambient_metric.norm(srv)
         delta_points = 1 / n_sampling_points_minus_one * srv_norm * srv
         delta_points = gs.reshape(delta_points, srv_shape)
         curve = np.concatenate((starting_point, delta_points), -2)
@@ -310,7 +310,7 @@ class SRVMetric(RiemannianMetric):
         """
         Riemannian exponential of a tangent vector wrt to a base curve.
         """
-        if not isinstance(self.embedding_metric, EuclideanMetric):
+        if not isinstance(self.ambient_metric, EuclideanMetric):
             raise AssertionError('The exponential map is only implemented '
                                  'for dicretized curves embedded in a '
                                  'Euclidean space.')
@@ -339,7 +339,7 @@ class SRVMetric(RiemannianMetric):
 
         end_curve_srv = self.l2_metric.exp(tangent_vec=srv_initial_derivative,
                                            base_curve=base_curve_srv)
-        end_curve_starting_point = self.embedding_metric.exp(
+        end_curve_starting_point = self.ambient_metric.exp(
                 tangent_vec=tangent_vec[:, 0, :],
                 base_point=base_curve[:, 0, :])
         end_curve = self.square_root_velocity_inverse(
@@ -351,7 +351,7 @@ class SRVMetric(RiemannianMetric):
         """
         Riemannian logarithm of a curve wrt a base curve.
         """
-        if not isinstance(self.embedding_metric, EuclideanMetric):
+        if not isinstance(self.ambient_metric, EuclideanMetric):
             raise AssertionError('The logarithm map is only implemented '
                                  'for dicretized curves embedded in a '
                                  'Euclidean space.')
@@ -377,7 +377,7 @@ class SRVMetric(RiemannianMetric):
         term_2 = gs.einsum('ij,ijk->ijk', coef_2, base_curve_velocity)
         log_derivative = term_1 + term_2
 
-        log_starting_points = self.embedding_metric.log(
+        log_starting_points = self.ambient_metric.log(
                 point=curve[:, 0, :], base_point=base_curve[:, 0, :])
         log_starting_points = gs.transpose(
                 np.tile(log_starting_points, (1, 1, 1)), (1, 0, 2))
@@ -394,7 +394,7 @@ class SRVMetric(RiemannianMetric):
         Geodesic specified either by an initial curve and an end curve,
         either by an initial curve and an initial tangent vector.
         """
-        if not isinstance(self.embedding_metric, EuclideanMetric):
+        if not isinstance(self.ambient_metric, EuclideanMetric):
             raise AssertionError('The geodesics are only implemented for '
                                  'dicretized curves embedded in a '
                                  'Euclidean space.')
@@ -444,7 +444,7 @@ class SRVMetric(RiemannianMetric):
         """
         Geodesic distance between two curves.
         """
-        if not isinstance(self.embedding_metric, EuclideanMetric):
+        if not isinstance(self.ambient_metric, EuclideanMetric):
             raise AssertionError('The distance is only implemented for '
                                  'dicretized curves embedded in a '
                                  'Euclidean space.')
@@ -452,7 +452,7 @@ class SRVMetric(RiemannianMetric):
 
         srv_a = self.square_root_velocity(curve_a)
         srv_b = self.square_root_velocity(curve_b)
-        dist_starting_points = self.embedding_metric.dist(
+        dist_starting_points = self.ambient_metric.dist(
                 curve_a[0, :], curve_b[0, :])
         dist_srvs = self.l2_metric.dist(srv_a, srv_b)
         dist = gs.sqrt(dist_starting_points ** 2 + dist_srvs ** 2)
