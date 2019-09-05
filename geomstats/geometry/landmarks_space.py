@@ -1,5 +1,5 @@
 """
-Manifold for sets of landmarks who belong to any given manifold
+Manifold for sets of landmarks that belong to any given manifold
 """
 
 import math
