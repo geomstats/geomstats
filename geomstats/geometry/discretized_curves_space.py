@@ -8,8 +8,8 @@ import numpy as np
 
 import geomstats.backend as gs
 
-from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.landmarks_space import LandmarksSpace, L2Metric
+from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.euclidean_space import EuclideanMetric
 from geomstats.geometry.euclidean_space import EuclideanSpace
 from geomstats.geometry.riemannian_metric import RiemannianMetric
