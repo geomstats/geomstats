@@ -9,7 +9,7 @@ import numpy as np
 import geomstats.backend as gs
 
 from geomstats.geometry.manifold import Manifold
-from geomstats.geometry.manifold import LandmarksSpace
+from geomstats.geometry.landmarks_space import LandmarksSpace, L2Metric
 from geomstats.geometry.euclidean_space import EuclideanMetric
 from geomstats.geometry.euclidean_space import EuclideanSpace
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -182,7 +182,7 @@ class SRVMetric(RiemannianMetric):
         srv_initial_derivative = term_1 + term_2
 
         end_curve_srv = self.l2_metric.exp(tangent_vec=srv_initial_derivative,
-                                           base_curve=base_curve_srv)
+                                           base_landmarks=base_curve_srv)
         end_curve_starting_point = self.ambient_metric.exp(
                 tangent_vec=tangent_vec[:, 0, :],
                 base_point=base_curve[:, 0, :])
