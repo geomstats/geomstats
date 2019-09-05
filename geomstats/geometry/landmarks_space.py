@@ -1,6 +1,5 @@
 """
-Manifold, i.e. a topological space that locally resembles
-Euclidean space near each point.
+Manifold for sets of landmarks who belong to any given manifold
 """
 
 import math
@@ -51,7 +50,7 @@ class L2Metric(RiemannianMetric):
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_landmarks):
         """
-        Inner product between two tangent vectors at a base set of landmarks.
+        Inner product between two tangent vectors at a base landmark set.
         """
         assert tangent_vec_a.shape == tangent_vec_b.shape
         assert tangent_vec_a.shape == base_landmarks.shape
@@ -83,7 +82,7 @@ class L2Metric(RiemannianMetric):
 
     def dist(self, landmarks_a, landmarks_b):
         """
-        Geodesic distance between two discretized landmarkss.
+        Geodesic distance between two landmark sets.
         """
         assert landmarks_a.shape == landmarks_b.shape
         landmarks_a = gs.to_ndarray(landmarks_a, to_ndim=3)
@@ -114,10 +113,10 @@ class L2Metric(RiemannianMetric):
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         base_landmarks = gs.to_ndarray(base_landmarks, to_ndim=3)
 
-        n_landmarks_sets, n_landmarks_per_set, n_coords = base_landmarks.shape
+        n_landmark_sets, n_landmarks_per_set, n_coords = base_landmarks.shape
         n_tangent_vecs = tangent_vec.shape[0]
 
-        new_dim = n_landmarks_sets * n_landmarks_per_set
+        new_dim = n_landmark_sets * n_landmarks_per_set
         new_base_landmarks = gs.reshape(base_landmarks, (new_dim, n_coords))
         new_tangent_vec = gs.reshape(tangent_vec, (new_dim, n_coords))
 
@@ -129,20 +128,20 @@ class L2Metric(RiemannianMetric):
 
     def log(self, landmarks, base_landmarks):
         """
-        Riemannian logarithm of a set of landmarks wrt a base set of landmarks.
+        Riemannian logarithm of a set of landmarks wrt a base landmark set.
         """
         assert landmarks.shape == base_landmarks.shape
         landmarks = gs.to_ndarray(landmarks, to_ndim=3)
         base_landmarks = gs.to_ndarray(base_landmarks, to_ndim=3)
 
-        n_landmarks_sets, n_landmarks_per_set, n_coords = landmarks.shape
+        n_landmark_sets, n_landmarks_per_set, n_coords = landmarks.shape
 
         landmarks = gs.reshape(
-            landmarks, (n_landmarks_sets * n_landmarks_per_set, n_coords))
+            landmarks, (n_landmark_sets * n_landmarks_per_set, n_coords))
         base_landmarks = gs.reshape(
-            base_landmarks, (n_landmarks_sets * n_landmarks_per_set, n_coords))
+            base_landmarks, (n_landmark_sets * n_landmarks_per_set, n_coords))
         log = self.ambient_metric.log(landmarks, base_landmarks)
-        log = gs.reshape(log, (n_landmarks_sets, n_landmarks_per_set, n_coords))
+        log = gs.reshape(log, (n_landmark_sets, n_landmarks_per_set, n_coords))
         log = gs.squeeze(log)
 
         return log
@@ -150,8 +149,9 @@ class L2Metric(RiemannianMetric):
     def geodesic(self, initial_landmarks,
                  end_landmarks=None, initial_tangent_vec=None):
         """
-        Geodesic specified either by an initial point and an end point,
-        either by an initial point and an initial tangent vector.
+        Geodesic specified either by an initial landmark set and an end
+        landmark set,
+        either by an initial landmark set and an initial tangent vector.
         """
         landmarks_ndim = 2
         initial_landmarks = gs.to_ndarray(initial_landmarks,

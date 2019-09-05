@@ -1,13 +1,13 @@
 """
-Unit tests for parameterized manifolds.
+Unit tests for landmarks space.
 """
 
 import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
 
-from geomstats.geometry.landmarks_space import LandmarksSpace
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.landmarks_space import LandmarksSpace
 
 
 class TestLandmarksSpaceMethods(geomstats.tests.TestCase):
