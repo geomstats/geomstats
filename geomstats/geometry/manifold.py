@@ -13,8 +13,9 @@ class Manifold(object):
 
     def __init__(self, dimension):
 
-        assert isinstance(dimension, int) or dimension == math.inf
-        assert dimension > 0
+        if dimension:
+            assert isinstance(dimension, int) or dimension == math.inf
+            assert dimension > 0
 
         self.dimension = dimension
 
