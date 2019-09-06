@@ -63,7 +63,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         Test that squared norm of logarithm is squared dist.
         """
         tangent_vec = self.l2_metric_s2.log(
-                curve=self.curve_b, base_curve=self.curve_a)
+                landmarks=self.curve_b, base_landmarks=self.curve_a)
         log_ab = tangent_vec
         result = self.l2_metric_s2.squared_norm(
                 vector=log_ab, base_point=self.curve_a)
@@ -78,9 +78,9 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         Test that exp and log are inverse maps.
         """
         tangent_vec = self.l2_metric_s2.log(
-                curve=self.curve_b, base_curve=self.curve_a)
+                landmarks=self.curve_b, base_landmarks=self.curve_a)
         result = self.l2_metric_s2.exp(tangent_vec=tangent_vec,
-                                       base_curve=self.curve_a)
+                                       base_landmarks=self.curve_a)
         expected = self.curve_b
 
         self.assertAllClose(result, expected, atol=self.atol)
@@ -97,7 +97,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         curves_bc = curves_bc(self.times)
 
         tangent_vecs = self.l2_metric_s2.log(
-                curve=curves_bc, base_curve=curves_ab)
+                landmarks=curves_bc, base_landmarks=curves_ab)
 
         result = self.l2_metric_s2.inner_product(
                 tangent_vecs, tangent_vecs, curves_ab)
@@ -130,11 +130,11 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         curves_bc = curves_bc(self.times)
 
         tangent_vecs = self.l2_metric_s2.log(
-                curve=curves_bc, base_curve=curves_ab)
+                landmarks=curves_bc, base_landmarks=curves_ab)
 
         result = self.l2_metric_s2.exp(
                 tangent_vec=tangent_vecs,
-                base_curve=curves_ab)
+                base_landmarks=curves_ab)
         self.assertAllClose(gs.shape(result), gs.shape(curves_ab))
 
     @geomstats.tests.np_and_tf_only
@@ -148,7 +148,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         curves_bc = curves_bc(self.times)
 
         tangent_vecs = self.l2_metric_s2.log(
-                curve=curves_bc, base_curve=curves_ab)
+                landmarks=curves_bc, base_landmarks=curves_ab)
 
         result = tangent_vecs
         self.assertAllClose(gs.shape(result), gs.shape(curves_ab))
@@ -174,8 +174,8 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         gs.testing.assert_allclose(result, expected)
 
         geod = self.l2_metric_s2.geodesic(
-                initial_curve=curves_ab,
-                end_curve=curves_bc)
+                initial_landmarks=curves_ab,
+                end_landmarks=curves_bc)
 
     @geomstats.tests.np_and_tf_only
     def test_srv_metric_pointwise_inner_product(self):
@@ -185,7 +185,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         curves_bc = curves_bc(self.times)
 
         tangent_vecs = self.l2_metric_s2.log(
-                curve=curves_bc, base_curve=curves_ab)
+                landmarks=curves_bc, base_landmarks=curves_ab)
 
         result = self.srv_metric_r3.pointwise_inner_product(
                 tangent_vec_a=tangent_vecs,
@@ -245,8 +245,8 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         srv_a = self.srv_metric_r3.square_root_velocity(self.curve_a)
         srv_b = self.srv_metric_r3.square_root_velocity(self.curve_b)
-        geod_srv = self.l2_metric_r3.geodesic(initial_curve=srv_a,
-                                              end_curve=srv_b)
+        geod_srv = self.l2_metric_r3.geodesic(initial_landmarks=srv_a,
+                                              end_landmarks=srv_b)
         geod_srv = geod_srv(self.times)
 
         starting_points = self.srv_metric_r3.ambient_metric.geodesic(
