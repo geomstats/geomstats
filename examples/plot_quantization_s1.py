@@ -9,9 +9,8 @@ import os
 import geomstats.visualization as visualization
 
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.learning.quantization import Quantization
 
-CIRCLE = Hypersphere(dimension=1)
-METRIC = CIRCLE.metric
 N_POINTS = 1000
 N_CENTERS = 5
 N_REPETITIONS = 20
@@ -19,23 +18,31 @@ TOLERANCE = 1e-6
 
 
 def main():
-    points = CIRCLE.random_uniform(n_samples=N_POINTS, bound=None)
+    circle = Hypersphere(dimension=1)
 
-    centers, weights, clusters, n_iterations = METRIC.optimal_quantization(
-                points=points, n_centers=N_CENTERS,
-                n_repetitions=N_REPETITIONS, tolerance=TOLERANCE
-                )
+    data = circle.random_uniform(n_samples=1000, bound=None)
+
+    n_clusters = 5
+    clustering = Quantization(metric=circle.metric, n_clusters=n_clusters)
+    clustering = clustering.fit(data)
+
+    #points = CIRCLE.random_uniform(n_samples=N_POINTS, bound=None)
+    #centers, weights, clusters, n_iterations = METRIC.optimal_quantization(
+    #            points=points, n_centers=N_CENTERS,
+    #            n_repetitions=N_REPETITIONS, tolerance=TOLERANCE
+    #            )
 
     plt.figure(0)
-    visualization.plot(points=centers, space='S1', color='red')
+    visualization.plot(points=clustering.cluster_centers_, space='S1', color='red')
     plt.show()
 
     plt.figure(1)
     ax = plt.axes()
-    circle = visualization.Circle()
-    circle.draw(ax=ax)
-    for i in range(N_CENTERS):
-        circle.draw_points(ax=ax, points=clusters[i])
+    circle_plot = visualization.Circle()
+    circle_plot.draw(ax=ax)
+    for i in range(n_clusters):
+        cluster = data[clustering.labels_==i, :]
+        circle_plot.draw_points(ax=ax, points=cluster)
     plt.show()
 
 

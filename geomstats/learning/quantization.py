@@ -9,67 +9,43 @@ from sklearn.utils import check_array
 from sklearn.utils.validation import check_is_fitted
 
 
-N_CLUSTERS = 10
-TOLERANCE = 1e-5
-N_REPETITIONS = 20
-N_MAX_ITERATIONS = 50000
 
-
-def quantization(points, metric, n_clusters=N_CLUSTERS,
-            n_repetitions=N_REPETITIONS, tolerance=TOLERANCE,
-            n_max_iterations=N_MAX_ITERATIONS):
-    """Perform mean shift clustering of data.
+def quantization(X, metric, n_clusters, n_repetitions=20,
+                 tolerance=1e-5, n_max_iterations=5e4):
+    """
+    Perform quantization of data using the Competitive Learning
+    Riemannian Quantization algorithmm. It computes the closest
+    approximation of the empirical distribution of data by a
+    discrete distribution supported by a smaller number of points
+    with respect to the Wasserstein distance. It is an online
+    version of the k-means clustering algorithm.
 
     Parameters
     ----------
 
     X : array-like, shape=[n_samples, n_features]
-        Input data.
+        Input data. It is treated sequentially by the algorithm, i.e.
+        one datum is chosen randomly at each iteration.
 
-    bandwidth : float, optional
-        Kernel bandwidth.
+    metric : object
+        Metric of the space in which the data lives. At each iteration,
+        one of the centers of the quantization is moved in the direction
+        of the new datum, according the exponential map of the underlying
+        space, which is a method of metric.
 
-        If bandwidth is not given, it is determined using a heuristic based on
-        the median of all pairwise distances. This will take quadratic time in
-        the number of samples. The sklearn.cluster.estimate_bandwidth function
-        can be used to do this more efficiently.
+    n_clusters : int
+        Number of desired atoms of the approximation distribution, or
+        equivalently number of centers of the clusters of the k-means
+        clustering.
 
-    seeds : array-like, shape=[n_seeds, n_features] or None
-        Point used as initial kernel locations. If None and bin_seeding=False,
-        each data point is used as a seed. If None and bin_seeding=True,
-        see bin_seeding.
+    n_repetitions : int, default=20
+        The centers of the quantization are updated using decreasing
+        step sizes, each of which stays constant for n_repetitions
+        iterations to allow a better exploration of the data points.
 
-    bin_seeding : boolean, default=False
-        If true, initial kernel locations are not locations of all
-        points, but rather the location of the discretized version of
-        points, where points are binned onto a grid whose coarseness
-        corresponds to the bandwidth. Setting this option to True will speed
-        up the algorithm because fewer seeds will be initialized.
-        Ignored if seeds argument is not None.
-
-    min_bin_freq : int, default=1
-       To speed up the algorithm, accept only those bins with at least
-       min_bin_freq points as seeds.
-
-    cluster_all : boolean, default True
-        If true, then all points are clustered, even those orphans that are
-        not within any kernel. Orphans are assigned to the nearest kernel.
-        If false, then orphans are given cluster label -1.
-
-    max_iter : int, default 300
-        Maximum number of iterations, per seed point before the clustering
-        operation terminates (for that seed point), if has not converged yet.
-
-    n_jobs : int or None, optional (default=None)
-        The number of jobs to use for the computation. This works by computing
-        each of the n_init runs in parallel.
-
-        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
-        for more details.
-
-        .. versionadded:: 0.17
-           Parallel Execution using *n_jobs*.
+    n_max_iterations : int, default=5e4
+        Maximum number of iterations. If it is reached, the
+        quantization may be inacurate.
 
     Returns
     -------
@@ -81,102 +57,84 @@ def quantization(points, metric, n_clusters=N_CLUSTERS,
         Cluster labels for each point.
 
     """
-    n_points = points.shape[0]
-    dimension = points.shape[-1]
+    n_samples = X.shape[0]
+    n_features = X.shape[-1]
 
-    random_indices = gs.random.randint(low=0, high=n_points,
+    random_indices = gs.random.randint(low=0, high=n_samples,
                                            size=(n_clusters,))
-    cluster_centers = points[gs.cast(random_indices, gs.int32), :]
+    cluster_centers = X[gs.cast(random_indices, gs.int32), :]
 
     gap = 1.0
     iteration = 0
 
     while iteration < n_max_iterations:
         iteration += 1
-        step_size = gs.floor(iteration / n_repetitions) + 1
+        step_size = gs.floor(gs.array(iteration / n_repetitions)) + 1
 
-        random_index = gs.random.randint(low=0, high=n_points, size=(1,))
-        point = points[gs.ix_(random_index, gs.arange(dimension))]
+        random_index = gs.random.randint(low=0, high=n_samples, size=(1,))
+        point = X[gs.cast(random_index, gs.int32), :]
 
-        index_to_update = self.closest_neighbor_index(point, centers)
-        center_to_update = centers[index_to_update, :]
+        index_to_update = metric.closest_neighbor_index(point, cluster_centers)
+        center_to_update = gs.copy(cluster_centers[index_to_update, :])
 
-        tangent_vec_update = self.log(
+        tangent_vec_update = metric.log(
                 point=point, base_point=center_to_update
                 ) / (step_size+1)
-        new_center = self.exp(
+        new_center = metric.exp(
                 tangent_vec=tangent_vec_update, base_point=center_to_update
                 )
-        gap = self.dist(center_to_update, new_center)
-        gap = (gap != 0) * gap + (gap == 0)
+        gap = metric.dist(center_to_update, new_center)
+        if gap == 0 and iteration == 1:
+            gap = gs.array(1.0)
 
         cluster_centers[index_to_update, :] = new_center
 
         if gs.isclose(gap, 0, atol=tolerance):
-                break
+            break
 
     if iteration == n_max_iterations-1:
         print('Maximum number of iterations {} reached. The'
                 'quantization may be inaccurate'.format(n_max_iterations))
 
-    labels = gs.zeros(n_points)
-    for i in range(n_points):
-        labels[i] = metric.closest_neighbor_index(points[i], cluster_centers)
+    labels = gs.zeros(n_samples)
+    for i in range(n_samples):
+        labels[i] = int(metric.closest_neighbor_index(X[i], cluster_centers))
 
     return cluster_centers, labels
 
 
 class Quantization(BaseEstimator, ClusterMixin):
-    """Mean shift clustering using a flat kernel.
+    """Optimal Riemannian quantization
 
-    Mean shift clustering aims to discover "blobs" in a smooth density of
-    samples. It is a centroid-based algorithm, which works by updating
-    candidates for centroids to be the mean of the points within a given
-    region. These candidates are then filtered in a post-processing stage to
-    eliminate near-duplicates to form the final set of centroids.
-
-    Seeding is performed using a binning technique for scalability.
+    Quantization computes the closest approximation of the empirical
+    distribution of a dataset by a discrete distribution supported by a
+    smaller number of points with respect to the Wasserstein distance. It
+    yields a k-means clustering of the data. The algorithm used is
+    Competitive Learning Riemannian Quantization, and corresponds to an
+    online version of the k-means clustering algorithm.
 
     Parameters
     ----------
-    bandwidth : float, optional
-        Bandwidth used in the RBF kernel.
 
-        If not given, the bandwidth is estimated using
-        sklearn.cluster.estimate_bandwidth; see the documentation for that
-        function for hints on scalability (see also the Notes, below).
+    metric : object
+        Metric of the space in which the data lives. At each iteration,
+        one of the centers of the quantization is moved in the direction
+        of the new datum, according the exponential map of the underlying
+        space, which is a method of metric.
 
-    seeds : array, shape=[n_samples, n_features], optional
-        Seeds used to initialize kernels. If not set,
-        the seeds are calculated by clustering.get_bin_seeds
-        with bandwidth as the grid size and default values for
-        other parameters.
+    n_clusters : int
+        Number of desired atoms of the approximation distribution, or
+        equivalently number of centers of the clusters of the k-means
+        clustering.
 
-    bin_seeding : boolean, optional
-        If true, initial kernel locations are not locations of all
-        points, but rather the location of the discretized version of
-        points, where points are binned onto a grid whose coarseness
-        corresponds to the bandwidth. Setting this option to True will speed
-        up the algorithm because fewer seeds will be initialized.
-        default value: False
-        Ignored if seeds argument is not None.
+    n_repetitions : int, default=20
+        The centers of the quantization are updated using decreasing
+        step sizes, each of which stays constant for n_repetitions
+        iterations to allow a better exploration of the data points.
 
-    min_bin_freq : int, optional
-       To speed up the algorithm, accept only those bins with at least
-       min_bin_freq points as seeds. If not defined, set to 1.
-
-    cluster_all : boolean, default True
-        If true, then all points are clustered, even those orphans that are
-        not within any kernel. Orphans are assigned to the nearest kernel.
-        If false, then orphans are given cluster label -1.
-
-    n_jobs : int or None, optional (default=None)
-        The number of jobs to use for the computation. This works by computing
-        each of the n_init runs in parallel.
-
-        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
-        for more details.
+    n_max_iterations : int, default=5e4
+        Maximum number of iterations. If it is reached, the
+        quantization may be inacurate.
 
     Attributes
     ----------
@@ -185,10 +143,26 @@ class Quantization(BaseEstimator, ClusterMixin):
 
     labels_ :
         Labels of each point.
+
+    Example
+    -------
+    >>> from geomstats.geometry.hypersphere import Hypersphere
+    >>> from geomstats.learning.quantization import Quantization
+    >>> sphere = Hypersphere(dimension=2)
+    >>> metric = sphere.metric
+    >>> X = sphere.random_von_mises_fisher(kappa=10, n_samples=50)
+    >>> clustering = Quantization(metric=metric,n_clusters=4).fit(X)
+    >>> clustering.cluster_centers_
+    >>> clustering.labels_
+
+    Reference
+    ---------
+    A. Le Brigant and S. Puechmorel, Optimal Riemannian quantization
+    with an application to air traffic analysis. J. Multivar. Anal.
+    173 (2019), 685 - 703.
     """
-    def __init__(self, metric, n_clusters=N_CLUSTERS,
-            n_repetitions=N_REPETITIONS, tolerance=TOLERANCE,
-            n_max_iterations=N_MAX_ITERATIONS):
+    def __init__(self, metric, n_clusters, n_repetitions=20,
+            tolerance=1e-5, n_max_iterations=5e4):
         self.metric = metric
         self.n_clusters = n_clusters
         self.n_repetitions = n_repetitions
@@ -204,10 +178,11 @@ class Quantization(BaseEstimator, ClusterMixin):
             Samples to cluster.
         """
         self.cluster_centers_, self.labels_ = \
-            optimal_quantization(X, n_clusters=self.n_clusters,
+            quantization(X=X, metric=self.metric,
+                    n_clusters=self.n_clusters,
                     n_repetitions=self.n_repetitions,
                     tolerance=self.tolerance,
-                    n_max_repetitions=self.n_max_repetitions)
+                    n_max_iterations=self.n_max_iterations)
 
         return self
 

@@ -1,14 +1,11 @@
 import geomstats.tests
 
+import geomstats.backend as gs
+
 from sklearn.utils.testing import assert_allclose
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.quantization import Quantization
 
-
-SPHERE = Hypersphere(dimension=2)
-METRIC = SPHERE.metric
-N_SAMPLES = 1000
-N_CLUSTERS = 1
 
 
 class TestQuantizationMethods(geomstats.tests.TestCase):
@@ -20,24 +17,33 @@ class TestQuantizationMethods(geomstats.tests.TestCase):
         self.dimension = 2
         self.space = Hypersphere(dimension=self.dimension)
         self.metric = self.space.metric
-        self.n_samples = 1000
-        self.n_clusters = 1
         self.data = self.space.random_von_mises_fisher(
-            kappa=10, n_samples=self.n_samples)
+            kappa=100, n_samples=50)
 
-        def test_fit(self):
-            X = self.data
-            clustering = Quantization(self.metric, self.n_clusters)
-            clustering.fit(X)
+    def test_fit(self):
+        X = self.data
+        clustering = Quantization(metric=self.metric, n_clusters=1,
+                n_repetitions=1)
+        clustering.fit(X)
 
-        def test_predict(self):
-            point = self.data[0, :]
-            clustering = Quantization(self.metric, self.n_clusters)
+        center = clustering.cluster_centers_
+        mean = self.metric.mean(X)
+        result = self.metric.dist(center, mean)
+        expected = 0.
+        self.assertAllClose(expected, result, atol=1e-2)
 
-            prediction = clustering.predict(point)
-            result = prediction
-            expected = clustering.labels[0]
-            self.assertAllClose(expected, result)
+    def test_predict(self):
+        X = self.data
+        clustering = Quantization(metric=self.metric, n_clusters=3,
+                n_repetitions=1)
+        clustering.fit(X)
+
+        point = self.data[0, :]
+        prediction = clustering.predict(point)
+
+        result = prediction
+        expected = clustering.labels_[0]
+        self.assertAllClose(expected, result)
 
 
 if __name__ == '__main__':
