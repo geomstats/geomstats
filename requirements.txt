@@ -8,4 +8,4 @@ numpy>=1.14.1
 scikit-learn
 scipy
 tensorflow>=1.12
-torch==0.4.0
+torch==0.4.1

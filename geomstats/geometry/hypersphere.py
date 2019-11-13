@@ -38,7 +38,7 @@ class Hypersphere(EmbeddedManifold):
 
     By default, points are parameterized by their extrinsic (n+1)-coordinates.
     """
-
+    # TODO: Harmonize argument name n or dimension in different manifolds
     def __init__(self, dimension):
         assert isinstance(dimension, int) and dimension > 0
         super(Hypersphere, self).__init__(
