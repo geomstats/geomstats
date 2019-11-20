@@ -85,9 +85,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
             point_transpose = gs.transpose(point, axes=(0, 2, 1))
-            point_inverse = gs.linalg.inv(point)
 
-            mask = gs.isclose(point_inverse, point_transpose)
+            mask = gs.isclose(gs.matmul(point, point_transpose),
+                gs.eye(self.n))
             mask = gs.all(mask, axis=(1, 2))
 
             mask = gs.to_ndarray(mask, to_ndim=1)
@@ -1274,13 +1274,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         if point_type is None:
             point_type = self.default_point_type
 
-        if point_type == 'vector':
-            random_point = gs.random.rand(n_samples, self.dimension) * 2 - 1
-            random_point = self.regularize(
-                random_point, point_type=point_type)
-        elif point_type == 'matrix':
-            random_matrix = gs.random.rand(n_samples, self.n, self.n)
-            random_point = self.projection(random_matrix)
+        random_point = gs.random.rand(n_samples, self.dimension) * 2 - 1
+        random_point = self.regularize(
+            random_point, point_type='vector')
+        if point_type == 'matrix':
+            random_point = self.matrix_from_rotation_vector(random_point)
 
         return random_point
 
