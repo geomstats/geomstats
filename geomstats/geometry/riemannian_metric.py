@@ -328,10 +328,11 @@ class RiemannianMetric(object):
         # TODO(nina): Profile this code to study performance,
         # i.e. what to do with sq_dists_between_iterates.
         def while_loop_cond(iteration, mean, variance, sq_dist):
-            result = gs.logical_or(
+            # result = ~gs.isclose(variance, 0.) and ~gs.less_equal(sq_dist, epsilon * variance)
+            result = ~gs.logical_or(
                 gs.isclose(variance, 0.),
                 gs.less_equal(sq_dist, epsilon * variance))
-            return result[0, 0]
+            return result[0, 0] or iteration == 0
 
         def while_loop_body(iteration, mean, variance, sq_dist):
             tangent_mean = gs.zeros_like(mean)
@@ -395,6 +396,7 @@ class RiemannianMetric(object):
                   'The mean may be inaccurate'.format(n_max_iterations))
 
         mean = gs.to_ndarray(mean, to_ndim=2)
+        print(f'n_iter: {last_iteration}, final variance: {variance}, final dist: {sq_dist}')
         return mean
 
     def tangent_pca(self, points, base_point=None, point_type='vector'):
