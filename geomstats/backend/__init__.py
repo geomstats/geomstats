@@ -7,7 +7,7 @@ if 'GEOMSTATS_BACKEND' in os.environ:
 
 else:
     _backend = _default_backend
-
+    os.environ['GEOMSTATS_BACKEND'] = _backend
 _BACKEND = _backend
 
 from .common import *  # NOQA
