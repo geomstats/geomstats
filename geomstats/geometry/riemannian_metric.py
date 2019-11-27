@@ -318,7 +318,7 @@ class RiemannianMetric(object):
              point_type='vector',
              verbose=False):
         """
-                Frechet mean of (weighted) points.
+        Frechet mean of (weighted) points.
 
         Parameters
         ----------
