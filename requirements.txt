@@ -9,3 +9,4 @@ scikit-learn
 scipy
 tensorflow==1.15
 torch==0.4.0
+flake8
