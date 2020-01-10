@@ -116,6 +116,23 @@ class SPDMatricesSpace(EmbeddedManifold):
 
         return tangent_vec
 
+    def differential_power(self, power, tangent_vec, base_point):
+        """
+        Computes the differential of the power function on SPD
+        matrices (A^p=exp(p log(A))) at base_point applied to
+        tangent_vec.
+        """
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
+        n_tangent_vecs, _, _ = tangent_vec.shape
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
+        n_base_points, _, _ = base_point.shape
+
+        assert (n_tangent_vecs == n_base_points
+                or n_base_points == 1
+                or n_tangent_vecs == 1)
+
+        #TO BE IMPLEMENTED
+
 
 class SPDMetric(RiemannianMetric):
 
@@ -262,3 +279,58 @@ class SPDMetric(RiemannianMetric):
                                       initial_point=initial_point,
                                       initial_tangent_vec=initial_tangent_vec,
                                       point_type='matrix')
+
+
+class SPDMetricProcrustes(RiemannianMetric):
+
+    def __init__(self, n):
+        super(SPDMetricProcrustes, self).__init__(
+            dimension=int(n * (n + 1) / 2),
+            signature=(int(n * (n + 1) / 2), 0, 0))
+        self.n = n
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+        """
+        Compute the inner product of tangent_vec_a and tangent_vec_b
+        at point base_point using the Procrustes Riemannian metric.
+        """
+        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
+        n_tangent_vecs_a, _, _ = tangent_vec_a.shape
+        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
+        n_tangent_vecs_b, _, _ = tangent_vec_b.shape
+
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
+        n_base_points, dim, _ = base_point.shape
+
+        assert (n_tangent_vecs_a == n_tangent_vecs_b == n_base_points
+                or n_tangent_vecs_a == n_tangent_vecs_b and n_base_points == 1
+                or n_base_points == n_tangent_vecs_a and n_tangent_vecs_b == 1
+                or n_base_points == n_tangent_vecs_b and n_tangent_vecs_a == 1
+                or n_tangent_vecs_a == 1 and n_tangent_vecs_b == 1
+                or n_base_points == 1 and n_tangent_vecs_a == 1
+                or n_base_points == 1 and n_tangent_vecs_b == 1)
+
+        if n_tangent_vecs_a == 1:
+            tangent_vec_a = gs.tile(
+                tangent_vec_a,
+                (gs.maximum(n_base_points, n_tangent_vecs_b), 1, 1))
+
+        if n_tangent_vecs_b == 1:
+            tangent_vec_b = gs.tile(
+                tangent_vec_b,
+                (gs.maximum(n_base_points, n_tangent_vecs_a), 1, 1))
+
+        if n_base_points == 1:
+            base_point = gs.tile(
+                base_point,
+                (gs.maximum(n_tangent_vecs_a, n_tangent_vecs_b), 1, 1))
+
+        #TO BE IMPLEMENTED THANKS TO THE differential_power FUNCTION
+
+        eigvec, eigval = gs.linalg.eigh(base_point)
+        aux_a = gs.matmul(gs.matmul(gs.transpose(eigvec), tangent_vec_a), eigvec)
+        aux_b = gs.matmul(gs.matmul(gs.transpose(eigvec), tangent_vec_b), eigvec)
+        inner_product = gs.zeros()
+        #for i in range(dim):
+        #    for j in range(dim):
+        #        inner_product +=
