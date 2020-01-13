@@ -123,7 +123,7 @@ class SPDMatricesSpace(EmbeddedManifold):
         tangent_vec.
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
-        n_tangent_vecs, _, _ = tangent_vec.shape
+        n_tangent_vecs, dim, _ = tangent_vec.shape
         base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, _ = base_point.shape
 
@@ -131,7 +131,31 @@ class SPDMatricesSpace(EmbeddedManifold):
                 or n_base_points == 1
                 or n_tangent_vecs == 1)
 
-        #TO BE IMPLEMENTED
+        eigvalues, eigvectors = gs.linalg.eigh(base_point)
+
+        eigvalues = gs.to_ndarray(eigvalues, to_ndim=3, axis=1)
+        transp_eigvalues = gs.transpose(eigvalues, (0,2,1))
+        powered_eigvalues = eigvalues**power
+        transp_powered_eigvalues = gs.transpose(powered_eigvalues, (0,2,1))
+        ones = gs.ones((n_base_points,1,dim))
+        transp_ones = gs.transpose(ones, (0,2,1))
+
+        vertical_index = gs.matmul(transp_eigvalues, ones)
+        denominator = vertical_index - gs.matmul(transp_ones, eigvalues)
+        denominator = gs.where(denominator == 0, vertical_index, denominator)
+        vertical_index_power = gs.matmul(transp_powered_eigvalues, ones)
+        numerator = vertical_index_power - gs.matmul(transp_ones, powered_eigvalues)
+        numerator = gs.where(denominator == 0, power*vertical_index_power, numerator)
+        power_operator = numerator / denominator
+
+        transp_eigvectors = gs.transpose(eigvectors, (0, 2, 1))
+        result = gs.matmul(transp_eigvectors, tangent_vec)
+        result = gs.matmul(result, eigvectors)
+        result = power_operator * result
+        result = gs.matmul(result, transp_eigvectors)
+        result = gs.matmul(eigvectors, result)
+        return result
+
 
 
 class SPDMetric(RiemannianMetric):
