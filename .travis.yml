@@ -7,6 +7,10 @@ python:
     - "3.5-dev"
     - "3.6"
     - "3.6-dev"
+    - "3.7"
+    - "3.7-dev"
+    - "3.8"
+    - "3.8-dev"
 
 install:
     - pip install --upgrade pip setuptools wheel
