@@ -1,6 +1,5 @@
-"""Mean shift clustering algorithm on Manifolds.
+"""Optimal quantization algorithm on Manifolds.
 """
-
 
 import geomstats.backend as gs
 
