@@ -1,16 +1,13 @@
 import os
 import sys
 
-_default_backend = 'numpy'
-if 'GEOMSTATS_BACKEND' in os.environ:
-    _backend = os.environ['GEOMSTATS_BACKEND']
+from numpy import pi
 
-else:
-    _backend = _default_backend
 
-_BACKEND = _backend
+_BACKEND = os.environ.get('GEOMSTATS_BACKEND')
+if _BACKEND is None:
+    os.environ['GEOMSTATS_BACKEND'] = _BACKEND = 'numpy'
 
-from .common import *  # NOQA
 
 if _BACKEND == 'numpy':
     sys.stderr.write('Using numpy backend\n')
@@ -30,7 +27,6 @@ elif _BACKEND == 'tensorflow':
     from . import tensorflow_linalg as linalg  # NOQA
     from . import tensorflow_random as random  # NOQA
     from . import tensorflow_testing as testing  # NOQA
-
-
-def backend():
-    return _BACKEND
+else:
+    sys.stderr.write('Unknown backend \'{:s}\'\n'.format(_BACKEND))
+    sys.exit(1)
