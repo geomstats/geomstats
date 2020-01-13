@@ -4,10 +4,11 @@
 
 Computations and statistics on manifolds with geometric structures.
 
-- To get started with ```geomstats```, see the [examples directory](https://github.com/geomstats/geomstats/examples).
+- To get started with ```geomstats```, see the [examples directory](https://github.com/geomstats/geomstats/tree/master/examples).
 - For more in-depth applications of ``geomstats``, see the [applications repository](https://github.com/geomstats/applications/).
 - The documentation of ```geomstats``` can be found on the [documentation website](https://geomstats.github.io/).
-- If you use ``geomstats``, please kindly cite our [paper](https://arxiv.org/abs/1805.08308).
+- If you find ``geomstats`` useful, please kindly cite our [paper](https://arxiv.org/abs/1805.08308).
+- Next hackathon in January 2020, Europe. Contact Nicolas Guigui or Nina Miolane if interested!
 
 <img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/gradient_descent.gif" width=350 height=350><img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=300 height=300>
 
