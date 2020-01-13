@@ -11,7 +11,6 @@ int32 = 'torch.LongTensor'
 int8 = 'torch.ByteTensor'
 
 
-
 def while_loop(cond, body, loop_vars, maximum_iterations):
     iteration = 0
     while cond(*loop_vars):
