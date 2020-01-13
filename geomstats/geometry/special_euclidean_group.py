@@ -165,7 +165,7 @@ class SpecialEuclideanGroup(LieGroup):
                 [rotations_vec, tangent_vec[:, dim_rotations:]], axis=1)
 
         elif point_type == 'matrix':
-                regularized_vec = tangent_vec
+            regularized_vec = tangent_vec
 
         return regularized_vec
 

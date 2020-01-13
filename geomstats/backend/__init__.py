@@ -1,7 +1,7 @@
 import os
 import sys
 
-from numpy import pi
+from numpy import pi  # NOQA
 
 
 _BACKEND = os.environ.get('GEOMSTATS_BACKEND')
