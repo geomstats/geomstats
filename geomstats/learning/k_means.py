@@ -6,7 +6,7 @@ class K_Means(BaseEstimator, ClusterMixin):
 
     def __init__(self, metric, n_component, seeds=None, n_jobs=None):
         self.metric = metric
-        self.means = gs.rand(n_component, metric.dimension)
+        self.n_component = n_component
 
 
 
@@ -27,17 +27,22 @@ class K_Means(BaseEstimator, ClusterMixin):
             Returns the instance itself.
         """
         # 
-        to_component = gs.zeros(X.shape[0])
-        self.centroids = gs.vstack([gs[random.randint(0, to_component-1)] 
-                                    for i in range(to_component)])
+        belongs = gs.zeros(X.shape[0])
+        self.centroids = gs.vstack([gs[random.randint(0,self.ncomponent-1)] 
+                                    for i in range(self.n_component)])
         index = 0 
 
         while(index < max_iter):
             index+=1
-            # expectation 
-            metric.dist()
+            # expectation
+            c_expanded = (gs.expand_dims(self.centroids ,1))
+            dists = gs.vstack([metric.dist(self.centroids[i], X) 
+                                for i in range(self.n_component)])
+            belongs = gs.argmin(dists, -1)
+
+    
             # maximisation
-            [self.metric.mean(0) for i in range(self.n_component)]            
+            means = gs.vstack([self.metric.mean(0) for i in range(self.n_component)])         
 
             
     def predict(self, X):

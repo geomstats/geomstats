@@ -412,3 +412,9 @@ def mean(x, axis=None):
 
 def normal(*args, **kwargs):
     return np.random.normal(*args, **kwargs)
+
+def min(x, dim):
+    return np.min(x, dim)
+
+def argmin(x, dim):
+    return np.argmin(x, dim)
