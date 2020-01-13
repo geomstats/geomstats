@@ -200,7 +200,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 regularized_vec = tangent_vec
 
         elif point_type == 'matrix':
-                regularized_vec = tangent_vec
+            regularized_vec = tangent_vec
 
         return regularized_vec
 
