@@ -23,8 +23,7 @@ def while_loop(cond, body, loop_vars, maximum_iterations):
 
 
 def logical_or(x, y):
-    bool_result = x or y
-    return bool_result
+    return x or y
 
 
 def cond(pred, true_fn, false_fn):
@@ -85,15 +84,15 @@ def vstack(seq):
 
 
 def array(val):
-    if type(val) == list:
-        if type(val[0]) != torch.Tensor:
+    if isinstance(val, list):
+        if not isinstance(val[0], torch.Tensor):
             val = np.copy(np.array(val))
         else:
             val = concatenate(val)
 
-    if type(val) == bool:
+    if isinstance(val, bool):
         val = np.array(val)
-    if type(val) == np.ndarray:
+    if isinstance(val, np.ndarray):
         if val.dtype == bool:
             val = torch.from_numpy(np.array(val, dtype=np.uint8))
         elif val.dtype == np.float32 or val.dtype == np.float64:
@@ -101,7 +100,7 @@ def array(val):
         else:
             val = torch.from_numpy(val)
 
-    if type(val) != torch.Tensor:
+    if not isinstance(val, torch.Tensor):
         val = torch.Tensor([val])
     if val.dtype == torch.float64:
         val = val.float()
