@@ -4,7 +4,7 @@ coverage
 h5py==2.8.0
 matplotlib
 nose2
-numpy>=1.14.1
+numpy==1.16.0
 scikit-learn
 scipy
 tensorflow==1.15
