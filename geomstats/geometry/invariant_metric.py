@@ -220,8 +220,6 @@ class InvariantMetric(RiemannianMetric):
         assert gs.ndim(jacobian) == 3
         inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = gs.transpose(inv_jacobian, axes=(0, 2, 1))
-        #print(tangent_vec)
-        #print(inv_jacobian_transposed)
         tangent_vec_at_id = gs.einsum('ni,nij->nj',
                                       tangent_vec,
                                       inv_jacobian_transposed)

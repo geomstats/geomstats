@@ -24,10 +24,6 @@ def expm(x):
 
 
 def logm(x):
-    return tf.linalg.expm(x)
-
-
-def logm(x):
     x = tf.cast(x, tf.complex64)
     logm = tf.linalg.logm(x)
     logm = tf.cast(logm, tf.float32)
