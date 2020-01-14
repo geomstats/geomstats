@@ -15,8 +15,8 @@ EPSILON = 1e-6
 
 class Grassmannian(EmbeddedManifold):
     """
-    Class for Grassmann manifolds Gr(n, k) 
-    of k-dimensional subspaces in the n-dimensional euclidean space. 
+    Class for Grassmann manifolds Gr(n, k)
+    of k-dimensional subspaces in the n-dimensional euclidean space.
     """
     def __init__(self, n, k):
         assert isinstance(n, int) and isinstance(k, int)
@@ -32,10 +32,10 @@ class Grassmannian(EmbeddedManifold):
 
     def belongs(self, point, tolerance=TOLERANCE):
         """
-        Check if an (n,n)-matrix is an orthogonal projector 
-        onto a subspace of rank p. 
+        Check if an (n,n)-matrix is an orthogonal projector
+        onto a subspace of rank p.
         """
-        # check if p* = p and p^2 = p and rank(p) = p 
+        # check if p* = p and p^2 = p and rank(p) = p
         return False
         """
         return self.embedding_space.belongs(point, tolerance)\
@@ -43,17 +43,19 @@ class Grassmannian(EmbeddedManifold):
                 and is_projector(point, tolerance)\
                 and is_of_rank(point, p, tolerance)
         """
-    
     """
     def __is_projector(point, tolerance):
-        return self.embedding_space.mult(point, point) == point 
-    
+        return self.embedding_space.mult(point, point) == point
+
     def is_of_rank(point, k)
         return True
     """
 
-class GrassmannianCanonicalMetric(RiemannianMetric):
 
+class GrassmannianCanonicalMetric(RiemannianMetric):
+    """
+    Canonical metric of the Grassmann manifold.
+    """
     def __init__(self, n, p):
         assert isinstance(n, int) and isinstance(p, int)
         assert p <= n

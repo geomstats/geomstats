@@ -29,21 +29,21 @@ class MatricesSpace(EuclideanSpace):
         point = gs.to_ndarray(point, to_ndim=3)
         _, mat_dim_1, mat_dim_2 = point.shape
         return mat_dim_1 == self.m & mat_dim_2 == self.n
-    
+
     @staticmethod
-    def mult(a, b): 
+    def mult(a, b):
         """
-        Return the product of matrices a and b. 
+        Return the product of matrices a and b.
         """
         return gs.matmul(a, b)
-    
+
     @staticmethod
     def bracket(a, b):
         """
         Return the commutator `[a, b] = ab - ba` of a and b.
         """
         return gs.matmul(a, b) - gs.matmul(b, a)
-        
+
     @staticmethod
     def vector_from_matrix(matrix):
         """
@@ -52,7 +52,7 @@ class MatricesSpace(EuclideanSpace):
         matrix = gs.to_ndarray(matrix, to_ndim=3)
         n_mats, m, n = matrix.shape
         return gs.reshape(matrix, (n_mats, m*n))
-    
+
     @staticmethod
     def is_symmetric(matrix, tolerance=TOLERANCE):
         """Check if a matrix is symmetric."""
