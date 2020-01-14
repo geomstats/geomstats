@@ -2,6 +2,11 @@
 
 import tensorflow as tf
 
+from .common import array, ndim, to_ndarray  # NOQA
+from . import linalg  # NOQA
+from . import random  # NOQA
+from . import testing  # NOQA
+
 
 int8 = tf.int8
 int32 = tf.int32
@@ -175,14 +180,6 @@ def shape(x):
     return tf.shape(x)
 
 
-def ndim(x):
-    x = array(x)
-    dims = x.get_shape()._dims
-    if dims is not None:
-        return len(dims)
-    return None
-
-
 def dot(x, y):
     return tf.tensordot(x, y, axes=1)
 
@@ -201,13 +198,6 @@ def greater_equal(x, y):
 
 def equal(x, y):
     return tf.equal(x, y)
-
-
-def to_ndarray(x, to_ndim, axis=0):
-    if ndim(x) == to_ndim - 1:
-        x = tf.expand_dims(x, axis=axis)
-
-    return x
 
 
 def sqrt(x):
@@ -273,10 +263,6 @@ def ones_like(x):
 
 def trace(x, **kwargs):
     return tf.trace(x)
-
-
-def array(x):
-    return tf.convert_to_tensor(x)
 
 
 def all(bool_tensor, axis=None, keepdims=False):
