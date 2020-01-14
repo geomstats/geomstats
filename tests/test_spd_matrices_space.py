@@ -78,6 +78,36 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         self.assertTrue(gs.allclose(result, expected))
 
     @geomstats.tests.np_and_tf_only
+    def test_differential_power(self):
+        base_point = gs.array([[1., 0., 0.],
+                               [0., 2.5, 1.5],
+                               [0., 1.5, 2.5]])
+        tangent_vec = gs.array([[2., 1., 1.],
+                               [1., .5, .5],
+                               [1., .5, .5]])
+        power = .5
+        result = self.space.differential_power(power=power, tangent_vec=tangent_vec, base_point=base_point)
+        expected = gs.array([[1., 1/3, 1/3],
+                             [1/3, .125, .125],
+                             [1/3, .125, .125]])
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
+    def test_differential_power_with_inverse(self):
+        base_point = gs.array([[1., 0., 0.],
+                               [0., 2.5, 1.5],
+                               [0., 1.5, 2.5]])
+        tangent_vec = gs.array([[1., 1 / 3, 1 / 3],
+                                [1 / 3, .125, .125],
+                                [1 / 3, .125, .125]])
+        power = .5
+        result = self.space.differential_power(power=power, tangent_vec=tangent_vec, base_point=base_point, inverse=True)
+        expected = gs.array([[2., 1., 1.],
+                             [1., .5, .5],
+                             [1., .5, .5]])
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
     def test_log_and_exp(self):
         base_point = gs.array([[5., 0., 0.],
                                [0., 7., 2.],
