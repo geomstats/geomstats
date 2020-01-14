@@ -319,6 +319,10 @@ def stack(*args, **kwargs):
     return tf.stack(*args, **kwargs)
 
 
+def unstack(*args, **kwargs):
+    return tf.unstack(*args, **kwargs)
+
+
 def arctan2(*args, **kwargs):
     return tf.atan2(*args, **kwargs)
 
@@ -329,3 +333,7 @@ def diagonal(*args, **kwargs):
 
 def mean(x, axis=None):
     return tf.reduce_mean(x, axis)
+
+
+def argmin(*args, **kwargs):
+    return tf.argmin(*args, **kwargs)

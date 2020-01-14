@@ -11,7 +11,6 @@ int32 = 'torch.LongTensor'
 int8 = 'torch.ByteTensor'
 
 
-
 def while_loop(cond, body, loop_vars, maximum_iterations):
     iteration = 0
     while cond(*loop_vars):
@@ -23,8 +22,7 @@ def while_loop(cond, body, loop_vars, maximum_iterations):
 
 
 def logical_or(x, y):
-    bool_result = x or y
-    return bool_result
+    return x or y
 
 
 def cond(pred, true_fn, false_fn):
@@ -85,15 +83,15 @@ def vstack(seq):
 
 
 def array(val):
-    if type(val) == list:
-        if type(val[0]) != torch.Tensor:
+    if isinstance(val, list):
+        if not isinstance(val[0], torch.Tensor):
             val = np.copy(np.array(val))
         else:
             val = concatenate(val)
 
-    if type(val) == bool:
+    if isinstance(val, bool):
         val = np.array(val)
-    if type(val) == np.ndarray:
+    if isinstance(val, np.ndarray):
         if val.dtype == bool:
             val = torch.from_numpy(np.array(val, dtype=np.uint8))
         elif val.dtype == np.float32 or val.dtype == np.float64:
@@ -101,7 +99,7 @@ def array(val):
         else:
             val = torch.from_numpy(val)
 
-    if type(val) != torch.Tensor:
+    if not isinstance(val, torch.Tensor):
         val = torch.Tensor([val])
     if val.dtype == torch.float64:
         val = val.float()
@@ -400,10 +398,6 @@ def nonzero(*args, **kwargs):
     return torch.nonzero(*args, **kwargs)
 
 
-def copy(x):
-    return x.clone()
-
-
 def seed(x):
     torch.manual_seed(x)
 
@@ -421,3 +415,23 @@ def mean(x, axis=None):
 
 def argmin(*args, **kwargs):
     return torch.argmin(*args, **kwargs)
+
+
+def arange(*args, **kwargs):
+    return torch.arange(*args, **kwargs)
+
+
+def gather(x, indices, axis=0):
+    return x[indices]
+
+
+def get_mask_i_float(i, n):
+    range_n = arange(n)
+    i_float = cast(array([i]), int32)[0]
+    mask_i = equal(range_n, i_float)
+    mask_i_float = cast(mask_i, float32)
+    return mask_i_float
+
+
+def copy(x):
+    return x.clone()

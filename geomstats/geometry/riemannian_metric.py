@@ -463,7 +463,6 @@ class RiemannianMetric(object):
             - the number of steps needed to converge.
         """
         n_points = points.shape[0]
-        dimension = points.shape[-1]
 
         random_indices = gs.random.randint(low=0, high=n_points,
                                            size=(n_centers,))
@@ -489,7 +488,8 @@ class RiemannianMetric(object):
                     tangent_vec=tangent_vec_update, base_point=center_to_update
                     )
             gap = self.dist(center_to_update, new_center)
-            gap = gs.cast(gap != 0, gs.float32) * gap + gs.cast(gap == 0, gs.float32)
+            gap = (gs.cast(gap != 0, gs.float32) * gap
+                   + gs.cast(gap == 0, gs.float32))
 
             centers[index_to_update, :] = new_center
 
