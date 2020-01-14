@@ -239,7 +239,9 @@ class LieGroup(Manifold):
     def lie_bracket(self, base_point, first_tan_vec, second_tan_vec):
         """
         Compute the lie bracket of two sets of tangent vectors.
-        For matrix Lie groups
+        For matrix Lie groups with tangent vectors A,B at the same base point P
+        this is given by (translate to the identity, compute commutator, go back)
+            [A,B] = AP^-1B - BP^-1A.
 
         Parameters
         ----------
@@ -254,5 +256,12 @@ class LieGroup(Manifold):
 
         inverse_base = self.inverse(base_point, point_type='matrix')
 
-        return gs.matmul(first_tan_vec, gs.matmul(inverse_base, second_tan_vec)) - gs.matmul(second_tan_vec, gs.matmul(inverse_base, first_tan_vec))
+        first_term = gs.matmul(
+                first_tan_vec, gs.matmul(inverse_base, second_tan_vec)
+                )
+        second_term = gs.matmul(
+                second_tan_vec,
+                gs.matmul(inverse_base, first_tan_vec)
+                )
+        return  first_term - second_term
 
