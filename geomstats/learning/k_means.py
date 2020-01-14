@@ -48,8 +48,9 @@ class KMeans(TemplateTransformer):
             Returns the instance itself.
         """
         belongs = gs.zeros(X.shape[0])
-        self.centroids = gs.vstack([X[random.randint(0, X.shape[0])]
-                                    for i in range(self.n_clusters)])
+        self.centroids = gs.concatenate([gs.expand_dims(X[
+                                         random.randint(0, X.shape[0]-1)], 0)
+                                         for i in range(self.n_clusters)])
         index = 0
         while(index < max_iter):
             index += 1
@@ -59,9 +60,21 @@ class KMeans(TemplateTransformer):
             belongs = gs.argmin(dists, -1)
             # maximisation
             old_centroids = self.centroids
-            self.centroids = gs.vstack([self.metric.mean(
-                                        gs.squeeze(X[belongs == i]))
-                                        for i in range(self.n_clusters)])
+
+            for i in range(self.n_clusters):
+                fold = gs.squeeze(X[belongs == i])
+                if(len(fold) > 0):
+                    self.centroids[i] = self.metric.mean(fold)
+                else:
+                    self.centroids[i] = X[random.randint(0, X.shape[0]-1)]
+
+
+            # self.centroids = [self.metric.mean(
+            #                     gs.squeeze(X[belongs == i]))
+                                
+            #                    for i in range(self.n_clusters)
+            #                             ]
+            
             # test convergence
             '''
             Maybe Change  the convergence check later
@@ -74,7 +87,7 @@ class KMeans(TemplateTransformer):
 
     def predict(self, X):
         # finding closest mean
-        dists = gs.vstack([self.metric.dist(self.centroids[i], X)
+        dists = gs.hstack([self.metric.dist(self.centroids[i], X)
                            for i in range(self.n_clusters)])
         belongs = gs.argmin(dists, -1)
         return belongs
