@@ -4,7 +4,7 @@ import geomstats.backend as gs
 from geomstats.learning._template import TemplateTransformer
 
 
-class K_Means(TemplateTransformer):
+class KMeans(TemplateTransformer):
 
     def __init__(self, n_clusters, metric, init="random",
                  n_init=1, n_jobs=None, tol=1e-2):
@@ -48,13 +48,13 @@ class K_Means(TemplateTransformer):
             Returns the instance itself.
         """
         belongs = gs.zeros(X.shape[0])
-        self.centroids = gs.vstack([gs[random.randint(0, self.n_clusters-1)]
+        self.centroids = gs.vstack([X[random.randint(0, X.shape[0])]
                                     for i in range(self.n_clusters)])
         index = 0
         while(index < max_iter):
             index += 1
             # expectation
-            dists = gs.vstack([self.metric.dist(self.centroids[i], X)
+            dists = gs.hstack([self.metric.dist(self.centroids[i], X)
                               for i in range(self.n_clusters)])
             belongs = gs.argmin(dists, -1)
             # maximisation
@@ -64,10 +64,11 @@ class K_Means(TemplateTransformer):
                                         for i in range(self.n_clusters)])
             # test convergence
             '''
-            Maybe Change it later
+            Maybe Change  the convergence check later
             '''
             if(gs.mean(self.metric.dist(old_centroids, self.centroids))
                < self.tol):
+                print("Convergence Reached after ", index, " iterations")
                 # convergence reached
                 return gs.copy(self.centroids)
 
