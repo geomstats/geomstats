@@ -31,8 +31,8 @@ class K_Means(TemplateTransformer):
         self.n_clusters = n_clusters
         self.tol = tol
 
-    def fit(self, X, Y=None, max_iter=1000, eps=1e-4, convergence_value=1e-2):
-        """Fit the model with X.
+    def fit(self, X, Y=None, max_iter=100, eps=1e-4, convergence_value=1e-2):
+        """Predict for each data point the closest center in terms of metric distance
 
         Parameters
         ----------
@@ -48,30 +48,33 @@ class K_Means(TemplateTransformer):
             Returns the instance itself.
         """
         belongs = gs.zeros(X.shape[0])
-        self.centroids = gs.vstack([gs[random.randint(0, self.ncomponent-1)]
-                                    for i in range(self.n_component)])
+        self.centroids = gs.vstack([gs[random.randint(0, self.n_clusters-1)]
+                                    for i in range(self.n_clusters)])
         index = 0
         while(index < max_iter):
             index += 1
             # expectation
             dists = gs.vstack([self.metric.dist(self.centroids[i], X)
-                              for i in range(self.n_component)])
+                              for i in range(self.n_clusters)])
             belongs = gs.argmin(dists, -1)
             # maximisation
             old_centroids = self.centroids
-            self.centroids = gs.vstack([self.metric.mean(gs.squeeze(X[belongs == i])) for i in range(self.n_component)])         
+            self.centroids = gs.vstack([self.metric.mean(
+                                        gs.squeeze(X[belongs == i]))
+                                        for i in range(self.n_clusters)])
             # test convergence
             '''
             Maybe Change it later
             '''
-            if(gs.mean(self.metric.dist(old_centroids, self.centroids)) < tol):
+            if(gs.mean(self.metric.dist(old_centroids, self.centroids))
+               < self.tol):
                 # convergence reached
                 return gs.copy(self.centroids)
 
     def predict(self, X):
         # finding closest mean
         dists = gs.vstack([self.metric.dist(self.centroids[i], X)
-                           for i in range(self.n_component)])
+                           for i in range(self.n_clusters)])
         belongs = gs.argmin(dists, -1)
         return belongs
 
