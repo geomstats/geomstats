@@ -404,21 +404,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
-    def test_rotation_vector_from_matrix_vectorization(self):
-        n = 3
-        group = self.so[n]
-
-        # example from issue 217
-        rot_mats = gs.array([
-            [[-1., 0., 0.], [0., -1., 0.], [0., 0., 1.]],
-            [[-1., 0., 0.], [0., 1., 0.], [0., 0., -1.]]])
-
-        result = group.rotation_vector_from_matrix(rot_mats)
-        expected = gs.pi * gs.array([[0., 0., 1.], [0., 1., 0.]])
-
-        self.assertAllClose(result, expected)
-
 
     @geomstats.tests.np_only
     def test_rotation_vector_and_rotation_matrix(self):
