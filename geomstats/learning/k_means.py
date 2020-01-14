@@ -7,17 +7,22 @@ from geomstats.learning._template import TemplateTransformer
 class KMeans(TemplateTransformer):
 
     def __init__(self, n_clusters, metric, init="random",
-                 n_init=1, n_jobs=None, tol=1e-2):
-        """Fit the model with X.
+                 n_init=1, n_jobs=None, tol=1e-2, verbose=0):
+        """ K-Means algorithm using Riemannian manifolds
 
         Parameters
         ----------
-        X : array-like, shape (n_samples, n_features)
-            Training data, where n_samples is the number of samples
-            and n_features is the number of features.
+        n_clusters : Number of clusters (k value of the k-means)
 
-        y : If given only give the metric for each labels
+        metric : the metric associate to the space used
 
+        init : How to init centroids at the beginning of the algorithm.
+            Only radom is implemented yet.
+
+        tol : convergence factor. If the difference of mean distance
+             between two step is lower than tol
+        
+        verbose : if verbose > 0, information will be print during learning
         Returns
         -------
         self : object
@@ -30,8 +35,9 @@ class KMeans(TemplateTransformer):
         self.n_jobs = n_jobs
         self.n_clusters = n_clusters
         self.tol = tol
+        self.verbose = verbose
 
-    def fit(self, X, Y=None, max_iter=100, eps=1e-4, convergence_value=1e-2):
+    def fit(self, X, Y=None, max_iter=100):
         """Predict for each data point the closest center in terms of metric distance
 
         Parameters
@@ -40,7 +46,7 @@ class KMeans(TemplateTransformer):
             Training data, where n_samples is the number of samples
             and n_features is the number of features.
 
-        y : If given only give the metric for each labels
+        max_iter : Maximum number of iteration
 
         Returns
         -------
@@ -59,7 +65,7 @@ class KMeans(TemplateTransformer):
                               for i in range(self.n_clusters)])
             belongs = gs.argmin(dists, -1)
             # maximisation
-            old_centroids = self.centroids
+            old_centroids = gs.copy(self.centroids)
 
             for i in range(self.n_clusters):
                 fold = gs.squeeze(X[belongs == i])
@@ -68,17 +74,7 @@ class KMeans(TemplateTransformer):
                 else:
                     self.centroids[i] = X[random.randint(0, X.shape[0]-1)]
 
-
-            # self.centroids = [self.metric.mean(
-            #                     gs.squeeze(X[belongs == i]))
-                                
-            #                    for i in range(self.n_clusters)
-            #                             ]
-            
             # test convergence
-            '''
-            Maybe Change  the convergence check later
-            '''
             if(gs.mean(self.metric.dist(old_centroids, self.centroids))
                < self.tol):
                 print("Convergence Reached after ", index, " iterations")
@@ -91,7 +87,3 @@ class KMeans(TemplateTransformer):
                            for i in range(self.n_clusters)])
         belongs = gs.argmin(dists, -1)
         return belongs
-
-    def fit_predict(self, X, Y):
-        self.fit(X, Y)
-        return self.predict(X)
