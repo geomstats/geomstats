@@ -7,21 +7,21 @@ from geomstats.learning._template import TemplateTransformer
 class KMeans(TemplateTransformer):
 
     def __init__(self, n_clusters, metric, init="random",
-                 n_init=1, n_jobs=None, tol=1e-2, verbose=0):
+                 tol=1e-2, verbose=0):
         """ K-Means algorithm using Riemannian manifolds
 
         Parameters
         ----------
         n_clusters : Number of clusters (k value of the k-means)
 
-        metric : the metric associate to the space used
+        metric : The geomstats metric associate to the space used
 
         init : How to init centroids at the beginning of the algorithm.
-            Only radom is implemented yet.
+               Only radom is implemented yet.
 
         tol : convergence factor. If the difference of mean distance
              between two step is lower than tol
-        
+
         verbose : if verbose > 0, information will be print during learning
         Returns
         -------
@@ -30,14 +30,12 @@ class KMeans(TemplateTransformer):
         """
         self.n_clusters = n_clusters
         self.init = init
-        self.n_init = n_init
         self.metric = metric
-        self.n_jobs = n_jobs
         self.n_clusters = n_clusters
         self.tol = tol
         self.verbose = verbose
 
-    def fit(self, X, Y=None, max_iter=100):
+    def fit(self, X, max_iter=100):
         """Predict for each data point the closest center in terms of metric distance
 
         Parameters

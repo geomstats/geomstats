@@ -237,6 +237,7 @@ def norm(val, axis):
 def rand(*args, **largs):
     return torch.rand(*args, **largs)
 
+
 def isclose(*args, **kwargs):
     return torch.from_numpy(np.isclose(*args, **kwargs).astype(int)).byte()
 
@@ -285,6 +286,7 @@ def transpose(x, axes=None):
 
 def squeeze(*args, **kwargs):
     return torch.squeeze(*args, **kwargs)
+
 
 def zeros_like(*args, **kwargs):
     return torch.zeros_like(*args, **kwargs)

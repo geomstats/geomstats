@@ -380,7 +380,6 @@ class HyperbolicMetric(RiemannianMetric):
 
         cosh_angle = - inner_prod / gs.sqrt(sq_norm_a * sq_norm_b)
         cosh_angle = gs.clip(cosh_angle, 1.0, 1e24)
-    
         dist = gs.arccosh(cosh_angle)
 
         return dist
