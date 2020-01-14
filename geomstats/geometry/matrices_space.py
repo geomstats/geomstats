@@ -34,13 +34,32 @@ class MatricesSpace(EuclideanSpace):
     def mult(a, b):
         """
         Return the product of matrices a and b.
+
+        Parameters
+        ----------
+        a : array-like, shape=[n_samples, dim1, dim2]
+        b : array-like, shape=[n_samples, dim2, dim3]
+
+        Returns
+        -------
+        c : array-like, shape=[n_samples, dim1, dim3]
         """
         return gs.matmul(a, b)
 
     @staticmethod
     def bracket(a, b):
         """
-        Return the commutator `[a, b] = ab - ba` of a and b.
+        Return the commutator of a and b,
+        i.e. `[a, b] = ab - ba`.
+
+        Parameters
+        ----------
+        a : array-like, shape=[n_samples, dim, dim]
+        b : array-like, shape=[n_samples, dim, dim]
+
+        Returns
+        -------
+        c : array-like, shape=[n_samples, dim, dim]
         """
         return gs.matmul(a, b) - gs.matmul(b, a)
 
@@ -64,8 +83,8 @@ class MatricesSpace(EuclideanSpace):
         mask = gs.isclose(matrix, matrix_transpose, atol=tolerance)
         mask = gs.all(mask, axis=(1, 2))
 
-        mask = gs.to_ndarray(mask, to_ndim=1)
-        mask = gs.to_ndarray(mask, to_ndim=2, axis=1)
+#        mask = gs.to_ndarray(mask, to_ndim=1)
+#        mask = gs.to_ndarray(mask, to_ndim=2, axis=1)
         return mask
 
     @staticmethod

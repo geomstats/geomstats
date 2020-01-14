@@ -24,15 +24,22 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
     def test_mult(self):
         a = gs.eye(3, 3, 1)
         b = gs.eye(3, 3, -1) 
-        result = self.space.mult([a, b], [b, a])
-        expected = gs.array([
+        c = gs.array([
             [[1., 0., 0.],
              [0., 1., 0.],
-             [0., 0., 0.]],
+             [0., 0., 0.]]
+        ])
+        d = gs.array([
             [[0., 0., 0.],
              [0., 1., 0.],
              [0., 0., 1.]]
         ])
+        result = self.space.mult([a, b], [b, a])
+        expected = gs.array([c, d])
+        self.assertAllClose(result, expected)
+
+        result = self.space.mult(a, [a, b])
+        expected = gs.array([gs.eye(3, 3, 2), c])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -54,6 +61,10 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
         ])
         result = self.space.bracket([x, y], [y, z])
         expected = gs.array([z, x])
+        self.assertAllClose(result, expected)
+
+        result = self.space.bracket(x, [x, y, z])
+        expected = gs.array([gs.zeros((3,3)), z, -y])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only

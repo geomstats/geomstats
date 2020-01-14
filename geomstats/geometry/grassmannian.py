@@ -35,21 +35,9 @@ class Grassmannian(EmbeddedManifold):
         Check if an (n,n)-matrix is an orthogonal projector
         onto a subspace of rank p.
         """
-        # check if p* = p and p^2 = p and rank(p) = p
-        return False
-        """
-        return self.embedding_space.belongs(point, tolerance)\
-                and self.embedding_space.is_symmetric(point, tolerance)\
-                and is_projector(point, tolerance)\
-                and is_of_rank(point, p, tolerance)
-        """
-    """
-    def __is_projector(point, tolerance):
-        return self.embedding_space.mult(point, point) == point
-
-    def is_of_rank(point, k)
-        return True
-    """
+        raise NotImplementedError(
+                'the Grassmann `belongs` is not implemented.'
+                'It shall test whether p*=p, p^2 = p and rank(p) = k.')
 
 
 class GrassmannianCanonicalMetric(RiemannianMetric):
