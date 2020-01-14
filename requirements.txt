@@ -1,6 +1,7 @@
 autograd
 codecov
 coverage
+flake8
 h5py==2.8.0
 matplotlib
 nose2

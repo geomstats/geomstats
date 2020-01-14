@@ -9,7 +9,6 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-
 class LandmarksSpace(Manifold):
     """
     Class for landmarks.
@@ -154,15 +153,16 @@ class L2Metric(RiemannianMetric):
         either by an initial landmark set and an initial tangent vector.
         """
         landmarks_ndim = 2
-        initial_landmarks = gs.to_ndarray(initial_landmarks,
-                                      to_ndim=landmarks_ndim+1)
+        initial_landmarks = gs.to_ndarray(
+            initial_landmarks, to_ndim=landmarks_ndim+1)
 
         if end_landmarks is None and initial_tangent_vec is None:
-            raise ValueError('Specify an end landmark set or an initial tangent'
-                             'vector to define the geodesic.')
+            raise ValueError(
+                'Specify an end landmark set or an initial tangent'
+                'vector to define the geodesic.')
         if end_landmarks is not None:
-            end_landmarks = gs.to_ndarray(end_landmarks,
-                                      to_ndim=landmarks_ndim+1)
+            end_landmarks = gs.to_ndarray(
+                end_landmarks, to_ndim=landmarks_ndim+1)
             shooting_tangent_vec = self.log(landmarks=end_landmarks,
                                             base_landmarks=initial_landmarks)
             if initial_tangent_vec is not None:
@@ -176,8 +176,8 @@ class L2Metric(RiemannianMetric):
             t = gs.cast(t, gs.float32)
             t = gs.to_ndarray(t, to_ndim=1)
             t = gs.to_ndarray(t, to_ndim=2, axis=1)
-            new_initial_landmarks = gs.to_ndarray(initial_landmarks,
-                                              to_ndim=landmarks_ndim+1)
+            new_initial_landmarks = gs.to_ndarray(
+                initial_landmarks, to_ndim=landmarks_ndim+1)
             new_initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
                                                     to_ndim=landmarks_ndim+1)
 
