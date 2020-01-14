@@ -9,6 +9,10 @@ float32 = np.float32
 float64 = np.float64
 
 
+def copy(x):
+    return x.copy()
+
+
 def indexing(x):
     return x
 
