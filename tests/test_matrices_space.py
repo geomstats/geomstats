@@ -21,6 +21,23 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
         self.n_samples = 2
 
     @geomstats.tests.np_only
+    def test_mult(self):
+        a = gs.array([
+            [1., 2.],
+            [2., 1.]])
+        b = gs.array([
+            [0., -1.],
+            [1., 0.]])
+        result = self.space.mult([a, b], [b, a])
+        expected = gs.array([
+            [[2., -1.],
+             [1., -2.]],
+            [[-2., -1.],
+             [1., 2.]]
+        ])
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
     def test_is_symmetric(self):
         sym_mat = gs.array([[1., 2.],
                             [2., 1.]])
