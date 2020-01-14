@@ -8,25 +8,14 @@ _BACKEND = os.environ.get('GEOMSTATS_BACKEND')
 if _BACKEND is None:
     os.environ['GEOMSTATS_BACKEND'] = _BACKEND = 'numpy'
 
-
 if _BACKEND == 'numpy':
-    sys.stderr.write('Using numpy backend\n')
-    from .numpy import *  # NOQA
-    from . import numpy_linalg as linalg
-    from . import numpy_random as random
-    from . import numpy_testing as testing
+    print('Using numpy backend', file=sys.stderr)
+    from geomstats.backend.numpy import *  # NOQA
 elif _BACKEND == 'pytorch':
-    sys.stderr.write('Using pytorch backend\n')
-    from .pytorch import *  # NOQA
-    from . import pytorch_linalg as linalg  # NOQA
-    from . import pytorch_random as random  # NOQA
-    from . import pytorch_testing as testing  # NOQA
+    print('Using pytorch backend\n', file=sys.stderr)
+    from geomstats.backend.pytorch import *  # NOAQ
 elif _BACKEND == 'tensorflow':
-    sys.stderr.write('Using tensorflow backend\n')
-    from .tensorflow import *  # NOQA
-    from . import tensorflow_linalg as linalg  # NOQA
-    from . import tensorflow_random as random  # NOQA
-    from . import tensorflow_testing as testing  # NOQA
+    print('Using tensorflow backend\n', file=sys.stderr)
+    from geomstats.backend.tensorflow import *  # NOQA
 else:
-    sys.stderr.write('Unknown backend \'{:s}\'\n'.format(_BACKEND))
-    sys.exit(1)
+    raise RuntimeError('Unknown backend \'{:s}\''.format(_BACKEND))
