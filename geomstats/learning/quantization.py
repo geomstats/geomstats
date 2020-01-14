@@ -4,9 +4,6 @@
 import geomstats.backend as gs
 
 from sklearn.base import BaseEstimator, ClusterMixin
-from sklearn.utils import check_array
-from sklearn.utils.validation import check_is_fitted
-
 
 
 def quantization(X, metric, n_clusters, n_repetitions=20,
@@ -57,11 +54,10 @@ def quantization(X, metric, n_clusters, n_repetitions=20,
 
     """
     n_samples = X.shape[0]
-    n_features = X.shape[-1]
 
     random_indices = gs.random.randint(low=0, high=n_samples,
-                                           size=(n_clusters,))
-    cluster_centers = X[gs.cast(random_indices, gs.int32), :]
+                                       size=(n_clusters,))
+    cluster_centers = gs.gather(X, gs.cast(random_indices, gs.int32), axis=0)
 
     gap = 1.0
     iteration = 0
@@ -71,10 +67,11 @@ def quantization(X, metric, n_clusters, n_repetitions=20,
         step_size = gs.floor(gs.array(iteration / n_repetitions)) + 1
 
         random_index = gs.random.randint(low=0, high=n_samples, size=(1,))
-        point = X[gs.cast(random_index, gs.int32), :]
+        point = gs.gather(X, gs.cast(random_index, gs.int32), axis=0)
 
         index_to_update = metric.closest_neighbor_index(point, cluster_centers)
-        center_to_update = gs.copy(cluster_centers[index_to_update, :])
+        center_to_update = gs.copy(gs.gather(cluster_centers, index_to_update,
+                                             axis=0))
 
         tangent_vec_update = metric.log(
                 point=point, base_point=center_to_update
@@ -93,7 +90,7 @@ def quantization(X, metric, n_clusters, n_repetitions=20,
 
     if iteration == n_max_iterations-1:
         print('Maximum number of iterations {} reached. The'
-                'quantization may be inaccurate'.format(n_max_iterations))
+              'quantization may be inaccurate'.format(n_max_iterations))
 
     labels = gs.zeros(n_samples)
     for i in range(n_samples):
@@ -161,7 +158,7 @@ class Quantization(BaseEstimator, ClusterMixin):
     173 (2019), 685 - 703.
     """
     def __init__(self, metric, n_clusters, n_repetitions=20,
-            tolerance=1e-5, n_max_iterations=5e4):
+                 tolerance=1e-5, n_max_iterations=5e4):
         self.metric = metric
         self.n_clusters = n_clusters
         self.n_repetitions = n_repetitions
@@ -178,10 +175,10 @@ class Quantization(BaseEstimator, ClusterMixin):
         """
         self.cluster_centers_, self.labels_ = \
             quantization(X=X, metric=self.metric,
-                    n_clusters=self.n_clusters,
-                    n_repetitions=self.n_repetitions,
-                    tolerance=self.tolerance,
-                    n_max_iterations=self.n_max_iterations)
+                         n_clusters=self.n_clusters,
+                         n_repetitions=self.n_repetitions,
+                         tolerance=self.tolerance,
+                         n_max_iterations=self.n_max_iterations)
 
         return self
 
@@ -190,7 +187,7 @@ class Quantization(BaseEstimator, ClusterMixin):
 
         Parameters
         ----------
-        X : {array-like}, shape=[n_features]
+        X : array-like, shape=[n_features]
             New data to predict.
 
         Returns

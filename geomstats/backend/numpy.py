@@ -48,7 +48,7 @@ def get_mask_i_float(i, n):
     return mask_i_float
 
 
-def gather(x, indices):
+def gather(x, indices, axis=0):
     return x[indices]
 
 
@@ -388,10 +388,6 @@ def ndim(x):
 
 def nonzero(x):
     return np.nonzero(x)
-
-
-def copy(x):
-    return np.copy(x)
 
 
 def ix_(*args):
