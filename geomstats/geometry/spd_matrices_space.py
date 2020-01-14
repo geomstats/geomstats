@@ -132,7 +132,6 @@ class SPDMatricesSpace(EmbeddedManifold):
                 or n_tangent_vecs == 1)
 
         eigvalues, eigvectors = gs.linalg.eigh(base_point)
-
         eigvalues = gs.to_ndarray(eigvalues, to_ndim=3, axis=1)
         transp_eigvalues = gs.transpose(eigvalues, (0,2,1))
         powered_eigvalues = eigvalues**power
@@ -141,11 +140,11 @@ class SPDMatricesSpace(EmbeddedManifold):
         transp_ones = gs.transpose(ones, (0,2,1))
 
         vertical_index = gs.matmul(transp_eigvalues, ones)
-        denominator = vertical_index - gs.matmul(transp_ones, eigvalues)
-        denominator = gs.where(denominator == 0, vertical_index, denominator)
         vertical_index_power = gs.matmul(transp_powered_eigvalues, ones)
+        denominator = vertical_index - gs.matmul(transp_ones, eigvalues)
         numerator = vertical_index_power - gs.matmul(transp_ones, powered_eigvalues)
         numerator = gs.where(denominator == 0, power*vertical_index_power, numerator)
+        denominator = gs.where(denominator == 0, vertical_index, denominator)
         power_operator = numerator / denominator
 
         transp_eigvectors = gs.transpose(eigvectors, (0, 2, 1))
