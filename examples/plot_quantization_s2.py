@@ -3,40 +3,38 @@ Plot the result of optimal quantization of the von Mises Fisher distribution
 on the sphere
 """
 
-import matplotlib.pyplot as plt
 import os
+
+import matplotlib.pyplot as plt
 
 import geomstats.visualization as visualization
 
 from geomstats.geometry.hypersphere import Hypersphere
-
-SPHERE2 = Hypersphere(dimension=2)
-METRIC = SPHERE2.metric
-N_POINTS = 1000
-N_CENTERS = 4
-N_REPETITIONS = 20
-KAPPA = 10
+from geomstats.learning.quantization import Quantization
 
 
 def main():
-    points = SPHERE2.random_von_mises_fisher(kappa=KAPPA, n_samples=N_POINTS)
+    sphere = Hypersphere(dimension=2)
 
-    centers, weights, clusters, n_steps = METRIC.optimal_quantization(
-                points=points, n_centers=N_CENTERS,
-                n_repetitions=N_REPETITIONS
-                )
+    data = sphere.random_von_mises_fisher(kappa=10, n_samples=1000)
+
+    n_clusters = 4
+    clustering = Quantization(metric=sphere.metric, n_clusters=n_clusters)
+    clustering = clustering.fit(data)
 
     plt.figure(0)
     ax = plt.subplot(111, projection="3d")
-    visualization.plot(points=centers, ax=ax, space='S2', c='r')
+    visualization.plot(points=clustering.cluster_centers_, ax=ax,
+                       space='S2', c='r')
     plt.show()
 
     plt.figure(1)
     ax = plt.subplot(111, projection="3d")
-    sphere = visualization.Sphere()
-    sphere.draw(ax=ax)
-    for i in range(N_CENTERS):
-        sphere.draw_points(ax=ax, points=clusters[i])
+    sphere_plot = visualization.Sphere()
+    sphere_plot.draw(ax=ax)
+    for i in range(n_clusters):
+        cluster = data[clustering.labels_ == i, :]
+        sphere_plot.draw_points(ax=ax, points=cluster)
     plt.show()
 
 

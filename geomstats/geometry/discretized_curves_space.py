@@ -10,21 +10,13 @@ import geomstats.backend as gs
 
 from geomstats.geometry.euclidean_space import EuclideanMetric
 from geomstats.geometry.euclidean_space import EuclideanSpace
-from geomstats.geometry.landmarks_space import LandmarksSpace, L2Metric
+from geomstats.geometry.landmarks_space import L2Metric
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 R2 = EuclideanSpace(dimension=2)
 R3 = EuclideanSpace(dimension=3)
-
-
-def get_mask_i_float(i, n):
-    range_n = gs.arange(n)
-    i_float = gs.cast(gs.array([i]), gs.int32)[0]
-    mask_i = gs.equal(range_n, i_float)
-    mask_i_float = gs.cast(mask_i, gs.float32)
-    return mask_i_float
 
 
 class DiscretizedCurvesSpace(Manifold):
