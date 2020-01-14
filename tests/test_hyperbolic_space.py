@@ -320,6 +320,22 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         with self.session():
             self.assertAllClose(result, expected)
 
+    @geomstats.tests.pytorch_only
+    def test_dist_poincare(self):
+
+        point_a = gs.array([0.5, 0.5])
+        point_b = gs.array([0.5, -0.5])
+
+        self.space.metric.point_type = 'Poincare'
+        dist_a_b = self.metric.dist(point_a, point_b)
+        self.space.metric.point_type = None
+
+        result = dist_a_b.item()
+        expected = gs.array([2.887270927429199]).item()
+
+        with self.session():
+            self.assertAllClose(result, expected)
+
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         base_point = gs.array([4.0, 1., 3.0, math.sqrt(5)])
         vector = gs.array([0.001, 0., -.00001, -.00003])
