@@ -116,7 +116,7 @@ class SPDMatricesSpace(EmbeddedManifold):
 
         return tangent_vec
 
-    def differential_power(self, power, tangent_vec, base_point):
+    def differential_power(self, power, tangent_vec, base_point, inverse=False):
         """
         Computes the differential of the power function on SPD
         matrices (A^p=exp(p log(A))) at base_point applied to
@@ -145,7 +145,10 @@ class SPDMatricesSpace(EmbeddedManifold):
         numerator = vertical_index_power - gs.matmul(transp_ones, powered_eigvalues)
         numerator = gs.where(denominator == 0, power*vertical_index_power, numerator)
         denominator = gs.where(denominator == 0, vertical_index, denominator)
-        power_operator = numerator / denominator
+        if inverse:
+            power_operator = denominator / numerator
+        else:
+            power_operator = numerator / denominator
 
         transp_eigvectors = gs.transpose(eigvectors, (0, 2, 1))
         result = gs.matmul(transp_eigvectors, tangent_vec)
