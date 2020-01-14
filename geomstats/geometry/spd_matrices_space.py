@@ -133,17 +133,20 @@ class SPDMatricesSpace(EmbeddedManifold):
 
         eigvalues, eigvectors = gs.linalg.eigh(base_point)
         eigvalues = gs.to_ndarray(eigvalues, to_ndim=3, axis=1)
-        transp_eigvalues = gs.transpose(eigvalues, (0,2,1))
+        transp_eigvalues = gs.transpose(eigvalues, (0, 2, 1))
         powered_eigvalues = eigvalues**power
-        transp_powered_eigvalues = gs.transpose(powered_eigvalues, (0,2,1))
-        ones = gs.ones((n_base_points,1,dim))
-        transp_ones = gs.transpose(ones, (0,2,1))
+        transp_powered_eigvalues = gs.transpose(powered_eigvalues, (0, 2, 1))
+        ones = gs.ones((n_base_points, 1, dim))
+        transp_ones = gs.transpose(ones, (0, 2, 1))
 
         vertical_index = gs.matmul(transp_eigvalues, ones)
+        horizontal_index = gs.matmul(transp_ones, eigvalues)
         vertical_index_power = gs.matmul(transp_powered_eigvalues, ones)
-        denominator = vertical_index - gs.matmul(transp_ones, eigvalues)
-        numerator = vertical_index_power - gs.matmul(transp_ones, powered_eigvalues)
-        numerator = gs.where(denominator == 0, power*vertical_index_power, numerator)
+        horizontal_index_power = gs.matmul(transp_ones, powered_eigvalues)
+        denominator = vertical_index - horizontal_index
+        numerator = vertical_index_power - horizontal_index_power
+        numerator = gs.where(denominator == 0, power*vertical_index_power,
+                             numerator)
         denominator = gs.where(denominator == 0, vertical_index, denominator)
         power_operator = numerator / denominator
 
@@ -154,7 +157,6 @@ class SPDMatricesSpace(EmbeddedManifold):
         result = gs.matmul(result, transp_eigvectors)
         result = gs.matmul(eigvectors, result)
         return result
-
 
 
 class SPDMetric(RiemannianMetric):
@@ -348,12 +350,13 @@ class SPDMetricProcrustes(RiemannianMetric):
                 base_point,
                 (gs.maximum(n_tangent_vecs_a, n_tangent_vecs_b), 1, 1))
 
-        #TO BE IMPLEMENTED THANKS TO THE differential_power FUNCTION
-
-        eigvec, eigval = gs.linalg.eigh(base_point)
-        aux_a = gs.matmul(gs.matmul(gs.transpose(eigvec), tangent_vec_a), eigvec)
-        aux_b = gs.matmul(gs.matmul(gs.transpose(eigvec), tangent_vec_b), eigvec)
-        inner_product = gs.zeros()
-        #for i in range(dim):
+        # TO BE IMPLEMENTED THANKS TO THE differential_power FUNCTION
+        # eigvec, eigval = gs.linalg.eigh(base_point)
+        # aux_a = gs.matmul(gs.transpose(eigvec), tangent_vec_a)
+        # aux_a = gs.matmul(aux_a, eigvec)
+        # aux_b = gs.matmul(gs.transpose(eigvec), tangent_vec_b)
+        # aux_b = gs.matmul(aux_b, eigvec)
+        # inner_product = gs.zeros()
+        # for i in range(dim):
         #    for j in range(dim):
         #        inner_product +=
