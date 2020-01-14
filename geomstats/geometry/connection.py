@@ -42,7 +42,7 @@ class Connection(object):
         raise NotImplementedError(
                 'connection is not implemented.')
 
-    def exp(self, tangent_vector, base_point):
+    def exp(self, tangent_vec, base_point):
         """
         Exponential map associated to the affine connection.
 
@@ -72,59 +72,60 @@ class Connection(object):
         raise NotImplementedError(
                 'The affine connection logarithm is not implemented.')
 
-    def pole_ladder_transport(
-            self, tangent_vector_a, tangent_vector_b, base_point):
+    def pole_ladder_step(self, base_point, next_point, base_shoot):
         """
         One step of pole ladder (parallel transport associated with the
         symmetric part of the connection using transvections).
 
         Parameters
         ----------
-        tangent_vec_a: array-like, shape=[n_samples, dimension]
-                                   or shape=[1, dimension]
-
-        tangent_vec_b: array-like, shape=[n_samples, dimension]
-                                   or shape=[1, dimension]
-
         base_point: array-like, shape=[n_samples, dimension]
+                                   or shape=[1, dimension]
+
+        next_point: array-like, shape=[n_samples, dimension]
+                                   or shape=[1, dimension]
+
+        base_shoot: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
 
         Returns
         -------
         transported_tangent_vector: array-like, shape=[n_samples, dimension]
                                                 or shape=[1, dimension]
+
+        end_point: array-like, shape=[n_samples, dimension]
+                                                or shape=[1, dimension]
         """
-        half_tangent_vector_b = 1. / 2. * tangent_vector_b
+        mid_tangent_vector_to_shoot = 1. / 2. * self.log(
+                base_point=base_point,
+                point=next_point)
+
         mid_point = self.exp(
                 base_point=base_point,
-                tangent_vector=half_tangent_vector_b)
+                tangent_vec=mid_tangent_vector_to_shoot)
 
-        mid_tangent_vector = - self.log(
+        tangent_vector_to_shoot = - self.log(
                 base_point=mid_point,
-                point=base_point)
-        end_point = self.exp(
-                base_point=mid_point,
-                tangent_vector=mid_tangent_vector)
+                point=base_shoot)
 
-        base_shoot = self.exp(
-                base_point=base_point,
-                tangent_vector=tangent_vector_a)
-        mid_tangent_vector_to_shoot = - self.log(
-                base_point=mid_point,
-                end_point=base_shoot)
         end_shoot = self.exp(
                 base_point=mid_point,
-                tangent_vector=mid_tangent_vector_to_shoot)
+                tangent_vec=tangent_vector_to_shoot)
 
         transported_tangent_vector = - self.log(
-            base_point=end_point, point=end_shoot)
-        return transported_tangent_vector
+            base_point=next_point, point=end_shoot)
 
-    def parallel_transport(
-            self, tangent_vector_a, tangent_vector_b, base_point, n_points=1):
+        end_point = self.exp(
+                base_point=next_point,
+                tangent_vec=transported_tangent_vector)
+
+        return transported_tangent_vector, end_point
+
+    def pole_ladder_parallel_transport(
+            self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1):
         """
-        Parallel transport of tangent vector a integrating the connection
-        along the (affine connection) geodesic starting at the initial point
+        Approximation of Parallel transport using the pole ladder scheme
+        of tangent vector a along the geodesic starting at the initial point
         base_point with initial tangent vector the tangent vector b.
 
         Returns a tangent vector at the point
@@ -141,30 +142,31 @@ class Connection(object):
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
 
+        n_steps: int, the number of pole ladder steps
+
         Returns
         -------
         transported_tangent_vector: array-like, shape=[n_samples, dimension]
                                                 or shape=[1, dimension]
         """
-        current_point = gs.copy(base_point)
-        geodesic_tangent_vector = 1. / n_points * tangent_vector_b
-        transported_tangent_vector = gs.copy(tangent_vector_a)
-        for i_point in range(1, n_points):
-            transported_tangent_vector = self.pole_ladder_transport(
-                tangent_vector_a=transported_tangent_vector,
-                tangent_vector_b=geodesic_tangent_vector,
-                base_point=current_point)
-            current_point = self.exp(
-                base_point=current_point,
-                tangent_vector=geodesic_tangent_vector)
 
-            frac_tangent_vector_b = (i_point + 1) / n_points * tangent_vector_b
+        current_point = gs.copy(base_point)
+        transported_tangent_vector = gs.copy(tangent_vec_a)
+        for i_point in range(0, n_steps):
+            base_shoot = self.exp(
+                base_point=current_point,
+                tangent_vec=transported_tangent_vector)
+            frac_tangent_vector_b = (i_point + 1) / n_steps * tangent_vec_b
             next_point = self.exp(
                 base_point=base_point,
-                tangent_vector=frac_tangent_vector_b)
-            geodesic_tangent_vector = self.log(
+                tangent_vec=frac_tangent_vector_b)
+
+            transported_tangent_vector, base_shoot = self.pole_ladder_step(
                 base_point=current_point,
-                point=next_point)
+                next_point=next_point,
+                base_shoot=base_shoot)
+
+            current_point = next_point
 
         return transported_tangent_vector
 
@@ -308,3 +310,31 @@ class LeviCivitaConnection(Connection):
         """
         torsion = gs.zeros((self.dimension,) * 3)
         return torsion
+
+    def exp(self, tangent_vec, base_point):
+        """
+        Exponential map associated to the metric.
+
+        Parameters
+        ----------
+        tangent_vec: array-like, shape=[n_samples, dimension]
+                                 or shape=[1, dimension]
+
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
+        """
+        return self.metric.exp(tangent_vec, base_point)
+
+    def log(self, point, base_point):
+        """
+        Logarithm map associated to the metric.
+
+        Parameters
+        ----------
+        point: array-like, shape=[n_samples, dimension]
+                           or shape=[1, dimension]
+
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
+        """
+        return self.metric.log(point, base_point)
