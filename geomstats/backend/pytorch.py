@@ -285,9 +285,8 @@ def transpose(x, axes=None):
     return x.t()
 
 
-def squeeze(x, axis=None):
-    return torch.squeeze(x, dim=axis)
-
+def squeeze(*args, **kwargs):
+    return torch.squeeze(*args, **kwargs)
 
 def zeros_like(*args, **kwargs):
     return torch.zeros_like(*args, **kwargs)
