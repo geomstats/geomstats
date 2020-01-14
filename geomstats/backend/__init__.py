@@ -12,6 +12,7 @@ if _BACKEND == 'numpy':
     print('Using numpy backend', file=sys.stderr)
     from geomstats.backend.numpy import *  # NOQA
 elif _BACKEND == 'pytorch':
+<<<<<<< HEAD
     print('Using pytorch backend', file=sys.stderr)
     from geomstats.backend.pytorch import *  # NOQA
 elif _BACKEND == 'tensorflow':
