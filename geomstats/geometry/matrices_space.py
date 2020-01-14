@@ -30,6 +30,12 @@ class MatricesSpace(EuclideanSpace):
         _, mat_dim_1, mat_dim_2 = point.shape
         return mat_dim_1 == self.m & mat_dim_2 == self.n
 
+    def mult(m1, m2): 
+        return gs.matmul(m1, m2)
+
+    def bracket(m1,m2):
+        return gs.matmul(m1, m2) - gs.matmul(m2, m1)
+        
     @staticmethod
     def vector_from_matrix(matrix):
         """
@@ -38,7 +44,7 @@ class MatricesSpace(EuclideanSpace):
         matrix = gs.to_ndarray(matrix, to_ndim=3)
         n_mats, m, n = matrix.shape
         return gs.reshape(matrix, (n_mats, m*n))
-
+    
     @staticmethod
     def is_symmetric(matrix, tolerance=TOLERANCE):
         """Check if a matrix is symmetric."""
