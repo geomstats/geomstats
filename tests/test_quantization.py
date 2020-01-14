@@ -2,10 +2,8 @@ import geomstats.tests
 
 import geomstats.backend as gs
 
-from sklearn.utils.testing import assert_allclose
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.quantization import Quantization
-
 
 
 class TestQuantizationMethods(geomstats.tests.TestCase):
@@ -23,7 +21,7 @@ class TestQuantizationMethods(geomstats.tests.TestCase):
     def test_fit(self):
         X = self.data
         clustering = Quantization(metric=self.metric, n_clusters=1,
-                n_repetitions=1)
+                                  n_repetitions=1)
         clustering.fit(X)
 
         center = clustering.cluster_centers_
@@ -35,7 +33,7 @@ class TestQuantizationMethods(geomstats.tests.TestCase):
     def test_predict(self):
         X = self.data
         clustering = Quantization(metric=self.metric, n_clusters=3,
-                n_repetitions=1)
+                                  n_repetitions=1)
         clustering.fit(X)
 
         point = self.data[0, :]
@@ -47,4 +45,4 @@ class TestQuantizationMethods(geomstats.tests.TestCase):
 
 
 if __name__ == '__main__':
-        geomstats.tests.main()
+    geomstats.tests.main()
