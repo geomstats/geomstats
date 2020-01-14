@@ -25,14 +25,14 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
         a = gs.eye(3, 3, 1)
         b = gs.eye(3, 3, -1) 
         c = gs.array([
-            [[1., 0., 0.],
-             [0., 1., 0.],
-             [0., 0., 0.]]
+            [1., 0., 0.],
+            [0., 1., 0.],
+            [0., 0., 0.]
         ])
         d = gs.array([
-            [[0., 0., 0.],
-             [0., 1., 0.],
-             [0., 0., 1.]]
+            [0., 0., 0.],
+            [0., 1., 0.],
+            [0., 0., 1.]
         ])
         result = self.space.mult([a, b], [b, a])
         expected = gs.array([c, d])
