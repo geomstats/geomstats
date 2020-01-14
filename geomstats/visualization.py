@@ -345,10 +345,10 @@ def convert_to_trihedron(point, space=None):
 
     dim_rotations = SO3_GROUP.dimension
 
-    if space is 'SE3_GROUP':
+    if space == 'SE3_GROUP':
         rot_vec = point[:, :dim_rotations]
         translation = point[:, dim_rotations:]
-    elif space is 'SO3_GROUP':
+    elif space == 'SO3_GROUP':
         rot_vec = point
         translation = gs.zeros((n_points, 3))
     else:
