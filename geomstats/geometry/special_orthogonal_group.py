@@ -84,7 +84,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
             point_transpose = gs.transpose(point, axes=(0, 2, 1))
-            mask = gs.isclose(gs.matmul(point, point_transpose), gs.eye(self.n))
+            mask = gs.isclose(gs.matmul(point, point_transpose),
+                              gs.eye(self.n))
             mask = gs.all(mask, axis=(1, 2))
 
             mask = gs.to_ndarray(mask, to_ndim=1)
