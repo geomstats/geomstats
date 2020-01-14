@@ -22,8 +22,8 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_mult(self):
-        a = gs.eye(2, 2, 1)
-        b = gs.eye(2, 2, -1) 
+        a = gs.eye(3, 3, 1)
+        b = gs.eye(3, 3, -1) 
         result = self.space.mult([a, b], [b, a])
         expected = gs.array([
             [[1., 0., 0.],
