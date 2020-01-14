@@ -405,6 +405,22 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
+    def test_rotation_vector_from_matrix_vectorization(self):
+        n = 3
+        group = self.so[n]
+
+        # example from issue 217
+        rot_mats = gs.array([
+            [[-1., 0., 0.], [0., -1., 0.], [0., 0., 1.]],
+            [[-1., 0., 0.], [0., 1., 0.], [0., 0., -1.]]])
+
+        result = group.rotation_vector_from_matrix(rot_mats)
+        expected = gs.pi * gs.array([[0., 0., 1.], [0., 1., 0.]])
+
+        self.assertAllClose(result, expected)
+
+
+    @geomstats.tests.np_only
     def test_rotation_vector_and_rotation_matrix(self):
         """
         This tests that the composition of
@@ -3743,6 +3759,79 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             point_step = metric.exp(tangent_vec=i * tangent_vec_step,
                                     base_point=initial_point)
             # self.assertTrue(gs.allclose(point_step, points[i]))
+
+    def test_lie_bracket_at_identity(self):
+        space = self.so[3]
+        base_point = gs.eye(3)
+        first_tan = gs.array([
+            [0., -1., 0.],
+            [1., 0., 0.],
+            [0., 0., 0.]])
+        second_tan = first_tan
+
+        result = space.lie_bracket(base_point, first_tan, second_tan)
+        expected = gs.zeros((3,3))
+
+        self.assertAllClose(result, expected)
+
+        first_tan = gs.array([
+            [0., -1., 0.],
+            [1., 0., 0.],
+            [0., 0., 0.]])
+        second_tan = gs.array([
+            [0., 0., -1.],
+            [0., 0., 0.],
+            [1., 0., 0.]])
+
+        result = space.lie_bracket(base_point, first_tan, second_tan)
+        expected = gs.array([
+            [0., 0., 0.],
+            [0., 0., -1.],
+            [0., 1., 0.]])
+
+        self.assertAllClose(result, expected)
+
+    def test_lie_bracket_vectorization(self):
+        space = self.so[3]
+
+        base_point = gs.array([gs.eye(3), gs.eye(3)])
+        first_tan = gs.array([
+                [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
+                [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
+                ])
+        second_tan = gs.array([
+                [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
+                [[0., 0., -1.], [0., 0., 0.], [1., 0., 0.]]
+            ])
+
+        result = space.lie_bracket(base_point, first_tan, second_tan)
+        expected = gs.array([
+                gs.zeros((3,3)),
+                [ [0., 0., 0.], [0., 0., -1.], [0., 1., 0.]]
+                ])
+
+        self.assertAllClose(result, expected)
+
+    def test_lie_bracket_at_non_identity(self):
+        space = self.so[3]
+
+        base_point = gs.array([
+            [[-1., 0., 0.], [0., -1., 0.], [0., 0., 1.]]])
+        first_tan = gs.matmul(
+                base_point,
+                gs.array([[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]])
+                )
+        second_tan = gs.matmul(
+                base_point,
+                gs.array([[0., 0., -1.], [0., 0., 0.], [1., 0., 0.]])
+                )
+
+        result = space.lie_bracket(base_point, first_tan, second_tan)
+        expected = gs.matmul(
+            base_point,
+            gs.array([[[0., 0., 0.], [0., 0., -1.], [0., 1., 0.]]]))
+
+        self.assertAllClose(result, expected)
 
 
 if __name__ == '__main__':
