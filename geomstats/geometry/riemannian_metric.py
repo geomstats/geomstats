@@ -61,6 +61,17 @@ class RiemannianMetric(object):
             'The computation of the inner product matrix'
             ' is not implemented.')
 
+    def inner_product_inverse_matrix(self, base_point=None):
+        """
+        Inner product matrix at the tangent space at a base point.
+        Parameters
+        ----------
+        base_point : array-like, shape=[n_samples, dimension], optional
+        """
+        raise NotImplementedError(
+                'The computation of the inner product matrix'
+                ' is not implemented.')
+
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """
         Inner product between two tangent vectors at a base point.
