@@ -10,7 +10,7 @@ import geomstats.backend as gs
 
 from geomstats.geometry.euclidean_space import EuclideanMetric
 from geomstats.geometry.euclidean_space import EuclideanSpace
-from geomstats.geometry.landmarks_space import LandmarksSpace, L2Metric
+from geomstats.geometry.landmarks_space import L2Metric
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 

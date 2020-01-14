@@ -102,10 +102,10 @@ class InvariantMetric(RiemannianMetric):
             return self.inner_product_at_identity(tangent_vec_a,
                                                   tangent_vec_b)
         if self.group.default_point_type == 'vector':
-                return super(InvariantMetric, self).inner_product(
-                                     tangent_vec_a,
-                                     tangent_vec_b,
-                                     base_point)
+            return super(InvariantMetric, self).inner_product(
+                tangent_vec_a,
+                tangent_vec_b,
+                base_point)
 
         if self.left_or_right == 'right':
             raise NotImplementedError(
@@ -220,8 +220,6 @@ class InvariantMetric(RiemannianMetric):
         assert gs.ndim(jacobian) == 3
         inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = gs.transpose(inv_jacobian, axes=(0, 2, 1))
-        #print(tangent_vec)
-        #print(inv_jacobian_transposed)
         tangent_vec_at_id = gs.einsum('ni,nij->nj',
                                       tangent_vec,
                                       inv_jacobian_transposed)
