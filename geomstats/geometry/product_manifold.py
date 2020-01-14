@@ -4,7 +4,7 @@ Product of manifolds.
 
 import geomstats.backend as gs
 
-from geomstats.manifold import Manifold
+from geomstats.geometry.manifold import Manifold
 
 # TODO(nina): get rid of for loops
 # TODO(nina): unit tests
@@ -18,7 +18,7 @@ class ProductManifold(Manifold):
         self.n_manifolds = len(manifolds)
         dimensions = [manifold.dimension for manifold in manifolds]
         super(ProductManifold, self).__init__(
-            dimension=gs.sum(dimensions))
+            dimension=sum(dimensions))
 
     def belongs(self, point):
         """Check if the point belongs to the manifold."""
