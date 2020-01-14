@@ -22,19 +22,38 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_mult(self):
-        a = gs.array([
-            [1., 2.],
-            [2., 1.]])
-        b = gs.array([
-            [0., -1.],
-            [1., 0.]])
+        a = gs.eye(2, 2, 1)
+        b = gs.eye(2, 2, -1) 
         result = self.space.mult([a, b], [b, a])
         expected = gs.array([
-            [[2., -1.],
-             [1., -2.]],
-            [[-2., -1.],
-             [1., 2.]]
+            [[1., 0., 0.],
+             [0., 1., 0.],
+             [0., 0., 0.]],
+            [[0., 0., 0.],
+             [0., 1., 0.],
+             [0., 0., 1.]]
         ])
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_bracket(self):
+        x = gs.array([
+            [0., 0., 0.],
+            [0., 0., -1.],
+            [0., 1., 0.]
+        ])
+        y = gs.array([
+            [0., 0., 1.],
+            [0., 0., 0.],
+            [-1., 0., 0.]
+        ])
+        z = gs.array([
+            [0., -1., 0.],
+            [1., 0., 0.],
+            [0., 0., 0.]
+        ])
+        result = self.space.bracket([x, y], [y, z])
+        expected = gs.array([z, x])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only

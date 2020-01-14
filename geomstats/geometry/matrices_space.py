@@ -29,11 +29,13 @@ class MatricesSpace(EuclideanSpace):
         point = gs.to_ndarray(point, to_ndim=3)
         _, mat_dim_1, mat_dim_2 = point.shape
         return mat_dim_1 == self.m & mat_dim_2 == self.n
-
+    
+    @staticmethod
     def mult(m1, m2): 
         return gs.matmul(m1, m2)
-
-    def bracket(m1,m2):
+    
+    @staticmethod
+    def bracket(m1, m2):
         return gs.matmul(m1, m2) - gs.matmul(m2, m1)
         
     @staticmethod
