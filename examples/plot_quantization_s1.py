@@ -3,8 +3,9 @@ Plot the result of optimal quantization of the uniform distribution
 on the circle.
 """
 
-import matplotlib.pyplot as plt
 import os
+
+import matplotlib.pyplot as plt
 
 import geomstats.visualization as visualization
 
@@ -26,14 +27,9 @@ def main():
     clustering = Quantization(metric=circle.metric, n_clusters=n_clusters)
     clustering = clustering.fit(data)
 
-    #points = CIRCLE.random_uniform(n_samples=N_POINTS, bound=None)
-    #centers, weights, clusters, n_iterations = METRIC.optimal_quantization(
-    #            points=points, n_centers=N_CENTERS,
-    #            n_repetitions=N_REPETITIONS, tolerance=TOLERANCE
-    #            )
-
     plt.figure(0)
-    visualization.plot(points=clustering.cluster_centers_, space='S1', color='red')
+    visualization.plot(points=clustering.cluster_centers_, space='S1',
+                       color='red')
     plt.show()
 
     plt.figure(1)
@@ -41,7 +37,7 @@ def main():
     circle_plot = visualization.Circle()
     circle_plot.draw(ax=ax)
     for i in range(n_clusters):
-        cluster = data[clustering.labels_==i, :]
+        cluster = data[clustering.labels_ == i, :]
         circle_plot.draw_points(ax=ax, points=cluster)
     plt.show()
 
