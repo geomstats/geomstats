@@ -216,12 +216,13 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_random_and_belongs(self):
-        for n in self.n_seq:
-            group = self.so[n]
-            point = group.random_uniform()
-            result = group.belongs(point)
-            expected = gs.array([[True]])
-            self.assertAllClose(result, expected)
+        for point_type in ('vector', 'matrix'):
+            for n in self.n_seq:
+                group = self.so[n]
+                point = group.random_uniform(point_type=point_type)
+                result = group.belongs(point, point_type=point_type)
+                expected = gs.array([[True]])
+                self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_random_and_belongs_vectorization(self):

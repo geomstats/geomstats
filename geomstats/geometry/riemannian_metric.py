@@ -315,7 +315,8 @@ class RiemannianMetric(object):
              weights=None,
              n_max_iterations=32,
              epsilon=EPSILON,
-             point_type='vector'):
+             point_type='vector',
+             verbose=False):
         """
         Frechet mean of (weighted) points.
 
@@ -324,14 +325,16 @@ class RiemannianMetric(object):
         points: array-like, shape=[n_samples, dimension]
 
         weights: array-like, shape=[n_samples, 1], optional
+
+        verbose: bool, optional
         """
         # TODO(nina): Profile this code to study performance,
         # i.e. what to do with sq_dists_between_iterates.
         def while_loop_cond(iteration, mean, variance, sq_dist):
-            result = gs.logical_or(
+            result = ~gs.logical_or(
                 gs.isclose(variance, 0.),
                 gs.less_equal(sq_dist, epsilon * variance))
-            return result[0, 0]
+            return result[0, 0] or iteration == 0
 
         def while_loop_body(iteration, mean, variance, sq_dist):
             tangent_mean = gs.zeros_like(mean)
@@ -393,6 +396,10 @@ class RiemannianMetric(object):
         if last_iteration == n_max_iterations:
             print('Maximum number of iterations {} reached.'
                   'The mean may be inaccurate'.format(n_max_iterations))
+
+        if verbose:
+            print('n_iter: {}, final variance: {}, final dist: {}'.format(
+                last_iteration, variance, sq_dist))
 
         mean = gs.to_ndarray(mean, to_ndim=2)
         return mean
