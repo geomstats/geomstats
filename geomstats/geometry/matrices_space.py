@@ -31,12 +31,18 @@ class MatricesSpace(EuclideanSpace):
         return mat_dim_1 == self.m & mat_dim_2 == self.n
     
     @staticmethod
-    def mult(m1, m2): 
-        return gs.matmul(m1, m2)
+    def mult(a, b): 
+        """
+        Return the product of matrices a and b. 
+        """
+        return gs.matmul(a, b)
     
     @staticmethod
-    def bracket(m1, m2):
-        return gs.matmul(m1, m2) - gs.matmul(m2, m1)
+    def bracket(a, b):
+        """
+        Return the commutator `[a, b] = ab - ba` of a and b.
+        """
+        return gs.matmul(a, b) - gs.matmul(b, a)
         
     @staticmethod
     def vector_from_matrix(matrix):
