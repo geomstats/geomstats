@@ -122,6 +122,18 @@ class SPDMatricesSpace(EmbeddedManifold):
         Computes the differential of the power function on SPD
         matrices (A^p=exp(p log(A))) at base_point applied to
         tangent_vec.
+
+        Parameters
+        ----------
+        power : int
+        tangent_vec : array_like, shape=[n_samples, dim, dim]
+                      Tangent vectors.
+        base_point : array_like, shape=[n_samples, dim, dim]
+                     Base points.
+
+        Returns
+        -------
+        differential_power : array-like, shape=[n_samples, dim, dim]
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         n_tangent_vecs, dim, _ = tangent_vec.shape
@@ -312,6 +324,19 @@ class SPDMetric(RiemannianMetric):
 
 class SPDMetricProcrustes(RiemannianMetric):
 
+    """
+    Class for the Procrustes/Bures-Wasserstein metric on
+    the manifold of SPD matrices.
+
+    Based on :
+    Bhatia, Jain, Lim
+    "On the Bures-Wasserstein distance between positive
+    definite matrices"
+    Elsevier, Expositiones Mathematicae, vol. 37(2), 165-191
+
+    https://arxiv.org/pdf/1712.01504.pdf
+    """
+
     def __init__(self, n):
         super(SPDMetricProcrustes, self).__init__(
             dimension=int(n * (n + 1) / 2),
@@ -322,6 +347,16 @@ class SPDMetricProcrustes(RiemannianMetric):
         """
         Compute the inner product of tangent_vec_a and tangent_vec_b
         at point base_point using the Procrustes Riemannian metric.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[n_samples, dim, dim]
+        tangent_vec_b : array-like, shape=[n_samples, dim, dim]
+        base_point : array-like, shape={n_samples, dim, dim]
+
+        Returns
+        -------
+        inner_product : float
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
         n_tangent_vecs_a, _, _ = tangent_vec_a.shape
@@ -353,14 +388,3 @@ class SPDMetricProcrustes(RiemannianMetric):
             base_point = gs.tile(
                 base_point,
                 (gs.maximum(n_tangent_vecs_a, n_tangent_vecs_b), 1, 1))
-
-        # TO BE IMPLEMENTED THANKS TO THE differential_power FUNCTION
-        # eigvalues, eigvectors = gs.linalg.eigh(base_point)
-        # aux_a = gs.matmul(gs.transpose(eigvec), tangent_vec_a)
-        # aux_a = gs.matmul(aux_a, eigvec)
-        # aux_b = gs.matmul(gs.transpose(eigvec), tangent_vec_b)
-        # aux_b = gs.matmul(aux_b, eigvec)
-        # inner_product = gs.zeros()
-        # for i in range(dim):
-        #    for j in range(dim):
-        #        inner_product +=
