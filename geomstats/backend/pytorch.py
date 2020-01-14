@@ -398,10 +398,6 @@ def nonzero(*args, **kwargs):
     return torch.nonzero(*args, **kwargs)
 
 
-def copy(x):
-    return x.clone()
-
-
 def seed(x):
     torch.manual_seed(x)
 
@@ -419,3 +415,19 @@ def mean(x, axis=None):
 
 def argmin(*args, **kwargs):
     return torch.argmin(*args, **kwargs)
+
+
+def arange(*args, **kwargs):
+    return torch.arange(*args, **kwargs)
+
+
+def gather(x, indices, axis=0):
+    return x[indices]
+
+
+def get_mask_i_float(i, n):
+    range_n = arange(n)
+    i_float = cast(array([i]), int32)[0]
+    mask_i = equal(range_n, i_float)
+    mask_i_float = cast(mask_i, float32)
+    return mask_i_float
