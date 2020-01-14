@@ -7,12 +7,12 @@ from . import linalg  # NOQA
 from . import random  # NOQA
 from . import testing  # NOQA
 
-double = torch.double
-float16 = torch.float16
-float32 = torch.float32
-float64 = torch.float64
-int32 = torch.int32
-int8 = torch.int8
+double = 'torch.DoubleTensor'
+float16 = 'torch.Float'
+float32 = 'torch.FloatTensor'
+float64 = 'torch.DoubleTensor'
+int32 = 'torch.LongTensor'
+int8 = 'torch.ByteTensor'
 
 
 def version_maj():
@@ -106,7 +106,7 @@ def vstack(seq):
 
 
 def array(val):
-    if isinstance(val, val):
+    if isinstance(val, list):
         if not isinstance(val[0], torch.Tensor):
             val = _np.copy(_np.array(val))
         else:
