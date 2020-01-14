@@ -753,3 +753,4 @@ class HyperbolicMetric(RiemannianMetric):
         else:
             raise NotImplementedError(
                     'dist is only implemented for ball and extrinsic')
+
