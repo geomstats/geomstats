@@ -13,6 +13,6 @@ class PoincarePolydisk(ProductManifold):
     """
     def __init__(self, n_disks):
         disk = HyperbolicSpace(dimension=2)
-        list_disks = [disk,] * n_disks
+        list_disks = [disk, ] * n_disks
         super(PoincarePolydisk, self).__init__(
             manifolds=list_disks)
