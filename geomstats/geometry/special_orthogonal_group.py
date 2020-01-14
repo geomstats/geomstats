@@ -200,7 +200,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 regularized_vec = tangent_vec
 
         elif point_type == 'matrix':
-                regularized_vec = tangent_vec
+            regularized_vec = tangent_vec
 
         return regularized_vec
 
@@ -1153,12 +1153,12 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         if point_type == 'vector':
             if self.n == 3:
-                inv_point = -self.regularize(point, point_type=point_type)
-                return inv_point
+                return -self.regularize(point, point_type=point_type)
             else:
                 point = self.matrix_from_rotation_vector(point)
 
-        inv_point = gs.linalg.inv(point)
+        transpose_order = (0, 2, 1) if point.ndim == 3 else (1, 0)
+        inv_point = gs.transpose(point, transpose_order)
 
         if point_type == 'vector':
             inv_point = self.rotation_vector_from_matrix(inv_point)

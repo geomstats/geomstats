@@ -11,6 +11,20 @@ int32 = 'torch.LongTensor'
 int8 = 'torch.ByteTensor'
 
 
+def while_loop(cond, body, loop_vars, maximum_iterations):
+    iteration = 0
+    while cond(*loop_vars):
+        loop_vars = body(*loop_vars)
+        iteration += 1
+        if iteration >= maximum_iterations:
+            break
+    return loop_vars
+
+
+def logical_or(x, y):
+    return x or y
+
+
 def cond(pred, true_fn, false_fn):
     if pred:
         return true_fn()
@@ -69,15 +83,15 @@ def vstack(seq):
 
 
 def array(val):
-    if type(val) == list:
-        if type(val[0]) != torch.Tensor:
+    if isinstance(val, list):
+        if not isinstance(val[0], torch.Tensor):
             val = np.copy(np.array(val))
         else:
             val = concatenate(val)
 
-    if type(val) == bool:
+    if isinstance(val, bool):
         val = np.array(val)
-    if type(val) == np.ndarray:
+    if isinstance(val, np.ndarray):
         if val.dtype == bool:
             val = torch.from_numpy(np.array(val, dtype=np.uint8))
         elif val.dtype == np.float32 or val.dtype == np.float64:
@@ -85,7 +99,7 @@ def array(val):
         else:
             val = torch.from_numpy(val)
 
-    if type(val) != torch.Tensor:
+    if not isinstance(val, torch.Tensor):
         val = torch.Tensor([val])
     if val.dtype == torch.float64:
         val = val.float()
@@ -115,7 +129,7 @@ def empty_like(*args, **kwargs):
 def all(x, axis=None):
     if axis is None:
         return x.byte().all()
-    return torch.from_numpy(np.all(x, axis=axis).astype(int))
+    return torch.from_numpy(np.all(np.array(x), axis=axis).astype(int))
 
 
 def allclose(a, b, **kwargs):
@@ -296,7 +310,7 @@ def equal(a, b, **kwargs):
         a = cast(a, torch.uint8).float()
     if b.dtype == torch.ByteTensor:
         b = cast(b, torch.uint8).float()
-    return torch.equal(a, b, **kwargs)
+    return torch.eq(a, b, **kwargs)
 
 
 def floor(*args, **kwargs):
@@ -352,8 +366,8 @@ def diagonal(*args, **kwargs):
     return torch.diagonal(*args, **kwargs)
 
 
-def exp(*args, **kwargs):
-    return torch.exp(*args, **kwargs)
+def exp(input):
+    return torch.exp(input)
 
 
 def log(*args, **kwargs):
@@ -401,3 +415,7 @@ def mean(x, axis=None):
         return torch.mean(x)
     else:
         return np.mean(x, axis)
+
+
+def argmin(*args, **kwargs):
+    return torch.argmin(*args, **kwargs)
