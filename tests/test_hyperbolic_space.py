@@ -3,7 +3,6 @@ Unit tests for the Hyperbolic space.
 """
 
 import math
-import numpy as np
 
 import geomstats.backend as gs
 import geomstats.tests
@@ -333,20 +332,6 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         result = dist_a_b
         expected = gs.array([2.887270927429199])
 
-        with self.session():
-            self.assertAllClose(result, expected)
-
-
-    def test_exp_poincare(self):
-
-        result = 0
-        expected=0
-        with self.session():
-            self.assertAllClose(result, expected)
-
-    def test_log_poincare(self):
-        result = 0
-        expected=0
         with self.session():
             self.assertAllClose(result, expected)
 

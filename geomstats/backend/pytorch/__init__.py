@@ -366,6 +366,8 @@ def clip(x, amin, amax):
 
     return _np.clip(x, amin, amax)
 
+def clamp(*args, **kwargs):
+    return torch.clamp(*args,**kwargs)
 
 def clamp(*args, **kwargs):
     return torch.clamp(*args, **kwargs)
