@@ -116,7 +116,8 @@ class SPDMatricesSpace(EmbeddedManifold):
 
         return tangent_vec
 
-    def differential_power(self, power, tangent_vec, base_point):
+    def differential_power(self, power, tangent_vec, base_point,
+                           inverse=False):
         """
         Computes the differential of the power function on SPD
         matrices (A^p=exp(p log(A))) at base_point applied to
@@ -148,7 +149,10 @@ class SPDMatricesSpace(EmbeddedManifold):
         numerator = gs.where(denominator == 0, power*vertical_index_power,
                              numerator)
         denominator = gs.where(denominator == 0, vertical_index, denominator)
-        power_operator = numerator / denominator
+        if inverse:
+            power_operator = denominator / numerator
+        else:
+            power_operator = numerator / denominator
 
         transp_eigvectors = gs.transpose(eigvectors, (0, 2, 1))
         result = gs.matmul(transp_eigvectors, tangent_vec)
@@ -351,7 +355,7 @@ class SPDMetricProcrustes(RiemannianMetric):
                 (gs.maximum(n_tangent_vecs_a, n_tangent_vecs_b), 1, 1))
 
         # TO BE IMPLEMENTED THANKS TO THE differential_power FUNCTION
-        # eigvec, eigval = gs.linalg.eigh(base_point)
+        # eigvalues, eigvectors = gs.linalg.eigh(base_point)
         # aux_a = gs.matmul(gs.transpose(eigvec), tangent_vec_a)
         # aux_a = gs.matmul(aux_a, eigvec)
         # aux_b = gs.matmul(gs.transpose(eigvec), tangent_vec_b)
