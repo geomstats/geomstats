@@ -263,7 +263,8 @@ class LieGroup(Manifold):
         tangent_vector_a = gs.to_ndarray(tangent_vector_a, to_ndim=3)
         tangent_vector_b = gs.to_ndarray(tangent_vector_b, to_ndim=3)
 
-        inverse_base = self.inverse(base_point, point_type='matrix')
+        inverse_base = gs.to_ndarray(
+                self.inverse(base_point, point_type='matrix'), to_ndim=3)
 
         first_term = gs.matmul(
                 tangent_vector_a, gs.matmul(inverse_base, tangent_vector_b))
