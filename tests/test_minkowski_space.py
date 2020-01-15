@@ -12,8 +12,6 @@ from geomstats.geometry.minkowski_space import MinkowskiSpace
 
 
 class TestMinkowskiSpaceMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         gs.random.seed(1234)
 
@@ -254,7 +252,3 @@ class TestMinkowskiSpaceMethods(geomstats.tests.TestCase):
         # we expect the average of the points' Minkowski sq norms.
         expected = helper.to_scalar(gs.array([True]))
         self.assertAllClose(result, expected)
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

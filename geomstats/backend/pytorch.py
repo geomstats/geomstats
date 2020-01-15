@@ -234,10 +234,6 @@ def norm(val, axis):
     return torch.linalg.norm(val, axis=axis)
 
 
-def rand(*args, **largs):
-    return torch.rand(*args, **largs)
-
-
 def isclose(*args, **kwargs):
     return torch.from_numpy(np.isclose(*args, **kwargs).astype(int)).byte()
 
@@ -403,6 +399,13 @@ def nonzero(*args, **kwargs):
 
 def seed(x):
     torch.manual_seed(x)
+
+
+def prod(x, axis=None):
+    if axis is None:
+        return torch.prod(x)
+    else:
+        return torch.prod(x, dim=axis)
 
 
 def sign(*args, **kwargs):
