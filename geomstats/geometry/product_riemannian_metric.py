@@ -17,7 +17,7 @@ class ProductRiemannianMetric(RiemannianMetric):
     """
 
     def __init__(self, metrics):
-        self.n_metrics = gs.len(metrics)
+        self.n_metrics = len(metrics)
         dimensions = [metric.dimension for metric in metrics]
         signatures = [metric.signature for metric in metrics]
 
@@ -25,9 +25,12 @@ class ProductRiemannianMetric(RiemannianMetric):
         self.dimensions = dimensions
         self.signatures = signatures
 
+        sig_0 = sum([sig[0] for sig in signatures])
+        sig_1 = sum([sig[1] for sig in signatures])
+        sig_2 = sum([sig[2] for sig in signatures])
         super(ProductRiemannianMetric, self).__init__(
-            dimension=gs.sum(dimensions),
-            signature=map(sum, signatures))
+            dimension=sum(dimensions),
+            signature=(sig_0, sig_1, sig_2))
 
     def inner_product_matrix(self, base_point=None):
         """
