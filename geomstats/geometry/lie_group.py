@@ -155,7 +155,7 @@ class LieGroup(Manifold):
 
     def group_exp_not_from_identity(self, tangent_vec, base_point, point_type):
         """
-        Caculate the group exponential at a non_identity point.
+        Calculate the group exponential at base_point.
 
         Parameters
         ----------
@@ -267,8 +267,7 @@ class LieGroup(Manifold):
 
     def group_log_not_from_identity(self, point, base_point, point_type):
         """
-        Compute the group logarithm
-        of the point point from the identity.
+        Compute the group logarithm of the point point from base_point.
 
         Parameters
         ----------
@@ -298,7 +297,7 @@ class LieGroup(Manifold):
 
     def group_log(self, point, base_point=None, point_type=None):
         """
-        Compute the group logarithm of the point relative to base_point.
+        Compute the group logarithm of point relative to base_point.
 
         Parameters
         ----------
