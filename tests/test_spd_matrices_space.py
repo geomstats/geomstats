@@ -93,7 +93,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
-    def test_differential_power_with_inverse(self):
+    def test_inverse_differential_power(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 2.5, 1.5],
                                [0., 1.5, 2.5]])
@@ -101,7 +101,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                                 [1 / 3, .125, .125],
                                 [1 / 3, .125, .125]])
         power = .5
-        result = self.space.differential_power(power=power, tangent_vec=tangent_vec, base_point=base_point, inverse=True)
+        result = self.space.inverse_differential_power(power=power, tangent_vec=tangent_vec, base_point=base_point)
         expected = gs.array([[2., 1., 1.],
                              [1., .5, .5],
                              [1., .5, .5]])

@@ -116,12 +116,10 @@ class SPDMatricesSpace(EmbeddedManifold):
 
         return tangent_vec
 
-    def differential_power(self, power, tangent_vec, base_point,
-                           inverse=False):
+    def aux_differential_power(self, power, tangent_vec, base_point):
         """
-        Computes the differential of the power function on SPD
-        matrices (A^p=exp(p log(A))) at base_point applied to
-        tangent_vec.
+        Auxiliary function to the functions differential_power and
+        inverse_differential_power.
 
         Parameters
         ----------
@@ -133,7 +131,11 @@ class SPDMatricesSpace(EmbeddedManifold):
 
         Returns
         -------
-        differential_power : array-like, shape=[n_samples, dim, dim]
+        eigvectors : array-like, shape=[n_samples, dim, dim]
+        transp_eigvectors : array-like, shape=[n_samples, dim, dim]
+        numerator : array-like, shape=[n_samples, dim, dim]
+        denominator : array-like, shape=[n_samples, dim, dim]
+        temp_result : array-like, shape=[n_samples, dim, dim]
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         n_tangent_vecs, dim, _ = tangent_vec.shape
@@ -161,15 +163,61 @@ class SPDMatricesSpace(EmbeddedManifold):
         numerator = gs.where(denominator == 0, power*vertical_index_power,
                              numerator)
         denominator = gs.where(denominator == 0, vertical_index, denominator)
-        if inverse:
-            power_operator = denominator / numerator
-        else:
-            power_operator = numerator / denominator
 
         transp_eigvectors = gs.transpose(eigvectors, (0, 2, 1))
-        result = gs.matmul(transp_eigvectors, tangent_vec)
-        result = gs.matmul(result, eigvectors)
-        result = power_operator * result
+        temp_result = gs.matmul(transp_eigvectors, tangent_vec)
+        temp_result = gs.matmul(temp_result, eigvectors)
+        return (eigvectors, transp_eigvectors, numerator, denominator,
+                temp_result)
+
+    def differential_power(self, power, tangent_vec, base_point):
+        """
+        Computes the differential of the power function on SPD
+        matrices (A^p=exp(p log(A))) at base_point applied to
+        tangent_vec.
+
+        Parameters
+        ----------
+        power : int
+        tangent_vec : array_like, shape=[n_samples, dim, dim]
+                      Tangent vectors.
+        base_point : array_like, shape=[n_samples, dim, dim]
+                     Base points.
+
+        Returns
+        -------
+        differential_power : array-like, shape=[n_samples, dim, dim]
+        """
+        eigvectors, transp_eigvectors, numerator, denominator, temp_result =\
+            self.aux_differential_power(power, tangent_vec, base_point)
+        power_operator = numerator / denominator
+        result = power_operator * temp_result
+        result = gs.matmul(result, transp_eigvectors)
+        result = gs.matmul(eigvectors, result)
+        return result
+
+    def inverse_differential_power(self, power, tangent_vec, base_point):
+        """
+        Computes the inverse of the differential of the power
+        function on SPD matrices (A^p=exp(p log(A))) at base_point
+        applied to tangent_vec.
+
+        Parameters
+        ----------
+        power : int
+        tangent_vec : array_like, shape=[n_samples, dim, dim]
+                      Tangent vectors.
+        base_point : array_like, shape=[n_samples, dim, dim]
+                     Base points.
+
+        Returns
+        -------
+        inverse_differential_power : array-like, shape=[n_samples, dim, dim]
+        """
+        eigvectors, transp_eigvectors, numerator, denominator, temp_result =\
+            self.aux_differential_power(power, tangent_vec, base_point)
+        power_operator = denominator / numerator
+        result = power_operator * temp_result
         result = gs.matmul(result, transp_eigvectors)
         result = gs.matmul(eigvectors, result)
         return result
@@ -391,9 +439,9 @@ class SPDMetricProcrustes(RiemannianMetric):
                 base_point,
                 (gs.maximum(n_tangent_vecs_a, n_tangent_vecs_b), 1, 1))
 
-        aux_a = SPDMatricesSpace(dim).differential_power(2, tangent_vec_a,
-                                                         base_point,
-                                                         inverse=True)
-        product = gs.matmul(aux_a, tangent_vec_b)
+        spd_space = SPDMatricesSpace(dim)
+        modified_tangent_vec_a =\
+            spd_space.inverse_differential_power(2, tangent_vec_a, base_point)
+        product = gs.matmul(modified_tangent_vec_a, tangent_vec_b)
         result = gs.trace(product, axis1=1, axis2=2) / 2
         return result
