@@ -11,6 +11,14 @@ int32 = 'torch.LongTensor'
 int8 = 'torch.ByteTensor'
 
 
+def version_maj():
+    return int(torch.__version__.split(".")[0])
+
+
+def version_min():
+    return int(torch.__version__.split(".")[1])
+
+
 def while_loop(cond, body, loop_vars, maximum_iterations):
     iteration = 0
     while cond(*loop_vars):
@@ -234,12 +242,12 @@ def norm(val, axis):
     return torch.linalg.norm(val, axis=axis)
 
 
-def rand(*args, **largs):
-    return torch.random.rand(*args, **largs)
-
-
 def isclose(*args, **kwargs):
-    return torch.from_numpy(np.isclose(*args, **kwargs).astype(int)).byte()
+    if version_maj() >= 1 and version_min() > 1:
+        return torch.from_numpy(np.isclose(*args, **kwargs))
+    else:
+        return torch.from_numpy(
+                np.isclose(*args, **kwargs).astype(np.uint8))
 
 
 def less(a, b):
@@ -285,7 +293,10 @@ def transpose(x, axes=None):
 
 
 def squeeze(x, axis=None):
-    return torch.squeeze(x, dim=axis)
+    if axis is None:
+        return torch.squeeze(x)
+    else:
+        return torch.squeeze(x, axis)
 
 
 def zeros_like(*args, **kwargs):
@@ -398,12 +409,15 @@ def nonzero(*args, **kwargs):
     return torch.nonzero(*args, **kwargs)
 
 
-def copy(x):
-    return x.clone()
-
-
 def seed(x):
     torch.manual_seed(x)
+
+
+def prod(x, axis=None):
+    if axis is None:
+        return torch.prod(x)
+    else:
+        return torch.prod(x, dim=axis)
 
 
 def sign(*args, **kwargs):
@@ -419,3 +433,23 @@ def mean(x, axis=None):
 
 def argmin(*args, **kwargs):
     return torch.argmin(*args, **kwargs)
+
+
+def arange(*args, **kwargs):
+    return torch.arange(*args, **kwargs)
+
+
+def gather(x, indices, axis=0):
+    return x[indices]
+
+
+def get_mask_i_float(i, n):
+    range_n = arange(n)
+    i_float = cast(array([i]), int32)[0]
+    mask_i = equal(range_n, i_float)
+    mask_i_float = cast(mask_i, float32)
+    return mask_i_float
+
+
+def copy(x):
+    return x.clone()

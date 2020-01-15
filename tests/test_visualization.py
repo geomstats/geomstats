@@ -16,8 +16,6 @@ from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 
 
 class TestVisualizationMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         self.n_samples = 10
         self.SO3_GROUP = SpecialOrthogonalGroup(n=3)
@@ -62,7 +60,3 @@ class TestVisualizationMethods(geomstats.tests.TestCase):
     def test_plot_points_h2_klein_disk(self):
         points = self.H2.random_uniform(self.n_samples)
         visualization.plot(points, space='H2_klein_disk')
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()
