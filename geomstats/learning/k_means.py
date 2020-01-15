@@ -48,8 +48,8 @@ class KMeans(TemplateTransformer):
 
         Returns
         -------
-        self : object
-            Returns the instance itself.
+        centroids : geomstats.array
+            Return a copy of centroids
         """
         belongs = gs.zeros(X.shape[0])
         self.centroids = gs.concatenate([gs.expand_dims(X[
@@ -79,6 +79,22 @@ class KMeans(TemplateTransformer):
                 # convergence reached
                 return gs.copy(self.centroids)
 
+    """Predict for each data point the closest center in terms of metric distance
+
+    Parameters
+    ----------
+    X : array-like, shape (n_samples, n_features)
+        Training data, where n_samples is the number of samples
+        and n_features is the number of features.
+
+    max_iter : Maximum number of iteration
+
+    Returns
+    -------
+    belongs : geomstats.array
+        return an array containing index of closest centroid
+        according to the metric use for instanciate the algorithm
+    """
     def predict(self, X):
         # finding closest mean
         dists = gs.hstack([self.metric.dist(self.centroids[i], X)
