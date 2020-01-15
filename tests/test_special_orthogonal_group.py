@@ -3776,6 +3776,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_lie_bracket_vectorization(self):
         dim = 3
         space = self.so[dim]
