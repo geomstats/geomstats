@@ -62,7 +62,7 @@ def divide(*args, **kwargs):
 
 
 def repeat(*args, **kwargs):
-    return torch.repeat(*args, **kwargs)
+    return args[0].repeat(*args[1:], **kwargs)
 
 
 def asarray(x):

@@ -47,7 +47,7 @@ class HyperbolicSpace(EmbeddedManifold):
     By default, point_type is set to 'extrinsic' indicating that
     points are parameterized by their extrinsic (n+1)-coordinates.
 
-    If point_type is set to 'poincare' then points are parametrized
+    If point_type is set to 'ball' then points are parametrized
     by their coordinates inside the Poincare Ball (n)-coordinates.
     """
 
@@ -59,6 +59,15 @@ class HyperbolicSpace(EmbeddedManifold):
         self.embedding_metric = self.embedding_manifold.metric
         self.point_type = point_type
         self.metric = HyperbolicMetric(self.dimension, point_type)
+
+        self.transform_to = {
+            "ball-extrinsic": self._ball_to_extrinsic_coordinates,
+            "ball-intrinsic": self._ball_to_intrinsic_coordinates,
+            "extrinsic-ball": self._extrinsic_to_ball_coordinates,
+            "extrinsic-intrinsic": self._extrinsic_to_intrinsic_coordinates,
+            "intrinsic-ball": self._intrinsic_to_ball_coordinates,
+            "intrinsic-extrinsic": self._intrinsic_to_extrinsic_coordinates
+        }
 
     def belongs(self, point, tolerance=TOLERANCE):
         """
@@ -105,6 +114,7 @@ class HyperbolicSpace(EmbeddedManifold):
         -------
         projected_point : array-like, shape=[n_samples, dimension + 1]
         """
+        point = self.to_coordinate(point, "extrinsic")
         point = gs.to_ndarray(point, to_ndim=2)
 
         sq_norm = self.embedding_metric.squared_norm(point)
@@ -133,6 +143,8 @@ class HyperbolicSpace(EmbeddedManifold):
         -------
         tangent_vec : array-like, shape=[n_samples, dimension + 1]
         """
+        base_point = self.to_coordinate(base_point, "extrinsic")
+
         vector = gs.to_ndarray(vector, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
@@ -144,7 +156,15 @@ class HyperbolicSpace(EmbeddedManifold):
         tangent_vec = vector - gs.einsum('ni,nj->nj', coef, base_point)
         return tangent_vec
 
+    # @DeprecationWarning
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
+        return self._intrinsic_to_extrinsic_coordinates(point_intrinsic)
+
+    # @DeprecationWarning
+    def extrinsic_to_intrinsic_coords(self, point_extrinsic):
+        return self._extrinsic_to_intrinsic_coordinates(point_extrinsic)
+
+    def _intrinsic_to_extrinsic_coordinates(self, point_intrinsic):
         """
         Convert the parameterization of a point on the Hyperbolic space
         from its intrinsic coordinates, to its extrinsic coordinates
@@ -167,7 +187,7 @@ class HyperbolicSpace(EmbeddedManifold):
 
         return point_extrinsic
 
-    def extrinsic_to_intrinsic_coords(self, point_extrinsic):
+    def _extrinsic_to_intrinsic_coordinates(self, point_extrinsic):
         """
         Convert the parameterization of a point on the Hyperbolic space
         from its extrinsic coordinates in Minkowski space, to its
@@ -187,6 +207,112 @@ class HyperbolicSpace(EmbeddedManifold):
 
         return point_intrinsic
 
+    def _extrinsic_to_ball_coordinates(self, point):
+        """
+        Convert the parameterization of a point on the Hyperbolic space
+        from its intrinsic coordinates, to the poincare ball model
+        coordinates.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dimension + 1] in intrinsic
+                coordinates
+
+        Returns
+        -------
+        point_ball : array-like, shape=[n_samples, dimension] in
+                     poincare ball coordinates
+        """
+        return point[:, 1:] / (1 + point[:, :1])
+
+    def _intrinsic_to_ball_coordinates(self, point):
+        """
+        Convert the parameterization of a point on the Hyperbolic space
+        from its intrinsic coordinates, to the poincare ball model
+        coordinates.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dimension] in intrinsic
+                coordinates
+
+        Returns
+        -------
+        point_ball : array-like, shape=[n_samples, dimension] in
+                     poincare ball coordinates
+        """
+        extrinsic = self.intrinsic_to_extrinsic_coordinates(point)
+        return self._extrasic_to_ball_coordinates(extrinsic)
+
+    def _ball_to_intrinsic_coordinates(self, point):
+        """
+        Convert the parameterization of a point on the Hyperbolic space
+        from its poincare ball model coordinates, to the intrinsic
+        coordinates.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dimension] in Poincare ball
+                coordinates
+
+        Returns
+        -------
+        point_ball : array-like, shape=[n_samples, dimension] in
+                     intrinsic coordinate
+        """
+        extrinsic = self._ball_to_extrinsic_coordinates(point)
+        return self._extrinsic_to_intrinsic_coordinates(extrinsic)
+
+    def _ball_to_extrinsic_coordinates(self, point):
+        """
+        Convert the parameterization of a point on the Hyperbolic space
+        from its poincare ball model coordinates, to the extrinsic
+        coordinates.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dimension] in Poincare ball
+                coordinates
+
+        Returns
+        -------
+        point_ball : array-like, shape=[n_samples, dimension + 1] in
+                     extrinsic coordinate
+        """
+        squared_norm = gs.sum(point**2, -1)
+        denominator = 1-squared_norm
+        t = gs.to_ndarray((1+squared_norm)/denominator, to_ndim=2, axis=1)
+        expanded_denominator = gs.expand_dims(denominator, -1)
+        expanded_denominator = gs.repeat(expanded_denominator,
+                                         self.dimension, -1)
+        intrasic = (2*point)/expanded_denominator
+        return gs.concatenate([t, intrasic], -1)
+
+    def to_coordinate(self, point, to_point_type='ball'):
+        """
+        Convert the parameterization of a point on the Hyperbolic space
+        from current coordinates system to the coordinates system given
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dimension] expected or
+                shape=[n_samples, dimension + 1] for extrinsic
+                coordinates only
+
+        to_point_type : coordinates type to transform the point, can be
+                        'ball', 'extrinsic', 'intrinsic'
+
+        Returns
+        -------
+        point_ball : array-like, shape=[n_samples, dimension + 1] in
+                     extrinsic coordinate
+        """
+        point = gs.to_ndarray(point, to_ndim=2, axis=0)
+        if self.point_type == to_point_type:
+            return point
+        else:
+            return self.transform_to[self.point_type+"-"+to_point_type](point)
+
     def random_uniform(self, n_samples=1, bound=1.):
         """
         Sample in the Hyperbolic space with the uniform distribution.
@@ -200,12 +326,11 @@ class HyperbolicSpace(EmbeddedManifold):
         -------
         point : array-like, shape=[n_samples, dimension + 1]
         """
+
         size = (n_samples, self.dimension)
         point = bound * 2. * (gs.random.rand(*size) - 0.5)
 
-        point = self.intrinsic_to_extrinsic_coords(point)
-
-        return point
+        return self.to_coordinate(point, to_point_type=self.point_type)
 
 
 class HyperbolicMetric(RiemannianMetric):
