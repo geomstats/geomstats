@@ -7,8 +7,6 @@ from geomstats.learning.quantization import Quantization
 
 
 class TestQuantizationMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         gs.random.seed(1234)
 
@@ -42,7 +40,3 @@ class TestQuantizationMethods(geomstats.tests.TestCase):
         result = prediction
         expected = clustering.labels_[0]
         self.assertAllClose(expected, result)
-
-
-if __name__ == '__main__':
-    geomstats.tests.main()

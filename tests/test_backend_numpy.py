@@ -2,29 +2,18 @@
 Unit tests for numpy backend.
 """
 
-import importlib
 import os
 import unittest
 import warnings
 
 import geomstats.backend as gs
+import geomstats.tests
+
 from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 
 
-class TestBackendNumpy(unittest.TestCase):
-    _multiprocess_can_split_ = True
-
-    @classmethod
-    def setUpClass(cls):
-        cls.initial_backend = os.environ['GEOMSTATS_BACKEND']
-        os.environ['GEOMSTATS_BACKEND'] = 'numpy'
-        importlib.reload(gs)
-
-    @classmethod
-    def tearDownClass(cls):
-        os.environ['GEOMSTATS_BACKEND'] = cls.initial_backend
-        importlib.reload(gs)
-
+@geomstats.tests.np_only
+class TestBackendNumpy(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
 
@@ -109,7 +98,3 @@ class TestBackendNumpy(unittest.TestCase):
         expected = point
 
         self.assertTrue(gs.allclose(result, expected))
-
-
-if __name__ == '__main__':
-        unittest.main()

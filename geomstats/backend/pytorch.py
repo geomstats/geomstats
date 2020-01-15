@@ -242,10 +242,6 @@ def norm(val, axis):
     return torch.linalg.norm(val, axis=axis)
 
 
-def rand(*args, **largs):
-    return torch.rand(*args, **largs)
-
-
 def isclose(*args, **kwargs):
     if version_maj() >= 1 and version_min() > 1:
         return torch.from_numpy(np.isclose(*args, **kwargs))
@@ -350,7 +346,15 @@ def tile(x, y):
 
 
 def clip(x, amin, amax):
+
+    if x.dtype == 'torch.float':
+        return torch.clamp(x, amin, amax)
+
     return np.clip(x, amin, amax)
+
+
+def clamp(*args, **kwargs):
+    return torch.clamp(*args, **kwargs)
 
 
 def diag(*args, **kwargs):
@@ -415,6 +419,13 @@ def nonzero(*args, **kwargs):
 
 def seed(x):
     torch.manual_seed(x)
+
+
+def prod(x, axis=None):
+    if axis is None:
+        return torch.prod(x)
+    else:
+        return torch.prod(x, dim=axis)
 
 
 def sign(*args, **kwargs):
