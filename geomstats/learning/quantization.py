@@ -1,9 +1,9 @@
 """Optimal quantization algorithm on Manifolds.
 """
 
-import geomstats.backend as gs
-
 from sklearn.base import BaseEstimator, ClusterMixin
+
+import geomstats.backend as gs
 
 
 def quantization(X, metric, n_clusters, n_repetitions=20,
