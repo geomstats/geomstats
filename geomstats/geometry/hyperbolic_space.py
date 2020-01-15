@@ -35,6 +35,7 @@ INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
 
 EPSILON = 1e-5
 
+
 class HyperbolicSpace(EmbeddedManifold):
     """
     Class for the n-dimensional Hyperbolic space
