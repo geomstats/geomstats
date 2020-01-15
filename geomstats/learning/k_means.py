@@ -88,22 +88,22 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
                 return gs.copy(self.centroids)
 
-    """Predict for each data point the closest center in terms of
-        riemannian_metric distance
-
-    Parameters
-    ----------
-    X : array-like, shape=[n_samples, n_features]
-        data, where n_samples is the number of samples
-        and n_features is the number of features.
-
-    Returns
-    -------
-    self : object
-        Return array containing for each point the cluster associated
-    """
     def predict(self, X):
-        # finding closest mean
+
+        """Predict for each data point the closest center in terms of
+            riemannian_metric distance
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_samples, n_features]
+            data, where n_samples is the number of samples
+            and n_features is the number of features.
+
+        Returns
+        -------
+        self : object
+            Return array containing for each point the cluster associated
+        """
         dists = gs.hstack([self.riemannian_metric.dist(self.centroids[i], X)
                            for i in range(self.n_clusters)])
         belongs = gs.argmin(dists, -1)
