@@ -3,7 +3,6 @@ The manifold of symmetric positive definite (SPD) matrices.
 """
 
 import geomstats.backend as gs
-
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear_group import GeneralLinearGroup
 from geomstats.geometry.riemannian_metric import RiemannianMetric
