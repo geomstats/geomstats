@@ -653,6 +653,7 @@ class HyperbolicMetric(RiemannianMetric):
             return log
 
         elif self.point_type == 'ball':
+
             add_base_point = self.mobius_add(-base_point, point)
 
             norm_add = add_base_point.norm(2,
