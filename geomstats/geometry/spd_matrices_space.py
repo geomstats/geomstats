@@ -388,3 +388,8 @@ class SPDMetricProcrustes(RiemannianMetric):
             base_point = gs.tile(
                 base_point,
                 (gs.maximum(n_tangent_vecs_a, n_tangent_vecs_b), 1, 1))
+
+        aux_a = SPDMatricesSpace(dim).differential_power(2, tangent_vec_a, base_point, inverse=True)
+        product = gs.matmul(aux_a, tangent_vec_b)
+        result = gs.trace(product) / 2
+        return result
