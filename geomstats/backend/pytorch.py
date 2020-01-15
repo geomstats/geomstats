@@ -404,6 +404,13 @@ def nonzero(*args, **kwargs):
 def seed(x):
     torch.manual_seed(x)
 
+    
+def prod(x, axis = None):
+    if axis is None:
+        return torch.prod(x)
+    else:
+        return torch.prod(x, dim = axis)
+    
 
 def sign(*args, **kwargs):
     return torch.sign(*args, **kwargs)
