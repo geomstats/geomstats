@@ -216,12 +216,13 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_random_and_belongs(self):
-        for n in self.n_seq:
-            group = self.so[n]
-            point = group.random_uniform()
-            result = group.belongs(point)
-            expected = gs.array([[True]])
-            self.assertAllClose(result, expected)
+        for point_type in ('vector', 'matrix'):
+            for n in self.n_seq:
+                group = self.so[n]
+                point = group.random_uniform(point_type=point_type)
+                result = group.belongs(point, point_type=point_type)
+                expected = gs.array([[True]])
+                self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_random_and_belongs_vectorization(self):
@@ -3741,8 +3742,85 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         for i in range(n_steps+1):
             point_step = metric.exp(tangent_vec=i * tangent_vec_step,
                                     base_point=initial_point)
-            # self.assertTrue(gs.allclose(point_step, points[i]))
+            #self.assertTrue(gs.allclose(point_step, points[i]))
+
+    def test_lie_bracket_at_identity(self):
+        dim = 3
+        space = self.so[dim]
+        base_point = gs.eye(dim)
+        first_tan = gs.array([
+            [0., -1., 0.],
+            [1., 0., 0.],
+            [0., 0., 0.]])
+        second_tan = first_tan
+
+        result = space.lie_bracket(first_tan, second_tan, base_point)
+        expected = gs.zeros((dim, dim))
+
+        self.assertAllClose(result, expected)
+
+        first_tan = gs.array([
+            [0., -1., 0.],
+            [1., 0., 0.],
+            [0., 0., 0.]])
+        second_tan = gs.array([
+            [0., 0., -1.],
+            [0., 0., 0.],
+            [1., 0., 0.]])
+
+        result = space.lie_bracket(first_tan, second_tan, base_point)
+        expected = gs.array([
+            [0., 0., 0.],
+            [0., 0., -1.],
+            [0., 1., 0.]])
+
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_lie_bracket_vectorization(self):
+        dim = 3
+        space = self.so[dim]
+
+        base_point = gs.array([gs.eye(dim), gs.eye(dim)])
+        first_tan = gs.array([
+                [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
+                [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
+                ])
+        second_tan = gs.array([
+                [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
+                [[0., 0., -1.], [0., 0., 0.], [1., 0., 0.]]
+            ])
+
+        result = space.lie_bracket(first_tan, second_tan, base_point)
+        expected = gs.array([
+                gs.zeros((dim, dim)),
+                [[0., 0., 0.], [0., 0., -1.], [0., 1., 0.]]
+                ])
+
+        self.assertAllClose(result, expected)
+
+    def test_lie_bracket_at_non_identity(self):
+        dim = 3
+        space = self.so[dim]
+
+        base_point = gs.array([
+            [[-1., 0., 0.], [0., -1., 0.], [0., 0., 1.]]])
+        first_tan = gs.matmul(
+                base_point,
+                gs.array([[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]])
+                )
+        second_tan = gs.matmul(
+                base_point,
+                gs.array([[0., 0., -1.], [0., 0., 0.], [1., 0., 0.]])
+                )
+
+        result = space.lie_bracket(first_tan, second_tan, base_point)
+        expected = gs.matmul(
+            base_point,
+            gs.array([[[0., 0., 0.], [0., 0., -1.], [0., 1., 0.]]]))
+
+        self.assertAllClose(result, expected)
 
 
 if __name__ == '__main__':
-        geomstats.tests.main()
+    geomstats.tests.main()

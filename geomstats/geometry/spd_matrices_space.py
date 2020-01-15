@@ -116,6 +116,112 @@ class SPDMatricesSpace(EmbeddedManifold):
 
         return tangent_vec
 
+    def aux_differential_power(self, power, tangent_vec, base_point):
+        """
+        Auxiliary function to the functions differential_power and
+        inverse_differential_power.
+
+        Parameters
+        ----------
+        power : int
+        tangent_vec : array_like, shape=[n_samples, dim, dim]
+                      Tangent vectors.
+        base_point : array_like, shape=[n_samples, dim, dim]
+                     Base points.
+
+        Returns
+        -------
+        eigvectors : array-like, shape=[n_samples, dim, dim]
+        transp_eigvectors : array-like, shape=[n_samples, dim, dim]
+        numerator : array-like, shape=[n_samples, dim, dim]
+        denominator : array-like, shape=[n_samples, dim, dim]
+        temp_result : array-like, shape=[n_samples, dim, dim]
+        """
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
+        n_tangent_vecs, dim, _ = tangent_vec.shape
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
+        n_base_points, _, _ = base_point.shape
+
+        assert (n_tangent_vecs == n_base_points
+                or n_base_points == 1
+                or n_tangent_vecs == 1)
+
+        eigvalues, eigvectors = gs.linalg.eigh(base_point)
+        eigvalues = gs.to_ndarray(eigvalues, to_ndim=3, axis=1)
+        transp_eigvalues = gs.transpose(eigvalues, (0, 2, 1))
+        powered_eigvalues = eigvalues**power
+        transp_powered_eigvalues = gs.transpose(powered_eigvalues, (0, 2, 1))
+        ones = gs.ones((n_base_points, 1, dim))
+        transp_ones = gs.transpose(ones, (0, 2, 1))
+
+        vertical_index = gs.matmul(transp_eigvalues, ones)
+        horizontal_index = gs.matmul(transp_ones, eigvalues)
+        vertical_index_power = gs.matmul(transp_powered_eigvalues, ones)
+        horizontal_index_power = gs.matmul(transp_ones, powered_eigvalues)
+        denominator = vertical_index - horizontal_index
+        numerator = vertical_index_power - horizontal_index_power
+        numerator = gs.where(denominator == 0, power*vertical_index_power,
+                             numerator)
+        denominator = gs.where(denominator == 0, vertical_index, denominator)
+
+        transp_eigvectors = gs.transpose(eigvectors, (0, 2, 1))
+        temp_result = gs.matmul(transp_eigvectors, tangent_vec)
+        temp_result = gs.matmul(temp_result, eigvectors)
+        return (eigvectors, transp_eigvectors, numerator, denominator,
+                temp_result)
+
+    def differential_power(self, power, tangent_vec, base_point):
+        """
+        Computes the differential of the power function on SPD
+        matrices (A^p=exp(p log(A))) at base_point applied to
+        tangent_vec.
+
+        Parameters
+        ----------
+        power : int
+        tangent_vec : array_like, shape=[n_samples, dim, dim]
+                      Tangent vectors.
+        base_point : array_like, shape=[n_samples, dim, dim]
+                     Base points.
+
+        Returns
+        -------
+        differential_power : array-like, shape=[n_samples, dim, dim]
+        """
+        eigvectors, transp_eigvectors, numerator, denominator, temp_result =\
+            self.aux_differential_power(power, tangent_vec, base_point)
+        power_operator = numerator / denominator
+        result = power_operator * temp_result
+        result = gs.matmul(result, transp_eigvectors)
+        result = gs.matmul(eigvectors, result)
+        return result
+
+    def inverse_differential_power(self, power, tangent_vec, base_point):
+        """
+        Computes the inverse of the differential of the power
+        function on SPD matrices (A^p=exp(p log(A))) at base_point
+        applied to tangent_vec.
+
+        Parameters
+        ----------
+        power : int
+        tangent_vec : array_like, shape=[n_samples, dim, dim]
+                      Tangent vectors.
+        base_point : array_like, shape=[n_samples, dim, dim]
+                     Base points.
+
+        Returns
+        -------
+        inverse_differential_power : array-like, shape=[n_samples, dim, dim]
+        """
+        eigvectors, transp_eigvectors, numerator, denominator, temp_result =\
+            self.aux_differential_power(power, tangent_vec, base_point)
+        power_operator = denominator / numerator
+        result = power_operator * temp_result
+        result = gs.matmul(result, transp_eigvectors)
+        result = gs.matmul(eigvectors, result)
+        return result
+
 
 class SPDMetric(RiemannianMetric):
 
@@ -135,9 +241,10 @@ class SPDMetric(RiemannianMetric):
 
         https://arxiv.org/abs/1906.01349
         """
+        dimension = int(n * (n + 1) / 2)
         super(SPDMetric, self).__init__(
-                dimension=int(n * (n + 1) / 2),
-                signature=(int(n * (n + 1) / 2), 0, 0))
+                dimension=dimension,
+                signature=(dimension, 0, 0))
         self.n = n
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -262,3 +369,79 @@ class SPDMetric(RiemannianMetric):
                                       initial_point=initial_point,
                                       initial_tangent_vec=initial_tangent_vec,
                                       point_type='matrix')
+
+
+class SPDMetricProcrustes(RiemannianMetric):
+
+    """
+    Class for the Procrustes/Bures-Wasserstein metric on
+    the manifold of SPD matrices.
+
+    Based on :
+    Bhatia, Jain, Lim
+    "On the Bures-Wasserstein distance between positive
+    definite matrices"
+    Elsevier, Expositiones Mathematicae, vol. 37(2), 165-191
+
+    https://arxiv.org/pdf/1712.01504.pdf
+    """
+
+    def __init__(self, n):
+        dimension = int(n * (n + 1) / 2)
+        super(SPDMetricProcrustes, self).__init__(
+            dimension=dimension,
+            signature=(dimension, 0, 0))
+        self.n = n
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+        """
+        Compute the inner product of tangent_vec_a and tangent_vec_b
+        at point base_point using the Procrustes Riemannian metric.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[n_samples, dim, dim]
+        tangent_vec_b : array-like, shape=[n_samples, dim, dim]
+        base_point : array-like, shape={n_samples, dim, dim]
+
+        Returns
+        -------
+        inner_product : float
+        """
+        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
+        n_tangent_vecs_a, _, _ = tangent_vec_a.shape
+        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
+        n_tangent_vecs_b, _, _ = tangent_vec_b.shape
+
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
+        n_base_points, dim, _ = base_point.shape
+
+        assert (n_tangent_vecs_a == n_tangent_vecs_b == n_base_points
+                or n_tangent_vecs_a == n_tangent_vecs_b and n_base_points == 1
+                or n_base_points == n_tangent_vecs_a and n_tangent_vecs_b == 1
+                or n_base_points == n_tangent_vecs_b and n_tangent_vecs_a == 1
+                or n_tangent_vecs_a == 1 and n_tangent_vecs_b == 1
+                or n_base_points == 1 and n_tangent_vecs_a == 1
+                or n_base_points == 1 and n_tangent_vecs_b == 1)
+
+        if n_tangent_vecs_a == 1:
+            tangent_vec_a = gs.tile(
+                tangent_vec_a,
+                (gs.maximum(n_base_points, n_tangent_vecs_b), 1, 1))
+
+        if n_tangent_vecs_b == 1:
+            tangent_vec_b = gs.tile(
+                tangent_vec_b,
+                (gs.maximum(n_base_points, n_tangent_vecs_a), 1, 1))
+
+        if n_base_points == 1:
+            base_point = gs.tile(
+                base_point,
+                (gs.maximum(n_tangent_vecs_a, n_tangent_vecs_b), 1, 1))
+
+        spd_space = SPDMatricesSpace(dim)
+        modified_tangent_vec_a =\
+            spd_space.inverse_differential_power(2, tangent_vec_a, base_point)
+        product = gs.matmul(modified_tangent_vec_a, tangent_vec_b)
+        result = gs.trace(product, axis1=1, axis2=2) / 2
+        return result
