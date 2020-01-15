@@ -5,7 +5,6 @@ This class abstracts the backend type.
 """
 
 import os
-import tensorflow as tf
 import unittest
 
 import geomstats.backend as gs
@@ -70,6 +69,7 @@ class DummySession:
 
 _TestBaseClass = unittest.TestCase
 if tf_backend():
+    import tensorflow as tf
     _TestBaseClass = tf.test.TestCase
 
 
