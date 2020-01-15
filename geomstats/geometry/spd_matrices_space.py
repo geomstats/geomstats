@@ -193,9 +193,10 @@ class SPDMetric(RiemannianMetric):
 
         https://arxiv.org/abs/1906.01349
         """
+        dimension = int(n * (n + 1) / 2)
         super(SPDMetric, self).__init__(
-                dimension=int(n * (n + 1) / 2),
-                signature=(int(n * (n + 1) / 2), 0, 0))
+                dimension=dimension,
+                signature=(dimension, 0, 0))
         self.n = n
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -338,9 +339,10 @@ class SPDMetricProcrustes(RiemannianMetric):
     """
 
     def __init__(self, n):
+        dimension = int(n * (n + 1) / 2)
         super(SPDMetricProcrustes, self).__init__(
-            dimension=int(n * (n + 1) / 2),
-            signature=(int(n * (n + 1) / 2), 0, 0))
+            dimension=dimension,
+            signature=(dimension, 0, 0))
         self.n = n
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -389,7 +391,9 @@ class SPDMetricProcrustes(RiemannianMetric):
                 base_point,
                 (gs.maximum(n_tangent_vecs_a, n_tangent_vecs_b), 1, 1))
 
-        aux_a = SPDMatricesSpace(dim).differential_power(2, tangent_vec_a, base_point, inverse=True)
+        aux_a = SPDMatricesSpace(dim).differential_power(2, tangent_vec_a,
+                                                         base_point,
+                                                         inverse=True)
         product = gs.matmul(aux_a, tangent_vec_b)
-        result = gs.trace(product) / 2
+        result = gs.trace(product, axis1=1, axis2=2) / 2
         return result
