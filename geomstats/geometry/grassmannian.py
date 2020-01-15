@@ -4,12 +4,12 @@ a set of all p-dimensional subspaces in n-dimensional space,
 where p <= n
 """
 
+import geomstats.backend as gs
+
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean_space import EuclideanMetric
 from geomstats.geometry.matrices_space import MatricesSpace as Mat
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-
-from gs.linalg import expm
 
 TOLERANCE = 1e-5
 EPSILON = 1e-6
@@ -76,4 +76,5 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         -------
         exp : array-like, shape=[n_samples, n, n]
         """
+        expm = gs.linalg.expm
         return Mat.mul(Mat.mul(expm(v), p), expm(-v))
