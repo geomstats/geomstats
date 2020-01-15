@@ -4,7 +4,12 @@ Unit tests for the affine connections.
 
 import geomstats.backend as gs
 import geomstats.tests
+<<<<<<< HEAD
 from geomstats.geometry.connection import LeviCivitaConnection
+=======
+
+from geomstats.geometry.connection import LeviCivitaConnection, Connection
+>>>>>>> integration of geodesic eq
 from geomstats.geometry.euclidean_space import EuclideanMetric
 from geomstats.geometry.hypersphere import Hypersphere
 
@@ -12,13 +17,15 @@ from geomstats.geometry.hypersphere import Hypersphere
 class TestConnectionMethods(geomstats.tests.TestCase):
     def setUp(self):
         self.dimension = 4
-        self.metric = EuclideanMetric(dimension=self.dimension)
-        self.connection = LeviCivitaConnection(self.metric)
+        self.euc_metric = EuclideanMetric(dimension=self.dimension)
+        self.connection = Connection(dimension=2)
+        self.lc_connection = LeviCivitaConnection(self.euc_metric)
+        self.hypersphere= Hypersphere(dimension=2)
 
     def test_metric_matrix(self):
         base_point = gs.array([0., 1., 0., 0.])
 
-        result = self.connection.metric_matrix(base_point)
+        result = self.lc_connection.metric_matrix(base_point)
         expected = gs.array([gs.eye(self.dimension)])
 
         with self.session():
@@ -27,7 +34,7 @@ class TestConnectionMethods(geomstats.tests.TestCase):
     def test_cometric_matrix(self):
         base_point = gs.array([0., 1., 0., 0.])
 
-        result = self.connection.cometric_matrix(base_point)
+        result = self.lc_connection.cometric_matrix(base_point)
         expected = gs.array([gs.eye(self.dimension)])
 
         with self.session():
@@ -37,7 +44,7 @@ class TestConnectionMethods(geomstats.tests.TestCase):
     def test_metric_derivative(self):
         base_point = gs.array([0., 1., 0., 0.])
 
-        result = self.connection.metric_derivative(base_point)
+        result = self.lc_connection.metric_derivative(base_point)
         expected = gs.zeros((1,) + (self.dimension, ) * 3)
 
         self.assertAllClose(result, expected)
@@ -46,7 +53,7 @@ class TestConnectionMethods(geomstats.tests.TestCase):
     def test_christoffels(self):
         base_point = gs.array([0., 1., 0., 0.])
 
-        result = self.connection.christoffels(base_point)
+        result = self.lc_connection.christoffel_symbols(base_point)
         expected = gs.zeros((1,) + (self.dimension, ) * 3)
 
         self.assertAllClose(result, expected)

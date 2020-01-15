@@ -5,6 +5,9 @@ import autograd
 import geomstats.backend as gs
 
 
+N_STEPS = 10
+
+
 class Connection(object):
     """TODO: Define class here."""
 
@@ -17,6 +20,10 @@ class Connection(object):
         Parameters
         ----------
         base_point : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        gamma : array-like, shape=[n_samples, dimension, dimension, dimension]
         """
         raise NotImplementedError(
                 'The Christoffel symbols are not implemented.')
@@ -41,8 +48,9 @@ class Connection(object):
         raise NotImplementedError(
                 'connection is not implemented.')
 
-    def exp(self, tangent_vec, base_point):
-        """Exponential map associated to the affine connection.
+    def exp(self, tangent_vec, base_point, n_steps=N_STEPS):
+        """
+        Exponential map associated to the affine connection.
 
         Parameters
         ----------
@@ -52,8 +60,22 @@ class Connection(object):
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
         """
-        raise NotImplementedError(
-                'The affine connection exponential is not implemented.')
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+
+        def geodesic_equation(x, v):
+            """
+            The geodesic ordinary differential equation associated
+            with the connection.
+            """
+            v = gs.to_ndarray(v, to_ndim=2)
+            gamma = self.christoffel_symbol(x)
+            return - gs.einsum('lkij,li,lj->lk', gamma, v, v)
+
+        initial_state = (base_point, tangent_vec)
+        flow, _ = self.integrate(geodesic_equation, initial_state,
+                                 n_steps=n_steps)
+        return flow[-1]
 
     def log(self, point, base_point):
         """Logarithm map associated to the affine connection.
@@ -176,16 +198,65 @@ class Connection(object):
         raise NotImplementedError(
                 'The Riemannian curvature tensor is not implemented.')
 
-    def geodesic_equation(self):
-        """Return geodesic ode associated with the connection."""
-        raise NotImplementedError(
-                'The geodesic equation tensor is not implemented.')
-
     def geodesic(self, initial_point,
-                 end_point=None, initial_tangent_vec=None, point_ndim=1):
-        """Geodesic associated with the connection."""
-        raise NotImplementedError(
-                'Geodesics are not implemented.')
+                 end_point=None, initial_tangent_vec=None,
+                 point_type='vector'):
+        """
+        Geodesic curve defined by either:
+        - an initial point and an initial tangent vector,
+        or
+        -an initial point and an end point.
+
+        The geodesic is returned as a function parameterized by t.
+        """
+
+        point_ndim = 1
+        if point_type == 'matrix':
+            point_ndim = 2
+
+        initial_point = gs.to_ndarray(initial_point,
+                                      to_ndim=point_ndim+1)
+
+        if end_point is None and initial_tangent_vec is None:
+            raise ValueError('Specify an end point or an initial tangent '
+                             'vector to define the geodesic.')
+        if end_point is not None:
+            end_point = gs.to_ndarray(end_point,
+                                      to_ndim=point_ndim+1)
+            shooting_tangent_vec = self.log(point=end_point,
+                                            base_point=initial_point)
+            if initial_tangent_vec is not None:
+                assert gs.allclose(shooting_tangent_vec, initial_tangent_vec)
+            initial_tangent_vec = shooting_tangent_vec
+        initial_tangent_vec = gs.array(initial_tangent_vec)
+        initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
+                                            to_ndim=point_ndim+1)
+
+        def point_on_geodesic(t):
+            t = gs.cast(t, gs.float32)
+            t = gs.to_ndarray(t, to_ndim=1)
+            t = gs.to_ndarray(t, to_ndim=2, axis=1)
+            new_initial_point = gs.to_ndarray(
+                                          initial_point,
+                                          to_ndim=point_ndim+1)
+            new_initial_tangent_vec = gs.to_ndarray(
+                                          initial_tangent_vec,
+                                          to_ndim=point_ndim+1)
+
+            if point_type == 'vector':
+                tangent_vecs = gs.einsum('il,nk->ik',
+                                         t,
+                                         new_initial_tangent_vec)
+            elif point_type == 'matrix':
+                tangent_vecs = gs.einsum('il,nkm->ikm',
+                                         t,
+                                         new_initial_tangent_vec)
+
+            point_at_time_t = self.exp(tangent_vec=tangent_vecs,
+                                       base_point=new_initial_point)
+            return point_at_time_t
+
+        return point_on_geodesic
 
     def torsion(self, base_point):
         """Torsion tensor associated with the connection.
@@ -197,6 +268,33 @@ class Connection(object):
         """
         raise NotImplementedError(
                 'The torsion tensor is not implemented.')
+
+    @staticmethod
+    def _symplectic_euler_step(y, force, dt):
+        x, v = y
+        x += v * dt
+        v += force(x, v) * dt
+        return x, v
+
+    def integrate(self, function, initial_state, end_time=1.0, n_steps=10):
+        """
+        :param function:
+        :param initial_state: tuple with initial position and speed
+        :param end_time: scalar
+        :param n_steps: int
+        :return: a tuple of sequences
+        """
+        dt = end_time / n_steps
+        positions = [initial_state[0].copy()]
+        velocities = [initial_state[1].copy()]
+        current_state = (positions[0], velocities[0])
+        for i in range(n_steps):
+            current_state = self._symplectic_euler_step(current_state,
+                                                        function, dt)
+            positions.append(current_state[0])
+            velocities.append(current_state[1])
+
+        return positions, velocities
 
 
 class LeviCivitaConnection(Connection):
