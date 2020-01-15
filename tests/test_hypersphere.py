@@ -436,6 +436,24 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
+    @geomstats.tests.np_only
+    def test_adaptive_gradientdescent_mean(self):
+        n_tests: int = 100
+        result = gs.zeros(n_tests)
+        expected = gs.zeros(n_tests)
+
+        for i in range(n_tests):
+            # take 2 random points, compute their mean, and verify that log of each at the mean is opposite
+            points = self.space.random_uniform(n_samples=2)
+            mean = self.metric.adaptive_gradientdescent_mean(points)
+            logs = self.metric.log(point=points, base_point=mean)
+            result[i] = gs.linalg.norm( logs[1, :] + logs[0, :] )
+            print(result[i])
+        # print(max(result))
+
+        self.assertAllClose(expected, result, rtol=1e-10, atol=1e-10)
+
+
     @geomstats.tests.np_and_pytorch_only
     def test_mean_and_belongs(self):
         point_a = gs.array([1., 0., 0., 0., 0.])
