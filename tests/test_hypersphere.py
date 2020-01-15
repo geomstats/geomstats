@@ -16,8 +16,6 @@ OPTIMAL_QUANTIZATION_TOL = 2e-2
 
 
 class TestHypersphereMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         gs.random.seed(1234)
 
@@ -543,7 +541,3 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
             expected = 0.0
             self.assertAllClose(
                 result, expected, atol=OPTIMAL_QUANTIZATION_TOL)
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

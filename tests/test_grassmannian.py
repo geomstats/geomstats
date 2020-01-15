@@ -23,11 +23,10 @@ pi_2 = gs.pi/2
 
 
 class TestGrassmannianMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         gs.random.seed(1234)
 
+<<<<<<< HEAD
         self.n = 3
         self.k = 2
         self.space = Grassmannian(self.n, self.k)
@@ -47,3 +46,8 @@ class TestGrassmannianMethods(geomstats.tests.TestCase):
 
 if __name__ == '__main__':
         geomstats.test.main()
+=======
+        self.n = 4
+        self.p = 2
+        self.space = Grassmannian(self.n, self.p)
+>>>>>>> b1e96c25b8769a9ed85fa1658ef67345030f9586

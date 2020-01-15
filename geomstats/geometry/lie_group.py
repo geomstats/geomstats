@@ -31,7 +31,17 @@ def grad(y_pred, y_true, group, metric=None):
 
 
 class LieGroup(Manifold):
-    """ Class for Lie groups."""
+    """
+    Class for Lie groups.
+
+    In this class, point_type ('vector' or 'matrix') will be used to describe
+    the format of the points on the Lie group.
+    If point_type is 'vector', the format of the inputs is
+    [n_samples, dimension], where dimension is the dimension of the Lie group.
+    If point_type is 'matrix' the fomrat of the inputs is
+    [n_samples, n, n] where n is the parameter of GL(n) e.g. the amount of rows
+    and columns of the matrix.
+    """
 
     def __init__(self, dimension):
         assert dimension > 0
@@ -59,7 +69,22 @@ class LieGroup(Manifold):
 
     def compose(self, point_a, point_b, point_type=None):
         """
-        Composition of the Lie group.
+        Composition function of the lie group. Multiply the elements point_a
+        and point_b.
+
+        Parameters
+        ----------
+        point_a: array-like, shape=[n_samples, {dimension, [n, n]}]
+            the left factor in the product
+        point_b: array-like, shape=[n_samples, {dimension, [n, n]}]
+            the right factor in the product
+        point_type: {'vector', 'matrix'}
+            the point_type of the passed point_a and point_b
+
+        Returns
+        -------
+        composed: [n_samples, {dimension, [n,n]}]
+            the product of point_a and point_b along the first dimension
         """
         raise NotImplementedError('The Lie group composition'
                                   ' is not implemented.')
@@ -67,6 +92,19 @@ class LieGroup(Manifold):
     def inverse(self, point, point_type=None):
         """
         Inverse law of the Lie group.
+
+        Parameters
+        ----------
+        point: array-like, shape=[n_samples, {dimension, [n,n]]
+            the points to be inverted
+
+        point_type: {'vector', 'matrix'}
+            the point type of the passed point
+
+        Returns
+        -------
+        inverse:
+            the inverted point
         """
         raise NotImplementedError('The Lie group inverse is not implemented.')
 
@@ -75,6 +113,23 @@ class LieGroup(Manifold):
         """
         Compute the jacobian matrix of the differential
     of the left translation by the point.
+
+        Parameters
+        ----------
+        point: array-like, shape=[n_samples, {dimension, [n,n]]
+            the points to be inverted
+
+        left_or_right: {'left', 'right'}
+            indicate whether to calculate the differential of left or right
+            translations
+
+        point_type: {'vector', 'matrix'}
+            the point type of the passed point
+
+        Returns
+        -------
+        jacobian
+            the jacobian of the left/right translation by point
         """
         raise NotImplementedError(
                'The jacobian of the Lie group translation is not implemented.')
@@ -83,11 +138,36 @@ class LieGroup(Manifold):
         """
         Compute the group exponential
         of tangent vector tangent_vec from the identity.
+
+        Parameters
+        ----------
+        tangent_vec: array-like, shape=[n_samples, {dimension,[n,n]}]
+            The tangent vector to exponentiate
+        point_type: {'vector', 'matrix'}
+
+        Returns
+        -------
+        point: array-like, shape=[n_samples, {dimension,[n,n]}]
+
         """
         raise NotImplementedError(
                 'The group exponential from the identity is not implemented.')
 
     def group_exp_not_from_identity(self, tangent_vec, base_point, point_type):
+        """
+        Calculate the group exponential at base_point.
+
+        Parameters
+        ----------
+        tangent_vec: array-like, shape=[n_samples, {dimension,[n,n]}]
+        base_point: array-like, shape=[n_samples, {dimension,[n,n]}]
+        point_type: {'vector', 'matrix'}
+
+        Returns
+        ------
+        group_exp: array-like, shape=[n_samples, {dimension,[n,n]}]
+            The computed exponential
+        """
         jacobian = self.jacobian_translation(
             point=base_point,
             left_or_right='left',
@@ -118,6 +198,18 @@ class LieGroup(Manifold):
         """
         Compute the group exponential at point base_point
         of tangent vector tangent_vec.
+
+        Parameters
+        ----------
+        tangent_vec: array-like, shape=[n_samples, {dimension,[n,n]}]
+        base_point: array-like, shape=[n_samples, {dimension,[n,n]}]
+            Default: self.identity
+        point_type: {'vector', 'matrix'}
+            The type of the point
+        Returns
+        ------
+        result: array-like, shape=[n_samples, {dimension,[n,n]}]
+            The exponentiated tangent vector
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -160,11 +252,33 @@ class LieGroup(Manifold):
         """
         Compute the group logarithm
         of the point point from the identity.
+
+        Parameters
+        ----------
+        point: array-like, shape=[n_samples, {dimension,[n,n]}]
+        point_type: {'vector', 'matrix'}
+
+        Returns
+        ------
+        tangent_vec: array-like, shape=[n_samples, {dimension,[n,n]}]
         """
         raise NotImplementedError(
                 'The group logarithm from the identity is not implemented.')
 
     def group_log_not_from_identity(self, point, base_point, point_type):
+        """
+        Compute the group logarithm of the point point from base_point.
+
+        Parameters
+        ----------
+        point: array-like, shape=[n_samples, {dimension,[n,n]}]
+        base_point: array-like, shape=[n_samples, {dimension,[n,n]}]
+        point_type: {'vector', 'matrix'}
+
+        Returns
+        ------
+        tangent_vec: array-like, shape=[n_samples, {dimension,[n,n]}]
+        """
         jacobian = self.jacobian_translation(point=base_point,
                                              left_or_right='left',
                                              point_type=point_type)
@@ -183,8 +297,17 @@ class LieGroup(Manifold):
 
     def group_log(self, point, base_point=None, point_type=None):
         """
-        Compute the group logarithm at point base_point
-        of the point point.
+        Compute the group logarithm of point relative to base_point.
+
+        Parameters
+        ----------
+        point: array-like, shape=[n_samples, {dimension,[n,n]}]
+        base_point: array-like, shape=[n_samples, {dimension,[n,n]}]
+        point_type: {'vector', 'matrix'}
+
+        Returns
+        ------
+        tangent_vec: array-like, shape=[n_samples, {dimension,[n,n]}]
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -228,10 +351,59 @@ class LieGroup(Manifold):
     def group_exponential_barycenter(
            self, points, weights=None, point_type=None):
         """
-        Compute the group exponential barycenter.
+        Compute the group exponential barycenter of points,
+        optionally weighted.
+
+        Parameters
+        ----------
+        points: array-like, shape=[n_samples, {dimension,[n,n]}]
+        weights: array-like, shape=[n_samples]
+            default is 1 for each point
+        point_type: {'vector', 'matrix'}
+
+        Returns
+        ------
+        exp_bar: the exponential_barycenter of the given points
         """
         raise NotImplementedError(
                 'The group exponential barycenter is not implemented.')
 
     def add_metric(self, metric):
         self.metrics.append(metric)
+
+    def lie_bracket(self, tangent_vector_a, tangent_vector_b, base_point=None):
+        """
+        Compute the lie bracket of two sets of tangent vectors.
+        For matrix Lie groups with tangent vectors A,B at the same base point P
+        this is given by (translate to identity, compute commutator, go back)
+            [A,B] = AP^-1B - BP^-1A.
+
+        Parameters
+        ----------
+        tangent_vector_a : shape=[n_samples, n, n]
+        tangent_vector_b : shape=[n_samples, n, n]
+        base_point : array-like, shape=[n_samples, n, n]
+
+
+        Returns
+        ---------
+        bracket: array-like, shape=[n_samples, n, n]
+
+        """
+
+        if base_point is None:
+            base_point = self.identity
+
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
+        tangent_vector_a = gs.to_ndarray(tangent_vector_a, to_ndim=3)
+        tangent_vector_b = gs.to_ndarray(tangent_vector_b, to_ndim=3)
+
+        inverse_base = gs.to_ndarray(
+                self.inverse(base_point, point_type='matrix'), to_ndim=3)
+
+        first_term = gs.matmul(
+                tangent_vector_a, gs.matmul(inverse_base, tangent_vector_b))
+        second_term = gs.matmul(
+                tangent_vector_b,
+                gs.matmul(inverse_base, tangent_vector_a))
+        return first_term - second_term

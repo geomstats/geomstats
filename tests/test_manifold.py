@@ -9,8 +9,6 @@ from geomstats.geometry.manifold import Manifold
 
 
 class TestManifoldMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         self.dimension = 4
         self.manifold = Manifold(self.dimension)
@@ -30,7 +28,3 @@ class TestManifoldMethods(geomstats.tests.TestCase):
         result = self.manifold.regularize(point)
         expected = point
         self.assertAllClose(result, expected)
-
-
-if __name__ == '__main__':
-    geomstats.test.main()
