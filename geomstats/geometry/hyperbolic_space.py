@@ -45,9 +45,6 @@ class HyperbolicSpace(EmbeddedManifold):
     The point_type variable allows to choose the
     representation of the points as input.
 
-    By default, point_type is set to 'extrinsic' indicating that
-    points are parameterized by their extrinsic (n+1)-coordinates.
-
     If point_type is set to 'ball' then points are parametrized
     by their coordinates inside the Poincare Ball (n)-coordinates.
     """
@@ -727,7 +724,6 @@ class HyperbolicMetric(RiemannianMetric):
         """
 
         if self.point_type == 'extrinsic':
-
             sq_norm_a = self.embedding_metric.squared_norm(point_a)
             sq_norm_b = self.embedding_metric.squared_norm(point_b)
             inner_prod = self.embedding_metric.inner_product(point_a, point_b)
@@ -746,6 +742,7 @@ class HyperbolicMetric(RiemannianMetric):
             diff_norm = gs.sum((point_a - point_b) ** 2, -1)
             norm_function = 1 + 2 * \
                 diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
+
             dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
 
             return self.scale * dist
