@@ -331,10 +331,11 @@ class HyperbolicMetric(RiemannianMetric):
 
             factor = gs.tanh(lambda_base_point * norm_tangent_vector)
 
-            exp = self.add(base_point, direction * factor)
+            exp = self.mobius_add(base_point, direction * factor)
 
-            if (0 != len((norm_tangent_vector == 0).nonzero())):
+            if 0 != len((norm_tangent_vector == 0).nonzero()):
 
+            #Tester en enlevant la condition ou simplifier la condition
                 exp[norm_tangent_vector == 0] = \
                     base_point[norm_tangent_vector == 0]
 
@@ -343,6 +344,8 @@ class HyperbolicMetric(RiemannianMetric):
     def log(self, point, base_point):
         """
         Riemannian logarithm of a point wrt a base point.
+        If point_type = 'poincare' then base_point belongs to the Poincare ball and point
+        is a vector in the euclidean space of the same dimension as the ball.
 
         Parameters
         ----------
@@ -396,20 +399,51 @@ class HyperbolicMetric(RiemannianMetric):
             return log
 
         if self.point_type == 'poincare':
-            kpx = self.add(-base_point, point)
+            add_base_point = self.mobius_add(-base_point, point)
 
-            norm_kpx = kpx.norm(2, -1, keepdim=True).expand_as(kpx)
+            norm_add = add_base_point.norm(2,
+                                           -1, keepdim=True).expand_as(
+                add_base_point)
 
             norm_base_point = base_point.norm(2,
-                                              -1, keepdim=True).expand_as(kpx)
+                                              -1, keepdim=True).expand_as(
+                add_base_point)
 
             res = (1 - norm_base_point ** 2) * \
-                  ((gs.arc_tanh(norm_kpx))) * (kpx / norm_kpx)
+                  ((gs.arc_tanh(norm_add))) * (add_base_point / norm_add)
 
-            if (0 != len((norm_kpx == 0).nonzero())):
-                res[norm_kpx == 0] = 0
+            if 0 != len((norm_add == 0).nonzero()):
+                res[norm_add == 0] = 0
 
             return res
+
+    def mobius_add(self, point_a, point_b):
+        """
+                Mobius addition operation that is necessary operation
+                to compute the log and exp using the 'poincare'
+                representation set as point_type.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[n_samples, dimension + 1]
+                              or shape=[1, dimension + 1]
+        point_b : array-like, shape=[n_samples, dimension + 1]
+                              or shape=[1, dimension + 1]
+
+        Returns
+        -------
+        mobius_add : array-like, shape=[n_samples, 1]
+                           or shape=[1, 1]
+        """
+        norm_point_a = gs.sum(point_a ** 2, dim=-1,
+                              keepdim=True).expand_as(point_a)
+        norm_point_b = gs.sum(point_b ** 2, dim=-1,
+                              keepdim=True).expand_as(point_a)
+        sum_prod_a_b = (point_a * point_b).sum(-1,
+                                               keepdim=True).expand_as(point_a)
+        return ((1 + 2 * sum_prod_a_b + norm_point_b) * point_a +
+                (1 - norm_point_a) * point_b) / \
+               (1 + 2 * sum_prod_a_b + norm_point_a * norm_point_b)
 
     def dist(self, point_a, point_b):
         """

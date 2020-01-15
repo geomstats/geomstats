@@ -328,13 +328,39 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
 
         self.space.metric.point_type = 'poincare'
         dist_a_b = self.metric.dist(point_a, point_b)
-        self.space.metric.point_type = None
+        self.space.metric.point_type = 'extrinsic'
 
         result = dist_a_b
         expected = gs.array([2.887270927429199])
 
         with self.session():
             self.assertAllClose(result, expected)
+
+
+    def test_exp_poincare(self):
+
+        result = 0
+        expected=0
+        with self.session():
+            self.assertAllClose(result, expected)
+
+    def test_log_poincare(self):
+        result = 0
+        expected=0
+        with self.session():
+            self.assertAllClose(result, expected)
+
+    # def test_log_and_exp_poincare(self):
+    #     base_point=gs.array([0.5,0.5])
+    #     point= gs.array([2.,3.])
+    #     self.space.metric.point_type = 'poincare'
+    #     log_point_a = self.space.metric.log(point,base_point)
+    #     print('Log',log_point_a)
+    #     result = self.space.metric.exp(log_point_a)
+    #     expected = point
+    #     self.space.metric.point_type = 'extrinsic'
+    #     with self.session():
+    #         self.assertAllClose(result, expected)
 
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         base_point = gs.array([4.0, 1., 3.0, math.sqrt(5)])
