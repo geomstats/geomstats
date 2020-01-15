@@ -8,7 +8,7 @@ import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
 
-from geomstats.geometry.spd_matrices_space import SPDMatricesSpace, SPDMetricProcrustes
+from geomstats.geometry.spd_matrices_space import SPDMatricesSpace, SPDMetric, SPDMetricProcrustes
 
 
 class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
@@ -107,7 +107,6 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                              [1., .5, .5]])
         self.assertAllClose(result, expected)
 
-
     @geomstats.tests.np_and_tf_only
     def test_procrustes_inner_product(self):
         base_point = gs.array([[1., 0., 0.],
@@ -122,6 +121,20 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         metric = SPDMetricProcrustes(3)
         result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         expected = 4
+
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
+    def test_power_affine_inner_product(self):
+        base_point = gs.array([[1., 0., 0.],
+                               [0., 2.5, 1.5],
+                               [0., 1.5, 2.5]])
+        tangent_vec = gs.array([[2., 1., 1.],
+                               [1., .5, .5],
+                               [1., .5, .5]])
+        metric = SPDMetric(3, power_affine=.5)
+        result = metric.inner_product(tangent_vec, tangent_vec, base_point)
+        expected = 713/144
 
         self.assertAllClose(result, expected)
 
