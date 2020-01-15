@@ -234,10 +234,6 @@ def norm(val, axis):
     return torch.linalg.norm(val, axis=axis)
 
 
-def rand(*args, **largs):
-    return torch.rand(*args, **largs)
-
-
 def isclose(*args, **kwargs):
     return torch.from_numpy(np.isclose(*args, **kwargs).astype(int)).byte()
 
