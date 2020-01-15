@@ -1156,7 +1156,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             else:
                 point = self.matrix_from_rotation_vector(point)
 
-        transpose_order = (0, 2, 1) if point.ndim == 3 else (1, 0)
+        transpose_order = (0, 2, 1) if gs.ndim(point) == 3 else (1, 0)
         inv_point = gs.transpose(point, transpose_order)
 
         if point_type == 'vector':
