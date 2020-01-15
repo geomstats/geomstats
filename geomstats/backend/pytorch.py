@@ -239,7 +239,7 @@ def rand(*args, **largs):
 
 
 def isclose(*args, **kwargs):
-    return torch.from_numpy(np.isclose(*args, **kwargs).astype(int)).byte()
+    return torch.from_numpy(np.isclose(*args, **kwargs).astype(bool))
 
 
 def less(a, b):
