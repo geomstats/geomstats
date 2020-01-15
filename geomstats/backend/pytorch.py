@@ -347,7 +347,7 @@ def tile(x, y):
 
 def clip(x, amin, amax):
 
-    if x.dtype=='torch.float':
+    if x.dtype == 'torch.float':
         return torch.clamp(x, amin, amax)
 
     return np.clip(x, amin, amax)
@@ -453,6 +453,7 @@ def get_mask_i_float(i, n):
     mask_i = equal(range_n, i_float)
     mask_i_float = cast(mask_i, float32)
     return mask_i_float
+
 
 def copy(x):
     return x.clone()
