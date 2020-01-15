@@ -133,7 +133,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         tangent_vec = gs.array([[2., 1., 1.],
                                [1., .5, .5],
                                [1., .5, .5]])
-        metric = SPDMetric(3, power_affine=.5)
+        metric = SPDMetricAffine(3, power_affine=.5)
         result = metric.inner_product(tangent_vec, tangent_vec, base_point)
         expected = 713/144
 
