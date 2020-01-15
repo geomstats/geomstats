@@ -22,7 +22,6 @@ class SPDMatricesSpace(EmbeddedManifold):
             dimension=int(n * (n + 1) / 2),
             embedding_manifold=GeneralLinearGroup(n=n))
         self.n = n
-        self.metric = SPDMetric(n=n)
 
     def belongs(self, mat, tolerance=TOLERANCE):
         """
@@ -124,21 +123,21 @@ class SPDMatricesSpace(EmbeddedManifold):
         Parameters
         ----------
         power : int
-        tangent_vec : array_like, shape=[n_samples, dim, dim]
+        tangent_vec : array_like, shape=[n_samples, n, n]
                       Tangent vectors.
-        base_point : array_like, shape=[n_samples, dim, dim]
+        base_point : array_like, shape=[n_samples, n, n]
                      Base points.
 
         Returns
         -------
-        eigvectors : array-like, shape=[n_samples, dim, dim]
-        transp_eigvectors : array-like, shape=[n_samples, dim, dim]
-        numerator : array-like, shape=[n_samples, dim, dim]
-        denominator : array-like, shape=[n_samples, dim, dim]
-        temp_result : array-like, shape=[n_samples, dim, dim]
+        eigvectors : array-like, shape=[n_samples, n, n]
+        transp_eigvectors : array-like, shape=[n_samples, n, n]
+        numerator : array-like, shape=[n_samples, n, n]
+        denominator : array-like, shape=[n_samples, n, n]
+        temp_result : array-like, shape=[n_samples, n, n]
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
-        n_tangent_vecs, dim, _ = tangent_vec.shape
+        n_tangent_vecs, _, _ = tangent_vec.shape
         base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, _ = base_point.shape
 
@@ -151,7 +150,7 @@ class SPDMatricesSpace(EmbeddedManifold):
         transp_eigvalues = gs.transpose(eigvalues, (0, 2, 1))
         powered_eigvalues = eigvalues**power
         transp_powered_eigvalues = gs.transpose(powered_eigvalues, (0, 2, 1))
-        ones = gs.ones((n_base_points, 1, dim))
+        ones = gs.ones((n_base_points, 1, self.n))
         transp_ones = gs.transpose(ones, (0, 2, 1))
 
         vertical_index = gs.matmul(transp_eigvalues, ones)
@@ -179,14 +178,14 @@ class SPDMatricesSpace(EmbeddedManifold):
         Parameters
         ----------
         power : int
-        tangent_vec : array_like, shape=[n_samples, dim, dim]
+        tangent_vec : array_like, shape=[n_samples, n, n]
                       Tangent vectors.
-        base_point : array_like, shape=[n_samples, dim, dim]
+        base_point : array_like, shape=[n_samples, n, n]
                      Base points.
 
         Returns
         -------
-        differential_power : array-like, shape=[n_samples, dim, dim]
+        differential_power : array-like, shape=[n_samples, n, n]
         """
         eigvectors, transp_eigvectors, numerator, denominator, temp_result =\
             self.aux_differential_power(power, tangent_vec, base_point)
@@ -205,14 +204,14 @@ class SPDMatricesSpace(EmbeddedManifold):
         Parameters
         ----------
         power : int
-        tangent_vec : array_like, shape=[n_samples, dim, dim]
+        tangent_vec : array_like, shape=[n_samples, n, n]
                       Tangent vectors.
-        base_point : array_like, shape=[n_samples, dim, dim]
+        base_point : array_like, shape=[n_samples, n, n]
                      Base points.
 
         Returns
         -------
-        inverse_differential_power : array-like, shape=[n_samples, dim, dim]
+        inverse_differential_power : array-like, shape=[n_samples, n, n]
         """
         eigvectors, transp_eigvectors, numerator, denominator, temp_result =\
             self.aux_differential_power(power, tangent_vec, base_point)
@@ -223,7 +222,7 @@ class SPDMatricesSpace(EmbeddedManifold):
         return result
 
 
-class SPDMetric(RiemannianMetric):
+class SPDMetricAffine(RiemannianMetric):
 
     def __init__(self, n, power_affine=1):
         """
@@ -242,10 +241,11 @@ class SPDMetric(RiemannianMetric):
         https://arxiv.org/abs/1906.01349
         """
         dimension = int(n * (n + 1) / 2)
-        super(SPDMetric, self).__init__(
+        super(SPDMetricAffine, self).__init__(
                 dimension=dimension,
                 signature=(dimension, 0, 0))
         self.n = n
+        self.space = SPDMatricesSpace(n)
         self.power_affine = power_affine
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
@@ -260,9 +260,9 @@ class SPDMetric(RiemannianMetric):
         n_tangent_vecs_b, _, _ = tangent_vec_b.shape
 
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_base_points, dim, _ = base_point.shape
+        n_base_points, _, _ = base_point.shape
 
-        spd_space = SPDMatricesSpace(dim)
+        spd_space = self.space
 
         assert (n_tangent_vecs_a == n_tangent_vecs_b == n_base_points
                 or n_tangent_vecs_a == n_tangent_vecs_b and n_base_points == 1
@@ -387,7 +387,7 @@ class SPDMetric(RiemannianMetric):
         return log
 
     def geodesic(self, initial_point, initial_tangent_vec):
-        return super(SPDMetric, self).geodesic(
+        return super(SPDMetricAffine, self).geodesic(
                                       initial_point=initial_point,
                                       initial_tangent_vec=initial_tangent_vec,
                                       point_type='matrix')
@@ -414,6 +414,7 @@ class SPDMetricProcrustes(RiemannianMetric):
             dimension=dimension,
             signature=(dimension, 0, 0))
         self.n = n
+        self.space = SPDMatricesSpace(n)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """
@@ -422,9 +423,9 @@ class SPDMetricProcrustes(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, dim, dim]
-        tangent_vec_b : array-like, shape=[n_samples, dim, dim]
-        base_point : array-like, shape={n_samples, dim, dim]
+        tangent_vec_a : array-like, shape=[n_samples, n, n]
+        tangent_vec_b : array-like, shape=[n_samples, n, n]
+        base_point : array-like, shape={n_samples, n, n]
 
         Returns
         -------
@@ -436,7 +437,7 @@ class SPDMetricProcrustes(RiemannianMetric):
         n_tangent_vecs_b, _, _ = tangent_vec_b.shape
 
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_base_points, dim, _ = base_point.shape
+        n_base_points, _, _ = base_point.shape
 
         assert (n_tangent_vecs_a == n_tangent_vecs_b == n_base_points
                 or n_tangent_vecs_a == n_tangent_vecs_b and n_base_points == 1
@@ -461,7 +462,7 @@ class SPDMetricProcrustes(RiemannianMetric):
                 base_point,
                 (gs.maximum(n_tangent_vecs_a, n_tangent_vecs_b), 1, 1))
 
-        spd_space = SPDMatricesSpace(dim)
+        spd_space = self.space
         modified_tangent_vec_a =\
             spd_space.inverse_differential_power(2, tangent_vec_a, base_point)
         product = gs.matmul(modified_tangent_vec_a, tangent_vec_b)
