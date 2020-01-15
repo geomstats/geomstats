@@ -31,7 +31,7 @@ class MatricesSpace(EuclideanSpace):
         return mat_dim_1 == self.m & mat_dim_2 == self.n
 
     @staticmethod
-    def mult(a, b):
+    def mul(a, b):
         """
         Return the product of matrices a and b.
 
@@ -47,7 +47,7 @@ class MatricesSpace(EuclideanSpace):
         return gs.matmul(a, b)
 
     @staticmethod
-    def bracket(a, b):
+    def commutator(a, b):
         """
         Return the commutator of a and b,
         i.e. `[a, b] = ab - ba`.
