@@ -13,6 +13,8 @@ N_SAMPLES = 10
 N_COMPONENTS = 2
 
 
+# XXX: Should these tests run on all backends?
+
 class TestTangentPCA(unittest.TestCase):
     _multiprocess_can_split_ = True
 
