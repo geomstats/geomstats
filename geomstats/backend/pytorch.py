@@ -285,7 +285,7 @@ def transpose(x, axes=None):
 
 
 def squeeze(x, axis=None):
-    if(axis is None):
+    if axis is None:
         return torch.squeeze(x)
     else:
         return torch.squeeze(x, axis)
