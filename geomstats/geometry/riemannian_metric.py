@@ -404,10 +404,10 @@ class RiemannianMetric(object):
         return mean
 
     def adaptive_gradientdescent_mean(self, points,
-                  weights=None,
-                  n_max_iterations=32,
-                  epsilon=1e-12,
-                  init_points=[]):
+                                      weights=None,
+                                      n_max_iterations=32,
+                                      epsilon=1e-12,
+                                      init_points=[]):
         """
         Frechet mean of (weighted) points using adaptive time-steps
         The loss function optimized is ||M_1(x)||_x (where M_1(x) is
