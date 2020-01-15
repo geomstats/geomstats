@@ -410,7 +410,8 @@ class HyperbolicMetric(RiemannianMetric):
             res = (1 - norm_base_point ** 2) * \
                   ((gs.arc_tanh(norm_add))) * (add_base_point / norm_add)
 
-            res[norm_add == 0] = 0
+            mask_0 = gs.all(gs.isclose(norm_add, 0))
+            res[mask_0] = 0
 
             return res
 
@@ -438,9 +439,15 @@ class HyperbolicMetric(RiemannianMetric):
                               keepdim=True).expand_as(point_a)
         sum_prod_a_b = (point_a * point_b).sum(-1,
                                                keepdim=True).expand_as(point_a)
-        return ((1 + 2 * sum_prod_a_b + norm_point_b) * point_a +
-                (1 - norm_point_a) * point_b) / \
-               (1 + 2 * sum_prod_a_b + norm_point_a * norm_point_b)
+
+        add_nominator = ((1 + 2 * sum_prod_a_b + norm_point_b) * point_a +
+                         (1 - norm_point_a) * point_b)
+
+        add_denominator = (1 + 2 * sum_prod_a_b + norm_point_a * norm_point_b)
+
+        mobius_add = add_nominator/add_denominator
+
+        return mobius_add
 
     def dist(self, point_a, point_b):
         """
