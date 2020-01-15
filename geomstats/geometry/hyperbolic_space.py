@@ -40,15 +40,22 @@ class HyperbolicSpace(EmbeddedManifold):
     Class for the n-dimensional Hyperbolic space
     as embedded in (n+1)-dimensional Minkowski space.
 
-    By default, points are parameterized by their extrinsic (n+1)-coordinates.
+    The point_type variable allows to choose the representation of the points as input.
+
+    By default, point_type is set to 'extrinsic' indicating that
+    points are parameterized by their extrinsic (n+1)-coordinates.
+
+    If point_type is set to 'poincare' then points are parametrized
+    by their coordinates inside the Poincare Ball (n)-coordinates.
     """
 
-    def __init__(self, dimension, point_type = None):
+    def __init__(self, dimension, point_type = 'extrinsic'):
         assert isinstance(dimension, int) and dimension > 0
         super(HyperbolicSpace, self).__init__(
                 dimension=dimension,
                 embedding_manifold=MinkowskiSpace(dimension+1))
         self.embedding_metric = self.embedding_manifold.metric
+        self.point_type = point_type
         self.metric = HyperbolicMetric(self.dimension, point_type)
 
     def belongs(self, point, tolerance=TOLERANCE):
@@ -201,7 +208,7 @@ class HyperbolicSpace(EmbeddedManifold):
 
 class HyperbolicMetric(RiemannianMetric):
 
-    def __init__(self, dimension, point_type = None):
+    def __init__(self, dimension, point_type = 'extrinsic'):
         super(HyperbolicMetric, self).__init__(
                 dimension=dimension,
                 signature=(dimension, 0, 0))
@@ -266,7 +273,7 @@ class HyperbolicMetric(RiemannianMetric):
         exp : array-like, shape=[n_samples, dimension + 1]
                           or shape=[1, dimension + 1]
         """
-        if(self.point_type==None):
+        if self.point_type=='extrinsic':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
 
@@ -307,10 +314,24 @@ class HyperbolicMetric(RiemannianMetric):
             exp = hyperbolic_space.regularize(exp)
             return exp
 
-        if(self.point_type=='Poincare'):
-            raise NotImplementedError(
-                'The computation of the poincare log'
-                ' is not implemented.')
+        if self.point_type=='poincare':
+            norm_base_point = base_point.norm(2, -1, keepdim=True).expand_as(base_point)
+
+            lambda_base_point = 1 / (1 - norm_base_point ** 2)
+
+            norm_tangent_vector = tangent_vec.norm(2, -1, keepdim=True).expand_as(tangent_vec)
+
+            direction = tangent_vec / norm_tangent_vector
+
+            factor = gs.tanh(lambda_base_point * norm_tangent_vector)
+
+            exp = self.add(base_point, direction * factor)
+
+            if (0 != len((norm_tangent_vector == 0).nonzero())):
+
+                exp[norm_tangent_vector == 0] = base_point[norm_tangent_vector == 0]
+
+            return exp
 
     def log(self, point, base_point):
         """
@@ -329,7 +350,7 @@ class HyperbolicMetric(RiemannianMetric):
                           or shape=[1, dimension + 1]
         """
 
-        if(self.point_type==None):
+        if self.point_type=='extrinsic':
             point = gs.to_ndarray(point, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
 
@@ -367,10 +388,19 @@ class HyperbolicMetric(RiemannianMetric):
                    - gs.einsum('ni,nj->nj', coef_2, base_point))
             return log
 
-        if(self.point_type=='Poincare'):
-            raise NotImplementedError(
-                'The computation of the poincare log'
-                ' is not implemented.')
+        if self.point_type=='poincare':
+            kpx = self.add(-base_point, point)
+
+            norm_kpx = kpx.norm(2, -1, keepdim=True).expand_as(kpx)
+
+            norm_base_point = base_point.norm(2, -1, keepdim=True).expand_as(kpx)
+
+            res = (1 - norm_base_point ** 2) * ((gs.arc_tanh(norm_kpx))) * (kpx / norm_kpx)
+
+            if (0 != len((norm_kpx == 0).nonzero())):
+                res[norm_kpx == 0] = 0
+
+            return res
 
 
     def dist(self, point_a, point_b):
@@ -390,7 +420,7 @@ class HyperbolicMetric(RiemannianMetric):
                            or shape=[1, 1]
         """
 
-        if(self.point_type==None):
+        if self.point_type=='extrinsic':
 
             sq_norm_a = self.embedding_metric.squared_norm(point_a)
             sq_norm_b = self.embedding_metric.squared_norm(point_b)
@@ -403,13 +433,13 @@ class HyperbolicMetric(RiemannianMetric):
 
             return dist
 
-        if(self.point_type=='Poincare'):
+        if self.point_type=='poincare':
 
-            point_a_norm = gs.clamp(gs.sum(point_a ** 2, dim=-1), 0, 1 - 1e-3)
-            point_b_norm = gs.clamp(gs.sum(point_b ** 2, dim=-1), 0, 1 - 1e-3)
-            d_norm = gs.sum((point_a - point_b) ** 2, dim=-1)
-            cc = 1 + 2 * d_norm / ((1 - point_a_norm) * (1 - point_b_norm))
-            dist = gs.log(cc + gs.sqrt(cc ** 2 - 1))
+            point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0, 1 - 1e-3)
+            point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0, 1 - 1e-3)
+            diff_norm = gs.sum((point_a - point_b) ** 2, -1)
+            norm_function = 1 + 2 * diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
+            dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
 
             return dist
 
