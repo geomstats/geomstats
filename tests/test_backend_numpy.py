@@ -2,30 +2,18 @@
 Unit tests for numpy backend.
 """
 
-import importlib
 import os
 import unittest
 import warnings
 
-import geomstats.tests
+from . import _test
 import geomstats.backend as gs
 from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 
 
-@geomstats.tests.np_only
-class TestBackendNumpy(geomstats.tests.TestCase):
+@_test.np_only
+class TestBackendNumpy(_test.TestCase):
     _multiprocess_can_split_ = True
-
-    @classmethod
-    def setUpClass(cls):
-        cls.initial_backend = os.environ['GEOMSTATS_BACKEND']
-        os.environ['GEOMSTATS_BACKEND'] = 'numpy'
-        importlib.reload(gs)
-
-    @classmethod
-    def tearDownClass(cls):
-        os.environ['GEOMSTATS_BACKEND'] = cls.initial_backend
-        importlib.reload(gs)
 
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)

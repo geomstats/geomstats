@@ -2,7 +2,6 @@
 Unit tests for tensorflow backend.
 """
 
-import importlib
 import os
 
 import geomstats.tests
@@ -12,18 +11,6 @@ import geomstats.backend as gs
 @geomstats.tests.tf_only
 class TestBackendTensorFlow(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
-
-    @classmethod
-    def setUpClass(cls):
-        cls.initial_backend = os.environ['GEOMSTATS_BACKEND']
-        os.environ['GEOMSTATS_BACKEND'] = 'tensorflow'
-        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-        importlib.reload(gs)
-
-    @classmethod
-    def tearDownClass(cls):
-        os.environ['GEOMSTATS_BACKEND'] = cls.initial_backend
-        importlib.reload(gs)
 
     def test_vstack(self):
         import tensorflow as tf
