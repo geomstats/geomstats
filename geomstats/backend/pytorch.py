@@ -251,7 +251,7 @@ def isclose(*args, **kwargs):
         return torch.from_numpy(np.isclose(*args, **kwargs))
     else:
         return torch.from_numpy(
-                np.isclose(np.array([0.]), 0.).astype(np.uint8))
+                np.isclose(*args, **kwargs).astype(np.uint8))
 
 
 def less(a, b):
