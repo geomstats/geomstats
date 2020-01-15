@@ -3,7 +3,6 @@ Product of manifolds.
 """
 
 import geomstats.backend as gs
-
 from geomstats.geometry.manifold import Manifold
 
 # TODO(nina): get rid of for loops

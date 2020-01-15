@@ -7,7 +7,6 @@ import logging
 import math
 
 import geomstats.backend as gs
-
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean_space import EuclideanMetric
 from geomstats.geometry.euclidean_space import EuclideanSpace
@@ -296,6 +295,8 @@ class HypersphereMetric(RiemannianMetric):
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         # TODO(johmathe): Evaluate the bias introduced by this variable
+        # TODO(Xavier): this is the wrong way to prevent numerical error:
+        #  if norm_tangent_vec is too small we should use a Taylor expansion.
         norm_tangent_vec = self.embedding_metric.norm(tangent_vec) + EPSILON
         coef_1 = gs.cos(norm_tangent_vec)
         coef_2 = gs.sin(norm_tangent_vec) / norm_tangent_vec
