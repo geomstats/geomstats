@@ -1,16 +1,15 @@
 """ Principal Component Analysis on Manifolds
 """
 
-from math import log
 import numbers
+from math import log
 
 import numpy as np
 from scipy import linalg
 from scipy.special import gammaln
-
 from sklearn.decomposition.base import _BasePCA
-from sklearn.utils.extmath import svd_flip
 from sklearn.utils.extmath import stable_cumsum
+from sklearn.utils.extmath import svd_flip
 from sklearn.utils.validation import check_array
 
 
