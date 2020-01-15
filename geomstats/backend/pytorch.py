@@ -11,6 +11,14 @@ int32 = 'torch.LongTensor'
 int8 = 'torch.ByteTensor'
 
 
+def version_maj():
+    return int(torch.__version__.split(".")[0])
+
+
+def version_min():
+    return int(torch.__version__.split(".")[1])
+
+
 def while_loop(cond, body, loop_vars, maximum_iterations):
     iteration = 0
     while cond(*loop_vars):
@@ -239,7 +247,11 @@ def rand(*args, **largs):
 
 
 def isclose(*args, **kwargs):
-    return torch.from_numpy(np.isclose(*args, **kwargs).astype(bool))
+    if version_maj() >= 1 and version_min() > 1:
+        return torch.from_numpy(np.isclose(*args, **kwargs))
+    else:
+        return torch.from_numpy(
+                np.isclose(np.array([0.]), 0.).astype(np.uint8))
 
 
 def less(a, b):
