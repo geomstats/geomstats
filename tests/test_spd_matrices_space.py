@@ -8,7 +8,7 @@ import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
 
-from geomstats.geometry.spd_matrices_space import SPDMatricesSpace
+from geomstats.geometry.spd_matrices_space import SPDMatricesSpace, SPDMetricProcrustes
 
 
 class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
@@ -93,7 +93,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
-    def test_differential_power_with_inverse(self):
+    def test_inverse_differential_power(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 2.5, 1.5],
                                [0., 1.5, 2.5]])
@@ -101,10 +101,28 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                                 [1 / 3, .125, .125],
                                 [1 / 3, .125, .125]])
         power = .5
-        result = self.space.differential_power(power=power, tangent_vec=tangent_vec, base_point=base_point, inverse=True)
+        result = self.space.inverse_differential_power(power=power, tangent_vec=tangent_vec, base_point=base_point)
         expected = gs.array([[2., 1., 1.],
                              [1., .5, .5],
                              [1., .5, .5]])
+        self.assertAllClose(result, expected)
+
+
+    @geomstats.tests.np_and_tf_only
+    def test_procrustes_inner_product(self):
+        base_point = gs.array([[1., 0., 0.],
+                               [0., 1.5, .5],
+                               [0., .5, 1.5]])
+        tangent_vec_a = gs.array([[2., 1., 1.],
+                                  [1., .5, .5],
+                                  [1., .5, .5]])
+        tangent_vec_b = gs.array([[1., 2., 4.],
+                                  [2., 3., 8.],
+                                  [4., 8., 5.]])
+        metric = SPDMetricProcrustes(3)
+        result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        expected = 4
+
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
