@@ -289,7 +289,3 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         result = self.metric.squared_dist(point_1, point_2)
 
         self.assertAllClose(gs.shape(result), (1, 1))
-
-
-if __name__ == '__main__':
-    geomstats.tests.main()

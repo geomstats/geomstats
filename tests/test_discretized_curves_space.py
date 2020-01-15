@@ -277,7 +277,3 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)
 
         self.assertAllClose(result, expected)
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

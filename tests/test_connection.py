@@ -52,7 +52,3 @@ class TestConnectionMethods(geomstats.tests.TestCase):
         expected = gs.zeros((1,) + (self.dimension, ) * 3)
 
         gs.testing.assert_allclose(result, expected)
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

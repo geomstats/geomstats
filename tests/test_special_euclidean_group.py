@@ -1417,7 +1417,3 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             result = point_step
             expected = helper.to_vector(points[i])
             self.assertAllClose(result, expected)
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

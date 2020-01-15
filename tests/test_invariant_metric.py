@@ -456,7 +456,3 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
                                              vector=log,
                                              base_point=self.point_1)
         self.assertAllClose(result, expected)
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

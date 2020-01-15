@@ -254,7 +254,3 @@ class TestMinkowskiSpaceMethods(geomstats.tests.TestCase):
         # we expect the average of the points' Minkowski sq norms.
         expected = helper.to_scalar(gs.array([True]))
         self.assertAllClose(result, expected)
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

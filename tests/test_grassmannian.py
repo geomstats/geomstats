@@ -17,7 +17,3 @@ class TestGrassmannianMethods(geomstats.tests.TestCase):
         self.n = 4
         self.p = 2
         self.space = Grassmannian(self.n, self.p)
-
-
-if __name__ == '__main__':
-        geomstats.test.main()

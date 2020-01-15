@@ -42,7 +42,3 @@ class TestQuantizationMethods(geomstats.tests.TestCase):
         result = prediction
         expected = clustering.labels_[0]
         self.assertAllClose(expected, result)
-
-
-if __name__ == '__main__':
-    geomstats.tests.main()

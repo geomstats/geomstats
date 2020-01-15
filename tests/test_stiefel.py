@@ -268,7 +268,3 @@ class TestStiefelMethods(geomstats.tests.TestCase):
             tangent_vector_2,
             base_point=base_point)
         self.assertAllClose(gs.shape(result), (1, 1))
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

@@ -97,7 +97,3 @@ class TestExamples(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_plot_quantization_s2(self):
         plot_quantization_s2.main()
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

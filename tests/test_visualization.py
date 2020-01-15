@@ -62,7 +62,3 @@ class TestVisualizationMethods(geomstats.tests.TestCase):
     def test_plot_points_h2_klein_disk(self):
         points = self.H2.random_uniform(self.n_samples)
         visualization.plot(points, space='H2_klein_disk')
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

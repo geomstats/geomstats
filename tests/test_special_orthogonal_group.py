@@ -3807,7 +3807,3 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             gs.array([[[0., 0., 0.], [0., 0., -1.], [0., 1., 0.]]]))
 
         self.assertAllClose(result, expected)
-
-
-if __name__ == '__main__':
-    geomstats.tests.main()

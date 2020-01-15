@@ -23,7 +23,7 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_mul(self):
         a = gs.eye(3, 3, 1)
-        b = gs.eye(3, 3, -1) 
+        b = gs.eye(3, 3, -1)
         c = gs.array([
             [1., 0., 0.],
             [0., 1., 0.],
@@ -157,7 +157,3 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
         expected = helper.to_scalar(expected)
 
         self.assertAllClose(result, expected)
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

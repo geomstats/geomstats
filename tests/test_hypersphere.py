@@ -543,7 +543,3 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
             expected = 0.0
             self.assertAllClose(
                 result, expected, atol=OPTIMAL_QUANTIZATION_TOL)
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

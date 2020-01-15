@@ -360,7 +360,3 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
         expected = helper.to_scalar(expected)
 
         self.assertAllClose(result, expected)
-
-
-if __name__ == '__main__':
-        geomstats.test.main()

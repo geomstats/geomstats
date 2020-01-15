@@ -164,7 +164,3 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         expected = point
 
         self.assertAllClose(result, expected)
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

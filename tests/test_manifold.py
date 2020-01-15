@@ -30,7 +30,3 @@ class TestManifoldMethods(geomstats.tests.TestCase):
         result = self.manifold.regularize(point)
         expected = point
         self.assertAllClose(result, expected)
-
-
-if __name__ == '__main__':
-    geomstats.test.main()
