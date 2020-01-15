@@ -12,8 +12,6 @@ from geomstats.geometry.spd_matrices_space import SPDMatricesSpace, SPDMetric, S
 
 
 class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
 
@@ -302,7 +300,3 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         result = self.metric.squared_dist(point_1, point_2)
 
         self.assertAllClose(gs.shape(result), (1, 1))
-
-
-if __name__ == '__main__':
-    geomstats.tests.main()

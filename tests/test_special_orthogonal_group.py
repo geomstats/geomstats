@@ -20,8 +20,6 @@ ATOL = 1e-5
 
 
 class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
 
@@ -2514,10 +2512,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             expected = group.regularize(point)
             inv_expected = - expected
 
-            with self.session():
-                self.assertTrue(
-                    gs.eval(gs.allclose(result, expected))
-                    or gs.eval(gs.allclose(result, inv_expected)))
+            self.assertTrue(
+                gs.allclose(result, expected)
+                or gs.allclose(result, inv_expected))
 
     @geomstats.tests.np_only
     def test_quaternion_and_rotation_vector(self):
@@ -2665,10 +2662,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             expected = matrix
             inv_expected = gs.linalg.inv(matrix)
 
-            with self.session():
-                self.assertTrue(
-                    gs.eval(gs.allclose(result, expected))
-                    or gs.eval(gs.allclose(result, inv_expected)))
+            self.assertTrue(
+                gs.eval(gs.allclose(result, expected))
+                or gs.eval(gs.allclose(result, inv_expected)))
 
     @geomstats.tests.np_only
     def test_quaternion_and_rotation_vector_and_matrix_vectorization(self):
@@ -2704,10 +2700,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
                     else:
                         inv_expected = - expected
-                        with self.session():
-                            self.assertTrue(
-                                gs.eval(gs.allclose(result, expected))
-                                or gs.eval(gs.allclose(result, inv_expected)))
+                        self.assertTrue(
+                            gs.eval(gs.allclose(result, expected))
+                            or gs.eval(gs.allclose(result, inv_expected)))
 
                     # Composition by identity, on the left
                     # Expect the original transformation
@@ -2718,10 +2713,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                         self.assertAllClose(result, expected)
                     else:
                         inv_expected = - expected
-                        with self.session():
-                            self.assertTrue(
-                                gs.eval(gs.allclose(result, expected))
-                                or gs.eval(gs.allclose(result, inv_expected)))
+                        self.assertTrue(
+                            gs.eval(gs.allclose(result, expected))
+                            or gs.eval(gs.allclose(result, inv_expected)))
 
             else:
                 angle = 0.986
@@ -3080,10 +3074,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                                                 tangent_vec=tangent_vec,
                                                 metric=metric)
                 inv_expected = - expected
-                with self.session():
-                    self.assertTrue(
-                        gs.eval(gs.allclose(result, expected))
-                        or gs.eval(gs.allclose(result, inv_expected)))
+                self.assertTrue(
+                    gs.eval(gs.allclose(result, expected))
+                    or gs.eval(gs.allclose(result, inv_expected)))
 
     @geomstats.tests.np_only
     def test_log_then_exp_from_identity(self):
@@ -3129,10 +3122,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 expected = group.regularize(point)
                 inv_expected = - expected
 
-                with self.session():
-                    self.assertTrue(
-                        gs.eval(gs.allclose(result, expected))
-                        or gs.eval(gs.allclose(result, inv_expected)))
+                self.assertTrue(
+                    gs.eval(gs.allclose(result, expected))
+                    or gs.eval(gs.allclose(result, inv_expected)))
 
     @geomstats.tests.np_only
     def test_exp_then_log(self):
@@ -3194,12 +3186,11 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     expected = reg_tangent_vec
                     inv_expected = - expected
 
-                    with self.session():
-                        self.assertTrue(
-                            gs.eval(gs.allclose(
-                                result, expected, atol=1e-5))
-                            or gs.eval(gs.allclose(
-                                result, inv_expected, atol=1e-5)))
+                    self.assertTrue(
+                        gs.eval(gs.allclose(
+                            result, expected, atol=1e-5))
+                        or gs.eval(gs.allclose(
+                            result, inv_expected, atol=1e-5)))
 
     @geomstats.tests.np_only
     def test_log_then_exp(self):
@@ -3229,10 +3220,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     expected = group.regularize(point)
                     inv_expected = - expected
 
-                    with self.session():
-                        self.assertTrue(
-                            gs.eval(gs.allclose(result, expected))
-                            or gs.eval(gs.allclose(result, inv_expected)))
+                    self.assertTrue(
+                        gs.eval(gs.allclose(result, expected))
+                        or gs.eval(gs.allclose(result, inv_expected)))
 
     @geomstats.tests.np_only
     def test_log_then_exp_with_angles_close_to_pi(self):
@@ -3258,11 +3248,10 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                     expected = group.regularize(point)
                     inv_expected = - expected
 
-                    with self.session():
-                        self.assertTrue(
-                            gs.eval(gs.allclose(result, expected, atol=1e-5))
-                            or gs.eval(gs.allclose(
-                                result, inv_expected, atol=1e-5)))
+                    self.assertTrue(
+                        gs.eval(gs.allclose(result, expected, atol=1e-5))
+                        or gs.eval(gs.allclose(
+                            result, inv_expected, atol=1e-5)))
 
     def test_group_exp_from_identity_vectorization(self):
         n = 3
@@ -3490,11 +3479,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 expected = reg_tangent_vec
                 inv_expected = - expected
 
-                with self.session():
-                    self.assertTrue(
-                        gs.eval(gs.allclose(result, expected, atol=1e-5))
-                        or gs.eval(gs.allclose(
-                            result, inv_expected, atol=1e-5)))
+                self.assertTrue(
+                    gs.eval(gs.allclose(result, expected, atol=1e-5))
+                    or gs.eval(gs.allclose(result, inv_expected, atol=1e-5)))
 
     @geomstats.tests.np_only
     def test_group_log_then_exp(self):
@@ -3545,11 +3532,9 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 expected = group.regularize(point)
                 inv_expected = - expected
 
-                with self.session():
-                    self.assertTrue(
-                        gs.eval(gs.allclose(result, expected, atol=1e-5))
-                        or gs.eval(gs.allclose(
-                            result, inv_expected, atol=1e-5)))
+                self.assertTrue(
+                    gs.allclose(result, expected, atol=1e-5)
+                    or gs.allclose(result, inv_expected, atol=1e-5))
 
     @geomstats.tests.np_only
     def test_group_exponential_barycenter(self):
@@ -3820,7 +3805,3 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             gs.array([[[0., 0., 0.], [0., 0., -1.], [0., 1., 0.]]]))
 
         self.assertAllClose(result, expected)
-
-
-if __name__ == '__main__':
-    geomstats.tests.main()
