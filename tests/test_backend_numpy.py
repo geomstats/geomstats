@@ -7,11 +7,13 @@ import os
 import unittest
 import warnings
 
+from geomstats.tests import TestCase, np_only
 import geomstats.backend as gs
 from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 
 
-class TestBackendNumpy(unittest.TestCase):
+@np_only
+class TestBackendNumpy(TestCase):
     _multiprocess_can_split_ = True
 
     @classmethod
@@ -109,7 +111,3 @@ class TestBackendNumpy(unittest.TestCase):
         expected = point
 
         self.assertTrue(gs.allclose(result, expected))
-
-
-if __name__ == '__main__':
-        unittest.main()

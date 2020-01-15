@@ -4,12 +4,13 @@ Unit tests for tensorflow backend.
 
 import importlib
 import os
-import tensorflow as tf
 
+from geomstats.tests import TestCase, tf_only
 import geomstats.backend as gs
 
 
-class TestBackendTensorFlow(tf.test.TestCase):
+@tf_only
+class TestBackendTensorFlow(TestCase):
     _multiprocess_can_split_ = True
 
     @classmethod
@@ -25,6 +26,7 @@ class TestBackendTensorFlow(tf.test.TestCase):
         importlib.reload(gs)
 
     def test_vstack(self):
+        import tensorflow as tf
         with self.test_session():
             tensor_1 = tf.convert_to_tensor([[1., 2., 3.], [4., 5., 6.]])
             tensor_2 = tf.convert_to_tensor([[7., 8., 9.]])
@@ -42,7 +44,3 @@ class TestBackendTensorFlow(tf.test.TestCase):
             tensor_2 = gs.ones((0, 1))
 
             result = tensor_1 + tensor_2
-
-
-if __name__ == '__main__':
-    tf.test.main()
