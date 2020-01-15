@@ -334,19 +334,17 @@ class HyperbolicMetric(RiemannianMetric):
 
             exp = self.mobius_add(base_point, direction * factor)
 
-            if 0 != len((norm_tangent_vector == 0).nonzero()):
-
-            #Tester en enlevant la condition ou simplifier la condition
-                exp[norm_tangent_vector == 0] = \
-                    base_point[norm_tangent_vector == 0]
+            exp[norm_tangent_vector == 0] = \
+                base_point[norm_tangent_vector == 0]
 
             return exp
 
     def log(self, point, base_point):
         """
         Riemannian logarithm of a point wrt a base point.
-        If point_type = 'poincare' then base_point belongs to the Poincare ball and point
-        is a vector in the euclidean space of the same dimension as the ball.
+        If point_type = 'poincare' then base_point belongs
+        to the Poincare ball and point is a vector in the euclidean
+        space of the same dimension as the ball.
 
         Parameters
         ----------
@@ -413,8 +411,7 @@ class HyperbolicMetric(RiemannianMetric):
             res = (1 - norm_base_point ** 2) * \
                   ((gs.arc_tanh(norm_add))) * (add_base_point / norm_add)
 
-            if 0 != len((norm_add == 0).nonzero()):
-                res[norm_add == 0] = 0
+            res[norm_add == 0] = 0
 
             return res
 
