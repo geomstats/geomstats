@@ -2,8 +2,9 @@
 The Poincare polydisk
 """
 
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hyperbolic_space import HyperbolicSpace, HyperbolicMetric
 from geomstats.geometry.product_manifold import ProductManifold
+from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 
 
 class PoincarePolydisk(ProductManifold):
@@ -12,7 +13,34 @@ class PoincarePolydisk(ProductManifold):
     of n Poincare disks, i.e. hyperbolic spaces of dimension 2.
     """
     def __init__(self, n_disks):
+        self.n_disks = n_disks
         disk = HyperbolicSpace(dimension=2)
         list_disks = [disk, ] * n_disks
         super(PoincarePolydisk, self).__init__(
             manifolds=list_disks)
+        self.metric = PoincarePolydiskMetric(n_disks)
+
+
+class PoincarePolydiskMetric(ProductRiemannianMetric):
+    """
+    Class defining the Poincare polydisk metric,
+    which is a product of n Poincare metrics,
+    each of them being multilplied by a specific constant factor.
+    This metric come from a model used to represent
+    stationary complex signals.
+
+    References
+    ----------
+    The Kahler mean of Block-Toeplitz matrices
+    with Toeplitz structured blocks
+    B. Jeuris and R. Vandebril
+    2016
+    https://epubs.siam.org/doi/pdf/10.1137/15M102112X
+    """
+
+    def __init__(self, n_disks):
+        self.n_disks = n_disks
+        metric = HyperbolicMetric(dimension=2)
+        list_metrics = [metric, ] * n_disks
+        super(PoincarePolydiskMetric, self).__init__(
+                metrics=list_metrics)
