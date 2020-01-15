@@ -27,13 +27,11 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
         c = gs.array([
             [1., 0., 0.],
             [0., 1., 0.],
-            [0., 0., 0.]
-        ])
+            [0., 0., 0.]])
         d = gs.array([
             [0., 0., 0.],
             [0., 1., 0.],
-            [0., 0., 1.]
-        ])
+            [0., 0., 1.]])
         result = self.space.mult([a, b], [b, a])
         expected = gs.array([c, d])
         self.assertAllClose(result, expected)
@@ -47,18 +45,15 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
         x = gs.array([
             [0., 0., 0.],
             [0., 0., -1.],
-            [0., 1., 0.]
-        ])
+            [0., 1., 0.]])
         y = gs.array([
             [0., 0., 1.],
             [0., 0., 0.],
-            [-1., 0., 0.]
-        ])
+            [-1., 0., 0.]])
         z = gs.array([
             [0., -1., 0.],
             [1., 0., 0.],
-            [0., 0., 0.]
-        ])
+            [0., 0., 0.]])
         result = self.space.bracket([x, y], [y, z])
         expected = gs.array([z, x])
         self.assertAllClose(result, expected)
