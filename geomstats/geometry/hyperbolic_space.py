@@ -7,7 +7,6 @@ import logging
 import math
 
 import geomstats.backend as gs
-
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.minkowski_space import MinkowskiMetric
 from geomstats.geometry.minkowski_space import MinkowskiSpace
