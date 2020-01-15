@@ -235,7 +235,7 @@ def norm(val, axis):
 
 
 def rand(*args, **largs):
-    return torch.random.rand(*args, **largs)
+    return torch.rand(*args, **largs)
 
 
 def isclose(*args, **kwargs):
@@ -285,7 +285,10 @@ def transpose(x, axes=None):
 
 
 def squeeze(x, axis=None):
-    return torch.squeeze(x, dim=axis)
+    if axis is None:
+        return torch.squeeze(x)
+    else:
+        return torch.squeeze(x, axis)
 
 
 def zeros_like(*args, **kwargs):
