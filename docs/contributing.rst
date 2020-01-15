@@ -207,7 +207,7 @@ complies with the following rules. The **bolded** ones are especially important:
    good title.
 
 2. **Make sure your code passes the tests**. The whole test suite can be run
-   with `pytest` or `nose2`, but it is usually not recommended since it takes a long
+   with `nose2`, but it is usually not recommended since it takes a long
    time. It is often enough to only run the test related to your changes:
    for example, if you changed something in
    `geomstats/spd_matrices_space.py`, running the following command will
