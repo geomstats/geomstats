@@ -4,8 +4,8 @@ Unit tests for tensorflow backend.
 
 import os
 
-import geomstats.tests
 import geomstats.backend as gs
+import geomstats.tests
 
 
 @geomstats.tests.tf_only

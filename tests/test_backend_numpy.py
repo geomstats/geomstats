@@ -6,8 +6,9 @@ import os
 import unittest
 import warnings
 
-import geomstats.tests
 import geomstats.backend as gs
+import geomstats.tests
+
 from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 
 
