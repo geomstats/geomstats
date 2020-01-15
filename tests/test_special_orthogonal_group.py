@@ -404,7 +404,6 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-
     @geomstats.tests.np_only
     def test_rotation_vector_and_rotation_matrix(self):
         """
@@ -3743,19 +3742,20 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         for i in range(n_steps+1):
             point_step = metric.exp(tangent_vec=i * tangent_vec_step,
                                     base_point=initial_point)
-            # self.assertTrue(gs.allclose(point_step, points[i]))
+            #self.assertTrue(gs.allclose(point_step, points[i]))
 
     def test_lie_bracket_at_identity(self):
-        space = self.so[3]
-        base_point = gs.eye(3)
+        dim = 3
+        space = self.so[dim]
+        base_point = gs.eye(dim)
         first_tan = gs.array([
             [0., -1., 0.],
             [1., 0., 0.],
             [0., 0., 0.]])
         second_tan = first_tan
 
-        result = space.lie_bracket(base_point, first_tan, second_tan)
-        expected = gs.zeros((3,3))
+        result = space.lie_bracket(first_tan, second_tan, base_point)
+        expected = gs.zeros((dim, dim))
 
         self.assertAllClose(result, expected)
 
@@ -3768,7 +3768,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             [0., 0., 0.],
             [1., 0., 0.]])
 
-        result = space.lie_bracket(base_point, first_tan, second_tan)
+        result = space.lie_bracket(first_tan, second_tan, base_point)
         expected = gs.array([
             [0., 0., 0.],
             [0., 0., -1.],
@@ -3777,9 +3777,10 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_lie_bracket_vectorization(self):
-        space = self.so[3]
+        dim = 3
+        space = self.so[dim]
 
-        base_point = gs.array([gs.eye(3), gs.eye(3)])
+        base_point = gs.array([gs.eye(dim), gs.eye(dim)])
         first_tan = gs.array([
                 [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
                 [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
@@ -3789,16 +3790,17 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 [[0., 0., -1.], [0., 0., 0.], [1., 0., 0.]]
             ])
 
-        result = space.lie_bracket(base_point, first_tan, second_tan)
+        result = space.lie_bracket(first_tan, second_tan, base_point)
         expected = gs.array([
-                gs.zeros((3,3)),
-                [ [0., 0., 0.], [0., 0., -1.], [0., 1., 0.]]
+                gs.zeros((dim, dim)),
+                [[0., 0., 0.], [0., 0., -1.], [0., 1., 0.]]
                 ])
 
         self.assertAllClose(result, expected)
 
     def test_lie_bracket_at_non_identity(self):
-        space = self.so[3]
+        dim = 3
+        space = self.so[dim]
 
         base_point = gs.array([
             [[-1., 0., 0.], [0., -1., 0.], [0., 0., 1.]]])
@@ -3811,7 +3813,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                 gs.array([[0., 0., -1.], [0., 0., 0.], [1., 0., 0.]])
                 )
 
-        result = space.lie_bracket(base_point, first_tan, second_tan)
+        result = space.lie_bracket(first_tan, second_tan, base_point)
         expected = gs.matmul(
             base_point,
             gs.array([[[0., 0., 0.], [0., 0., -1.], [0., 1., 0.]]]))
@@ -3820,4 +3822,4 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
 
 if __name__ == '__main__':
-        geomstats.tests.main()
+    geomstats.tests.main()

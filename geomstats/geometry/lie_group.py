@@ -236,7 +236,7 @@ class LieGroup(Manifold):
     def add_metric(self, metric):
         self.metrics.append(metric)
 
-    def lie_bracket(self, base_point, first_tan_vec, second_tan_vec):
+    def lie_bracket(self, tangent_vector_a, tangent_vector_b, base_point=None):
         """
         Compute the lie bracket of two sets of tangent vectors.
         For matrix Lie groups with tangent vectors A,B at the same base point P
@@ -245,22 +245,29 @@ class LieGroup(Manifold):
 
         Parameters
         ----------
+        tangent_vector_a : shape=[n_samples, n, n]
+        tangent_vector_b : shape=[n_samples, n, n]
         base_point : array-like, shape=[n_samples, n, n]
-        first_tan_vecs : shape=[n_samples, n, n]
-        second_tan_vecs : shape=[n_samples, n, n]
+
+
+        Returns
+        ---------
+        bracket: array_like, shape=[n_samples, n, n]
 
         """
+
+        if base_point is None:
+            base_point = self.identity
+
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        first_tan_vec = gs.to_ndarray(first_tan_vec, to_ndim=3)
-        second_tan_vec = gs.to_ndarray(second_tan_vec, to_ndim=3)
+        tangent_vector_a = gs.to_ndarray(tangent_vector_a, to_ndim=3)
+        tangent_vector_b = gs.to_ndarray(tangent_vector_b, to_ndim=3)
 
         inverse_base = self.inverse(base_point, point_type='matrix')
 
         first_term = gs.matmul(
-                first_tan_vec, gs.matmul(inverse_base, second_tan_vec)
-                )
+                tangent_vector_a, gs.matmul(inverse_base, tangent_vector_b))
         second_term = gs.matmul(
-                second_tan_vec,
-                gs.matmul(inverse_base, first_tan_vec)
-                )
+                tangent_vector_b,
+                gs.matmul(inverse_base, tangent_vector_a))
         return first_term - second_term
