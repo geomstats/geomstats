@@ -33,6 +33,7 @@ INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
                           0., + 2. / 945.,
                           0., -1. / 4725.]
 
+EPSILON = 1e-5
 
 class HyperbolicSpace(EmbeddedManifold):
     """
@@ -440,8 +441,8 @@ class HyperbolicMetric(RiemannianMetric):
 
         if self.point_type == 'poincare':
 
-            point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0, 1 - 1e-3)
-            point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0, 1 - 1e-3)
+            point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0, 1 - EPSILON)
+            point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0, 1 - EPSILON)
             diff_norm = gs.sum((point_a - point_b) ** 2, -1)
             norm_function = 1 + 2 * \
                 diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
