@@ -46,7 +46,7 @@ class TestEstimators(TestCase):
         X, y = self.data
         trans = TemplateTransformer()
         trans.fit(X)
-        X_diff_size = np.ones((10, X.shape[1] + 1))
+        X_diff_size = gs.ones((10, X.shape[1] + 1))
         self.assertRaises(trans.transform(X_diff_size), ValueError)
 
     def test_template_transformer(self):
@@ -58,10 +58,10 @@ class TestEstimators(TestCase):
         assert trans.n_features_ == X.shape[1]
 
         X_trans = trans.transform(X)
-        assert_allclose(X_trans, np.sqrt(X))
+        assert_allclose(X_trans, gs.sqrt(X))
 
         X_trans = trans.fit_transform(X)
-        assert_allclose(X_trans, np.sqrt(X))
+        assert_allclose(X_trans, gs.sqrt(X))
 
     def test_template_classifier(self):
         X, y = self.data
