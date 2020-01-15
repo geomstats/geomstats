@@ -60,7 +60,7 @@ def np_and_pytorch_only(test_item):
         test_item)
 
 
-class DummySession():
+class DummySession:
     def __enter__(self):
         pass
 

@@ -5,12 +5,12 @@ Unit tests for tensorflow backend.
 import importlib
 import os
 
-from geomstats.tests import TestCase, tf_only
+import geomstats.tests
 import geomstats.backend as gs
 
 
-@tf_only
-class TestBackendTensorFlow(TestCase):
+@geomstats.tests.tf_only
+class TestBackendTensorFlow(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     @classmethod

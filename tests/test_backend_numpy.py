@@ -7,13 +7,13 @@ import os
 import unittest
 import warnings
 
-from geomstats.tests import TestCase, np_only
+import geomstats.tests
 import geomstats.backend as gs
 from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 
 
-@np_only
-class TestBackendNumpy(TestCase):
+@geomstats.tests.np_only
+class TestBackendNumpy(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     @classmethod
