@@ -10,8 +10,6 @@ import geomstats.backend as gs
 
 @geomstats.tests.tf_only
 class TestBackendTensorFlow(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def test_vstack(self):
         import tensorflow as tf
         with self.test_session():

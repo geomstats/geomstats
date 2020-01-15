@@ -10,8 +10,6 @@ from geomstats.geometry.poincare_polydisk import PoincarePolydisk
 
 
 class TestPoincarePolydiskMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         gs.random.seed(1234)
         self.n_disks = 5

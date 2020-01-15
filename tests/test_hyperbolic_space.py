@@ -19,8 +19,6 @@ RTOL = 1e-6
 
 
 class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         gs.random.seed(1234)
         self.dimension = 3

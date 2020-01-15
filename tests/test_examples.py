@@ -28,8 +28,6 @@ import geomstats.tests
 
 
 class TestExamples(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     @classmethod
     def setUpClass(cls):
         sys.stdout = open(os.devnull, 'w')

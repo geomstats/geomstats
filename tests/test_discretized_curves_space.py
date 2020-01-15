@@ -11,8 +11,6 @@ from geomstats.geometry.hypersphere import Hypersphere
 
 
 class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         s2 = Hypersphere(dimension=2)
         r3 = s2.embedding_manifold

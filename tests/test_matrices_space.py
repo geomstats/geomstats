@@ -10,8 +10,6 @@ from geomstats.geometry.matrices_space import MatricesSpace
 
 
 class TestMatricesSpaceMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         gs.random.seed(1234)
 

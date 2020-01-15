@@ -9,8 +9,6 @@ from geomstats.geometry.grassmannian import Grassmannian
 
 
 class TestGrassmannianMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         gs.random.seed(1234)
 

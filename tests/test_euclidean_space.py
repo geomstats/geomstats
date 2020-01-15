@@ -10,8 +10,6 @@ from geomstats.geometry.euclidean_space import EuclideanSpace
 
 
 class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         gs.random.seed(1234)
 

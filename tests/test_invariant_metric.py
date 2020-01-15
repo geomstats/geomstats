@@ -13,8 +13,6 @@ from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup
 
 
 class TestInvariantMetricMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
 

@@ -15,8 +15,6 @@ RTOL = 1e-5
 
 
 class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         gs.random.seed(1234)
         self.n = 3

@@ -14,8 +14,6 @@ ATOL = 1e-6
 
 
 class TestStiefelMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         """
         Tangent vectors constructed following:

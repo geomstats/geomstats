@@ -12,8 +12,6 @@ from geomstats.geometry.spd_matrices_space import SPDMatricesSpace, SPDMetricPro
 
 
 class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
 

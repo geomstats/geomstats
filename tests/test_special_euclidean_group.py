@@ -25,8 +25,6 @@ RTOL = 1e-5
 
 
 class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
         gs.random.seed(1234)

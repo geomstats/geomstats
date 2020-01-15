@@ -8,8 +8,6 @@ from geomstats.geometry.lie_group import LieGroup
 
 
 class TestLieGroupMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     dimension = 4
     group = LieGroup(dimension=dimension)
 

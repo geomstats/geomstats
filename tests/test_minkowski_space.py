@@ -12,8 +12,6 @@ from geomstats.geometry.minkowski_space import MinkowskiSpace
 
 
 class TestMinkowskiSpaceMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         gs.random.seed(1234)
 

@@ -13,8 +13,6 @@ from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 
 @geomstats.tests.np_only
 class TestBackendNumpy(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
 

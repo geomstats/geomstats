@@ -9,8 +9,6 @@ from geomstats.geometry.manifold import Manifold
 
 
 class TestManifoldMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         self.dimension = 4
         self.manifold = Manifold(self.dimension)

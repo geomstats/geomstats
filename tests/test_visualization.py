@@ -16,8 +16,6 @@ from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 
 
 class TestVisualizationMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         self.n_samples = 10
         self.SO3_GROUP = SpecialOrthogonalGroup(n=3)

@@ -7,8 +7,6 @@ from geomstats.learning.quantization import Quantization
 
 
 class TestQuantizationMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         gs.random.seed(1234)
 
