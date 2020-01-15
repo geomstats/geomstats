@@ -8,46 +8,35 @@ import geomstats.tests
 from geomstats.geometry.grassmannian import Grassmannian
 from geomstats.geometry.grassmannian import GrassmannianCanonicalMetric
 
-Pxy = gs.diag([1., 1., 0.])[0]
-Pyz = gs.diag([0., 1., 1.])[0]
-Pxz = gs.diag([1., 0., 1.])[0]
-Ry = gs.array([
+p_xy = gs.diag([1., 1., 0.])[0]
+p_yz = gs.diag([0., 1., 1.])[0]
+p_xz = gs.diag([1., 0., 1.])[0]
+r_y = gs.array([
     [0., 0., 1.],
     [0., 0., 0.],
     [-1., 0., 0.]])
-Rz = gs.array([
+r_z = gs.array([
     [0., -1., 0.],
     [1., 0., 0.],
     [0., 0., 0.]])
 pi_2 = gs.pi/2
 
-
 class TestGrassmannianMethods(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
 
-<<<<<<< HEAD
         self.n = 3
         self.k = 2
         self.space = Grassmannian(self.n, self.k)
         self.metric = GrassmannianCanonicalMetric(self.n, self.k)
 
-
     def test_exp(self): 
-        result = self.metric.exp(pi_2 * Ry, [Pxy, Pyz])
-        expected = gs.array([Pyz, Pxy])
+        result = self.metric.exp(pi_2 * r_y, [p_xy, p_yz])
+        expected = gs.array([p_yz, p_xy])
         self.assertAllClose(result, expected)
 
         result = self.metric.exp(
-            pi_2 * gs.array([Ry, Rz]), 
-            gs.array([Pxy, Pyz]))
-        expected = gs.array([Pyz, Pxz])
+            pi_2 * gs.array([r_y, r_z]), 
+            gs.array([p_xy, p_yz]))
+        expected = gs.array([p_yz, p_xz])
         self.assertAllClose(result, expected)
-
-if __name__ == '__main__':
-        geomstats.test.main()
-=======
-        self.n = 4
-        self.p = 2
-        self.space = Grassmannian(self.n, self.p)
->>>>>>> b1e96c25b8769a9ed85fa1658ef67345030f9586

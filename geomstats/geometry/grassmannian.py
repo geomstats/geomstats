@@ -8,7 +8,7 @@ import geomstats.backend as gs
 
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean_space import EuclideanMetric
-from geomstats.geometry.matrices_space import MatricesSpace as Mat
+from geomstats.geometry.matrices_space import MatricesSpace 
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-5
@@ -30,7 +30,7 @@ class Grassmannian(EmbeddedManifold):
         dimension = int(k * (n - k))
         super(Grassmannian, self).__init__(
               dimension=dimension,
-              embedding_manifold=Mat(n, n))
+              embedding_manifold=MatricesSpace(n, n))
 
     def belongs(self, point, tolerance=TOLERANCE):
         """
@@ -60,21 +60,22 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
                 signature=(dimension, 0, 0))
         self.embedding_metric = EuclideanMetric(n * p)
 
-    def exp(self, v, p):
+    def exp(self, vector, point):
         """
         Exponentiate the invariant vector field v from base point p.
 
-        The tangent vector v is skew-symmetric, in so(n).
-        The base point p is a rank p projector of Gr(n, k).
+        `vector` is skew-symmetric, in so(n).
+        `point` is a rank p projector of Gr(n, k).
 
         Parameters
         ----------
-        v : array-like, shape=[n_samples, n, n]
-        p : array-like, shape=[n_samples, n, n]
+        vector : array-like, shape=[n_samples, n, n]
+        point : array-like, shape=[n_samples, n, n]
 
         Returns
         -------
         exp : array-like, shape=[n_samples, n, n]
         """
         expm = gs.linalg.expm
-        return Mat.mul(Mat.mul(expm(v), p), expm(-v))
+        mul = MatricesSpace.mul
+        return mul(mul(expm(vector), point), expm(-vector))
