@@ -240,10 +240,10 @@ def norm(val, axis):
 
 if torch.__version__ >= "1.1":
     def isclose(*args, **kwargs):
-        return torch.from_numpy(np.isclose(*args, **kwargs))
+        return torch.from_numpy(_np.isclose(*args, **kwargs))
 else:
     def isclose(*args, **kwargs):
-        return torch.from_numpy(np.isclose(*args, **kwargs).astype(np.uint8))
+        return torch.from_numpy(_np.isclose(*args, **kwargs).astype(_np.uint8))
 
 
 def less(a, b):
