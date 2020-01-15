@@ -1,0 +1,4 @@
+codecov
+coverage
+flake8
+nose2

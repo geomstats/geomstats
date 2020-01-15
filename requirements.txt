@@ -1,10 +1,6 @@
 autograd
-codecov
-coverage
-flake8
 h5py==2.8.0
 matplotlib
-nose2
 numpy==1.16.0
 scikit-learn==0.19.1
 scipy
