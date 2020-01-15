@@ -1,16 +1,12 @@
-"""
-Unit tests for landmarks space.
-"""
-
-import geomstats
 import geomstats.backend as gs
 import geomstats.tests
 
 from geomstats.geometry import hypersphere
+
 from geomstats.learning.k_means import RiemannianKMeans
 
 
-class TestLearningKMeans(geomstats.tests.TestCase):
+class TestRiemannianKMeansMethods(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def test_hypersphere_k_means_fit(self):

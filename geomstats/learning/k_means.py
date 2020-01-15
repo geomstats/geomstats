@@ -26,6 +26,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
              between two step is lower than tol
 
         verbose : if verbose > 0, information will be print during learning
+
         Returns
         -------
         self : object
@@ -44,16 +45,16 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape (n_samples, n_features)
+        X : array-like, shape=[n_samples, n_features]
             Training data, where n_samples is the number of samples
             and n_features is the number of features.
 
-        max_iter : Maximum number of iteration
+        max_iter : Maximum number of iterations
 
         Returns
         -------
         self : object
-            Returns the instance itself.
+            Return centroids array
         """
         n_samples = X.shape[0]
         belongs = gs.zeros(n_samples)
@@ -61,34 +62,46 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                           for i in range(self.n_clusters)]
         self.centroids = gs.concatenate(self.centroids)
         index = 0
-        while(index < max_iter):
+        while index < max_iter:
             index += 1
-            # expectation
+
             dists = [self.riemannian_metric.dist(self.centroids[i], X)
                      for i in range(self.n_clusters)]
             dists = gs.hstack(dists)
             belongs = gs.argmin(dists, -1)
 
-            # maximisation
             old_centroids = gs.copy(self.centroids)
             for i in range(self.n_clusters):
                 fold = gs.squeeze(X[belongs == i])
-                if(len(fold) > 0):
+                if len(fold) > 0:
                     self.centroids[i] = self.riemannian_metric.mean(fold)
 
                 else:
                     self.centroids[i] = X[randint(0, n_samples-1)]
 
-            # test convergence
             centroids_distances = self.riemannian_metric.dist(old_centroids,
                                                               self.centroids)
 
-            if(gs.mean(centroids_distances) < self.tol):
+            if gs.mean(centroids_distances) < self.tol:
                 if self.verbose > 0:
                     print("Convergence Reached after ", index, " iterations")
-                # convergence reached
+
                 return gs.copy(self.centroids)
 
+    """Predict for each data point the closest center in terms of
+        riemannian_metric distance
+
+    Parameters
+    ----------
+    X : array-like, shape=[n_samples, n_features]
+        data, where n_samples is the number of samples
+        and n_features is the number of features.
+
+    Returns
+    -------
+    self : object
+        Return array containing for each point the cluster associated
+    """
     def predict(self, X):
         # finding closest mean
         dists = gs.hstack([self.riemannian_metric.dist(self.centroids[i], X)
