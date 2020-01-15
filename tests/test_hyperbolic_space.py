@@ -320,13 +320,13 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         with self.session():
             self.assertAllClose(result, expected)
 
-    @geomstats.tests.pytorch_only
+    #@geomstats.tests.pytorch_only
     def test_dist_poincare(self):
 
         point_a = gs.array([0.5, 0.5])
         point_b = gs.array([0.5, -0.5])
 
-        self.space.metric.point_type = 'Poincare'
+        self.space.metric.point_type = 'poincare'
         dist_a_b = self.metric.dist(point_a, point_b)
         self.space.metric.point_type = None
 
