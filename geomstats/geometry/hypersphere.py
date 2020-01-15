@@ -190,7 +190,9 @@ class Hypersphere(EmbeddedManifold):
             sin_prod = gs.cumprod(gs.sin(spherical_coord), axis=1)
 
             factor_1 = gs.hstack((gs.ones((n_samples, 1)), sin_prod))
-            factor_2 = gs.hstack((gs.cos(spherical_coord), gs.ones((n_samples, 1))))
+            factor_2 = gs.hstack(
+                (gs.cos(spherical_coord), gs.ones((n_samples, 1)))
+            )
 
             point = factor_1 * factor_2
         else:
