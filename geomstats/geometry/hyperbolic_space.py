@@ -569,6 +569,7 @@ class HyperbolicMetric(RiemannianMetric):
             return exp
 
         elif self.point_type == 'ball':
+
             norm_base_point = base_point.norm(2,
                                               -1, keepdim=True).expand_as(
                                                 base_point)
@@ -612,6 +613,7 @@ class HyperbolicMetric(RiemannianMetric):
         log : array-like, shape=[n_samples, dimension + 1]
                           or shape=[1, dimension + 1]
         """
+
         if self.point_type == 'extrinsic':
             point = gs.to_ndarray(point, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -724,6 +726,7 @@ class HyperbolicMetric(RiemannianMetric):
         """
 
         if self.point_type == 'extrinsic':
+
             sq_norm_a = self.embedding_metric.squared_norm(point_a)
             sq_norm_b = self.embedding_metric.squared_norm(point_b)
             inner_prod = self.embedding_metric.inner_product(point_a, point_b)
