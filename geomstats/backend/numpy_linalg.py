@@ -6,7 +6,12 @@ import scipy.linalg
 from geomstats.backend.numpy import to_ndarray
 
 
-def exph(x):
+def is_symmetric(x):
+    new_x = to_ndarray(x, to_ndim=3)
+    return (new_x - np.transpose(new_x, axes=(0, 2, 1)) == 0).all()
+
+
+def expsym(x):
     eigvals, eigvecs = np.linalg.eigh(x)
     eigvals = np.exp(eigvals)
     eigvals = np.vectorize(np.diag, signature='(n)->(n,n)')(eigvals)
@@ -19,8 +24,8 @@ def exph(x):
 def expm(x):
     ndim = x.ndim
     new_x = to_ndarray(x, to_ndim=3)
-    if (new_x - np.transpose(new_x, axes=(0, 2, 1)) == 0).all():
-        result = exph(new_x)
+    if is_symmetric(new_x):
+        result = expsym(new_x)
     else:
         result = np.vectorize(scipy.linalg.expm,
                               signature='(n,m)->(n,m)')(new_x)
@@ -34,7 +39,7 @@ def expm(x):
 def logm(x):
     ndim = x.ndim
     new_x = to_ndarray(x, to_ndim=3)
-    if (new_x - np.transpose(new_x, axes=(0, 2, 1)) == 0).all():
+    if is_symmetric(new_x):
         eigvals, eigvecs = np.linalg.eigh(new_x)
         eigvals = np.log(eigvals)
         if (eigvals > 0).all():
@@ -58,7 +63,7 @@ def logm(x):
 def powerm(x, power):
     ndim = x.ndim
     new_x = to_ndarray(x, to_ndim=3)
-    if (new_x - np.transpose(new_x, axes=(0, 2, 1)) == 0).all():
+    if is_symmetric(new_x):
         eigvals, eigvecs = np.linalg.eigh(new_x)
         eigvals = eigvals**power
         if (eigvals > 0).all():
@@ -67,17 +72,17 @@ def powerm(x, power):
             result = np.matmul(eigvecs, eigvals)
             result = np.matmul(result, transp_eigvecs)
         else:
-            result = np.vectorize(scipy.linalg.logm,
-                                  signature='(n,m)->(n,m)')(new_x)
-            result = power * result
+            log_x = np.vectorize(scipy.linalg.logm,
+                                 signature='(n,m)->(n,m)')(new_x)
+            p_log_x = power * log_x
             result = np.vectorize(scipy.linalg.expm,
-                                  signature='(n,m)->(n,m)')(result)
+                                  signature='(n,m)->(n,m)')(p_log_x)
     else:
-        result = np.vectorize(scipy.linalg.logm,
-                              signature='(n,m)->(n,m)')(new_x)
-        result = power * result
+        log_x = np.vectorize(scipy.linalg.logm,
+                             signature='(n,m)->(n,m)')(new_x)
+        p_log_x = power * log_x
         result = np.vectorize(scipy.linalg.expm,
-                              signature='(n,m)->(n,m)')(result)
+                              signature='(n,m)->(n,m)')(p_log_x)
 
     if ndim == 2:
         return result[0]
