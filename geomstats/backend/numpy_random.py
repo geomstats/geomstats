@@ -17,3 +17,7 @@ def seed(*args, **kwargs):
 
 def normal(*args, **kwargs):
     return np.random.normal(*args, **kwargs)
+
+
+def choice(*args, **kwargs):
+    return np.random.choice(*args, **kwargs)
