@@ -8,12 +8,10 @@ import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
 
-from geomstats.geometry.spd_matrices_space import SPDMatricesSpace, SPDMetric, SPDMetricProcrustes
+from geomstats.geometry.spd_matrices_space import SPDMatricesSpace, SPDMetricAffine, SPDMetricProcrustes
 
 
 class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
 
@@ -21,7 +19,8 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         self.n = 3
         self.space = SPDMatricesSpace(n=self.n)
-        self.metric = self.space.metric
+        self.metric_affine = SPDMetricAffine(n=self.n)
+        self.metric_procrustes = SPDMetricProcrustes(n=self.n)
         self.n_samples = 4
 
     @geomstats.tests.np_and_tf_only
@@ -132,7 +131,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         tangent_vec = gs.array([[2., 1., 1.],
                                [1., .5, .5],
                                [1., .5, .5]])
-        metric = SPDMetric(3, power_affine=.5)
+        metric = SPDMetricAffine(3, power_affine=.5)
         result = metric.inner_product(tangent_vec, tangent_vec, base_point)
         expected = 713/144
 
@@ -147,8 +146,9 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                           [0., 5., 0.],
                           [0., 0., 1.]])
 
-        log = self.metric.log(point=point, base_point=base_point)
-        result = self.metric.exp(tangent_vec=log, base_point=base_point)
+        metric = self.metric_affine
+        log = metric.log(point=point, base_point=base_point)
+        result = metric.exp(tangent_vec=log, base_point=base_point)
         expected = helper.to_matrix(point)
 
         self.assertAllClose(result, expected)
@@ -160,7 +160,8 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         tangent_vec = self.space.random_tangent_vec_uniform(
                                                n_samples=n_samples,
                                                base_point=base_point)
-        exps = self.metric.exp(tangent_vec, base_point)
+        metric = self.metric_affine
+        exps = metric.exp(tangent_vec, base_point)
         result = self.space.belongs(exps)
         expected = gs.array([[True]] * n_samples)
 
@@ -178,15 +179,16 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         n_tangent_vec = self.space.random_tangent_vec_uniform(
                                                  n_samples=n_samples,
                                                  base_point=n_base_point)
+        metric = self.metric_affine
 
         # Test with the 1 base_point, and several different tangent_vecs
-        result = self.metric.exp(n_tangent_vec_same_base, one_base_point)
+        result = metric.exp(n_tangent_vec_same_base, one_base_point)
 
         self.assertAllClose(
             gs.shape(result), (n_samples, self.space.n, self.space.n))
 
         # Test with the same number of base_points and tangent_vecs
-        result = self.metric.exp(n_tangent_vec, n_base_point)
+        result = metric.exp(n_tangent_vec, n_base_point)
 
         self.assertAllClose(
             gs.shape(result), (n_samples, self.space.n, self.space.n))
@@ -199,21 +201,22 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         one_point = self.space.random_uniform(n_samples=1)
         n_point = self.space.random_uniform(n_samples=n_samples)
+        metric = self.metric_affine
 
         # Test with different points, one base point
-        result = self.metric.log(n_point, one_base_point)
+        result = metric.log(n_point, one_base_point)
 
         self.assertAllClose(
             gs.shape(result), (n_samples, self.space.n, self.space.n))
 
         # Test with the same number of points and base points
-        result = self.metric.log(n_point, n_base_point)
+        result = metric.log(n_point, n_base_point)
 
         self.assertAllClose(
             gs.shape(result), (n_samples, self.space.n, self.space.n))
 
         # Test with the one point and n base points
-        result = self.metric.log(one_point, n_base_point)
+        result = metric.log(one_point, n_base_point)
 
         self.assertAllClose(
             gs.shape(result), (n_samples, self.space.n, self.space.n))
@@ -224,7 +227,8 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         initial_tangent_vec = self.space.random_tangent_vec_uniform(
                                                 n_samples=1,
                                                 base_point=initial_point)
-        geodesic = self.metric.geodesic(
+        metric = self.metric_affine
+        geodesic = metric.geodesic(
                                    initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
 
@@ -243,32 +247,33 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         point_1 = self.space.random_uniform(n_samples=1)
         point_2 = self.space.random_uniform(n_samples=1)
 
-        sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
-        sq_dist_2_1 = self.metric.squared_dist(point_2, point_1)
+        metric = self.metric_affine
+        sq_dist_1_2 = metric.squared_dist(point_1, point_2)
+        sq_dist_2_1 = metric.squared_dist(point_2, point_1)
 
         self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
         point_1 = self.space.random_uniform(n_samples=1)
         point_2 = self.space.random_uniform(n_samples=n_samples)
 
-        sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
-        sq_dist_2_1 = self.metric.squared_dist(point_2, point_1)
+        sq_dist_1_2 = metric.squared_dist(point_1, point_2)
+        sq_dist_2_1 = metric.squared_dist(point_2, point_1)
 
         self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
         point_1 = self.space.random_uniform(n_samples=n_samples)
         point_2 = self.space.random_uniform(n_samples=1)
 
-        sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
-        sq_dist_2_1 = self.metric.squared_dist(point_2, point_1)
+        sq_dist_1_2 = metric.squared_dist(point_1, point_2)
+        sq_dist_2_1 = metric.squared_dist(point_2, point_1)
 
         self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
         point_1 = self.space.random_uniform(n_samples=n_samples)
         point_2 = self.space.random_uniform(n_samples=n_samples)
 
-        sq_dist_1_2 = self.metric.squared_dist(point_1, point_2)
-        sq_dist_2_1 = self.metric.squared_dist(point_2, point_1)
+        sq_dist_1_2 = metric.squared_dist(point_1, point_2)
+        sq_dist_2_1 = metric.squared_dist(point_2, point_1)
 
         self.assertAllClose(sq_dist_1_2, sq_dist_2_1)
 
@@ -278,31 +283,28 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         point_1 = self.space.random_uniform(n_samples=n_samples)
         point_2 = self.space.random_uniform(n_samples=n_samples)
 
-        result = self.metric.squared_dist(point_1, point_2)
+        metric = self.metric_affine
+        result = metric.squared_dist(point_1, point_2)
 
         self.assertAllClose(gs.shape(result), (n_samples, 1))
 
         point_1 = self.space.random_uniform(n_samples=1)
         point_2 = self.space.random_uniform(n_samples=n_samples)
 
-        result = self.metric.squared_dist(point_1, point_2)
+        result = metric.squared_dist(point_1, point_2)
 
         self.assertAllClose(gs.shape(result), (n_samples, 1))
 
         point_1 = self.space.random_uniform(n_samples=n_samples)
         point_2 = self.space.random_uniform(n_samples=1)
 
-        result = self.metric.squared_dist(point_1, point_2)
+        result = metric.squared_dist(point_1, point_2)
 
         self.assertAllClose(gs.shape(result), (n_samples, 1))
 
         point_1 = self.space.random_uniform(n_samples=1)
         point_2 = self.space.random_uniform(n_samples=1)
 
-        result = self.metric.squared_dist(point_1, point_2)
+        result = metric.squared_dist(point_1, point_2)
 
         self.assertAllClose(gs.shape(result), (1, 1))
-
-
-if __name__ == '__main__':
-    geomstats.tests.main()

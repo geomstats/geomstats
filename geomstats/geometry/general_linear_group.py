@@ -3,7 +3,6 @@ The General Linear Group, i.e. the matrix group GL(n).
 """
 
 import geomstats.backend as gs
-
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.matrices_space import MatricesSpace
 

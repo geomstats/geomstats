@@ -3,7 +3,6 @@ Product of Riemannian metrics.
 """
 
 import geomstats.backend as gs
-
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 EPSILON = 1e-5

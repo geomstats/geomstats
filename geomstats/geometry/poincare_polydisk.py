@@ -2,10 +2,11 @@
 The Poincare polydisk
 """
 
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
 from geomstats.geometry.hyperbolic_space import HyperbolicMetric
+from geomstats.geometry.hyperbolic_space import HyperbolicSpace
 from geomstats.geometry.product_manifold import ProductManifold
-from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric  # NOQA
+from geomstats.geometry.product_riemannian_metric \
+    import ProductRiemannianMetric  # NOQA
 
 
 class PoincarePolydisk(ProductManifold):
