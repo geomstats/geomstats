@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.backend as gs
-
 from geomstats.geometry.hyperbolic_space import HyperbolicSpace
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup

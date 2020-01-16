@@ -3,7 +3,6 @@
 
 import geomstats.backend as gs
 import geomstats.geometry.riemannian_metric as riemannian_metric
-
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.manifold import Manifold
 

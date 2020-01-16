@@ -346,7 +346,15 @@ def tile(x, y):
 
 
 def clip(x, amin, amax):
+
+    if x.dtype == 'torch.float':
+        return torch.clamp(x, amin, amax)
+
     return np.clip(x, amin, amax)
+
+
+def clamp(*args, **kwargs):
+    return torch.clamp(*args, **kwargs)
 
 
 def diag(*args, **kwargs):
@@ -453,3 +461,10 @@ def get_mask_i_float(i, n):
 
 def copy(x):
     return x.clone()
+
+
+def cumprod(x, axis=0):
+    if axis is None:
+        raise NotImplementedError('cumprod is not defined where axis is None')
+    else:
+        return torch.cumprod(x, dim=axis)
