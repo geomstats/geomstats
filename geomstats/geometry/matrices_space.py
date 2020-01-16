@@ -65,7 +65,7 @@ class MatricesSpace(EuclideanSpace):
     @staticmethod
     def transpose(mat):
         """
-        Return the transpose of matrices. 
+        Return the transpose of matrices.
 
         Parameters
         ----------

@@ -60,6 +60,7 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
         expected = gs.array([gs.zeros((3,3)), z, -y])
         self.assertAllClose(result, expected)
     
+    @geomstats.test.np_only
     def test_transpose(self):
         tr = self.space.transpose
         ar = gs.array
