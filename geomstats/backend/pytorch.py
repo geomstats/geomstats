@@ -61,8 +61,15 @@ def divide(*args, **kwargs):
     return torch.div(*args, **kwargs)
 
 
-def repeat(*args, **kwargs):
-    return args[0].repeat(*args[1:], **kwargs)
+def repeat(x, repeat_time, axis=None):
+    if(version_maj() >= 1 and version_min() >= 1):
+        return torch.repeat_interleave(x, repeat_time, axis)
+    else:
+        if(axis is None):
+            axis = 0
+        shape = list(x.shape)
+        shape[axis] = shape[axis] * repeat_time
+        return x.repeat(*shape)
 
 
 def asarray(x):

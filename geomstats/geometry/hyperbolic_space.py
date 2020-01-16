@@ -496,7 +496,7 @@ class HyperbolicMetric(RiemannianMetric):
     def squared_norm(self, vector, base_point=None):
         """
         Squared norm of a vector associated with the inner product
-        at the tangent space at a base point.
+        at the tangent space at a base point. Extrinsic base point only
 
         Parameters
         ----------
@@ -740,8 +740,8 @@ class HyperbolicMetric(RiemannianMetric):
 
         elif self.point_type == 'ball':
 
-            point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0, 1 - EPSILON)
-            point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0, 1 - EPSILON)
+            point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0., 1 - EPSILON)
+            point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0., 1 - EPSILON)
             diff_norm = gs.sum((point_a - point_b) ** 2, -1)
             norm_function = 1 + 2 * \
                 diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
