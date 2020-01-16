@@ -43,6 +43,10 @@ def amax(x):
     return torch.max(x)
 
 
+def amin(x):
+    return torch.min(x)
+
+
 def boolean_mask(x, mask):
     idx = np.argwhere(np.asarray(mask))
     return x[idx]

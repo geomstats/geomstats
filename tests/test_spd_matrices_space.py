@@ -138,6 +138,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_power_euclidean_inner_product(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 2.5, 1.5],
@@ -148,6 +149,20 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         metric = SPDMetricEuclidean(3, power_euclidean=.5)
         result = metric.inner_product(tangent_vec, tangent_vec, base_point)
         expected = 3472/576
+
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
+    def test_euclidean_exp_domain(self):
+        base_point = gs.array([[1., 0., 0.],
+                               [0., 2., 0.],
+                               [0., 0., 3.]])
+        tangent_vec = gs.array([[-1., 0., 0.],
+                                [0., -.5, 0.],
+                                [0., 0., 1.]])
+        metric = self.metric_euclidean
+        result = metric.exp_domain(tangent_vec, base_point)
+        expected = gs.array([-3, 1])
 
         self.assertAllClose(result, expected)
 

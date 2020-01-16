@@ -2,6 +2,8 @@
 The manifold of symmetric positive definite (SPD) matrices.
 """
 
+import math
+
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear_group import GeneralLinearGroup
@@ -547,6 +549,19 @@ class SPDMetricEuclidean(RiemannianMetric):
 
         return inner_product
 
-#    def exp_domain(self, tangent_vec, base_point):
-#        invsqrt_base_point = gs.linalg
-#        eigvals = gs.linalg.eigvalsh()
+    def exp_domain(self, tangent_vec, base_point):
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
+        invsqrt_base_point = gs.linalg.powerm(base_point, -.5)
+        reduced_vec = gs.matmul(invsqrt_base_point, tangent_vec)
+        reduced_vec = gs.matmul(reduced_vec, invsqrt_base_point)
+        eigvals = gs.linalg.eigvalsh(reduced_vec)
+        min_eig = gs.amin(eigvals, axis=1)
+        max_eig = gs.amax(eigvals, axis=1)
+        inf_value = gs.where(max_eig == 0, -math.inf, - 1/max_eig)
+        inf_value = gs.to_ndarray(inf_value, to_ndim=2)
+        sup_value = gs.where(min_eig == 0, math.inf, - 1/min_eig)
+        sup_value = gs.to_ndarray(sup_value, to_ndim=2)
+        domain = gs.concatenate((inf_value, sup_value), axis=1)
+
+        return domain

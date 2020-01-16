@@ -88,6 +88,10 @@ def amax(*args, **kwargs):
     return np.amax(*args, **kwargs)
 
 
+def amin(*args, **kwargs):
+    return np.amin(*args, **kwargs)
+
+
 def arctan2(*args, **kwargs):
     return np.arctan2(*args, **kwargs)
 
