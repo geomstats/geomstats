@@ -152,20 +152,17 @@ class Connection(object):
 
         current_point = gs.copy(base_point)
         transported_tangent_vector = gs.copy(tangent_vec_a)
+        base_shoot = self.exp(base_point=current_point,
+                              tangent_vec=transported_tangent_vector)
         for i_point in range(0, n_steps):
-            base_shoot = self.exp(
-                base_point=current_point,
-                tangent_vec=transported_tangent_vector)
             frac_tangent_vector_b = (i_point + 1) / n_steps * tangent_vec_b
             next_point = self.exp(
                 base_point=base_point,
                 tangent_vec=frac_tangent_vector_b)
-
             transported_tangent_vector, base_shoot = self.pole_ladder_step(
                 base_point=current_point,
                 next_point=next_point,
                 base_shoot=base_shoot)
-
             current_point = next_point
 
         return transported_tangent_vector
