@@ -448,10 +448,10 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         tangent_vec_a = self.space.projection_to_tangent_space(tangent_vec_a, base_point)
         tangent_vec_b = self.space.projection_to_tangent_space(tangent_vec_b, base_point)
         scale = 2
-        default_metric = HyperbolicSpace(dimension=self.dimension)
-        scaled_metric = HyperbolicSpace(dimension=self.dimension, scale=2)
-        inner_product_default_metric = default_metric.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        inner_product_scaled_metric = scaled_metric.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        default_space = HyperbolicSpace(dimension=self.dimension)
+        scaled_space = HyperbolicSpace(dimension=self.dimension, scale=2)
+        inner_product_default_metric = default_space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        inner_product_scaled_metric = scaled_space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(scale ** 2 * inner_product_default_metric, inner_product_scaled_metric)
 
     @geomstats.tests.np_only
@@ -461,10 +461,10 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         tangent_vec = gs.array([1, 2, 3, 4])
         tangent_vec = self.space.projection_to_tangent_space(tangent_vec, base_point)
         scale = 2
-        default_metric = HyperbolicSpace(dimension=self.dimension)
-        scaled_metric = HyperbolicSpace(dimension=self.dimension, scale=2)
-        squared_norm_default_metric = default_metric.metric.squared_norm(tangent_vec, base_point)
-        squared_norm_scaled_metric = scaled_metric.metric.squared_norm(tangent_vec, base_point)
+        default_space = HyperbolicSpace(dimension=self.dimension)
+        scaled_space = HyperbolicSpace(dimension=self.dimension, scale=2)
+        squared_norm_default_metric = default_space.metric.squared_norm(tangent_vec, base_point)
+        squared_norm_scaled_metric = scaled_space.metric.squared_norm(tangent_vec, base_point)
         self.assertAllClose(scale ** 2 * squared_norm_default_metric, squared_norm_scaled_metric)
 
     @geomstats.tests.np_only
@@ -474,8 +474,8 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         point_a = self.space.intrinsic_to_extrinsic_coords(point_a_intrinsic)
         point_b = self.space.intrinsic_to_extrinsic_coords(point_b_intrinsic)
         scale = 2
-        default_metric = HyperbolicSpace(dimension=self.dimension)
-        scaled_metric = HyperbolicSpace(dimension=self.dimension, scale=2)
-        distance_default_metric = default_metric.metric.dist(point_a, point_b)
-        distance_scaled_metric = scaled_metric.metric.dist(point_a, point_b)
+        default_space = HyperbolicSpace(dimension=self.dimension)
+        scaled_space = HyperbolicSpace(dimension=self.dimension, scale=2)
+        distance_default_metric = default_space.metric.dist(point_a, point_b)
+        distance_scaled_metric = scaled_space.metric.dist(point_a, point_b)
         self.assertAllClose(scale * distance_default_metric, distance_scaled_metric)

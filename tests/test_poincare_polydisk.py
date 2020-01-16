@@ -30,15 +30,13 @@ class TestPoincarePolydiskMethods(geomstats.tests.TestCase):
     def test_product_distance(self):
         point_a_intrinsic = gs.array([0.01, 0.0])
         point_b_intrinsic = gs.array([0.0, 0.0])
-        hyperbolic_space_instance = HyperbolicSpace(dimension=2)
-        point_a = hyperbolic_space_instance.intrinsic_to_extrinsic_coords(point_a_intrinsic)
-        point_b = hyperbolic_space_instance.intrinsic_to_extrinsic_coords(point_b_intrinsic)
-        list_points_shape = list(point_a.shape)
-        list_dimension_two_disks_data = [2] + list_points_shape
-        duplicate_point_a = gs.zeros(list_dimension_two_disks_data)
+        hyperbolic_space = HyperbolicSpace(dimension=2)
+        point_a = hyperbolic_space.intrinsic_to_extrinsic_coords(point_a_intrinsic)
+        point_b = hyperbolic_space.intrinsic_to_extrinsic_coords(point_b_intrinsic)
+        duplicate_point_a = gs.zeros((2,) + point_a.shape)
         duplicate_point_a[0, ...] = point_a
         duplicate_point_a[1, ...] = point_a
-        duplicate_point_b = gs.zeros(list_dimension_two_disks_data)
+        duplicate_point_b = gs.zeros((2,) + point_b.shape)
         duplicate_point_b[0, ...] = point_b
         duplicate_point_b[1, ...] = point_b
         single_disk = PoincarePolydisk(n_disks=1)
