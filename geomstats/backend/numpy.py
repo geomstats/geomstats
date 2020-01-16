@@ -149,6 +149,8 @@ def ones(val):
 def ones_like(*args, **kwargs):
     return np.ones_like(*args, **kwargs)
 
+def empty(*args, **kwargs):
+    return np.empty(*args, **kwargs)
 
 def empty_like(*args, **kwargs):
     return np.empty_like(*args, **kwargs)

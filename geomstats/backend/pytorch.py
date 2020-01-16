@@ -270,11 +270,18 @@ def matmul(*args, **kwargs):
     return torch.matmul(*args, **kwargs)
 
 
-def sum(x, axis=None, **kwargs):
+def sum(x, axis=None, keepdims=None, **kwargs):
     if axis is None:
-        return torch.sum(x, **kwargs)
-    return torch.sum(x, dim=axis, **kwargs)
+        if keepdims is None:
+            return torch.sum(x, **kwargs)
+        else:
+            return torch.sum(x,keepdim = keepdims,**kwargs)
+    else:
+        if keepdims is None:
+            return torch.sum(x, dim=axis, **kwargs)
 
+        else:
+            return torch.sum(x, dim=axis, keepdim = keepdims,**kwargs)
 
 def einsum(*args, **kwargs):
     return torch.from_numpy(np.einsum(*args, **kwargs)).float()
