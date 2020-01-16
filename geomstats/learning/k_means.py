@@ -65,7 +65,6 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         index = 0
         while index < max_iter:
             index += 1
-
             dists = [self.riemannian_metric.dist(self.centroids[i], X)
                      for i in range(self.n_clusters)]
             dists = gs.hstack(dists)

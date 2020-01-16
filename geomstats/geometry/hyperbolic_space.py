@@ -438,6 +438,7 @@ class HyperbolicMetric(RiemannianMetric):
         mobius_add : array-like, shape=[n_samples, 1]
                            or shape=[1, 1]
         """
+        print('Pass mobiuys add')
         norm_point_a = gs.sum(point_a ** 2, axis=-1,
                               keepdims=True).expand_as(point_a)
         norm_point_b = gs.sum(point_b ** 2, axis=-1,
