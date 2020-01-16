@@ -65,7 +65,7 @@ class TestConnectionMethods(geomstats.tests.TestCase):
             tan_vec_a, tan_vec_b, base_point)
         result = connection.pole_ladder_parallel_transport(
             tan_vec_a, tan_vec_b, base_point)
-        gs.testing.assert_allclose(result, expected)
+        gs.testing.assert_allclose(result, expected, rtol=1e-7, atol=1e-9)
 
 
 if __name__ == '__main__':
