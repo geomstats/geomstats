@@ -10,8 +10,6 @@ from geomstats.geometry.euclidean_space import EuclideanMetric
 
 
 class TestConnectionMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         self.dimension = 4
         self.metric = EuclideanMetric(dimension=self.dimension)
@@ -52,7 +50,3 @@ class TestConnectionMethods(geomstats.tests.TestCase):
         expected = gs.zeros((1,) + (self.dimension, ) * 3)
 
         gs.testing.assert_allclose(result, expected)
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

@@ -11,8 +11,6 @@ from geomstats.geometry.landmarks_space import LandmarksSpace
 
 
 class TestLandmarksSpaceMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         s2 = Hypersphere(dimension=2)
         r3 = s2.embedding_manifold
@@ -184,7 +182,3 @@ class TestLandmarksSpaceMethods(geomstats.tests.TestCase):
         geod = self.l2_metric_s2.geodesic(
                 initial_landmarks=landmarks_ab,
                 end_landmarks=landmarks_bc)
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

@@ -10,8 +10,6 @@ from geomstats.geometry.euclidean_space import EuclideanSpace
 
 
 class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         gs.random.seed(1234)
 
@@ -360,7 +358,3 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
         expected = helper.to_scalar(expected)
 
         self.assertAllClose(result, expected)
-
-
-if __name__ == '__main__':
-        geomstats.test.main()

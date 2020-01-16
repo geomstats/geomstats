@@ -4,7 +4,6 @@ i.e. the Lie group of rigid transformations in n dimensions.
 """
 
 import geomstats.backend as gs
-
 from geomstats.geometry.euclidean_space import EuclideanSpace
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_group import LieGroup
