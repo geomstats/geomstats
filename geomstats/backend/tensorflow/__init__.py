@@ -323,3 +323,10 @@ def mean(x, axis=None):
 
 def argmin(*args, **kwargs):
     return tf.argmin(*args, **kwargs)
+
+
+def cumprod(x, axis=0):
+    if axis is None:
+        raise NotImplementedError('cumprod is not defined where axis is None')
+    else:
+        return tf.math.cumprod(x, axis=axis)
