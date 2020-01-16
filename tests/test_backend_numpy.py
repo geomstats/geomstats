@@ -98,3 +98,40 @@ class TestBackendNumpy(geomstats.tests.TestCase):
         expected = point
 
         self.assertTrue(gs.allclose(result, expected))
+
+    def test_powerm_diagonal(self):
+        power = .5
+        point = gs.array([[1., 0., 0.],
+                          [0., 4., 0.],
+                          [0., 0., 9.]])
+        result = gs.linalg.powerm(point, power)
+        expected = gs.array([[1., 0., 0.],
+                             [0., 2., 0.],
+                             [0., 0., 3.]])
+
+        self.assertTrue(gs.allclose(result, expected))
+
+    def test_powerm(self):
+        power = 2.4
+        point = gs.array([[1., 0., 0.],
+                          [0., 2.5, 1.5],
+                          [0., 1.5, 2.5]])
+        result = gs.linalg.powerm(point, power)
+        result = gs.linalg.powerm(result, 1/power)
+        expected = point
+
+        self.assertTrue(gs.allclose(result, expected))
+
+    def test_powerm_vectorized(self):
+        power = 2.4
+        points = gs.array([[[1., 0., 0.],
+                            [0., 4., 0.],
+                            [0., 0., 9.]],
+                           [[1., 0., 0.],
+                            [0., 2.5, 1.5],
+                            [0., 1.5, 2.5]]])
+        result = gs.linalg.powerm(points, power)
+        result = gs.linalg.powerm(result, 1/power)
+        expected = points
+
+        self.assertTrue(gs.allclose(result, expected))
