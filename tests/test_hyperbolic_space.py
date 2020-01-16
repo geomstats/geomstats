@@ -438,3 +438,41 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         expected = gs.array([[True]])
 
         self.assertAllClose(result, expected)
+
+    def test_scaled_inner_product(self):
+        base_point_intrinsic = gs.array([1, 1, 1])
+        base_point = self.space.intrinsic_to_extrinsic_coords(base_point_intrinsic)
+        tangent_vec_a = gs.array([1, 2, 3, 4])
+        tangent_vec_b = gs.array([5, 6, 7, 8])
+        tangent_vec_a = self.space.projection_to_tangent_space(tangent_vec_a, base_point)
+        tangent_vec_b = self.space.projection_to_tangent_space(tangent_vec_b, base_point)
+        scale = 2
+        default_metric = HyperbolicSpace(dimension=self.dimension)
+        scaled_metric = HyperbolicSpace(dimension=self.dimension, scale=2)
+        inner_product_default_metric = default_metric.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        inner_product_scaled_metric = scaled_metric.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
+        self.assertAllClose(scale ** 2 * inner_product_default_metric, inner_product_scaled_metric)
+
+    def test_scaled_squared_norm(self):
+        base_point_intrinsic = gs.array([1, 1, 1])
+        base_point = self.space.intrinsic_to_extrinsic_coords(base_point_intrinsic)
+        tangent_vec = gs.array([1, 2, 3, 4])
+        tangent_vec = self.space.projection_to_tangent_space(tangent_vec, base_point)
+        scale = 2
+        default_metric = HyperbolicSpace(dimension=self.dimension)
+        scaled_metric = HyperbolicSpace(dimension=self.dimension, scale=2)
+        squared_norm_default_metric = default_metric.metric.squared_norm(tangent_vec, base_point)
+        squared_norm_scaled_metric = scaled_metric.metric.squared_norm(tangent_vec, base_point)
+        self.assertAllClose(scale ** 2 * squared_norm_default_metric, squared_norm_scaled_metric)
+
+    def test_scaled_distance(self):
+        point_a_intrinsic = gs.array([1, 2, 3])
+        point_b_intrinsic = gs.array([4, 5, 6])
+        point_a = self.space.intrinsic_to_extrinsic_coords(point_a_intrinsic)
+        point_b = self.space.intrinsic_to_extrinsic_coords(point_b_intrinsic)
+        scale = 2
+        default_metric = HyperbolicSpace(dimension=self.dimension)
+        scaled_metric = HyperbolicSpace(dimension=self.dimension, scale=2)
+        distance_default_metric = default_metric.metric.dist(point_a, point_b)
+        distance_scaled_metric = scaled_metric.metric.dist(point_a, point_b)
+        self.assertAllClose(scale * distance_default_metric, distance_scaled_metric)
