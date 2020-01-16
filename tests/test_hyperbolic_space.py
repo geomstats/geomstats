@@ -439,6 +439,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_scaled_inner_product(self):
         base_point_intrinsic = gs.array([1, 1, 1])
         base_point = self.space.intrinsic_to_extrinsic_coords(base_point_intrinsic)
@@ -453,6 +454,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         inner_product_scaled_metric = scaled_metric.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         self.assertAllClose(scale ** 2 * inner_product_default_metric, inner_product_scaled_metric)
 
+    @geomstats.tests.np_only
     def test_scaled_squared_norm(self):
         base_point_intrinsic = gs.array([1, 1, 1])
         base_point = self.space.intrinsic_to_extrinsic_coords(base_point_intrinsic)
@@ -465,6 +467,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         squared_norm_scaled_metric = scaled_metric.metric.squared_norm(tangent_vec, base_point)
         self.assertAllClose(scale ** 2 * squared_norm_default_metric, squared_norm_scaled_metric)
 
+    @geomstats.tests.np_only
     def test_scaled_distance(self):
         point_a_intrinsic = gs.array([1, 2, 3])
         point_b_intrinsic = gs.array([4, 5, 6])
