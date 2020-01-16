@@ -222,10 +222,36 @@ class HyperbolicSpace(EmbeddedManifold):
         return tangent_vec
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
+        """
+        Convert the parameterization of a point on the Hyperbolic space
+        from its intrinsic coordinates, to its extrinsic coordinates
+        in Minkowski space.
+
+        Parameters
+        ----------
+        point_intrinsic : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        point_extrinsic : array-like, shape=[n_samples, dimension + 1]
+        """
         return HyperbolicSpace._intrinsic_to_extrinsic_coordinates(
             point_intrinsic)
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
+        """
+        Convert the parameterization of a point on the Hyperbolic space
+        from its extrinsic coordinates, to its intrinsic coordinates
+        in Minkowski space.
+
+        Parameters
+        ----------
+        point_intrinsic : array-like, shape=[n_samples, dimension + 1]
+
+        Returns
+        -------
+        point_extrinsic : array-like, shape=[n_samples, dimension]
+        """
         return HyperbolicSpace._extrinsic_to_intrinsic_coordinates(
             point_extrinsic)
 
