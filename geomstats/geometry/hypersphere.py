@@ -187,12 +187,14 @@ class Hypersphere(EmbeddedManifold):
             spherical_coord[:, -1] *= 2
 
             point = gs.zeros((n_samples, self.dimension+1))
-            for i in range(self.dimension):
-                point[:, i] = (
-                        gs.prod(gs.sin(spherical_coord[:, :i]), axis=1)
-                        * gs.cos(spherical_coord[:, i]))
-            point[:, -1] = gs.prod(gs.sin(spherical_coord), axis=1)
+            sin_prod = gs.cumprod(gs.sin(spherical_coord), axis=1)
 
+            factor_1 = gs.hstack((gs.ones((n_samples, 1)), sin_prod))
+            factor_2 = gs.hstack(
+                (gs.cos(spherical_coord), gs.ones((n_samples, 1)))
+            )
+
+            point = factor_1 * factor_2
         else:
             assert bound <= 0.5
             point = bound * (2 * gs.random.rand(*size) - 1)
@@ -406,3 +408,13 @@ class HypersphereMetric(RiemannianMetric):
         dist = gs.arccos(cos_angle)
 
         return dist
+
+    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+        theta = gs.linalg.norm(tangent_vec_b, axis=1)
+        normalized_b = gs.einsum('n, ni->ni', 1 / theta, tangent_vec_b)
+        pb = gs.einsum('ni,ni->n', tangent_vec_a, normalized_b)
+        p_orth = tangent_vec_a - gs.einsum('n,ni->ni', pb, normalized_b)
+        transported = - gs.einsum('n,ni->ni', gs.sin(theta) * pb, base_point)\
+            + gs.einsum('n,ni->ni', gs.cos(theta) * pb, normalized_b)\
+            + p_orth
+        return transported
