@@ -4,6 +4,7 @@ bch_info = gs.array([
         for i in open("geomstats/geometry/bchHall20.dat").readlines()
     ])
 
+
 class MatrixLieAlgebra():
     """
     Class implementing matrix Lie algebra related functions.
@@ -40,8 +41,8 @@ class MatrixLieAlgebra():
         This represents Z =log(exp(X)exp(Y)) as an infinite linear combination
         of the form
             Z = sum z_i E_i
-        where z_i are rational numbers and E_i are iterated Lie brackets starting
-        with E_1 = X, E_2 = Y, each E_i is given by some i',i'':
+        where z_i are rational numbers and E_i are iterated Lie brackets
+        starting with E_1 = X, E_2 = Y, each E_i is given by some i',i'':
             E_i = [E_i', E_i''].
 
         Parameters

@@ -11,17 +11,14 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
 
         super(SkewSymmetricMatrices, self).__init__(dimension, n)
 
-        self.basis = gs.zeros((3, n, n))
+        self.basis = gs.zeros((dimension, n, n))
+        loop_index = 0
 
-        #indices = [[[i,j] for j in gs.arange(i,n)] for i in gs.arange(1,n)]
-        if n == 3:
-            self.basis = gs.array([
-                [[0, 1, 0], [-1, 0, 0], [0, 0, 0]],
-                [[0, 0, -1], [0, 0, 0], [1, 0, 0]],
-                [[0, 0, 0], [0, 0, 1], [0, -1, 0]]])
-        else:
-            raise NotImplementedError("""SkewSymmetricMatrices is only
-                                         implemented for n = 3""")
+        for i in gs.arange(n - 1):  # rows
+            for j in gs.arange(i + 1, n):  # columns
+                self.basis[loop_index, i, j] = 1
+                self.basis[loop_index, j, i] = -1
+                loop_index += 1
 
     def basis_representation(self, matrix_representation):
         """
