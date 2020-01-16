@@ -65,18 +65,19 @@ class MatricesSpace(EuclideanSpace):
     @staticmethod
     def transpose(mat):
         """
-        Return the (vectorised) transpose of matrices. 
+        Return the transpose of matrices. 
 
         Parameters
         ----------
-        a : array-like, shape=[n_samples, dim, dim]
+        mat : array-like, shape=[n_samples, dim, dim]
 
         Returns
         -------
         transpose : array-like, shape=[n_samples, dim, dim]
         """
-        tr = gs.vectorize(gs.transpose, signature='(n,n)->(n,n)')
-        return tr(mat)
+        is_vec = (gs.ndim(gs.array(mat)) == 3)
+        axes = (0, 2, 1) if is_vec else (1, 0)
+        return gs.transpose(mat, axes)
 
     @staticmethod
     def vector_from_matrix(matrix):
