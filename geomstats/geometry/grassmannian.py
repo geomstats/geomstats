@@ -6,8 +6,8 @@ where p <= n
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
-from geomstats.geometry.matrices_space import MatricesSpace
 from geomstats.geometry.matrices_space import MatricesMetric
+from geomstats.geometry.matrices_space import MatricesSpace
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-5
@@ -40,8 +40,9 @@ class Grassmannian(EmbeddedManifold):
                 'The Grassmann `belongs` is not implemented.'
                 'It shall test whether p*=p, p^2 = p and rank(p) = k.')
 
-    def origin(self): 
+    def origin(self):
         return gs.diag(gs.repeat([1, 0], [self.k, self.n - self.k]))[0]
+
 
 class GrassmannianCanonicalMetric(RiemannianMetric):
     """
@@ -85,8 +86,8 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         return mul(mul(expm(vector), point), expm(-vector))
 
     def log(self, point, base_point):
-        """ 
-        Riemannian logarithm of a point from a base point. 
+        """
+        Riemannian logarithm of a point from a base point.
 
         Returns a skew-symmetric matrix in the image of [so(n), point].
 
@@ -104,10 +105,10 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         tr = MatricesSpace.transpose
         logm = gs.linalg.logm
 
-        def closest (rot): 
-            sign = lambda x : gs.where(x >= 0, 1., -1.)
+        def closest(rot):
             d_coefs = gs.diagonal(rot)
-            return mul(rot, gs.diag(sign(d_coefs))[0])
+            d_sign = gs.where(d_coefs >= 0, 1., -1.)
+            return mul(rot, gs.diag(d_sign)[0])
 
         rot2 = svd(point)[0]
         rot1 = svd(base_point)[0]
