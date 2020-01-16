@@ -1,6 +1,4 @@
-"""
-Affine connections.
-"""
+"""Affine connections."""
 
 import autograd
 
@@ -8,13 +6,13 @@ import geomstats.backend as gs
 
 
 class Connection(object):
+    """TODO: Define class here."""
 
     def __init__(self, dimension):
         self.dimension = dimension
 
     def christoffels(self, base_point):
-        """
-        Christoffel symbols associated with the connection.
+        """Christoffel symbols associated with the connection.
 
         Parameters
         ----------
@@ -24,7 +22,8 @@ class Connection(object):
                 'The Christoffel symbols are not implemented.')
 
     def connection(self, tangent_vector_a, tangent_vector_b, base_point):
-        """
+        """TODO: write method description.
+
         Connection applied to tangent_vector_b in the direction of
         tangent_vector_a, both tangent at base_point.
 
@@ -43,8 +42,7 @@ class Connection(object):
                 'connection is not implemented.')
 
     def exp(self, tangent_vec, base_point):
-        """
-        Exponential map associated to the affine connection.
+        """Exponential map associated to the affine connection.
 
         Parameters
         ----------
@@ -58,8 +56,7 @@ class Connection(object):
                 'The affine connection exponential is not implemented.')
 
     def log(self, point, base_point):
-        """
-        Logarithm map associated to the affine connection.
+        """Logarithm map associated to the affine connection.
 
         Parameters
         ----------
@@ -73,7 +70,8 @@ class Connection(object):
                 'The affine connection logarithm is not implemented.')
 
     def pole_ladder_step(self, base_point, next_point, base_shoot):
-        """
+        """TODO: Step pole ladder one step.
+
         One step of pole ladder (parallel transport associated with the
         symmetric part of the connection using transvections).
 
@@ -123,9 +121,10 @@ class Connection(object):
 
     def pole_ladder_parallel_transport(
             self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1):
-        """
-        Approximation of Parallel transport using the pole ladder scheme
-        of tangent vector a along the geodesic starting at the initial point
+        """Approximate parallel transport using the pole ladder scheme.
+
+        Approximation of Parallel transport using the pole ladder scheme of
+        tangent vector a along the geodesic starting at the initial point
         base_point with initial tangent vector the tangent vector b.
 
         Returns a tangent vector at the point
@@ -149,7 +148,6 @@ class Connection(object):
         transported_tangent_vector: array-like, shape=[n_samples, dimension]
                                                 or shape=[1, dimension]
         """
-
         current_point = gs.copy(base_point)
         transported_tangent_vector = gs.copy(tangent_vec_a)
         base_shoot = self.exp(base_point=current_point,
@@ -168,8 +166,7 @@ class Connection(object):
         return transported_tangent_vector
 
     def riemannian_curvature(self, base_point):
-        """
-        Riemannian curvature tensor associated with the connection.
+        """Riemannian curvature tensor associated with the connection.
 
         Parameters
         ----------
@@ -180,24 +177,18 @@ class Connection(object):
                 'The Riemannian curvature tensor is not implemented.')
 
     def geodesic_equation(self):
-        """
-        The geodesic ordinary differential equation associated
-        with the connection.
-        """
+        """Return geodesic ode associated with the connection."""
         raise NotImplementedError(
                 'The geodesic equation tensor is not implemented.')
 
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None, point_ndim=1):
-        """
-        Geodesic associated with the connection.
-        """
+        """Geodesic associated with the connection."""
         raise NotImplementedError(
                 'Geodesics are not implemented.')
 
     def torsion(self, base_point):
-        """
-        Torsion tensor associated with the connection.
+        """Torsion tensor associated with the connection.
 
         Parameters
         ----------
@@ -209,16 +200,14 @@ class Connection(object):
 
 
 class LeviCivitaConnection(Connection):
-    """
-    Levi-Civita connection associated with a Riemannian metric.
-    """
+    """Levi-Civita connection associated with a Riemannian metric."""
+
     def __init__(self, metric):
         self.metric = metric
         self.dimension = metric.dimension
 
     def metric_matrix(self, base_point):
-        """
-        Metric matrix defining the connection.
+        """Metric matrix defining the connection.
 
         Parameters
         ----------
@@ -234,7 +223,8 @@ class LeviCivitaConnection(Connection):
         return metric_matrix
 
     def cometric_matrix(self, base_point):
-        """
+        """Compute cometric.
+
         The cometric is the inverse of the metric.
 
         Parameters
@@ -252,7 +242,7 @@ class LeviCivitaConnection(Connection):
         return cometric_matrix
 
     def metric_derivative(self, base_point):
-        """
+        """Compute metric derivative at base point.
 
         Parameters
         ----------
@@ -263,8 +253,7 @@ class LeviCivitaConnection(Connection):
         return metric_derivative(base_point)
 
     def christoffels(self, base_point):
-        """
-        Christoffel symbols associated with the connection.
+        """Christoffel symbols associated with the connection.
 
         Parameters
         ----------
@@ -293,8 +282,7 @@ class LeviCivitaConnection(Connection):
         return christoffels
 
     def torsion(self, base_point):
-        """
-        Torsion tensor associated with the Levi-Civita connection is zero.
+        """Torsion tensor associated with the Levi-Civita connection is zero.
 
         Parameters
         ----------
@@ -309,8 +297,7 @@ class LeviCivitaConnection(Connection):
         return torsion
 
     def exp(self, tangent_vec, base_point):
-        """
-        Exponential map associated to the metric.
+        """Exponential map associated to the metric.
 
         Parameters
         ----------
@@ -323,8 +310,7 @@ class LeviCivitaConnection(Connection):
         return self.metric.exp(tangent_vec, base_point)
 
     def log(self, point, base_point):
-        """
-        Logarithm map associated to the metric.
+        """Logarithm map associated to the metric.
 
         Parameters
         ----------

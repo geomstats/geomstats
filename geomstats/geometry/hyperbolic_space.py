@@ -51,14 +51,15 @@ class HyperbolicSpace(EmbeddedManifold):
     by their coordinates inside the Poincare Ball (n)-coordinates.
     """
 
-    def __init__(self, dimension, point_type='extrinsic'):
+    def __init__(self, dimension, point_type='extrinsic', scale=1):
         assert isinstance(dimension, int) and dimension > 0
         super(HyperbolicSpace, self).__init__(
             dimension=dimension,
             embedding_manifold=MinkowskiSpace(dimension + 1))
         self.embedding_metric = self.embedding_manifold.metric
         self.point_type = point_type
-        self.metric = HyperbolicMetric(self.dimension, point_type)
+        self.scale = scale
+        self.metric = HyperbolicMetric(self.dimension, point_type, self.scale)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """
@@ -210,12 +211,14 @@ class HyperbolicSpace(EmbeddedManifold):
 
 class HyperbolicMetric(RiemannianMetric):
 
-    def __init__(self, dimension, point_type='extrinsic'):
+    def __init__(self, dimension, point_type='extrinsic', scale=1):
         super(HyperbolicMetric, self).__init__(
             dimension=dimension,
             signature=(dimension, 0, 0))
         self.embedding_metric = MinkowskiMetric(dimension + 1)
         self.point_type = point_type
+        assert scale > 0, 'The scale should be strictly positive'
+        self.scale = scale
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """
@@ -235,7 +238,7 @@ class HyperbolicMetric(RiemannianMetric):
         inner_prod : array-like, shape=[n_samples, 1]
                                  or shape=[1, 1]
         """
-        inner_prod = self.embedding_metric.inner_product(
+        inner_prod = self.scale ** 2 * self.embedding_metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point)
         return inner_prod
 
@@ -256,7 +259,8 @@ class HyperbolicMetric(RiemannianMetric):
         sq_norm : array-like, shape=[n_samples, 1]
                               or shape=[1, 1]
         """
-        sq_norm = self.embedding_metric.squared_norm(vector)
+        sq_norm = self.scale ** 2 * self.embedding_metric.squared_norm(vector)
+
         return sq_norm
 
     def exp(self, tangent_vec, base_point):
@@ -476,7 +480,7 @@ class HyperbolicMetric(RiemannianMetric):
 
             dist = gs.arccosh(cosh_angle)
 
-            return dist
+            return self.scale * dist
 
         if self.point_type == 'poincare':
 
@@ -487,4 +491,4 @@ class HyperbolicMetric(RiemannianMetric):
                 diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
             dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
 
-            return dist
+            return self.scale * dist
