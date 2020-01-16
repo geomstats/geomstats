@@ -64,6 +64,7 @@ class ProductRiemannianMetric(RiemannianMetric):
                                                         base_point[i])
                           for i in range(self.n_metrics)]
         inner_product = gs.sum(inner_products)
+
         return inner_product
 
     def exp(self, tangent_vec, base_point=None):
@@ -74,9 +75,9 @@ class ProductRiemannianMetric(RiemannianMetric):
         if base_point is None:
             base_point = [None, ] * self.n_metrics
 
-        exp = [self.metrics[i].exp(tangent_vec[i], base_point[i])
-               for i in range(self.n_metrics)]
-
+        exp = gs.asarray([self.metrics[i].exp(tangent_vec[i, ...],
+                                              base_point[i, ...])
+                          for i in range(self.n_metrics)])
         return exp
 
     def log(self, point, base_point=None):
@@ -87,6 +88,25 @@ class ProductRiemannianMetric(RiemannianMetric):
         if base_point is None:
             base_point = [None, ] * self.n_metrics
 
-        log = [self.metrics[i].log(point[i], base_point[i])
-               for i in range(self.n_metrics)]
+        log = gs.asarray([self.metrics[i].log(point[i, ...],
+                                              base_point[i, ...])
+                          for i in range(self.n_metrics)])
         return log
+
+    def squared_dist(self, point_a, point_b):
+        """
+        Squared geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a: array-like, shape=[n_samples, dimension]
+                             or shape=[1, dimension]
+
+        point_b: array-like, shape=[n_samples, dimension]
+                             or shape=[1, dimension]
+        """
+        sq_distances = gs.asarray([self.metrics[i].squared_dist(
+            point_a[i, ...], point_b[i, ...])
+                                   for i in range(self.n_metrics)])
+
+        return sum(sq_distances)
