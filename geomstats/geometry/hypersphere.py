@@ -186,10 +186,7 @@ class Hypersphere(EmbeddedManifold):
         samples = gs.random.normal(size=size)
         while True:
             norms = gs.linalg.norm(samples, axis=1)
-            # TODO(nkoep): Should the 'bad sample tolerance' be configurable
-            #              via a function argument? Is TOLERANCE a good
-            #              default?
-            indcs = norms < TOLERANCE
+            indcs = gs.isclose(norms, 0.0)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break
