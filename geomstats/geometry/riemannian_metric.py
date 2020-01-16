@@ -528,10 +528,10 @@ class RiemannianMetric(object):
 
         return closest_neighbor_index
 
-    def optimal_quantization(self, points, n_centers=N_CENTERS,
-                             n_repetitions=N_REPETITIONS,
-                             tolerance=TOLERANCE,
-                             n_max_iterations=N_MAX_ITERATIONS):
+    def online_k_means(self, points, n_centers=N_CENTERS,
+                       n_repetitions=N_REPETITIONS,
+                       tolerance=TOLERANCE,
+                       n_max_iterations=N_MAX_ITERATIONS):
         """
         Compute the optimal approximation of points by a smaller number
         of weighted centers using the Competitive Learning Riemannian

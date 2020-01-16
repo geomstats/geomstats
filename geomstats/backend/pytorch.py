@@ -468,3 +468,10 @@ def get_mask_i_float(i, n):
 
 def copy(x):
     return x.clone()
+
+
+def cumprod(x, axis=0):
+    if axis is None:
+        raise NotImplementedError('cumprod is not defined where axis is None')
+    else:
+        return torch.cumprod(x, dim=axis)
