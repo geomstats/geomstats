@@ -11,10 +11,11 @@ import matplotlib.pyplot as plt
 import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hyperbolic_space import HyperbolicMetric
 from geomstats.learning.k_means import RiemannianKMeans
 
-H2 = HyperbolicSpace(dimension=2, point_type='poincare')
-METRIC = H2.metric
+
+
 
 SQUARE_SIZE = 50
 
@@ -27,39 +28,44 @@ def main():
     ax = plt.gca()
 
     Merged_Clusters = gs.concatenate((Cluster_1, Cluster_2), axis=0)
+    manifold = HyperbolicSpace(dimension=2, point_type='poincare')
+    metric = HyperbolicMetric(dimension=2, point_type='poincare')
 
+    manifold_e = HyperbolicSpace(dimension=2)
+    metric_e = HyperbolicMetric(dimension=2)
+    x_b = gs.rand(10,2) * 1/2
+    x_e = manifold_e.intrinsic_to_extrinsic_coords(gs.rand(10,2))
+    e = metric_e.dist(x_e, x_e)
+    b = metric.dist(x_b, x_b+0.1 )
+
+    print("b shape", b.shape)
+    print("e shape", e.shape)
     visualization.plot(
             Merged_Clusters,
             ax=ax,
             space='H2_poincare_disk',
             marker='.',
             color='black',
-            point_type=H2.point_type)
+            point_type=manifold.point_type)
 
-    K_means = RiemannianKMeans(riemannian_metric=H2.metric,
+    k_means = RiemannianKMeans(riemannian_metric=metric,
                                n_clusters=2,
                                init='random',
                                )
 
-    Centroids = K_means.fit(X=Merged_Clusters, max_iter=5)
+    centroids = k_means.fit(X=Merged_Clusters, max_iter=2)
 
-    Data_Labels = gs.array([])
-
-    for data in Merged_Clusters:
-
-        Data_Labels = gs.append(Data_Labels, K_means.predict(data))
-
-    print('Centroids', Centroids)
+    labels = k_means.predict(X=Merged_Clusters)
 
     visualization.plot(
-            Centroids,
+            centroids,
             ax=ax,
             space='H2_poincare_disk',
             marker='.',
             color='red',
-            point_type=H2.point_type)
+            point_type=manifold.point_type)
 
-    print('Data_labels', Data_Labels)
+    print('Data_labels', labels)
 
     # visualization.plot(
     #         Merged_Clusters[],
