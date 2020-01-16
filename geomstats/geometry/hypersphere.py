@@ -408,3 +408,13 @@ class HypersphereMetric(RiemannianMetric):
         dist = gs.arccos(cos_angle)
 
         return dist
+
+    def parallel_transport(self, tan_a, tan_b, point):
+        theta = gs.linalg.norm(tan_b, axis=1)
+        normalized_b = gs.einsum('n, ni->ni', 1 / theta, tan_b)
+        pb = gs.einsum('ni,ni->n', tan_a, normalized_b)
+        p_orth = tan_a - gs.einsum('n,ni->ni', pb, normalized_b)
+        transported = - gs.einsum('n,ni->ni', gs.sin(theta) * pb, point)\
+            + gs.einsum('n,ni->ni', gs.cos(theta) * pb, normalized_b)\
+            + p_orth
+        return transported
