@@ -141,6 +141,8 @@ class Hypersphere(EmbeddedManifold):
         """
         point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
 
+        # FIXME: The next line needs to be guarded against taking the sqrt of
+        #        negative numbers.
         coord_0 = gs.sqrt(1. - gs.linalg.norm(point_intrinsic, axis=-1) ** 2)
         coord_0 = gs.to_ndarray(coord_0, to_ndim=2, axis=-1)
 
@@ -167,45 +169,39 @@ class Hypersphere(EmbeddedManifold):
 
         return point_intrinsic
 
-    def random_uniform(self, n_samples=1, bound=0.5):
+    def random_uniform(self, n_samples=1):
         """
         Sample in the Hypersphere with the uniform distribution.
 
         Parameters
         ----------
         n_samples : int, optional
-        bound: float, optional
 
         Returns
         -------
-        point : array-like, shape=[n_samples, dimension + 1]
+        samples : array-like, shape=[n_samples, dimension + 1]
         """
-        size = (n_samples, self.dimension)
+        size = (n_samples, self.dimension + 1)
 
-        if bound is None:
-            spherical_coord = gs.random.rand(*size) * gs.pi
-            spherical_coord[:, -1] *= 2
+        samples = gs.random.normal(size=size)
+        while True:
+            norms = gs.linalg.norm(samples, axis=1)
+            # TODO(nkoep): Should the 'bad sample tolerance' be configurable
+            #              via a function argument? Is TOLERANCE a good
+            #              default?
+            indcs = norms < TOLERANCE
+            num_bad_samples = gs.sum(indcs)
+            if num_bad_samples == 0:
+                break
+            samples[indcs, :] = gs.random.normal(
+                size=(num_bad_samples, self.dimension + 1))
 
-            point = gs.zeros((n_samples, self.dimension+1))
-            sin_prod = gs.cumprod(gs.sin(spherical_coord), axis=1)
-
-            factor_1 = gs.hstack((gs.ones((n_samples, 1)), sin_prod))
-            factor_2 = gs.hstack(
-                (gs.cos(spherical_coord), gs.ones((n_samples, 1)))
-            )
-
-            point = factor_1 * factor_2
-        else:
-            assert bound <= 0.5
-            point = bound * (2 * gs.random.rand(*size) - 1)
-            point = self.intrinsic_to_extrinsic_coords(point)
-
-        return point
+        return gs.einsum('n, ni->ni', 1 / norms, samples)
 
     def random_von_mises_fisher(self, kappa=10, n_samples=1):
         """
-        Sample in the 2-sphere with the von Mises distribution
-        centered in the north pole.
+        Sample in the 2-sphere with the von Mises distribution centered in the
+        north pole.
         """
         if self.dimension != 2:
             raise NotImplementedError(
