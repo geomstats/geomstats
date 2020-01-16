@@ -233,8 +233,14 @@ class PoincareDisk():
             if not isinstance(points, list):
                 points = points.tolist()
             self.points.extend(points)
+            print('points', points)
 
         if self.point_type == 'poincare':
+            if not isinstance(points, list):
+                points = points.tolist()
+            self.points.extend(points)
+            print('points', points)
+
             return True
 
     def convert_to_poincare_coordinates(self, points):
@@ -426,20 +432,11 @@ def plot(points, ax=None, space=None,
         sphere.draw(ax, **point_draw_kwargs)
 
     elif space == 'H2_poincare_disk':
-
-        if point_type == 'extrinsic':
-            poincare_disk = PoincareDisk()
-            ax = poincare_disk.set_ax(ax=ax)
-            poincare_disk.add_points(points)
-            poincare_disk.draw(ax, **point_draw_kwargs)
-
-        elif point_type == 'poincare':
-
-            poincare_disk = PoincareDisk()
-            poincare_disk.point_type = point_type
-            ax = poincare_disk.set_ax(ax=ax)
-            poincare_disk.add_points(points)
-            # poincare_disk.draw(ax, **point_draw_kwargs)
+        poincare_disk = PoincareDisk()
+        poincare_disk.point_type = point_type
+        ax = poincare_disk.set_ax(ax=ax)
+        poincare_disk.add_points(points)
+        poincare_disk.draw(ax, **point_draw_kwargs)
 
     elif space == 'H2_poincare_half_plane':
         poincare_half_plane = PoincareHalfPlane()
