@@ -148,7 +148,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         result = self.metric.exp(n_tangent_vecs, one_base_point)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-        expected = np.zeros((n_samples, dim))
+        expected = gs.zeros((n_samples, dim))
 
         with self.session():
             for i in range(n_samples):
@@ -162,7 +162,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         result = self.metric.exp(one_tangent_vec, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-        expected = np.zeros((n_samples, dim))
+        expected = gs.zeros((n_samples, dim))
         with self.session():
             for i in range(n_samples):
                 expected[i] = gs.eval(self.metric.exp(one_tangent_vec[i],
@@ -175,7 +175,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         result = self.metric.exp(n_tangent_vecs, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-        expected = np.zeros((n_samples, dim))
+        expected = gs.zeros((n_samples, dim))
         with self.session():
             for i in range(n_samples):
                 expected[i] = gs.eval(self.metric.exp(n_tangent_vecs[i],
@@ -452,7 +452,9 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         scaled_space = HyperbolicSpace(dimension=self.dimension, scale=2)
         inner_product_default_metric = default_space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
         inner_product_scaled_metric = scaled_space.metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        self.assertAllClose(scale ** 2 * inner_product_default_metric, inner_product_scaled_metric)
+        result = inner_product_scaled_metric
+        expected = scale ** 2 * inner_product_default_metric
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_scaled_squared_norm(self):
@@ -465,7 +467,9 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         scaled_space = HyperbolicSpace(dimension=self.dimension, scale=2)
         squared_norm_default_metric = default_space.metric.squared_norm(tangent_vec, base_point)
         squared_norm_scaled_metric = scaled_space.metric.squared_norm(tangent_vec, base_point)
-        self.assertAllClose(scale ** 2 * squared_norm_default_metric, squared_norm_scaled_metric)
+        result = squared_norm_scaled_metric
+        expected = scale ** 2 * squared_norm_default_metric
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_scaled_distance(self):
@@ -478,4 +482,6 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         scaled_space = HyperbolicSpace(dimension=self.dimension, scale=2)
         distance_default_metric = default_space.metric.dist(point_a, point_b)
         distance_scaled_metric = scaled_space.metric.dist(point_a, point_b)
-        self.assertAllClose(scale * distance_default_metric, distance_scaled_metric)
+        result = distance_scaled_metric
+        expected = scale * distance_default_metric
+        self.assertAllClose(result, expected)
