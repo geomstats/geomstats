@@ -78,10 +78,7 @@ class HyperbolicSpace(EmbeddedManifold):
                 HyperbolicSpace._extrinsic_to_extrinsic_coordinates
         }
         self.belongs_to = {
-            "ball": HyperbolicSpace._belongs_ball,
-            "extrinsic": HyperbolicSpace._belong_extrinsic,
-            "intrinsic": HyperbolicSpace._belong_extrinsic,
-            "half_plane": HyperbolicSpace._belong_extrinsic
+            "ball": HyperbolicSpace._belongs_ball
         }
 
     @staticmethod
