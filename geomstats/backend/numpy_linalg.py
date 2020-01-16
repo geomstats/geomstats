@@ -5,6 +5,7 @@ import scipy.linalg
 
 from geomstats.backend.numpy import to_ndarray
 
+
 def exph(x):
     eigvals, eigvecs = np.linalg.eigh(x)
     eigvals = np.exp(eigvals)
@@ -22,7 +23,7 @@ def expm(x):
         result = exph(new_x)
     else:
         result = np.vectorize(scipy.linalg.expm,
-                               signature='(n,m)->(n,m)')(new_x)
+                              signature='(n,m)->(n,m)')(new_x)
 
     if ndim == 2:
         return result[0]
@@ -35,8 +36,9 @@ def logm(x):
     new_x = to_ndarray(x, to_ndim=3)
     if (new_x - np.transpose(new_x, axes=(0, 2, 1)) == 0).all():
         eigvals, eigvecs = np.linalg.eigh(new_x)
+        eigvals = np.log(eigvals)
         if (eigvals > 0).all():
-            eigvals = np.vectorize(np.diag, signature='(n)->(n,n)')(np.log(eigvals))
+            eigvals = np.vectorize(np.diag, signature='(n)->(n,n)')(eigvals)
             transp_eigvecs = np.transpose(eigvecs, axes=(0, 2, 1))
             result = np.matmul(eigvecs, eigvals)
             result = np.matmul(result, transp_eigvecs)
@@ -58,8 +60,9 @@ def powerm(x, power):
     new_x = to_ndarray(x, to_ndim=3)
     if (new_x - np.transpose(new_x, axes=(0, 2, 1)) == 0).all():
         eigvals, eigvecs = np.linalg.eigh(new_x)
+        eigvals = eigvals**power
         if (eigvals > 0).all():
-            eigvals = np.vectorize(np.diag, signature='(n)->(n,n)')(eigvals**power)
+            eigvals = np.vectorize(np.diag, signature='(n)->(n,n)')(eigvals)
             transp_eigvecs = np.transpose(eigvecs, axes=(0, 2, 1))
             result = np.matmul(eigvecs, eigvals)
             result = np.matmul(result, transp_eigvecs)
@@ -124,7 +127,6 @@ def exp(*args, **kwargs):
 
 
 def qr(*args, **kwargs):
-    return np.vectorize(
-        np.linalg.qr,
-        signature='(n,m)->(n,k),(k,m)',
-        excluded=['mode'])(*args, **kwargs)
+    return np.vectorize(np.linalg.qr,
+                        signature='(n,m)->(n,k),(k,m)',
+                        excluded=['mode'])(*args, **kwargs)
