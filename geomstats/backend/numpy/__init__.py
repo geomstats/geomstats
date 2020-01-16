@@ -202,3 +202,4 @@ def cumprod(x, axis=0):
 
 def normal(*args, **kwargs):
     return _np.random.normal(*args, **kwargs)
+
