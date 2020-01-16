@@ -126,6 +126,74 @@ class Hypersphere(EmbeddedManifold):
 
         return tangent_vec
 
+    def spherical_to_extrinsic(self, point_spherical):
+        """
+        Convert from the spherical coordinates in the Hypersphere
+        to the extrinsic coordinates in Euclidean space.
+        Only implemented in dimension 2.
+
+        Parameters
+        ----------
+        point_spherical : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        point_extrinsic : array_like, shape=[n_samples, dimension + 1]
+        """
+        if self.dimension != 2:
+            raise NotImplementedError(
+                    'The conversion from spherical coordinates'
+                    ' to extrinsic coordinates is implemented'
+                    ' only in dimension 2.')
+        point_spherical = gs.to_ndarray(point_spherical, to_ndim=2)
+        theta = point_spherical[:, 0]
+        phi = point_spherical[:, 1]
+        point_extrinsic = gs.zeros(
+                (point_spherical.shape[0], self.dimension+1))
+        point_extrinsic[:, 0] = gs.sin(theta) * gs.cos(phi)
+        point_extrinsic[:, 1] = gs.sin(theta) * gs.sin(phi)
+        point_extrinsic[:, 2] = gs.cos(theta)
+        assert self.belongs(point_extrinsic).all()
+
+        return point_extrinsic
+
+    def tangent_spherical_to_extrinsic(self, tangent_vec_spherical,
+                                       base_point_spherical):
+        """
+        Convert from the spherical coordinates in the Hypersphere
+        to the extrinsic coordinates in Euclidean space for a tangent
+        vector. Only implemented in dimension 2.
+
+        Parameters
+        ----------
+        tangent_vec_spherical : array-like, shape=[n_samples, dimension]
+        base_point_spherical : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        tangent_vec_extrinsic : array-like, shape=[n_samples, dimension + 1]
+        """
+        if self.dimension != 2:
+            raise NotImplementedError(
+                    'The conversion from spherical coordinates'
+                    ' to extrinsic coordinates is implemented'
+                    ' only in dimension 2.')
+        base_point_spherical = gs.to_ndarray(base_point_spherical, to_ndim=2)
+        tangent_vec_spherical = gs.to_ndarray(tangent_vec_spherical, to_ndim=2)
+        n_samples = base_point_spherical.shape[0]
+        theta = base_point_spherical[:, 0]
+        phi = base_point_spherical[:, 1]
+        jac = gs.zeros((n_samples, self.dimension + 1, self.dimension))
+        jac[:, 0, 0] = gs.cos(theta) * gs.cos(phi)
+        jac[:, 0, 1] = - gs.sin(theta) * gs.sin(phi)
+        jac[:, 1, 0] = gs.cos(theta) * gs.sin(phi)
+        jac[:, 1, 1] = gs.sin(theta) * gs.cos(phi)
+        jac[:, 2, 0] = - gs.sin(theta)
+        tangent_vec_extrinsic = gs.einsum('nij,nj->ni', jac,
+                                          tangent_vec_spherical)
+
+        return tangent_vec_extrinsic
+
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """
         Convert from the intrinsic coordinates in the Hypersphere,
@@ -423,3 +491,36 @@ class HypersphereMetric(RiemannianMetric):
             + gs.einsum('n,ni->ni', gs.cos(theta) * pb, normalized_b)\
             + p_orth
         return transported
+
+    def christoffel_spherical(self, point):
+        """
+        Christoffel symbols in the spherical coordinates.
+        Only implemented in dimension 2.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        christoffel : array-like, shape=[n_samples,
+                                         contravariant index,
+                                         first covariant index,
+                                         second covariant index]
+        """
+        if self.dimension != 2:
+            raise NotImplementedError(
+                    'The conversion from spherical coordinates'
+                    ' to extrinsic coordinates is implemented'
+                    ' only in dimension 2.')
+        point = gs.to_ndarray(point, to_ndim=2)
+        n_samples = point.shape[0]
+        christoffel = gs.zeros((n_samples,
+                                self.dimension,
+                                self.dimension,
+                                self.dimension))
+        christoffel[:, 0, 1, 1] = - gs.sin(point[:, 0]) * gs.cos(point[:, 0])
+        christoffel[:, 1, 0, 1] = gs.cos(point[:, 0]) / gs.sin(point[:, 0])
+        christoffel[:, 1, 1, 0] = gs.cos(point[:, 0]) / gs.sin(point[:, 0])
+
+        return christoffel
