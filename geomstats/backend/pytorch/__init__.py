@@ -106,7 +106,7 @@ def vstack(seq):
 
 
 def array(val):
-    if isinstance(val, val):
+    if isinstance(val, list):
         if not isinstance(val[0], torch.Tensor):
             val = _np.copy(_np.array(val))
         else:
