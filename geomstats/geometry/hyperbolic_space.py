@@ -284,7 +284,7 @@ class HyperbolicSpace(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension + 1] in intrinsic
+        point : array-like, shape=[n_samples, dimension + 1] in extrinsic
                 coordinates
 
         Returns
