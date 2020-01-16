@@ -7,3 +7,4 @@ dist
 *.png
 examples/.ipynb_checkpoints
 .coverage
+.idea
