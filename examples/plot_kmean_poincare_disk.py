@@ -68,9 +68,6 @@ def main():
     #         marker='.',
     #         color='red',
     #         point_type=H2.point_type)
-
-
-
     plt.show()
 
 
