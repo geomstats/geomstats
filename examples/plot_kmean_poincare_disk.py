@@ -10,12 +10,9 @@ import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
 from geomstats.geometry.hyperbolic_space import HyperbolicMetric
+from geomstats.geometry.hyperbolic_space import HyperbolicSpace
 from geomstats.learning.k_means import RiemannianKMeans
-
-
-
 
 SQUARE_SIZE = 50
 
@@ -31,15 +28,6 @@ def main():
     manifold = HyperbolicSpace(dimension=2, point_type='poincare')
     metric = HyperbolicMetric(dimension=2, point_type='poincare')
 
-    manifold_e = HyperbolicSpace(dimension=2)
-    metric_e = HyperbolicMetric(dimension=2)
-    x_b = gs.rand(10,2) * 1/2
-    x_e = manifold_e.intrinsic_to_extrinsic_coords(gs.rand(10,2))
-    e = metric_e.dist(x_e, x_e)
-    b = metric.dist(x_b, x_b+0.1 )
-
-    print("b shape", b.shape)
-    print("e shape", e.shape)
     visualization.plot(
             Merged_Clusters,
             ax=ax,
@@ -53,7 +41,7 @@ def main():
                                init='random',
                                )
 
-    centroids = k_means.fit(X=Merged_Clusters, max_iter=2)
+    centroids = k_means.fit(X=Merged_Clusters, max_iter=1)
 
     labels = k_means.predict(X=Merged_Clusters)
 
