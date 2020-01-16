@@ -442,8 +442,8 @@ class HyperbolicMetric(RiemannianMetric):
                               keepdims=True).expand_as(point_a)
         norm_point_b = gs.sum(point_b ** 2, axis=-1,
                               keepdims=True).expand_as(point_a)
-        sum_prod_a_b = (point_a * point_b).sum(-1,
-                                               keepdims=True).expand_as(point_a)
+        sum_prod_a_b = (point_a * point_b).sum(
+            -1, keepdims=True).expand_as(point_a)
 
         add_nominator = ((1 + 2 * sum_prod_a_b + norm_point_b) * point_a +
                          (1 - norm_point_a) * point_b)

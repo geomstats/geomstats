@@ -107,8 +107,10 @@ def repeat(*args, **kwargs):
 def asarray(*args, **kwargs):
     return np.asarray(*args, **kwargs)
 
+
 def append(*args, **kwargs):
-    return np.append(*args,**kwargs)
+    return np.append(*args, **kwargs)
+
 
 def concatenate(*args, **kwargs):
     return np.concatenate(*args, **kwargs)
@@ -149,8 +151,10 @@ def ones(val):
 def ones_like(*args, **kwargs):
     return np.ones_like(*args, **kwargs)
 
+
 def empty(*args, **kwargs):
     return np.empty(*args, **kwargs)
+
 
 def empty_like(*args, **kwargs):
     return np.empty_like(*args, **kwargs)

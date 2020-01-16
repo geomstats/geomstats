@@ -5,7 +5,6 @@ Unit tests for the Poincare Polydisk.
 
 import geomstats.backend as gs
 import geomstats.tests
-
 from geomstats.geometry.poincare_polydisk import PoincarePolydisk
 
 

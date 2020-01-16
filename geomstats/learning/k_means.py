@@ -68,11 +68,8 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
             dists = [self.riemannian_metric.dist(self.centroids[i], X)
                      for i in range(self.n_clusters)]
-            print('Distances', dists)
             dists = gs.hstack(dists)
-            print('Distances',dists)
             belongs = gs.argmin(dists, -1)
-
             old_centroids = gs.copy(self.centroids)
             for i in range(self.n_clusters):
                 fold = gs.squeeze(X[belongs == i])
