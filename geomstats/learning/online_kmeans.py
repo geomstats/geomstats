@@ -1,4 +1,4 @@
-"""Optimal quantization algorithm on Manifolds.
+"""Online kmeans algorithm on Manifolds.
 """
 
 from sklearn.base import BaseEstimator, ClusterMixin
@@ -6,15 +6,21 @@ from sklearn.base import BaseEstimator, ClusterMixin
 import geomstats.backend as gs
 
 
-def quantization(X, metric, n_clusters, n_repetitions=20,
-                 tolerance=1e-5, n_max_iterations=5e4):
+def online_kmeans(X, metric, n_clusters, n_repetitions=20,
+                  tolerance=1e-5, n_max_iterations=5e4):
     """
-    Perform quantization of data using the Competitive Learning
-    Riemannian Quantization algorithmm. It computes the closest
-    approximation of the empirical distribution of data by a
-    discrete distribution supported by a smaller number of points
-    with respect to the Wasserstein distance. It is an online
-    version of the k-means clustering algorithm.
+    Perform online version of k-means algorithm on data contained in X.
+    The data points are treated sequentially and the cluster centers are
+    updated one at a time. This version of k-means avoids computing the
+    mean of each cluster at each iteration and is therefore less
+    computationally intensive than the offline version.
+
+    In the setting of quantization of probability distributions, this
+    algorithm is also known as Competitive Learning Riemannian Quantization.
+    It computes the closest approximation of the empirical distribution of
+    data by a discrete distribution supported by a smaller number of points
+    with respect to the Wasserstein distance. This smaller number of points
+    is n_clusters.
 
     Parameters
     ----------
@@ -25,19 +31,18 @@ def quantization(X, metric, n_clusters, n_repetitions=20,
 
     metric : object
         Metric of the space in which the data lives. At each iteration,
-        one of the centers of the quantization is moved in the direction
-        of the new datum, according the exponential map of the underlying
-        space, which is a method of metric.
+        one of the cluster centers is moved in the direction of the new
+        datum, according the exponential map of the underlying space, which
+        is a method of metric.
 
     n_clusters : int
-        Number of desired atoms of the approximation distribution, or
-        equivalently number of centers of the clusters of the k-means
-        clustering.
+        Number of clusters of the k-means clustering, or number of desired
+        atoms of the quantized distribution.
 
     n_repetitions : int, default=20
-        The centers of the quantization are updated using decreasing
-        step sizes, each of which stays constant for n_repetitions
-        iterations to allow a better exploration of the data points.
+        The cluster centers are updated using decreasing step sizes, each
+        of which stays constant for n_repetitions iterations to allow a better
+        exploration of the data points.
 
     n_max_iterations : int, default=5e4
         Maximum number of iterations. If it is reached, the
@@ -90,7 +95,7 @@ def quantization(X, metric, n_clusters, n_repetitions=20,
 
     if iteration == n_max_iterations-1:
         print('Maximum number of iterations {} reached. The'
-              'quantization may be inaccurate'.format(n_max_iterations))
+              'clustering may be inaccurate'.format(n_max_iterations))
 
     labels = gs.zeros(n_samples)
     for i in range(n_samples):
@@ -99,34 +104,35 @@ def quantization(X, metric, n_clusters, n_repetitions=20,
     return cluster_centers, labels
 
 
-class Quantization(BaseEstimator, ClusterMixin):
-    """Optimal Riemannian quantization
+class OnlineKMeans(BaseEstimator, ClusterMixin):
+    """Online k-means clustering
 
-    Quantization computes the closest approximation of the empirical
-    distribution of a dataset by a discrete distribution supported by a
-    smaller number of points with respect to the Wasserstein distance. It
-    yields a k-means clustering of the data. The algorithm used is
-    Competitive Learning Riemannian Quantization, and corresponds to an
-    online version of the k-means clustering algorithm.
+    Online k-means clustering seeks to divide a set of data points into
+    a specified number of classes, while minimizing intra-class variance.
+    It is closely linked to discrete quantization, which computes the closest
+    approximation of the empirical distribution of the dataset by a discrete
+    distribution supported by a smaller number of points with respect to the
+    Wasserstein distance. The algorithm used can either be seen as an online
+    version of the k-means algorithm or as Competitive Learning Riemannian
+    Quantization.
 
     Parameters
     ----------
 
     metric : object
         Metric of the space in which the data lives. At each iteration,
-        one of the centers of the quantization is moved in the direction
-        of the new datum, according the exponential map of the underlying
-        space, which is a method of metric.
+        one of the cluster centers is moved in the direction of the new
+        datum, according the exponential map of the underlying space, which
+        is a method of metric.
 
     n_clusters : int
-        Number of desired atoms of the approximation distribution, or
-        equivalently number of centers of the clusters of the k-means
-        clustering.
+        Number of clusters of the k-means clustering, or number of desired
+        atoms of the quantized distribution.
 
     n_repetitions : int, default=20
-        The centers of the quantization are updated using decreasing
-        step sizes, each of which stays constant for n_repetitions
-        iterations to allow a better exploration of the data points.
+        The cluster centers are updated using decreasing step sizes, each
+        of which stays constant for n_repetitions iterations to allow a better
+        exploration of the data points.
 
     n_max_iterations : int, default=5e4
         Maximum number of iterations. If it is reached, the
@@ -143,11 +149,11 @@ class Quantization(BaseEstimator, ClusterMixin):
     Example
     -------
     >>> from geomstats.geometry.hypersphere import Hypersphere
-    >>> from geomstats.learning.quantization import Quantization
+    >>> from geomstats.learning.onlinekmeans import OnlineKmeans
     >>> sphere = Hypersphere(dimension=2)
     >>> metric = sphere.metric
     >>> X = sphere.random_von_mises_fisher(kappa=10, n_samples=50)
-    >>> clustering = Quantization(metric=metric,n_clusters=4).fit(X)
+    >>> clustering = OnlineKmeans(metric=metric,n_clusters=4).fit(X)
     >>> clustering.cluster_centers_
     >>> clustering.labels_
 
@@ -174,11 +180,11 @@ class Quantization(BaseEstimator, ClusterMixin):
             Samples to cluster.
         """
         self.cluster_centers_, self.labels_ = \
-            quantization(X=X, metric=self.metric,
-                         n_clusters=self.n_clusters,
-                         n_repetitions=self.n_repetitions,
-                         tolerance=self.tolerance,
-                         n_max_iterations=self.n_max_iterations)
+            online_kmeans(X=X, metric=self.metric,
+                          n_clusters=self.n_clusters,
+                          n_repetitions=self.n_repetitions,
+                          tolerance=self.tolerance,
+                          n_max_iterations=self.n_max_iterations)
 
         return self
 
