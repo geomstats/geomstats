@@ -480,7 +480,7 @@ class HyperbolicMetric(RiemannianMetric):
 
             dist = gs.arccosh(cosh_angle)
 
-            return dist
+            return self.scale * dist
 
         if self.point_type == 'poincare':
 
