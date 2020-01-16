@@ -10,8 +10,6 @@ from geomstats.geometry.matrices_space import MatricesSpace
 
 
 class TestMatricesSpaceMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         gs.random.seed(1234)
 
@@ -19,6 +17,48 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
         self.space = MatricesSpace(m=self.n, n=self.n)
         self.metric = self.space.metric
         self.n_samples = 2
+
+    @geomstats.tests.np_only
+    def test_mul(self):
+        a = gs.eye(3, 3, 1)
+        b = gs.eye(3, 3, -1)
+        c = gs.array([
+            [1., 0., 0.],
+            [0., 1., 0.],
+            [0., 0., 0.]])
+        d = gs.array([
+            [0., 0., 0.],
+            [0., 1., 0.],
+            [0., 0., 1.]])
+        result = self.space.mul([a, b], [b, a])
+        expected = gs.array([c, d])
+        self.assertAllClose(result, expected)
+
+        result = self.space.mul(a, [a, b])
+        expected = gs.array([gs.eye(3, 3, 2), c])
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_commutator(self):
+        x = gs.array([
+            [0., 0., 0.],
+            [0., 0., -1.],
+            [0., 1., 0.]])
+        y = gs.array([
+            [0., 0., 1.],
+            [0., 0., 0.],
+            [-1., 0., 0.]])
+        z = gs.array([
+            [0., -1., 0.],
+            [1., 0., 0.],
+            [0., 0., 0.]])
+        result = self.space.commutator([x, y], [y, z])
+        expected = gs.array([z, x])
+        self.assertAllClose(result, expected)
+
+        result = self.space.commutator(x, [x, y, z])
+        expected = gs.array([gs.zeros((3,3)), z, -y])
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_is_symmetric(self):
@@ -115,7 +155,3 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
         expected = helper.to_scalar(expected)
 
         self.assertAllClose(result, expected)
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

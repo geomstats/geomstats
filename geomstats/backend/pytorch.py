@@ -11,6 +11,14 @@ int32 = 'torch.LongTensor'
 int8 = 'torch.ByteTensor'
 
 
+def version_maj():
+    return int(torch.__version__.split(".")[0])
+
+
+def version_min():
+    return int(torch.__version__.split(".")[1])
+
+
 def while_loop(cond, body, loop_vars, maximum_iterations):
     iteration = 0
     while cond(*loop_vars):
@@ -234,12 +242,12 @@ def norm(val, axis):
     return torch.linalg.norm(val, axis=axis)
 
 
-def rand(*args, **largs):
-    return torch.random.rand(*args, **largs)
-
-
 def isclose(*args, **kwargs):
-    return torch.from_numpy(np.isclose(*args, **kwargs).astype(int)).byte()
+    if version_maj() >= 1 and version_min() > 1:
+        return torch.from_numpy(np.isclose(*args, **kwargs))
+    else:
+        return torch.from_numpy(
+                np.isclose(*args, **kwargs).astype(np.uint8))
 
 
 def less(a, b):
@@ -285,7 +293,10 @@ def transpose(x, axes=None):
 
 
 def squeeze(x, axis=None):
-    return torch.squeeze(x, dim=axis)
+    if axis is None:
+        return torch.squeeze(x)
+    else:
+        return torch.squeeze(x, axis)
 
 
 def zeros_like(*args, **kwargs):
@@ -335,7 +346,15 @@ def tile(x, y):
 
 
 def clip(x, amin, amax):
+
+    if x.dtype == 'torch.float':
+        return torch.clamp(x, amin, amax)
+
     return np.clip(x, amin, amax)
+
+
+def clamp(*args, **kwargs):
+    return torch.clamp(*args, **kwargs)
 
 
 def diag(*args, **kwargs):
@@ -402,6 +421,13 @@ def seed(x):
     torch.manual_seed(x)
 
 
+def prod(x, axis=None):
+    if axis is None:
+        return torch.prod(x)
+    else:
+        return torch.prod(x, dim=axis)
+
+
 def sign(*args, **kwargs):
     return torch.sign(*args, **kwargs)
 
@@ -435,3 +461,10 @@ def get_mask_i_float(i, n):
 
 def copy(x):
     return x.clone()
+
+
+def cumprod(x, axis=0):
+    if axis is None:
+        raise NotImplementedError('cumprod is not defined where axis is None')
+    else:
+        return torch.cumprod(x, dim=axis)

@@ -28,8 +28,6 @@ import geomstats.tests
 
 
 class TestExamples(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     @classmethod
     def setUpClass(cls):
         sys.stdout = open(os.devnull, 'w')
@@ -97,7 +95,3 @@ class TestExamples(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_plot_quantization_s2(self):
         plot_quantization_s2.main()
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

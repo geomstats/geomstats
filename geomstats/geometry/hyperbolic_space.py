@@ -7,7 +7,6 @@ import logging
 import math
 
 import geomstats.backend as gs
-
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.minkowski_space import MinkowskiMetric
 from geomstats.geometry.minkowski_space import MinkowskiSpace
@@ -34,22 +33,32 @@ INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
                           0., + 2. / 945.,
                           0., -1. / 4725.]
 
+EPSILON = 1e-5
+
 
 class HyperbolicSpace(EmbeddedManifold):
     """
     Class for the n-dimensional Hyperbolic space
     as embedded in (n+1)-dimensional Minkowski space.
 
-    By default, points are parameterized by their extrinsic (n+1)-coordinates.
+    The point_type variable allows to choose the
+    representation of the points as input.
+
+    By default, point_type is set to 'extrinsic' indicating that
+    points are parameterized by their extrinsic (n+1)-coordinates.
+
+    If point_type is set to 'poincare' then points are parametrized
+    by their coordinates inside the Poincare Ball (n)-coordinates.
     """
 
-    def __init__(self, dimension):
+    def __init__(self, dimension, point_type='extrinsic'):
         assert isinstance(dimension, int) and dimension > 0
         super(HyperbolicSpace, self).__init__(
-                dimension=dimension,
-                embedding_manifold=MinkowskiSpace(dimension+1))
+            dimension=dimension,
+            embedding_manifold=MinkowskiSpace(dimension + 1))
         self.embedding_metric = self.embedding_manifold.metric
-        self.metric = HyperbolicMetric(self.dimension)
+        self.point_type = point_type
+        self.metric = HyperbolicMetric(self.dimension, point_type)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """
@@ -201,11 +210,12 @@ class HyperbolicSpace(EmbeddedManifold):
 
 class HyperbolicMetric(RiemannianMetric):
 
-    def __init__(self, dimension):
+    def __init__(self, dimension, point_type='extrinsic'):
         super(HyperbolicMetric, self).__init__(
-                dimension=dimension,
-                signature=(dimension, 0, 0))
+            dimension=dimension,
+            signature=(dimension, 0, 0))
         self.embedding_metric = MinkowskiMetric(dimension + 1)
+        self.point_type = point_type
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """
@@ -265,49 +275,75 @@ class HyperbolicMetric(RiemannianMetric):
         exp : array-like, shape=[n_samples, dimension + 1]
                           or shape=[1, dimension + 1]
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        if self.point_type == 'extrinsic':
+            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+            base_point = gs.to_ndarray(base_point, to_ndim=2)
 
-        sq_norm_tangent_vec = self.embedding_metric.squared_norm(
-                tangent_vec)
-        norm_tangent_vec = gs.sqrt(sq_norm_tangent_vec)
+            sq_norm_tangent_vec = self.embedding_metric.squared_norm(
+                    tangent_vec)
+            norm_tangent_vec = gs.sqrt(sq_norm_tangent_vec)
 
-        mask_0 = gs.isclose(sq_norm_tangent_vec, 0.)
-        mask_0 = gs.to_ndarray(mask_0, to_ndim=1)
-        mask_else = ~mask_0
-        mask_else = gs.to_ndarray(mask_else, to_ndim=1)
-        mask_0_float = gs.cast(mask_0, gs.float32)
-        mask_else_float = gs.cast(mask_else, gs.float32)
+            mask_0 = gs.isclose(sq_norm_tangent_vec, 0.)
+            mask_0 = gs.to_ndarray(mask_0, to_ndim=1)
+            mask_else = ~mask_0
+            mask_else = gs.to_ndarray(mask_else, to_ndim=1)
+            mask_0_float = gs.cast(mask_0, gs.float32)
+            mask_else_float = gs.cast(mask_else, gs.float32)
 
-        coef_1 = gs.zeros_like(norm_tangent_vec)
-        coef_2 = gs.zeros_like(norm_tangent_vec)
+            coef_1 = gs.zeros_like(norm_tangent_vec)
+            coef_2 = gs.zeros_like(norm_tangent_vec)
 
-        coef_1 += mask_0_float * (
-                  1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
-                  + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
-                  + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
-                  + COSH_TAYLOR_COEFFS[8] * norm_tangent_vec ** 8)
-        coef_2 += mask_0_float * (
-                  1. + SINH_TAYLOR_COEFFS[3] * norm_tangent_vec ** 2
-                  + SINH_TAYLOR_COEFFS[5] * norm_tangent_vec ** 4
-                  + SINH_TAYLOR_COEFFS[7] * norm_tangent_vec ** 6
-                  + SINH_TAYLOR_COEFFS[9] * norm_tangent_vec ** 8)
-        # This avoids dividing by 0.
-        norm_tangent_vec += mask_0_float * 1.0
-        coef_1 += mask_else_float * (gs.cosh(norm_tangent_vec))
-        coef_2 += mask_else_float * (
-            (gs.sinh(norm_tangent_vec) / (norm_tangent_vec)))
+            coef_1 += mask_0_float * (
+                      1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
+                      + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
+                      + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
+                      + COSH_TAYLOR_COEFFS[8] * norm_tangent_vec ** 8)
+            coef_2 += mask_0_float * (
+                      1. + SINH_TAYLOR_COEFFS[3] * norm_tangent_vec ** 2
+                      + SINH_TAYLOR_COEFFS[5] * norm_tangent_vec ** 4
+                      + SINH_TAYLOR_COEFFS[7] * norm_tangent_vec ** 6
+                      + SINH_TAYLOR_COEFFS[9] * norm_tangent_vec ** 8)
+            # This avoids dividing by 0.
+            norm_tangent_vec += mask_0_float * 1.0
+            coef_1 += mask_else_float * (gs.cosh(norm_tangent_vec))
+            coef_2 += mask_else_float * (
+                (gs.sinh(norm_tangent_vec) / (norm_tangent_vec)))
 
-        exp = (gs.einsum('ni,nj->nj', coef_1, base_point)
-               + gs.einsum('ni,nj->nj', coef_2, tangent_vec))
+            exp = (gs.einsum('ni,nj->nj', coef_1, base_point)
+                   + gs.einsum('ni,nj->nj', coef_2, tangent_vec))
 
-        hyperbolic_space = HyperbolicSpace(dimension=self.dimension)
-        exp = hyperbolic_space.regularize(exp)
-        return exp
+            hyperbolic_space = HyperbolicSpace(dimension=self.dimension)
+            exp = hyperbolic_space.regularize(exp)
+            return exp
+
+        if self.point_type == 'poincare':
+            norm_base_point = base_point.norm(2,
+                                              -1, keepdim=True).expand_as(
+                                                base_point)
+
+            lambda_base_point = 1 / (1 - norm_base_point ** 2)
+
+            norm_tangent_vector = tangent_vec.norm(2,
+                                                   -1, keepdim=True).expand_as(
+                                                    tangent_vec)
+
+            direction = tangent_vec / norm_tangent_vector
+
+            factor = gs.tanh(lambda_base_point * norm_tangent_vector)
+
+            exp = self.mobius_add(base_point, direction * factor)
+
+            exp[norm_tangent_vector == 0] = \
+                base_point[norm_tangent_vector == 0]
+
+            return exp
 
     def log(self, point, base_point):
         """
         Riemannian logarithm of a point wrt a base point.
+        If point_type = 'poincare' then base_point belongs
+        to the Poincare ball and point is a vector in the euclidean
+        space of the same dimension as the ball.
 
         Parameters
         ----------
@@ -321,42 +357,97 @@ class HyperbolicMetric(RiemannianMetric):
         log : array-like, shape=[n_samples, dimension + 1]
                           or shape=[1, dimension + 1]
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
 
-        angle = self.dist(base_point, point)
-        angle = gs.to_ndarray(angle, to_ndim=1)
-        angle = gs.to_ndarray(angle, to_ndim=2)
+        if self.point_type == 'extrinsic':
+            point = gs.to_ndarray(point, to_ndim=2)
+            base_point = gs.to_ndarray(base_point, to_ndim=2)
 
-        mask_0 = gs.isclose(angle, 0.)
-        mask_else = ~mask_0
+            angle = self.dist(base_point, point)
+            angle = gs.to_ndarray(angle, to_ndim=1)
+            angle = gs.to_ndarray(angle, to_ndim=2)
 
-        mask_0_float = gs.cast(mask_0, gs.float32)
-        mask_else_float = gs.cast(mask_else, gs.float32)
+            mask_0 = gs.isclose(angle, 0.)
+            mask_else = ~mask_0
 
-        coef_1 = gs.zeros_like(angle)
-        coef_2 = gs.zeros_like(angle)
+            mask_0_float = gs.cast(mask_0, gs.float32)
+            mask_else_float = gs.cast(mask_else, gs.float32)
 
-        coef_1 += mask_0_float * (
-                  1. + INV_SINH_TAYLOR_COEFFS[1] * angle ** 2
-                  + INV_SINH_TAYLOR_COEFFS[3] * angle ** 4
-                  + INV_SINH_TAYLOR_COEFFS[5] * angle ** 6
-                  + INV_SINH_TAYLOR_COEFFS[7] * angle ** 8)
-        coef_2 += mask_0_float * (
-                  1. + INV_TANH_TAYLOR_COEFFS[1] * angle ** 2
-                  + INV_TANH_TAYLOR_COEFFS[3] * angle ** 4
-                  + INV_TANH_TAYLOR_COEFFS[5] * angle ** 6
-                  + INV_TANH_TAYLOR_COEFFS[7] * angle ** 8)
+            coef_1 = gs.zeros_like(angle)
+            coef_2 = gs.zeros_like(angle)
 
-        # This avoids dividing by 0.
-        angle += mask_0_float * 1.
+            coef_1 += mask_0_float * (
+                      1. + INV_SINH_TAYLOR_COEFFS[1] * angle ** 2
+                      + INV_SINH_TAYLOR_COEFFS[3] * angle ** 4
+                      + INV_SINH_TAYLOR_COEFFS[5] * angle ** 6
+                      + INV_SINH_TAYLOR_COEFFS[7] * angle ** 8)
+            coef_2 += mask_0_float * (
+                      1. + INV_TANH_TAYLOR_COEFFS[1] * angle ** 2
+                      + INV_TANH_TAYLOR_COEFFS[3] * angle ** 4
+                      + INV_TANH_TAYLOR_COEFFS[5] * angle ** 6
+                      + INV_TANH_TAYLOR_COEFFS[7] * angle ** 8)
 
-        coef_1 += mask_else_float * (angle / gs.sinh(angle))
-        coef_2 += mask_else_float * (angle / gs.tanh(angle))
+            # This avoids dividing by 0.
+            angle += mask_0_float * 1.
 
-        log = (gs.einsum('ni,nj->nj', coef_1, point)
-               - gs.einsum('ni,nj->nj', coef_2, base_point))
-        return log
+            coef_1 += mask_else_float * (angle / gs.sinh(angle))
+            coef_2 += mask_else_float * (angle / gs.tanh(angle))
+
+            log = (gs.einsum('ni,nj->nj', coef_1, point) -
+                   gs.einsum('ni,nj->nj', coef_2, base_point))
+            return log
+
+        if self.point_type == 'poincare':
+            add_base_point = self.mobius_add(-base_point, point)
+
+            norm_add = add_base_point.norm(2,
+                                           -1, keepdim=True).expand_as(
+                add_base_point)
+
+            norm_base_point = base_point.norm(2,
+                                              -1, keepdim=True).expand_as(
+                add_base_point)
+
+            res = (1 - norm_base_point ** 2) * \
+                  ((gs.arc_tanh(norm_add))) * (add_base_point / norm_add)
+
+            mask_0 = gs.all(gs.isclose(norm_add, 0))
+            res[mask_0] = 0
+
+            return res
+
+    def mobius_add(self, point_a, point_b):
+        """
+                Mobius addition operation that is necessary operation
+                to compute the log and exp using the 'poincare'
+                representation set as point_type.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[n_samples, dimension + 1]
+                              or shape=[1, dimension + 1]
+        point_b : array-like, shape=[n_samples, dimension + 1]
+                              or shape=[1, dimension + 1]
+
+        Returns
+        -------
+        mobius_add : array-like, shape=[n_samples, 1]
+                           or shape=[1, 1]
+        """
+        norm_point_a = gs.sum(point_a ** 2, dim=-1,
+                              keepdim=True).expand_as(point_a)
+        norm_point_b = gs.sum(point_b ** 2, dim=-1,
+                              keepdim=True).expand_as(point_a)
+        sum_prod_a_b = (point_a * point_b).sum(-1,
+                                               keepdim=True).expand_as(point_a)
+
+        add_nominator = ((1 + 2 * sum_prod_a_b + norm_point_b) * point_a +
+                         (1 - norm_point_a) * point_b)
+
+        add_denominator = (1 + 2 * sum_prod_a_b + norm_point_a * norm_point_b)
+
+        mobius_add = add_nominator/add_denominator
+
+        return mobius_add
 
     def dist(self, point_a, point_b):
         """
@@ -374,13 +465,26 @@ class HyperbolicMetric(RiemannianMetric):
         dist : array-like, shape=[n_samples, 1]
                            or shape=[1, 1]
         """
-        sq_norm_a = self.embedding_metric.squared_norm(point_a)
-        sq_norm_b = self.embedding_metric.squared_norm(point_b)
-        inner_prod = self.embedding_metric.inner_product(point_a, point_b)
+        if self.point_type == 'extrinsic':
 
-        cosh_angle = - inner_prod / gs.sqrt(sq_norm_a * sq_norm_b)
-        cosh_angle = gs.clip(cosh_angle, 1.0, 1e24)
+            sq_norm_a = self.embedding_metric.squared_norm(point_a)
+            sq_norm_b = self.embedding_metric.squared_norm(point_b)
+            inner_prod = self.embedding_metric.inner_product(point_a, point_b)
 
-        dist = gs.arccosh(cosh_angle)
+            cosh_angle = - inner_prod / gs.sqrt(sq_norm_a * sq_norm_b)
+            cosh_angle = gs.clip(cosh_angle, 1.0, 1e24)
 
-        return dist
+            dist = gs.arccosh(cosh_angle)
+
+            return dist
+
+        if self.point_type == 'poincare':
+
+            point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0, 1 - EPSILON)
+            point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0, 1 - EPSILON)
+            diff_norm = gs.sum((point_a - point_b) ** 2, -1)
+            norm_function = 1 + 2 * \
+                diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
+            dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
+
+            return dist

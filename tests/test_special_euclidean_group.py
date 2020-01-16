@@ -25,8 +25,6 @@ RTOL = 1e-5
 
 
 class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
         gs.random.seed(1234)
@@ -590,10 +588,9 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                 axis=1)
             inv_expected = helper.to_vector(inv_expected)
 
-            with self.session():
-                self.assertTrue(
-                    gs.eval(gs.allclose(result, expected, atol=1e-4))
-                    or gs.eval(gs.allclose(result, inv_expected, atol=1e-4)))
+            self.assertTrue(
+                gs.allclose(result, expected, atol=1e-4)
+                or gs.allclose(result, inv_expected, atol=1e-4))
 
             if geomstats.tests.tf_backend():
                 break
@@ -790,10 +787,9 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                     axis=1)
                 inv_expected = helper.to_vector(inv_expected)
 
-                with self.session():
-                    self.assertTrue(
-                        gs.eval(gs.allclose(result, expected))
-                        or gs.eval(gs.allclose(result, inv_expected)))
+                self.assertTrue(
+                    gs.allclose(result, expected)
+                    or gs.allclose(result, inv_expected))
 
                 if geomstats.tests.tf_backend():
                     break
@@ -852,15 +848,9 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                     axis=1)
                 inv_expected = helper.to_vector(inv_expected)
 
-                with self.session():
-                    self.assertTrue(
-                        gs.eval(gs.allclose(
-                            result, expected, atol=1e-5))
-                        or gs.eval(gs.allclose(
-                            result, inv_expected, atol=1e-5)))
-
-                if geomstats.tests.tf_backend():
-                    break
+                self.assertTrue(
+                    gs.allclose(result, expected, atol=1e-5)
+                    or gs.allclose(result, inv_expected, atol=1e-5))
 
     @geomstats.tests.np_only
     def test_exp_left(self):
@@ -972,10 +962,9 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                         axis=1)
                     inv_expected = helper.to_vector(inv_expected)
 
-                    with self.session():
-                        self.assertTrue(
-                            gs.eval(gs.allclose(result, expected))
-                            or gs.eval(gs.allclose(result, inv_expected)))
+                    self.assertTrue(
+                        gs.allclose(result, expected)
+                        or gs.allclose(result, inv_expected))
 
                     if geomstats.tests.tf_backend():
                         break
@@ -1043,11 +1032,9 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                         axis=1)
                     inv_expected = helper.to_vector(inv_expected)
 
-                    with self.session():
-                        self.assertTrue(
-                            gs.eval(gs.allclose(result, expected, atol=1e-3))
-                            or gs.eval(gs.allclose(
-                                result, inv_expected, atol=1e-3)))
+                    self.assertTrue(
+                        gs.allclose(result, expected, atol=1e-3)
+                        or gs.allclose(result, inv_expected, atol=1e-3))
 
                     if geomstats.tests.tf_backend():
                         break
@@ -1114,10 +1101,9 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                     if norm != 0:
                         atol = RTOL * norm
 
-                    with self.session():
-                        self.assertTrue(
-                            gs.eval(gs.allclose(result, expected))
-                            or gs.eval(gs.allclose(result, inv_expected)))
+                    self.assertTrue(
+                        gs.allclose(result, expected)
+                        or gs.allclose(result, inv_expected))
 
                     if geomstats.tests.tf_backend():
                         break
@@ -1429,7 +1415,3 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             result = point_step
             expected = helper.to_vector(points[i])
             self.assertAllClose(result, expected)
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()

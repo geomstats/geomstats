@@ -3,7 +3,6 @@ The space of matrices (m, n), which is the Euclidean space R^{mn}.
 """
 
 import geomstats.backend as gs
-
 from geomstats.geometry.euclidean_space import EuclideanSpace
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -29,6 +28,39 @@ class MatricesSpace(EuclideanSpace):
         point = gs.to_ndarray(point, to_ndim=3)
         _, mat_dim_1, mat_dim_2 = point.shape
         return mat_dim_1 == self.m & mat_dim_2 == self.n
+
+    @staticmethod
+    def mul(a, b):
+        """
+        Return the product of matrices a and b.
+
+        Parameters
+        ----------
+        a : array-like, shape=[n_samples, dim1, dim2]
+        b : array-like, shape=[n_samples, dim2, dim3]
+
+        Returns
+        -------
+        c : array-like, shape=[n_samples, dim1, dim3]
+        """
+        return gs.matmul(a, b)
+
+    @staticmethod
+    def commutator(a, b):
+        """
+        Return the commutator of a and b,
+        i.e. `[a, b] = ab - ba`.
+
+        Parameters
+        ----------
+        a : array-like, shape=[n_samples, dim, dim]
+        b : array-like, shape=[n_samples, dim, dim]
+
+        Returns
+        -------
+        c : array-like, shape=[n_samples, dim, dim]
+        """
+        return gs.matmul(a, b) - gs.matmul(b, a)
 
     @staticmethod
     def vector_from_matrix(matrix):
