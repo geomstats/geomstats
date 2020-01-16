@@ -408,3 +408,18 @@ class HypersphereMetric(RiemannianMetric):
         dist = gs.arccos(cos_angle)
 
         return dist
+
+    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
+        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        # TODO @nguigs: work around this condition
+        assert len(base_point) == len(tangent_vec_a) == len(tangent_vec_b)
+        theta = gs.linalg.norm(tangent_vec_b, axis=1)
+        normalized_b = gs.einsum('n, ni->ni', 1 / theta, tangent_vec_b)
+        pb = gs.einsum('ni,ni->n', tangent_vec_a, normalized_b)
+        p_orth = tangent_vec_a - gs.einsum('n,ni->ni', pb, normalized_b)
+        transported = - gs.einsum('n,ni->ni', gs.sin(theta) * pb, base_point)\
+            + gs.einsum('n,ni->ni', gs.cos(theta) * pb, normalized_b)\
+            + p_orth
+        return transported
