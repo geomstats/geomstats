@@ -93,7 +93,7 @@ class HyperbolicSpace(EmbeddedManifold):
             belongs = diff < tolerance * euclidean_sq_norm
             return belongs
 
-        if self.point_type == 'poincare':
+        elif self.point_type == 'poincare':
             return True
 
     def regularize(self, point):
