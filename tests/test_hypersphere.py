@@ -23,17 +23,19 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         self.metric = self.space.metric
         self.n_samples = 10
 
+    @geomstats.tests.np_and_pytorch_only
     def test_random_uniform_and_belongs(self):
         """
         Test that the random uniform method samples
         on the hypersphere space.
         """
-        point = self.space.random_uniform()
+        point = self.space.random_uniform(10)
         result = self.space.belongs(point)
         expected = gs.array([[True]])
 
         self.assertAllClose(expected, result)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_random_uniform(self):
         point = self.space.random_uniform()
 
@@ -149,6 +151,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_exp_vectorization(self):
         n_samples = self.n_samples
         dim = self.dimension + 1
@@ -182,6 +185,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
+    @geomstats.tests.np_and_pytorch_only
     def test_log_vectorization(self):
         n_samples = self.n_samples
         dim = self.dimension + 1
@@ -278,6 +282,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_squared_dist_vectorization(self):
         n_samples = self.n_samples
 
@@ -384,6 +389,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = helper.to_scalar(expected)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_geodesic_and_belongs(self):
         n_geodesic_points = 100
         initial_point = self.space.random_uniform()
