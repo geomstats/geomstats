@@ -6,6 +6,7 @@ from numpy import (  # NOQA
     all,
     allclose,
     amax,
+    amin,
     any,
     arange,
     arccos,
