@@ -104,32 +104,6 @@ class HyperbolicSpace(EmbeddedManifold):
 
         return gs.sum(point**2, -1) < (1 + tolerance)
 
-    @staticmethod
-    def _belong_extrinsic(point, tolerance=TOLERANCE):
-        """
-        Evaluate if a point belongs to the Hyperbolic space,
-        i.e. evaluate if its squared norm in the Minkowski space is -1.
-
-        Parameters
-        ----------
-        point : array-like, shape=[n_samples, dimension + 1]
-                Input points.
-        tolerance : float, optional
-
-        Returns
-        -------
-        belongs : array-like, shape=[n_samples, 1]
-        """
-
-        point = gs.to_ndarray(point, to_ndim=2)
-        _, point_dim = point.shape
-        sq_norm = MinkowskiSpace(point_dim).squared_norm(point)
-        euclidean_sq_norm = gs.linalg.norm(point, axis=-1) ** 2
-        euclidean_sq_norm = gs.to_ndarray(euclidean_sq_norm, to_ndim=2, axis=1)
-        diff = gs.abs(sq_norm + 1)
-        belongs = diff < tolerance * euclidean_sq_norm
-        return belongs
-
     def belongs(self, point, tolerance=TOLERANCE):
         """
         Evaluate if a point belongs to the Hyperbolic space,
