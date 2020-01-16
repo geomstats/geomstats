@@ -99,7 +99,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         """
         svd = gs.linalg.svd
         mul = gs.matmul
-        tr = lambda a : gs.transpose(a, (1, 2))
+        tr = MatricesSpace.transpose
         logm = gs.linalg.logm
         bracket = MatricesSpace.commutator
 

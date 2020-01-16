@@ -74,7 +74,7 @@ if tf_backend():
 
 
 class TestCase(_TestBaseClass):
-    _multiprocess_can_split = True
+    _multiprocess_can_split_ = True
 
     def assertAllClose(self, a, b, rtol=1e-6, atol=1e-6):
         if tf_backend():
