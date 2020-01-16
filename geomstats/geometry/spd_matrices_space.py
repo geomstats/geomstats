@@ -546,3 +546,7 @@ class SPDMetricEuclidean(RiemannianMetric):
         inner_product = gs.to_ndarray(inner_product, to_ndim=2, axis=1)
 
         return inner_product
+
+#    def exp_domain(self, tangent_vec, base_point):
+#        invsqrt_base_point = gs.linalg
+#        eigvals = gs.linalg.eigvalsh()

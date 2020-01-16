@@ -21,6 +21,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         self.space = SPDMatricesSpace(n=self.n)
         self.metric_affine = SPDMetricAffine(n=self.n)
         self.metric_procrustes = SPDMetricProcrustes(n=self.n)
+        self.metric_euclidean = SPDMetricEuclidean(n=self.n)
         self.n_samples = 4
 
     @geomstats.tests.np_and_tf_only
