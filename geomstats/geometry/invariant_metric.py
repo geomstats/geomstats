@@ -5,7 +5,6 @@ Left- and right- invariant metrics that exist on Lie groups.
 import logging
 
 import geomstats.backend as gs
-
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 

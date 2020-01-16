@@ -6,7 +6,6 @@ import math
 
 import geomstats.backend as gs
 
-
 EPSILON = 1e-4
 N_CENTERS = 10
 TOLERANCE = 1e-5
@@ -16,7 +15,7 @@ N_MAX_ITERATIONS = 50000
 
 def loss(y_pred, y_true, metric):
     """
-    Loss function given by a riemannian metric,
+    Loss function given by a Riemannian metric,
     expressed as the squared geodesic distance between the prediction
     and the ground truth.
     """
@@ -44,6 +43,7 @@ class RiemannianMetric(object):
     """
     Class for Riemannian and pseudo-Riemannian metrics.
     """
+
     def __init__(self, dimension, signature=None):
         assert isinstance(dimension, int) or dimension == math.inf
         assert dimension > 0
@@ -58,8 +58,8 @@ class RiemannianMetric(object):
         base_point : array-like, shape=[n_samples, dimension], optional
         """
         raise NotImplementedError(
-                'The computation of the inner product matrix'
-                ' is not implemented.')
+            'The computation of the inner product matrix'
+            ' is not implemented.')
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """
@@ -156,7 +156,7 @@ class RiemannianMetric(object):
                                 or shape=[1, dimension]
         """
         raise NotImplementedError(
-                'The Riemannian exponential is not implemented.')
+            'The Riemannian exponential is not implemented.')
 
     def log(self, point, base_point=None):
         """
@@ -171,7 +171,7 @@ class RiemannianMetric(object):
                                 or shape=[1, dimension]
         """
         raise NotImplementedError(
-                'The Riemannian logarithm is not implemented.')
+            'The Riemannian logarithm is not implemented.')
 
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
@@ -190,14 +190,14 @@ class RiemannianMetric(object):
             point_ndim = 2
 
         initial_point = gs.to_ndarray(initial_point,
-                                      to_ndim=point_ndim+1)
+                                      to_ndim=point_ndim + 1)
 
         if end_point is None and initial_tangent_vec is None:
             raise ValueError('Specify an end point or an initial tangent '
                              'vector to define the geodesic.')
         if end_point is not None:
             end_point = gs.to_ndarray(end_point,
-                                      to_ndim=point_ndim+1)
+                                      to_ndim=point_ndim + 1)
             shooting_tangent_vec = self.log(point=end_point,
                                             base_point=initial_point)
             if initial_tangent_vec is not None:
@@ -205,18 +205,18 @@ class RiemannianMetric(object):
             initial_tangent_vec = shooting_tangent_vec
         initial_tangent_vec = gs.array(initial_tangent_vec)
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
-                                            to_ndim=point_ndim+1)
+                                            to_ndim=point_ndim + 1)
 
         def point_on_geodesic(t):
             t = gs.cast(t, gs.float32)
             t = gs.to_ndarray(t, to_ndim=1)
             t = gs.to_ndarray(t, to_ndim=2, axis=1)
             new_initial_point = gs.to_ndarray(
-                                          initial_point,
-                                          to_ndim=point_ndim+1)
+                initial_point,
+                to_ndim=point_ndim + 1)
             new_initial_tangent_vec = gs.to_ndarray(
-                                          initial_tangent_vec,
-                                          to_ndim=point_ndim+1)
+                initial_tangent_vec,
+                to_ndim=point_ndim + 1)
 
             if point_type == 'vector':
                 tangent_vecs = gs.einsum('il,nk->ik',
@@ -328,6 +328,7 @@ class RiemannianMetric(object):
 
         verbose: bool, optional
         """
+
         # TODO(nina): Profile this code to study performance,
         # i.e. what to do with sq_dists_between_iterates.
         def while_loop_cond(iteration, mean, variance, sq_dist):
@@ -337,10 +338,8 @@ class RiemannianMetric(object):
             return result[0, 0] or iteration == 0
 
         def while_loop_body(iteration, mean, variance, sq_dist):
-            tangent_mean = gs.zeros_like(mean)
-
             logs = self.log(point=points, base_point=mean)
-            tangent_mean += gs.einsum('nk,nj->j', weights, logs)
+            tangent_mean = gs.einsum('nk,nj->j', weights, logs)
 
             tangent_mean /= sum_weights
 
@@ -404,6 +403,85 @@ class RiemannianMetric(object):
         mean = gs.to_ndarray(mean, to_ndim=2)
         return mean
 
+    def adaptive_gradientdescent_mean(self, points,
+                                      weights=None,
+                                      n_max_iterations=32,
+                                      epsilon=1e-12,
+                                      init_points=[]):
+        """
+        Frechet mean of (weighted) points using adaptive time-steps
+        The loss function optimized is ||M_1(x)||_x (where M_1(x) is
+        the tangent mean at x) rather than the mean-square-distance (MSD)
+        because this saves computation time.
+
+        Parameters
+        ----------
+        points: array-like, shape=[n_samples, dimension]
+
+        weights: array-like, shape=[n_samples, 1], optional
+
+        init_points: array-like, shape=[n_init, dimension]
+
+        epsilon: tolerance for stopping the gradient descent
+        """
+
+        # TODO(Xavier): This function assumes that all points are lists
+        #  of vectors and not of matrices
+        n_points = gs.shape(points)[0]
+
+        if weights is None:
+            weights = gs.ones((n_points, 1))
+
+        weights = gs.array(weights)
+        weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
+
+        sum_weights = gs.sum(weights)
+
+        n_init = len(init_points)
+
+        if n_init == 0:
+            current_mean = points[0]
+        else:
+            current_mean = init_points[0]
+
+        if n_points == 1:
+            return gs.to_ndarray(current_mean, to_ndim=2)
+
+        tau = 1.0
+        iter = 0
+
+        logs = self.log(point=points, base_point=current_mean)
+        current_tangent_mean = gs.einsum('nk,nj->j', weights, logs)
+        current_tangent_mean /= sum_weights
+        norm_current_tangent_mean = gs.linalg.norm(current_tangent_mean)
+
+        while (norm_current_tangent_mean > epsilon
+                and iter < n_max_iterations):
+            iter = iter + 1
+            shooting_vector = gs.to_ndarray(
+                tau * current_tangent_mean,
+                to_ndim=2)
+            next_mean = self.exp(
+                tangent_vec=shooting_vector,
+                base_point=current_mean)
+            logs = self.log(point=points, base_point=next_mean)
+            next_tangent_mean = gs.einsum('nk,nj->j', weights, logs)
+            next_tangent_mean /= sum_weights
+            norm_next_tangent_mean = gs.linalg.norm(next_tangent_mean)
+            if norm_next_tangent_mean < norm_current_tangent_mean:
+                current_mean = next_mean
+                current_tangent_mean = next_tangent_mean
+                norm_current_tangent_mean = norm_next_tangent_mean
+                tau = max(1.0, 1.0511111*tau)
+            else:
+                tau = tau * 0.8
+
+        if iter == n_max_iterations:
+            print('Maximum number of iterations {} reached.'
+                  'The mean may be inaccurate'.format(n_max_iterations))
+
+        return gs.to_ndarray(current_mean, to_ndim=2)
+
     def tangent_pca(self, points, base_point=None, point_type='vector'):
         """
         Tangent Principal Component Analysis (tPCA) of points
@@ -434,8 +512,8 @@ class RiemannianMetric(object):
         diameter = 0.0
         n_points = points.shape[0]
 
-        for i in range(n_points-1):
-            dist_to_neighbors = self.dist(points[i, :], points[i+1:, :])
+        for i in range(n_points - 1):
+            dist_to_neighbors = self.dist(points[i, :], points[i + 1:, :])
             dist_to_farthest_neighbor = gs.amax(dist_to_neighbors)
             diameter = gs.maximum(diameter, dist_to_farthest_neighbor)
 
@@ -450,10 +528,10 @@ class RiemannianMetric(object):
 
         return closest_neighbor_index
 
-    def optimal_quantization(self, points, n_centers=N_CENTERS,
-                             n_repetitions=N_REPETITIONS,
-                             tolerance=TOLERANCE,
-                             n_max_iterations=N_MAX_ITERATIONS):
+    def online_k_means(self, points, n_centers=N_CENTERS,
+                       n_repetitions=N_REPETITIONS,
+                       tolerance=TOLERANCE,
+                       n_max_iterations=N_MAX_ITERATIONS):
         """
         Compute the optimal approximation of points by a smaller number
         of weighted centers using the Competitive Learning Riemannian
@@ -489,11 +567,11 @@ class RiemannianMetric(object):
             center_to_update = centers[index_to_update, :]
 
             tangent_vec_update = self.log(
-                    point=point, base_point=center_to_update
-                    ) / (step_size+1)
+                point=point, base_point=center_to_update
+            ) / (step_size + 1)
             new_center = self.exp(
-                    tangent_vec=tangent_vec_update, base_point=center_to_update
-                    )
+                tangent_vec=tangent_vec_update, base_point=center_to_update
+            )
             gap = self.dist(center_to_update, new_center)
             gap = (gs.cast(gap != 0, gs.float32) * gap
                    + gs.cast(gap == 0, gs.float32))
@@ -503,7 +581,7 @@ class RiemannianMetric(object):
             if gs.isclose(gap, 0, atol=tolerance):
                 break
 
-        if iteration == n_max_iterations-1:
+        if iteration == n_max_iterations - 1:
             print('Maximum number of iterations {} reached. The'
                   'quantization may be inaccurate'.format(n_max_iterations))
 

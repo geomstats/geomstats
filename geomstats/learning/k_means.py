@@ -1,8 +1,9 @@
 from random import randint
 
+from sklearn.base import BaseEstimator, ClusterMixin
+
 import geomstats.backend as gs
 from geomstats.learning._template import TransformerMixin
-from sklearn.base import BaseEstimator, ClusterMixin
 
 
 class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):

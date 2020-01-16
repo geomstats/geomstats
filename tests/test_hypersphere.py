@@ -3,21 +3,18 @@ Unit tests for the Hypersphere.
 """
 
 import scipy.special
+import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-import tests.helper as helper
-
 from geomstats.geometry.hypersphere import Hypersphere
 
 MEAN_ESTIMATION_TOL = 1e-6
 KAPPA_ESTIMATION_TOL = 1e-2
-OPTIMAL_QUANTIZATION_TOL = 2e-2
+ONLINE_KMEANS_TOL = 2e-2
 
 
 class TestHypersphereMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         gs.random.seed(1234)
 
@@ -228,8 +225,8 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
                                                    vector=vector,
                                                    base_point=base_point)
 
-        exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
-        result = self.metric.log(point=exp, base_point=base_point)
+        # exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
+        # result = self.metric.log(point=exp, base_point=base_point)
 
         expected = vector
         norm_expected = gs.linalg.norm(expected)
@@ -438,6 +435,22 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
+    @geomstats.tests.np_only
+    def test_adaptive_gradientdescent_mean(self):
+        n_tests: int = 100
+        result = gs.zeros(n_tests)
+        expected = gs.zeros(n_tests)
+
+        for i in range(n_tests):
+            # take 2 random points, compute their mean, and verify that
+            # log of each at the mean is opposite
+            points = self.space.random_uniform(n_samples=2)
+            mean = self.metric.adaptive_gradientdescent_mean(points)
+            logs = self.metric.log(point=points, base_point=mean)
+            result[i] = gs.linalg.norm(logs[1, :] + logs[0, :])
+
+        self.assertAllClose(expected, result, rtol=1e-10, atol=1e-10)
+
     @geomstats.tests.np_and_pytorch_only
     def test_mean_and_belongs(self):
         point_a = gs.array([1., 0., 0., 0., 0.])
@@ -522,28 +535,24 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
                 gs.allclose(result, expected, atol=KAPPA_ESTIMATION_TOL))
 
     @geomstats.tests.np_only
-    def test_optimal_quantization(self):
-            """
-            Check that optimal quantization yields the same result as
-            the karcher flow algorithm when we look for one center.
-            """
-            dim = 2
-            n_points = 1000
-            n_centers = 1
-            sphere = Hypersphere(dim)
-            points = sphere.random_von_mises_fisher(
-                    kappa=10, n_samples=n_points
-                    )
-            mean = sphere.metric.mean(points)
-            centers, weights, clusters, n_iterations = sphere.metric.\
-                optimal_quantization(points=points, n_centers=n_centers)
-            error = sphere.metric.dist(mean, centers)
-            diameter = sphere.metric.diameter(points)
-            result = error / diameter
-            expected = 0.0
-            self.assertAllClose(
-                result, expected, atol=OPTIMAL_QUANTIZATION_TOL)
-
-
-if __name__ == '__main__':
-        geomstats.tests.main()
+    def test_online_k_means(self):
+        """
+        Check that online k-means yields the same result as
+        the karcher flow algorithm when we look for one center.
+        """
+        dim = 2
+        n_points = 1000
+        n_centers = 1
+        sphere = Hypersphere(dim)
+        points = sphere.random_von_mises_fisher(
+                kappa=10, n_samples=n_points
+                )
+        mean = sphere.metric.mean(points)
+        centers, weights, clusters, n_iterations = sphere.metric.\
+            online_k_means(points=points, n_centers=n_centers)
+        error = sphere.metric.dist(mean, centers)
+        diameter = sphere.metric.diameter(points)
+        result = error / diameter
+        expected = 0.0
+        self.assertAllClose(
+                result, expected, atol=ONLINE_KMEANS_TOL)
