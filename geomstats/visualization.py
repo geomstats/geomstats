@@ -207,9 +207,11 @@ class Sphere():
 
 
 class PoincareDisk():
-    def __init__(self, points=None):
+    def __init__(self, points=None, point_type='extrinsic'):
         self.center = gs.array([0., 0.])
         self.points = []
+        self.point_type = point_type
+
         if points is not None:
             self.add_points(points)
 
@@ -224,11 +226,16 @@ class PoincareDisk():
         return ax
 
     def add_points(self, points):
-        assert gs.all(H2.belongs(points))
-        points = self.convert_to_poincare_coordinates(points)
-        if not isinstance(points, list):
-            points = points.tolist()
-        self.points.extend(points)
+
+        if self.point_type == 'extrinsic':
+            assert gs.all(H2.belongs(points))
+            points = self.convert_to_poincare_coordinates(points)
+            if not isinstance(points, list):
+                points = points.tolist()
+            self.points.extend(points)
+
+        if self.point_type == 'poincare':
+            return True
 
     def convert_to_poincare_coordinates(self, points):
         poincare_coords = points[:, 1:] / (1 + points[:, :1])
@@ -373,7 +380,8 @@ def convert_to_trihedron(point, space=None):
     return trihedrons
 
 
-def plot(points, ax=None, space=None, **point_draw_kwargs):
+def plot(points, ax=None, space=None,
+         point_type='extrinsic', **point_draw_kwargs):
     """
     Plot points in the 3D Special Euclidean Group,
     by showing them as trihedrons.
@@ -418,10 +426,20 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
         sphere.draw(ax, **point_draw_kwargs)
 
     elif space == 'H2_poincare_disk':
-        poincare_disk = PoincareDisk()
-        ax = poincare_disk.set_ax(ax=ax)
-        poincare_disk.add_points(points)
-        poincare_disk.draw(ax, **point_draw_kwargs)
+
+        if point_type == 'extrinsic':
+            poincare_disk = PoincareDisk()
+            ax = poincare_disk.set_ax(ax=ax)
+            poincare_disk.add_points(points)
+            poincare_disk.draw(ax, **point_draw_kwargs)
+
+        elif point_type == 'poincare':
+
+            poincare_disk = PoincareDisk()
+            poincare_disk.point_type = point_type
+            ax = poincare_disk.set_ax(ax=ax)
+            poincare_disk.add_points(points)
+            # poincare_disk.draw(ax, **point_draw_kwargs)
 
     elif space == 'H2_poincare_half_plane':
         poincare_half_plane = PoincareHalfPlane()

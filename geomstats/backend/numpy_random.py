@@ -17,3 +17,7 @@ def seed(*args, **kwargs):
 
 def normal(*args, **kwargs):
     return np.random.normal(*args, **kwargs)
+
+
+def uniform(*args, **kwargs):
+    return np.random.uniform(*args, **kwargs)

@@ -75,21 +75,26 @@ class HyperbolicSpace(EmbeddedManifold):
         -------
         belongs : array-like, shape=[n_samples, 1]
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        _, point_dim = point.shape
-        if point_dim is not self.dimension + 1:
-            if point_dim is self.dimension:
-                logging.warning(
-                    'Use the extrinsic coordinates to '
-                    'represent points on the hyperbolic space.')
-                return gs.array([[False]])
+        if self.point_type == 'extrinsic':
+            point = gs.to_ndarray(point, to_ndim=2)
+            _, point_dim = point.shape
+            if point_dim is not self.dimension + 1:
+                if point_dim is self.dimension:
+                    logging.warning(
+                        'Use the extrinsic coordinates to '
+                        'represent points on the hyperbolic space.')
+                    return gs.array([[False]])
 
-        sq_norm = self.embedding_metric.squared_norm(point)
-        euclidean_sq_norm = gs.linalg.norm(point, axis=-1) ** 2
-        euclidean_sq_norm = gs.to_ndarray(euclidean_sq_norm, to_ndim=2, axis=1)
-        diff = gs.abs(sq_norm + 1)
-        belongs = diff < tolerance * euclidean_sq_norm
-        return belongs
+            sq_norm = self.embedding_metric.squared_norm(point)
+            euclidean_sq_norm = gs.linalg.norm(point, axis=-1) ** 2
+            euclidean_sq_norm = gs.to_ndarray(euclidean_sq_norm,
+                                              to_ndim=2, axis=1)
+            diff = gs.abs(sq_norm + 1)
+            belongs = diff < tolerance * euclidean_sq_norm
+            return belongs
+
+        if self.point_type == 'poincare':
+            return True
 
     def regularize(self, point):
         """
