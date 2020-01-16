@@ -44,11 +44,19 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
     def test_extrinsic_half_plane_extrinsic(self):
         x_in = gs.array([[0.5, 7]])
         x = self.intrinsic_manifold.to_coordinates(x_in,
-                                                  to_point_type="extrinsic")
+                                                   to_point_type="extrinsic")
         x_up = self.extrinsic_manifold.to_coordinates(x, to_point_type="half_plane")
 
         x2 = self.half_plane_manifold.to_coordinates(x_up, to_point_type="extrinsic")
         self.assertAllClose(x, x2, atol=1e-8)
+
+    def test_intrinsic_extrinsic_intrinsic(self):
+        x_intr = gs.array([[0.5, 7]])
+        x_extr = self.intrinsic_manifold.to_coordinates(x_intr,
+                                                  to_point_type="extrinsic")
+        x_intr2 = self.extrinsic_manifold.to_coordinates(x_extr,
+                                                  to_point_type="intrinsic")
+        self.assertAllClose(x_intr, x_intr2, atol=1e-8)
 
     def test_ball_extrinsic_ball(self):
         x = gs.array([[0.5, 0.2]])
