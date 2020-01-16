@@ -415,6 +415,6 @@ class HypersphereMetric(RiemannianMetric):
         pb = gs.einsum('ni,ni->n', tan_a, normalized_b)
         p_orth = tan_a - gs.einsum('n,ni->ni', pb, normalized_b)
         transported = - gs.einsum('n,ni->ni', gs.sin(theta) * pb, point)\
-            + gs.einsum('n,ni->ni', gs.cos(theta) * pb,normalized_b)\
+            + gs.einsum('n,ni->ni', gs.cos(theta) * pb, normalized_b)\
             + p_orth
         return transported

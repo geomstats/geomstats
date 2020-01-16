@@ -69,5 +69,4 @@ class TestConnectionMethods(geomstats.tests.TestCase):
 
 
 if __name__ == '__main__':
-        geomstats.tests.main()
-
+    geomstats.tests.main()
