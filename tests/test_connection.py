@@ -7,6 +7,7 @@ import geomstats.tests
 
 from geomstats.geometry.connection import LeviCivitaConnection
 from geomstats.geometry.euclidean_space import EuclideanMetric
+from geomstats.geometry.hypersphere import Hypersphere
 
 
 class TestConnectionMethods(geomstats.tests.TestCase):
@@ -50,3 +51,22 @@ class TestConnectionMethods(geomstats.tests.TestCase):
         expected = gs.zeros((1,) + (self.dimension, ) * 3)
 
         gs.testing.assert_allclose(result, expected)
+
+    def test_parallel_transport(self):
+        sphere = Hypersphere(dimension=2)
+        connection = LeviCivitaConnection(sphere.metric)
+        n_samples = 10
+        base_point = sphere.random_uniform(n_samples)
+        tan_vec_a = sphere.projection_to_tangent_space(
+            gs.random.rand(n_samples, 3), base_point)
+        tan_vec_b = sphere.projection_to_tangent_space(
+            gs.random.rand(n_samples, 3), base_point)
+        expected = sphere.metric.parallel_transport(
+            tan_vec_a, tan_vec_b, base_point)
+        result = connection.pole_ladder_parallel_transport(
+            tan_vec_a, tan_vec_b, base_point)
+        gs.testing.assert_allclose(result, expected, rtol=1e-7, atol=1e-5)
+
+
+if __name__ == '__main__':
+    geomstats.tests.main()
