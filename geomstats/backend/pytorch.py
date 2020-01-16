@@ -238,10 +238,6 @@ def sqrt(val):
     return torch.sqrt(torch.tensor(val).float())
 
 
-def norm(val, axis):
-    return torch.linalg.norm(val, axis=axis)
-
-
 def isclose(*args, **kwargs):
     if version_maj() >= 1 and version_min() > 1:
         return torch.from_numpy(np.isclose(*args, **kwargs))

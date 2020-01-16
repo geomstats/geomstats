@@ -1,3 +1,10 @@
 """Numpy based random backend."""
 
-from numpy.random import normal, rand, randint, randn, seed  # NOQA
+
+from numpy.random import (  # NOQA
+    normal,
+    rand,
+    randint,
+    randn,
+    seed
+)
