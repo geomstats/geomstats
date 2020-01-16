@@ -492,10 +492,10 @@ class HypersphereMetric(RiemannianMetric):
             + p_orth
         return transported
 
-    def christoffel_spherical(self, point):
+    def christoffels(self, point, point_type='spherical'):
         """
-        Christoffel symbols in the spherical coordinates.
-        Only implemented in dimension 2.
+        Christoffel symbols. Only implemented in dimension 2
+        and for spherical coordinates.
 
         Parameters
         ----------
@@ -508,11 +508,10 @@ class HypersphereMetric(RiemannianMetric):
                                          first covariant index,
                                          second covariant index]
         """
-        if self.dimension != 2:
+        if self.dimension != 2 or point_type != 'spherical':
             raise NotImplementedError(
-                    'The conversion from spherical coordinates'
-                    ' to extrinsic coordinates is implemented'
-                    ' only in dimension 2.')
+                    'The Christoffel symbols are only implemented'
+                    ' for spherical coordinates in the 2-sphere')
         point = gs.to_ndarray(point, to_ndim=2)
         n_samples = point.shape[0]
         christoffel = gs.zeros((n_samples,

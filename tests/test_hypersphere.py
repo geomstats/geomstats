@@ -534,29 +534,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         self.assertTrue(
                 gs.allclose(result, expected, atol=KAPPA_ESTIMATION_TOL))
 
-    @geomstats.tests.np_only
-    def test_online_k_means(self):
-        """
-        Check that online k-means yields the same result as
-        the karcher flow algorithm when we look for one center.
-        """
-        dim = 2
-        n_points = 1000
-        n_centers = 1
-        sphere = Hypersphere(dim)
-        points = sphere.random_von_mises_fisher(
-                kappa=10, n_samples=n_points
-                )
-        mean = sphere.metric.mean(points)
-        centers, weights, clusters, n_iterations = sphere.metric.\
-            online_k_means(points=points, n_centers=n_centers)
-        error = sphere.metric.dist(mean, centers)
-        diameter = sphere.metric.diameter(points)
-        result = error / diameter
-        expected = 0.0
-        self.assertAllClose(
-                result, expected, atol=ONLINE_KMEANS_TOL)
-
     def test_spherical_to_extrinsic(self):
         """
         Check vectorization of conversion from spherical
@@ -589,7 +566,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
                              [0, 0.2, -0.3]])
         self.assertAllClose(result, expected)
 
-    def test_christoffel_spherical(self):
+    def test_christoffels(self):
         """
         Check vectorization of Christoffel symbols in
         spherical coordinates on the 2-sphere.
@@ -598,7 +575,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         sphere = Hypersphere(dim)
         points_spherical = gs.array([[gs.pi / 2, 0],
                                      [gs.pi / 6, gs.pi / 4]])
-        christoffel = sphere.metric.christoffel_spherical(
+        christoffel = sphere.metric.christoffels(
                 points_spherical)
         result = christoffel.shape
         expected = gs.array([2, dim, dim, dim])
