@@ -5,7 +5,7 @@ Unit tests for Online k-means.
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.learning.online_k_means import OnlineKmeans
+from geomstats.learning.online_kmeans import OnlineKMeans
 
 TOLERANCE = 1e-3
 
@@ -23,7 +23,7 @@ class TestOnlineKmeansMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_fit(self):
         X = self.data
-        clustering = OnlineKmeans(metric=self.metric, n_clusters=1,
+        clustering = OnlineKMeans(metric=self.metric, n_clusters=1,
                                   n_repetitions=10)
         clustering.fit(X)
 
@@ -36,7 +36,7 @@ class TestOnlineKmeansMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_predict(self):
         X = self.data
-        clustering = OnlineKmeans(metric=self.metric, n_clusters=3,
+        clustering = OnlineKMeans(metric=self.metric, n_clusters=3,
                                   n_repetitions=1)
         clustering.fit(X)
 

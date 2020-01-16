@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.learning.online_k_means import OnlineKmeans
+from geomstats.learning.online_kmeans import OnlineKMeans
 
 N_POINTS = 1000
 N_CENTERS = 5
@@ -23,7 +23,7 @@ def main():
     data = circle.random_uniform(n_samples=1000, bound=None)
 
     n_clusters = 5
-    clustering = OnlineKmeans(metric=circle.metric, n_clusters=n_clusters)
+    clustering = OnlineKMeans(metric=circle.metric, n_clusters=n_clusters)
     clustering = clustering.fit(data)
 
     plt.figure(0)

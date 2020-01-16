@@ -14,8 +14,8 @@ import examples.plot_geodesics_s2 as plot_geodesics_s2
 import examples.plot_geodesics_se3 as plot_geodesics_se3
 import examples.plot_geodesics_so3 as plot_geodesics_so3
 import examples.plot_grid_h2 as plot_grid_h2
-import examples.plot_online_k_means_s1 as plot_online_k_means_s1
-import examples.plot_online_k_means_s2 as plot_online_k_means_s2
+import examples.plot_online_kmeans_s1 as plot_online_kmeans_s1
+import examples.plot_online_kmeans_s2 as plot_online_kmeans_s2
 import examples.plot_square_h2_klein_disk as plot_square_h2_klein_disk
 import examples.plot_square_h2_poincare_disk as plot_square_h2_poincare_disk
 import examples.plot_square_h2_poincare_half_plane as plot_square_h2_poincare_half_plane  # NOQA
@@ -91,8 +91,8 @@ class TestExamples(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_plot_online_k_means_s1(self):
-        plot_online_k_means_s1.main()
+        plot_online_kmeans_s1.main()
 
     @geomstats.tests.np_only
     def test_plot_online_k_means_s2(self):
-        plot_online_k_means_s2.main()
+        plot_online_kmeans_s2.main()

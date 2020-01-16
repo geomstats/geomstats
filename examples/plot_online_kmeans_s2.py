@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.learning.online_k_means import OnlineKmeans
+from geomstats.learning.online_kmeans import OnlineKMeans
 
 
 def main():
@@ -18,7 +18,7 @@ def main():
     data = sphere.random_von_mises_fisher(kappa=10, n_samples=1000)
 
     n_clusters = 4
-    clustering = OnlineKmeans(metric=sphere.metric, n_clusters=n_clusters)
+    clustering = OnlineKMeans(metric=sphere.metric, n_clusters=n_clusters)
     clustering = clustering.fit(data)
 
     plt.figure(0)
