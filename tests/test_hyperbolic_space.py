@@ -475,4 +475,6 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         scaled_metric = HyperbolicSpace(dimension=self.dimension, scale=2)
         distance_default_metric = default_metric.metric.dist(point_a, point_b)
         distance_scaled_metric = scaled_metric.metric.dist(point_a, point_b)
+        print(distance_default_metric)
+        print(distance_scaled_metric)
         self.assertAllClose(scale * distance_default_metric, distance_scaled_metric)
