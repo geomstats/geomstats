@@ -230,15 +230,10 @@ class PoincareDisk():
         if self.point_type == 'extrinsic':
             assert gs.all(H2.belongs(points))
             points = self.convert_to_poincare_coordinates(points)
-            if not isinstance(points, list):
-                points = points.tolist()
-            self.points.extend(points)
 
-        if self.point_type == 'poincare':
-            if not isinstance(points, list):
-                points = points.tolist()
-            self.points.extend(points)
-            return True
+        if not isinstance(points, list):
+            points = points.tolist()
+        self.points.extend(points)
 
     def convert_to_poincare_coordinates(self, points):
         poincare_coords = points[:, 1:] / (1 + points[:, :1])
