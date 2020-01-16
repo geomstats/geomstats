@@ -59,6 +59,15 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
         result = self.space.commutator(x, [x, y, z])
         expected = gs.array([gs.zeros((3,3)), z, -y])
         self.assertAllClose(result, expected)
+    
+    @geomstats.tests.np_only
+    def test_transpose(self):
+        tr = self.space.transpose
+        ar = gs.array
+        a = gs.eye(3, 3, 1)
+        b = gs.eye(3, 3, -1)
+        self.assertAllClose(tr(a), b)
+        self.assertAllClose(tr(ar([a, b])), ar([b, a]))
 
     @geomstats.tests.np_only
     def test_is_symmetric(self):
