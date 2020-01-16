@@ -221,7 +221,7 @@ class HyperbolicSpace(EmbeddedManifold):
 
         Returns
         -------
-        point_extrinsic : array-like, shape=[n_samples, dimension]
+        point_intrinsic : array-like, shape=[n_samples, dimension]
         """
         return HyperbolicSpace._extrinsic_to_intrinsic_coordinates(
             point_extrinsic)
@@ -308,7 +308,7 @@ class HyperbolicSpace(EmbeddedManifold):
 
         Returns
         -------
-        point_ball : array-like, shape=[n_samples, dimension + 1] in
+        extrinsic : array-like, shape=[n_samples, dimension + 1] in
                      extrinsic coordinate
         """
         squared_norm = gs.sum(point**2, -1)
@@ -334,7 +334,7 @@ class HyperbolicSpace(EmbeddedManifold):
 
         Returns
         -------
-        point_ball : array-like, shape=[n_samples, dimension + 1] in
+        extrinsic : array-like, shape=[n_samples, dimension + 1] in
                      extrinsic coordinate
         """
         assert(point.shape[-1] == 2)
@@ -362,8 +362,8 @@ class HyperbolicSpace(EmbeddedManifold):
 
         Returns
         -------
-        point_ball : array-like, shape=[n_samples, dimension] in
-                     poincare ball coordinates
+        point_half_plane : array-like, shape=[n_samples, dimension] in
+                           poincare ball coordinates
         """
         point_ball = \
             HyperbolicSpace._extrinsic_to_ball_coordinates(point)
@@ -391,12 +391,12 @@ class HyperbolicSpace(EmbeddedManifold):
                 coordinates only
 
         to_point_type : coordinates type to transform the point, can be
-                        'ball', 'extrinsic', 'intrinsic'
+                        'ball', 'extrinsic', 'intrinsic', 'half_plane'
 
         Returns
         -------
-        point_ball : array-like, shape=[n_samples, dimension + 1] in
-                     extrinsic coordinate
+        point_to : array-like, shape=[n_samples, dimension + 1] or
+                   shape=[n_sample, dimension]
         """
         point = gs.to_ndarray(point, to_ndim=2, axis=0)
         if self.point_type == to_point_type:
@@ -420,13 +420,13 @@ class HyperbolicSpace(EmbeddedManifold):
                 shape=[n_samples, dimension + 1] for extrinsic
                 coordinates only
 
-        to_point_type : coordinates type to transform the point, can be
-                        'ball', 'extrinsic', 'intrinsic'
+        from_point_type : coordinates type from transform the point, can be
+                         'ball', 'extrinsic', 'intrinsic', 'half_plane'
 
         Returns
         -------
-        point_ball : array-like, shape=[n_samples, dimension + 1] in
-                     extrinsic coordinate
+        point_current : array-like, shape=[n_samples, dimension + 1] or
+                        shape=[n_sample, dimension]
         """
         point = gs.to_ndarray(point, to_ndim=2, axis=0)
         if self.point_type == from_point_type:
