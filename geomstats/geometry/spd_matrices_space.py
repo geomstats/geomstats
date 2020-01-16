@@ -558,9 +558,9 @@ class SPDMetricEuclidean(RiemannianMetric):
         eigvals = gs.linalg.eigvalsh(reduced_vec)
         min_eig = gs.amin(eigvals, axis=1)
         max_eig = gs.amax(eigvals, axis=1)
-        inf_value = gs.where(max_eig == 0, -math.inf, - 1/max_eig)
+        inf_value = gs.where(max_eig <= 0, -math.inf, - 1/max_eig)
         inf_value = gs.to_ndarray(inf_value, to_ndim=2)
-        sup_value = gs.where(min_eig == 0, math.inf, - 1/min_eig)
+        sup_value = gs.where(min_eig >= 0, math.inf, - 1/min_eig)
         sup_value = gs.to_ndarray(sup_value, to_ndim=2)
         domain = gs.concatenate((inf_value, sup_value), axis=1)
 
