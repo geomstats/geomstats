@@ -63,6 +63,22 @@ class MatricesSpace(EuclideanSpace):
         return gs.matmul(a, b) - gs.matmul(b, a)
 
     @staticmethod
+    def transpose(mat):
+        """
+        Return the (vectorised) transpose of matrices. 
+
+        Parameters
+        ----------
+        a : array-like, shape=[n_samples, dim, dim]
+
+        Returns
+        -------
+        transpose : array-like, shape=[n_samples, dim, dim]
+        """
+        tr = gs.vectorize(gs.transpose, signature='(n,n)->(n,n)')
+        return tr(mat)
+
+    @staticmethod
     def vector_from_matrix(matrix):
         """
         Conversion function from (_, m, n) to (_, mn).
