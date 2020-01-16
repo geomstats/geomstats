@@ -53,3 +53,12 @@ class TestGrassmannianMethods(geomstats.tests.TestCase):
             gs.array([p_xy, p_yz]))
         expected = gs.array([p_yz, p_xz])
         self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_log(self):
+        vector = (gs.pi/8) * r_y
+        base_point = p_xy
+        point = self.metric.exp(vector, base_point)
+        result = self.metric.log(point, base_point)
+        expected = vector
+        self.assertAllClose(result, expected)

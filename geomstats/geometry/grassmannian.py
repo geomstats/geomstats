@@ -10,7 +10,6 @@ from geomstats.geometry.matrices_space import MatricesSpace
 from geomstats.geometry.matrices_space import MatricesMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-
 TOLERANCE = 1e-5
 EPSILON = 1e-6
 
@@ -35,14 +34,14 @@ class Grassmannian(EmbeddedManifold):
     def belongs(self, point, tolerance=TOLERANCE):
         """
         Check if an (n,n)-matrix is an orthogonal projector
-        onto a subspace of rank p.
+        onto a subspace of rank k.
         """
         raise NotImplementedError(
                 'The Grassmann `belongs` is not implemented.'
                 'It shall test whether p*=p, p^2 = p and rank(p) = k.')
-    @staticmethod
-    def origin(): 
-        return gs.diag(gs.repeat(self.k, self.n))
+
+    def origin(self): 
+        return gs.diag(gs.repeat([1, 0], [self.k, self.n - self.k]))[0]
 
 class GrassmannianCanonicalMetric(RiemannianMetric):
     """
@@ -55,12 +54,15 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         assert k <= n
         self.n = n
         self.k = k
-
         dimension = int(k * (n - k))
+
         super(GrassmannianCanonicalMetric, self).__init__(
                 dimension=dimension,
                 signature=(dimension, 0, 0))
+
         self.embedding_metric = MatricesMetric(n, n)
+
+        self.manifold = Grassmannian(n, k)
 
     def exp(self, vector, point):
         """
@@ -101,10 +103,14 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         mul = gs.matmul
         tr = MatricesSpace.transpose
         logm = gs.linalg.logm
-        bracket = MatricesSpace.commutator
 
-        rot, origin = svd(point, hermitian=True)
-        base_rot, _ = svd(point, hermitian=True)
-        vector = logm(mul(rot, tr(base_rot)))
+        def closest (rot): 
+            sign = lambda x : gs.where(x >= 0, 1., -1.)
+            d_coefs = gs.diagonal(rot)
+            return mul(rot, gs.diag(sign(d_coefs))[0])
 
-        return bracket(vector, point)
+        rot2 = svd(point)[0]
+        rot1 = svd(base_point)[0]
+        rot = mul(rot2, tr(rot1))
+
+        return logm(closest(rot))
