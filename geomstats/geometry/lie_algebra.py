@@ -1,5 +1,8 @@
 import geomstats.backend as gs
-
+bch_info = gs.array([
+        [int(x) for x in i.strip().split()]
+        for i in open("geomstats/geometry/bchHall20.dat").readlines()
+    ])
 
 class MatrixLieAlgebra():
     """
@@ -26,8 +29,49 @@ class MatrixLieAlgebra():
         return gs.matmul(matrix_a, matrix_b) - gs.matmul(matrix_b, matrix_a)
 
     def baker_campbell_hausdorff(self, matrix_a, matrix_b, order=2):
-        bch = matrix_a + matrix_b + 0.5 * self.lie_brackets(matrix_a, matrix_b)
-        return bch
+        """
+        Calculates the Baker Campbell Hausdorff approximation up to
+        the given order.
+
+        We use the algorithm published by Casas / Murua in their paper
+        "An efficient algorithm for computing the Baker–Campbell–Hausdorff
+        series and some of its applications" in J.o.Math.Physics 50 (2009).
+
+        This represents Z =log(exp(X)exp(Y)) as an infinite linear combination
+        of the form
+            Z = sum z_i E_i
+        where z_i are rational numbers and E_i are iterated Lie brackets starting
+        with E_1 = X, E_2 = Y, each E_i is given by some i',i'':
+            E_i = [E_i', E_i''].
+
+        Parameters
+        ----------
+        matrix_a: array-like, shape=[n_sample, n, n]
+        matrix_b: array-like, shape=[n_sample, n, n]
+        order: int
+            the order to which the approximation is calculated. Note that this
+            is NOT the same as using only E_i with i < order
+        """
+
+        number_of_hom_degree = gs.array([
+            2, 1, 2, 3, 6, 9, 18, 30, 56, 99, 186, 335, 630,
+            1161, 2182, 4080, 7710, 14532, 27594, 52377])
+
+        n_terms = gs.sum(number_of_hom_degree[:order])
+
+        Ei = gs.zeros((n_terms, self.n, self.n))
+        Ei[0] = matrix_a
+        Ei[1] = matrix_b
+        result = matrix_a + matrix_b
+
+        for i in gs.arange(2, n_terms):
+            i_p = bch_info[i, 1] - 1
+            i_pp = bch_info[i, 2] - 1
+
+            Ei[i] = self.lie_bracket(Ei[i_p], Ei[i_pp])
+            result = result + bch_info[i, 3] / float(bch_info[i, 4]) * Ei[i]
+
+        return result
 
     def basis_representation(self, matrix_representation):
         """

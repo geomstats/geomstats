@@ -13,6 +13,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
 
         self.basis = gs.zeros((3, n, n))
 
+        #indices = [[[i,j] for j in gs.arange(i,n)] for i in gs.arange(1,n)]
         if n == 3:
             self.basis = gs.array([
                 [[0, 1, 0], [-1, 0, 0], [0, 0, 0]],
