@@ -6,9 +6,10 @@ where p <= n
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
-from geomstats.geometry.euclidean_space import EuclideanMetric
 from geomstats.geometry.matrices_space import MatricesSpace
+from geomstats.geometry.matrices_space import MatricesMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+
 
 TOLERANCE = 1e-5
 EPSILON = 1e-6
@@ -39,7 +40,9 @@ class Grassmannian(EmbeddedManifold):
         raise NotImplementedError(
                 'The Grassmann `belongs` is not implemented.'
                 'It shall test whether p*=p, p^2 = p and rank(p) = k.')
-
+    @staticmethod
+    def origin(): 
+        return gs.diag(gs.repeat(self.k, self.n))
 
 class GrassmannianCanonicalMetric(RiemannianMetric):
     """
@@ -47,17 +50,17 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
 
     Coincides with the Frobenius metric.
     """
-    def __init__(self, n, p):
-        assert isinstance(n, int) and isinstance(p, int)
-        assert p <= n
+    def __init__(self, n, k):
+        assert isinstance(n, int) and isinstance(k, int)
+        assert k <= n
         self.n = n
-        self.p = p
+        self.k = k
 
-        dimension = int(p * (n - p))
+        dimension = int(k * (n - k))
         super(GrassmannianCanonicalMetric, self).__init__(
                 dimension=dimension,
                 signature=(dimension, 0, 0))
-        self.embedding_metric = EuclideanMetric(n * p)
+        self.embedding_metric = MatricesMetric(n, n)
 
     def exp(self, vector, point):
         """
@@ -78,3 +81,30 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         expm = gs.linalg.expm
         mul = MatricesSpace.mul
         return mul(mul(expm(vector), point), expm(-vector))
+
+    def log(self, point, base_point):
+        """ 
+        Riemannian logarithm of a point from a base point. 
+
+        Returns a skew-symmetric matrix in the image of [so(n), point].
+
+        Parameters:
+        ----------
+        point : array-like, shape=[n_samples, n, n]
+        base_point : array-like, shape=[n_samples, n, n]
+
+        Returns:
+        -------
+        log : array-like, shape=[n_samples, n, n]
+        """
+        svd = gs.linalg.svd
+        mul = gs.matmul
+        tr = lambda a : gs.transpose(a, (1, 2))
+        logm = gs.linalg.logm
+        bracket = MatricesSpace.commutator
+
+        rot, origin = svd(point, hermitian=True)
+        base_rot, _ = svd(point, hermitian=True)
+        vector = logm(mul(rot, tr(base_rot)))
+
+        return bracket(vector, point)
