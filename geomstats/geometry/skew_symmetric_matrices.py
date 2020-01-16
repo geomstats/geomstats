@@ -3,12 +3,8 @@ from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 
 
 class SkewSymmetricMatrices(MatrixLieAlgebra):
-
-    def __init__(self, dimension, n):
-        if 2 * dimension != n * (n - 1):
-            raise ValueError("""Dimension and Matrix space do not fit together
-                                for SkewSymmetricMatrices""")
-
+    def __init__(self, n):
+        dimension = int(n * (n - 1) / 2)
         super(SkewSymmetricMatrices, self).__init__(dimension, n)
 
         self.basis = gs.zeros((dimension, n, n))
@@ -30,5 +26,10 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         ------
         basis_representation: array-like, shape=[n_sample, dimension]
         """
-        x = gs.reshape(matrix_representation, (-1, self.n ** 2))
-        return x[:, [1, 2, 5]]
+        old_shape = gs.shape(matrix_representation)
+        as_vector = gs.reshape(matrix_representation, (old_shape[0], -1))
+        upper_tri_indices = gs.reshape(
+            gs.arange(0, self.n ** 2), (self.n, self.n)
+        )[gs.triu_indices(self.n, k=1)]
+
+        return as_vector[:, upper_tri_indices]

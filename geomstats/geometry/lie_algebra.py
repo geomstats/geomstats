@@ -1,11 +1,14 @@
 import geomstats.backend as gs
-bch_info = gs.array([
+
+bch_info = gs.array(
+    [
         [int(x) for x in i.strip().split()]
         for i in open("geomstats/geometry/bchHall20.dat").readlines()
-    ])
+    ]
+)
 
 
-class MatrixLieAlgebra():
+class MatrixLieAlgebra:
     """
     Class implementing matrix Lie algebra related functions.
     """
@@ -54,10 +57,30 @@ class MatrixLieAlgebra():
             is NOT the same as using only E_i with i < order
         """
 
-        number_of_hom_degree = gs.array([
-            2, 1, 2, 3, 6, 9, 18, 30, 56, 99, 186, 335, 630,
-            1161, 2182, 4080, 7710, 14532, 27594, 52377])
-
+        number_of_hom_degree = gs.array(
+            [
+                2,
+                1,
+                2,
+                3,
+                6,
+                9,
+                18,
+                30,
+                56,
+                99,
+                186,
+                335,
+                630,
+                1161,
+                2182,
+                4080,
+                7710,
+                14532,
+                27594,
+                52377,
+            ]
+        )
         n_terms = gs.sum(number_of_hom_degree[:order])
 
         Ei = gs.zeros((n_terms, self.n, self.n))
@@ -101,4 +124,4 @@ class MatrixLieAlgebra():
         if self.basis is None:
             raise NotImplementedError("basis not implemented")
 
-        return gs.einsum('ni,ijk ->njk', basis_representation, self.basis)
+        return gs.einsum("ni,ijk ->njk", basis_representation, self.basis)
