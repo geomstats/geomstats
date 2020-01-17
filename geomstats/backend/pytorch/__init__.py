@@ -235,8 +235,7 @@ def to_ndarray(x, to_ndim, axis=0):
     x = array(x)
     if x.dim() == to_ndim - 1:
         x = torch.unsqueeze(x, dim=axis)
-
-# assert x.dim() >= to_ndim
+    assert x.dim() >= to_ndim
     return x
 
 
