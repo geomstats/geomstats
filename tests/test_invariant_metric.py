@@ -4,10 +4,10 @@ Unit tests for the invariant metrics on Lie groups.
 
 import warnings
 
-import geomstats.backend as gs
-import geomstats.tests
 import tests.helper as helper
 
+import geomstats.backend as gs
+import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup
 
@@ -319,21 +319,20 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
         riemannian logarithm are inverse.
         Expect their composition to give the identity function.
         """
+        # FIXME:
         # General case for the reference point
-        base_point = self.point_2
+        # base_point = self.point_2
 
         # General point
-        result = helper.log_then_exp(self.left_diag_metric,
-                                     base_point, self.point_1)
-        expected = self.group.regularize(self.point_1)
-        # FIXME:
+        # result = helper.log_then_exp(self.left_diag_metric,
+        #                              base_point, self.point_1)
+        # expected = self.group.regularize(self.point_1)
         # self.assertAllClose(result, expected)
 
         # Edge case, small angle
-        result = helper.log_then_exp(self.left_diag_metric,
-                                     base_point, self.point_small)
-        expected = self.group.regularize(self.point_small)
-        # FIXME:
+        # result = helper.log_then_exp(self.left_diag_metric,
+        #                              base_point, self.point_small)
+        # expected = self.group.regularize(self.point_small)
         # self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
@@ -343,20 +342,19 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
         riemannian logarithm are inverse.
         Expect their composition to give the identity function.
         """
+        # FIXME
         # General case for the reference point
-        base_point = self.point_2
+        # base_point = self.point_2
 
         # For left metric: point and point_small
-        result = helper.log_then_exp(self.left_metric,
-                                     base_point, self.point_1)
-        expected = self.point_1
-        # FIXME
+        # result = helper.log_then_exp(self.left_metric,
+        #                              base_point, self.point_1)
+        # expected = self.point_1
         # self.assertAllClose(result, expected)
 
-        result = helper.log_then_exp(self.left_metric,
-                                     base_point, self.point_small)
-        expected = self.point_small
-        # FIXME
+        # result = helper.log_then_exp(self.left_metric,
+        #                              base_point, self.point_small)
+        # expected = self.point_small
         # self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
@@ -366,19 +364,18 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
         riemannian logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        # General case for the reference point
-        base_point = self.point_2
-        # For right diagonal metric: point and point_small
-        result = helper.log_then_exp(self.right_diag_metric,
-                                     base_point, self.point_1)
-        expected = self.group.regularize(self.point_1)
         # FIXME
+        # General case for the reference point
+        # base_point = self.point_2
+        # For right diagonal metric: point and point_small
+        # result = helper.log_then_exp(self.right_diag_metric,
+        #                              base_point, self.point_1)
+        # expected = self.group.regularize(self.point_1)
         # self.assertAllClose(result, expected)
 
-        result = helper.log_then_exp(self.right_diag_metric,
-                                     base_point, self.point_small)
-        expected = self.group.regularize(self.point_small)
-        # FIXME
+        # result = helper.log_then_exp(self.right_diag_metric,
+        #                              base_point, self.point_small)
+        # expected = self.group.regularize(self.point_small)
         # self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
@@ -388,19 +385,18 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
         riemannian logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        # General case for the reference point
-        base_point = self.point_2
-        # For right metric: point and point_small
-        result = helper.log_then_exp(self.right_metric,
-                                     base_point, self.point_1)
-        expected = self.point_1
         # FIXME
+        # General case for the reference point
+        # base_point = self.point_2
+        # For right metric: point and point_small
+        # result = helper.log_then_exp(self.right_metric,
+        #                              base_point, self.point_1)
+        # expected = self.point_1
         # self.assertAllClose(result, expected)
 
-        result = helper.log_then_exp(self.right_metric,
-                                     base_point, self.point_small)
-        expected = self.point_small
-        # FIXME
+        # result = helper.log_then_exp(self.right_metric,
+        #                              base_point, self.point_small)
+        # expected = self.point_small
         # self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only

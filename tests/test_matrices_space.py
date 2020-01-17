@@ -2,10 +2,10 @@
 Unit tests for the manifold of matrices.
 """
 
-import geomstats.backend as gs
-import geomstats.tests
 import tests.helper as helper
 
+import geomstats.backend as gs
+import geomstats.tests
 from geomstats.geometry.matrices_space import MatricesSpace
 
 

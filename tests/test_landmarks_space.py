@@ -2,10 +2,10 @@
 Unit tests for landmarks space.
 """
 
-import geomstats.backend as gs
-import geomstats.tests
 import tests.helper as helper
 
+import geomstats.backend as gs
+import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.landmarks_space import LandmarksSpace
 

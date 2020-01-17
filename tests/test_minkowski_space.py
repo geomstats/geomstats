@@ -2,12 +2,12 @@
 Unit tests for Minkowski space.
 """
 import math
+
 import numpy as np
+import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-import tests.helper as helper
-
 from geomstats.geometry.minkowski_space import MinkowskiSpace
 
 

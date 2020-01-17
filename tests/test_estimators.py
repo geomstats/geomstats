@@ -5,13 +5,14 @@ from sklearn.utils.estimator_checks import check_estimator
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.learning._template import (
+    TemplateClassifier,
+    TemplateEstimator,
+    TemplateTransformer
+)
 
-from geomstats.learning._template import (TemplateEstimator,
-                                          TemplateTransformer,
-                                          TemplateClassifier)
 
-
-ESTIMATORS = (TemplateEstimator, TemplateTransformer, TemplateClassifier)
+ESTIMATORS = (TemplateClassifier, TemplateEstimator, TemplateTransformer)
 
 
 class TestEstimators(geomstats.tests.TestCase):

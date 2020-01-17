@@ -4,10 +4,10 @@ Unit tests for the Hyperbolic space.
 
 import math
 
-import geomstats.backend as gs
-import geomstats.tests
 import tests.helper as helper
 
+import geomstats.backend as gs
+import geomstats.tests
 from geomstats.geometry.hyperbolic_space import HyperbolicSpace
 from geomstats.geometry.minkowski_space import MinkowskiSpace
 
