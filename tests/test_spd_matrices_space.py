@@ -114,6 +114,68 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
+    def test_differential_log(self):
+        base_point = gs.array([[1., 0., 0.],
+                               [0., 1., 0.],
+                               [0., 0., 4.]])
+        tangent_vec = gs.array([[1., 1., 3.],
+                                [1., 1., 3.],
+                                [3., 3., 4.]])
+        result = self.space.differential_log(tangent_vec, base_point)
+        x = 2*gs.log(2)
+        expected = gs.array([[1., 1., x],
+                             [1., 1., x],
+                             [x, x, 1]])
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
+    def test_inverse_differential_log(self):
+        base_point = gs.array([[1., 0., 0.],
+                               [0., 1., 0.],
+                               [0., 0., 4.]])
+        x = 2 * gs.log(2)
+        tangent_vec = gs.array([[1., 1., x],
+                                [1., 1., x],
+                                [x, x, 1]])
+        result = self.space.inverse_differential_log(tangent_vec, base_point)
+        expected = gs.array([[1., 1., 3.],
+                             [1., 1., 3.],
+                             [3., 3., 4.]])
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
+    def test_differential_exp(self):
+        base_point = gs.array([[1., 0., 0.],
+                               [0., 1., 0.],
+                               [0., 0., -1.]])
+        tangent_vec = gs.array([[1., 1., 1.],
+                                [1., 1., 1.],
+                                [1., 1., 1.]])
+        result = self.space.differential_exp(tangent_vec, base_point)
+        x = gs.exp(1)
+        y = gs.sinh(1)
+        expected = gs.array([[x, x, y],
+                             [x, x, y],
+                             [y, y, 1/x]])
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
+    def test_inverse_differential_exp(self):
+        base_point = gs.array([[1., 0., 0.],
+                               [0., 1., 0.],
+                               [0., 0., -1.]])
+        x = gs.exp(1)
+        y = gs.sinh(1)
+        tangent_vec = gs.array([[x, x, y],
+                                [x, x, y],
+                                [y, y, 1/x]])
+        result = self.space.inverse_differential_exp(tangent_vec, base_point)
+        expected = gs.array([[1., 1., 1.],
+                             [1., 1., 1.],
+                             [1., 1., 1.]])
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
     def test_procrustes_inner_product(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 1.5, .5],
