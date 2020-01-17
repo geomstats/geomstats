@@ -4,6 +4,8 @@ import autograd
 
 import geomstats.backend as gs
 
+from scipy.optimize import minimize
+
 
 N_STEPS = 10
 
@@ -49,8 +51,11 @@ class Connection(object):
                 'connection is not implemented.')
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS):
-        """
-        Exponential map associated to the affine connection.
+        """Exponential map associated to the affine connection.
+
+        Exponential map at base_point of tangent_vec computed by integration
+        of the geodesic the equation (initial value problem), using the
+        christoffel symbols
 
         Parameters
         ----------
@@ -59,6 +64,8 @@ class Connection(object):
 
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
+
+        n_steps: int
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -69,7 +76,7 @@ class Connection(object):
             with the connection.
             """
             v = gs.to_ndarray(v, to_ndim=2)
-            gamma = self.christoffel_symbol(x)
+            gamma = self.christoffels(x)
             return - gs.einsum('lkij,li,lj->lk', gamma, v, v)
 
         initial_state = (base_point, tangent_vec)
@@ -77,39 +84,11 @@ class Connection(object):
                                  n_steps=n_steps)
         return flow[-1]
 
-    def exp_not_vect(self, tangent_vec, base_point, n_steps=N_STEPS):
-        """
-        Exponential map associated to the affine connection.
-
-        Parameters
-        ----------
-        tangent_vec: array-like, shape=[n_samples, dimension]
-                                 or shape=[1, dimension]
-
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
-        """
-        def christoffel_not_vect(point):
-            gamma_0 = gs.array([[0, 0], [0, - gs.sin(point[0]) * gs.cos(point[0])]])
-            gamma_1 = gs.array([[0, gs.cos(point[0]) / gs.sin(point[0])],
-                                [gs.cos(point[0]) / gs.sin(point[0]), 0]])
-            return gs.array([gamma_0, gamma_1])
-
-        def geodesic_equation(x, v):
-            """
-            The geodesic ordinary differential equation associated
-            with the connection.
-            """
-            gamma = christoffel_not_vect(x)
-            return - gs.einsum('kij,i,j', gamma, v, v)
-
-        initial_state = (base_point, tangent_vec)
-        flow, _ = self.integrate(geodesic_equation, initial_state,
-                                 n_steps=n_steps)
-        return flow[-1]
-
-    def log(self, point, base_point):
+    def log(self, point, base_point, n_steps=N_STEPS):
         """Logarithm map associated to the affine connection.
+
+        Solve the boundary value problem associated to the geodesic equation
+        using the christoffel symbols and an conjugate gradient descent
 
         Parameters
         ----------
@@ -118,15 +97,39 @@ class Connection(object):
 
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
+
+        n_steps: int
         """
-        raise NotImplementedError(
-            'The affine connection logarithm is not implemented.')
+
+        point = gs.to_ndarray(point, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+
+        def objective(vel):
+            vel = vel.reshape(base_point.shape)
+            loss = 1 / self.dimension * gs.sum(
+                (self.exp(base_point=base_point, tangent_vec=vel,
+                          n_steps=n_steps) - point) ** 2, axis=1)
+            return 1 / n_samples * gs.sum(loss)
+
+        objective_grad = autograd.elementwise_grad(objective)
+
+        def objective_with_grad(vel):
+            return objective(vel), objective_grad(vel)
+
+        n_samples = len(base_point)
+        velocity = gs.zeros_like(base_point).flatten()
+        res = minimize(objective_with_grad, velocity, method='CG', jac=True,
+                       options={'disp': True, 'maxiter': 25})
+
+        tangent_vec_result = res.x
+        tangent_vec_result = gs.reshape(tangent_vec_result, base_point.shape)
+        return tangent_vec_result
 
     def pole_ladder_step(self, base_point, next_point, base_shoot):
-        """TODO: Step pole ladder one step.
+        """Pole Ladder step.
 
-        One step of pole ladder (parallel transport associated with the
-        symmetric part of the connection using transvections).
+        One step of pole ladder scheme [1]_ using the geodesic to
+        transport along as diagonal of the parallelogram
 
         Parameters
         ----------
@@ -146,6 +149,13 @@ class Connection(object):
 
         end_point: array-like, shape=[n_samples, dimension]
                                                 or shape=[1, dimension]
+
+        References
+        ----------
+        .. [1] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transport
+        of Deformations in Time Series of Images: from Schild's to Pole Ladder.
+        Journal of Mathematical Imaging and Vision, Springer Verlag, 2013,
+         50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
         """
         mid_tangent_vector_to_shoot = 1. / 2. * self.log(
                 base_point=base_point,
@@ -176,9 +186,10 @@ class Connection(object):
             self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1):
         """Approximate parallel transport using the pole ladder scheme.
 
-        Approximation of Parallel transport using the pole ladder scheme of
-        tangent vector a along the geodesic starting at the initial point
-        base_point with initial tangent vector the tangent vector b.
+        Approximation of Parallel transport using the pole ladder
+        scheme [1][2]. The tangent vector a is transported along along
+        the geodesic starting at the initial point base_point with
+        initial tangent vector the tangent vector b.
 
         Returns a tangent vector at the point
         exp_(base_point)(tangent_vector_b).
@@ -194,12 +205,25 @@ class Connection(object):
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
 
-        n_steps: int, the number of pole ladder steps
+        n_steps: int
+            the number of pole ladder steps
 
         Returns
         -------
         transported_tangent_vector: array-like, shape=[n_samples, dimension]
                                                 or shape=[1, dimension]
+
+        References
+        ----------
+        .. [1] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transport
+        of Deformations in Time Series of Images: from Schild's to Pole Ladder.
+        Journal of Mathematical Imaging and Vision, Springer Verlag, 2013,
+         50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
+
+         .. [2] N. Guigui, Shuman Jia, Maxime Sermesant, Xavier Pennec.
+         Symmetric Algorithmic Components for Shape Analysis with
+          Diffeomorphisms. GSI 2019, Aug 2019, Toulouse, France. pp.10.
+           ⟨hal-02148832⟩
         """
         current_point = gs.copy(base_point)
         transported_tangent_vector = gs.copy(tangent_vec_a)
@@ -308,12 +332,25 @@ class Connection(object):
         return x_new, v_new
 
     def integrate(self, function, initial_state, end_time=1.0, n_steps=10):
-        """
-        :param function:
-        :param initial_state: tuple with initial position and speed
-        :param end_time: scalar
-        :param n_steps: int
-        :return: a tuple of sequences
+        """ Integrator function to compute flows of vector fields
+        on a regular grid between 0 and a finite time.
+
+        Parameters
+        ----------
+
+        function: callable
+            the vector field to integrate
+
+        initial_state: tuple
+            initial position and speed
+
+        end_time: scalar
+
+        n_steps: int
+
+        Returns
+        ----------
+        a tuple of sequences of solutions every end_time / n_steps
         """
         dt = end_time / n_steps
         positions = [initial_state[0]]
