@@ -85,22 +85,19 @@ class RiemannianMetric(object):
         inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
         n_mats = gs.shape(inner_prod_mat)[0]
 
-        n_inner_prod = gs.maximum(n_tangent_vec_a, n_tangent_vec_b)
-        n_inner_prod = gs.maximum(n_inner_prod, n_mats)
-
-        n_tiles_a = gs.divide(n_inner_prod, n_tangent_vec_a)
-        n_tiles_a = gs.cast(n_tiles_a, gs.int32)
-        tangent_vec_a = gs.tile(tangent_vec_a, [n_tiles_a, 1])
-
-        n_tiles_b = gs.divide(n_inner_prod, n_tangent_vec_b)
-        n_tiles_b = gs.cast(n_tiles_b, gs.int32)
-        tangent_vec_b = gs.tile(tangent_vec_b, [n_tiles_b, 1])
-
-        n_tiles_mat = gs.divide(n_inner_prod, n_mats)
-        n_tiles_mat = gs.cast(n_tiles_mat, gs.int32)
-        inner_prod_mat = gs.tile(inner_prod_mat, [n_tiles_mat, 1, 1])
+        if n_tangent_vec_a != n_mats:
+            if n_tangent_vec_a == 1:
+                tangent_vec_a = gs.squeeze(tangent_vec_a, axis=0)
+                einsum_str_a = 'j,njk->nk'
+            elif n_mats == 1:
+                inner_prod_mat = gs.squeeze(inner_prod_mat, axis=0)
+                einsum_str_a = 'nj,jk->nk'
+            else:
+                raise ValueError('Shape mismatch for einsum.')
 
         aux = gs.einsum('nj,njk->nk', tangent_vec_a, inner_prod_mat)
+
+
         inner_prod = gs.einsum('nk,nk->n', aux, tangent_vec_b)
         inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
