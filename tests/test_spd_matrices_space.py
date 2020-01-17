@@ -4,8 +4,6 @@ Unit tests for the manifold of symmetric positive definite matrices.
 
 import warnings
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.spd_matrices_space import (

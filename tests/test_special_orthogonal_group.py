@@ -3254,35 +3254,41 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                             result, inv_expected, atol=1e-5)))
 
     @geomstats.tests.np_only
-    def test_group_exp_from_identity_coincides_with_matrix_exponential(self):
-        for n in self.n_seq:
-            group = self.so[n]
-            dim = int(n * (n - 1) / 2)
+    def test_group_exp_from_identity_coincides_with_expm(self):
+        """Test exponentials."""
+        # FIXME: Problem in shapes
+        # for n in self.n_seq:
+        #     group = self.so[n]
+        #     dim = int(n * (n - 1) / 2)
 
-            normal_rv = gs.random.normal(size=dim)
-            tangent_sample = gs.zeros((n,n))
-            tangent_sample[gs.triu_indices(n,k=1)] = normal_rv
-            tangent_sample = tangent_sample - gs.transpose(tangent_sample)
-            result = gs.linalg.expm(tangent_sample)
-            expected = group.group_exp_from_identity(tangent_sample, point_type='matrix')
+        #     normal_rv = gs.random.normal(size=dim)
+        #     tangent_sample = gs.zeros((n, n))
+        #     tangent_sample[gs.triu_indices(n, k=1)] = normal_rv
+        #     tangent_sample = tangent_sample - gs.transpose(tangent_sample)
+        #     result = gs.linalg.expm(tangent_sample)
+        #     expected = group.group_exp_from_identity(
+        #         tangent_sample, point_type='matrix')
 
-            # FIXME: Problem in shapes
-            # self.assertAllClose(result, expected)
+        #     self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
-    def test_group_exp_from_identity_coincides_with_matrix_exponential_for_higher_dimensions(self):
-        for n in [4,5,6,7,8,9,10]:
+    def test_group_exp_from_identity_coincides_with_expm_for_high_dims(self):
+        for n in [4, 5, 6, 7, 8, 9, 10]:
             group = SpecialOrthogonalGroup(n=n)
             dim = int(n * (n - 1) / 2)
 
             normal_rv = gs.random.normal(size=dim)
-            tangent_sample = gs.zeros((n,n))
-            tangent_sample[gs.triu_indices(n,k=1)] = normal_rv
+            tangent_sample = gs.zeros((n, n))
+            tangent_sample[gs.triu_indices(n, k=1)] = normal_rv
             tangent_sample = tangent_sample - gs.transpose(tangent_sample)
 
-            self.assertAllClose(gs.linalg.expm(tangent_sample),
-                    gs.reshape(group.group_exp_from_identity(tangent_sample, point_type='matrix'), (n,n)))
+            result = gs.reshape(
+                group.group_exp_from_identity(
+                    tangent_sample, point_type='matrix'), (n, n))
 
+            expected = gs.linalg.expm(tangent_sample)
+
+            self.assertAllClose(result, expected)
 
     def test_group_exp_from_identity_vectorization(self):
         n = 3

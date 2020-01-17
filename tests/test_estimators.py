@@ -1,7 +1,6 @@
 """Template unit tests for scikit-learn estimators."""
 
 from sklearn.datasets import load_iris
-from sklearn.utils.estimator_checks import check_estimator
 
 import geomstats.backend as gs
 import geomstats.tests
