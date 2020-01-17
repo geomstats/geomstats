@@ -483,6 +483,15 @@ class SPDMetricAffine(RiemannianMetric):
 
         return exp
 
+    def _aux_log(self, point, sqrt_base_point, inv_sqrt_base_point):
+        point_near_id = gs.matmul(inv_sqrt_base_point, point)
+        point_near_id = gs.matmul(point_near_id, inv_sqrt_base_point)
+        log_at_id = gs.linalg.logm(point_near_id)
+
+        log = gs.matmul(sqrt_base_point, log_at_id)
+        log = gs.matmul(log, sqrt_base_point)
+        return log
+
     def log(self, point, base_point):
         """
         Compute the Riemannian logarithm at point base_point,
@@ -490,6 +499,7 @@ class SPDMetricAffine(RiemannianMetric):
 
         This gives a tangent vector at point base_point.
         """
+        power_affine = self.power_affine
         point = gs.to_ndarray(point, to_ndim=3)
         n_points, _, _ = point.shape
 
@@ -505,16 +515,16 @@ class SPDMetricAffine(RiemannianMetric):
         if n_base_points == 1:
             base_point = gs.tile(base_point, (n_points, 1, 1))
 
-        sqrt_base_point = gs.zeros((n_base_points,) + (mat_dim,) * 2)
-        sqrt_base_point = gs.linalg.sqrtm(base_point)
-
-        inv_sqrt_base_point = gs.linalg.inv(sqrt_base_point)
-        point_near_id = gs.matmul(inv_sqrt_base_point, point)
-        point_near_id = gs.matmul(point_near_id, inv_sqrt_base_point)
-        log_at_id = gs.linalg.logm(point_near_id)
-
-        log = gs.matmul(sqrt_base_point, log_at_id)
-        log = gs.matmul(log, sqrt_base_point)
+        if power_affine == 1:
+            sqrt_base_point = gs.linalg.sqrtm(base_point)
+            inv_sqrt_base_point = gs.linalg.inv(sqrt_base_point)
+            log = self._aux_log(point, sqrt_base_point, inv_sqrt_base_point)
+        else:
+            power_point = gs.linalg.powerm(point, power_affine)
+            power_sqrt_base_point = gs.linalg.powerm(base_point, power_affine/2)
+            power_inv_sqrt_base_point = gs.linalg.inv(power_sqrt_base_point)
+            log = self._aux_log(power_point, power_sqrt_base_point, power_inv_sqrt_base_point)
+            log = self.space.inverse_differential_power(power_affine, log, base_point)
 
         return log
 
