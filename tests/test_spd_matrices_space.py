@@ -8,7 +8,7 @@ import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
 
-from geomstats.geometry.spd_matrices_space import SPDMatricesSpace, SPDMetricAffine, SPDMetricProcrustes, SPDMetricEuclidean
+from geomstats.geometry.spd_matrices_space import SPDMatricesSpace, SPDMetricAffine, SPDMetricProcrustes, SPDMetricEuclidean, SPDMetricLogEuclidean
 
 
 class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
@@ -22,6 +22,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         self.metric_affine = SPDMetricAffine(n=self.n)
         self.metric_procrustes = SPDMetricProcrustes(n=self.n)
         self.metric_euclidean = SPDMetricEuclidean(n=self.n)
+        self.metric_logeuclidean = SPDMetricLogEuclidean(n=self.n)
         self.n_samples = 4
 
     @geomstats.tests.np_and_tf_only
@@ -234,8 +235,23 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
+    def test_log_euclidean_inner_product(self):
+        base_point = gs.array([[1., 0., 0.],
+                               [0., 1., 0.],
+                               [0., 0., 4.]])
+        tangent_vec = gs.array([[1., 1., 3.],
+                                [1., 1., 3.],
+                                [3., 3., 4.]])
+        metric = self.metric_logeuclidean
+        result = metric.inner_product(tangent_vec, tangent_vec, base_point)
+        x = 2 * gs.log(2)
+        expected = 5.+4.*x**2
+
+        self.assertAllClose(result, expected)
+
     @geomstats.tests.np_and_tf_only
-    def test_log_and_exp(self):
+    def test_log_and_exp_affine_invariant(self):
         base_point = gs.array([[5., 0., 0.],
                                [0., 7., 2.],
                                [0., 2., 8.]])
@@ -262,6 +278,21 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         log = metric.log(point, base_point)
         result = metric.exp(log, base_point)
         expected = point
+        self.assertAllClose(result, expected)
+
+    def test_log_and_exp_logeuclidean(self):
+        base_point = gs.array([[5., 0., 0.],
+                               [0., 7., 2.],
+                               [0., 2., 8.]])
+        point = gs.array([[9., 0., 0.],
+                          [0., 5., 0.],
+                          [0., 0., 1.]])
+
+        metric = self.metric_logeuclidean
+        log = metric.log(point=point, base_point=base_point)
+        result = metric.exp(tangent_vec=log, base_point=base_point)
+        expected = point
+
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
