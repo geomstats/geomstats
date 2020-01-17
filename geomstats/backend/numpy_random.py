@@ -2,6 +2,7 @@
 
 
 from numpy.random import (  # NOQA
+    choice,
     normal,
     rand,
     randint,

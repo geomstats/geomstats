@@ -326,7 +326,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         point_a = gs.array([0.5, 0.5])
         point_b = gs.array([0.5, -0.5])
 
-        self.space.metric.point_type = 'poincare'
+        self.space.metric.point_type = 'ball'
         dist_a_b = self.metric.dist(point_a, point_b)
         self.space.metric.point_type = 'extrinsic'
 

@@ -65,8 +65,9 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         index = 0
         while index < max_iter:
             index += 1
-            dists = [gs.to_ndarray(self.riemannian_metric.dist(
-                                   self.centroids[i], X), 2 ,1)
+
+            dists = [gs.to_ndarray(
+                     self.riemannian_metric.dist(self.centroids[i], X), 2, 1)
                      for i in range(self.n_clusters)]
             dists = gs.hstack(dists)
             belongs = gs.argmin(dists, 1)
