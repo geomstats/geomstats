@@ -360,6 +360,7 @@ class HypersphereMetric(RiemannianMetric):
 
         # TODO(nina): Decide on metric.space or space.metric
         #  for the hypersphere
+        # TODO(nina): Raise error when vector is not tangent
         n_base_points, extrinsic_dim = base_point.shape
         n_tangent_vecs, _ = tangent_vec.shape
         n_exps = gs.cast(gs.maximum(n_base_points, n_tangent_vecs), gs.int32)
