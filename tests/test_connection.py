@@ -40,7 +40,7 @@ class TestConnectionMethods(geomstats.tests.TestCase):
         result = self.connection.metric_derivative(base_point)
         expected = gs.zeros((1,) + (self.dimension, ) * 3)
 
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_christoffels(self):
@@ -49,7 +49,7 @@ class TestConnectionMethods(geomstats.tests.TestCase):
         result = self.connection.christoffels(base_point)
         expected = gs.zeros((1,) + (self.dimension, ) * 3)
 
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
     def test_parallel_transport(self):
         sphere = Hypersphere(dimension=2)
@@ -64,7 +64,7 @@ class TestConnectionMethods(geomstats.tests.TestCase):
             tan_vec_a, tan_vec_b, base_point)
         result = connection.pole_ladder_parallel_transport(
             tan_vec_a, tan_vec_b, base_point)
-        gs.testing.assert_allclose(result, expected, rtol=1e-7, atol=1e-5)
+        self.assertAllClose(result, expected, rtol=1e-7, atol=1e-5)
 
 
 if __name__ == '__main__':
