@@ -72,6 +72,9 @@ if tf_backend():
     import tensorflow as tf
     _TestBaseClass = tf.test.TestCase
 
+if np_backend():
+    import numpy as np
+
 
 class TestCase(_TestBaseClass):
     _multiprocess_can_split_ = True
@@ -79,6 +82,8 @@ class TestCase(_TestBaseClass):
     def assertAllClose(self, a, b, rtol=1e-6, atol=1e-6):
         if tf_backend():
             return super().assertAllClose(a, b, rtol=rtol, atol=atol)
+        elif np_backend():
+            return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
         return self.assertTrue(gs.allclose(a, b, rtol=rtol, atol=atol))
 
     def session(self):
