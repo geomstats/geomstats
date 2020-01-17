@@ -121,6 +121,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             'right_canonical': group.right_canonical_metric,
             'left_diag': left_diag_metric,
             'right_diag': right_diag_metric}
+        # FIXME:
         # 'left': left_metric,
         # 'right': right_metric}
         metrics = metrics_all
@@ -997,7 +998,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                     atol = RTOL
                     if norm != 0:
                         atol = RTOL * norm
-                    self.assertAllClose(result, expected, atol=1e-5)
+                    self.assertAllClose(result, expected, atol=atol)
 
                     if geomstats.tests.tf_backend():
                         break
@@ -1064,7 +1065,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                     atol = RTOL
                     if norm != 0:
                         atol = RTOL * norm
-                    self.assertAllClose(result, expected, atol=1e-5)
+                    self.assertAllClose(result, expected, atol=atol)
 
                     if geomstats.tests.tf_backend():
                         break
@@ -1102,8 +1103,8 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
                         atol = RTOL * norm
 
                     self.assertTrue(
-                        gs.allclose(result, expected)
-                        or gs.allclose(result, inv_expected))
+                        gs.allclose(result, expected, atol=atol)
+                        or gs.allclose(result, inv_expected, atol=atol))
 
                     if geomstats.tests.tf_backend():
                         break
