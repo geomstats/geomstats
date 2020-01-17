@@ -2,7 +2,7 @@
 Plot a square on H2 with Poincare Disk visualization
 with two clusters from uniformly sampled random points.
 Then apply the K-means algorithm and plot the points labels
-as two distinct colors. Computed means are marked as green stars.
+as two distinct colors.
 """
 import os
 
@@ -11,7 +11,10 @@ import matplotlib.pyplot as plt
 import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.hyperbolic import HyperbolicMetric
 from geomstats.learning.kmeans import RiemannianKMeans
+
+SQUARE_SIZE = 50
 
 
 def main():
@@ -23,7 +26,7 @@ def main():
 
     merged_clusters = gs.concatenate((cluster_1, cluster_2), axis=0)
     manifold = Hyperbolic(dimension=2, point_type='ball')
-    metric = manifold.metric
+    metric = HyperbolicMetric(dimension=2, point_type='ball')
 
     visualization.plot(
             merged_clusters,
@@ -36,37 +39,22 @@ def main():
     kmeans = RiemannianKMeans(riemannian_metric=metric,
                               n_clusters=2,
                               init='random',
-                              point_type='ball'
                               )
 
-    centroids = kmeans.fit(X=merged_clusters, max_iter=100)
+    centroids = kmeans.fit(X=merged_clusters, max_iter=1)
 
-    labels = kmeans.predict(X=merged_clusters)
+    #labels = kmeans.predict(X=merged_clusters)
 
-    visualization.plot(
-            merged_clusters[labels == 0],
-            ax=ax,
-            space='H2_poincare_disk',
-            marker='.',
-            color='red',
-            point_type=manifold.point_type)
-
-    visualization.plot(
-            merged_clusters[labels == 1],
-            ax=ax,
-            space='H2_poincare_disk',
-            marker='.',
-            color='blue',
-            point_type=manifold.point_type)
-
-    visualization.plot(
-        centroids,
-        ax=ax,
-        space='H2_poincare_disk',
-        marker='*',
-        color='green',
-        point_type=manifold.point_type)
-
+    # visualization.plot(
+    #         centroids,
+    #         ax=ax,
+    #         space='H2_poincare_disk',
+    #         marker='.',
+    #         color='red',
+    #         point_type=manifold.point_type)
+    #
+    # print('Data_labels', labels)
+    #
     plt.show()
 
 
