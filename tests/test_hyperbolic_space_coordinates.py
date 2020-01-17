@@ -112,3 +112,40 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         dst_ball = ball_metric.dist(x_ball, y_ball)
         dst_extr = extrinsic_metric.dist(x_extr, y_extr)
         self.assertAllClose(dst_ball, dst_extr)
+
+    def test_log_exp_ball_extrinsic_from_extr(self):
+        x_int = gs.array([[4., 0.2]])
+        y_int = gs.array([[3., 3]])
+        x_extr = self.intrinsic_manifold.to_coordinates(x_int,
+                                                       to_point_type='extrinsic')
+        y_extr = self.intrinsic_manifold.to_coordinates(y_int,
+                                                       to_point_type='extrinsic')
+        x_ball = self.extrinsic_manifold.to_coordinates(x_extr,
+                                                       to_point_type='ball')
+        y_ball = self.extrinsic_manifold.to_coordinates(y_extr,
+                                                       to_point_type='ball')
+
+        x_ball_log_exp = self.ball_metric.exp(self.ball_metric.log(y_ball, x_ball),
+                                              x_ball)
+
+        x_extr_a = self.extrinsic_metric.exp(self.extrinsic_metric.log(y_extr, x_extr),
+                                             x_extr)
+        x_extr_b = self.extrinsic_manifold.from_coordinates(x_ball_log_exp,
+                                                            from_point_type='ball')
+        self.assertAllClose(x_extr_a, x_extr_b, atol=1e-4)
+
+    def test_log_exp_ball(self):
+        x = gs.array([[0.1, 0.2]])
+        y = gs.array([[0.2, 0.5]])
+
+        log = self.ball_metric.log(y, x)
+        exp = self.ball_metric.exp(log, x)
+        self.assertAllClose(exp, y)
+
+    def test_log_exp_ball_batch(self):
+        x = gs.array([[0.1, 0.2]])
+        y = gs.array([[0.2, 0.5], [0.1, 0.7]])
+
+        log = self.ball_metric.log(y, x)
+        exp = self.ball_metric.exp(log, x)
+        self.assertAllClose(exp, y)

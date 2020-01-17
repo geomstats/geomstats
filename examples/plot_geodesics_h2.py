@@ -1,19 +1,19 @@
+"""Plot geodesics in H2.
+
+Plot a geodesic on the Hyperbolic space H2.
+With Poincare Disk visualization.
 """
-Plot a geodesic on the Hyperbolic space H2,
-with Poincare Disk visualization.
-"""
+
+import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 
 import geomstats.visualization as visualization
-
 from geomstats.geometry.hyperbolic_space import HyperbolicSpace
 
 H2 = HyperbolicSpace(dimension=2)
 METRIC = H2.metric
-
 
 def plot_geodesic_between_two_points(initial_point,
                                      end_point,

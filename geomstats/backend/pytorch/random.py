@@ -21,16 +21,16 @@ def normal(loc=0.0, scale=1.0, size=(1, 1)):
 
 def choice(a, size=None, replace=True, p=None):
     if isinstance(a, int):
-        a = torch.arange(a)
+        a = torch.arange(a).float()
 
     size_prod = size
     if size is None:
         size_prod = 1
-    if ~isinstance(size, int):
-        size_prod = torch.prod(torch.Tensor(size))
+
+    elif not isinstance(size, int):
+        size_prod = int(torch.prod(torch.Tensor(size)).item())
 
     if p is None:
-        p = torch.ones_like(a) / len(a)
-
+        p = torch.ones_like(a) / float(len(a))
     sample = a[torch.multinomial(p, size_prod, replacement=replace)]
     return sample.reshape(size)

@@ -29,9 +29,10 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         Test that the random uniform method samples
         on the hypersphere space.
         """
-        point = self.space.random_uniform(10)
+        n_samples = self.n_samples
+        point = self.space.random_uniform(n_samples)
         result = self.space.belongs(point)
-        expected = gs.array([[True]])
+        expected = gs.array([[True]] * n_samples)
 
         self.assertAllClose(expected, result)
 
