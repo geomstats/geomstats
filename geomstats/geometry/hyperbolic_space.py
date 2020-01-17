@@ -756,6 +756,8 @@ class HyperbolicMetric(RiemannianMetric):
                 diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
 
             dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
+            dist = gs.to_ndarray(dist, to_ndim=1)
+            dist = gs.to_ndarray(dist, to_ndim=2, axis=1)
 
             return self.scale * dist
 
