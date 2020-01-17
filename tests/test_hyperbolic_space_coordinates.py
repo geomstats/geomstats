@@ -113,6 +113,10 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         dst_extr = extrinsic_metric.dist(x_extr, y_extr)
         self.assertAllClose(dst_ball, dst_extr)
 
+<<<<<<< HEAD
+=======
+    @geomstats.tests.np_only
+>>>>>>> c9a7ad95108273c61640bce1e2f1103594f6a07a
     def test_log_exp_ball_extrinsic_from_extr(self):
         x_int = gs.array([[1., 0.2]])
         y_int = gs.array([[3., 3]])
@@ -134,6 +138,10 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
                                                             from_point_type='ball')
         self.assertAllClose(x_extr_a, x_extr_b, atol=1e-4)
 
+<<<<<<< HEAD
+=======
+    @geomstats.tests.np_only
+>>>>>>> c9a7ad95108273c61640bce1e2f1103594f6a07a
     def test_log_exp_ball(self):
         x = gs.array([[0.1, 0.2]])
         y = gs.array([[0.2, 0.5]])
@@ -142,6 +150,10 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         exp = self.ball_metric.exp(log, x)
         self.assertAllClose(exp, y)
 
+<<<<<<< HEAD
+=======
+    @geomstats.tests.np_only
+>>>>>>> c9a7ad95108273c61640bce1e2f1103594f6a07a
     def test_log_exp_ball_batch(self):
         x = gs.array([[0.1, 0.2]])
         y = gs.array([[0.2, 0.5], [0.1, 0.7]])
