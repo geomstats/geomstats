@@ -255,9 +255,7 @@ class LieGroup(Manifold):
                 tangent_vec, point_type=point_type
             ),
             false_fn=lambda: self.group_exp_not_from_identity(
-                tangent_vec, base_point, point_type
-            ),
-        )
+                tangent_vec, base_point, point_type))
         return result
 
     def group_log_from_identity(self, point, point_type=None):

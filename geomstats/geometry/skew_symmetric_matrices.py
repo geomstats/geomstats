@@ -25,10 +25,10 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         self.basis = gs.zeros((dimension, n, n))
         loop_index = 0
 
-        for i in gs.arange(n - 1):  # rows
-            for j in gs.arange(i + 1, n):  # columns
-                self.basis[loop_index, i, j] = 1
-                self.basis[loop_index, j, i] = -1
+        for row in gs.arange(n - 1):
+            for col in gs.arange(row + 1, n):
+                self.basis[loop_index, row, col] = 1
+                self.basis[loop_index, col, row] = -1
                 loop_index += 1
 
     def basis_representation(self, matrix_representation):

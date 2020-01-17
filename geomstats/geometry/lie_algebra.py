@@ -8,9 +8,9 @@ in that base. This base will be provided in child classes
 """
 import geomstats.backend as gs
 
-bch_info = gs.asarray([
+BCH_INFO = gs.asarray([
     [int(x) for x in i.strip().split()]
-    for i in open("geomstats/geometry/bchHall20.dat").readlines()
+    for i in open("geomstats/geometry/bch_coefficients.dat").readlines()
     ])
 
 
@@ -61,10 +61,10 @@ class MatrixLieAlgebra:
 
         This represents Z =log(exp(X)exp(Y)) as an infinite linear combination
         of the form
-            Z = sum z_i E_i
-        where z_i are rational numbers and E_i are iterated Lie brackets
-        starting with E_1 = X, E_2 = Y, each E_i is given by some i',i'':
-            E_i = [E_i', E_i''].
+            Z = sum z_i e_i
+        where z_i are rational numbers and e_i are iterated Lie brackets
+        starting with e_1 = X, e_2 = Y, each e_i is given by some i',i'':
+            e_i = [e_i', e_i''].
 
         Parameters
         ----------
@@ -72,43 +72,26 @@ class MatrixLieAlgebra:
         matrix_b: array-like, shape=[n_sample, n, n]
         order: int
             the order to which the approximation is calculated. Note that this
-            is NOT the same as using only E_i with i < order
+            is NOT the same as using only e_i with i < order
         """
         if order > 15:
             raise NotImplementedError("BCH is not implemented for order > 15.")
 
         number_of_hom_degree = gs.array(
-            [
-                2,
-                1,
-                2,
-                3,
-                6,
-                9,
-                18,
-                30,
-                56,
-                99,
-                186,
-                335,
-                630,
-                1161,
-                2182
-            ]
-        )
+                [2, 1, 2, 3, 6, 9, 18, 30, 56, 99, 186, 335, 630, 1161, 2182])
         n_terms = gs.sum(number_of_hom_degree[:order])
 
-        Ei = gs.zeros((n_terms, self.n, self.n))
-        Ei[0] = matrix_a
-        Ei[1] = matrix_b
+        ei = gs.zeros((n_terms, self.n, self.n))
+        ei[0] = matrix_a
+        ei[1] = matrix_b
         result = matrix_a + matrix_b
 
         for i in gs.arange(2, n_terms):
-            i_p = bch_info[i, 1] - 1
-            i_pp = bch_info[i, 2] - 1
+            i_p = BCH_INFO[i, 1] - 1
+            i_pp = BCH_INFO[i, 2] - 1
 
-            Ei[i] = self.lie_bracket(Ei[i_p], Ei[i_pp])
-            result = result + bch_info[i, 3] / float(bch_info[i, 4]) * Ei[i]
+            ei[i] = self.lie_bracket(ei[i_p], ei[i_pp])
+            result = result + BCH_INFO[i, 3] / float(BCH_INFO[i, 4]) * ei[i]
 
         return result
 
