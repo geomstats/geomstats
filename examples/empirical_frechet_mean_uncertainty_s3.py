@@ -20,9 +20,9 @@ import geomstats.backend as gs
 
 from geomstats.geometry.hypersphere import Hypersphere
 
-## n = number of samples for computing the mean
-## NN = number of trials for the stochastic integral of expectation
-## Ntheta = number of points on the curve sig_est(theta)
+# n = number of samples for computing the mean
+# NN = number of trials for the stochastic integral of expectation
+# Ntheta = number of points on the curve sig_est(theta)
 
 
 def EmpiricalVar(n, theta, dim, NN=5000):
@@ -33,30 +33,28 @@ def EmpiricalVar(n, theta, dim, NN=5000):
     This is repeated NN times to make a stochastic approximation of the
     expectation.
     """
-    assert dim > 2, "We need dimension larger than 2 to draw a uniform sample on the subsphere"
+    assert dim > 2, "Dim > 2 needed to draw a uniform sample on subsphere"
     var = []
     sphere = Hypersphere(dimension=dim)
     subsphere = Hypersphere(dimension=dim-1)
 
-    ## Beware that dim is the dimension of the sphere in sph.*
-    ## Define north pole
+    # Define north pole
     north_pole = np.zeros(dim+1)
     north_pole[dim] = 1.0
     for j in range(NN):
-        # Sample n points from the uniform distrib of a circle of radius r = cos(theta)
-        data = np.zeros((n, dim+1), dtype=float)
-        #phi =  np.random.random_sample(n)*2*math.pi
-        #Phi = sphere.RandomSample(dim-1, n)
-        ## For sampling on a subsphere, use RandomUniform(dim-1)
+        # Sample n points from the uniform distrib on a subsphere
+        # of radius theta (i.e cos(theta) in ambiant space)
+        data = gz.zeros((n, dim+1), dtype=float)
+        # For sampling on a subsphere, use RandomUniform(dim-1)
         for i in range(n):
-            direction = subsphere.random_uniform(n)
+            directions = subsphere.random_uniform(n)
             for j in range(dim):
-                data[i,j] = math.sin(theta) * direction[j]
-            data[i,dim] = math.cos(theta)
+                data[i,j] = gs.sin(theta) * directions[j]
+            data[i,dim] = gs.cos(theta)
         ## Compute empirical Frechet mean of the n-sample
-        current_mean = sphere.  (data)
-        var.append( sph.Dist(en,xx)**2 )
-    return (np.mean(var), 2* np.std(var) / math.sqrt( NN ) )
+        current_mean = sphere.metric.adaptive_gradientdescent_mean(data,init_points=[north_pole])
+        var.append(sphere.metric.squared_dist(north_pole,current_mean)
+    return (np.mean(var), 2* np.std(var) / gs.sqrt( NN ) )
 
 
 def main():
