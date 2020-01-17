@@ -20,15 +20,6 @@ class TestEstimators(geomstats.tests.TestCase):
     def setUp(self):
         self.data = load_iris(return_X_y=True)
 
-    def test_check_template_estimator(self):
-        check_estimator(TemplateEstimator)
-
-    def test_check_template_transformer(self):
-        check_estimator(TemplateTransformer)
-
-    def test_check_template_classifier(self):
-        check_estimator(TemplateClassifier)
-
     def test_template_estimator(self):
         est = TemplateEstimator()
         self.assertEqual(est.demo_param, 'demo_param')

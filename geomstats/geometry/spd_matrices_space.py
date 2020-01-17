@@ -365,6 +365,12 @@ class SPDMetricAffine(RiemannianMetric):
         self.space = SPDMatricesSpace(n)
         self.power_affine = power_affine
 
+    def _aux_inner_product(self, tangent_vec_a, tangent_vec_b, inv_base_point):
+        aux_a = gs.matmul(inv_base_point, tangent_vec_a)
+        aux_b = gs.matmul(inv_base_point, tangent_vec_b)
+        inner_product = gs.trace(gs.matmul(aux_a, aux_b), axis1=1, axis2=2)
+        return inner_product
+
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """
         Compute the inner product of tangent_vec_a and tangent_vec_b
@@ -404,12 +410,11 @@ class SPDMetricAffine(RiemannianMetric):
                 base_point,
                 (gs.maximum(n_tangent_vecs_a, n_tangent_vecs_b), 1, 1))
 
-        inv_base_point = gs.linalg.inv(base_point)
-
         if power_affine == 1:
-            aux_a = gs.matmul(inv_base_point, tangent_vec_a)
-            aux_b = gs.matmul(inv_base_point, tangent_vec_b)
-            inner_product = gs.trace(gs.matmul(aux_a, aux_b), axis1=1, axis2=2)
+            inv_base_point = gs.linalg.inv(base_point)
+            inner_product = self._aux_inner_product(tangent_vec_a,
+                                                    tangent_vec_b,
+                                                    inv_base_point)
         else:
             modified_tangent_vec_a =\
                 spd_space.differential_power(power_affine, tangent_vec_a,
@@ -417,18 +422,26 @@ class SPDMetricAffine(RiemannianMetric):
             modified_tangent_vec_b =\
                 spd_space.differential_power(power_affine, tangent_vec_b,
                                              base_point)
-            power_log_inv_base_point =\
-                power_affine * gs.linalg.logm(inv_base_point)
-            power_inv_base_point = gs.linalg.expm(power_log_inv_base_point)
-            aux_a = gs.matmul(power_inv_base_point, modified_tangent_vec_a)
-            aux_b = gs.matmul(power_inv_base_point, modified_tangent_vec_b)
-            product = gs.matmul(aux_a, aux_b)
-            inner_product = gs.trace(product, axis1=1, axis2=2)\
-                / (power_affine**2)
+            power_inv_base_point = gs.linalg.powerm(base_point, -power_affine)
+            inner_product = self._aux_inner_product(modified_tangent_vec_a,
+                                                    modified_tangent_vec_b,
+                                                    power_inv_base_point)
+            inner_product = inner_product / (power_affine**2)
 
         inner_product = gs.to_ndarray(inner_product, to_ndim=2, axis=1)
 
         return inner_product
+
+    def _aux_exp(self, tangent_vec, sqrt_base_point, inv_sqrt_base_point):
+        tangent_vec_at_id = gs.matmul(inv_sqrt_base_point,
+                                      tangent_vec)
+        tangent_vec_at_id = gs.matmul(tangent_vec_at_id,
+                                      inv_sqrt_base_point)
+        exp_from_id = gs.linalg.expm(tangent_vec_at_id)
+
+        exp = gs.matmul(exp_from_id, sqrt_base_point)
+        exp = gs.matmul(sqrt_base_point, exp)
+        return exp
 
     def exp(self, tangent_vec, base_point):
         """
@@ -438,6 +451,8 @@ class SPDMetricAffine(RiemannianMetric):
 
         This gives a symmetric positive definite matrix.
         """
+        power_affine = self.power_affine
+        ndim = gs.maximum(gs.ndim(tangent_vec), gs.ndim(base_point))
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         n_tangent_vecs, _, _ = tangent_vec.shape
 
@@ -453,20 +468,34 @@ class SPDMetricAffine(RiemannianMetric):
         if n_base_points == 1:
             base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
 
-        sqrt_base_point = gs.linalg.sqrtm(base_point)
+        if power_affine == 1:
+            sqrt_base_point = gs.linalg.sqrtm(base_point)
+            inv_sqrt_base_point = gs.linalg.inv(sqrt_base_point)
+            exp = self._aux_exp(tangent_vec, sqrt_base_point,
+                                inv_sqrt_base_point)
+        else:
+            modified_tangent_vec = self.space.differential_power(power_affine,
+                                                                 tangent_vec,
+                                                                 base_point)
+            power_sqrt_base_point = gs.linalg.powerm(base_point,
+                                                     power_affine/2)
+            power_inv_sqrt_base_point = gs.linalg.inv(power_sqrt_base_point)
+            exp = self._aux_exp(modified_tangent_vec, power_sqrt_base_point,
+                                power_inv_sqrt_base_point)
+            exp = gs.linalg.powerm(exp, 1/power_affine)
 
-        inv_sqrt_base_point = gs.linalg.inv(sqrt_base_point)
-
-        tangent_vec_at_id = gs.matmul(inv_sqrt_base_point,
-                                      tangent_vec)
-        tangent_vec_at_id = gs.matmul(tangent_vec_at_id,
-                                      inv_sqrt_base_point)
-        exp_from_id = gs.linalg.expm(tangent_vec_at_id)
-
-        exp = gs.matmul(exp_from_id, sqrt_base_point)
-        exp = gs.matmul(sqrt_base_point, exp)
-
+        if ndim == 2:
+            return exp[0]
         return exp
+
+    def _aux_log(self, point, sqrt_base_point, inv_sqrt_base_point):
+        point_near_id = gs.matmul(inv_sqrt_base_point, point)
+        point_near_id = gs.matmul(point_near_id, inv_sqrt_base_point)
+        log_at_id = gs.linalg.logm(point_near_id)
+
+        log = gs.matmul(sqrt_base_point, log_at_id)
+        log = gs.matmul(log, sqrt_base_point)
+        return log
 
     def log(self, point, base_point):
         """
@@ -475,6 +504,8 @@ class SPDMetricAffine(RiemannianMetric):
 
         This gives a tangent vector at point base_point.
         """
+        power_affine = self.power_affine
+        ndim = gs.maximum(gs.ndim(point), gs.ndim(base_point))
         point = gs.to_ndarray(point, to_ndim=3)
         n_points, _, _ = point.shape
 
@@ -490,17 +521,22 @@ class SPDMetricAffine(RiemannianMetric):
         if n_base_points == 1:
             base_point = gs.tile(base_point, (n_points, 1, 1))
 
-        sqrt_base_point = gs.zeros((n_base_points,) + (mat_dim,) * 2)
-        sqrt_base_point = gs.linalg.sqrtm(base_point)
+        if power_affine == 1:
+            sqrt_base_point = gs.linalg.sqrtm(base_point)
+            inv_sqrt_base_point = gs.linalg.inv(sqrt_base_point)
+            log = self._aux_log(point, sqrt_base_point, inv_sqrt_base_point)
+        else:
+            power_point = gs.linalg.powerm(point, power_affine)
+            power_sqrt_base_point = gs.linalg.powerm(base_point,
+                                                     power_affine/2)
+            power_inv_sqrt_base_point = gs.linalg.inv(power_sqrt_base_point)
+            log = self._aux_log(power_point, power_sqrt_base_point,
+                                power_inv_sqrt_base_point)
+            log = self.space.inverse_differential_power(power_affine, log,
+                                                        base_point)
 
-        inv_sqrt_base_point = gs.linalg.inv(sqrt_base_point)
-        point_near_id = gs.matmul(inv_sqrt_base_point, point)
-        point_near_id = gs.matmul(point_near_id, inv_sqrt_base_point)
-        log_at_id = gs.linalg.logm(point_near_id)
-
-        log = gs.matmul(sqrt_base_point, log_at_id)
-        log = gs.matmul(log, sqrt_base_point)
-
+        if ndim == 2:
+            return log[0]
         return log
 
     def geodesic(self, initial_point, initial_tangent_vec):

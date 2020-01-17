@@ -1,5 +1,5 @@
 """
-Unit tests for numpy backend.
+Unit tests for pytorch backend.
 """
 
 import os
