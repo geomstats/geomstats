@@ -362,7 +362,7 @@ class HypersphereMetric(RiemannianMetric):
         #  for the hypersphere
         n_base_points, extrinsic_dim = base_point.shape
         n_tangent_vecs, _ = tangent_vec.shape
-        n_exps = gs.maximum(n_base_points, n_tangent_vecs)
+        n_exps = gs.cast(gs.maximum(n_base_points, n_tangent_vecs), gs.int32)
 
         hypersphere = Hypersphere(dimension=extrinsic_dim-1)
         proj_tangent_vec = hypersphere.projection_to_tangent_space(
