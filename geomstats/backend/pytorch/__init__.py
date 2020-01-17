@@ -15,14 +15,6 @@ int32 = 'torch.LongTensor'
 int8 = 'torch.ByteTensor'
 
 
-def version_maj():
-    return int(torch.__version__.split(".")[0])
-
-
-def version_min():
-    return int(torch.__version__.split(".")[1])
-
-
 def while_loop(cond, body, loop_vars, maximum_iterations):
     iteration = 0
     while cond(*loop_vars):
@@ -70,14 +62,13 @@ def divide(*args, **kwargs):
 
 
 def repeat(x, repeat_time, axis=None):
-    if(version_maj() >= 1 and version_min() >= 1):
+    if torch.__version__ >= "1.1":
         return torch.repeat_interleave(x, repeat_time, axis)
-    else:
-        if(axis is None):
-            axis = 0
-        shape = list(x.shape)
-        shape[axis] = shape[axis] * repeat_time
-        return x.repeat(*shape)
+    if(axis is None):
+        axis = 0
+    shape = list(x.shape)
+    shape[axis] = shape[axis] * repeat_time
+    return x.repeat(*shape)
 
 
 def asarray(x):
