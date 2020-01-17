@@ -717,3 +717,145 @@ class SPDMetricEuclidean(RiemannianMetric):
         domain = gs.concatenate((inf_value, sup_value), axis=1)
 
         return domain
+
+
+class SPDMetricLogEuclidean(RiemannianMetric):
+
+    def __init__(self, n):
+        dimension = int(n * (n + 1) / 2)
+        super(SPDMetricLogEuclidean, self).__init__(
+            dimension=dimension,
+            signature=(dimension, 0, 0))
+        self.n = n
+        self.space = SPDMatricesSpace(n)
+
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+        """
+        Compute the inner product of tangent_vec_a and tangent_vec_b
+        at point base_point using the log-Euclidean metric.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[n_samples, n, n]
+        tangent_vec_b : array-like, shape=[n_samples, n, n]
+        base_point : array-like, shape={n_samples, n, n]
+
+        Returns
+        -------
+        inner_product : float
+        """
+        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
+        n_tangent_vecs_a, _, _ = tangent_vec_a.shape
+        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
+        n_tangent_vecs_b, _, _ = tangent_vec_b.shape
+
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
+        n_base_points, _, _ = base_point.shape
+
+        spd_space = self.space
+
+        assert (n_tangent_vecs_a == n_tangent_vecs_b == n_base_points
+                or n_tangent_vecs_a == n_tangent_vecs_b and n_base_points == 1
+                or n_base_points == n_tangent_vecs_a and n_tangent_vecs_b == 1
+                or n_base_points == n_tangent_vecs_b and n_tangent_vecs_a == 1
+                or n_tangent_vecs_a == 1 and n_tangent_vecs_b == 1
+                or n_base_points == 1 and n_tangent_vecs_a == 1
+                or n_base_points == 1 and n_tangent_vecs_b == 1)
+
+        if n_tangent_vecs_a == 1:
+            tangent_vec_a = gs.tile(
+                tangent_vec_a,
+                (gs.maximum(n_base_points, n_tangent_vecs_b), 1, 1))
+
+        if n_tangent_vecs_b == 1:
+            tangent_vec_b = gs.tile(
+                tangent_vec_b,
+                (gs.maximum(n_base_points, n_tangent_vecs_a), 1, 1))
+
+        if n_base_points == 1:
+            base_point = gs.tile(
+                base_point,
+                (gs.maximum(n_tangent_vecs_a, n_tangent_vecs_b), 1, 1))
+
+        modified_tangent_vec_a = spd_space.differential_log(tangent_vec_a,
+                                                            base_point)
+        modified_tangent_vec_b = spd_space.differential_log(tangent_vec_b,
+                                                            base_point)
+        product = gs.matmul(modified_tangent_vec_a, modified_tangent_vec_b)
+        inner_product = gs.trace(product, axis1=1, axis2=2)
+
+        inner_product = gs.to_ndarray(inner_product, to_ndim=2, axis=1)
+
+        return inner_product
+
+    def exp(self, tangent_vec, base_point):
+        """
+        Compute the Riemannian exponential at point base_point
+        of tangent vector tangent_vec wrt the Log-Euclidean metric.
+        This gives a symmetric positive definite matrix.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[n_samples, n, n]
+        base_point : array-like, shape={n_samples, n, n]
+
+        Returns
+        -------
+        exp : array-like, shape=[n_samples, n, n]
+        """
+
+        ndim = gs.maximum(gs.ndim(tangent_vec), gs.ndim(base_point))
+        log_base_point = gs.linalg.logm(base_point)
+        dlog_tangent_vec = self.space.differential_log(tangent_vec, base_point)
+        exp = gs.linalg.expm(log_base_point + dlog_tangent_vec)
+
+        if ndim == 2:
+            return exp[0]
+        return exp
+
+    def log(self, point, base_point):
+        """
+        Compute the Riemannian logarithm at point base_point,
+        of point wrt the Log-Euclidean metric.
+        This gives a tangent vector at point base_point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, n, n]
+        base_point : array-like, shape={n_samples, n, n]
+
+        Returns
+        -------
+        log : array-like, shape=[n_samples, n, n]
+        """
+
+        ndim = gs.maximum(gs.ndim(point), gs.ndim(base_point))
+        log_base_point = gs.linalg.logm(base_point)
+        log_point = gs.linalg.logm(point)
+        log = self.space.differential_exp(log_point - log_base_point,
+                                          log_base_point)
+
+        if ndim == 2:
+            return log[0]
+        return log
+
+    def geodesic(self, initial_point, initial_tangent_vec):
+        """
+        Compute the Riemannian geodesic starting at point base_point
+        in direction of initial_tangent_vec.
+        This gives a function from real numbers to SPD matrices.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[n_samples, n, n]
+        initial_tangent_vec : array-like, shape={n_samples, n, n]
+
+        Returns
+        -------
+        geodesic : callable
+        """
+
+        def point_on_geodesic(t):
+            return self.exp(t*initial_tangent_vec, initial_point)
+
+        return point_on_geodesic
