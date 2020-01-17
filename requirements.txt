@@ -1,5 +1,4 @@
 autograd
-h5py
 matplotlib
 numpy>=1.18.1
 scikit-learn>=0.22.1
