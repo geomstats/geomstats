@@ -342,7 +342,17 @@ class SRVMetric(RiemannianMetric):
         return curve_on_geodesic
 
     def dist(self, curve_a, curve_b):
-        """Geodesic distance between two curves."""
+        """Geodesic distance between two curves.
+
+        Parameters
+        ----------
+        curve_a :
+        curve_b :
+
+        Returns
+        -------
+        dist :
+        """
         if not isinstance(self.ambient_metric, EuclideanMetric):
             raise AssertionError('The distance is only implemented for '
                                  'dicretized curves embedded in a '
