@@ -4,10 +4,10 @@ Unit tests for General Linear group.
 
 import warnings
 
-import geomstats.backend as gs
-import geomstats.tests
 import tests.helper as helper
 
+import geomstats.backend as gs
+import geomstats.tests
 from geomstats.geometry.general_linear_group import GeneralLinearGroup
 from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 

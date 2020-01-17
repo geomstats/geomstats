@@ -1,8 +1,8 @@
+"""Unit tests for Riemannian KMeans."""
+
 import geomstats.backend as gs
 import geomstats.tests
-
 from geomstats.geometry import hypersphere
-
 from geomstats.learning.kmeans import RiemannianKMeans
 
 
