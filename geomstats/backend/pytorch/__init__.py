@@ -244,7 +244,7 @@ def sqrt(val):
 
 
 def norm(val, axis):
-    return torch.linalg.norm(val, axis=axis)
+    return torch.norm(val, 2, axis)
 
 
 if torch.__version__ >= '1.1':
