@@ -1,9 +1,11 @@
+"""Template unit tests for scikit-learn estimators."""
+
 from sklearn.datasets import load_iris
 from sklearn.utils.estimator_checks import check_estimator
 
 import geomstats.backend as gs
-assert_allclose = gs.testing.assert_allclose
-from geomstats.tests import TestCase
+import geomstats.tests
+
 from geomstats.learning._template import (TemplateEstimator,
                                           TemplateTransformer,
                                           TemplateClassifier)
@@ -11,11 +13,8 @@ from geomstats.learning._template import (TemplateEstimator,
 
 ESTIMATORS = (TemplateEstimator, TemplateTransformer, TemplateClassifier)
 
-# TODO(nkoep): Rewrite bare assertS to use self.assert*
 
-# XXX: Should these tests run on all backends?
-
-class TestEstimators(TestCase):
+class TestEstimators(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
@@ -40,14 +39,15 @@ class TestEstimators(TestCase):
         self.assertTrue(hasattr(est, 'is_fitted_'))
 
         y_pred = est.predict(X)
-        assert_allclose(y_pred, gs.ones(X.shape[0], dtype=gs.int64))
+        self.assertAllClose(y_pred, gs.ones(gs.shape(X)[0]))
 
     def test_template_transformer_error(self):
         X, y = self.data
+        n_samples = gs.shape(X)[0]
         trans = TemplateTransformer()
         trans.fit(X)
-        X_diff_size = gs.ones((10, X.shape[1] + 1))
-        self.assertRaises(trans.transform(X_diff_size), ValueError)
+        X_diff_size = gs.ones((n_samples, gs.shape(X)[1] + 1))
+        self.assertRaises(ValueError, trans.transform, X_diff_size)
 
     def test_template_transformer(self):
         X, y = self.data
@@ -58,10 +58,10 @@ class TestEstimators(TestCase):
         assert trans.n_features_ == X.shape[1]
 
         X_trans = trans.transform(X)
-        assert_allclose(X_trans, gs.sqrt(X))
+        self.assertAllClose(X_trans, gs.sqrt(X))
 
         X_trans = trans.fit_transform(X)
-        assert_allclose(X_trans, gs.sqrt(X))
+        self.assertAllClose(X_trans, gs.sqrt(X))
 
     def test_template_classifier(self):
         X, y = self.data
