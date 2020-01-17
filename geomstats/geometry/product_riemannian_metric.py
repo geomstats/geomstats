@@ -75,8 +75,8 @@ class ProductRiemannianMetric(RiemannianMetric):
         if base_point is None:
             base_point = [None, ] * self.n_metrics
 
-        exp = gs.asarray([self.metrics[i].exp(tangent_vec[i, ...],
-                                              base_point[i, ...])
+        exp = gs.asarray([self.metrics[i].exp(tangent_vec[i],
+                                              base_point[i])
                           for i in range(self.n_metrics)])
         return exp
 
@@ -88,8 +88,8 @@ class ProductRiemannianMetric(RiemannianMetric):
         if base_point is None:
             base_point = [None, ] * self.n_metrics
 
-        log = gs.asarray([self.metrics[i].log(point[i, ...],
-                                              base_point[i, ...])
+        log = gs.asarray([self.metrics[i].log(point[i],
+                                              base_point[i])
                           for i in range(self.n_metrics)])
         return log
 
@@ -106,7 +106,7 @@ class ProductRiemannianMetric(RiemannianMetric):
                              or shape=[1, dimension]
         """
         sq_distances = gs.asarray([self.metrics[i].squared_dist(
-            point_a[i, ...], point_b[i, ...])
+            point_a[i], point_b[i])
                                    for i in range(self.n_metrics)])
 
         return sum(sq_distances)
