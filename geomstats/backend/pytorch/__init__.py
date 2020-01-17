@@ -485,4 +485,3 @@ def cumprod(x, axis=0):
         raise NotImplementedError('cumprod is not defined where axis is None')
     else:
         return torch.cumprod(x, dim=axis)
-
