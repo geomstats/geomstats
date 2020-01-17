@@ -44,7 +44,7 @@ python3 examples/plot_grid_h2.py
 
 ## Contributing
 
-See our [CONTRIBUTING.md][link_contributing] file!
+See our [CONTRIBUTING.md](CONTRIBUTION.md) file!
 
 ## Authors & Contributors
 
@@ -59,5 +59,3 @@ See our [CONTRIBUTING.md][link_contributing] file!
 ## Acknowledgements
 
 This work is partially supported by the National Science Foundation, grant NSF DMS RTG 1501767.
-
-[link_contributing]: https://github.com/geomstats/geomstats/CONTRIBUTING.md
