@@ -165,8 +165,8 @@ def to_ndarray(x, to_ndim, axis=0):
     return x
 
 
-def norm(val, axis):
-    return _np.linalg.norm(val, axis=axis)
+def norm(val, axis, keepdims=False):
+    return _np.linalg.norm(val, axis=axis, keepdims=keepdims)
 
 
 def rand(*args, **largs):

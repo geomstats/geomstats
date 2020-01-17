@@ -355,6 +355,8 @@ class RiemannianMetric(object):
             points = gs.to_ndarray(points, to_ndim=3)
         n_points = gs.shape(points)[0]
 
+        print(n_points)
+
         if weights is None:
             weights = gs.ones((n_points, 1))
 
@@ -405,14 +407,21 @@ class RiemannianMetric(object):
             return result[0, 0] or iteration == 0
 
         def while_loop_body(iteration, mean, variance, sq_dist):
+            print('pass while loop body')
             logs = self.log(point=points, base_point=mean)
+            print('logs', logs, logs.shape)
+
             tangent_mean = gs.einsum('nk,nj->j', weights, logs)
+
+            print('tangent mean', tangent_mean)
 
             tangent_mean /= sum_weights
 
             mean_next = self.exp(
                 tangent_vec=tangent_mean,
                 base_point=mean)
+
+            print('Next mean', mean_next)
 
             sq_dist = self.squared_dist(mean_next, mean)
             sq_dists_between_iterates.append(sq_dist)

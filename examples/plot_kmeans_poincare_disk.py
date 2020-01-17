@@ -43,18 +43,18 @@ def main():
 
     centroids = kmeans.fit(X=merged_clusters, max_iter=1)
 
-    labels = kmeans.predict(X=merged_clusters)
+    #labels = kmeans.predict(X=merged_clusters)
 
-    visualization.plot(
-            centroids,
-            ax=ax,
-            space='H2_poincare_disk',
-            marker='.',
-            color='red',
-            point_type=manifold.point_type)
-
-    print('Data_labels', labels)
-
+    # visualization.plot(
+    #         centroids,
+    #         ax=ax,
+    #         space='H2_poincare_disk',
+    #         marker='.',
+    #         color='red',
+    #         point_type=manifold.point_type)
+    #
+    # print('Data_labels', labels)
+    #
     plt.show()
 
 

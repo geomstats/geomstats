@@ -73,7 +73,13 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
             old_centroids = gs.copy(self.centroids)
             for i in range(self.n_clusters):
                 fold = gs.squeeze(X[belongs == i])
+
+                print('Cluster', i)
+                print('fold', fold)
+
+
                 if len(fold) > 0:
+                    print('len fold', len(fold))
                     self.centroids[i] = self.riemannian_metric.mean(fold)
 
                 else:
