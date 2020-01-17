@@ -27,26 +27,6 @@ class TestPoincarePolydiskMethods(geomstats.tests.TestCase):
         result = self.metric.signature
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
-    def test_product_distance(self):
-        point_type = 'ball'
-        point_a = gs.array([0.01, 0.0])
-        point_b = gs.array([0.0, 0.0])
-        duplicate_point_a = gs.zeros((2,) + point_a.shape)
-        duplicate_point_a[0] = point_a
-        duplicate_point_a[1] = point_a
-        duplicate_point_b = gs.zeros((2,) + point_b.shape)
-        duplicate_point_b[0] = point_b
-        duplicate_point_b[1] = point_b
-        single_disk = PoincarePolydisk(n_disks=1, point_type=point_type)
-        two_disks = PoincarePolydisk(n_disks=2, point_type=point_type)
-        distance_single_disk = single_disk.metric.dist(point_a, point_b)
-        distance_two_disks = two_disks.metric.dist(
-            duplicate_point_a, duplicate_point_b)
-        result = distance_two_disks
-        expected = 3 ** 0.5 * distance_single_disk
-        self.assertAllClose(result, expected)
-
     def test_product_distance_extrinsic_representation(self):
         point_type = 'extrinsic'
         point_a_intrinsic = gs.array([0.01, 0.0])
