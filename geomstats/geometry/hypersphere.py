@@ -363,24 +363,17 @@ class HypersphereMetric(RiemannianMetric):
         # TODO(nina): Raise error when vector is not tangent
         n_base_points, extrinsic_dim = base_point.shape
         n_tangent_vecs, _ = tangent_vec.shape
-        n_exps = gs.cast(gs.maximum(n_base_points, n_tangent_vecs), gs.int32)
 
         hypersphere = Hypersphere(dimension=extrinsic_dim-1)
         proj_tangent_vec = hypersphere.projection_to_tangent_space(
             tangent_vec, base_point)
         norm_tangent_vec = self.embedding_metric.norm(proj_tangent_vec)
 
-        n_tiles_vec = gs.cast(gs.divide(n_exps, n_tangent_vecs), gs.int32)
-        norm_tangent_vec = gs.tile(norm_tangent_vec, [n_tiles_vec, 1])
-        n_tiles_base_point = gs.cast(
-            gs.divide(n_exps, n_base_points), gs.int32)
-        base_point = gs.tile(base_point, [n_tiles_base_point, 1])
-
         mask_0 = gs.isclose(norm_tangent_vec, 0.)
         mask_non0 = ~mask_0
 
-        coef_1 = gs.zeros((n_exps, 1))
-        coef_2 = gs.zeros((n_exps, 1))
+        coef_1 = gs.zeros((n_tangent_vecs, 1))
+        coef_2 = gs.zeros((n_tangent_vecs, 1))
         norm2 = norm_tangent_vec[mask_0]**2
         norm4 = norm2**2
         norm6 = norm2**3
@@ -390,7 +383,21 @@ class HypersphereMetric(RiemannianMetric):
         coef_1[mask_non0] = gs.cos(norm_tangent_vec[mask_non0])
         coef_2[mask_non0] = gs.sin(norm_tangent_vec[mask_non0]) / \
             norm_tangent_vec[mask_non0]
-        exp = (gs.einsum('ni,nj->nj', coef_1, base_point)
+
+        n_coef_1 = n_tangent_vecs
+        if n_coef_1 != n_base_points:
+            if n_coef_1 == 1:
+                coef_1 = gs.squeeze(coef_1, axis=0)
+                einsum_str = 'i,nj->nj'
+            elif n_base_points == 1:
+                base_point = gs.squeeze(base_point, axis=0)
+                einsum_str = 'ni,j->nj'
+            else:
+                raise ValueError('Shape mismatch in einsum.')
+        else:
+            einsum_str = 'ni,nj->nj'
+
+        exp = (gs.einsum(einsum_str, coef_1, base_point)
                + gs.einsum('ni,nj->nj', coef_2, proj_tangent_vec))
 
         return exp
