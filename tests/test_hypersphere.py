@@ -540,25 +540,49 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         self.assertTrue(
                 gs.allclose(result, expected, atol=KAPPA_ESTIMATION_TOL))
 
-    @geomstats.tests.np_only
-    def test_online_k_means(self):
+    def test_spherical_to_extrinsic(self):
         """
-        Check that online k-means yields the same result as
-        the karcher flow algorithm when we look for one center.
+        Check vectorization of conversion from spherical
+        to extrinsic coordinates on the 2-sphere.
         """
         dim = 2
-        n_points = 1000
-        n_centers = 1
         sphere = Hypersphere(dim)
-        points = sphere.random_von_mises_fisher(
-                kappa=10, n_samples=n_points
-                )
-        mean = sphere.metric.mean(points)
-        centers, weights, clusters, n_iterations = sphere.metric.\
-            online_k_means(points=points, n_centers=n_centers)
-        error = sphere.metric.dist(mean, centers)
-        diameter = sphere.metric.diameter(points)
-        result = error / diameter
-        expected = 0.0
-        self.assertAllClose(
-                result, expected, atol=ONLINE_KMEANS_TOL)
+        points_spherical = gs.array([[gs.pi / 2, 0],
+                                     [gs.pi / 6, gs.pi / 4]])
+        result = sphere.spherical_to_extrinsic(points_spherical)
+        expected = gs.array([[1., 0., 0.],
+                             [gs.sqrt(2)/4, gs.sqrt(2)/4, gs.sqrt(3)/2]])
+        self.assertAllClose(result, expected)
+
+    def test_tangent_spherical_to_extrinsic(self):
+        """
+        Check vectorization of conversion from spherical
+        to extrinsic coordinates for tangent vectors to the
+        2-sphere.
+        """
+        dim = 2
+        sphere = Hypersphere(dim)
+        base_points_spherical = gs.array([[gs.pi / 2, 0],
+                                          [gs.pi / 2, 0]])
+        tangent_vecs_spherical = gs.array([[0.25, 0.5],
+                                          [0.3, 0.2]])
+        result = sphere.tangent_spherical_to_extrinsic(
+                tangent_vecs_spherical, base_points_spherical)
+        expected = gs.array([[0, 0.5, -0.25],
+                             [0, 0.2, -0.3]])
+        self.assertAllClose(result, expected)
+
+    def test_christoffels(self):
+        """
+        Check vectorization of Christoffel symbols in
+        spherical coordinates on the 2-sphere.
+        """
+        dim = 2
+        sphere = Hypersphere(dim)
+        points_spherical = gs.array([[gs.pi / 2, 0],
+                                     [gs.pi / 6, gs.pi / 4]])
+        christoffel = sphere.metric.christoffels(
+                points_spherical)
+        result = christoffel.shape
+        expected = gs.array([2, dim, dim, dim])
+        self.assertAllClose(result, expected)

@@ -11,7 +11,7 @@ class Connection(object):
     def __init__(self, dimension):
         self.dimension = dimension
 
-    def christoffel_symbol(self, base_point):
+    def christoffels(self, base_point):
         """Christoffel symbols associated with the connection.
 
         Parameters
@@ -252,7 +252,7 @@ class LeviCivitaConnection(Connection):
         metric_derivative = autograd.jacobian(self.metric_matrix)
         return metric_derivative(base_point)
 
-    def christoffel_symbols(self, base_point):
+    def christoffels(self, base_point):
         """Christoffel symbols associated with the connection.
 
         Parameters
@@ -262,7 +262,7 @@ class LeviCivitaConnection(Connection):
 
         Returns
         -------
-        christoffel_symbols: array-like,
+        christoffels: array-like,
                              shape=[n_samples, dimension, dimension, dimension]
                              or shape=[1, dimension, dimension, dimension]
         """
@@ -278,8 +278,8 @@ class LeviCivitaConnection(Connection):
                              cometric_mat_at_point,
                              metric_derivative_at_point)
 
-        christoffel_symbols = 0.5 * (term_1 + term_2 + term_3)
-        return christoffel_symbols
+        christoffels = 0.5 * (term_1 + term_2 + term_3)
+        return christoffels
 
     def torsion(self, base_point):
         """Torsion tensor associated with the Levi-Civita connection is zero.
