@@ -169,7 +169,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                     end_point=self.curve_b[k, :])
             expected[:, k, :] = geod(self.times)
 
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
         geod = self.l2_metric_s2.geodesic(
                 initial_landmarks=curves_ab,
