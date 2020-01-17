@@ -94,6 +94,8 @@ class RiemannianMetric(object):
                 einsum_str_a = 'nj,jk->nk'
             else:
                 raise ValueError('Shape mismatch for einsum.')
+        else:
+            einsum_str_a = 'nj,njk->nk'
 
         aux = gs.einsum(einsum_str_a, tangent_vec_a, inner_prod_mat)
         n_auxs, _ = gs.shape(aux)
@@ -107,6 +109,8 @@ class RiemannianMetric(object):
                 einsum_str_b = 'nk,k->n'
             else:
                 raise ValueError('Shape mismatch for einsum.')
+        else:
+            einsum_str_b = 'nk,nk->n'
 
         inner_prod = gs.einsum(einsum_str_b, aux, tangent_vec_b)
         inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
