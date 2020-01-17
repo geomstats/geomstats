@@ -77,6 +77,37 @@ class Connection(object):
                                  n_steps=n_steps)
         return flow[-1]
 
+    def exp_not_vect(self, tangent_vec, base_point, n_steps=N_STEPS):
+        """
+        Exponential map associated to the affine connection.
+
+        Parameters
+        ----------
+        tangent_vec: array-like, shape=[n_samples, dimension]
+                                 or shape=[1, dimension]
+
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
+        """
+        def christoffel_not_vect(point):
+            gamma_0 = gs.array([[0, 0], [0, - gs.sin(point[0]) * gs.cos(point[0])]])
+            gamma_1 = gs.array([[0, gs.cos(point[0]) / gs.sin(point[0])],
+                                [gs.cos(point[0]) / gs.sin(point[0]), 0]])
+            return gs.array([gamma_0, gamma_1])
+
+        def geodesic_equation(x, v):
+            """
+            The geodesic ordinary differential equation associated
+            with the connection.
+            """
+            gamma = christoffel_not_vect(x)
+            return - gs.einsum('kij,i,j', gamma, v, v)
+
+        initial_state = (base_point, tangent_vec)
+        flow, _ = self.integrate(geodesic_equation, initial_state,
+                                 n_steps=n_steps)
+        return flow[-1]
+
     def log(self, point, base_point):
         """Logarithm map associated to the affine connection.
 
@@ -89,7 +120,7 @@ class Connection(object):
                                 or shape=[1, dimension]
         """
         raise NotImplementedError(
-                'The affine connection logarithm is not implemented.')
+            'The affine connection logarithm is not implemented.')
 
     def pole_ladder_step(self, base_point, next_point, base_shoot):
         """TODO: Step pole ladder one step.
@@ -272,9 +303,9 @@ class Connection(object):
     @staticmethod
     def _symplectic_euler_step(y, force, dt):
         x, v = y
-        x += v * dt
-        v += force(x, v) * dt
-        return x, v
+        x_new = x + v * dt
+        v_new = v + force(x, v) * dt
+        return x_new, v_new
 
     def integrate(self, function, initial_state, end_time=1.0, n_steps=10):
         """
@@ -285,8 +316,8 @@ class Connection(object):
         :return: a tuple of sequences
         """
         dt = end_time / n_steps
-        positions = [initial_state[0].copy()]
-        velocities = [initial_state[1].copy()]
+        positions = [initial_state[0]]
+        velocities = [initial_state[1]]
         current_state = (positions[0], velocities[0])
         for i in range(n_steps):
             current_state = self._symplectic_euler_step(current_state,
