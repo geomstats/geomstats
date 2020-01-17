@@ -54,7 +54,10 @@ class MatrixLieAlgebra:
 
         We use the algorithm published by Casas / Murua in their paper
         "An efficient algorithm for computing the Baker–Campbell–Hausdorff
-        series and some of its applications" in J.o.Math.Physics 50 (2009).
+        series and some of its applications" in J.o.Math.Physics 50 (2009) as
+        well as their computed constants from
+        http://www.ehu.eus/ccwmuura/research/bchHall20.dat.
+        Our file is truncated to enable us to calculate BCH up to order 15
 
         This represents Z =log(exp(X)exp(Y)) as an infinite linear combination
         of the form
@@ -71,6 +74,9 @@ class MatrixLieAlgebra:
             the order to which the approximation is calculated. Note that this
             is NOT the same as using only E_i with i < order
         """
+        if order > 15:
+            raise NotImplementedError("BCH is not implemented for order > 15.")
+
         number_of_hom_degree = gs.array(
             [
                 2,
@@ -87,12 +93,7 @@ class MatrixLieAlgebra:
                 335,
                 630,
                 1161,
-                2182,
-                4080,
-                7710,
-                14532,
-                27594,
-                52377,
+                2182
             ]
         )
         n_terms = gs.sum(number_of_hom_degree[:order])
