@@ -90,9 +90,9 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
             power=power,
             tangent_vec=tangent_vec,
             base_point=base_point)
-        expected = gs.array([[1., 1/3, 1/3],
-                             [1/3, .125, .125],
-                             [1/3, .125, .125]])
+        expected = gs.array([[[1., 1/3, 1/3],
+                              [1/3, .125, .125],
+                              [1/3, .125, .125]]])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
@@ -108,9 +108,9 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
             power=power,
             tangent_vec=tangent_vec,
             base_point=base_point)
-        expected = gs.array([[2., 1., 1.],
+        expected = gs.array([[[2., 1., 1.],
                              [1., .5, .5],
-                             [1., .5, .5]])
+                             [1., .5, .5]]])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
@@ -230,7 +230,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                                 [0., 0., 1.]])
         metric = self.metric_euclidean
         result = metric.exp_domain(tangent_vec, base_point)
-        expected = gs.array([-3, 1])
+        expected = gs.array([[-3, 1]])
 
         self.assertAllClose(result, expected)
 
@@ -239,9 +239,9 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         base_point = gs.array([[5., 0., 0.],
                                [0., 7., 2.],
                                [0., 2., 8.]])
-        point = gs.array([[9., 0., 0.],
+        point = gs.array([[[9., 0., 0.],
                           [0., 5., 0.],
-                          [0., 0., 1.]])
+                          [0., 0., 1.]]])
 
         metric = self.metric_affine
         log = metric.log(point=point, base_point=base_point)
