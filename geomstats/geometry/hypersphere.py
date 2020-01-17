@@ -126,6 +126,74 @@ class Hypersphere(EmbeddedManifold):
 
         return tangent_vec
 
+    def spherical_to_extrinsic(self, point_spherical):
+        """
+        Convert from the spherical coordinates in the Hypersphere
+        to the extrinsic coordinates in Euclidean space.
+        Only implemented in dimension 2.
+
+        Parameters
+        ----------
+        point_spherical : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        point_extrinsic : array_like, shape=[n_samples, dimension + 1]
+        """
+        if self.dimension != 2:
+            raise NotImplementedError(
+                    'The conversion from spherical coordinates'
+                    ' to extrinsic coordinates is implemented'
+                    ' only in dimension 2.')
+        point_spherical = gs.to_ndarray(point_spherical, to_ndim=2)
+        theta = point_spherical[:, 0]
+        phi = point_spherical[:, 1]
+        point_extrinsic = gs.zeros(
+                (point_spherical.shape[0], self.dimension+1))
+        point_extrinsic[:, 0] = gs.sin(theta) * gs.cos(phi)
+        point_extrinsic[:, 1] = gs.sin(theta) * gs.sin(phi)
+        point_extrinsic[:, 2] = gs.cos(theta)
+        assert self.belongs(point_extrinsic).all()
+
+        return point_extrinsic
+
+    def tangent_spherical_to_extrinsic(self, tangent_vec_spherical,
+                                       base_point_spherical):
+        """
+        Convert from the spherical coordinates in the Hypersphere
+        to the extrinsic coordinates in Euclidean space for a tangent
+        vector. Only implemented in dimension 2.
+
+        Parameters
+        ----------
+        tangent_vec_spherical : array-like, shape=[n_samples, dimension]
+        base_point_spherical : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        tangent_vec_extrinsic : array-like, shape=[n_samples, dimension + 1]
+        """
+        if self.dimension != 2:
+            raise NotImplementedError(
+                    'The conversion from spherical coordinates'
+                    ' to extrinsic coordinates is implemented'
+                    ' only in dimension 2.')
+        base_point_spherical = gs.to_ndarray(base_point_spherical, to_ndim=2)
+        tangent_vec_spherical = gs.to_ndarray(tangent_vec_spherical, to_ndim=2)
+        n_samples = base_point_spherical.shape[0]
+        theta = base_point_spherical[:, 0]
+        phi = base_point_spherical[:, 1]
+        jac = gs.zeros((n_samples, self.dimension + 1, self.dimension))
+        jac[:, 0, 0] = gs.cos(theta) * gs.cos(phi)
+        jac[:, 0, 1] = - gs.sin(theta) * gs.sin(phi)
+        jac[:, 1, 0] = gs.cos(theta) * gs.sin(phi)
+        jac[:, 1, 1] = gs.sin(theta) * gs.cos(phi)
+        jac[:, 2, 0] = - gs.sin(theta)
+        tangent_vec_extrinsic = gs.einsum('nij,nj->ni', jac,
+                                          tangent_vec_spherical)
+
+        return tangent_vec_extrinsic
+
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """
         Convert from the intrinsic coordinates in the Hypersphere,
@@ -141,6 +209,8 @@ class Hypersphere(EmbeddedManifold):
         """
         point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
 
+        # FIXME: The next line needs to be guarded against taking the sqrt of
+        #        negative numbers.
         coord_0 = gs.sqrt(1. - gs.linalg.norm(point_intrinsic, axis=-1) ** 2)
         coord_0 = gs.to_ndarray(coord_0, to_ndim=2, axis=-1)
 
@@ -167,45 +237,36 @@ class Hypersphere(EmbeddedManifold):
 
         return point_intrinsic
 
-    def random_uniform(self, n_samples=1, bound=0.5):
+    def random_uniform(self, n_samples=1):
         """
         Sample in the Hypersphere with the uniform distribution.
 
         Parameters
         ----------
         n_samples : int, optional
-        bound: float, optional
 
         Returns
         -------
-        point : array-like, shape=[n_samples, dimension + 1]
+        samples : array-like, shape=[n_samples, dimension + 1]
         """
-        size = (n_samples, self.dimension)
+        size = (n_samples, self.dimension + 1)
 
-        if bound is None:
-            spherical_coord = gs.random.rand(*size) * gs.pi
-            spherical_coord[:, -1] *= 2
+        samples = gs.random.normal(size=size)
+        while True:
+            norms = gs.linalg.norm(samples, axis=1)
+            indcs = gs.isclose(norms, 0.0)
+            num_bad_samples = gs.sum(indcs)
+            if num_bad_samples == 0:
+                break
+            samples[indcs, :] = gs.random.normal(
+                size=(num_bad_samples, self.dimension + 1))
 
-            point = gs.zeros((n_samples, self.dimension+1))
-            sin_prod = gs.cumprod(gs.sin(spherical_coord), axis=1)
-
-            factor_1 = gs.hstack((gs.ones((n_samples, 1)), sin_prod))
-            factor_2 = gs.hstack(
-                (gs.cos(spherical_coord), gs.ones((n_samples, 1)))
-            )
-
-            point = factor_1 * factor_2
-        else:
-            assert bound <= 0.5
-            point = bound * (2 * gs.random.rand(*size) - 1)
-            point = self.intrinsic_to_extrinsic_coords(point)
-
-        return point
+        return gs.einsum('n, ni->ni', 1 / norms, samples)
 
     def random_von_mises_fisher(self, kappa=10, n_samples=1):
         """
-        Sample in the 2-sphere with the von Mises distribution
-        centered in the north pole.
+        Sample in the 2-sphere with the von Mises distribution centered in the
+        north pole.
         """
         if self.dimension != 2:
             raise NotImplementedError(
@@ -408,3 +469,50 @@ class HypersphereMetric(RiemannianMetric):
         dist = gs.arccos(cos_angle)
 
         return dist
+
+    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
+        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        # TODO @nguigs: work around this condition
+        assert len(base_point) == len(tangent_vec_a) == len(tangent_vec_b)
+        theta = gs.linalg.norm(tangent_vec_b, axis=1)
+        normalized_b = gs.einsum('n, ni->ni', 1 / theta, tangent_vec_b)
+        pb = gs.einsum('ni,ni->n', tangent_vec_a, normalized_b)
+        p_orth = tangent_vec_a - gs.einsum('n,ni->ni', pb, normalized_b)
+        transported = - gs.einsum('n,ni->ni', gs.sin(theta) * pb, base_point)\
+            + gs.einsum('n,ni->ni', gs.cos(theta) * pb, normalized_b)\
+            + p_orth
+        return transported
+
+    def christoffels(self, point, point_type='spherical'):
+        """
+        Christoffel symbols. Only implemented in dimension 2
+        and for spherical coordinates.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        christoffel : array-like, shape=[n_samples,
+                                         contravariant index,
+                                         first covariant index,
+                                         second covariant index]
+        """
+        if self.dimension != 2 or point_type != 'spherical':
+            raise NotImplementedError(
+                    'The Christoffel symbols are only implemented'
+                    ' for spherical coordinates in the 2-sphere')
+        point = gs.to_ndarray(point, to_ndim=2)
+        n_samples = point.shape[0]
+        christoffel = gs.zeros((n_samples,
+                                self.dimension,
+                                self.dimension,
+                                self.dimension))
+        christoffel[:, 0, 1, 1] = - gs.sin(point[:, 0]) * gs.cos(point[:, 0])
+        christoffel[:, 1, 0, 1] = gs.cos(point[:, 0]) / gs.sin(point[:, 0])
+        christoffel[:, 1, 1, 0] = gs.cos(point[:, 0]) / gs.sin(point[:, 0])
+
+        return christoffel
