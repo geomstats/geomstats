@@ -12,38 +12,38 @@ import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hyperbolic_space import HyperbolicMetric
 from geomstats.geometry.hyperbolic_space import HyperbolicSpace
-from geomstats.learning.k_means import RiemannianKMeans
+from geomstats.learning.kmeans import RiemannianKMeans
 
 SQUARE_SIZE = 50
 
 
 def main():
 
-    Cluster_1 = gs.random.uniform(low=0.5, high=0.6, size=(20, 2))
-    Cluster_2 = gs.random.uniform(low=0, high=-0.2, size=(20, 2))
+    cluster_1 = gs.random.uniform(low=0.5, high=0.6, size=(20, 2))
+    cluster_2 = gs.random.uniform(low=0, high=-0.2, size=(20, 2))
 
     ax = plt.gca()
 
-    Merged_Clusters = gs.concatenate((Cluster_1, Cluster_2), axis=0)
-    manifold = HyperbolicSpace(dimension=2, point_type='poincare')
-    metric = HyperbolicMetric(dimension=2, point_type='poincare')
+    merged_clusters = gs.concatenate((cluster_1, cluster_2), axis=0)
+    manifold = HyperbolicSpace(dimension=2, point_type='ball')
+    metric = HyperbolicMetric(dimension=2, point_type='ball')
 
     visualization.plot(
-            Merged_Clusters,
+            merged_clusters,
             ax=ax,
             space='H2_poincare_disk',
             marker='.',
             color='black',
             point_type=manifold.point_type)
 
-    k_means = RiemannianKMeans(riemannian_metric=metric,
-                               n_clusters=2,
-                               init='random',
-                               )
+    kmeans = RiemannianKMeans(riemannian_metric=metric,
+                              n_clusters=2,
+                              init='random',
+                              )
 
-    centroids = k_means.fit(X=Merged_Clusters, max_iter=1)
+    centroids = kmeans.fit(X=merged_clusters, max_iter=1)
 
-    labels = k_means.predict(X=Merged_Clusters)
+    labels = kmeans.predict(X=merged_clusters)
 
     visualization.plot(
             centroids,
@@ -55,13 +55,6 @@ def main():
 
     print('Data_labels', labels)
 
-    # visualization.plot(
-    #         Merged_Clusters[],
-    #         ax=ax,
-    #         space='H2_poincare_disk',
-    #         marker='.',
-    #         color='red',
-    #         point_type=H2.point_type)
     plt.show()
 
 

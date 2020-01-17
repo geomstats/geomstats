@@ -599,7 +599,7 @@ class HyperbolicMetric(RiemannianMetric):
             return exp
         else:
             raise NotImplementedError(
-                    "exp is only implemented for ball and extrinsic")
+                    'exp is only implemented for ball and extrinsic')
 
     def log(self, point, base_point):
         """
@@ -680,7 +680,7 @@ class HyperbolicMetric(RiemannianMetric):
             return res
         else:
             raise NotImplementedError(
-                    "log is only implemented for ball and extrinsic")
+                    'log is only implemented for ball and extrinsic')
 
     def mobius_add(self, point_a, point_b):
         """
@@ -700,7 +700,6 @@ class HyperbolicMetric(RiemannianMetric):
         mobius_add : array-like, shape=[n_samples, 1]
                            or shape=[1, 1]
         """
-        print('Pass mobiuys add')
         norm_point_a = gs.sum(point_a ** 2, axis=-1,
                               keepdims=True).expand_as(point_a)
         norm_point_b = gs.sum(point_b ** 2, axis=-1,
