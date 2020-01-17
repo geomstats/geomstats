@@ -44,7 +44,7 @@ python3 examples/plot_grid_h2.py
 
 ## Contributing
 
-See our [CONTRIBUTING.md](CONTRIBUTION.md) file!
+See our [CONTRIBUTING.md](CONTRIBUTING.md) file!
 
 ## Authors & Contributors
 
