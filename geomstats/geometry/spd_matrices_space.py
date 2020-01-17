@@ -432,6 +432,17 @@ class SPDMetricAffine(RiemannianMetric):
 
         return inner_product
 
+    def _aux_exp(self, tangent_vec, sqrt_base_point, inv_sqrt_base_point):
+        tangent_vec_at_id = gs.matmul(inv_sqrt_base_point,
+                                      tangent_vec)
+        tangent_vec_at_id = gs.matmul(tangent_vec_at_id,
+                                      inv_sqrt_base_point)
+        exp_from_id = gs.linalg.expm(tangent_vec_at_id)
+
+        exp = gs.matmul(exp_from_id, sqrt_base_point)
+        exp = gs.matmul(sqrt_base_point, exp)
+        return exp
+
     def exp(self, tangent_vec, base_point):
         """
         Compute the Riemannian exponential at point base_point
@@ -440,6 +451,7 @@ class SPDMetricAffine(RiemannianMetric):
 
         This gives a symmetric positive definite matrix.
         """
+        power_affine = self.power_affine
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         n_tangent_vecs, _, _ = tangent_vec.shape
 
@@ -455,18 +467,19 @@ class SPDMetricAffine(RiemannianMetric):
         if n_base_points == 1:
             base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
 
-        sqrt_base_point = gs.linalg.sqrtm(base_point)
-
-        inv_sqrt_base_point = gs.linalg.inv(sqrt_base_point)
-
-        tangent_vec_at_id = gs.matmul(inv_sqrt_base_point,
-                                      tangent_vec)
-        tangent_vec_at_id = gs.matmul(tangent_vec_at_id,
-                                      inv_sqrt_base_point)
-        exp_from_id = gs.linalg.expm(tangent_vec_at_id)
-
-        exp = gs.matmul(exp_from_id, sqrt_base_point)
-        exp = gs.matmul(sqrt_base_point, exp)
+        if power_affine == 1:
+            sqrt_base_point = gs.linalg.sqrtm(base_point)
+            inv_sqrt_base_point = gs.linalg.inv(sqrt_base_point)
+            exp = self._aux_exp(tangent_vec, sqrt_base_point, inv_sqrt_base_point)
+        else:
+            modified_tangent_vec = self.space.differential_power(power_affine,
+                                                                 tangent_vec,
+                                                                 base_point)
+            power_sqrt_base_point = gs.linalg.powerm(base_point, power_affine/2)
+            power_inv_sqrt_base_point = gs.linalg.inv(power_sqrt_base_point)
+            exp = self._aux_exp(modified_tangent_vec, power_sqrt_base_point,
+                                power_inv_sqrt_base_point)
+            exp = gs.linalg.powerm(exp, 1/power_affine)
 
         return exp
 
