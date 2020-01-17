@@ -378,10 +378,6 @@ def clamp(*args, **kwargs):
     return torch.clamp(*args, **kwargs)
 
 
-def clamp(*args, **kwargs):
-    return torch.clamp(*args, **kwargs)
-
-
 def diag(*args, **kwargs):
     return torch.diag(*args, **kwargs)
 
@@ -493,3 +489,4 @@ def cumprod(x, axis=0):
         raise NotImplementedError('cumprod is not defined where axis is None')
     else:
         return torch.cumprod(x, dim=axis)
+
