@@ -177,7 +177,7 @@ class TestLandmarksSpaceMethods(geomstats.tests.TestCase):
                     end_point=self.landmarks_b[k, :])
             expected[:, k, :] = geod(self.times)
 
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
         geod = self.l2_metric_s2.geodesic(
                 initial_landmarks=landmarks_ab,
