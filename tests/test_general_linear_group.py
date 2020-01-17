@@ -34,7 +34,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         rot_vec = gs.array([0.2, -0.1, 0.1])
         rot_mat = self.so3_group.matrix_from_rotation_vector(rot_vec)
         result = self.group.belongs(rot_mat)
-        expected = gs.array([True])
+        expected = gs.array([[True]])
 
         self.assertAllClose(result, expected)
 
