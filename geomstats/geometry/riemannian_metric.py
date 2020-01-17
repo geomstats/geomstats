@@ -95,10 +95,20 @@ class RiemannianMetric(object):
             else:
                 raise ValueError('Shape mismatch for einsum.')
 
-        aux = gs.einsum('nj,njk->nk', tangent_vec_a, inner_prod_mat)
+        aux = gs.einsum(einsum_str_a, tangent_vec_a, inner_prod_mat)
+        n_auxs, _ = gs.shape(aux)
 
+        if n_tangent_vec_b != n_auxs:
+            if n_auxs == 1:
+                aux = gs.squeeze(aux, axis=0)
+                einsum_str_b = 'k,nk->n'
+            elif n_tangent_vec_b == 1:
+                tangent_vec_b = gs.squeeze(tangent_vec_b, axis=0)
+                einsum_str_b = 'nk,k->n'
+            else:
+                raise ValueError('Shape mismatch for einsum.')
 
-        inner_prod = gs.einsum('nk,nk->n', aux, tangent_vec_b)
+        inner_prod = gs.einsum(einsum_str_b, aux, tangent_vec_b)
         inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
         assert gs.ndim(inner_prod) == 2, inner_prod.shape
