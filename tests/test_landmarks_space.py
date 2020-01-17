@@ -20,12 +20,15 @@ class TestLandmarksSpaceMethods(geomstats.tests.TestCase):
         initial_tangent_vec_b = [0., 1., 0.]
         initial_tangent_vec_c = [-1., 0., 0.]
 
-        landmarks_a = s2.metric.geodesic(initial_point=initial_point,
-                                     initial_tangent_vec=initial_tangent_vec_a)
-        landmarks_b = s2.metric.geodesic(initial_point=initial_point,
-                                     initial_tangent_vec=initial_tangent_vec_b)
-        landmarks_c = s2.metric.geodesic(initial_point=initial_point,
-                                     initial_tangent_vec=initial_tangent_vec_c)
+        landmarks_a = s2.metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec_a)
+        landmarks_b = s2.metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec_b)
+        landmarks_c = s2.metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec_c)
 
         self.n_sampling_points = 10
         sampling_times = gs.linspace(0., 1., self.n_sampling_points)
@@ -63,7 +66,8 @@ class TestLandmarksSpaceMethods(geomstats.tests.TestCase):
         log_ab = tangent_vec
         result = self.l2_metric_s2.squared_norm(
                 vector=log_ab, base_point=self.landmarks_a)
-        expected = self.l2_metric_s2.dist(self.landmarks_a, self.landmarks_b) ** 2
+        expected = self.l2_metric_s2.dist(
+            self.landmarks_a, self.landmarks_b) ** 2
         expected = helper.to_scalar(expected)
 
         self.assertAllClose(result, expected)

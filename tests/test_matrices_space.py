@@ -57,7 +57,7 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
         result = self.space.commutator(x, [x, y, z])
-        expected = gs.array([gs.zeros((3,3)), z, -y])
+        expected = gs.array([gs.zeros((3, 3)), z, -y])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only

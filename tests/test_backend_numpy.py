@@ -2,8 +2,6 @@
 Unit tests for numpy backend.
 """
 
-import os
-import unittest
 import warnings
 
 import geomstats.backend as gs
