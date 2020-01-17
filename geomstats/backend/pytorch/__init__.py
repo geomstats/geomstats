@@ -60,14 +60,14 @@ def divide(*args, **kwargs):
     return torch.div(*args, **kwargs)
 
 
-def repeat(x, repeat_time, axis=None):
+def repeat(a, repeats, axis=None):
     if torch.__version__ >= '1.1':
-        return torch.repeat_interleave(x, repeat_time, axis)
+        return torch.repeat_interleave(a, repeats, axis)
     if(axis is None):
         axis = 0
-    shape = list(x.shape)
-    shape[axis] = shape[axis] * repeat_time
-    return x.repeat(*shape)
+    shape = list(a.shape)
+    shape[axis] = shape[axis] * repeats
+    return a.repeat(*shape)
 
 
 def asarray(x):
