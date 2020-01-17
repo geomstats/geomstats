@@ -11,7 +11,6 @@ from geomstats.geometry.landmarks_space import L2Metric
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-
 R2 = EuclideanSpace(dimension=2)
 R3 = EuclideanSpace(dimension=3)
 
@@ -21,8 +20,7 @@ class DiscretizedCurvesSpace(Manifold):
 
     def __init__(self, ambient_manifold):
         """Initialize DiscretizedCurvesSpace object."""
-        super(DiscretizedCurvesSpace, self).__init__(
-             dimension=math.inf)
+        super(DiscretizedCurvesSpace, self).__init__(dimension=math.inf)
         self.ambient_manifold = ambient_manifold
         self.l2_metric = L2Metric(self.ambient_manifold)
         self.square_root_velocity_metric = SRVMetric(self.ambient_manifold)
@@ -53,9 +51,8 @@ class SRVMetric(RiemannianMetric):
     """
 
     def __init__(self, ambient_manifold):
-        super(SRVMetric, self).__init__(
-                dimension=math.inf,
-                signature=(math.inf, 0, 0))
+        super(SRVMetric, self).__init__(dimension=math.inf,
+                                        signature=(math.inf, 0, 0))
         self.ambient_metric = ambient_manifold.metric
         self.l2_metric = L2Metric(ambient_manifold=ambient_manifold)
 
@@ -85,16 +82,14 @@ class SRVMetric(RiemannianMetric):
         inner_prod = gs.zeros([n_tangent_vecs, n_sampling_points])
 
         def inner_prod_aux(vec_a, vec_b, curve):
-            inner_prod = self.ambient_metric.inner_product(
-                vec_a, vec_b, curve)
+            inner_prod = self.ambient_metric.inner_product(vec_a, vec_b, curve)
             return gs.squeeze(inner_prod)
 
-        inner_prod = gs.vectorize(
-            (tangent_vec_a, tangent_vec_b, base_curve),
-            lambda x, y, z: inner_prod_aux(x, y, z),
-            dtype=gs.float32,
-            multiple_args=True,
-            signature='(i,j),(i,j),(i,j)->(i)')
+        inner_prod = gs.vectorize((tangent_vec_a, tangent_vec_b, base_curve),
+                                  lambda x, y, z: inner_prod_aux(x, y, z),
+                                  dtype=gs.float32,
+                                  multiple_args=True,
+                                  signature='(i,j),(i,j),(i,j)->(i)')
 
         return inner_prod
 
@@ -114,10 +109,9 @@ class SRVMetric(RiemannianMetric):
         -------
         norm :
         """
-        sq_norm = self.pointwise_inner_product(
-                tangent_vec_a=tangent_vec,
-                tangent_vec_b=tangent_vec,
-                base_curve=base_curve)
+        sq_norm = self.pointwise_inner_product(tangent_vec_a=tangent_vec,
+                                               tangent_vec_b=tangent_vec,
+                                               base_curve=base_curve)
         return gs.sqrt(sq_norm)
 
     def square_root_velocity(self, curve):
@@ -138,12 +132,12 @@ class SRVMetric(RiemannianMetric):
         """
         curve = gs.to_ndarray(curve, to_ndim=3)
         n_curves, n_sampling_points, n_coords = curve.shape
-        srv_shape = (n_curves, n_sampling_points-1, n_coords)
+        srv_shape = (n_curves, n_sampling_points - 1, n_coords)
 
         curve = gs.reshape(curve, (n_curves * n_sampling_points, n_coords))
         coef = gs.cast(gs.array(n_sampling_points - 1), gs.float32)
-        velocity = coef * self.ambient_metric.log(
-                point=curve[1:, :], base_point=curve[:-1, :])
+        velocity = coef * self.ambient_metric.log(point=curve[1:, :],
+                                                  base_point=curve[:-1, :])
         velocity_norm = self.ambient_metric.norm(velocity, curve[:-1, :])
         srv = velocity / gs.sqrt(velocity_norm)
 
@@ -171,15 +165,14 @@ class SRVMetric(RiemannianMetric):
                                  'implemented for dicretized curves embedded '
                                  'in a Euclidean space.')
         if gs.ndim(srv) != gs.ndim(starting_point):
-            starting_point = gs.transpose(
-                    np.tile(starting_point, (1, 1, 1)),
-                    axes=(1, 0, 2))
+            starting_point = gs.transpose(np.tile(starting_point, (1, 1, 1)),
+                                          axes=(1, 0, 2))
         srv_shape = srv.shape
         srv = gs.to_ndarray(srv, to_ndim=3)
         n_curves, n_sampling_points_minus_one, n_coords = srv.shape
 
-        srv = gs.reshape(
-            srv, (n_curves * n_sampling_points_minus_one, n_coords))
+        srv = gs.reshape(srv,
+                         (n_curves * n_sampling_points_minus_one, n_coords))
         srv_norm = self.ambient_metric.norm(srv)
         delta_points = 1 / n_sampling_points_minus_one * srv_norm * srv
         delta_points = gs.reshape(delta_points, srv_shape)
@@ -211,17 +204,17 @@ class SRVMetric(RiemannianMetric):
         base_curve_srv = self.square_root_velocity(base_curve)
 
         tangent_vec_derivative = (n_sampling_points - 1) * (
-                tangent_vec[:, 1:, :] - tangent_vec[:, :-1, :])
-        base_curve_velocity = (n_sampling_points - 1) * (
-                base_curve[:, 1:, :] - base_curve[:, :-1, :])
-        base_curve_velocity_norm = self.pointwise_norm(
-                base_curve_velocity, base_curve[:, :-1, :])
+            tangent_vec[:, 1:, :] - tangent_vec[:, :-1, :])
+        base_curve_velocity = (n_sampling_points - 1) * (base_curve[:, 1:, :] -
+                                                         base_curve[:, :-1, :])
+        base_curve_velocity_norm = self.pointwise_norm(base_curve_velocity,
+                                                       base_curve[:, :-1, :])
 
         inner_prod = self.pointwise_inner_product(tangent_vec_derivative,
                                                   base_curve_velocity,
                                                   base_curve[:, :-1, :])
         coef_1 = 1 / gs.sqrt(base_curve_velocity_norm)
-        coef_2 = - 1 / (2 * base_curve_velocity_norm ** (5/2)) * inner_prod
+        coef_2 = -1 / (2 * base_curve_velocity_norm**(5 / 2)) * inner_prod
 
         term_1 = gs.einsum('ij,ijk->ijk', coef_1, tangent_vec_derivative)
         term_2 = gs.einsum('ij,ijk->ijk', coef_2, base_curve_velocity)
@@ -230,10 +223,9 @@ class SRVMetric(RiemannianMetric):
         end_curve_srv = self.l2_metric.exp(tangent_vec=srv_initial_derivative,
                                            base_landmarks=base_curve_srv)
         end_curve_starting_point = self.ambient_metric.exp(
-                tangent_vec=tangent_vec[:, 0, :],
-                base_point=base_curve[:, 0, :])
+            tangent_vec=tangent_vec[:, 0, :], base_point=base_curve[:, 0, :])
         end_curve = self.square_root_velocity_inverse(
-                end_curve_srv, end_curve_starting_point)
+            end_curve_srv, end_curve_starting_point)
 
         return end_curve
 
@@ -260,34 +252,37 @@ class SRVMetric(RiemannianMetric):
         curve_srv = self.square_root_velocity(curve)
         base_curve_srv = self.square_root_velocity(base_curve)
 
-        base_curve_velocity = (n_sampling_points - 1) * (
-                base_curve[:, 1:, :] - base_curve[:, :-1, :])
-        base_curve_velocity_norm = self.pointwise_norm(
-                base_curve_velocity, base_curve[:, :-1, :])
+        base_curve_velocity = (n_sampling_points - 1) * (base_curve[:, 1:, :] -
+                                                         base_curve[:, :-1, :])
+        base_curve_velocity_norm = self.pointwise_norm(base_curve_velocity,
+                                                       base_curve[:, :-1, :])
 
         inner_prod = self.pointwise_inner_product(curve_srv - base_curve_srv,
                                                   base_curve_velocity,
                                                   base_curve[:, :-1, :])
         coef_1 = gs.sqrt(base_curve_velocity_norm)
-        coef_2 = 1 / base_curve_velocity_norm ** (3/2) * inner_prod
+        coef_2 = 1 / base_curve_velocity_norm**(3 / 2) * inner_prod
 
         term_1 = gs.einsum('ij,ijk->ijk', coef_1, curve_srv - base_curve_srv)
         term_2 = gs.einsum('ij,ijk->ijk', coef_2, base_curve_velocity)
         log_derivative = term_1 + term_2
 
         log_starting_points = self.ambient_metric.log(
-                point=curve[:, 0, :], base_point=base_curve[:, 0, :])
+            point=curve[:, 0, :], base_point=base_curve[:, 0, :])
         log_starting_points = gs.transpose(
-                np.tile(log_starting_points, (1, 1, 1)), (1, 0, 2))
+            np.tile(log_starting_points, (1, 1, 1)), (1, 0, 2))
 
-        log_cumsum = gs.hstack([gs.zeros((n_curves, 1, n_coords)),
-                                np.cumsum(log_derivative, -2)])
+        log_cumsum = gs.hstack(
+            [gs.zeros((n_curves, 1, n_coords)),
+             np.cumsum(log_derivative, -2)])
         log = log_starting_points + 1 / (n_sampling_points - 1) * log_cumsum
 
         return log
 
-    def geodesic(self, initial_curve,
-                 end_curve=None, initial_tangent_vec=None):
+    def geodesic(self,
+                 initial_curve,
+                 end_curve=None,
+                 initial_tangent_vec=None):
         """Compute geodesic from initial curve and end curve end curve.
 
         Geodesic specified either by an initial curve and an end curve,
@@ -309,14 +304,13 @@ class SRVMetric(RiemannianMetric):
                                  'Euclidean space.')
         curve_ndim = 2
         curve_shape = initial_curve.shape
-        initial_curve = gs.to_ndarray(initial_curve,
-                                      to_ndim=curve_ndim+1)
+        initial_curve = gs.to_ndarray(initial_curve, to_ndim=curve_ndim + 1)
 
         if end_curve is None and initial_tangent_vec is None:
             raise ValueError('Specify an end curve or an initial tangent '
                              'vector to define the geodesic.')
         if end_curve is not None:
-            end_curve = gs.to_ndarray(end_curve, to_ndim=curve_ndim+1)
+            end_curve = gs.to_ndarray(end_curve, to_ndim=curve_ndim + 1)
             shooting_tangent_vec = self.log(curve=end_curve,
                                             base_curve=initial_curve)
             if initial_tangent_vec is not None:
@@ -324,18 +318,16 @@ class SRVMetric(RiemannianMetric):
             initial_tangent_vec = shooting_tangent_vec
         initial_tangent_vec = gs.array(initial_tangent_vec)
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
-                                            to_ndim=curve_ndim+1)
+                                            to_ndim=curve_ndim + 1)
 
         def curve_on_geodesic(t):
             t = gs.cast(t, gs.float32)
             t = gs.to_ndarray(t, to_ndim=1)
             t = gs.to_ndarray(t, to_ndim=2, axis=1)
-            new_initial_curve = gs.to_ndarray(
-                                          initial_curve,
-                                          to_ndim=curve_ndim+1)
-            new_initial_tangent_vec = gs.to_ndarray(
-                                          initial_tangent_vec,
-                                          to_ndim=curve_ndim+1)
+            new_initial_curve = gs.to_ndarray(initial_curve,
+                                              to_ndim=curve_ndim + 1)
+            new_initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
+                                                    to_ndim=curve_ndim + 1)
 
             tangent_vecs = gs.einsum('il,nkm->ikm', t, new_initial_tangent_vec)
 
@@ -343,8 +335,8 @@ class SRVMetric(RiemannianMetric):
             curve_at_time_t = gs.zeros(curve_shape_at_time_t)
             for k in range(len(t)):
                 curve_at_time_t[k, :] = self.exp(
-                        tangent_vec=tangent_vecs[k, :],
-                        base_curve=new_initial_curve)
+                    tangent_vec=tangent_vecs[k, :],
+                    base_curve=new_initial_curve)
             return curve_at_time_t
 
         return curve_on_geodesic
@@ -360,8 +352,8 @@ class SRVMetric(RiemannianMetric):
         srv_a = self.square_root_velocity(curve_a)
         srv_b = self.square_root_velocity(curve_b)
         dist_starting_points = self.ambient_metric.dist(
-                curve_a[0, :], curve_b[0, :])
+            curve_a[0, :], curve_b[0, :])
         dist_srvs = self.l2_metric.dist(srv_a, srv_b)
-        dist = gs.sqrt(dist_starting_points ** 2 + dist_srvs ** 2)
+        dist = gs.sqrt(dist_starting_points**2 + dist_srvs**2)
 
         return dist
