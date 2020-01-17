@@ -1,6 +1,7 @@
-"""
-The n-dimensional Hyperbolic space
-as embedded in (n+1)-dimensional Minkowski space.
+"""The n-dimensional Hyperbolic space.
+
+The n-dimensional Hyperbolic space embedded in (n+1)-dimensional
+Minkowski space.
 """
 
 import logging
@@ -38,7 +39,8 @@ EPSILON = 1e-5
 
 
 class HyperbolicSpace(EmbeddedManifold):
-    """
+    """Class for the n-dimensional Hyperbolic space.
+
     Class for the n-dimensional Hyperbolic space
     as embedded in (n+1)-dimensional Minkowski space.
 
@@ -81,10 +83,11 @@ class HyperbolicSpace(EmbeddedManifold):
 
     @staticmethod
     def _belongs_ball(point, tolerance=TOLERANCE):
-        """
-        Evaluate if a point belongs to the Hyperbolic space, based on
-        poincare ball representationj
-        i.e. evaluate if its squared norm is lower than one
+        """Evaluate if a point belongs to the Hyperbolic space (poin. ball)
+
+        Evaluate if a point belongs to the Hyperbolic space based on
+        the poincare ball representation, i.e. evaluate if its
+        squared norm is lower than one.
 
         Parameters
         ----------
@@ -96,13 +99,13 @@ class HyperbolicSpace(EmbeddedManifold):
         -------
         belongs : array-like, shape=[n_samples, 1]
         """
-
         return gs.sum(point**2, -1) < (1 + tolerance)
 
     def belongs(self, point, tolerance=TOLERANCE):
-        """
-        Evaluate if a point belongs to the Hyperbolic space,
-        according to the current representation
+        """Evaluate if a point belongs to the Hyperbolic space.
+
+        Evaluate if a point belongs to the Hyperbolic space according
+        to the current representation
 
         Parameters
         ----------
@@ -137,14 +140,15 @@ class HyperbolicSpace(EmbeddedManifold):
             return belongs
 
     def regularize(self, point):
-        """
-        Regularize a point to the canonical representation
-        chosen for the Hyperbolic space, to avoid numerical issues.
+        """Regularize a point to the canonical representation.
+
+        Regularize a point to the canonical representation chosen
+        for the Hyperbolic space, to avoid numerical issues.
 
         Parameters
         ----------
         point : array-like, shape=[n_samples, dimension + 1]
-                Input points.
+                Input points. TODO: confusing: singular or plural
 
         Returns
         -------
@@ -165,9 +169,9 @@ class HyperbolicSpace(EmbeddedManifold):
         return projected_point
 
     def projection_to_tangent_space(self, vector, base_point):
-        """
-        Project a vector in Minkowski space
-        on the tangent space of the Hyperbolic space at a base point.
+        """Project a vector in Minkowski space.
+        Project a vector in Minkowski space on the tangent space
+        of the Hyperbolic space at a base point.
 
         Parameters
         ----------
@@ -178,7 +182,6 @@ class HyperbolicSpace(EmbeddedManifold):
         -------
         tangent_vec : array-like, shape=[n_samples, dimension + 1]
         """
-
         vector = gs.to_ndarray(vector, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
@@ -191,9 +194,10 @@ class HyperbolicSpace(EmbeddedManifold):
         return tangent_vec
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
-        """
-        Convert the parameterization of a point on the Hyperbolic space
-        from its intrinsic coordinates, to its extrinsic coordinates
+        """Convert the parameterization of a point.
+
+        Convert the parameterization of a point on the Hyperbolic
+        space from its intrinsic coordinates to its extrinsic coordinates
         in Minkowski space.
 
         Parameters
@@ -208,7 +212,8 @@ class HyperbolicSpace(EmbeddedManifold):
             point_intrinsic)
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
-        """
+        """Convert the parameterization of a point.
+
         Convert the parameterization of a point on the Hyperbolic space
         from its extrinsic coordinates, to its intrinsic coordinates
         in Minkowski space.
