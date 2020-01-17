@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 
 import geomstats.tests
 import geomstats.visualization as visualization
-
 from geomstats.geometry.hyperbolic_space import HyperbolicSpace
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup

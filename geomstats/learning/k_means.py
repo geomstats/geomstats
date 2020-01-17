@@ -36,7 +36,6 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self.n_clusters = n_clusters
         self.init = init
         self.riemannian_metric = riemannian_metric
-        self.n_clusters = n_clusters
         self.tol = tol
         self.verbose = verbose
 
@@ -70,8 +69,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                      self.riemannian_metric.dist(self.centroids[i], X), 2, 1)
                      for i in range(self.n_clusters)]
             dists = gs.hstack(dists)
-            belongs = gs.argmin(dists, -1)
-
+            belongs = gs.argmin(dists, 1)
             old_centroids = gs.copy(self.centroids)
             for i in range(self.n_clusters):
                 fold = gs.squeeze(X[belongs == i])
@@ -89,6 +87,8 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                     print("Convergence Reached after ", index, " iterations")
 
                 return gs.copy(self.centroids)
+
+        return gs.copy(self.centroids)
 
     def predict(self, X):
 

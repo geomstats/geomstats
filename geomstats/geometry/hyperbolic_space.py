@@ -45,9 +45,6 @@ class HyperbolicSpace(EmbeddedManifold):
     The point_type variable allows to choose the
     representation of the points as input.
 
-    By default, point_type is set to 'extrinsic' indicating that
-    points are parameterized by their extrinsic (n+1)-coordinates.
-
     If point_type is set to 'ball' then points are parametrized
     by their coordinates inside the Poincare Ball (n)-coordinates.
     """
@@ -63,23 +60,23 @@ class HyperbolicSpace(EmbeddedManifold):
         self.metric = HyperbolicMetric(self.dimension, point_type, self.scale)
 
         self.transform_to = {
-            "ball-extrinsic":
+            'ball-extrinsic':
                 HyperbolicSpace._ball_to_extrinsic_coordinates,
-            "extrinsic-ball":
+            'extrinsic-ball':
                 HyperbolicSpace._extrinsic_to_ball_coordinates,
-            "intrinsic-extrinsic":
+            'intrinsic-extrinsic':
                 HyperbolicSpace._intrinsic_to_extrinsic_coordinates,
-            "extrinsic-intrinsic":
+            'extrinsic-intrinsic':
                 HyperbolicSpace._extrinsic_to_intrinsic_coordinates,
-            "extrinsic-half_plane":
+            'extrinsic-half-plane':
                 HyperbolicSpace._extrinsic_to_half_plane_coordinates,
-            "half_plane-extrinsic":
+            'half-plane-extrinsic':
                 HyperbolicSpace._half_plane_to_extrinsic_coordinates,
-            "extrinsic-extrinsic":
+            'extrinsic-extrinsic':
                 HyperbolicSpace._extrinsic_to_extrinsic_coordinates
         }
         self.belongs_to = {
-            "ball": HyperbolicSpace._belongs_ball
+            'ball': HyperbolicSpace._belongs_ball
         }
 
     @staticmethod
@@ -119,7 +116,7 @@ class HyperbolicSpace(EmbeddedManifold):
         -------
         belongs : array-like, shape=[n_samples, 1]
         """
-        if(self.point_type == 'ball'):
+        if self.point_type == 'ball':
             return self.belongs_to[self.point_type](point, tolerance=tolerance)
         else:
             point = gs.to_ndarray(point, to_ndim=2)
@@ -318,8 +315,8 @@ class HyperbolicSpace(EmbeddedManifold):
         expanded_denominator = gs.expand_dims(denominator, -1)
         expanded_denominator = gs.repeat(expanded_denominator,
                                          point.shape[-1], -1)
-        intrasic = (2*point)/expanded_denominator
-        return gs.concatenate([t, intrasic], -1)
+        intrinsic = (2*point)/expanded_denominator
+        return gs.concatenate([t, intrinsic], -1)
 
     @staticmethod
     def _half_plane_to_extrinsic_coordinates(point):
@@ -338,7 +335,7 @@ class HyperbolicSpace(EmbeddedManifold):
         extrinsic : array-like, shape=[n_samples, dimension + 1] in
                      extrinsic coordinate
         """
-        assert(point.shape[-1] == 2)
+        assert point.shape[-1] == 2
         x, y = point[:, 0], point[:, 1]
         x2 = point[:, 0]**2
         den = x2 + (1+y)**2
@@ -368,17 +365,24 @@ class HyperbolicSpace(EmbeddedManifold):
         """
         point_ball = \
             HyperbolicSpace._extrinsic_to_ball_coordinates(point)
-        assert(point_ball.shape[-1] == 2)
-        x, y = point_ball[:, 0], point_ball[:, 1]
-        x2 = point_ball[:, 0]**2
-        den = x2 + (1-y)**2
+        assert point_ball.shape[-1] == 2
+        point_ball_x, point_ball_y = point_ball[:, 0], point_ball[:, 1]
+        point_ball_x2 = point_ball_x**2
+        denom = point_ball_x2 + (1-point_ball_y)**2
 
-        x = gs.to_ndarray(x, to_ndim=2, axis=0)
-        y = gs.to_ndarray(y, to_ndim=2, axis=0)
-        x2 = gs.to_ndarray(x2, to_ndim=2, axis=0)
-        den = gs.to_ndarray(den, to_ndim=2, axis=0)
+        point_ball_x = gs.to_ndarray(
+            point_ball_x, to_ndim=2, axis=0)
+        point_ball_y = gs.to_ndarray(
+            point_ball_y, to_ndim=2, axis=0)
+        point_ball_x2 = gs.to_ndarray(
+            point_ball_x2, to_ndim=2, axis=0)
+        denom = gs.to_ndarray(
+            denom, to_ndim=2, axis=0)
 
-        return gs.hstack(((2*x)/den, (1-x2-y**2)/den))
+        point_half_plane = gs.hstack((
+            (2 * point_ball_x) / denom,
+            (1 - point_ball_x2 - point_ball_y**2) / denom))
+        return point_half_plane
 
     def to_coordinates(self, point, to_point_type='ball'):
         """
@@ -404,10 +408,10 @@ class HyperbolicSpace(EmbeddedManifold):
             return point
         else:
             extrinsic = self.transform_to[
-                self.point_type+"-extrinsic"
+                self.point_type+'-extrinsic'
                 ](point)
             return self.transform_to[
-                "extrinsic-"+to_point_type
+                'extrinsic-'+to_point_type
                 ](extrinsic)
 
     def from_coordinates(self, point, from_point_type):
@@ -572,6 +576,7 @@ class HyperbolicMetric(RiemannianMetric):
             return exp
 
         elif self.point_type == 'ball':
+
             norm_base_point = base_point.norm(2,
                                               -1, keepdim=True).expand_as(
                                                 base_point)
@@ -594,7 +599,7 @@ class HyperbolicMetric(RiemannianMetric):
             return exp
         else:
             raise NotImplementedError(
-                    "exp is only implemented for ball and extrinsic")
+                    'exp is only implemented for ball and extrinsic')
 
     def log(self, point, base_point):
         """
@@ -615,6 +620,7 @@ class HyperbolicMetric(RiemannianMetric):
         log : array-like, shape=[n_samples, dimension + 1]
                           or shape=[1, dimension + 1]
         """
+
         if self.point_type == 'extrinsic':
             point = gs.to_ndarray(point, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -654,6 +660,7 @@ class HyperbolicMetric(RiemannianMetric):
             return log
 
         elif self.point_type == 'ball':
+
             add_base_point = self.mobius_add(-base_point, point)
 
             norm_add = add_base_point.norm(2,
@@ -673,7 +680,7 @@ class HyperbolicMetric(RiemannianMetric):
             return res
         else:
             raise NotImplementedError(
-                    "log is only implemented for ball and extrinsic")
+                    'log is only implemented for ball and extrinsic')
 
     def mobius_add(self, point_a, point_b):
         """
@@ -693,12 +700,12 @@ class HyperbolicMetric(RiemannianMetric):
         mobius_add : array-like, shape=[n_samples, 1]
                            or shape=[1, 1]
         """
-        norm_point_a = gs.sum(point_a ** 2, dim=-1,
-                              keepdim=True).expand_as(point_a)
-        norm_point_b = gs.sum(point_b ** 2, dim=-1,
-                              keepdim=True).expand_as(point_a)
-        sum_prod_a_b = (point_a * point_b).sum(-1,
-                                               keepdim=True).expand_as(point_a)
+        norm_point_a = gs.sum(point_a ** 2, axis=-1,
+                              keepdims=True).expand_as(point_a)
+        norm_point_b = gs.sum(point_b ** 2, axis=-1,
+                              keepdims=True).expand_as(point_a)
+        sum_prod_a_b = (point_a * point_b).sum(
+            -1, keepdims=True).expand_as(point_a)
 
         add_nominator = ((1 + 2 * sum_prod_a_b + norm_point_b) * point_a +
                          (1 - norm_point_a) * point_b)
@@ -743,9 +750,11 @@ class HyperbolicMetric(RiemannianMetric):
 
             point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0., 1 - EPSILON)
             point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0., 1 - EPSILON)
+
             diff_norm = gs.sum((point_a - point_b) ** 2, -1)
             norm_function = 1 + 2 * \
                 diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
+
             dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
 
             return self.scale * dist

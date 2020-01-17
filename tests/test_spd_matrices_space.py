@@ -86,7 +86,10 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                                [1., .5, .5],
                                [1., .5, .5]])
         power = .5
-        result = self.space.differential_power(power=power, tangent_vec=tangent_vec, base_point=base_point)
+        result = self.space.differential_power(
+            power=power,
+            tangent_vec=tangent_vec,
+            base_point=base_point)
         expected = gs.array([[1., 1/3, 1/3],
                              [1/3, .125, .125],
                              [1/3, .125, .125]])
@@ -101,7 +104,10 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                                 [1 / 3, .125, .125],
                                 [1 / 3, .125, .125]])
         power = .5
-        result = self.space.inverse_differential_power(power=power, tangent_vec=tangent_vec, base_point=base_point)
+        result = self.space.inverse_differential_power(
+            power=power,
+            tangent_vec=tangent_vec,
+            base_point=base_point)
         expected = gs.array([[2., 1., 1.],
                              [1., .5, .5],
                              [1., .5, .5]])
@@ -138,20 +144,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    def test_power_euclidean_inner_product(self):
-        base_point = gs.array([[1., 0., 0.],
-                               [0., 2.5, 1.5],
-                               [0., 1.5, 2.5]])
-        tangent_vec = gs.array([[2., 1., 1.],
-                                [1., .5, .5],
-                                [1., .5, .5]])
-        metric = SPDMetricEuclidean(3, power_euclidean=.5)
-        result = metric.inner_product(tangent_vec, tangent_vec, base_point)
-        expected = 3472/576
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_power_euclidean_inner_product(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 2.5, 1.5],
