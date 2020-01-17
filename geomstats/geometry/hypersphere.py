@@ -394,6 +394,8 @@ class HypersphereMetric(RiemannianMetric):
                 einsum_str = 'ni,j->nj'
             else:
                 raise ValueError('Shape mismatch in einsum.')
+        else:
+            einsum_str = 'ni,nj->nj'
 
         exp = (gs.einsum(einsum_str, coef_1, base_point)
                + gs.einsum('ni,nj->nj', coef_2, proj_tangent_vec))
