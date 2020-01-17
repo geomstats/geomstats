@@ -43,6 +43,10 @@ def amax(x):
     return torch.max(x)
 
 
+def amin(x):
+    return torch.min(x)
+
+
 def boolean_mask(x, mask):
     idx = np.argwhere(np.asarray(mask))
     return x[idx]
@@ -243,10 +247,6 @@ def to_ndarray(x, to_ndim, axis=0):
 
 def sqrt(val):
     return torch.sqrt(torch.tensor(val).float())
-
-
-def norm(val, axis):
-    return torch.linalg.norm(val, axis=axis)
 
 
 def isclose(*args, **kwargs):

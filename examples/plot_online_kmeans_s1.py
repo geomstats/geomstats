@@ -20,7 +20,7 @@ TOLERANCE = 1e-6
 def main():
     circle = Hypersphere(dimension=1)
 
-    data = circle.random_uniform(n_samples=1000, bound=None)
+    data = circle.random_uniform(n_samples=1000)
 
     n_clusters = 5
     clustering = OnlineKMeans(metric=circle.metric, n_clusters=n_clusters)
