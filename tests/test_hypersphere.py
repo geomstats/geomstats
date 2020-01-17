@@ -123,7 +123,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = point
         expected = helper.to_vector(expected)
 
-        self.assertAllClose(result, expected, atol=1e-8)
+        self.assertAllClose(result, expected, atol=1e-6)
 
     def test_log_and_exp_edge_case(self):
         """
