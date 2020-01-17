@@ -149,20 +149,38 @@ class SPDMatricesSpace(EmbeddedManifold):
         eigvalues, eigvectors = gs.linalg.eigh(base_point)
         eigvalues = gs.to_ndarray(eigvalues, to_ndim=3, axis=1)
         transp_eigvalues = gs.transpose(eigvalues, (0, 2, 1))
-        powered_eigvalues = eigvalues**power
+
+        if power == 0:
+            powered_eigvalues = gs.log(eigvalues)
+        elif power == math.inf:
+            powered_eigvalues = gs.exp(eigvalues)
+        else:
+            powered_eigvalues = eigvalues**power
         transp_powered_eigvalues = gs.transpose(powered_eigvalues, (0, 2, 1))
         ones = gs.ones((n_base_points, 1, self.n))
         transp_ones = gs.transpose(ones, (0, 2, 1))
 
         vertical_index = gs.matmul(transp_eigvalues, ones)
         horizontal_index = gs.matmul(transp_ones, eigvalues)
+        one_matrix = gs.matmul(transp_ones, ones)
         vertical_index_power = gs.matmul(transp_powered_eigvalues, ones)
         horizontal_index_power = gs.matmul(transp_ones, powered_eigvalues)
         denominator = vertical_index - horizontal_index
         numerator = vertical_index_power - horizontal_index_power
-        numerator = gs.where(denominator == 0, power*vertical_index_power,
-                             numerator)
-        denominator = gs.where(denominator == 0, vertical_index, denominator)
+
+        if power == 0:
+            numerator = gs.where(denominator == 0, one_matrix, numerator)
+            denominator = gs.where(denominator == 0, vertical_index,
+                                   denominator)
+        elif power == math.inf:
+            numerator = gs.where(denominator == 0, vertical_index_power,
+                                 numerator)
+            denominator = gs.where(denominator == 0, one_matrix, denominator)
+        else:
+            numerator = gs.where(denominator == 0, power*vertical_index_power,
+                                 numerator)
+            denominator = gs.where(denominator == 0, vertical_index,
+                                   denominator)
 
         transp_eigvectors = gs.transpose(eigvectors, (0, 2, 1))
         temp_result = gs.matmul(transp_eigvectors, tangent_vec)
@@ -216,6 +234,104 @@ class SPDMatricesSpace(EmbeddedManifold):
         """
         eigvectors, transp_eigvectors, numerator, denominator, temp_result =\
             self.aux_differential_power(power, tangent_vec, base_point)
+        power_operator = denominator / numerator
+        result = power_operator * temp_result
+        result = gs.matmul(result, transp_eigvectors)
+        result = gs.matmul(eigvectors, result)
+        return result
+
+    def differential_log(self, tangent_vec, base_point):
+        """
+        Computes the differential of the matrix logarithm on SPD
+        matrices at base_point applied to tangent_vec.
+
+        Parameters
+        ----------
+        tangent_vec : array_like, shape=[n_samples, n, n]
+                      Tangent vectors.
+        base_point : array_like, shape=[n_samples, n, n]
+                     Base points.
+
+        Returns
+        -------
+        differential_log : array-like, shape=[n_samples, n, n]
+        """
+        eigvectors, transp_eigvectors, numerator, denominator, temp_result =\
+            self.aux_differential_power(0, tangent_vec, base_point)
+        power_operator = numerator / denominator
+        result = power_operator * temp_result
+        result = gs.matmul(result, transp_eigvectors)
+        result = gs.matmul(eigvectors, result)
+        return result
+
+    def inverse_differential_log(self, tangent_vec, base_point):
+        """
+        Computes the inverse of the differential of the matrix
+        logarithm on SPD matrices at base_point applied to
+        tangent_vec.
+
+        Parameters
+        ----------
+        tangent_vec : array_like, shape=[n_samples, n, n]
+                      Tangent vectors.
+        base_point : array_like, shape=[n_samples, n, n]
+                     Base points.
+
+        Returns
+        -------
+        inverse_differential_log : array-like, shape=[n_samples, n, n]
+        """
+        eigvectors, transp_eigvectors, numerator, denominator, temp_result =\
+            self.aux_differential_power(0, tangent_vec, base_point)
+        power_operator = denominator / numerator
+        result = power_operator * temp_result
+        result = gs.matmul(result, transp_eigvectors)
+        result = gs.matmul(eigvectors, result)
+        return result
+
+    def differential_exp(self, tangent_vec, base_point):
+        """
+        Computes the differential of the matrix exponential on SPD
+        matrices at base_point applied to tangent_vec.
+
+        Parameters
+        ----------
+        tangent_vec : array_like, shape=[n_samples, n, n]
+                      Tangent vectors.
+        base_point : array_like, shape=[n_samples, n, n]
+                     Base points.
+
+        Returns
+        -------
+        differential_log : array-like, shape=[n_samples, n, n]
+        """
+        eigvectors, transp_eigvectors, numerator, denominator, temp_result = \
+            self.aux_differential_power(math.inf, tangent_vec, base_point)
+        power_operator = numerator / denominator
+        result = power_operator * temp_result
+        result = gs.matmul(result, transp_eigvectors)
+        result = gs.matmul(eigvectors, result)
+        return result
+
+    def inverse_differential_exp(self, tangent_vec, base_point):
+        """
+        Computes the inverse of the differential of the matrix
+        logarithm on SPD matrices at base_point applied to
+        tangent_vec.
+
+        Parameters
+        ----------
+        tangent_vec : array_like, shape=[n_samples, n, n]
+                      Tangent vectors.
+        base_point : array_like, shape=[n_samples, n, n]
+                     Base points.
+
+        Returns
+        -------
+        inverse_differential_log : array-like, shape=[n_samples, n, n]
+        """
+        eigvectors, transp_eigvectors, numerator, denominator, temp_result = \
+            self.aux_differential_power(math.inf, tangent_vec, base_point)
         power_operator = denominator / numerator
         result = power_operator * temp_result
         result = gs.matmul(result, transp_eigvectors)
