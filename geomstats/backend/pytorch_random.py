@@ -34,4 +34,3 @@ def choice(a, size=None, replace=True, p=None):
 
     sample = a[torch.multinomial(p, size_prod, replacement=replace)]
     return sample.reshape(size)
-
