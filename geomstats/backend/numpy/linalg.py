@@ -13,6 +13,7 @@ from numpy.linalg import (  # NOQA
     svd
 )
 
+# TODO(nina): Clean this import
 from geomstats.backend.numpy.__init__ import to_ndarray
 
 
