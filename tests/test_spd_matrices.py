@@ -283,6 +283,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_log_and_exp_logeuclidean(self):
         base_point = gs.array([[5., 0., 0.],
                                [0., 7., 2.],
