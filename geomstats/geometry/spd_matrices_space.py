@@ -365,6 +365,12 @@ class SPDMetricAffine(RiemannianMetric):
         self.space = SPDMatricesSpace(n)
         self.power_affine = power_affine
 
+    def _aux_inner_product(self, tangent_vec_a, tangent_vec_b, inv_base_point):
+        aux_a = gs.matmul(inv_base_point, tangent_vec_a)
+        aux_b = gs.matmul(inv_base_point, tangent_vec_b)
+        inner_product = gs.trace(gs.matmul(aux_a, aux_b), axis1=1, axis2=2)
+        return inner_product
+
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """
         Compute the inner product of tangent_vec_a and tangent_vec_b
@@ -404,12 +410,11 @@ class SPDMetricAffine(RiemannianMetric):
                 base_point,
                 (gs.maximum(n_tangent_vecs_a, n_tangent_vecs_b), 1, 1))
 
-        inv_base_point = gs.linalg.inv(base_point)
-
         if power_affine == 1:
-            aux_a = gs.matmul(inv_base_point, tangent_vec_a)
-            aux_b = gs.matmul(inv_base_point, tangent_vec_b)
-            inner_product = gs.trace(gs.matmul(aux_a, aux_b), axis1=1, axis2=2)
+            inv_base_point = gs.linalg.inv(base_point)
+            inner_product = self._aux_inner_product(tangent_vec_a,
+                                                    tangent_vec_b,
+                                                    inv_base_point)
         else:
             modified_tangent_vec_a =\
                 spd_space.differential_power(power_affine, tangent_vec_a,
@@ -417,14 +422,11 @@ class SPDMetricAffine(RiemannianMetric):
             modified_tangent_vec_b =\
                 spd_space.differential_power(power_affine, tangent_vec_b,
                                              base_point)
-            power_log_inv_base_point =\
-                power_affine * gs.linalg.logm(inv_base_point)
-            power_inv_base_point = gs.linalg.expm(power_log_inv_base_point)
-            aux_a = gs.matmul(power_inv_base_point, modified_tangent_vec_a)
-            aux_b = gs.matmul(power_inv_base_point, modified_tangent_vec_b)
-            product = gs.matmul(aux_a, aux_b)
-            inner_product = gs.trace(product, axis1=1, axis2=2)\
-                / (power_affine**2)
+            power_inv_base_point = gs.linalg.powerm(base_point, -power_affine)
+            inner_product = self._aux_inner_product(modified_tangent_vec_a,
+                                                    modified_tangent_vec_b,
+                                                    power_inv_base_point)
+            inner_product = inner_product / (power_affine**2)
 
         inner_product = gs.to_ndarray(inner_product, to_ndim=2, axis=1)
 
