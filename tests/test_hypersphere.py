@@ -572,7 +572,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
                              [0, 0.2, -0.3]])
         self.assertAllClose(result, expected)
 
-    def test_christoffels(self):
+    def test_christoffels_vectorization(self):
         """
         Check vectorization of Christoffel symbols in
         spherical coordinates on the 2-sphere.
