@@ -1,3 +1,11 @@
+"""Module providing an implementation of MatrixLieAlgebras.
+
+There are two main forms of representation for elements of a MatrixLieAlgebra
+implemented here. The first one is as a matrix, as elements of R^(n x n).
+The second is by choosing a base and remembering the coefficients of an element
+in that base. This base will be provided in child classes
+(e.g. SkewSymmetricMatrices).
+"""
 import geomstats.backend as gs
 
 bch_info = gs.array(
@@ -9,17 +17,28 @@ bch_info = gs.array(
 
 
 class MatrixLieAlgebra:
-    """
-    Class implementing matrix Lie algebra related functions.
-    """
+    """Class implementing matrix Lie algebra related functions."""
 
     def __init__(self, dimension, n):
+        """Construct the MatrixLieAlgebra object.
+
+        Parameters
+        ----------
+        dimension: int
+            The dimension of the Lie algebra as a real vector space
+        n: int
+            The amount of rows and columns in the matrx representation of the
+            Lie algebra
+        """
         self.dimension = dimension
         self.n = n
         self.basis = None
 
     def lie_bracket(self, matrix_a, matrix_b):
-        """
+        """Compute the Lie_bracket (commutator) of two matrices.
+
+        Notice that inputs have to be given in matrix form, no conversion
+        between basis and matrix representation is attempted.
         Parameters
         ----------
         matrix_a: array-like, shape=[n_sample, n, n]
@@ -33,9 +52,7 @@ class MatrixLieAlgebra:
         return gs.matmul(matrix_a, matrix_b) - gs.matmul(matrix_b, matrix_a)
 
     def baker_campbell_hausdorff(self, matrix_a, matrix_b, order=2):
-        """
-        Calculates the Baker Campbell Hausdorff approximation up to
-        the given order.
+        """Calculate the Baker Campbell Hausdorff approximation of given order.
 
         We use the algorithm published by Casas / Murua in their paper
         "An efficient algorithm for computing the Baker–Campbell–Hausdorff
@@ -56,7 +73,6 @@ class MatrixLieAlgebra:
             the order to which the approximation is calculated. Note that this
             is NOT the same as using only E_i with i < order
         """
-
         number_of_hom_degree = gs.array(
             [
                 2,
@@ -98,7 +114,8 @@ class MatrixLieAlgebra:
         return result
 
     def basis_representation(self, matrix_representation):
-        """
+        """Compute the coefficients of matrices in the given base.
+
         Parameters
         ----------
         matrix_representation: array-like, shape=[n_sample, n, n]
@@ -110,7 +127,11 @@ class MatrixLieAlgebra:
         raise NotImplementedError("basis_representation not implemented.")
 
     def matrix_representation(self, basis_representation):
-        """
+        """Compute the matrix representation for the given basis coefficients.
+
+        Sums the basis elements according to the coefficents given in
+        basis_representation.
+
         Parameters
         ----------
         basis_representation: array-like, shape=[n_sample, dimension]
