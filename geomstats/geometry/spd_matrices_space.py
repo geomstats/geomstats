@@ -452,6 +452,7 @@ class SPDMetricAffine(RiemannianMetric):
         This gives a symmetric positive definite matrix.
         """
         power_affine = self.power_affine
+        ndim = gs.maximum(gs.ndim(tangent_vec), gs.ndim(base_point))
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         n_tangent_vecs, _, _ = tangent_vec.shape
 
@@ -470,17 +471,21 @@ class SPDMetricAffine(RiemannianMetric):
         if power_affine == 1:
             sqrt_base_point = gs.linalg.sqrtm(base_point)
             inv_sqrt_base_point = gs.linalg.inv(sqrt_base_point)
-            exp = self._aux_exp(tangent_vec, sqrt_base_point, inv_sqrt_base_point)
+            exp = self._aux_exp(tangent_vec, sqrt_base_point,
+                                inv_sqrt_base_point)
         else:
             modified_tangent_vec = self.space.differential_power(power_affine,
                                                                  tangent_vec,
                                                                  base_point)
-            power_sqrt_base_point = gs.linalg.powerm(base_point, power_affine/2)
+            power_sqrt_base_point = gs.linalg.powerm(base_point,
+                                                     power_affine/2)
             power_inv_sqrt_base_point = gs.linalg.inv(power_sqrt_base_point)
             exp = self._aux_exp(modified_tangent_vec, power_sqrt_base_point,
                                 power_inv_sqrt_base_point)
             exp = gs.linalg.powerm(exp, 1/power_affine)
 
+        if ndim == 2:
+            return exp[0]
         return exp
 
     def _aux_log(self, point, sqrt_base_point, inv_sqrt_base_point):
@@ -500,6 +505,7 @@ class SPDMetricAffine(RiemannianMetric):
         This gives a tangent vector at point base_point.
         """
         power_affine = self.power_affine
+        ndim = gs.maximum(gs.ndim(point), gs.ndim(base_point))
         point = gs.to_ndarray(point, to_ndim=3)
         n_points, _, _ = point.shape
 
@@ -521,11 +527,16 @@ class SPDMetricAffine(RiemannianMetric):
             log = self._aux_log(point, sqrt_base_point, inv_sqrt_base_point)
         else:
             power_point = gs.linalg.powerm(point, power_affine)
-            power_sqrt_base_point = gs.linalg.powerm(base_point, power_affine/2)
+            power_sqrt_base_point = gs.linalg.powerm(base_point,
+                                                     power_affine/2)
             power_inv_sqrt_base_point = gs.linalg.inv(power_sqrt_base_point)
-            log = self._aux_log(power_point, power_sqrt_base_point, power_inv_sqrt_base_point)
-            log = self.space.inverse_differential_power(power_affine, log, base_point)
+            log = self._aux_log(power_point, power_sqrt_base_point,
+                                power_inv_sqrt_base_point)
+            log = self.space.inverse_differential_power(power_affine, log,
+                                                        base_point)
 
+        if ndim == 2:
+            return log[0]
         return log
 
     def geodesic(self, initial_point, initial_tangent_vec):
