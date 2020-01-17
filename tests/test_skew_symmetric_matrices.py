@@ -8,7 +8,7 @@ from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 
 class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
     def setUp(self):
-        self.n_seq = gs.arange(3, 10)
+        self.n_seq = [3, 4, 5, 6, 7, 8, 9, 10]
         self.so = {n: SkewSymmetricMatrices(n=n) for n in self.n_seq}
 
     def test_basis_is_skew_symmetric(self):
@@ -60,6 +60,7 @@ class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
             )
             self.assertAllClose(expected, result)
 
+    @geomstats.tests.np_only
     def test_basis_representation_is_correctly_vectorized(self):
         for n in self.n_seq:
             so = self.so[n]

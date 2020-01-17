@@ -8,12 +8,10 @@ in that base. This base will be provided in child classes
 """
 import geomstats.backend as gs
 
-bch_info = gs.array(
-    [
-        [int(x) for x in i.strip().split()]
-        for i in open("geomstats/geometry/bchHall20.dat").readlines()
-    ]
-)
+bch_info = gs.asarray([
+    [int(x) for x in i.strip().split()]
+    for i in open("geomstats/geometry/bchHall20.dat").readlines()
+    ])
 
 
 class MatrixLieAlgebra:
