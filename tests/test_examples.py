@@ -90,9 +90,9 @@ class TestExamples(geomstats.tests.TestCase):
         tangent_pca_so3.main()
 
     @geomstats.tests.np_only
-    def test_plot_online_k_means_s1(self):
+    def test_plot_online_kmeans_s1(self):
         plot_online_kmeans_s1.main()
 
     @geomstats.tests.np_only
-    def test_plot_online_k_means_s2(self):
+    def test_plot_online_kmeans_s2(self):
         plot_online_kmeans_s2.main()
