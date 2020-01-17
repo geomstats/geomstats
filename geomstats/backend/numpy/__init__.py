@@ -82,7 +82,6 @@ from numpy import (  # NOQA
 
 from . import linalg  # NOQA
 from . import random  # NOQA
-from . import testing  # NOQA
 
 
 int32 = _np.int32
