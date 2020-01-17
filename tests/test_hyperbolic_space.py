@@ -331,7 +331,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         self.space.metric.point_type = 'extrinsic'
 
         result = dist_a_b
-        expected = gs.array([2.887270927429199])
+        expected = gs.array([[2.887270927429199]])
 
         with self.session():
             self.assertAllClose(result, expected)

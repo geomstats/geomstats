@@ -273,5 +273,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         result = self.l2_metric_r3.norm(srv_derivative, geod[:-1, :-1, :])
         result = gs.sum(result, 0) / self.n_discretized_curves
         expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)
+        expected = gs.to_ndarray(expected, to_ndim=1)
+        expected = gs.to_ndarray(expected, to_ndim=2, axis=1)
 
         self.assertAllClose(result, expected)
