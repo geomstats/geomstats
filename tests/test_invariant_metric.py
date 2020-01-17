@@ -326,12 +326,14 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
         result = helper.log_then_exp(self.left_diag_metric,
                                      base_point, self.point_1)
         expected = self.group.regularize(self.point_1)
+        # FIXME:
         # self.assertAllClose(result, expected)
 
         # Edge case, small angle
         result = helper.log_then_exp(self.left_diag_metric,
                                      base_point, self.point_small)
         expected = self.group.regularize(self.point_small)
+        # FIXME:
         # self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
@@ -348,11 +350,13 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
         result = helper.log_then_exp(self.left_metric,
                                      base_point, self.point_1)
         expected = self.point_1
+        # FIXME
         # self.assertAllClose(result, expected)
 
         result = helper.log_then_exp(self.left_metric,
                                      base_point, self.point_small)
         expected = self.point_small
+        # FIXME
         # self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
@@ -368,11 +372,13 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
         result = helper.log_then_exp(self.right_diag_metric,
                                      base_point, self.point_1)
         expected = self.group.regularize(self.point_1)
+        # FIXME
         # self.assertAllClose(result, expected)
 
         result = helper.log_then_exp(self.right_diag_metric,
                                      base_point, self.point_small)
         expected = self.group.regularize(self.point_small)
+        # FIXME
         # self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
@@ -388,11 +394,13 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
         result = helper.log_then_exp(self.right_metric,
                                      base_point, self.point_1)
         expected = self.point_1
+        # FIXME
         # self.assertAllClose(result, expected)
 
         result = helper.log_then_exp(self.right_metric,
                                      base_point, self.point_small)
         expected = self.point_small
+        # FIXME
         # self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
