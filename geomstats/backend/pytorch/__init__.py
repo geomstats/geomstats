@@ -1,7 +1,11 @@
 """Pytorch based computation backend."""
 
-import numpy as np
+import numpy as _np
 import torch
+
+from . import linalg  # NOQA
+from . import random  # NOQA
+from . import testing  # NOQA
 
 double = 'torch.DoubleTensor'
 float16 = 'torch.Float'
@@ -48,7 +52,7 @@ def amin(x):
 
 
 def boolean_mask(x, mask):
-    idx = np.argwhere(np.asarray(mask))
+    idx = _np.argwhere(_np.asarray(mask))
     return x[idx]
 
 
@@ -77,7 +81,7 @@ def repeat(x, repeat_time, axis=None):
 
 
 def asarray(x):
-    return np.asarray(x)
+    return _np.asarray(x)
 
 
 def concatenate(seq, axis=0, out=None):
@@ -104,17 +108,17 @@ def vstack(seq):
 def array(val):
     if isinstance(val, list):
         if not isinstance(val[0], torch.Tensor):
-            val = np.copy(np.array(val))
+            val = _np.copy(_np.array(val))
         else:
             val = concatenate(val)
 
     if isinstance(val, bool):
-        val = np.array(val)
-    if isinstance(val, np.ndarray):
+        val = _np.array(val)
+    if isinstance(val, _np.ndarray):
         if val.dtype == bool:
-            val = torch.from_numpy(np.array(val, dtype=np.uint8))
-        elif val.dtype == np.float32 or val.dtype == np.float64:
-            val = torch.from_numpy(np.array(val, dtype=np.float32))
+            val = torch.from_numpy(_np.array(val, dtype=_np.uint8))
+        elif val.dtype == _np.float32 or val.dtype == _np.float64:
+            val = torch.from_numpy(_np.array(val, dtype=_np.float32))
         else:
             val = torch.from_numpy(val)
 
@@ -130,11 +134,11 @@ def abs(val):
 
 
 def zeros(*args):
-    return torch.from_numpy(np.zeros(*args)).float()
+    return torch.from_numpy(_np.zeros(*args)).float()
 
 
 def ones(*args):
-    return torch.from_numpy(np.ones(*args)).float()
+    return torch.from_numpy(_np.ones(*args)).float()
 
 
 def ones_like(*args, **kwargs):
@@ -148,7 +152,7 @@ def empty_like(*args, **kwargs):
 def all(x, axis=None):
     if axis is None:
         return x.byte().all()
-    return torch.from_numpy(np.all(np.array(x), axis=axis).astype(int))
+    return torch.from_numpy(_np.all(_np.array(x), axis=axis).astype(int))
 
 
 def allclose(a, b, **kwargs):
@@ -221,8 +225,8 @@ def shape(val):
 
 
 def dot(a, b):
-    dot = np.dot(a, b)
-    return torch.from_numpy(np.array(dot)).float()
+    dot = _np.dot(a, b)
+    return torch.from_numpy(_np.array(dot)).float()
 
 
 def maximum(a, b):
@@ -249,12 +253,16 @@ def sqrt(val):
     return torch.sqrt(torch.tensor(val).float())
 
 
-def isclose(*args, **kwargs):
-    if version_maj() >= 1 and version_min() > 1:
-        return torch.from_numpy(np.isclose(*args, **kwargs))
-    else:
-        return torch.from_numpy(
-                np.isclose(*args, **kwargs).astype(np.uint8))
+def norm(val, axis):
+    return torch.linalg.norm(val, axis=axis)
+
+
+if torch.__version__ >= "1.1":
+    def isclose(*args, **kwargs):
+        return torch.from_numpy(_np.isclose(*args, **kwargs))
+else:
+    def isclose(*args, **kwargs):
+        return torch.from_numpy(_np.isclose(*args, **kwargs).astype(_np.uint8))
 
 
 def less(a, b):
@@ -262,7 +270,7 @@ def less(a, b):
 
 
 def less_equal(a, b):
-    return np.less_equal(a, b)
+    return _np.less_equal(a, b)
 
 
 def eye(*args, **kwargs):
@@ -288,7 +296,7 @@ def sum(x, axis=None, keepdims=None, **kwargs):
 
 
 def einsum(*args, **kwargs):
-    return torch.from_numpy(np.einsum(*args, **kwargs)).float()
+    return torch.from_numpy(_np.einsum(*args, **kwargs)).float()
 
 
 def T(x):
@@ -315,8 +323,8 @@ def zeros_like(*args, **kwargs):
 
 
 def trace(*args, **kwargs):
-    trace = np.trace(*args, **kwargs)
-    return torch.from_numpy(np.array(trace)).float()
+    trace = _np.trace(*args, **kwargs)
+    return torch.from_numpy(_np.array(trace)).float()
 
 
 def mod(*args, **kwargs):
@@ -340,7 +348,7 @@ def floor(*args, **kwargs):
 
 
 def cross(x, y):
-    return torch.from_numpy(np.cross(x, y))
+    return torch.from_numpy(_np.cross(x, y))
 
 
 def triu_indices(*args, **kwargs):
@@ -353,15 +361,13 @@ def where(*args, **kwargs):
 
 def tile(x, y):
     # TODO(johmathe): Native tile implementation
-    return array(np.tile(x, y))
+    return array(_np.tile(x, y))
 
 
 def clip(x, amin, amax):
-
     if x.dtype == 'torch.float':
         return torch.clamp(x, amin, amax)
-
-    return np.clip(x, amin, amax)
+    return _np.clip(x, amin, amax)
 
 
 def clamp(*args, **kwargs):
@@ -447,7 +453,7 @@ def mean(x, axis=None):
     if axis is None:
         return torch.mean(x)
     else:
-        return np.mean(x, axis)
+        return _np.mean(x, axis)
 
 
 def argmin(*args, **kwargs):

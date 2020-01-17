@@ -1,6 +1,6 @@
 """Numpy based computation backend."""
 
-import numpy as np
+import numpy as _np
 from numpy import (  # NOQA
     abs,
     all,
@@ -80,15 +80,15 @@ from numpy import (  # NOQA
     zeros_like
 )
 
-
-int32 = np.int32
-int8 = np.int8
-float32 = np.float32
-float64 = np.float64
+from . import linalg  # NOQA
+from . import random  # NOQA
+from . import testing  # NOQA
 
 
-def copy(x):
-    return x.copy()
+int32 = _np.int32
+int8 = _np.int8
+float32 = _np.float32
+float64 = _np.float64
 
 
 def indexing(x):
@@ -132,8 +132,8 @@ def gather(x, indices, axis=0):
 
 def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
     if multiple_args:
-        return np.vectorize(pyfunc, signature=signature)(*x)
-    return np.vectorize(pyfunc, signature=signature)(x)
+        return _np.vectorize(pyfunc, signature=signature)(*x)
+    return _np.vectorize(pyfunc, signature=signature)(x)
 
 
 def cond(pred, true_fn, false_fn):
@@ -143,7 +143,7 @@ def cond(pred, true_fn, false_fn):
 
 
 def cast_to_complex(x):
-    return np.vectorize(complex)(x)
+    return _np.vectorize(complex)(x)
 
 
 def boolean_mask(x, mask):
@@ -155,18 +155,30 @@ def cast(x, dtype):
 
 
 def to_ndarray(x, to_ndim, axis=0):
-    x = np.asarray(x)
+    x = _np.asarray(x)
     if x.ndim == to_ndim - 1:
-        x = np.expand_dims(x, axis=axis)
+        x = _np.expand_dims(x, axis=axis)
     assert x.ndim >= to_ndim
     return x
+
+
+def norm(val, axis):
+    return _np.linalg.norm(val, axis=axis)
+
+
+def rand(*args, **largs):
+    return _np.random.rand(*args, **largs)
+
+
+def randint(*args, **kwargs):
+    return _np.random.randint(*args, **kwargs)
 
 
 def diag(x):
     x = to_ndarray(x, to_ndim=2)
     _, n = shape(x)
-    aux = np.vectorize(
-        np.diagflat,
+    aux = _np.vectorize(
+        _np.diagflat,
         signature='(m,n)->(k,k)')(x)
     k, k = shape(aux)
     m = int(k / n)
@@ -187,4 +199,12 @@ def ndim(x):
 def cumprod(x, axis=0):
     if axis is None:
         raise NotImplementedError('cumprod is not defined where axis is None')
-    return np.cumprod(x, axis=axis)
+    return _np.cumprod(x, axis=axis)
+
+
+def normal(*args, **kwargs):
+    return _np.random.normal(*args, **kwargs)
+
+
+def copy(x):
+    return x.copy()

@@ -45,9 +45,6 @@ class HyperbolicSpace(EmbeddedManifold):
     The point_type variable allows to choose the
     representation of the points as input.
 
-    By default, point_type is set to 'extrinsic' indicating that
-    points are parameterized by their extrinsic (n+1)-coordinates.
-
     If point_type is set to 'ball' then points are parametrized
     by their coordinates inside the Poincare Ball (n)-coordinates.
     """
@@ -579,6 +576,7 @@ class HyperbolicMetric(RiemannianMetric):
             return exp
 
         elif self.point_type == 'ball':
+
             norm_base_point = base_point.norm(2,
                                               -1, keepdim=True).expand_as(
                                                 base_point)
@@ -622,6 +620,7 @@ class HyperbolicMetric(RiemannianMetric):
         log : array-like, shape=[n_samples, dimension + 1]
                           or shape=[1, dimension + 1]
         """
+
         if self.point_type == 'extrinsic':
             point = gs.to_ndarray(point, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -661,6 +660,7 @@ class HyperbolicMetric(RiemannianMetric):
             return log
 
         elif self.point_type == 'ball':
+
             add_base_point = self.mobius_add(-base_point, point)
 
             norm_add = add_base_point.norm(2,
@@ -750,9 +750,11 @@ class HyperbolicMetric(RiemannianMetric):
 
             point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0., 1 - EPSILON)
             point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0., 1 - EPSILON)
+
             diff_norm = gs.sum((point_a - point_b) ** 2, -1)
             norm_function = 1 + 2 * \
                 diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
+
             dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
 
             return self.scale * dist

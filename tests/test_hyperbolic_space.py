@@ -3,7 +3,6 @@ Unit tests for the Hyperbolic space.
 """
 
 import math
-import numpy as np
 
 import geomstats.backend as gs
 import geomstats.tests
@@ -327,6 +326,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         point_b = gs.array([0.5, -0.5])
 
         self.space.metric.point_type = 'ball'
+
         dist_a_b = self.metric.dist(point_a, point_b)
         self.space.metric.point_type = 'extrinsic'
 

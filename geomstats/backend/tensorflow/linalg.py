@@ -2,7 +2,7 @@
 
 import tensorflow as tf
 
-from geomstats.backend.tensorflow import to_ndarray
+from .common import to_ndarray
 
 
 def sqrtm(sym_mat):
