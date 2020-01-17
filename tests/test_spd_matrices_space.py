@@ -239,15 +239,29 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         base_point = gs.array([[5., 0., 0.],
                                [0., 7., 2.],
                                [0., 2., 8.]])
-        point = gs.array([[[9., 0., 0.],
+        point = gs.array([[9., 0., 0.],
                           [0., 5., 0.],
-                          [0., 0., 1.]]])
+                          [0., 0., 1.]])
 
         metric = self.metric_affine
         log = metric.log(point=point, base_point=base_point)
         result = metric.exp(tangent_vec=log, base_point=base_point)
-        expected = helper.to_matrix(point)
+        expected = point
 
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
+    def test_log_and_exp_power_affine(self):
+        base_point = gs.array([[5., 0., 0.],
+                               [0., 7., 2.],
+                               [0., 2., 8.]])
+        point = gs.array([[9., 0., 0.],
+                          [0., 5., 0.],
+                          [0., 0., 1.]])
+        metric = SPDMetricAffine(3, power_affine=.5)
+        log = metric.log(point, base_point)
+        result = metric.exp(log, base_point)
+        expected = point
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
