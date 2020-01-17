@@ -1,43 +1,40 @@
-import unittest
-import numpy as np
+"""Unit tests for Tangent PCA."""
+
 
 import geomstats.backend as gs
-assert_allclose = gs.testing.assert_allclose
+import geomstats.tests
+
 from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 from geomstats.learning.pca import TangentPCA
 
 
-SO3 = SpecialOrthogonalGroup(n=3)
-metric = SO3.bi_invariant_metric
-N_SAMPLES = 10
-N_COMPONENTS = 2
-
-
-# XXX: Should these tests run on all backends?
-
-class TestTangentPCA(unittest.TestCase):
+class TestTangentPCA(geomstats.test.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
-        self.X = SO3.random_uniform(n_samples=N_SAMPLES)
+        self.so3 = SpecialOrthogonalGroup(n=3)
+        self.n_samples = 10
+
+        self.X = self.so3.random_uniform(n_samples=self.n_samples)
+        self.metric = self.so3.bi_invariant_metric
+        self.n_components = 2
 
     def test_tangent_pca_error(self):
         X = self.X
-        trans = TangentPCA(metric, n_components=N_COMPONENTS)
+        trans = TangentPCA(self.metric, n_components=self.n_components)
         trans.fit(X)
-        X_diff_size = np.ones((10, X.shape[1] + 1))
+        X_diff_size = gs.ones((self.n_samples, gs.shape(X)[1] + 1))
         self.assertRaises(trans.transform(X_diff_size), ValueError)
 
     def test_tangent_pca(self):
         X = self.X
-        trans = TangentPCA(metric, n_components=N_COMPONENTS)
-        self.assertEquals(trans.demo_param, 'demo')
+        trans = TangentPCA(self.metric, n_components=self.n_components)
 
         trans.fit(X)
-        self.assertEquals(trans.n_features_, X.shape[1])
+        self.assertEquals(trans.n_features_, gs.shape(X)[1])
 
         X_trans = trans.transform(X)
-        assert_allclose(X_trans, np.sqrt(X))
+        self.assertAllClose(X_trans, gs.sqrt(X))
 
         X_trans = trans.fit_transform(X)
-        assert_allclose(X_trans, np.sqrt(X))
+        self.assertAllClose(X_trans, gs.sqrt(X))
