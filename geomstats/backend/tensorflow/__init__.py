@@ -2,6 +2,10 @@
 
 import tensorflow as tf
 
+from .common import array, ndim, to_ndarray  # NOQA
+from . import linalg  # NOQA
+from . import random  # NOQA
+
 
 int8 = tf.int8
 int32 = tf.int32
@@ -175,14 +179,6 @@ def shape(x):
     return tf.shape(x)
 
 
-def ndim(x):
-    x = array(x)
-    dims = x.get_shape()._dims
-    if dims is not None:
-        return len(dims)
-    return None
-
-
 def dot(x, y):
     return tf.tensordot(x, y, axes=1)
 
@@ -201,13 +197,6 @@ def greater_equal(x, y):
 
 def equal(x, y):
     return tf.equal(x, y)
-
-
-def to_ndarray(x, to_ndim, axis=0):
-    if ndim(x) == to_ndim - 1:
-        x = tf.expand_dims(x, axis=axis)
-
-    return x
 
 
 def sqrt(x):
@@ -275,10 +264,6 @@ def trace(x, **kwargs):
     return tf.trace(x)
 
 
-def array(x):
-    return tf.convert_to_tensor(x)
-
-
 def all(bool_tensor, axis=None, keepdims=False):
     bool_tensor = tf.cast(bool_tensor, tf.bool)
     all_true = tf.reduce_all(bool_tensor, axis, keepdims)
@@ -337,3 +322,10 @@ def mean(x, axis=None):
 
 def argmin(*args, **kwargs):
     return tf.argmin(*args, **kwargs)
+
+
+def cumprod(x, axis=0):
+    if axis is None:
+        raise NotImplementedError('cumprod is not defined where axis is None')
+    else:
+        return tf.math.cumprod(x, axis=axis)

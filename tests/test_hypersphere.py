@@ -3,21 +3,18 @@ Unit tests for the Hypersphere.
 """
 
 import scipy.special
+import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-import tests.helper as helper
-
 from geomstats.geometry.hypersphere import Hypersphere
 
 MEAN_ESTIMATION_TOL = 1e-6
 KAPPA_ESTIMATION_TOL = 1e-2
-OPTIMAL_QUANTIZATION_TOL = 2e-2
+ONLINE_KMEANS_TOL = 2e-2
 
 
 class TestHypersphereMethods(geomstats.tests.TestCase):
-    _multiprocess_can_split_ = True
-
     def setUp(self):
         gs.random.seed(1234)
 
@@ -26,17 +23,19 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         self.metric = self.space.metric
         self.n_samples = 10
 
+    @geomstats.tests.np_and_pytorch_only
     def test_random_uniform_and_belongs(self):
         """
         Test that the random uniform method samples
         on the hypersphere space.
         """
-        point = self.space.random_uniform()
+        point = self.space.random_uniform(10)
         result = self.space.belongs(point)
         expected = gs.array([[True]])
 
         self.assertAllClose(expected, result)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_random_uniform(self):
         point = self.space.random_uniform()
 
@@ -152,6 +151,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_exp_vectorization(self):
         n_samples = self.n_samples
         dim = self.dimension + 1
@@ -185,6 +185,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
+    @geomstats.tests.np_and_pytorch_only
     def test_log_vectorization(self):
         n_samples = self.n_samples
         dim = self.dimension + 1
@@ -228,8 +229,8 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
                                                    vector=vector,
                                                    base_point=base_point)
 
-        exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
-        result = self.metric.log(point=exp, base_point=base_point)
+        # exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
+        # result = self.metric.log(point=exp, base_point=base_point)
 
         expected = vector
         norm_expected = gs.linalg.norm(expected)
@@ -281,6 +282,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_squared_dist_vectorization(self):
         n_samples = self.n_samples
 
@@ -387,6 +389,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = helper.to_scalar(expected)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_geodesic_and_belongs(self):
         n_geodesic_points = 100
         initial_point = self.space.random_uniform()
@@ -437,6 +440,22 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = helper.to_vector(point)
 
         self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_only
+    def test_adaptive_gradientdescent_mean(self):
+        n_tests: int = 100
+        result = gs.zeros(n_tests)
+        expected = gs.zeros(n_tests)
+
+        for i in range(n_tests):
+            # take 2 random points, compute their mean, and verify that
+            # log of each at the mean is opposite
+            points = self.space.random_uniform(n_samples=2)
+            mean = self.metric.adaptive_gradientdescent_mean(points)
+            logs = self.metric.log(point=points, base_point=mean)
+            result[i] = gs.linalg.norm(logs[1, :] + logs[0, :])
+
+        self.assertAllClose(expected, result, rtol=1e-10, atol=1e-10)
 
     @geomstats.tests.np_and_pytorch_only
     def test_mean_and_belongs(self):
@@ -521,29 +540,49 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         self.assertTrue(
                 gs.allclose(result, expected, atol=KAPPA_ESTIMATION_TOL))
 
-    @geomstats.tests.np_only
-    def test_optimal_quantization(self):
-            """
-            Check that optimal quantization yields the same result as
-            the karcher flow algorithm when we look for one center.
-            """
-            dim = 2
-            n_points = 1000
-            n_centers = 1
-            sphere = Hypersphere(dim)
-            points = sphere.random_von_mises_fisher(
-                    kappa=10, n_samples=n_points
-                    )
-            mean = sphere.metric.mean(points)
-            centers, weights, clusters, n_iterations = sphere.metric.\
-                optimal_quantization(points=points, n_centers=n_centers)
-            error = sphere.metric.dist(mean, centers)
-            diameter = sphere.metric.diameter(points)
-            result = error / diameter
-            expected = 0.0
-            self.assertAllClose(
-                result, expected, atol=OPTIMAL_QUANTIZATION_TOL)
+    def test_spherical_to_extrinsic(self):
+        """
+        Check vectorization of conversion from spherical
+        to extrinsic coordinates on the 2-sphere.
+        """
+        dim = 2
+        sphere = Hypersphere(dim)
+        points_spherical = gs.array([[gs.pi / 2, 0],
+                                     [gs.pi / 6, gs.pi / 4]])
+        result = sphere.spherical_to_extrinsic(points_spherical)
+        expected = gs.array([[1., 0., 0.],
+                             [gs.sqrt(2)/4, gs.sqrt(2)/4, gs.sqrt(3)/2]])
+        self.assertAllClose(result, expected)
 
+    def test_tangent_spherical_to_extrinsic(self):
+        """
+        Check vectorization of conversion from spherical
+        to extrinsic coordinates for tangent vectors to the
+        2-sphere.
+        """
+        dim = 2
+        sphere = Hypersphere(dim)
+        base_points_spherical = gs.array([[gs.pi / 2, 0],
+                                          [gs.pi / 2, 0]])
+        tangent_vecs_spherical = gs.array([[0.25, 0.5],
+                                          [0.3, 0.2]])
+        result = sphere.tangent_spherical_to_extrinsic(
+                tangent_vecs_spherical, base_points_spherical)
+        expected = gs.array([[0, 0.5, -0.25],
+                             [0, 0.2, -0.3]])
+        self.assertAllClose(result, expected)
 
-if __name__ == '__main__':
-        geomstats.tests.main()
+    def test_christoffels_vectorization(self):
+        """
+        Check vectorization of Christoffel symbols in
+        spherical coordinates on the 2-sphere.
+        """
+        dim = 2
+        sphere = Hypersphere(dim)
+        points_spherical = gs.array([[gs.pi / 2, 0],
+                                     [gs.pi / 6, gs.pi / 4]])
+        christoffel = sphere.metric.christoffels(
+                points_spherical)
+        result = christoffel.shape
+        expected = gs.array([2, dim, dim, dim])
+        self.assertAllClose(result, expected)

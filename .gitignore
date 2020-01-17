@@ -6,3 +6,5 @@ dist
 *.pyc
 *.png
 examples/.ipynb_checkpoints
+.coverage
+.idea

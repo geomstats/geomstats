@@ -3,8 +3,8 @@ Manifold for sets of landmarks that belong to any given manifold
 """
 
 import math
-import geomstats.backend as gs
 
+import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 

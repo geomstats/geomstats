@@ -1,6 +1,6 @@
 """
 Plot the result of optimal quantization of the von Mises Fisher distribution
-on the sphere
+on the sphere using online k-means clustering of a sample.
 """
 
 import os
@@ -8,9 +8,8 @@ import os
 import matplotlib.pyplot as plt
 
 import geomstats.visualization as visualization
-
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.learning.quantization import Quantization
+from geomstats.learning.online_kmeans import OnlineKMeans
 
 
 def main():
@@ -19,7 +18,7 @@ def main():
     data = sphere.random_von_mises_fisher(kappa=10, n_samples=1000)
 
     n_clusters = 4
-    clustering = Quantization(metric=sphere.metric, n_clusters=n_clusters)
+    clustering = OnlineKMeans(metric=sphere.metric, n_clusters=n_clusters)
     clustering = clustering.fit(data)
 
     plt.figure(0)

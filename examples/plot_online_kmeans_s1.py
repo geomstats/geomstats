@@ -1,6 +1,6 @@
 """
 Plot the result of optimal quantization of the uniform distribution
-on the circle.
+on the circle, using online k-means clustering of a sample.
 """
 
 import os
@@ -8,9 +8,8 @@ import os
 import matplotlib.pyplot as plt
 
 import geomstats.visualization as visualization
-
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.learning.quantization import Quantization
+from geomstats.learning.online_kmeans import OnlineKMeans
 
 N_POINTS = 1000
 N_CENTERS = 5
@@ -21,10 +20,10 @@ TOLERANCE = 1e-6
 def main():
     circle = Hypersphere(dimension=1)
 
-    data = circle.random_uniform(n_samples=1000, bound=None)
+    data = circle.random_uniform(n_samples=1000)
 
     n_clusters = 5
-    clustering = Quantization(metric=circle.metric, n_clusters=n_clusters)
+    clustering = OnlineKMeans(metric=circle.metric, n_clusters=n_clusters)
     clustering = clustering.fit(data)
 
     plt.figure(0)
