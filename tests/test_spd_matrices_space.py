@@ -144,6 +144,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_power_euclidean_inner_product(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 2.5, 1.5],
