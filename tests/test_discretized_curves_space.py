@@ -270,8 +270,11 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         srv = self.srv_metric_r3.square_root_velocity(geod)
 
         srv_derivative = self.n_discretized_curves * (srv[1:, :] - srv[:-1, :])
-        result = self.l2_metric_r3.norm(srv_derivative, geod[:-1, :-1, :])
-        result = gs.sum(result, 0) / self.n_discretized_curves
+        norms = self.l2_metric_r3.norm(srv_derivative, geod[:-1, :-1, :])
+        result = gs.sum(norms, 0) / self.n_discretized_curves
+        result = gs.to_ndarray(result, to_ndim=1)
+        result = gs.to_ndarray(result, to_ndim=2, axis=1)
+
         expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)
         expected = gs.to_ndarray(expected, to_ndim=1)
         expected = gs.to_ndarray(expected, to_ndim=2, axis=1)
