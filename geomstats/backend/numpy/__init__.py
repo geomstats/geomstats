@@ -14,6 +14,7 @@ from numpy import (  # NOQA
     arccosh,
     arcsin,
     arctan2,
+    arctanh,
     argmax,
     argmin,
     array,

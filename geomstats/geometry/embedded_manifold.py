@@ -1,6 +1,4 @@
-"""
-Manifold embedded in another manifold.
-"""
+"""Manifold embedded in another manifold."""
 
 import math
 
@@ -8,9 +6,7 @@ from geomstats.geometry.manifold import Manifold
 
 
 class EmbeddedManifold(Manifold):
-    """
-    Class for manifolds embedded in another manifold.
-    """
+    """Class for manifolds embedded in another manifold."""
 
     def __init__(self, dimension, embedding_manifold):
         assert isinstance(dimension, int) or dimension == math.inf
