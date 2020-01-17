@@ -1,6 +1,4 @@
-"""
-Parameterized manifold.
-"""
+"""Parameterized manifold."""
 
 import math
 
@@ -19,10 +17,10 @@ R3 = EuclideanSpace(dimension=3)
 
 
 class DiscretizedCurvesSpace(Manifold):
-    """
-    Space of discretized curves sampled at points in ambient_manifold.
-    """
+    """Space of discretized curves sampled at points in ambient_manifold."""
+
     def __init__(self, ambient_manifold):
+        """Initialize DiscretizedCurvesSpace object."""
         super(DiscretizedCurvesSpace, self).__init__(
              dimension=math.inf)
         self.ambient_manifold = ambient_manifold
@@ -30,6 +28,16 @@ class DiscretizedCurvesSpace(Manifold):
         self.square_root_velocity_metric = SRVMetric(self.ambient_manifold)
 
     def belongs(self, point):
+        """Test whether a point belongs to the manifold.
+
+        Parameters
+        ----------
+        point :
+
+        Returns
+        -------
+        belongs : bool
+        """
         belongs = gs.all(self.ambient_manifold.belongs(point))
         belongs = gs.to_ndarray(belongs, to_ndim=1)
         belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
@@ -37,10 +45,13 @@ class DiscretizedCurvesSpace(Manifold):
 
 
 class SRVMetric(RiemannianMetric):
+    """Elastic metric defined using the Square Root Velocity Function.
+
+    References
+    ----------
+    .. [1] Srivastava et al. 2011.
     """
-    Elastic metric defined using the Square Root Velocity Function
-    (see Srivastava et al. 2011).
-    """
+
     def __init__(self, ambient_manifold):
         super(SRVMetric, self).__init__(
                 dimension=math.inf,
@@ -50,9 +61,20 @@ class SRVMetric(RiemannianMetric):
 
     def pointwise_inner_product(self, tangent_vec_a, tangent_vec_b,
                                 base_curve):
-        """
-        Compute the inner products of the components of a (series of)
+        """Compute the pointwise inner product of pair of tangent vectors.
+
+        Compute the inner product of the components of a (series of)
         pair(s) of tangent vectors at (a) base curve(s).
+
+        Parameters
+        ----------
+        tangent_vec_a :
+        tangent_vec_b :
+        base_curve :
+
+        Returns
+        -------
+        inner_prod :
         """
         base_curve = gs.to_ndarray(base_curve, to_ndim=3)
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
@@ -77,9 +99,20 @@ class SRVMetric(RiemannianMetric):
         return inner_prod
 
     def pointwise_norm(self, tangent_vec, base_curve):
-        """
-        Compute the norms of the components of a (series of)
-        tangent vector(s) at (a) base curve(s).
+        """Compute the norm of tangent vector components at base curve.
+
+        TODO: (revise this to refer to action on single elements)
+        Compute the norms of the components of a (series of) tangent
+        vector(s) at (a) base curve(s).
+
+        Parameters
+        ----------
+        tangent_vec :
+        base_curve :
+
+        Returns
+        -------
+        norm :
         """
         sq_norm = self.pointwise_inner_product(
                 tangent_vec_a=tangent_vec,
@@ -88,13 +121,20 @@ class SRVMetric(RiemannianMetric):
         return gs.sqrt(sq_norm)
 
     def square_root_velocity(self, curve):
-        """
-        Compute the square root velocity representation of a curve.
+        """Compute the square root velocity representation of a curve.
 
         The velocity is computed using the log map. The case of several curves
         is handled through vectorization. In that case, an index selection
         procedure allows to get rid of the log between the end point of
         curve[k, :, :] and the starting point of curve[k + 1, :, :].
+
+        Parameters
+        ----------
+        curve :
+
+        Returns
+        -------
+        srv :
         """
         curve = gs.to_ndarray(curve, to_ndim=3)
         n_curves, n_sampling_points, n_coords = curve.shape
@@ -115,9 +155,16 @@ class SRVMetric(RiemannianMetric):
         return srv
 
     def square_root_velocity_inverse(self, srv, starting_point):
-        """
-        Retreive a curve from its square root velocity representation
-        and starting point.
+        """Retrieve a curve from sqrt velocity rep and starting point.
+
+        Parameters
+        ----------
+        srv :
+        starting_point :
+
+        Returns
+        -------
+        curve :
         """
         if not isinstance(self.ambient_metric, EuclideanMetric):
             raise AssertionError('The square root velocity inverse is only '
@@ -142,8 +189,16 @@ class SRVMetric(RiemannianMetric):
         return curve
 
     def exp(self, tangent_vec, base_curve):
-        """
-        Riemannian exponential of a tangent vector wrt to a base curve.
+        """Compute Riemannian exponential of tangent vector wrt to base curve.
+
+        Parameters
+        ----------
+        tangent_vec :
+        base_curve :
+
+        Return
+        ------
+        end_curve :
         """
         if not isinstance(self.ambient_metric, EuclideanMetric):
             raise AssertionError('The exponential map is only implemented '
@@ -183,8 +238,16 @@ class SRVMetric(RiemannianMetric):
         return end_curve
 
     def log(self, curve, base_curve):
-        """
-        Riemannian logarithm of a curve wrt a base curve.
+        """Compute Riemannian logarithm of a curve wrt a base curve.
+
+        Parameters
+        ----------
+        curve :
+        base_curve :
+
+        Returns
+        -------
+        log :
         """
         if not isinstance(self.ambient_metric, EuclideanMetric):
             raise AssertionError('The logarithm map is only implemented '
@@ -225,9 +288,20 @@ class SRVMetric(RiemannianMetric):
 
     def geodesic(self, initial_curve,
                  end_curve=None, initial_tangent_vec=None):
-        """
+        """Compute geodesic from initial curve and end curve end curve.
+
         Geodesic specified either by an initial curve and an end curve,
         either by an initial curve and an initial tangent vector.
+
+        Parameters
+        ----------
+        initial_curve :
+        end_curve :
+        inital_tangent_vec :
+
+        Returns
+        -------
+        curve_on_geodesic :
         """
         if not isinstance(self.ambient_metric, EuclideanMetric):
             raise AssertionError('The geodesics are only implemented for '
@@ -276,9 +350,7 @@ class SRVMetric(RiemannianMetric):
         return curve_on_geodesic
 
     def dist(self, curve_a, curve_b):
-        """
-        Geodesic distance between two curves.
-        """
+        """Geodesic distance between two curves."""
         if not isinstance(self.ambient_metric, EuclideanMetric):
             raise AssertionError('The distance is only implemented for '
                                  'dicretized curves embedded in a '
