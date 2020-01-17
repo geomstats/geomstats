@@ -19,6 +19,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
         self.metric = self.so3.bi_invariant_metric
         self.n_components = 2
 
+    @geomstats.tests.np_only
     def test_tangent_pca_error(self):
         X = self.X
         trans = TangentPCA(self.metric, n_components=self.n_components)
@@ -26,6 +27,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
         X_diff_size = gs.ones((self.n_samples, gs.shape(X)[1] + 1))
         self.assertRaises(ValueError, trans.transform, X_diff_size)
 
+    @geomstats.tests.np_only
     def test_tangent_pca(self):
         X = self.X
         trans = TangentPCA(self.metric, n_components=gs.shape(X)[1])
