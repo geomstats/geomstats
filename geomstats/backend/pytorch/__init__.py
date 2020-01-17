@@ -61,7 +61,7 @@ def divide(*args, **kwargs):
 
 
 def repeat(a, repeats, axis=None):
-    if torch.__version__ >= "1.1":
+    if torch.__version__ >= '1.1':
         return torch.repeat_interleave(a, repeats, axis)
     if(axis is None):
         axis = 0
@@ -247,7 +247,7 @@ def norm(val, axis):
     return torch.linalg.norm(val, axis=axis)
 
 
-if torch.__version__ >= "1.1":
+if torch.__version__ >= '1.1':
     def isclose(*args, **kwargs):
         return torch.from_numpy(_np.isclose(*args, **kwargs))
 else:
