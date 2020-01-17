@@ -305,6 +305,7 @@ class Hypersphere(EmbeddedManifold):
 
 
 class HypersphereMetric(RiemannianMetric):
+    """Class for the Hypersphere Metric."""
 
     def __init__(self, dimension):
         super(HypersphereMetric, self).__init__(
@@ -313,8 +314,7 @@ class HypersphereMetric(RiemannianMetric):
         self.embedding_metric = EuclideanMetric(dimension + 1)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """
-        Inner product.
+        """Compute the inner product of two tangent vectors at a base point.
 
         Parameters
         ----------
@@ -336,7 +336,8 @@ class HypersphereMetric(RiemannianMetric):
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
-        """
+        """Compute squared norm of a vector.
+
         Squared norm of a vector associated to the inner product
         at the tangent space at a base point.
 
@@ -356,8 +357,7 @@ class HypersphereMetric(RiemannianMetric):
         return sq_norm
 
     def exp(self, tangent_vec, base_point):
-        """
-        Riemannian exponential of a tangent vector wrt to a base point.
+        """Riemannian exponential of a tangent vector wrt to a base point.
 
         Parameters
         ----------
@@ -419,8 +419,7 @@ class HypersphereMetric(RiemannianMetric):
         return exp
 
     def log(self, point, base_point):
-        """
-        Riemannian logarithm of a point wrt a base point.
+        """Compute Riemannian logarithm of a point wrt a base point.
 
         Parameters
         ----------
@@ -494,8 +493,7 @@ class HypersphereMetric(RiemannianMetric):
         return log
 
     def dist(self, point_a, point_b):
-        """
-        Geodesic distance between two points.
+        """Compute geodesic distance between two points.
 
         Parameters
         ----------
@@ -536,9 +534,9 @@ class HypersphereMetric(RiemannianMetric):
         return transported
 
     def christoffels(self, point, point_type='spherical'):
-        """
-        Christoffel symbols. Only implemented in dimension 2
-        and for spherical coordinates.
+        """Compute Christoffel symbols.
+
+        Only implemented in dimension 2 and for spherical coordinates.
 
         Parameters
         ----------
