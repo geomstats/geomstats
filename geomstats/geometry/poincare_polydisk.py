@@ -42,7 +42,10 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
 
     def __init__(self, n_disks):
         self.n_disks = n_disks
-        metric = HyperbolicMetric(dimension=2)
-        list_metrics = [metric, ] * n_disks
+        list_metrics = []
+        for i_disk in range(n_disks):
+            scale_i = (n_disks - i_disk) ** 0.5
+            metric_i = HyperbolicMetric(dimension=2, scale=scale_i)
+            list_metrics.append(metric_i)
         super(PoincarePolydiskMetric, self).__init__(
                 metrics=list_metrics)
