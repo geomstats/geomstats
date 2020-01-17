@@ -5,7 +5,6 @@ import torch
 
 from . import linalg  # NOQA
 from . import random  # NOQA
-from . import testing  # NOQA
 
 double = 'torch.DoubleTensor'
 float16 = 'torch.Float'

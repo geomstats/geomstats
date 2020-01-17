@@ -5,7 +5,6 @@ import tensorflow as tf
 from .common import array, ndim, to_ndarray  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
-from . import testing  # NOQA
 
 
 int8 = tf.int8
