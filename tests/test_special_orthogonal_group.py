@@ -3253,6 +3253,32 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                         or gs.eval(gs.allclose(
                             result, inv_expected, atol=1e-5)))
 
+    def test_group_exp_from_identity_coincides_with_matrix_exponential(self):
+        for n in self.n_seq:
+            group = self.so[n]
+            dim = int(n * (n - 1) / 2)
+
+            normal_rv = gs.normal(size=dim) / 10
+            tangent_sample = gs.zeros((n,n))
+            tangent_sample[gs.triu_indices(n,k=1)] = normal_rv
+            tangent_sample = tangent_sample - gs.transpose(tangent_sample)
+
+            self.assertAllClose(gs.linalg.expm(tangent_sample), group.group_exp_from_identity(tangent_sample, point_type='matrix'))
+
+    def test_group_exp_from_identity_coincides_with_matrix_exponential_for_higher_dimensions(self):
+        for n in [4,5,6,7,8,9,10]:
+            group = SpecialOrthogonalGroup(n=n)
+            dim = int(n * (n - 1) / 2)
+
+            normal_rv = gs.normal(size=dim) / 10
+            tangent_sample = gs.zeros((n,n))
+            tangent_sample[gs.triu_indices(n,k=1)] = normal_rv
+            tangent_sample = tangent_sample - gs.transpose(tangent_sample)
+
+            self.assertAllClose(gs.linalg.expm(tangent_sample),
+                    gs.reshape(group.group_exp_from_identity(tangent_sample, point_type='matrix'), (n,n)))
+
+
     def test_group_exp_from_identity_vectorization(self):
         n = 3
         group = self.so[n]
