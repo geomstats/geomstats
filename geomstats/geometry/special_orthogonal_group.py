@@ -1294,6 +1294,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
             tangent_vec = self.vector_from_skew_matrix(tangent_vec)
             point = self.matrix_from_rotation_vector(tangent_vec)
+
         return point
 
     def group_log_from_identity(self, point, point_type=None):
