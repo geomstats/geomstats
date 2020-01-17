@@ -3,15 +3,16 @@ Plot a geodesic on the Poincare polydisk,
 with Poincare Disk visualization.
 """
 
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 
-import geomstats.visualization as visualization
+import matplotlib.pyplot as plt
+import numpy as np
 
+import geomstats.backend as gs
+import geomstats.visualization as visualization
 from geomstats.geometry.poincare_polydisk import PoincarePolydisk
 
-two_disks = PoincarePolydisk(n_disks=1)
+two_disks = PoincarePolydisk(n_disks=1, point_type='extrinsic')
 METRIC = two_disks.metric
 
 
@@ -45,9 +46,9 @@ def plot_geodesic_with_initial_tangent_vector(initial_point,
 
 def main():
     initial_point = [np.sqrt(2), 1., 0.]
-    end_point = two_disks.intrinsic_to_extrinsic_coords([1.5, 1.5])
+    end_point = two_disks.intrinsic_to_extrinsic_coords(gs.array([1.5, 1.5]))
     initial_tangent_vec = two_disks.projection_to_tangent_space(
-                                        vector=[3.5, 0.6, 0.8],
+                                        vector=gs.array([3.5, 0.6, 0.8]),
                                         base_point=initial_point)
 
     ax = plt.gca()
