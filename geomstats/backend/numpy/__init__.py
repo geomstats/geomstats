@@ -151,7 +151,7 @@ def boolean_mask(x, mask):
 def cast(x, dtype):
     return x.astype(dtype)
 
-  
+
 def to_ndarray(x, to_ndim, axis=0):
     x = _np.asarray(x)
     if x.ndim == to_ndim - 1:
@@ -203,3 +203,6 @@ def cumprod(x, axis=0):
 def normal(*args, **kwargs):
     return _np.random.normal(*args, **kwargs)
 
+
+def copy(x):
+    return x.copy()

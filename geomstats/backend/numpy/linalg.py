@@ -13,7 +13,7 @@ from numpy.linalg import (  # NOQA
     svd
 )
 
-from . import to_ndarray
+from geomstats.backend.numpy.__init__ import to_ndarray
 
 
 def is_symmetric(x):
