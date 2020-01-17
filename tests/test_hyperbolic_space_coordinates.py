@@ -114,7 +114,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         self.assertAllClose(dst_ball, dst_extr)
 
     def test_log_exp_ball_extrinsic_from_extr(self):
-        x_int = gs.array([[1., 0.2]])
+        x_int = gs.array([[10., 0.2]])
         y_int = gs.array([[3., 3]])
         x_extr = self.intrinsic_manifold.to_coordinates(x_int,
                                                        to_point_type='extrinsic')
