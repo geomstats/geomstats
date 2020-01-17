@@ -3727,7 +3727,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         for i in range(n_steps+1):
             point_step = metric.exp(tangent_vec=i * tangent_vec_step,
                                     base_point=initial_point)
-            #self.assertTrue(gs.allclose(point_step, points[i]))
+            # self.assertTrue(gs.allclose(point_step, points[i]))
 
     def test_lie_bracket_at_identity(self):
         dim = 3

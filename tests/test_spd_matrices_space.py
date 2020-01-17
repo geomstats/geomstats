@@ -8,7 +8,9 @@ import geomstats.backend as gs
 import geomstats.tests
 import tests.helper as helper
 
-from geomstats.geometry.spd_matrices_space import SPDMatricesSpace, SPDMetricAffine, SPDMetricProcrustes, SPDMetricEuclidean
+from geomstats.geometry.spd_matrices_space import (
+    SPDMatricesSpace, SPDMetricAffine, SPDMetricProcrustes, SPDMetricEuclidean
+)
 
 
 class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):

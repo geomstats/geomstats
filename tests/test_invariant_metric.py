@@ -293,7 +293,7 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
         result = helper.exp_then_log_from_identity(self.right_metric,
                                                    self.point_1)
         expected = self.point_1
-        # self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
         result = helper.exp_then_log_from_identity(self.right_metric,
                                                    self.point_small)
@@ -305,12 +305,12 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
         result = helper.log_then_exp_from_identity(self.right_metric,
                                                    self.point_1)
         expected = self.point_1
-        # self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
         result = helper.log_then_exp_from_identity(self.right_metric,
                                                    self.point_small)
         expected = self.point_small
-        # self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_exp_and_log_left_diag_metrics(self):
