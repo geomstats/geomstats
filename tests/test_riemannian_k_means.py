@@ -42,6 +42,5 @@ class TestRiemannianKMeansMethods(geomstats.tests.TestCase):
                              for x_i in x])
         self.assertAllClose(expected, result)
 
-
 if __name__ == '__main__':
     geomstats.tests.main()

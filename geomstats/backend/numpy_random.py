@@ -7,5 +7,6 @@ from numpy.random import (  # NOQA
     rand,
     randint,
     randn,
-    seed
+    seed,
+    uniform
 )
