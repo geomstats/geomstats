@@ -320,6 +320,8 @@ def trace(*args, **kwargs):
 def mod(*args, **kwargs):
     return torch.fmod(*args, **kwargs)
 
+def arctanh(x):
+    return 0.5 * torch.log((1+x)/(1-x))
 
 def linspace(start, stop, num):
     return torch.linspace(start=start, end=stop, steps=num)
