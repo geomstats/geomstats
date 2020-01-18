@@ -1,7 +1,6 @@
 """Affine connections."""
 
 import autograd
-
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
