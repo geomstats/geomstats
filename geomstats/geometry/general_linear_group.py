@@ -1,6 +1,4 @@
-"""
-The General Linear Group, i.e. the matrix group GL(n).
-"""
+"""The General Linear Group, i.e. the matrix group GL(n)."""
 
 import geomstats.backend as gs
 from geomstats.geometry.lie_group import LieGroup
@@ -8,13 +6,10 @@ from geomstats.geometry.matrices_space import MatricesSpace
 
 
 class GeneralLinearGroup(LieGroup, MatricesSpace):
-    """
-    Class for the General Linear Group, i.e. the matrix group GL(n).
-
+    """Class for the General Linear Group, i.e. the matrix group GL(n).
 
     Note: The default representation for elements of GL(n)
-    are matrices.
-    For now, SO(n) and SE(n) elements are represented
+    are matrices. For now, SO(n) and SE(n) elements are represented
     by a vector by default.
     """
 
@@ -24,6 +19,16 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
         MatricesSpace.__init__(self, m=n, n=n)
 
     def get_identity(self, point_type=None):
+        """Compute the identity of the General Linear Group.
+
+        Parameters
+        ----------
+        point_type : TODO
+
+        Returns
+        -------
+        identity : TODO
+        """
         if point_type is None:
             point_type = self.default_point_type
         if point_type == 'matrix':
@@ -34,9 +39,16 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
                 ' implemented for a point_type that is not \'matrix\'.')
     identity = property(get_identity)
 
-    def belongs(self, mat):
-        """
-        Check if mat belongs to GL(n).
+    def belongs(self, mat):  # TODO Should this stay generic? (point)
+        """Check if matrix belongs to GL(n).
+
+        Parameters
+        ----------
+        mat
+
+        Returns
+        -------
+        belongs : bool
         """
         mat = gs.to_ndarray(mat, to_ndim=3)
 
@@ -49,8 +61,16 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
         return belongs
 
     def compose(self, mat_a, mat_b):
-        """
-        Matrix composition.
+        """Compose two matrices.
+
+        Parameters
+        ----------
+        mat_a
+        mat_b
+
+        Returns
+        -------
+        composition
         """
         mat_a = gs.to_ndarray(mat_a, to_ndim=3)
         mat_b = gs.to_ndarray(mat_b, to_ndim=3)
@@ -58,16 +78,33 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
         return composition
 
     def inverse(self, mat):
-        """
-        Matrix inverse.
+        """Compute matrix inverse.
+
+        Parameters
+        ----------
+        mat
+
+        Returns
+        -------
+        inverse
         """
         mat = gs.to_ndarray(mat, to_ndim=3)
         return gs.linalg.inv(mat)
 
     def group_exp_from_identity(self, tangent_vec, point_type=None):
-        """
+        """Compute group exponential at the identity.
+
         Group exponential of the Lie group of
         all invertible matrices at the identity.
+
+        Parameters
+        ----------
+        tangent_vec
+        point_type
+
+        Returns
+        -------
+        group_exp
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         group_exp = gs.linalg.expm(tangent_vec)
@@ -76,9 +113,19 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
 
     def group_exp_not_from_identity(
             self, tangent_vec, base_point, point_type=None):
-        """
-        Group exponential of the Lie group of
-        all invertible matrices.
+        """Compute group exponential from a base point.
+
+        Group exponential of the Lie group of all invertible matrices.
+
+        Parameters
+        ----------
+        tangent_vec
+        base_point
+        point_type
+
+        Returns
+        -------
+        group_exp
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         base_point = gs.to_ndarray(base_point, to_ndim=3)
@@ -95,9 +142,19 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
         return group_exp
 
     def group_log_from_identity(self, point, point_type=None):
-        """
+        """Compute group logarithm at the identity.
+
         Group logarithm of the Lie group of
         all invertible matrices at the identity.
+
+        Parameters
+        ----------
+        point
+        point_type
+
+        Returns
+        -------
+        group_log
         """
         point = gs.to_ndarray(point, to_ndim=3)
         group_log = gs.linalg.logm(point)
@@ -106,9 +163,19 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
 
     def group_log_not_from_identity(
             self, point, base_point, point_type=None):
-        """
-        Group logarithm of the Lie group of
-        all invertible matrices.
+        """Compute group logarithm at a base point.
+
+        Group logarithm of the Lie group of all invertible matrices.
+
+        Parameters
+        ----------
+        point
+        base_point
+        point_type
+
+        Returns
+        -------
+        group_log
         """
         point = gs.to_ndarray(point, to_ndim=3)
         base_point = gs.to_ndarray(base_point, to_ndim=3)
