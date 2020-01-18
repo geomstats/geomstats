@@ -3,7 +3,6 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-
 from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 from geomstats.learning.pca import TangentPCA
 

@@ -7,9 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
-
-from geomstats.learning.pca import TangentPCA
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.learning.pca import TangentPCA
 
 
 def main():

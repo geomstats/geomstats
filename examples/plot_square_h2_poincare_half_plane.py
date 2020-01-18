@@ -2,12 +2,12 @@
 Plot a square on H2 with Poincare Disk visualization.
 """
 
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 
-import geomstats.visualization as visualization
+import matplotlib.pyplot as plt
+import numpy as np
 
+import geomstats.visualization as visualization
 from geomstats.geometry.hyperbolic_space import HyperbolicSpace
 
 H2 = HyperbolicSpace(dimension=2)
