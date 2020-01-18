@@ -429,6 +429,9 @@ class RiemannianMetric(object):
         #  of vectors and not of matrices
         n_points = gs.shape(points)[0]
 
+        if n_points == 1:
+            return gs.to_ndarray(points[0], to_ndim=2)
+
         if weights is None:
             weights = gs.ones((n_points, 1))
 
@@ -443,9 +446,6 @@ class RiemannianMetric(object):
             current_mean = points[0]
         else:
             current_mean = init_points[0]
-
-        if n_points == 1:
-            return gs.to_ndarray(current_mean, to_ndim=2)
 
         tau = 1.0
         iter = 0
