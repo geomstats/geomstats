@@ -4,7 +4,6 @@ Unit tests for manifolds.
 
 import geomstats.backend as gs
 import geomstats.tests
-
 from geomstats.geometry.manifold import Manifold
 
 

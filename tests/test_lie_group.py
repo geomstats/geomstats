@@ -3,7 +3,6 @@ Unit tests for Lie groups.
 """
 
 import geomstats.tests
-
 from geomstats.geometry.lie_group import LieGroup
 
 
