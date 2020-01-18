@@ -2,10 +2,10 @@
 Unit tests for the manifold of matrices.
 """
 
-import geomstats.backend as gs
-import geomstats.tests
 import tests.helper as helper
 
+import geomstats.backend as gs
+import geomstats.tests
 from geomstats.geometry.matrices_space import MatricesSpace
 
 
@@ -57,9 +57,9 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
         result = self.space.commutator(x, [x, y, z])
-        expected = gs.array([gs.zeros((3,3)), z, -y])
+        expected = gs.array([gs.zeros((3, 3)), z, -y])
         self.assertAllClose(result, expected)
-    
+
     @geomstats.tests.np_only
     def test_transpose(self):
         tr = self.space.transpose
@@ -74,14 +74,14 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
         sym_mat = gs.array([[1., 2.],
                             [2., 1.]])
         result = self.space.is_symmetric(sym_mat)
-        expected = gs.array([True])
+        expected = gs.array([[True]])
         self.assertAllClose(result, expected)
 
         not_a_sym_mat = gs.array([[1., 0.6, -3.],
                                   [6., -7., 0.],
                                   [0., 7., 8.]])
         result = self.space.is_symmetric(not_a_sym_mat)
-        expected = gs.array([False])
+        expected = gs.array([[False]])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only

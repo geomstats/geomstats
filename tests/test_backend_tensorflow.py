@@ -2,8 +2,6 @@
 Unit tests for tensorflow backend.
 """
 
-import os
-
 import geomstats.backend as gs
 import geomstats.tests
 
@@ -28,4 +26,4 @@ class TestBackendTensorFlow(geomstats.tests.TestCase):
             tensor_1 = gs.ones((1, 1))
             tensor_2 = gs.ones((0, 1))
 
-            result = tensor_1 + tensor_2
+            tensor_1 + tensor_2

@@ -33,3 +33,18 @@ class ProductManifold(Manifold):
         regularize_points = [self.manifold[i].regularize(point[i])
                              for i in range(self.n_manifolds)]
         return regularize_points
+
+    def geodesic(self, initial_point,
+                 end_point=None, initial_tangent_vec=None,
+                 point_type='vector'):
+        """
+        Geodesic curve for a product metric seen as the product of the geodesic
+        on each space.
+        """
+        geodesics = gs.asarray([[self.manifold[i].metric.geodesic(
+            initial_point,
+            end_point=end_point,
+            initial_tangent_vec=initial_tangent_vec,
+            point_type=point_type)
+            for i in range(self.n_manifolds)]])
+        return geodesics

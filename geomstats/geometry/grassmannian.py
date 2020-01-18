@@ -1,7 +1,7 @@
-"""
-Grassmannian manifold Gr(n, p),
-a set of all p-dimensional subspaces in n-dimensional space,
-where p <= n
+"""Grassmannian manifold Gr(n, p).
+
+The Grassmannian manifold is the set of all p-dimensional
+subspaces in n-dimensional space, where p <= n.
 """
 
 import geomstats.backend as gs
@@ -15,10 +15,12 @@ EPSILON = 1e-6
 
 
 class Grassmannian(EmbeddedManifold):
+    """Class for Grassmann manifolds Gr(n, k).
+
+    Class for Grassmann manifolds Gr(n, k) of k-dimensional
+    subspaces in the n-dimensional euclidean space.
     """
-    Class for Grassmann manifolds Gr(n, k)
-    of k-dimensional subspaces in the n-dimensional euclidean space.
-    """
+
     def __init__(self, n, k):
         assert isinstance(n, int) and isinstance(k, int)
         assert k <= n
@@ -32,9 +34,19 @@ class Grassmannian(EmbeddedManifold):
               embedding_manifold=MatricesSpace(n, n))
 
     def belongs(self, point, tolerance=TOLERANCE):
-        """
+        """Check if the point belongs to the manifold.
+
         Check if an (n,n)-matrix is an orthogonal projector
         onto a subspace of rank p.
+
+        Parameters
+        ----------
+        point
+        tolerance
+
+        Returns
+        -------
+        belongs : bool
         """
         raise NotImplementedError(
                 'The Grassmann `belongs` is not implemented.'
@@ -42,11 +54,11 @@ class Grassmannian(EmbeddedManifold):
 
 
 class GrassmannianCanonicalMetric(RiemannianMetric):
-    """
-    Canonical metric of the Grassmann manifold.
+    """Canonical metric of the Grassmann manifold.
 
     Coincides with the Frobenius metric.
     """
+
     def __init__(self, n, p):
         assert isinstance(n, int) and isinstance(p, int)
         assert p <= n
@@ -60,16 +72,14 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         self.embedding_metric = EuclideanMetric(n * p)
 
     def exp(self, vector, point):
-        """
-        Exponentiate the invariant vector field v from base point p.
-
-        `vector` is skew-symmetric, in so(n).
-        `point` is a rank p projector of Gr(n, k).
+        """Exponentiate the invariant vector field v from base point p.
 
         Parameters
         ----------
         vector : array-like, shape=[n_samples, n, n]
+            `vector` is skew-symmetric, in so(n).
         point : array-like, shape=[n_samples, n, n]
+            `point` is a rank p projector of Gr(n, k).
 
         Returns
         -------
