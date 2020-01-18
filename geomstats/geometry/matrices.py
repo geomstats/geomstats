@@ -1,7 +1,8 @@
-"""This module exposes the `Matrices` and `MatricesMetric` class."""
+"""Module exposing the `Matrices` and `MatricesMetric` class."""
+
+from functools import reduce
 
 import geomstats.backend as gs
-from functools import reduce
 from geomstats.geometry.euclidean_space import EuclideanSpace
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -25,7 +26,7 @@ class Matrices(Euclidean):
         point = gs.to_ndarray(point, to_ndim=3)
         _, mat_dim_1, mat_dim_2 = point.shape
         return mat_dim_1 == self.m & mat_dim_2 == self.n
-    
+
     @staticmethod
     def equal(a, b, atol=TOLERANCE):
         """
@@ -40,8 +41,8 @@ class Matrices(Euclidean):
         -------
         eq : array-like boolean, shape=[n_samples]
         """
-        is_vectorized = (gs.ndim(gs.array(a)) == 3)\
-                or (gs.ndim(gs.array(b)) == 3)
+        is_vectorized = \
+            (gs.ndim(gs.array(a)) == 3) or (gs.ndim(gs.array(b)) == 3)
         axes = (1, 2) if is_vectorized else (0, 1)
         return gs.all(gs.isclose(a, b, atol=atol), axes)
 
