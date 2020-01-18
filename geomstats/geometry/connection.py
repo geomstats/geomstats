@@ -2,9 +2,9 @@
 
 import autograd
 
-import geomstats.backend as gs
-
 from scipy.optimize import minimize
+
+import geomstats.backend as gs
 
 
 N_STEPS = 10
