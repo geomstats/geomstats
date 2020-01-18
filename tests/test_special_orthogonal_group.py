@@ -4,10 +4,10 @@ Unit tests for special orthogonal group SO(n).
 
 import warnings
 
-import geomstats.backend as gs
-import geomstats.tests
 import tests.helper as helper
 
+import geomstats.backend as gs
+import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 
@@ -3254,35 +3254,41 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
                             result, inv_expected, atol=1e-5)))
 
     @geomstats.tests.np_only
-    def test_group_exp_from_identity_coincides_with_matrix_exponential(self):
-        for n in self.n_seq:
-            group = self.so[n]
-            dim = int(n * (n - 1) / 2)
+    def test_group_exp_from_identity_coincides_with_expm(self):
+        """Test exponentials."""
+        # FIXME: Problem in shapes
+        # for n in self.n_seq:
+        #     group = self.so[n]
+        #     dim = int(n * (n - 1) / 2)
 
-            normal_rv = gs.random.normal(size=dim)
-            tangent_sample = gs.zeros((n,n))
-            tangent_sample[gs.triu_indices(n,k=1)] = normal_rv
-            tangent_sample = tangent_sample - gs.transpose(tangent_sample)
-            result = gs.linalg.expm(tangent_sample)
-            expected = group.group_exp_from_identity(tangent_sample, point_type='matrix')
+        #     normal_rv = gs.random.normal(size=dim)
+        #     tangent_sample = gs.zeros((n, n))
+        #     tangent_sample[gs.triu_indices(n, k=1)] = normal_rv
+        #     tangent_sample = tangent_sample - gs.transpose(tangent_sample)
+        #     result = gs.linalg.expm(tangent_sample)
+        #     expected = group.group_exp_from_identity(
+        #         tangent_sample, point_type='matrix')
 
-            # FIXME: Problem in shapes
-            # self.assertAllClose(result, expected)
+        #     self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
-    def test_group_exp_from_identity_coincides_with_matrix_exponential_for_higher_dimensions(self):
-        for n in [4,5,6,7,8,9,10]:
+    def test_group_exp_from_identity_coincides_with_expm_for_high_dims(self):
+        for n in [4, 5, 6, 7, 8, 9, 10]:
             group = SpecialOrthogonalGroup(n=n)
             dim = int(n * (n - 1) / 2)
 
             normal_rv = gs.random.normal(size=dim)
-            tangent_sample = gs.zeros((n,n))
-            tangent_sample[gs.triu_indices(n,k=1)] = normal_rv
+            tangent_sample = gs.zeros((n, n))
+            tangent_sample[gs.triu_indices(n, k=1)] = normal_rv
             tangent_sample = tangent_sample - gs.transpose(tangent_sample)
 
-            self.assertAllClose(gs.linalg.expm(tangent_sample),
-                    gs.reshape(group.group_exp_from_identity(tangent_sample, point_type='matrix'), (n,n)))
+            result = gs.reshape(
+                group.group_exp_from_identity(
+                    tangent_sample, point_type='matrix'), (n, n))
 
+            expected = gs.linalg.expm(tangent_sample)
+
+            self.assertAllClose(result, expected)
 
     def test_group_exp_from_identity_vectorization(self):
         n = 3
@@ -3741,24 +3747,25 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_geodesic_subsample(self):
-        # TODO(nina): Fix this test.
-        n = 3
-        group = self.so[n]
+        """Test geodesic."""
+        # FIXME
+        # n = 3
+        # group = self.so[n]
 
-        initial_point = group.random_uniform()
-        initial_tangent_vec = gs.array([1., 1., 1.])
-        metric = self.metrics_all[n]['canonical']
-        geodesic = metric.geodesic(initial_point=initial_point,
-                                   initial_tangent_vec=initial_tangent_vec)
-        n_steps = 100
-        t = gs.linspace(start=0., stop=1., num=n_steps+1)
-        points = geodesic(t)
+        # initial_point = group.random_uniform()
+        # initial_tangent_vec = gs.array([1., 1., 1.])
+        # metric = self.metrics_all[n]['canonical']
+        # geodesic = metric.geodesic(initial_point=initial_point,
+        #                            initial_tangent_vec=initial_tangent_vec)
+        # n_steps = 100
+        # t = gs.linspace(start=0., stop=1., num=n_steps+1)
+        # points = geodesic(t)
 
-        tangent_vec_step = initial_tangent_vec / n_steps
-        for i in range(n_steps+1):
-            point_step = metric.exp(tangent_vec=i * tangent_vec_step,
-                                    base_point=initial_point)
-            #self.assertTrue(gs.allclose(point_step, points[i]))
+        # tangent_vec_step = initial_tangent_vec / n_steps
+        # for i in range(n_steps+1):
+        #     point_step = metric.exp(tangent_vec=i * tangent_vec_step,
+        #                             base_point=initial_point)
+        #     self.assertTrue(gs.allclose(point_step, points[i]))
 
     def test_lie_bracket_at_identity(self):
         dim = 3
