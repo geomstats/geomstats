@@ -15,6 +15,7 @@ from geomstats.geometry.hyperbolic_space import HyperbolicSpace
 H2 = HyperbolicSpace(dimension=2)
 METRIC = H2.metric
 
+
 def plot_geodesic_between_two_points(initial_point,
                                      end_point,
                                      n_steps=10,
