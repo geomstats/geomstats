@@ -1,4 +1,9 @@
-"""The General Linear Group, i.e. the matrix group GL(n)."""
+"""
+This module exposes the `GeneralLinearGroup` class. 
+
+Note: This class is temporarily kept for compatibility purposes
+but will soon be renamed `GeneralLinear`.
+"""
 
 import geomstats.backend as gs
 from geomstats.geometry.lie_group import LieGroup
