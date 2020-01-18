@@ -8,6 +8,7 @@ from geomstats.learning._template import (
     TemplateClassifier,
     TemplateEstimator,
     TemplateTransformer
+)
 
 ESTIMATORS = (TemplateClassifier, TemplateEstimator, TemplateTransformer)
 
