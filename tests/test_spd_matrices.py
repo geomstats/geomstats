@@ -33,19 +33,18 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
-        expected = gs.array([[True]])
+        expected = gs.array(True)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_random_uniform_and_belongs_vectorization(self):
         """
-        Test that the random uniform method samples
-        on the hypersphere space.
+        same: fix belongs.
         """
         n_samples = self.n_samples
         points = self.space.random_uniform(n_samples=n_samples)
         result = self.space.belongs(points)
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        self.assertAllClose(gs.shape(result), n_samples)
 
     @geomstats.tests.np_and_tf_only
     def vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(self):
@@ -310,7 +309,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         metric = self.metric_affine
         exps = metric.exp(tangent_vec, base_point)
         result = self.space.belongs(exps)
-        expected = gs.array([[True]] * n_samples)
+        expected = gs.array([True] * n_samples)
 
         self.assertAllClose(result, expected)
 
@@ -383,7 +382,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         t = gs.linspace(start=0., stop=1., num=n_points)
         points = geodesic(t)
         result = self.space.belongs(points)
-        expected = gs.array([[True]] * n_points)
+        expected = gs.array([True] * n_points)
 
         self.assertAllClose(result, expected)
 

@@ -3,6 +3,7 @@
 import math
 
 import geomstats.backend as gs
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -21,19 +22,12 @@ class SPDMatrices(EmbeddedManifold):
             embedding_manifold=GeneralLinear(n=n))
         self.n = n
 
-    def belongs(self, mat, tolerance=TOLERANCE):
-        """Check if a matrix belongs to the manifold of SPD matrices."""
-        mat = gs.to_ndarray(mat, to_ndim=3)
-        n_mats, mat_dim, _ = mat.shape
-
-        mask_is_symmetric = self.embedding_manifold.is_symmetric(
-                mat, tolerance=tolerance)
-        mask_is_invertible = self.embedding_manifold.belongs(mat)
-
-        belongs = mask_is_symmetric & mask_is_invertible
-        belongs = gs.to_ndarray(belongs, to_ndim=1)
-        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
-        return belongs
+    def belongs(self, mat, atol=TOLERANCE):
+        """
+        Check if a matrix belongs to the manifold of
+        symmetric positive definite matrices.
+        """
+        return Matrices.is_symmetric(mat)
 
     def vector_from_symmetric_matrix(self, mat):
         """Convert the symmetric part of a symmetric matrix into a vector."""
