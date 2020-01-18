@@ -69,14 +69,14 @@ class Connection(object):
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
-        def geodesic_equation(x, v):
+        def geodesic_equation(position, velocity):
             """
             The geodesic ordinary differential equation associated
             with the connection.
             """
-            v = gs.to_ndarray(v, to_ndim=2)
-            gamma = self.christoffels(x)
-            return - gs.einsum('lkij,li,lj->lk', gamma, v, v)
+            velocity = gs.to_ndarray(velocity, to_ndim=2)
+            gamma = self.christoffels(position)
+            return - gs.einsum('lkij,li,lj->lk', gamma, velocity, velocity)
 
         initial_state = (base_point, tangent_vec)
         flow, _ = self.integrate(geodesic_equation, initial_state,
@@ -102,26 +102,26 @@ class Connection(object):
 
         point = gs.to_ndarray(point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
+        n_samples = len(base_point)
 
-        def objective(vel):
-            vel = vel.reshape(base_point.shape)
-            delta = self.exp(vel, base_point, n_steps) - point
+        def objective(velocity):
+            velocity = velocity.reshape(base_point.shape)
+            delta = self.exp(velocity, base_point, n_steps) - point
             loss = 1 / self.dimension * gs.sum(delta ** 2, axis=1)
             return 1 / n_samples * gs.sum(loss)
 
         objective_grad = autograd.elementwise_grad(objective)
 
-        def objective_with_grad(vel):
-            return objective(vel), objective_grad(vel)
+        def objective_with_grad(velocity):
+            return objective(velocity), objective_grad(velocity)
 
-        n_samples = len(base_point)
-        velocity = gs.zeros_like(base_point).flatten()
-        res = minimize(objective_with_grad, velocity, method='CG', jac=True,
+        tangent_vec = gs.zeros_like(base_point).flatten()
+        res = minimize(objective_with_grad, tangent_vec, method='CG', jac=True,
                        options={'disp': True, 'maxiter': 25})
 
-        tangent_vec_result = res.x
-        tangent_vec_result = gs.reshape(tangent_vec_result, base_point.shape)
-        return tangent_vec_result
+        tangent_vec = res.x
+        tangent_vec = gs.reshape(tangent_vec, base_point.shape)
+        return tangent_vec
 
     def pole_ladder_step(self, base_point, next_point, base_shoot):
         """Pole Ladder step.
@@ -323,11 +323,11 @@ class Connection(object):
                 'The torsion tensor is not implemented.')
 
     @staticmethod
-    def _symplectic_euler_step(y, force, dt):
-        x, v = y
-        x_new = x + v * dt
-        v_new = v + force(x, v) * dt
-        return x_new, v_new
+    def _symplectic_euler_step(state, force, dt):
+        point, vector = state
+        point_new = point + vector * dt
+        vector_new = vector + force(point, vector) * dt
+        return point_new, vector_new
 
     def integrate(self, function, initial_state, end_time=1.0, n_steps=10):
         """ Integrator function to compute flows of vector fields
@@ -354,7 +354,7 @@ class Connection(object):
         positions = [initial_state[0]]
         velocities = [initial_state[1]]
         current_state = (positions[0], velocities[0])
-        for i in range(n_steps):
+        for _ in range(n_steps):
             current_state = self._symplectic_euler_step(current_state,
                                                         function, dt)
             positions.append(current_state[0])

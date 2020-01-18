@@ -72,26 +72,29 @@ class TestConnectionMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_exp(self):
-        p = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
-        vec = gs.array([[0.25, 0.5], [0.30, 0.2]])
-        point_ext = self.hypersphere.spherical_to_extrinsic(p)
-        vector_ext = self.hypersphere.tangent_spherical_to_extrinsic(vec, p)
+        point = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
+        vector = gs.array([[0.25, 0.5], [0.30, 0.2]])
+        point_ext = self.hypersphere.spherical_to_extrinsic(point)
+        vector_ext = self.hypersphere.tangent_spherical_to_extrinsic(vector,
+                                                                     point)
         self.connection.christoffels = self.hypersphere.metric.christoffels
         expected = self.hypersphere.metric.exp(vector_ext, point_ext)
-        result_spherical = self.connection.exp(vec, p, n_steps=1000)
+        result_spherical = self.connection.exp(vector, point, n_steps=1000)
         result = self.hypersphere.spherical_to_extrinsic(result_spherical)
 
         self.assertAllClose(result, expected, rtol=1e-3)
 
     @geomstats.tests.np_only
     def test_log(self):
-        p = gs.array([[gs.pi / 3, gs.pi / 4], [gs.pi / 2, gs.pi / 4]])
-        q = gs.array([[1.0, gs.pi / 2], [gs.pi / 6, gs.pi / 3]])
+        base_point = gs.array([[gs.pi / 3, gs.pi / 4], [gs.pi / 2, gs.pi / 4]])
+        point = gs.array([[1.0, gs.pi / 2], [gs.pi / 6, gs.pi / 3]])
         self.connection.christoffels = self.hypersphere.metric.christoffels
-        v = self.connection.log(point=q, base_point=p, n_steps=300)
-        result = self.hypersphere.tangent_spherical_to_extrinsic(v, p)
-        p_ext = self.hypersphere.spherical_to_extrinsic(p)
-        q_ext = self.hypersphere.spherical_to_extrinsic(q)
+        vector = self.connection.log(point=point, base_point=base_point,
+                                     n_steps=300)
+        result = self.hypersphere.tangent_spherical_to_extrinsic(vector,
+                                                                 base_point)
+        p_ext = self.hypersphere.spherical_to_extrinsic(base_point)
+        q_ext = self.hypersphere.spherical_to_extrinsic(point)
         expected = self.hypersphere.metric.log(base_point=p_ext, point=q_ext)
 
         self.assertAllClose(result, expected, rtol=1e-2)
