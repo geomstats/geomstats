@@ -105,9 +105,8 @@ class Connection(object):
 
         def objective(vel):
             vel = vel.reshape(base_point.shape)
-            loss = 1 / self.dimension * gs.sum(
-                (self.exp(base_point=base_point, tangent_vec=vel,
-                          n_steps=n_steps) - point) ** 2, axis=1)
+            delta = self.exp(vel, base_point, n_steps) - point
+            loss = 1 / self.dimension * gs.sum(delta ** 2, axis=1)
             return 1 / n_samples * gs.sum(loss)
 
         objective_grad = autograd.elementwise_grad(objective)
