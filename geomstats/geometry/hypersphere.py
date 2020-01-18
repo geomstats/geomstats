@@ -557,6 +557,6 @@ class HypersphereMetric(RiemannianMetric):
                 [[0, 0], [0, - gs.sin(p[0]) * gs.cos(p[0])]])
             gamma_1 = gs.array([[0, gs.cos(p[0]) / gs.sin(p[0])],
                                 [gs.cos(p[0]) / gs.sin(p[0]), 0]])
-            christoffel.append(gs.array([gamma_0, gamma_1]))
+            christoffel.append(gs.stack([gamma_0, gamma_1]))
 
-        return gs.array(christoffel)
+        return gs.stack(christoffel)
