@@ -17,7 +17,7 @@ Computations and statistics on manifolds with geometric structures.
 OS X & Linux:
 
 ```
-pip3 install -r requirements
+pip3 install -r requirements.txt
 pip3 install geomstats
 ```
 
@@ -41,7 +41,7 @@ python3 examples/plot_grid_h2.py
 Developers can install the dev-requirements:
 
 ```
-pip3 install -r dev-requirements
+pip3 install -r dev-requirements.txt
 ```
 
 And run unit tests from this folder:
