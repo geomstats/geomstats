@@ -54,6 +54,7 @@ class TestConnectionMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_parallel_transport(self):
         sphere = Hypersphere(dimension=2)
         connection = LeviCivitaConnection(sphere.metric)
