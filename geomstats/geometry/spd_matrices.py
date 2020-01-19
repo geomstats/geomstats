@@ -6,22 +6,22 @@ import math
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
-from geomstats.geometry.general_linear_group import GeneralLinearGroup
+from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 EPSILON = 1e-6
 TOLERANCE = 1e-12
 
 
-class SPDMatricesSpace(EmbeddedManifold):
+class SPDMatrices(EmbeddedManifold):
     """
     Class for the manifold of symmetric positive definite (SPD) matrices.
     """
     def __init__(self, n):
         assert isinstance(n, int) and n > 0
-        super(SPDMatricesSpace, self).__init__(
+        super(SPDMatrices, self).__init__(
             dimension=int(n * (n + 1) / 2),
-            embedding_manifold=GeneralLinearGroup(n=n))
+            embedding_manifold=GeneralLinear(n=n))
         self.n = n
 
     def belongs(self, mat, tolerance=TOLERANCE):
@@ -86,7 +86,7 @@ class SPDMatricesSpace(EmbeddedManifold):
     def random_uniform(self, n_samples=1):
         mat = 2 * gs.random.rand(n_samples, self.n, self.n) - 1
 
-        spd_mat = self.embedding_manifold.group_exp(
+        spd_mat = self.embedding_manifold.exp(
                 mat + gs.transpose(mat, axes=(0, 2, 1)))
         return spd_mat
 
@@ -362,7 +362,7 @@ class SPDMetricAffine(RiemannianMetric):
                 dimension=dimension,
                 signature=(dimension, 0, 0))
         self.n = n
-        self.space = SPDMatricesSpace(n)
+        self.space = SPDMatrices(n)
         self.power_affine = power_affine
 
     def _aux_inner_product(self, tangent_vec_a, tangent_vec_b, inv_base_point):
@@ -567,7 +567,7 @@ class SPDMetricProcrustes(RiemannianMetric):
             dimension=dimension,
             signature=(dimension, 0, 0))
         self.n = n
-        self.space = SPDMatricesSpace(n)
+        self.space = SPDMatrices(n)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """
@@ -631,7 +631,7 @@ class SPDMetricEuclidean(RiemannianMetric):
             dimension=dimension,
             signature=(dimension, 0, 0))
         self.n = n
-        self.space = SPDMatricesSpace(n)
+        self.space = SPDMatrices(n)
         self.power_euclidean = power_euclidean
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):

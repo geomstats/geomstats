@@ -6,8 +6,8 @@ subspaces in n-dimensional space, where p <= n.
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
-from geomstats.geometry.euclidean_space import EuclideanMetric
-from geomstats.geometry.matrices_space import MatricesSpace
+from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-5
@@ -31,7 +31,7 @@ class Grassmannian(EmbeddedManifold):
         dimension = int(k * (n - k))
         super(Grassmannian, self).__init__(
               dimension=dimension,
-              embedding_manifold=MatricesSpace(n, n))
+              embedding_manifold=Matrices(n, n))
 
     def belongs(self, point, tolerance=TOLERANCE):
         """Check if the point belongs to the manifold.
@@ -86,5 +86,5 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         exp : array-like, shape=[n_samples, n, n]
         """
         expm = gs.linalg.expm
-        mul = MatricesSpace.mul
+        mul = Matrices.mul
         return mul(mul(expm(vector), point), expm(-vector))

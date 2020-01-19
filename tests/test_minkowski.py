@@ -8,16 +8,16 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.minkowski_space import MinkowskiSpace
+from geomstats.geometry.minkowski import Minkowski
 
 
-class TestMinkowskiSpaceMethods(geomstats.tests.TestCase):
+class TestMinkowskiMethods(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
 
         self.time_like_dim = 0
         self.dimension = 2
-        self.space = MinkowskiSpace(self.dimension)
+        self.space = Minkowski(self.dimension)
         self.metric = self.space.metric
         self.n_samples = 10
 

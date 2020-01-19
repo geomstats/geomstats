@@ -6,15 +6,15 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.euclidean_space import EuclideanSpace
+from geomstats.geometry.euclidean import Euclidean
 
 
-class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
+class TestEuclideanMethods(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
 
         self.dimension = 2
-        self.space = EuclideanSpace(self.dimension)
+        self.space = Euclidean(self.dimension)
         self.metric = self.space.metric
 
         self.n_samples = 3

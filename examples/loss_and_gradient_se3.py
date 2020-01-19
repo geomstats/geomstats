@@ -4,12 +4,12 @@ Predict on SE3: losses.
 
 import geomstats.backend as gs
 import geomstats.geometry.lie_group as lie_group
-from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup
-from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.geometry.special_euclidean import SpecialEuclidean
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
-SE3 = SpecialEuclideanGroup(n=3)
-SO3 = SpecialOrthogonalGroup(n=3)
+SE3 = SpecialEuclidean(n=3)
+SO3 = SpecialOrthogonal(n=3)
 
 
 def loss(y_pred, y_true,

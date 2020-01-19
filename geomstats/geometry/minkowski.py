@@ -7,7 +7,7 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class MinkowskiSpace(Manifold):
+class Minkowski(Manifold):
     """Class for Minkowski Space."""
 
     def __init__(self, dimension):

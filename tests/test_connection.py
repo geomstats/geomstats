@@ -5,7 +5,7 @@ Unit tests for the affine connections.
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.connection import Connection, LeviCivitaConnection
-from geomstats.geometry.euclidean_space import EuclideanMetric
+from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.hypersphere import Hypersphere
 
 

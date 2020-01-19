@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hyperbolic import Hyperbolic
 
-H2 = HyperbolicSpace(dimension=2)
+H2 = Hyperbolic(dimension=2)
 METRIC = H2.metric
 
 SQUARE_SIZE = 50

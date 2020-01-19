@@ -5,22 +5,22 @@ import math
 import numpy as np
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean_space import EuclideanMetric
-from geomstats.geometry.euclidean_space import EuclideanSpace
-from geomstats.geometry.landmarks_space import L2Metric
+from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry.landmarks import L2Metric
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-R2 = EuclideanSpace(dimension=2)
-R3 = EuclideanSpace(dimension=3)
+R2 = Euclidean(dimension=2)
+R3 = Euclidean(dimension=3)
 
 
-class DiscretizedCurvesSpace(Manifold):
+class DiscretizedCurves(Manifold):
     """Space of discretized curves sampled at points in ambient_manifold."""
 
     def __init__(self, ambient_manifold):
-        """Initialize DiscretizedCurvesSpace object."""
-        super(DiscretizedCurvesSpace, self).__init__(dimension=math.inf)
+        """Initialize DiscretizedCurves object."""
+        super(DiscretizedCurves, self).__init__(dimension=math.inf)
         self.ambient_manifold = ambient_manifold
         self.l2_metric = L2Metric(self.ambient_manifold)
         self.square_root_velocity_metric = SRVMetric(self.ambient_manifold)

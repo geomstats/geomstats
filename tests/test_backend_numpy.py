@@ -6,7 +6,7 @@ import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 @geomstats.tests.np_only
@@ -14,7 +14,7 @@ class TestBackendNumpy(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
 
-        self.so3_group = SpecialOrthogonalGroup(n=3)
+        self.so3_group = SpecialOrthogonal(n=3)
         self.n_samples = 2
 
     def test_logm(self):

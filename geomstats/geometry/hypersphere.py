@@ -9,8 +9,8 @@ import math
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
-from geomstats.geometry.euclidean_space import EuclideanMetric
-from geomstats.geometry.euclidean_space import EuclideanSpace
+from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-6
@@ -45,7 +45,7 @@ class Hypersphere(EmbeddedManifold):
         assert isinstance(dimension, int) and dimension > 0
         super(Hypersphere, self).__init__(
                 dimension=dimension,
-                embedding_manifold=EuclideanSpace(dimension+1))
+                embedding_manifold=Euclidean(dimension+1))
         self.embedding_metric = self.embedding_manifold.metric
         self.metric = HypersphereMetric(dimension)
 

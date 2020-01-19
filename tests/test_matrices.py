@@ -6,15 +6,15 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.matrices_space import MatricesSpace
+from geomstats.geometry.matrices import Matrices
 
 
-class TestMatricesSpaceMethods(geomstats.tests.TestCase):
+class TestMatricesMethods(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
 
         self.n = 3
-        self.space = MatricesSpace(m=self.n, n=self.n)
+        self.space = Matrices(m=self.n, n=self.n)
         self.metric = self.space.metric
         self.n_samples = 2
 

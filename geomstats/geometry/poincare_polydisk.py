@@ -3,8 +3,8 @@ The Poincare polydisk
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.hyperbolic_space import HyperbolicMetric
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.hyperbolic import HyperbolicMetric
 from geomstats.geometry.product_manifold import ProductManifold
 from geomstats.geometry.product_riemannian_metric \
     import ProductRiemannianMetric  # NOQA
@@ -18,7 +18,7 @@ class PoincarePolydisk(ProductManifold):
     def __init__(self, n_disks, point_type='ball'):
         self.n_disks = n_disks
         self.point_type = point_type
-        disk = HyperbolicSpace(dimension=2, point_type=point_type)
+        disk = Hyperbolic(dimension=2, point_type=point_type)
         list_disks = [disk, ] * n_disks
         super(PoincarePolydisk, self).__init__(
             manifolds=list_disks)
@@ -40,7 +40,7 @@ class PoincarePolydisk(ProductManifold):
         point_extrinsic : array-like, shape=[n_disks, n_samples, dimension + 1]
         """
         n_disks = point_intrinsic.shape[0]
-        return gs.array([HyperbolicSpace._intrinsic_to_extrinsic_coordinates(
+        return gs.array([Hyperbolic._intrinsic_to_extrinsic_coordinates(
             point_intrinsic[i_disks, ...]) for i_disks in range(n_disks)])
 
 

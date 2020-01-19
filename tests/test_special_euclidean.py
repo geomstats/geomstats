@@ -14,7 +14,7 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
-from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup
+from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
 # of the vector, as opposed to the standard behavior of gs.allclose
@@ -24,13 +24,13 @@ RTOL = 1e-5
 # TODO(nina): Speed up tf tests
 
 
-class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
+class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
         gs.random.seed(1234)
 
         n = 3
-        group = SpecialEuclideanGroup(n=n)
+        group = SpecialEuclidean(n=n)
 
         # Points
 
@@ -429,7 +429,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
     def test_group_exp_from_identity_vectorization(self):
         n_samples = self.n_samples
         tangent_vecs = self.group.random_uniform(n_samples=n_samples)
-        result = self.group.group_exp_from_identity(tangent_vecs)
+        result = self.group.exp_from_identity(tangent_vecs)
 
         self.assertAllClose(
             gs.shape(result), (n_samples, self.group.dimension))
@@ -438,7 +438,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
     def test_group_log_from_identity_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
-        result = self.group.group_log_from_identity(points)
+        result = self.group.log_from_identity(points)
 
         self.assertAllClose(
             gs.shape(result), (n_samples, self.group.dimension))
@@ -449,7 +449,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         # Test with the 1 base_point, and several different tangent_vecs
         tangent_vecs = self.group.random_uniform(n_samples=n_samples)
         base_point = self.group.random_uniform(n_samples=1)
-        result = self.group.group_exp(tangent_vecs, base_point)
+        result = self.group.exp(tangent_vecs, base_point)
 
         self.assertAllClose(
             gs.shape(result), (n_samples, self.group.dimension))
@@ -458,7 +458,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             # Test with the same number of base_points and tangent_vecs
             tangent_vecs = self.group.random_uniform(n_samples=n_samples)
             base_points = self.group.random_uniform(n_samples=n_samples)
-            result = self.group.group_exp(tangent_vecs, base_points)
+            result = self.group.exp(tangent_vecs, base_points)
 
             self.assertAllClose(
                 gs.shape(result), (n_samples, self.group.dimension))
@@ -466,7 +466,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             # Test with the several base_points, and 1 tangent_vec
             tangent_vec = self.group.random_uniform(n_samples=1)
             base_points = self.group.random_uniform(n_samples=n_samples)
-            result = self.group.group_exp(tangent_vec, base_points)
+            result = self.group.exp(tangent_vec, base_points)
 
             self.assertAllClose(
                 gs.shape(result), (n_samples, self.group.dimension))
@@ -477,7 +477,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         # Test with the 1 base point, and several different points
         points = self.group.random_uniform(n_samples=n_samples)
         base_point = self.group.random_uniform(n_samples=1)
-        result = self.group.group_log(points, base_point)
+        result = self.group.log(points, base_point)
 
         self.assertAllClose(
             gs.shape(result), (n_samples, self.group.dimension))
@@ -487,7 +487,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             # Test with the same number of base points and points
             points = self.group.random_uniform(n_samples=n_samples)
             base_points = self.group.random_uniform(n_samples=n_samples)
-            result = self.group.group_log(points, base_points)
+            result = self.group.log(points, base_points)
 
             self.assertAllClose(
                 gs.shape(result), (n_samples, self.group.dimension))
@@ -495,7 +495,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             # Test with the several base points, and 1 point
             point = self.group.random_uniform(n_samples=1)
             base_points = self.group.random_uniform(n_samples=n_samples)
-            result = self.group.group_log(point, base_points)
+            result = self.group.log(point, base_points)
 
             self.assertAllClose(
                 gs.shape(result), (n_samples, self.group.dimension))
@@ -505,8 +505,8 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         # Group exponential of a translation (no rotational part)
         # Expect the original translation
         tangent_vec = self.elements_all['translation_small']
-        result = self.group.group_exp(base_point=self.group.identity,
-                                      tangent_vec=tangent_vec)
+        result = self.group.exp(
+            base_point=self.group.identity, tangent_vec=tangent_vec)
         expected = tangent_vec
         expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
@@ -516,9 +516,9 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             # where translation is parallel to rotation axis
             # Expect the original transformation
             tangent_vec = self.elements_all['rot_with_parallel_trans']
-            result = self.group.group_exp(
-                                      base_point=self.group.identity,
-                                      tangent_vec=tangent_vec)
+            result = self.group.exp(
+                base_point=self.group.identity,
+                tangent_vec=tangent_vec)
             expected = tangent_vec
             expected = helper.to_vector(expected)
             self.assertAllClose(result, expected)
@@ -528,8 +528,8 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         # Group logarithm of a translation (no rotational part)
         # Expect the original translation
         point = self.elements_all['translation_small']
-        result = self.group.group_log(base_point=self.group.identity,
-                                      point=point)
+        result = self.group.log(
+            base_point=self.group.identity, point=point)
         expected = point
         expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
@@ -539,8 +539,8 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
             # where translation is parallel to rotation axis
             # Expect the original transformation
             point = self.elements_all['rot_with_parallel_trans']
-            result = self.group.group_log(base_point=self.group.identity,
-                                          point=point)
+            result = self.group.log(
+                base_point=self.group.identity, point=point)
             expected = point
             expected = helper.to_vector(expected)
             self.assertAllClose(result, expected)
@@ -604,7 +604,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         # Tangent vector is a translation (no infinitesimal rotational part)
         # Expect the sum of the translation
         # with the translation of the reference point
-        result = self.group.group_exp(
+        result = self.group.exp(
                            base_point=self.elements_all['translation_small'],
                            tangent_vec=self.elements_all['translation_large'])
         expected = (self.elements_all['translation_small']
@@ -620,7 +620,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         # Point is a translation (no rotational part)
         # Expect the difference of the translation
         # by the translation of the reference point
-        result = self.group.group_log(
+        result = self.group.log(
                              base_point=self.elements_all['translation_small'],
                              point=self.elements_all['translation_large'])
         expected = (self.elements_all['translation_large']
@@ -1364,7 +1364,7 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         # TODO(nina): Fix this test, the barycenter is not accurate.
         # point_1 = self.group.random_uniform()
         # points = gs.vstack([point_1, point_1])
-        # result_1 = self.group.group_exponential_barycenter(
+        # result_1 = self.group.exponential_barycenter(
         #                         points=points)
         # expected_1 = self.group.regularize(point_1)
 
@@ -1372,14 +1372,14 @@ class TestSpecialEuclideanGroupMethods(geomstats.tests.TestCase):
         #     point_2 = self.group.random_uniform()
         #     points = gs.vstack([point_2, point_2])
         #     weights = gs.array([1., 2.])
-        #     result_2 = self.group.group_exponential_barycenter(
+        #     result_2 = self.group.exponential_barycenter(
         #                             points=points,
         #                             weights=weights)
         #     expected_2 = self.group.regularize(point_2)
 
         #     points = gs.vstack([point_1, point_2])
         #     weights = gs.array([1., 1.])
-        #     result_3 = self.group.group_exponential_barycenter(
+        #     result_3 = self.group.exponential_barycenter(
         #                             points=points,
         #                             weights=weights)
 

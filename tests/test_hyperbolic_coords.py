@@ -9,27 +9,27 @@ distance (implemented for ball model and extrinsic only)
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.hyperbolic_space import HyperbolicMetric
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.hyperbolic import HyperbolicMetric
 
 
-class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
+class TestHyperbolicMethods(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
         self.dimension = 2
-        self.extrinsic_manifold = HyperbolicSpace(dimension=self.dimension)
-        self.ball_manifold = HyperbolicSpace(dimension=self.dimension,
-                                             point_type='ball')
 
-        self.intrinsic_manifold = HyperbolicSpace(dimension=self.dimension,
-                                                  point_type='intrinsic')
-
-        self.half_plane_manifold = HyperbolicSpace(dimension=self.dimension,
-                                                   point_type='half-plane')
-        self.ball_metric = HyperbolicMetric(dimension=self.dimension,
-                                            point_type='ball')
-        self.extrinsic_metric = HyperbolicMetric(dimension=self.dimension,
-                                                 point_type='extrinsic')
+        self.extrinsic_manifold = Hyperbolic(
+            dimension=self.dimension)
+        self.ball_manifold = Hyperbolic(
+            dimension=self.dimension, point_type='ball')
+        self.intrinsic_manifold = Hyperbolic(
+            dimension=self.dimension, point_type='intrinsic')
+        self.half_plane_manifold = Hyperbolic(
+            dimension=self.dimension, point_type='half-plane')
+        self.ball_metric = HyperbolicMetric(
+            dimension=self.dimension, point_type='ball')
+        self.extrinsic_metric = HyperbolicMetric(
+            dimension=self.dimension, point_type='extrinsic')
         self.n_samples = 10
 
     @geomstats.tests.np_and_pytorch_only
@@ -107,7 +107,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
     def test_distance_ball_extrinsic_from_extr_5_dim(self):
         x_int = gs.array([[10, 0.2, 3, 4]])
         y_int = gs.array([[1, 6, 2., 1]])
-        extrinsic_manifold = HyperbolicSpace(4, point_type='extrinsic')
+        extrinsic_manifold = Hyperbolic(4, point_type='extrinsic')
         ball_metric = HyperbolicMetric(4, point_type='ball')
         extrinsic_metric = HyperbolicMetric(4, point_type='extrinsic')
         x_extr = extrinsic_manifold.from_coordinates(
