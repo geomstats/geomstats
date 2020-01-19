@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.backend as gs
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hyperbolic import HyperbolicSpace
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup
-from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.geometry.special_euclidean import SpecialEuclideanGroup
+from geomstats.geometry.special_orthogonal import SpecialOrthogonalGroup
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 SE3_GROUP = SpecialEuclideanGroup(n=3)

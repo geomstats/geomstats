@@ -6,7 +6,7 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.euclidean_space import EuclideanSpace
+from geomstats.geometry.euclidean import EuclideanSpace
 
 
 class TestEuclideanSpaceMethods(geomstats.tests.TestCase):

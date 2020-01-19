@@ -9,7 +9,7 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
-from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.geometry.special_orthogonal import SpecialOrthogonalGroup
 
 
 EPSILON = 1e-5

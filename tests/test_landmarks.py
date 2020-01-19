@@ -7,7 +7,7 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.landmarks_space import LandmarksSpace
+from geomstats.geometry.landmarks import LandmarksSpace
 
 
 class TestLandmarksSpaceMethods(geomstats.tests.TestCase):

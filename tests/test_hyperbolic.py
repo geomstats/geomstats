@@ -8,8 +8,8 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
-from geomstats.geometry.minkowski_space import MinkowskiSpace
+from geomstats.geometry.hyperbolic import HyperbolicSpace
+from geomstats.geometry.minkowski import MinkowskiSpace
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
 # of the vector, as opposed to the standard behavior of gs.allclose

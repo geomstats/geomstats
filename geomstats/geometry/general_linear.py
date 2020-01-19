@@ -2,7 +2,7 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.lie_group import LieGroup
-from geomstats.geometry.matrices_space import MatricesSpace
+from geomstats.geometry.matrices import MatricesSpace
 
 
 class GeneralLinearGroup(LieGroup, MatricesSpace):

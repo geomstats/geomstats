@@ -6,7 +6,7 @@ import math
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
-from geomstats.geometry.general_linear_group import GeneralLinearGroup
+from geomstats.geometry.general_linear import GeneralLinearGroup
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 EPSILON = 1e-6

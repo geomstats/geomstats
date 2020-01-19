@@ -9,8 +9,8 @@ distance (implemented for ball model and extrinsic only)
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.hyperbolic_space import HyperbolicMetric
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hyperbolic import HyperbolicMetric
+from geomstats.geometry.hyperbolic import HyperbolicSpace
 
 
 class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):

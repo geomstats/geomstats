@@ -5,7 +5,7 @@ Unit tests for the Poincare Polydisk.
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hyperbolic import HyperbolicSpace
 from geomstats.geometry.poincare_polydisk import PoincarePolydisk
 
 

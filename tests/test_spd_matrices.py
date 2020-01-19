@@ -6,7 +6,7 @@ import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.spd_matrices_space import (
+from geomstats.geometry.spd_matrices import (
     SPDMatricesSpace,
     SPDMetricAffine,
     SPDMetricEuclidean,

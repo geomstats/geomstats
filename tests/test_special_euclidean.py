@@ -14,7 +14,7 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
-from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup
+from geomstats.geometry.special_euclidean import SpecialEuclideanGroup
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
 # of the vector, as opposed to the standard behavior of gs.allclose
