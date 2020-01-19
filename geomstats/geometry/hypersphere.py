@@ -519,6 +519,21 @@ class HypersphereMetric(RiemannianMetric):
         return dist
 
     def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+        """Parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector a
+        along the geodesic defined by :math: `exp_(base_point)(tangent_vec_b)`
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[n_samples, dimension + 1]
+        tangent_vec_b : array-like, shape=[n_samples, dimension + 1]
+        base_point : array-like, shape=[n_samples, dimension + 1]
+
+        Returns
+        -------
+        transported_tangent_vec: array-like, shape=[n_samples, dimension + 1]
+        """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -542,6 +557,8 @@ class HypersphereMetric(RiemannianMetric):
         ----------
         point : array-like, shape=[n_samples, dimension]
 
+        point_type: str
+
         Returns
         -------
         christoffel : array-like, shape=[n_samples,
@@ -553,14 +570,14 @@ class HypersphereMetric(RiemannianMetric):
             raise NotImplementedError(
                     'The Christoffel symbols are only implemented'
                     ' for spherical coordinates in the 2-sphere')
-        point = gs.to_ndarray(point, to_ndim=2)
-        n_samples = point.shape[0]
-        christoffel = gs.zeros((n_samples,
-                                self.dimension,
-                                self.dimension,
-                                self.dimension))
-        christoffel[:, 0, 1, 1] = - gs.sin(point[:, 0]) * gs.cos(point[:, 0])
-        christoffel[:, 1, 0, 1] = gs.cos(point[:, 0]) / gs.sin(point[:, 0])
-        christoffel[:, 1, 1, 0] = gs.cos(point[:, 0]) / gs.sin(point[:, 0])
 
-        return christoffel
+        point = gs.to_ndarray(point, to_ndim=2)
+        christoffel = []
+        for sample in point:
+            gamma_0 = gs.array(
+                [[0, 0], [0, - gs.sin(sample[0]) * gs.cos(sample[0])]])
+            gamma_1 = gs.array([[0, gs.cos(sample[0]) / gs.sin(sample[0])],
+                                [gs.cos(sample[0]) / gs.sin(sample[0]), 0]])
+            christoffel.append(gs.stack([gamma_0, gamma_1]))
+
+        return gs.stack(christoffel)
