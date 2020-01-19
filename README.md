@@ -9,7 +9,7 @@ Computations and statistics on manifolds with geometric structures.
 - The documentation of ```geomstats``` can be found on the [documentation website](https://geomstats.github.io/).
 - If you find ``geomstats`` useful, please kindly cite our [paper](https://arxiv.org/abs/1805.08308).
 
-img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=100 height=100>
+<img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=100 height=100>
 
 
 ## Installation
@@ -41,4 +41,4 @@ See our [CONTRIBUTING.md](CONTRIBUTING.md) file!
 
 ## Acknowledgements
 
-This work is partially supported by the National Science Foundation, grant NSF DMS RTG 1501767.
+This work is partially supported by the National Science Foundation (grant NSF DMS RTG 1501767) and the Inria associated team GeomStats.
