@@ -10,8 +10,8 @@ import math
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
-from geomstats.geometry.minkowski import MinkowskiMetric
 from geomstats.geometry.minkowski import Minkowski
+from geomstats.geometry.minkowski import MinkowskiMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-6

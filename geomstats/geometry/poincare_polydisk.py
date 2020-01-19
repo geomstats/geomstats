@@ -3,8 +3,8 @@ The Poincare polydisk
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.hyperbolic import HyperbolicMetric
 from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.hyperbolic import HyperbolicMetric
 from geomstats.geometry.product_manifold import ProductManifold
 from geomstats.geometry.product_riemannian_metric \
     import ProductRiemannianMetric  # NOQA

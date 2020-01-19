@@ -9,27 +9,27 @@ distance (implemented for ball model and extrinsic only)
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.hyperbolic import HyperbolicMetric
 from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.hyperbolic import HyperbolicMetric
 
 
 class TestHyperbolicMethods(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
         self.dimension = 2
-        self.extrinsic_manifold = Hyperbolic(dimension=self.dimension)
-        self.ball_manifold = Hyperbolic(dimension=self.dimension,
-                                             point_type='ball')
 
-        self.intrinsic_manifold = Hyperbolic(dimension=self.dimension,
-                                                  point_type='intrinsic')
-
-        self.half_plane_manifold = Hyperbolic(dimension=self.dimension,
-                                                   point_type='half-plane')
-        self.ball_metric = HyperbolicMetric(dimension=self.dimension,
-                                            point_type='ball')
-        self.extrinsic_metric = HyperbolicMetric(dimension=self.dimension,
-                                                 point_type='extrinsic')
+        self.extrinsic_manifold = Hyperbolic(
+            dimension=self.dimension)
+        self.ball_manifold = Hyperbolic(
+            dimension=self.dimension, point_type='ball')
+        self.intrinsic_manifold = Hyperbolic(
+            dimension=self.dimension, point_type='intrinsic')
+        self.half_plane_manifold = Hyperbolic(
+            dimension=self.dimension, point_type='half-plane')
+        self.ball_metric = HyperbolicMetric(
+            dimension=self.dimension, point_type='ball')
+        self.extrinsic_metric = HyperbolicMetric(
+            dimension=self.dimension, point_type='extrinsic')
         self.n_samples = 10
 
     @geomstats.tests.np_and_pytorch_only

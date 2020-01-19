@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
-from geomstats.geometry.hyperbolic import HyperbolicMetric
 from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.hyperbolic import HyperbolicMetric
 from geomstats.learning.kmeans import RiemannianKMeans
 
 SQUARE_SIZE = 50
