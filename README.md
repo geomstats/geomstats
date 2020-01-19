@@ -53,4 +53,6 @@ See our [CONTRIBUTING.md](CONTRIBUTING.md) file!
 
 ## Acknowledgements
 
-This work is partially supported by the National Science Foundation (grant NSF DMS RTG 1501767) and the Inria associated team GeomStats.
+This work is partially supported by:
+- the National Science Foundation (grant NSF DMS RTG 1501767),
+- the Inria-Stanford associated team GeomStats.
