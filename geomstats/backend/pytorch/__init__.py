@@ -108,7 +108,7 @@ def array(val):
         if val.dtype == bool:
             val = torch.from_numpy(_np.array(val, dtype=_np.uint8))
         elif val.dtype == _np.float32 or val.dtype == _np.float64:
-            val = torch.from_numpy(_np.array(val, dtype=_np.float32))
+            val = torch.from_numpy(_np.array(val, dtype=_np.float64))
         else:
             val = torch.from_numpy(val)
 
@@ -244,7 +244,7 @@ def sqrt(val):
 
 
 def norm(val, axis):
-    return torch.linalg.norm(val, axis=axis)
+    return torch.norm(val, 2, axis)
 
 
 if torch.__version__ >= '1.1':
@@ -319,6 +319,10 @@ def trace(*args, **kwargs):
 
 def mod(*args, **kwargs):
     return torch.fmod(*args, **kwargs)
+
+
+def arctanh(x):
+    return 0.5 * torch.log((1+x)/(1-x))
 
 
 def linspace(start, stop, num):

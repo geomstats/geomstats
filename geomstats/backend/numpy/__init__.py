@@ -1,7 +1,7 @@
 """Numpy based computation backend."""
 
-import numpy as _np
-from numpy import (  # NOQA
+import autograd.numpy as _np
+from autograd.numpy import (  # NOQA
     abs,
     all,
     allclose,
@@ -14,6 +14,7 @@ from numpy import (  # NOQA
     arccosh,
     arcsin,
     arctan2,
+    arctanh,
     argmax,
     argmin,
     array,
@@ -154,7 +155,7 @@ def cast(x, dtype):
 
 
 def to_ndarray(x, to_ndim, axis=0):
-    x = _np.asarray(x)
+    x = _np.array(x)
     if x.ndim == to_ndim - 1:
         x = _np.expand_dims(x, axis=axis)
     assert x.ndim >= to_ndim

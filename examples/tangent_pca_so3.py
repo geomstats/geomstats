@@ -7,9 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
-
-from geomstats.learning.pca import TangentPCA
 from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.learning.pca import TangentPCA
 
 SO3_GROUP = SpecialOrthogonalGroup(n=3)
 METRIC = SO3_GROUP.bi_invariant_metric

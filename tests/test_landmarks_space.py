@@ -2,15 +2,16 @@
 Unit tests for landmarks space.
 """
 
-import geomstats.backend as gs
-import geomstats.tests
 import tests.helper as helper
 
+import geomstats.backend as gs
+import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.landmarks_space import LandmarksSpace
 
 
 class TestLandmarksSpaceMethods(geomstats.tests.TestCase):
+    @geomstats.tests.np_and_pytorch_only
     def setUp(self):
         s2 = Hypersphere(dimension=2)
         r3 = s2.embedding_manifold
@@ -20,12 +21,15 @@ class TestLandmarksSpaceMethods(geomstats.tests.TestCase):
         initial_tangent_vec_b = [0., 1., 0.]
         initial_tangent_vec_c = [-1., 0., 0.]
 
-        landmarks_a = s2.metric.geodesic(initial_point=initial_point,
-                                     initial_tangent_vec=initial_tangent_vec_a)
-        landmarks_b = s2.metric.geodesic(initial_point=initial_point,
-                                     initial_tangent_vec=initial_tangent_vec_b)
-        landmarks_c = s2.metric.geodesic(initial_point=initial_point,
-                                     initial_tangent_vec=initial_tangent_vec_c)
+        landmarks_a = s2.metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec_a)
+        landmarks_b = s2.metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec_b)
+        landmarks_c = s2.metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec_c)
 
         self.n_sampling_points = 10
         sampling_times = gs.linspace(0., 1., self.n_sampling_points)
@@ -47,13 +51,14 @@ class TestLandmarksSpaceMethods(geomstats.tests.TestCase):
         self.landmarks_b = landmark_set_b
         self.landmarks_c = landmark_set_c
 
+    @geomstats.tests.np_and_pytorch_only
     def test_belongs(self):
         result = self.space_landmarks_in_sphere_2d.belongs(self.landmarks_a)
         expected = gs.array([[True]])
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_l2_metric_log_and_squared_norm_and_dist(self):
         """
         Test that squared norm of logarithm is squared dist.
@@ -63,12 +68,13 @@ class TestLandmarksSpaceMethods(geomstats.tests.TestCase):
         log_ab = tangent_vec
         result = self.l2_metric_s2.squared_norm(
                 vector=log_ab, base_point=self.landmarks_a)
-        expected = self.l2_metric_s2.dist(self.landmarks_a, self.landmarks_b) ** 2
+        expected = self.l2_metric_s2.dist(
+            self.landmarks_a, self.landmarks_b) ** 2
         expected = helper.to_scalar(expected)
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_l2_metric_log_and_exp(self):
         """
         Test that exp and log are inverse maps.
@@ -81,7 +87,7 @@ class TestLandmarksSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=self.atol)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_l2_metric_inner_product_vectorization(self):
         """
         Test the vectorization inner_product.
@@ -102,7 +108,7 @@ class TestLandmarksSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (n_samples, 1))
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_l2_metric_dist_vectorization(self):
         """
         Test the vectorization of dist.
@@ -139,7 +145,7 @@ class TestLandmarksSpaceMethods(geomstats.tests.TestCase):
                 base_landmarks=landmarks_ab)
         self.assertAllClose(gs.shape(result), gs.shape(landmarks_ab))
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_l2_metric_log_vectorization(self):
         """
         Test the vectorization of log.

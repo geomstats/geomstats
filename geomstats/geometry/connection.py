@@ -1,8 +1,12 @@
 """Affine connections."""
 
 import autograd
+from scipy.optimize import minimize
 
 import geomstats.backend as gs
+
+
+N_STEPS = 10
 
 
 class Connection(object):
@@ -17,6 +21,10 @@ class Connection(object):
         Parameters
         ----------
         base_point : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        gamma : array-like, shape=[n_samples, dimension, dimension, dimension]
         """
         raise NotImplementedError(
                 'The Christoffel symbols are not implemented.')
@@ -41,8 +49,12 @@ class Connection(object):
         raise NotImplementedError(
                 'connection is not implemented.')
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, n_steps=N_STEPS):
         """Exponential map associated to the affine connection.
+
+        Exponential map at base_point of tangent_vec computed by integration
+        of the geodesic the equation (initial value problem), using the
+        christoffel symbols
 
         Parameters
         ----------
@@ -51,12 +63,31 @@ class Connection(object):
 
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
-        """
-        raise NotImplementedError(
-                'The affine connection exponential is not implemented.')
 
-    def log(self, point, base_point):
+        n_steps: int
+        """
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+
+        def geodesic_equation(position, velocity):
+            """
+            The geodesic ordinary differential equation associated
+            with the connection.
+            """
+            velocity = gs.to_ndarray(velocity, to_ndim=2)
+            gamma = self.christoffels(position)
+            return - gs.einsum('lkij,li,lj->lk', gamma, velocity, velocity)
+
+        initial_state = (base_point, tangent_vec)
+        flow, _ = self.integrate(geodesic_equation, initial_state,
+                                 n_steps=n_steps)
+        return flow[-1]
+
+    def log(self, point, base_point, n_steps=N_STEPS):
         """Logarithm map associated to the affine connection.
+
+        Solve the boundary value problem associated to the geodesic equation
+        using the christoffel symbols and an conjugate gradient descent
 
         Parameters
         ----------
@@ -65,15 +96,38 @@ class Connection(object):
 
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
+
+        n_steps: int
         """
-        raise NotImplementedError(
-                'The affine connection logarithm is not implemented.')
+
+        point = gs.to_ndarray(point, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        n_samples = len(base_point)
+
+        def objective(velocity):
+            velocity = velocity.reshape(base_point.shape)
+            delta = self.exp(velocity, base_point, n_steps) - point
+            loss = 1 / self.dimension * gs.sum(delta ** 2, axis=1)
+            return 1 / n_samples * gs.sum(loss)
+
+        objective_grad = autograd.elementwise_grad(objective)
+
+        def objective_with_grad(velocity):
+            return objective(velocity), objective_grad(velocity)
+
+        tangent_vec = gs.zeros_like(base_point).flatten()
+        res = minimize(objective_with_grad, tangent_vec, method='CG', jac=True,
+                       options={'disp': True, 'maxiter': 25})
+
+        tangent_vec = res.x
+        tangent_vec = gs.reshape(tangent_vec, base_point.shape)
+        return tangent_vec
 
     def pole_ladder_step(self, base_point, next_point, base_shoot):
-        """TODO: Step pole ladder one step.
+        """Pole Ladder step.
 
-        One step of pole ladder (parallel transport associated with the
-        symmetric part of the connection using transvections).
+        One step of pole ladder scheme [1]_ using the geodesic to
+        transport along as diagonal of the parallelogram
 
         Parameters
         ----------
@@ -93,6 +147,13 @@ class Connection(object):
 
         end_point: array-like, shape=[n_samples, dimension]
                                                 or shape=[1, dimension]
+
+        References
+        ----------
+        .. [1] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transport
+        of Deformations in Time Series of Images: from Schild's to Pole Ladder.
+        Journal of Mathematical Imaging and Vision, Springer Verlag, 2013,
+         50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
         """
         mid_tangent_vector_to_shoot = 1. / 2. * self.log(
                 base_point=base_point,
@@ -123,9 +184,10 @@ class Connection(object):
             self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1):
         """Approximate parallel transport using the pole ladder scheme.
 
-        Approximation of Parallel transport using the pole ladder scheme of
-        tangent vector a along the geodesic starting at the initial point
-        base_point with initial tangent vector the tangent vector b.
+        Approximation of Parallel transport using the pole ladder
+        scheme [1][2]. The tangent vector a is transported along along
+        the geodesic starting at the initial point base_point with
+        initial tangent vector the tangent vector b.
 
         Returns a tangent vector at the point
         exp_(base_point)(tangent_vector_b).
@@ -141,12 +203,25 @@ class Connection(object):
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
 
-        n_steps: int, the number of pole ladder steps
+        n_steps: int
+            the number of pole ladder steps
 
         Returns
         -------
         transported_tangent_vector: array-like, shape=[n_samples, dimension]
                                                 or shape=[1, dimension]
+
+        References
+        ----------
+        .. [1] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transport
+        of Deformations in Time Series of Images: from Schild's to Pole Ladder.
+        Journal of Mathematical Imaging and Vision, Springer Verlag, 2013,
+         50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
+
+         .. [2] N. Guigui, Shuman Jia, Maxime Sermesant, Xavier Pennec.
+         Symmetric Algorithmic Components for Shape Analysis with
+          Diffeomorphisms. GSI 2019, Aug 2019, Toulouse, France. pp.10.
+           ⟨hal-02148832⟩
         """
         current_point = gs.copy(base_point)
         transported_tangent_vector = gs.copy(tangent_vec_a)
@@ -176,16 +251,65 @@ class Connection(object):
         raise NotImplementedError(
                 'The Riemannian curvature tensor is not implemented.')
 
-    def geodesic_equation(self):
-        """Return geodesic ode associated with the connection."""
-        raise NotImplementedError(
-                'The geodesic equation tensor is not implemented.')
-
     def geodesic(self, initial_point,
-                 end_point=None, initial_tangent_vec=None, point_ndim=1):
-        """Geodesic associated with the connection."""
-        raise NotImplementedError(
-                'Geodesics are not implemented.')
+                 end_point=None, initial_tangent_vec=None,
+                 point_type='vector'):
+        """
+        Geodesic curve defined by either:
+        - an initial point and an initial tangent vector,
+        or
+        -an initial point and an end point.
+
+        The geodesic is returned as a function parameterized by t.
+        """
+
+        point_ndim = 1
+        if point_type == 'matrix':
+            point_ndim = 2
+
+        initial_point = gs.to_ndarray(initial_point,
+                                      to_ndim=point_ndim+1)
+
+        if end_point is None and initial_tangent_vec is None:
+            raise ValueError('Specify an end point or an initial tangent '
+                             'vector to define the geodesic.')
+        if end_point is not None:
+            end_point = gs.to_ndarray(end_point,
+                                      to_ndim=point_ndim+1)
+            shooting_tangent_vec = self.log(point=end_point,
+                                            base_point=initial_point)
+            if initial_tangent_vec is not None:
+                assert gs.allclose(shooting_tangent_vec, initial_tangent_vec)
+            initial_tangent_vec = shooting_tangent_vec
+        initial_tangent_vec = gs.array(initial_tangent_vec)
+        initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
+                                            to_ndim=point_ndim+1)
+
+        def point_on_geodesic(t):
+            t = gs.cast(t, gs.float32)
+            t = gs.to_ndarray(t, to_ndim=1)
+            t = gs.to_ndarray(t, to_ndim=2, axis=1)
+            new_initial_point = gs.to_ndarray(
+                                          initial_point,
+                                          to_ndim=point_ndim+1)
+            new_initial_tangent_vec = gs.to_ndarray(
+                                          initial_tangent_vec,
+                                          to_ndim=point_ndim+1)
+
+            if point_type == 'vector':
+                tangent_vecs = gs.einsum('il,nk->ik',
+                                         t,
+                                         new_initial_tangent_vec)
+            elif point_type == 'matrix':
+                tangent_vecs = gs.einsum('il,nkm->ikm',
+                                         t,
+                                         new_initial_tangent_vec)
+
+            point_at_time_t = self.exp(tangent_vec=tangent_vecs,
+                                       base_point=new_initial_point)
+            return point_at_time_t
+
+        return point_on_geodesic
 
     def torsion(self, base_point):
         """Torsion tensor associated with the connection.
@@ -197,6 +321,46 @@ class Connection(object):
         """
         raise NotImplementedError(
                 'The torsion tensor is not implemented.')
+
+    @staticmethod
+    def _symplectic_euler_step(state, force, dt):
+        point, vector = state
+        point_new = point + vector * dt
+        vector_new = vector + force(point, vector) * dt
+        return point_new, vector_new
+
+    def integrate(self, function, initial_state, end_time=1.0, n_steps=10):
+        """ Integrator function to compute flows of vector fields
+        on a regular grid between 0 and a finite time.
+
+        Parameters
+        ----------
+
+        function: callable
+            the vector field to integrate
+
+        initial_state: tuple
+            initial position and speed
+
+        end_time: scalar
+
+        n_steps: int
+
+        Returns
+        ----------
+        a tuple of sequences of solutions every end_time / n_steps
+        """
+        dt = end_time / n_steps
+        positions = [initial_state[0]]
+        velocities = [initial_state[1]]
+        current_state = (positions[0], velocities[0])
+        for _ in range(n_steps):
+            current_state = self._symplectic_euler_step(current_state,
+                                                        function, dt)
+            positions.append(current_state[0])
+            velocities.append(current_state[1])
+
+        return positions, velocities
 
 
 class LeviCivitaConnection(Connection):

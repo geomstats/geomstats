@@ -3,11 +3,11 @@ Predict on SE3: losses.
 """
 
 import os
+
 import tensorflow as tf
 
 import geomstats.backend as gs
 import geomstats.geometry.lie_group as lie_group
-
 from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup
 from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 

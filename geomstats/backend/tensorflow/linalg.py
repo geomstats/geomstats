@@ -43,7 +43,7 @@ def eig(x):
 
 
 def svd(x):
-    s, u, v_t = tf.svd(x, full_matrices=True)
+    s, u, v_t = tf.linalg.svd(x, full_matrices=True)
     return u, s, tf.transpose(v_t, perm=(0, 2, 1))
 
 

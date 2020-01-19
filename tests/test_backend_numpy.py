@@ -2,13 +2,10 @@
 Unit tests for numpy backend.
 """
 
-import os
-import unittest
 import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
-
 from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 
 

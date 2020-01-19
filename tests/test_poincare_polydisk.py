@@ -5,7 +5,6 @@ Unit tests for the Poincare Polydisk.
 
 import geomstats.backend as gs
 import geomstats.tests
-
 from geomstats.geometry.hyperbolic_space import HyperbolicSpace
 from geomstats.geometry.poincare_polydisk import PoincarePolydisk
 
@@ -27,10 +26,12 @@ class TestPoincarePolydiskMethods(geomstats.tests.TestCase):
         result = self.metric.signature
         self.assertAllClose(result, expected)
 
-    def test_product_distance(self):
+    @geomstats.tests.np_and_pytorch_only
+    def test_product_distance_extrinsic_representation(self):
+        point_type = 'extrinsic'
         point_a_intrinsic = gs.array([0.01, 0.0])
         point_b_intrinsic = gs.array([0.0, 0.0])
-        hyperbolic_space = HyperbolicSpace(dimension=2)
+        hyperbolic_space = HyperbolicSpace(dimension=2, point_type=point_type)
         point_a = hyperbolic_space.intrinsic_to_extrinsic_coords(
             point_a_intrinsic)
         point_b = hyperbolic_space.intrinsic_to_extrinsic_coords(
@@ -41,8 +42,8 @@ class TestPoincarePolydiskMethods(geomstats.tests.TestCase):
         duplicate_point_b = gs.zeros((2,) + point_b.shape)
         duplicate_point_b[0] = point_b
         duplicate_point_b[1] = point_b
-        single_disk = PoincarePolydisk(n_disks=1)
-        two_disks = PoincarePolydisk(n_disks=2)
+        single_disk = PoincarePolydisk(n_disks=1, point_type=point_type)
+        two_disks = PoincarePolydisk(n_disks=2, point_type=point_type)
         distance_single_disk = single_disk.metric.dist(point_a, point_b)
         distance_two_disks = two_disks.metric.dist(
             duplicate_point_a, duplicate_point_b)

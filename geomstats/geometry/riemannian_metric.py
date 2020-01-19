@@ -61,6 +61,17 @@ class RiemannianMetric(object):
             'The computation of the inner product matrix'
             ' is not implemented.')
 
+    def inner_product_inverse_matrix(self, base_point=None):
+        """
+        Inner product matrix at the tangent space at a base point.
+        Parameters
+        ----------
+        base_point : array-like, shape=[n_samples, dimension], optional
+        """
+        raise NotImplementedError(
+                'The computation of the inner product matrix'
+                ' is not implemented.')
+
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """
         Inner product between two tangent vectors at a base point.
@@ -85,23 +96,34 @@ class RiemannianMetric(object):
         inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
         n_mats = gs.shape(inner_prod_mat)[0]
 
-        n_inner_prod = gs.maximum(n_tangent_vec_a, n_tangent_vec_b)
-        n_inner_prod = gs.maximum(n_inner_prod, n_mats)
+        if n_tangent_vec_a != n_mats:
+            if n_tangent_vec_a == 1:
+                tangent_vec_a = gs.squeeze(tangent_vec_a, axis=0)
+                einsum_str_a = 'j,njk->nk'
+            elif n_mats == 1:
+                inner_prod_mat = gs.squeeze(inner_prod_mat, axis=0)
+                einsum_str_a = 'nj,jk->nk'
+            else:
+                raise ValueError('Shape mismatch for einsum.')
+        else:
+            einsum_str_a = 'nj,njk->nk'
 
-        n_tiles_a = gs.divide(n_inner_prod, n_tangent_vec_a)
-        n_tiles_a = gs.cast(n_tiles_a, gs.int32)
-        tangent_vec_a = gs.tile(tangent_vec_a, [n_tiles_a, 1])
+        aux = gs.einsum(einsum_str_a, tangent_vec_a, inner_prod_mat)
+        n_auxs, _ = gs.shape(aux)
 
-        n_tiles_b = gs.divide(n_inner_prod, n_tangent_vec_b)
-        n_tiles_b = gs.cast(n_tiles_b, gs.int32)
-        tangent_vec_b = gs.tile(tangent_vec_b, [n_tiles_b, 1])
+        if n_tangent_vec_b != n_auxs:
+            if n_auxs == 1:
+                aux = gs.squeeze(aux, axis=0)
+                einsum_str_b = 'k,nk->n'
+            elif n_tangent_vec_b == 1:
+                tangent_vec_b = gs.squeeze(tangent_vec_b, axis=0)
+                einsum_str_b = 'nk,k->n'
+            else:
+                raise ValueError('Shape mismatch for einsum.')
+        else:
+            einsum_str_b = 'nk,nk->n'
 
-        n_tiles_mat = gs.divide(n_inner_prod, n_mats)
-        n_tiles_mat = gs.cast(n_tiles_mat, gs.int32)
-        inner_prod_mat = gs.tile(inner_prod_mat, [n_tiles_mat, 1, 1])
-
-        aux = gs.einsum('nj,njk->nk', tangent_vec_a, inner_prod_mat)
-        inner_prod = gs.einsum('nk,nk->n', aux, tangent_vec_b)
+        inner_prod = gs.einsum(einsum_str_b, aux, tangent_vec_b)
         inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
         assert gs.ndim(inner_prod) == 2, inner_prod.shape
