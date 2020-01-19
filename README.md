@@ -1,6 +1,4 @@
-<img align="left" width="40" height="40" src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" alt="Project icon">
 # Geomstats
-
 [![Build Status](https://travis-ci.org/geomstats/geomstats.svg?branch=master)](https://travis-ci.org/geomstats/geomstats)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy)](https://codecov.io/gh/geomstats/geomstats)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=tensorflow)](https://codecov.io/gh/geomstats/geomstats)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=pytorch)](https://codecov.io/gh/geomstats/geomstats) (Coverages for: numpy, tensorflow, pytorch)
 
 
@@ -11,7 +9,7 @@ Computations and statistics on manifolds with geometric structures.
 - The documentation of ```geomstats``` can be found on the [documentation website](https://geomstats.github.io/).
 - If you find ``geomstats`` useful, please kindly cite our [paper](https://arxiv.org/abs/1805.08308).
 
-<img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/gradient_descent.gif" width=350 height=350><img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=300 height=300>
+img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=100 height=100>
 
 
 ## Installation
