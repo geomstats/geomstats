@@ -669,18 +669,23 @@ class HyperbolicMetric(RiemannianMetric):
         elif self.point_type == 'ball':
 
             add_base_point = self.mobius_add(-base_point, point)
+            #print('add bp', add_base_point)
 
+            #print('norm add base point', gs.norm(add_base_point,-1))
             norm_add = gs.to_ndarray(gs.norm(add_base_point, -1), 2, -1)
             norm_add = gs.repeat(norm_add, base_point.shape[-1], -1)
-            norm2_base_point = gs.to_ndarray(gs.sum(base_point**2, -1), 2, -1)
+            #print('norm add bp', norm_add)
+            norm2_base_point = gs.to_ndarray(gs.norm(base_point, -1), 2, -1)
             norm2_base_point = gs.repeat(norm2_base_point,
                                          base_point.shape[-1], -1)
-
-            log = (1 - norm2_base_point) * gs.arctanh(norm_add)\
+            #print('norm2 bp', norm2_base_point)
+            log = (1 - norm2_base_point**2) * gs.arctanh(norm_add)\
                 * (add_base_point / norm_add)
 
             mask_0 = gs.all(gs.isclose(norm_add, 0))
             log[mask_0] = 0
+            log[gs.isnan(log)] = 0
+
 
             return log
         else:
@@ -715,10 +720,16 @@ class HyperbolicMetric(RiemannianMetric):
                               keepdims=True)
         norm_point_b = gs.repeat(norm_point_b, point_a.shape[-1], -1)
 
-        sum_prod_a_b = (point_a * point_b).sum(
-            -1, keepdims=True)
+        sum_prod_a_b = gs.sum(point_a * point_b,
+                              axis=-1, keepdims=True)
 
         sum_prod_a_b = gs.repeat(sum_prod_a_b, point_a.shape[-1], -1)
+
+        #print('point a',point_a)
+        #print('point b', point_b)
+        #print('point sumprodab', sum_prod_a_b)
+        #print('norm a', norm_point_a)
+        #print('norm b', norm_point_b)
 
         add_nominator = ((1 + 2 * sum_prod_a_b + norm_point_b) * point_a +
                          (1 - norm_point_a) * point_b)

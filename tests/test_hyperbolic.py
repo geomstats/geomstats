@@ -348,14 +348,13 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
 
     def test_log_poincare(self):
 
-        point = gs.array([0,0])
-        base_point = point
+        point = gs.array([0.3,0.5])
+        base_point = gs.array([0.3,0.3])
 
         self.space.metric.point_type = 'ball'
         result = self.space.metric.log(point, base_point)
+        expected=gs.array([-0.01733576, 0.21958634])
 
-        print('log result', result)
-        expected=0
         self.space.metric.point_type = 'extrinsic'
         with self.session():
             self.assertAllClose(result, expected)
