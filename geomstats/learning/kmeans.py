@@ -9,7 +9,7 @@ from geomstats.learning._template import TransformerMixin
 class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
     def __init__(self, riemannian_metric, n_clusters=8, init='random',
-                 tol=1e-2, verbose=0):
+                 tol=1e-2, point_type = 'vector', verbose=0):
         """ K-Means algorithm using Riemannian manifolds
 
         Parameters
@@ -38,6 +38,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self.riemannian_metric = riemannian_metric
         self.tol = tol
         self.verbose = verbose
+        self.point_type = point_type
 
     def fit(self, X, max_iter=100):
         """Predict for each data point the closest center in terms of
@@ -74,14 +75,11 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
             for i in range(self.n_clusters):
                 fold = gs.squeeze(X[belongs == i])
 
-                print('Cluster', i)
-                print('fold', fold)
-
 
                 if len(fold) > 0:
-                    print('len fold', len(fold))
                     self.centroids[i] = self.riemannian_metric.mean(fold,
-                                                                    point_type='ball')
+                                                                    point_type=self.point_type,
+                                                                    n_max_iterations = 32)
 
                 else:
                     self.centroids[i] = X[randint(0, n_samples-1)]

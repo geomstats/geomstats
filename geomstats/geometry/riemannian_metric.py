@@ -349,14 +349,8 @@ class RiemannianMetric(object):
         weights: array-like, shape=[n_samples, 1], optional
 
         verbose: bool, optional
-
-        Returns
-        -------
-        mean
         """
         if point_type!='ball':
-
-            print('point type', point_type)
 
             # TODO(nina): Profile this code to study performance,
             # i.e. what to do with sq_dists_between_iterates.
@@ -367,21 +361,16 @@ class RiemannianMetric(object):
                 return result[0, 0] or iteration == 0
 
             def while_loop_body(iteration, mean, variance, sq_dist):
-                print('pass while loop body')
+
                 logs = self.log(point=points, base_point=mean)
-                print('logs', logs, logs.shape)
 
                 tangent_mean = gs.einsum('nk,nj->j', weights, logs)
-
-                print('tangent mean', tangent_mean)
 
                 tangent_mean /= sum_weights
 
                 mean_next = self.exp(
                     tangent_vec=tangent_mean,
                     base_point=mean)
-
-                print('Next mean', mean_next)
 
                 sq_dist = self.squared_dist(mean_next, mean)
                 sq_dists_between_iterates.append(sq_dist)
@@ -399,8 +388,6 @@ class RiemannianMetric(object):
             if point_type == 'matrix':
                 points = gs.to_ndarray(points, to_ndim=3)
             n_points = gs.shape(points)[0]
-
-            print(n_points)
 
             if weights is None:
                 weights = gs.ones((n_points, 1))
@@ -440,6 +427,34 @@ class RiemannianMetric(object):
 
             mean = gs.to_ndarray(mean, to_ndim=2)
             return mean
+
+        if point_type == 'ball':
+
+            lr =1e-3
+            tau = 5e-3
+
+            if (len(points) == 1):
+                return points
+
+            iteration = 0
+            convergence = math.inf
+            barycenter = points.mean(0, keepdims=True) * 0
+
+            while (convergence > tau and n_max_iterations > iteration):
+
+                iteration += 1
+
+                expand_barycenter = gs.repeat(barycenter,points.shape[0], 0)
+
+                grad_tangent = 2 * self.log(points, expand_barycenter)
+
+                cc_barycenter = self.exp(lr * grad_tangent.sum(0, keepdims=True),barycenter)
+
+                convergence = self.dist(cc_barycenter, barycenter).max().item()
+
+                barycenter = cc_barycenter
+
+            return barycenter
 
     def adaptive_gradientdescent_mean(self, points,
                                       weights=None,
