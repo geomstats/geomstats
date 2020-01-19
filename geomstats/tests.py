@@ -7,6 +7,8 @@ This class abstracts the backend type.
 import os
 import unittest
 
+import numpy as np
+
 import geomstats.backend as gs
 
 
@@ -72,9 +74,6 @@ if tf_backend():
     import tensorflow as tf
     _TestBaseClass = tf.test.TestCase
 
-if np_backend():
-    import numpy as np
-
 
 class TestCase(_TestBaseClass):
     _multiprocess_can_split_ = True
@@ -85,6 +84,14 @@ class TestCase(_TestBaseClass):
         elif np_backend():
             return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
         return self.assertTrue(gs.allclose(a, b, rtol=rtol, atol=atol))
+
+    def assertAllCloseToNp(self, a, np_a, rtol=1e-6, atol=1e-6):
+        are_same_shape = np.all(a.shape == np_a.shape)
+        if pytorch_backend():
+            are_same = np.all(np.array(a) == np_a)
+        else:
+            are_same = np.all(a == np_a)
+        return are_same_shape and are_same
 
     def session(self):
         if tf_backend():
