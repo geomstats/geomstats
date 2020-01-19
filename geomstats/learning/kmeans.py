@@ -80,7 +80,8 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
                 if len(fold) > 0:
                     print('len fold', len(fold))
-                    self.centroids[i] = self.riemannian_metric.mean(fold)
+                    self.centroids[i] = self.riemannian_metric.mean(fold,
+                                                                    point_type='ball')
 
                 else:
                     self.centroids[i] = X[randint(0, n_samples-1)]
