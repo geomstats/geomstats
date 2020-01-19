@@ -26,6 +26,7 @@ from autograd.numpy import (  # NOQA
     cosh,
     cov,
     cross,
+    cumsum,
     diagonal,
     divide,
     dot,
@@ -52,6 +53,7 @@ from autograd.numpy import (  # NOQA
     matmul,
     maximum,
     mean,
+    meshgrid,
     mod,
     nonzero,
     ones,
@@ -84,7 +86,7 @@ from autograd.numpy import (  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 
-
+integer = _np.integer
 int32 = _np.int32
 int8 = _np.int8
 float32 = _np.float32
