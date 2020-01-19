@@ -32,6 +32,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
                                                  point_type='extrinsic')
         self.n_samples = 10
 
+    @geomstats.tests.np_and_pytorch_only
     def test_extrinsic_ball_extrinsic(self):
         x_in = gs.array([[0.5, 7]])
         x = self.intrinsic_manifold.to_coordinates(
@@ -40,6 +41,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         x2 = self.ball_manifold.to_coordinates(x_b, to_point_type='extrinsic')
         self.assertAllClose(x, x2, atol=1e-8)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_extrinsic_half_plane_extrinsic(self):
         x_in = gs.array([[0.5, 7]])
         x = self.intrinsic_manifold.to_coordinates(
@@ -51,6 +53,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
             x_up, to_point_type='extrinsic')
         self.assertAllClose(x, x2, atol=1e-8)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_intrinsic_extrinsic_intrinsic(self):
         x_intr = gs.array([[0.5, 7]])
         x_extr = self.intrinsic_manifold.to_coordinates(
@@ -59,17 +62,20 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
             x_extr, to_point_type='intrinsic')
         self.assertAllClose(x_intr, x_intr2, atol=1e-8)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_ball_extrinsic_ball(self):
         x = gs.array([[0.5, 0.2]])
         x_e = self.ball_manifold.to_coordinates(x, to_point_type='extrinsic')
         x2 = self.extrinsic_manifold.to_coordinates(x_e, to_point_type='ball')
         self.assertAllClose(x, x2, atol=1e-10)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_belongs_ball(self):
         x = gs.array([[0.5, 0.2]])
         belong = self.ball_manifold.belongs(x)
         assert(belong[0])
 
+    @geomstats.tests.np_and_pytorch_only
     def test_distance_ball_extrinsic_from_ball(self):
         x_ball = gs.array([[0.7, 0.2]])
         y_ball = gs.array([[0.2, 0.2]])
@@ -81,6 +87,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         dst_extr = self.extrinsic_metric.dist(x_extr, y_extr)
         self.assertAllClose(dst_ball, dst_extr)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_distance_ball_extrinsic_from_extr(self):
         x_int = gs.array([[10, 0.2]])
         y_int = gs.array([[1, 6.]])
@@ -96,6 +103,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         dst_extr = self.extrinsic_metric.dist(x_extr, y_extr)
         self.assertAllClose(dst_ball, dst_extr)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_distance_ball_extrinsic_from_extr_5_dim(self):
         x_int = gs.array([[10, 0.2, 3, 4]])
         y_int = gs.array([[1, 6, 2., 1]])
@@ -114,6 +122,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         dst_extr = extrinsic_metric.dist(x_extr, y_extr)
         self.assertAllClose(dst_ball, dst_extr)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_log_exp_ball_extrinsic_from_extr(self):
         x_int = gs.array([[4., 0.2]])
         y_int = gs.array([[3., 3]])
@@ -135,6 +144,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
             x_ball_log_exp, from_point_type='ball')
         self.assertAllClose(x_extr_a, x_extr_b, atol=1e-4)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_log_exp_ball(self):
         x = gs.array([[0.1, 0.2]])
         y = gs.array([[0.2, 0.5]])
@@ -143,6 +153,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         exp = self.ball_metric.exp(log, x)
         self.assertAllClose(exp, y)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_log_exp_ball_batch(self):
         x = gs.array([[0.1, 0.2]])
         y = gs.array([[0.2, 0.5], [0.1, 0.7]])

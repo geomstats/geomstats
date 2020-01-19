@@ -26,6 +26,7 @@ class TestPoincarePolydiskMethods(geomstats.tests.TestCase):
         result = self.metric.signature
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_product_distance_extrinsic_representation(self):
         point_type = 'extrinsic'
         point_a_intrinsic = gs.array([0.01, 0.0])

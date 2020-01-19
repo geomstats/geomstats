@@ -102,6 +102,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_log_and_exp_general_case(self):
         """
         Test that the riemannian exponential
@@ -126,6 +127,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=1e-6)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_log_and_exp_edge_case(self):
         """
         Test that the riemannian exponential
@@ -208,6 +210,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         result = self.metric.log(n_points, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
+    @geomstats.tests.np_and_pytorch_only
     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
         """
         Test that the riemannian exponential
@@ -239,6 +242,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = expected / norm_expected * regularized_norm_expected
         expected = helper.to_vector(expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """
         Test that the riemannian exponential
@@ -349,6 +353,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         base_point = gs.array([16., -2., -2.5, 84., 3.])
         base_point = base_point / gs.linalg.norm(base_point)
@@ -364,6 +369,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = helper.to_scalar(expected)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_exp_and_dist_and_projection_to_tangent_space_vec(self):
         base_point = gs.array([
             [16., -2., -2.5, 84., 3.],
@@ -541,6 +547,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         self.assertTrue(
                 gs.allclose(result, expected, atol=KAPPA_ESTIMATION_TOL))
 
+    @geomstats.tests.np_and_pytorch_only
     def test_spherical_to_extrinsic(self):
         """
         Check vectorization of conversion from spherical
@@ -555,6 +562,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
                              [gs.sqrt(2)/4, gs.sqrt(2)/4, gs.sqrt(3)/2]])
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_tangent_spherical_to_extrinsic(self):
         """
         Check vectorization of conversion from spherical

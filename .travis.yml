@@ -17,6 +17,7 @@ script:
 env:
     - GEOMSTATS_BACKEND=numpy
     - GEOMSTATS_BACKEND=pytorch
+    - GEOMSTATS_BACKEND=tensorflow
 
 after_success:
     - bash <(curl -s https://codecov.io/bash) -c -F $GEOMSTATS_BACKEND

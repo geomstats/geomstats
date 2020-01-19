@@ -31,6 +31,7 @@ class TestEstimators(geomstats.tests.TestCase):
         y_pred = est.predict(X)
         self.assertAllClose(y_pred, gs.ones(gs.shape(X)[0]))
 
+    @geomstats.tests.np_only
     def test_template_transformer_error(self):
         X, y = self.data
         n_samples = gs.shape(X)[0]
