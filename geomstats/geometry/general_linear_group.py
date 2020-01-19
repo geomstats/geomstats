@@ -91,7 +91,7 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
         mat = gs.to_ndarray(mat, to_ndim=3)
         return gs.linalg.inv(mat)
 
-    def group_exp_from_identity(self, tangent_vec, point_type=None):
+    def exp_from_identity(self, tangent_vec, point_type=None):
         """Compute group exponential at the identity.
 
         Group exponential of the Lie group of
@@ -111,7 +111,7 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
 
         return gs.real(group_exp)
 
-    def group_exp_not_from_identity(
+    def exp_not_from_identity(
             self, tangent_vec, base_point, point_type=None):
         """Compute group exponential from a base point.
 
@@ -133,15 +133,15 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
         tangent_vec_at_identity = self.compose(
             self.inverse(base_point), tangent_vec)
 
-        group_exp_from_identity = self.group_exp_from_identity(
+        exp_from_identity = self.exp_from_identity(
                 tangent_vec_at_identity)
 
         group_exp = self.compose(
-            base_point, group_exp_from_identity)
+            base_point, exp_from_identity)
 
         return group_exp
 
-    def group_log_from_identity(self, point, point_type=None):
+    def log_from_identity(self, point, point_type=None):
         """Compute group logarithm at the identity.
 
         Group logarithm of the Lie group of
@@ -161,7 +161,7 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
 
         return gs.real(group_log)
 
-    def group_log_not_from_identity(
+    def log_not_from_identity(
             self, point, base_point, point_type=None):
         """Compute group logarithm at a base point.
 
@@ -183,10 +183,10 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
         point_near_identity = self.compose(
             self.inverse(base_point), point)
 
-        group_log_from_identity = self.group_log_from_identity(
+        log_from_identity = self.log_from_identity(
             point_near_identity)
 
         group_log = self.compose(
-            base_point, group_log_from_identity)
+            base_point, log_from_identity)
 
         return group_log

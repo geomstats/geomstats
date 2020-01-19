@@ -103,8 +103,8 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
     def test_group_log_and_exp(self):
         point = 5 * gs.eye(self.n)
 
-        group_log = self.group.group_log(point)
-        result = self.group.group_exp(group_log)
+        group_log = self.group.log(point)
+        result = self.group.exp(group_log)
         expected = point
         expected = helper.to_matrix(expected)
 
@@ -126,7 +126,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
                               [0., 148.413159, 0.],
                               [0., 0., 403.42879349]]])
 
-        result = self.group.group_exp(point)
+        result = self.group.exp(point)
 
         self.assertAllClose(result, expected, rtol=1e-3)
 
@@ -146,7 +146,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
                               [0., 1.609437912, 0.],
                               [0., 0., 1.79175946]]])
 
-        result = self.group.group_log(point)
+        result = self.group.log(point)
 
         self.assertAllClose(result, expected, atol=1e-4)
 
@@ -158,7 +158,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
                           [[1., 0., 0.],
                            [0., 5., 0.],
                            [0., 0., 6.]]])
-        result = self.group.group_exp(self.group.group_log(point))
+        result = self.group.exp(self.group.log(point))
         expected = point
 
         self.assertAllClose(result, expected)

@@ -556,7 +556,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
             rot_vec *= (1. + fact)
         else:
-            skew_mat = self.embedding_manifold.group_log_from_identity(rot_mat)
+            skew_mat = self.embedding_manifold.log_from_identity(rot_mat)
             rot_vec = self.vector_from_skew_matrix(skew_mat)
 
         return self.regularize(rot_vec, point_type='vector')
@@ -608,7 +608,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         else:
             skew_mat = self.skew_matrix_from_vector(rot_vec)
-            rot_mat = self.embedding_manifold.group_exp_from_identity(skew_mat)
+            rot_mat = self.embedding_manifold.exp_from_identity(skew_mat)
 
         return rot_mat
 
@@ -1281,7 +1281,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         return random_point
 
-    def group_exp_from_identity(self, tangent_vec, point_type=None):
+    def exp_from_identity(self, tangent_vec, point_type=None):
         """
         Compute the group exponential of the tangent vector at the identity.
         """
@@ -1299,7 +1299,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         return point
 
-    def group_log_from_identity(self, point, point_type=None):
+    def log_from_identity(self, point, point_type=None):
         """
         Compute the group logarithm of the point at the identity.
         """
@@ -1314,7 +1314,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             tangent_vec = self.skew_matrix_from_vector(point)
         return tangent_vec
 
-    def group_exponential_barycenter(
+    def exponential_barycenter(
             self, points, weights=None, point_type=None):
         """
         Compute the group exponential barycenter in SO(n), which is the
@@ -1340,7 +1340,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         elif point_type == 'matrix':
             points = self.rotation_vector_from_matrix(points)
-            exp_bar = self.group_exponential_barycenter(
+            exp_bar = self.exponential_barycenter(
                 points, weights, point_type='vector')
             exp_bar = self.matrix_from_rotation_vector(exp_bar)
 

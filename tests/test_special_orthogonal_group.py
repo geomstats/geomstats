@@ -3266,7 +3266,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         #     tangent_sample[gs.triu_indices(n, k=1)] = normal_rv
         #     tangent_sample = tangent_sample - gs.transpose(tangent_sample)
         #     result = gs.linalg.expm(tangent_sample)
-        #     expected = group.group_exp_from_identity(
+        #     expected = group.exp_from_identity(
         #         tangent_sample, point_type='matrix')
 
         #     self.assertAllClose(result, expected)
@@ -3283,7 +3283,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
             tangent_sample = tangent_sample - gs.transpose(tangent_sample)
 
             result = gs.reshape(
-                group.group_exp_from_identity(
+                group.exp_from_identity(
                     tangent_sample, point_type='matrix'), (n, n))
 
             expected = gs.linalg.expm(tangent_sample)
@@ -3296,7 +3296,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         n_samples = self.n_samples
         tangent_vecs = group.random_uniform(n_samples=n_samples)
-        result = group.group_exp_from_identity(tangent_vecs)
+        result = group.exp_from_identity(tangent_vecs)
 
         self.assertAllClose(
             gs.shape(result), (n_samples, group.dimension))
@@ -3307,7 +3307,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         n_samples = self.n_samples
         points = group.random_uniform(n_samples=n_samples)
-        result = group.group_log_from_identity(points)
+        result = group.log_from_identity(points)
 
         self.assertAllClose(
             gs.shape(result), (n_samples, group.dimension))
@@ -3321,7 +3321,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         # Test with the 1 base_point, and several different tangent_vecs
         tangent_vecs = group.random_uniform(n_samples=n_samples)
         base_point = group.random_uniform(n_samples=1)
-        result = group.group_exp(tangent_vecs, base_point)
+        result = group.exp(tangent_vecs, base_point)
 
         self.assertAllClose(
             gs.shape(result), (n_samples, group.dimension))
@@ -3329,7 +3329,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         # Test with the same number of base_points and tangent_vecs
         tangent_vecs = group.random_uniform(n_samples=n_samples)
         base_points = group.random_uniform(n_samples=n_samples)
-        result = group.group_exp(tangent_vecs, base_points)
+        result = group.exp(tangent_vecs, base_points)
 
         self.assertAllClose(
             gs.shape(result), (n_samples, group.dimension))
@@ -3337,7 +3337,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         # Test with the several base_points, and 1 tangent_vec
         tangent_vec = group.random_uniform(n_samples=1)
         base_points = group.random_uniform(n_samples=n_samples)
-        result = group.group_exp(tangent_vec, base_points)
+        result = group.exp(tangent_vec, base_points)
 
         self.assertAllClose(
             gs.shape(result), (n_samples, group.dimension))
@@ -3351,7 +3351,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         # Test with the 1 base point, and several different points
         points = group.random_uniform(n_samples=n_samples)
         base_point = group.random_uniform(n_samples=1)
-        result = group.group_log(points, base_point)
+        result = group.log(points, base_point)
 
         self.assertAllClose(
             gs.shape(result), (n_samples, group.dimension))
@@ -3359,7 +3359,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         # Test with the same number of base points and points
         points = group.random_uniform(n_samples=n_samples)
         base_points = group.random_uniform(n_samples=n_samples)
-        result = group.group_log(points, base_points)
+        result = group.log(points, base_points)
 
         self.assertAllClose(
             gs.shape(result), (n_samples, group.dimension))
@@ -3367,7 +3367,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         # Test with the several base points, and 1 point
         point = group.random_uniform(n_samples=1)
         base_points = group.random_uniform(n_samples=n_samples)
-        result = group.group_log(point, base_points)
+        result = group.log(point, base_points)
 
         self.assertAllClose(
             gs.shape(result), (n_samples, group.dimension))
@@ -3580,7 +3580,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         rot_vec = group.random_uniform()
         points = gs.vstack([rot_vec, rot_vec])
-        result = group.group_exponential_barycenter(
+        result = group.exponential_barycenter(
                                 points=points)
         expected = rot_vec
         self.assertAllClose(result, expected)
@@ -3588,7 +3588,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
         rot_vec = group.random_uniform()
         points = gs.vstack([rot_vec, rot_vec])
         weights = gs.array([1., 2.])
-        result = group.group_exponential_barycenter(
+        result = group.exponential_barycenter(
                                 points=points,
                                 weights=weights)
         expected = rot_vec
@@ -3596,7 +3596,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
 
         points = gs.vstack([rot_vec, rot_vec])
         weights = gs.array([1., 2.])
-        group_bar = group.group_exponential_barycenter(
+        group_bar = group.exponential_barycenter(
             points=points, weights=weights)
         result = group.belongs(group_bar)
         expected = gs.array([[True]])

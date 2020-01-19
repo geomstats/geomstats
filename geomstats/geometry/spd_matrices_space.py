@@ -86,7 +86,7 @@ class SPDMatricesSpace(EmbeddedManifold):
     def random_uniform(self, n_samples=1):
         mat = 2 * gs.random.rand(n_samples, self.n, self.n) - 1
 
-        spd_mat = self.embedding_manifold.group_exp(
+        spd_mat = self.embedding_manifold.exp(
                 mat + gs.transpose(mat, axes=(0, 2, 1)))
         return spd_mat
 
