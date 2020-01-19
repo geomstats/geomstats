@@ -4,12 +4,12 @@
 
 Computations and statistics on manifolds with geometric structures.
 
+<img align="left" src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=100 height=100>
+
 - To get started with ```geomstats```, see the [examples directory](https://github.com/geomstats/geomstats/tree/master/examples).
 - For more in-depth applications of ``geomstats``, see the [applications repository](https://github.com/geomstats/applications/).
 - The documentation of ```geomstats``` can be found on the [documentation website](https://geomstats.github.io/).
 - If you find ``geomstats`` useful, please kindly cite our [paper](https://arxiv.org/abs/1805.08308).
-
-<img src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=100 height=100>
 
 
 ## Installation
