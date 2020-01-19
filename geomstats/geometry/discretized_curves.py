@@ -2,7 +2,6 @@
 
 import math
 
-import numpy as np
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
@@ -165,8 +164,9 @@ class SRVMetric(RiemannianMetric):
                                  'implemented for dicretized curves embedded '
                                  'in a Euclidean space.')
         if gs.ndim(srv) != gs.ndim(starting_point):
-            starting_point = gs.transpose(np.tile(starting_point, (1, 1, 1)),
-                                          axes=(1, 0, 2))
+            starting_point = gs.transpose(
+                gs.tile(starting_point, (1, 1, 1)),
+                axes=(1, 0, 2))
         srv_shape = srv.shape
         srv = gs.to_ndarray(srv, to_ndim=3)
         n_curves, n_sampling_points_minus_one, n_coords = srv.shape
@@ -176,8 +176,8 @@ class SRVMetric(RiemannianMetric):
         srv_norm = self.ambient_metric.norm(srv)
         delta_points = 1 / n_sampling_points_minus_one * srv_norm * srv
         delta_points = gs.reshape(delta_points, srv_shape)
-        curve = np.concatenate((starting_point, delta_points), -2)
-        curve = np.cumsum(curve, -2)
+        curve = gs.concatenate((starting_point, delta_points), -2)
+        curve = gs.cumsum(curve, -2)
 
         return curve
 
@@ -270,11 +270,11 @@ class SRVMetric(RiemannianMetric):
         log_starting_points = self.ambient_metric.log(
             point=curve[:, 0, :], base_point=base_curve[:, 0, :])
         log_starting_points = gs.transpose(
-            np.tile(log_starting_points, (1, 1, 1)), (1, 0, 2))
+            gs.tile(log_starting_points, (1, 1, 1)), (1, 0, 2))
 
         log_cumsum = gs.hstack(
             [gs.zeros((n_curves, 1, n_coords)),
-             np.cumsum(log_derivative, -2)])
+             gs.cumsum(log_derivative, -2)])
         log = log_starting_points + 1 / (n_sampling_points - 1) * log_cumsum
 
         return log

@@ -1,7 +1,6 @@
 """Visualization for Geometric Statistics."""
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 import geomstats.backend as gs
 from geomstats.geometry.hyperbolic import Hyperbolic
@@ -112,8 +111,9 @@ class Sphere():
         if n_circles_latitude is None:
             n_circles_latitude = max(n_meridians / 2, 4)
 
-        u, v = np.mgrid[0:2 * gs.pi:n_meridians * 1j,
-                        0:gs.pi:n_circles_latitude * 1j]
+        u, v = gs.meshgrid(
+            gs.arange(0, 2 * gs.pi, 2 * gs.pi / n_meridians),
+            gs.arange(0, gs.pi, gs.pi / n_circles_latitude))
 
         self.center = gs.zeros(3)
         self.radius = 1
