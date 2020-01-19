@@ -604,9 +604,6 @@ class HyperbolicMetric(RiemannianMetric):
 
             exp = self.mobius_add(base_point, direction * factor)
 
-            #if 0 != len(gs.nonzero((norm_tan==0))):
-            #    exp[norm_tan==0] = base_point[norm_tan==0]
-
             return exp
         else:
             raise NotImplementedError(

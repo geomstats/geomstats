@@ -2,7 +2,7 @@
 Plot a square on H2 with Poincare Disk visualization
 with two clusters from uniformly sampled random points.
 Then apply the K-means algorithm and plot the points labels
-as two distinct colors.
+as two distinct colors. Computed means are marked as green stars.
 """
 import os
 
