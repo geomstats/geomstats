@@ -2,19 +2,19 @@
 Unit tests for the manifold of matrices.
 """
 
-import geomstats.backend as gs
-import geomstats.tests
 import tests.helper as helper
 
-from geomstats.geometry.matrices_space import MatricesSpace
+import geomstats.backend as gs
+import geomstats.tests
+from geomstats.geometry.matrices import Matrices
 
 
-class TestMatricesSpaceMethods(geomstats.tests.TestCase):
+class TestMatricesMethods(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
 
         self.n = 3
-        self.space = MatricesSpace(m=self.n, n=self.n)
+        self.space = Matrices(m=self.n, n=self.n)
         self.metric = self.space.metric
         self.n_samples = 2
 
@@ -57,7 +57,7 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
         result = self.space.commutator(x, [x, y, z])
-        expected = gs.array([gs.zeros((3,3)), z, -y])
+        expected = gs.array([gs.zeros((3, 3)), z, -y])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -95,6 +95,7 @@ class TestMatricesSpaceMethods(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_make_symmetric(self):
         sym_mat = gs.array([[1., 2.],
                             [2., 1.]])

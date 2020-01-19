@@ -1,11 +1,12 @@
 """
 This is a module to be used as a reference for building other modules
 """
-import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
 from sklearn.metrics import euclidean_distances
 from sklearn.utils.multiclass import unique_labels
 from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
+
+import geomstats.backend as gs
 
 
 class TemplateEstimator(BaseEstimator):
@@ -58,7 +59,7 @@ class TemplateEstimator(BaseEstimator):
         """
         X = check_array(X, accept_sparse=True)
         check_is_fitted(self, 'is_fitted_')
-        return np.ones(X.shape[0], dtype=np.int64)
+        return gs.ones(X.shape[0], dtype=gs.int64)
 
 
 class TemplateClassifier(BaseEstimator, ClassifierMixin):
@@ -129,7 +130,7 @@ class TemplateClassifier(BaseEstimator, ClassifierMixin):
         # Input validation
         X = check_array(X)
 
-        closest = np.argmin(euclidean_distances(X, self.X_), axis=1)
+        closest = gs.argmin(euclidean_distances(X, self.X_), axis=1)
         return self.y_[closest]
 
 
@@ -200,4 +201,4 @@ class TemplateTransformer(BaseEstimator, TransformerMixin):
         if X.shape[1] != self.n_features_:
             raise ValueError('Shape of input is different from what was seen'
                              'in `fit`')
-        return np.sqrt(X)
+        return gs.sqrt(X)

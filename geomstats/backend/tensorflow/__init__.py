@@ -58,7 +58,7 @@ def amax(x):
 
 
 def real(x):
-    return tf.real(x)
+    return tf.math.real(x)
 
 
 def cond(*args, **kwargs):
@@ -98,7 +98,7 @@ def exp(x):
 
 
 def log(x):
-    return tf.log(x)
+    return tf.math.log(x)
 
 
 def hstack(x):
@@ -261,7 +261,7 @@ def ones_like(x):
 
 
 def trace(x, **kwargs):
-    return tf.trace(x)
+    return tf.linalg.trace(x)
 
 
 def all(bool_tensor, axis=None, keepdims=False):
@@ -292,7 +292,7 @@ def floor(x):
 
 def diag(a):
     return tf.map_fn(
-        lambda x: tf.diag(x),
+        lambda x: tf.linalg.tensor_diag(x),
         a)
 
 
