@@ -8,20 +8,20 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.general_linear import GeneralLinearGroup
-from geomstats.geometry.special_orthogonal import SpecialOrthogonalGroup
+from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 RTOL = 1e-5
 
 
-class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
+class TestGeneralLinearMethods(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
         self.n = 3
         self.n_samples = 2
-        self.group = GeneralLinearGroup(n=self.n)
+        self.group = GeneralLinear(n=self.n)
         # We generate invertible matrices using so3_group
-        self.so3_group = SpecialOrthogonalGroup(n=self.n)
+        self.so3_group = SpecialOrthogonal(n=self.n)
 
         warnings.simplefilter('ignore', category=ImportWarning)
 

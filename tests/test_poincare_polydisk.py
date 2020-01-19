@@ -5,7 +5,7 @@ Unit tests for the Poincare Polydisk.
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.hyperbolic import HyperbolicSpace
+from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.poincare_polydisk import PoincarePolydisk
 
 
@@ -31,7 +31,7 @@ class TestPoincarePolydiskMethods(geomstats.tests.TestCase):
         point_type = 'extrinsic'
         point_a_intrinsic = gs.array([0.01, 0.0])
         point_b_intrinsic = gs.array([0.0, 0.0])
-        hyperbolic_space = HyperbolicSpace(dimension=2, point_type=point_type)
+        hyperbolic_space = Hyperbolic(dimension=2, point_type=point_type)
         point_a = hyperbolic_space.intrinsic_to_extrinsic_coords(
             point_a_intrinsic)
         point_b = hyperbolic_space.intrinsic_to_extrinsic_coords(

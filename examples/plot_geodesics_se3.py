@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
-from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup
+from geomstats.geometry.special_euclidean import SpecialEuclidean
 
-SE3_GROUP = SpecialEuclideanGroup(n=3)
+SE3_GROUP = SpecialEuclidean(n=3)
 METRIC = SE3_GROUP.left_canonical_metric
 
 

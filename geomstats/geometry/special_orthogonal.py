@@ -5,7 +5,7 @@ i.e. the Lie group of rotations in n dimensions.
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
-from geomstats.geometry.general_linear import GeneralLinearGroup
+from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.lie_group import LieGroup
 
 ATOL = 1e-5
@@ -24,7 +24,7 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
-class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
+class SpecialOrthogonal(LieGroup, EmbeddedManifold):
     """
     Class for the special orthogonal group SO(n),
     i.e. the Lie group of rotations.
@@ -47,7 +47,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                           dimension=self.dimension)
         EmbeddedManifold.__init__(self,
                                   dimension=self.dimension,
-                                  embedding_manifold=GeneralLinearGroup(n=n))
+                                  embedding_manifold=GeneralLinear(n=n))
         self.bi_invariant_metric = self.left_canonical_metric
 
     def get_identity(self, point_type=None):

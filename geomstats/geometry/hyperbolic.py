@@ -11,7 +11,7 @@ import math
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.minkowski import MinkowskiMetric
-from geomstats.geometry.minkowski import MinkowskiSpace
+from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-6
@@ -38,7 +38,7 @@ INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
 EPSILON = 1e-5
 
 
-class HyperbolicSpace(EmbeddedManifold):
+class Hyperbolic(EmbeddedManifold):
     """Class for the n-dimensional Hyperbolic space.
 
     Class for the n-dimensional Hyperbolic space
@@ -53,9 +53,9 @@ class HyperbolicSpace(EmbeddedManifold):
 
     def __init__(self, dimension, point_type='extrinsic', scale=1):
         assert isinstance(dimension, int) and dimension > 0
-        super(HyperbolicSpace, self).__init__(
+        super(Hyperbolic, self).__init__(
             dimension=dimension,
-            embedding_manifold=MinkowskiSpace(dimension + 1))
+            embedding_manifold=Minkowski(dimension + 1))
         self.embedding_metric = self.embedding_manifold.metric
         self.point_type = point_type
         self.scale = scale
@@ -63,22 +63,22 @@ class HyperbolicSpace(EmbeddedManifold):
 
         self.transform_to = {
             'ball-extrinsic':
-                HyperbolicSpace._ball_to_extrinsic_coordinates,
+                Hyperbolic._ball_to_extrinsic_coordinates,
             'extrinsic-ball':
-                HyperbolicSpace._extrinsic_to_ball_coordinates,
+                Hyperbolic._extrinsic_to_ball_coordinates,
             'intrinsic-extrinsic':
-                HyperbolicSpace._intrinsic_to_extrinsic_coordinates,
+                Hyperbolic._intrinsic_to_extrinsic_coordinates,
             'extrinsic-intrinsic':
-                HyperbolicSpace._extrinsic_to_intrinsic_coordinates,
+                Hyperbolic._extrinsic_to_intrinsic_coordinates,
             'extrinsic-half-plane':
-                HyperbolicSpace._extrinsic_to_half_plane_coordinates,
+                Hyperbolic._extrinsic_to_half_plane_coordinates,
             'half-plane-extrinsic':
-                HyperbolicSpace._half_plane_to_extrinsic_coordinates,
+                Hyperbolic._half_plane_to_extrinsic_coordinates,
             'extrinsic-extrinsic':
-                HyperbolicSpace._extrinsic_to_extrinsic_coordinates
+                Hyperbolic._extrinsic_to_extrinsic_coordinates
         }
         self.belongs_to = {
-            'ball': HyperbolicSpace._belongs_ball
+            'ball': Hyperbolic._belongs_ball
         }
 
     @staticmethod
@@ -208,7 +208,7 @@ class HyperbolicSpace(EmbeddedManifold):
         -------
         point_extrinsic : array-like, shape=[n_samples, dimension + 1]
         """
-        return HyperbolicSpace._intrinsic_to_extrinsic_coordinates(
+        return Hyperbolic._intrinsic_to_extrinsic_coordinates(
             point_intrinsic)
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
@@ -226,7 +226,7 @@ class HyperbolicSpace(EmbeddedManifold):
         -------
         point_intrinsic : array-like, shape=[n_samples, dimension]
         """
-        return HyperbolicSpace._extrinsic_to_intrinsic_coordinates(
+        return Hyperbolic._extrinsic_to_intrinsic_coordinates(
             point_extrinsic)
 
     @staticmethod
@@ -349,7 +349,7 @@ class HyperbolicSpace(EmbeddedManifold):
         x2 = gs.to_ndarray(x2, to_ndim=2, axis=0)
         den = gs.to_ndarray(den, to_ndim=2, axis=0)
         ball_point = gs.hstack((2*x/den, (x2+y**2-1)/den))
-        return HyperbolicSpace._ball_to_extrinsic_coordinates(ball_point)
+        return Hyperbolic._ball_to_extrinsic_coordinates(ball_point)
 
     @staticmethod
     def _extrinsic_to_half_plane_coordinates(point):
@@ -369,7 +369,7 @@ class HyperbolicSpace(EmbeddedManifold):
                            poincare ball coordinates
         """
         point_ball = \
-            HyperbolicSpace._extrinsic_to_ball_coordinates(point)
+            Hyperbolic._extrinsic_to_ball_coordinates(point)
         assert point_ball.shape[-1] == 2
         point_ball_x, point_ball_y = point_ball[:, 0], point_ball[:, 1]
         point_ball_x2 = point_ball_x**2
@@ -576,7 +576,7 @@ class HyperbolicMetric(RiemannianMetric):
             exp = (gs.einsum('ni,nj->nj', coef_1, base_point)
                    + gs.einsum('ni,nj->nj', coef_2, tangent_vec))
 
-            hyperbolic_space = HyperbolicSpace(dimension=self.dimension)
+            hyperbolic_space = Hyperbolic(dimension=self.dimension)
             exp = hyperbolic_space.regularize(exp)
             return exp
 

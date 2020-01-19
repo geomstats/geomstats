@@ -4,10 +4,10 @@ i.e. the Lie group of rigid transformations in n dimensions.
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean import EuclideanSpace
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_group import LieGroup
-from geomstats.geometry.special_orthogonal import SpecialOrthogonalGroup
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 PI = gs.pi
 PI2 = PI * PI
@@ -32,7 +32,7 @@ TAYLOR_COEFFS_2_AT_0 = [+ 1. / 6., 0.,
                         - 1. / 362880.]
 
 
-class SpecialEuclideanGroup(LieGroup):
+class SpecialEuclidean(LieGroup):
     """
     Class for the special euclidean group SE(n),
     i.e. the Lie group of rigid transformations.
@@ -50,11 +50,11 @@ class SpecialEuclideanGroup(LieGroup):
         if point_type is None:
             self.default_point_type = 'vector' if n == 3 else 'matrix'
 
-        super(SpecialEuclideanGroup, self).__init__(
+        super(SpecialEuclidean, self).__init__(
                           dimension=self.dimension)
 
-        self.rotations = SpecialOrthogonalGroup(n=n, epsilon=epsilon)
-        self.translations = EuclideanSpace(dimension=n)
+        self.rotations = SpecialOrthogonal(n=n, epsilon=epsilon)
+        self.translations = Euclidean(dimension=n)
 
     def get_identity(self, point_type=None):
         """

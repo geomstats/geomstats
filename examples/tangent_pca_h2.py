@@ -7,14 +7,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.learning.pca import TangentPCA
 
 
 def main():
     fig = plt.figure(figsize=(15, 5))
 
-    hyperbolic_plane = HyperbolicSpace(dimension=2)
+    hyperbolic_plane = Hyperbolic(dimension=2)
 
     data = hyperbolic_plane.random_uniform(n_samples=140)
     mean = hyperbolic_plane.metric.mean(data)

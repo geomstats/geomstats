@@ -9,7 +9,7 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
-from geomstats.geometry.special_euclidean import SpecialEuclideanGroup
+from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 
 class TestInvariantMetricMethods(geomstats.tests.TestCase):
@@ -19,7 +19,7 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
         gs.random.seed(1234)
 
         n = 3
-        group = SpecialEuclideanGroup(n=n)
+        group = SpecialEuclidean(n=n)
 
         # Diagonal left and right invariant metrics
         diag_mat_at_identity = gs.eye(group.dimension)

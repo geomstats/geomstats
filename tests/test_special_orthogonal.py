@@ -9,7 +9,7 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
-from geomstats.geometry.special_orthogonal import SpecialOrthogonalGroup
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 EPSILON = 1e-5
@@ -19,14 +19,14 @@ ATOL = 1e-5
 # TODO(nina): Speed up tf tests
 
 
-class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
+class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
 
         gs.random.seed(1234)
 
         n_seq = [2, 3]
-        so = {n: SpecialOrthogonalGroup(n=n) for n in n_seq}
+        so = {n: SpecialOrthogonal(n=n) for n in n_seq}
 
         # -- Rotation vectors with angles
         # 0, close to 0, closely lower than pi, pi,
@@ -3274,7 +3274,7 @@ class TestSpecialOrthogonalGroupMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_group_exp_from_identity_coincides_with_expm_for_high_dims(self):
         for n in [4, 5, 6, 7, 8, 9, 10]:
-            group = SpecialOrthogonalGroup(n=n)
+            group = SpecialOrthogonal(n=n)
             dim = int(n * (n - 1) / 2)
 
             normal_rv = gs.random.normal(size=dim)

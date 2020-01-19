@@ -7,21 +7,21 @@ import warnings
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.spd_matrices import (
-    SPDMatricesSpace,
+    SPDMatrices,
     SPDMetricAffine,
     SPDMetricEuclidean,
     SPDMetricProcrustes
 )
 
 
-class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
+class TestSPDMatricesMethods(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
 
         gs.random.seed(1234)
 
         self.n = 3
-        self.space = SPDMatricesSpace(n=self.n)
+        self.space = SPDMatrices(n=self.n)
         self.metric_affine = SPDMetricAffine(n=self.n)
         self.metric_procrustes = SPDMetricProcrustes(n=self.n)
         self.metric_euclidean = SPDMetricEuclidean(n=self.n)

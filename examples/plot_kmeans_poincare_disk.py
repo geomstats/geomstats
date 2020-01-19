@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
-from geomstats.geometry.hyperbolic_space import HyperbolicMetric
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hyperbolic import HyperbolicMetric
+from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.learning.kmeans import RiemannianKMeans
 
 SQUARE_SIZE = 50
@@ -25,7 +25,7 @@ def main():
     ax = plt.gca()
 
     merged_clusters = gs.concatenate((cluster_1, cluster_2), axis=0)
-    manifold = HyperbolicSpace(dimension=2, point_type='ball')
+    manifold = Hyperbolic(dimension=2, point_type='ball')
     metric = HyperbolicMetric(dimension=2, point_type='ball')
 
     visualization.plot(

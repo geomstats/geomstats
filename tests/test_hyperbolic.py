@@ -8,8 +8,8 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.hyperbolic import HyperbolicSpace
-from geomstats.geometry.minkowski import MinkowskiSpace
+from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.minkowski import Minkowski
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
 # of the vector, as opposed to the standard behavior of gs.allclose
@@ -17,11 +17,11 @@ from geomstats.geometry.minkowski import MinkowskiSpace
 RTOL = 1e-6
 
 
-class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
+class TestHyperbolicMethods(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
         self.dimension = 3
-        self.space = HyperbolicSpace(dimension=self.dimension)
+        self.space = Hyperbolic(dimension=self.dimension)
         self.metric = self.space.metric
         self.n_samples = 10
 
@@ -108,7 +108,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_exp_and_belongs(self):
-        H2 = HyperbolicSpace(dimension=2)
+        H2 = Hyperbolic(dimension=2)
         METRIC = H2.metric
 
         base_point = gs.array([1., 0., 0.])
@@ -214,7 +214,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         Test that the inner product between two tangent vectors
         is the Minkowski inner product.
         """
-        minkowski_space = MinkowskiSpace(self.dimension + 1)
+        minkowski_space = Minkowski(self.dimension + 1)
         base_point = gs.array(
             [1.16563816, 0.36381045, -0.47000603, 0.07381469])
 
@@ -450,8 +450,8 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         tangent_vec_b = self.space.projection_to_tangent_space(
             tangent_vec_b, base_point)
         scale = 2
-        default_space = HyperbolicSpace(dimension=self.dimension)
-        scaled_space = HyperbolicSpace(dimension=self.dimension, scale=2)
+        default_space = Hyperbolic(dimension=self.dimension)
+        scaled_space = Hyperbolic(dimension=self.dimension, scale=2)
         inner_product_default_metric = default_space.metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point)
         inner_product_scaled_metric = scaled_space.metric.inner_product(
@@ -469,8 +469,8 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         tangent_vec = self.space.projection_to_tangent_space(
             tangent_vec, base_point)
         scale = 2
-        default_space = HyperbolicSpace(dimension=self.dimension)
-        scaled_space = HyperbolicSpace(dimension=self.dimension, scale=2)
+        default_space = Hyperbolic(dimension=self.dimension)
+        scaled_space = Hyperbolic(dimension=self.dimension, scale=2)
         squared_norm_default_metric = default_space.metric.squared_norm(
             tangent_vec, base_point)
         squared_norm_scaled_metric = scaled_space.metric.squared_norm(
@@ -486,8 +486,8 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         point_a = self.space.intrinsic_to_extrinsic_coords(point_a_intrinsic)
         point_b = self.space.intrinsic_to_extrinsic_coords(point_b_intrinsic)
         scale = 2
-        default_space = HyperbolicSpace(dimension=self.dimension)
-        scaled_space = HyperbolicSpace(dimension=self.dimension, scale=2)
+        default_space = Hyperbolic(dimension=self.dimension)
+        scaled_space = Hyperbolic(dimension=self.dimension, scale=2)
         distance_default_metric = default_space.metric.dist(point_a, point_b)
         distance_scaled_metric = scaled_space.metric.dist(point_a, point_b)
         result = distance_scaled_metric

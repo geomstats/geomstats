@@ -9,7 +9,7 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class LandmarksSpace(Manifold):
+class Landmarks(Manifold):
     """
     Class for landmarks.
     """
@@ -27,7 +27,7 @@ class LandmarksSpace(Manifold):
         self.l2_metric = L2Metric(self.ambient_manifold)
         self.n_landmarks = n_landmarks
 
-        super(LandmarksSpace, self).__init__(dimension=self.dimension)
+        super(Landmarks, self).__init__(dimension=self.dimension)
 
     def belongs(self, point):
         belongs = gs.all(self.ambient_manifold.belongs(point))

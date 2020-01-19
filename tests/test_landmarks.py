@@ -7,10 +7,10 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.landmarks import LandmarksSpace
+from geomstats.geometry.landmarks import Landmarks
 
 
-class TestLandmarksSpaceMethods(geomstats.tests.TestCase):
+class TestLandmarksMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def setUp(self):
         s2 = Hypersphere(dimension=2)
@@ -41,9 +41,9 @@ class TestLandmarksSpaceMethods(geomstats.tests.TestCase):
         self.times = gs.linspace(0., 1., self.n_landmark_sets)
         self.atol = 1e-6
         gs.random.seed(1234)
-        self.space_landmarks_in_euclidean_3d = LandmarksSpace(
+        self.space_landmarks_in_euclidean_3d = Landmarks(
                 ambient_manifold=r3)
-        self.space_landmarks_in_sphere_2d = LandmarksSpace(
+        self.space_landmarks_in_sphere_2d = Landmarks(
                 ambient_manifold=s2)
         self.l2_metric_s2 = self.space_landmarks_in_sphere_2d.l2_metric
         self.l2_metric_r3 = self.space_landmarks_in_euclidean_3d.l2_metric

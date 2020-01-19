@@ -2,10 +2,10 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.lie_group import LieGroup
-from geomstats.geometry.matrices import MatricesSpace
+from geomstats.geometry.matrices import Matrices
 
 
-class GeneralLinearGroup(LieGroup, MatricesSpace):
+class GeneralLinear(LieGroup, Matrices):
     """Class for the General Linear Group, i.e. the matrix group GL(n).
 
     Note: The default representation for elements of GL(n)
@@ -16,7 +16,7 @@ class GeneralLinearGroup(LieGroup, MatricesSpace):
     def __init__(self, n):
         assert isinstance(n, int) and n > 0
         LieGroup.__init__(self, dimension=n*n)
-        MatricesSpace.__init__(self, m=n, n=n)
+        Matrices.__init__(self, m=n, n=n)
 
     def get_identity(self, point_type=None):
         """Compute the identity of the General Linear Group.
