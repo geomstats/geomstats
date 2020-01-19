@@ -87,8 +87,9 @@ from . import linalg  # NOQA
 from . import random  # NOQA
 
 integer = _np.integer
-int32 = _np.int32
 int8 = _np.int8
+int32 = _np.int32
+int64 = _np.int64
 float32 = _np.float32
 float64 = _np.float64
 
