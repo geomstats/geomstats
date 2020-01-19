@@ -38,13 +38,13 @@ python3 examples/plot_grid_h2.py
 
 ## Contributing
 
-Developers install the dev-requirements:
+Developers can install the dev-requirements:
 
 ```
 pip3 install -r dev-requirements
 ```
 
-And run unit tests:
+And run unit tests from this folder:
 ```
 nose2 tests
 ```
