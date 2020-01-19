@@ -444,7 +444,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_adaptive_gradientdescent_mean(self):
-        n_tests: int = 100
+        n_tests = 100
         result = gs.zeros(n_tests)
         expected = gs.zeros(n_tests)
 
