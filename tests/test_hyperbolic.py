@@ -346,6 +346,7 @@ class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
         with self.session():
             self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_log_poincare(self):
 
         point = gs.array([0.3,0.5])
