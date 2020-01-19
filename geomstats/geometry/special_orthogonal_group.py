@@ -228,6 +228,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                               point_type=point_type)
                 jacobian = gs.array([jacobian[0]] * n_vecs)
                 inv_jacobian = gs.linalg.inv(jacobian)
+                inv_jacobian = gs.to_ndarray(inv_jacobian, to_ndim=3)
                 tangent_vec_at_id = gs.einsum(
                         'ni,nij->nj',
                         tangent_vec,
@@ -238,6 +239,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                                               metric,
                                               point_type)
 
+                jacobian = gs.to_ndarray(jacobian, to_ndim=3)
                 regularized_tangent_vec = gs.einsum(
                         'ni,nij->nj',
                         tangent_vec_at_id,
