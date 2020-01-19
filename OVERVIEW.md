@@ -31,13 +31,14 @@ Matrices.mul(a, b, c)
 returns the product of matrices `a`, `b`, and `c`.
 
 Most methods are vectorized 
-and accept arrays of elements, following (and sometimes fixing)
+and accept arrays of elements, following --sometimes fixing--
 numpy's broadcasting behaviour.
 
-Depending on the shape their elementary methods expect, 
-geomstats manifolds may still be joined into two groups:
-+ _matrix_ spaces, whose methods act on 2D-arrays,
-+ _vector_ spaces, whose methods act on 1D-arrays.  
+Depending on the array shape their elementary methods expect, 
+geomstats manifolds may be joined in two groups:
++ 2D-arrays for _matrix-embedded spaces_,
++ 1D-arrays for _vector-embedded spaces_.
+
 The first group for instance contains the space of 
 [SPD](geomstats/geometry/spd_matrices_space.py) matrices, 
 while the [hyperbolic space](geomstats/geometry/hyperbolic_space.py)
@@ -46,7 +47,7 @@ belongs to the second.
 In the following, we summarize the interface that should be shared by geomstat's 
 manifold classes. 
 Some of these common methods may then be relied upon by any abstract layer 
-of optimisation algorithms such as geomstat's learning module.
+of optimisation algorithms, such as geomstat's learning module.
 
 ### Matrix Spaces and Lie Groups
 
