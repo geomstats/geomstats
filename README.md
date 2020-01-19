@@ -17,25 +17,37 @@ Computations and statistics on manifolds with geometric structures.
 OS X & Linux:
 
 ```
+pip3 install -r requirements
 pip3 install geomstats
 ```
 
-## Running tests
+Pytorch and tensorflow requirements are optional, as geomstats can be used with numpy only.
 
+To change backend:
 ```
-pip3 install nose2
-nose2
+export GEOMSTATS_BACKEND=pytorch
 ```
 
 ## Getting started
 
-Run example scripts:
+Run example scripts, for example:
 
 ```
 python3 examples/plot_grid_h2.py
 ```
 
 ## Contributing
+
+Developers install the dev-requirements:
+
+```
+pip3 install -r dev-requirements
+```
+
+And run unit tests:
+```
+nose2 tests
+```
 
 See our [CONTRIBUTING.md](CONTRIBUTING.md) file!
 
