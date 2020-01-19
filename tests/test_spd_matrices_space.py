@@ -116,7 +116,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                              [1., .5, .5]]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_differential_log(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 1., 0.],
@@ -131,7 +131,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                               [x, x, 1]]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_inverse_differential_log(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 1., 0.],
@@ -146,7 +146,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                               [3., 3., 4.]]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_differential_exp(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 1., 0.],
@@ -162,7 +162,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                               [y, y, 1/x]]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_inverse_differential_exp(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 1., 0.],
@@ -195,7 +195,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_power_affine_inner_product(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 2.5, 1.5],
@@ -223,7 +223,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_euclidean_exp_domain(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 2., 0.],
@@ -253,7 +253,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_log_and_exp_power_affine(self):
         base_point = gs.array([[5., 0., 0.],
                                [0., 7., 2.],
