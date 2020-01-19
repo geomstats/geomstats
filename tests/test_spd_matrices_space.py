@@ -178,7 +178,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                               [1., 1., 1.]]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_procrustes_inner_product(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 1.5, .5],

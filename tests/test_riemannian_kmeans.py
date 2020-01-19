@@ -9,6 +9,7 @@ from geomstats.learning.kmeans import RiemannianKMeans
 class TestRiemannianKMeansMethods(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
+    @geomstats.tests.np_and_pytorch_only
     def test_hypersphere_kmeans_fit(self):
         gs.random.seed(55)
 
@@ -25,6 +26,7 @@ class TestRiemannianKMeansMethods(geomstats.tests.TestCase):
         expected = 0.
         self.assertAllClose(expected, result, atol=1e-2)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_hypersphere_kmeans_predict(self):
         gs.random.seed(1234)
 

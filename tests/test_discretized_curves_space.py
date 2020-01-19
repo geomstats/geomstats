@@ -11,6 +11,7 @@ from geomstats.geometry.hypersphere import Hypersphere
 
 
 class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
+    @geomstats.tests.np_and_pytorch_only
     def setUp(self):
         s2 = Hypersphere(dimension=2)
         r3 = s2.embedding_manifold
@@ -49,13 +50,14 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
         self.curve_b = discretized_curve_b
         self.curve_c = discretized_curve_c
 
+    @geomstats.tests.np_only
     def test_belongs(self):
         result = self.space_curves_in_sphere_2d.belongs(self.curve_a)
         expected = gs.array([[True]])
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_l2_metric_log_and_squared_norm_and_dist(self):
         """
         Test that squared norm of logarithm is squared dist.
@@ -70,7 +72,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_l2_metric_log_and_exp(self):
         """
         Test that exp and log are inverse maps.
@@ -83,7 +85,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=self.atol)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_l2_metric_inner_product_vectorization(self):
         """
         Test the vectorization inner_product.
@@ -102,7 +104,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (n_samples, 1))
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_l2_metric_dist_vectorization(self):
         """
         Test the vectorization of dist.
@@ -117,7 +119,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                 curves_ab, curves_bc)
         self.assertAllClose(gs.shape(result), (n_samples, 1))
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_l2_metric_exp_vectorization(self):
         """
         Test the vectorization of exp.
@@ -135,7 +137,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                 base_landmarks=curves_ab)
         self.assertAllClose(gs.shape(result), gs.shape(curves_ab))
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_l2_metric_log_vectorization(self):
         """
         Test the vectorization of log.
@@ -175,7 +177,7 @@ class TestDiscretizedCurvesSpaceMethods(geomstats.tests.TestCase):
                 initial_landmarks=curves_ab,
                 end_landmarks=curves_bc)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_srv_metric_pointwise_inner_product(self):
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
