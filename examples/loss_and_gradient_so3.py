@@ -2,10 +2,6 @@
 Predict on manifolds: losses.
 """
 
-import os
-
-import tensorflow as tf
-
 import geomstats.backend as gs
 import geomstats.geometry.lie_group as lie_group
 from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
@@ -76,16 +72,13 @@ def main():
 
     loss_rot_vec = loss(y_pred, y_true)
     grad_rot_vec = grad(y_pred, y_true)
-    if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        with tf.Session() as sess:
-            loss_rot_vec = sess.run(loss_rot_vec)
-            grad_rot_vec = sess.run(grad_rot_vec)
+
     print('The loss between the rotation vectors is: {}'.format(
         loss_rot_vec[0, 0]))
     print('The riemannian gradient is: {}'.format(
         grad_rot_vec))
 
-    angle = gs.pi / 6
+    angle = gs.array(gs.pi / 6)
     cos = gs.cos(angle / 2)
     sin = gs.sin(angle / 2)
     u = gs.array([1., 2., 3.])
@@ -94,7 +87,7 @@ def main():
     vec = sin * u
     y_pred_quaternion = gs.concatenate([scalar, vec], axis=0)
 
-    angle = gs.pi / 7
+    angle = gs.array(gs.pi / 7)
     cos = gs.cos(angle / 2)
     sin = gs.sin(angle / 2)
     u = gs.array([1., 2., 3.])
@@ -108,10 +101,6 @@ def main():
     grad_quaternion = grad(y_pred_quaternion, y_true_quaternion,
                            representation='quaternion')
 
-    if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        with tf.Session() as sess:
-            loss_quaternion = sess.run(loss_quaternion)
-            grad_quaternion = sess.run(grad_quaternion)
     print('The loss between the quaternions is: {}'.format(
         loss_quaternion[0, 0]))
     print('The riemannian gradient is: {}'.format(

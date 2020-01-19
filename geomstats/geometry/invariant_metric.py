@@ -73,7 +73,11 @@ class InvariantMetric(RiemannianMetric):
                 [self.inner_product_mat_at_identity[0]] *
                 max(n_tangent_vec_a, n_tangent_vec_b))
 
-            inner_prod = gs.einsum('ij,ijk,ik->i',
+            tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
+            tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
+            inner_product_mat_at_identity = gs.to_ndarray(
+                inner_product_mat_at_identity, to_ndim=3)
+            inner_prod = gs.einsum('nj,njk,nk->n',
                                    tangent_vec_a,
                                    inner_product_mat_at_identity,
                                    tangent_vec_b)
