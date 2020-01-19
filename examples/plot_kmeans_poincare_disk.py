@@ -13,6 +13,7 @@ import geomstats.visualization as visualization
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.learning.kmeans import RiemannianKMeans
 
+
 def main():
 
     cluster_1 = gs.random.uniform(low=0.5, high=0.6, size=(20, 2))
@@ -23,7 +24,6 @@ def main():
     merged_clusters = gs.concatenate((cluster_1, cluster_2), axis=0)
     manifold = Hyperbolic(dimension=2, point_type='ball')
     metric = manifold.metric
-
 
     visualization.plot(
             merged_clusters,
@@ -44,7 +44,7 @@ def main():
     labels = kmeans.predict(X=merged_clusters)
 
     visualization.plot(
-            merged_clusters[labels==0],
+            merged_clusters[labels == 0],
             ax=ax,
             space='H2_poincare_disk',
             marker='.',
@@ -52,7 +52,7 @@ def main():
             point_type=manifold.point_type)
 
     visualization.plot(
-            merged_clusters[labels==1],
+            merged_clusters[labels == 1],
             ax=ax,
             space='H2_poincare_disk',
             marker='.',

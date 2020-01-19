@@ -350,7 +350,7 @@ class RiemannianMetric(object):
 
         verbose: bool, optional
         """
-        if point_type!='ball':
+        if point_type != 'ball':
 
             # TODO(nina): Profile this code to study performance,
             # i.e. what to do with sq_dists_between_iterates.
@@ -430,7 +430,7 @@ class RiemannianMetric(object):
 
         if point_type == 'ball':
 
-            lr =1e-3
+            lr = 1e-3
             tau = 5e-3
 
             if (len(points) == 1):
@@ -444,11 +444,13 @@ class RiemannianMetric(object):
 
                 iteration += 1
 
-                expand_barycenter = gs.repeat(barycenter,points.shape[0], 0)
+                expand_barycenter = gs.repeat(barycenter, points.shape[0], 0)
 
                 grad_tangent = 2 * self.log(points, expand_barycenter)
 
-                cc_barycenter = self.exp(lr * grad_tangent.sum(0, keepdims=True),barycenter)
+                cc_barycenter = self.exp(lr * grad_tangent.sum(0,
+                                                               keepdims=True),
+                                         barycenter)
 
                 convergence = self.dist(cc_barycenter, barycenter).max().item()
 
