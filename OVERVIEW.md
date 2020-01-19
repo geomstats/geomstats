@@ -1,4 +1,4 @@
-# Package overview
+# Package Overview
 
 The geomstats package essentially consists of three layers: 
 + the [backend](geomstats/backend) module 
@@ -8,43 +8,50 @@ implementing a variety of geometric structures,
 + the [learning](geomstats/learning) module
 adapting usual optimisation algorithms to manifolds.
 
-# Classes and inheritance 
+## Classes and Inheritance 
 
 The `geometry` module defines a collection of classes 
-representing some of the most usual manifolds. 
+representing some of the most usual manifolds.\\
 Manifold objects are usually simply constructed by supplying 
 dimension arguments. For instance: 
-```
+```python
 S3 = Hypersphere(3)
 ```
 instantiates a 3-sphere object. 
 
-Operations on manifolds are then exposed as methods of these objects, 
-allowing to compute distances, geodesic paths, etc. 
+Operations on manifolds are exposed as methods of these objects, 
+allowing to compute distances, geodesic paths, etc.\\
 Those that do not depend explicitly on the dimension 
 should be implemented as class methods, 
 so that they may also be accessed directly 
 from the class. 
-```
+```python
 Matrices.mul(a, b, c)
 ```
 returns the product of matrices `a`, `b`, and `c`.
+
 Most methods are vectorized 
-and accept arrays of elements, following (and sometimes correcting) 
-numpy's broadcasting behaviour.  
+and accept arrays of elements, following (and sometimes fixing)
+numpy's broadcasting behaviour.
 
-Depending on the shape of their elements, 
-geomstats manifolds may joined in two groups:
+Depending on the shape their elementary methods expect, 
+geomstats manifolds may still be joined into two groups:
 + _matrix_ spaces, whose methods act on 2D-arrays,
-+ _vector_ spaces, whose methods act on 1D-array.  
++ _vector_ spaces, whose methods act on 1D-arrays.  
+The first group for instance contains the space of 
+[SPD](geomstats/geometry/spd_matrices_space.py) matrices, 
+while the [hyperbolic space](geomstats/geometry/hyperbolic_space.py)
+belongs to the second. 
+
+In the following, we summarize the interface that should be shared by geomstat's 
+manifold classes. 
+Some of these common methods may then be relied upon by any abstract layer 
+of optimisation algorithms such as geomstat's learning module.
+
+### Matrix Spaces and Lie Groups
 
 
-## Matrices and classical Lie groups
 
-
-
-
-
-## Vectors and embedded riemannian manifolds
+### Vector Spaces and Embedded Manifolds
 
  
