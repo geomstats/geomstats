@@ -49,72 +49,73 @@ manifold classes.
 These common methods may then be relied upon by any abstract layer 
 of optimisation algorithms, such as geomstat's learning module.
 
-### Matrix Spaces and Lie Groups
+## Matrix Spaces and Lie Groups
 
 Inheritance diagram:
 
-```
+```python
                                .--- SPD(n)                  
     Mat(n,n) <----- GL(n) <---(                             
                                `--- SO(n)                   
-       ^                                                   
-       '                                                  
-       '                                                    
-
+       ^                                                  
+       |                                                  
+                                                           
     Aff(n-1) <----- GA(n) <--------- SE(n)                       
                                                             
 ```
-__Note__ : 
+__Note__ :\\
 Other Lie groups such as `SL(n)` or `Sp(2n)` may also be implemented in the future.
 
-#### Matrices
+### Matrices
 
 implements:
--  elementary matrix operations: 
+- elementary matrix operations: 
     + `equal : point -> bool`
     + `mul : (...points) -> point`
+    + `sum : (...points) -> point` (?)
+    + `span : (coefs, points) -> point` (?)
+- duality and related operations:
     + `transpose : point -> point`
-- convenience methods:
     + `is_symmetric : point -> bool`
     + `to_symmetric : point -> point` 
 
-__Note__ : 
-an `apply : (linear, vector) -> vector` method
+__Note__ :\\ 
+An `apply : (linear, vector) -> vector` method
 would also be convenient to couple matrix-classes and vector-classes, 
 e.g. have SO(n+1) act on the n-Sphere.
 
 
-#### GeneralLinear 
+### GeneralLinear 
 
 implements:
 - elementary group operations:
     + `identity : () -> point`
     + `compose : (...points) -> point` alias of `mul`
     + `inv : point -> point`
-- the Lie group operations: 
+- Lie group operations: 
     + `exp : (vector, point1) -> point2`
     + `log : (point2, point1) -> vector`
-- the interpolating one-parameter orbit:
+- interpolating one-parameter orbit:
     + `orbit : (point2, point1) -> (t -> point)`
 
-#### SpecialOrthogonal
+### SpecialOrthogonal
 
 overrides: 
 + `inv`: call `transpose`
 
-#### SPD 
+### SPDMatrices
 
 overrides:
-+ `exp`  
-+ `log`: solve the eigenvalue problem. 
++ `exp`: compute eigenvectors,  
++ `log`: same. 
 
-__Note__ : 
-the symmetry check should be moved from the backend to the SPD group class. 
+__Note__ :\\ 
+The symmetry check should be moved from the backend to the SPD group class. 
 
 ### Affine 
 
-__Note__ : 
-affine transformations are not yet implemented at the moment.  
+__Note__ :\\
+Affine transformations are not yet implemented at the moment.  
 
 The algebra of affine transformations on an n-dimensional space
 can be represented by square matrices of size n+1, 
@@ -132,8 +133,10 @@ The affine transformation `x -> l(x) + v` is represented by the matrix:
 inherit:
 + `mul`
 + `equal`
+
 override:
 + `transpose`: restrict to the linear part,
+
 implement: 
 + `to_linear : (affine) -> linear`
 + `to_vector : (affine) -> vector`
@@ -150,9 +153,9 @@ inherit:
 override:
 + `inv`: transpose the linear part and invert the translation vector. 
 
-### Vector Spaces and Embedded Manifolds
+## Vector Spaces and Embedded Manifolds
 
-...to come...
+...more to come...
 
 + riemannian structures:
     - `exp`
@@ -163,6 +166,6 @@ override:
     - `is_tangent : vector -> bool`
     - `to_tangent : vector -> vector`
 
-__Note__ :
+__Note__ :\\
 `exp` and `log` may more generally derive from a connection. 
 In this case the `geodesic` is somewhat confusing 
