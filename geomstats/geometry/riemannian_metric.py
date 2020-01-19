@@ -352,7 +352,6 @@ class RiemannianMetric(object):
         """
         if point_type!='ball':
 
-            print('point type', point_type)
             # TODO(nina): Profile this code to study performance,
             # i.e. what to do with sq_dists_between_iterates.
             def while_loop_cond(iteration, mean, variance, sq_dist):
@@ -362,23 +361,16 @@ class RiemannianMetric(object):
                 return result[0, 0] or iteration == 0
 
             def while_loop_body(iteration, mean, variance, sq_dist):
-                print('pass while loop body')
-                print('mean', mean)
-                print('points', points)
+
                 logs = self.log(point=points, base_point=mean)
-                print('logs', logs, logs.shape)
 
                 tangent_mean = gs.einsum('nk,nj->j', weights, logs)
-
-                print('tangent mean', tangent_mean)
 
                 tangent_mean /= sum_weights
 
                 mean_next = self.exp(
                     tangent_vec=tangent_mean,
                     base_point=mean)
-
-                print('Next mean', mean_next)
 
                 sq_dist = self.squared_dist(mean_next, mean)
                 sq_dists_between_iterates.append(sq_dist)
@@ -396,8 +388,6 @@ class RiemannianMetric(object):
             if point_type == 'matrix':
                 points = gs.to_ndarray(points, to_ndim=3)
             n_points = gs.shape(points)[0]
-
-            print(n_points)
 
             if weights is None:
                 weights = gs.ones((n_points, 1))
@@ -439,34 +429,29 @@ class RiemannianMetric(object):
             return mean
 
         if point_type == 'ball':
-            lr = EPSILON
+
+            lr =1e-3
             tau = 5e-3
-            max_iter = n_max_iterations
-            z = points
-            if (len(z) == 1):
-                return z
+
+            if (len(points) == 1):
+                return points
 
             iteration = 0
-            cvg = math.inf
-            barycenter = z.mean(0, keepdims=True) * 0
-            # print("barycenter_init", barycenter)
-            while (cvg > tau and max_iter > iteration):
-                print('barycenter', barycenter)
+            convergence = math.inf
+            barycenter = points.mean(0, keepdims=True) * 0
+
+            while (convergence > tau and n_max_iterations > iteration):
+
                 iteration += 1
-                print('iteration', iteration)
 
-                print('barycenter', barycenter)
+                expand_barycenter = gs.repeat(barycenter,points.shape[0], 0)
 
-                expand_barycenter = gs.repeat(barycenter,z.shape[-1], -1)
-                grad_tangent = 2 * self.log(expand_barycenter, z)
+                grad_tangent = 2 * self.log(points, expand_barycenter)
 
-                print('log grad', grad_tangent)
+                cc_barycenter = self.exp(lr * grad_tangent.sum(0, keepdims=True),barycenter)
 
-                # print(type(wik))
+                convergence = self.dist(cc_barycenter, barycenter).max().item()
 
-                cc_barycenter = self.exp(barycenter, lr * grad_tangent.sum(0, keepdims=True))
-                cvg = self.dist(cc_barycenter, barycenter).max().item()
-                print('Cvg', cvg)
                 barycenter = cc_barycenter
 
             return barycenter
