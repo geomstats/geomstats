@@ -10,7 +10,7 @@ import geomstats.backend as gs
 
 BCH_INFO = gs.asarray([
     [int(x) for x in i.strip().split()]
-    for i in open("../geomstats/geometry/bch_coefficients.dat").readlines()
+    for i in open("/geomstats/geometry/bch_coefficients.dat").readlines()
     ])
 
 
