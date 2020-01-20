@@ -63,7 +63,7 @@ of optimisation algorithms, such as geomstat's learning module.
     Aff(n-1) <----- GA(n-1) <------ SE(n-1)                       
                                                             
 ```
-__Note:__\
+__Note:__
 other Lie groups such as SL(n) or Sp(2n) may added to the picture.
 
 This allows for all matrix Lie groups to inherit most of their methods 
