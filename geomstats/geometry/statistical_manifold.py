@@ -2,6 +2,7 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
+from geometry.geomstats.riemannian_metric import RiemannianMetric
 
 
 class StatisticalManifold(Manifold):
@@ -16,6 +17,9 @@ class StatisticalManifold(Manifold):
         return self.pdf.rvs(*point, loc=0, scale=1, size=n_samples,
                             random_state=None)
 
+    def sample(self, point, n_samples=1):
+        return self.pdf.rvs(*point, loc=0, scale=1, size=n_samples, random_state=None)
+
     def maximum_likelihood_fit(self, observations, *args, **kwds):
         observations = gs.to_ndarray(observations, to_ndim=2)
         result = []
@@ -27,3 +31,12 @@ class StatisticalManifold(Manifold):
     def potential(self):
         raise NotImplementedError(
                 'The potential function is not implemented.')
+
+
+class FisherMetric(RiemannianMetric, StatisticalManifold, LeviCivitaConnection):
+
+    def __init__(self, dim, pdf, n_params):
+        super(StatisticalManifold, self).__init__(dim=dim,
+                pdf=pdf, n_params=n_params)
+
+    def inner_product_matrix(self, point):

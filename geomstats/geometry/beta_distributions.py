@@ -5,6 +5,7 @@ from autograd.scipy.stats import beta
 from autograd.scipy.integrate import odeint
 
 import geomstats.backend as gs
+from geometry.geomstats.connection import LeviCivitaConnection
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -70,7 +71,7 @@ class BetaDistributions(EmbeddedManifold):
         return gs.stack(parameters)
 
 
-class BetaMetric(RiemannianMetric):
+class BetaMetric(RiemannianMetric, LeviCivitaConnection):
 
     def __init__(self):
         super(RiemannianMetric, self).__init__(dimension=2)
@@ -103,7 +104,8 @@ class BetaMetric(RiemannianMetric):
             matrices.append(gs.stack([g0, g1]))
         return gs.stack(matrices)
 
-    def christoffels(self, base_point):
+    @staticmethod
+    def christoffels(base_point):
         """Compute Christoffel symbols.
 
         Compute the Christoffel symbols of the Fisher metric on Beta
