@@ -10,7 +10,8 @@ from geomstats.geometry.spd_matrices import (
     SPDMatrices,
     SPDMetricAffine,
     SPDMetricEuclidean,
-    SPDMetricProcrustes
+    SPDMetricProcrustes,
+    SPDMetricLogEuclidean
 )
 
 
@@ -283,7 +284,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_log_and_exp_logeuclidean(self):
         base_point = gs.array([[5., 0., 0.],
                                [0., 7., 2.],
