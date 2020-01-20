@@ -1,20 +1,19 @@
 """Visualization for Geometric Statistics."""
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 import geomstats.backend as gs
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup
-from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.geometry.special_euclidean import SpecialEuclidean
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
-SE3_GROUP = SpecialEuclideanGroup(n=3)
-SO3_GROUP = SpecialOrthogonalGroup(n=3)
+SE3_GROUP = SpecialEuclidean(n=3)
+SO3_GROUP = SpecialOrthogonal(n=3)
 S1 = Hypersphere(dimension=1)
 S2 = Hypersphere(dimension=2)
-H2 = HyperbolicSpace(dimension=2)
+H2 = Hyperbolic(dimension=2)
 
 AX_SCALE = 1.2
 
@@ -112,8 +111,9 @@ class Sphere():
         if n_circles_latitude is None:
             n_circles_latitude = max(n_meridians / 2, 4)
 
-        u, v = np.mgrid[0:2 * gs.pi:n_meridians * 1j,
-                        0:gs.pi:n_circles_latitude * 1j]
+        u, v = gs.meshgrid(
+            gs.arange(0, 2 * gs.pi, 2 * gs.pi / n_meridians),
+            gs.arange(0, gs.pi, gs.pi / n_circles_latitude))
 
         self.center = gs.zeros(3)
         self.radius = 1
@@ -207,9 +207,11 @@ class Sphere():
 
 
 class PoincareDisk():
-    def __init__(self, points=None):
+    def __init__(self, points=None, point_type='extrinsic'):
         self.center = gs.array([0., 0.])
         self.points = []
+        self.point_type = point_type
+
         if points is not None:
             self.add_points(points)
 
@@ -224,8 +226,11 @@ class PoincareDisk():
         return ax
 
     def add_points(self, points):
-        assert gs.all(H2.belongs(points))
-        points = self.convert_to_poincare_coordinates(points)
+
+        if self.point_type == 'extrinsic':
+            assert gs.all(H2.belongs(points))
+            points = self.convert_to_poincare_coordinates(points)
+
         if not isinstance(points, list):
             points = points.tolist()
         self.points.extend(points)
@@ -373,7 +378,8 @@ def convert_to_trihedron(point, space=None):
     return trihedrons
 
 
-def plot(points, ax=None, space=None, **point_draw_kwargs):
+def plot(points, ax=None, space=None,
+         point_type='extrinsic', **point_draw_kwargs):
     """
     Plot points in the 3D Special Euclidean Group,
     by showing them as trihedrons.
@@ -418,7 +424,7 @@ def plot(points, ax=None, space=None, **point_draw_kwargs):
         sphere.draw(ax, **point_draw_kwargs)
 
     elif space == 'H2_poincare_disk':
-        poincare_disk = PoincareDisk()
+        poincare_disk = PoincareDisk(point_type=point_type)
         ax = poincare_disk.set_ax(ax=ax)
         poincare_disk.add_points(points)
         poincare_disk.draw(ax, **point_draw_kwargs)

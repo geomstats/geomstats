@@ -1,43 +1,34 @@
-import pytest
-import numpy as np
+"""Unit tests for Tangent PCA."""
 
-from sklearn.utils.testing import assert_allclose
-
-from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
+import geomstats.backend as gs
+import geomstats.tests
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.pca import TangentPCA
 
 
-SO3_GROUP = SpecialOrthogonalGroup(n=3)
-METRIC = SO3_GROUP.bi_invariant_metric
-N_SAMPLES = 10
-N_COMPONENTS = 2
+class TestTangentPCA(geomstats.tests.TestCase):
+    _multiprocess_can_split_ = True
 
+    def setUp(self):
+        self.so3 = SpecialOrthogonal(n=3)
+        self.n_samples = 10
 
-@pytest.fixture
-def data():
-    data = SO3_GROUP.random_uniform(n_samples=N_SAMPLES)
-    return data
+        self.X = self.so3.random_uniform(n_samples=self.n_samples)
+        self.metric = self.so3.bi_invariant_metric
+        self.n_components = 2
 
+    @geomstats.tests.np_only
+    def test_tangent_pca_error(self):
+        X = self.X
+        trans = TangentPCA(self.metric, n_components=self.n_components)
+        trans.fit(X)
+        X_diff_size = gs.ones((self.n_samples, gs.shape(X)[1] + 1))
+        self.assertRaises(ValueError, trans.transform, X_diff_size)
 
-def test_tangent_pca_error(data):
-    X = data
-    trans = TangentPCA(n_components=N_COMPONENTS)
-    trans.fit(X)
-    with pytest.raises(ValueError, match="Shape of input is different"):
-        X_diff_size = np.ones((10, X.shape[1] + 1))
-        trans.transform(X_diff_size)
+    @geomstats.tests.np_only
+    def test_tangent_pca(self):
+        X = self.X
+        trans = TangentPCA(self.metric, n_components=gs.shape(X)[1])
 
-
-def test_tangent_pca(data):
-    X = data
-    trans = TangentPCA(n_components=N_COMPONENTS)
-    assert trans.demo_param == 'demo'
-
-    trans.fit(X)
-    assert trans.n_features_ == X.shape[1]
-
-    X_trans = trans.transform(X)
-    assert_allclose(X_trans, np.sqrt(X))
-
-    X_trans = trans.fit_transform(X)
-    assert_allclose(X_trans, np.sqrt(X))
+        trans.fit(X)
+        self.assertEquals(trans.n_features_, gs.shape(X)[1])
