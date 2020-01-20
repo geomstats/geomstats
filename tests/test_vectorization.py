@@ -24,8 +24,8 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         result = self.foo(vec_a, vec_b)
         expected = gs.array([0, 2, 0])
 
+        self.assertAllClose(result.shape, expected.shape)
         self.assertAllClose(result, expected)
-        self.assertShapeEqual(result, expected)
 
     def test_decorator_without_squeeze_dim0(self):
         vec_a = gs.array([[1, 2, 3]])
@@ -33,8 +33,8 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         result = self.foo(vec_a, vec_b)
         expected = gs.array([[0, 2, 0]])
 
+        self.assertAllClose(result.shape, expected.shape)
         self.assertAllClose(result, expected)
-        self.assertShapeEqual(result, expected)
 
     def test_decorator_with_n_samples(self):
         vec_a = gs.array([[1, 2, 3], [1, 2, 3]])
@@ -42,5 +42,5 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         result = self.foo(vec_a, vec_b)
         expected = gs.array([[0, 2, 0], [0, 2, 0]])
 
+        self.assertAllClose(result.shape, expected.shape)
         self.assertAllClose(result, expected)
-        self.assertShapeEqual(result, expected)
