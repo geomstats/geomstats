@@ -17,7 +17,7 @@ from geomstats.geometry.minkowski import Minkowski
 RTOL = 1e-6
 
 
-class TestHyperbolicSpaceMethods(geomstats.tests.TestCase):
+class TestHyperbolicMethods(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
         self.dimension = 3
