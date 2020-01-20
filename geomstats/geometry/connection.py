@@ -10,7 +10,7 @@ N_STEPS = 10
 
 
 class Connection(object):
-    """TODO: Define class here."""
+    """Classe for affine connections."""
 
     def __init__(self, dimension):
         self.dimension = dimension
@@ -30,7 +30,7 @@ class Connection(object):
                 'The Christoffel symbols are not implemented.')
 
     def connection(self, tangent_vector_a, tangent_vector_b, base_point):
-        """TODO: write method description.
+        """Covariant derivative.
 
         Connection applied to tangent_vector_b in the direction of
         tangent_vector_a, both tangent at base_point.
