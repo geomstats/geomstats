@@ -185,3 +185,4 @@ class BetaMetric(RiemannianMetric):
 
         geodesic = solution.sol(t)
         geodesic = geodesic[:2, :]
+
