@@ -94,7 +94,7 @@ implements:
 ```python
 # elementary group operations:
     identity: () -> point
-    compose : (...points) -> point alias of mul
+    compose : (...points) -> point          (alias of mul)
     inv     : point -> point
 # Lie group operations: 
     exp     : (vector, point1) -> point2
@@ -151,38 +151,22 @@ override: `inv`, transpose the linear part and revert translation.
 
 ## Vector Spaces and Embedded Manifolds
 
-Here the inheritance diagram with the different class
-names is somehow still unclear. A picture attempt:
-```python
-                                                            
-    Connection <---- LeviCivita                             
-                                                            
-                         '                                  
-                                                           
-                       Metric                                     
-                                                 Vector      
-                         '                         ^     
-                         '                         '       
-                                        .--- EmbeddedManifold
-                     RiemannianMfd <---(                        
-                                        `--- ProductRiemannianMfd
-                                                   :        
-                                                   v         
-                                                Product            
-```         
+Under this category falls most of the `geomstats/geometry` package. 
 
-I think the picture might get simpler 
-if metrics, connections, etc. were thought of as
-auxiliary objects serving to provide a manifold 
-with 'riemannian' methods. Something like:
-```python
-manifold.use_metric(metric)   
-```
-That way the methods a manifold exposes would depend on the structures 
-it is equipped with. 
+Lots of code and different objects thanks to the hackathon :octocat: :sunny:!
 
-Overall, a first list of expected methods:
+It would be great to figure out a common shared interface
+to make the best use of this week's work, 
+ease future maintainability and 
+facilitate user access to the library's logic :electric_plug: :computer: 
 
+We brainstormed about this on friday with Nina, 
+Here is my attempt to lay down the brainstorm we had on friday with Nina, 
+hoping this first draft will lead us to a more precise specification soon!
+
+### Methods
+
+A first list attempt of expected methods:
 ```python
 # (riemannian) connection:
     exp : (vector, point1) -> point2
@@ -192,20 +176,20 @@ Overall, a first list of expected methods:
   * dist         : (point2, point 1) -> scalar 
     inner_matrix : point -> matrix 
   * inner        : (vector1, vector2, point) -> scalar  
-# embedding: 
-    belongs      : point -> bool
-    is_tangent   : vector -> bool
-    to_tangent   : vector -> vector
+# embedding:                                #-- renaming ? --
+    is_point     : point -> bool            #-> belongs
+    to_point     : point -> point           #-> regularize 
+    is_tangent   : vector -> bool           #-> is_tangent_vector
+    to_tangent   : vector -> vector         #-> project_to_tangent_space
 ```
-
-( * ): `geodesic`, `inner-prod` and `dist` should be generically defined 
-from other methods such as `exp`, `log`, and `inner-matrix` 
+( * ): `geodesic`, `dist` and `inner` should be generically defined 
+from other methods such as `exp`, `log` and `inner_matrix` 
 in the parent class for inheritance.
 
 In general, `exp` and `log` may derive from a connection. 
 In this case the `geodesic` terminology is somewhat confusing and could be aliased.
 
-__Notes:__ (came up discussing with @nguigs)
+__Notes:__ (came up discussing with @nguigs) 
 + the `EmbeddedManifold` interface should be shared by the previous Lie Groups, 
 which somewhat raises the issue of the 2D-shape signature of their tangent vectors
 and the metric tensor being 4D, 
@@ -227,7 +211,7 @@ _if not overriden by closed formulas_.
     manifolds defined as level surfaces `{ f = cst }` 
     of smooth functions and their intersections, using autograd :scream:.  
 
-    I suggest most of the ODE solving code be kept separate in a separate 
+    ODE solving code should be kept separate in some
     `integrators.py` file by an import statement though.
     Hence the `EmbeddedManifold` class file would only define its objects interfaces
     (of which already defined manifolds would only inherit the metric tensor), 
@@ -242,6 +226,38 @@ and @nguigs's landmarks spaces: __product spaces__.
     be inherited by a `ProductManifold` child class. 
     I think this is also related to the first point 
     (matrices being 2D and vectorization) 
-    products yield new object shapes and may not always 
+    as products yield new object shapes and may not always 
     be represented by rectangular arrays, 
     thus raising the concern for a common interface reference. 
+
+### Classes
+
+Here the inheritance diagram with the different class
+names is somehow still unclear. A picture attempt:
+```python
+    Connection <---- LeviCivita                             
+                                                            
+                         :                                  
+                                                           
+                       Metric                    Vector                
+                                                   ^     
+                         :                         '       
+                                        .--- EmbeddedManifold
+                     RiemannianMfd <---(                        
+                                        `--- ProductRiemannianMfd
+                                                   :        
+                                                   v         
+                                                Product            
+```         
+
+I think the picture might get simpler 
+if metrics, connections, etc. were thought of as
+auxiliary objects serving to provide/override a manifold's 
+'riemannian' methods. Something like:
+```python
+manifold.use_metric(metric)   
+```
+That way the methods a manifold exposes would depend on the structures 
+it is equipped with. 
+To compare different metric-induced maps, the user would instantiate 
+two distinct manifold objects.  
