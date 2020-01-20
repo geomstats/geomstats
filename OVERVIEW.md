@@ -68,7 +68,7 @@ Other Lie groups such as `SL(n)` or `Sp(2n)` may also be implemented in the futu
 
 ### Matrices
 
-__implements:__
+implements:
 - elementary matrix operations: 
     + `equal : point -> bool`
     + `mul : (...points) -> point`
@@ -88,7 +88,7 @@ e.g. have SO(n+1) act on the n-Sphere.
 
 ### GeneralLinear 
 
-__implements:__
+implements:
 - elementary group operations:
     + `identity : () -> point`
     + `compose : (...points) -> point` alias of `mul`
@@ -101,17 +101,15 @@ __implements:__
 
 ### SpecialOrthogonal
 
-__overrides:__ 
-+ `inv`: call `transpose`
+overrides: `inv`, call `transpose`.
 
 ### SPDMatrices
 
-__overrides:__
-+ `exp`: compute eigenvectors,  
-+ `log`: same. 
+overrides: `exp` and `log`, compute eigenvectors, and `compose`.
 
 __Note:__\
-The symmetry check should be moved from the backend to the SPD group class. 
+The actual symmetry check would and Yann `symexp`'s function would 
+be moved from the backend to the SPD group class. 
 
 ### Affine 
 
@@ -127,23 +125,22 @@ representing the affine transformation `x -> l(x) + v` by the matrix:
  [   0, ...,    0,   1]]
 ```
 
-This view allows for inheritance of most matrix methods. 
+This view will allow for inheritance of most matrix methods. 
 
-__override:__
-+ `transpose`: restrict to the linear part,
+override: `transpose`, restrict to the linear part.
 
-__implement:__
+implement:
 + `to_linear : (affine) -> linear`
 + `to_vector : (affine) -> vector`
 + `apply : (affine, vector) -> vector`
 
 ### GeneralAffine
 
-__inherit:__ `exp` and `log`. 
+inherit: `exp` and `log`. 
 
 ### SpecialEuclidian
 
-__override:__ `inv`, transpose the linear part and revert translation. 
+override: `inv`, transpose the linear part and revert translation. 
 
 
 ## Vector Spaces and Embedded Manifolds
@@ -163,7 +160,7 @@ Overall, a first list of expected methods:
     - `inner-matrix : point -> matrix` 
     - `inner        : (vector1, vector2, point) -> scalar` * 
 + embedding: 
-    _ `belongs      : point -> bool`
+    - `belongs      : point -> bool`
     - `is_tangent   : vector -> bool`
     - `to_tangent   : vector -> vector`
 
@@ -178,7 +175,7 @@ __Notes:__ (discussed with @nguigs)
 + in the embedded case, the Levi-Civita connection can be numerically integrated
 by orthogonal projections onto the the tangent space, so that `exp` and 
 `log` would derive from `to_tangent` _in absence of closed-form._
-(the ODE solving code should kept separate by an import statement though)
+(the ODE solving code should be kept separate by an import statement though)
 + the `EmbeddedManifold` interface should be shared by the previous Lie Groups, 
 which somewhat raises the issue of the 2D-shape signature of their tangent vectors, 
 the metric tensor being 4D.  
