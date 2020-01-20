@@ -4,22 +4,24 @@ Unit tests for the affine connections.
 
 import geomstats.backend as gs
 import geomstats.tests
-
-from geomstats.geometry.connection import LeviCivitaConnection
-from geomstats.geometry.euclidean_space import EuclideanMetric
+from geomstats.geometry.connection import Connection, LeviCivitaConnection
+from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.hypersphere import Hypersphere
 
 
 class TestConnectionMethods(geomstats.tests.TestCase):
     def setUp(self):
         self.dimension = 4
-        self.metric = EuclideanMetric(dimension=self.dimension)
-        self.connection = LeviCivitaConnection(self.metric)
+        self.euc_metric = EuclideanMetric(dimension=self.dimension)
+        self.lc_connection = LeviCivitaConnection(self.euc_metric)
+
+        self.connection = Connection(dimension=2)
+        self.hypersphere = Hypersphere(dimension=2)
 
     def test_metric_matrix(self):
         base_point = gs.array([0., 1., 0., 0.])
 
-        result = self.connection.metric_matrix(base_point)
+        result = self.lc_connection.metric_matrix(base_point)
         expected = gs.array([gs.eye(self.dimension)])
 
         with self.session():
@@ -28,7 +30,7 @@ class TestConnectionMethods(geomstats.tests.TestCase):
     def test_cometric_matrix(self):
         base_point = gs.array([0., 1., 0., 0.])
 
-        result = self.connection.cometric_matrix(base_point)
+        result = self.lc_connection.cometric_matrix(base_point)
         expected = gs.array([gs.eye(self.dimension)])
 
         with self.session():
@@ -38,20 +40,21 @@ class TestConnectionMethods(geomstats.tests.TestCase):
     def test_metric_derivative(self):
         base_point = gs.array([0., 1., 0., 0.])
 
-        result = self.connection.metric_derivative(base_point)
+        result = self.lc_connection.metric_derivative(base_point)
         expected = gs.zeros((1,) + (self.dimension, ) * 3)
 
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
-    def test_christoffel_symbols(self):
+    def test_christoffels(self):
         base_point = gs.array([0., 1., 0., 0.])
 
-        result = self.connection.christoffel_symbols(base_point)
+        result = self.lc_connection.christoffels(base_point)
         expected = gs.zeros((1,) + (self.dimension, ) * 3)
 
-        gs.testing.assert_allclose(result, expected)
+        self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_parallel_transport(self):
         sphere = Hypersphere(dimension=2)
         connection = LeviCivitaConnection(sphere.metric)
@@ -65,7 +68,37 @@ class TestConnectionMethods(geomstats.tests.TestCase):
             tan_vec_a, tan_vec_b, base_point)
         result = connection.pole_ladder_parallel_transport(
             tan_vec_a, tan_vec_b, base_point)
-        gs.testing.assert_allclose(result, expected, rtol=1e-7, atol=1e-5)
+
+        self.assertAllClose(result, expected, rtol=1e-7, atol=1e-5)
+
+    @geomstats.tests.np_only
+    def test_exp(self):
+        point = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
+        vector = gs.array([[0.25, 0.5], [0.30, 0.2]])
+        point_ext = self.hypersphere.spherical_to_extrinsic(point)
+        vector_ext = self.hypersphere.tangent_spherical_to_extrinsic(vector,
+                                                                     point)
+        self.connection.christoffels = self.hypersphere.metric.christoffels
+        expected = self.hypersphere.metric.exp(vector_ext, point_ext)
+        result_spherical = self.connection.exp(vector, point, n_steps=1000)
+        result = self.hypersphere.spherical_to_extrinsic(result_spherical)
+
+        self.assertAllClose(result, expected, rtol=1e-3)
+
+    @geomstats.tests.np_only
+    def test_log(self):
+        base_point = gs.array([[gs.pi / 3, gs.pi / 4], [gs.pi / 2, gs.pi / 4]])
+        point = gs.array([[1.0, gs.pi / 2], [gs.pi / 6, gs.pi / 3]])
+        self.connection.christoffels = self.hypersphere.metric.christoffels
+        vector = self.connection.log(point=point, base_point=base_point,
+                                     n_steps=300)
+        result = self.hypersphere.tangent_spherical_to_extrinsic(vector,
+                                                                 base_point)
+        p_ext = self.hypersphere.spherical_to_extrinsic(base_point)
+        q_ext = self.hypersphere.spherical_to_extrinsic(point)
+        expected = self.hypersphere.metric.log(base_point=p_ext, point=q_ext)
+
+        self.assertAllClose(result, expected, rtol=1e-2)
 
 
 if __name__ == '__main__':

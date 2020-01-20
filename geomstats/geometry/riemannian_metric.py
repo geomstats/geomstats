@@ -61,6 +61,17 @@ class RiemannianMetric(object):
             'The computation of the inner product matrix'
             ' is not implemented.')
 
+    def inner_product_inverse_matrix(self, base_point=None):
+        """
+        Inner product matrix at the tangent space at a base point.
+        Parameters
+        ----------
+        base_point : array-like, shape=[n_samples, dimension], optional
+        """
+        raise NotImplementedError(
+                'The computation of the inner product matrix'
+                ' is not implemented.')
+
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """
         Inner product between two tangent vectors at a base point.
@@ -85,23 +96,34 @@ class RiemannianMetric(object):
         inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
         n_mats = gs.shape(inner_prod_mat)[0]
 
-        n_inner_prod = gs.maximum(n_tangent_vec_a, n_tangent_vec_b)
-        n_inner_prod = gs.maximum(n_inner_prod, n_mats)
+        if n_tangent_vec_a != n_mats:
+            if n_tangent_vec_a == 1:
+                tangent_vec_a = gs.squeeze(tangent_vec_a, axis=0)
+                einsum_str_a = 'j,njk->nk'
+            elif n_mats == 1:
+                inner_prod_mat = gs.squeeze(inner_prod_mat, axis=0)
+                einsum_str_a = 'nj,jk->nk'
+            else:
+                raise ValueError('Shape mismatch for einsum.')
+        else:
+            einsum_str_a = 'nj,njk->nk'
 
-        n_tiles_a = gs.divide(n_inner_prod, n_tangent_vec_a)
-        n_tiles_a = gs.cast(n_tiles_a, gs.int32)
-        tangent_vec_a = gs.tile(tangent_vec_a, [n_tiles_a, 1])
+        aux = gs.einsum(einsum_str_a, tangent_vec_a, inner_prod_mat)
+        n_auxs, _ = gs.shape(aux)
 
-        n_tiles_b = gs.divide(n_inner_prod, n_tangent_vec_b)
-        n_tiles_b = gs.cast(n_tiles_b, gs.int32)
-        tangent_vec_b = gs.tile(tangent_vec_b, [n_tiles_b, 1])
+        if n_tangent_vec_b != n_auxs:
+            if n_auxs == 1:
+                aux = gs.squeeze(aux, axis=0)
+                einsum_str_b = 'k,nk->n'
+            elif n_tangent_vec_b == 1:
+                tangent_vec_b = gs.squeeze(tangent_vec_b, axis=0)
+                einsum_str_b = 'nk,k->n'
+            else:
+                raise ValueError('Shape mismatch for einsum.')
+        else:
+            einsum_str_b = 'nk,nk->n'
 
-        n_tiles_mat = gs.divide(n_inner_prod, n_mats)
-        n_tiles_mat = gs.cast(n_tiles_mat, gs.int32)
-        inner_prod_mat = gs.tile(inner_prod_mat, [n_tiles_mat, 1, 1])
-
-        aux = gs.einsum('nj,njk->nk', tangent_vec_a, inner_prod_mat)
-        inner_prod = gs.einsum('nk,nk->n', aux, tangent_vec_b)
+        inner_prod = gs.einsum(einsum_str_b, aux, tangent_vec_b)
         inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
         assert gs.ndim(inner_prod) == 2, inner_prod.shape
@@ -527,77 +549,3 @@ class RiemannianMetric(object):
         closest_neighbor_index = gs.argmin(dist)
 
         return closest_neighbor_index
-
-    def online_k_means(self, points, n_centers=N_CENTERS,
-                       n_repetitions=N_REPETITIONS,
-                       tolerance=TOLERANCE,
-                       n_max_iterations=N_MAX_ITERATIONS):
-        """
-        Compute the optimal approximation of points by a smaller number
-        of weighted centers using the Competitive Learning Riemannian
-        Quantization algorithm. The centers are updated using decreasing
-        step sizes, each of which stays constant for n_repetitions iterations
-        to allow a better exploration of the data points.
-        See https://arxiv.org/abs/1806.07605.
-        Return :
-            - n_centers centers
-            - n_centers weights between 0 and 1
-            - a dictionary containing the clusters, where each key is the
-              cluster index, and its value is the lists of points belonging
-              to the cluster
-            - the number of steps needed to converge.
-        """
-        n_points = points.shape[0]
-
-        random_indices = gs.random.randint(low=0, high=n_points,
-                                           size=(n_centers,))
-        centers = points[gs.cast(random_indices, gs.int32), :]
-
-        gap = 1.0
-        iteration = 0
-
-        while iteration < n_max_iterations:
-            iteration += 1
-            step_size = gs.floor(iteration / n_repetitions) + 1
-
-            random_index = gs.random.randint(low=0, high=n_points, size=(1,))
-            point = points[gs.indexing(random_index), :]
-
-            index_to_update = self.closest_neighbor_index(point, centers)
-            center_to_update = centers[index_to_update, :]
-
-            tangent_vec_update = self.log(
-                point=point, base_point=center_to_update
-            ) / (step_size + 1)
-            new_center = self.exp(
-                tangent_vec=tangent_vec_update, base_point=center_to_update
-            )
-            gap = self.dist(center_to_update, new_center)
-            gap = (gs.cast(gap != 0, gs.float32) * gap
-                   + gs.cast(gap == 0, gs.float32))
-
-            centers[index_to_update, :] = new_center
-
-            if gs.isclose(gap, 0, atol=tolerance):
-                break
-
-        if iteration == n_max_iterations - 1:
-            print('Maximum number of iterations {} reached. The'
-                  'quantization may be inaccurate'.format(n_max_iterations))
-
-        clusters = dict()
-        weights = gs.zeros((n_centers,))
-        index_list = list()
-
-        for point in points:
-            index = self.closest_neighbor_index(point, centers)
-            index = index.item()
-            if index not in index_list:
-                clusters[index] = list()
-                index_list.append(index)
-            clusters[index].append(point)
-            weights[index] += 1
-
-        weights = weights / n_points
-
-        return centers, weights, clusters, iteration

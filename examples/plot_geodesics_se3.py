@@ -3,15 +3,15 @@ Plot a geodesic of SE(3) equipped
 with its left-invariant canonical METRIC.
 """
 
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 import geomstats.visualization as visualization
+from geomstats.geometry.special_euclidean import SpecialEuclidean
 
-from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup
-
-SE3_GROUP = SpecialEuclideanGroup(n=3)
+SE3_GROUP = SpecialEuclidean(n=3)
 METRIC = SE3_GROUP.left_canonical_metric
 
 

@@ -46,7 +46,7 @@ The following outlines how ``geomstats`` developers think about these tools.
 A general guideline: if you find yourself tempted to write a great big issue that
 is difficult to describe as one unit of work, please consider splitting it into two or more issues.
 
-* Issues are assigned [labels](#issue-labels) which explain how they relate to the overall project's
+* Issues are assigned labels which explain how they relate to the overall project's
 goals and immediate next steps.
 
 
@@ -71,7 +71,7 @@ Changes here will not effect anyone else's work, so it is a safe space to explor
 
 Make sure to [keep your fork up to date][link_updateupstreamwiki] with the master repository.
 
-**3. Make the changes you have discussed, following the [geomstats coding style guide](#geomstats-coding-style-guide).**
+**3. Make the changes you have discussed, following the geomstats coding style guide.**
 
 - Create your feature branch (`git checkout -b feature/fooBar`)
 - Commit your changes (`git commit -am 'Add some fooBar'`)
