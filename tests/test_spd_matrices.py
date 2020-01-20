@@ -301,22 +301,6 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
-    def test_log_and_exp_logeuclidean(self):
-        base_point = gs.array([[5., 0., 0.],
-                               [0., 7., 2.],
-                               [0., 2., 8.]])
-        point = gs.array([[9., 0., 0.],
-                          [0., 5., 0.],
-                          [0., 0., 1.]])
-
-        metric = self.metric_logeuclidean
-        log = metric.log(point=point, base_point=base_point)
-        result = metric.exp(tangent_vec=log, base_point=base_point)
-        expected = point
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_tf_only
     def test_exp_and_belongs(self):
         n_samples = self.n_samples
         base_point = self.space.random_uniform(n_samples=1)
