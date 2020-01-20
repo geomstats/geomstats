@@ -3,15 +3,15 @@ Plot a geodesic of SO(3) equipped
 with its left-invariant canonical METRIC.
 """
 
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 import geomstats.visualization as visualization
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
-from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
-
-SO3_GROUP = SpecialOrthogonalGroup(n=3)
+SO3_GROUP = SpecialOrthogonal(n=3)
 METRIC = SO3_GROUP.bi_invariant_metric
 
 

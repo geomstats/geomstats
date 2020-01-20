@@ -48,7 +48,7 @@ def boolean_mask(x, mask):
 
 
 def arctan2(*args, **kwargs):
-    return torch.arctan2(*args, **kwargs)
+    return torch.atan2(*args, **kwargs)
 
 
 def cast(x, dtype):
@@ -75,7 +75,7 @@ def asarray(x):
 
 
 def concatenate(seq, axis=0, out=None):
-    seq = [t.float() for t in seq]
+    seq = [cast(t, float32) for t in seq]
     return torch.cat(seq, dim=axis, out=out)
 
 
@@ -463,8 +463,8 @@ def gather(x, indices, axis=0):
 
 
 def get_mask_i_float(i, n):
-    range_n = arange(n)
-    i_float = cast(array([i]), int32)[0]
+    range_n = arange(cast(array(n), int32)[0])
+    i_float = cast(array(i), int32)
     mask_i = equal(range_n, i_float)
     mask_i_float = cast(mask_i, float32)
     return mask_i_float

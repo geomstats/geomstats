@@ -6,22 +6,27 @@ import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
-import tests.helper as helper
+from geomstats.geometry.spd_matrices import (
+    SPDMatrices,
+    SPDMetricAffine,
+    SPDMetricEuclidean,
+    SPDMetricLogEuclidean,
+    SPDMetricProcrustes
+)
 
-from geomstats.geometry.spd_matrices_space import SPDMatricesSpace, SPDMetricAffine, SPDMetricProcrustes, SPDMetricEuclidean
 
-
-class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
+class TestSPDMatricesMethods(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
 
         gs.random.seed(1234)
 
         self.n = 3
-        self.space = SPDMatricesSpace(n=self.n)
+        self.space = SPDMatrices(n=self.n)
         self.metric_affine = SPDMetricAffine(n=self.n)
         self.metric_procrustes = SPDMetricProcrustes(n=self.n)
         self.metric_euclidean = SPDMetricEuclidean(n=self.n)
+        self.metric_logeuclidean = SPDMetricLogEuclidean(n=self.n)
         self.n_samples = 4
 
     @geomstats.tests.np_and_tf_only
@@ -113,7 +118,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                              [1., .5, .5]]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_differential_log(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 1., 0.],
@@ -128,7 +133,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                               [x, x, 1]]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_inverse_differential_log(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 1., 0.],
@@ -143,7 +148,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                               [3., 3., 4.]]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_differential_exp(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 1., 0.],
@@ -159,7 +164,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                               [y, y, 1/x]]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_inverse_differential_exp(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 1., 0.],
@@ -175,7 +180,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
                               [1., 1., 1.]]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_procrustes_inner_product(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 1.5, .5],
@@ -192,7 +197,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_power_affine_inner_product(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 2.5, 1.5],
@@ -220,7 +225,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_euclidean_exp_domain(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 2., 0.],
@@ -234,8 +239,23 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
+    def test_log_euclidean_inner_product(self):
+        base_point = gs.array([[1., 0., 0.],
+                               [0., 1., 0.],
+                               [0., 0., 4.]])
+        tangent_vec = gs.array([[1., 1., 3.],
+                                [1., 1., 3.],
+                                [3., 3., 4.]])
+        metric = self.metric_logeuclidean
+        result = metric.inner_product(tangent_vec, tangent_vec, base_point)
+        x = 2 * gs.log(2)
+        expected = 5.+4.*x**2
+
+        self.assertAllClose(result, expected)
+
     @geomstats.tests.np_and_tf_only
-    def test_log_and_exp(self):
+    def test_log_and_exp_affine_invariant(self):
         base_point = gs.array([[5., 0., 0.],
                                [0., 7., 2.],
                                [0., 2., 8.]])
@@ -250,7 +270,7 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_log_and_exp_power_affine(self):
         base_point = gs.array([[5., 0., 0.],
                                [0., 7., 2.],
@@ -262,6 +282,22 @@ class TestSPDMatricesSpaceMethods(geomstats.tests.TestCase):
         log = metric.log(point, base_point)
         result = metric.exp(log, base_point)
         expected = point
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_log_and_exp_logeuclidean(self):
+        base_point = gs.array([[5., 0., 0.],
+                               [0., 7., 2.],
+                               [0., 2., 8.]])
+        point = gs.array([[9., 0., 0.],
+                          [0., 5., 0.],
+                          [0., 0., 1.]])
+
+        metric = self.metric_logeuclidean
+        log = metric.log(point=point, base_point=base_point)
+        result = metric.exp(tangent_vec=log, base_point=base_point)
+        expected = point
+
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only

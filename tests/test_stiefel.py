@@ -4,10 +4,10 @@ Unit tests for Stiefel manifolds.
 
 import warnings
 
-import geomstats.backend as gs
-import geomstats.tests
 import tests.helper as helper
 
+import geomstats.backend as gs
+import geomstats.tests
 from geomstats.geometry.stiefel import Stiefel
 
 ATOL = 1e-6

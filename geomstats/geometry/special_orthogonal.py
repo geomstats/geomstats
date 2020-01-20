@@ -5,7 +5,7 @@ i.e. the Lie group of rotations in n dimensions.
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
-from geomstats.geometry.general_linear_group import GeneralLinearGroup
+from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.lie_group import LieGroup
 
 ATOL = 1e-5
@@ -24,7 +24,7 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
-class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
+class SpecialOrthogonal(LieGroup, EmbeddedManifold):
     """
     Class for the special orthogonal group SO(n),
     i.e. the Lie group of rotations.
@@ -47,7 +47,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                           dimension=self.dimension)
         EmbeddedManifold.__init__(self,
                                   dimension=self.dimension,
-                                  embedding_manifold=GeneralLinearGroup(n=n))
+                                  embedding_manifold=GeneralLinear(n=n))
         self.bi_invariant_metric = self.left_canonical_metric
 
     def get_identity(self, point_type=None):
@@ -228,6 +228,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                               point_type=point_type)
                 jacobian = gs.array([jacobian[0]] * n_vecs)
                 inv_jacobian = gs.linalg.inv(jacobian)
+                inv_jacobian = gs.to_ndarray(inv_jacobian, to_ndim=3)
                 tangent_vec_at_id = gs.einsum(
                         'ni,nij->nj',
                         tangent_vec,
@@ -238,6 +239,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                                               metric,
                                               point_type)
 
+                jacobian = gs.to_ndarray(jacobian, to_ndim=3)
                 regularized_tangent_vec = gs.einsum(
                         'ni,nij->nj',
                         tangent_vec_at_id,
@@ -554,7 +556,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
             rot_vec *= (1. + fact)
         else:
-            skew_mat = self.embedding_manifold.group_log_from_identity(rot_mat)
+            skew_mat = self.embedding_manifold.log_from_identity(rot_mat)
             rot_vec = self.vector_from_skew_matrix(skew_mat)
 
         return self.regularize(rot_vec, point_type='vector')
@@ -606,7 +608,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         else:
             skew_mat = self.skew_matrix_from_vector(rot_vec)
-            rot_mat = self.embedding_manifold.group_exp_from_identity(skew_mat)
+            rot_mat = self.embedding_manifold.exp_from_identity(skew_mat)
 
         return rot_mat
 
@@ -1279,7 +1281,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         return random_point
 
-    def group_exp_from_identity(self, tangent_vec, point_type=None):
+    def exp_from_identity(self, tangent_vec, point_type=None):
         """
         Compute the group exponential of the tangent vector at the identity.
         """
@@ -1297,7 +1299,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         return point
 
-    def group_log_from_identity(self, point, point_type=None):
+    def log_from_identity(self, point, point_type=None):
         """
         Compute the group logarithm of the point at the identity.
         """
@@ -1312,7 +1314,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             tangent_vec = self.skew_matrix_from_vector(point)
         return tangent_vec
 
-    def group_exponential_barycenter(
+    def exponential_barycenter(
             self, points, weights=None, point_type=None):
         """
         Compute the group exponential barycenter in SO(n), which is the
@@ -1338,7 +1340,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         elif point_type == 'matrix':
             points = self.rotation_vector_from_matrix(points)
-            exp_bar = self.group_exponential_barycenter(
+            exp_bar = self.exponential_barycenter(
                 points, weights, point_type='vector')
             exp_bar = self.matrix_from_rotation_vector(exp_bar)
 

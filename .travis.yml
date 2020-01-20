@@ -3,18 +3,23 @@ dist: xenial
 cache: pip
 language: python
 python:
+    - "3.5"
     - "3.6"
+    - "3.7"
+    - "3.8"
 
 install:
     - pip install --upgrade pip setuptools wheel
     - pip install -q -r dev-requirements.txt
     - pip install -q -r requirements.txt --only-binary=numpy,scipy
 script:
-    - flake8 geomstats
-    - nose2 --with-coverage --verbose tests
+    - flake8 $(git diff --name-only master HEAD geomstats examples tests)
+    - if [[ $TRAVIS_PYTHON_VERSION != 3.8 ]]; then nose2 --with-coverage --verbose tests; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == 3.8 && $GEOMSTATS_BACKEND == numpy ]]; then nose2 --with-coverage --verbose tests; fi
 env:
     - GEOMSTATS_BACKEND=numpy
     - GEOMSTATS_BACKEND=pytorch
+    - GEOMSTATS_BACKEND=tensorflow
 
 after_success:
     - bash <(curl -s https://codecov.io/bash) -c -F $GEOMSTATS_BACKEND

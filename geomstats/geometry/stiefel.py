@@ -6,8 +6,8 @@ where p <= n
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
-from geomstats.geometry.euclidean_space import EuclideanMetric
-from geomstats.geometry.matrices_space import MatricesSpace
+from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-5
@@ -30,7 +30,7 @@ class Stiefel(EmbeddedManifold):
         dimension = int(p * n - (p * (p + 1) / 2))
         super(Stiefel, self).__init__(
               dimension=dimension,
-              embedding_manifold=MatricesSpace(n, p))
+              embedding_manifold=Matrices(n, p))
 
         self.canonical_metric = StiefelCanonicalMetric(n, p)
 
