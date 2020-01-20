@@ -64,7 +64,7 @@ of optimisation algorithms, such as geomstat's learning module.
                                                             
 ```
 __Note:__\
-other Lie groups such as `SL(n)` or `Sp(2n)` may added to the picture.
+other Lie groups such as SL(n) or Sp(2n) may added to the picture.
 
 This allows for all matrix Lie groups to inherit most of their methods 
 such as `exp`, `log`, `transpose`, etc. 
@@ -75,7 +75,7 @@ allows for a more performant way to compute the same return value, e.g.
 the inverse of an orthogonal matrix is the transposed matrix.
 
 As embedded manifolds (see [below](#vector-spaces-and-embedded-manifolds)) 
-they should also provide with a specific 'belongs' map, projection to tangent space,
+they should also provide with a specific 'belongs', projection to tangent space,
 etc. 
  
 ### Matrices
@@ -115,11 +115,11 @@ implements:
     orbit    : (point2, point1) -> (t -> point)
 ```
 
-SO(n) overrides: `inv`, call `transpose`.
+SO(n): overrides `inv`, calling `transpose`.
 
-SPD(n) overrides `exp` and `log`, computing eigenvectors, and `compose`.
+SPD(n): overrides `exp` and `log`, computing eigenvectors, and `compose`.
 
-__Note:__\
+__Note:__
 the actual symmetry check and Yann `symexp`'s function would 
 be moved from the backend to the SPD group class. 
 
@@ -146,11 +146,9 @@ implement:
 
 override `transpose`, restrict to the linear part and revert translation
 
-GA(n) inherits `exp`, `log`, `inv`... from GL(n+1)
+GA(n): inherits `exp`, `log`, `inv`... from GL(n+1)
 
-SE(n) overrides `inv`, calling `transpose` 
-
----
+SE(n): overrides `inv`, calling `transpose` 
 
 
 ## Vector Spaces and Embedded Manifolds
