@@ -9,6 +9,7 @@ from scipy.special import polygamma
 from scipy.stats import beta
 
 import geomstats.backend as gs
+from geometry.geomstats.connection import LeviCivitaConnection
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -72,7 +73,7 @@ class BetaDistributions(EmbeddedManifold):
         return gs.stack(parameters)
 
 
-class BetaMetric(RiemannianMetric):
+class BetaMetric(RiemannianMetric, LeviCivitaConnection):
 
     def __init__(self):
         super(BetaMetric, self).__init__(dimension=2)
@@ -90,7 +91,7 @@ class BetaMetric(RiemannianMetric):
         ----------
         base_point : array-like, shape=[n_samples, dimension], optional
         """
-        assert base_point, 'The metric depends on the base point'
+        assert ~ (base_point is None), 'The metric depends on the base point'
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         matrices = []
         for point in base_point:
@@ -101,3 +102,35 @@ class BetaMetric(RiemannianMetric):
                            polygamma(1, b) - polygamma(1, a + b)])
             matrices.append(gs.stack([g0, g1]))
         return gs.stack(matrices)
+
+    @staticmethod
+    def christoffels(base_point):
+        """Compute Christoffel symbols.
+
+        Compute the Christoffel symbols of the Fisher metric on Beta
+        distributions.
+        """
+
+        def coefficients(point):
+            c1 = (polygamma(2, a) * polygamma(1, b) -
+                  polygamma(2, a) * polygamma(1, a + b) -
+                  polygamma(1, b) * polygamma(2, a + b)) / (2 * detg(a, b))
+            c2 = - polygamma(1, b) * polygamma(2, a + b) / (2 * detg(a, b))
+            c3 = (polygamma(2, b) * polygamma(1, a + b) -
+                  polygamma(1, b) * polygamma(2, a + b)) / (2 * detg(a, b))
+            return c1, c2, c3
+
+        assert ~ (base_point is None), 'The Christoffels depend on a base point'
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        matrices = []
+        a, b = base_point
+        coefs_1 = coefficients(a, b)
+        coefs_2 = coefficients(b, a)
+        christoffel = []
+        for coef_1, coef_2 in zip(coefs_1, coefs_2):
+            c1, c2, c3 = coef_1
+            c4, c5, c6 = coef_2
+            gamma_0 = gs.array([[c1, c2], [c2, c3]])
+            gamma_1 = gs.array([[c4, c5], [c5, c6]])
+            christoffel.append(gs.stack([gamma_0, gamma_1]))
+        return gs.stack(christoffel)
