@@ -51,7 +51,7 @@ of optimisation algorithms, such as geomstat's learning module.
 
 ## Matrix Spaces and Lie Groups
 
-Inheritance diagram:
+### Inheritance Diagram:
 
 ```python
                                .--- SPD(n)                  
@@ -60,12 +60,24 @@ Inheritance diagram:
        ^                                                  
        |                                                  
                                                            
-    Aff(n-1) <----- GA(n) <--------- SE(n)                       
+    Aff(n-1) <----- GA(n-1) <------ SE(n-1)                       
                                                             
 ```
 __Note:__\
-Other Lie groups such as `SL(n)` or `Sp(2n)` may also be implemented in the future.
+other Lie groups such as `SL(n)` or `Sp(2n)` may added to the picture.
 
+This allows for all matrix Lie groups to inherit most of their methods 
+such as `exp`, `log`, `transpose`, etc. 
+either from GL(n) or Mat(n,n). 
+
+A class-specific implementation should hence only be provided if the class
+allows for a more performant way to compute the same return value, e.g. 
+the inverse of an orthogonal matrix is the transposed matrix.
+
+As embedded manifolds (see [below](#vector-spaces-and-embedded-manifolds)) 
+they should also provide with a specific 'belongs' map, projection to tangent space,
+etc. 
+ 
 ### Matrices
 
 implements:
@@ -94,7 +106,7 @@ implements:
 ```python
 # elementary group operations:
     identity: () -> point
-    compose : (...points) -> point          (alias of mul)
+    compose : (...points) -> point              #(alias of mul)
     inv     : point -> point
 # Lie group operations: 
     exp     : (vector, point1) -> point2
@@ -103,19 +115,17 @@ implements:
     orbit    : (point2, point1) -> (t -> point)
 ```
 
-### SpecialOrthogonal
-
+__SpecialOrthogonal__:\
 overrides: `inv`, call `transpose`.
 
-### SPDMatrices
-
+__SPDMatrices__:\
 overrides: `exp` and `log`, compute eigenvectors, and `compose`.
 
 __Note:__\
 The actual symmetry check and Yann `symexp`'s function would 
 be moved from the backend to the SPD group class. 
 
-### Affine 
+### AffineMatrices 
 
 __Note:__ Affine transformations are not implemented at the moment.  
 
@@ -131,8 +141,6 @@ representing the affine transformation `x -> l(x) + v` by:
 
 This view will allow for inheritance of most matrix methods. 
 
-override: `transpose`, restrict to the linear part.
-
 implement:
 ```python
     to_linear   : (affine) -> linear
@@ -140,13 +148,15 @@ implement:
     apply       : (affine, vector) -> vector
 ```
 
-### GeneralAffine
+override: `transpose`, restrict to the linear part and revert translation
 
-inherit: `exp` and `log`. 
+__GeneralAffine:__\
+inherit: `exp`, `log`, `inv`... from GL(n)
 
-### SpecialEuclidian
+__SpecialEuclidian:__\
+override: `inv`, call transpose 
 
-override: `inv`, transpose the linear part and revert translation. 
+---
 
 
 ## Vector Spaces and Embedded Manifolds
@@ -161,7 +171,7 @@ ease future maintainability and
 facilitate user access to the library's logic :electric_plug: :computer: 
 
 We brainstormed about this on friday with Nina, 
-Here is my attempt to lay down the brainstorm we had on friday with Nina, 
+here is my attempt to lay it down
 hoping this first draft will lead us to a more precise specification soon!
 
 ### Methods
@@ -236,12 +246,12 @@ Here the inheritance diagram with the different class
 names is somehow still unclear. A picture attempt:
 ```python
     Connection <---- LeviCivita                             
-                                                            
-                         :                                  
+                         .                                  
+                         .                                  
                                                            
                        Metric                    Vector                
-                                                   ^     
-                         :                         '       
+                         .                         ^     
+                         .                         '       
                                         .--- EmbeddedManifold
                      RiemannianMfd <---(                        
                                         `--- ProductRiemannianMfd
