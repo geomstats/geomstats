@@ -2,6 +2,7 @@
 Decorator to handle vectorization.
 
 This abstracts the backend type.
+This assumes that functions are implemented to return vectorized outputs.
 """
 
 import geomstats.backend as gs
@@ -41,9 +42,9 @@ def squeeze_output_dim_1(result, initial_shapes, point_types):
     This happens if the user represents scalars as array of shapes:
     [n_samples,] instead of [n_samples, 1]
 
-    The dimension 1 is squeezed iff:
-    - the return point type is a scalar,
-    - all input scalars have squeezed dimension 1.
+    Dimension 1 is squeezed by default if the return point type is a scalar.
+    Dimension 1 is not squeezed if the user inputs at least one scalar with
+    a singleton in dimension 1.
     """
     if not is_scalar(result):
         return False
@@ -54,12 +55,7 @@ def squeeze_output_dim_1(result, initial_shapes, point_types):
             assert ndim <= 2
             if ndim == 2:
                 return False
-            if ndim == 0:
-                return True
-            if ndim == 1:
-                if shape[0] > 1:
-                    return True
-    return False
+    return True
 
 
 def decorator(param_names, point_types):
@@ -78,11 +74,17 @@ def decorator(param_names, point_types):
             initial_shapes = []
             initial_ndims = []
             for param, point_type in zip(args, point_types):
+                if point_type == 'scalar':
+                    param = gs.array(param)
                 initial_shapes.append(param.shape)
                 initial_ndims.append(gs.ndim(param))
 
-                vect_param = gs.to_ndarray(
-                    param, POINT_TYPES_TO_NDIMS[point_type])
+                if point_type == 'scalar':
+                    vect_param = gs.to_ndarray(param, to_ndim=1)
+                    vect_param = gs.to_ndarray(vect_param, to_ndim=2, axis=1)
+                else:
+                    vect_param = gs.to_ndarray(
+                        param, POINT_TYPES_TO_NDIMS[point_type])
                 vect_args.append(vect_param)
             result = function(*vect_args, **kwargs)
 
