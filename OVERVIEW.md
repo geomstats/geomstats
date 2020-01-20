@@ -69,16 +69,18 @@ Other Lie groups such as `SL(n)` or `Sp(2n)` may also be implemented in the futu
 ### Matrices
 
 implements:
-- elementary matrix operations: 
-    + `equal : point -> bool`
-    + `mul : (...points) -> point`
-- to be complemented with?
-    + `sum : (...points) -> point` 
-    + `span : (scalars, points) -> point`
-- scalar product and duality:
-    + `transpose : point -> point`
-    + `is_symmetric : point -> bool`
-    + `to_symmetric : point -> point` 
+```python
+# elementary matrix operations: 
+    equal   : point -> bool
+    mul     : (...points) -> point
+# to be complemented with?
+    sum     : (...points) -> point 
+    span    : (scalars, points) -> point
+# scalar product and duality:
+    transpose       : point -> point
+    is_symmetric    : point -> bool
+    to_symmetric    : point -> point 
+```
 
 __Note:__\
 An `apply : (linear, vector) -> vector` method
@@ -89,15 +91,17 @@ e.g. have SO(n+1) act on the n-Sphere.
 ### GeneralLinear 
 
 implements:
-- elementary group operations:
-    + `identity : () -> point`
-    + `compose : (...points) -> point` alias of `mul`
-    + `inv : point -> point`
-- Lie group operations: 
-    + `exp : (vector, point1) -> point2`
-    + `log : (point2, point1) -> vector`
-- interpolating one-parameter orbit:
-    + `orbit : (point2, point1) -> (t -> point)`
+```python
+# elementary group operations:
+    identity: () -> point
+    compose : (...points) -> point alias of mul
+    inv     : point -> point
+# Lie group operations: 
+    exp     : (vector, point1) -> point2
+    log     : (point2, point1) -> vector
+# interpolating one-parameter orbit:
+    orbit    : (point2, point1) -> (t -> point)
+```
 
 ### SpecialOrthogonal
 
@@ -108,7 +112,7 @@ overrides: `inv`, call `transpose`.
 overrides: `exp` and `log`, compute eigenvectors, and `compose`.
 
 __Note:__\
-The actual symmetry check would and Yann `symexp`'s function would 
+The actual symmetry check and Yann `symexp`'s function would 
 be moved from the backend to the SPD group class. 
 
 ### Affine 
@@ -116,13 +120,13 @@ be moved from the backend to the SPD group class.
 __Note:__ Affine transformations are not implemented at the moment.  
 
 `Aff(n)` can be viewed as a subalgebra of `Mat(n+1)`,
-representing the affine transformation `x -> l(x) + v` by the matrix: 
+representing the affine transformation `x -> l(x) + v` by: 
 ```python
-[[l_11, ..., l_1n, v_1],
- [l_21, ..., l_2n, v_2],
-  ...
- [l_n1, ..., l_nn, v_n],
- [   0, ...,    0,   1]]
+(l, v) = [[l_11, ..., l_1n, v_1],
+          [l_21, ..., l_2n, v_2],
+           ...
+          [l_n1, ..., l_nn, v_n],
+          [   0, ...,    0,   1]]
 ```
 
 This view will allow for inheritance of most matrix methods. 
@@ -130,9 +134,11 @@ This view will allow for inheritance of most matrix methods.
 override: `transpose`, restrict to the linear part.
 
 implement:
-+ `to_linear : (affine) -> linear`
-+ `to_vector : (affine) -> vector`
-+ `apply : (affine, vector) -> vector`
+```python
+    to_linear   : (affine) -> linear
+    to_vector   : (affine) -> vector
+    apply       : (affine, vector) -> vector
+```
 
 ### GeneralAffine
 
@@ -151,18 +157,20 @@ Here the inheritance diagram and the different class
  names are somehow still unclear. 
 Overall, a first list of expected methods:
 
-+ (riemannian) connection:
-    - `exp : (vector, point1) -> point2`
-    - `log : (point2, point1) -> vector`
-+ riemannian structure:
-    - `geodesic     : (point2, point1) -> (t -> point)` *
-    - `dist         : (point2, point 1) -> scalar` *
-    - `inner-matrix : point -> matrix` 
-    - `inner        : (vector1, vector2, point) -> scalar` * 
-+ embedding: 
-    - `belongs      : point -> bool`
-    - `is_tangent   : vector -> bool`
-    - `to_tangent   : vector -> vector`
+```python
+# (riemannian) connection:
+    exp : (vector, point1) -> point2
+    log : (point2, point1) -> vector
+# riemannian structure:
+    geodesic     : (point2, point1) -> (t -> point) *
+    dist         : (point2, point 1) -> scalar *
+    inner-matrix : point -> matrix 
+    inner        : (vector1, vector2, point) -> scalar * 
+# embedding: 
+    belongs      : point -> bool
+    is_tangent   : vector -> bool
+    to_tangent   : vector -> vector
+```
 
 ( * ): `geodesic`, `inner-prod` and `dist` should be generically defined 
 other methods such as `exp`, `log`, and `inner-matrix` 
@@ -171,7 +179,7 @@ in the parent class for inheritance.
 In general, `exp` and `log` may derive from a connection. 
 In this case the `geodesic` terminology is somewhat confusing and could be aliased.
 
-__Notes:__ (discussed with @nguigs)
+__Notes:__ (came up with @nguigs)
 + in the embedded case, the Levi-Civita connection can be numerically integrated
 by orthogonal projections onto the the tangent space, so that `exp` and 
 `log` would derive from `to_tangent` _in absence of closed-form._
@@ -179,6 +187,6 @@ by orthogonal projections onto the the tangent space, so that `exp` and
 + the `EmbeddedManifold` interface should be shared by the previous Lie Groups, 
 which somewhat raises the issue of the 2D-shape signature of their tangent vectors, 
 the metric tensor being 4D.  
-(instead of recasting the metric to 2D and vectors to 1D, defining a
-`bilinear: (tensor, vector, vector) -> scalar` 
-in each of the two parent classes for instance may be more convenient)
++ in the matrix case, instead of recasting tangent vectors to 1D by default, 
+interfacing with overriden methods such as `bilinear: (tensor, vector, vector) -> scalar`, 
+`add` and `span` defined in each of the two parent classes could be more convenient.
