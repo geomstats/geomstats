@@ -151,10 +151,36 @@ override: `inv`, transpose the linear part and revert translation.
 
 ## Vector Spaces and Embedded Manifolds
 
-...more to come...
+Here the inheritance diagram with the different class
+names is somehow still unclear. A picture attempt:
+```python
+                                                            
+    Connection <---- LeviCivita                             
+                                                            
+                         '                                  
+                                                           
+                       Metric                                     
+                                                 Vector      
+                         '                         ^     
+                         '                         '       
+                                        .--- EmbeddedManifold
+                     RiemannianMfd <---(                        
+                                        `--- ProductRiemannianMfd
+                                                   :        
+                                                   v         
+                                                Product            
+```         
 
-Here the inheritance diagram and the different class
- names are somehow still unclear. 
+I think the picture might get simpler 
+if metrics, connections, etc. were thought of as
+auxiliary objects serving to provide a manifold 
+with 'riemannian' methods. Something like:
+```python
+manifold.use_metric(metric)   
+```
+That way the methods a manifold exposes would depend on the structures 
+it is equipped with. 
+
 Overall, a first list of expected methods:
 
 ```python
@@ -162,10 +188,10 @@ Overall, a first list of expected methods:
     exp : (vector, point1) -> point2
     log : (point2, point1) -> vector
 # riemannian structure:
-    geodesic     : (point2, point1) -> (t -> point) *
-    dist         : (point2, point 1) -> scalar *
-    inner-matrix : point -> matrix 
-    inner        : (vector1, vector2, point) -> scalar * 
+  * geodesic     : (point2, point1) -> (t -> point) 
+  * dist         : (point2, point 1) -> scalar 
+    inner_matrix : point -> matrix 
+  * inner        : (vector1, vector2, point) -> scalar  
 # embedding: 
     belongs      : point -> bool
     is_tangent   : vector -> bool
@@ -173,20 +199,49 @@ Overall, a first list of expected methods:
 ```
 
 ( * ): `geodesic`, `inner-prod` and `dist` should be generically defined 
-other methods such as `exp`, `log`, and `inner-matrix` 
+from other methods such as `exp`, `log`, and `inner-matrix` 
 in the parent class for inheritance.
 
 In general, `exp` and `log` may derive from a connection. 
 In this case the `geodesic` terminology is somewhat confusing and could be aliased.
 
-__Notes:__ (came up with @nguigs)
-+ in the embedded case, the Levi-Civita connection can be numerically integrated
-by orthogonal projections onto the the tangent space, so that `exp` and 
-`log` would derive from `to_tangent` _in absence of closed-form._
-(the ODE solving code should be kept separate by an import statement though)
+__Notes:__ (came up discussing with @nguigs)
 + the `EmbeddedManifold` interface should be shared by the previous Lie Groups, 
-which somewhat raises the issue of the 2D-shape signature of their tangent vectors, 
-the metric tensor being 4D.  
-+ in the matrix case, instead of recasting tangent vectors to 1D by default, 
-interfacing with overriden methods such as `bilinear: (tensor, vector, vector) -> scalar`, 
-`add` and `span` defined in each of the two parent classes could be more convenient.
+which somewhat raises the issue of the 2D-shape signature of their tangent vectors
+and the metric tensor being 4D, 
+together with its consequences on vectorization behaviour.  
+    
+    in the matrix case, instead of recasting tangent vectors to 1D by default, 
+    interfacing with some properly einsum-vectorized methods such as 
+    `bilinear: (tensor, vector, vector) -> scalar`, and 
+    `add`, `span`... defined in each of the two parent classes 
+    could be more convenient.
+
++ in the `EmbeddedManifold` class, the Levi-Civita connection 
+can be numerically integrated
+by orthogonal projections onto the the tangent space. 
+This means that by default, `exp` and `log` may derive from `to_tangent` 
+_if not overriden by closed formulas_.
+
+    The `EmbdeddedManifold` class could then be used to represent 
+    manifolds defined as level surfaces `{ f = cst }` 
+    of smooth functions and their intersections, using autograd :scream:.  
+
+    I suggest most of the ODE solving code be kept separate in a separate 
+    `integrators.py` file by an import statement though.
+    Hence the `EmbeddedManifold` class file would only define its objects interfaces
+    (of which already defined manifolds would only inherit the metric tensor), 
+    and this file could as well be imported to solve user-defined ODEs, 
+    on the sphere for instance. 
+
++ As discussed with @ninamiolane
+ and concerning Yann's polydisks, Alice's discretized curves 
+and @nguigs's landmarks spaces: __product spaces__.  
+
+    A clean `Manifold` class model being figured, many canonical methods could 
+    be inherited by a `ProductManifold` child class. 
+    I think this is also related to the first point 
+    (matrices being 2D and vectorization) 
+    products yield new object shapes and may not always 
+    be represented by rectangular arrays, 
+    thus raising the concern for a common interface reference. 
