@@ -1,6 +1,4 @@
-"""
-Manifold for sets of landmarks that belong to any given manifold
-"""
+"""Manifold for sets of landmarks that belong to any given manifold."""
 
 import math
 
@@ -10,15 +8,15 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class Landmarks(Manifold):
-    """
-    Class for landmarks.
-    """
+    """Class for landmarks."""
 
     def __init__(self, ambient_manifold, n_landmarks=None):
-        """
+        """Construct an instance of the LandmarksSpace class.
+
         Parameters
-        ---------
+        ----------
         ambient_manifold : object from the class Manifold
+        n_landmarks
         """
         self.dimension = None
         if n_landmarks:
@@ -30,6 +28,16 @@ class Landmarks(Manifold):
         super(Landmarks, self).__init__(dimension=self.dimension)
 
     def belongs(self, point):
+        """Compute whether or not a point belongs to the manifold.
+
+        Parameters
+        ----------
+        point
+
+        Returns
+        -------
+        belongs : bool
+        """
         belongs = gs.all(self.ambient_manifold.belongs(point))
         belongs = gs.to_ndarray(belongs, to_ndim=1)
         belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
@@ -37,9 +45,8 @@ class Landmarks(Manifold):
 
 
 class L2Metric(RiemannianMetric):
-    """
-    L2 Riemannian metric on the space of landmarks.
-    """
+    """L2 Riemannian metric on the space of landmarks."""
+
     def __init__(self, ambient_manifold):
         super(L2Metric, self).__init__(
                 dimension=math.inf,
@@ -48,8 +55,17 @@ class L2Metric(RiemannianMetric):
         self.ambient_metric = ambient_manifold.metric
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_landmarks):
-        """
-        Inner product between two tangent vectors at a base landmark set.
+        """Compute inner product between tangent vectors at base landmark set.
+
+        Parameters
+        ----------
+        tangent_vec_a
+        tangent_vec_b
+        base_landmarks
+
+        Returns
+        -------
+        inner_prod
         """
         assert tangent_vec_a.shape == tangent_vec_b.shape
         assert tangent_vec_a.shape == base_landmarks.shape
@@ -80,8 +96,16 @@ class L2Metric(RiemannianMetric):
         return inner_prod
 
     def dist(self, landmarks_a, landmarks_b):
-        """
-        Geodesic distance between two landmark sets.
+        """Compute geodesic distance between two landmark sets.
+
+        Parameters
+        ----------
+        landmarks_a
+        landmarks_b
+
+        Returns
+        -------
+        dist
         """
         assert landmarks_a.shape == landmarks_b.shape
         landmarks_a = gs.to_ndarray(landmarks_a, to_ndim=3)
@@ -106,8 +130,16 @@ class L2Metric(RiemannianMetric):
         return dist
 
     def exp(self, tangent_vec, base_landmarks):
-        """
-        Riemannian exponential of a tangent vector wrt to a base landmark set.
+        """Compute Riemannian exponential of tan vector wrt base landmark set.
+
+        Parameters
+        ----------
+        tangent_vec
+        base_landmarks
+
+        Returns
+        -------
+        exp
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         base_landmarks = gs.to_ndarray(base_landmarks, to_ndim=3)
@@ -126,8 +158,16 @@ class L2Metric(RiemannianMetric):
         return exp
 
     def log(self, landmarks, base_landmarks):
-        """
-        Riemannian logarithm of a set of landmarks wrt a base landmark set.
+        """Compute Riemannian log of a set of landmarks wrt base landmark set.
+
+        Parameters
+        ----------
+        landmarks
+        base_landmarks
+
+        Returns
+        -------
+        log
         """
         assert landmarks.shape == base_landmarks.shape
         landmarks = gs.to_ndarray(landmarks, to_ndim=3)
@@ -147,10 +187,21 @@ class L2Metric(RiemannianMetric):
 
     def geodesic(self, initial_landmarks,
                  end_landmarks=None, initial_tangent_vec=None):
-        """
-        Geodesic specified either by an initial landmark set and an end
-        landmark set,
-        either by an initial landmark set and an initial tangent vector.
+        """Compute geodesic from initial & end landmark set (or init. tan vec).
+
+        Compute the geodesic specified either by an initial landmark set and
+        an end landmark set, or by an initial landmark set and an initial
+        tangent vector.
+
+        Parameters
+        ----------
+        initial_landmarks
+        end_landmarks
+        initial_tangent_vec
+
+        Returns
+        -------
+        landmarks_on_geodesic
         """
         landmarks_ndim = 2
         initial_landmarks = gs.to_ndarray(
