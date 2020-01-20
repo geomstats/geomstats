@@ -1,5 +1,6 @@
-"""
-Manifold, i.e. a topological space that locally resembles
+"""Manifold module.
+
+In other words, a topological space that locally resembles
 Euclidean space near each point.
 """
 
@@ -7,9 +8,7 @@ import math
 
 
 class Manifold(object):
-    """
-    Class for manifolds.
-    """
+    """Class for manifolds."""
 
     def __init__(self, dimension):
 
@@ -20,8 +19,7 @@ class Manifold(object):
         self.dimension = dimension
 
     def belongs(self, point, point_type=None):
-        """
-        Evaluate if a point belongs to the manifold.
+        """Evaluate if a point belongs to the manifold.
 
         Parameters
         ----------
@@ -35,9 +33,7 @@ class Manifold(object):
         raise NotImplementedError('belongs is not implemented.')
 
     def regularize(self, point, point_type=None):
-        """
-        Regularize a point to the canonical representation
-        chosen for the manifold.
+        """Regularize a point to the canonical representation for the manifold.
 
         Parameters
         ----------
