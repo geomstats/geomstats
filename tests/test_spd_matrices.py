@@ -10,8 +10,8 @@ from geomstats.geometry.spd_matrices import (
     SPDMatrices,
     SPDMetricAffine,
     SPDMetricEuclidean,
-    SPDMetricProcrustes,
-    SPDMetricLogEuclidean
+    SPDMetricLogEuclidean,
+    SPDMetricProcrustes
 )
 
 
