@@ -349,8 +349,12 @@ class RiemannianMetric(object):
         weights: array-like, shape=[n_samples, 1], optional
 
         verbose: bool, optional
+
+        Returns
+        -------
+        mean
         """
-        if point_type != 'ball':
+        if mean_method == 'default':
 
             # TODO(nina): Profile this code to study performance,
             # i.e. what to do with sq_dists_between_iterates.
@@ -360,75 +364,75 @@ class RiemannianMetric(object):
                     gs.less_equal(sq_dist, epsilon * variance))
                 return result[0, 0] or iteration == 0
 
-            def while_loop_body(iteration, mean, variance, sq_dist):
+                def while_loop_body(iteration, mean, variance, sq_dist):
 
-                logs = self.log(point=points, base_point=mean)
+                    logs = self.log(point=points, base_point=mean)
 
-                tangent_mean = gs.einsum('nk,nj->j', weights, logs)
+                    tangent_mean = gs.einsum('nk,nj->j', weights, logs)
 
-                tangent_mean /= sum_weights
+                    tangent_mean /= sum_weights
 
-                mean_next = self.exp(
-                    tangent_vec=tangent_mean,
-                    base_point=mean)
+                    mean_next = self.exp(
+                        tangent_vec=tangent_mean,
+                        base_point=mean)
 
-                sq_dist = self.squared_dist(mean_next, mean)
-                sq_dists_between_iterates.append(sq_dist)
+                    sq_dist = self.squared_dist(mean_next, mean)
+                    sq_dists_between_iterates.append(sq_dist)
 
-                variance = self.variance(points=points,
-                                         weights=weights,
-                                         base_point=mean_next)
+                    variance = self.variance(points=points,
+                                             weights=weights,
+                                             base_point=mean_next)
 
-                mean = mean_next
-                iteration += 1
-                return [iteration, mean, variance, sq_dist]
+                    mean = mean_next
+                    iteration += 1
+                    return [iteration, mean, variance, sq_dist]
 
-            if point_type == 'vector':
-                points = gs.to_ndarray(points, to_ndim=2)
-            if point_type == 'matrix':
-                points = gs.to_ndarray(points, to_ndim=3)
-            n_points = gs.shape(points)[0]
+                if point_type == 'vector':
+                    points = gs.to_ndarray(points, to_ndim=2)
+                if point_type == 'matrix':
+                    points = gs.to_ndarray(points, to_ndim=3)
+                n_points = gs.shape(points)[0]
 
-            if weights is None:
-                weights = gs.ones((n_points, 1))
+                if weights is None:
+                    weights = gs.ones((n_points, 1))
 
-            weights = gs.array(weights)
-            weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
+                weights = gs.array(weights)
+                weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
 
-            sum_weights = gs.sum(weights)
+                sum_weights = gs.sum(weights)
 
-            mean = points[0]
-            if point_type == 'vector':
+                mean = points[0]
+                if point_type == 'vector':
+                    mean = gs.to_ndarray(mean, to_ndim=2)
+                if point_type == 'matrix':
+                    mean = gs.to_ndarray(mean, to_ndim=3)
+
+                if n_points == 1:
+                    return mean
+
+                sq_dists_between_iterates = []
+                iteration = 0
+                sq_dist = gs.array([[0.]])
+                variance = gs.array([[0.]])
+
+                last_iteration, mean, variance, sq_dist = gs.while_loop(
+                    lambda i, m, v, sq: while_loop_cond(i, m, v, sq),
+                    lambda i, m, v, sq: while_loop_body(i, m, v, sq),
+                    loop_vars=[iteration, mean, variance, sq_dist],
+                    maximum_iterations=n_max_iterations)
+
+                if last_iteration == n_max_iterations:
+                    print('Maximum number of iterations {} reached.'
+                          'The mean may be inaccurate'.format(n_max_iterations))
+
+                if verbose:
+                    print('n_iter: {}, final variance: {}, final dist: {}'.format(
+                        last_iteration, variance, sq_dist))
+
                 mean = gs.to_ndarray(mean, to_ndim=2)
-            if point_type == 'matrix':
-                mean = gs.to_ndarray(mean, to_ndim=3)
-
-            if n_points == 1:
                 return mean
 
-            sq_dists_between_iterates = []
-            iteration = 0
-            sq_dist = gs.array([[0.]])
-            variance = gs.array([[0.]])
-
-            last_iteration, mean, variance, sq_dist = gs.while_loop(
-                lambda i, m, v, sq: while_loop_cond(i, m, v, sq),
-                lambda i, m, v, sq: while_loop_body(i, m, v, sq),
-                loop_vars=[iteration, mean, variance, sq_dist],
-                maximum_iterations=n_max_iterations)
-
-            if last_iteration == n_max_iterations:
-                print('Maximum number of iterations {} reached.'
-                      'The mean may be inaccurate'.format(n_max_iterations))
-
-            if verbose:
-                print('n_iter: {}, final variance: {}, final dist: {}'.format(
-                    last_iteration, variance, sq_dist))
-
-            mean = gs.to_ndarray(mean, to_ndim=2)
-            return mean
-
-        if point_type == 'ball':
+        if mean_method == 'frechet-poincare-ball':
 
             lr = 1e-3
             tau = 5e-3
@@ -455,6 +459,10 @@ class RiemannianMetric(object):
                 convergence = self.dist(cc_barycenter, barycenter).max().item()
 
                 barycenter = cc_barycenter
+
+            if iteration == n_max_iterations:
+                print('Maximum number of iterations {} reached.'
+                      'The mean may be inaccurate'.format(n_max_iterations))
 
             return barycenter
 

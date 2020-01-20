@@ -36,7 +36,7 @@ def main():
     kmeans = RiemannianKMeans(riemannian_metric=metric,
                               n_clusters=2,
                               init='random',
-                              point_type='ball'
+                              mean_method='frechet-poincare-ball'
                               )
 
     centroids = kmeans.fit(X=merged_clusters, max_iter=100)

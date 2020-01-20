@@ -9,7 +9,7 @@ from geomstats.learning._template import TransformerMixin
 class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
     def __init__(self, riemannian_metric, n_clusters=8, init='random',
-                 tol=1e-2, point_type='vector', verbose=0):
+                 tol=1e-2, mean_method='default', verbose=0):
         """ K-Means algorithm using Riemannian manifolds
 
         Parameters
@@ -38,7 +38,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self.riemannian_metric = riemannian_metric
         self.tol = tol
         self.verbose = verbose
-        self.point_type = point_type
+        self.mean_method = mean_method
 
     def fit(self, X, max_iter=100):
         """Predict for each data point the closest center in terms of
@@ -57,6 +57,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self : object
             Return centroids array
         """
+
         n_samples = X.shape[0]
         belongs = gs.zeros(n_samples)
         self.centroids = [gs.expand_dims(X[randint(0, n_samples-1)], 0)
@@ -76,10 +77,11 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                 fold = gs.squeeze(X[belongs == i])
 
                 if len(fold) > 0:
+
                     self.centroids[i] = self.riemannian_metric.mean(
                         fold,
-                        point_type=self.point_type,
-                        n_max_iterations=32)
+                        mean_method=self.mean_method,
+                        n_max_iterations=150)
 
                 else:
                     self.centroids[i] = X[randint(0, n_samples-1)]
@@ -92,6 +94,10 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                     print("Convergence Reached after ", index, " iterations")
 
                 return gs.copy(self.centroids)
+
+        if index == max_iter:
+            print('K-means maximum number of iterations {} reached.'
+                  'The mean may be inaccurate'.format(max_iter))
 
         return gs.copy(self.centroids)
 
