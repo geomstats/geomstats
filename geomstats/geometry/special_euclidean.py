@@ -4,10 +4,10 @@ i.e. the Lie group of rigid transformations in n dimensions.
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean_space import EuclideanSpace
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_group import LieGroup
-from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 PI = gs.pi
 PI2 = PI * PI
@@ -32,7 +32,7 @@ TAYLOR_COEFFS_2_AT_0 = [+ 1. / 6., 0.,
                         - 1. / 362880.]
 
 
-class SpecialEuclideanGroup(LieGroup):
+class SpecialEuclidean(LieGroup):
     """
     Class for the special euclidean group SE(n),
     i.e. the Lie group of rigid transformations.
@@ -50,11 +50,11 @@ class SpecialEuclideanGroup(LieGroup):
         if point_type is None:
             self.default_point_type = 'vector' if n == 3 else 'matrix'
 
-        super(SpecialEuclideanGroup, self).__init__(
+        super(SpecialEuclidean, self).__init__(
                           dimension=self.dimension)
 
-        self.rotations = SpecialOrthogonalGroup(n=n, epsilon=epsilon)
-        self.translations = EuclideanSpace(dimension=n)
+        self.rotations = SpecialOrthogonal(n=n, epsilon=epsilon)
+        self.translations = Euclidean(dimension=n)
 
     def get_identity(self, point_type=None):
         """
@@ -328,7 +328,7 @@ class SpecialEuclideanGroup(LieGroup):
 
         return jacobian
 
-    def group_exp_from_identity(self, tangent_vec, point_type=None):
+    def exp_from_identity(self, tangent_vec, point_type=None):
         """
         Compute the group exponential of the tangent vector at the identity.
         """
@@ -382,7 +382,7 @@ class SpecialEuclideanGroup(LieGroup):
             coef_2 += mask_else_float * ((angle - gs.sin(angle)) / angle ** 3)
 
             n_tangent_vecs, _ = tangent_vec.shape
-            group_exp_translation = gs.zeros((n_tangent_vecs, self.n))
+            exp_translation = gs.zeros((n_tangent_vecs, self.n))
             for i in range(n_tangent_vecs):
                 translation_i = translation[i]
                 term_1_i = coef_1[i] * gs.dot(translation_i,
@@ -390,18 +390,18 @@ class SpecialEuclideanGroup(LieGroup):
                 term_2_i = coef_2[i] * gs.dot(translation_i,
                                               gs.transpose(sq_skew_mat[i]))
                 mask_i_float = gs.get_mask_i_float(i, n_tangent_vecs)
-                group_exp_translation += mask_i_float * (
+                exp_translation += mask_i_float * (
                     translation_i + term_1_i + term_2_i)
 
             group_exp = gs.concatenate(
-                [rot_vec, group_exp_translation], axis=1)
+                [rot_vec, exp_translation], axis=1)
 
             group_exp = self.regularize(group_exp, point_type=point_type)
             return group_exp
         elif point_type == 'matrix':
             raise NotImplementedError()
 
-    def group_log_from_identity(self, point, point_type=None):
+    def log_from_identity(self, point, point_type=None):
         """
         Compute the group logarithm of the point at the identity.
         """
@@ -462,7 +462,7 @@ class SpecialEuclideanGroup(LieGroup):
             coef_2 += mask_else_float * (1 - psi) / (angle ** 2)
 
             n_points, _ = point.shape
-            group_log_translation = gs.zeros((n_points, self.n))
+            log_translation = gs.zeros((n_points, self.n))
             for i in range(n_points):
                 translation_i = translation[i]
                 term_1_i = coef_1[i] * gs.dot(translation_i,
@@ -470,11 +470,11 @@ class SpecialEuclideanGroup(LieGroup):
                 term_2_i = coef_2[i] * gs.dot(translation_i,
                                               gs.transpose(sq_skew_rot_vec[i]))
                 mask_i_float = gs.get_mask_i_float(i, n_points)
-                group_log_translation += mask_i_float * (
+                log_translation += mask_i_float * (
                     translation_i + term_1_i + term_2_i)
 
             group_log = gs.concatenate(
-                [rot_vec, group_log_translation], axis=1)
+                [rot_vec, log_translation], axis=1)
 
             assert gs.ndim(group_log) == 2
 
@@ -554,7 +554,7 @@ class SpecialEuclideanGroup(LieGroup):
 
         return exponential_mat
 
-    def group_exponential_barycenter(
+    def exponential_barycenter(
             self, points, weights=None, point_type=None):
         """
         Compute the group exponential barycenter in SE(n).
@@ -582,7 +582,7 @@ class SpecialEuclideanGroup(LieGroup):
             assert rotation_vectors.shape == (n_points, dim_rotations)
             assert translations.shape == (n_points, self.n)
 
-            mean_rotation = rotations.group_exponential_barycenter(
+            mean_rotation = rotations.exponential_barycenter(
                                                     points=rotation_vectors,
                                                     weights=weights)
             mean_rotation_mat = rotations.matrix_from_rotation_vector(
@@ -617,7 +617,7 @@ class SpecialEuclideanGroup(LieGroup):
 
         elif point_type == 'matrix':
             vector_points = self.rotation_vector_from_matrix(points)
-            vector_exp_bar = self.group_exponential_barycenter(
+            vector_exp_bar = self.exponential_barycenter(
                 vector_points, weights, point_type='vector')
             exp_bar = self.matrix_from_rotation_vector(vector_exp_bar)
         return exp_bar

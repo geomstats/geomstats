@@ -37,6 +37,7 @@ class MatrixLieAlgebra:
 
         Notice that inputs have to be given in matrix form, no conversion
         between basis and matrix representation is attempted.
+
         Parameters
         ----------
         matrix_a: array-like, shape=[n_sample, n, n]
@@ -103,7 +104,7 @@ class MatrixLieAlgebra:
         matrix_representation: array-like, shape=[n_sample, n, n]
 
         Returns
-        ------
+        -------
         basis_representation: array-like, shape=[n_sample, dimension]
         """
         raise NotImplementedError("basis_representation not implemented.")
@@ -119,7 +120,7 @@ class MatrixLieAlgebra:
         basis_representation: array-like, shape=[n_sample, dimension]
 
         Returns
-        ------
+        -------
         matrix_representation: array-like, shape=[n_sample, n, n]
         """
         basis_representation = gs.to_ndarray(basis_representation, to_ndim=2)

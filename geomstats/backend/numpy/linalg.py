@@ -1,8 +1,8 @@
 """Numpy based linear algebra backend."""
 
-import numpy as np
+import autograd.numpy as np
 import scipy.linalg
-from numpy.linalg import (  # NOQA
+from autograd.numpy.linalg import (  # NOQA
     det,
     eig,
     eigh,

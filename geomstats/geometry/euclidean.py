@@ -5,7 +5,7 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class EuclideanSpace(Manifold):
+class Euclidean(Manifold):
     """Class for Euclidean spaces.
 
     By definition, a Euclidean space is a vector space of a given

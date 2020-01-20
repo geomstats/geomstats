@@ -3,19 +3,19 @@ The space of matrices (m, n), which is the Euclidean space R^{mn}.
 """
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean_space import EuclideanSpace
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 TOLERANCE = 1e-5
 
 
-class MatricesSpace(EuclideanSpace):
+class Matrices(Euclidean):
     """Class for the space of matrices (m, n)."""
 
     def __init__(self, m, n):
         assert isinstance(m, int) and isinstance(n, int) and m > 0 and n > 0
-        super(MatricesSpace, self).__init__(dimension=m*n)
+        super(Matrices, self).__init__(dimension=m*n)
         self.m = m
         self.n = n
         self.default_point_type = 'matrix'

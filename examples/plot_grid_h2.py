@@ -3,15 +3,15 @@ Plot a grid on H2
 with Poincare Disk visualization.
 """
 
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 import geomstats.visualization as visualization
+from geomstats.geometry.hyperbolic import Hyperbolic
 
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
-
-H2 = HyperbolicSpace(dimension=2)
+H2 = Hyperbolic(dimension=2)
 METRIC = H2.metric
 
 

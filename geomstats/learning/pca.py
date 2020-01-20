@@ -4,13 +4,14 @@
 import numbers
 from math import log
 
-import numpy as np
 from scipy import linalg
 from scipy.special import gammaln
 from sklearn.decomposition.base import _BasePCA
 from sklearn.utils.extmath import stable_cumsum
 from sklearn.utils.extmath import svd_flip
 from sklearn.utils.validation import check_array
+
+import geomstats.backend as gs
 
 
 def _assess_dimension_(spectrum, rank, n_samples, n_features):
@@ -47,20 +48,20 @@ def _assess_dimension_(spectrum, rank, n_samples, n_features):
     pu = -rank * log(2.)
     for i in range(rank):
         pu += (gammaln((n_features - i) / 2.) -
-               log(np.pi) * (n_features - i) / 2.)
+               log(gs.pi) * (n_features - i) / 2.)
 
-    pl = np.sum(np.log(spectrum[:rank]))
+    pl = gs.sum(gs.log(spectrum[:rank]))
     pl = -pl * n_samples / 2.
 
     if rank == n_features:
         pv = 0
         v = 1
     else:
-        v = np.sum(spectrum[rank:]) / (n_features - rank)
-        pv = -np.log(v) * n_samples * (n_features - rank) / 2.
+        v = gs.sum(spectrum[rank:]) / (n_features - rank)
+        pv = -gs.log(v) * n_samples * (n_features - rank) / 2.
 
     m = n_features * rank - rank * (rank + 1.) / 2.
-    pp = log(2. * np.pi) * (m + rank + 1.) / 2.
+    pp = log(2. * gs.pi) * (m + rank + 1.) / 2.
 
     pa = 0.
     spectrum_ = spectrum.copy()
@@ -81,7 +82,7 @@ def _infer_dimension_(spectrum, n_samples, n_features):
     The dataset is described by its spectrum `spectrum`.
     """
     n_spectrum = len(spectrum)
-    ll = np.empty(n_spectrum)
+    ll = gs.empty(n_spectrum)
     for rank in range(n_spectrum):
         ll[rank] = _assess_dimension_(spectrum, rank, n_samples, n_features)
     return ll.argmax()
@@ -165,7 +166,7 @@ class TangentPCA(_BasePCA):
         # Convert to sklearn format
         X = tangent_vecs
 
-        X = check_array(X, dtype=[np.float64, np.float32], ensure_2d=True,
+        X = check_array(X, dtype=[gs.float64, gs.float32], ensure_2d=True,
                         copy=self.copy)
 
         # Handle n_components==None
@@ -185,14 +186,14 @@ class TangentPCA(_BasePCA):
                              "svd_solver='full'"
                              % (n_components, min(n_samples, n_features)))
         elif n_components >= 1:
-            if not isinstance(n_components, (numbers.Integral, np.integer)):
+            if not isinstance(n_components, (numbers.Integral, gs.integer)):
                 raise ValueError("n_components=%r must be of type int "
                                  "when greater than or equal to 1, "
                                  "was of type=%r"
                                  % (n_components, type(n_components)))
 
         # Center data
-        self.mean_ = np.mean(X, axis=0)
+        self.mean_ = gs.mean(X, axis=0)
         X -= self.mean_
 
         U, S, V = linalg.svd(X, full_matrices=False)
@@ -215,7 +216,7 @@ class TangentPCA(_BasePCA):
             # number of components for which the cumulated explained
             # variance percentage is superior to the desired threshold
             ratio_cumsum = stable_cumsum(explained_variance_ratio_)
-            n_components = np.searchsorted(ratio_cumsum, n_components) + 1
+            n_components = gs.searchsorted(ratio_cumsum, n_components) + 1
 
         # Compute noise covariance using Probabilistic PCA model
         # The sigma2 maximum likelihood (cf. eq. 12.46)

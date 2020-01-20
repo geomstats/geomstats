@@ -1,10 +1,8 @@
 """Unit tests for Tangent PCA."""
 
-
 import geomstats.backend as gs
 import geomstats.tests
-
-from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.pca import TangentPCA
 
 
@@ -12,7 +10,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
-        self.so3 = SpecialOrthogonalGroup(n=3)
+        self.so3 = SpecialOrthogonal(n=3)
         self.n_samples = 10
 
         self.X = self.so3.random_uniform(n_samples=self.n_samples)
