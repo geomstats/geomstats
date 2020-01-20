@@ -11,7 +11,7 @@ adapting usual optimisation algorithms to manifolds.
 ## Classes and Inheritance 
 
 The `geometry` module defines a collection of classes 
-representing some of the most usual manifolds.\\
+representing some of the most usual manifolds.
 Manifold objects are usually simply constructed by supplying 
 dimension arguments. For instance: 
 ```python
@@ -20,7 +20,7 @@ S3 = Hypersphere(3)
 instantiates a 3-sphere object. 
 
 Operations on manifolds are exposed as methods of these objects, 
-allowing to compute distances, geodesic paths, etc.\\
+allowing to compute distances, geodesic paths, etc.
 Those that do not depend explicitly on the dimension 
 should be implemented as class methods, 
 so that they may also be accessed directly 
@@ -63,23 +63,24 @@ Inheritance diagram:
     Aff(n-1) <----- GA(n) <--------- SE(n)                       
                                                             
 ```
-__Note__ :\\
+__Note:__\
 Other Lie groups such as `SL(n)` or `Sp(2n)` may also be implemented in the future.
 
 ### Matrices
 
-implements:
+__implements:__
 - elementary matrix operations: 
     + `equal : point -> bool`
     + `mul : (...points) -> point`
-    + `sum : (...points) -> point` (?)
-    + `span : (coefs, points) -> point` (?)
-- duality and related operations:
+- to be complemented with?
+    + `sum : (...points) -> point` 
+    + `span : (scalars, points) -> point`
+- scalar product and duality:
     + `transpose : point -> point`
     + `is_symmetric : point -> bool`
     + `to_symmetric : point -> point` 
 
-__Note__ :\\ 
+__Note:__\
 An `apply : (linear, vector) -> vector` method
 would also be convenient to couple matrix-classes and vector-classes, 
 e.g. have SO(n+1) act on the n-Sphere.
@@ -87,7 +88,7 @@ e.g. have SO(n+1) act on the n-Sphere.
 
 ### GeneralLinear 
 
-implements:
+__implements:__
 - elementary group operations:
     + `identity : () -> point`
     + `compose : (...points) -> point` alias of `mul`
@@ -100,29 +101,25 @@ implements:
 
 ### SpecialOrthogonal
 
-overrides: 
+__overrides:__ 
 + `inv`: call `transpose`
 
 ### SPDMatrices
 
-overrides:
+__overrides:__
 + `exp`: compute eigenvectors,  
 + `log`: same. 
 
-__Note__ :\\ 
+__Note:__\
 The symmetry check should be moved from the backend to the SPD group class. 
 
 ### Affine 
 
-__Note__ :\\
-Affine transformations are not yet implemented at the moment.  
+__Note:__ Affine transformations are not implemented at the moment.  
 
-The algebra of affine transformations on an n-dimensional space
-can be represented by square matrices of size n+1, 
-i.e. Aff(n) viewed as a subalgebra of Mat(n+1). 
-
-The affine transformation `x -> l(x) + v` is represented by the matrix: 
-```
+`Aff(n)` can be viewed as a subalgebra of `Mat(n+1)`,
+representing the affine transformation `x -> l(x) + v` by the matrix: 
+```python
 [[l_11, ..., l_1n, v_1],
  [l_21, ..., l_2n, v_2],
   ...
@@ -130,42 +127,61 @@ The affine transformation `x -> l(x) + v` is represented by the matrix:
  [   0, ...,    0,   1]]
 ```
 
-inherit:
-+ `mul`
-+ `equal`
+This view allows for inheritance of most matrix methods. 
 
-override:
+__override:__
 + `transpose`: restrict to the linear part,
 
-implement: 
+__implement:__
 + `to_linear : (affine) -> linear`
 + `to_vector : (affine) -> vector`
 + `apply : (affine, vector) -> vector`
 
 ### GeneralAffine
 
-inherit: 
-+ `exp`
-+ `log`: coincide with the linear matrix operations. 
+__inherit:__ `exp` and `log`. 
 
 ### SpecialEuclidian
 
-override:
-+ `inv`: transpose the linear part and invert the translation vector. 
+__override:__ `inv`, transpose the linear part and revert translation. 
+
 
 ## Vector Spaces and Embedded Manifolds
 
 ...more to come...
 
-+ riemannian structures:
-    - `exp`
-    - `log`
-    - `geodesic`
-    - `inner`
-+ embedding: 
-    - `is_tangent : vector -> bool`
-    - `to_tangent : vector -> vector`
+Here the inheritance diagram and the different class
+ names are somehow still unclear. 
+Overall, a first list of expected methods:
 
-__Note__ :\\
-`exp` and `log` may more generally derive from a connection. 
-In this case the `geodesic` is somewhat confusing 
++ (riemannian) connection:
+    - `exp : (vector, point1) -> point2`
+    - `log : (point2, point1) -> vector`
++ riemannian structure:
+    - `geodesic     : (point2, point1) -> (t -> point)` *
+    - `dist         : (point2, point 1) -> scalar` *
+    - `inner-matrix : point -> matrix` 
+    - `inner        : (vector1, vector2, point) -> scalar` * 
++ embedding: 
+    _ `belongs      : point -> bool`
+    - `is_tangent   : vector -> bool`
+    - `to_tangent   : vector -> vector`
+
+( * ): `geodesic`, `inner-prod` and `dist` should be generically defined 
+other methods such as `exp`, `log`, and `inner-matrix` 
+in the parent class for inheritance.
+
+In general, `exp` and `log` may derive from a connection. 
+In this case the `geodesic` terminology is somewhat confusing and could be aliased.
+
+__Notes:__ (discussed with @nguigs)
++ in the embedded case, the Levi-Civita connection can be numerically integrated
+by orthogonal projections onto the the tangent space, so that `exp` and 
+`log` would derive from `to_tangent` _in absence of closed-form._
+(the ODE solving code should kept separate by an import statement though)
++ the `EmbeddedManifold` interface should be shared by the previous Lie Groups, 
+which somewhat raises the issue of the 2D-shape signature of their tangent vectors, 
+the metric tensor being 4D.  
+(instead of recasting the metric to 2D and vectors to 1D, defining a
+`bilinear: (tensor, vector, vector) -> scalar` 
+in each of the two parent classes for instance may be more convenient)
