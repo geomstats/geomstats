@@ -1,6 +1,4 @@
-"""
-The space of matrices (m, n), which is the Euclidean space R^{mn}.
-"""
+"""The space of matrices (m, n), which is the Euclidean space R^{mn}."""
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
@@ -22,17 +20,14 @@ class Matrices(Euclidean):
         self.metric = MatricesMetric(m, n)
 
     def belongs(self, point):
-        """
-        Check if point belongs to the Matrix space.
-        """
+        """Check if point belongs to the Matrix space."""
         point = gs.to_ndarray(point, to_ndim=3)
         _, mat_dim_1, mat_dim_2 = point.shape
         return mat_dim_1 == self.m & mat_dim_2 == self.n
 
     @staticmethod
     def mul(a, b):
-        """
-        Return the product of matrices a and b.
+        """Return the product of matrices a and b.
 
         Parameters
         ----------
@@ -47,9 +42,7 @@ class Matrices(Euclidean):
 
     @staticmethod
     def commutator(a, b):
-        """
-        Return the commutator of a and b,
-        i.e. `[a, b] = ab - ba`.
+        """Return the commutator of a and b, i.e. :math: `[a, b] = ab - ba`.
 
         Parameters
         ----------
@@ -64,8 +57,7 @@ class Matrices(Euclidean):
 
     @staticmethod
     def transpose(mat):
-        """
-        Return the transpose of matrices.
+        """Return the transpose of matrices.
 
         Parameters
         ----------
@@ -81,9 +73,7 @@ class Matrices(Euclidean):
 
     @staticmethod
     def vector_from_matrix(matrix):
-        """
-        Conversion function from (_, m, n) to (_, mn).
-        """
+        """Conversion function from (_, m, n) to (_, mn)."""
         matrix = gs.to_ndarray(matrix, to_ndim=3)
         n_mats, m, n = matrix.shape
         return gs.reshape(matrix, (n_mats, m*n))
@@ -113,14 +103,14 @@ class Matrices(Euclidean):
         return (matrix + gs.transpose(matrix, axes=(0, 2, 1))) / 2
 
     def random_uniform(self, n_samples=1):
+        """Generate n samples from a uniform distribution."""
         point = gs.random.rand(n_samples, self.m, self.n)
         return point
 
 
 class MatricesMetric(RiemannianMetric):
-    """
-    Euclidean metric on matrices given by the Frobenius inner product.
-    """
+    """Euclidean metric on matrices given by Frobenius inner product."""
+
     def __init__(self, m, n):
         dimension = m*n
         super(MatricesMetric, self).__init__(
@@ -128,10 +118,7 @@ class MatricesMetric(RiemannianMetric):
                 signature=(dimension, 0, 0))
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """
-        Compute the Frobenius inner product of tangent_vec_a and tangent_vec_b
-        at base_point.
-        """
+        """Compute Frobenius inner product of two tan vecs at `base_point`."""
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
         n_tangent_vecs_a, _, _ = tangent_vec_a.shape
 
