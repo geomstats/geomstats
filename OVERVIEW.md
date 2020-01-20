@@ -85,7 +85,7 @@ implements:
 # elementary matrix operations: 
     equal   : point -> bool
     mul     : (...points) -> point
-# to be complemented with?
+# ?
     sum     : (...points) -> point 
     span    : (scalars, points) -> point
 # scalar product and duality:
@@ -115,19 +115,15 @@ implements:
     orbit    : (point2, point1) -> (t -> point)
 ```
 
-__SpecialOrthogonal__:\
-overrides: `inv`, call `transpose`.
+SO(n) overrides: `inv`, call `transpose`.
 
-__SPDMatrices__:\
-overrides: `exp` and `log`, compute eigenvectors, and `compose`.
+SPD(n) overrides `exp` and `log`, computing eigenvectors, and `compose`.
 
 __Note:__\
-The actual symmetry check and Yann `symexp`'s function would 
+the actual symmetry check and Yann `symexp`'s function would 
 be moved from the backend to the SPD group class. 
 
 ### AffineMatrices 
-
-__Note:__ Affine transformations are not implemented at the moment.  
 
 `Aff(n)` can be viewed as a subalgebra of `Mat(n+1)`,
 representing the affine transformation `x -> l(x) + v` by: 
@@ -148,13 +144,11 @@ implement:
     apply       : (affine, vector) -> vector
 ```
 
-override: `transpose`, restrict to the linear part and revert translation
+override `transpose`, restrict to the linear part and revert translation
 
-__GeneralAffine:__\
-inherit: `exp`, `log`, `inv`... from GL(n)
+GA(n) inherits `exp`, `log`, `inv`... from GL(n+1)
 
-__SpecialEuclidian:__\
-override: `inv`, call transpose 
+SE(n) overrides `inv`, calling `transpose` 
 
 ---
 
