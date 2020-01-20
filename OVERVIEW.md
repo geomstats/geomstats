@@ -6,7 +6,7 @@ providing an agnostic interface to numpy, pytorch and tensorflow,
 + the [geometry](geomstats/geometry) module 
 implementing a variety of geometric structures, 
 + the [learning](geomstats/learning) module
-adapting usual optimisation algorithms to manifolds.
+adapting usual learning algorithms to manifolds.
 
 ## Classes and Inheritance 
 
@@ -54,9 +54,9 @@ of optimisation algorithms, such as geomstat's learning module.
 ### Inheritance Diagram:
 
 ```python
-                               .--- SPD(n)                  
-    Mat(n,n) <----- GL(n) <---(                             
-                               `--- SO(n)                   
+                 .--- SPD(n)                  
+    Mat(n,n) <--(                             
+                 `--- GL(n) <----- SO(n)                  
        ^                                                  
        |                                                  
                                                            
