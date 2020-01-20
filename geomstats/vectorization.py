@@ -4,19 +4,32 @@ Decorator to handle vectorization.
 This abstracts the backend type.
 """
 
-import geomstats.backends as gs
+import geomstats.backend as gs
 
 POINT_TYPES_TO_NDIMS = {
+    'scalar': 2,
     'vector': 2,
     'matrix': 3}
 
 
-def final_shape(initial_shapes, point_types):
-    """Compute the desired output shape."""
-    raise NotImplementedError()
+def squeeze_output_dim_0(initial_ndims, point_types):
+    """Determine if the output needs to squeeze a singular dimension 0.
+
+    The dimension 0 is squeezed iff all input parameters:
+    - contain one sample,
+    - have the corresponding dimension 0 squeezed,
+    i.e. if all input parameters have ndim strictly less than the ndim
+    corresponding to their vectorized shape.
+    """
+    for ndim, point_type in zip(initial_ndims, point_types):
+        vectorized_ndim = POINT_TYPES_TO_NDIMS[point_type]
+        assert ndim <= vectorized_ndim
+        if ndim == vectorized_ndim:
+            return False
+    return True
 
 
-def decorator_factory(param_names, point_types):
+def decorator(param_names, point_types):
     """Decorator vectorizing geomstats functions.
 
     Parameters
@@ -26,20 +39,20 @@ def decorator_factory(param_names, point_types):
     point_types: list
         associated list of ndims after vectorization
     """
-    def decorator(function):
+    def aux_decorator(function):
         def wrapper(*args, **kwargs):
-            vectorized_kwargs = {}
-            initial_shapes = []
-            for name, point_type in zip(param_names, point_types):
-                param = kwargs.get(name, None)
-                initial_shapes.append(gs.shape(param))
+            vect_args = []
+            initial_ndims = []
+            for param, point_type in zip(args, point_types):
+                initial_ndims.append(gs.ndim(param))
 
-                param = gs.to_ndim(param, POINT_TYPES_TO_NDIMS[point_type])
-                vectorized_kwargs[name] = param
+                vect_param = gs.to_ndarray(
+                    param, POINT_TYPES_TO_NDIMS[point_type])
+                vect_args.append(vect_param)
+            result = function(*vect_args, **kwargs)
 
-            result = function(*args, **vectorized_kwargs)
-
-            result_shape = final_shape(initial_shapes, point_types)
-            return gs.reshape(result, result_shape)
+            if squeeze_output_dim_0(initial_ndims, point_types):
+                result = gs.squeeze(result, axis=0)
+            return result
         return wrapper
-    return decorator
+    return aux_decorator
