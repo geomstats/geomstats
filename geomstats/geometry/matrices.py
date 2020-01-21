@@ -128,15 +128,6 @@ class Matrices(Euclidean):
         """
         return 1/2 * (mat + cls.transpose(mat))
 
-    @staticmethod
-    def vector_from_matrix(matrix):
-        """
-        Conversion function from (_, m, n) to (_, mn).
-        """
-        matrix = gs.to_ndarray(matrix, to_ndim=3)
-        n_mats, m, n = matrix.shape
-        return gs.reshape(matrix, (n_mats, m*n))
-
     def random_uniform(self, n_samples=1):
         """Generate n samples from a uniform distribution."""
         point = gs.random.rand(n_samples, self.m, self.n)
