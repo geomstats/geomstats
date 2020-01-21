@@ -1,6 +1,4 @@
-"""
-The Poincare polydisk
-"""
+"""The Poincare Polydisk."""
 
 import geomstats.backend as gs
 from geomstats.geometry.hyperbolic import Hyperbolic
@@ -11,10 +9,12 @@ from geomstats.geometry.product_riemannian_metric \
 
 
 class PoincarePolydisk(ProductManifold):
+    """Class for the Poincare polydisk.
+
+    The Poincare polydisk is a direct product of n Poincare disks,
+    i.e. hyperbolic spaces of dimension 2.
     """
-    Class for the Poincare polydisk, which is a direct product
-    of n Poincare disks, i.e. hyperbolic spaces of dimension 2.
-    """
+
     def __init__(self, n_disks, point_type='ball'):
         self.n_disks = n_disks
         self.point_type = point_type
@@ -26,7 +26,8 @@ class PoincarePolydisk(ProductManifold):
                                              point_type=point_type)
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
-        """
+        """Convert point from intrinsic to extrensic coordinates.
+
         Convert the parameterization of a point on the Hyperbolic space
         from its intrinsic coordinates, to its extrinsic coordinates
         in Minkowski space.
@@ -45,19 +46,18 @@ class PoincarePolydisk(ProductManifold):
 
 
 class PoincarePolydiskMetric(ProductRiemannianMetric):
-    """
-    Class defining the Poincare polydisk metric,
-    which is a product of n Poincare metrics,
-    each of them being multilplied by a specific constant factor.
+    """Class defining the Poincare polydisk metric.
+
+    The Poincare polydisk metric is a product of n Poincare metrics,
+    each of them being multiplied by a specific constant factor.
+
     This metric come from a model used to represent
     stationary complex signals.
 
     References
     ----------
-    The Kahler mean of Block-Toeplitz matrices
-    with Toeplitz structured blocks
-    B. Jeuris and R. Vandebril
-    2016
+    .. [1] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
+    matrices with Toeplitz structured blocks, 2016.
     https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
 

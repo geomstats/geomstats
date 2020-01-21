@@ -1,5 +1,5 @@
-"""
-The special euclidean group SE(n),
+"""The special euclidean group SE(n).
+
 i.e. the Lie group of rigid transformations in n dimensions.
 """
 
@@ -33,8 +33,8 @@ TAYLOR_COEFFS_2_AT_0 = [+ 1. / 6., 0.,
 
 
 class SpecialEuclidean(LieGroup):
-    """
-    Class for the special euclidean group SE(n),
+    """Class for the special euclidean group SE(n).
+
     i.e. the Lie group of rigid transformations.
     """
 
@@ -57,10 +57,10 @@ class SpecialEuclidean(LieGroup):
         self.translations = Euclidean(dimension=n)
 
     def get_identity(self, point_type=None):
-        """
-        Get the identity of the group,
-        as a vector if point_type == 'vector',
-        as a matrix if point_type == 'matrix'.
+        """Get the identity of the group.
+
+        As a vector if point_type == 'vector',
+        As a matrix if point_type == 'matrix'.
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -72,9 +72,7 @@ class SpecialEuclidean(LieGroup):
     identity = property(get_identity)
 
     def belongs(self, point, point_type=None):
-        """
-        Evaluate if a point belongs to SE(n).
-        """
+        """Evaluate if a point belongs to SE(n)."""
         if point_type is None:
             point_type = self.default_point_type
 
@@ -92,10 +90,7 @@ class SpecialEuclidean(LieGroup):
         return belongs
 
     def regularize(self, point, point_type=None):
-        """
-        Regularize a point to the canonical representation
-        chosen for SE(n).
-        """
+        """Regularize a point to the canonical representation for SE(n)."""
         if point_type is None:
             point_type = self.default_point_type
 
@@ -122,6 +117,18 @@ class SpecialEuclidean(LieGroup):
 
     def regularize_tangent_vec_at_identity(
             self, tangent_vec, metric=None, point_type=None):
+        """Regularize a tangent vector at the identity.
+
+        Parameters
+        ----------
+        tangent_vec
+        metric
+        point_type
+
+        Returns
+        -------
+        regularized_vec
+        """
         if point_type is None:
             point_type = self.default_point_type
 
@@ -130,6 +137,19 @@ class SpecialEuclidean(LieGroup):
 
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None, point_type=None):
+        """Regularize a tangent vector at a base point.
+
+        Parameters
+        ----------
+        tangent_vec
+        base_point
+        metric
+        point_type
+
+        Returns
+        -------
+        regularized_vec
+        """
         if point_type is None:
             point_type = self.default_point_type
 
@@ -169,8 +189,7 @@ class SpecialEuclidean(LieGroup):
         return regularized_vec
 
     def compose(self, point_1, point_2, point_type=None):
-        """
-        Compose two elements of SE(n).
+        """Compose two elements of SE(n).
 
         Formula:
         point_1 . point_2 = [R1 * R2, (R1 * t2) + t1]
@@ -227,11 +246,10 @@ class SpecialEuclidean(LieGroup):
         return composition
 
     def inverse(self, point, point_type=None):
-        """
-        Compute the group inverse in SE(n).
+        """Compute the group inverse in SE(n).
 
         Formula:
-        (R, t)^{-1} = (R^{-1}, R^{-1}.(-t))
+        :math: `(R, t)^{-1} = (R^{-1}, R^{-1}.(-t))`
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -269,7 +287,8 @@ class SpecialEuclidean(LieGroup):
 
     def jacobian_translation(
             self, point, left_or_right='left', point_type=None):
-        """
+        """Compute the Jacobian matrix resulting from translation.
+
         Compute the jacobian matrix of the differential
         of the left/right translations from the identity to point in SE(n).
         """
@@ -329,9 +348,7 @@ class SpecialEuclidean(LieGroup):
         return jacobian
 
     def exp_from_identity(self, tangent_vec, point_type=None):
-        """
-        Compute the group exponential of the tangent vector at the identity.
-        """
+        """Compute group exponential of the tangent vector at the identity."""
         if point_type is None:
             point_type = self.default_point_type
 
@@ -402,9 +419,7 @@ class SpecialEuclidean(LieGroup):
             raise NotImplementedError()
 
     def log_from_identity(self, point, point_type=None):
-        """
-        Compute the group logarithm of the point at the identity.
-        """
+        """Compute the group logarithm of the point at the identity."""
         if point_type is None:
             point_type = self.default_point_type
 
@@ -484,9 +499,7 @@ class SpecialEuclidean(LieGroup):
         return group_log
 
     def random_uniform(self, n_samples=1, point_type=None):
-        """
-        Sample in SE(n) with the uniform distribution.
-        """
+        """Sample in SE(n) with the uniform distribution."""
         if point_type is None:
             point_type = self.default_point_type
 
@@ -506,10 +519,7 @@ class SpecialEuclidean(LieGroup):
         return random_transfo
 
     def exponential_matrix(self, rot_vec):
-        """
-        Compute the exponential of the rotation matrix represented by rot_vec.
-        """
-
+        """Compute exponential of rotation matrix represented by rot_vec."""
         rot_vec = self.rotations.regularize(rot_vec)
         n_rot_vecs, _ = rot_vec.shape
 
@@ -556,9 +566,7 @@ class SpecialEuclidean(LieGroup):
 
     def exponential_barycenter(
             self, points, weights=None, point_type=None):
-        """
-        Compute the group exponential barycenter in SE(n).
-        """
+        """Compute the group exponential barycenter in SE(n)."""
         if point_type is None:
             point_type = self.default_point_type
 
