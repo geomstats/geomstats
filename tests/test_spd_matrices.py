@@ -10,6 +10,7 @@ from geomstats.geometry.spd_matrices import (
     SPDMatrices,
     SPDMetricAffine,
     SPDMetricEuclidean,
+    SPDMetricLogEuclidean,
     SPDMetricProcrustes
 )
 
@@ -25,25 +26,22 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         self.metric_affine = SPDMetricAffine(n=self.n)
         self.metric_procrustes = SPDMetricProcrustes(n=self.n)
         self.metric_euclidean = SPDMetricEuclidean(n=self.n)
+        self.metric_logeuclidean = SPDMetricLogEuclidean(n=self.n)
         self.n_samples = 4
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
-        expected = gs.array([[True]])
+        expected = gs.array(True)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_random_uniform_and_belongs_vectorization(self):
-        """
-        Test that the random uniform method samples
-        on the hypersphere space.
-        """
         n_samples = self.n_samples
         points = self.space.random_uniform(n_samples=n_samples)
         result = self.space.belongs(points)
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        self.assertAllClose(gs.shape(result), n_samples)
 
     @geomstats.tests.np_and_tf_only
     def vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(self):
@@ -237,8 +235,23 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
+    def test_log_euclidean_inner_product(self):
+        base_point = gs.array([[1., 0., 0.],
+                               [0., 1., 0.],
+                               [0., 0., 4.]])
+        tangent_vec = gs.array([[1., 1., 3.],
+                                [1., 1., 3.],
+                                [3., 3., 4.]])
+        metric = self.metric_logeuclidean
+        result = metric.inner_product(tangent_vec, tangent_vec, base_point)
+        x = 2 * gs.log(2)
+        expected = 5.+4.*x**2
+
+        self.assertAllClose(result, expected)
+
     @geomstats.tests.np_and_tf_only
-    def test_log_and_exp(self):
+    def test_log_and_exp_affine_invariant(self):
         base_point = gs.array([[5., 0., 0.],
                                [0., 7., 2.],
                                [0., 2., 8.]])
@@ -267,6 +280,22 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
+    def test_log_and_exp_logeuclidean(self):
+        base_point = gs.array([[5., 0., 0.],
+                               [0., 7., 2.],
+                               [0., 2., 8.]])
+        point = gs.array([[9., 0., 0.],
+                          [0., 5., 0.],
+                          [0., 0., 1.]])
+
+        metric = self.metric_logeuclidean
+        log = metric.log(point=point, base_point=base_point)
+        result = metric.exp(tangent_vec=log, base_point=base_point)
+        expected = point
+
+        self.assertAllClose(result, expected)
+
     @geomstats.tests.np_and_tf_only
     def test_exp_and_belongs(self):
         n_samples = self.n_samples
@@ -277,7 +306,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         metric = self.metric_affine
         exps = metric.exp(tangent_vec, base_point)
         result = self.space.belongs(exps)
-        expected = gs.array([[True]] * n_samples)
+        expected = gs.array([True] * n_samples)
 
         self.assertAllClose(result, expected)
 
@@ -350,7 +379,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         t = gs.linspace(start=0., stop=1., num=n_points)
         points = geodesic(t)
         result = self.space.belongs(points)
-        expected = gs.array([[True]] * n_points)
+        expected = gs.array([True] * n_points)
 
         self.assertAllClose(result, expected)
 

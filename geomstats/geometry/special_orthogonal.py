@@ -1,5 +1,5 @@
-"""
-The special orthogonal group SO(n),
+"""The special orthogonal group SO(n).
+
 i.e. the Lie group of rotations in n dimensions.
 """
 
@@ -25,8 +25,8 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
 
 
 class SpecialOrthogonal(LieGroup, EmbeddedManifold):
-    """
-    Class for the special orthogonal group SO(n),
+    """Class for the special orthogonal group SO(n).
+
     i.e. the Lie group of rotations.
     """
 
@@ -51,8 +51,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         self.bi_invariant_metric = self.left_canonical_metric
 
     def get_identity(self, point_type=None):
-        """
-        Get the identity of the group,
+        """Get the identity of the group.
+
         as a vector if point_type == 'vector',
         as a matrix if point_type == 'matrix'.
         """
@@ -63,12 +63,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         if point_type == 'matrix':
             identity = gs.eye(self.n)
         return identity
+
     identity = property(get_identity)
 
     def belongs(self, point, point_type=None):
-        """
-        Evaluate if a point belongs to SO(n).
-        """
+        """Evaluate if a point belongs to SO(n)."""
         if point_type is None:
             point_type = self.default_point_type
 
@@ -93,7 +92,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             return mask
 
     def regularize(self, point, point_type=None):
-        """
+        """Regularize a point to be in accordance with convention.
+
         In 3D, regularize the norm of the rotation vector,
         to be between 0 and pi, following the axis-angle
         representation's convention.
@@ -101,6 +101,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         If the angle angle is between pi and 2pi,
         the function computes its complementary in 2pi and
         inverts the direction of the rotation axis.
+
+        Parameters
+        ----------
+        point : array-like
+        point_type : str, {'vector', 'matrix'}
+
+        Returns
+        -------
+        regularized_point : array-like
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -148,9 +157,20 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
     def regularize_tangent_vec_at_identity(
             self, tangent_vec, metric=None, point_type=None):
-        """
+        """Regularize a tangent vector at the identify.
+
         In 3D, regularize a tangent_vector by getting its norm at the identity,
         determined by the metric, to be less than pi.
+
+        Parameters
+        ----------
+        tangent_vec
+        metric
+        point_type
+
+        Returns
+        -------
+        regularized_vec
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -205,10 +225,20 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
     def regularize_tangent_vec(
             self, tangent_vec, base_point,
             metric=None, point_type=None):
-        """
+        """Regularize tangent vector at a base point.
+
         In 3D, regularize a tangent_vector by getting the norm of its parallel
-        transport to the identity, determined by the metric,
-        to be less than pi.
+        transport to the identity, determined by the metric, less than pi.
+
+        Parameters
+        ----------
+        tangent_vec
+        metric
+        point_type
+
+        Returns
+        -------
+        regularized_tangent_vec
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -255,8 +285,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return regularized_tangent_vec
 
     def projection(self, mat):
-        """
-        Project a matrix on SO(n), using the Frobenius norm.
+        """Project a matrix on SO(n) using the Frobenius norm.
+
+        Parameters
+        ----------
+        mat : array-like
+
+        Returns
+        -------
+        rot_mat : array-like
         """
         mat = gs.to_ndarray(mat, to_ndim=3)
 
@@ -295,13 +332,20 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return rot_mat
 
     def skew_matrix_from_vector(self, vec):
-        """
-        In 3D, compute the skew-symmetric matrix,
-        known as the cross-product of a vector,
-        associated to the vector vec.
+        """Get the skew-symmetric matrix derived from the vector.
 
-        In nD, fill a skew-symmetric matrix with
-        the values of the vector.
+        In 3D, compute the skew-symmetric matrix,known as the cross-product of
+        a vector, associated to the vector `vec`.
+
+        In nD, fill a skew-symmetric matrix with the values of the vector.
+
+        Parameters
+        ----------
+        vec
+
+        Returns
+        -------
+        skew_mat
         """
         vec = gs.to_ndarray(vec, to_ndim=2)
         n_vecs = vec.shape[0]
@@ -364,12 +408,21 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return skew_mat
 
     def vector_from_skew_matrix(self, skew_mat):
-        """
+        """Derive a vector from the skew-symmetric matrix.
+
         In 3D, compute the vector defining the cross product
         associated to the skew-symmetric matrix skew mat.
 
         In nD, fill a vector by reading the values
         of the upper triangle of skew_mat.
+
+        Parameters
+        ----------
+        skew_mat
+
+        Returns
+        -------
+        vec
         """
         skew_mat = gs.to_ndarray(skew_mat, to_ndim=3)
         n_skew_mats, mat_dim_1, mat_dim_2 = skew_mat.shape
@@ -399,9 +452,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return vec
 
     def rotation_vector_from_matrix(self, rot_mat):
-        """
-        In 3D, convert rotation matrix to rotation vector
-        (axis-angle representation).
+        """Convert rotation matrix (in 3D) to rotation vector (axis-angle rep).
 
         Get the angle through the trace of the rotation matrix:
         The eigenvalues are:
@@ -418,6 +469,14 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         In nD, the rotation vector stores the n(n-1)/2 values of the
         skew-symmetric matrix representing the rotation.
+
+        Parameters
+        ----------
+        rot_mat
+
+        Returns
+        -------
+        regularized_rot_vec
         """
         rot_mat = gs.to_ndarray(rot_mat, to_ndim=3)
         n_rot_mats, mat_dim_1, mat_dim_2 = rot_mat.shape
@@ -562,8 +621,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return self.regularize(rot_vec, point_type='vector')
 
     def matrix_from_rotation_vector(self, rot_vec):
-        """
-        Convert rotation vector to rotation matrix.
+        """Convert rotation vector to rotation matrix.
+
+        Parameters
+        ----------
+        rot_vec
+
+        Returns
+        -------
+        rot_mat
         """
         rot_vec = self.regularize(rot_vec, point_type='vector')
         n_rot_vecs, _ = rot_vec.shape
@@ -613,8 +679,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return rot_mat
 
     def quaternion_from_matrix(self, rot_mat):
-        """
-        Convert a rotation matrix into a unit quaternion.
+        """Convert a rotation matrix into a unit quaternion.
+
+        Parameters
+        ----------
+        rot_mat
+
+        Returns
+        -------
+        quaternion
         """
         assert self.n == 3, ('The quaternion representation does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -627,8 +700,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return quaternion
 
     def quaternion_from_rotation_vector(self, rot_vec):
-        """
-        Convert a rotation vector into a unit quaternion.
+        """Convert a rotation vector into a unit quaternion.
+
+        Parameters
+        ----------
+        rot_vec
+
+        Returns
+        -------
+        quaternion
         """
         assert self.n == 3, ('The quaternion representation does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -654,8 +734,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return quaternion
 
     def rotation_vector_from_quaternion(self, quaternion):
-        """
-        Convert a unit quaternion into a rotation vector.
+        """Convert a unit quaternion into a rotation vector.
+
+        Parameters
+        ----------
+        quaternion
+
+        Returns
+        -------
+        rot_vec
         """
         assert self.n == 3, ('The quaternion representation does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -684,8 +771,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return rot_vec
 
     def matrix_from_quaternion(self, quaternion):
-        """
-        Convert a unit quaternion into a rotation vector.
+        """Convert a unit quaternion into a rotation vector.
+
+        Parameters
+        ----------
+        quaternion
+
+        Returns
+        -------
+        rot_mat
         """
         assert self.n == 3, ('The quaternion representation does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -721,7 +815,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return rot_mat
 
     def matrix_from_tait_bryan_angles_extrinsic_xyz(self, tait_bryan_angles):
-        """
+        """Convert Tait-Bryan angles to rot mat in extrensic coords (xyz).
+
         Convert a rotation given in terms of the tait bryan angles,
         [angle_1, angle_2, angle_3] in extrinsic (fixed) coordinate system
         in order xyz, into a rotation matrix.
@@ -731,8 +826,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         - Z(angle_1) is a rotation of angle angle_1 around axis z.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - X(angle_3) is a rotation of angle angle_3 around axis x.
-        """
 
+        Parameters
+        ----------
+        tait_bryan_angles
+
+        Returns
+        -------
+        rot_mat
+        """
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -770,7 +872,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return rot_mat
 
     def matrix_from_tait_bryan_angles_extrinsic_zyx(self, tait_bryan_angles):
-        """
+        """Convert Tait-Bryan angles to rot mat in extrensic coords (zyx).
+
         Convert a rotation given in terms of the tait bryan angles,
         [angle_1, angle_2, angle_3] in extrinsic (fixed) coordinate system
         in order zyx, into a rotation matrix.
@@ -780,6 +883,14 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         - X(angle_1) is a rotation of angle angle_1 around axis x.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - Z(angle_3) is a rotation of angle angle_3 around axis z.
+
+        Parameters
+        ----------
+        tait_bryan_angles
+
+        Returns
+        -------
+        rot_mat
         """
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
@@ -821,7 +932,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
     def matrix_from_tait_bryan_angles(self, tait_bryan_angles,
                                       extrinsic_or_intrinsic='extrinsic',
                                       order='zyx'):
-        """
+        """Convert Tait-Bryan angles to rot mat in extr or intr coords.
+
         Convert a rotation given in terms of the tait bryan angles,
         [angle_1, angle_2, angle_3] in extrinsic (fixed) or
         intrinsic (moving) coordinate frame into a rotation matrix.
@@ -835,6 +947,16 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Exchanging 'extrinsic' and 'intrinsic' amounts to
         exchanging the order.
+
+        Parameters
+        ----------
+        tait_bryan_angles
+        extrinsic_or_intrinsic : str, {'extrensic', 'intrinsic'} optional
+        order : str
+
+        Returns
+        -------
+        rot_mat
         """
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
@@ -881,7 +1003,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
     def tait_bryan_angles_from_matrix(self, rot_mat,
                                       extrinsic_or_intrinsic='extrinsic',
                                       order='zyx'):
-        """
+        """Convert rot_mat into Tait-Bryan angles.
+
         Convert a rotation matrix rot_mat into the tait bryan angles,
         [angle_1, angle_2, angle_3] in extrinsic (fixed) coordinate frame,
         for the order zyx, i.e.:
@@ -890,6 +1013,16 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         - X(angle_1) is a rotation of angle angle_1 around axis x.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - Z(angle_3) is a rotation of angle angle_3 around axis z.
+
+        Parameters
+        ----------
+        rot_mat
+        extrinsic_or_intrinsic : str
+        order : str
+
+        Returns
+        -------
+        tait_bryan_angles
         """
         assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
         assert order in ('xyz', 'zyx')
@@ -905,9 +1038,18 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
     def quaternion_from_tait_bryan_angles_intrinsic_xyz(
             self, tait_bryan_angles):
-        """
+        """Convert Tait-Bryan angles to into unit quaternion.
+
         Convert a rotation given by Tait-Bryan angles in extrinsic
         coordinate systems and order xyz into a unit quaternion.
+
+        Parameters
+        ----------
+        tait_bryan_angles
+
+        Returns
+        -------
+        quaternion
         """
         assert self.n == 3, ('The quaternion representation'
                              ' and the Tait-Bryan angles representation'
@@ -927,9 +1069,17 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
     def quaternion_from_tait_bryan_angles(self, tait_bryan_angles,
                                           extrinsic_or_intrinsic='extrinsic',
                                           order='zyx'):
-        """
-        Convert a rotation given by Tait-Bryan angles
-        into a unit quaternion.
+        """Convert a rotation given by Tait-Bryan angles into unit quaternion.
+
+        Parameters
+        ----------
+        tait_bryan_angles
+        extrinsic_or_intrinsic : str
+        order : str
+
+        Returns
+        -------
+        quat
         """
         assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
         assert order in ('xyz', 'zyx')
@@ -982,9 +1132,19 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             tait_bryan_angles,
             extrinsic_or_intrinsic='extrinsic',
             order='zyx'):
-        """
-        Convert a rotation given by the angle_1, angle_2, angle_3
-        into a rotation vector (axis-angle representation).
+        """Convert rotation given by angle_1, angle_2, angle_3 into rot. vec.
+
+        Convert into axis-angle representation.
+
+        Parameters
+        ----------
+        tait_bryan_angles
+        extrinsic_or_intrinsic
+        order
+
+        Returns
+        -------
+        rot_vec
         """
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
@@ -1002,6 +1162,18 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return rot_vec
 
     def tait_bryan_angles_from_quaternion_intrinsic_zyx(self, quaternion):
+        """TODO: Summary line.
+
+        TODO: Description.
+
+        Parameters
+        ----------
+        quaternion
+
+        Returns
+        -------
+        tait_bryan_angles
+        """
         assert self.n == 3, ('The quaternion representation'
                              ' and the Tait-Bryan angles representation'
                              ' do not exist'
@@ -1019,6 +1191,18 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return tait_bryan_angles
 
     def tait_bryan_angles_from_quaternion_intrinsic_xyz(self, quaternion):
+        """TODO: Summary line.
+
+        TODO: Description
+
+        Parameters
+        ----------
+        quaternion
+
+        Returns
+        -------
+        tait_bryan_angles
+        """
         assert self.n == 3, ('The quaternion representation'
                              ' and the Tait-Bryan angles representation'
                              ' do not exist'
@@ -1039,9 +1223,17 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
     def tait_bryan_angles_from_quaternion(
             self, quaternion, extrinsic_or_intrinsic='extrinsic', order='zyx'):
-        """
-        Convert a quaternion
-        to a rotation given by the angle_1, angle_2, angle_3.
+        """Convert quaternion to a rotation in form angle_1, angle_2, angle_3.
+
+        Parameters
+        ----------
+        quaternion
+        extrinsic_or_intrinsic : str
+        order : str
+
+        Returns
+        -------
+        tait_bryan
         """
         assert self.n == 3, ('The quaternion representation'
                              ' and the Tait-Bryan angles representation'
@@ -1087,9 +1279,19 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
     def tait_bryan_angles_from_rotation_vector(
             self, rot_vec, extrinsic_or_intrinsic='extrinsic', order='zyx'):
-        """
-        Convert a rotation vector (axis-angle representation)
-        to a rotation given by the Tait-Bryan angles.
+        """Convert a rotation vector to a rotation given by Tait-Bryan angles.
+
+        Here the rotation vector is in the axis-angle representation.
+
+        Parameters
+        ----------
+        rot_vec
+        extrinsic_or_intrinsic : str
+        order : str
+
+        Returns
+        -------
+        tait_bryan_angles
         """
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
@@ -1108,8 +1310,17 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return tait_bryan_angles
 
     def compose(self, point_1, point_2, point_type=None):
-        """
-        Compose two elements of SO(n).
+        """Compose two elements of SO(n).
+
+        Parameters
+        ----------
+        point_1
+        point_2
+        point_type : str, {'vector', 'matrix'}
+
+        Returns
+        -------
+        point_prod
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -1144,10 +1355,17 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return point_prod
 
     def inverse(self, point, point_type=None):
-        """
-        Compute the group inverse in SO(n).
-        """
+        """Compute the group inverse in SO(n).
 
+        Parameters
+        ----------
+        point
+        point_type
+
+        Returns
+        -------
+        inv_point
+        """
         if point_type is None:
             point_type = self.default_point_type
 
@@ -1167,9 +1385,20 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
     def jacobian_translation(
             self, point, left_or_right='left', point_type=None):
-        """
+        """Compute the jacobian matrix corresponding to translation.
+
         Compute the jacobian matrix of the differential
         of the left/right translations from the identity to point in SO(n).
+
+        Parameters
+        ----------
+        point
+        left_or_right : str
+        point_type : str
+
+        Returns
+        -------
+        jacobian
         """
         assert left_or_right in ('left', 'right')
 
@@ -1268,8 +1497,16 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return jacobian
 
     def random_uniform(self, n_samples=1, point_type=None):
-        """
-        Sample in SO(n) with the uniform distribution.
+        """Sample in SO(n) with the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+        point_type : str
+
+        Returns
+        -------
+        point
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -1282,8 +1519,16 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return random_point
 
     def exp_from_identity(self, tangent_vec, point_type=None):
-        """
-        Compute the group exponential of the tangent vector at the identity.
+        """Compute the group exponential of the tangent vector at the identity.
+
+        Parameters
+        ----------
+        tangent_vec
+        point_type : str
+
+        Returns
+        -------
+        point
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -1300,8 +1545,16 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return point
 
     def log_from_identity(self, point, point_type=None):
-        """
-        Compute the group logarithm of the point at the identity.
+        """Compute the group logarithm of the point at the identity.
+
+        Parameters
+        ----------
+        point
+        point_type : str
+
+        Returns
+        -------
+        tangent_vec
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -1316,9 +1569,19 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
     def exponential_barycenter(
             self, points, weights=None, point_type=None):
-        """
-        Compute the group exponential barycenter in SO(n), which is the
-        Frechet mean of the canonical bi-invariant metric on SO(n).
+        """Compute the group exponential barycenter in SO(n).
+
+        This is the Frechet mean of the canonical bi-invariant metric on SO(n).
+
+        Parameters
+        ----------
+        points
+        weights
+        point_type
+
+        Returns
+        -------
+        exp_bar
         """
         if point_type is None:
             point_type = self.default_point_type

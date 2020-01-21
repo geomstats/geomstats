@@ -1,6 +1,4 @@
-"""
-Minkowski space.
-"""
+"""Minkowski space."""
 
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
@@ -16,8 +14,7 @@ class Minkowski(Manifold):
         self.metric = MinkowskiMetric(dimension)
 
     def belongs(self, point):
-        """
-        Evaluate if a point belongs to the Minkowski space.
+        """Evaluate if a point belongs to the Minkowski space.
 
         Parameters
         ----------
@@ -38,8 +35,7 @@ class Minkowski(Manifold):
         return belongs
 
     def random_uniform(self, n_samples=1, bound=1.):
-        """
-        Sample in the Minkowski space with the uniform distribution.
+        """Sample in the Minkowski space with the uniform distribution.
 
         Parameters
         ----------
@@ -58,18 +54,18 @@ class Minkowski(Manifold):
 
 
 class MinkowskiMetric(RiemannianMetric):
-    """
-    Class for the pseudo-Riemannian Minkowski metric.
+    """Class for the pseudo-Riemannian Minkowski metric.
+
     The metric is flat: the inner product is independent of the base point.
     """
+
     def __init__(self, dimension):
         super(MinkowskiMetric, self).__init__(
                                           dimension=dimension,
                                           signature=(dimension - 1, 1, 0))
 
     def inner_product_matrix(self, base_point=None):
-        """
-        Inner product matrix, independent of the base point.
+        """Compute the inner product matrix, independent of the base point.
 
         Parameters
         ----------
@@ -93,14 +89,14 @@ class MinkowskiMetric(RiemannianMetric):
         return inner_prod_mat
 
     def exp(self, tangent_vec, base_point):
-        """
+        """Compute the Riemannian exponential of `tangent_vec` at `base_point`.
+
         The Riemannian exponential is the addition in the Minkowski space.
 
         Parameters
         ----------
         tangent_vec: array-like, shape=[n_samples, dimension]
                                  or shape=[1, dimension]
-
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
 
@@ -115,14 +111,14 @@ class MinkowskiMetric(RiemannianMetric):
         return exp
 
     def log(self, point, base_point):
-        """
+        """Compute the Riemannian logarithm of `point` at `base_point`.
+
         The Riemannian logarithm is the subtraction in the Minkowski space.
 
         Parameters
         ----------
         point: array-like, shape=[n_samples, dimension]
                            or shape=[1, dimension]
-
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
 
@@ -137,14 +133,14 @@ class MinkowskiMetric(RiemannianMetric):
         return log
 
     def mean(self, points, weights=None):
-        """
+        """Compute the Frechet mean of (weighted) points.
+
         The Frechet mean of (weighted) points is the weighted average of
         the points in the Minkowski space.
 
         Parameters
         ----------
         points: array-like, shape=[n_samples, dimension]
-
         weights: array-like, shape=[n_samples, 1], optional
 
         Returns
