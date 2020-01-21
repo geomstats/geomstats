@@ -1,4 +1,6 @@
-"""The space of matrices (m, n), which is the Euclidean space R^{mn}."""
+"""Module exposing the `Matrices` and `MatricesMetric` class."""
+
+from functools import reduce
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
@@ -26,34 +28,57 @@ class Matrices(Euclidean):
         return mat_dim_1 == self.m & mat_dim_2 == self.n
 
     @staticmethod
-    def mul(a, b):
-        """Return the product of matrices a and b.
+    def equal(mat_a, mat_b, atol=TOLERANCE):
+        """
+        Test if matrices a and b are close.
 
         Parameters
         ----------
-        a : array-like, shape=[n_samples, dim1, dim2]
-        b : array-like, shape=[n_samples, dim2, dim3]
+        mat_a : array-like, shape=[n_samples, dim1, dim2]
+        mat_b : array-like, shape=[n_samples, dim2, dim3]
 
         Returns
         -------
-        c : array-like, shape=[n_samples, dim1, dim3]
+        eq : array-like boolean, shape=[n_samples]
         """
-        return gs.matmul(a, b)
+        is_vectorized = \
+            (gs.ndim(gs.array(mat_a)) == 3) or (gs.ndim(gs.array(mat_b)) == 3)
+        axes = (1, 2) if is_vectorized else (0, 1)
+        return gs.all(gs.isclose(mat_a, mat_b, atol=atol), axes)
 
     @staticmethod
-    def commutator(a, b):
-        """Return the commutator of a and b, i.e. :math: `[a, b] = ab - ba`.
+    def mul(*args):
+        """
+        Return the product of matrices a1, ..., an.
 
         Parameters
         ----------
-        a : array-like, shape=[n_samples, dim, dim]
-        b : array-like, shape=[n_samples, dim, dim]
+        a1 : array-like, shape=[n_samples, dim_1, dim_2]
+        a2 : array-like, shape=[n_samples, dim_2, dim_3]
+        ...
+        an : array-like, shape=[n_samples, dim_n-1, dim_n]
 
         Returns
         -------
-        c : array-like, shape=[n_samples, dim, dim]
+        mul : array-like, shape=[n_samples, dim_1, dim_n]
         """
-        return gs.matmul(a, b) - gs.matmul(b, a)
+        return reduce(gs.matmul, args)
+
+    @classmethod
+    def bracket(cls, mat_a, mat_b):
+        """
+        Return the commutator of a and b, i.e. `[a, b] = ab - ba`.
+
+        Parameters
+        ----------
+        mat_a : array-like, shape=[n_samples, dim, dim]
+        mat_b : array-like, shape=[n_samples, dim, dim]
+
+        Returns
+        -------
+        mat_c : array-like, shape=[n_samples, dim, dim]
+        """
+        return cls.mul(mat_a, mat_b) - cls.mul(mat_b, mat_a)
 
     @staticmethod
     def transpose(mat):
@@ -67,40 +92,40 @@ class Matrices(Euclidean):
         -------
         transpose : array-like, shape=[n_samples, dim, dim]
         """
-        is_vec = (gs.ndim(gs.array(mat)) == 3)
-        axes = (0, 2, 1) if is_vec else (1, 0)
+        is_vectorized = (gs.ndim(gs.array(mat)) == 3)
+        axes = (0, 2, 1) if is_vectorized else (1, 0)
         return gs.transpose(mat, axes)
 
-    @staticmethod
-    def vector_from_matrix(matrix):
-        """Conversion function from (_, m, n) to (_, mn)."""
-        matrix = gs.to_ndarray(matrix, to_ndim=3)
-        n_mats, m, n = matrix.shape
-        return gs.reshape(matrix, (n_mats, m*n))
+    @classmethod
+    def is_symmetric(cls, mat, atol=TOLERANCE):
+        """
+        Check if a matrix is symmetric.
 
-    @staticmethod
-    def is_symmetric(matrix, tolerance=TOLERANCE):
-        """Check if a matrix is symmetric."""
-        matrix = gs.to_ndarray(matrix, to_ndim=3)
-        n_mats, m, n = matrix.shape
-        assert m == n
-        matrix_transpose = gs.transpose(matrix, axes=(0, 2, 1))
+        Parameters
+        ----------
+        mat : array-like, shape=[n_samples, n, n]
+        atol : float, absolute tolerance. defaults to TOLERANCE
 
-        mask = gs.isclose(matrix, matrix_transpose, atol=tolerance)
-        mask = gs.all(mask, axis=(1, 2))
+        Returns
+        -------
+        is_sym : array-like boolean, shape=[n_samples]
+        """
+        return cls.equal(mat, cls.transpose(mat), atol)
 
-        mask = gs.to_ndarray(mask, to_ndim=1)
-        mask = gs.to_ndarray(mask, to_ndim=2, axis=1)
-        return mask
+    @classmethod
+    def make_symmetric(cls, mat):
+        """
+        Make a matrix symmetric, by averaging with its transpose.
 
-    @staticmethod
-    def make_symmetric(matrix):
-        """Make a matrix fully symmetric to avoid numerical issues."""
-        matrix = gs.to_ndarray(matrix, to_ndim=3)
-        n_mats, m, n = matrix.shape
-        assert m == n
-        matrix = gs.to_ndarray(matrix, to_ndim=3)
-        return (matrix + gs.transpose(matrix, axes=(0, 2, 1))) / 2
+        Parameters
+        ----------
+        mat : array-like, shape=[n_samples, n, n]
+
+        Returns
+        -------
+        sym : array-like, shape=[n_samples, n, n]
+        """
+        return 1/2 * (mat + cls.transpose(mat))
 
     def random_uniform(self, n_samples=1):
         """Generate n samples from a uniform distribution."""
