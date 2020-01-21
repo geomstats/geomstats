@@ -65,21 +65,21 @@ class Matrices(Euclidean):
         return reduce(gs.matmul, args)
 
     @classmethod
-    def commutator(cls, a, b):
+    def bracket(cls, mat_a, mat_b):
         """
         Return the commutator of a and b,
         i.e. `[a, b] = ab - ba`.
 
         Parameters
         ----------
-        a : array-like, shape=[n_samples, dim, dim]
-        b : array-like, shape=[n_samples, dim, dim]
+        mat_a : array-like, shape=[n_samples, dim, dim]
+        mat_b : array-like, shape=[n_samples, dim, dim]
 
         Returns
         -------
-        c : array-like, shape=[n_samples, dim, dim]
+        mat_c : array-like, shape=[n_samples, dim, dim]
         """
-        return cls.mul(a, b) - cls.mul(b, a)
+        return cls.mul(mat_a, mat_b) - cls.mul(mat_b, mat_a)
 
     @staticmethod
     def transpose(mat):

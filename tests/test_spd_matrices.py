@@ -38,9 +38,6 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_tf_only
     def test_random_uniform_and_belongs_vectorization(self):
-        """
-        same: fix belongs.
-        """
         n_samples = self.n_samples
         points = self.space.random_uniform(n_samples=n_samples)
         result = self.space.belongs(points)

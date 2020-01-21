@@ -1,8 +1,4 @@
-"""
-This module exposes the `GeneralLinearGroup` class. 
-
-Note: This class is temporarily kept for compatibility purposes
-but will soon be renamed `GeneralLinear`.
+"""Module exposing the GeneralLinear group class.
 """
 
 import geomstats.backend as gs
