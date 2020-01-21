@@ -3,7 +3,7 @@
 from functools import reduce
 
 import geomstats.backend as gs
-from geomstats.geometry.euclidean_space import EuclideanSpace
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 

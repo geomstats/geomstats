@@ -74,14 +74,14 @@ class TestMatricesMethods(geomstats.tests.TestCase):
         sym_mat = gs.array([[1., 2.],
                             [2., 1.]])
         result = self.space.is_symmetric(sym_mat)
-        expected = gs.array([[True]])
+        expected = gs.array(True)
         self.assertAllClose(result, expected)
 
         not_a_sym_mat = gs.array([[1., 0.6, -3.],
                                   [6., -7., 0.],
                                   [0., 7., 8.]])
         result = self.space.is_symmetric(not_a_sym_mat)
-        expected = gs.array([[False]])
+        expected = gs.array(False)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
