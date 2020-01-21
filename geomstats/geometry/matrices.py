@@ -28,23 +28,23 @@ class Matrices(Euclidean):
         return mat_dim_1 == self.m & mat_dim_2 == self.n
 
     @staticmethod
-    def equal(a, b, atol=TOLERANCE):
+    def equal(mat_a, mat_b, atol=TOLERANCE):
         """
         Test if matrices a and b are close.
 
         Parameters
         ----------
-        a : array-like, shape=[n_samples, dim1, dim2]
-        b : array-like, shape=[n_samples, dim2, dim3]
+        mat_a : array-like, shape=[n_samples, dim1, dim2]
+        mat_b : array-like, shape=[n_samples, dim2, dim3]
 
         Returns
         -------
         eq : array-like boolean, shape=[n_samples]
         """
         is_vectorized = \
-            (gs.ndim(gs.array(a)) == 3) or (gs.ndim(gs.array(b)) == 3)
+            (gs.ndim(gs.array(mat_a)) == 3) or (gs.ndim(gs.array(mat_b)) == 3)
         axes = (1, 2) if is_vectorized else (0, 1)
-        return gs.all(gs.isclose(a, b, atol=atol), axes)
+        return gs.all(gs.isclose(mat_a, mat_b, atol=atol), axes)
 
     @staticmethod
     def mul(*args):
