@@ -23,9 +23,10 @@ class SPDMatrices(EmbeddedManifold):
         self.n = n
 
     def belongs(self, mat, atol=TOLERANCE):
-        """
-        Check if a matrix belongs to the manifold of
-        symmetric positive definite matrices.
+        """Check if a matrix belongs to the manifold.
+
+        Check if a matrix belongs to the manifold of symmetric positive
+        definite matrices.
         """
         return Matrices.is_symmetric(mat)
 

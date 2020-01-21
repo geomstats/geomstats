@@ -1,5 +1,4 @@
-"""Module exposing the GeneralLinear group class.
-"""
+"""Module exposing the GeneralLinear group class."""
 
 import geomstats.backend as gs
 from geomstats.geometry.lie_group import LieGroup
