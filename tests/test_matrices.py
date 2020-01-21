@@ -95,35 +95,18 @@ class TestMatricesMethods(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-<<<<<<< HEAD
     @geomstats.tests.np_and_pytorch_only
-=======
->>>>>>> rename and track "test_matrices.py"
     def test_make_symmetric(self):
         sym_mat = gs.array([[1., 2.],
                             [2., 1.]])
         result = self.space.make_symmetric(sym_mat)
-<<<<<<< HEAD
-        expected = helper.to_matrix(sym_mat)
-=======
         expected = sym_mat
->>>>>>> rename and track "test_matrices.py"
         self.assertAllClose(result, expected)
 
         mat = gs.array([[1., 2., 3.],
                         [0., 0., 0.],
                         [3., 1., 1.]])
         result = self.space.make_symmetric(mat)
-<<<<<<< HEAD
-        expected = gs.array([[[1., 1., 3.],
-                              [1., 0., 0.5],
-                              [3., 0.5, 1.]]])
-        self.assertAllClose(result, expected)
-
-        mat = gs.array([[[1e100, 1e-100, 1e100],
-                         [1e100, 1e-100, 1e100],
-                         [1e-100, 1e-100, 1e100]]])
-=======
         expected = gs.array([[1., 1., 3.],
                               [1., 0., 0.5],
                               [3., 0.5, 1.]])
@@ -132,20 +115,13 @@ class TestMatricesMethods(geomstats.tests.TestCase):
         mat = gs.array([[1e100, 1e-100, 1e100],
                         [1e100, 1e-100, 1e100],
                         [1e-100, 1e-100, 1e100]])
->>>>>>> rename and track "test_matrices.py"
         result = self.space.make_symmetric(mat)
 
         res = 0.5 * (1e100 + 1e-100)
 
-<<<<<<< HEAD
-        expected = gs.array([[[1e100, res, res],
-                              [res, 1e-100, res],
-                              [res, res, 1e100]]])
-=======
         expected = gs.array([[1e100, res, res],
                              [res, 1e-100, res],
                              [res, res, 1e100]])
->>>>>>> rename and track "test_matrices.py"
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
