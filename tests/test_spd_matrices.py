@@ -29,14 +29,14 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         self.metric_logeuclidean = SPDMetricLogEuclidean(n=self.n)
         self.n_samples = 4
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
         expected = gs.array(True)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_random_uniform_and_belongs_vectorization(self):
         n_samples = self.n_samples
         points = self.space.random_uniform(n_samples=n_samples)
