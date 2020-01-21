@@ -1,8 +1,4 @@
-"""Grassmannian manifold Gr(n, p).
-
-The Grassmannian manifold is the set of all p-dimensional
-subspaces in n-dimensional space, where p <= n.
-"""
+"""This module exposes the `Grassmannian` and `GrassmannianMetric` class."""
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
@@ -87,4 +83,4 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         """
         expm = gs.linalg.expm
         mul = Matrices.mul
-        return mul(mul(expm(vector), point), expm(-vector))
+        return mul(expm(vector), point, expm(-vector))
