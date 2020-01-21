@@ -30,20 +30,20 @@ class Connection(object):
                 'The Christoffel symbols are not implemented.')
 
     def connection(self, tangent_vector_a, tangent_vector_b, base_point):
-        """TODO: write method description.
+        """Apply connection to tan vec b in direction of tan vec a at base_pt.
 
-        Connection applied to tangent_vector_b in the direction of
-        tangent_vector_a, both tangent at base_point.
+        Connection applied to `tangent_vector_b` in the direction of
+        `tangent_vector_a`, both tangent at `base_point`.
 
         Parameters
         ----------
-        tangent_vec_a: array-like, shape=[n_samples, dimension]
+        tangent_vec_a : array-like, shape=[n_samples, dimension]
                                    or shape=[1, dimension]
 
-        tangent_vec_b: array-like, shape=[n_samples, dimension]
+        tangent_vec_b : array-like, shape=[n_samples, dimension]
                                    or shape=[1, dimension]
 
-        base_point: array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
         """
         raise NotImplementedError(
@@ -58,21 +58,31 @@ class Connection(object):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, dimension]
+        tangent_vec : array-like, shape=[n_samples, dimension]
                                  or shape=[1, dimension]
-
-        base_point: array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
-
         n_steps: int
+
+        Returns
+        -------
+        exp # TODO: add output description (e.g. a vector?)
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
         def geodesic_equation(position, velocity):
-            """
-            The geodesic ordinary differential equation associated
-            with the connection.
+            """Compute the geodesic ODE associated with the connection.
+
+            Parameters
+            ----------
+            position
+            velocity
+
+            Returns
+            -------
+            geodesic_ode : function
+                vector field to be integrated
             """
             velocity = gs.to_ndarray(velocity, to_ndim=2)
             gamma = self.christoffels(position)
@@ -84,27 +94,29 @@ class Connection(object):
         return flow[-1]
 
     def log(self, point, base_point, n_steps=N_STEPS):
-        """Logarithm map associated to the affine connection.
+        """Compute logarithm map associated to the affine connection.
 
         Solve the boundary value problem associated to the geodesic equation
-        using the christoffel symbols and an conjugate gradient descent
+        using the Christoffel symbols and conjugate gradient descent
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dimension]
                            or shape=[1, dimension]
-
-        base_point: array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
+        n_steps : int
 
-        n_steps: int
+        Returns
+        -------
+        tangent_vec
         """
-
         point = gs.to_ndarray(point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         n_samples = len(base_point)
 
         def objective(velocity):
+            """Define the objective function."""
             velocity = velocity.reshape(base_point.shape)
             delta = self.exp(velocity, base_point, n_steps) - point
             loss = 1 / self.dimension * gs.sum(delta ** 2, axis=1)
@@ -113,6 +125,7 @@ class Connection(object):
         objective_grad = autograd.elementwise_grad(objective)
 
         def objective_with_grad(velocity):
+            """Create helpful objective func wrapper for autograd comp."""
             return objective(velocity), objective_grad(velocity)
 
         tangent_vec = gs.zeros_like(base_point).flatten()
@@ -124,28 +137,25 @@ class Connection(object):
         return tangent_vec
 
     def pole_ladder_step(self, base_point, next_point, base_shoot):
-        """Pole Ladder step.
+        """Compute one Pole Ladder step.
 
         One step of pole ladder scheme [1]_ using the geodesic to
-        transport along as diagonal of the parallelogram
+        transport along as diagonal of the parallelogram.
 
         Parameters
         ----------
-        base_point: array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dimension]
                                    or shape=[1, dimension]
-
-        next_point: array-like, shape=[n_samples, dimension]
+        next_point : array-like, shape=[n_samples, dimension]
                                    or shape=[1, dimension]
-
-        base_shoot: array-like, shape=[n_samples, dimension]
+        base_shoot : array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
 
         Returns
         -------
-        transported_tangent_vector: array-like, shape=[n_samples, dimension]
+        transported_tangent_vector : array-like, shape=[n_samples, dimension]
                                                 or shape=[1, dimension]
-
-        end_point: array-like, shape=[n_samples, dimension]
+        end_point : array-like, shape=[n_samples, dimension]
                                                 or shape=[1, dimension]
 
         References
@@ -184,31 +194,27 @@ class Connection(object):
             self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1):
         """Approximate parallel transport using the pole ladder scheme.
 
-        Approximation of Parallel transport using the pole ladder
-        scheme [1][2]. The tangent vector a is transported along along
-        the geodesic starting at the initial point base_point with
-        initial tangent vector the tangent vector b.
+        Approximate Parallel transport using the pole ladder scheme [1]_ [2]_.
+        `tangent_vec_a` is transported along the geodesic starting at the
+        base_point with initial tangent vector `tangent_vec_b`.
 
         Returns a tangent vector at the point
-        exp_(base_point)(tangent_vector_b).
+        exp_(`base_point`)(`tangent_vec_b`).
 
         Parameters
         ----------
-        tangent_vec_a: array-like, shape=[n_samples, dimension]
+        tangent_vec_a : array-like, shape=[n_samples, dimension]
                                    or shape=[1, dimension]
-
-        tangent_vec_b: array-like, shape=[n_samples, dimension]
+        tangent_vec_b : array-like, shape=[n_samples, dimension]
                                    or shape=[1, dimension]
-
-        base_point: array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
-
         n_steps: int
             the number of pole ladder steps
 
         Returns
         -------
-        transported_tangent_vector: array-like, shape=[n_samples, dimension]
+        transported_tangent_vector : array-like, shape=[n_samples, dimension]
                                                 or shape=[1, dimension]
 
         References
@@ -216,12 +222,12 @@ class Connection(object):
         .. [1] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transport
         of Deformations in Time Series of Images: from Schild's to Pole Ladder.
         Journal of Mathematical Imaging and Vision, Springer Verlag, 2013,
-         50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
+        50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
 
-         .. [2] N. Guigui, Shuman Jia, Maxime Sermesant, Xavier Pennec.
-         Symmetric Algorithmic Components for Shape Analysis with
-          Diffeomorphisms. GSI 2019, Aug 2019, Toulouse, France. pp.10.
-           ⟨hal-02148832⟩
+        .. [2] N. Guigui, Shuman Jia, Maxime Sermesant, Xavier Pennec.
+        Symmetric Algorithmic Components for Shape Analysis with
+        Diffeomorphisms. GSI 2019, Aug 2019, Toulouse, France. pp.10.
+        ⟨hal-02148832⟩
         """
         current_point = gs.copy(base_point)
         transported_tangent_vector = gs.copy(tangent_vec_a)
@@ -241,7 +247,7 @@ class Connection(object):
         return transported_tangent_vector
 
     def riemannian_curvature(self, base_point):
-        """Riemannian curvature tensor associated with the connection.
+        """Compute Riemannian curvature tensor associated with the connection.
 
         Parameters
         ----------
@@ -254,15 +260,25 @@ class Connection(object):
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
                  point_type='vector'):
-        """
+        """Generate parameterized function for the geodesic curve.
+
         Geodesic curve defined by either:
         - an initial point and an initial tangent vector,
         or
         -an initial point and an end point.
 
-        The geodesic is returned as a function parameterized by t.
-        """
+        Parameters
+        ----------
+        initial_point
+        end_point
+        initial_tangent_vec
+        point_type
 
+        Returns
+        -------
+        point_on_geodesic : callable
+            geodesic curve function parameterized by t
+        """
         point_ndim = 1
         if point_type == 'matrix':
             point_ndim = 2
@@ -286,6 +302,7 @@ class Connection(object):
                                             to_ndim=point_ndim+1)
 
         def point_on_geodesic(t):
+            """Generate parameterized function for geodesic curve."""
             t = gs.cast(t, gs.float32)
             t = gs.to_ndarray(t, to_ndim=1)
             t = gs.to_ndarray(t, to_ndim=2, axis=1)
@@ -312,7 +329,7 @@ class Connection(object):
         return point_on_geodesic
 
     def torsion(self, base_point):
-        """Torsion tensor associated with the connection.
+        """Compute torsion tensor associated with the connection.
 
         Parameters
         ----------
@@ -324,30 +341,41 @@ class Connection(object):
 
     @staticmethod
     def _symplectic_euler_step(state, force, dt):
+        """Compute one step of the symplectic euler approximation.
+
+        Parameters
+        ----------
+        state
+        force
+        dt
+
+        Returns
+        -------
+        point_new
+        vector_new
+        """
         point, vector = state
         point_new = point + vector * dt
         vector_new = vector + force(point, vector) * dt
         return point_new, vector_new
 
     def integrate(self, function, initial_state, end_time=1.0, n_steps=10):
-        """ Integrator function to compute flows of vector fields
-        on a regular grid between 0 and a finite time.
+        """Compute the flow under the vector field using symplectic euler.
+
+        Integration function to compute flows of vector fields
+        on a regular grid between 0 and a finite time from an initial state.
 
         Parameters
         ----------
-
         function: callable
             the vector field to integrate
-
         initial_state: tuple
             initial position and speed
-
         end_time: scalar
-
         n_steps: int
 
         Returns
-        ----------
+        -------
         a tuple of sequences of solutions every end_time / n_steps
         """
         dt = end_time / n_steps
@@ -371,7 +399,7 @@ class LeviCivitaConnection(Connection):
         self.dimension = metric.dimension
 
     def metric_matrix(self, base_point):
-        """Metric matrix defining the connection.
+        """Compute metric matrix defining the connection.
 
         Parameters
         ----------
@@ -387,7 +415,7 @@ class LeviCivitaConnection(Connection):
         return metric_matrix
 
     def cometric_matrix(self, base_point):
-        """Compute cometric.
+        """Compute the cometric.
 
         The cometric is the inverse of the metric.
 
@@ -406,7 +434,7 @@ class LeviCivitaConnection(Connection):
         return cometric_matrix
 
     def metric_derivative(self, base_point):
-        """Compute metric derivative at base point.
+        """Compute metric derivative at a base point.
 
         Parameters
         ----------
@@ -417,7 +445,7 @@ class LeviCivitaConnection(Connection):
         return metric_derivative(base_point)
 
     def christoffels(self, base_point):
-        """Christoffel symbols associated with the connection.
+        """Compute Christoffel symbols associated with the connection.
 
         Parameters
         ----------
@@ -446,7 +474,9 @@ class LeviCivitaConnection(Connection):
         return christoffels
 
     def torsion(self, base_point):
-        """Torsion tensor associated with the Levi-Civita connection is zero.
+        """Compute torsion tensor associated with the Levi-Civita connection.
+
+        The torsion tensor associated with the Levi-Civita connection is zero.
 
         Parameters
         ----------
@@ -461,7 +491,7 @@ class LeviCivitaConnection(Connection):
         return torsion
 
     def exp(self, tangent_vec, base_point):
-        """Exponential map associated to the metric.
+        """Compute exponential map associated to the metric.
 
         Parameters
         ----------
@@ -474,7 +504,7 @@ class LeviCivitaConnection(Connection):
         return self.metric.exp(tangent_vec, base_point)
 
     def log(self, point, base_point):
-        """Logarithm map associated to the metric.
+        """Compute logarithm map associated to the metric.
 
         Parameters
         ----------

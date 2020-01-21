@@ -108,7 +108,7 @@ class SPDMatrices(EmbeddedManifold):
         return tangent_vec
 
     def aux_differential_power(self, power, tangent_vec, base_point):
-        """Auxiliary function to compute the differential of the matrix power.
+        """Compute the differential of the matrix power.
 
         Auxiliary function to the functions differential_power and
         inverse_differential_power.
@@ -343,18 +343,19 @@ class SPDMetricAffine(RiemannianMetric):
     def __init__(self, n, power_affine=1):
         """Build the affine-invariant metric.
 
+        Based on [1]_.
+
         Parameters
         ----------
         n : int
             Matrix dimension.
         power_affine : int, optional
                        Power transformation of the classical SPD metric.
-        Based on:
-        Thanwerdas, Pennec
-        "Is affine-invariance well defined on SPD matrices?
-        A principled continuum of metrics"
-        Proc. of GSI 2019
 
+        References
+        ----------
+        .. [1] Thanwerdas, Pennec. "Is affine-invariance well defined on
+        SPD matrices? A principled continuum of metrics" Proc. of GSI, 2019.
         https://arxiv.org/abs/1906.01349
         """
         dimension = int(n * (n + 1) / 2)
@@ -366,14 +367,25 @@ class SPDMetricAffine(RiemannianMetric):
         self.power_affine = power_affine
 
     def _aux_inner_product(self, tangent_vec_a, tangent_vec_b, inv_base_point):
+        """Compute the inner product (auxiliary).
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[n_samples, n, n]
+        tangent_vec_b : array-like, shape=[n_samples, n, n]
+        inv_base_point : array-like, shape=[n_samples, n, n]
+
+        Returns
+        -------
+        inner_product : array-like, shape=[n_samples, n, n]
+        """
         aux_a = gs.matmul(inv_base_point, tangent_vec_a)
         aux_b = gs.matmul(inv_base_point, tangent_vec_b)
         inner_product = gs.trace(gs.matmul(aux_a, aux_b), axis1=1, axis2=2)
         return inner_product
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        """
-        Compute the affine-invariant inner product.
+        """Compute the affine-invariant inner product.
 
         Compute the inner product of tangent_vec_a and tangent_vec_b
         at point base_point using the affine invariant Riemannian metric.
@@ -445,6 +457,18 @@ class SPDMetricAffine(RiemannianMetric):
         return inner_product
 
     def _aux_exp(self, tangent_vec, sqrt_base_point, inv_sqrt_base_point):
+        """Compute the exponential map (auxiliary function).
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[n_samples, n, n]
+        sqrt_base_point
+        inv_sqrt_base_point
+
+        Returns
+        -------
+        exp
+        """
         tangent_vec_at_id = gs.matmul(inv_sqrt_base_point,
                                       tangent_vec)
         tangent_vec_at_id = gs.matmul(tangent_vec_at_id,
@@ -459,8 +483,7 @@ class SPDMetricAffine(RiemannianMetric):
         """Compute the affine-invariant exponential map.
 
         Compute the Riemannian exponential at point base_point
-        of tangent vector tangent_vec wrt the metric
-        defined in inner_product.
+        of tangent vector tangent_vec wrt the metric defined in inner_product.
         This gives a symmetric positive definite matrix.
 
         Parameters
@@ -510,6 +533,18 @@ class SPDMetricAffine(RiemannianMetric):
         return exp
 
     def _aux_log(self, point, sqrt_base_point, inv_sqrt_base_point):
+        """Compute the log (auxiliary function).
+
+        Parameters
+        ----------
+        point
+        sqrt_base_point
+        inv_sqrt_base_point
+
+        Returns
+        -------
+        log
+        """
         point_near_id = gs.matmul(inv_sqrt_base_point, point)
         point_near_id = gs.matmul(point_near_id, inv_sqrt_base_point)
         log_at_id = gs.linalg.logm(point_near_id)
@@ -570,7 +605,17 @@ class SPDMetricAffine(RiemannianMetric):
         return log
 
     def geodesic(self, initial_point, initial_tangent_vec):
-        """Compute the affine-invariant geodesic."""
+        """Compute the affine-invariant geodesic.
+
+        Parameters
+        ----------
+        initial_point
+        initial_tangent_vec
+
+        Returns
+        -------
+        geodesic
+        """
         return super(SPDMetricAffine, self).geodesic(
                                       initial_point=initial_point,
                                       initial_tangent_vec=initial_tangent_vec,
@@ -580,13 +625,13 @@ class SPDMetricAffine(RiemannianMetric):
 class SPDMetricProcrustes(RiemannianMetric):
     """Class for the Procrustes metric on the SPD manifold.
 
-    Based on :
-    Bhatia, Jain, Lim
-    "On the Bures-Wasserstein distance between positive
-    definite matrices"
-    Elsevier, Expositiones Mathematicae, vol. 37(2), 165-191
+    Based on [1].
 
-    https://arxiv.org/pdf/1712.01504.pdf
+    References
+    ----------
+    .. [1]_ Bhatia, Jain, Lim. "On the Bures-Wasserstein distance between
+    positive definite matrices" Elsevier, Expositiones Mathematicae,
+    vol. 37(2), 165-191, 2017. https://arxiv.org/pdf/1712.01504.pdf
     """
 
     def __init__(self, n):
@@ -736,7 +781,7 @@ class SPDMetricEuclidean(RiemannianMetric):
         """Compute the domain of the Euclidean exponential map.
 
         Compute the real interval of time where the Euclidean geodesic starting
-        at point base_point in direction tangent_vec is defined.
+        at point `base_point` in direction `tangent_vec` is defined.
 
         Parameters
         ----------
@@ -902,7 +947,6 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         -------
         geodesic : callable
         """
-
         def point_on_geodesic(t):
             return self.exp(t*initial_tangent_vec, initial_point)
 
