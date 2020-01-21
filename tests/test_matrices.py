@@ -108,8 +108,8 @@ class TestMatricesMethods(geomstats.tests.TestCase):
                         [3., 1., 1.]])
         result = self.space.make_symmetric(mat)
         expected = gs.array([[1., 1., 3.],
-                              [1., 0., 0.5],
-                              [3., 0.5, 1.]])
+                             [1., 0., 0.5],
+                             [3., 0.5, 1.]])
         self.assertAllClose(result, expected)
 
         mat = gs.array([[1e100, 1e-100, 1e100],
