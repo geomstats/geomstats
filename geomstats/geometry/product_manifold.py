@@ -1,6 +1,4 @@
-"""
-Product of manifolds.
-"""
+"""Product of manifolds."""
 
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
@@ -11,7 +9,6 @@ from geomstats.geometry.manifold import Manifold
 
 class ProductManifold(Manifold):
     """Class for a product of manifolds M_1 x ... x M_n.
-
 
     In contrast to the class Landmarks or DiscretizedCruves,
     the manifolds M_1, ..., M_n need not be the same, nor of
@@ -24,17 +21,19 @@ class ProductManifold(Manifold):
         By default, a point is represented by an array of shape:
             [n_samples, dim_1 + ... + dim_n_manifolds]
         where n_manifolds is the number of manifolds in the product.
-        This type of representation is called \'vector\'.
+        This type of representation is called 'vector'.
 
         Alternatively, a point can be represented by an array of shape:
             [n_samples, n_manifolds, dim]
         if the n_manifolds have same dimension dim.
-        This type of representation is called \'matrix\'.
+        This type of representation is called `matrix`.
 
         Parameters
         ----------
-        manifolds : list of manifolds in the product
-        default_point_type : default representation of points
+        manifolds : list
+            list of manifolds in the product
+        default_point_type : str, {'vector', 'matrix'}
+            default representation of points
         """
         assert default_point_type in ['vector', 'matrix']
         self.default_point_type = default_point_type
@@ -51,8 +50,8 @@ class ProductManifold(Manifold):
 
         Parameters
         ----------
-        point :
-        point_type :
+        point
+        point_type : str, {'vector', 'matrix'}
 
         Returns
         -------
@@ -70,8 +69,7 @@ class ProductManifold(Manifold):
         n_manifolds = self.n_manifolds
         belongs = gs.empty((point.shape[0], n_manifolds))
         cum_dim = 0
-        # FIXME: this only works if the points are in
-        # intrinsic representation
+        # FIXME: this only works if the points are in intrinsic representation
         for i in range(n_manifolds):
             manifold_i = self.manifolds[i]
             cum_dim_next = cum_dim + manifold_i.dimension
@@ -85,8 +83,16 @@ class ProductManifold(Manifold):
         return belongs
 
     def regularize(self, point, point_type=None):
-        """Regularizes the point's coordinates to the canonical representation
-        chosen for this manifold.
+        """Regularize the point into the manifold's canonical representation.
+
+        Parameters
+        ----------
+        point
+        point_type : str, {'vector', 'matrix'}
+
+        Returns
+        -------
+        regularize_points
         """
         # TODO(nina): Vectorize.
         if point_type is None:
@@ -108,8 +114,20 @@ class ProductManifold(Manifold):
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
                  point_type=None):
-        """Geodesic curve for a product metric seen as the product of the geodesic
-        on each space.
+        """Compute geodesic curve for a product metric.
+
+        This geodesic is seen as the product of the geodesic on each space.
+
+        Parameters
+        ----------
+        initial_point
+        end_point
+        initial_tangent_vec
+        point_type
+
+        Returns
+        -------
+        geodesics : array-like
         """
         if point_type is None:
             point_type = self.default_point_type

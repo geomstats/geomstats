@@ -9,7 +9,7 @@ from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 
 
 class SkewSymmetricMatrices(MatrixLieAlgebra):
-    """Implementation of skew symmetric matrices."""
+    """Class for skew symmetric matrices."""
 
     def __init__(self, n):
         """Instantiate the class.
@@ -39,7 +39,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         matrix_representation: array-like, shape=[n_sample, n, n]
 
         Returns
-        ------
+        -------
         basis_representation: array-like, shape=[n_sample, dimension]
         """
         old_shape = gs.shape(matrix_representation)
