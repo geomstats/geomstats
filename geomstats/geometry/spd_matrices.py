@@ -23,12 +23,8 @@ class SPDMatrices(EmbeddedManifold):
         self.n = n
 
     def belongs(self, mat, atol=TOLERANCE):
-        """Check if a matrix belongs to the manifold.
-
-        Check if a matrix belongs to the manifold of symmetric positive
-        definite matrices.
-        """
-        return Matrices.is_symmetric(mat)
+        """Check if a matrix is symmetric and invertible."""
+        return Matrices.is_symmetric(mat) * GeneralLinear.belongs(mat)
 
     def vector_from_symmetric_matrix(self, mat):
         """Convert the symmetric part of a symmetric matrix into a vector."""
