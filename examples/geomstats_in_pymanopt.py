@@ -68,9 +68,9 @@ def estimate_dominant_eigenvector(matrix):
     the Rayleigh quotient -x' * A * x / (x' * x).
     """
     num_rows, num_columns = gs.shape(matrix)
-    assert num_rows == num_columns, "matrix must be square"
+    assert num_rows == num_columns, 'matrix must be square'
     assert gs.allclose(gs.sum(matrix - gs.transpose(matrix)), 0.0), \
-        "matrix must be symmetric"
+        'matrix must be symmetric'
 
     def cost(vector):
         return -gs.dot(vector, gs.dot(matrix, vector))
@@ -84,10 +84,10 @@ def estimate_dominant_eigenvector(matrix):
     return solver.solve(problem)
 
 
-if __name__ == "__main__":
-    if os.environ.get("GEOMSTATS_BACKEND") != "numpy":
+if __name__ == '__main__':
+    if os.environ.get('GEOMSTATS_BACKEND') != 'numpy':
         raise SystemExit(
-            "This example currently only supports the numpy backend")
+            'This example currently only supports the numpy backend')
 
     ambient_dimension = 128
     matrix = gs.random.normal(size=(ambient_dimension, ambient_dimension))
@@ -101,11 +101,11 @@ if __name__ == "__main__":
             gs.sign(dominant_eigenvector_estimate[0])):
         dominant_eigenvector_estimate = -dominant_eigenvector_estimate
 
-    print("l2-norm of dominant eigenvector:",
+    print('l2-norm of dominant eigenvector:',
           gs.linalg.norm(dominant_eigenvector))
-    print("l2-norm of dominant eigenvector estimate:",
+    print('l2-norm of dominant eigenvector estimate:',
           gs.linalg.norm(dominant_eigenvector_estimate))
     error_norm = gs.linalg.norm(
         dominant_eigenvector - dominant_eigenvector_estimate)
-    print("l2-norm of difference vector:", error_norm)
-    print("solution found: %s" % gs.isclose(error_norm, 0.0, atol=1e-3))
+    print('l2-norm of difference vector:', error_norm)
+    print('solution found: %s' % gs.isclose(error_norm, 0.0, atol=1e-3))
