@@ -67,8 +67,7 @@ class Matrices(Euclidean):
     @classmethod
     def bracket(cls, mat_a, mat_b):
         """
-        Return the commutator of a and b,
-        i.e. `[a, b] = ab - ba`.
+        Return the commutator of a and b, i.e. `[a, b] = ab - ba`.
 
         Parameters
         ----------
@@ -101,7 +100,7 @@ class Matrices(Euclidean):
     def is_symmetric(cls, mat, atol=TOLERANCE):
         """
         Check if a matrix is symmetric.
-        
+
         Parameters
         ----------
         mat : array-like, shape=[n_samples, n, n]
@@ -121,7 +120,7 @@ class Matrices(Euclidean):
         Parameters
         ----------
         mat : array-like, shape=[n_samples, n, n]
-        
+
         Returns
         -------
         sym : array-like, shape=[n_samples, n, n]
