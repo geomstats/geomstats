@@ -32,18 +32,18 @@ class GeneralLinear(Matrices):
     @classmethod
     def exp(cls, vector, base_point=None):
         """
-        Exponentiate a left invariant vector field from a base point.
+        Exponentiate a left-invariant vector field from a base point.
 
-        Parameters:
+        Parameters
         ----------
         vector :        array-like, shape=[..., n, n]
         base_point :    array-like, shape=[..., n, n]
             Defaults to identity.
 
-        Returns:
-        _______
+        Returns
+        -------
         point :         array-like, shape=[..., n, n]
-            The left multiplication of `exp(vector)` with 
+            The left multiplication of `exp(vector)` with
             `base_point`.
         """
         expm = gs.linalg.expm
@@ -55,8 +55,7 @@ class GeneralLinear(Matrices):
     @classmethod
     def log(cls, point, base_point=None):
         """
-        Search for a left-invariant vector field
-        bringing base_point to point. 
+        Search for a left-invariant vector field bringing base_point to point.
 
         Parameters
         ----------
@@ -109,7 +108,7 @@ class GeneralLinear(Matrices):
         The path is not uniquely defined and depends on
         the choice of :math: `V` returned by `class.log`.
 
-        Vectorization:
+        Vectorization
         -------------
         Return a collection of trajectories (4-D array)
         from a collection of input matrices (3-D array).

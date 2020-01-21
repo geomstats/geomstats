@@ -9,10 +9,8 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 RTOL = 1e-5
-
 
 class TestGeneralLinearMethods(geomstats.tests.TestCase):
     def setUp(self):
@@ -20,94 +18,47 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
         self.n = 3
         self.n_samples = 2
         self.group = GeneralLinear(n=self.n)
-        # We generate invertible matrices using so3_group
-        self.so3_group = SpecialOrthogonal(n=self.n)
 
         warnings.simplefilter('ignore', category=ImportWarning)
 
     @geomstats.tests.np_only
     def test_belongs(self):
-        """
-        A rotation matrix belongs to the matrix Lie group
-        of invertible matrices.
-        """
-        rot_vec = gs.array([0.2, -0.1, 0.1])
-        rot_mat = self.so3_group.matrix_from_rotation_vector(rot_vec)
-        result = self.group.belongs(rot_mat)
-        expected = gs.array([[True]])
-
+        mats = gs.array([
+            [[1., 0.], [0., 1]],
+            [[0., 1.], [0., 1.]]])
+        result = self.group.belongs(mats)
+        expected = gs.array([True, False])
         self.assertAllClose(result, expected)
 
-    def test_compose(self):
-        # 1. Composition by identity, on the right
-        # Expect the original transformation
-        rot_vec = gs.array([0.2, -0.1, 0.1])
-        mat = self.so3_group.matrix_from_rotation_vector(rot_vec)
-
-        result = self.group.compose(mat, self.group.identity)
-        expected = mat
-        expected = helper.to_matrix(mat)
-
+    def test_compose_and_identity(self):
+        mat1 = gs.array([
+            [1., 0.],
+            [0., 2.]])
+        mat2 = gs.array([
+            [2., 0.],
+            [0., 1.]])
+        result = self.group.compose(mat1, mat2)
+        expected = 2. * GeneralLinear(2).identity()
         self.assertAllClose(result, expected)
 
-        # 2. Composition by identity, on the left
-        # Expect the original transformation
-        rot_vec = gs.array([0.2, 0.1, -0.1])
-        mat = self.so3_group.matrix_from_rotation_vector(rot_vec)
-
-        result = self.group.compose(self.group.identity, mat)
-        expected = mat
-
-        self.assertAllClose(result, expected)
-
-    def test_inverse(self):
+    def test_inv(self):
         mat = gs.array([
             [1., 2., 3.],
             [4., 5., 6.],
             [7., 8., 10.]])
-        result = self.group.inverse(mat)
+        result = self.group.inv(mat)
         expected = 1. / 3. * gs.array([
             [-2., -4., 3.],
             [-2., 11., -6.],
             [3., -6., 3.]])
-        expected = helper.to_matrix(expected)
-
         self.assertAllClose(result, expected)
 
-    def test_compose_and_inverse(self):
-        # 1. Compose transformation by its inverse on the right
-        # Expect the group identity
-        rot_vec = gs.array([0.2, 0.1, 0.1])
-        mat = self.so3_group.matrix_from_rotation_vector(rot_vec)
-        inv_mat = self.group.inverse(mat)
-
-        result = self.group.compose(mat, inv_mat)
-        expected = self.group.identity
-        expected = helper.to_matrix(expected)
-
-        self.assertAllClose(result, expected)
-
-        # 2. Compose transformation by its inverse on the left
-        # Expect the group identity
-        rot_vec = gs.array([0.7, 0.1, 0.1])
-        mat = self.so3_group.matrix_from_rotation_vector(rot_vec)
-        inv_mat = self.group.inverse(mat)
-
-        result = self.group.compose(inv_mat, mat)
-        expected = self.group.identity
-        expected = helper.to_matrix(expected)
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_tf_only
     def test_group_log_and_exp(self):
         point = 5 * gs.eye(self.n)
-
         group_log = self.group.log(point)
+        
         result = self.group.exp(group_log)
         expected = point
-        expected = helper.to_matrix(expected)
-
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
@@ -125,9 +76,7 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
                              [[2.718281828, 0., 0.],
                               [0., 148.413159, 0.],
                               [0., 0., 403.42879349]]])
-
         result = self.group.exp(point)
-
         self.assertAllClose(result, expected, rtol=1e-3)
 
     @geomstats.tests.np_and_tf_only
@@ -138,16 +87,13 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
                           [[1., 0., 0.],
                            [0., 5., 0.],
                            [0., 0., 6.]]])
-
         expected = gs.array([[[0.693147180, 0., 0.],
                               [0., 1.09861228866, 0.],
                               [0., 0., 1.38629436]],
                              [[0., 0., 0.],
                               [0., 1.609437912, 0.],
                               [0., 0., 1.79175946]]])
-
         result = self.group.log(point)
-
         self.assertAllClose(result, expected, atol=1e-4)
 
     @geomstats.tests.np_and_tf_only
@@ -160,5 +106,4 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
                            [0., 0., 6.]]])
         result = self.group.exp(self.group.log(point))
         expected = point
-
         self.assertAllClose(result, expected)
