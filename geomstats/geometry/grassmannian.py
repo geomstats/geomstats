@@ -1,4 +1,4 @@
-"""This module exposes the `Grassmannian` and `GrassmannianMetric` class."""
+"""Module exposing `Grassmannian` and `GrassmannianMetric` classes."""
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
