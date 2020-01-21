@@ -39,7 +39,7 @@ class TestMatricesMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
-    def test_commutator(self):
+    def test_bracket(self):
         x = gs.array([
             [0., 0., 0.],
             [0., 0., -1.],
@@ -52,11 +52,11 @@ class TestMatricesMethods(geomstats.tests.TestCase):
             [0., -1., 0.],
             [1., 0., 0.],
             [0., 0., 0.]])
-        result = self.space.commutator([x, y], [y, z])
+        result = self.space.bracket([x, y], [y, z])
         expected = gs.array([z, x])
         self.assertAllClose(result, expected)
 
-        result = self.space.commutator(x, [x, y, z])
+        result = self.space.bracket(x, [x, y, z])
         expected = gs.array([gs.zeros((3, 3)), z, -y])
         self.assertAllClose(result, expected)
 
