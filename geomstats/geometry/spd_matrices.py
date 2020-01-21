@@ -21,8 +21,9 @@ class SPDMatrices(EmbeddedManifold):
             dimension=int(n * (n + 1) / 2),
             embedding_manifold=GeneralLinear(n=n))
         self.n = n
-
-    def belongs(self, mat, atol=TOLERANCE):
+   
+    @staticmethod
+    def belongs(mat, atol=TOLERANCE):
         """Check if a matrix is symmetric and invertible."""
         return Matrices.is_symmetric(mat) * GeneralLinear.belongs(mat)
 

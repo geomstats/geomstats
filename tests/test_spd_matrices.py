@@ -29,6 +29,15 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         self.metric_logeuclidean = SPDMetricLogEuclidean(n=self.n)
         self.n_samples = 4
 
+    def test_belongs(self):
+        mats = gs.array([
+            [[1.,1.],[1.,1.]],
+            [[1.,2.],[2.,1.]],
+            [[1.,0.],[1.,1.]]])
+        result = SPDMatrices.belongs(mats)
+        expected = gs.array([False, True, False])
+        self.assertAllClose(result, expected)
+
     @geomstats.tests.np_only
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
