@@ -10,7 +10,8 @@ class GeneralLinear(Matrices):
     def __init__(self, n):
         self.n = n
 
-    def belongs(self, point):
+    @staticmethod
+    def belongs(point):
         """Test if a matrix is invertible."""
         det = gs.linalg.det(point)
         return gs.where(det != 0., True, False)
