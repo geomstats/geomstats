@@ -31,9 +31,9 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     def test_belongs(self):
         mats = gs.array([
-            [[1.,1.],[1.,1.]],
-            [[1.,2.],[2.,1.]],
-            [[1.,0.],[1.,1.]]])
+            [[1., 1.], [1., 1.]],
+            [[1., 2.], [2., 1.]],
+            [[1., 0.], [1., 1.]]])
         result = SPDMatrices.belongs(mats)
         expected = gs.array([False, True, False])
         self.assertAllClose(result, expected)
