@@ -479,5 +479,6 @@ def cumprod(x, axis=0):
     else:
         return torch.cumprod(x, dim=axis)
 
+
 def isnan(*args, **kwargs):
     return torch.isnan(*args, **kwargs)

@@ -337,6 +337,7 @@ class Hypersphere(EmbeddedManifold):
 
         return point
 
+
 class HypersphereMetric(RiemannianMetric):
     """Class for the Hypersphere Metric."""
 
