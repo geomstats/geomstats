@@ -1,14 +1,18 @@
 """Riemannian and pseudo-Riemannian metrics."""
 
 import math
+import autograd
 
 import geomstats.backend as gs
+from geomstats.geometry.connection import Connection
+
 
 EPSILON = 1e-4
 N_CENTERS = 10
 TOLERANCE = 1e-5
 N_REPETITIONS = 20
 N_MAX_ITERATIONS = 50000
+N_STEPS = 10
 
 
 def loss(y_pred, y_true, metric):
@@ -45,13 +49,13 @@ def grad(y_pred, y_true, metric):
     return grad
 
 
-class RiemannianMetric(object):
+class RiemannianMetric(Connection):
     """Class for Riemannian and pseudo-Riemannian metrics."""
 
     def __init__(self, dimension, signature=None):
         assert isinstance(dimension, int) or dimension == math.inf
         assert dimension > 0
-        self.dimension = dimension
+        super().__init__(dimension=dimension)
         self.signature = signature
 
     def inner_product_matrix(self, base_point=None):
@@ -72,9 +76,39 @@ class RiemannianMetric(object):
         ----------
         base_point : array-like, shape=[n_samples, dimension], optional
         """
-        raise NotImplementedError(
-                'The computation of the inner product inv. matrix'
-                ' is not implemented.')
+        metric_matrix = self.inner_product_matrix(base_point)
+        cometric_matrix = gs.linalg.inv(metric_matrix)
+        return cometric_matrix
+
+    def christoffels(self, base_point):
+        """Compute Christoffel symbols associated with the connection.
+
+        Parameters
+        ----------
+        base_point: array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
+
+        Returns
+        -------
+        christoffels: array-like,
+                             shape=[n_samples, dimension, dimension, dimension]
+                             or shape=[1, dimension, dimension, dimension]
+        """
+        metric_mat_at_point = self.inner_product_matrix(base_point)
+        cometric_mat_at_point = self.inner_product_inverse_matrix(base_point)
+        metric_derivative_at_point = autograd.grad(metric_mat_at_point)
+        term_1 = gs.einsum('nim,nmkl->nikl',
+                           cometric_mat_at_point,
+                           metric_derivative_at_point)
+        term_2 = gs.einsum('nim,nmlk->nilk',
+                           cometric_mat_at_point,
+                           metric_derivative_at_point)
+        term_3 = - gs.einsum('nim,nklm->nikl',
+                             cometric_mat_at_point,
+                             metric_derivative_at_point)
+
+        christoffels = 0.5 * (term_1 + term_2 + term_3)
+        return christoffels
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product between two tangent vectors at a base point.
@@ -178,41 +212,6 @@ class RiemannianMetric(object):
         sq_norm = self.squared_norm(vector, base_point)
         norm = gs.sqrt(sq_norm)
         return norm
-
-    def exp(self, tangent_vec, base_point=None):
-        """Compute Riemannian exponential of tangent vector wrt to base point.
-
-        Parameters
-        ----------
-        tangent_vec: array-like, shape=[n_samples, dimension]
-                                 or shape=[1, dimension]
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
-
-        Returns
-        -------
-        exp
-        """
-        raise NotImplementedError(
-            'The Riemannian exponential is not implemented.')
-
-    def log(self, point, base_spoint=None):
-        """Compute Riemannian logarithm of a point wrt a base point.
-
-        Parameters
-        ----------
-        point: array-like, shape=[n_samples, dimension]
-                           or shape=[1, dimension]
-
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
-
-        Returns
-        -------
-        log
-        """
-        raise NotImplementedError(
-            'The Riemannian logarithm is not implemented.')
 
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
