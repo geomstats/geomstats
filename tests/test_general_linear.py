@@ -51,11 +51,18 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
         result = self.group.inv(mat_a)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
+    def test_inv_vectorized(self):
+        mat_a = gs.array([
+            [0., 1., 0.],
+            [1., 0., 0.],
+            [0., 0., 1.]])
         mat_b = - gs.eye(3, 3)
         result = self.group.inv(gs.array([mat_a, mat_b]))
-        expected = gs.array([imat_a, mat_b])
+        expected = gs.array([mat_a, mat_b])
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_log_and_exp(self):
         point = 5 * gs.eye(self.n)
         group_log = self.group.log(point)
@@ -98,6 +105,23 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
                               [0., 0., 1.79175946]]])
         result = self.group.log(point)
         self.assertAllClose(result, expected, atol=1e-4)
+    
+    @geomstats.tests.np_and_tf_only
+    def test_orbit(self):
+        point = gs.array([
+            [gs.exp(4.), 0.],
+            [0., gs.exp(2.)]])
+        sqrt = gs.array([
+            [gs.exp(2.), 0.],
+            [0., gs.exp(1.)]])
+        idty = GeneralLinear(2).identity()
+
+        path = GeneralLinear(2).orbit(point)
+        time = gs.linspace(0., 1., 3)
+
+        result = path(time)
+        expected = gs.array([idty, sqrt, point])
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_expm_and_logm_vectorization_symmetric(self):
