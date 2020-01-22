@@ -458,8 +458,8 @@ guidelines:
    forces us to write clean code, and clean docstrings.
 
 5. Follow geomstats' API. For example, points on manifolds are denoted
-  ``point``, tangent vectors ``tangent_vec``, matrices ``mat``, exponential
-  ``exp`` and logarithms ``log``.
+   ``point``, tangent vectors ``tangent_vec``, matrices ``mat``, exponential
+   ``exp`` and logarithms ``log``.
 
 6. Avoid multiple statements on one line. Divide complex computations on several
    lines. Prefer a line return after a control flow statement (``if``/``for``).
@@ -487,9 +487,11 @@ guidelines:
 10. If you need several lines for a function call, use the syntax::
    my_function_with_a_very_long_name(
        my_param_1=value_1, my_param_2=value_2)
+
 and not::
    my_function_with_a_very_long_name(my_param_1=value_1,
                                      my_param_2=value_2)
+
 as the indentation will break and raise a flake8 error if the name
 of the function is changed.
 
