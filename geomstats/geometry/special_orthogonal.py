@@ -615,7 +615,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
             rot_vec *= (1. + fact)
         else:
-            skew_mat = self.embedding_manifold.log_from_identity(rot_mat)
+            skew_mat = self.embedding_manifold.log(rot_mat)
             rot_vec = self.vector_from_skew_matrix(skew_mat)
 
         return self.regularize(rot_vec, point_type='vector')
@@ -674,7 +674,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         else:
             skew_mat = self.skew_matrix_from_vector(rot_vec)
-            rot_mat = self.embedding_manifold.exp_from_identity(skew_mat)
+            rot_mat = self.embedding_manifold.exp(skew_mat)
 
         return rot_mat
 
