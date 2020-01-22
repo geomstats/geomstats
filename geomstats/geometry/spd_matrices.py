@@ -28,8 +28,8 @@ class SPDMatrices(EmbeddedManifold):
         # FIXME: check positivity, implying invertibility (Yann)
         # note : vectorized "and" on numpy works with:
         #       [bool] * [bool] -> bool
-        # does not on tf. 
-        return Matrices.is_symmetric(mat) 
+        # does not on tf.
+        return Matrices.is_symmetric(mat)
 
     def vector_from_symmetric_matrix(self, mat):
         """Convert the symmetric part of a symmetric matrix into a vector."""
@@ -936,10 +936,6 @@ class SPDMetricLogEuclidean(RiemannianMetric):
     def geodesic(self, initial_point, initial_tangent_vec):
         """Compute the Log-Euclidean geodesic.
 
-        Compute the Riemannian geodesic starting at point base_point
-        in direction of initial_tangent_vec.
-        This gives a function from real numbers to SPD matrices.
-
         Parameters
         ----------
         initial_point : array-like, shape=[n_samples, n, n]
@@ -947,9 +943,10 @@ class SPDMetricLogEuclidean(RiemannianMetric):
 
         Returns
         -------
-        geodesic : callable
+        path : callable
+            The time parameterized geodesic.
         """
-        def point_on_geodesic(t):
-            return self.exp(t * initial_tangent_vec, initial_point)
+        def path(t):
+            return self.exp(t*initial_tangent_vec, initial_point)
 
-        return point_on_geodesic
+        return path
