@@ -4,9 +4,11 @@ import autograd
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
+from geomstats.geometry.integrator import integrate
 
 
 N_STEPS = 10
+EPSILON = 1e-3
 
 
 class Connection(object):
@@ -49,6 +51,23 @@ class Connection(object):
         raise NotImplementedError(
             'connection is not implemented.')
 
+    def geodesic_equation(self, tangent_vec, base_point):
+        """Compute the geodesic ODE associated with the connection.
+
+        Parameters
+        ----------
+        base_point
+        tangent_vec
+
+        Returns
+        -------
+        geodesic_ode : function
+            vector field to be integrated
+        """
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        gamma = self.christoffels(base_point)
+        return - gs.einsum('lkij,li,lj->lk', gamma, tangent_vec, tangent_vec)
+
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS):
         """Exponential map associated to the affine connection.
 
@@ -66,31 +85,14 @@ class Connection(object):
 
         Returns
         -------
-        exp # TODO: add output description (e.g. a vector?)
+        exp : array-like, shape=[n_samples, dimension]
+                                or shape=[1, dimension]
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
-
-        def geodesic_equation(position, velocity):
-            """Compute the geodesic ODE associated with the connection.
-
-            Parameters
-            ----------
-            position
-            velocity
-
-            Returns
-            -------
-            geodesic_ode : function
-                vector field to be integrated
-            """
-            velocity = gs.to_ndarray(velocity, to_ndim=2)
-            gamma = self.christoffels(position)
-            return - gs.einsum('lkij,li,lj->lk', gamma, velocity, velocity)
-
         initial_state = (base_point, tangent_vec)
-        flow, _ = self.integrate(geodesic_equation, initial_state,
-                                 n_steps=n_steps)
+        flow, _ = integrate(self.geodesic_equation, initial_state, step='rk4',
+                            n_steps=n_steps)
         return flow[-1]
 
     def log(self, point, base_point, n_steps=N_STEPS):
@@ -128,7 +130,7 @@ class Connection(object):
             """Create helpful objective func wrapper for autograd comp."""
             return objective(velocity), objective_grad(velocity)
 
-        tangent_vec = gs.zeros_like(base_point).flatten()
+        tangent_vec = gs.zeros_like(base_point).flatten() + EPSILON
         res = minimize(objective_with_grad, tangent_vec, method='CG', jac=True,
                        options={'disp': True, 'maxiter': 25})
 
@@ -342,25 +344,26 @@ class Connection(object):
         raise NotImplementedError(
             'The torsion tensor is not implemented.')
 
-    @staticmethod
-    def _symplectic_euler_step(state, force, dt):
-        """Compute one step of the symplectic euler approximation.
-
-        Parameters
-        ----------
-        state
-        force
-        dt
-
-        Returns
-        -------
-        point_new
-        vector_new
-        """
-        point, vector = state
-        point_new = point + vector * dt
-        vector_new = vector + force(point, vector) * dt
-        return point_new, vector_new
+    # @staticmethod
+    # def _symplectic_euler_step(state, force, dt):
+    #     """Compute one step of the symplectic euler approximation.
+    #
+    #     Parameters
+    #     ----------
+    #     state
+    #     force
+    #     dt
+    #
+    #     Returns
+    #     -------
+    #     point_new
+    #     vector_new
+    #     """
+    #     point, vector = state
+    #     point_new = point + vector * dt
+    #     print(state)
+    #     vector_new = vector + force(point, vector) * dt
+    #     return point_new, vector_new
 
     def integrate(self, function, initial_state, end_time=1.0, n_steps=10):
         """Compute the flow under the vector field using symplectic euler.
@@ -392,129 +395,3 @@ class Connection(object):
             velocities.append(current_state[1])
 
         return positions, velocities
-
-
-class LeviCivitaConnection(Connection):
-    """Levi-Civita connection associated with a Riemannian metric."""
-
-    def __init__(self, metric):
-        self.metric = metric
-        self.dimension = metric.dimension
-
-    def metric_matrix(self, base_point):
-        """Compute metric matrix defining the connection.
-
-        Parameters
-        ----------
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
-
-        Returns
-        -------
-        metric_matrix: array-like, shape=[n_samples, dimension, dimension]
-                                   or shape=[1, dimension, dimension]
-        """
-        metric_matrix = self.metric.inner_product_matrix(base_point)
-        return metric_matrix
-
-    def cometric_matrix(self, base_point):
-        """Compute the cometric.
-
-        The cometric is the inverse of the metric.
-
-        Parameters
-        ----------
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
-
-        Returns
-        -------
-        cometric_matrix: array-like, shape=[n_samples, dimension, dimension]
-                                     or shape=[1, dimension, dimension]
-        """
-        metric_matrix = self.metric_matrix(base_point)
-        cometric_matrix = gs.linalg.inv(metric_matrix)
-        return cometric_matrix
-
-    def metric_derivative(self, base_point):
-        """Compute metric derivative at a base point.
-
-        Parameters
-        ----------
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
-        """
-        metric_derivative = autograd.jacobian(self.metric_matrix)
-        return metric_derivative(base_point)
-
-    def christoffels(self, base_point):
-        """Compute Christoffel symbols associated with the connection.
-
-        Parameters
-        ----------
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
-
-        Returns
-        -------
-        christoffels: array-like,
-                             shape=[n_samples, dimension, dimension, dimension]
-                             or shape=[1, dimension, dimension, dimension]
-        """
-        cometric_mat_at_point = self.cometric_matrix(base_point)
-        metric_derivative_at_point = self.metric_derivative(base_point)
-        term_1 = gs.einsum('nim,nmkl->nikl',
-                           cometric_mat_at_point,
-                           metric_derivative_at_point)
-        term_2 = gs.einsum('nim,nmlk->nilk',
-                           cometric_mat_at_point,
-                           metric_derivative_at_point)
-        term_3 = - gs.einsum('nim,nklm->nikl',
-                             cometric_mat_at_point,
-                             metric_derivative_at_point)
-
-        christoffels = 0.5 * (term_1 + term_2 + term_3)
-        return christoffels
-
-    def torsion(self, base_point):
-        """Compute torsion tensor associated with the Levi-Civita connection.
-
-        The torsion tensor associated with the Levi-Civita connection is zero.
-
-        Parameters
-        ----------
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
-
-        Returns
-        -------
-        torsion: array-like, shape=[dimension, dimension, dimension]
-        """
-        torsion = gs.zeros((self.dimension,) * 3)
-        return torsion
-
-    def exp(self, tangent_vec, base_point):
-        """Compute exponential map associated to the metric.
-
-        Parameters
-        ----------
-        tangent_vec: array-like, shape=[n_samples, dimension]
-                                 or shape=[1, dimension]
-
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
-        """
-        return self.metric.exp(tangent_vec, base_point)
-
-    def log(self, point, base_point):
-        """Compute logarithm map associated to the metric.
-
-        Parameters
-        ----------
-        point: array-like, shape=[n_samples, dimension]
-                           or shape=[1, dimension]
-
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
-        """
-        return self.metric.log(point, base_point)
