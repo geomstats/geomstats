@@ -123,6 +123,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         with self.session():
             self.assertTrue(gs.eval(H2.belongs(exp)))
 
+    @geomstats.tests.np_and_pytorch_only
     def test_exp_vectorization(self):
         n_samples = 3
         dim = self.dimension + 1
