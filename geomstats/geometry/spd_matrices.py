@@ -26,10 +26,11 @@ class SPDMatrices(EmbeddedManifold):
     def belongs(mat, atol=TOLERANCE):
         """Check if a matrix is symmetric and invertible."""
         # FIXME: check positivity, implying invertibility (Yann)
+        #
         # note : vectorized "and" on numpy works with:
         #       [bool] * [bool] -> bool
-        # does not on tf. 
-        return Matrices.is_symmetric(mat) 
+        # but does not on tf.
+        return Matrices.is_symmetric(mat)
 
     def vector_from_symmetric_matrix(self, mat):
         """Convert the symmetric part of a symmetric matrix into a vector."""

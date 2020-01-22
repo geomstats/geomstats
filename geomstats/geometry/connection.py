@@ -276,7 +276,7 @@ class Connection(object):
         Returns
         -------
         path : callable
-            the time parameterized geodesic curve. 
+            the time parameterized geodesic curve.
         """
         point_ndim = 1
         if point_type == 'matrix':
