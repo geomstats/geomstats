@@ -1,16 +1,13 @@
-"""
-Unit tests for General Linear group.
-"""
+"""Unit tests for the General Linear group."""
 
 import warnings
-
-import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.general_linear import GeneralLinear
 
 RTOL = 1e-5
+
 
 class TestGeneralLinearMethods(geomstats.tests.TestCase):
     def setUp(self):
@@ -53,17 +50,16 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
         expected = imat_a
         result = self.group.inv(mat_a)
         self.assertAllClose(result, expected)
-        
+
         mat_b = - gs.eye(3, 3)
         result = self.group.inv(gs.array([mat_a, mat_b]))
         expected = gs.array([imat_a, mat_b])
         self.assertAllClose(result, expected)
-        
 
     def test_log_and_exp(self):
         point = 5 * gs.eye(self.n)
         group_log = self.group.log(point)
-        
+
         result = self.group.exp(group_log)
         expected = point
         self.assertAllClose(result, expected)
