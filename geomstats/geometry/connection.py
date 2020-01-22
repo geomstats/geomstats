@@ -264,8 +264,7 @@ class Connection(object):
 
         Geodesic curve defined by either:
         - an initial point and an initial tangent vector,
-        or
-        -an initial point and an end point.
+        - an initial point and an end point.
 
         Parameters
         ----------
@@ -276,8 +275,8 @@ class Connection(object):
 
         Returns
         -------
-        point_on_geodesic : callable
-            geodesic curve function parameterized by t
+        path : callable
+            the time parameterized geodesic curve. 
         """
         point_ndim = 1
         if point_type == 'matrix':
@@ -301,7 +300,7 @@ class Connection(object):
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
                                             to_ndim=point_ndim+1)
 
-        def point_on_geodesic(t):
+        def path(t):
             """Generate parameterized function for geodesic curve."""
             t = gs.cast(t, gs.float32)
             t = gs.to_ndarray(t, to_ndim=1)
@@ -326,7 +325,7 @@ class Connection(object):
                                        base_point=new_initial_point)
             return point_at_time_t
 
-        return point_on_geodesic
+        return path
 
     def torsion(self, base_point):
         """Compute torsion tensor associated with the connection.

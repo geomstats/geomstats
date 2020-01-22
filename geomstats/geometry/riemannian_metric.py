@@ -234,7 +234,7 @@ class RiemannianMetric(object):
 
         Returns
         -------
-        point_on_geodesic : callable
+        path : callable
         """
         point_ndim = 1
         if point_type == 'matrix':
@@ -258,7 +258,7 @@ class RiemannianMetric(object):
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
                                             to_ndim=point_ndim + 1)
 
-        def point_on_geodesic(t):
+        def path(t):
             """Generate a function parameterizing the geodesic.
 
             Parameters
@@ -292,7 +292,7 @@ class RiemannianMetric(object):
                                        base_point=new_initial_point)
             return point_at_time_t
 
-        return point_on_geodesic
+        return path
 
     def squared_dist(self, point_a, point_b):
         """Compute squared geodesic distance between two points.
