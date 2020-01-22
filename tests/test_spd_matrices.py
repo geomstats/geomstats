@@ -35,7 +35,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
             [[1., 2.], [2., 1.]],
             [[1., 0.], [1., 1.]]])
         result = SPDMatrices.belongs(mats)
-        expected = gs.array([False, True, False])
+        expected = gs.array([True, True, False])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -87,7 +87,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
         self.assertTrue(gs.allclose(result, expected))
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_and_pytorch_only
     def test_differential_power(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 2.5, 1.5],
@@ -105,7 +105,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
                               [1 / 3, .125, .125]]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_and_pytorch_only
     def test_inverse_differential_power(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 2.5, 1.5],
@@ -259,7 +259,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
+    @geomstats.tests.np_only
     def test_log_and_exp_affine_invariant(self):
         base_point = gs.array([[5., 0., 0.],
                                [0., 7., 2.],
