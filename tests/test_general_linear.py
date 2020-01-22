@@ -30,7 +30,7 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
         expected = gs.array([True, False])
         self.assertAllClose(result, expected)
 
-    def test_compose_and_identity(self):
+    def test_compose(self):
         mat1 = gs.array([
             [1., 0.],
             [0., 2.]])
@@ -42,18 +42,25 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_inv(self):
-        mat = gs.array([
+        mat_a = gs.array([
             [1., 2., 3.],
             [4., 5., 6.],
             [7., 8., 10.]])
-        result = self.group.inv(mat)
-        expected = 1. / 3. * gs.array([
+        imat_a = 1. / 3. * gs.array([
             [-2., -4., 3.],
             [-2., 11., -6.],
             [3., -6., 3.]])
+        expected = imat_a
+        result = self.group.inv(mat_a)
         self.assertAllClose(result, expected)
+        
+        mat_b = - gs.eye(3, 3)
+        result = self.group.inv(gs.array([mat_a, mat_b]))
+        expected = gs.array([imat_a, mat_b])
+        self.assertAllClose(result, expected)
+        
 
-    def test_group_log_and_exp(self):
+    def test_log_and_exp(self):
         point = 5 * gs.eye(self.n)
         group_log = self.group.log(point)
         
@@ -62,7 +69,7 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
-    def test_group_exp_vectorization(self):
+    def test_exp_vectorization(self):
         point = gs.array([[[2., 0., 0.],
                            [0., 3., 0.],
                            [0., 0., 4.]],
@@ -80,7 +87,7 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected, rtol=1e-3)
 
     @geomstats.tests.np_and_tf_only
-    def test_group_log_vectorization(self):
+    def test_log_vectorization(self):
         point = gs.array([[[2., 0., 0.],
                            [0., 3., 0.],
                            [0., 0., 4.]],
