@@ -45,8 +45,8 @@ following rules before submitting:
    `issues <https://github.com/geomstats/geomstats/issues?q=>`_
    or `pull requests <https://github.com/geomstats/geomstats/pulls?q=>`_.
 
--  If you are submitting a bug report, we strongly encourage you to follow
-  the guidelines in :ref:`filing_bugs`.
+-  If you are submitting a bug report, we strongly encourage you to
+  follow the guidelines in :ref:`filing_bugs`.
 
 .. _filing_bugs:
 
@@ -83,8 +83,6 @@ feedback:
 
 Contributing code workflow
 ==========================
-
-.. note::
 
   To avoid duplicating work, it is highly advised that you search through the
   `issue tracker <https://github.com/geomstats/geomstats/issues>`_ and
@@ -171,12 +169,9 @@ Subsequently, you might need to solve the conflicts. You can refer to the
 `Git documentation related to resolving merge conflict using the command
 line
 <https://help.github.com/articles/resolving-a-merge-conflict-using-the-command-line/>`_.
-
-.. topic:: Learning git:
-
-    The `Git documentation <https://git-scm.com/documentation>`_ and
-    http://try.github.io are excellent resources to get started with git,
-    and understanding all of the commands shown here.
+The `Git documentation <https://git-scm.com/documentation>`_ and
+http://try.github.io are excellent resources to get started with git,
+and understanding all of the commands shown here.
 
 Pull request checklist
 ----------------------
@@ -191,7 +186,8 @@ complies with the following rules. The **bolded** ones are especially important:
    cases "Fix <ISSUE TITLE>" is enough. "Fix #<ISSUE NUMBER>" is never a
    good title.
 
-2. **Make sure that your code is vectorized**.
+2. **Make sure that your code is vectorized**, see
+   `<https://www.geeksforgeeks.org/vectorization-in-python/>`_.
 
 3. **Submit your code with associated unit tests**. High-quality
    `unit testing <https://en.wikipedia.org/wiki/Unit_testing>`_
@@ -259,9 +255,9 @@ complies with the following rules. The **bolded** ones are especially important:
    methods available in geomstats.
 
 10. The user guide should also include expected time and space complexity
-   of the algorithm and scalability, e.g. "this algorithm can scale to a
-   large number of samples > 100000, but does not scale in dimensionality:
-   n_features is expected to be lower than 100".
+    of the algorithm and scalability, e.g. "this algorithm can scale to a
+    large number of samples > 100000, but does not scale in dimensionality:
+    n_features is expected to be lower than 100".
 
 11. **Each PR needs to be accepted by two core developpers** before
     being merged.
@@ -415,7 +411,6 @@ Guidelines for writing documentation
         """
 
 * In general have the following in mind:
-
     1. Use Python basic types. (``bool`` instead of ``boolean``)
     2. Use ``[`` for defining shapes: ``array-like, shape=[n_samples,]``
     3. For strings with multiple options, use brackets:
@@ -445,38 +440,38 @@ In addition to the PEP8 standards, geomstats follows the following
 guidelines:
 
 1. Use underscores to separate words in non class names: ``n_samples``
-  rather than ``nsamples``.
+   rather than ``nsamples``.
 
 2. Avoid single-character variable names. This prevents using automatic
-  tools to find-and-replace code, as searching for ``x`` in geomstats
-  will return the whole database. At least 3 characters are advised
-  for a variable name.
+   tools to find-and-replace code, as searching for ``x`` in geomstats
+   will return the whole database. At least 3 characters are advised
+   for a variable name.
 
 3. Use understandable function and variable names. The naming should help
-  the maintainers reading faster through your code. Thus, ``my_array``,
-  ``aaa``, ``result``, ``res`` are generally bad variable names,
-  whereas ``rotation_vec`` or ``symmetric_mat`` read well.
+   the maintainers reading faster through your code. Thus, ``my_array``,
+   ``aaa``, ``result``, ``res`` are generally bad variable names,
+   whereas ``rotation_vec`` or ``symmetric_mat`` read well.
 
 4. Avoid comment in the code, the documentation goes in the docstrings.
-  This allows the explanations to be included in the documentation
-  generated automatically on the website. Furthermore, forbidding comments
-  forces us to write clean code, and clean docstrings.
+   This allows the explanations to be included in the documentation
+   generated automatically on the website. Furthermore, forbidding comments
+   forces us to write clean code, and clean docstrings.
 
 5. Follow geomstats' API. For example, points on manifolds are denoted
   ``point``, tangent vectors ``tangent_vec``, matrices ``mat``, exponential
   ``exp`` and logarithms ``log``.
 
 6. Avoid multiple statements on one line. Divide complex computations on several
-  lines. Prefer a line return after a control flow statement (``if``/``for``).
+   lines. Prefer a line return after a control flow statement (``if``/``for``).
 
 7. **Don't use** ``import *`` **in any case**. It is considered harmful
-  by the `official Python recommendations
-  <https://docs.python.org/2/howto/doanddont.html#from-module-import>`_.
-  It makes the code harder to read as the origin of symbols is no
-  longer explicitly referenced, but most important, it prevents
-  using a static analysis tool like `pyflakes
-  <https://divmod.readthedocs.io/en/latest/products/pyflakes.html>`_ to automatically
-  find bugs in geomstats.
+   by the `official Python recommendations
+   <https://docs.python.org/2/howto/doanddont.html#from-module-import>`_.
+   It makes the code harder to read as the origin of symbols is no
+   longer explicitly referenced, but most important, it prevents
+   using a static analysis tool like `pyflakes
+   <https://divmod.readthedocs.io/en/latest/products/pyflakes.html>`_ to automatically
+   find bugs in geomstats.
 
 8. Avoid the use of ``import ... as`` and of ``from ... import foo, bar``,
    , i.e. do not rename modules or modules' functions, because you would create
@@ -492,12 +487,11 @@ guidelines:
 10. If you need several lines for a function call, use the syntax::
    my_function_with_a_very_long_name(
        my_param_1=value_1, my_param_2=value_2)
-
-  and not::
+and not::
    my_function_with_a_very_long_name(my_param_1=value_1,
                                      my_param_2=value_2)
-  as the indentation will break and raise a flake8 error if the name
-  of the function is changed.
+as the indentation will break and raise a flake8 error if the name
+of the function is changed.
 
 
 These guidelines can be revised and modified at any time, the only constraint
@@ -505,7 +499,6 @@ is that they should remain consistent through the codebase. To change geomstats
 style guidelines, submit a PR to this contributing file, together with the
 corresponding changes in the codebase.
 
-.. currentmodule:: geomstats
 
 .. _code_review:
 
