@@ -444,32 +444,32 @@ formatted code makes it easier to share code ownership.
 In addition to the PEP8 standards, geomstats follows the following
 guidelines:
 
-* Use underscores to separate words in non class names: ``n_samples``
+1. Use underscores to separate words in non class names: ``n_samples``
   rather than ``nsamples``.
 
-* Avoid single-character variable names. This prevents using automatic
+2. Avoid single-character variable names. This prevents using automatic
   tools to find-and-replace code, as searching for ``x`` in geomstats
   will return the whole database. At least 3 characters are advised
   for a variable name.
 
-* Use understandable function and variable names. The naming should help
+3. Use understandable function and variable names. The naming should help
   the maintainers reading faster through your code. Thus, ``my_array``,
   ``aaa``, ``result``, ``res`` are generally bad variable names,
   whereas ``rotation_vec`` or ``symmetric_mat`` read well.
 
-* Avoid comment in the code, the documentation goes in the docstrings.
+4. Avoid comment in the code, the documentation goes in the docstrings.
   This allows the explanations to be included in the documentation
   generated automatically on the website. Furthermore, forbidding comments
   forces us to write clean code, and clean docstrings.
 
-* Follow geomstats' API. For example, points on manifolds are denoted
+5. Follow geomstats' API. For example, points on manifolds are denoted
   ``point``, tangent vectors ``tangent_vec``, matrices ``mat``, exponential
   ``exp`` and logarithms ``log``.
 
-* Avoid multiple statements on one line. Divide complex computations on several
+6. Avoid multiple statements on one line. Divide complex computations on several
   lines. Prefer a line return after a control flow statement (``if``/``for``).
 
-* **Please don't use** ``import *`` **in any case**. It is considered harmful
+7. **Don't use** ``import *`` **in any case**. It is considered harmful
   by the `official Python recommendations
   <https://docs.python.org/2/howto/doanddont.html#from-module-import>`_.
   It makes the code harder to read as the origin of symbols is no
@@ -478,6 +478,19 @@ guidelines:
   <https://divmod.readthedocs.io/en/latest/products/pyflakes.html>`_ to automatically
   find bugs in geomstats. Likewise, do not use ``import ... as``, i.e. do not
   rename packages.
+
+8. Use single quotes ' and not double quotes " for strings.
+
+9. If you need several lines for a function call, use the syntax::
+   my_function_with_a_very_long_name(
+       my_param_1=value_1, my_param_2=value_2)
+
+  and not::
+   my_function_with_a_very_long_name(my_param_1=value_1,
+                                     my_param_2=value_2)
+  as the indentation will break and raise a flake8 error if the name
+  of the function is changed.
+
 
 These guidelines can be revised and modified at any time, the only constraint
 is that they should remain consistent through the codebase. To change geomstats
