@@ -69,12 +69,13 @@ def kmean_poincare_ball():
         space='H2_poincare_disk',
         marker='*',
         color='green',
-        s = 100,
+        s=100,
         point_type=manifold.point_type)
 
     ax.set_title('Kmeans on Poincaré Ball Manifold')
 
     return plt
+
 
 def kmean_hypersphere():
 
@@ -83,11 +84,10 @@ def kmean_hypersphere():
     manifold = Hypersphere(2)
     metric = manifold.metric
 
-    #Generate data on north pole
+    # Generate data on north pole
     cluster_1 = manifold.random_von_mises_fisher(kappa=50, n_samples=50)
 
-
-    #Generate data on south pole
+    # Generate data on south pole
     cluster_2 = manifold.random_von_mises_fisher(kappa=50, n_samples=50)
     for point in cluster_2:
         point[2] = -point[2]
@@ -103,9 +103,9 @@ def kmean_hypersphere():
 
     for i in range(2):
 
-        if i==0:
+        if i == 0:
 
-            ax =visualization.plot(
+            ax = visualization.plot(
                 data[labels == i],
                 space='S2',
                 marker='.',
@@ -114,7 +114,7 @@ def kmean_hypersphere():
         else:
             ax = visualization.plot(
                 data[labels == i],
-                ax = ax,
+                ax=ax,
                 space='S2',
                 marker='.',
                 color=colors[i]
@@ -122,7 +122,7 @@ def kmean_hypersphere():
 
     visualization.plot(
         centroids,
-        ax = ax,
+        ax=ax,
         space='S2',
         marker='*',
         s=200,
@@ -136,10 +136,10 @@ def kmean_hypersphere():
 
 def main():
 
-    #Kmean Poincare Ball
+    # Kmean Poincare Ball
     kmean_poincare_ball()
 
-    #Kmean Hypersphere
+    # Kmean Hypersphere
     plots = kmean_hypersphere()
 
     plots.show()
