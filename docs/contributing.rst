@@ -476,12 +476,20 @@ guidelines:
   longer explicitly referenced, but most important, it prevents
   using a static analysis tool like `pyflakes
   <https://divmod.readthedocs.io/en/latest/products/pyflakes.html>`_ to automatically
-  find bugs in geomstats. Likewise, do not use ``import ... as``, i.e. do not
-  rename packages.
+  find bugs in geomstats.
 
-8. Use single quotes ' and not double quotes " for strings.
+8. Avoid the use of ``import ... as`` and of ``from ... import foo, bar``,
+   , i.e. do not rename modules or modules' functions, because you would create
+   objects living in several namespaces which creates confusion, see
+   `<https://docs.python.org/2/howto/doanddont.html#language-constructs-you-should-not-use>`_.
+   Keeping the original namespace ensures naming consistency in the codebase
+   and speeds up the code reviews: co-developpers and maintainers do not have
+   to check if you are using the original module's method or if you have
+   overwritten it.
 
-9. If you need several lines for a function call, use the syntax::
+9. Use single quotes ' and not double quotes " for strings.
+
+10. If you need several lines for a function call, use the syntax::
    my_function_with_a_very_long_name(
        my_param_1=value_1, my_param_2=value_2)
 
