@@ -770,15 +770,15 @@ class HyperbolicMetric(RiemannianMetric):
         elif self.point_type == 'ball':
 
             point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0., 1 - EPSILON)
-            print('point a norm', point_a_norm)
+
             point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0., 1 - EPSILON)
-            print('point b norm', point_b_norm)
+
             diff_norm = gs.sum((point_a - point_b) ** 2, -1)
-            print('a-b norm', diff_norm)
+
             norm_function = 1 + 2 * \
                 diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
 
-            print('norm function', norm_function)
+
 
             dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
             dist = gs.to_ndarray(dist, to_ndim=1)
