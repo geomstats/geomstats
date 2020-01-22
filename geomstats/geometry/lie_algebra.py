@@ -37,6 +37,7 @@ class MatrixLieAlgebra:
 
         Notice that inputs have to be given in matrix form, no conversion
         between basis and matrix representation is attempted.
+
         Parameters
         ----------
         matrix_a: array-like, shape=[n_sample, n, n]
