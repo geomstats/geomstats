@@ -105,7 +105,7 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
                               [0., 0., 1.79175946]]])
         result = self.group.log(point)
         self.assertAllClose(result, expected, atol=1e-4)
-    
+
     @geomstats.tests.np_and_tf_only
     def test_orbit(self):
         point = gs.array([
