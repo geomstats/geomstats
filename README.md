@@ -49,7 +49,7 @@ And run unit tests from this folder:
 nose2 tests
 ```
 
-See our [CONTRIBUTING.md](CONTRIBUTING.md) file!
+See our [contributing.rst](docs/contributing.rst) file!
 
 ## Acknowledgements
 
