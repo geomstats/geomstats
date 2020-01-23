@@ -1,6 +1,4 @@
-"""
-Unit tests for the Hyperbolic space.
-"""
+"""Unit tests for the Hyperbolic space."""
 
 import math
 
@@ -400,8 +398,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """
-        Test that the riemannian exponential
-        and the riemannian logarithm are inverse.
+        Test that the riemannian exponential and
+        the riemannian logarithm are inverse.
 
         Expect their composition to give the identity function.
         """
@@ -482,18 +480,18 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_scaled_squared_norm(self):
         base_point_intrinsic = gs.array([1, 1, 1])
-        base_point = \
-            self.space.intrinsic_to_extrinsic_coords(base_point_intrinsic)
+        base_point = self.space.intrinsic_to_extrinsic_coords(
+            base_point_intrinsic)
         tangent_vec = gs.array([1, 2, 3, 4])
-        tangent_vec = \
-            self.space.projection_to_tangent_space(tangent_vec, base_point)
+        tangent_vec = self.space.projection_to_tangent_space(
+            tangent_vec, base_point)
         scale = 2
         default_space = Hyperbolic(dimension=self.dimension)
         scaled_space = Hyperbolic(dimension=self.dimension, scale=2)
-        squared_norm_default_metric = \
-            default_space.metric.squared_norm(tangent_vec, base_point)
-        squared_norm_scaled_metric = \
-            scaled_space.metric.squared_norm(tangent_vec, base_point)
+        squared_norm_default_metric = default_space.metric.squared_norm(
+            tangent_vec, base_point)
+        squared_norm_scaled_metric = scaled_space.metric.squared_norm(
+            tangent_vec, base_point)
         result = squared_norm_scaled_metric
         expected = scale ** 2 * squared_norm_default_metric
         self.assertAllClose(result, expected)

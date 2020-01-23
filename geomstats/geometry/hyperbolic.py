@@ -533,8 +533,7 @@ class HyperbolicMetric(RiemannianMetric):
         return sq_norm
 
     def exp(self, tangent_vec, base_point):
-        """
-        Riemannian exponential of a tangent vector wrt to a base point.
+        """Riemannian exponential of a tangent vector wrt to a base point.
 
         Parameters
         ----------
@@ -615,8 +614,7 @@ class HyperbolicMetric(RiemannianMetric):
                     'exp is only implemented for ball and extrinsic')
 
     def log(self, point, base_point):
-        """
-        Riemannian logarithm of a point wrt a base point.
+        """Riemannian logarithm of a point wrt a base point.
 
         If point_type = 'poincare' then base_point belongs
         to the Poincare ball and point is a vector in the euclidean
@@ -679,12 +677,12 @@ class HyperbolicMetric(RiemannianMetric):
             norm_add = gs.to_ndarray(gs.linalg.norm(
                 add_base_point, axis=-1), 2, -1)
             norm_add = gs.repeat(norm_add, base_point.shape[-1], -1)
-            norm2_base_point = gs.to_ndarray(gs.linalg.norm(
+            norm_base_point = gs.to_ndarray(gs.linalg.norm(
                 base_point, axis=-1), 2, -1)
-            norm2_base_point = gs.repeat(norm2_base_point,
-                                         base_point.shape[-1], -1)
+            norm_base_point = gs.repeat(norm_base_point,
+                                        base_point.shape[-1], -1)
 
-            log = (1 - norm2_base_point**2) * gs.arctanh(norm_add)\
+            log = (1 - norm_base_point**2) * gs.arctanh(norm_add)\
                 * (add_base_point / norm_add)
 
             mask_0 = gs.all(gs.isclose(norm_add, 0))
