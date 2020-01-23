@@ -130,7 +130,8 @@ class RiemannianMetric(object):
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
-        """
+        """Computed the square of the norm of a vector.
+
         Squared norm of a vector associated to the inner product
         at the tangent space at a base point.
 
