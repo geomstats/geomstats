@@ -112,9 +112,9 @@ class SPDMatrices(EmbeddedManifold):
         ----------
         power : int
         tangent_vec : array_like, shape=[n_samples, n, n]
-                      Tangent vectors.
+            Tangent vectors.
         base_point : array_like, shape=[n_samples, n, n]
-                     Base points.
+            Base points.
 
         Returns
         -------
@@ -186,9 +186,9 @@ class SPDMatrices(EmbeddedManifold):
         ----------
         power : int
         tangent_vec : array_like, shape=[n_samples, n, n]
-                      Tangent vectors.
+            Tangent vectors.
         base_point : array_like, shape=[n_samples, n, n]
-                     Base points.
+            Base points.
 
         Returns
         -------
@@ -213,9 +213,9 @@ class SPDMatrices(EmbeddedManifold):
         ----------
         power : int
         tangent_vec : array_like, shape=[n_samples, n, n]
-                      Tangent vectors.
+            Tangent vectors.
         base_point : array_like, shape=[n_samples, n, n]
-                     Base points.
+            Base points.
 
         Returns
         -------
@@ -238,9 +238,9 @@ class SPDMatrices(EmbeddedManifold):
         Parameters
         ----------
         tangent_vec : array_like, shape=[n_samples, n, n]
-                      Tangent vectors.
+            Tangent vectors.
         base_point : array_like, shape=[n_samples, n, n]
-                     Base points.
+            Base points.
 
         Returns
         -------
@@ -264,9 +264,9 @@ class SPDMatrices(EmbeddedManifold):
         Parameters
         ----------
         tangent_vec : array_like, shape=[n_samples, n, n]
-                      Tangent vectors.
+            Tangent vectors.
         base_point : array_like, shape=[n_samples, n, n]
-                     Base points.
+            Base points.
 
         Returns
         -------
@@ -289,9 +289,9 @@ class SPDMatrices(EmbeddedManifold):
         Parameters
         ----------
         tangent_vec : array_like, shape=[n_samples, n, n]
-                      Tangent vectors.
+            Tangent vectors.
         base_point : array_like, shape=[n_samples, n, n]
-                     Base points.
+            Base points.
 
         Returns
         -------
@@ -315,9 +315,9 @@ class SPDMatrices(EmbeddedManifold):
         Parameters
         ----------
         tangent_vec : array_like, shape=[n_samples, n, n]
-                      Tangent vectors.
+            Tangent vectors.
         base_point : array_like, shape=[n_samples, n, n]
-                     Base points.
+            Base points.
 
         Returns
         -------
@@ -338,20 +338,20 @@ class SPDMetricAffine(RiemannianMetric):
     def __init__(self, n, power_affine=1):
         """Build the affine-invariant metric.
 
-        Based on [1]_.
+        Based on [TP2019]_.
 
         Parameters
         ----------
         n : int
             Matrix dimension.
         power_affine : int, optional
-                       Power transformation of the classical SPD metric.
+            Power transformation of the classical SPD metric.
 
         References
         ----------
-        .. [1] Thanwerdas, Pennec. "Is affine-invariance well defined on
-        SPD matrices? A principled continuum of metrics" Proc. of GSI, 2019.
-        https://arxiv.org/abs/1906.01349
+        .. [TP2019] Thanwerdas, Pennec. "Is affine-invariance well defined on
+          SPD matrices? A principled continuum of metrics" Proc. of GSI, 2019.
+          https://arxiv.org/abs/1906.01349
         """
         dimension = int(n * (n + 1) / 2)
         super(SPDMetricAffine, self).__init__(
@@ -620,13 +620,13 @@ class SPDMetricAffine(RiemannianMetric):
 class SPDMetricProcrustes(RiemannianMetric):
     """Class for the Procrustes metric on the SPD manifold.
 
-    Based on [1].
+    Based on [BJL2017].
 
     References
     ----------
-    .. [1]_ Bhatia, Jain, Lim. "On the Bures-Wasserstein distance between
-    positive definite matrices" Elsevier, Expositiones Mathematicae,
-    vol. 37(2), 165-191, 2017. https://arxiv.org/pdf/1712.01504.pdf
+    .. [BJL2017]_ Bhatia, Jain, Lim. "On the Bures-Wasserstein distance between
+      positive definite matrices" Elsevier, Expositiones Mathematicae,
+      vol. 37(2), 165-191, 2017. https://arxiv.org/pdf/1712.01504.pdf
     """
 
     def __init__(self, n):

@@ -465,7 +465,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         For the edge case where the angle is close to pi,
         the formulation is derived by going from rotation matrix to unit
         quaternion to axis-angle:
-         r = angle * v / |v|, where (w, v) is a unit quaternion.
+        r = angle * v / \|v\|, where (w, v) is a unit quaternion.
 
         In nD, the rotation vector stores the n(n-1)/2 values of the
         skew-symmetric matrix representing the rotation.

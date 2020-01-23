@@ -408,7 +408,7 @@ class LieGroup(Manifold):
 
         For matrix Lie groups with tangent vectors A,B at the same base point P
         this is given by (translate to identity, compute commutator, go back)
-            :math: `[A,B] = AP^-1B - BP^-1A.`
+        :math:`[A,B] = A_P^{-1}B - B_P^{-1}A`
 
         Parameters
         ----------
