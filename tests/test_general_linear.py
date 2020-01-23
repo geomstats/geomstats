@@ -18,7 +18,7 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
 
         warnings.simplefilter('ignore', category=ImportWarning)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_pytorch_only
     def test_belongs(self):
         mats = gs.array([
             [[1., 0.], [0., 1]],
