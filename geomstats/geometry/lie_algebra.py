@@ -46,7 +46,6 @@ class MatrixLieAlgebra:
         Returns
         -------
         bracket: shape=[n_sample, n, n]
-
         """
         return gs.matmul(matrix_a, matrix_b) - gs.matmul(matrix_b, matrix_a)
 
@@ -62,10 +61,10 @@ class MatrixLieAlgebra:
 
         This represents Z =log(exp(X)exp(Y)) as an infinite linear combination
         of the form
-            Z = sum z_i e_i
+        Z = sum z_i e_i
         where z_i are rational numbers and e_i are iterated Lie brackets
         starting with e_1 = X, e_2 = Y, each e_i is given by some i',i'':
-            e_i = [e_i', e_i''].
+        e_i = [e_i', e_i''].
 
         Parameters
         ----------

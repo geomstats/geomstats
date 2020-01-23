@@ -522,7 +522,7 @@ class HypersphereMetric(RiemannianMetric):
         """Parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by :math: `exp_(base_point)(tangent_vec_b)`
+        along the geodesic defined by exp_(base_point)(tangent_vec_b)
 
         Parameters
         ----------

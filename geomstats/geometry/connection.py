@@ -139,31 +139,31 @@ class Connection(object):
     def pole_ladder_step(self, base_point, next_point, base_shoot):
         """Compute one Pole Ladder step.
 
-        One step of pole ladder scheme [1]_ using the geodesic to
+        One step of pole ladder scheme [LP2013a]_ using the geodesic to
         transport along as diagonal of the parallelogram.
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, dimension]
-                                   or shape=[1, dimension]
-        next_point : array-like, shape=[n_samples, dimension]
-                                   or shape=[1, dimension]
-        base_shoot : array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
+        base_point : array-like
+            shape=[n_samples, dimension] or shape=[1, dimension]
+        next_point : array-like
+            shape=[n_samples, dimension] or shape=[1, dimension]
+        base_shoot : array-like
+            shape=[n_samples, dimension] or shape=[1, dimension]
 
         Returns
         -------
-        transported_tangent_vector : array-like, shape=[n_samples, dimension]
-                                                or shape=[1, dimension]
-        end_point : array-like, shape=[n_samples, dimension]
-                                                or shape=[1, dimension]
+        transported_tangent_vector : array-like
+            shape=[n_samples, dimension] or shape=[1, dimension]
+        end_point : array-like
+            shape=[n_samples, dimension] or shape=[1, dimension]
 
         References
         ----------
-        .. [1] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transport
-        of Deformations in Time Series of Images: from Schild's to Pole Ladder.
-        Journal of Mathematical Imaging and Vision, Springer Verlag, 2013,
-         50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
+        .. [LP2013a] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transport of
+          Deformations in Time Series of Images: from Schild's to Pole Ladder.
+          Journal of Mathematical Imaging and Vision, Springer Verlag, 2013,
+          50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
         """
         mid_tangent_vector_to_shoot = 1. / 2. * self.log(
                 base_point=base_point,
@@ -194,9 +194,9 @@ class Connection(object):
             self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1):
         """Approximate parallel transport using the pole ladder scheme.
 
-        Approximate Parallel transport using the pole ladder scheme [1]_ [2]_.
-        `tangent_vec_a` is transported along the geodesic starting at the
-        base_point with initial tangent vector `tangent_vec_b`.
+        Approximate Parallel transport using the pole ladder scheme [LP2013b]_
+        [GJSP2019]_. `tangent_vec_a` is transported along the geodesic starting
+        at the base_point with initial tangent vector `tangent_vec_b`.
 
         Returns a tangent vector at the point
         exp_(`base_point`)(`tangent_vec_b`).
@@ -219,15 +219,15 @@ class Connection(object):
 
         References
         ----------
-        .. [1] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transport
-        of Deformations in Time Series of Images: from Schild's to Pole Ladder.
-        Journal of Mathematical Imaging and Vision, Springer Verlag, 2013,
-        50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
+        .. [LP2013b] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transport of
+          Deformations in Time Series of Images: from Schild's to Pole Ladder.
+          Journal of Mathematical Imaging and Vision, Springer Verlag, 2013,
+          50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
 
-        .. [2] N. Guigui, Shuman Jia, Maxime Sermesant, Xavier Pennec.
-        Symmetric Algorithmic Components for Shape Analysis with
-        Diffeomorphisms. GSI 2019, Aug 2019, Toulouse, France. pp.10.
-        ⟨hal-02148832⟩
+        .. [GJSP2019] N. Guigui, Shuman Jia, Maxime Sermesant, Xavier Pennec.
+          Symmetric Algorithmic Components for Shape Analysis with
+          Diffeomorphisms. GSI 2019, Aug 2019, Toulouse, France. pp.10.
+          ⟨hal-02148832⟩
         """
         current_point = gs.copy(base_point)
         transported_tangent_vector = gs.copy(tangent_vec_a)
