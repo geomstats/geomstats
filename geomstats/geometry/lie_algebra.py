@@ -120,7 +120,7 @@ class MatrixLieAlgebra:
         basis_representation: array-like, shape=[n_sample, dimension]
 
         Returns
-        ------
+        -------
         matrix_representation: array-like, shape=[n_sample, n, n]
         """
         basis_representation = gs.to_ndarray(basis_representation, to_ndim=2)
