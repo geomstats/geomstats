@@ -1,6 +1,4 @@
-"""
-Riemannian and pseudo-Riemannian metrics.
-"""
+"""Riemannian and pseudo-Riemannian metrics."""
 
 import math
 
@@ -14,7 +12,8 @@ N_MAX_ITERATIONS = 50000
 
 
 def loss(y_pred, y_true, metric):
-    """
+    """Compute loss function between prediction and ground truth.
+
     Loss function given by a Riemannian metric,
     expressed as the squared geodesic distance between the prediction
     and the ground truth.
@@ -24,9 +23,7 @@ def loss(y_pred, y_true, metric):
 
 
 def grad(y_pred, y_true, metric):
-    """
-    Closed-form for the gradient of the loss function.
-    """
+    """Closed-form for the gradient of the loss function."""
     tangent_vec = metric.log(base_point=y_pred, point=y_true)
     grad_vec = - 2. * tangent_vec
 
@@ -40,9 +37,7 @@ def grad(y_pred, y_true, metric):
 
 
 class RiemannianMetric(object):
-    """
-    Class for Riemannian and pseudo-Riemannian metrics.
-    """
+    """Class for Riemannian and pseudo-Riemannian metrics."""
 
     def __init__(self, dimension, signature=None):
         assert isinstance(dimension, int) or dimension == math.inf
@@ -51,8 +46,8 @@ class RiemannianMetric(object):
         self.signature = signature
 
     def inner_product_matrix(self, base_point=None):
-        """
-        Inner product matrix at the tangent space at a base point.
+        """Inner product matrix at the tangent space at a base point.
+
         Parameters
         ----------
         base_point : array-like, shape=[n_samples, dimension], optional
@@ -62,8 +57,8 @@ class RiemannianMetric(object):
             ' is not implemented.')
 
     def inner_product_inverse_matrix(self, base_point=None):
-        """
-        Inner product matrix at the tangent space at a base point.
+        """Inner product matrix at the tangent space at a base point.
+
         Parameters
         ----------
         base_point : array-like, shape=[n_samples, dimension], optional
@@ -130,7 +125,7 @@ class RiemannianMetric(object):
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
-        """Computed the square of the norm of a vector.
+        """Compute the square of the norm of a vector.
 
         Squared norm of a vector associated to the inner product
         at the tangent space at a base point.
@@ -147,7 +142,8 @@ class RiemannianMetric(object):
         return sq_norm
 
     def norm(self, vector, base_point=None):
-        """
+        """Compute norm of a vector.
+
         Norm of a vector associated to the inner product
         at the tangent space at a base point.
 
@@ -199,7 +195,8 @@ class RiemannianMetric(object):
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
                  point_type='vector'):
-        """
+        """Return the geodesic as function of t.
+
         Geodesic curve defined by either:
         - an initial point and an initial tangent vector,
         or
@@ -207,7 +204,6 @@ class RiemannianMetric(object):
 
         The geodesic is returned as a function parameterized by t.
         """
-
         point_ndim = 1
         if point_type == 'matrix':
             point_ndim = 2
@@ -274,8 +270,8 @@ class RiemannianMetric(object):
         return sq_dist
 
     def dist(self, point_a, point_b):
-        """
-        Geodesic distance between two points.
+        """Geodesic distance between two points.
+
         Note: It only works for positive definite
         Riemannian metrics.
 
@@ -473,7 +469,8 @@ class RiemannianMetric(object):
                                       n_max_iterations=32,
                                       epsilon=1e-12,
                                       init_points=[]):
-        """
+        """Compute the Frechet mean using gradient descent.
+
         Frechet mean of (weighted) points using adaptive time-steps
         The loss function optimized is ||M_1(x)||_x (where M_1(x) is
         the tangent mean at x) rather than the mean-square-distance (MSD)
@@ -489,7 +486,6 @@ class RiemannianMetric(object):
 
         epsilon: tolerance for stopping the gradient descent
         """
-
         # TODO(Xavier): This function assumes that all points are lists
         #  of vectors and not of matrices
         n_points = gs.shape(points)[0]
@@ -548,7 +544,8 @@ class RiemannianMetric(object):
         return gs.to_ndarray(current_mean, to_ndim=2)
 
     def tangent_pca(self, points, base_point=None, point_type='vector'):
-        """
+        """Tangent PCA of points on the tangent space wrt a base point.
+
         Tangent Principal Component Analysis (tPCA) of points
         on the tangent space at a base point.
         """
@@ -570,7 +567,8 @@ class RiemannianMetric(object):
         return eigenvalues, tangent_eigenvecs
 
     def diameter(self, points):
-        """
+        """Give the distance between two farthest points.
+
         Distance between the two points that are farthest away from each other
         in points.
         """
@@ -585,9 +583,7 @@ class RiemannianMetric(object):
         return diameter
 
     def closest_neighbor_index(self, point, neighbors):
-        """
-        Closest neighbor of point among neighbors.
-        """
+        """Closest neighbor of point among neighbors."""
         dist = self.dist(point, neighbors)
         closest_neighbor_index = gs.argmin(dist)
 

@@ -477,7 +477,7 @@ class Hyperbolic(EmbeddedManifold):
 
 
 class HyperbolicMetric(RiemannianMetric):
-    """Class that defines operations using a Riemannian metric."""
+    """Class that defines operations using a Hyperbolic metric."""
 
     def __init__(self, dimension, point_type='extrinsic', scale=1):
         super(HyperbolicMetric, self).__init__(
@@ -489,8 +489,7 @@ class HyperbolicMetric(RiemannianMetric):
         self.scale = scale
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """
-        Inner product.
+        """Compute the inner product of two tangent vectors at a base point.
 
         Parameters
         ----------

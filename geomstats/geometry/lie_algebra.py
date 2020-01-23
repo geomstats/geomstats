@@ -104,7 +104,7 @@ class MatrixLieAlgebra:
         matrix_representation: array-like, shape=[n_sample, n, n]
 
         Returns
-        ------
+        -------
         basis_representation: array-like, shape=[n_sample, dimension]
         """
         raise NotImplementedError("basis_representation not implemented.")
