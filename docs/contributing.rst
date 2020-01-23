@@ -46,7 +46,7 @@ following rules before submitting:
    or `pull requests <https://github.com/geomstats/geomstats/pulls?q=>`_.
 
 -  If you are submitting a bug report, we strongly encourage you to
-  follow the guidelines in :ref:`filing_bugs`.
+   follow the guidelines in :ref:`filing_bugs`.
 
 .. _filing_bugs:
 
@@ -186,8 +186,8 @@ complies with the following rules. The **bolded** ones are especially important:
    cases "Fix <ISSUE TITLE>" is enough. "Fix #<ISSUE NUMBER>" is never a
    good title.
 
-2. **Make sure that your code is vectorized**, see
-   `<https://www.geeksforgeeks.org/vectorization-in-python/>`_.
+2. **Make sure that your code is** `vectorized
+   <https://www.geeksforgeeks.org/vectorization-in-python/>`_.
 
 3. **Submit your code with associated unit tests**. High-quality
    `unit testing <https://en.wikipedia.org/wiki/Unit_testing>`_
@@ -374,7 +374,7 @@ In the vast majority of cases, you only need to generate the full web site::
 Guidelines for writing documentation
 ------------------------------------
 
-* When writing docstrings, follow the `NumPy` template `<https://numpydoc.readthedocs.io/en/latest/format.html>`_::
+* When writing docstrings, follow the `<NumPy template https://numpydoc.readthedocs.io/en/latest/format.html>`_::
 
     def my_method(self, my_param_1, my_param_2):
         """Write a short title for the method.
