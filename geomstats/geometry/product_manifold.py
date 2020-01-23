@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 """Product of manifolds."""
+=======
+"""Define a product of manifolds."""
+>>>>>>> Add an example for the Poincare polydisk.
 
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
@@ -45,6 +49,7 @@ class ProductManifold(Manifold):
         super(ProductManifold, self).__init__(
             dimension=sum(dimensions))
 
+<<<<<<< HEAD
     def belongs(self, point, point_type=None):
         """Check if the point belongs to the manifold.
 
@@ -93,6 +98,19 @@ class ProductManifold(Manifold):
         Returns
         -------
         regularize_points
+=======
+    def belongs(self, point):
+        """Check if the point belongs to the manifold."""
+        belong = [self.manifolds[i_manifold].belongs(point[i_manifold])
+                  for i_manifold in range(self.n_manifolds)]
+        return gs.all(belong)
+
+    def regularize(self, point):
+        """Regularize a point's coordinates.
+
+        Regularize the point's coordinates to the canonical representation
+        chosen for this manifold.
+>>>>>>> Add an example for the Poincare polydisk.
         """
         # TODO(nina): Vectorize.
         if point_type is None:
@@ -113,6 +131,7 @@ class ProductManifold(Manifold):
 
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
+<<<<<<< HEAD
                  point_type=None):
         """Compute geodesic curve for a product metric.
 
@@ -128,6 +147,13 @@ class ProductManifold(Manifold):
         Returns
         -------
         geodesics : array-like
+=======
+                 point_type='vector'):
+        """Compute the geodesic of a product manifold with a product metric.
+
+        Geodesic curve for a product metric seen as the product of the geodesic
+        on each space.
+>>>>>>> Add an example for the Poincare polydisk.
         """
         if point_type is None:
             point_type = self.default_point_type

@@ -2,6 +2,7 @@
 
 The n-dimensional Hyperbolic space embedded in (n+1)-dimensional
 Minkowski space.
+=======
 """
 
 import logging
@@ -38,8 +39,13 @@ INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
 EPSILON = 1e-5
 
 
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
 class Hyperbolic(EmbeddedManifold):
     """Class for the n-dimensional Hyperbolic space.
+=======
+class HyperbolicSpace(EmbeddedManifold):
+    """Class for the Hyperbolic space.
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
     Class for the n-dimensional Hyperbolic space
     as embedded in (n+1)-dimensional Minkowski space.
@@ -83,11 +89,19 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _belongs_ball(point, tolerance=TOLERANCE):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Evaluate if a point belongs to the Hyperbolic space (poin. ball).
 
         Evaluate if a point belongs to the Hyperbolic space based on
         the poincare ball representation, i.e. evaluate if its
         squared norm is lower than one.
+=======
+        """Test if a point belongs to the ball.
+
+        Evaluate if a point belongs to the Hyperbolic space, based on
+        poincare ball representation,
+        i.e. evaluate if its squared norm is lower than one
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         Parameters
         ----------
@@ -102,10 +116,17 @@ class Hyperbolic(EmbeddedManifold):
         return gs.sum(point**2, -1) < (1 + tolerance)
 
     def belongs(self, point, tolerance=TOLERANCE):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Evaluate if a point belongs to the Hyperbolic space.
 
         Evaluate if a point belongs to the Hyperbolic space according
         to the current representation
+=======
+        """Test if a point belongs the Hyperbolic space.
+
+        Evaluate if a point belongs to the Hyperbolic space,
+        according to the current representation
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         Parameters
         ----------
@@ -140,10 +161,17 @@ class Hyperbolic(EmbeddedManifold):
             return belongs
 
     def regularize(self, point):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Regularize a point to the canonical representation.
 
         Regularize a point to the canonical representation chosen
         for the Hyperbolic space, to avoid numerical issues.
+=======
+        """Regularize a point to the Hyperbolic space.
+
+        Regularize a point to the canonical representation
+        chosen for the Hyperbolic space, to avoid numerical issues.
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         Parameters
         ----------
@@ -169,10 +197,17 @@ class Hyperbolic(EmbeddedManifold):
         return projected_point
 
     def projection_to_tangent_space(self, vector, base_point):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Project a vector in Minkowski space.
 
         Project a vector in Minkowski space on the tangent space
         of the Hyperbolic space at a base point.
+=======
+        """Project a vector on the tangent space.
+
+        Project a vector in Minkowski space
+        on the tangent space of the Hyperbolic space at a base point.
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         Parameters
         ----------
@@ -195,10 +230,17 @@ class Hyperbolic(EmbeddedManifold):
         return tangent_vec
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Convert the parameterization of a point.
 
         Convert the parameterization of a point on the Hyperbolic
         space from its intrinsic coordinates to its extrinsic coordinates
+=======
+        """Convert intrinsic to extrinsic coordinates.
+
+        Convert the parameterization of a point on the Hyperbolic space
+        from its intrinsic coordinates, to its extrinsic coordinates
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
         in Minkowski space.
 
         Parameters
@@ -213,7 +255,11 @@ class Hyperbolic(EmbeddedManifold):
             point_intrinsic)
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Convert the parameterization of a point.
+=======
+        """Convert extrinsic to intrinsic coordinates.
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         Convert the parameterization of a point on the Hyperbolic space
         from its extrinsic coordinates, to its intrinsic coordinates
@@ -236,7 +282,11 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _intrinsic_to_extrinsic_coordinates(point_intrinsic):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Convert point parameterization from intrinsic to extrensic coords.
+=======
+        """Convert intrinsic to extrinsic coordinates.
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         Convert the parameterization of a point on the Hyperbolic space
         from its intrinsic coordinates, to its extrinsic coordinates
@@ -261,7 +311,11 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _extrinsic_to_intrinsic_coordinates(point_extrinsic):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Convert point parameterization from extrensic to intrinsic coords.
+=======
+        """Convert extrinsic to intrinsic coordinates.
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         Convert the parameterization of a point on the Hyperbolic space
         from its extrinsic coordinates in Minkowski space, to its
@@ -283,7 +337,11 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _extrinsic_to_ball_coordinates(point):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Convert point parameterization from extrensic to ball coordinates.
+=======
+        """Convert extrinsic to ball coordinates.
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         Convert the parameterization of a point on the Hyperbolic space
         from its intrinsic coordinates, to the poincare ball model
@@ -303,7 +361,11 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _ball_to_extrinsic_coordinates(point):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Convert point parameterization from ball to extrensic coordinates.
+=======
+        """Convert the coordinates type from ball to extrinsic.
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         Convert the parameterization of a point on the Hyperbolic space
         from its poincare ball model coordinates, to the extrinsic
@@ -330,7 +392,11 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _half_plane_to_extrinsic_coordinates(point):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Convert point parameterization from half-plane to extrinsic coords.
+=======
+        """Convert the coordinates type from half plane to extrinsic.
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         Convert the parameterization of a point on the Hyperbolic space
         from its upper half plane model coordinates, to the extrinsic
@@ -359,7 +425,11 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _extrinsic_to_half_plane_coordinates(point):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Convert point parameterization from extrensic to half-plane coords.
+=======
+        """Convert the coordinates type from extrinsic to half plane.
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         Convert the parameterization of a point on the Hyperbolic space
         from its intrinsic coordinates, to the poincare upper half plane
@@ -397,7 +467,11 @@ class Hyperbolic(EmbeddedManifold):
         return point_half_plane
 
     def to_coordinates(self, point, to_point_type='ball'):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Convert point parameterization from current to specified coords.
+=======
+        """Convert coordinates type to the ball type.
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         Convert the parameterization of a point on the Hyperbolic space
         from current coordinates system to the coordinates system given
@@ -428,7 +502,11 @@ class Hyperbolic(EmbeddedManifold):
                 ](extrinsic)
 
     def from_coordinates(self, point, from_point_type):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Convert point parameterization from provided to current coords.
+=======
+        """Convert coordinates type to the current coordinates system.
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         Convert the parameterization of a point on the Hyperbolic space
         from given coordinates system to the current coordinates system
@@ -488,7 +566,11 @@ class HyperbolicMetric(RiemannianMetric):
         self.scale = scale
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Compute the inner product of two tangent vectors at a base point.
+=======
+        """Define the inner product.
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         Parameters
         ----------
@@ -504,12 +586,17 @@ class HyperbolicMetric(RiemannianMetric):
         inner_prod : array-like, shape=[n_samples, 1]
                                  or shape=[1, 1]
         """
-        inner_prod = self.scale ** 2 * self.embedding_metric.inner_product(
+        inner_prod = self.embedding_metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point)
+        inner_prod *= self.scale ** 2
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Compute the squared norm of a vector at a given base point.
+=======
+        """Define the squared norm of a vector.
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         Squared norm of a vector associated with the inner product
         at the tangent space at a base point. Extrinsic base point only
@@ -526,12 +613,16 @@ class HyperbolicMetric(RiemannianMetric):
         sq_norm : array-like, shape=[n_samples, 1]
                               or shape=[1, 1]
         """
-        sq_norm = self.scale ** 2 * self.embedding_metric.squared_norm(vector)
-
+        sq_norm = self.embedding_metric.squared_norm(vector)
+        sq_norm *= self.scale ** 2
         return sq_norm
 
     def exp(self, tangent_vec, base_point):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Compute Riemannian exponential of tangent vector wrt to base point.
+=======
+        """Riemannian exponential of a tangent vector wrt to a base point.
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         Parameters
         ----------
@@ -610,7 +701,11 @@ class HyperbolicMetric(RiemannianMetric):
                     'exp is only implemented for ball and extrinsic')
 
     def log(self, point, base_point):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Compute Riemannian logarithm of a point wrt a base point.
+=======
+        """Riemannian logarithm of a point wrt a base point.
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         If point_type = 'poincare' then base_point belongs
         to the Poincare ball and point is a vector in the euclidean
@@ -632,7 +727,7 @@ class HyperbolicMetric(RiemannianMetric):
             point = gs.to_ndarray(point, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
 
-            angle = self.dist(base_point, point)
+            angle = self.dist(base_point, point) / self.scale
             angle = gs.to_ndarray(angle, to_ndim=1)
             angle = gs.to_ndarray(angle, to_ndim=2)
 
@@ -688,10 +783,18 @@ class HyperbolicMetric(RiemannianMetric):
                     'log is only implemented for ball and extrinsic')
 
     def mobius_add(self, point_a, point_b):
+<<<<<<< HEAD:geomstats/geometry/hyperbolic.py
         """Compute the mobius addition of two points.
 
         Mobius addition is necessary for computation of the log and exp
         using the 'poincare' representation set as point_type.
+=======
+        """Define the Mobius addition.
+
+        Mobius addition operation that is necessary operation
+        to compute the log and exp using the 'poincare'
+        representation set as point_type.
+>>>>>>> Add an example for the Poincare polydisk.:geomstats/geometry/hyperbolic_space.py
 
         Parameters
         ----------
@@ -754,8 +857,8 @@ class HyperbolicMetric(RiemannianMetric):
             cosh_angle = gs.clip(cosh_angle, 1.0, 1e24)
 
             dist = gs.arccosh(cosh_angle)
-
-            return self.scale * dist
+            dist *= self.scale
+            return dist
 
         elif self.point_type == 'ball':
 
@@ -769,8 +872,8 @@ class HyperbolicMetric(RiemannianMetric):
             dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
             dist = gs.to_ndarray(dist, to_ndim=1)
             dist = gs.to_ndarray(dist, to_ndim=2, axis=1)
-
-            return self.scale * dist
+            dist *= self.scale
+            return dist
 
         else:
             raise NotImplementedError(
