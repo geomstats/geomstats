@@ -1,17 +1,16 @@
 """Template unit tests for scikit-learn estimators."""
 
 from sklearn.datasets import load_iris
-from sklearn.utils.estimator_checks import check_estimator
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.learning._template import (
+    TemplateClassifier,
+    TemplateEstimator,
+    TemplateTransformer
+)
 
-from geomstats.learning._template import (TemplateEstimator,
-                                          TemplateTransformer,
-                                          TemplateClassifier)
-
-
-ESTIMATORS = (TemplateEstimator, TemplateTransformer, TemplateClassifier)
+ESTIMATORS = (TemplateClassifier, TemplateEstimator, TemplateTransformer)
 
 
 class TestEstimators(geomstats.tests.TestCase):
@@ -20,15 +19,7 @@ class TestEstimators(geomstats.tests.TestCase):
     def setUp(self):
         self.data = load_iris(return_X_y=True)
 
-    def test_check_template_estimator(self):
-        check_estimator(TemplateEstimator)
-
-    def test_check_template_transformer(self):
-        check_estimator(TemplateTransformer)
-
-    def test_check_template_classifier(self):
-        check_estimator(TemplateClassifier)
-
+    @geomstats.tests.np_only
     def test_template_estimator(self):
         est = TemplateEstimator()
         self.assertEqual(est.demo_param, 'demo_param')
@@ -41,6 +32,7 @@ class TestEstimators(geomstats.tests.TestCase):
         y_pred = est.predict(X)
         self.assertAllClose(y_pred, gs.ones(gs.shape(X)[0]))
 
+    @geomstats.tests.np_only
     def test_template_transformer_error(self):
         X, y = self.data
         n_samples = gs.shape(X)[0]
@@ -63,6 +55,7 @@ class TestEstimators(geomstats.tests.TestCase):
         X_trans = trans.fit_transform(X)
         self.assertAllClose(X_trans, gs.sqrt(X))
 
+    @geomstats.tests.np_and_tf_only
     def test_template_classifier(self):
         X, y = self.data
         clf = TemplateClassifier()

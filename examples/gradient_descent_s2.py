@@ -19,9 +19,8 @@ import numpy as np
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
-
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.spd_matrices_space import SPDMatricesSpace
+from geomstats.geometry.spd_matrices import SPDMatrices
 
 
 SPHERE2 = Hypersphere(dimension=2)
@@ -79,7 +78,7 @@ def plot_and_save_video(geodesics,
 
 def generate_well_behaved_matrix():
     """Generate a matrix with real eigenvalues."""
-    matrix = 2 * SPDMatricesSpace(n=3).random_uniform()[0]
+    matrix = 2 * SPDMatrices(n=3).random_uniform()[0]
     assert np.linalg.det(matrix) > 0
     return matrix
 

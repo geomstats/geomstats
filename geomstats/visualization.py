@@ -1,20 +1,19 @@
 """Visualization for Geometric Statistics."""
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 import geomstats.backend as gs
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup
-from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.geometry.special_euclidean import SpecialEuclidean
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
-SE3_GROUP = SpecialEuclideanGroup(n=3)
-SO3_GROUP = SpecialOrthogonalGroup(n=3)
+SE3_GROUP = SpecialEuclidean(n=3)
+SO3_GROUP = SpecialOrthogonal(n=3)
 S1 = Hypersphere(dimension=1)
 S2 = Hypersphere(dimension=2)
-H2 = HyperbolicSpace(dimension=2)
+H2 = Hyperbolic(dimension=2)
 
 AX_SCALE = 1.2
 
@@ -112,8 +111,9 @@ class Sphere():
         if n_circles_latitude is None:
             n_circles_latitude = max(n_meridians / 2, 4)
 
-        u, v = np.mgrid[0:2 * gs.pi:n_meridians * 1j,
-                        0:gs.pi:n_circles_latitude * 1j]
+        u, v = gs.meshgrid(
+            gs.arange(0, 2 * gs.pi, 2 * gs.pi / n_meridians),
+            gs.arange(0, gs.pi, gs.pi / n_circles_latitude))
 
         self.center = gs.zeros(3)
         self.radius = 1

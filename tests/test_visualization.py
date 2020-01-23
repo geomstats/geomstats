@@ -8,20 +8,20 @@ import matplotlib.pyplot as plt
 
 import geomstats.tests
 import geomstats.visualization as visualization
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup
-from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.geometry.special_euclidean import SpecialEuclidean
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestVisualizationMethods(geomstats.tests.TestCase):
     def setUp(self):
         self.n_samples = 10
-        self.SO3_GROUP = SpecialOrthogonalGroup(n=3)
-        self.SE3_GROUP = SpecialEuclideanGroup(n=3)
+        self.SO3_GROUP = SpecialOrthogonal(n=3)
+        self.SE3_GROUP = SpecialEuclidean(n=3)
         self.S1 = Hypersphere(dimension=1)
         self.S2 = Hypersphere(dimension=2)
-        self.H2 = HyperbolicSpace(dimension=2)
+        self.H2 = Hyperbolic(dimension=2)
 
         plt.figure()
 
