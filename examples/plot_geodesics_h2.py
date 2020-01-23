@@ -1,4 +1,4 @@
-"""Plot geodesics in H2.
+"""Plot a geodesic in H2.
 
 Plot a geodesic on the Hyperbolic space H2.
 With Poincare Disk visualization.
@@ -12,7 +12,7 @@ import numpy as np
 import geomstats.visualization as visualization
 from geomstats.geometry.hyperbolic import Hyperbolic
 
-H2 = Hyperbolic(dimension=2)
+H2 = Hyperbolic(dimension=2, point_type='extrinsic', scale=1)
 METRIC = H2.metric
 
 
@@ -38,9 +38,8 @@ def plot_geodesic_with_initial_tangent_vector(initial_point,
     assert H2.belongs(initial_point)
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                initial_tangent_vec=initial_tangent_vec)
-    n_steps = 10
-    t = np.linspace(0, 1, n_steps)
 
+    t = np.linspace(0, 1, n_steps)
     points = geodesic(t)
     visualization.plot(points, ax=ax, space='H2_poincare_disk')
 

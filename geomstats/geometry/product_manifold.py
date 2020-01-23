@@ -15,25 +15,28 @@ class ProductManifold(Manifold):
     In contrast to the class Landmarks or DiscretizedCruves,
     the manifolds M_1, ..., M_n need not be the same, nor of
     same dimension, but the list of manifolds needs to be provided.
-
-    By default, a point is represented by an array of shape
-    [n_samples, dim_1 + ... + dim_n_manifolds] where n_manifolds is the number
-    of manifolds in the product. This type of representation is called
-    'vector'.
-
-    Alternatively, a point can be represented by an array of shape
-    [n_samples, n_manifolds, dim] if the n_manifolds have same dimension dim.
-    This type of representation is called `matrix`.
-
-    Parameters
-    ----------
-    manifolds : list
-        List of manifolds in the product.
-    default_point_type : str, {'vector', 'matrix'}
-        Default representation of points.
     """
 
     def __init__(self, manifolds, default_point_type='vector'):
+        """Instantiate an object of the class ProductManifold.
+
+        By default, a point is represented by an array of shape:
+            [n_samples, dim_1 + ... + dim_n_manifolds]
+        where n_manifolds is the number of manifolds in the product.
+        This type of representation is called 'vector'.
+
+        Alternatively, a point can be represented by an array of shape:
+            [n_samples, n_manifolds, dim]
+        if the n_manifolds have same dimension dim.
+        This type of representation is called `matrix`.
+
+        Parameters
+        ----------
+        manifolds : list
+            list of manifolds in the product
+        default_point_type : str, {'vector', 'matrix'}
+            default representation of points
+        """
         assert default_point_type in ['vector', 'matrix']
         self.default_point_type = default_point_type
 
@@ -94,6 +97,7 @@ class ProductManifold(Manifold):
         point : array-like, shape=[n_samples, dim]
                            or shape=[n_samples, dim_2, dim_2]
             Point to be regularized.
+
         point_type : str, {'vector', 'matrix'}
             Representation of point.
 
