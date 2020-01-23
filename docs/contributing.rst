@@ -374,7 +374,7 @@ In the vast majority of cases, you only need to generate the full web site::
 Guidelines for writing documentation
 ------------------------------------
 
-* When writing docstrings, follow the `NumPy` template::
+* When writing docstrings, follow the `NumPy` template `<https://numpydoc.readthedocs.io/en/latest/format.html>`_::
 
     def my_method(self, my_param_1, my_param_2):
         """Write a short title for the method.
@@ -555,3 +555,5 @@ from high-level questions to a more detailed check-list.
 - Does the documentation render properly (see the
   :ref:`contribute_documentation` section for more details), and are the plots
   instructive?
+
+- Upon merging, use the ``Rebase and Merge`` option to keep git history clean.
