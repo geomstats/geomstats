@@ -303,40 +303,6 @@ class Hypersphere(EmbeddedManifold):
 
         return point
 
-    def random_von_mises_fisher2(self, kappa=10, n_samples=1):
-        """Sample in the 2-sphere with the von Mises distribution.
-
-        Sample in the 2-sphere with the von Mises distribution centered in the
-        north pole.
-
-        Parameters
-        ----------
-        kappa : int, optional
-        n_samples : int, optional
-
-        Returns
-        -------
-        point : array-like
-        """
-        if self.dimension != 2:
-            raise NotImplementedError(
-                    'Sampling from the von Mises Fisher distribution'
-                    'is only implemented in dimension 2.')
-        angle = 2. * gs.pi * gs.random.rand(n_samples)
-        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
-        unit_vector = gs.hstack((gs.cos(angle), gs.sin(angle)))
-        scalar = gs.random.rand(n_samples)
-
-        coord_z = 1. + 1. / kappa * gs.log(
-            scalar + (1. - scalar) * gs.exp(gs.array(-2. * kappa)))
-        coord_z = gs.to_ndarray(coord_z, to_ndim=2, axis=1)
-
-        coord_xy = gs.sqrt(1. - coord_z**2) * unit_vector
-
-        point = gs.hstack((coord_xy, -coord_z))
-
-        return point
-
 
 class HypersphereMetric(RiemannianMetric):
     """Class for the Hypersphere Metric."""
