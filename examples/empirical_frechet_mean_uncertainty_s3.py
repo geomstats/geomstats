@@ -23,6 +23,23 @@ from geomstats.geometry.hypersphere import Hypersphere
 # NN = number of trials for the stochastic integral of expectation
 # Ntheta = number of points on the curve sig_est(theta)
 
+def my_random_uniform_sphere(n):
+    #locals(x,xn)
+    # Random coordinates between -1 and 1
+    x = (np.random.random_sample(n+1)*2.0 -1.0)
+    nx = np.linalg.norm(x)
+    while nx > 1 or nx < 1.e-10:
+       x = (np.random.random_sample(n+1)*2.0 -1.0)
+       nx = np.linalg.norm(x)
+    return(x/nx)
+
+def my_random_sample(N, dim):
+    X = np.zeros( (N, dim+1), dtype=gs.float64)
+    for i in range(N):
+        X[i,:] = my_random_uniform_sphere(dim)
+    return X
+
+
 
 def empirical_var(n, theta, dim, NN=1000):
     """
@@ -46,6 +63,7 @@ def empirical_var(n, theta, dim, NN=1000):
         data = gs.zeros((n, dim+1), dtype=gs.float64)
         # For sampling on a subsphere, use RandomUniform(dim-1)
         directions = subsphere.random_uniform(n)
+        # directions = my_random_sample(n, dim-1)
         for i in range(n):
             for j in range(dim):
                 data[i,j] = gs.sin(theta) * directions[i,j]
@@ -97,10 +115,10 @@ def plot_modulation_factor(n, dim, NN=1000, Ntheta=20):
     plt.ylabel(r'Modulation factor $\alpha$')
     plt.title("Convergence rate modulation factor, sphere dim={1}, n={0}".format(n, dim))
     plt.legend(loc='best')
-    plt.show()
-    # TODO(Xavier): find why there is FileNotFoundError: [Errno 2] when saving
+    plt.draw()
+    plt.pause(0.01)
     ## plt.savefig("Figures/SphVarModulation_N{0}_d{1}.svg".format(n, dim))
-    ## plt.savefig("./Figures/SphVarModulation_N{0}_d{1}.png".format(n, dim))
+    plt.savefig("Figures/SphVarModulation_N{0}_d{1}.pdf".format(n, dim))
     return plt
 
 
@@ -128,39 +146,39 @@ def multiplot_modulation_factor(dim, NN=1000, Ntheta=20):
     plt.ylabel(r'Modulation factor $\alpha$')
     plt.legend(loc='best')
     plt.title("Convergence rate modulation factor, sphere, dim={0}, N > 5".format(dim))
-    plt.show()
-    # TODO(Xavier): find why there is FileNotFoundError: [Errno 2] when saving
+    plt.draw()
+    plt.pause(0.01)
     ## plt.savefig("Figures/SphVarModulation_N10p_d{0}.svg".format(dim))
-    ## plt.savefig("Figures/SphVarModulation_N10p_d{0}.png".format(dim))
+    plt.savefig("Figures/SphVarModulation_N10p_d{0}.pdf".format(dim))
     return plt
 
 
 def main():
     NN = 10;
 
-    print("Var of empirical mean for 1 sample, theta=0.1 in S2", EmpiricalVar(1, 0.1, 2), "\n")
-    print("Var of empirical mean for 1 sample, theta=0.1 in S3", EmpiricalVar(1, 0.1, 3), "\n")
+    print("Var of empirical mean for 1 sample, theta=0.1 in S2", empirical_var(1, 0.1, 2, NN=NN), "\n")
+    print("Var of empirical mean for 1 sample, theta=0.1 in S3", empirical_var(1, 0.1, 3, NN=NN), "\n")
 
     print("Modulation factor for 1 sample theta=0.1 in S2 (should be close to 1):",
-          modulation_factor(1, 0.1, 2), "\n")
+          modulation_factor(1, 0.1, 2, NN=NN), "\n")
 
-    print("Modulation factor for 500 sample theta close to Pi/2 in S5 (should be around 26):",
-          modulation_factor(500, gs.pi / 2 - 0.001, 5), "\n")
+    print("Modulation factor for 500 sample theta close to Pi/2 in S5 (should be around 25):",
+          modulation_factor(500, gs.pi / 2 - 0.001, 5, NN=NN), "\n")
 
-    plot_modulation_factor(2, 2)
-    # plot_modulation_factor(3, 2)
-    plot_modulation_factor(4, 2)
-    # plot_modulation_factor(5, 2)
-    plot_modulation_factor(10, 2)
+    plot_modulation_factor(2, 2, NN=NN)
+    # plot_modulation_factor(3, 2, NN=NN)
+    plot_modulation_factor(4, 2, NN=NN)
+    # plot_modulation_factor(5, 2, NN=NN)
+    plot_modulation_factor(10, 2, NN=NN)
 
-    # plot_modulation_factor(1)
-    plot_modulation_factor(2, 3)
-    # plot_modulation_factor(3, 3)
-    plot_modulation_factor(4, 3)
-    # plot_modulation_factor(5, 3)
+    # plot_modulation_factor(1, 3, NN=NN)
+    plot_modulation_factor(2, 3, NN=NN)
+    # plot_modulation_factor(3, 3, NN=NN)
+    plot_modulation_factor(4, 3, NN=NN)
+    # plot_modulation_factor(5, 3, NN=NN)
 
 
-    multiplot_modulation_factor(3)
+    multiplot_modulation_factor(3, NN=NN)
 
 if __name__ == "__main__":
     main()
