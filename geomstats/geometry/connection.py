@@ -160,10 +160,10 @@ class Connection(object):
 
         References
         ----------
-        .. [LP2013a] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transport of
-          Deformations in Time Series of Images: from Schild's to Pole Ladder.
-          Journal of Mathematical Imaging and Vision, Springer Verlag, 2013,
-          50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
+        .. [LP2013a] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transport
+         of Deformations in Time Series of Images: from Schild's to
+         Pole Ladder. Journal of Mathematical Imaging and Vision, Springer
+         Verlag, 2013,50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
         """
         mid_tangent_vector_to_shoot = 1. / 2. * self.log(
                 base_point=base_point,
@@ -219,10 +219,10 @@ class Connection(object):
 
         References
         ----------
-        .. [LP2013b] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transport of
-          Deformations in Time Series of Images: from Schild's to Pole Ladder.
-          Journal of Mathematical Imaging and Vision, Springer Verlag, 2013,
-          50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
+        .. [LP2013b] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transpor
+          of Deformations in Time Series of Images: from Schild's to
+          Pole Ladder.Journal of Mathematical Imaging and Vision, Springer
+          Verlag, 2013, 50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
 
         .. [GJSP2019] N. Guigui, Shuman Jia, Maxime Sermesant, Xavier Pennec.
           Symmetric Algorithmic Components for Shape Analysis with

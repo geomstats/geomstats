@@ -452,23 +452,25 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return vec
 
     def rotation_vector_from_matrix(self, rot_mat):
-        """Convert rotation matrix (in 3D) to rotation vector (axis-angle rep).
+        r"""Convert rotation matrix (in 3D) to rotation vector (axis-angle).
 
         Get the angle through the trace of the rotation matrix:
         The eigenvalues are:
-        1, cos(angle) + i sin(angle), cos(angle) - i sin(angle)
-        so that: trace = 1 + 2 cos(angle), -1 <= trace <= 3
+        :math:`\{1, \cos(angle) + i \sin(angle), \cos(angle) - i \sin(angle)\}`
+        so that:
+        :math:`trace = 1 + 2 \cos(angle), \{-1 \leq trace \leq 3\}`
 
         Get the rotation vector through the formula:
-        S_r = angle / ( 2 * sin(angle) ) (R - R^T)
+        :math:`S_r = \frac{angle}{(2 * \sin(angle) ) (R - R^T)}`
 
         For the edge case where the angle is close to pi,
         the formulation is derived by going from rotation matrix to unit
         quaternion to axis-angle:
-        r = angle * v / \|v\|, where (w, v) is a unit quaternion.
+        :math:`r = \frac{angle*v}{|v|}`
+        where :math:`(w, v)` is a unit quaternion.
 
-        In nD, the rotation vector stores the n(n-1)/2 values of the
-        skew-symmetric matrix representing the rotation.
+        In nD, the rotation vector stores the :math:`n(n-1)/2` values
+        of the skew-symmetric matrix representing the rotation.
 
         Parameters
         ----------

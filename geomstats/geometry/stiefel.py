@@ -59,9 +59,10 @@ class Stiefel(EmbeddedManifold):
         return belongs
 
     def random_uniform(self, n_samples=1):
-        """Sample on St(n,p) with the uniform distribution.
+        r"""Sample on St(n,p) with the uniform distribution.
 
-        If :math:`Z(p,n) \sim N(0,1)`, then :math:`St(n,p) \sim U`, according to Haar measure:
+        If :math:`Z(p,n) \sim N(0,1)`, then :math:`St(n,p) \sim U`,
+        according to Haar measure:
         :math:`St(n,p) := Z(Z^TZ)^{-1/2}`
         """
         std_normal = gs.random.normal(size=(n_samples, self.n, self.p))
@@ -87,15 +88,23 @@ class StiefelCanonicalMetric(RiemannianMetric):
         self.p = p
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Compute the inner product on the tangent space at a base point.
+        r"""Compute the inner product on the tangent space at a base point.
 
         Canonical inner product on the tangent space at `base_point`,
         which is different from the inner product induced by the embedding.
 
+        .. math::
+
+            \langle\Delta, \tilde{\Delta}\rangle_{U}=\operatorname{tr}
+            \left(\Delta^{T}\left(I-\frac{1}{2} U U^{T}\right)
+            \tilde{\Delta}\right)
+
         References
         ----------
-        .. [sn] Formula from:
-          http://noodle.med.yale.edu/hdtag/notes/steifel_notes.pdf
+        .. [RLSMRZ2017] R Zimmermann. A matrix-algebraic algorithm for the
+          Riemannian logarithm on the Stiefel manifold under the canonical
+          metric. SIAM Journal on Matrix Analysis and Applications 38 (2),
+          322-342, 2017. https://epubs.siam.org/doi/pdf/10.1137/16M1074485
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
