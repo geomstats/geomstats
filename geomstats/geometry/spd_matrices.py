@@ -25,7 +25,7 @@ class SPDMatrices(EmbeddedManifold):
     @staticmethod
     def belongs(mat, atol=TOLERANCE):
         """Check if a matrix is symmetric and invertible."""
-        # FIXME: check positivity, implying invertibility (Yann)
+        # TODO (opeltre): check positivity, implying invertibility.
         #
         # note : vectorized "and" on numpy works with:
         #       [bool] * [bool] -> bool
@@ -73,8 +73,8 @@ class SPDMatrices(EmbeddedManifold):
         """Define a log-uniform random sample of SPD matrices."""
         mat = 2 * gs.random.rand(n_samples, self.n, self.n) - 1
 
-        spd_mat = self.embedding_manifold.exp(
-            mat + gs.transpose(mat, axes=(0, 2, 1)))
+        spd_mat = GeneralLinear.exp(
+                mat + Matrices.transpose(mat))
         return spd_mat
 
     def random_tangent_vec_uniform(self, n_samples=1, base_point=None):

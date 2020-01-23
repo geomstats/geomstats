@@ -38,11 +38,11 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         expected = gs.array([True, True, False])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+#    @geomstats.tests.
     def test_random_uniform_and_belongs(self):
-        point = self.space.random_uniform()
-        result = self.space.belongs(point)
-        expected = gs.array(True)
+        points = self.space.random_uniform(2)
+        result = self.space.belongs(points)
+        expected = gs.array([True, True])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
