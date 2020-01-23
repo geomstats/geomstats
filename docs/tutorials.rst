@@ -26,9 +26,9 @@ This example shows how to compute a geodesic on the Lie group SE(3), which is th
 
     import geomstats.visualization as visualization
 
-    from geomstats.special_euclidean_group import SpecialEuclideanGroup
+    from geomstats.special_euclidean_group import SpecialEuclidean
 
-    SE3_GROUP = SpecialEuclideanGroup(n=3)
+    SE3_GROUP = SpecialEuclidean(n=3)
     METRIC = SE3_GROUP.left_canonical_metric
 
     initial_point = SE3_GROUP.identity

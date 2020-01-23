@@ -4,24 +4,24 @@ Unit tests for General Linear group.
 
 import warnings
 
-import geomstats.backend as gs
-import geomstats.tests
 import tests.helper as helper
 
-from geomstats.geometry.general_linear_group import GeneralLinearGroup
-from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
+import geomstats.backend as gs
+import geomstats.tests
+from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 RTOL = 1e-5
 
 
-class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
+class TestGeneralLinearMethods(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
         self.n = 3
         self.n_samples = 2
-        self.group = GeneralLinearGroup(n=self.n)
+        self.group = GeneralLinear(n=self.n)
         # We generate invertible matrices using so3_group
-        self.so3_group = SpecialOrthogonalGroup(n=self.n)
+        self.so3_group = SpecialOrthogonal(n=self.n)
 
         warnings.simplefilter('ignore', category=ImportWarning)
 
@@ -34,7 +34,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
         rot_vec = gs.array([0.2, -0.1, 0.1])
         rot_mat = self.so3_group.matrix_from_rotation_vector(rot_vec)
         result = self.group.belongs(rot_mat)
-        expected = gs.array([True])
+        expected = gs.array([[True]])
 
         self.assertAllClose(result, expected)
 
@@ -103,8 +103,8 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
     def test_group_log_and_exp(self):
         point = 5 * gs.eye(self.n)
 
-        group_log = self.group.group_log(point)
-        result = self.group.group_exp(group_log)
+        group_log = self.group.log(point)
+        result = self.group.exp(group_log)
         expected = point
         expected = helper.to_matrix(expected)
 
@@ -126,7 +126,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
                               [0., 148.413159, 0.],
                               [0., 0., 403.42879349]]])
 
-        result = self.group.group_exp(point)
+        result = self.group.exp(point)
 
         self.assertAllClose(result, expected, rtol=1e-3)
 
@@ -146,7 +146,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
                               [0., 1.609437912, 0.],
                               [0., 0., 1.79175946]]])
 
-        result = self.group.group_log(point)
+        result = self.group.log(point)
 
         self.assertAllClose(result, expected, atol=1e-4)
 
@@ -158,7 +158,7 @@ class TestGeneralLinearGroupMethods(geomstats.tests.TestCase):
                           [[1., 0., 0.],
                            [0., 5., 0.],
                            [0., 0., 6.]]])
-        result = self.group.group_exp(self.group.group_log(point))
+        result = self.group.exp(self.group.log(point))
         expected = point
 
         self.assertAllClose(result, expected)

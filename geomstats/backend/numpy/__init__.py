@@ -1,7 +1,7 @@
 """Numpy based computation backend."""
 
-import numpy as _np
-from numpy import (  # NOQA
+import autograd.numpy as _np
+from autograd.numpy import (  # NOQA
     abs,
     all,
     allclose,
@@ -14,6 +14,7 @@ from numpy import (  # NOQA
     arccosh,
     arcsin,
     arctan2,
+    arctanh,
     argmax,
     argmin,
     array,
@@ -25,6 +26,7 @@ from numpy import (  # NOQA
     cosh,
     cov,
     cross,
+    cumsum,
     diagonal,
     divide,
     dot,
@@ -51,6 +53,7 @@ from numpy import (  # NOQA
     matmul,
     maximum,
     mean,
+    meshgrid,
     mod,
     nonzero,
     ones,
@@ -83,9 +86,10 @@ from numpy import (  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 
-
-int32 = _np.int32
+integer = _np.integer
 int8 = _np.int8
+int32 = _np.int32
+int64 = _np.int64
 float32 = _np.float32
 float64 = _np.float64
 
@@ -154,7 +158,7 @@ def cast(x, dtype):
 
 
 def to_ndarray(x, to_ndim, axis=0):
-    x = _np.asarray(x)
+    x = _np.array(x)
     if x.ndim == to_ndim - 1:
         x = _np.expand_dims(x, axis=axis)
     assert x.ndim >= to_ndim
