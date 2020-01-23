@@ -17,7 +17,7 @@ extensions = [
     'sphinx.ext.napoleon', # enable numpy or google docstrings
 ]
 
-# # Choose numpy docstring
+# Configure napoleon for numpy docstring
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True
 napoleon_use_param = True

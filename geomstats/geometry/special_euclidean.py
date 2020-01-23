@@ -249,7 +249,7 @@ class SpecialEuclidean(LieGroup):
         """Compute the group inverse in SE(n).
 
         Formula:
-        :math: `(R, t)^{-1} = (R^{-1}, R^{-1}.(-t))`
+        :math:`(R, t)^{-1} = (R^{-1}, R^{-1}.(-t))`
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -542,7 +542,7 @@ class SpecialEuclidean(LieGroup):
         coef_2[mask_close_to_0] = (1. / 6.
                                    - angle[mask_close_to_0] ** 3 / 120.)
 
-        # TODO(nina): Check if the discountinuity at 0 is expected.
+        # TODO(nina): Check if the discontinuity at 0 is expected.
         coef_1[mask_0] = 0
         coef_2[mask_0] = 0
 
