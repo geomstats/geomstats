@@ -12,7 +12,6 @@ N_MAX_ITERATIONS = 50000
 
 
 def loss(y_pred, y_true, metric):
-<<<<<<< HEAD
     """Compute loss given by a Riemannian metric.
 
     Loss function given by a Riemannian metric expressed as the squared
@@ -27,24 +26,13 @@ def loss(y_pred, y_true, metric):
     Returns
     -------
     loss
-=======
-    """Define the loss function given by a Riemannian metric.
-
-    Loss function given by a Riemannian metric,
-    expressed as the squared geodesic distance between the prediction
-    and the ground truth.
->>>>>>> Add an example for the Poincare polydisk.
     """
     loss = metric.squared_dist(y_pred, y_true)
     return loss
 
 
 def grad(y_pred, y_true, metric):
-<<<<<<< HEAD
     """Compute closed-form for the gradient of the loss function."""
-=======
-    """Compute the close-form for the gradient of the loss function."""
->>>>>>> Add an example for the Poincare polydisk.
     tangent_vec = metric.log(base_point=y_pred, point=y_true)
     grad_vec = - 2. * tangent_vec
 
@@ -67,13 +55,7 @@ class RiemannianMetric(object):
         self.signature = signature
 
     def inner_product_matrix(self, base_point=None):
-<<<<<<< HEAD
         """Compute inner product matrix at the tangent space at base point.
-=======
-        """Define the matrix of the inner product.
-
-        Inner product matrix at the tangent space at a base point.
->>>>>>> Add an example for the Poincare polydisk.
 
         Parameters
         ----------
@@ -83,7 +65,6 @@ class RiemannianMetric(object):
             'The computation of the inner product matrix'
             ' is not implemented.')
 
-<<<<<<< HEAD
     def inner_product_inverse_matrix(self, base_point=None):
         """Compute inner prod. inv. matrix at the tangent space at base point.
 
@@ -97,12 +78,6 @@ class RiemannianMetric(object):
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product between two tangent vectors at a base point.
-=======
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Define the inner product at a point of the manifold.
-
-        Inner product between two tangent vectors at a base point.
->>>>>>> Add an example for the Poincare polydisk.
 
         Parameters
         ----------
@@ -160,11 +135,7 @@ class RiemannianMetric(object):
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
-<<<<<<< HEAD
         """Compute the squared norm of a vector.
-=======
-        """Define the squared norm.
->>>>>>> Add an example for the Poincare polydisk.
 
         Squared norm of a vector associated to the inner product
         at the tangent space at a base point.
@@ -184,11 +155,7 @@ class RiemannianMetric(object):
         return sq_norm
 
     def norm(self, vector, base_point=None):
-<<<<<<< HEAD
         """Compute norm of a vector.
-=======
-        """Define the norm.
->>>>>>> Add an example for the Poincare polydisk.
 
         Norm of a vector associated to the inner product
         at the tangent space at a base point.
@@ -213,13 +180,9 @@ class RiemannianMetric(object):
         return norm
 
     def exp(self, tangent_vec, base_point=None):
-<<<<<<< HEAD
-        """Compute Riemannian exponential of tangent vector wrt to base point.
-=======
-        """Define the Riemannian exponential map.
+        """Compute the Riemannian exponential map.
 
         Riemannian exponential of a tangent vector wrt to a base point.
->>>>>>> Add an example for the Poincare polydisk.
 
         Parameters
         ----------
@@ -235,15 +198,10 @@ class RiemannianMetric(object):
         raise NotImplementedError(
             'The Riemannian exponential is not implemented.')
 
-<<<<<<< HEAD
-    def log(self, point, base_spoint=None):
-        """Compute Riemannian logarithm of a point wrt a base point.
-=======
     def log(self, point, base_point=None):
-        """Define the Riemannian logarithm map.
+        """Compute the Riemannian logarithm map.
 
         Riemannian logarithm of a point wrt a base point.
->>>>>>> Add an example for the Poincare polydisk.
 
         Parameters
         ----------
@@ -263,18 +221,13 @@ class RiemannianMetric(object):
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
                  point_type='vector'):
-<<<<<<< HEAD
         """Compute geodesic curve.
-=======
-        """Compute the Riemannian geodesics.
->>>>>>> Add an example for the Poincare polydisk.
 
         Geodesic curve defined by either:
         - an initial point and an initial tangent vector, or
         -an initial point and an end point.
 
         The geodesic is returned as a function parameterized by t.
-<<<<<<< HEAD
 
         Parameters
         ----------
@@ -286,8 +239,6 @@ class RiemannianMetric(object):
         Returns
         -------
         point_on_geodesic : callable
-=======
->>>>>>> Add an example for the Poincare polydisk.
         """
         point_ndim = 1
         if point_type == 'matrix':
@@ -369,17 +320,14 @@ class RiemannianMetric(object):
         return sq_dist
 
     def dist(self, point_a, point_b):
-<<<<<<< HEAD
-        """Compute geodesic distance between two points.
-
-        Note: It only works for positive definite Riemannian metrics.
-=======
         """Define the distance between two points.
 
         Geodesic distance between two points.
-        Note: It only works for positive definite
+
+        Note
+        ----
+        It only works for positive definite
         Riemannian metrics.
->>>>>>> Add an example for the Poincare polydisk.
 
         Parameters
         ----------
@@ -401,13 +349,9 @@ class RiemannianMetric(object):
                  weights=None,
                  base_point=None,
                  point_type='vector'):
-<<<<<<< HEAD
-        """Compute variance of (weighted) points wrt a base point.
-=======
-        """Define the variance of a set of points.
+        """Compute the variance of a set of points.
 
         Variance of (weighted) points wrt a base point.
->>>>>>> Add an example for the Poincare polydisk.
 
         Parameters
         ----------
@@ -460,13 +404,10 @@ class RiemannianMetric(object):
         points: array-like, shape=[n_samples, dimension]
         weights: array-like, shape=[n_samples, 1], optional
         verbose: bool, optional
-<<<<<<< HEAD
 
         Returns
         -------
         mean
-=======
->>>>>>> Add an example for the Poincare polydisk.
         """
         # TODO(nina): Profile this code to study performance,
         # i.e. what to do with sq_dists_between_iterates.
@@ -547,14 +488,10 @@ class RiemannianMetric(object):
                                       n_max_iterations=32,
                                       epsilon=1e-12,
                                       init_points=[]):
-<<<<<<< HEAD
-        """Compute Frechet mean of (weighted) points using adaptive time-steps.
-
-=======
         """Compute the Frechet mean using adaptive time-steps.
 
-        Frechet mean of (weighted) points using adaptive time-steps
->>>>>>> Add an example for the Poincare polydisk.
+        Frechet mean of (weighted) points using adaptive time-steps.
+
         The loss function optimized is ||M_1(x)||_x (where M_1(x) is
         the tangent mean at x) rather than the mean-square-distance (MSD)
         because this saves computation time.
@@ -565,13 +502,10 @@ class RiemannianMetric(object):
         weights: array-like, shape=[n_samples, 1], optional
         init_points: array-like, shape=[n_init, dimension]
         epsilon: tolerance for stopping the gradient descent
-<<<<<<< HEAD
 
         Returns
         -------
         mean
-=======
->>>>>>> Add an example for the Poincare polydisk.
         """
         # TODO(Xavier): This function assumes that all points are lists
         #  of vectors and not of matrices
@@ -631,11 +565,7 @@ class RiemannianMetric(object):
         return gs.to_ndarray(current_mean, to_ndim=2)
 
     def tangent_pca(self, points, base_point=None, point_type='vector'):
-<<<<<<< HEAD
         """Perform tPCA of points on the tangent space at a base point.
-=======
-        """Compute the Tangent Principal Component Analysis.
->>>>>>> Add an example for the Poincare polydisk.
 
         Tangent Principal Component Analysis (tPCA) of points
         on the tangent space at a base point.
@@ -669,8 +599,7 @@ class RiemannianMetric(object):
         return eigenvalues, tangent_eigenvecs
 
     def diameter(self, points):
-<<<<<<< HEAD
-        """Compute distance between the two points farthest from each other.
+        """Compute the largest distance between two points in a dataset.
 
         Parameters
         ----------
@@ -679,12 +608,6 @@ class RiemannianMetric(object):
         Returns
         -------
         diameter
-=======
-        """Compute the largest distance between two points in a dataset.
-
-        Distance between the two points that are farthest away from each other
-        in points.
->>>>>>> Add an example for the Poincare polydisk.
         """
         diameter = 0.0
         n_points = points.shape[0]
@@ -697,7 +620,6 @@ class RiemannianMetric(object):
         return diameter
 
     def closest_neighbor_index(self, point, neighbors):
-<<<<<<< HEAD
         """Compute closest neighbor of point among neighbors.
 
         Parameters
@@ -709,9 +631,6 @@ class RiemannianMetric(object):
         -------
         closest_neighbor_index
         """
-=======
-        """Closest neighbor of point among neighbors."""
->>>>>>> Add an example for the Poincare polydisk.
         dist = self.dist(point, neighbors)
         closest_neighbor_index = gs.argmin(dist)
 
