@@ -22,6 +22,7 @@ ATOL = 1e-5
 class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
+        warnings.simplefilter('ignore', category=UserWarning)
 
         gs.random.seed(1234)
 
