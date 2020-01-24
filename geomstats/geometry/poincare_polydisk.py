@@ -1,4 +1,4 @@
-"""The Poincare Polydisk.
+"""The Poincare polydisk.
 
 The Poincare polydisk is defined as a product manifold of the Hyperbolic space
 of dimension 2. The Poincare polydisk has a product metric. The metric on each
@@ -47,7 +47,7 @@ class PoincarePolydisk(ProductManifold):
 
         Parameters
         ----------
-        point_intrinsic : array-like, shape=[n_samples, n_disk, dimension]
+        point_intrinsic : array-like, shape=[n_samples, n_disks, dimension]
 
         Returns
         -------
@@ -70,6 +70,7 @@ class PoincarePolydisk(ProductManifold):
         Parameters
         ----------
         vector : array-like, shape=[n_samples, n_disks, dimension + 1]
+
         base_point : array-like, shape=[n_samples, n_disks, dimension + 1]
 
         Returns
