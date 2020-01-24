@@ -88,6 +88,7 @@ class BetaMetric(RiemannianMetric):
         Parameters
         ----------
         base_point : array-like, shape=[n_samples, dimension]
+
         """
         assert ~ (base_point is None), 'The metric depends on the base point'
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -103,7 +104,8 @@ class BetaMetric(RiemannianMetric):
             matrices.append(gs.stack([g0, g1]))
         return gs.stack(matrices)
 
-    def christoffels(self, base_point):
+    @staticmethod
+    def christoffels(base_point):
         """Compute Christoffel symbols.
 
         Compute the Christoffel symbols of the Fisher metric on Beta
@@ -162,20 +164,20 @@ class BetaMetric(RiemannianMetric):
         a1, b1 = point
 
         stop_time = 1.
-        t = [stop_time * float(i) / (n_points - 1) for i in range(n_points)]
-        geodesic_init = np.zeros([2 * dim, n_points])
-        geodesic_init[0, :] = np.linspace(a0, a1, n_points)
-        geodesic_init[1, :] = np.linspace(b0, b1, n_points)
-        geodesic_init[2, :-1] = n_points * (geodesic_init[0, 1:] -
+        t = [stop_time * float(i) / (n_steps - 1) for i in range(n_steps)]
+        geodesic_init = gs.zeros([2 * dim, n_points])
+        geodesic_init[0, :] = gs.linspace(a0, a1, n_steps)
+        geodesic_init[1, :] = gs.linspace(b0, b1, n_steps)
+        geodesic_init[2, :-1] = n_steps * (geodesic_init[0, 1:] -
                                             geodesic_init[0, :-1])
-        geodesic_init[3, :-1] = n_points * (geodesic_init[1, 1:] -
+        geodesic_init[3, :-1] = n_steps * (geodesic_init[1, 1:] -
                                             geodesic_init[1, :-1])
         geodesic_init[2, -1] = geodesic_init[2, -2]
         geodesic_init[3, -1] = geodesic_init[3, -2]
 
         def boundary_cond(y0, y1):
 
-            bc = np.array([y0[0] - a0,
+            bc = gs.array([y0[0] - a0,
                            y0[1] - b0,
                            y1[0] - a1,
                            y1[1] - b1])
