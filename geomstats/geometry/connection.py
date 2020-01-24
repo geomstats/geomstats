@@ -64,9 +64,9 @@ class Connection(object):
         geodesic_ode : function
             vector field to be integrated
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         gamma = self.christoffels(base_point)
-        return - gs.einsum('lkij,li,lj->lk', gamma, tangent_vec, tangent_vec)
+        return - gs.einsum('...kij,...i, ...j-> ...k', gamma, tangent_vec,
+                           tangent_vec)
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS):
         """Exponential map associated to the affine connection.
@@ -121,8 +121,8 @@ class Connection(object):
             """Define the objective function."""
             velocity = velocity.reshape(base_point.shape)
             delta = self.exp(velocity, base_point, n_steps) - point
-            loss = 1 / self.dimension * gs.sum(delta ** 2, axis=1)
-            return 1 / n_samples * gs.sum(loss)
+            loss = 1. / self.dimension * gs.sum(delta ** 2, axis=1)
+            return 1. / n_samples * gs.sum(loss)
 
         objective_grad = autograd.elementwise_grad(objective)
 
@@ -130,9 +130,9 @@ class Connection(object):
             """Create helpful objective func wrapper for autograd comp."""
             return objective(velocity), objective_grad(velocity)
 
-        tangent_vec = gs.zeros_like(base_point).flatten() + EPSILON
-        res = minimize(objective_with_grad, tangent_vec, method='CG', jac=True,
-                       options={'disp': True, 'maxiter': 25})
+        tangent_vec = gs.random.rand(base_point.size)
+        res = minimize(objective_with_grad, tangent_vec, method='L-BFGS-B',
+            jac=True, options={'disp': True, 'maxiter': 1})
 
         tangent_vec = res.x
         tangent_vec = gs.reshape(tangent_vec, base_point.shape)

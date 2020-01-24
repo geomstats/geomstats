@@ -1,12 +1,15 @@
 """Statistical Manifold of beta distributions with the Fisher metric."""
 
-from scipy.special import polygamma
-from scipy.stats import beta
+from autograd.scipy.special import polygamma
+from autograd.scipy.stats import beta
+from autograd.scipy.integrate import odeint
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+
+N_STEPS = 100
 
 
 class BetaDistributions(EmbeddedManifold):
@@ -73,17 +76,18 @@ class BetaMetric(RiemannianMetric):
         super(RiemannianMetric, self).__init__(dimension=2)
 
     @staticmethod
-    def detg(a, b):
-        detg = polygamma(1, a) * polygamma(1, b) - polygamma(1, a + b) * (
-                    polygamma(1, a) + polygamma(1, b))
+    def detg(param_a, param_b):
+        detg = polygamma(1, param_a) * polygamma(1, param_b) - \
+            polygamma(1, param_a + param_b) * (polygamma(1, param_a) +
+                                               polygamma(1, param_b))
         return detg
 
     def inner_product_matrix(self, base_point=None):
-        """
-        Inner product matrix at the tangent space at a base point.
+        """Compute inner product matrix at the tangent space at base point.
+
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, dimension], optional
+        base_point : array-like, shape=[n_samples, dimension]
         """
         assert ~ (base_point is None), 'The metric depends on the base point'
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -129,4 +133,55 @@ class BetaMetric(RiemannianMetric):
             gamma_0 = gs.array([[d1, d2], [d2, d3]])
             gamma_1 = gs.array([[d6, d5], [d5, d4]])
             christoffel.append(gs.stack([gamma_0, gamma_1]))
-        return gs.stack(christoffel)
+        return christoffel[0] if len(base_point) == 1 else gs.stack(christoffel)
+
+    def exp(self, tangent_vec, base_point, n_steps=N_STEPS):
+        """
+        Exponential map.
+        """
+
+        def func_ivp(state, time):
+            """Reformat the differential equations.
+
+            Parameters
+            ----------
+            time
+            state
+            """
+            point, velocity = state[:2], state[2:]
+            eq = self.geodesic_equation(tangent_vec=velocity, base_point=point)
+            return gs.hstack([velocity, eq])
+
+        times = gs.linspace(0, 1, n_steps + 1)
+        y0 = gs.hstack([base_point, tangent_vec])
+        geodesic = odeint(func_ivp, y0, times, tuple(), rtol=1e-6)
+        return geodesic[-1, :2]
+
+    def log(self, point, base_point, n_steps=N_STEPS):
+        a0, b0 = base_point
+        a1, b1 = point
+
+        stop_time = 1.
+        t = [stop_time * float(i) / (n_points - 1) for i in range(n_points)]
+        geodesic_init = np.zeros([2 * dim, n_points])
+        geodesic_init[0, :] = np.linspace(a0, a1, n_points)
+        geodesic_init[1, :] = np.linspace(b0, b1, n_points)
+        geodesic_init[2, :-1] = n_points * (geodesic_init[0, 1:] -
+                                            geodesic_init[0, :-1])
+        geodesic_init[3, :-1] = n_points * (geodesic_init[1, 1:] -
+                                            geodesic_init[1, :-1])
+        geodesic_init[2, -1] = geodesic_init[2, -2]
+        geodesic_init[3, -1] = geodesic_init[3, -2]
+
+        def boundary_cond(y0, y1):
+
+            bc = np.array([y0[0] - a0,
+                           y0[1] - b0,
+                           y1[0] - a1,
+                           y1[1] - b1])
+            return bc
+
+        solution = solve_bvp(func_bvp, boundary_cond, t, geodesic_init)
+
+        geodesic = solution.sol(t)
+        geodesic = geodesic[:2, :]
