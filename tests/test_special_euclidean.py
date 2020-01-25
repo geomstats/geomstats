@@ -1407,11 +1407,11 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         geodesic = metric.geodesic(initial_point=initial_point,
                                    initial_tangent_vec=initial_tangent_vec)
         n_steps = 10
-        t = gs.linspace(start=0., stop=1., num=n_steps+1)
+        t = gs.linspace(start=0., stop=1., num=n_steps + 1)
         points = geodesic(t)
 
         tangent_vec_step = initial_tangent_vec / n_steps
-        for i in range(n_steps+1):
+        for i in range(n_steps + 1):
             point_step = metric.exp(
                 tangent_vec=i * tangent_vec_step,
                 base_point=initial_point)

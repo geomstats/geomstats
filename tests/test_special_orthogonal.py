@@ -3617,10 +3617,10 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     point_2 = group.regularize(point_2)
 
                     sq_dist_1_2 = gs.mod(
-                        metric.squared_dist(point_1, point_2)+1e-4,
+                        metric.squared_dist(point_1, point_2) + 1e-4,
                         gs.pi**2)
                     sq_dist_2_1 = gs.mod(
-                        metric.squared_dist(point_2, point_1)+1e-4,
+                        metric.squared_dist(point_2, point_1) + 1e-4,
                         gs.pi**2)
 
                     self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=1e-4)
