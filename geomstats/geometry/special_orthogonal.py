@@ -368,7 +368,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                 [[0., 1., 0.],
                  [-1., 0., 0.],
                  [0., 0., 0.]]
-                ]] * n_vecs) + self.epsilon
+            ]] * n_vecs) + self.epsilon
 
             # This avois dividing by 0.
             basis_vec_1 = gs.array([[1., 0., 0.]] * n_vecs) + self.epsilon

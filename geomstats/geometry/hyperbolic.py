@@ -422,10 +422,10 @@ class Hyperbolic(EmbeddedManifold):
         else:
             extrinsic = self.transform_to[
                 self.point_type+'-extrinsic'
-                ](point)
+            ](point)
             return self.transform_to[
                 'extrinsic-'+to_point_type
-                ](extrinsic)
+            ](extrinsic)
 
     def from_coordinates(self, point, from_point_type):
         """Convert point parameterization from provided to current coords.
@@ -452,10 +452,10 @@ class Hyperbolic(EmbeddedManifold):
         else:
             extrinsic = self.transform_to[
                 from_point_type+"-extrinsic"
-                ](point)
+            ](point)
             return self.transform_to[
                 "extrinsic-"+self.point_type
-                ](extrinsic)
+            ](extrinsic)
 
     def random_uniform(self, n_samples=1, bound=1.):
         """Sample in the Hyperbolic space with the uniform distribution.
