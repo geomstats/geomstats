@@ -254,7 +254,7 @@ class PoincareDisk():
 
 
 class PoincarePolyDisk():
-    """Class used to plot the Poincare polydisk."""
+    """Class used to plot points in the Poincare polydisk."""
 
     def __init__(self, points=None, point_type='ball', n_disks=2):
         """Define the necessary attribute to draw the Poincare polydisk."""
@@ -303,6 +303,8 @@ class PoincarePolyDisk():
 
 
 class PoincareHalfPlane():
+    """Class used to plot points in the Poincare Half Plane."""
+
     def __init__(self, points=None):
         self.points = []
         if points is not None:

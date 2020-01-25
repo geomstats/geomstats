@@ -12,20 +12,14 @@ EPSILON = 1e-5
 # TODO(nina): unit tests
 
 class ProductRiemannianMetric(RiemannianMetric):
-    """Class for product of Riemannian metrics.
-
-    Parameters
-    ----------
-    metrics : list
-        List of metrics in the product.
-    """
+    """Class for product of Riemannian metrics."""
 
     def __init__(self, metrics):
         self.n_metrics = len(metrics)
         self.metrics = metrics
         dimensions = [metric.dimension for metric in metrics]
-        self.dimensions = dimensions
         signatures = [metric.signature for metric in metrics]
+        self.dimensions = dimensions
         self.signatures = signatures
 
         sig_0 = sum([sig[0] for sig in signatures])
@@ -43,25 +37,23 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, dimension], optional
-            Point on the manifold at which to compute the inner-product matrix.
+        base_point
 
         Returns
         -------
-        matrix : array-like, shape=[n_samples, dimension, dimension]
-            Matrix of the inner-product at the base point.
+        matrix
         """
         matrix = gs.zeros([self.dimension, self.dimension])
         b = self.dimensions[0]
         matrix[:b, :b] = self.metrics.inner_product_matrix(base_point[0])
         dim_current = 0
 
-        for i in range(self.n_metrics - 1):
+        for i in range(self.n_metrics-1):
             dim_current += self.dimensions[i]
-            dim_next = self.dimensions[i + 1]
+            dim_next = self.dimensions[i+1]
             a = dim_current
             b = dim_current + dim_next
-            matrix_next = self.metrics.inner_product_matrix(base_point[i + 1])
+            matrix_next = self.metrics.inner_product_matrix(base_point[i+1])
             matrix[a:b, a:b] = matrix_next
 
         return matrix
@@ -74,27 +66,21 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, dimension + 1]
-            First tangent vector at base point.
-
-        tangent_vec_b : array-like, shape=[n_samples, dimension + 1]
-            Second tangent vector at base point.
-
-        base_point : array-like, shape=[n_samples, dimension + 1], optional
-            Point on the manifold.
+        tangent_vec_a
+        tangent_vec_b
+        base_point
 
         Returns
         -------
-        inner_prod : array-like, shape=[n_samples, 1]
-            Inner product of the two tangent vectors.
+        inner_product
         """
         if base_point is None:
             base_point = [None, ] * self.n_metrics
 
-        inner_products = [metric.inner_product(tangent_vec_a[i],
-                                               tangent_vec_b[i],
-                                               base_point[i])
-                          for i, metric in enumerate(self.metrics)]
+        inner_products = [self.metrics[i].inner_product(tangent_vec_a[i],
+                                                        tangent_vec_b[i],
+                                                        base_point[i])
+                          for i in range(self.n_metrics)]
         inner_product = gs.sum(inner_products)
 
         return inner_product
@@ -107,24 +93,19 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dimension]
-            Tangent vector at a base point.
-
-        base_point : array-like, shape=[n_samples, dimension]
-            Point on the manifold.
+        tangent_vec
+        base_point
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dimension]
-            Point on the manifold equal to the Riemannian exponential
-            of tangent_vec at the base point.
+        exp
         """
         if base_point is None:
             base_point = [None, ] * self.n_metrics
 
-        exp = gs.asarray([self.metrics[i].exp(tangent_vec[i],
-                                              base_point[i])
-                          for i in range(self.n_metrics)])
+        exp = gs.array([self.metrics[i].exp(tangent_vec[i],
+                                            base_point[i])
+                        for i in range(self.n_metrics)])
         return exp
 
     def log(self, point, base_point=None):
@@ -132,24 +113,19 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
-            Point on the manifold.
-
-        base_point : array-like, shape=[n_samples, dimension]
-            Point on the manifold.
+        point
+        base_point
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dimension]
-            Tangent vector at the base point equal to the Riemannian logarithm
-            of point at the base point.
+        log
         """
         if base_point is None:
             base_point = [None, ] * self.n_metrics
 
-        log = gs.asarray([self.metrics[i].log(point[i],
-                                              base_point[i])
-                          for i in range(self.n_metrics)])
+        log = gs.array([self.metrics[i].log(point[i],
+                                            base_point[i])
+                        for i in range(self.n_metrics)])
         return log
 
     def squared_dist(self, point_a, point_b):
@@ -157,74 +133,52 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, dimension]
-            First point on the manifold.
-
-        point_b : array-like, shape=[n_samples, dimension]
-            Second point on the manifold.
+        point_a: array-like, shape=[n_samples, dimension]
+                             or shape=[1, dimension]
+        point_b: array-like, shape=[n_samples, dimension]
+                             or shape=[1, dimension]
 
         Returns
         -------
-        sq_dist : array-like, shape=[n_samples, 1]
-            Geodesic distance between the two points.
+        sum_sq_distances
         """
-        sq_distances = gs.asarray(
-            [metric.squared_dist(point_a[i], point_b[i])
-             for i, metric in enumerate(self.metrics)])
+        sq_distances = gs.asarray([self.metrics[i].squared_dist(
+            point_a[i], point_b[i])
+                                   for i in range(self.n_metrics)])
 
         return sum(sq_distances)
 
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
-                 point_type=None):
-        """Compute the geodesic as a function of t.
+                 point_type='vector'):
+        """Compute the geodesics of a product manifold with a product metric.
 
-        This geodesic is seen as the product of the geodesic on each space.
-        The geodesic curve is defined by either:
+        Geodesic curve defined by either:
         - an initial point and an initial tangent vector,
         or
         -an initial point and an end point.
 
-        Parameters
-        ----------
-        initial_point : array-like, shape=[n_samples, dim]
-            Initial point of the geodesic.
-
-        end_point : array-like, shape=[n_samples, dim], optional
-            End point of the geodesic.
-
-        initial_tangent_vec : array-like, shape=[n_samples, dim], optional
-            Initial tangent vector of the geodesic.
-
-        point_type : str, {'vector', 'matrix'}, optional
-            Representation of point.
-
-        Returns
-        -------
-        path : callable
-            The time-parameterized geodesic.
+        The geodesic is returned as a function parameterized by t.
         """
-        if point_type is None:
-            point_type = self.default_point_type
-        assert point_type in ['vector', 'matrix']
+        def point_on_geodesic(t):
 
-        if end_point is not None:
-            geodesics = [
-                metric.geodesic(
-                    initial_point[:, i_space, ...],
-                    end_point=end_point[:, i_space, ...],
-                    point_type=point_type)
-                for i_space, metric in enumerate(self.metrics)]
-        else:
-            geodesics = [
-                metric.geodesic(
-                    initial_point[:, i, ...],
-                    initial_tangent_vec=initial_tangent_vec[:, i, ...],
-                    point_type=point_type)
-                for i, metric in enumerate(self.metrics)]
+            if end_point is not None:
+                point_at_time_t = gs.stack(
+                    [RiemannianMetric.geodesic(
+                        self.metrics[i_space],
+                        initial_point=initial_point[i_space, ...],
+                        end_point=end_point[i_space, ...])(t)
+                        for i_space in range(self.n_metrics)], axis=1)
 
-        def path(t):
-            geod = gs.stack([geodesic(t) for geodesic in geodesics], axis=0)
-            geod = gs.swapaxes(geod, 0, 1)
-            return geod
-        return path
+            if initial_tangent_vec is not None:
+                point_at_time_t = gs.stack(
+                    [RiemannianMetric.geodesic(
+                        self.metrics[i_space],
+                        initial_point=initial_point[i_space, ...],
+                        initial_tangent_vec=initial_tangent_vec[i_space, ...])
+                     (t)
+                        for i_space in range(self.n_metrics)], axis=1)
+
+            return point_at_time_t
+
+        return point_on_geodesic
