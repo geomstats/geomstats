@@ -187,7 +187,7 @@ def diag(x):
     m = int(k / n)
     result = zeros((m, n, n))
     for i in range(m):
-        result[i] = aux[i*n:(i+1)*n, i*n:(i+1)*n]
+        result[i] = aux[i * n:(i + 1) * n, i * n:(i + 1) * n]
     return result
 
 

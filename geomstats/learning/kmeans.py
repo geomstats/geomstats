@@ -58,7 +58,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         """
         n_samples = X.shape[0]
         belongs = gs.zeros(n_samples)
-        self.centroids = [gs.expand_dims(X[randint(0, n_samples-1)], 0)
+        self.centroids = [gs.expand_dims(X[randint(0, n_samples - 1)], 0)
                           for i in range(self.n_clusters)]
         self.centroids = gs.concatenate(self.centroids)
         index = 0
@@ -77,7 +77,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                     self.centroids[i] = self.riemannian_metric.mean(fold)
 
                 else:
-                    self.centroids[i] = X[randint(0, n_samples-1)]
+                    self.centroids[i] = X[randint(0, n_samples - 1)]
 
             centroids_distances = self.riemannian_metric.dist(old_centroids,
                                                               self.centroids)
