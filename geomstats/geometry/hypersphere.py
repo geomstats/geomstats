@@ -44,8 +44,8 @@ class Hypersphere(EmbeddedManifold):
     def __init__(self, dimension):
         assert isinstance(dimension, int) and dimension > 0
         super(Hypersphere, self).__init__(
-                dimension=dimension,
-                embedding_manifold=Euclidean(dimension+1))
+            dimension=dimension,
+            embedding_manifold=Euclidean(dimension+1))
         self.embedding_metric = self.embedding_manifold.metric
         self.metric = HypersphereMetric(dimension)
 
@@ -146,14 +146,14 @@ class Hypersphere(EmbeddedManifold):
         """
         if self.dimension != 2:
             raise NotImplementedError(
-                    'The conversion from spherical coordinates'
-                    ' to extrinsic coordinates is implemented'
-                    ' only in dimension 2.')
+                'The conversion from spherical coordinates'
+                ' to extrinsic coordinates is implemented'
+                ' only in dimension 2.')
         point_spherical = gs.to_ndarray(point_spherical, to_ndim=2)
         theta = point_spherical[:, 0]
         phi = point_spherical[:, 1]
         point_extrinsic = gs.zeros(
-                (point_spherical.shape[0], self.dimension+1))
+            (point_spherical.shape[0], self.dimension+1))
         point_extrinsic[:, 0] = gs.sin(theta) * gs.cos(phi)
         point_extrinsic[:, 1] = gs.sin(theta) * gs.sin(phi)
         point_extrinsic[:, 2] = gs.cos(theta)
@@ -180,9 +180,9 @@ class Hypersphere(EmbeddedManifold):
         """
         if self.dimension != 2:
             raise NotImplementedError(
-                    'The conversion from spherical coordinates'
-                    ' to extrinsic coordinates is implemented'
-                    ' only in dimension 2.')
+                'The conversion from spherical coordinates'
+                ' to extrinsic coordinates is implemented'
+                ' only in dimension 2.')
         base_point_spherical = gs.to_ndarray(base_point_spherical, to_ndim=2)
         tangent_vec_spherical = gs.to_ndarray(tangent_vec_spherical, to_ndim=2)
         n_samples = base_point_spherical.shape[0]
@@ -286,8 +286,8 @@ class Hypersphere(EmbeddedManifold):
         """
         if self.dimension != 2:
             raise NotImplementedError(
-                    'Sampling from the von Mises Fisher distribution'
-                    'is only implemented in dimension 2.')
+                'Sampling from the von Mises Fisher distribution'
+                'is only implemented in dimension 2.')
         angle = 2. * gs.pi * gs.random.rand(n_samples)
         angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
         unit_vector = gs.hstack((gs.cos(angle), gs.sin(angle)))
@@ -309,8 +309,8 @@ class HypersphereMetric(RiemannianMetric):
 
     def __init__(self, dimension):
         super(HypersphereMetric, self).__init__(
-                dimension=dimension,
-                signature=(dimension, 0, 0))
+            dimension=dimension,
+            signature=(dimension, 0, 0))
         self.embedding_metric = EuclideanMetric(dimension + 1)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
@@ -331,7 +331,7 @@ class HypersphereMetric(RiemannianMetric):
                                  or shape=[1, 1]
         """
         inner_prod = self.embedding_metric.inner_product(
-                tangent_vec_a, tangent_vec_b, base_point)
+            tangent_vec_a, tangent_vec_b, base_point)
 
         return inner_prod
 
@@ -568,8 +568,8 @@ class HypersphereMetric(RiemannianMetric):
         """
         if self.dimension != 2 or point_type != 'spherical':
             raise NotImplementedError(
-                    'The Christoffel symbols are only implemented'
-                    ' for spherical coordinates in the 2-sphere')
+                'The Christoffel symbols are only implemented'
+                ' for spherical coordinates in the 2-sphere')
 
         point = gs.to_ndarray(point, to_ndim=2)
         christoffel = []

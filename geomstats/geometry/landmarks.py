@@ -49,8 +49,8 @@ class L2Metric(RiemannianMetric):
 
     def __init__(self, ambient_manifold):
         super(L2Metric, self).__init__(
-                dimension=math.inf,
-                signature=(math.inf, 0, 0))
+            dimension=math.inf,
+            signature=(math.inf, 0, 0))
         self.ambient_manifold = ambient_manifold
         self.ambient_metric = ambient_manifold.metric
 
@@ -81,7 +81,7 @@ class L2Metric(RiemannianMetric):
         base_landmarks = gs.reshape(base_landmarks, (new_dim, n_coords))
 
         inner_prod = self.ambient_metric.inner_product(
-                tangent_vec_a, tangent_vec_b, base_landmarks)
+            tangent_vec_a, tangent_vec_b, base_landmarks)
         inner_prod = gs.reshape(
             inner_prod, (n_landmark_sets, n_landmarks_per_set))
         inner_prod = gs.sum(inner_prod, -1)

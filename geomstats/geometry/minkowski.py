@@ -61,8 +61,8 @@ class MinkowskiMetric(RiemannianMetric):
 
     def __init__(self, dimension):
         super(MinkowskiMetric, self).__init__(
-                                          dimension=dimension,
-                                          signature=(dimension - 1, 1, 0))
+            dimension=dimension,
+            signature=(dimension - 1, 1, 0))
 
     def inner_product_matrix(self, base_point=None):
         """Compute the inner product matrix, independent of the base point.

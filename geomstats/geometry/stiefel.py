@@ -29,8 +29,8 @@ class Stiefel(EmbeddedManifold):
 
         dimension = int(p * n - (p * (p + 1) / 2))
         super(Stiefel, self).__init__(
-              dimension=dimension,
-              embedding_manifold=Matrices(n, p))
+            dimension=dimension,
+            embedding_manifold=Matrices(n, p))
 
         self.canonical_metric = StiefelCanonicalMetric(n, p)
 
@@ -81,8 +81,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
     def __init__(self, n, p):
         dimension = int(p * n - (p * (p + 1) / 2))
         super(StiefelCanonicalMetric, self).__init__(
-                dimension=dimension,
-                signature=(dimension, 0, 0))
+            dimension=dimension,
+            signature=(dimension, 0, 0))
         self.embedding_metric = EuclideanMetric(n*p)
         self.n = n
         self.p = p

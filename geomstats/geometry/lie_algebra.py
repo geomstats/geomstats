@@ -78,7 +78,7 @@ class MatrixLieAlgebra:
             raise NotImplementedError("BCH is not implemented for order > 15.")
 
         number_of_hom_degree = gs.array(
-                [2, 1, 2, 3, 6, 9, 18, 30, 56, 99, 186, 335, 630, 1161, 2182])
+            [2, 1, 2, 3, 6, 9, 18, 30, 56, 99, 186, 335, 630, 1161, 2182])
         n_terms = gs.sum(number_of_hom_degree[:order])
 
         ei = gs.zeros((n_terms, self.n, self.n))
