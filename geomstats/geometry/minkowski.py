@@ -75,7 +75,7 @@ class MinkowskiMetric(RiemannianMetric):
         -------
         inner_prod_mat: array-like, shape=[n_samples, dimension, dimension]
         """
-        inner_prod_mat = gs.eye(self.dimension-1, self.dimension-1)
+        inner_prod_mat = gs.eye(self.dimension - 1, self.dimension - 1)
         first_row = gs.array([0.] * (self.dimension - 1))
         first_row = gs.to_ndarray(first_row, to_ndim=2, axis=1)
         inner_prod_mat = gs.vstack([gs.transpose(first_row),

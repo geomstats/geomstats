@@ -320,12 +320,12 @@ class Hyperbolic(EmbeddedManifold):
                      extrinsic coordinate
         """
         squared_norm = gs.sum(point**2, -1)
-        denominator = 1-squared_norm
-        t = gs.to_ndarray((1+squared_norm)/denominator, to_ndim=2, axis=1)
+        denominator = 1 - squared_norm
+        t = gs.to_ndarray((1 + squared_norm) / denominator, to_ndim=2, axis=1)
         expanded_denominator = gs.expand_dims(denominator, -1)
-        expanded_denominator = gs.repeat(expanded_denominator,
-                                         point.shape[-1], -1)
-        intrinsic = (2*point)/expanded_denominator
+        expanded_denominator = gs.repeat(
+            expanded_denominator, point.shape[-1], -1)
+        intrinsic = (2 * point) / expanded_denominator
         return gs.concatenate([t, intrinsic], -1)
 
     @staticmethod
@@ -349,12 +349,12 @@ class Hyperbolic(EmbeddedManifold):
         assert point.shape[-1] == 2
         x, y = point[:, 0], point[:, 1]
         x2 = point[:, 0]**2
-        den = x2 + (1+y)**2
+        den = x2 + (1 + y)**2
         x = gs.to_ndarray(x, to_ndim=2, axis=0)
         y = gs.to_ndarray(y, to_ndim=2, axis=0)
         x2 = gs.to_ndarray(x2, to_ndim=2, axis=0)
         den = gs.to_ndarray(den, to_ndim=2, axis=0)
-        ball_point = gs.hstack((2*x/den, (x2+y**2-1)/den))
+        ball_point = gs.hstack((2 * x / den, (x2 + y**2 - 1) / den))
         return Hyperbolic._ball_to_extrinsic_coordinates(ball_point)
 
     @staticmethod
@@ -380,7 +380,7 @@ class Hyperbolic(EmbeddedManifold):
         assert point_ball.shape[-1] == 2
         point_ball_x, point_ball_y = point_ball[:, 0], point_ball[:, 1]
         point_ball_x2 = point_ball_x**2
-        denom = point_ball_x2 + (1-point_ball_y)**2
+        denom = point_ball_x2 + (1 - point_ball_y)**2
 
         point_ball_x = gs.to_ndarray(
             point_ball_x, to_ndim=2, axis=0)
@@ -421,10 +421,10 @@ class Hyperbolic(EmbeddedManifold):
             return point
         else:
             extrinsic = self.transform_to[
-                self.point_type+'-extrinsic'
+                self.point_type + '-extrinsic'
             ](point)
             return self.transform_to[
-                'extrinsic-'+to_point_type
+                'extrinsic-' + to_point_type
             ](extrinsic)
 
     def from_coordinates(self, point, from_point_type):
@@ -451,10 +451,10 @@ class Hyperbolic(EmbeddedManifold):
             return point
         else:
             extrinsic = self.transform_to[
-                from_point_type+"-extrinsic"
+                from_point_type + "-extrinsic"
             ](point)
             return self.transform_to[
-                "extrinsic-"+self.point_type
+                "extrinsic-" + self.point_type
             ](extrinsic)
 
     def random_uniform(self, n_samples=1, bound=1.):
@@ -726,7 +726,7 @@ class HyperbolicMetric(RiemannianMetric):
 
         add_denominator = (1 + 2 * sum_prod_a_b + norm_point_a * norm_point_b)
 
-        mobius_add = add_nominator/add_denominator
+        mobius_add = add_nominator / add_denominator
 
         return mobius_add
 

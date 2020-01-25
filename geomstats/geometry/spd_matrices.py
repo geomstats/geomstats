@@ -164,10 +164,14 @@ class SPDMatrices(EmbeddedManifold):
                                  numerator)
             denominator = gs.where(denominator == 0, one_matrix, denominator)
         else:
-            numerator = gs.where(denominator == 0, power*vertical_index_power,
-                                 numerator)
-            denominator = gs.where(denominator == 0, vertical_index,
-                                   denominator)
+            numerator = gs.where(
+                denominator == 0,
+                power * vertical_index_power,
+                numerator)
+            denominator = gs.where(
+                denominator == 0,
+                vertical_index,
+                denominator)
 
         transp_eigvectors = gs.transpose(eigvectors, (0, 2, 1))
         temp_result = gs.matmul(transp_eigvectors, tangent_vec)
@@ -517,11 +521,11 @@ class SPDMetricAffine(RiemannianMetric):
                                                                  tangent_vec,
                                                                  base_point)
             power_sqrt_base_point = gs.linalg.powerm(base_point,
-                                                     power_affine/2)
+                                                     power_affine / 2)
             power_inv_sqrt_base_point = gs.linalg.inv(power_sqrt_base_point)
             exp = self._aux_exp(modified_tangent_vec, power_sqrt_base_point,
                                 power_inv_sqrt_base_point)
-            exp = gs.linalg.powerm(exp, 1/power_affine)
+            exp = gs.linalg.powerm(exp, 1 / power_affine)
 
         if ndim == 2:
             return exp[0]
@@ -587,11 +591,13 @@ class SPDMetricAffine(RiemannianMetric):
             log = self._aux_log(point, sqrt_base_point, inv_sqrt_base_point)
         else:
             power_point = gs.linalg.powerm(point, power_affine)
-            power_sqrt_base_point = gs.linalg.powerm(base_point,
-                                                     power_affine/2)
+            power_sqrt_base_point = gs.linalg.powerm(
+                base_point, power_affine / 2)
             power_inv_sqrt_base_point = gs.linalg.inv(power_sqrt_base_point)
-            log = self._aux_log(power_point, power_sqrt_base_point,
-                                power_inv_sqrt_base_point)
+            log = self._aux_log(
+                power_point,
+                power_sqrt_base_point,
+                power_inv_sqrt_base_point)
             log = self.space.inverse_differential_power(power_affine, log,
                                                         base_point)
 
@@ -795,9 +801,9 @@ class SPDMetricEuclidean(RiemannianMetric):
         eigvals = gs.linalg.eigvalsh(reduced_vec)
         min_eig = gs.amin(eigvals, axis=1)
         max_eig = gs.amax(eigvals, axis=1)
-        inf_value = gs.where(max_eig <= 0, -math.inf, - 1/max_eig)
+        inf_value = gs.where(max_eig <= 0, -math.inf, - 1 / max_eig)
         inf_value = gs.to_ndarray(inf_value, to_ndim=2)
-        sup_value = gs.where(min_eig >= 0, math.inf, - 1/min_eig)
+        sup_value = gs.where(min_eig >= 0, math.inf, - 1 / min_eig)
         sup_value = gs.to_ndarray(sup_value, to_ndim=2)
         domain = gs.concatenate((inf_value, sup_value), axis=1)
 
@@ -943,6 +949,6 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         geodesic : callable
         """
         def point_on_geodesic(t):
-            return self.exp(t*initial_tangent_vec, initial_point)
+            return self.exp(t * initial_tangent_vec, initial_point)
 
         return point_on_geodesic

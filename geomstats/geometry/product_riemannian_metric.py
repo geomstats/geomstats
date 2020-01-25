@@ -46,12 +46,12 @@ class ProductRiemannianMetric(RiemannianMetric):
         matrix[:b, :b] = self.metrics.inner_product_matrix(base_point[0])
         dim_current = 0
 
-        for i in range(self.n_metrics-1):
+        for i in range(self.n_metrics - 1):
             dim_current += self.dimensions[i]
-            dim_next = self.dimensions[i+1]
+            dim_next = self.dimensions[i + 1]
             a = dim_current
             b = dim_current + dim_next
-            matrix_next = self.metrics.inner_product_matrix(base_point[i+1])
+            matrix_next = self.metrics.inner_product_matrix(base_point[i + 1])
             matrix[a:b, a:b] = matrix_next
 
         return matrix
