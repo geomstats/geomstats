@@ -128,9 +128,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         if geomstats.tests.tf_backend():
             metrics = {
                 n: {'right': InvariantMetric(
-                   group=group,
-                   inner_product_mat_at_identity=mat,
-                   left_or_right='right')}
+                    group=group,
+                    inner_product_mat_at_identity=mat,
+                    left_or_right='right')}
                 for n, group, mat in zip(n_seq, so.values(), mats.values())
             }
 
