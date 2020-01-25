@@ -456,15 +456,15 @@ class HypersphereMetric(RiemannianMetric):
         coef_2 = gs.zeros_like(angle)
 
         coef_1 += mask_0_float * (
-           1. + INV_SIN_TAYLOR_COEFFS[1] * angle ** 2
-           + INV_SIN_TAYLOR_COEFFS[3] * angle ** 4
-           + INV_SIN_TAYLOR_COEFFS[5] * angle ** 6
-           + INV_SIN_TAYLOR_COEFFS[7] * angle ** 8)
+            1. + INV_SIN_TAYLOR_COEFFS[1] * angle ** 2
+            + INV_SIN_TAYLOR_COEFFS[3] * angle ** 4
+            + INV_SIN_TAYLOR_COEFFS[5] * angle ** 6
+            + INV_SIN_TAYLOR_COEFFS[7] * angle ** 8)
         coef_2 += mask_0_float * (
-           1. + INV_TAN_TAYLOR_COEFFS[1] * angle ** 2
-           + INV_TAN_TAYLOR_COEFFS[3] * angle ** 4
-           + INV_TAN_TAYLOR_COEFFS[5] * angle ** 6
-           + INV_TAN_TAYLOR_COEFFS[7] * angle ** 8)
+            1. + INV_TAN_TAYLOR_COEFFS[1] * angle ** 2
+            + INV_TAN_TAYLOR_COEFFS[3] * angle ** 4
+            + INV_TAN_TAYLOR_COEFFS[5] * angle ** 6
+            + INV_TAN_TAYLOR_COEFFS[7] * angle ** 8)
 
         # This avoids division by 0.
         angle += mask_0_float * 1.

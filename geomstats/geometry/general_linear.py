@@ -134,7 +134,7 @@ class GeneralLinear(LieGroup, Matrices):
             self.inverse(base_point), tangent_vec)
 
         exp_from_identity = self.exp_from_identity(
-                tangent_vec_at_identity)
+            tangent_vec_at_identity)
 
         group_exp = self.compose(
             base_point, exp_from_identity)
