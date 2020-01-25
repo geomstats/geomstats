@@ -160,7 +160,9 @@ class RiemannianMetric(object):
         Norm of a vector associated to the inner product
         at the tangent space at a base point.
 
-        Note: This only works for positive-definite
+        Notes
+        -----
+        This only works for positive-definite
         Riemannian metrics and inner products.
 
         Parameters
@@ -324,8 +326,8 @@ class RiemannianMetric(object):
 
         Geodesic distance between two points.
 
-        Note
-        ----
+        Notes
+        -----
         It only works for positive definite
         Riemannian metrics.
 

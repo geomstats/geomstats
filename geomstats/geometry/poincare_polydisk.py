@@ -1,5 +1,4 @@
-"""
-The Poincare polydisk.
+"""The Poincare polydisk.
 
 The Poincare polydisk is defined as a product manifold of the Hyperbolic space
 of dimension 2. The Poincare polydisk has a product metric. The metric on each
@@ -7,11 +6,11 @@ space is the natural Poincare metric multiplied by a constant.
 
 References
 ----------
-The Kahler mean of Block-Toeplitz matrices
-with Toeplitz structured blocks
-B. Jeuris and R. Vandebril
-2016
-https://epubs.siam.org/doi/pdf/10.1137/15M102112X
+.. [1] The Kahler mean of Block-Toeplitz matrices
+       with Toeplitz structured blocks
+       B. Jeuris and R. Vandebril
+       2016
+       https://epubs.siam.org/doi/pdf/10.1137/15M102112X
 """
 
 import geomstats.backend as gs
@@ -102,8 +101,8 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
     References
     ----------
     .. [1] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
-    matrices with Toeplitz structured blocks, 2016.
-    https://epubs.siam.org/doi/pdf/10.1137/15M102112X
+           matrices with Toeplitz structured blocks, 2016.
+           https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
 
     def __init__(self, n_disks, point_type='ball'):

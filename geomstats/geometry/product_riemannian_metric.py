@@ -1,11 +1,7 @@
-<<<<<<< HEAD
-"""Product of Riemannian metrics."""
-=======
-"""The product of Riemannian metrics.
+"""Product of Riemannian metrics.
 
 Define the metric of a product manifold endowed with a product metric.
 """
->>>>>>> Add an example for the Poincare polydisk.
 
 import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -34,11 +30,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             signature=(sig_0, sig_1, sig_2))
 
     def inner_product_matrix(self, base_point=None):
-<<<<<<< HEAD
         """Compute matrix of the corresponding inner product.
-=======
-        """Define the matrix of the inner product.
->>>>>>> Add an example for the Poincare polydisk.
 
         Matrix of the inner product defined by the Riemmanian metric
         at point base_point of the manifold.
@@ -67,7 +59,6 @@ class ProductRiemannianMetric(RiemannianMetric):
         return matrix
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-<<<<<<< HEAD
         """Compute inner product between two tan space vectors at a base point.
 
         Inner product defined by the Riemannian metric at point `base_point`
@@ -82,12 +73,6 @@ class ProductRiemannianMetric(RiemannianMetric):
         Returns
         -------
         inner_product
-=======
-        """Define the inner product.
-
-        Inner product defined by the Riemannian metric at point base_point
-        between tangent vectors tangent_vec_a and tangent_vec_b.
->>>>>>> Add an example for the Poincare polydisk.
         """
         if base_point is None:
             base_point = [None, ] * self.n_metrics
@@ -101,11 +86,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         return inner_product
 
     def exp(self, tangent_vec, base_point=None):
-<<<<<<< HEAD
         """Compute Riemannian exponential of tangent vector at base point.
-=======
-        """Define the Riemannian exponential map.
->>>>>>> Add an example for the Poincare polydisk.
 
         Riemannian exponential at point base_point
         of tangent vector tangent_vec wrt the Riemannian metric.
@@ -128,7 +109,6 @@ class ProductRiemannianMetric(RiemannianMetric):
         return exp
 
     def log(self, point, base_point=None):
-<<<<<<< HEAD
         """Compute Riemannian logarithm of a point wrt a base point.
 
         Parameters
@@ -139,12 +119,6 @@ class ProductRiemannianMetric(RiemannianMetric):
         Returns
         -------
         log
-=======
-        """Define the Riemannian logarithm map.
-
-        Riemannian logarithm at point base_point
-        of tangent vector tangent_vec wrt the Riemannian metric.
->>>>>>> Add an example for the Poincare polydisk.
         """
         if base_point is None:
             base_point = [None, ] * self.n_metrics
@@ -155,11 +129,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         return log
 
     def squared_dist(self, point_a, point_b):
-<<<<<<< HEAD
         """Compute squared geodesic distance between two points.
-=======
-        """Squared geodesic distance between two points.
->>>>>>> Add an example for the Poincare polydisk.
 
         Parameters
         ----------

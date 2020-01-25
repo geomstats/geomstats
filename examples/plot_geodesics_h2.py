@@ -12,7 +12,7 @@ import numpy as np
 import geomstats.visualization as visualization
 from geomstats.geometry.hyperbolic import Hyperbolic
 
-H2 = Hyperbolic(dimension=2, point_type='extrinsic', scale=1)
+H2 = Hyperbolic(dimension=2, point_type='extrinsic')
 METRIC = H2.metric
 
 
