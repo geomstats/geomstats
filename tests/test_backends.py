@@ -181,7 +181,7 @@ class TestBackends(geomstats.tests.TestCase):
                           [0., 2.5, 1.5],
                           [0., 1.5, 2.5]])
         result = gs.linalg.powerm(point, power)
-        result = gs.linalg.powerm(result, 1/power)
+        result = gs.linalg.powerm(result, 1 / power)
         expected = point
 
         self.assertAllClose(result, expected)
@@ -196,7 +196,7 @@ class TestBackends(geomstats.tests.TestCase):
                             [0., 2.5, 1.5],
                             [0., 1.5, 2.5]]])
         result = gs.linalg.powerm(points, power)
-        result = gs.linalg.powerm(result, 1/power)
+        result = gs.linalg.powerm(result, 1 / power)
         expected = points
 
         self.assertAllClose(result, expected)

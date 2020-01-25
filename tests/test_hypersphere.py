@@ -536,16 +536,16 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         p = dim + 1
         n_steps = 100
         for i in range(n_steps):
-            bessel_func_1 = scipy.special.iv(p/2., kappa_estimate)
-            bessel_func_2 = scipy.special.iv(p/2.-1., kappa_estimate)
+            bessel_func_1 = scipy.special.iv(p / 2., kappa_estimate)
+            bessel_func_2 = scipy.special.iv(p / 2. - 1., kappa_estimate)
             ratio = bessel_func_1 / bessel_func_2
-            denominator = 1. - ratio**2 - (p-1.)*ratio/kappa_estimate
+            denominator = 1. - ratio**2 - (p - 1.) * ratio / kappa_estimate
             mean_norm = gs.cast(mean_norm, gs.float64)
-            kappa_estimate = kappa_estimate - (ratio-mean_norm)/denominator
+            kappa_estimate = kappa_estimate - (ratio - mean_norm) / denominator
         expected = kappa
         result = kappa_estimate
         self.assertTrue(
-                gs.allclose(result, expected, atol=KAPPA_ESTIMATION_TOL))
+            gs.allclose(result, expected, atol=KAPPA_ESTIMATION_TOL))
 
     @geomstats.tests.np_and_pytorch_only
     def test_spherical_to_extrinsic(self):
@@ -558,8 +558,9 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         points_spherical = gs.array([[gs.pi / 2, 0],
                                      [gs.pi / 6, gs.pi / 4]])
         result = sphere.spherical_to_extrinsic(points_spherical)
-        expected = gs.array([[1., 0., 0.],
-                             [gs.sqrt(2)/4, gs.sqrt(2)/4, gs.sqrt(3)/2]])
+        expected = gs.array(
+            [[1., 0., 0.],
+             [gs.sqrt(2) / 4, gs.sqrt(2) / 4, gs.sqrt(3) / 2]])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only

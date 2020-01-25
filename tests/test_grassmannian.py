@@ -28,7 +28,7 @@ r_z = gs.array([
     [0., -1., 0.],
     [1., 0., 0.],
     [0., 0., 0.]])
-pi_2 = gs.pi/2
+pi_2 = gs.pi / 2
 
 
 class TestGrassmannianMethods(geomstats.tests.TestCase):
