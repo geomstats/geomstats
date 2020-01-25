@@ -524,7 +524,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         result = mean_estimate
         self.assertTrue(
                 gs.allclose(result, expected, atol=MEAN_ESTIMATION_TOL)
-                )
+        )
         # check concentration parameter for dispersed distribution
         kappa = 1
         points = sphere.random_von_mises_fisher(kappa, n_points)

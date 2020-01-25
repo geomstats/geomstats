@@ -57,7 +57,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 'with_angle_close_2pi_low': with_angle_close_2pi_low,
                 'with_angle_2pi': with_angle_2pi,
                 'with_angle_close_2pi_high': with_angle_close_2pi_high}
-            }
+        }
         elements = elements_all
         if geomstats.tests.tf_backend():
             # Tf is extremely slow
@@ -79,7 +79,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             for n, group, diag_mat in zip(n_seq,
                                           so.values(),
                                           diag_mats.values())
-            }
+        }
 
         right_diag_metrics = {
             n: InvariantMetric(
@@ -89,7 +89,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             for n, group, diag_mat in zip(n_seq,
                                           so.values(),
                                           diag_mats.values())
-            }
+        }
 
         mats = {2: 4 * gs.eye(1),
                 3: 87 * gs.eye(3)}
@@ -100,7 +100,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                    inner_product_mat_at_identity=mat,
                    left_or_right='left')
             for n, group, mat in zip(n_seq, so.values(), mats.values())
-            }
+        }
 
         right_metrics = {
             n: InvariantMetric(
@@ -108,7 +108,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                    inner_product_mat_at_identity=mat,
                    left_or_right='right')
             for n, group, mat in zip(n_seq, so.values(), mats.values())
-            }
+        }
         all_metrics = zip(n_seq,
                           canonical_metrics.values(),
                           left_diag_metrics.values(),
@@ -123,7 +123,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 'left': left,
                 'right': right}
             for n, canonical, left_diag, right_diag, left, right in all_metrics
-            }
+        }
         metrics = metrics_all
         if geomstats.tests.tf_backend():
             metrics = {
@@ -138,12 +138,12 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             3: ['with_angle_close_pi_low',
                 'with_angle_pi',
                 'with_angle_close_pi_high']
-            }
+        }
         angles_close_to_pi = angles_close_to_pi_all
         if geomstats.tests.tf_backend():
             angles_close_to_pi = {
                 3: ['with_angle_close_pi_low']
-                }
+            }
 
         # -- Set attributes
         self.n_seq = n_seq
@@ -3808,17 +3808,17 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         first_tan = gs.array([
                 [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
                 [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
-                ])
+        ])
         second_tan = gs.array([
                 [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
                 [[0., 0., -1.], [0., 0., 0.], [1., 0., 0.]]
-            ])
+        ])
 
         result = space.lie_bracket(first_tan, second_tan, base_point)
         expected = gs.array([
                 gs.zeros((dim, dim)),
                 [[0., 0., 0.], [0., 0., -1.], [0., 1., 0.]]
-                ])
+        ])
 
         self.assertAllClose(result, expected)
 
@@ -3831,11 +3831,11 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         first_tan = gs.matmul(
                 base_point,
                 gs.array([[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]])
-                )
+        )
         second_tan = gs.matmul(
                 base_point,
                 gs.array([[0., 0., -1.], [0., 0., 0.], [1., 0., 0.]])
-                )
+        )
 
         result = space.lie_bracket(first_tan, second_tan, base_point)
         expected = gs.matmul(
