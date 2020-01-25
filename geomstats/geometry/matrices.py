@@ -139,8 +139,8 @@ class MatricesMetric(RiemannianMetric):
     def __init__(self, m, n):
         dimension = m*n
         super(MatricesMetric, self).__init__(
-                dimension=dimension,
-                signature=(dimension, 0, 0))
+            dimension=dimension,
+            signature=(dimension, 0, 0))
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner product of two tan vecs at `base_point`."""

@@ -140,8 +140,9 @@ class ProductRiemannianMetric(RiemannianMetric):
         -------
         sum_sq_distances
         """
-        sq_distances = gs.asarray([self.metrics[i].squared_dist(
-            point_a[i], point_b[i])
-                                   for i in range(self.n_metrics)])
+        sq_distances = gs.asarray(
+            [self.metrics[i].squared_dist(
+                point_a[i], point_b[i])
+             for i in range(self.n_metrics)])
 
         return sum(sq_distances)

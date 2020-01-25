@@ -51,7 +51,7 @@ class SpecialEuclidean(LieGroup):
             self.default_point_type = 'vector' if n == 3 else 'matrix'
 
         super(SpecialEuclidean, self).__init__(
-                          dimension=self.dimension)
+            dimension=self.dimension)
 
         self.rotations = SpecialOrthogonal(n=n, epsilon=epsilon)
         self.translations = Euclidean(dimension=n)
@@ -133,7 +133,7 @@ class SpecialEuclidean(LieGroup):
             point_type = self.default_point_type
 
         return self.regularize_tangent_vec(
-                tangent_vec, self.identity, metric, point_type=point_type)
+            tangent_vec, self.identity, metric, point_type=point_type)
 
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None, point_type=None):
@@ -169,16 +169,16 @@ class SpecialEuclidean(LieGroup):
             metric_mat = metric.inner_product_mat_at_identity
             rot_metric_mat = metric_mat[:, :dim_rotations, :dim_rotations]
             rot_metric = InvariantMetric(
-                               group=rotations,
-                               inner_product_mat_at_identity=rot_metric_mat,
-                               left_or_right=metric.left_or_right)
+                group=rotations,
+                inner_product_mat_at_identity=rot_metric_mat,
+                left_or_right=metric.left_or_right)
 
             regularized_vec = gs.zeros_like(tangent_vec)
             rotations_vec = rotations.regularize_tangent_vec(
-                                             tangent_vec=rot_tangent_vec,
-                                             base_point=rot_base_point,
-                                             metric=rot_metric,
-                                             point_type=point_type)
+                tangent_vec=rot_tangent_vec,
+                base_point=rot_base_point,
+                metric=rot_metric,
+                point_type=point_type)
 
             regularized_vec = gs.concatenate(
                 [rotations_vec, tangent_vec[:, dim_rotations:]], axis=1)
@@ -231,10 +231,10 @@ class SpecialEuclidean(LieGroup):
 
             composition_rot_mat = gs.matmul(rot_mat_1, rot_mat_2)
             composition_rot_vec = rotations.rotation_vector_from_matrix(
-                                                          composition_rot_mat)
+                composition_rot_mat)
 
-            composition_translation = gs.einsum('ij,ikj->ik', translation_2,
-                                                rot_mat_1) + translation_1
+            composition_translation = gs.einsum(
+                'ij,ikj->ik', translation_2, rot_mat_1) + translation_1
 
             composition = gs.concatenate((composition_rot_vec,
                                           composition_translation), axis=1)
@@ -272,9 +272,9 @@ class SpecialEuclidean(LieGroup):
                 inverse_rotation)
 
             inverse_translation = gs.einsum(
-                    'ni,nij->nj',
-                    -translation,
-                    gs.transpose(inv_rot_mat, axes=(0, 2, 1)))
+                'ni,nij->nj',
+                -translation,
+                gs.transpose(inv_rot_mat, axes=(0, 2, 1)))
 
             inverse_point = gs.concatenate(
                 [inverse_rotation, inverse_translation], axis=1)
@@ -312,9 +312,9 @@ class SpecialEuclidean(LieGroup):
 
             jacobian = gs.zeros((n_points,) + (dim,) * 2)
             jacobian_rot = self.rotations.jacobian_translation(
-                                          point=rot_vec,
-                                          left_or_right=left_or_right,
-                                          point_type=point_type)
+                point=rot_vec,
+                left_or_right=left_or_right,
+                point_type=point_type)
             block_zeros_1 = gs.zeros(
                 (n_points, dim_rotations, dim_translations))
             jacobian_block_line_1 = gs.concatenate(
@@ -322,12 +322,12 @@ class SpecialEuclidean(LieGroup):
 
             if left_or_right == 'left':
                 rot_mat = self.rotations.matrix_from_rotation_vector(
-                        rot_vec)
+                    rot_vec)
                 jacobian_trans = rot_mat
                 block_zeros_2 = gs.zeros(
                     (n_points, dim_translations, dim_rotations))
                 jacobian_block_line_2 = gs.concatenate(
-                        [block_zeros_2, jacobian_trans], axis=2)
+                    [block_zeros_2, jacobian_trans], axis=2)
 
             else:
                 inv_skew_mat = - self.rotations.skew_matrix_from_vector(
@@ -591,16 +591,15 @@ class SpecialEuclidean(LieGroup):
             assert translations.shape == (n_points, self.n)
 
             mean_rotation = rotations.exponential_barycenter(
-                                                    points=rotation_vectors,
-                                                    weights=weights)
+                points=rotation_vectors, weights=weights)
             mean_rotation_mat = rotations.matrix_from_rotation_vector(
-                        mean_rotation)
+                mean_rotation)
 
             matrix = gs.zeros((1,) + (self.n,) * 2)
             translation_aux = gs.zeros((1, self.n))
 
             inv_rot_mats = rotations.matrix_from_rotation_vector(
-                    -rotation_vectors)
+                -rotation_vectors)
             matrix_aux = gs.matmul(mean_rotation_mat, inv_rot_mats)
             assert matrix_aux.shape == (n_points,) + (dim_rotations,) * 2
 
@@ -610,10 +609,9 @@ class SpecialEuclidean(LieGroup):
 
             for i in range(n_points):
                 matrix += weights[i] * matrix_aux[i]
-                translation_aux += weights[i] * gs.dot(gs.matmul(
-                                                            matrix_aux[i],
-                                                            inv_rot_mats[i]),
-                                                       translations[i])
+                translation_aux += weights[i] * gs.dot(
+                    gs.matmul(matrix_aux[i], inv_rot_mats[i]),
+                    translations[i])
 
             mean_translation = gs.dot(translation_aux,
                                       gs.transpose(gs.linalg.inv(matrix),

@@ -72,7 +72,7 @@ class SPDMatrices(EmbeddedManifold):
         mat = 2 * gs.random.rand(n_samples, self.n, self.n) - 1
 
         spd_mat = self.embedding_manifold.exp(
-                mat + gs.transpose(mat, axes=(0, 2, 1)))
+            mat + gs.transpose(mat, axes=(0, 2, 1)))
         return spd_mat
 
     def random_tangent_vec_uniform(self, n_samples=1, base_point=None):
@@ -355,8 +355,8 @@ class SPDMetricAffine(RiemannianMetric):
         """
         dimension = int(n * (n + 1) / 2)
         super(SPDMetricAffine, self).__init__(
-                dimension=dimension,
-                signature=(dimension, 0, 0))
+            dimension=dimension,
+            signature=(dimension, 0, 0))
         self.n = n
         self.space = SPDMatrices(n)
         self.power_affine = power_affine
@@ -612,9 +612,9 @@ class SPDMetricAffine(RiemannianMetric):
         geodesic
         """
         return super(SPDMetricAffine, self).geodesic(
-                                      initial_point=initial_point,
-                                      initial_tangent_vec=initial_tangent_vec,
-                                      point_type='matrix')
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec,
+            point_type='matrix')
 
 
 class SPDMetricProcrustes(RiemannianMetric):

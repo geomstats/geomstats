@@ -550,7 +550,7 @@ class HyperbolicMetric(RiemannianMetric):
             base_point = gs.to_ndarray(base_point, to_ndim=2)
 
             sq_norm_tangent_vec = self.embedding_metric.squared_norm(
-                    tangent_vec)
+                tangent_vec)
             norm_tangent_vec = gs.sqrt(sq_norm_tangent_vec)
 
             mask_0 = gs.isclose(sq_norm_tangent_vec, 0.)
@@ -564,23 +564,24 @@ class HyperbolicMetric(RiemannianMetric):
             coef_2 = gs.zeros_like(norm_tangent_vec)
 
             coef_1 += mask_0_float * (
-                      1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
-                      + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
-                      + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
-                      + COSH_TAYLOR_COEFFS[8] * norm_tangent_vec ** 8)
+                1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
+                + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
+                + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
+                + COSH_TAYLOR_COEFFS[8] * norm_tangent_vec ** 8)
             coef_2 += mask_0_float * (
-                      1. + SINH_TAYLOR_COEFFS[3] * norm_tangent_vec ** 2
-                      + SINH_TAYLOR_COEFFS[5] * norm_tangent_vec ** 4
-                      + SINH_TAYLOR_COEFFS[7] * norm_tangent_vec ** 6
-                      + SINH_TAYLOR_COEFFS[9] * norm_tangent_vec ** 8)
+                1. + SINH_TAYLOR_COEFFS[3] * norm_tangent_vec ** 2
+                + SINH_TAYLOR_COEFFS[5] * norm_tangent_vec ** 4
+                + SINH_TAYLOR_COEFFS[7] * norm_tangent_vec ** 6
+                + SINH_TAYLOR_COEFFS[9] * norm_tangent_vec ** 8)
             # This avoids dividing by 0.
             norm_tangent_vec += mask_0_float * 1.0
             coef_1 += mask_else_float * (gs.cosh(norm_tangent_vec))
             coef_2 += mask_else_float * (
                 (gs.sinh(norm_tangent_vec) / (norm_tangent_vec)))
 
-            exp = (gs.einsum('ni,nj->nj', coef_1, base_point)
-                   + gs.einsum('ni,nj->nj', coef_2, tangent_vec))
+            exp = (
+                gs.einsum('ni,nj->nj', coef_1, base_point)
+                + gs.einsum('ni,nj->nj', coef_2, tangent_vec))
 
             hyperbolic_space = Hyperbolic(dimension=self.dimension)
             exp = hyperbolic_space.regularize(exp)
@@ -589,8 +590,8 @@ class HyperbolicMetric(RiemannianMetric):
         elif self.point_type == 'ball':
 
             norm_base_point = gs.to_ndarray(gs.norm(base_point, -1), 2, -1)
-            norm_base_point = gs.repeat(norm_base_point,
-                                        base_point.shape[-1], -1)
+            norm_base_point = gs.repeat(
+                norm_base_point, base_point.shape[-1], -1)
             den = 1 - norm_base_point**2
 
             norm_tan = gs.to_ndarray(gs.norm(tangent_vec, -1), 2, -1)
@@ -607,7 +608,7 @@ class HyperbolicMetric(RiemannianMetric):
             return exp
         else:
             raise NotImplementedError(
-                    'exp is only implemented for ball and extrinsic')
+                'exp is only implemented for ball and extrinsic')
 
     def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
@@ -646,15 +647,15 @@ class HyperbolicMetric(RiemannianMetric):
             coef_2 = gs.zeros_like(angle)
 
             coef_1 += mask_0_float * (
-                      1. + INV_SINH_TAYLOR_COEFFS[1] * angle ** 2
-                      + INV_SINH_TAYLOR_COEFFS[3] * angle ** 4
-                      + INV_SINH_TAYLOR_COEFFS[5] * angle ** 6
-                      + INV_SINH_TAYLOR_COEFFS[7] * angle ** 8)
+                1. + INV_SINH_TAYLOR_COEFFS[1] * angle ** 2
+                + INV_SINH_TAYLOR_COEFFS[3] * angle ** 4
+                + INV_SINH_TAYLOR_COEFFS[5] * angle ** 6
+                + INV_SINH_TAYLOR_COEFFS[7] * angle ** 8)
             coef_2 += mask_0_float * (
-                      1. + INV_TANH_TAYLOR_COEFFS[1] * angle ** 2
-                      + INV_TANH_TAYLOR_COEFFS[3] * angle ** 4
-                      + INV_TANH_TAYLOR_COEFFS[5] * angle ** 6
-                      + INV_TANH_TAYLOR_COEFFS[7] * angle ** 8)
+                1. + INV_TANH_TAYLOR_COEFFS[1] * angle ** 2
+                + INV_TANH_TAYLOR_COEFFS[3] * angle ** 4
+                + INV_TANH_TAYLOR_COEFFS[5] * angle ** 6
+                + INV_TANH_TAYLOR_COEFFS[7] * angle ** 8)
 
             # This avoids dividing by 0.
             angle += mask_0_float * 1.
@@ -685,7 +686,7 @@ class HyperbolicMetric(RiemannianMetric):
             return log
         else:
             raise NotImplementedError(
-                    'log is only implemented for ball and extrinsic')
+                'log is only implemented for ball and extrinsic')
 
     def mobius_add(self, point_a, point_b):
         """Compute the mobius addition of two points.
@@ -774,4 +775,4 @@ class HyperbolicMetric(RiemannianMetric):
 
         else:
             raise NotImplementedError(
-                    'dist is only implemented for ball and extrinsic')
+                'dist is only implemented for ball and extrinsic')
