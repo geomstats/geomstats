@@ -38,19 +38,11 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         expected = gs.array([True, True, False])
         self.assertAllClose(result, expected)
 
-#    @geomstats.tests.
     def test_random_uniform_and_belongs(self):
-        points = self.space.random_uniform(2)
+        points = self.space.random_uniform(4)
         result = self.space.belongs(points)
-        expected = gs.array([True, True])
+        expected = gs.array([True] * 4)
         self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_only
-    def test_random_uniform_and_belongs_vectorization(self):
-        n_samples = self.n_samples
-        points = self.space.random_uniform(n_samples=n_samples)
-        result = self.space.belongs(points)
-        self.assertAllClose(gs.shape(result), n_samples)
 
     @geomstats.tests.np_and_tf_only
     def vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(self):
@@ -87,7 +79,6 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
         self.assertTrue(gs.allclose(result, expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_differential_power(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 2.5, 1.5],
@@ -105,7 +96,6 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
                               [1/3, .125, .125]]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_inverse_differential_power(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 2.5, 1.5],
@@ -259,7 +249,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_tf_only
     def test_log_and_exp_affine_invariant(self):
         base_point = gs.array([[5., 0., 0.],
                                [0., 7., 2.],
