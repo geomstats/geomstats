@@ -301,8 +301,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         n_samples = self.n_samples
         base_point = self.space.random_uniform(n_samples=1)
         tangent_vec = self.space.random_tangent_vec_uniform(
-                                               n_samples=n_samples,
-                                               base_point=base_point)
+            n_samples=n_samples, base_point=base_point)
         metric = self.metric_affine
         exps = metric.exp(tangent_vec, base_point)
         result = self.space.belongs(exps)
@@ -317,11 +316,9 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         n_base_point = self.space.random_uniform(n_samples=n_samples)
 
         n_tangent_vec_same_base = self.space.random_tangent_vec_uniform(
-                                                 n_samples=n_samples,
-                                                 base_point=one_base_point)
+            n_samples=n_samples, base_point=one_base_point)
         n_tangent_vec = self.space.random_tangent_vec_uniform(
-                                                 n_samples=n_samples,
-                                                 base_point=n_base_point)
+            n_samples=n_samples, base_point=n_base_point)
         metric = self.metric_affine
 
         # Test with the 1 base_point, and several different tangent_vecs
@@ -368,12 +365,11 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
     def test_geodesic_and_belongs(self):
         initial_point = self.space.random_uniform()
         initial_tangent_vec = self.space.random_tangent_vec_uniform(
-                                                n_samples=1,
-                                                base_point=initial_point)
+            n_samples=1, base_point=initial_point)
         metric = self.metric_affine
         geodesic = metric.geodesic(
-                                   initial_point=initial_point,
-                                   initial_tangent_vec=initial_tangent_vec)
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec)
 
         n_points = 10
         t = gs.linspace(start=0., stop=1., num=n_points)

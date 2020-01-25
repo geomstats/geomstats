@@ -72,38 +72,38 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                                            1., 0., 0.])
 
         elements_all = {
-                    'with_angle_0': with_angle_0,
-                    'with_angle_close_0': with_angle_close_0,
-                    'with_angle_close_pi_low': with_angle_close_pi_low,
-                    'with_angle_pi': with_angle_pi,
-                    'with_angle_close_pi_high': with_angle_close_pi_high,
-                    'with_angle_in_pi_2pi': with_angle_in_pi_2pi,
-                    'with_angle_close_2pi_low': with_angle_close_2pi_low,
-                    'with_angle_2pi': with_angle_2pi,
-                    'with_angle_close_2pi_high': with_angle_close_2pi_high,
-                    'translation_large': translation_large,
-                    'translation_small': translation_small,
-                    'point_1': point_1,
-                    'point_2': point_2,
-                    'rot_with_parallel_trans': rot_with_parallel_trans}
+            'with_angle_0': with_angle_0,
+            'with_angle_close_0': with_angle_close_0,
+            'with_angle_close_pi_low': with_angle_close_pi_low,
+            'with_angle_pi': with_angle_pi,
+            'with_angle_close_pi_high': with_angle_close_pi_high,
+            'with_angle_in_pi_2pi': with_angle_in_pi_2pi,
+            'with_angle_close_2pi_low': with_angle_close_2pi_low,
+            'with_angle_2pi': with_angle_2pi,
+            'with_angle_close_2pi_high': with_angle_close_2pi_high,
+            'translation_large': translation_large,
+            'translation_small': translation_small,
+            'point_1': point_1,
+            'point_2': point_2,
+            'rot_with_parallel_trans': rot_with_parallel_trans}
         elements = elements_all
         if geomstats.tests.tf_backend():
             # Tf is extremely slow
             elements = {
-                    'point_1': point_1,
-                    'point_2': point_2}
+                'point_1': point_1,
+                'point_2': point_2}
 
         # Metrics - only diagonals
         diag_mat_at_identity = gs.eye(6) * gs.array([2., 2., 2., 3., 3., 3.])
 
         left_diag_metric = InvariantMetric(
-                   group=group,
-                   inner_product_mat_at_identity=diag_mat_at_identity,
-                   left_or_right='left')
+            group=group,
+            inner_product_mat_at_identity=diag_mat_at_identity,
+            left_or_right='left')
         right_diag_metric = InvariantMetric(
-                   group=group,
-                   inner_product_mat_at_identity=diag_mat_at_identity,
-                   left_or_right='right')
+            group=group,
+            inner_product_mat_at_identity=diag_mat_at_identity,
+            left_or_right='right')
 
         # mat_at_identity = 7 * gs.eye(group.dimension)
 
@@ -558,8 +558,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                 continue
             point = self.elements[element_type]
             result = helper.group_log_then_exp_from_identity(
-                                                 group=self.group,
-                                                 point=point)
+                group=self.group, point=point)
             expected = self.group.regularize(point)
             expected = helper.to_vector(expected)
             self.assertAllClose(result, expected, atol=1e-3)
@@ -579,8 +578,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         for element_type in angle_types:
             point = self.elements_all[element_type]
             result = helper.group_log_then_exp_from_identity(
-                                                 group=self.group,
-                                                 point=point)
+                group=self.group, point=point)
             expected = self.group.regularize(point)
             expected = helper.to_vector(expected)
 
@@ -605,8 +603,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         # Expect the sum of the translation
         # with the translation of the reference point
         result = self.group.exp(
-                           base_point=self.elements_all['translation_small'],
-                           tangent_vec=self.elements_all['translation_large'])
+            base_point=self.elements_all['translation_small'],
+            tangent_vec=self.elements_all['translation_large'])
         expected = (self.elements_all['translation_small']
                     + self.elements_all['translation_large'])
         expected = helper.to_vector(expected)
@@ -621,8 +619,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         # Expect the difference of the translation
         # by the translation of the reference point
         result = self.group.log(
-                             base_point=self.elements_all['translation_small'],
-                             point=self.elements_all['translation_large'])
+            base_point=self.elements_all['translation_small'],
+            point=self.elements_all['translation_large'])
         expected = (self.elements_all['translation_large']
                     - self.elements_all['translation_small'])
 
@@ -671,9 +669,9 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                                                    base_point=base_point)
                 metric = self.metrics_all['left_canonical']
                 expected = self.group.regularize_tangent_vec(
-                                                   tangent_vec=tangent_vec,
-                                                   base_point=base_point,
-                                                   metric=metric)
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    metric=metric)
                 expected = helper.to_vector(expected)
                 self.assertAllClose(result, expected, rtol=1e-4, atol=1e-4)
 
@@ -751,11 +749,9 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                     continue
                 tangent_vec = self.elements[angle_type]
                 result = helper.exp_then_log_from_identity(
-                                                metric=metric,
-                                                tangent_vec=tangent_vec)
+                    metric=metric, tangent_vec=tangent_vec)
                 expected = self.group.regularize_tangent_vec_at_identity(
-                                                tangent_vec,
-                                                metric=metric)
+                    tangent_vec, metric=metric)
                 expected = helper.to_vector(expected)
                 self.assertAllClose(result, expected)
 
@@ -777,11 +773,9 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             for angle_type in angle_types:
                 tangent_vec = self.elements_all[angle_type]
                 result = helper.exp_then_log_from_identity(
-                                                metric=metric,
-                                                tangent_vec=tangent_vec)
+                    metric=metric, tangent_vec=tangent_vec)
                 expected = self.group.regularize_tangent_vec_at_identity(
-                                                tangent_vec=tangent_vec,
-                                                metric=metric)
+                    tangent_vec=tangent_vec, metric=metric)
                 expected = helper.to_vector(expected)
                 inv_expected = gs.concatenate(
                     [- expected[:, :3], expected[:, 3:6]],
@@ -811,11 +805,9 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                     continue
                 tangent_vec = self.elements[angle_type]
                 result = helper.exp_then_log_from_identity(
-                                                metric=metric,
-                                                tangent_vec=tangent_vec)
+                    metric=metric, tangent_vec=tangent_vec)
                 expected = self.group.regularize_tangent_vec_at_identity(
-                        tangent_vec=tangent_vec,
-                        metric=metric)
+                    tangent_vec=tangent_vec, metric=metric)
                 expected = helper.to_vector(expected)
 
                 self.assertAllClose(result, expected, atol=1e-4)
@@ -838,11 +830,9 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             for angle_type in angle_types:
                 tangent_vec = self.elements_all[angle_type]
                 result = helper.exp_then_log_from_identity(
-                                                metric=metric,
-                                                tangent_vec=tangent_vec)
+                    metric=metric, tangent_vec=tangent_vec)
                 expected = self.group.regularize_tangent_vec_at_identity(
-                                                tangent_vec=tangent_vec,
-                                                metric=metric)
+                    tangent_vec=tangent_vec, metric=metric)
                 expected = helper.to_vector(expected)
                 inv_expected = gs.concatenate(
                     [- expected[:, :3], expected[:, 3:6]],
@@ -924,9 +914,9 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                         continue
                     point = self.elements[element_type]
                     result = helper.log_then_exp(
-                                                metric=metric,
-                                                point=point,
-                                                base_point=base_point)
+                        metric=metric,
+                        point=point,
+                        base_point=base_point)
 
                     expected = self.group.regularize(point)
                     expected = helper.to_vector(expected)
@@ -951,9 +941,9 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                 for element_type in angle_types:
                     point = self.elements_all[element_type]
                     result = helper.log_then_exp(
-                                                metric=metric,
-                                                point=point,
-                                                base_point=base_point)
+                        metric=metric,
+                        point=point,
+                        base_point=base_point)
 
                     expected = self.group.regularize(point)
                     expected = helper.to_vector(expected)
@@ -985,14 +975,14 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                         continue
                     tangent_vec = self.elements[element_type]
                     result = helper.exp_then_log(
-                                                metric=metric,
-                                                tangent_vec=tangent_vec,
-                                                base_point=base_point)
+                        metric=metric,
+                        tangent_vec=tangent_vec,
+                        base_point=base_point)
 
                     expected = self.group.regularize_tangent_vec(
-                                                tangent_vec=tangent_vec,
-                                                base_point=base_point,
-                                                metric=metric)
+                        tangent_vec=tangent_vec,
+                        base_point=base_point,
+                        metric=metric)
                     expected = helper.to_vector(expected)
                     norm = gs.linalg.norm(expected)
                     atol = RTOL
@@ -1018,14 +1008,14 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                 for element_type in angle_types:
                     tangent_vec = self.elements_all[element_type]
                     result = helper.exp_then_log(
-                                                metric=metric,
-                                                tangent_vec=tangent_vec,
-                                                base_point=base_point)
+                        metric=metric,
+                        tangent_vec=tangent_vec,
+                        base_point=base_point)
 
                     expected = self.group.regularize_tangent_vec(
-                                                tangent_vec=tangent_vec,
-                                                base_point=base_point,
-                                                metric=metric)
+                        tangent_vec=tangent_vec,
+                        base_point=base_point,
+                        metric=metric)
                     expected = helper.to_vector(expected)
 
                     inv_expected = gs.concatenate(
@@ -1055,9 +1045,9 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                         continue
                     point = self.elements[element_type]
                     result = helper.log_then_exp(
-                                                metric=metric,
-                                                point=point,
-                                                base_point=base_point)
+                        metric=metric,
+                        point=point,
+                        base_point=base_point)
 
                     expected = self.group.regularize(point)
                     expected = helper.to_vector(expected)
@@ -1085,9 +1075,9 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                 for element_type in angle_types:
                     point = self.elements_all[element_type]
                     result = helper.log_then_exp(
-                                                metric=metric,
-                                                point=point,
-                                                base_point=base_point)
+                        metric=metric,
+                        point=point,
+                        base_point=base_point)
 
                     expected = self.group.regularize(point)
                     expected = helper.to_vector(expected)
