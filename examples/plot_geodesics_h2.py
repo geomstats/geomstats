@@ -20,6 +20,7 @@ def plot_geodesic_between_two_points(initial_point,
                                      end_point,
                                      n_steps=10,
                                      ax=None):
+    """Plot the geodesic between two points."""
     assert H2.belongs(initial_point)
     assert H2.belongs(end_point)
 
@@ -35,6 +36,7 @@ def plot_geodesic_with_initial_tangent_vector(initial_point,
                                               initial_tangent_vec,
                                               n_steps=10,
                                               ax=None):
+    """Plot the geodesic with initial speed the tangent vector."""
     assert H2.belongs(initial_point)
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                initial_tangent_vec=initial_tangent_vec)
@@ -45,6 +47,7 @@ def plot_geodesic_with_initial_tangent_vector(initial_point,
 
 
 def main():
+    """Plot the geodesics."""
     initial_point = [np.sqrt(2), 1., 0.]
     end_point = H2.intrinsic_to_extrinsic_coords([1.5, 1.5])
     initial_tangent_vec = H2.projection_to_tangent_space(
