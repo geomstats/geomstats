@@ -79,11 +79,12 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20,
                                              axis=0))
 
         tangent_vec_update = metric.log(
-                point=point, base_point=center_to_update
-                ) / (step_size+1)
+            point=point, base_point=center_to_update
+        ) / (step_size + 1)
         new_center = metric.exp(
-                tangent_vec=tangent_vec_update, base_point=center_to_update
-                )
+            tangent_vec=tangent_vec_update,
+            base_point=center_to_update
+        )
         gap = metric.dist(center_to_update, new_center)
         if gap == 0 and iteration == 1:
             gap = gs.array(1.0)
@@ -93,7 +94,7 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20,
         if gs.isclose(gap, 0, atol=tolerance):
             break
 
-    if iteration == n_max_iterations-1:
+    if iteration == n_max_iterations - 1:
         print('Maximum number of iterations {} reached. The'
               'clustering may be inaccurate'.format(n_max_iterations))
 

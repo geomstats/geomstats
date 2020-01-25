@@ -62,7 +62,7 @@ class Trihedron():
 
 class Circle():
     def __init__(self, n_angles=100, points=None):
-        angles = gs.linspace(0, 2*gs.pi, n_angles)
+        angles = gs.linspace(0, 2 * gs.pi, n_angles)
         self.circle_x = gs.cos(angles)
         self.circle_y = gs.sin(angles)
         self.points = []
