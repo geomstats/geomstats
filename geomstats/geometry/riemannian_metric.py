@@ -539,7 +539,7 @@ class RiemannianMetric(object):
                 current_mean = next_mean
                 current_tangent_mean = next_tangent_mean
                 norm_current_tangent_mean = norm_next_tangent_mean
-                tau = max(1.0, 1.0511111*tau)
+                tau = max(1.0, 1.0511111 * tau)
             else:
                 tau = tau * 0.8
 

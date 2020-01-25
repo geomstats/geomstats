@@ -15,7 +15,7 @@ class GeneralLinear(LieGroup, Matrices):
 
     def __init__(self, n):
         assert isinstance(n, int) and n > 0
-        LieGroup.__init__(self, dimension=n*n)
+        LieGroup.__init__(self, dimension=n * n)
         Matrices.__init__(self, m=n, n=n)
 
     def get_identity(self, point_type=None):

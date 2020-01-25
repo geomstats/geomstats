@@ -83,7 +83,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         super(StiefelCanonicalMetric, self).__init__(
             dimension=dimension,
             signature=(dimension, 0, 0))
-        self.embedding_metric = EuclideanMetric(n*p)
+        self.embedding_metric = EuclideanMetric(n * p)
         self.n = n
         self.p = p
 
@@ -219,11 +219,11 @@ class StiefelCanonicalMetric(RiemannianMetric):
             matrix_n
             """
             [matrix_d, matrix_s, matrix_r] = gs.linalg.svd(
-                matrix_v[:, p:2*p, p:2*p])
+                matrix_v[:, p:2 * p, p:2 * p])
 
             matrix_rd = gs.matmul(
                 matrix_r, gs.transpose(matrix_d, axes=(0, 2, 1)))
-            sub_matrix_v = gs.matmul(matrix_v[:, :, p:2*p], matrix_rd)
+            sub_matrix_v = gs.matmul(matrix_v[:, :, p:2 * p], matrix_rd)
             matrix_v = gs.concatenate(
                 [gs.concatenate([matrix_m, matrix_n], axis=1),
                  sub_matrix_v],
@@ -256,7 +256,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         for k in range(max_iter):
             matrix_lv = gs.linalg.logm(matrix_v)
 
-            matrix_c = matrix_lv[:, p:2*p, p:2*p]
+            matrix_c = matrix_lv[:, p:2 * p, p:2 * p]
 
             # TODO(nina): Add break condition
             # of the form: if gs.all(gs.less_equal(norm_matrix_c, tol)):
@@ -264,7 +264,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             matrix_phi = gs.linalg.expm(-matrix_c)
 
             aux_matrix = gs.matmul(
-                matrix_v[:, :, p:2*p], matrix_phi)
+                matrix_v[:, :, p:2 * p], matrix_phi)
 
             matrix_v = gs.concatenate(
                 [matrix_v[:, :, 0:p],
@@ -272,7 +272,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
                 axis=2)
 
         matrix_xv = gs.matmul(base_point, matrix_lv[:, 0:p, 0:p])
-        matrix_qv = gs.matmul(matrix_q, matrix_lv[:, p:2*p, 0:p])
+        matrix_qv = gs.matmul(matrix_q, matrix_lv[:, p:2 * p, 0:p])
 
         return matrix_xv + matrix_qv
 
@@ -296,7 +296,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         if n_tangent_vecs == 1:
             tangent_vec = gs.tile(tangent_vec, (n_base_points, 1, 1))
 
-        matrix_q, matrix_r = gs.linalg.qr(base_point+tangent_vec)
+        matrix_q, matrix_r = gs.linalg.qr(base_point + tangent_vec)
 
         diagonal = gs.diagonal(matrix_r, axis1=1, axis2=2)
         sign = gs.sign(gs.sign(diagonal) + 0.5)
@@ -328,7 +328,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         def make_minor(i, matrix):
             """TODO: fill in."""
-            return matrix[:i+1, :i+1]
+            return matrix[:i + 1, :i + 1]
 
         def make_column_r(i, matrix):
             """TODO: fill in."""
@@ -351,11 +351,11 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         def make_b(i, matrix, list_matrices_r):
             """TODO: fill in."""
-            b = gs.ones(i+1)
+            b = gs.ones(i + 1)
 
             for j in range(i):
                 b[j] = - gs.matmul(
-                    matrix[i, :j+1], list_matrices_r[j])
+                    matrix[i, :j + 1], list_matrices_r[j])
 
             return b
 

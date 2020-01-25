@@ -45,7 +45,7 @@ class Hypersphere(EmbeddedManifold):
         assert isinstance(dimension, int) and dimension > 0
         super(Hypersphere, self).__init__(
             dimension=dimension,
-            embedding_manifold=Euclidean(dimension+1))
+            embedding_manifold=Euclidean(dimension + 1))
         self.embedding_metric = self.embedding_manifold.metric
         self.metric = HypersphereMetric(dimension)
 
@@ -153,7 +153,7 @@ class Hypersphere(EmbeddedManifold):
         theta = point_spherical[:, 0]
         phi = point_spherical[:, 1]
         point_extrinsic = gs.zeros(
-            (point_spherical.shape[0], self.dimension+1))
+            (point_spherical.shape[0], self.dimension + 1))
         point_extrinsic[:, 0] = gs.sin(theta) * gs.cos(phi)
         point_extrinsic[:, 1] = gs.sin(theta) * gs.sin(phi)
         point_extrinsic[:, 2] = gs.cos(theta)
@@ -380,7 +380,7 @@ class HypersphereMetric(RiemannianMetric):
         n_base_points, extrinsic_dim = base_point.shape
         n_tangent_vecs, _ = tangent_vec.shape
 
-        hypersphere = Hypersphere(dimension=extrinsic_dim-1)
+        hypersphere = Hypersphere(dimension=extrinsic_dim - 1)
         proj_tangent_vec = hypersphere.projection_to_tangent_space(
             tangent_vec, base_point)
         norm_tangent_vec = self.embedding_metric.norm(proj_tangent_vec)
@@ -393,8 +393,8 @@ class HypersphereMetric(RiemannianMetric):
         norm2 = norm_tangent_vec[mask_0]**2
         norm4 = norm2**2
         norm6 = norm2**3
-        coef_1[mask_0] = 1. - norm2/2. + norm4/24. - norm6/720.
-        coef_2[mask_0] = 1. - norm2/6. + norm4/120. - norm6/5040.
+        coef_1[mask_0] = 1. - norm2 / 2. + norm4 / 24. - norm6 / 720.
+        coef_2[mask_0] = 1. - norm2 / 6. + norm4 / 120. - norm6 / 5040.
 
         coef_1[mask_non0] = gs.cos(norm_tangent_vec[mask_non0])
         coef_2[mask_non0] = gs.sin(norm_tangent_vec[mask_non0]) / \
