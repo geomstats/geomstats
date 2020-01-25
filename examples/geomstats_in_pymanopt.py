@@ -34,7 +34,7 @@ class GeomstatsSphere(Manifold):
     """
 
     def __init__(self, ambient_dimension):
-        self._sphere = Hypersphere(ambient_dimension-1)
+        self._sphere = Hypersphere(ambient_dimension - 1)
 
     def norm(self, base_vector, tangent_vector):
         return self._sphere.metric.norm(tangent_vector, base_point=base_vector)
