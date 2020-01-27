@@ -1,6 +1,7 @@
 """Riemannian and pseudo-Riemannian metrics."""
 
 import math
+import warnings
 
 import geomstats.backend as gs
 
@@ -460,7 +461,7 @@ class RiemannianMetric(object):
             maximum_iterations=n_max_iterations)
 
         if last_iteration == n_max_iterations:
-            print('Maximum number of iterations {} reached.'
+            warnings.warn('Maximum number of iterations {} reached.'
                   'The mean may be inaccurate'.format(n_max_iterations))
 
         if verbose:
