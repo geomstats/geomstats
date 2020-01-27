@@ -39,6 +39,21 @@ class SpecialEuclidean(LieGroup):
     """
 
     def __init__(self, n, point_type=None, epsilon=0.):
+        """Initiate an object of class SpecialEuclidean.
+
+        Parameter
+        ---------
+        n : int
+            the dimension of the euclidean space that SE(n) acts upon
+        point_type : str, {'vector', 'matrix'}, optional
+            whether to represent elmenents of SE(n) by vectors or matrices
+            if None is given, point_type is set to 'vector for dimension 3
+            and matrix otherwise
+        epsilon : float, optional
+            precision to use for calculations involving potential divison by in
+            rotations
+            set to 0 by default
+        """
         assert isinstance(n, int) and n > 1
 
         self.n = n
@@ -59,8 +74,14 @@ class SpecialEuclidean(LieGroup):
     def get_identity(self, point_type=None):
         """Get the identity of the group.
 
-        As a vector if point_type == 'vector',
-        As a matrix if point_type == 'matrix'.
+        Parameters
+        ----------
+        point_type : str, {'vector', 'matrix'}, optional
+            the point_type of the returned value
+
+        Returns
+        -------
+        identity : array-like, shape={[dimension], [n + 1, n + 1]}
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -72,7 +93,20 @@ class SpecialEuclidean(LieGroup):
     identity = property(get_identity)
 
     def belongs(self, point, point_type=None):
-        """Evaluate if a point belongs to SE(n)."""
+        """Evaluate if a point belongs to SE(n).
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+            the point of which to check whether it belongs to SE(n)
+        point_type : str, {'vector', 'matrix'}, optional
+            defaults to default_point_type
+
+        Returns
+        -------
+        belongs : array-like, shape=[n_samples, 1]
+            array of booleans indicating whether point belongs to SE(n)
+        """
         if point_type is None:
             point_type = self.default_point_type
 
@@ -90,7 +124,19 @@ class SpecialEuclidean(LieGroup):
         return belongs
 
     def regularize(self, point, point_type=None):
-        """Regularize a point to the canonical representation for SE(n)."""
+        """Regularize a point to the default representation for SE(n).
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+            the point which should be regularized
+        point_type : str, {'vector', 'matrix'}, optional
+            defaults to default_point_type
+
+        Returns
+        -------
+        point : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        """
         if point_type is None:
             point_type = self.default_point_type
 
@@ -121,13 +167,14 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        tangent_vec
-        metric
-        point_type
+        tangent_vec: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        metric : RiemannianMetric, optional
+        point_type : str, {'vector', 'matrix'}, optional
+            defaults to default_point_type
 
         Returns
         -------
-        regularized_vec
+        regularized_vec : the regularized tangent vector
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -141,14 +188,16 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        tangent_vec
-        base_point
-        metric
-        point_type
+        tangent_vec: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        base_point : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        metric : RiemannianMetric, optional
+            defaults to left_canonical_metric
+        point_type: str, {'vector', 'matrix'}, optional
+            defaults to default_point_type
 
         Returns
         -------
-        regularized_vec
+        regularized_vec : the regularized tangent vector
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -189,13 +238,23 @@ class SpecialEuclidean(LieGroup):
         return regularized_vec
 
     def compose(self, point_1, point_2, point_type=None):
-        """Compose two elements of SE(n).
+        r"""Compose two elements of SE(n).
 
-        Formula:
-        point_1 . point_2 = [R1 * R2, (R1 * t2) + t1]
-        where:
-        R1, R2 are rotation matrices,
-        t1, t2 are translation vectors.
+        Parameters
+        ----------
+        point_1 : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point_2 : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point_type: str, {'vector', 'matrix'}, optional
+            defaults to default_point_type
+
+        Equation
+        ---------
+        (:math: `(R_1, t_1) \\cdot (R_2, t_2) = (R_1 R_2, R_1 t_2 + t_1)`)
+
+        Returns
+        -------
+        composition : the composition of point_1 and point_2
+
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -246,10 +305,21 @@ class SpecialEuclidean(LieGroup):
         return composition
 
     def inverse(self, point, point_type=None):
-        """Compute the group inverse in SE(n).
+        r"""Compute the group inverse in SE(n).
 
-        Formula:
+        Parameters
+        ----------
+        point: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+
+        Formula
+        -------
         :math:`(R, t)^{-1} = (R^{-1}, R^{-1}.(-t))`
+
+        Returns
+        -------
+        inverse_point : array-like,
+            shape=[n_samples, {dimension, [n + 1, n + 1]}]
+            the inverted point
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -291,6 +361,22 @@ class SpecialEuclidean(LieGroup):
 
         Compute the jacobian matrix of the differential
         of the left/right translations from the identity to point in SE(n).
+        Currently only implemented for point_type == 'vector'.
+
+        Parameters
+        ----------
+        point: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+
+        left_or_right: str, {'left', 'right'}, optional
+            defaults to 'left'
+            whether to compute the jacobian of the left or right translation
+        point_type : str, {'vector', 'matrix'}, optional
+            defaults to default_point_type
+
+        Returns
+        -------
+        jacobian : array-like, shape=[n_samples, dimension]
+            The jacobian of the left / right translation
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -348,7 +434,20 @@ class SpecialEuclidean(LieGroup):
         return jacobian
 
     def exp_from_identity(self, tangent_vec, point_type=None):
-        """Compute group exponential of the tangent vector at the identity."""
+        """Compute group exponential of the tangent vector at the identity.
+
+        Parameters
+        ----------
+        tangent_vec: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point_type: str, {'vector', 'matrix'}, optional
+            defaults to default_point_type
+
+        Returns
+        -------
+        group_exp: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+            the group exponential of the tangent vectors calculated
+            at the identity
+        """
         if point_type is None:
             point_type = self.default_point_type
 
@@ -419,7 +518,19 @@ class SpecialEuclidean(LieGroup):
             raise NotImplementedError()
 
     def log_from_identity(self, point, point_type=None):
-        """Compute the group logarithm of the point at the identity."""
+        """Compute the group logarithm of the point at the identity.
+
+        Parameters
+        ----------
+        point: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point_type: str, {'vector', 'matrix'}, optional
+            defaults to default_point_type
+
+        Returns
+        -------
+        group_log: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+            the group logarithm in the Lie algbra
+        """
         if point_type is None:
             point_type = self.default_point_type
 
@@ -499,7 +610,22 @@ class SpecialEuclidean(LieGroup):
         return group_log
 
     def random_uniform(self, n_samples=1, point_type=None):
-        """Sample in SE(n) with the uniform distribution."""
+        """Sample in SE(n) with the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples: int, optional
+            defaults to 1
+        point_typ: str, {'vector', 'matrix'}, optional
+            defaults to default_point_type
+
+
+        Returns
+        -------
+        random_transfo: array-like,
+            shape=[n_samples, {dimension, [n + 1, n + 1]}]
+            an array of random elements in SE(n) having the given point_type
+        """
         if point_type is None:
             point_type = self.default_point_type
 
@@ -519,7 +645,16 @@ class SpecialEuclidean(LieGroup):
         return random_transfo
 
     def exponential_matrix(self, rot_vec):
-        """Compute exponential of rotation matrix represented by rot_vec."""
+        """Compute exponential of rotation matrix represented by rot_vec.
+
+        Parameters
+        ----------
+        rot_vec : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        exponential_mat: The matrix exponential of rot_vec
+        """
         rot_vec = self.rotations.regularize(rot_vec)
         n_rot_vecs, _ = rot_vec.shape
 
@@ -566,7 +701,22 @@ class SpecialEuclidean(LieGroup):
 
     def exponential_barycenter(
             self, points, weights=None, point_type=None):
-        """Compute the group exponential barycenter in SE(n)."""
+        """Compute the group exponential barycenter in SE(n).
+
+        Parameters
+        ----------
+        points: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        weights: array-like, shape=[n_samples], optional
+            defaults to weight 1 / n_samples for each point
+        point_type: str, {'vector', 'matrix'}, optional
+            defaults to default_point_type
+
+
+        Returns
+        -------
+        exp_bar: array-like, shape=[{dimension, [n + 1, n + 1]}]
+            the exponential barycenter
+        """
         if point_type is None:
             point_type = self.default_point_type
 
