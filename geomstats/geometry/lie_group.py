@@ -17,7 +17,7 @@ def loss(y_pred, y_true, group, metric=None):
         shape has to match y_pred
     group : LieGroup
     metric : RiemannianMetric, optional
-        Default: the left invariant metric of the Lie group
+        default: the left invariant metric of the Lie group
 
     Returns
     -------
@@ -40,7 +40,7 @@ def grad(y_pred, y_true, group, metric=None):
         shape has to match y_pred
     group : LieGroup
     metric : RiemannianMetric, optional
-        Default: the left invariant metric of the Lie group
+        default: the left invariant metric of the Lie group
 
     Returns
     -------
@@ -238,7 +238,7 @@ class LieGroup(Manifold):
         ----------
         tangent_vec : array-like, shape=[n_samples, {dimension,[n,n]}]
         base_point : array-like, shape=[n_samples, {dimension,[n,n]}]
-            Default: self.identity
+            default: self.identity
         point_type : str, {'vector', 'matrix'}
             default: the default point type
             the type of the point
