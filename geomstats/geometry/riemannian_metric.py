@@ -461,8 +461,8 @@ class RiemannianMetric(object):
             maximum_iterations=n_max_iterations)
 
         if last_iteration == n_max_iterations:
-            warnings.warn('Maximum number of iterations {} reached.'
-                  'The mean may be inaccurate'.format(n_max_iterations))
+            warnings.warn('Maximum number of iterations {} reached. The '
+                          'mean may be inaccurate'.format(n_max_iterations))
 
         if verbose:
             print('n_iter: {}, final variance: {}, final dist: {}'.format(
