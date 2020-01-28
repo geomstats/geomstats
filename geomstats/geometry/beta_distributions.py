@@ -175,6 +175,7 @@ class BetaMetric(RiemannianMetric):
         geodesic_init[2, -1] = geodesic_init[2, -2]
         geodesic_init[3, -1] = geodesic_init[3, -2]
 
+<<<<<<< HEAD
         def func_bvp(time, state):
             """Reformat the differential equation.
 
@@ -188,6 +189,10 @@ class BetaMetric(RiemannianMetric):
             return gs.hstack([velocity, eq])
 
         def boundary_cond(y0, y1):
+=======
+        def boundary_cond(y0, y1):
+
+>>>>>>> fba2b7e31f406416fa953bb20ef8bd609a70d3b5
             bc = gs.array([y0[0] - a0,
                            y0[1] - b0,
                            y1[0] - a1,

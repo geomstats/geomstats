@@ -31,12 +31,3 @@ class StatisticalManifold(Manifold):
     def potential(self):
         raise NotImplementedError(
                 'The potential function is not implemented.')
-
-
-class FisherMetric(RiemannianMetric, StatisticalManifold, LeviCivitaConnection):
-
-    def __init__(self, dim, pdf, n_params):
-        super(StatisticalManifold, self).__init__(dim=dim,
-                pdf=pdf, n_params=n_params)
-
-    def inner_product_matrix(self, point):

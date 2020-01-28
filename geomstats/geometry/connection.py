@@ -68,6 +68,23 @@ class Connection(object):
         return - gs.einsum('...kij,...i, ...j-> ...k', gamma, tangent_vec,
                            tangent_vec)
 
+    def geodesic_equation(self, tangent_vec, base_point):
+        """Compute the geodesic ODE associated with the connection.
+
+        Parameters
+        ----------
+        base_point
+        tangent_vec
+
+        Returns
+        -------
+        geodesic_ode : function
+            vector field to be integrated
+        """
+        gamma = self.christoffels(base_point)
+        return - gs.einsum('...kij,...i, ...j-> ...k', gamma, tangent_vec,
+                           tangent_vec)
+
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS):
         """Exponential map associated to the affine connection.
 
