@@ -5,7 +5,6 @@ from autograd.scipy.stats import beta
 from autograd.scipy.integrate import odeint
 
 import geomstats.backend as gs
-from geometry.geomstats.connection import LeviCivitaConnection
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -71,7 +70,7 @@ class BetaDistributions(EmbeddedManifold):
         return gs.stack(parameters)
 
 
-class BetaMetric(RiemannianMetric, LeviCivitaConnection):
+class BetaMetric(RiemannianMetric):
 
     def __init__(self):
         super(RiemannianMetric, self).__init__(dimension=2)
@@ -89,6 +88,7 @@ class BetaMetric(RiemannianMetric, LeviCivitaConnection):
         Parameters
         ----------
         base_point : array-like, shape=[n_samples, dimension]
+
         """
         assert ~ (base_point is None), 'The metric depends on the base point'
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -164,20 +164,31 @@ class BetaMetric(RiemannianMetric, LeviCivitaConnection):
         a1, b1 = point
 
         stop_time = 1.
-        t = [stop_time * float(i) / (n_points - 1) for i in range(n_points)]
-        geodesic_init = np.zeros([2 * dim, n_points])
-        geodesic_init[0, :] = np.linspace(a0, a1, n_points)
-        geodesic_init[1, :] = np.linspace(b0, b1, n_points)
-        geodesic_init[2, :-1] = n_points * (geodesic_init[0, 1:] -
+        t = [stop_time * float(i) / (n_steps - 1) for i in range(n_steps)]
+        geodesic_init = gs.zeros([2 * dim, n_points])
+        geodesic_init[0, :] = gs.linspace(a0, a1, n_steps)
+        geodesic_init[1, :] = gs.linspace(b0, b1, n_steps)
+        geodesic_init[2, :-1] = n_steps * (geodesic_init[0, 1:] -
                                             geodesic_init[0, :-1])
-        geodesic_init[3, :-1] = n_points * (geodesic_init[1, 1:] -
+        geodesic_init[3, :-1] = n_steps * (geodesic_init[1, 1:] -
                                             geodesic_init[1, :-1])
         geodesic_init[2, -1] = geodesic_init[2, -2]
         geodesic_init[3, -1] = geodesic_init[3, -2]
 
-        def boundary_cond(y0, y1):
+        def func_bvp(time, state):
+            """Reformat the differential equation.
 
-            bc = np.array([y0[0] - a0,
+            Parameters
+            ----------
+                y :  vector of the state variables: y = [a,b,u,v]
+                x :  time
+            """
+            point, velocity = state[:2], state[2:]
+            eq = self.geodesic_equation(tangent_vec=velocity, base_point=point)
+            return gs.hstack([velocity, eq])
+
+        def boundary_cond(y0, y1):
+            bc = gs.array([y0[0] - a0,
                            y0[1] - b0,
                            y1[0] - a1,
                            y1[1] - b1])
@@ -187,4 +198,3 @@ class BetaMetric(RiemannianMetric, LeviCivitaConnection):
 
         geodesic = solution.sol(t)
         geodesic = geodesic[:2, :]
-
