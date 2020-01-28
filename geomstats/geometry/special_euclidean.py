@@ -47,8 +47,8 @@ class SpecialEuclidean(LieGroup):
             the dimension of the euclidean space that SE(n) acts upon
         point_type : str, {'vector', 'matrix'}, optional
             whether to represent elmenents of SE(n) by vectors or matrices
-            if None is given, point_type is set to 'vector for dimension 3
-            and matrix otherwise
+            if None is given, point_type is set to 'vector' for dimension 3
+            and 'matrix' otherwise
         epsilon : float, optional
             precision to use for calculations involving potential divison by in
             rotations
