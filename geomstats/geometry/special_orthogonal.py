@@ -35,15 +35,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        n: int
+        n : int
             the dimension of the euclidean space that SO(n) acts upon
-        point_type: str, {'vector', 'matrix'}, optional
+        point_type : str, {'vector', 'matrix'}, optional
             if None is given, point_type is set to 'vector for dimension 3
             and matrix otherwise
         epsilon : float, optional
             precision to use for calculations involving potential divison by in
             rotations
-            set to 0 by default
+            default: 0
         """
         assert isinstance(n, int) and n > 1
 
@@ -93,7 +93,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         point : array-like, shape=[n_samples, {dimension, [n, n]}]
             the point of which to check whether it belongs to SO(n)
         point_type : str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+            default: default_point_type
 
         Returns
         -------
@@ -138,7 +138,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         ----------
         point : array-like, shape=[n_samples, {dimension, [n, n]}]
         point_type : str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+            default: self.default_point_type
 
         Returns
         -------
@@ -197,15 +197,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, {dimension, [n, n]}]
-        metric: RiemannianMetric, optional
-            defaults to self.left_canonical_metric
-        point_type: str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+        tangent_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
+        metric : RiemannianMetric, optional
+            default: self.left_canonical_metric
+        point_type : str, {'vector', 'matrix'}, optional
+            default: self.default_point_type
 
         Returns
         -------
-        regularized_vec: array-like, shape=[n_samples, {dimension, [n, n]}]
+        regularized_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -267,15 +267,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, {dimension, [n, n]}]
-        metric: RiemannianMetric, optional
-            defaults to left_canonical_metric
-        point_type: str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+        tangent_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
+        metric : RiemannianMetric, optional
+            default: self.left_canonical_metric
+        point_type : str, {'vector', 'matrix'}, optional
+            default: self.default_point_type
 
         Returns
         -------
-        regularized_tangent_vec: array-like,
+        regularized_tangent_vec : array-like,
             shape=[n_samples, {dimension, [n, n]}]
         """
         if point_type is None:
@@ -379,11 +379,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        vec: array-like, shape=[n_samples, dimension]
+        vec : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
-        skew_mat: array-like, shape=[n_samples, n, n]
+        skew_mat : array-like, shape=[n_samples, n, n]
         """
         vec = gs.to_ndarray(vec, to_ndim=2)
         n_vecs = vec.shape[0]
@@ -456,11 +456,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        skew_mat: array-like, shape=[n_samples, n, n]
+        skew_mat : array-like, shape=[n_samples, n, n]
 
         Returns
         -------
-        vec: array-like, shape=[n_samples, dimension]
+        vec : array-like, shape=[n_samples, dimension]
         """
         skew_mat = gs.to_ndarray(skew_mat, to_ndim=3)
         n_skew_mats, mat_dim_1, mat_dim_2 = skew_mat.shape
@@ -512,11 +512,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        rot_mat: array-like, shape=[n_samples, n, n]
+        rot_mat : array-like, shape=[n_samples, n, n]
 
         Returns
         -------
-        regularized_rot_vec: array-like, shape=[n_samples, dimension]
+        regularized_rot_vec : array-like, shape=[n_samples, dimension]
         """
         rot_mat = gs.to_ndarray(rot_mat, to_ndim=3)
         n_rot_mats, mat_dim_1, mat_dim_2 = rot_mat.shape
@@ -723,11 +723,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        rot_mat: array-like, shape=[n_samples, n, n]
+        rot_mat : array-like, shape=[n_samples, n, n]
 
         Returns
         -------
-        quaternion: array-like, shape=[n_samples, 4]
+        quaternion : array-like, shape=[n_samples, 4]
         """
         assert self.n == 3, ('The quaternion representation does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -744,11 +744,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        rot_vec: array-like, shape=[n_samples, dimension]
+        rot_vec : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
-        quaternion: array-like, shape=[n_samples, 4]
+        quaternion : array-like, shape=[n_samples, 4]
         """
         assert self.n == 3, ('The quaternion representation does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -778,11 +778,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        quaternion: array-like, shape=[n_samples, 4]
+        quaternion : array-like, shape=[n_samples, 4]
 
         Returns
         -------
-        rot_vec: array-like, shape=[n_samples, dimension]
+        rot_vec : array-like, shape=[n_samples, dimension]
         """
         assert self.n == 3, ('The quaternion representation does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -815,11 +815,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        quaternion: array-like, shape=[n_samples, 4]
+        quaternion : array-like, shape=[n_samples, 4]
 
         Returns
         -------
-        rot_mat: array-like, shape=[n_samples, dimension]
+        rot_mat : array-like, shape=[n_samples, dimension]
         """
         assert self.n == 3, ('The quaternion representation does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -869,11 +869,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        tait_bryan_angles: array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
 
         Returns
         -------
-        rot_mat: array-like, shape=[n_samples, n, n]
+        rot_mat : array-like, shape=[n_samples, n, n]
         """
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
@@ -926,11 +926,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        tait_bryan_angles: array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
 
         Returns
         -------
-        rot_mat: array-like, shape=[n_samples, n, n]
+        rot_mat : array-like, shape=[n_samples, n, n]
         """
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
@@ -990,15 +990,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        tait_bryan_angles: array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
         extrinsic_or_intrinsic : str, {'extrensic', 'intrinsic'} optional
-            defaults to 'extrinsic'
+            default: 'extrinsic'
         order : str, {'xyz', 'zyx'}, optional
-            defaults to 'zyx'
+            default: 'zyx'
 
         Returns
         -------
-        rot_mat: array-like, shape=[n_samples, n, n]
+        rot_mat : array-like, shape=[n_samples, n, n]
         """
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
@@ -1058,15 +1058,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        rot_mat: array-like, shape=[n_samples, n, n]
+        rot_mat : array-like, shape=[n_samples, n, n]
         extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
-            defaults to 'extrinsic'
+            default: 'extrinsic'
         order : str, {'xyz', 'zyx'}, optional
-            defaults to 'zyx'
+            default: 'zyx'
 
         Returns
         -------
-        tait_bryan_angles: array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
         """
         assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
         assert order in ('xyz', 'zyx')
@@ -1089,11 +1089,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        tait_bryan_angles: array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
 
         Returns
         -------
-        quaternion: array-like, shape=[n_samples, 4]
+        quaternion : array-like, shape=[n_samples, 4]
         """
         assert self.n == 3, ('The quaternion representation'
                              ' and the Tait-Bryan angles representation'
@@ -1117,15 +1117,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        tait_bryan_angles: array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
         extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
-            defaults to 'extrinsic'
+            default: 'extrinsic'
         order : str, {'xyz', 'zyx'}, optional
-            defaults to 'zyx'
+            default: 'zyx'
 
         Returns
         -------
-        quat: array-like, shape=[n_samples, 4]
+        quat : array-like, shape=[n_samples, 4]
         """
         assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
         assert order in ('xyz', 'zyx')
@@ -1184,15 +1184,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        tait_bryan_angles: array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
         extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
-            defaults to 'extrinsic'
+            default: 'extrinsic'
         order : str, {'xyz', 'zyx'}, optional
-            defaults to 'zyx'
+            default: 'zyx'
 
         Returns
         -------
-        rot_vec: array-like, shape=[n_samples, dimension]
+        rot_vec : array-like, shape=[n_samples, dimension]
         """
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
@@ -1210,17 +1210,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return rot_vec
 
     def tait_bryan_angles_from_quaternion_intrinsic_zyx(self, quaternion):
-        """TODO: Summary line.
-
-        TODO: Description.
+        """Convert quaternion to tait bryan representation of order zyx.
 
         Parameters
         ----------
-        quaternion: array-like, shape=[n_samples, 4]
+        quaternion : array-like, shape=[n_samples, 4]
 
         Returns
         -------
-        tait_bryan_angles: array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
         """
         assert self.n == 3, ('The quaternion representation'
                              ' and the Tait-Bryan angles representation'
@@ -1239,17 +1237,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return tait_bryan_angles
 
     def tait_bryan_angles_from_quaternion_intrinsic_xyz(self, quaternion):
-        """TODO: Summary line.
-
-        TODO: Description
+        """Convert quaternion to tait bryan representation of order xyz.
 
         Parameters
         ----------
-        quaternion: array-like, shape=[n_samples, 4]
+        quaternion : array-like, shape=[n_samples, 4]
 
         Returns
         -------
-        tait_bryan_angles: array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
         """
         assert self.n == 3, ('The quaternion representation'
                              ' and the Tait-Bryan angles representation'
@@ -1275,15 +1271,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        quaternion: array-like, shape=[n_samples, 4]
+        quaternion : array-like, shape=[n_samples, 4]
         extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
-            defaults to 'extrinsic'
+            default: 'extrinsic'
         order : str, {'xyz', 'zyx'}, optional
-            defaults to 'zyx'
+            default: 'zyx'
 
         Returns
         -------
-        tait_bryan: array-like, shape=[n_samples, 3]
+        tait_bryan : array-like, shape=[n_samples, 3]
         """
         assert self.n == 3, ('The quaternion representation'
                              ' and the Tait-Bryan angles representation'
@@ -1335,15 +1331,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        rot_vec: array-like, shape=[n_samples, dimension]
+        rot_vec : array-like, shape=[n_samples, dimension]
         extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
-            defaults to 'extrinsic'
+            default: 'extrinsic'
         order : str, {'xyz', 'zyx'}, optional
-            defaults to 'zyx'
+            default: 'zyx'
 
         Returns
         -------
-        tait_bryan_angles: array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
         """
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
@@ -1366,14 +1362,14 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        point_1: array-like, shape=[n_samples, {dimension, [n, n]}]
-        point_2: array-like, shape=[n_samples, {dimension, [n, n]}]
+        point_1 : array-like, shape=[n_samples, {dimension, [n, n]}]
+        point_2 : array-like, shape=[n_samples, {dimension, [n, n]}]
         point_type : str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+            default: default_point_type
 
         Returns
         -------
-        point_prod: array-like, shape=[n_samples, {dimension, [n, n]}]
+        point_prod : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -1412,13 +1408,13 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, {dimension, [n, n]}]
-        point_type: str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+        point : array-like, shape=[n_samples, {dimension, [n, n]}]
+        point_type : str, {'vector', 'matrix'}, optional
+            default: self.default_point_type
 
         Returns
         -------
-        inv_point: array-like, shape=[n_samples, {dimension, [n, n]}]
+        inv_point : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -1446,15 +1442,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, {dimension, [n, n]}]
+        point : array-like, shape=[n_samples, {dimension, [n, n]}]
         left_or_right : str, {'left', 'right'}, optional
-            defaults to 'left'
+            default: 'left'
         point_type : str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+            default: self.default_point_type
 
         Returns
         -------
-        jacobian: array-like, shape=[n_samples, dimension, dimension]
+        jacobian : array-like, shape=[n_samples, dimension, dimension]
         """
         assert left_or_right in ('left', 'right')
 
@@ -1560,11 +1556,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         n_samples : int
             the amount of samples
         point_type : str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+            default: self.self.default_point_type
 
         Returns
         -------
-        point: array-like, shape=[n_samples, {dimension, [n, n]}]
+        point : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -1581,13 +1577,13 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, {dimension, [n, n]}]
+        tangent_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
         point_type : str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+            default: self.default_point_type
 
         Returns
         -------
-        point: array-like, shape=[n_samples, {dimension, [n, n]}]
+        point : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -1608,13 +1604,13 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, {dimension, [n, n]}]
+        point : array-like, shape=[n_samples, {dimension, [n, n]}]
         point_type : str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+            default: self.default_point_type
 
         Returns
         -------
-        tangent_vec: array-like, shape=[n_samples, {dimension, [n, n]}]
+        tangent_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -1635,15 +1631,15 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        points: array-like, shape=[n_samples, {dimension, [n, n]}]
-        weights: array-like, shape=[n_samples], optional
-            defaults to 1 / n_samples for each point
-        point_type: str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+        points : array-like, shape=[n_samples, {dimension, [n, n]}]
+        weights : array-like, shape=[n_samples], optional
+            default: 1 / n_samples for each point
+        point_type : str, {'vector', 'matrix'}, optional
+            default: self.default_point_type
 
         Returns
         -------
-        exp_bar: array-like, shape=[{dimension, [n, n]}]
+        exp_bar : array-like, shape=[{dimension, [n, n]}]
             the group exponential barycenter
         """
         if point_type is None:

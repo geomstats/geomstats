@@ -50,9 +50,9 @@ class SpecialEuclidean(LieGroup):
             if None is given, point_type is set to 'vector' for dimension 3
             and 'matrix' otherwise
         epsilon : float, optional
-            precision to use for calculations involving potential divison by in
+            precision to use for calculations involving potential division by
             rotations
-            set to 0 by default
+            default: 0
         """
         assert isinstance(n, int) and n > 1
 
@@ -78,6 +78,7 @@ class SpecialEuclidean(LieGroup):
         ----------
         point_type : str, {'vector', 'matrix'}, optional
             the point_type of the returned value
+            default: self.default_point_type
 
         Returns
         -------
@@ -100,7 +101,7 @@ class SpecialEuclidean(LieGroup):
         point : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
             the point of which to check whether it belongs to SE(n)
         point_type : str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+            default: self.default_point_type
 
         Returns
         -------
@@ -131,7 +132,7 @@ class SpecialEuclidean(LieGroup):
         point : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
             the point which should be regularized
         point_type : str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+            default: self.default_point_type
 
         Returns
         -------
@@ -170,7 +171,7 @@ class SpecialEuclidean(LieGroup):
         tangent_vec: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
         metric : RiemannianMetric, optional
         point_type : str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+            default: self.default_point_type
 
         Returns
         -------
@@ -191,9 +192,9 @@ class SpecialEuclidean(LieGroup):
         tangent_vec: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
         base_point : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
         metric : RiemannianMetric, optional
-            defaults to left_canonical_metric
+            default: self.left_canonical_metric
         point_type: str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+            default: self.default_point_type
 
         Returns
         -------
@@ -245,7 +246,7 @@ class SpecialEuclidean(LieGroup):
         point_1 : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
         point_2 : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
         point_type: str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+            default: self.default_point_type
 
         Equation
         ---------
@@ -368,10 +369,10 @@ class SpecialEuclidean(LieGroup):
         point: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
 
         left_or_right: str, {'left', 'right'}, optional
-            defaults to 'left'
+            default: 'left'
             whether to compute the jacobian of the left or right translation
         point_type : str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+            default: self.default_point_type
 
         Returns
         -------
@@ -440,7 +441,7 @@ class SpecialEuclidean(LieGroup):
         ----------
         tangent_vec: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
         point_type: str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+            default: self.default_point_type
 
         Returns
         -------
@@ -524,7 +525,7 @@ class SpecialEuclidean(LieGroup):
         ----------
         point: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
         point_type: str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+            default: self.default_point_type
 
         Returns
         -------
@@ -615,9 +616,9 @@ class SpecialEuclidean(LieGroup):
         Parameters
         ----------
         n_samples: int, optional
-            defaults to 1
+            default: 1
         point_typ: str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+            default: self.default_point_type
 
 
         Returns
@@ -707,9 +708,9 @@ class SpecialEuclidean(LieGroup):
         ----------
         points: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
         weights: array-like, shape=[n_samples], optional
-            defaults to weight 1 / n_samples for each point
+            default: weight 1 / n_samples for each point
         point_type: str, {'vector', 'matrix'}, optional
-            defaults to default_point_type
+            default: self.default_point_type
 
 
         Returns
