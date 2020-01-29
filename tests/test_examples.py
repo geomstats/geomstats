@@ -35,6 +35,7 @@ class TestExamples(geomstats.tests.TestCase):
 
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
+        warnings.simplefilter('ignore', category=UserWarning)
         plt.figure()
 
     @geomstats.tests.np_only

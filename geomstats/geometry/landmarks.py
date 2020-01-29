@@ -49,8 +49,8 @@ class L2Metric(RiemannianMetric):
 
     def __init__(self, ambient_manifold):
         super(L2Metric, self).__init__(
-                dimension=math.inf,
-                signature=(math.inf, 0, 0))
+            dimension=math.inf,
+            signature=(math.inf, 0, 0))
         self.ambient_manifold = ambient_manifold
         self.ambient_metric = ambient_manifold.metric
 
@@ -81,7 +81,7 @@ class L2Metric(RiemannianMetric):
         base_landmarks = gs.reshape(base_landmarks, (new_dim, n_coords))
 
         inner_prod = self.ambient_metric.inner_product(
-                tangent_vec_a, tangent_vec_b, base_landmarks)
+            tangent_vec_a, tangent_vec_b, base_landmarks)
         inner_prod = gs.reshape(
             inner_prod, (n_landmark_sets, n_landmarks_per_set))
         inner_prod = gs.sum(inner_prod, -1)
@@ -205,7 +205,7 @@ class L2Metric(RiemannianMetric):
         """
         landmarks_ndim = 2
         initial_landmarks = gs.to_ndarray(
-            initial_landmarks, to_ndim=landmarks_ndim+1)
+            initial_landmarks, to_ndim=landmarks_ndim + 1)
 
         if end_landmarks is None and initial_tangent_vec is None:
             raise ValueError(
@@ -213,7 +213,7 @@ class L2Metric(RiemannianMetric):
                 'vector to define the geodesic.')
         if end_landmarks is not None:
             end_landmarks = gs.to_ndarray(
-                end_landmarks, to_ndim=landmarks_ndim+1)
+                end_landmarks, to_ndim=landmarks_ndim + 1)
             shooting_tangent_vec = self.log(landmarks=end_landmarks,
                                             base_landmarks=initial_landmarks)
             if initial_tangent_vec is not None:
@@ -221,16 +221,16 @@ class L2Metric(RiemannianMetric):
             initial_tangent_vec = shooting_tangent_vec
         initial_tangent_vec = gs.array(initial_tangent_vec)
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
-                                            to_ndim=landmarks_ndim+1)
+                                            to_ndim=landmarks_ndim + 1)
 
         def landmarks_on_geodesic(t):
             t = gs.cast(t, gs.float32)
             t = gs.to_ndarray(t, to_ndim=1)
             t = gs.to_ndarray(t, to_ndim=2, axis=1)
             new_initial_landmarks = gs.to_ndarray(
-                initial_landmarks, to_ndim=landmarks_ndim+1)
+                initial_landmarks, to_ndim=landmarks_ndim + 1)
             new_initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
-                                                    to_ndim=landmarks_ndim+1)
+                                                    to_ndim=landmarks_ndim + 1)
 
             tangent_vecs = gs.einsum('il,nkm->ikm', t, new_initial_tangent_vec)
 

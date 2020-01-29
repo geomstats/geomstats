@@ -15,7 +15,7 @@ class GeneralLinear(LieGroup, Matrices):
 
     def __init__(self, n):
         assert isinstance(n, int) and n > 0
-        LieGroup.__init__(self, dimension=n*n)
+        LieGroup.__init__(self, dimension=n * n)
         Matrices.__init__(self, m=n, n=n)
 
     def get_identity(self, point_type=None):
@@ -134,7 +134,7 @@ class GeneralLinear(LieGroup, Matrices):
             self.inverse(base_point), tangent_vec)
 
         exp_from_identity = self.exp_from_identity(
-                tangent_vec_at_identity)
+            tangent_vec_at_identity)
 
         group_exp = self.compose(
             base_point, exp_from_identity)
