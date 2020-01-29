@@ -40,13 +40,8 @@ class Connection(object):
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[n_samples, dimension]
-                                   or shape=[1, dimension]
-
         tangent_vec_b : array-like, shape=[n_samples, dimension]
-                                   or shape=[1, dimension]
-
         base_point : array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
         """
         raise NotImplementedError(
             'connection is not implemented.')
@@ -56,13 +51,14 @@ class Connection(object):
 
         Parameters
         ----------
-        velocity
-        position
+        velocity : array-like, shape=[n_samples, dimension]
+        position : array-like, shape=[n_samples, dimension]
+            the position at which to compute the geodesic ODE
 
         Returns
         -------
-        geodesic_ode : function
-            vector field to be integrated
+        geodesic_ode : array-like, shape=[n_samples, dimension]
+            value of the vector field to be integrated at position
         """
         gamma = self.christoffels(position)
         return - gs.einsum('...kij,...i, ...j-> ...k', gamma, velocity,
@@ -77,10 +73,12 @@ class Connection(object):
 
         Parameters
         ----------
-        step
         tangent_vec : array-like, shape=[n_samples, dimension]
         base_point : array-like, shape=[n_samples, dimension]
-        n_steps: int
+        n_steps : int
+            the number of discrete time steps to take in the integration
+        step : str, {'euler', 'rk4'}
+            the numerical scheme to use for integration
 
         Returns
         -------
@@ -101,16 +99,16 @@ class Connection(object):
 
         Parameters
         ----------
-        step
         point : array-like, shape=[n_samples, dimension]
-                           or shape=[1, dimension]
         base_point : array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
         n_steps : int
+            the number of discrete time steps to take in the integration
+        step : str, {'euler', 'rk4'}
+            the numerical scheme to use for integration
 
         Returns
         -------
-        tangent_vec
+        tangent_vec : array-like, shape=[n_samples, dimension]
         """
         point = gs.to_ndarray(point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)

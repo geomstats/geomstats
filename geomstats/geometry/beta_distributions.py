@@ -46,14 +46,11 @@ class BetaDistributions(EmbeddedManifold):
         belongs = gs.to_ndarray(belongs, to_ndim=1)
         belongs = gs.tile(belongs, n_points)
         belongs = belongs * gs.greater(point, 0).all(axis=1)
-        if n_points == 1:
-            belongs = belongs[0]
-        return belongs
+        return belongs[0] if n_points == 1 else belongs
 
     @staticmethod
     def random_uniform(n_samples=1, bound=10.0):
-        """Sample parameters of beta distributions with the uniform
-        distribution.
+        """Sample parameters of beta distributions.
 
         The uniform distribution on [0, bound] is used.
 
@@ -97,7 +94,7 @@ class BetaDistributions(EmbeddedManifold):
         for sample in data:
             a, b, _, _ = beta.fit(sample, floc=loc, fscale=scale)
             parameters.append(gs.array([a, b]))
-        return gs.stack(parameters)
+        return parameters[0] if len(data) == 1 else gs.stack(parameters)
 
 
 class BetaMetric(RiemannianMetric):
@@ -107,9 +104,22 @@ class BetaMetric(RiemannianMetric):
 
     @staticmethod
     def detg(param_a, param_b):
+        """Compute the determinant of the metric.
+
+        Parameters
+        ----------
+
+        param_a : array-like, shape=[n_samples,]
+        param_b : array-like, shape=[n_samples,]
+
+        Returns
+        -------
+        detg : array-like, shape=[n_samples,]
+        """
         detg = polygamma(1, param_a) * polygamma(1, param_b) - \
             polygamma(1, param_a + param_b) * (polygamma(1, param_a) +
                                                polygamma(1, param_b))
+        print(detg.shape)
         return detg
 
     def inner_product_matrix(self, base_point=None):
