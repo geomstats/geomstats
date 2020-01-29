@@ -1,7 +1,8 @@
 """Riemannian and pseudo-Riemannian metrics."""
 
-import autograd
 import math
+
+import autograd
 import warnings
 
 import geomstats.backend as gs
@@ -97,13 +98,11 @@ class RiemannianMetric(Connection):
         Parameters
         ----------
         base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
 
         Returns
         -------
         christoffels: array-like,
                              shape=[n_samples, dimension, dimension, dimension]
-                             or shape=[1, dimension, dimension, dimension]
         """
         cometric_mat_at_point = self.inner_product_inverse_matrix(base_point)
         metric_derivative_at_point = self.inner_product_derivative_matrix(
@@ -127,15 +126,12 @@ class RiemannianMetric(Connection):
         Parameters
         ----------
         tangent_vec_a: array-like, shape=[n_samples, dimension]
-                                   or shape=[1, dimension]
         tangent_vec_b: array-like, shape=[n_samples, dimension]
-                                   or shape=[1, dimension]
         base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
 
         Returns
         -------
-        inner_product
+        inner_product : array-like, shape=[n_samples,]
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
@@ -187,14 +183,12 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        vector: array-like, shape=[n_samples, dimension]
-                            or shape=[1, dimension]
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
+        vector : array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
-        sq_norm
+        sq_norm : array-like, shape=[n_samples,]
         """
         sq_norm = self.inner_product(vector, vector, base_point)
         return sq_norm
@@ -210,15 +204,12 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        vector: array-like, shape=[n_samples, dimension]
-                            or shape=[1, dimension]
-
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
+        vector : array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
-        norm
+        norm : array-like, shape=[n_samples,]
         """
         sq_norm = self.squared_norm(vector, base_point)
         norm = gs.sqrt(sq_norm)
@@ -231,16 +222,17 @@ class RiemannianMetric(Connection):
 
         Geodesic curve defined by either:
         - an initial point and an initial tangent vector, or
-        -an initial point and an end point.
+        - an initial point and an end point.
 
         The geodesic is returned as a function parameterized by t.
 
         Parameters
         ----------
-        initial_point
-        end_point
-        initial_tangent_vec
-        point_type
+        initial_point : array-like, shape=[n_samples, dimension]
+        end_point : array-like, shape=[n_samples, dimension], optional
+        initial_tangent_vec : array-like, shape=[n_samples, dimension],
+            optional
+        point_type : str, optional
 
         Returns
         -------
@@ -273,7 +265,7 @@ class RiemannianMetric(Connection):
 
             Parameters
             ----------
-            t
+            t :  parameter value of the geodesic
 
             Returns
             -------
@@ -309,14 +301,12 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        point_a: array-like, shape=[n_samples, dimension]
-                             or shape=[1, dimension]
-        point_b: array-like, shape=[n_samples, dimension]
-                             or shape=[1, dimension]
+        point_a : array-like, shape=[n_samples, dimension]
+        point_b : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
-        sq_dist
+        sq_dist : array-like, shape=[n_samples,]
         """
         log = self.log(point=point_b, base_point=point_a)
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
@@ -330,14 +320,12 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        point_a: array-like, shape=[n_samples, dimension]
-                             or shape=[1, dimension]
-        point_b: array-like, shape=[n_samples, dimension]
-                             or shape=[1, dimension]
+        point_a : array-like, shape=[n_samples, dimension]
+        point_b : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
-        dist
+        dist : array-like, shape=[n_samples,]
         """
         sq_dist = self.squared_dist(point_a, point_b)
         dist = gs.sqrt(sq_dist)
@@ -398,13 +386,14 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        points: array-like, shape=[n_samples, dimension]
-        weights: array-like, shape=[n_samples, 1], optional
-        verbose: bool, optional
+        points : array-like, shape=[n_samples, dimension]
+        weights : array-like, shape=[n_samples, 1], optional
+        verbose : bool, optional
 
         Returns
         -------
-        mean
+        mean : array-like
+            the Frechet mean of points, a point on the manifold
         """
         # TODO(nina): Profile this code to study performance,
         # i.e. what to do with sq_dists_between_iterates.

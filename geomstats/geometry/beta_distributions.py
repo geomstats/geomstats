@@ -1,8 +1,8 @@
 """Statistical Manifold of beta distributions with the Fisher metric."""
 
+from autograd.scipy.integrate import odeint
 from autograd.scipy.special import polygamma
 from autograd.scipy.stats import beta
-from autograd.scipy.integrate import odeint
 from scipy.integrate import solve_bvp
 
 import geomstats.backend as gs
@@ -14,7 +14,7 @@ N_STEPS = 100
 
 
 class BetaDistributions(EmbeddedManifold):
-    """Class for the manifold of beta distributions.
+    r"""Class for the manifold of beta distributions.
 
     This is :math: Beta = `R_+^* \times R_+^*`.
     """
@@ -98,6 +98,7 @@ class BetaDistributions(EmbeddedManifold):
 
 
 class BetaMetric(RiemannianMetric):
+    """Class for the Fisher information metric on beta distributions."""
 
     def __init__(self):
         super(RiemannianMetric, self).__init__(dimension=2)
@@ -108,7 +109,6 @@ class BetaMetric(RiemannianMetric):
 
         Parameters
         ----------
-
         param_a : array-like, shape=[n_samples,]
         param_b : array-like, shape=[n_samples,]
 
