@@ -81,6 +81,16 @@ class RiemannianMetric(Connection):
         cometric_matrix = gs.linalg.inv(metric_matrix)
         return cometric_matrix
 
+    def inner_product_derivative_matrix(self, base_point=None):
+        """Compute derivative of the inner prod matrix at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[n_samples, dimension], optional
+        """
+        metric_derivative = autograd.jacobian(self.inner_product_matrix)
+        return metric_derivative(base_point)
+
     def christoffels(self, base_point):
         """Compute Christoffel symbols associated with the connection.
 
@@ -95,10 +105,9 @@ class RiemannianMetric(Connection):
                              shape=[n_samples, dimension, dimension, dimension]
                              or shape=[1, dimension, dimension, dimension]
         """
-        metric_mat_at_point = self.inner_product_matrix(base_point)
         cometric_mat_at_point = self.inner_product_inverse_matrix(base_point)
-        metric_derivative = autograd.grad(self.inner_product_inverse_matrix)
-        metric_derivative_at_point = metric_derivative(base_point)
+        metric_derivative_at_point = self.inner_product_derivative_matrix(
+            base_point)
         term_1 = gs.einsum('nim,nmkl->nikl',
                            cometric_mat_at_point,
                            metric_derivative_at_point)

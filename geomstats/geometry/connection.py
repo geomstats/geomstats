@@ -4,7 +4,7 @@ import autograd
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
-from geomstats.geometry.integrator import integrate
+from geomstats.integrator import integrate
 
 
 N_STEPS = 10
@@ -51,75 +51,57 @@ class Connection(object):
         raise NotImplementedError(
             'connection is not implemented.')
 
-    def geodesic_equation(self, tangent_vec, base_point):
+    def geodesic_equation(self, position, velocity):
         """Compute the geodesic ODE associated with the connection.
 
         Parameters
         ----------
-        base_point
-        tangent_vec
+        velocity
+        position
 
         Returns
         -------
         geodesic_ode : function
             vector field to be integrated
         """
-        gamma = self.christoffels(base_point)
-        return - gs.einsum('...kij,...i, ...j-> ...k', gamma, tangent_vec,
-                           tangent_vec)
+        gamma = self.christoffels(position)
+        return - gs.einsum('...kij,...i, ...j-> ...k', gamma, velocity,
+                           velocity)
 
-    def geodesic_equation(self, tangent_vec, base_point):
-        """Compute the geodesic ODE associated with the connection.
-
-        Parameters
-        ----------
-        base_point
-        tangent_vec
-
-        Returns
-        -------
-        geodesic_ode : function
-            vector field to be integrated
-        """
-        gamma = self.christoffels(base_point)
-        return - gs.einsum('...kij,...i, ...j-> ...k', gamma, tangent_vec,
-                           tangent_vec)
-
-    def exp(self, tangent_vec, base_point, n_steps=N_STEPS):
+    def exp(self, tangent_vec, base_point, n_steps=N_STEPS, step='euler'):
         """Exponential map associated to the affine connection.
 
         Exponential map at base_point of tangent_vec computed by integration
-        of the geodesic the equation (initial value problem), using the
+        of the geodesic equation (initial value problem), using the
         christoffel symbols
 
         Parameters
         ----------
+        step
         tangent_vec : array-like, shape=[n_samples, dimension]
-                                 or shape=[1, dimension]
         base_point : array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
         n_steps: int
 
         Returns
         -------
         exp : array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         initial_state = (base_point, tangent_vec)
-        flow, _ = integrate(self.geodesic_equation, initial_state, step='rk4',
-                            n_steps=n_steps)
+        flow, _ = integrate(
+            self.geodesic_equation, initial_state, n_steps=n_steps, step=step)
         return flow[-1]
 
-    def log(self, point, base_point, n_steps=N_STEPS):
+    def log(self, point, base_point, n_steps=N_STEPS, step='euler'):
         """Compute logarithm map associated to the affine connection.
 
         Solve the boundary value problem associated to the geodesic equation
-        using the Christoffel symbols and conjugate gradient descent
+        using the Christoffel symbols and conjugate gradient descent.
 
         Parameters
         ----------
+        step
         point : array-like, shape=[n_samples, dimension]
                            or shape=[1, dimension]
         base_point : array-like, shape=[n_samples, dimension]
@@ -137,7 +119,7 @@ class Connection(object):
         def objective(velocity):
             """Define the objective function."""
             velocity = velocity.reshape(base_point.shape)
-            delta = self.exp(velocity, base_point, n_steps) - point
+            delta = self.exp(velocity, base_point, n_steps, step) - point
             loss = 1. / self.dimension * gs.sum(delta ** 2, axis=1)
             return 1. / n_samples * gs.sum(loss)
 
@@ -148,8 +130,9 @@ class Connection(object):
             return objective(velocity), objective_grad(velocity)
 
         tangent_vec = gs.random.rand(base_point.size)
-        res = minimize(objective_with_grad, tangent_vec, method='L-BFGS-B',
-            jac=True, options={'disp': True, 'maxiter': 1})
+        res = minimize(
+            objective_with_grad, tangent_vec, method='L-BFGS-B', jac=True,
+            options={'disp': False, 'maxiter': 25})
 
         tangent_vec = res.x
         tangent_vec = gs.reshape(tangent_vec, base_point.shape)
@@ -361,26 +344,25 @@ class Connection(object):
         raise NotImplementedError(
             'The torsion tensor is not implemented.')
 
-    # @staticmethod
-    # def _symplectic_euler_step(state, force, dt):
-    #     """Compute one step of the symplectic euler approximation.
-    #
-    #     Parameters
-    #     ----------
-    #     state
-    #     force
-    #     dt
-    #
-    #     Returns
-    #     -------
-    #     point_new
-    #     vector_new
-    #     """
-    #     point, vector = state
-    #     point_new = point + vector * dt
-    #     print(state)
-    #     vector_new = vector + force(point, vector) * dt
-    #     return point_new, vector_new
+    @staticmethod
+    def _symplectic_euler_step(state, force, dt):
+        """Compute one step of the symplectic euler approximation.
+
+        Parameters
+        ----------
+        state
+        force
+        dt
+
+        Returns
+        -------
+        point_new
+        vector_new
+        """
+        point, vector = state
+        point_new = point + vector * dt
+        vector_new = vector + force(point, vector) * dt
+        return point_new, vector_new
 
     def integrate(self, function, initial_state, end_time=1.0, n_steps=10):
         """Compute the flow under the vector field using symplectic euler.

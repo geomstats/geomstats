@@ -1,9 +1,3 @@
-from autograd.scipy.integrate import odeint
-
-abserr = 1.0e-8
-relerr = 1.0e-6
-
-
 def _symplectic_euler_step(state, force, dt):
     """Compute one step of the symplectic euler approximation.
 
@@ -20,7 +14,6 @@ def _symplectic_euler_step(state, force, dt):
     """
     point, vector = state
     point_new = point + vector * dt
-    print(state)
     vector_new = vector + force(point, vector) * dt
     return point_new, vector_new
 
@@ -68,11 +61,3 @@ def integrate(function, initial_state, end_time=1.0, n_steps=10, step='euler'):
         velocities.append(current_state[1])
     return positions, velocities
 
-
-def scipy_integrate(function, initial_state, stop_time=1.0, n_steps=10):
-    positions = [initial_state[0]]
-    velocities = [initial_state[1]]
-    current_state = (positions[0].flatten(), velocities[0].flatten())
-    t = [stop_time * float(i) / (n_steps - 1) for i in range(n_steps)]
-    solution = odeint(function, current_state, t, atol=abserr, rtol=relerr)
-    return solution[-1, :2]
