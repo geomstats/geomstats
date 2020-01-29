@@ -44,7 +44,7 @@ class GeneralLinear(Matrices):
         Returns
         -------
         point :         array-like, shape=[..., n, n]
-            The left multiplication of `exp(vector)` with
+            The left multiplication of `exp(tangent_vec)` with
             `base_point`.
         """
         expm = gs.linalg.expm
