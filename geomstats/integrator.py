@@ -60,4 +60,3 @@ def integrate(function, initial_state, end_time=1.0, n_steps=10, step='euler'):
         positions.append(current_state[0])
         velocities.append(current_state[1])
     return positions, velocities
-

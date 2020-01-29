@@ -1,9 +1,9 @@
 """Riemannian and pseudo-Riemannian metrics."""
 
 import math
+import warnings
 
 import autograd
-import warnings
 
 import geomstats.backend as gs
 from geomstats.geometry.connection import Connection
