@@ -8,7 +8,7 @@ class GeneralLinear(Matrices):
     """Class for the general linear group GL(n)."""
 
     def __init__(self, n):
-        self.n = n
+        Matrices.__init__(self, n, n)
 
     @staticmethod
     def belongs(point):
@@ -31,13 +31,13 @@ class GeneralLinear(Matrices):
         return gs.linalg.inv(point)
 
     @classmethod
-    def exp(cls, vector, base_point=None):
+    def exp(cls, tangent_vec, base_point=None):
         """
         Exponentiate a left-invariant vector field from a base point.
 
         Parameters
         ----------
-        vector :        array-like, shape=[..., n, n]
+        tangent_vec :   array-like, shape=[..., n, n]
         base_point :    array-like, shape=[..., n, n]
             Defaults to identity.
 
@@ -49,14 +49,14 @@ class GeneralLinear(Matrices):
         """
         expm = gs.linalg.expm
         if base_point is None:
-            return expm(vector)
+            return expm(tangent_vec)
         else:
-            return cls.mul(expm(vector), base_point)
+            return cls.mul(expm(tangent_vec), base_point)
 
     @classmethod
     def log(cls, point, base_point=None):
         """
-        Search for a left-invariant vector field bringing base_point to point.
+        Calculate a left-invariant vector field bringing base_point to point.
 
         Parameters
         ----------
@@ -66,8 +66,8 @@ class GeneralLinear(Matrices):
 
         Returns
         -------
-        vector :        array-like, shape=[..., n, n]
-            A matrix such that `exp(vector, base_point) = point`.
+        tangent_vec :   array-like, shape=[..., n, n]
+            A matrix such that `exp(tangent_vec, base_point) = point`.
         """
         logm = gs.linalg.logm
         if base_point is None:
@@ -116,10 +116,10 @@ class GeneralLinear(Matrices):
 
         Will work when expm gets properly 4-D vectorized.
         """
-        vector = cls.log(point, base_point)
+        tangent_vec = cls.log(point, base_point)
 
         def path(time):
-            vecs = gs.einsum('t,...ij->...tij', time, vector)
+            vecs = gs.einsum('t,...ij->...tij', time, tangent_vec)
             return cls.exp(vecs, base_point)
 
         return path
