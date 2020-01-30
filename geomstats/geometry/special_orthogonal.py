@@ -1,11 +1,11 @@
-"""
-The special orthogonal group SO(n),
+"""The special orthogonal group SO(n).
+
 i.e. the Lie group of rotations in n dimensions.
 """
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
-from geomstats.geometry.general_linear_group import GeneralLinearGroup
+from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.lie_group import LieGroup
 
 ATOL = 1e-5
@@ -24,14 +24,27 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
-class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
-    """
-    Class for the special orthogonal group SO(n),
+class SpecialOrthogonal(LieGroup, EmbeddedManifold):
+    """Class for the special orthogonal group SO(n).
+
     i.e. the Lie group of rotations.
     """
 
     def __init__(self, n, point_type=None, epsilon=0.):
+        """Initialize an instance of SO(n).
 
+        Parameters
+        ----------
+        n : int
+            the dimension of the euclidean space that SO(n) acts upon
+        point_type : str, {'vector', 'matrix'}, optional
+            if None is given, point_type is set to 'vector for dimension 3
+            and matrix otherwise
+        epsilon : float, optional
+            precision to use for calculations involving potential divison by in
+            rotations
+            default: 0
+        """
         assert isinstance(n, int) and n > 1
 
         self.n = n
@@ -47,14 +60,20 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                           dimension=self.dimension)
         EmbeddedManifold.__init__(self,
                                   dimension=self.dimension,
-                                  embedding_manifold=GeneralLinearGroup(n=n))
+                                  embedding_manifold=GeneralLinear(n=n))
         self.bi_invariant_metric = self.left_canonical_metric
 
     def get_identity(self, point_type=None):
-        """
-        Get the identity of the group,
-        as a vector if point_type == 'vector',
-        as a matrix if point_type == 'matrix'.
+        """Get the identity of the group.
+
+        Parameters
+        ----------
+        point_type : str, {'vector', 'matrix'}, optional
+            the point_type of the returned value
+
+        Returns
+        -------
+        identity : array-like, shape={[dimension], [n, n]}
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -63,11 +82,23 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         if point_type == 'matrix':
             identity = gs.eye(self.n)
         return identity
+
     identity = property(get_identity)
 
     def belongs(self, point, point_type=None):
-        """
-        Evaluate if a point belongs to SO(n).
+        """Evaluate if a point belongs to SO(n).
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, {dimension, [n, n]}]
+            the point of which to check whether it belongs to SO(n)
+        point_type : str, {'vector', 'matrix'}, optional
+            default: default_point_type
+
+        Returns
+        -------
+        belongs : array-like, shape=[n_samples, 1]
+            array of booleans indicating whether point belongs to SO(n)
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -93,7 +124,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             return mask
 
     def regularize(self, point, point_type=None):
-        """
+        """Regularize a point to be in accordance with convention.
+
         In 3D, regularize the norm of the rotation vector,
         to be between 0 and pi, following the axis-angle
         representation's convention.
@@ -101,6 +133,16 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         If the angle angle is between pi and 2pi,
         the function computes its complementary in 2pi and
         inverts the direction of the rotation axis.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, {dimension, [n, n]}]
+        point_type : str, {'vector', 'matrix'}, optional
+            default: self.default_point_type
+
+        Returns
+        -------
+        regularized_point : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -132,8 +174,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                     1. - 2. * gs.pi * k / angle)
                 norms_ratio += mask_0_float
                 norms_ratio += mask_pi_float * (
-                        gs.pi / angle
-                        - (1. - 2. * gs.pi * k / angle))
+                    gs.pi / angle
+                    - (1. - 2. * gs.pi * k / angle))
 
                 regularized_point = gs.einsum(
                     'n,ni->ni', norms_ratio, regularized_point)
@@ -148,9 +190,22 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
     def regularize_tangent_vec_at_identity(
             self, tangent_vec, metric=None, point_type=None):
-        """
+        """Regularize a tangent vector at the identify.
+
         In 3D, regularize a tangent_vector by getting its norm at the identity,
         determined by the metric, to be less than pi.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
+        metric : RiemannianMetric, optional
+            default: self.left_canonical_metric
+        point_type : str, {'vector', 'matrix'}, optional
+            default: self.default_point_type
+
+        Returns
+        -------
+        regularized_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -163,10 +218,10 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                     metric = self.left_canonical_metric
                 tangent_vec_metric_norm = metric.norm(tangent_vec)
                 tangent_vec_canonical_norm = gs.linalg.norm(
-                                                  tangent_vec, axis=1)
+                    tangent_vec, axis=1)
                 if gs.ndim(tangent_vec_canonical_norm) == 1:
                     tangent_vec_canonical_norm = gs.expand_dims(
-                                   tangent_vec_canonical_norm, axis=1)
+                        tangent_vec_canonical_norm, axis=1)
 
                 mask_norm_0 = gs.isclose(tangent_vec_metric_norm, 0.)
                 mask_canonical_norm_0 = gs.isclose(
@@ -186,13 +241,13 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
                 coef = gs.zeros_like(tangent_vec_metric_norm)
                 coef += mask_else_float * (
-                        tangent_vec_metric_norm
-                        / tangent_vec_canonical_norm)
+                    tangent_vec_metric_norm
+                    / tangent_vec_canonical_norm)
                 regularized_vec += mask_else_float * self.regularize(
-                        coef * tangent_vec)
+                    coef * tangent_vec)
                 coef += mask_0_float
                 regularized_vec = mask_else_float * (
-                        regularized_vec / coef)
+                    regularized_vec / coef)
             else:
                 # TODO(nina): Check if/how regularization is needed in nD?
                 regularized_vec = tangent_vec
@@ -205,10 +260,23 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
     def regularize_tangent_vec(
             self, tangent_vec, base_point,
             metric=None, point_type=None):
-        """
+        """Regularize tangent vector at a base point.
+
         In 3D, regularize a tangent_vector by getting the norm of its parallel
-        transport to the identity, determined by the metric,
-        to be less than pi.
+        transport to the identity, determined by the metric, less than pi.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
+        metric : RiemannianMetric, optional
+            default: self.left_canonical_metric
+        point_type : str, {'vector', 'matrix'}, optional
+            default: self.default_point_type
+
+        Returns
+        -------
+        regularized_tangent_vec : array-like,
+            shape=[n_samples, {dimension, [n, n]}]
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -223,26 +291,25 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 n_vecs = tangent_vec.shape[0]
 
                 jacobian = self.jacobian_translation(
-                              point=base_point,
-                              left_or_right=metric.left_or_right,
-                              point_type=point_type)
+                    point=base_point,
+                    left_or_right=metric.left_or_right,
+                    point_type=point_type)
                 jacobian = gs.array([jacobian[0]] * n_vecs)
                 inv_jacobian = gs.linalg.inv(jacobian)
+                inv_jacobian = gs.to_ndarray(inv_jacobian, to_ndim=3)
                 tangent_vec_at_id = gs.einsum(
-                        'ni,nij->nj',
-                        tangent_vec,
-                        gs.transpose(inv_jacobian, axes=(0, 2, 1)))
+                    'ni,nij->nj',
+                    tangent_vec,
+                    gs.transpose(inv_jacobian, axes=(0, 2, 1)))
 
                 tangent_vec_at_id = self.regularize_tangent_vec_at_identity(
-                                              tangent_vec_at_id,
-                                              metric,
-                                              point_type)
+                    tangent_vec_at_id, metric, point_type)
 
+                jacobian = gs.to_ndarray(jacobian, to_ndim=3)
                 regularized_tangent_vec = gs.einsum(
-                        'ni,nij->nj',
-                        tangent_vec_at_id,
-                        gs.transpose(jacobian,
-                                     axes=(0, 2, 1)))
+                    'ni,nij->nj',
+                    tangent_vec_at_id,
+                    gs.transpose(jacobian, axes=(0, 2, 1)))
             else:
                 # TODO(nina): Check if/how regularization is needed in nD?
                 regularized_tangent_vec = tangent_vec
@@ -253,8 +320,15 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         return regularized_tangent_vec
 
     def projection(self, mat):
-        """
-        Project a matrix on SO(n), using the Frobenius norm.
+        """Project a matrix on SO(n) using the Frobenius norm.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[n_samples, n, n]
+
+        Returns
+        -------
+        rot_mat : array-like, shape=[n_samples, n, n]
         """
         mat = gs.to_ndarray(mat, to_ndim=3)
 
@@ -271,21 +345,21 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
             aux_mat = gs.einsum(
-                    'nij,njk->nik',
-                    mat_unitary_u,
-                    new_mat_diag_s)
+                'nij,njk->nik',
+                mat_unitary_u,
+                new_mat_diag_s)
             rot_mat += gs.einsum(
-                    'n,njk->njk',
-                    mask_float,
-                    gs.einsum(
-                        'nij,njk->nik',
-                        aux_mat,
-                        mat_unitary_v))
+                'n,njk->njk',
+                mask_float,
+                gs.einsum(
+                    'nij,njk->nik',
+                    aux_mat,
+                    mat_unitary_v))
         else:
             aux_mat = gs.matmul(gs.transpose(mat, axes=(0, 2, 1)), mat)
 
             inv_sqrt_mat = gs.linalg.inv(
-                    gs.linalg.sqrtm(aux_mat))
+                gs.linalg.sqrtm(aux_mat))
 
             rot_mat = gs.matmul(mat, inv_sqrt_mat)
 
@@ -293,13 +367,20 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         return rot_mat
 
     def skew_matrix_from_vector(self, vec):
-        """
-        In 3D, compute the skew-symmetric matrix,
-        known as the cross-product of a vector,
-        associated to the vector vec.
+        """Get the skew-symmetric matrix derived from the vector.
 
-        In nD, fill a skew-symmetric matrix with
-        the values of the vector.
+        In 3D, compute the skew-symmetric matrix,known as the cross-product of
+        a vector, associated to the vector `vec`.
+
+        In nD, fill a skew-symmetric matrix with the values of the vector.
+
+        Parameters
+        ----------
+        vec : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        skew_mat : array-like, shape=[n_samples, n, n]
         """
         vec = gs.to_ndarray(vec, to_ndim=2)
         n_vecs = vec.shape[0]
@@ -322,7 +403,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 [[0., 1., 0.],
                  [-1., 0., 0.],
                  [0., 0., 0.]]
-                ]] * n_vecs) + self.epsilon
+            ]] * n_vecs) + self.epsilon
 
             # This avois dividing by 0.
             basis_vec_1 = gs.array([[1., 0., 0.]] * n_vecs) + self.epsilon
@@ -362,12 +443,21 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         return skew_mat
 
     def vector_from_skew_matrix(self, skew_mat):
-        """
+        """Derive a vector from the skew-symmetric matrix.
+
         In 3D, compute the vector defining the cross product
         associated to the skew-symmetric matrix skew mat.
 
         In nD, fill a vector by reading the values
         of the upper triangle of skew_mat.
+
+        Parameters
+        ----------
+        skew_mat : array-like, shape=[n_samples, n, n]
+
+        Returns
+        -------
+        vec : array-like, shape=[n_samples, dimension]
         """
         skew_mat = gs.to_ndarray(skew_mat, to_ndim=3)
         n_skew_mats, mat_dim_1, mat_dim_2 = skew_mat.shape
@@ -397,25 +487,33 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         return vec
 
     def rotation_vector_from_matrix(self, rot_mat):
-        """
-        In 3D, convert rotation matrix to rotation vector
-        (axis-angle representation).
+        r"""Convert rotation matrix (in 3D) to rotation vector (axis-angle).
 
         Get the angle through the trace of the rotation matrix:
         The eigenvalues are:
-        1, cos(angle) + i sin(angle), cos(angle) - i sin(angle)
-        so that: trace = 1 + 2 cos(angle), -1 <= trace <= 3
+        :math:`\{1, \cos(angle) + i \sin(angle), \cos(angle) - i \sin(angle)\}`
+        so that:
+        :math:`trace = 1 + 2 \cos(angle), \{-1 \leq trace \leq 3\}`
 
         Get the rotation vector through the formula:
-        S_r = angle / ( 2 * sin(angle) ) (R - R^T)
+        :math:`S_r = \frac{angle}{(2 * \sin(angle) ) (R - R^T)}`
 
         For the edge case where the angle is close to pi,
         the formulation is derived by going from rotation matrix to unit
         quaternion to axis-angle:
-         r = angle * v / |v|, where (w, v) is a unit quaternion.
+        :math:`r = \frac{angle*v}{|v|}`
+        where :math:`(w, v)` is a unit quaternion.
 
-        In nD, the rotation vector stores the n(n-1)/2 values of the
-        skew-symmetric matrix representing the rotation.
+        In nD, the rotation vector stores the :math:`n(n-1)/2` values
+        of the skew-symmetric matrix representing the rotation.
+
+        Parameters
+        ----------
+        rot_mat : array-like, shape=[n_samples, n, n]
+
+        Returns
+        -------
+        regularized_rot_vec : array-like, shape=[n_samples, dimension]
         """
         rot_mat = gs.to_ndarray(rot_mat, to_ndim=3)
         n_rot_mats, mat_dim_1, mat_dim_2 = rot_mat.shape
@@ -452,9 +550,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             # choose the largest diagonal element
             # to avoid a square root of a negative number
             rot_mat_pi = gs.einsum(
-                        'ni,njk->njk',
-                        mask_pi_float,
-                        rot_mat)
+                'ni,njk->njk', mask_pi_float, rot_mat)
             a = gs.array(0)
             rot_mat_pi_00 = gs.to_ndarray(
                 rot_mat_pi[:, 0, 0], to_ndim=2, axis=1)
@@ -463,9 +559,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             rot_mat_pi_22 = gs.to_ndarray(
                 rot_mat_pi[:, 2, 2], to_ndim=2, axis=1)
             rot_mat_pi_diagonal = gs.hstack(
-                    [rot_mat_pi_00,
-                     rot_mat_pi_11,
-                     rot_mat_pi_22])
+                [rot_mat_pi_00, rot_mat_pi_11, rot_mat_pi_22])
             a = gs.argmax(rot_mat_pi_diagonal, axis=1)[0]
             b = (a + 1) % 3
             c = (a + 2) % 3
@@ -479,9 +573,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                     - rot_mat[:, b, b]
                     - rot_mat[:, c, c]) + 1.)
             sq_root_pi = gs.einsum(
-                    'ni,nk->ni',
-                    mask_pi_float,
-                    aux)
+                'ni,nk->ni', mask_pi_float, aux)
 
             sq_root += sq_root_pi
 
@@ -513,37 +605,35 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             rot_vec_pi_c = gs.zeros_like(rot_vec_pi)
 
             rot_vec_pi_b += gs.einsum(
-                    'nk,ni->nk',
-                    mask_b_float,
-                    ((rot_mat[:, b, a]
-                     + rot_mat[:, a, b])
-                     / (2. * sq_root)))
+                'nk,ni->nk',
+                mask_b_float,
+                ((rot_mat[:, b, a]
+                  + rot_mat[:, a, b])
+                 / (2. * sq_root)))
             rot_vec_pi += mask_pi_float * gs.einsum(
-                     'ni,nk->nk',
-                     mask_pi_float,
-                     rot_vec_pi_b)
+                'ni,nk->nk', mask_pi_float, rot_vec_pi_b)
 
             rot_vec_pi_c += gs.einsum(
-                    'nk,ni->nk',
-                    mask_c_float,
-                    ((rot_mat[:, c, a]
-                     + rot_mat[:, a, c])
-                     / (2. * sq_root)))
+                'nk,ni->nk',
+                mask_c_float,
+                ((rot_mat[:, c, a]
+                  + rot_mat[:, a, c])
+                 / (2. * sq_root)))
 
             rot_vec_pi += mask_pi_float * gs.einsum(
-                     'ni,nk->nk',
-                     mask_pi_float,
-                     rot_vec_pi_c)
+                'ni,nk->nk',
+                mask_pi_float,
+                rot_vec_pi_c)
 
             norm_rot_vec_pi = gs.linalg.norm(rot_vec_pi, axis=1)
             norm_rot_vec_pi += gs.squeeze(mask_0_float, axis=1)
             norm_rot_vec_pi += gs.squeeze(mask_else_float, axis=1)
 
             rot_vec += mask_pi_float * (
-                    gs.einsum(
-                        'nk,n->nk',
-                        angle * rot_vec_pi,
-                        1. / norm_rot_vec_pi))
+                gs.einsum(
+                    'nk,n->nk',
+                    angle * rot_vec_pi,
+                    1. / norm_rot_vec_pi))
 
             angle += mask_0_float
             angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
@@ -554,14 +644,21 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
             rot_vec *= (1. + fact)
         else:
-            skew_mat = self.embedding_manifold.group_log_from_identity(rot_mat)
+            skew_mat = self.embedding_manifold.log_from_identity(rot_mat)
             rot_vec = self.vector_from_skew_matrix(skew_mat)
 
         return self.regularize(rot_vec, point_type='vector')
 
     def matrix_from_rotation_vector(self, rot_vec):
-        """
-        Convert rotation vector to rotation matrix.
+        """Convert rotation vector to rotation matrix.
+
+        Parameters
+        ----------
+        rot_vec: array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        rot_mat: array-like, shape=[n_samples, {dimension, [n, n]}]
         """
         rot_vec = self.regularize(rot_vec, point_type='vector')
         n_rot_vecs, _ = rot_vec.shape
@@ -598,7 +695,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                       + gs.einsum('n,njk->njk', coef_1, skew_rot_vec))
 
             squared_skew_rot_vec = gs.einsum(
-                    'nij,njk->nik', skew_rot_vec, skew_rot_vec)
+                'nij,njk->nik', skew_rot_vec, skew_rot_vec)
 
             term_2 = gs.einsum('n,njk->njk', coef_2, squared_skew_rot_vec)
 
@@ -606,13 +703,20 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         else:
             skew_mat = self.skew_matrix_from_vector(rot_vec)
-            rot_mat = self.embedding_manifold.group_exp_from_identity(skew_mat)
+            rot_mat = self.embedding_manifold.exp_from_identity(skew_mat)
 
         return rot_mat
 
     def quaternion_from_matrix(self, rot_mat):
-        """
-        Convert a rotation matrix into a unit quaternion.
+        """Convert a rotation matrix into a unit quaternion.
+
+        Parameters
+        ----------
+        rot_mat : array-like, shape=[n_samples, n, n]
+
+        Returns
+        -------
+        quaternion : array-like, shape=[n_samples, 4]
         """
         assert self.n == 3, ('The quaternion representation does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -625,8 +729,15 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         return quaternion
 
     def quaternion_from_rotation_vector(self, rot_vec):
-        """
-        Convert a rotation vector into a unit quaternion.
+        """Convert a rotation vector into a unit quaternion.
+
+        Parameters
+        ----------
+        rot_vec : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        quaternion : array-like, shape=[n_samples, 4]
         """
         assert self.n == 3, ('The quaternion representation does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -639,10 +750,11 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         mask_0 = gs.isclose(angle, 0.)
         mask_not_0 = ~mask_0
 
-        rotation_axis = gs.divide(rot_vec,
-                                  angle *
-                                  gs.cast(mask_not_0, gs.float32) +
-                                  gs.cast(mask_0, gs.float32))
+        rotation_axis = gs.divide(
+            rot_vec,
+            angle
+            * gs.cast(mask_not_0, gs.float32)
+            + gs.cast(mask_0, gs.float32))
 
         quaternion = gs.concatenate(
             (gs.cos(angle / 2),
@@ -652,8 +764,15 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         return quaternion
 
     def rotation_vector_from_quaternion(self, quaternion):
-        """
-        Convert a unit quaternion into a rotation vector.
+        """Convert a unit quaternion into a rotation vector.
+
+        Parameters
+        ----------
+        quaternion : array-like, shape=[n_samples, 4]
+
+        Returns
+        -------
+        rot_vec : array-like, shape=[n_samples, dimension]
         """
         assert self.n == 3, ('The quaternion representation does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -670,20 +789,29 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         mask_0 = gs.isclose(half_angle, 0.)
         mask_not_0 = ~mask_0
 
-        rotation_axis = gs.divide(quaternion[:, 1:],
-                                  gs.sin(half_angle) *
-                                  gs.cast(mask_not_0, gs.float32) +
-                                  gs.cast(mask_0, gs.float32))
-        rot_vec = gs.array(2 * half_angle *
-                           rotation_axis *
-                           gs.cast(mask_not_0, gs.float32))
+        rotation_axis = gs.divide(
+            quaternion[:, 1:],
+            gs.sin(half_angle) *
+            gs.cast(mask_not_0, gs.float32)
+            + gs.cast(mask_0, gs.float32))
+        rot_vec = gs.array(
+            2 * half_angle
+            * rotation_axis
+            * gs.cast(mask_not_0, gs.float32))
 
         rot_vec = self.regularize(rot_vec, point_type='vector')
         return rot_vec
 
     def matrix_from_quaternion(self, quaternion):
-        """
-        Convert a unit quaternion into a rotation vector.
+        """Convert a unit quaternion into a rotation vector.
+
+        Parameters
+        ----------
+        quaternion : array-like, shape=[n_samples, 4]
+
+        Returns
+        -------
+        rot_mat : array-like, shape=[n_samples, dimension]
         """
         assert self.n == 3, ('The quaternion representation does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -719,7 +847,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         return rot_mat
 
     def matrix_from_tait_bryan_angles_extrinsic_xyz(self, tait_bryan_angles):
-        """
+        """Convert Tait-Bryan angles to rot mat in extrensic coords (xyz).
+
         Convert a rotation given in terms of the tait bryan angles,
         [angle_1, angle_2, angle_3] in extrinsic (fixed) coordinate system
         in order xyz, into a rotation matrix.
@@ -729,8 +858,15 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         - Z(angle_1) is a rotation of angle angle_1 around axis z.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - X(angle_3) is a rotation of angle angle_3 around axis x.
-        """
 
+        Parameters
+        ----------
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
+
+        Returns
+        -------
+        rot_mat : array-like, shape=[n_samples, n, n]
+        """
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
                              ' for rotations in %d dimensions.' % self.n)
@@ -768,7 +904,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         return rot_mat
 
     def matrix_from_tait_bryan_angles_extrinsic_zyx(self, tait_bryan_angles):
-        """
+        """Convert Tait-Bryan angles to rot mat in extrensic coords (zyx).
+
         Convert a rotation given in terms of the tait bryan angles,
         [angle_1, angle_2, angle_3] in extrinsic (fixed) coordinate system
         in order zyx, into a rotation matrix.
@@ -778,6 +915,14 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         - X(angle_1) is a rotation of angle angle_1 around axis x.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - Z(angle_3) is a rotation of angle angle_3 around axis z.
+
+        Parameters
+        ----------
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
+
+        Returns
+        -------
+        rot_mat : array-like, shape=[n_samples, n, n]
         """
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
@@ -819,7 +964,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
     def matrix_from_tait_bryan_angles(self, tait_bryan_angles,
                                       extrinsic_or_intrinsic='extrinsic',
                                       order='zyx'):
-        """
+        """Convert Tait-Bryan angles to rot mat in extr or intr coords.
+
         Convert a rotation given in terms of the tait bryan angles,
         [angle_1, angle_2, angle_3] in extrinsic (fixed) or
         intrinsic (moving) coordinate frame into a rotation matrix.
@@ -833,6 +979,18 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         Exchanging 'extrinsic' and 'intrinsic' amounts to
         exchanging the order.
+
+        Parameters
+        ----------
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
+        extrinsic_or_intrinsic : str, {'extrensic', 'intrinsic'} optional
+            default: 'extrinsic'
+        order : str, {'xyz', 'zyx'}, optional
+            default: 'zyx'
+
+        Returns
+        -------
+        rot_mat : array-like, shape=[n_samples, n, n]
         """
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
@@ -879,7 +1037,8 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
     def tait_bryan_angles_from_matrix(self, rot_mat,
                                       extrinsic_or_intrinsic='extrinsic',
                                       order='zyx'):
-        """
+        """Convert rot_mat into Tait-Bryan angles.
+
         Convert a rotation matrix rot_mat into the tait bryan angles,
         [angle_1, angle_2, angle_3] in extrinsic (fixed) coordinate frame,
         for the order zyx, i.e.:
@@ -888,6 +1047,18 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         - X(angle_1) is a rotation of angle angle_1 around axis x.
         - Y(angle_2) is a rotation of angle angle_2 around axis y.
         - Z(angle_3) is a rotation of angle angle_3 around axis z.
+
+        Parameters
+        ----------
+        rot_mat : array-like, shape=[n_samples, n, n]
+        extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
+            default: 'extrinsic'
+        order : str, {'xyz', 'zyx'}, optional
+            default: 'zyx'
+
+        Returns
+        -------
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
         """
         assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
         assert order in ('xyz', 'zyx')
@@ -903,9 +1074,18 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
     def quaternion_from_tait_bryan_angles_intrinsic_xyz(
             self, tait_bryan_angles):
-        """
+        """Convert Tait-Bryan angles to into unit quaternion.
+
         Convert a rotation given by Tait-Bryan angles in extrinsic
         coordinate systems and order xyz into a unit quaternion.
+
+        Parameters
+        ----------
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
+
+        Returns
+        -------
+        quaternion : array-like, shape=[n_samples, 4]
         """
         assert self.n == 3, ('The quaternion representation'
                              ' and the Tait-Bryan angles representation'
@@ -916,18 +1096,28 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         quaternion = gs.zeros((n_tait_bryan_angles, 4))
 
         matrix = self.matrix_from_tait_bryan_angles(
-                tait_bryan_angles,
-                extrinsic_or_intrinsic='intrinsic',
-                order='xyz')
+            tait_bryan_angles,
+            extrinsic_or_intrinsic='intrinsic',
+            order='xyz')
         quaternion = self.quaternion_from_matrix(matrix)
         return quaternion
 
     def quaternion_from_tait_bryan_angles(self, tait_bryan_angles,
                                           extrinsic_or_intrinsic='extrinsic',
                                           order='zyx'):
-        """
-        Convert a rotation given by Tait-Bryan angles
-        into a unit quaternion.
+        """Convert a rotation given by Tait-Bryan angles into unit quaternion.
+
+        Parameters
+        ----------
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
+        extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
+            default: 'extrinsic'
+        order : str, {'xyz', 'zyx'}, optional
+            default: 'zyx'
+
+        Returns
+        -------
+        quat : array-like, shape=[n_samples, 4]
         """
         assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
         assert order in ('xyz', 'zyx')
@@ -980,9 +1170,21 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             tait_bryan_angles,
             extrinsic_or_intrinsic='extrinsic',
             order='zyx'):
-        """
-        Convert a rotation given by the angle_1, angle_2, angle_3
-        into a rotation vector (axis-angle representation).
+        """Convert rotation given by angle_1, angle_2, angle_3 into rot. vec.
+
+        Convert into axis-angle representation.
+
+        Parameters
+        ----------
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
+        extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
+            default: 'extrinsic'
+        order : str, {'xyz', 'zyx'}, optional
+            default: 'zyx'
+
+        Returns
+        -------
+        rot_vec : array-like, shape=[n_samples, dimension]
         """
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
@@ -1000,6 +1202,16 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         return rot_vec
 
     def tait_bryan_angles_from_quaternion_intrinsic_zyx(self, quaternion):
+        """Convert quaternion to tait bryan representation of order zyx.
+
+        Parameters
+        ----------
+        quaternion : array-like, shape=[n_samples, 4]
+
+        Returns
+        -------
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
+        """
         assert self.n == 3, ('The quaternion representation'
                              ' and the Tait-Bryan angles representation'
                              ' do not exist'
@@ -1017,6 +1229,16 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         return tait_bryan_angles
 
     def tait_bryan_angles_from_quaternion_intrinsic_xyz(self, quaternion):
+        """Convert quaternion to tait bryan representation of order xyz.
+
+        Parameters
+        ----------
+        quaternion : array-like, shape=[n_samples, 4]
+
+        Returns
+        -------
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
+        """
         assert self.n == 3, ('The quaternion representation'
                              ' and the Tait-Bryan angles representation'
                              ' do not exist'
@@ -1037,9 +1259,19 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
     def tait_bryan_angles_from_quaternion(
             self, quaternion, extrinsic_or_intrinsic='extrinsic', order='zyx'):
-        """
-        Convert a quaternion
-        to a rotation given by the angle_1, angle_2, angle_3.
+        """Convert quaternion to a rotation in form angle_1, angle_2, angle_3.
+
+        Parameters
+        ----------
+        quaternion : array-like, shape=[n_samples, 4]
+        extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
+            default: 'extrinsic'
+        order : str, {'xyz', 'zyx'}, optional
+            default: 'zyx'
+
+        Returns
+        -------
+        tait_bryan : array-like, shape=[n_samples, 3]
         """
         assert self.n == 3, ('The quaternion representation'
                              ' and the Tait-Bryan angles representation'
@@ -1085,9 +1317,21 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
     def tait_bryan_angles_from_rotation_vector(
             self, rot_vec, extrinsic_or_intrinsic='extrinsic', order='zyx'):
-        """
-        Convert a rotation vector (axis-angle representation)
-        to a rotation given by the Tait-Bryan angles.
+        """Convert a rotation vector to a rotation given by Tait-Bryan angles.
+
+        Here the rotation vector is in the axis-angle representation.
+
+        Parameters
+        ----------
+        rot_vec : array-like, shape=[n_samples, dimension]
+        extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
+            default: 'extrinsic'
+        order : str, {'xyz', 'zyx'}, optional
+            default: 'zyx'
+
+        Returns
+        -------
+        tait_bryan_angles : array-like, shape=[n_samples, 3]
         """
         assert self.n == 3, ('The Tait-Bryan angles representation'
                              ' does not exist'
@@ -1106,8 +1350,18 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         return tait_bryan_angles
 
     def compose(self, point_1, point_2, point_type=None):
-        """
-        Compose two elements of SO(n).
+        """Compose two elements of SO(n).
+
+        Parameters
+        ----------
+        point_1 : array-like, shape=[n_samples, {dimension, [n, n]}]
+        point_2 : array-like, shape=[n_samples, {dimension, [n, n]}]
+        point_type : str, {'vector', 'matrix'}, optional
+            default: default_point_type
+
+        Returns
+        -------
+        point_prod : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -1142,10 +1396,18 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         return point_prod
 
     def inverse(self, point, point_type=None):
-        """
-        Compute the group inverse in SO(n).
-        """
+        """Compute the group inverse in SO(n).
 
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, {dimension, [n, n]}]
+        point_type : str, {'vector', 'matrix'}, optional
+            default: self.default_point_type
+
+        Returns
+        -------
+        inv_point : array-like, shape=[n_samples, {dimension, [n, n]}]
+        """
         if point_type is None:
             point_type = self.default_point_type
 
@@ -1165,9 +1427,22 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
     def jacobian_translation(
             self, point, left_or_right='left', point_type=None):
-        """
+        """Compute the jacobian matrix corresponding to translation.
+
         Compute the jacobian matrix of the differential
         of the left/right translations from the identity to point in SO(n).
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, {dimension, [n, n]}]
+        left_or_right : str, {'left', 'right'}, optional
+            default: 'left'
+        point_type : str, {'vector', 'matrix'}, optional
+            default: self.default_point_type
+
+        Returns
+        -------
+        jacobian : array-like, shape=[n_samples, dimension, dimension]
         """
         assert left_or_right in ('left', 'right')
 
@@ -1192,16 +1467,16 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
 
                 coef_1 += mask_0_float * (
-                        TAYLOR_COEFFS_1_AT_0[0]
-                        + TAYLOR_COEFFS_1_AT_0[2] * angle ** 2
-                        + TAYLOR_COEFFS_1_AT_0[4] * angle ** 4
-                        + TAYLOR_COEFFS_1_AT_0[6] * angle ** 6)
+                    TAYLOR_COEFFS_1_AT_0[0]
+                    + TAYLOR_COEFFS_1_AT_0[2] * angle ** 2
+                    + TAYLOR_COEFFS_1_AT_0[4] * angle ** 4
+                    + TAYLOR_COEFFS_1_AT_0[6] * angle ** 6)
 
                 coef_2 += mask_0_float * (
-                        TAYLOR_COEFFS_2_AT_0[0]
-                        + TAYLOR_COEFFS_2_AT_0[2] * angle ** 2
-                        + TAYLOR_COEFFS_2_AT_0[4] * angle ** 4
-                        + TAYLOR_COEFFS_2_AT_0[6] * angle ** 6)
+                    TAYLOR_COEFFS_2_AT_0[0]
+                    + TAYLOR_COEFFS_2_AT_0[2] * angle ** 2
+                    + TAYLOR_COEFFS_2_AT_0[4] * angle ** 4
+                    + TAYLOR_COEFFS_2_AT_0[6] * angle ** 6)
 
                 # This avois dividing by 0.
                 mask_pi = gs.isclose(angle, gs.pi)
@@ -1209,16 +1484,16 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
                 delta_angle = angle - gs.pi
                 coef_1 += mask_pi_float * (
-                        TAYLOR_COEFFS_1_AT_PI[1] * delta_angle
-                        + TAYLOR_COEFFS_1_AT_PI[2] * delta_angle ** 2
-                        + TAYLOR_COEFFS_1_AT_PI[3] * delta_angle ** 3
-                        + TAYLOR_COEFFS_1_AT_PI[4] * delta_angle ** 4
-                        + TAYLOR_COEFFS_1_AT_PI[5] * delta_angle ** 5
-                        + TAYLOR_COEFFS_1_AT_PI[6] * delta_angle ** 6)
+                    TAYLOR_COEFFS_1_AT_PI[1] * delta_angle
+                    + TAYLOR_COEFFS_1_AT_PI[2] * delta_angle ** 2
+                    + TAYLOR_COEFFS_1_AT_PI[3] * delta_angle ** 3
+                    + TAYLOR_COEFFS_1_AT_PI[4] * delta_angle ** 4
+                    + TAYLOR_COEFFS_1_AT_PI[5] * delta_angle ** 5
+                    + TAYLOR_COEFFS_1_AT_PI[6] * delta_angle ** 6)
 
                 angle += mask_0_float
                 coef_2 += mask_pi_float * (
-                        (1 - coef_1) / angle ** 2)
+                    (1 - coef_1) / angle ** 2)
 
                 # This avois dividing by 0.
                 mask_else = ~mask_0 & ~mask_pi
@@ -1227,9 +1502,9 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
                 # This avoids division by 0.
                 angle += mask_pi_float
                 coef_1 += mask_else_float * (
-                        (angle / 2) / gs.tan(angle / 2))
+                    (angle / 2) / gs.tan(angle / 2))
                 coef_2 += mask_else_float * (
-                        (1 - coef_1) / angle ** 2)
+                    (1 - coef_1) / angle ** 2)
                 jacobian = gs.zeros((n_points, self.dimension, self.dimension))
                 n_points_tensor = gs.array(n_points)
                 for i in range(n_points):
@@ -1266,8 +1541,18 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
         return jacobian
 
     def random_uniform(self, n_samples=1, point_type=None):
-        """
-        Sample in SO(n) with the uniform distribution.
+        """Sample in SO(n) with the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            the amount of samples
+        point_type : str, {'vector', 'matrix'}, optional
+            default: self.self.default_point_type
+
+        Returns
+        -------
+        point : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -1279,15 +1564,26 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         return random_point
 
-    def group_exp_from_identity(self, tangent_vec, point_type=None):
-        """
-        Compute the group exponential of the tangent vector at the identity.
+    def exp_from_identity(self, tangent_vec, point_type=None):
+        """Compute the group exponential of the tangent vector at the identity.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
+        point_type : str, {'vector', 'matrix'}, optional
+            default: self.default_point_type
+
+        Returns
+        -------
+        point : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
         if point_type is None:
             point_type = self.default_point_type
 
         if point_type == 'vector':
             point = gs.to_ndarray(tangent_vec, to_ndim=2)
+        elif point_type == 'matrix' and self.n > 3:
+            return gs.linalg.expm(tangent_vec)
         elif point_type == 'matrix':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
             tangent_vec = self.vector_from_skew_matrix(tangent_vec)
@@ -1295,9 +1591,18 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         return point
 
-    def group_log_from_identity(self, point, point_type=None):
-        """
-        Compute the group logarithm of the point at the identity.
+    def log_from_identity(self, point, point_type=None):
+        """Compute the group logarithm of the point at the identity.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, {dimension, [n, n]}]
+        point_type : str, {'vector', 'matrix'}, optional
+            default: self.default_point_type
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -1310,11 +1615,24 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
             tangent_vec = self.skew_matrix_from_vector(point)
         return tangent_vec
 
-    def group_exponential_barycenter(
+    def exponential_barycenter(
             self, points, weights=None, point_type=None):
-        """
-        Compute the group exponential barycenter in SO(n), which is the
-        Frechet mean of the canonical bi-invariant metric on SO(n).
+        """Compute the group exponential barycenter in SO(n).
+
+        This is the Frechet mean of the canonical bi-invariant metric on SO(n).
+
+        Parameters
+        ----------
+        points : array-like, shape=[n_samples, {dimension, [n, n]}]
+        weights : array-like, shape=[n_samples], optional
+            default: 1 / n_samples for each point
+        point_type : str, {'vector', 'matrix'}, optional
+            default: self.default_point_type
+
+        Returns
+        -------
+        exp_bar : array-like, shape=[{dimension, [n, n]}]
+            the group exponential barycenter
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -1336,7 +1654,7 @@ class SpecialOrthogonalGroup(LieGroup, EmbeddedManifold):
 
         elif point_type == 'matrix':
             points = self.rotation_vector_from_matrix(points)
-            exp_bar = self.group_exponential_barycenter(
+            exp_bar = self.exponential_barycenter(
                 points, weights, point_type='vector')
             exp_bar = self.matrix_from_rotation_vector(exp_bar)
 

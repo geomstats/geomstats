@@ -7,9 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
-
-from geomstats.learning.pca import TangentPCA
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.learning.pca import TangentPCA
 
 
 def main():
@@ -42,7 +41,7 @@ def main():
     print(tangent_projected_data[:5])
 
     ax_var = fig.add_subplot(121)
-    xticks = np.arange(1, 2+1, 1)
+    xticks = np.arange(1, 2 + 1, 1)
     ax_var.xaxis.set_ticks(xticks)
     ax_var.set_title('Explained variance')
     ax_var.set_xlabel('Number of Principal Components')

@@ -7,11 +7,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
-
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.pca import TangentPCA
-from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
 
-SO3_GROUP = SpecialOrthogonalGroup(n=3)
+SO3_GROUP = SpecialOrthogonal(n=3)
 METRIC = SO3_GROUP.bi_invariant_metric
 
 N_SAMPLES = 10
@@ -33,7 +32,7 @@ def main():
     print(tangent_projected_data[:5])
 
     ax_var = fig.add_subplot(121)
-    xticks = np.arange(1, N_COMPONENTS+1, 1)
+    xticks = np.arange(1, N_COMPONENTS + 1, 1)
     ax_var.xaxis.set_ticks(xticks)
     ax_var.set_title('Explained variance')
     ax_var.set_xlabel('Number of Principal Components')

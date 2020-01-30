@@ -2,19 +2,19 @@
 Unit tests for the Euclidean space.
 """
 
-import geomstats.backend as gs
-import geomstats.tests
 import tests.helper as helper
 
-from geomstats.geometry.euclidean_space import EuclideanSpace
+import geomstats.backend as gs
+import geomstats.tests
+from geomstats.geometry.euclidean import Euclidean
 
 
-class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
+class TestEuclideanMethods(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
 
         self.dimension = 2
-        self.space = EuclideanSpace(self.dimension)
+        self.space = Euclidean(self.dimension)
         self.metric = self.space.metric
 
         self.n_samples = 3
@@ -312,8 +312,8 @@ class TestEuclideanSpaceMethods(geomstats.tests.TestCase):
         initial_point = gs.array([[2., -1.]])
         initial_tangent_vec = gs.array([2., 0.])
         geodesic = self.metric.geodesic(
-                   initial_point=initial_point,
-                   initial_tangent_vec=initial_tangent_vec)
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec)
 
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)

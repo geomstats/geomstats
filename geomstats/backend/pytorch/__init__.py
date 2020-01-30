@@ -48,7 +48,7 @@ def boolean_mask(x, mask):
 
 
 def arctan2(*args, **kwargs):
-    return torch.arctan2(*args, **kwargs)
+    return torch.atan2(*args, **kwargs)
 
 
 def cast(x, dtype):
@@ -60,14 +60,14 @@ def divide(*args, **kwargs):
     return torch.div(*args, **kwargs)
 
 
-def repeat(x, repeat_time, axis=None):
+def repeat(a, repeats, axis=None):
     if torch.__version__ >= '1.1':
-        return torch.repeat_interleave(x, repeat_time, axis)
+        return torch.repeat_interleave(a, repeats, axis)
     if(axis is None):
         axis = 0
-    shape = list(x.shape)
-    shape[axis] = shape[axis] * repeat_time
-    return x.repeat(*shape)
+    shape = list(a.shape)
+    shape[axis] = shape[axis] * repeats
+    return a.repeat(*shape)
 
 
 def asarray(x):
@@ -75,7 +75,7 @@ def asarray(x):
 
 
 def concatenate(seq, axis=0, out=None):
-    seq = [t.float() for t in seq]
+    seq = [cast(t, float32) for t in seq]
     return torch.cat(seq, dim=axis, out=out)
 
 
@@ -108,7 +108,7 @@ def array(val):
         if val.dtype == bool:
             val = torch.from_numpy(_np.array(val, dtype=_np.uint8))
         elif val.dtype == _np.float32 or val.dtype == _np.float64:
-            val = torch.from_numpy(_np.array(val, dtype=_np.float32))
+            val = torch.from_numpy(_np.array(val, dtype=_np.float64))
         else:
             val = torch.from_numpy(val)
 
@@ -156,10 +156,10 @@ def allclose(a, b, **kwargs):
     n_b = b.shape[0]
     ndim = len(a.shape)
     if n_a > n_b:
-        reps = (int(n_a / n_b),) + (ndim-1) * (1,)
+        reps = (int(n_a / n_b),) + (ndim - 1) * (1,)
         b = tile(b, reps)
     elif n_a < n_b:
-        reps = (int(n_b / n_a),) + (ndim-1) * (1,)
+        reps = (int(n_b / n_a),) + (ndim - 1) * (1,)
         a = tile(a, reps)
     return torch.allclose(a, b, **kwargs)
 
@@ -191,11 +191,11 @@ def tanh(*args, **kwargs):
 
 
 def arcsinh(x):
-    return torch.log(x + torch.sqrt(x*x+1))
+    return torch.log(x + torch.sqrt(x * x + 1))
 
 
 def arcosh(x):
-    return torch.log(x + torch.sqrt(x*x-1))
+    return torch.log(x + torch.sqrt(x * x - 1))
 
 
 def tan(val):
@@ -244,7 +244,7 @@ def sqrt(val):
 
 
 def norm(val, axis):
-    return torch.linalg.norm(val, axis=axis)
+    return torch.norm(val, 2, axis)
 
 
 if torch.__version__ >= '1.1':
@@ -319,6 +319,10 @@ def trace(*args, **kwargs):
 
 def mod(*args, **kwargs):
     return torch.fmod(*args, **kwargs)
+
+
+def arctanh(x):
+    return 0.5 * torch.log((1 + x) / (1 - x))
 
 
 def linspace(start, stop, num):
@@ -459,8 +463,8 @@ def gather(x, indices, axis=0):
 
 
 def get_mask_i_float(i, n):
-    range_n = arange(n)
-    i_float = cast(array([i]), int32)[0]
+    range_n = arange(cast(array(n), int32)[0])
+    i_float = cast(array(i), int32)
     mask_i = equal(range_n, i_float)
     mask_i_float = cast(mask_i, float32)
     return mask_i_float

@@ -4,10 +4,10 @@ Unit tests for Stiefel manifolds.
 
 import warnings
 
-import geomstats.backend as gs
-import geomstats.tests
 import tests.helper as helper
 
+import geomstats.backend as gs
+import geomstats.tests
 from geomstats.geometry.stiefel import Stiefel
 
 ATOL = 1e-6
@@ -84,7 +84,7 @@ class TestStiefelMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
-        result = self.space.belongs(point)
+        result = self.space.belongs(point, tolerance=1e-4)
         expected = gs.array([[True]])
 
         self.assertAllClose(result, expected)

@@ -1,13 +1,12 @@
-"""
-Stiefel manifold St(n,p),
-a set of all orthonormal p-frames in n-dimensional space,
-where p <= n
+"""Stiefel manifold St(n,p).
+
+A set of all orthonormal p-frames in n-dimensional space, where p <= n
 """
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
-from geomstats.geometry.euclidean_space import EuclideanMetric
-from geomstats.geometry.matrices_space import MatricesSpace
+from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-5
@@ -15,11 +14,12 @@ EPSILON = 1e-6
 
 
 class Stiefel(EmbeddedManifold):
-    """
-    Class for Stiefel manifolds St(n,p),
-    a set of all orthonormal p-frames in n-dimensional space,
+    """Class for Stiefel manifolds St(n,p).
+
+    A set of all orthonormal p-frames in n-dimensional space,
     where p <= n.
     """
+
     def __init__(self, n, p):
         assert isinstance(n, int) and isinstance(p, int)
         assert p <= n
@@ -29,16 +29,16 @@ class Stiefel(EmbeddedManifold):
 
         dimension = int(p * n - (p * (p + 1) / 2))
         super(Stiefel, self).__init__(
-              dimension=dimension,
-              embedding_manifold=MatricesSpace(n, p))
+            dimension=dimension,
+            embedding_manifold=Matrices(n, p))
 
         self.canonical_metric = StiefelCanonicalMetric(n, p)
 
     def belongs(self, point, tolerance=TOLERANCE):
-        """
-        Evaluate if a point belongs to St(n,p),
+        """Evaluate if a point belongs to St(n,p).
+
         i.e. if it is a p-frame in n-dimensional space,
-        and it is orthonormal.
+        and it is orthonormal
         """
         point = gs.to_ndarray(point, to_ndim=3)
         n_points, n, p = point.shape
@@ -59,11 +59,11 @@ class Stiefel(EmbeddedManifold):
         return belongs
 
     def random_uniform(self, n_samples=1):
-        """
-        Sample on St(n,p) with the uniform distribution.
+        r"""Sample on St(n,p) with the uniform distribution.
 
-        If Z(p,n) ~ N(0,1), then St(n,p) ~ U, according to Haar measure:
-        St(n,p) := Z(Z^TZ)^{-1/2}
+        If :math:`Z(p,n) \sim N(0,1)`, then :math:`St(n,p) \sim U`,
+        according to Haar measure:
+        :math:`St(n,p) := Z(Z^TZ)^{-1/2}`
         """
         std_normal = gs.random.normal(size=(n_samples, self.n, self.p))
         std_normal_transpose = gs.transpose(std_normal, axes=(0, 2, 1))
@@ -76,23 +76,35 @@ class Stiefel(EmbeddedManifold):
 
 
 class StiefelCanonicalMetric(RiemannianMetric):
+    """Define the canonical metric for Stiefel manifolds."""
 
     def __init__(self, n, p):
         dimension = int(p * n - (p * (p + 1) / 2))
         super(StiefelCanonicalMetric, self).__init__(
-                dimension=dimension,
-                signature=(dimension, 0, 0))
-        self.embedding_metric = EuclideanMetric(n*p)
+            dimension=dimension,
+            signature=(dimension, 0, 0))
+        self.embedding_metric = EuclideanMetric(n * p)
         self.n = n
         self.p = p
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        """
-        Canonical inner product on the tangent space at base_point,
+        r"""Compute the inner product on the tangent space at a base point.
+
+        Canonical inner product on the tangent space at `base_point`,
         which is different from the inner product induced by the embedding.
 
-        Formula from:
-        http://noodle.med.yale.edu/hdtag/notes/steifel_notes.pdf
+        .. math::
+
+            \langle\Delta, \tilde{\Delta}\rangle_{U}=\operatorname{tr}
+            \left(\Delta^{T}\left(I-\frac{1}{2} U U^{T}\right)
+            \tilde{\Delta}\right)
+
+        References
+        ----------
+        .. [RLSMRZ2017] R Zimmermann. A matrix-algebraic algorithm for the
+          Riemannian logarithm on the Stiefel manifold under the canonical
+          metric. SIAM Journal on Matrix Analysis and Applications 38 (2),
+          322-342, 2017. https://epubs.siam.org/doi/pdf/10.1137/16M1074485
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
@@ -108,9 +120,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         return inner_prod
 
     def exp(self, tangent_vec, base_point):
-        """
-        Riemannian exponential of a tangent vector wrt to a base point.
-        """
+        """Compute Riemannian exponential of tan. vector wrt to base point."""
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         n_tangent_vecs, _, _ = tangent_vec.shape
 
@@ -161,47 +171,59 @@ class StiefelCanonicalMetric(RiemannianMetric):
         return exp
 
     def log(self, point, base_point, max_iter=30):
-        """
-        Riemannian logarithm of a point wrt a base point.
+        """Compute Riemannian logarithm of a point wrt a base point.
 
-        Based on:
-        Zimmermann, Ralf
-        "A Matrix-Algebraic Algorithm for the Riemannian Logarithm
-        on the Stiefel Manifold under the Canonical Metric"
-        SIAM J. Matrix Anal. & Appl., 38(2), 322–342.
+        Based on [ZR2017]_.
 
-        https://arxiv.org/pdf/1604.05054.pdf
+        References
+        ----------
+        .. [ZR2017] Zimmermann, Ralf. "A Matrix-Algebraic Algorithm for the
+          Riemannian Logarithm on the Stiefel Manifold under the Canonical
+          Metric" SIAM J. Matrix Anal. & Appl., 38(2), 322–342, 2017.
+          https://arxiv.org/pdf/1604.05054.pdf
         """
         def normal_component_qr(point, base_point, matrix_m):
-            """
-            Computes the QR decomposition of the normal component
-            of a point.
-            """
+            """Compute QR decomposition of the normal component of a point."""
             matrix_k = point - gs.matmul(base_point, matrix_m)
 
             matrix_q, matrix_n = gs.linalg.qr(matrix_k)
             return matrix_q, matrix_n
 
         def orthogonal_completion(matrix_m, matrix_n):
+            """Compute the orthogonal matrix completion. TODO: fill in.
+
+            Parameters
+            ----------
+            matrix_m
+            matrix_n
+            """
             matrix_w = gs.concatenate([matrix_m, matrix_n], axis=1)
 
             matrix_v = gs.zeros((
                 matrix_w.shape[0],
                 max(matrix_w.shape[1], matrix_w.shape[2]),
                 max(matrix_w.shape[1], matrix_w.shape[2])
-                ))
+            ))
 
             matrix_v, _ = gs.linalg.qr(matrix_w, mode='complete')
 
             return matrix_v
 
         def procrustes_preprocessing(matrix_v, matrix_m, matrix_n):
+            """TODO: fill in.
+
+            Parameters
+            ----------
+            matrix_v
+            matrix_m
+            matrix_n
+            """
             [matrix_d, matrix_s, matrix_r] = gs.linalg.svd(
-                matrix_v[:, p:2*p, p:2*p])
+                matrix_v[:, p:2 * p, p:2 * p])
 
             matrix_rd = gs.matmul(
                 matrix_r, gs.transpose(matrix_d, axes=(0, 2, 1)))
-            sub_matrix_v = gs.matmul(matrix_v[:, :, p:2*p], matrix_rd)
+            sub_matrix_v = gs.matmul(matrix_v[:, :, p:2 * p], matrix_rd)
             matrix_v = gs.concatenate(
                 [gs.concatenate([matrix_m, matrix_n], axis=1),
                  sub_matrix_v],
@@ -234,7 +256,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         for k in range(max_iter):
             matrix_lv = gs.linalg.logm(matrix_v)
 
-            matrix_c = matrix_lv[:, p:2*p, p:2*p]
+            matrix_c = matrix_lv[:, p:2 * p, p:2 * p]
 
             # TODO(nina): Add break condition
             # of the form: if gs.all(gs.less_equal(norm_matrix_c, tol)):
@@ -242,7 +264,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             matrix_phi = gs.linalg.expm(-matrix_c)
 
             aux_matrix = gs.matmul(
-                matrix_v[:, :, p:2*p], matrix_phi)
+                matrix_v[:, :, p:2 * p], matrix_phi)
 
             matrix_v = gs.concatenate(
                 [matrix_v[:, :, 0:p],
@@ -250,14 +272,14 @@ class StiefelCanonicalMetric(RiemannianMetric):
                 axis=2)
 
         matrix_xv = gs.matmul(base_point, matrix_lv[:, 0:p, 0:p])
-        matrix_qv = gs.matmul(matrix_q, matrix_lv[:, p:2*p, 0:p])
+        matrix_qv = gs.matmul(matrix_q, matrix_lv[:, p:2 * p, 0:p])
 
         return matrix_xv + matrix_qv
 
     def retraction(self, tangent_vec, base_point):
-        """
-        Retraction map, based on QR-decomposion:
-        P_x(V) = qf(X + V)
+        """Compute retraction map based on QR-decomposition.
+
+        e.g. :math:`P_x(V) = qf(X + V)`
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         n_tangent_vecs, _, _ = tangent_vec.shape
@@ -274,7 +296,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         if n_tangent_vecs == 1:
             tangent_vec = gs.tile(tangent_vec, (n_base_points, 1, 1))
 
-        matrix_q, matrix_r = gs.linalg.qr(base_point+tangent_vec)
+        matrix_q, matrix_r = gs.linalg.qr(base_point + tangent_vec)
 
         diagonal = gs.diagonal(matrix_r, axis1=1, axis2=2)
         sign = gs.sign(gs.sign(diagonal) + 0.5)
@@ -284,9 +306,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
         return result
 
     def lifting(self, point, base_point):
-        """
-        Lifting map, based on QR-decomposion:
-        P_x^{-1}(Q) = QR - X
+        """Compute lifting map based on QR-decomposion.
+
+        e.g. :math:`P_x^{-1}(Q) = QR - X`
         """
         point = gs.to_ndarray(point, to_ndim=3)
         n_points, _, _ = point.shape
@@ -305,9 +327,11 @@ class StiefelCanonicalMetric(RiemannianMetric):
         n_liftings = gs.maximum(n_base_points, n_points)
 
         def make_minor(i, matrix):
-            return matrix[:i+1, :i+1]
+            """TODO: fill in."""
+            return matrix[:i + 1, :i + 1]
 
         def make_column_r(i, matrix):
+            """TODO: fill in."""
             if i == 0:
                 assert matrix[0, 0] > 0, 'M[0,0] <= 0'
                 return gs.array([1. / matrix[0, 0]])
@@ -326,11 +350,12 @@ class StiefelCanonicalMetric(RiemannianMetric):
                 return column_r_i
 
         def make_b(i, matrix, list_matrices_r):
-            b = gs.ones(i+1)
+            """TODO: fill in."""
+            b = gs.ones(i + 1)
 
             for j in range(i):
                 b[j] = - gs.matmul(
-                    matrix[i, :j+1], list_matrices_r[j])
+                    matrix[i, :j + 1], list_matrices_r[j])
 
             return b
 

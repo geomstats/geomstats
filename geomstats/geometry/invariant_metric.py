@@ -1,6 +1,4 @@
-"""
-Left- and right- invariant metrics that exist on Lie groups.
-"""
+"""Left- and right- invariant metrics that exist on Lie groups."""
 
 import logging
 
@@ -9,11 +7,10 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class InvariantMetric(RiemannianMetric):
-    """
-    Class for:
-    - left-invariant metrics
-    - right-invariant metrics
-    that exist on Lie groups.
+    """Class for invariant metrics which exist on Lie groups.
+
+    This class supports both left and right invariant metrics
+    which exist on Lie groups.
 
     Points are parameterized by the Riemannian logarithm
     for the canonical left-invariant metric.
@@ -47,8 +44,16 @@ class InvariantMetric(RiemannianMetric):
         self.signature = (n_pos_eigval, n_null_eigval, n_neg_eigval)
 
     def inner_product_at_identity(self, tangent_vec_a, tangent_vec_b):
-        """
-        Inner product matrix at the tangent space at the identity.
+        """Compute inner product matrix at tangent space at identity.
+
+        Parameters
+        ----------
+        tangent_vec_a
+        tangent_vec_b
+
+        Returns
+        -------
+        inner_prod
         """
         assert self.group.default_point_type in ('vector', 'matrix')
 
@@ -73,7 +78,11 @@ class InvariantMetric(RiemannianMetric):
                 [self.inner_product_mat_at_identity[0]] *
                 max(n_tangent_vec_a, n_tangent_vec_b))
 
-            inner_prod = gs.einsum('ij,ijk,ik->i',
+            tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
+            tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
+            inner_product_mat_at_identity = gs.to_ndarray(
+                inner_product_mat_at_identity, to_ndim=3)
+            inner_prod = gs.einsum('nj,njk,nk->n',
                                    tangent_vec_a,
                                    inner_product_mat_at_identity,
                                    tangent_vec_b)
@@ -94,8 +103,17 @@ class InvariantMetric(RiemannianMetric):
         return inner_prod
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """
-        Inner product between two tangent vectors at a base point.
+        """Compute inner product of two vectors in tangent space at base point.
+
+        Parameters
+        ----------
+        tangent_vec_a
+        tangent_vec_b
+        base_point
+
+        Returns
+        -------
+        inner_prod
         """
         if base_point is None:
             return self.inner_product_at_identity(tangent_vec_a,
@@ -118,8 +136,15 @@ class InvariantMetric(RiemannianMetric):
         return inner_prod
 
     def inner_product_matrix(self, base_point=None):
-        """
-        Inner product matrix at the tangent space at a base point.
+        """Compute inner product matrix at the tangent space at a base point.
+
+        Parameters
+        ----------
+        base_point
+
+        Returns
+        -------
+        metric_mat
         """
         if self.group.default_point_type == 'matrix':
             raise NotImplementedError(
@@ -131,8 +156,8 @@ class InvariantMetric(RiemannianMetric):
         base_point = self.group.regularize(base_point)
 
         jacobian = self.group.jacobian_translation(
-                              point=base_point,
-                              left_or_right=self.left_or_right)
+            point=base_point,
+            left_or_right=self.left_or_right)
         assert gs.ndim(jacobian) == 3
         inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = gs.transpose(inv_jacobian, axes=(0, 2, 1))
@@ -141,25 +166,34 @@ class InvariantMetric(RiemannianMetric):
         inner_product_mat_at_id = gs.array(
             [self.inner_product_mat_at_identity[0]] * n_base_points)
 
-        metric_mat = gs.matmul(inv_jacobian_transposed,
-                               inner_product_mat_at_id)
+        metric_mat = gs.matmul(
+            inv_jacobian_transposed, inner_product_mat_at_id)
         metric_mat = gs.matmul(metric_mat, inv_jacobian)
         return metric_mat
 
     def left_exp_from_identity(self, tangent_vec):
-        """
-        Riemannian exponential of a tangent vector wrt the identity associated
-        to the left-invariant metric.
+        """Compute Riemannian exp of tan vector wrt. id of left-invar. metric.
+
+        Compute Riemannian exponential of a tangent vector wrt the identity
+        associated to the left-invariant metric.
 
         If the method is called by a right-invariant metric, it uses the
         left-invariant metric associated to the same inner-product matrix
         at the identity.
+
+        Parameters
+        ----------
+        tangent_vec
+
+        Returns
+        -------
+        exp
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
 
         tangent_vec = self.group.regularize_tangent_vec_at_identity(
-                                        tangent_vec=tangent_vec,
-                                        metric=self)
+            tangent_vec=tangent_vec,
+            metric=self)
         sqrt_inner_product_mat = gs.linalg.sqrtm(
             self.inner_product_mat_at_identity)
         mat = gs.transpose(sqrt_inner_product_mat, axes=(0, 2, 1))
@@ -177,8 +211,15 @@ class InvariantMetric(RiemannianMetric):
         return exp
 
     def exp_from_identity(self, tangent_vec):
-        """
-        Riemannian exponential of a tangent vector wrt the identity.
+        """Compute Riemannian exponential of tangent vector wrt the identity.
+
+        Parameters
+        ----------
+        tangent_vec
+
+        Returns
+        -------
+        exp
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
 
@@ -193,8 +234,16 @@ class InvariantMetric(RiemannianMetric):
         return exp
 
     def exp(self, tangent_vec, base_point=None):
-        """
-        Riemannian exponential of a tangent vector wrt to a base point.
+        """Compute Riemannian exponential of tan. vector wrt to base point.
+
+        Parameters
+        ----------
+        tangent_vec
+        base_point
+
+        Returns
+        -------
+        exp
         """
         if base_point is None:
             base_point = self.group.identity
@@ -214,14 +263,13 @@ class InvariantMetric(RiemannianMetric):
             base_point = gs.tile(base_point, (n_tangent_vecs, 1))
 
         jacobian = self.group.jacobian_translation(
-                                 point=base_point,
-                                 left_or_right=self.left_or_right)
+            point=base_point,
+            left_or_right=self.left_or_right)
         assert gs.ndim(jacobian) == 3
         inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = gs.transpose(inv_jacobian, axes=(0, 2, 1))
-        tangent_vec_at_id = gs.einsum('ni,nij->nj',
-                                      tangent_vec,
-                                      inv_jacobian_transposed)
+        tangent_vec_at_id = gs.einsum(
+            'ni,nij->nj', tangent_vec, inv_jacobian_transposed)
         exp_from_id = self.exp_from_identity(tangent_vec_at_id)
 
         if self.left_or_right == 'left':
@@ -235,13 +283,22 @@ class InvariantMetric(RiemannianMetric):
         return exp
 
     def left_log_from_identity(self, point):
-        """
-        Riemannian logarithm of a point wrt the identity associated
+        """Compute Riemannian log of a point wrt. id of left-invar. metric.
+
+        Compute Riemannian logarithm of a point wrt the identity associated
         to the left-invariant metric.
 
         If the method is called by a right-invariant metric, it uses the
         left-invariant metric associated to the same inner-product matrix
         at the identity.
+
+        Parameters
+        ----------
+        point
+
+        Returns
+        -------
+        log
         """
         point = self.group.regularize(point)
         inner_prod_mat = self.inner_product_mat_at_identity
@@ -252,14 +309,20 @@ class InvariantMetric(RiemannianMetric):
         aux = gs.squeeze(sqrt_inv_inner_prod_mat, axis=0)
         log = gs.matmul(point, aux)
         log = self.group.regularize_tangent_vec_at_identity(
-                                             tangent_vec=log,
-                                             metric=self)
+            tangent_vec=log, metric=self)
         assert gs.ndim(log) == 2
         return log
 
     def log_from_identity(self, point):
-        """
-        Riemannian logarithm of a point wrt the identity.
+        """Compute Riemannian logarithm of a point wrt the identity.
+
+        Parameters
+        ----------
+        point
+
+        Returns
+        -------
+        log
         """
         point = self.group.regularize(point)
         if self.left_or_right == 'left':
@@ -274,8 +337,16 @@ class InvariantMetric(RiemannianMetric):
         return log
 
     def log(self, point, base_point=None):
-        """
-        Riemannian logarithm of a point wrt a base point.
+        """Compute Riemannian logarithm of a point wrt a base point.
+
+        Parameters
+        ----------
+        point
+        base_point
+
+        Returns
+        -------
+        log
         """
         if base_point is None:
             base_point = self.group.identity
@@ -290,19 +361,16 @@ class InvariantMetric(RiemannianMetric):
 
         if self.left_or_right == 'left':
             point_near_id = self.group.compose(
-                                   self.group.inverse(base_point),
-                                   point)
+                self.group.inverse(base_point), point)
 
         else:
             point_near_id = self.group.compose(
-                                   point,
-                                   self.group.inverse(base_point))
+                point, self.group.inverse(base_point))
 
         log_from_id = self.log_from_identity(point_near_id)
 
         jacobian = self.group.jacobian_translation(
-                                       base_point,
-                                       left_or_right=self.left_or_right)
+            base_point, left_or_right=self.left_or_right)
 
         n_logs, _ = log_from_id.shape
         n_jacobians, _, _ = jacobian.shape
@@ -311,8 +379,9 @@ class InvariantMetric(RiemannianMetric):
             log_from_id = gs.tile(log_from_id, (n_jacobians, 1))
         if n_jacobians == 1:
             jacobian = gs.tile(jacobian, (n_logs, 1, 1))
-        log = gs.einsum('ij,ijk->ik',
-                        log_from_id,
-                        gs.transpose(jacobian, axes=(0, 2, 1)))
+        log = gs.einsum(
+            'ij,ijk->ik',
+            log_from_id,
+            gs.transpose(jacobian, axes=(0, 2, 1)))
         assert gs.ndim(log) == 2
         return log

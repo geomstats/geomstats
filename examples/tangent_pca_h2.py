@@ -7,15 +7,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
-
+from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.learning.pca import TangentPCA
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
 
 
 def main():
     fig = plt.figure(figsize=(15, 5))
 
-    hyperbolic_plane = HyperbolicSpace(dimension=2)
+    hyperbolic_plane = Hyperbolic(dimension=2)
 
     data = hyperbolic_plane.random_uniform(n_samples=140)
     mean = hyperbolic_plane.metric.mean(data)
@@ -42,7 +41,7 @@ def main():
     print(tangent_projected_data[:5])
 
     ax_var = fig.add_subplot(121)
-    xticks = np.arange(1, 2+1, 1)
+    xticks = np.arange(1, 2 + 1, 1)
     ax_var.xaxis.set_ticks(xticks)
     ax_var.set_title('Explained variance')
     ax_var.set_xlabel('Number of Principal Components')

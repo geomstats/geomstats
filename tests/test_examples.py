@@ -35,17 +35,16 @@ class TestExamples(geomstats.tests.TestCase):
 
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
+        warnings.simplefilter('ignore', category=UserWarning)
         plt.figure()
 
     @geomstats.tests.np_only
     def test_gradient_descent_s2(self):
         gradient_descent_s2.main(max_iter=32, output_file=None)
 
-    @geomstats.tests.np_only
     def test_loss_and_gradient_so3(self):
         loss_and_gradient_so3.main()
 
-    @geomstats.tests.np_only
     def test_loss_and_gradient_se3(self):
         loss_and_gradient_se3.main()
 
