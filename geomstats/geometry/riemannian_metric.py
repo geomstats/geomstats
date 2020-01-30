@@ -473,9 +473,10 @@ class RiemannianMetric(object):
 
     def adaptive_gradientdescent_mean(self, points,
                                       weights=None,
-                                      n_max_iterations=32,
+                                      n_max_iterations=40,
                                       epsilon=1e-12,
-                                      init_points=[]):
+                                      init_points=[],
+                                      verbose=False):
         """Compute Frechet mean of (weighted) points using adaptive time-steps.
 
         The loss function optimized is ||M_1(x)||_x (where M_1(x) is
@@ -488,6 +489,7 @@ class RiemannianMetric(object):
         weights: array-like, shape=[n_samples, 1], optional
         init_points: array-like, shape=[n_init, dimension]
         epsilon: tolerance for stopping the gradient descent
+        verbose: verbose mode printing the surrogate value
 
         Returns
         -------
@@ -536,6 +538,9 @@ class RiemannianMetric(object):
             next_tangent_mean = gs.einsum('nk,nj->j', weights, logs)
             next_tangent_mean /= sum_weights
             norm_next_tangent_mean = gs.linalg.norm(next_tangent_mean)
+            if verbose:
+                print("Iter {0}: tau= {1}, norm_current_tangent_mean = {2}" \
+                      .format(iter, tau, norm_current_tangent_mean))
             if norm_next_tangent_mean < norm_current_tangent_mean:
                 current_mean = next_mean
                 current_tangent_mean = next_tangent_mean
