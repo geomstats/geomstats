@@ -260,7 +260,7 @@ def less(a, b):
 
 
 def less_equal(a, b):
-    return _np.less_equal(a, b)
+    return torch.le(a, b)
 
 
 def eye(*args, **kwargs):
