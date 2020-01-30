@@ -72,9 +72,7 @@ class SPDMatrices(EmbeddedManifold):
     def random_uniform(self, n_samples=1):
         """Define a log-uniform random sample of SPD matrices."""
         mat = 2 * gs.random.rand(n_samples, self.n, self.n) - 1
-
-        spd_mat = GeneralLinear.exp(
-                mat + Matrices.transpose(mat))
+        spd_mat = GeneralLinear.exp(mat + Matrices.transpose(mat))
         return spd_mat
 
     def random_tangent_vec_uniform(self, n_samples=1, base_point=None):
@@ -942,6 +940,6 @@ class SPDMetricLogEuclidean(RiemannianMetric):
             The time parameterized geodesic.
         """
         def path(t):
-            return self.exp(t*initial_tangent_vec, initial_point)
+            return self.exp(t * initial_tangent_vec, initial_point)
 
         return path
