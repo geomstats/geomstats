@@ -1,6 +1,7 @@
 """Riemannian and pseudo-Riemannian metrics."""
 
 import math
+import warnings
 
 import geomstats.backend as gs
 
@@ -73,8 +74,8 @@ class RiemannianMetric(object):
         base_point : array-like, shape=[n_samples, dimension], optional
         """
         raise NotImplementedError(
-                'The computation of the inner product inv. matrix'
-                ' is not implemented.')
+            'The computation of the inner product inv. matrix'
+            ' is not implemented.')
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product between two tangent vectors at a base point.
@@ -460,8 +461,8 @@ class RiemannianMetric(object):
             maximum_iterations=n_max_iterations)
 
         if last_iteration == n_max_iterations:
-            print('Maximum number of iterations {} reached.'
-                  'The mean may be inaccurate'.format(n_max_iterations))
+            warnings.warn('Maximum number of iterations {} reached. The '
+                          'mean may be inaccurate'.format(n_max_iterations))
 
         if verbose:
             print('n_iter: {}, final variance: {}, final dist: {}'.format(
@@ -539,7 +540,7 @@ class RiemannianMetric(object):
                 current_mean = next_mean
                 current_tangent_mean = next_tangent_mean
                 norm_current_tangent_mean = norm_next_tangent_mean
-                tau = max(1.0, 1.0511111*tau)
+                tau = max(1.0, 1.0511111 * tau)
             else:
                 tau = tau * 0.8
 

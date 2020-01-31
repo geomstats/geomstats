@@ -91,9 +91,9 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
             power=power,
             tangent_vec=tangent_vec,
             base_point=base_point)
-        expected = gs.array([[[1., 1/3, 1/3],
-                              [1/3, .125, .125],
-                              [1/3, .125, .125]]])
+        expected = gs.array([[[1., 1 / 3, 1 / 3],
+                              [1 / 3, .125, .125],
+                              [1 / 3, .125, .125]]])
         self.assertAllClose(result, expected)
 
     def test_inverse_differential_power(self):
@@ -122,7 +122,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
                                 [1., 1., 3.],
                                 [3., 3., 4.]])
         result = self.space.differential_log(tangent_vec, base_point)
-        x = 2*gs.log(2)
+        x = 2 * gs.log(2)
         expected = gs.array([[[1., 1., x],
                               [1., 1., x],
                               [x, x, 1]]])
@@ -156,7 +156,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         y = gs.sinh(1)
         expected = gs.array([[[x, x, y],
                               [x, x, y],
-                              [y, y, 1/x]]])
+                              [y, y, 1 / x]]])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -168,7 +168,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         y = gs.sinh(1)
         tangent_vec = gs.array([[x, x, y],
                                 [x, x, y],
-                                [y, y, 1/x]])
+                                [y, y, 1 / x]])
         result = self.space.inverse_differential_exp(tangent_vec, base_point)
         expected = gs.array([[[1., 1., 1.],
                               [1., 1., 1.],
@@ -202,7 +202,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
                                [1., .5, .5]])
         metric = SPDMetricAffine(3, power_affine=.5)
         result = metric.inner_product(tangent_vec, tangent_vec, base_point)
-        expected = [[713/144]]
+        expected = [[713 / 144]]
 
         self.assertAllClose(result, expected)
 
@@ -216,7 +216,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
                                 [1., .5, .5]])
         metric = SPDMetricEuclidean(3, power_euclidean=.5)
         result = metric.inner_product(tangent_vec, tangent_vec, base_point)
-        expected = [[3472/576]]
+        expected = [[3472 / 576]]
 
         self.assertAllClose(result, expected)
 
@@ -245,7 +245,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         metric = self.metric_logeuclidean
         result = metric.inner_product(tangent_vec, tangent_vec, base_point)
         x = 2 * gs.log(2)
-        expected = 5.+4.*x**2
+        expected = 5. + 4. * x**2
 
         self.assertAllClose(result, expected)
 
@@ -300,8 +300,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         n_samples = self.n_samples
         base_point = self.space.random_uniform(n_samples=1)
         tangent_vec = self.space.random_tangent_vec_uniform(
-                                               n_samples=n_samples,
-                                               base_point=base_point)
+            n_samples=n_samples, base_point=base_point)
         metric = self.metric_affine
         exps = metric.exp(tangent_vec, base_point)
         result = self.space.belongs(exps)
@@ -316,11 +315,9 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         n_base_point = self.space.random_uniform(n_samples=n_samples)
 
         n_tangent_vec_same_base = self.space.random_tangent_vec_uniform(
-                                                 n_samples=n_samples,
-                                                 base_point=one_base_point)
+            n_samples=n_samples, base_point=one_base_point)
         n_tangent_vec = self.space.random_tangent_vec_uniform(
-                                                 n_samples=n_samples,
-                                                 base_point=n_base_point)
+            n_samples=n_samples, base_point=n_base_point)
         metric = self.metric_affine
 
         # Test with the 1 base_point, and several different tangent_vecs
@@ -367,12 +364,11 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
     def test_geodesic_and_belongs(self):
         initial_point = self.space.random_uniform()
         initial_tangent_vec = self.space.random_tangent_vec_uniform(
-                                                n_samples=1,
-                                                base_point=initial_point)
+            n_samples=1, base_point=initial_point)
         metric = self.metric_affine
         geodesic = metric.geodesic(
-                                   initial_point=initial_point,
-                                   initial_tangent_vec=initial_tangent_vec)
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec)
 
         n_points = 10
         t = gs.linspace(start=0., stop=1., num=n_points)

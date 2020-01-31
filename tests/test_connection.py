@@ -2,6 +2,8 @@
 Unit tests for the affine connections.
 """
 
+import warnings
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.connection import Connection, LeviCivitaConnection
@@ -11,6 +13,8 @@ from geomstats.geometry.hypersphere import Hypersphere
 
 class TestConnectionMethods(geomstats.tests.TestCase):
     def setUp(self):
+        warnings.simplefilter('ignore', category=UserWarning)
+
         self.dimension = 4
         self.euc_metric = EuclideanMetric(dimension=self.dimension)
         self.lc_connection = LeviCivitaConnection(self.euc_metric)

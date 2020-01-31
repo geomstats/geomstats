@@ -312,8 +312,8 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
         initial_point = gs.array([[2., -1.]])
         initial_tangent_vec = gs.array([2., 0.])
         geodesic = self.metric.geodesic(
-                   initial_point=initial_point,
-                   initial_tangent_vec=initial_tangent_vec)
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec)
 
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)

@@ -1,6 +1,4 @@
-"""
-Plot a square on H2 with Poincare Disk visualization.
-"""
+"""Plot a square on H2 with Poincare Disk visualization."""
 
 import os
 
@@ -26,7 +24,7 @@ def main():
     n_steps = 20
     ax = plt.gca()
     for i, src in enumerate(corners_ext):
-        dst_id = (i+1) % len(corners_ext)
+        dst_id = (i + 1) % len(corners_ext)
         dst = corners_ext[dst_id]
         tangent_vec = METRIC.log(point=dst, base_point=src)
         geodesic = METRIC.geodesic(initial_point=src,
