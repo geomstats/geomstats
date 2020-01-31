@@ -52,15 +52,11 @@ def empirical_frechet_var_shell(n_sample, theta, dim,
         # Sample n points from the uniform distribution on a sub-sphere
         # of radius theta (i.e cos(theta) in ambient space)
         data = gs.zeros((n_sample, dim + 1), dtype=gs.float64)
-        # For sampling on a sub-sphere, use RandomUniform(dim-1)
         directions = shell.random_uniform(n_sample)
-        # Alternative sampling
-        # directions = my_random_uniform_sample_hypersphere(n_sample, dim-1)
         for i in range(n_sample):
             for j in range(dim):
                 data[i, j] = gs.sin(theta) * directions[i, j]
             data[i, dim] = gs.cos(theta)
-        # Compute empirical Fréchet mean of the n-sample
         current_mean = sphere.metric.adaptive_gradientdescent_mean(
             data, n_max_iterations=64, init_points=[north_pole])
         var.append(sphere.metric.squared_dist(north_pole, current_mean))
@@ -111,8 +107,10 @@ def asymptotic_modulation(dim, theta):
 def plot_modulation_factor(n_sample, dim, n_expectation=1000, n_theta=20):
     """Plot the modulation factor curve w.r.t. the dispersion.
 
-    Plot the modulation factor on the convergence of the empirical
-    Fréchet mean for different radii of the shell distribution.
+    Plot the curve of modulation factor on the convergence of the
+    empirical Fréchet mean as a function of the radius of the shell
+    distribution and for n_sample points on the sphere S_dim
+    embedded in R^{dim+1}.
 
     Parameters
     ----------
@@ -125,7 +123,6 @@ def plot_modulation_factor(n_sample, dim, n_expectation=1000, n_theta=20):
     -------
     matplolib figure
     """
-    # modulation factor for n points on the sphere S_dim embedded in R^{dim+1}
     theta = np.linspace(0.000001, np.pi / 2.0 - 0.000001, n_theta)
     measured_modulation_factor = []
     error = []
@@ -156,13 +153,16 @@ def plot_modulation_factor(n_sample, dim, n_expectation=1000, n_theta=20):
     plt.legend(loc='best')
     plt.draw()
     plt.pause(0.01)
-    # plt.savefig("Figures/SphVarModulation_N{0}_d{1}.svg".format(n, dim))
-    # plt.savefig("Figures/SphVarModulation_N{0}_d{1}.pdf".format(n, dim))
     return plt
 
 
 def multi_plot_modulation_factor(dim, n_expectation=1000, n_theta=20):
     """Plot modulation factor curves for large number of samples.
+
+    Plot several curves of modulation factor on the convergence of the
+    empirical Fréchet mean as a function of the radius of the shell
+    distribution and for 10 to 100 sample points on the sphere S_dim
+    embedded in R^{dim+1}.
 
     Parameters
     ----------
@@ -174,7 +174,6 @@ def multi_plot_modulation_factor(dim, n_expectation=1000, n_theta=20):
     -------
     matplolib figure
     """
-    # Implementation for the sphere S_dim in R^{dim+1}
     theta = np.linspace(0.000001, np.pi / 2.0 - 0.000001, n_theta)
     small_var_modulation_factor = []
     asymptotic_modulation_actor = []
@@ -205,8 +204,6 @@ def multi_plot_modulation_factor(dim, n_expectation=1000, n_theta=20):
               "sphere, dim={0}, N > 5".format(dim))
     plt.draw()
     plt.pause(0.01)
-    # plt.savefig("Figures/SphVarModulation_N10p_d{0}.svg".format(dim))
-    # plt.savefig("Figures/SphVarModulation_N10p_d{0}.pdf".format(dim))
     return plt
 
 
@@ -218,8 +215,8 @@ def main():
     in a sphere than in a Euclidean space.
     This example computes the  modulation factor
          alpha = Var( FM_n) / ( n * Var)
-    for isotropic distributions on hyperspheres or radius 0<r<Pi
-    in the sphere s3.
+    for isotropic uniform distributions on hyper-spheres of
+    radius 0<r<Pi in the sphere S_dim.
     """
     n_expect = 10
 
@@ -241,18 +238,20 @@ def main():
               500, gs.pi / 2 - 0.001, 5, n_expectation=n_expect), "\n")
 
     plot_modulation_factor(2, 2, n_expectation=n_expect)
-    # plot_modulation_factor(3, 2, n_expectation=n_expect)
     plot_modulation_factor(4, 2, n_expectation=n_expect)
-    # plot_modulation_factor(5, 2, n_expectation=n_expect)
-    plot_modulation_factor(10, 2, n_expectation=n_expect)
+    plot_modulation_factor(6, 2, n_expectation=n_expect)
 
-    # plot_modulation_factor(1, 3, n_expectation=n_expect)
+    multi_plot_modulation_factor(2, n_expectation=n_expect)
+
     plot_modulation_factor(2, 3, n_expectation=n_expect)
-    # plot_modulation_factor(3, 3, n_expectation=n_expect)
     plot_modulation_factor(4, 3, n_expectation=n_expect)
-    # plot_modulation_factor(5, 3, n_expectation=n_expect)
+    plot_modulation_factor(6, 3, n_expectation=n_expect)
 
     multi_plot_modulation_factor(3, n_expectation=n_expect)
+
+    plot_modulation_factor(2, 4, n_expectation=n_expect)
+    plot_modulation_factor(4, 4, n_expectation=n_expect)
+    plot_modulation_factor(6, 4, n_expectation=n_expect)
 
     multi_plot_modulation_factor(4, n_expectation=n_expect)
 
