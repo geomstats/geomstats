@@ -260,7 +260,7 @@ def less(a, b):
 
 
 def less_equal(a, b):
-    return _np.less_equal(a, b)
+    return torch.le(a, b)
 
 
 def eye(*args, **kwargs):
@@ -349,8 +349,8 @@ def triu_indices(*args, **kwargs):
     return torch.triu_indices(*args, **kwargs)
 
 
-def where(*args, **kwargs):
-    return torch.where(*args, **kwargs)
+def where(test, x, y):
+    return torch.where(test, torch.tensor(x), torch.tensor(y))
 
 
 def tile(x, y):
