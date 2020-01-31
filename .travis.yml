@@ -13,7 +13,8 @@ install:
     - pip install -q -r dev-requirements.txt
     - pip install -q -r requirements.txt --only-binary=numpy,scipy
 script:
-    - flake8 $(git diff --name-only master HEAD geomstats examples tests)
+    - flake8 $(git diff --name-only master HEAD geomstats examples tests) --ignore=D,W503,W504
+    - flake8 geomstats/geometry --ignore=W503,W504
     - if [[ $TRAVIS_PYTHON_VERSION != 3.8 ]]; then nose2 --with-coverage --verbose tests; fi
     - if [[ $TRAVIS_PYTHON_VERSION == 3.8 && $GEOMSTATS_BACKEND == numpy ]]; then nose2 --with-coverage --verbose tests; fi
 env:

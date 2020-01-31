@@ -28,7 +28,7 @@ r_z = gs.array([
     [0., -1., 0.],
     [1., 0., 0.],
     [0., 0., 0.]])
-pi_2 = gs.pi/2
+pi_2 = gs.pi / 2
 
 
 class TestGrassmannianMethods(geomstats.tests.TestCase):
@@ -43,8 +43,8 @@ class TestGrassmannianMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_exp_np(self):
         result = self.metric.exp(
-                pi_2 * r_y,
-                gs.array([p_xy, p_yz]))
+            pi_2 * r_y,
+            gs.array([p_xy, p_yz]))
         expected = gs.array([p_yz, p_xy])
         self.assertAllClose(result, expected)
 

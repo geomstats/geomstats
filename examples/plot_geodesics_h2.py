@@ -49,8 +49,7 @@ def main():
     initial_point = [np.sqrt(2), 1., 0.]
     end_point = H2.intrinsic_to_extrinsic_coords([1.5, 1.5])
     initial_tangent_vec = H2.projection_to_tangent_space(
-                                        vector=[3.5, 0.6, 0.8],
-                                        base_point=initial_point)
+        vector=[3.5, 0.6, 0.8], base_point=initial_point)
 
     ax = plt.gca()
     plot_geodesic_between_two_points(initial_point,

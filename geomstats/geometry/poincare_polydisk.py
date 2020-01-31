@@ -56,9 +56,9 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
 
     References
     ----------
-    .. [1] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
-    matrices with Toeplitz structured blocks, 2016.
-    https://epubs.siam.org/doi/pdf/10.1137/15M102112X
+    .. [JV2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
+      matrices with Toeplitz structured blocks, 2016.
+      https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
 
     def __init__(self, n_disks, point_type='ball'):
@@ -72,4 +72,4 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
                                         scale=scale_i)
             list_metrics.append(metric_i)
         super(PoincarePolydiskMetric, self).__init__(
-                metrics=list_metrics)
+            metrics=list_metrics)

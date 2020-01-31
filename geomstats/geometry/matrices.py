@@ -15,7 +15,7 @@ class Matrices(Euclidean):
 
     def __init__(self, m, n):
         assert isinstance(m, int) and isinstance(n, int) and m > 0 and n > 0
-        super(Matrices, self).__init__(dimension=m*n)
+        super(Matrices, self).__init__(dimension=m * n)
         self.m = m
         self.n = n
         self.default_point_type = 'matrix'
@@ -125,7 +125,7 @@ class Matrices(Euclidean):
         -------
         sym : array-like, shape=[n_samples, n, n]
         """
-        return 1/2 * (mat + cls.transpose(mat))
+        return 1 / 2 * (mat + cls.transpose(mat))
 
     def random_uniform(self, n_samples=1):
         """Generate n samples from a uniform distribution."""
@@ -137,10 +137,10 @@ class MatricesMetric(RiemannianMetric):
     """Euclidean metric on matrices given by Frobenius inner product."""
 
     def __init__(self, m, n):
-        dimension = m*n
+        dimension = m * n
         super(MatricesMetric, self).__init__(
-                dimension=dimension,
-                signature=(dimension, 0, 0))
+            dimension=dimension,
+            signature=(dimension, 0, 0))
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner product of two tan vecs at `base_point`."""

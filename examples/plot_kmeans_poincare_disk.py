@@ -29,29 +29,30 @@ def main():
     metric = HyperbolicMetric(dimension=2, point_type='ball')
 
     visualization.plot(
-            merged_clusters,
-            ax=ax,
-            space='H2_poincare_disk',
-            marker='.',
-            color='black',
-            point_type=manifold.point_type)
+        merged_clusters,
+        ax=ax,
+        space='H2_poincare_disk',
+        marker='.',
+        color='black',
+        point_type=manifold.point_type)
 
-    kmeans = RiemannianKMeans(riemannian_metric=metric,
-                              n_clusters=2,
-                              init='random',
-                              )
+    kmeans = RiemannianKMeans(
+        riemannian_metric=metric,
+        n_clusters=2,
+        init='random',
+    )
 
     centroids = kmeans.fit(X=merged_clusters, max_iter=1)
 
     labels = kmeans.predict(X=merged_clusters)
 
     visualization.plot(
-            centroids,
-            ax=ax,
-            space='H2_poincare_disk',
-            marker='.',
-            color='red',
-            point_type=manifold.point_type)
+        centroids,
+        ax=ax,
+        space='H2_poincare_disk',
+        marker='.',
+        color='red',
+        point_type=manifold.point_type)
 
     print('Data_labels', labels)
 
