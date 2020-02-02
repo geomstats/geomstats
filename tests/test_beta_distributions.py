@@ -37,7 +37,7 @@ class TestBetaMethods(geomstats.tests.TestCase):
         point = self.beta.random_uniform(self.n_samples)
         self.assertAllClose(gs.shape(point), (self.n_samples, self.dimension))
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_only
     def test_sample(self):
         """
         Test that the sample method samples variates from beta distributions
@@ -52,7 +52,7 @@ class TestBetaMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, rtol=tol, atol=tol)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_only
     def test_maximum_likelihood_fit(self):
         """
         Test that the maximum likelihood fit method recovers
