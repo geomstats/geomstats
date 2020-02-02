@@ -1,16 +1,29 @@
+"""Integrator functions used when no closed forms are available.
+
+These are designed for second order ODE written as a first order ODE of two
+variables (x,v):
+                    dx/dt = v
+                    dv/dt = force(x, v)
+"""
+
+
 def _symplectic_euler_step(state, force, dt):
     """Compute one step of the symplectic euler approximation.
 
     Parameters
     ----------
-    state
-    force
-    dt
+    state : array-like, shape=[2, dimension]
+        variables a time t
+    force : callable
+    dt : float
+        time-step
 
     Returns
     -------
-    point_new
-    vector_new
+    point_new : array-like, shape=[dimension]
+        first variable at time t + dt
+    vector_new : array-like, shape=[dimension]
+        second variable at time t + dt
     """
     point, vector = state
     point_new = point + vector * dt
@@ -19,6 +32,25 @@ def _symplectic_euler_step(state, force, dt):
 
 
 def rk4_step(state, force, dt, k1=None):
+    """Compute one step of the rk4 approximation.
+
+    Parameters
+    ----------
+    state : array-like, shape=[2, dimension]
+        variables a time t
+    force : callable
+    dt : float
+        time-step
+    k1 : array-like, shape=[dimension]
+        initial guess for the slope at time t
+
+    Returns
+    -------
+    point_new : array-like, shape=[dimension]
+        first variable at time t + dt
+    vector_new : array-like, shape=[dimension]
+        second variable at time t + dt
+    """
     point, vector = state
     if k1 is None:
         k1 = force(point, vector)

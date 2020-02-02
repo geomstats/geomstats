@@ -13,14 +13,14 @@ class TestBetaMethods(geomstats.tests.TestCase):
         warnings.simplefilter('ignore', category=UserWarning)
         self.beta = BetaDistributions()
         self.metric = BetaMetric()
-        self.n_samples = 5
+        self.n_samples = 10
         self.dimension = self.beta.dimension
 
     @geomstats.tests.np_and_pytorch_only
     def test_random_uniform_and_belongs(self):
         """
         Test that the random uniform method samples
-        on the hypersphere space.
+        on the beta distribution space.
         """
         n_samples = self.n_samples
         point = self.beta.random_uniform(n_samples)
@@ -31,8 +31,41 @@ class TestBetaMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_random_uniform(self):
+        """
+        Test that the random uniform method samples points of the right shape
+        """
         point = self.beta.random_uniform(self.n_samples)
         self.assertAllClose(gs.shape(point), (self.n_samples, self.dimension))
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_sample(self):
+        """
+        Test that the sample method samples variates from beta distributions
+        with the specified parameters, using the law of large numbers
+        """
+        n_samples = self.n_samples
+        tol = (n_samples * 10) ** (- 0.5)
+        point = self.beta.random_uniform(n_samples)
+        samples = self.beta.sample(point, n_samples * 10)
+        result = gs.mean(samples, axis=1)
+        expected = point[:, 0] / gs.sum(point, axis=1)
+
+        self.assertAllClose(result, expected, rtol=tol, atol=tol)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_maximum_likelihood_fit(self):
+        """
+        Test that the maximum likelihood fit method recovers
+        parameters of beta distribution.
+        """
+        n_samples = self.n_samples
+        point = self.beta.random_uniform(n_samples)
+        samples = self.beta.sample(point, n_samples * 10)
+        fits = self.beta.maximum_likelihood_fit(samples)
+        expected = self.beta.belongs(fits)
+        result = gs.array([True] * n_samples)
+
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_log_and_exp_general_case(self):

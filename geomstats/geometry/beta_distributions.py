@@ -1,9 +1,9 @@
 """Statistical Manifold of beta distributions with the Fisher metric."""
 
-from autograd.scipy.integrate import odeint
 from autograd.scipy.special import polygamma
-from autograd.scipy.stats import beta
+from scipy.integrate import odeint
 from scipy.integrate import solve_bvp
+from scipy.stats import beta
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
@@ -66,6 +66,28 @@ class BetaDistributions(EmbeddedManifold):
         """
         return bound * gs.random.rand(n_samples, 2)
 
+    def sample(self, point, n_samples=1):
+        """Sample from the beta distribution.
+
+        Sample from the beta distribution with parameters provided by point.
+
+        Parameters
+        ----------
+        point : array-like, shape [n_points, 2]
+        n_samples : int
+            the number of points to sample with each pair of parameter in
+            point
+
+        Returns
+        -------
+        samples : array-like, shape=[n_points, n_samples]"""
+        point = gs.to_ndarray(point, to_ndim=2)
+        assert self.belongs(point).all()
+        samples = []
+        for param_a, param_b in point:
+            samples.append(beta.rvs(param_a, param_b, size=n_samples))
+        return samples[0] if len(point) == 1 else gs.stack(samples)
+
     def maximum_likelihood_fit(self, data, loc=0, scale=1):
         """Estimate parameters from samples.
 
@@ -74,10 +96,9 @@ class BetaDistributions(EmbeddedManifold):
 
         Parameters
         ----------
-        data : array-like, shape=[n_distributions, dimension, 1]
-            the data to estimate parameters from. If the distributions have
-            different numbers of real-valued samples, a list of arrays of
-            different length may be passed
+        data : array-like, shape=[n_distributions, n_samples]
+            the data to estimate parameters from. Arrays of
+            different length may be passed.
         loc : float, optional
             the location parameter of the distribution to estimate parameters
             from. It is kept fixed during optimization
@@ -90,10 +111,11 @@ class BetaDistributions(EmbeddedManifold):
         -------
         parameter : array-like, shape=[n_samples, 2]
         """
+        data = gs.to_ndarray(data, to_ndim=2)
         parameters = []
         for sample in data:
-            a, b, _, _ = beta.fit(sample, floc=loc, fscale=scale)
-            parameters.append(gs.array([a, b]))
+            param_a, param_b, _, _ = beta.fit(sample, floc=loc, fscale=scale)
+            parameters.append(gs.array([param_a, param_b]))
         return parameters[0] if len(data) == 1 else gs.stack(parameters)
 
 
@@ -104,7 +126,7 @@ class BetaMetric(RiemannianMetric):
         super(RiemannianMetric, self).__init__(dimension=2)
 
     @staticmethod
-    def detg(param_a, param_b):
+    def metric_det(param_a, param_b):
         """Compute the determinant of the metric.
 
         Parameters
@@ -114,13 +136,12 @@ class BetaMetric(RiemannianMetric):
 
         Returns
         -------
-        detg : array-like, shape=[n_samples,]
+        metric_det : array-like, shape=[n_samples,]
         """
-        detg = polygamma(1, param_a) * polygamma(1, param_b) - \
+        metric_det = polygamma(1, param_a) * polygamma(1, param_b) - \
             polygamma(1, param_a + param_b) * (polygamma(1, param_a) +
                                                polygamma(1, param_b))
-        print(detg.shape)
-        return detg
+        return metric_det
 
     def inner_product_matrix(self, base_point=None):
         """Compute inner product matrix at the tangent space at base point.
@@ -133,7 +154,7 @@ class BetaMetric(RiemannianMetric):
         -------
         base_point : array-like, shape=[n_samples, 2, 2]
         """
-        assert ~ (base_point is None), 'The metric depends on the base point'
+        assert base_point is not None, 'The metric depends on the base point'
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         matrices = []
         for point in base_point:
@@ -163,19 +184,19 @@ class BetaMetric(RiemannianMetric):
         """
 
         def coefficients(param_a, param_b):
-            detg = self.detg(param_a, param_b)
+            metric_det = self.metric_det(param_a, param_b)
             c1 = (polygamma(2, param_a) * polygamma(1, param_b) -
                   polygamma(2, param_a) * polygamma(1, param_a + param_b) -
                   polygamma(1, param_b) * polygamma(2, param_a + param_b)) / (
-                2 * detg)
+                2 * metric_det)
             c2 = - polygamma(1, param_b) * polygamma(2, param_a + param_b) / (
-                2 * detg)
+                2 * metric_det)
             c3 = (polygamma(2, param_b) * polygamma(1, param_a + param_b) -
                   polygamma(1, param_b) * polygamma(2, param_a + param_b)) / (
-                2 * detg)
+                2 * metric_det)
             return c1, c2, c3
 
-        assert ~ (base_point is None), 'The Christoffels require a base point'
+        assert base_point is not None, 'The Christoffels require a base point'
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         param_a, param_b = base_point[:, 0], base_point[:, 1]
         c1, c2, c3 = coefficients(param_a, param_b)
@@ -210,7 +231,8 @@ class BetaMetric(RiemannianMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
 
-        def func_ivp(state, time):
+        def ivp(state, time):
+            """Reformat the initial value problem geodesic ODE."""
             position, velocity = state[:2], state[2:]
             eq = self.geodesic_equation(velocity=velocity, position=position)
             return gs.hstack([velocity, eq])
@@ -218,16 +240,17 @@ class BetaMetric(RiemannianMetric):
         times = gs.linspace(0, 1, n_steps + 1)
         exp = []
         for point, vec in zip(base_point, tangent_vec):
-            y0 = gs.hstack([point, vec])
-            geodesic = odeint(func_ivp, y0, times, tuple(), rtol=1e-6)
+            initial_state = gs.hstack([point, vec])
+            geodesic = odeint(
+                ivp, initial_state, times, tuple(), rtol=1e-6)
             exp.append(geodesic[-1, :2])
         return exp[0] if len(base_point) == 1 else gs.stack(exp)
 
     def log(self, point, base_point, n_steps=N_STEPS):
         """Compute logarithm map associated to the Fisher information metric.
 
-        Solve the boundary value problem associated to the geodesic equation
-        using the Christoffel symbols.
+        Solve the boundary value problem associated to the geodesic ordinary
+        differential equation (ODE) using the Christoffel symbols.
 
         Parameters
         ----------
@@ -242,7 +265,7 @@ class BetaMetric(RiemannianMetric):
             reaching point at time 1
         """
         stop_time = 1.
-        t = [stop_time * float(i) / (n_steps - 1) for i in range(n_steps)]
+        t = gs.linspace(0, stop_time, n_steps)
         point = gs.to_ndarray(point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
@@ -258,8 +281,8 @@ class BetaMetric(RiemannianMetric):
             lin_init[3, -1] = lin_init[3, -2]
             return lin_init
 
-        def func_bvp(time, state):
-            """Reformat the differential equation.
+        def bvp(time, state):
+            """Reformat the boundary value problem geodesic ODE.
 
             Parameters
             ----------
@@ -271,20 +294,25 @@ class BetaMetric(RiemannianMetric):
                 velocity=velocity, position=position)
             return gs.vstack((velocity.T, eq.T))
 
-        def boundary_cond(y0, y1, aa0, aa1, bb0, bb1):
+        def boundary_cond(
+                state_a, state_b, point_0_a, point_0_b, point_1_a, point_1_b):
             return gs.array(
-                [y0[0] - aa0, y0[1] - bb0, y1[0] - aa1, y1[1] - bb1])
+                [state_a[0] - point_0_a,
+                 state_a[1] - point_0_b,
+                 state_b[0] - point_1_a,
+                 state_b[1] - point_1_b])
 
         log = []
         for bp, pt in zip(base_point, point):
             geodesic_init = initialize(pt, bp)
-            a0, b0 = bp
-            a1, b1 = pt
+            base_point_a, base_point_b = bp
+            point_a, point_b = pt
 
             def bc(y0, y1):
-                return boundary_cond(y0, y1, a0, a1, b0, b1)
+                return boundary_cond(
+                    y0, y1, base_point_a, base_point_b, point_a, point_b)
 
-            solution = solve_bvp(func_bvp, bc, t, geodesic_init)
+            solution = solve_bvp(bvp, bc, t, geodesic_init)
             geodesic = solution.sol(t)
             geodesic = geodesic[:2, :]
             log.append(n_steps * (geodesic[:, 1] - geodesic[:, 0]))
