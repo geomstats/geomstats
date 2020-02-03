@@ -489,7 +489,7 @@ class HyperbolicMetric(RiemannianMetric):
         self.scale = scale
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the inner product of two tangent vectors at a base point.
+        """Inner product of two tangent vectors at a base point.
 
         Parameters
         ----------
@@ -589,7 +589,8 @@ class HyperbolicMetric(RiemannianMetric):
             return exp
 
         elif self.point_type == 'ball':
-            norm_base_point = gs.to_ndarray(gs.norm(base_point, -1), 2, -1)
+            norm_base_point = gs.to_ndarray(
+                gs.linalg.norm(base_point, -1), 2, -1)
             norm_base_point = gs.repeat(
                 norm_base_point, base_point.shape[-1], -1)
             den = 1 - norm_base_point**2
@@ -683,9 +684,8 @@ class HyperbolicMetric(RiemannianMetric):
             log = (1 - norm_base_point**2) * gs.arctanh(norm_add)\
                 * (add_base_point / norm_add)
 
-            mask_0 = gs.all(gs.isclose(norm_add, 0))
+            mask_0 = gs.all(gs.isclose(norm_add, 0.))
             log[mask_0] = 0
-            log[gs.isnan(log)] = 0
 
             return log
         else:

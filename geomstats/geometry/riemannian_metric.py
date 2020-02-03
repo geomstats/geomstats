@@ -112,13 +112,11 @@ class RiemannianMetric(Connection):
         return christoffels
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """
-        Inner product between two tangent vectors at a base point.
+        """Inner product between two tangent vectors at a base point.
 
         Parameters
         ----------
         tangent_vec_a: array-like, shape=[n_samples, dimension]
-<<<<<<< HEAD
                                    or shape=[1, dimension]
 
         tangent_vec_b: array-like, shape=[n_samples, dimension]
@@ -126,14 +124,10 @@ class RiemannianMetric(Connection):
 
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
-=======
-        tangent_vec_b: array-like, shape=[n_samples, dimension]
-        base_point: array-like, shape=[n_samples, dimension]
 
         Returns
         -------
         inner_product : array-like, shape=[n_samples,]
->>>>>>> master
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
@@ -185,20 +179,12 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-<<<<<<< HEAD
-        vector: array-like, shape=[n_samples, dimension]
-                            or shape=[1, dimension]
-
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
-=======
         vector : array-like, shape=[n_samples, dimension]
         base_point : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
         sq_norm : array-like, shape=[n_samples,]
->>>>>>> master
         """
         sq_norm = self.inner_product(vector, vector, base_point)
         return sq_norm
@@ -214,71 +200,23 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-<<<<<<< HEAD
-        vector: array-like, shape=[n_samples, dimension]
-                            or shape=[1, dimension]
-
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
-=======
         vector : array-like, shape=[n_samples, dimension]
         base_point : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
         norm : array-like, shape=[n_samples,]
->>>>>>> master
         """
         sq_norm = self.squared_norm(vector, base_point)
         norm = gs.sqrt(sq_norm)
         return norm
 
-<<<<<<< HEAD
-    def exp(self, tangent_vec, base_point=None):
-        """
-        Riemannian exponential of a tangent vector wrt to a base point.
-
-        Parameters
-        ----------
-        tangent_vec: array-like, shape=[n_samples, dimension]
-                                 or shape=[1, dimension]
-
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
-        """
-        raise NotImplementedError(
-            'The Riemannian exponential is not implemented.')
-
-    def log(self, point, base_point=None):
-        """
-        Riemannian logarithm of a point wrt a base point.
-
-        Parameters
-        ----------
-        point: array-like, shape=[n_samples, dimension]
-                           or shape=[1, dimension]
-
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
-        """
-        raise NotImplementedError(
-            'The Riemannian logarithm is not implemented.')
-
-=======
->>>>>>> master
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
                  point_type='vector'):
         """Return the geodesic as function of t.
 
         Geodesic curve defined by either:
-<<<<<<< HEAD
-        - an initial point and an initial tangent vector,
-        or
-        -an initial point and an end point.
-
-        The geodesic is returned as a function parameterized by t.
-=======
         - an initial point and an initial tangent vector, or
         - an initial point and an end point.
 
@@ -295,7 +233,6 @@ class RiemannianMetric(Connection):
         Returns
         -------
         path : callable
->>>>>>> master
         """
         point_ndim = 1
         if point_type == 'matrix':
@@ -319,9 +256,6 @@ class RiemannianMetric(Connection):
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
                                             to_ndim=point_ndim + 1)
 
-<<<<<<< HEAD
-        def point_on_geodesic(t):
-=======
         def path(t):
             """Generate a function parameterizing the geodesic.
 
@@ -333,7 +267,6 @@ class RiemannianMetric(Connection):
             -------
             point_at_time_t : callable
             """
->>>>>>> master
             t = gs.cast(t, gs.float32)
             t = gs.to_ndarray(t, to_ndim=1)
             t = gs.to_ndarray(t, to_ndim=2, axis=1)
@@ -360,25 +293,16 @@ class RiemannianMetric(Connection):
         return path
 
     def squared_dist(self, point_a, point_b):
-        """
-        Squared geodesic distance between two points.
+        """Squared geodesic distance between two points.
 
         Parameters
         ----------
-<<<<<<< HEAD
-        point_a: array-like, shape=[n_samples, dimension]
-                             or shape=[1, dimension]
-
-        point_b: array-like, shape=[n_samples, dimension]
-                             or shape=[1, dimension]
-=======
         point_a : array-like, shape=[n_samples, dimension]
         point_b : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
         sq_dist : array-like, shape=[n_samples,]
->>>>>>> master
         """
         log = self.log(point=point_b, base_point=point_a)
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
@@ -393,20 +317,12 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-<<<<<<< HEAD
-        point_a: array-like, shape=[n_samples, dimension]
-                             or shape=[1, dimension]
-
-        point_b: array-like, shape=[n_samples, dimension]
-                             or shape=[1, dimension]
-=======
         point_a : array-like, shape=[n_samples, dimension]
         point_b : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
         dist : array-like, shape=[n_samples,]
->>>>>>> master
         """
         sq_dist = self.squared_dist(point_a, point_b)
         dist = gs.sqrt(sq_dist)
@@ -417,8 +333,7 @@ class RiemannianMetric(Connection):
                  weights=None,
                  base_point=None,
                  point_type='vector'):
-        """
-        Variance of (weighted) points wrt a base point.
+        """Variance of (weighted) points wrt a base point.
 
         Parameters
         ----------
@@ -462,22 +377,13 @@ class RiemannianMetric(Connection):
              point_type='vector',
              mean_method='default',
              verbose=False):
-        """
-        Frechet mean of (weighted) points.
+        """Frechet mean of (weighted) points.
 
         Parameters
         ----------
-<<<<<<< HEAD
-        points: array-like, shape=[n_samples, dimension]
-
-        weights: array-like, shape=[n_samples, 1], optional
-
-        verbose: bool, optional
-=======
         points : array-like, shape=[n_samples, dimension]
         weights : array-like, shape=[n_samples, 1], optional
         verbose : bool, optional
->>>>>>> master
 
         Returns
         -------
@@ -567,15 +473,14 @@ class RiemannianMetric(Connection):
             lr = 1e-3
             tau = 5e-3
 
-<<<<<<< HEAD
-            if (len(points) == 1):
+            if len(points) == 1:
                 return points
 
             iteration = 0
             convergence = math.inf
             barycenter = points.mean(0, keepdims=True) * 0
 
-            while (convergence > tau and n_max_iterations > iteration):
+            while convergence > tau and n_max_iterations > iteration:
 
                 iteration += 1
 
@@ -586,19 +491,14 @@ class RiemannianMetric(Connection):
                 cc_barycenter = self.exp(lr * grad_tangent.sum(0,
                                                                keepdims=True),
                                          barycenter)
-=======
-        if last_iteration == n_max_iterations:
-            warnings.warn('Maximum number of iterations {} reached. The '
-                          'mean may be inaccurate'.format(n_max_iterations))
->>>>>>> master
-
-                convergence = self.dist(cc_barycenter, barycenter).max().item()
-
-                barycenter = cc_barycenter
-
             if iteration == n_max_iterations:
-                print('Maximum number of iterations {} reached.'
-                      'The mean may be inaccurate'.format(n_max_iterations))
+                warnings.warn(
+                    'Maximum number of iterations {} reached. The '
+                    'mean may be inaccurate'.format(n_max_iterations))
+
+            convergence = self.dist(cc_barycenter, barycenter).max().item()
+
+            barycenter = cc_barycenter
 
             return barycenter
 
@@ -647,7 +547,7 @@ class RiemannianMetric(Connection):
             return gs.to_ndarray(current_mean, to_ndim=2)
 
         tau = 1.0
-        iter = 0
+        iteration = 0
 
         logs = self.log(point=points, base_point=current_mean)
         current_tangent_mean = gs.einsum('nk,nj->j', weights, logs)
@@ -655,8 +555,8 @@ class RiemannianMetric(Connection):
         norm_current_tangent_mean = gs.linalg.norm(current_tangent_mean)
 
         while (norm_current_tangent_mean > epsilon
-                and iter < n_max_iterations):
-            iter = iter + 1
+                and iteration < n_max_iterations):
+            iteration = iteration + 1
             shooting_vector = gs.to_ndarray(
                 tau * current_tangent_mean,
                 to_ndim=2)
@@ -675,9 +575,10 @@ class RiemannianMetric(Connection):
             else:
                 tau = tau * 0.8
 
-        if iter == n_max_iterations:
-            print('Maximum number of iterations {} reached.'
-                  'The mean may be inaccurate'.format(n_max_iterations))
+        if iteration == n_max_iterations:
+            warnings.warn(
+                'Maximum number of iterations {} reached.'
+                'The mean may be inaccurate'.format(n_max_iterations))
 
         return gs.to_ndarray(current_mean, to_ndim=2)
 
