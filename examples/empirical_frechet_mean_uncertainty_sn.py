@@ -1,12 +1,11 @@
 """Visualise the uncertainty of the empirical Fréchet mean on the sphere.
 
-The variance of the Fréchet mean FM_n of a sample of n IID
-random variables of variance Var is decreasing more slowly
-in a sphere than in a Euclidean space.
-This example computes the  modulation factor
+The variance of the Fréchet mean FM_n of a sample of n IID random variables
+of variance Var is decreasing more slowly in a sphere than in a Euclidean
+space. This example computes the  modulation factor
      alpha = Var( FM_n) / ( n * Var)
-for isotropic distributions on hyperspheres or radius 0<r<Pi
-in the sphere s3.
+for isotropic distributions on hyper-spheres of radius 0 < theta < Pi in
+the sphere S_dim (called here a bubble).
 """
 
 import matplotlib.pyplot as plt
@@ -16,23 +15,23 @@ import geomstats.backend as gs
 from geomstats.geometry.hypersphere import Hypersphere
 
 
-def empirical_frechet_var_shell(n_sample, theta, dim,
-                                n_expectation=1000):
-    """Variance of the empirical Fréchet mean for a shell distribution.
+def empirical_frechet_var_bubble(n_sample, theta, dim,
+                                 n_expectation=1000):
+    """Variance of the empirical Fréchet mean for a bubble distribution.
 
-    Draw n_samples from a shell distribution, computes its empirical
+    Draw n_samples from a bubble distribution, computes its empirical
     Fréchet mean and the square distance to the asymptotic mean. This
     is repeated n_expectation times to compute an approximation of its
     expectation (i.e. its variance) by sampling.
 
-    The shell distribution is an isotropic distributions on a Riemannian
+    The bubble distribution is an isotropic distributions on a Riemannian
     hyper sub-sphere of radius 0 < theta < Pi around the north pole of the
     sphere of dimension dim.
 
     Parameters
     ----------
     n_sample: number of samples to draw
-    theta: radius of the shell distribution
+    theta: radius of the bubble distribution
     dim: dimension of the sphere (embedded in R^{dim+1})
     n_expectation: number of computations for approximating the expectation
 
@@ -43,7 +42,7 @@ def empirical_frechet_var_shell(n_sample, theta, dim,
     assert dim > 1, "Dim > 1 needed to draw a uniform sample on sub-sphere"
     var = []
     sphere = Hypersphere(dimension=dim)
-    shell = Hypersphere(dimension=dim - 1)
+    bubble = Hypersphere(dimension=dim - 1)
 
     # Define north pole
     north_pole = np.zeros(dim + 1)
@@ -52,7 +51,7 @@ def empirical_frechet_var_shell(n_sample, theta, dim,
         # Sample n points from the uniform distribution on a sub-sphere
         # of radius theta (i.e cos(theta) in ambient space)
         data = gs.zeros((n_sample, dim + 1), dtype=gs.float64)
-        directions = shell.random_uniform(n_sample)
+        directions = bubble.random_uniform(n_sample)
         for i in range(n_sample):
             for j in range(dim):
                 data[i, j] = gs.sin(theta) * directions[i, j]
@@ -75,7 +74,7 @@ def modulation_factor(n_sample, theta, dim, n_expectation=1000):
     Parameters
     ----------
     n_sample: number of samples to draw
-    theta: radius of the shell distribution
+    theta: radius of the bubble distribution
     dim: dimension of the sphere (embedded in R^{dim+1})
     n_expectation: number of computations for approximating the expectation
 
@@ -83,7 +82,7 @@ def modulation_factor(n_sample, theta, dim, n_expectation=1000):
     -------
     tuple (modulation factor, std-dev on the modulation factor)
     """
-    (var, std_var) = empirical_frechet_var_shell(
+    (var, std_var) = empirical_frechet_var_bubble(
         n_sample, theta, dim, n_expectation=n_expectation)
     return var * n_sample / theta ** 2, std_var * n_sample / theta ** 2
 
@@ -94,7 +93,7 @@ def asymptotic_modulation(dim, theta):
     Parameters
     ----------
     dim: dimension of the sphere (embedded in R^{dim+1})
-    theta: radius of the shell distribution
+    theta: radius of the bubble distribution
 
     Returns
     -------
@@ -108,7 +107,7 @@ def plot_modulation_factor(n_sample, dim, n_expectation=1000, n_theta=20):
     """Plot the modulation factor curve w.r.t. the dispersion.
 
     Plot the curve of modulation factor on the convergence of the
-    empirical Fréchet mean as a function of the radius of the shell
+    empirical Fréchet mean as a function of the radius of the bubble
     distribution and for n_sample points on the sphere S_dim
     embedded in R^{dim+1}.
 
@@ -117,7 +116,7 @@ def plot_modulation_factor(n_sample, dim, n_expectation=1000, n_theta=20):
     n_sample: number of samples to draw
     dim: dimension of the sphere (embedded in R^{dim+1})
     n_expectation: number of computations for approximating the expectation
-    n_theta: number of sampled radii for the shell distribution
+    n_theta: number of sampled radii for the bubble distribution
 
     Returns
     -------
@@ -160,7 +159,7 @@ def multi_plot_modulation_factor(dim, n_expectation=1000, n_theta=20):
     """Plot modulation factor curves for large number of samples.
 
     Plot several curves of modulation factor on the convergence of the
-    empirical Fréchet mean as a function of the radius of the shell
+    empirical Fréchet mean as a function of the radius of the bubble
     distribution and for 10 to 100 sample points on the sphere S_dim
     embedded in R^{dim+1}.
 
@@ -168,7 +167,7 @@ def multi_plot_modulation_factor(dim, n_expectation=1000, n_theta=20):
     ----------
     dim: dimension of the sphere (embedded in R^{dim+1})
     n_expectation: number of computations for approximating the expectation
-    n_theta: number of sampled radii for the shell distribution
+    n_theta: number of sampled radii for the bubble distribution
 
     Returns
     -------
@@ -210,21 +209,20 @@ def multi_plot_modulation_factor(dim, n_expectation=1000, n_theta=20):
 def main():
     """Visualise the uncertainty of the empirical Fréchet mean on the sphere.
 
-    The variance of the Fréchet mean FM_n of a sample of n IID
-    random variables of variance Var is decreasing more slowly
-    in a sphere than in a Euclidean space.
-    This example computes the  modulation factor
+    The variance of the Fréchet mean FM_n of a sample of n IID random variables
+    of variance Var is decreasing more slowly in a sphere than in a Euclidean
+    space. This example computes the  modulation factor
          alpha = Var( FM_n) / ( n * Var)
-    for isotropic uniform distributions on hyper-spheres of
-    radius 0<r<Pi in the sphere S_dim.
+    for isotropic distributions on hyper-spheres of radius 0 < theta < Pi in
+    the sphere S_dim (called here a bubble).
     """
     n_expect = 10
 
     print("Var of empirical mean for 1 sample, theta=0.1 in S2",
-          empirical_frechet_var_shell(
+          empirical_frechet_var_bubble(
               1, 0.1, 2, n_expectation=n_expect), "\n")
     print("Var of empirical mean for 1 sample, theta=0.1 in S3",
-          empirical_frechet_var_shell(
+          empirical_frechet_var_bubble(
               1, 0.1, 3, n_expectation=n_expect), "\n")
 
     print("Modulation factor for 1 sample theta=0.1 in S2 "
