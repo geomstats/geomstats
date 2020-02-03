@@ -110,8 +110,7 @@ def kmean_hypersphere():
             ax=ax,
             space='S2',
             marker='.',
-            color=colors[i]
-            )
+            color=colors[i])
 
     ax = visualization.plot(
         centroids,
@@ -119,8 +118,7 @@ def kmean_hypersphere():
         space='S2',
         marker='*',
         s=200,
-        color='green',
-    )
+        color='green')
 
     ax.set_title('Kmeans on Hypersphere Manifold')
 

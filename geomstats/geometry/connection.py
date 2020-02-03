@@ -61,7 +61,7 @@ class Connection(object):
             value of the vector field to be integrated at position
         """
         gamma = self.christoffels(position)
-        return - gs.einsum('...kij,...i, ...j-> ...k', gamma, velocity,
+        return - gs.einsum('...kij,...i,...j->...k', gamma, velocity,
                            velocity)
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS, step='euler'):
