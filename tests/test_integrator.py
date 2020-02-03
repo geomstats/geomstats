@@ -44,7 +44,7 @@ class TestIntegrator(geomstats.tests.TestCase):
         def function(position, velocity):
             return gs.zeros_like(velocity)
         for step in ['euler', 'rk4']:
-            flow, _ = integrator.integrate(function, initial_state)
+            flow, _ = integrator.integrate(function, initial_state, step=step)
             result = flow[-1]
             expected = initial_state[0] + initial_state[1]
 

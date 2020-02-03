@@ -71,16 +71,21 @@ def integrate(function, initial_state, end_time=1.0, n_steps=10, step='euler'):
 
     Parameters
     ----------
-    function: callable
+    function : callable
         the vector field to integrate
-    initial_state: tuple
+    initial_state : tuple
         initial position and speed
-    end_time: scalar
-    n_steps: int
+    end_time : scalar
+    n_steps : int
+    step : str, {euler, rk4}
+        the numerical scheme to use for elementary integration steps
 
     Returns
     -------
-    a tuple of sequences of solutions every end_time / n_steps
+    final_state : tuple
+        sequences of solutions every end_time / n_steps. The shape of each
+        element of the sequence is the same as the vectors passed in
+        initial_state.
     """
     dt = end_time / n_steps
     positions = [initial_state[0]]

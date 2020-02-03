@@ -11,6 +11,7 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 N_STEPS = 100
+EPSILON = 1e-6
 
 
 class BetaDistributions(EmbeddedManifold):
@@ -52,7 +53,7 @@ class BetaDistributions(EmbeddedManifold):
     def random_uniform(n_samples=1, bound=10.0):
         """Sample parameters of beta distributions.
 
-        The uniform distribution on [0, bound] is used.
+        The uniform distribution on [0, bound]^2 is used.
 
         Parameters
         ----------
@@ -112,7 +113,8 @@ class BetaDistributions(EmbeddedManifold):
         -------
         parameter : array-like, shape=[n_samples, 2]
         """
-        data = gs.to_ndarray(data, to_ndim=2)
+        data = gs.to_ndarray(
+            gs.where(data == 1., 1 - EPSILON, data), to_ndim=2)
         parameters = []
         for sample in data:
             param_a, param_b, _, _ = beta.fit(sample, floc=loc, fscale=scale)

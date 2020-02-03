@@ -68,7 +68,21 @@ class TestBetaMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
-    def test_log_and_exp_general_case(self):
+    def test_exp(self):
+        gs.random.seed(123)
+        n_samples = self.n_samples
+        points = self.beta.random_uniform(n_samples)
+        vectors = self.beta.random_uniform(n_samples)
+        initial_vectors = gs.array([[vec_x, vec_x] for vec_x in vectors[:, 0]])
+        points = gs.array([[param_a, param_a] for param_a in points[:, 0]])
+        result_points = self.metric.exp(initial_vectors, points)
+        result = gs.isclose(result_points[:, 0], result_points[:, 1]).all()
+        expected = gs.array([True] * n_samples)
+
+        self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_only
+    def test_log_and_exp(self):
         """
         Test that the riemannian exponential
         and the riemannian logarithm are inverse.
