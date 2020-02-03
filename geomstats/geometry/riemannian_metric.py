@@ -1,14 +1,20 @@
 """Riemannian and pseudo-Riemannian metrics."""
 
 import math
+import warnings
+
+import autograd
 
 import geomstats.backend as gs
+from geomstats.geometry.connection import Connection
+
 
 EPSILON = 1e-4
 N_CENTERS = 10
 TOLERANCE = 1e-5
 N_REPETITIONS = 20
 N_MAX_ITERATIONS = 50000
+N_STEPS = 10
 
 
 def loss(y_pred, y_true, metric):
@@ -36,13 +42,13 @@ def grad(y_pred, y_true, metric):
     return grad
 
 
-class RiemannianMetric(object):
+class RiemannianMetric(Connection):
     """Class for Riemannian and pseudo-Riemannian metrics."""
 
     def __init__(self, dimension, signature=None):
         assert isinstance(dimension, int) or dimension == math.inf
         assert dimension > 0
-        self.dimension = dimension
+        super().__init__(dimension=dimension)
         self.signature = signature
 
     def inner_product_matrix(self, base_point=None):
@@ -63,9 +69,47 @@ class RiemannianMetric(object):
         ----------
         base_point : array-like, shape=[n_samples, dimension], optional
         """
-        raise NotImplementedError(
-                'The computation of the inner product matrix'
-                ' is not implemented.')
+        metric_matrix = self.inner_product_matrix(base_point)
+        cometric_matrix = gs.linalg.inv(metric_matrix)
+        return cometric_matrix
+
+    def inner_product_derivative_matrix(self, base_point=None):
+        """Compute derivative of the inner prod matrix at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[n_samples, dimension], optional
+        """
+        metric_derivative = autograd.jacobian(self.inner_product_matrix)
+        return metric_derivative(base_point)
+
+    def christoffels(self, base_point):
+        """Compute Christoffel symbols associated with the connection.
+
+        Parameters
+        ----------
+        base_point: array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        christoffels: array-like,
+                             shape=[n_samples, dimension, dimension, dimension]
+        """
+        cometric_mat_at_point = self.inner_product_inverse_matrix(base_point)
+        metric_derivative_at_point = self.inner_product_derivative_matrix(
+            base_point)
+        term_1 = gs.einsum('nim,nmkl->nikl',
+                           cometric_mat_at_point,
+                           metric_derivative_at_point)
+        term_2 = gs.einsum('nim,nmlk->nilk',
+                           cometric_mat_at_point,
+                           metric_derivative_at_point)
+        term_3 = - gs.einsum('nim,nklm->nikl',
+                             cometric_mat_at_point,
+                             metric_derivative_at_point)
+
+        christoffels = 0.5 * (term_1 + term_2 + term_3)
+        return christoffels
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """
@@ -74,6 +118,7 @@ class RiemannianMetric(object):
         Parameters
         ----------
         tangent_vec_a: array-like, shape=[n_samples, dimension]
+<<<<<<< HEAD
                                    or shape=[1, dimension]
 
         tangent_vec_b: array-like, shape=[n_samples, dimension]
@@ -81,6 +126,14 @@ class RiemannianMetric(object):
 
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
+=======
+        tangent_vec_b: array-like, shape=[n_samples, dimension]
+        base_point: array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        inner_product : array-like, shape=[n_samples,]
+>>>>>>> master
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
@@ -132,11 +185,20 @@ class RiemannianMetric(object):
 
         Parameters
         ----------
+<<<<<<< HEAD
         vector: array-like, shape=[n_samples, dimension]
                             or shape=[1, dimension]
 
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
+=======
+        vector : array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        sq_norm : array-like, shape=[n_samples,]
+>>>>>>> master
         """
         sq_norm = self.inner_product(vector, vector, base_point)
         return sq_norm
@@ -152,16 +214,26 @@ class RiemannianMetric(object):
 
         Parameters
         ----------
+<<<<<<< HEAD
         vector: array-like, shape=[n_samples, dimension]
                             or shape=[1, dimension]
 
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
+=======
+        vector : array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        norm : array-like, shape=[n_samples,]
+>>>>>>> master
         """
         sq_norm = self.squared_norm(vector, base_point)
         norm = gs.sqrt(sq_norm)
         return norm
 
+<<<<<<< HEAD
     def exp(self, tangent_vec, base_point=None):
         """
         Riemannian exponential of a tangent vector wrt to a base point.
@@ -192,17 +264,38 @@ class RiemannianMetric(object):
         raise NotImplementedError(
             'The Riemannian logarithm is not implemented.')
 
+=======
+>>>>>>> master
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
                  point_type='vector'):
         """Return the geodesic as function of t.
 
         Geodesic curve defined by either:
+<<<<<<< HEAD
         - an initial point and an initial tangent vector,
         or
         -an initial point and an end point.
 
         The geodesic is returned as a function parameterized by t.
+=======
+        - an initial point and an initial tangent vector, or
+        - an initial point and an end point.
+
+        The geodesic is returned as a function parameterized by t.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[n_samples, dimension]
+        end_point : array-like, shape=[n_samples, dimension], optional
+        initial_tangent_vec : array-like, shape=[n_samples, dimension],
+            optional
+        point_type : str, optional
+
+        Returns
+        -------
+        path : callable
+>>>>>>> master
         """
         point_ndim = 1
         if point_type == 'matrix':
@@ -226,7 +319,21 @@ class RiemannianMetric(object):
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
                                             to_ndim=point_ndim + 1)
 
+<<<<<<< HEAD
         def point_on_geodesic(t):
+=======
+        def path(t):
+            """Generate a function parameterizing the geodesic.
+
+            Parameters
+            ----------
+            t :  parameter value of the geodesic
+
+            Returns
+            -------
+            point_at_time_t : callable
+            """
+>>>>>>> master
             t = gs.cast(t, gs.float32)
             t = gs.to_ndarray(t, to_ndim=1)
             t = gs.to_ndarray(t, to_ndim=2, axis=1)
@@ -250,7 +357,7 @@ class RiemannianMetric(object):
                                        base_point=new_initial_point)
             return point_at_time_t
 
-        return point_on_geodesic
+        return path
 
     def squared_dist(self, point_a, point_b):
         """
@@ -258,11 +365,20 @@ class RiemannianMetric(object):
 
         Parameters
         ----------
+<<<<<<< HEAD
         point_a: array-like, shape=[n_samples, dimension]
                              or shape=[1, dimension]
 
         point_b: array-like, shape=[n_samples, dimension]
                              or shape=[1, dimension]
+=======
+        point_a : array-like, shape=[n_samples, dimension]
+        point_b : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        sq_dist : array-like, shape=[n_samples,]
+>>>>>>> master
         """
         log = self.log(point=point_b, base_point=point_a)
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
@@ -277,11 +393,20 @@ class RiemannianMetric(object):
 
         Parameters
         ----------
+<<<<<<< HEAD
         point_a: array-like, shape=[n_samples, dimension]
                              or shape=[1, dimension]
 
         point_b: array-like, shape=[n_samples, dimension]
                              or shape=[1, dimension]
+=======
+        point_a : array-like, shape=[n_samples, dimension]
+        point_b : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        dist : array-like, shape=[n_samples,]
+>>>>>>> master
         """
         sq_dist = self.squared_dist(point_a, point_b)
         dist = gs.sqrt(sq_dist)
@@ -342,15 +467,22 @@ class RiemannianMetric(object):
 
         Parameters
         ----------
+<<<<<<< HEAD
         points: array-like, shape=[n_samples, dimension]
 
         weights: array-like, shape=[n_samples, 1], optional
 
         verbose: bool, optional
+=======
+        points : array-like, shape=[n_samples, dimension]
+        weights : array-like, shape=[n_samples, 1], optional
+        verbose : bool, optional
+>>>>>>> master
 
         Returns
         -------
-        mean
+        mean : array-like
+            the Frechet mean of points, a point on the manifold
         """
         if mean_method == 'default':
 
@@ -435,6 +567,7 @@ class RiemannianMetric(object):
             lr = 1e-3
             tau = 5e-3
 
+<<<<<<< HEAD
             if (len(points) == 1):
                 return points
 
@@ -453,6 +586,11 @@ class RiemannianMetric(object):
                 cc_barycenter = self.exp(lr * grad_tangent.sum(0,
                                                                keepdims=True),
                                          barycenter)
+=======
+        if last_iteration == n_max_iterations:
+            warnings.warn('Maximum number of iterations {} reached. The '
+                          'mean may be inaccurate'.format(n_max_iterations))
+>>>>>>> master
 
                 convergence = self.dist(cc_barycenter, barycenter).max().item()
 
@@ -533,7 +671,7 @@ class RiemannianMetric(object):
                 current_mean = next_mean
                 current_tangent_mean = next_tangent_mean
                 norm_current_tangent_mean = norm_next_tangent_mean
-                tau = max(1.0, 1.0511111*tau)
+                tau = max(1.0, 1.0511111 * tau)
             else:
                 tau = tau * 0.8
 

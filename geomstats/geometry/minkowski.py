@@ -61,8 +61,8 @@ class MinkowskiMetric(RiemannianMetric):
 
     def __init__(self, dimension):
         super(MinkowskiMetric, self).__init__(
-                                          dimension=dimension,
-                                          signature=(dimension - 1, 1, 0))
+            dimension=dimension,
+            signature=(dimension - 1, 1, 0))
 
     def inner_product_matrix(self, base_point=None):
         """Compute the inner product matrix, independent of the base point.
@@ -75,7 +75,7 @@ class MinkowskiMetric(RiemannianMetric):
         -------
         inner_prod_mat: array-like, shape=[n_samples, dimension, dimension]
         """
-        inner_prod_mat = gs.eye(self.dimension-1, self.dimension-1)
+        inner_prod_mat = gs.eye(self.dimension - 1, self.dimension - 1)
         first_row = gs.array([0.] * (self.dimension - 1))
         first_row = gs.to_ndarray(first_row, to_ndim=2, axis=1)
         inner_prod_mat = gs.vstack([gs.transpose(first_row),

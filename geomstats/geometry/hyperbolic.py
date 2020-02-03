@@ -320,12 +320,12 @@ class Hyperbolic(EmbeddedManifold):
                      extrinsic coordinate
         """
         squared_norm = gs.sum(point**2, -1)
-        denominator = 1-squared_norm
-        t = gs.to_ndarray((1+squared_norm)/denominator, to_ndim=2, axis=1)
+        denominator = 1 - squared_norm
+        t = gs.to_ndarray((1 + squared_norm) / denominator, to_ndim=2, axis=1)
         expanded_denominator = gs.expand_dims(denominator, -1)
-        expanded_denominator = gs.repeat(expanded_denominator,
-                                         point.shape[-1], -1)
-        intrinsic = (2*point)/expanded_denominator
+        expanded_denominator = gs.repeat(
+            expanded_denominator, point.shape[-1], -1)
+        intrinsic = (2 * point) / expanded_denominator
         return gs.concatenate([t, intrinsic], -1)
 
     @staticmethod
@@ -349,12 +349,12 @@ class Hyperbolic(EmbeddedManifold):
         assert point.shape[-1] == 2
         x, y = point[:, 0], point[:, 1]
         x2 = point[:, 0]**2
-        den = x2 + (1+y)**2
+        den = x2 + (1 + y)**2
         x = gs.to_ndarray(x, to_ndim=2, axis=0)
         y = gs.to_ndarray(y, to_ndim=2, axis=0)
         x2 = gs.to_ndarray(x2, to_ndim=2, axis=0)
         den = gs.to_ndarray(den, to_ndim=2, axis=0)
-        ball_point = gs.hstack((2*x/den, (x2+y**2-1)/den))
+        ball_point = gs.hstack((2 * x / den, (x2 + y**2 - 1) / den))
         return Hyperbolic._ball_to_extrinsic_coordinates(ball_point)
 
     @staticmethod
@@ -380,7 +380,7 @@ class Hyperbolic(EmbeddedManifold):
         assert point_ball.shape[-1] == 2
         point_ball_x, point_ball_y = point_ball[:, 0], point_ball[:, 1]
         point_ball_x2 = point_ball_x**2
-        denom = point_ball_x2 + (1-point_ball_y)**2
+        denom = point_ball_x2 + (1 - point_ball_y)**2
 
         point_ball_x = gs.to_ndarray(
             point_ball_x, to_ndim=2, axis=0)
@@ -421,11 +421,11 @@ class Hyperbolic(EmbeddedManifold):
             return point
         else:
             extrinsic = self.transform_to[
-                self.point_type+'-extrinsic'
-                ](point)
+                self.point_type + '-extrinsic'
+            ](point)
             return self.transform_to[
-                'extrinsic-'+to_point_type
-                ](extrinsic)
+                'extrinsic-' + to_point_type
+            ](extrinsic)
 
     def from_coordinates(self, point, from_point_type):
         """Convert to a type of coordinates given some type.
@@ -452,11 +452,11 @@ class Hyperbolic(EmbeddedManifold):
             return point
         else:
             extrinsic = self.transform_to[
-                from_point_type+"-extrinsic"
-                ](point)
+                from_point_type + "-extrinsic"
+            ](point)
             return self.transform_to[
-                "extrinsic-"+self.point_type
-                ](extrinsic)
+                "extrinsic-" + self.point_type
+            ](extrinsic)
 
     def random_uniform(self, n_samples=1, bound=1.):
         """Sample in the Hyperbolic space with the uniform distribution.
@@ -551,7 +551,7 @@ class HyperbolicMetric(RiemannianMetric):
             base_point = gs.to_ndarray(base_point, to_ndim=2)
 
             sq_norm_tangent_vec = self.embedding_metric.squared_norm(
-                    tangent_vec)
+                tangent_vec)
             norm_tangent_vec = gs.sqrt(sq_norm_tangent_vec)
 
             mask_0 = gs.isclose(sq_norm_tangent_vec, 0.)
@@ -565,34 +565,33 @@ class HyperbolicMetric(RiemannianMetric):
             coef_2 = gs.zeros_like(norm_tangent_vec)
 
             coef_1 += mask_0_float * (
-                      1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
-                      + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
-                      + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
-                      + COSH_TAYLOR_COEFFS[8] * norm_tangent_vec ** 8)
+                1. + COSH_TAYLOR_COEFFS[2] * norm_tangent_vec ** 2
+                + COSH_TAYLOR_COEFFS[4] * norm_tangent_vec ** 4
+                + COSH_TAYLOR_COEFFS[6] * norm_tangent_vec ** 6
+                + COSH_TAYLOR_COEFFS[8] * norm_tangent_vec ** 8)
             coef_2 += mask_0_float * (
-                      1. + SINH_TAYLOR_COEFFS[3] * norm_tangent_vec ** 2
-                      + SINH_TAYLOR_COEFFS[5] * norm_tangent_vec ** 4
-                      + SINH_TAYLOR_COEFFS[7] * norm_tangent_vec ** 6
-                      + SINH_TAYLOR_COEFFS[9] * norm_tangent_vec ** 8)
+                1. + SINH_TAYLOR_COEFFS[3] * norm_tangent_vec ** 2
+                + SINH_TAYLOR_COEFFS[5] * norm_tangent_vec ** 4
+                + SINH_TAYLOR_COEFFS[7] * norm_tangent_vec ** 6
+                + SINH_TAYLOR_COEFFS[9] * norm_tangent_vec ** 8)
             # This avoids dividing by 0.
             norm_tangent_vec += mask_0_float * 1.0
             coef_1 += mask_else_float * (gs.cosh(norm_tangent_vec))
             coef_2 += mask_else_float * (
                 (gs.sinh(norm_tangent_vec) / (norm_tangent_vec)))
 
-            exp = (gs.einsum('ni,nj->nj', coef_1, base_point)
-                   + gs.einsum('ni,nj->nj', coef_2, tangent_vec))
+            exp = (
+                gs.einsum('ni,nj->nj', coef_1, base_point)
+                + gs.einsum('ni,nj->nj', coef_2, tangent_vec))
 
             hyperbolic_space = Hyperbolic(dimension=self.dimension)
             exp = hyperbolic_space.regularize(exp)
             return exp
 
         elif self.point_type == 'ball':
-
-            norm_base_point = gs.to_ndarray(gs.linalg.norm(
-                base_point, axis=-1), 2, -1)
-            norm_base_point = gs.repeat(norm_base_point,
-                                        base_point.shape[-1], -1)
+            norm_base_point = gs.to_ndarray(gs.norm(base_point, -1), 2, -1)
+            norm_base_point = gs.repeat(
+                norm_base_point, base_point.shape[-1], -1)
             den = 1 - norm_base_point**2
 
             norm_tan = gs.to_ndarray(gs.linalg.norm(
@@ -610,7 +609,7 @@ class HyperbolicMetric(RiemannianMetric):
             return exp
         else:
             raise NotImplementedError(
-                    'exp is only implemented for ball and extrinsic')
+                'exp is only implemented for ball and extrinsic')
 
     def log(self, point, base_point):
         """Riemannian logarithm of a point wrt a base point.
@@ -649,15 +648,15 @@ class HyperbolicMetric(RiemannianMetric):
             coef_2 = gs.zeros_like(angle)
 
             coef_1 += mask_0_float * (
-                      1. + INV_SINH_TAYLOR_COEFFS[1] * angle ** 2
-                      + INV_SINH_TAYLOR_COEFFS[3] * angle ** 4
-                      + INV_SINH_TAYLOR_COEFFS[5] * angle ** 6
-                      + INV_SINH_TAYLOR_COEFFS[7] * angle ** 8)
+                1. + INV_SINH_TAYLOR_COEFFS[1] * angle ** 2
+                + INV_SINH_TAYLOR_COEFFS[3] * angle ** 4
+                + INV_SINH_TAYLOR_COEFFS[5] * angle ** 6
+                + INV_SINH_TAYLOR_COEFFS[7] * angle ** 8)
             coef_2 += mask_0_float * (
-                      1. + INV_TANH_TAYLOR_COEFFS[1] * angle ** 2
-                      + INV_TANH_TAYLOR_COEFFS[3] * angle ** 4
-                      + INV_TANH_TAYLOR_COEFFS[5] * angle ** 6
-                      + INV_TANH_TAYLOR_COEFFS[7] * angle ** 8)
+                1. + INV_TANH_TAYLOR_COEFFS[1] * angle ** 2
+                + INV_TANH_TAYLOR_COEFFS[3] * angle ** 4
+                + INV_TANH_TAYLOR_COEFFS[5] * angle ** 6
+                + INV_TANH_TAYLOR_COEFFS[7] * angle ** 8)
 
             # This avoids dividing by 0.
             angle += mask_0_float * 1.
@@ -691,7 +690,7 @@ class HyperbolicMetric(RiemannianMetric):
             return log
         else:
             raise NotImplementedError(
-                    'log is only implemented for ball and extrinsic')
+                'log is only implemented for ball and extrinsic')
 
     def mobius_add(self, point_a, point_b):
         r"""Mobius addition of two points.
@@ -735,7 +734,7 @@ class HyperbolicMetric(RiemannianMetric):
 
         add_denominator = (1 + 2 * sum_prod_a_b + norm_point_a * norm_point_b)
 
-        mobius_add = add_nominator/add_denominator
+        mobius_add = add_nominator / add_denominator
 
         return mobius_add
 
@@ -786,4 +785,4 @@ class HyperbolicMetric(RiemannianMetric):
 
         else:
             raise NotImplementedError(
-                    'dist is only implemented for ball and extrinsic')
+                'dist is only implemented for ball and extrinsic')

@@ -11,7 +11,7 @@ import geomstats.backend as gs
 BCH_INFO = gs.asarray([
     [int(x) for x in i.strip().split()]
     for i in open("geomstats/geometry/bch_coefficients.dat").readlines()
-    ])
+])
 
 
 class MatrixLieAlgebra:
@@ -46,7 +46,6 @@ class MatrixLieAlgebra:
         Returns
         -------
         bracket: shape=[n_sample, n, n]
-
         """
         return gs.matmul(matrix_a, matrix_b) - gs.matmul(matrix_b, matrix_a)
 
@@ -62,10 +61,10 @@ class MatrixLieAlgebra:
 
         This represents Z =log(exp(X)exp(Y)) as an infinite linear combination
         of the form
-            Z = sum z_i e_i
+        Z = sum z_i e_i
         where z_i are rational numbers and e_i are iterated Lie brackets
         starting with e_1 = X, e_2 = Y, each e_i is given by some i',i'':
-            e_i = [e_i', e_i''].
+        e_i = [e_i', e_i''].
 
         Parameters
         ----------
@@ -79,7 +78,7 @@ class MatrixLieAlgebra:
             raise NotImplementedError("BCH is not implemented for order > 15.")
 
         number_of_hom_degree = gs.array(
-                [2, 1, 2, 3, 6, 9, 18, 30, 56, 99, 186, 335, 630, 1161, 2182])
+            [2, 1, 2, 3, 6, 9, 18, 30, 56, 99, 186, 335, 630, 1161, 2182])
         n_terms = gs.sum(number_of_hom_degree[:order])
 
         ei = gs.zeros((n_terms, self.n, self.n))
