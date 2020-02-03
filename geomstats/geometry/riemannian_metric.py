@@ -23,6 +23,17 @@ def loss(y_pred, y_true, metric):
     Loss function given by a Riemannian metric,
     expressed as the squared geodesic distance between the prediction
     and the ground truth.
+
+    Parameters
+    ----------
+    y_pred
+    y_true
+    metric
+
+    Returns
+    -------
+    loss
+
     """
     loss = metric.squared_dist(y_pred, y_true)
     return loss
@@ -610,6 +621,15 @@ class RiemannianMetric(Connection):
 
         Distance between the two points that are farthest away from each other
         in points.
+
+        Parameters
+        ----------
+        points
+
+        Returns
+        -------
+        diameter
+
         """
         diameter = 0.0
         n_points = points.shape[0]
@@ -622,7 +642,17 @@ class RiemannianMetric(Connection):
         return diameter
 
     def closest_neighbor_index(self, point, neighbors):
-        """Closest neighbor of point among neighbors."""
+        """Closest neighbor of point among neighbors.
+
+        Parameters
+        ----------
+        point
+        neighbors
+        Returns
+        -------
+        closest_neighbor_index
+
+        """
         dist = self.dist(point, neighbors)
         closest_neighbor_index = gs.argmin(dist)
 
