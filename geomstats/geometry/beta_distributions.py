@@ -80,7 +80,8 @@ class BetaDistributions(EmbeddedManifold):
 
         Returns
         -------
-        samples : array-like, shape=[n_points, n_samples]"""
+        samples : array-like, shape=[n_points, n_samples]
+        """
         point = gs.to_ndarray(point, to_ndim=2)
         assert self.belongs(point).all()
         samples = []
