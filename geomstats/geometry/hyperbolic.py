@@ -92,7 +92,7 @@ class Hyperbolic(EmbeddedManifold):
         Parameters
         ----------
         point : array-like, shape=[n_samples, dimension]
-                Input points. TODO: confusing: singular or plural
+                Input points.
         tolerance : float, optional
 
         Returns
@@ -236,7 +236,7 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _intrinsic_to_extrinsic_coordinates(point_intrinsic):
-        """Convert point parameterization from intrinsic to extrensic coords.
+        """Convert intrinsic to extrinsic coordinates.
 
         Convert the parameterization of a point on the Hyperbolic space
         from its intrinsic coordinates, to its extrinsic coordinates
@@ -261,7 +261,7 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _extrinsic_to_intrinsic_coordinates(point_extrinsic):
-        """Convert point parameterization from extrensic to intrinsic coords.
+        """Convert extrinsic to intrinsic coordinates.
 
         Convert the parameterization of a point on the Hyperbolic space
         from its extrinsic coordinates in Minkowski space, to its
@@ -283,7 +283,7 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _extrinsic_to_ball_coordinates(point):
-        """Convert point parameterization from extrensic to ball coordinates.
+        """Convert extrinsic to ball coordinates.
 
         Convert the parameterization of a point on the Hyperbolic space
         from its intrinsic coordinates, to the poincare ball model
@@ -303,7 +303,7 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _ball_to_extrinsic_coordinates(point):
-        """Convert point parameterization from ball to extrensic coordinates.
+        """Convert ball to extrinsic coordinates.
 
         Convert the parameterization of a point on the Hyperbolic space
         from its poincare ball model coordinates, to the extrinsic
@@ -330,7 +330,7 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _half_plane_to_extrinsic_coordinates(point):
-        """Convert point parameterization from half-plane to extrinsic coords.
+        """Convert half plane to extrinsic coordinates.
 
         Convert the parameterization of a point on the Hyperbolic space
         from its upper half plane model coordinates, to the extrinsic
@@ -359,7 +359,7 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _extrinsic_to_half_plane_coordinates(point):
-        """Convert point parameterization from extrensic to half-plane coords.
+        """Convert extrinsic to half plane coordinates.
 
         Convert the parameterization of a point on the Hyperbolic space
         from its intrinsic coordinates, to the poincare upper half plane
@@ -397,7 +397,7 @@ class Hyperbolic(EmbeddedManifold):
         return point_half_plane
 
     def to_coordinates(self, point, to_point_type='ball'):
-        """Convert point parameterization from current to specified coords.
+        """Convert coordinates of a point.
 
         Convert the parameterization of a point on the Hyperbolic space
         from current coordinates system to the coordinates system given
@@ -428,7 +428,7 @@ class Hyperbolic(EmbeddedManifold):
             ](extrinsic)
 
     def from_coordinates(self, point, from_point_type):
-        """Convert point parameterization from provided to current coords.
+        """Convert to a type of coordinates given some type.
 
         Convert the parameterization of a point on the Hyperbolic space
         from given coordinates system to the current coordinates system
@@ -438,6 +438,7 @@ class Hyperbolic(EmbeddedManifold):
         point : array-like, shape=[n_samples, dimension] expected or
                 shape=[n_samples, dimension + 1] for extrinsic
                 coordinates only
+
         from_point_type : coordinates type from transform the point, can be
                          'ball', 'extrinsic', 'intrinsic', 'half_plane'
 
@@ -476,7 +477,7 @@ class Hyperbolic(EmbeddedManifold):
 
 
 class HyperbolicMetric(RiemannianMetric):
-    """Class for the Hyperbolic metric."""
+    """Class that defines operations using a Hyperbolic metric."""
 
     def __init__(self, dimension, point_type='extrinsic', scale=1):
         super(HyperbolicMetric, self).__init__(
@@ -488,7 +489,7 @@ class HyperbolicMetric(RiemannianMetric):
         self.scale = scale
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the inner product of two tangent vectors at a base point.
+        """Inner product of two tangent vectors at a base point.
 
         Parameters
         ----------
@@ -509,7 +510,7 @@ class HyperbolicMetric(RiemannianMetric):
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
-        """Compute the squared norm of a vector at a given base point.
+        """Squared norm of a vector.
 
         Squared norm of a vector associated with the inner product
         at the tangent space at a base point. Extrinsic base point only
@@ -531,7 +532,7 @@ class HyperbolicMetric(RiemannianMetric):
         return sq_norm
 
     def exp(self, tangent_vec, base_point):
-        """Compute Riemannian exponential of tangent vector wrt to base point.
+        """Riemannian exponential of a tangent vector wrt to a base point.
 
         Parameters
         ----------
@@ -588,13 +589,14 @@ class HyperbolicMetric(RiemannianMetric):
             return exp
 
         elif self.point_type == 'ball':
-
-            norm_base_point = gs.to_ndarray(gs.norm(base_point, -1), 2, -1)
+            norm_base_point = gs.to_ndarray(
+                gs.linalg.norm(base_point, -1), 2, -1)
             norm_base_point = gs.repeat(
                 norm_base_point, base_point.shape[-1], -1)
             den = 1 - norm_base_point**2
 
-            norm_tan = gs.to_ndarray(gs.norm(tangent_vec, -1), 2, -1)
+            norm_tan = gs.to_ndarray(gs.linalg.norm(
+                tangent_vec, axis=-1), 2, -1)
             norm_tan = gs.repeat(norm_tan, base_point.shape[-1], -1)
 
             lambda_base_point = 1 / den
@@ -611,7 +613,7 @@ class HyperbolicMetric(RiemannianMetric):
                 'exp is only implemented for ball and extrinsic')
 
     def log(self, point, base_point):
-        """Compute Riemannian logarithm of a point wrt a base point.
+        """Riemannian logarithm of a point wrt a base point.
 
         If point_type = 'poincare' then base_point belongs
         to the Poincare ball and point is a vector in the euclidean
@@ -671,16 +673,18 @@ class HyperbolicMetric(RiemannianMetric):
 
             add_base_point = self.mobius_add(-base_point, point)
 
-            norm_add = gs.to_ndarray(gs.norm(add_base_point, -1), 2, -1)
+            norm_add = gs.to_ndarray(gs.linalg.norm(
+                add_base_point, axis=-1), 2, -1)
             norm_add = gs.repeat(norm_add, base_point.shape[-1], -1)
-            norm2_base_point = gs.to_ndarray(gs.sum(base_point**2, -1), 2, -1)
-            norm2_base_point = gs.repeat(norm2_base_point,
-                                         base_point.shape[-1], -1)
+            norm_base_point = gs.to_ndarray(gs.linalg.norm(
+                base_point, axis=-1), 2, -1)
+            norm_base_point = gs.repeat(norm_base_point,
+                                        base_point.shape[-1], -1)
 
-            log = (1 - norm2_base_point) * gs.arctanh(norm_add)\
+            log = (1 - norm_base_point**2) * gs.arctanh(norm_add)\
                 * (add_base_point / norm_add)
 
-            mask_0 = gs.all(gs.isclose(norm_add, 0))
+            mask_0 = gs.all(gs.isclose(norm_add, 0.))
             log[mask_0] = 0
 
             return log
@@ -689,10 +693,14 @@ class HyperbolicMetric(RiemannianMetric):
                 'log is only implemented for ball and extrinsic')
 
     def mobius_add(self, point_a, point_b):
-        """Compute the mobius addition of two points.
+        r"""Mobius addition of two points.
 
-        Mobius addition is necessary for computation of the log and exp
-        using the 'poincare' representation set as point_type.
+        Mobius addition operation that is necessary operation
+                to compute the log and exp using the 'poincare'
+                representation set as point_type.
+        .. math::
+        a\\oplus b=\\frac{(1+2\\langle a,b\\rangle + ||b||^2)a+
+        (1-||a||^2)b}{1+2\\langle a,b\\rangle + ||a||^2||b||^2}
 
         Parameters
         ----------
@@ -716,8 +724,8 @@ class HyperbolicMetric(RiemannianMetric):
                               keepdims=True)
         norm_point_b = gs.repeat(norm_point_b, point_a.shape[-1], -1)
 
-        sum_prod_a_b = (point_a * point_b).sum(
-            -1, keepdims=True)
+        sum_prod_a_b = gs.sum(point_a * point_b,
+                              axis=-1, keepdims=True)
 
         sum_prod_a_b = gs.repeat(sum_prod_a_b, point_a.shape[-1], -1)
 
@@ -731,7 +739,7 @@ class HyperbolicMetric(RiemannianMetric):
         return mobius_add
 
     def dist(self, point_a, point_b):
-        """Compute the geodesic distance between two points.
+        """Geodesic distance between two points.
 
         Parameters
         ----------
@@ -761,9 +769,11 @@ class HyperbolicMetric(RiemannianMetric):
         elif self.point_type == 'ball':
 
             point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0., 1 - EPSILON)
+
             point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0., 1 - EPSILON)
 
             diff_norm = gs.sum((point_a - point_b) ** 2, -1)
+
             norm_function = 1 + 2 * \
                 diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
 

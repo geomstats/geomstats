@@ -235,7 +235,6 @@ def to_ndarray(x, to_ndim, axis=0):
     x = array(x)
     if x.dim() == to_ndim - 1:
         x = torch.unsqueeze(x, dim=axis)
-    assert x.dim() >= to_ndim
     return x
 
 
@@ -479,3 +478,7 @@ def cumprod(x, axis=0):
         raise NotImplementedError('cumprod is not defined where axis is None')
     else:
         return torch.cumprod(x, dim=axis)
+
+
+def isnan(*args, **kwargs):
+    return torch.isnan(*args, **kwargs)
