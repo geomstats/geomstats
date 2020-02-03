@@ -19,6 +19,7 @@ class TestIntegrator(geomstats.tests.TestCase):
     def function_linear(self, point, vector):
         return - gs.dot(self.slope, vector)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_symplectic_euler_step(self):
         state = (self.intercept, self.slope)
         result = len(integrator._symplectic_euler_step(
@@ -27,6 +28,7 @@ class TestIntegrator(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_rk4_step(self):
         state = (self.intercept, self.slope)
         result = len(integrator.rk4_step(
@@ -35,14 +37,15 @@ class TestIntegrator(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    def test_integrator_euler(self):
+    @geomstats.tests.np_and_pytorch_only
+    def test_integrator(self):
         initial_state = self.euclidean.random_uniform(2)
 
         def function(position, velocity):
             return gs.zeros_like(velocity)
+        for step in ['euler', 'rk4']:
+            flow, _ = integrator.integrate(function, initial_state)
+            result = flow[-1]
+            expected = initial_state[0] + initial_state[1]
 
-        flow, _ = integrator.integrate(function, initial_state)
-        result = flow[-1]
-        expected = initial_state[0] + initial_state[1]
-
-        self.assertAllClose(result, expected)
+            self.assertAllClose(result, expected)
