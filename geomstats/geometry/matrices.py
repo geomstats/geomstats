@@ -134,6 +134,19 @@ class Matrices(Euclidean):
 
     @classmethod
     def cong(cls, mat_1, mat_2):
+        """Compute the congruent action of mat_2 on mat_1.
+
+        This is `mat_2 mat_1 mat_2^T`
+
+        Parameters
+        ----------
+        mat_1 : array-like, shape=[n_samples, n, n]
+        mat_2 : array-like, shape=[n_samples, n, n]
+
+        Returns
+        -------
+        cong : array-like, shape=[n_samples, n, n]
+        """
         return cls.mul(mat_2, mat_1, cls.transpose(mat_2))
 
 
