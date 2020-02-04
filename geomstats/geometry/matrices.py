@@ -132,6 +132,10 @@ class Matrices(Euclidean):
         point = gs.random.rand(n_samples, self.m, self.n)
         return point
 
+    @classmethod
+    def cong(cls, mat_1, mat_2):
+        return cls.mul(mat_2, mat_1, cls.transpose(mat_2))
+
 
 class MatricesMetric(RiemannianMetric):
     """Euclidean metric on matrices given by Frobenius inner product."""
