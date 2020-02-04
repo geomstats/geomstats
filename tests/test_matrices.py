@@ -167,3 +167,20 @@ class TestMatricesMethods(geomstats.tests.TestCase):
         expected = helper.to_scalar(expected)
 
         self.assertAllClose(result, expected)
+
+    def test_cong(self):
+        base_point = gs.array([
+            [1., 2., 3.],
+            [0., 0., 0.],
+            [3., 1., 1.]])
+
+        tangent_vector = gs.array([
+            [1., 2., 3.],
+            [0., -10., 0.],
+            [30., 1., 1.]])
+
+        result = self.space.cong(tangent_vector, base_point)
+        expected = gs.matmul(tangent_vector, base_point.transpose())
+        expected = gs.matmul(base_point, expected)
+
+        self.assertAllClose(result, expected)
