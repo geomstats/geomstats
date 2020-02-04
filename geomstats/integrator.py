@@ -50,6 +50,10 @@ def rk4_step(state, force, dt, k1=None):
         first variable at time t + dt
     vector_new : array-like, shape=[dimension]
         second variable at time t + dt
+
+    See Also
+    --------
+    https://en.wikipedia.org/wiki/Runge–Kutta_methods
     """
     point, vector = state
     if k1 is None:
