@@ -502,14 +502,15 @@ class RiemannianMetric(Connection):
                 cc_barycenter = self.exp(lr * grad_tangent.sum(0,
                                                                keepdims=True),
                                          barycenter)
+
+                convergence = self.dist(cc_barycenter, barycenter).max().item()
+
+                barycenter = cc_barycenter
+
             if iteration == n_max_iterations:
                 warnings.warn(
                     'Maximum number of iterations {} reached. The '
                     'mean may be inaccurate'.format(n_max_iterations))
-
-            convergence = self.dist(cc_barycenter, barycenter).max().item()
-
-            barycenter = cc_barycenter
 
             return barycenter
 
