@@ -602,29 +602,6 @@ class RiemannianMetric(Connection):
 
         return gs.to_ndarray(current_mean, to_ndim=2)
 
-    def tangent_pca(self, points, base_point=None, point_type='vector'):
-        """Tangent PCA of points on the tangent space wrt a base point.
-
-        Tangent Principal Component Analysis (tPCA) of points
-        on the tangent space at a base point.
-        """
-        if point_type == 'matrix':
-            raise NotImplementedError(
-                'This is currently only implemented for vectors.')
-        if base_point is None:
-            base_point = self.mean(points)
-
-        tangent_vecs = self.log(points, base_point=base_point)
-
-        covariance_mat = gs.cov(tangent_vecs.transpose())
-        eigenvalues, tangent_eigenvecs = gs.linalg.eig(covariance_mat)
-
-        idx = eigenvalues.argsort()[::-1]
-        eigenvalues = eigenvalues[idx]
-        tangent_eigenvecs = tangent_eigenvecs[idx]
-
-        return eigenvalues, tangent_eigenvecs
-
     def diameter(self, points):
         """Give the distance between two farthest points.
 
