@@ -1,7 +1,4 @@
-"""
-Compute the mean of a data set on the hyperbolic_plane.
-Performs tangent PCA at the mean.
-"""
+"""Perform tangent PCA at the mean."""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,6 +9,7 @@ from geomstats.learning.pca import TangentPCA
 
 
 def main():
+    """Perform tangent PCA at the mean."""
     fig = plt.figure(figsize=(15, 5))
 
     hyperbolic_plane = Hyperbolic(dimension=2)
@@ -20,7 +18,7 @@ def main():
     mean = hyperbolic_plane.metric.mean(data)
 
     tpca = TangentPCA(metric=hyperbolic_plane.metric, n_components=2)
-    tpca = tpca.fit(data, base_point=mean)
+    tpca = tpca.fit(data)
     tangent_projected_data = tpca.transform(data)
 
     geodesic_0 = hyperbolic_plane.metric.geodesic(
