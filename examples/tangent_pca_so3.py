@@ -1,7 +1,4 @@
-"""
-Compute the mean of a data set of 3D rotations.
-Performs tangent PCA at the mean.
-"""
+"""Perform tangent PCA at the mean."""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,13 +15,14 @@ N_COMPONENTS = 2
 
 
 def main():
+    """Perform tangent PCA at the mean."""
     fig = plt.figure(figsize=(15, 5))
 
     data = SO3_GROUP.random_uniform(n_samples=N_SAMPLES)
     mean = METRIC.mean(data)
 
     tpca = TangentPCA(metric=METRIC, n_components=N_COMPONENTS)
-    tpca = tpca.fit(data, base_point=mean)
+    tpca = tpca.fit(data)
     tangent_projected_data = tpca.transform(data)
     print(
         'Coordinates of the Log of the first 5 data points at the mean, '
