@@ -1,5 +1,4 @@
-""" Principal Component Analysis on Manifolds
-"""
+"""Principal Component Analysis on Manifolds."""
 
 import numbers
 from math import log
@@ -15,7 +14,7 @@ import geomstats.backend as gs
 
 
 def _assess_dimension_(spectrum, rank, n_samples, n_features):
-    """Compute the likelihood of a rank ``rank`` dataset
+    """Compute the likelihood of a rank ``rank`` dataset.
 
     The dataset is assumed to be embedded in gaussian noise of shape(n,
     dimf) having spectrum ``spectrum``.
@@ -77,7 +76,7 @@ def _assess_dimension_(spectrum, rank, n_samples, n_features):
 
 
 def _infer_dimension_(spectrum, n_samples, n_features):
-    """Infers the dimension of a dataset of shape (n_samples, n_features)
+    """Infers the dimension of a dataset of shape (n_samples, n_features).
 
     The dataset is described by its spectrum `spectrum`.
     """
@@ -89,12 +88,12 @@ def _infer_dimension_(spectrum, n_samples, n_features):
 
 
 class TangentPCA(_BasePCA):
-    """Tangent Principal component analysis (tPCA)
+    """Tangent Principal component analysis (tPCA).
 
     Linear dimensionality reduction using
     Singular Value Decomposition of the
     Riemannian Log of the data at the tangent space
-    of the mean.
+    of the Frechet mean.
     """
 
     def __init__(self, metric, n_components=None, copy=True,
@@ -108,8 +107,7 @@ class TangentPCA(_BasePCA):
         self.iterated_power = iterated_power
         self.random_state = random_state
 
-    def fit(self, X,
-            base_point=None, point_type='vector', y=None):
+    def fit(self, X, point_type='vector', y=None):
         """Fit the model with X.
 
         Parameters
@@ -117,6 +115,7 @@ class TangentPCA(_BasePCA):
         X : array-like, shape (n_samples, n_features)
             Training data, where n_samples is the number of samples
             and n_features is the number of features.
+        point_type :
 
         y : Ignored
 
@@ -125,12 +124,10 @@ class TangentPCA(_BasePCA):
         self : object
             Returns the instance itself.
         """
-        self._fit(X, base_point, point_type)
+        self._fit(X, point_type)
         return self
 
-    def fit_transform(self, X,
-                      base_point=None, point_type='vector',
-                      y=None):
+    def fit_transform(self, X, point_type='vector', y=None):
         """Fit the model with X and apply the dimensionality reduction on X.
 
         Parameters
@@ -138,6 +135,7 @@ class TangentPCA(_BasePCA):
         X : array-like, shape (n_samples, n_features)
             Training data, where n_samples is the number of samples
             and n_features is the number of features.
+        point_type :
 
         y : Ignored
 
@@ -146,20 +144,19 @@ class TangentPCA(_BasePCA):
         X_new : array-like, shape (n_samples, n_components)
 
         """
-        U, S, V = self._fit(X, base_point, point_type)
+        U, S, V = self._fit(X, point_type)
         U = U[:, :self.n_components_]
 
         U *= S[:self.n_components_]
 
         return U
 
-    def _fit(self, X, base_point=None, point_type='vector'):
-        """Fit the model by computing full SVD on X"""
+    def _fit(self, X, point_type='vector'):
+        """Fit the model by computing full SVD on X."""
         if point_type == 'matrix':
             raise NotImplementedError(
                 'This is currently only implemented for vectors.')
-        if base_point is None:
-            base_point = self.metric.mean(X)
+        base_point = self.metric.mean(X)
 
         tangent_vecs = self.metric.log(X, base_point=base_point)
 
@@ -169,7 +166,6 @@ class TangentPCA(_BasePCA):
         X = check_array(X, dtype=[gs.float64, gs.float32], ensure_2d=True,
                         copy=self.copy)
 
-        # Handle n_components==None
         if self.n_components is None:
             n_components = min(X.shape)
         else:
@@ -192,7 +188,7 @@ class TangentPCA(_BasePCA):
                                  "was of type=%r"
                                  % (n_components, type(n_components)))
 
-        # Center data
+        # Center data - the mean should be 0
         self.mean_ = gs.mean(X, axis=0)
         X -= self.mean_
 
