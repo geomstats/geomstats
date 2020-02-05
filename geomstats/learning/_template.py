@@ -177,7 +177,7 @@ class TemplateTransformer(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        """ A reference implementation of a transform function.
+        """Reference implementation of a transform function.
 
         Parameters
         ----------

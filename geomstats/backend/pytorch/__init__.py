@@ -235,7 +235,6 @@ def to_ndarray(x, to_ndim, axis=0):
     x = array(x)
     if x.dim() == to_ndim - 1:
         x = torch.unsqueeze(x, dim=axis)
-    assert x.dim() >= to_ndim
     return x
 
 
@@ -260,7 +259,7 @@ def less(a, b):
 
 
 def less_equal(a, b):
-    return _np.less_equal(a, b)
+    return torch.le(a, b)
 
 
 def eye(*args, **kwargs):
@@ -349,8 +348,8 @@ def triu_indices(*args, **kwargs):
     return torch.triu_indices(*args, **kwargs)
 
 
-def where(*args, **kwargs):
-    return torch.where(*args, **kwargs)
+def where(test, x, y):
+    return torch.where(test, torch.tensor(x), torch.tensor(y))
 
 
 def tile(x, y):
@@ -479,3 +478,7 @@ def cumprod(x, axis=0):
         raise NotImplementedError('cumprod is not defined where axis is None')
     else:
         return torch.cumprod(x, dim=axis)
+
+
+def isnan(*args, **kwargs):
+    return torch.isnan(*args, **kwargs)

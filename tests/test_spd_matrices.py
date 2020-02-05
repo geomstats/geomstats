@@ -29,19 +29,20 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         self.metric_logeuclidean = SPDMetricLogEuclidean(n=self.n)
         self.n_samples = 4
 
-    @geomstats.tests.np_only
-    def test_random_uniform_and_belongs(self):
-        point = self.space.random_uniform()
-        result = self.space.belongs(point)
-        expected = gs.array(True)
+    def test_belongs(self):
+        mats = gs.array([
+            [[1., 1.], [1., 1.]],
+            [[1., 2.], [2., 1.]],
+            [[1., 0.], [1., 1.]]])
+        result = SPDMatrices.belongs(mats)
+        expected = gs.array([True, True, False])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
-    def test_random_uniform_and_belongs_vectorization(self):
-        n_samples = self.n_samples
-        points = self.space.random_uniform(n_samples=n_samples)
+    def test_random_uniform_and_belongs(self):
+        points = self.space.random_uniform(4)
         result = self.space.belongs(points)
-        self.assertAllClose(gs.shape(result), n_samples)
+        expected = gs.array([True] * 4)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(self):
@@ -78,7 +79,6 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
         self.assertTrue(gs.allclose(result, expected))
 
-    @geomstats.tests.np_and_tf_only
     def test_differential_power(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 2.5, 1.5],
@@ -96,7 +96,6 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
                               [1 / 3, .125, .125]]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_inverse_differential_power(self):
         base_point = gs.array([[1., 0., 0.],
                                [0., 2.5, 1.5],

@@ -22,12 +22,14 @@ class SPDMatrices(EmbeddedManifold):
             embedding_manifold=GeneralLinear(n=n))
         self.n = n
 
-    def belongs(self, mat, atol=TOLERANCE):
-        """Check if a matrix belongs to the manifold.
-
-        Check if a matrix belongs to the manifold of symmetric positive
-        definite matrices.
-        """
+    @staticmethod
+    def belongs(mat, atol=TOLERANCE):
+        """Check if a matrix is symmetric and invertible."""
+        # TODO (opeltre): check positivity, implying invertibility.
+        #
+        # note : vectorized "and" on numpy works with:
+        #       [bool] * [bool] -> bool
+        # but does not on tf.
         return Matrices.is_symmetric(mat)
 
     def vector_from_symmetric_matrix(self, mat):
@@ -70,9 +72,8 @@ class SPDMatrices(EmbeddedManifold):
     def random_uniform(self, n_samples=1):
         """Define a log-uniform random sample of SPD matrices."""
         mat = 2 * gs.random.rand(n_samples, self.n, self.n) - 1
+        spd_mat = GeneralLinear.exp(mat + Matrices.transpose(mat))
 
-        spd_mat = self.embedding_manifold.exp(
-            mat + gs.transpose(mat, axes=(0, 2, 1)))
         return spd_mat
 
     def random_tangent_vec_uniform(self, n_samples=1, base_point=None):
@@ -935,10 +936,6 @@ class SPDMetricLogEuclidean(RiemannianMetric):
     def geodesic(self, initial_point, initial_tangent_vec):
         """Compute the Log-Euclidean geodesic.
 
-        Compute the Riemannian geodesic starting at point base_point
-        in direction of initial_tangent_vec.
-        This gives a function from real numbers to SPD matrices.
-
         Parameters
         ----------
         initial_point : array-like, shape=[n_samples, n, n]
@@ -946,9 +943,10 @@ class SPDMetricLogEuclidean(RiemannianMetric):
 
         Returns
         -------
-        geodesic : callable
+        path : callable
+            The time parameterized geodesic.
         """
-        def point_on_geodesic(t):
+        def path(t):
             return self.exp(t * initial_tangent_vec, initial_point)
 
-        return point_on_geodesic
+        return path
