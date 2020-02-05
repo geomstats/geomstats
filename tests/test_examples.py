@@ -4,7 +4,7 @@ import os
 import sys
 import warnings
 
-import examples.empirical_frechet_mean_uncertainty_sn as empirical_frechet_mean_uncertainty_sn
+import examples.empirical_frechet_mean_uncertainty_sn as empirical_frechet_mean_uncertainty_sn  # NOQA
 import examples.gradient_descent_s2 as gradient_descent_s2
 import examples.loss_and_gradient_se3 as loss_and_gradient_se3
 import examples.loss_and_gradient_so3 as loss_and_gradient_so3
