@@ -2,3 +2,4 @@
 application_import_names = geomstats
 import_order_style = smarkets
 docstring-convention = numpy
+exclude = examples/*.ipynb
