@@ -516,10 +516,11 @@ class RiemannianMetric(Connection):
 
     def adaptive_gradientdescent_mean(self, points,
                                       weights=None,
-                                      n_max_iterations=32,
+                                      n_max_iterations=40,
                                       epsilon=1e-12,
-                                      init_points=[]):
-        """Compute the Frechet mean using gradient descent.
+                                      init_points=[],
+                                      verbose=False):
+        """Compute Frechet mean of (weighted) points using adaptive time-steps.
 
         Frechet mean of (weighted) points using adaptive time-steps
         The loss function optimized is ||M_1(x)||_x (where M_1(x) is
@@ -533,12 +534,17 @@ class RiemannianMetric(Connection):
         weights: array-like, shape=[n_samples, 1], optional
 
         init_points: array-like, shape=[n_init, dimension]
+        epsilon: tolerance for stopping the gradient descent
+        verbose: verbose mode printing the surrogate value
 
         epsilon: tolerance for stopping the gradient descent
         """
         # TODO(Xavier): This function assumes that all points are lists
         #  of vectors and not of matrices
         n_points = gs.shape(points)[0]
+
+        if n_points == 1:
+            return gs.to_ndarray(points[0], to_ndim=2)
 
         if weights is None:
             weights = gs.ones((n_points, 1))
@@ -554,9 +560,6 @@ class RiemannianMetric(Connection):
             current_mean = points[0]
         else:
             current_mean = init_points[0]
-
-        if n_points == 1:
-            return gs.to_ndarray(current_mean, to_ndim=2)
 
         tau = 1.0
         iteration = 0
@@ -579,6 +582,11 @@ class RiemannianMetric(Connection):
             next_tangent_mean = gs.einsum('nk,nj->j', weights, logs)
             next_tangent_mean /= sum_weights
             norm_next_tangent_mean = gs.linalg.norm(next_tangent_mean)
+            if verbose:
+                print(
+                    "Iter {0}: tau= {1}, "
+                    "norm_current_tangent_mean = {2}".format(
+                        iter, tau, norm_current_tangent_mean))
             if norm_next_tangent_mean < norm_current_tangent_mean:
                 current_mean = next_mean
                 current_tangent_mean = next_tangent_mean
