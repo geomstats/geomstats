@@ -582,8 +582,10 @@ class RiemannianMetric(Connection):
             next_tangent_mean /= sum_weights
             norm_next_tangent_mean = gs.linalg.norm(next_tangent_mean)
             if verbose:
-                print("Iter {0}: tau= {1}, norm_current_tangent_mean = {2}" \
-                      .format(iter, tau, norm_current_tangent_mean))
+                print(
+                    "Iter {0}: tau= {1}, "
+                    "norm_current_tangent_mean = {2}".format(
+                        iter, tau, norm_current_tangent_mean))
             if norm_next_tangent_mean < norm_current_tangent_mean:
                 current_mean = next_mean
                 current_tangent_mean = next_tangent_mean

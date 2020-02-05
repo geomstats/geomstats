@@ -4,6 +4,7 @@ import os
 import sys
 import warnings
 
+import examples.empirical_frechet_mean_uncertainty_sn as empirical_frechet_mean_uncertainty_sn
 import examples.gradient_descent_s2 as gradient_descent_s2
 import examples.loss_and_gradient_se3 as loss_and_gradient_se3
 import examples.loss_and_gradient_so3 as loss_and_gradient_so3
@@ -36,6 +37,10 @@ class TestExamples(geomstats.tests.TestCase):
         warnings.simplefilter('ignore', category=ImportWarning)
         warnings.simplefilter('ignore', category=UserWarning)
         plt.figure()
+
+    @geomstats.tests.np_only
+    def test_empirical_frechet_mean_uncertainty_sn(self):
+        empirical_frechet_mean_uncertainty_sn.main()
 
     @geomstats.tests.np_only
     def test_gradient_descent_s2(self):
