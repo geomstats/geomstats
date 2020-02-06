@@ -189,7 +189,7 @@ def _adaptive_gradient_descent(points,
 
     epsilon: tolerance for stopping the gradient descent
     """
-    # TODO(Xavier): This function assumes that all points are lists
+    # TODO(xpennec): This function assumes that all points are lists
     #  of vectors and not of matrices
     n_points = gs.shape(points)[0]
 

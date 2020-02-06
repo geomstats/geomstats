@@ -4,6 +4,7 @@ from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
 from geomstats.learning._template import TransformerMixin
+from geomstats.learning.frechet_mean import FrechetMean
 
 
 class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
@@ -78,11 +79,13 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
                 if len(fold) > 0:
 
-                    self.centroids[i] = self.riemannian_metric.mean(
-                        fold,
-                        mean_method=self.mean_method,
+                    mean = FrechetMean(
+                        metric=self.riemannian_metric,
+                        method=self.mean_method,
                         n_max_iterations=150)
+                    mean.fit(fold)
 
+                    self.centroids[i] = mean.estimate_
                 else:
                     self.centroids[i] = X[randint(0, n_samples - 1)]
 
