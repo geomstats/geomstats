@@ -6,6 +6,8 @@ import warnings
 from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
+from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry.minkowski import MinkowskiMetric
 
 EPSILON = 1e-4
 
@@ -39,17 +41,50 @@ def variance(points,
 
     sum_weights = gs.sum(weights)
 
-    variance = 0.
+    var = 0.
 
     sq_dists = metric.squared_dist(base_point, points)
-    variance += gs.einsum('nk,nj->j', weights, sq_dists)
+    var += gs.einsum('nk,nj->j', weights, sq_dists)
 
-    variance = gs.array(variance)
-    variance /= sum_weights
+    var = gs.array(var)
+    var /= sum_weights
 
-    variance = gs.to_ndarray(variance, to_ndim=1)
-    variance = gs.to_ndarray(variance, to_ndim=2, axis=1)
-    return variance
+    var = gs.to_ndarray(var, to_ndim=1)
+    var = gs.to_ndarray(var, to_ndim=2, axis=1)
+    return var
+
+
+def linear_mean(points, weights=None):
+    """Compute the frechet mean.
+
+    The Frechet mean of (weighted) points computed with the
+    Euclidean metric is the weighted average of the points
+    in the Euclidean space.
+
+    Parameters
+    ----------
+    points: array-like, shape=[n_samples, dimension]
+
+    weights: array-like, shape=[n_samples, 1], optional
+
+    Returns
+    -------
+    mean: array-like, shape=[1, dimension]
+    """
+    if isinstance(points, list):
+        points = gs.vstack(points)
+    points = gs.to_ndarray(points, to_ndim=2)
+    n_points = gs.shape(points)[0]
+
+    if isinstance(weights, list):
+        weights = gs.vstack(weights)
+    elif weights is None:
+        weights = gs.ones((n_points, ))
+
+    weighted_points = gs.einsum('n,nj->nj', weights, points)
+    mean = (gs.sum(weighted_points, axis=0) / gs.sum(weights))
+    mean = gs.to_ndarray(mean, to_ndim=2)
+    return mean
 
 
 def _default_gradient_descent(points, metric, weights,
@@ -288,7 +323,11 @@ class FrechetMean(BaseEstimator):
         """
         # TODO(nina): Profile this code to study performance,
         # i.e. what to do with sq_dists_between_iterates.
-        if self.method == 'default':
+
+        if isinstance(self.metric, (EuclideanMetric, MinkowskiMetric)):
+            mean = linear_mean(points=X, weights=weights)
+
+        elif self.method == 'default':
             mean = _default_gradient_descent(
                 points=X, weights=weights, metric=self.metric,
                 n_max_iterations=self.n_max_iterations,

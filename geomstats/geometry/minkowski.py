@@ -131,34 +131,3 @@ class MinkowskiMetric(RiemannianMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         log = point - base_point
         return log
-
-    def mean(self, points, weights=None):
-        """Compute the Frechet mean of (weighted) points.
-
-        The Frechet mean of (weighted) points is the weighted average of
-        the points in the Minkowski space.
-
-        Parameters
-        ----------
-        points: array-like, shape=[n_samples, dimension]
-        weights: array-like, shape=[n_samples, 1], optional
-
-        Returns
-        -------
-        mean: array-like, shape=[1, dimension]
-        """
-        if isinstance(points, list):
-            points = gs.vstack(points)
-        points = gs.to_ndarray(points, to_ndim=2)
-        n_points = gs.shape(points)[0]
-
-        if isinstance(weights, list):
-            weights = gs.vstack(weights)
-        elif weights is None:
-            weights = gs.ones((n_points,))
-
-        weighted_points = gs.einsum('n,nj->nj', weights, points)
-        mean = (gs.sum(weighted_points, axis=0)
-                / gs.sum(weights))
-        mean = gs.to_ndarray(mean, to_ndim=2)
-        return mean

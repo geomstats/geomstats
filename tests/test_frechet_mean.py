@@ -1,14 +1,16 @@
 """Unit tests for Frechet mean."""
 
+import math
+
 import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.minkowski import Minkowski
 from geomstats.learning.frechet_mean import _adaptive_gradient_descent
-from geomstats.learning.frechet_mean import _ball_gradient_descent
-from geomstats.learning.frechet_mean import _default_gradient_descent
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.frechet_mean import variance
 
@@ -19,6 +21,8 @@ class TestFrechetMean(geomstats.tests.TestCase):
     def setUp(self):
         self.sphere = Hypersphere(dimension=4)
         self.hyperbolic = Hyperbolic(dimension=3)
+        self.euclidean = Euclidean(dimension=2)
+        self.minkowski = Minkowski(dimension=2)
 
     @geomstats.tests.np_only
     def test_adaptive_gradient_descent_sphere(self):
@@ -117,4 +121,94 @@ class TestFrechetMean(geomstats.tests.TestCase):
         result = self.hyperbolic.belongs(mean.estimate_)
         expected = gs.array([[True]])
 
+        self.assertAllClose(result, expected)
+
+    def test_mean_euclidean(self):
+        point = gs.array([[1., 4.]])
+
+        mean = FrechetMean(metric=self.euclidean.metric)
+        points = [point, point, point]
+        mean.fit(points)
+
+        result = mean.estimate_
+        expected = point
+        expected = helper.to_vector(expected)
+
+        self.assertAllClose(result, expected)
+
+        points = gs.array([
+            [1., 2.],
+            [2., 3.],
+            [3., 4.],
+            [4., 5.]])
+        weights = gs.array([1., 2., 1., 2.])
+
+        mean = FrechetMean(metric=self.euclidean.metric)
+        mean.fit(points, weights=weights)
+
+        result = mean.estimate_
+        expected = gs.array([16. / 6., 22. / 6.])
+        expected = helper.to_vector(expected)
+
+        self.assertAllClose(result, expected)
+
+    def test_variance_euclidean(self):
+        points = gs.array([
+            [1., 2.],
+            [2., 3.],
+            [3., 4.],
+            [4., 5.]])
+        weights = gs.array([1., 2., 1., 2.])
+        base_point = gs.zeros(2)
+        result = variance(
+            points, weights=weights, base_point=base_point,
+            metric=self.euclidean.metric)
+        # we expect the average of the points' sq norms.
+        expected = (1 * 5. + 2 * 13. + 1 * 25. + 2 * 41.) / 6.
+        expected = helper.to_scalar(expected)
+
+        self.assertAllClose(result, expected)
+
+    def test_mean_minkowski(self):
+        point = gs.array([[2., -math.sqrt(3)]])
+        points = [point, point, point]
+
+        mean = FrechetMean(metric=self.minkowski.metric)
+        mean.fit(points)
+        result = mean.estimate_
+
+        expected = point
+        expected = helper.to_vector(expected)
+
+        self.assertAllClose(result, expected)
+
+        points = gs.array([
+            [1., 0.],
+            [2., math.sqrt(3)],
+            [3., math.sqrt(8)],
+            [4., math.sqrt(24)]])
+        weights = gs.array([1., 2., 1., 2.])
+
+        mean = FrechetMean(metric=self.minkowski.metric)
+        mean.fit(points, weights=weights)
+        result = mean.estimate_
+        result = self.minkowski.belongs(result)
+        expected = gs.array([[True]])
+
+        self.assertAllClose(result, expected)
+
+    def test_variance_minkowski(self):
+        points = gs.array([
+            [1., 0.],
+            [2., math.sqrt(3)],
+            [3., math.sqrt(8)],
+            [4., math.sqrt(24)]])
+        weights = gs.array([1., 2., 1., 2.])
+        base_point = gs.array([-1., 0.])
+        var = variance(
+            points, weights=weights, base_point=base_point,
+            metric=self.minkowski.metric)
+        result = helper.to_scalar(var != 0)
+        # we expect the average of the points' Minkowski sq norms.
+        expected = helper.to_scalar(gs.array([True]))
         self.assertAllClose(result, expected)

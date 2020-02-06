@@ -218,37 +218,3 @@ class TestMinkowskiMethods(geomstats.tests.TestCase):
         expected = gs.array(n_geodesic_points * [[True]])
 
         self.assertAllClose(result, expected)
-
-    def test_mean(self):
-        point = gs.array([[2., -math.sqrt(3)]])
-        result = self.metric.mean(points=[point, point, point])
-        expected = point
-        expected = helper.to_vector(expected)
-
-        self.assertAllClose(result, expected)
-
-        points = gs.array([
-            [1., 0.],
-            [2., math.sqrt(3)],
-            [3., math.sqrt(8)],
-            [4., math.sqrt(24)]])
-        weights = gs.array([1., 2., 1., 2.])
-        result = self.metric.mean(points, weights)
-        result = self.space.belongs(result)
-        expected = gs.array([[True]])
-
-        self.assertAllClose(result, expected)
-
-    def test_variance(self):
-        points = gs.array([
-            [1., 0.],
-            [2., math.sqrt(3)],
-            [3., math.sqrt(8)],
-            [4., math.sqrt(24)]])
-        weights = gs.array([1., 2., 1., 2.])
-        base_point = gs.array([-1., 0.])
-        variance = self.metric.variance(points, weights, base_point)
-        result = helper.to_scalar(variance != 0)
-        # we expect the average of the points' Minkowski sq norms.
-        expected = helper.to_scalar(gs.array([True]))
-        self.assertAllClose(result, expected)
