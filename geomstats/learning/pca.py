@@ -11,6 +11,7 @@ from sklearn.utils.extmath import svd_flip
 from sklearn.utils.validation import check_array
 
 import geomstats.backend as gs
+from geomstats.learning.frechet_mean import FrechetMean
 
 
 def _assess_dimension_(spectrum, rank, n_samples, n_features):
@@ -181,7 +182,9 @@ class TangentPCA(_BasePCA):
             raise NotImplementedError(
                 'This is currently only implemented for vectors.')
         if base_point is None:
-            base_point = self.metric.mean(X)
+            mean = FrechetMean(metric=self.metric)
+            mean.fit(X)
+            base_point = mean.estimate_
 
         tangent_vecs = self.metric.log(X, base_point=base_point)
 
