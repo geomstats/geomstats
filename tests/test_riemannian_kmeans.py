@@ -3,6 +3,7 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry import hypersphere
+from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.kmeans import RiemannianKMeans
 
 
@@ -21,8 +22,11 @@ class TestRiemannianKMeansMethods(geomstats.tests.TestCase):
         kmeans = RiemannianKMeans(metric, 1, tol=1e-3)
         kmeans.fit(x)
         center = kmeans.centroids
-        mean = metric.mean(x)
-        result = metric.dist(center, mean)
+
+        mean = FrechetMean(metric=metric)
+        mean.fit(x)
+
+        result = metric.dist(center, mean.estimate_)
         expected = 0.
         self.assertAllClose(expected, result, atol=1e-2)
 
