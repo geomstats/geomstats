@@ -338,48 +338,6 @@ class RiemannianMetric(Connection):
         dist = gs.sqrt(sq_dist)
         return dist
 
-    def variance(self,
-                 points,
-                 weights=None,
-                 base_point=None,
-                 point_type='vector'):
-        """Variance of (weighted) points wrt a base point.
-
-        Parameters
-        ----------
-        points: array-like, shape=[n_samples, dimension]
-
-        weights: array-like, shape=[n_samples, 1], optional
-        """
-        if point_type == 'vector':
-            points = gs.to_ndarray(points, to_ndim=2)
-        if point_type == 'matrix':
-            points = gs.to_ndarray(points, to_ndim=3)
-        n_points = gs.shape(points)[0]
-
-        if weights is None:
-            weights = gs.ones((n_points, 1))
-
-        weights = gs.array(weights)
-        weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
-
-        sum_weights = gs.sum(weights)
-
-        if base_point is None:
-            base_point = self.mean(points, weights)
-
-        variance = 0.
-
-        sq_dists = self.squared_dist(base_point, points)
-        variance += gs.einsum('nk,nj->j', weights, sq_dists)
-
-        variance = gs.array(variance)
-        variance /= sum_weights
-
-        variance = gs.to_ndarray(variance, to_ndim=1)
-        variance = gs.to_ndarray(variance, to_ndim=2, axis=1)
-        return variance
-
     def diameter(self, points):
         """Give the distance between two farthest points.
 
