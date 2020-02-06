@@ -18,7 +18,7 @@ def main():
     mean = hyperbolic_plane.metric.mean(data)
 
     tpca = TangentPCA(metric=hyperbolic_plane.metric, n_components=2)
-    tpca = tpca.fit(data)
+    tpca = tpca.fit(data, base_point=mean)
     tangent_projected_data = tpca.transform(data)
 
     geodesic_0 = hyperbolic_plane.metric.geodesic(
