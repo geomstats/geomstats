@@ -10,6 +10,46 @@ import geomstats.backend as gs
 EPSILON = 1e-4
 
 
+def variance(points,
+             base_point,
+             metric,
+             weights=None,
+             point_type='vector'):
+    """Variance of (weighted) points wrt a base point.
+
+    Parameters
+    ----------
+    points: array-like, shape=[n_samples, dimension]
+
+    weights: array-like, shape=[n_samples, 1], optional
+    """
+    if point_type == 'vector':
+        points = gs.to_ndarray(points, to_ndim=2)
+    if point_type == 'matrix':
+        points = gs.to_ndarray(points, to_ndim=3)
+    n_points = gs.shape(points)[0]
+
+    if weights is None:
+        weights = gs.ones((n_points, 1))
+
+    weights = gs.array(weights)
+    weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
+
+    sum_weights = gs.sum(weights)
+
+    variance = 0.
+
+    sq_dists = metric.squared_dist(base_point, points)
+    variance += gs.einsum('nk,nj->j', weights, sq_dists)
+
+    variance = gs.array(variance)
+    variance /= sum_weights
+
+    variance = gs.to_ndarray(variance, to_ndim=1)
+    variance = gs.to_ndarray(variance, to_ndim=2, axis=1)
+    return variance
+
+
 def _default_gradient_descent(points, metric, weights,
                               n_max_iterations, point_type, epsilon, verbose):
 
@@ -34,9 +74,10 @@ def _default_gradient_descent(points, metric, weights,
         sq_dist = metric.squared_dist(mean_next, mean)
         sq_dists_between_iterates.append(sq_dist)
 
-        variance = metric.variance(
+        variance = variance(
             points=points,
             weights=weights,
+            metric=metric,
             base_point=mean_next)
 
         mean = mean_next
