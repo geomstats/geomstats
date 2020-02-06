@@ -7,6 +7,7 @@ import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.lie_group import LieGroup
+from geomstats.learning.frechet_mean import FrechetMean
 
 ATOL = 1e-5
 
@@ -1647,7 +1648,9 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             n_weights = weights.shape[0]
             assert n_points == n_weights
 
-            exp_bar = self.bi_invariant_metric.mean(points, weights)
+            mean = FrechetMean(metric=self.bi_invariant_metric)
+            mean.fit(X=points, weights=weights)
+            exp_bar = mean.estimate_
 
             exp_bar = gs.to_ndarray(exp_bar, to_ndim=2)
             assert gs.ndim(exp_bar) == 2, gs.ndim(exp_bar)
