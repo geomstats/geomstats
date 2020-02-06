@@ -39,7 +39,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(expected, result, rtol=1e-10, atol=1e-10)
 
     @geomstats.tests.np_and_pytorch_only
-    def test_mean_and_belongs_sphere(self):
+    def test_estimate_and_belongs_sphere(self):
         point_a = gs.array([1., 0., 0., 0., 0.])
         point_b = gs.array([0., 1., 0., 0., 0.])
         points = gs.zeros((2, point_a.shape[0]))
@@ -49,7 +49,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         mean = FrechetMean(metric=self.sphere.metric)
         mean.fit(points)
 
-        result = self.sphere.belongs(mean.mean_)
+        result = self.sphere.belongs(mean.estimate_)
         expected = gs.array([[True]])
         self.assertAllClose(result, expected)
 
@@ -67,7 +67,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(expected, result)
 
     @geomstats.tests.np_and_pytorch_only
-    def test_mean_sphere(self):
+    def test_estimate_sphere(self):
         point = gs.array([0., 0., 0., 0., 1.])
         points = gs.zeros((2, point.shape[0]))
         points[0, :] = point
@@ -76,7 +76,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         mean = FrechetMean(metric=self.sphere.metric)
         mean.fit(X=points)
 
-        result = mean.mean_
+        result = mean.estimate_
         expected = helper.to_vector(point)
 
         self.assertAllClose(expected, result)
@@ -92,20 +92,20 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
-    def test_mean_hyperbolic(self):
+    def test_estimate_hyperbolic(self):
         point = gs.array([2., 1., 1., 1.])
         points = gs.array([point, point])
 
         mean = FrechetMean(metric=self.hyperbolic.metric)
         mean.fit(X=points)
 
-        result = mean.mean_
+        result = mean.estimate_
         expected = helper.to_vector(point)
 
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
-    def test_mean_and_belongs_hyperbolic(self):
+    def test_estimate_and_belongs_hyperbolic(self):
         point_a = self.hyperbolic.random_uniform()
         point_b = self.hyperbolic.random_uniform()
         point_c = self.hyperbolic.random_uniform()
@@ -114,7 +114,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         mean = FrechetMean(metric=self.hyperbolic.metric)
         mean.fit(X=points)
 
-        result = self.hyperbolic.belongs(mean.mean_)
+        result = self.hyperbolic.belongs(mean.estimate_)
         expected = gs.array([[True]])
 
         self.assertAllClose(result, expected)
