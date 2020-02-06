@@ -22,7 +22,7 @@ def main():
     mean = METRIC.mean(data)
 
     tpca = TangentPCA(metric=METRIC, n_components=N_COMPONENTS)
-    tpca = tpca.fit(data)
+    tpca = tpca.fit(data, base_point=mean)
     tangent_projected_data = tpca.transform(data)
     print(
         'Coordinates of the Log of the first 5 data points at the mean, '

@@ -107,56 +107,81 @@ class TangentPCA(_BasePCA):
         self.iterated_power = iterated_power
         self.random_state = random_state
 
-    def fit(self, X, point_type='vector', y=None):
+    def fit(self, X, y=None, base_point=None, point_type='vector'):
         """Fit the model with X.
 
         Parameters
         ----------
-        X : array-like, shape (n_samples, n_features)
+        X : array-like, shape=[n_samples, n_features]
             Training data, where n_samples is the number of samples
             and n_features is the number of features.
-        point_type :
-
-        y : Ignored
+        y : Ignored (Compliance with scikit-learn interface)
+        base_point : array-like, shape=[n_samples, n_features]
+            Point at which to perform the tangent PCA
+            Optional, default to Frechet mean if None
+        point_type : str, {'vector', 'matrix'}
+            Optional
 
         Returns
         -------
         self : object
             Returns the instance itself.
         """
-        self._fit(X, point_type)
+        self._fit(X, base_point=base_point, point_type=point_type)
         return self
 
-    def fit_transform(self, X, point_type='vector', y=None):
+    def fit_transform(self, X, y=None, base_point=None, point_type='vector'):
         """Fit the model with X and apply the dimensionality reduction on X.
 
         Parameters
         ----------
-        X : array-like, shape (n_samples, n_features)
+        X : array-like, shape=[n_samples, n_features]
             Training data, where n_samples is the number of samples
             and n_features is the number of features.
-        point_type :
-
-        y : Ignored
+        y : Ignored (Compliance with scikit-learn interface)
+        base_point : array-like, shape=[n_samples, n_features]
+            Point at which to perform the tangent PCA
+            Optional, default to Frechet mean if None
+        point_type : str, {'vector', 'matrix'}
+            Optional
 
         Returns
         -------
         X_new : array-like, shape (n_samples, n_components)
 
         """
-        U, S, V = self._fit(X, point_type)
+        U, S, V = self._fit(
+            X, base_point=base_point, point_type=point_type)
         U = U[:, :self.n_components_]
 
         U *= S[:self.n_components_]
 
         return U
 
-    def _fit(self, X, point_type='vector'):
-        """Fit the model by computing full SVD on X."""
+    def _fit(self, X, base_point=None, point_type='vector'):
+        """Fit the model by computing full SVD on X.
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_samples, n_features]
+            Training data, where n_samples is the number of samples
+            and n_features is the number of features.
+        y : Ignored (Compliance with scikit-learn interface)
+        base_point : array-like, shape=[n_samples, n_features]
+            Point at which to perform the tangent PCA
+            Optional, default to Frechet mean if None
+        point_type : str, {'vector', 'matrix'}
+            Optional
+
+        Returns
+        -------
+        U, S, V: SVD decomposition
+        """
         if point_type == 'matrix':
             raise NotImplementedError(
                 'This is currently only implemented for vectors.')
-        base_point = self.metric.mean(X)
+        if base_point is None:
+            base_point = self.metric.mean(X)
 
         tangent_vecs = self.metric.log(X, base_point=base_point)
 
@@ -188,7 +213,7 @@ class TangentPCA(_BasePCA):
                                  "was of type=%r"
                                  % (n_components, type(n_components)))
 
-        # Center data - the mean should be 0
+        # Center data - the mean should be 0 if base_point is the Frechet mean
         self.mean_ = gs.mean(X, axis=0)
         X -= self.mean_
 
