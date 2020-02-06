@@ -10,7 +10,7 @@ import geomstats.backend as gs
 EPSILON = 1e-4
 
 
-def _default_gradient_descent(points, weights, metric,
+def _default_gradient_descent(points, metric, weights,
                               n_max_iterations, point_type, epsilon, verbose):
 
     def while_loop_cond(iteration, mean, variance, sq_dist):
@@ -89,7 +89,7 @@ def _default_gradient_descent(points, weights, metric,
     return mean
 
 
-def _ball_gradient_descent(points, weights, metric, n_max_iterations):
+def _ball_gradient_descent(points, metric, weights, n_max_iterations):
     lr = 1e-3
     tau = 5e-3
 
@@ -124,8 +124,8 @@ def _ball_gradient_descent(points, weights, metric, n_max_iterations):
 
 
 def _adaptive_gradient_descent(points,
-                               weights,
                                metric,
+                               weights=None,
                                n_max_iterations=32,
                                epsilon=1e-12,
                                init_points=[]):

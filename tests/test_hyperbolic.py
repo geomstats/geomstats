@@ -416,37 +416,6 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=1e-8)
 
-    @geomstats.tests.np_and_tf_only
-    def test_variance(self):
-        point = gs.array([2., 1., 1., 1.])
-        points = gs.array([point, point])
-        result = self.metric.variance(points)
-        expected = helper.to_scalar(0.)
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_tf_only
-    def test_mean(self):
-        point = gs.array([2., 1., 1., 1.])
-        points = gs.array([point, point])
-        result = self.metric.mean(points)
-        expected = helper.to_vector(point)
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_tf_only
-    def test_mean_and_belongs(self):
-        point_a = self.space.random_uniform()
-        point_b = self.space.random_uniform()
-        point_c = self.space.random_uniform()
-        points = gs.concatenate([point_a, point_b, point_c], axis=0)
-
-        mean = self.metric.mean(points)
-        result = self.space.belongs(mean)
-        expected = gs.array([[True]])
-
-        self.assertAllClose(result, expected)
-
     @geomstats.tests.np_only
     def test_scaled_inner_product(self):
         base_point_intrinsic = gs.array([1, 1, 1])
