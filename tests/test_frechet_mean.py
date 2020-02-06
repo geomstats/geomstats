@@ -1,18 +1,24 @@
 """Unit tests for Frechet mean."""
 
+import tests.helper as helper
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.learning.frechet_mean import _adaptive_gradient_descent
+from geomstats.learning.frechet_mean import _ball_gradient_descent
+from geomstats.learning.frechet_mean import _default_gradient_descent
 from geomstats.learning.frechet_mean import FrechetMean
+from geomstats.learning.frechet_mean import variance
 
 
 class TestFrechetMean(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
-        self.sphere = Hypersphere(dim=2)
-        self.hyperbolic = Hyperbolic(dim=2)
+        self.sphere = Hypersphere(dimension=4)
+        self.hyperbolic = Hyperbolic(dimension=3)
 
     @geomstats.tests.np_only
     def test_adaptive_gradient_descent_sphere(self):
@@ -24,7 +30,8 @@ class TestFrechetMean(geomstats.tests.TestCase):
             # take 2 random points, compute their mean, and verify that
             # log of each at the mean is opposite
             points = self.sphere.random_uniform(n_samples=2)
-            mean = _adaptive_gradient_descent(points=points, metric=self.sphere.metric)
+            mean = _adaptive_gradient_descent(
+                points=points, metric=self.sphere.metric)
 
             logs = self.sphere.metric.log(point=points, base_point=mean)
             result[i] = gs.linalg.norm(logs[1, :] + logs[0, :])
@@ -39,9 +46,10 @@ class TestFrechetMean(geomstats.tests.TestCase):
         points[0, :] = point_a
         points[1, :] = point_b
 
-        mean = FrechetMean(points, metric=self.sphere.metric)
+        mean = FrechetMean(metric=self.sphere.metric)
+        mean.fit(points)
 
-        result = self.space.belongs(mean.mean_)
+        result = self.sphere.belongs(mean.mean_)
         expected = gs.array([[True]])
         self.assertAllClose(result, expected)
 
@@ -51,7 +59,9 @@ class TestFrechetMean(geomstats.tests.TestCase):
         points = gs.zeros((2, point.shape[0]))
         points[0, :] = point
         points[1, :] = point
-        result = self.metric.variance(points)
+
+        result = variance(
+            points, base_point=point, metric=self.sphere.metric)
         expected = helper.to_scalar(0.)
 
         self.assertAllClose(expected, result)
@@ -63,11 +73,11 @@ class TestFrechetMean(geomstats.tests.TestCase):
         points[0, :] = point
         points[1, :] = point
 
-        mean = FrechetMean(metric=self.metric)
-
+        mean = FrechetMean(metric=self.sphere.metric)
         mean.fit(X=points)
+
         result = mean.mean_
-        expected = point
+        expected = helper.to_vector(point)
 
         self.assertAllClose(expected, result)
 
@@ -75,7 +85,8 @@ class TestFrechetMean(geomstats.tests.TestCase):
     def test_variance_hyperbolic(self):
         point = gs.array([2., 1., 1., 1.])
         points = gs.array([point, point])
-        result = self.metric.variance(points)
+        result = variance(
+            points, base_point=point, metric=self.hyperbolic.metric)
         expected = helper.to_scalar(0.)
 
         self.assertAllClose(result, expected)
@@ -84,22 +95,26 @@ class TestFrechetMean(geomstats.tests.TestCase):
     def test_mean_hyperbolic(self):
         point = gs.array([2., 1., 1., 1.])
         points = gs.array([point, point])
-        result = self.metric.mean(points)
+
+        mean = FrechetMean(metric=self.hyperbolic.metric)
+        mean.fit(X=points)
+
+        result = mean.mean_
         expected = helper.to_vector(point)
 
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_mean_and_belongs_hyperbolic(self):
-        point_a = self.space.random_uniform()
-        point_b = self.space.random_uniform()
-        point_c = self.space.random_uniform()
+        point_a = self.hyperbolic.random_uniform()
+        point_b = self.hyperbolic.random_uniform()
+        point_c = self.hyperbolic.random_uniform()
         points = gs.concatenate([point_a, point_b, point_c], axis=0)
 
-        mean = self.metric.mean(points)
-        result = self.space.belongs(mean)
+        mean = FrechetMean(metric=self.hyperbolic.metric)
+        mean.fit(X=points)
+
+        result = self.hyperbolic.belongs(mean.mean_)
         expected = gs.array([[True]])
 
         self.assertAllClose(result, expected)
-
-
