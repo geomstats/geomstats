@@ -69,20 +69,20 @@ def _default_gradient_descent(points, metric, weights,
 
         tangent_mean /= sum_weights
 
-        mean_next = metric.exp(
+        estimate_next = metric.exp(
             tangent_vec=tangent_mean,
             base_point=mean)
 
-        sq_dist = metric.squared_dist(mean_next, mean)
+        sq_dist = metric.squared_dist(estimate_next, mean)
         sq_dists_between_iterates.append(sq_dist)
 
         var = variance(
             points=points,
             weights=weights,
             metric=metric,
-            base_point=mean_next)
+            base_point=estimate_next)
 
-        mean = mean_next
+        mean = estimate_next
         iteration += 1
         return [iteration, mean, var, sq_dist]
 
@@ -304,6 +304,6 @@ class FrechetMean(BaseEstimator):
                 points=X, weights=weights, metric=self.metric,
                 n_max_iterations=self.n_max_iterations)
 
-        self.mean_ = mean
+        self.estimate_ = mean
 
         return self
