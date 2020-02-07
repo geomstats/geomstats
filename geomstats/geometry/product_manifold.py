@@ -16,7 +16,7 @@ class ProductManifold(Manifold):
     """
 
     def __init__(self, manifolds, default_point_type='vector'):
-        """Instantiate an object of the class ProductManifold.
+        """Construct the ProductManifold object.
 
         By default, a point is represented by an array of shape:
             [n_samples, dim_1 + ... + dim_n_manifolds]
@@ -31,9 +31,9 @@ class ProductManifold(Manifold):
         Parameters
         ----------
         manifolds : list
-            list of manifolds in the product
+            List of manifolds in the product
         default_point_type : str, {'vector', 'matrix'}
-            default representation of points
+            Default representation of points
         """
         assert default_point_type in ['vector', 'matrix']
         self.default_point_type = default_point_type
@@ -46,16 +46,21 @@ class ProductManifold(Manifold):
             dimension=sum(dimensions))
 
     def belongs(self, point, point_type=None):
-        """Check if the point belongs to the manifold.
+        """Evaluate if a point belongs to the manifold.
 
         Parameters
         ----------
-        point
+        point : array-like, shape=[n_samples, dim]
+                           or shape=[n_samples, dim_2, dim_2]
+            Points
         point_type : str, {'vector', 'matrix'}
+            Representation of point
 
         Returns
         -------
-        belongs: array-like, shape=[n_samples, 1]
+        belongs : array-like, shape=[n_samples, 1]
+            Array of booleans evaluating if the corresponding points
+            belong to the manifold
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -87,12 +92,17 @@ class ProductManifold(Manifold):
 
         Parameters
         ----------
-        point
+        point : array-like, shape=[n_samples, dim]
+                           or shape=[n_samples, dim_2, dim_2]
+            Points
         point_type : str, {'vector', 'matrix'}
+            Representation of point
 
         Returns
         -------
-        regularize_points
+        regularize_points : array-like, shape=[n_samples, dim]
+                           or shape=[n_samples, dim_2, dim_2]
+            Points in the manifold's canonical representation
         """
         # TODO(nina): Vectorize.
         if point_type is None:
@@ -114,20 +124,28 @@ class ProductManifold(Manifold):
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
                  point_type=None):
-        """Compute geodesic curve for a product metric.
+        """Geodesic as a function of t.
 
         This geodesic is seen as the product of the geodesic on each space.
 
         Parameters
         ----------
-        initial_point
-        end_point
-        initial_tangent_vec
-        point_type
+        initial_point : array-like, shape=[n_samples, dimension]
+            Initial point of the geodesic
+        end_point : array-like, shape=[n_samples, dimension]
+            Optional
+            End point of the geodesic
+        initial_tangent_vec : array-like, shape=[n_samples, dimension],
+            Optional
+            Initial tangent vector of the geodesic
+        point_type : str, {'vector', 'matrix'}
+            Optional
+            Representation of point
 
         Returns
         -------
-        geodesics : array-like
+        geodesics : list
+            List of callables
         """
         if point_type is None:
             point_type = self.default_point_type
