@@ -14,9 +14,9 @@ class EmbeddedManifold(Manifold):
         Parameters
         ----------
         dimension : int
-            Dimension of the embedded manifold
+            Dimension of the embedded manifold.
         embedding_manifold : Manifold
-            Embedding manifold
+            Embedding manifold.
         """
         assert isinstance(dimension, int) or dimension == math.inf
         assert dimension > 0
@@ -30,7 +30,7 @@ class EmbeddedManifold(Manifold):
         Parameters
         ----------
         point_intrinsic : array-like, shape=[n_samples, dim]
-            Point in the embedded manifold in intrinsic coordinates
+            Point in the embedded manifold in intrinsic coordinates.
         """
         raise NotImplementedError(
             'intrinsic_to_extrinsic_coords is not implemented.')
@@ -64,7 +64,7 @@ class EmbeddedManifold(Manifold):
         Parameters
         ----------
         vector : array-like, shape=[n_samples, dim_embedding]
-            Vector at the tangent space of the embedding manifold
+            Vector at the tangent space of the embedding manifold.
         base_point : array-like, shape=[n_samples, dim_embedding]
             Point on the embedded manifold, in extrinsic coordinates.
         """
