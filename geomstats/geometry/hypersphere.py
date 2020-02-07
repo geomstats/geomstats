@@ -1,7 +1,7 @@
 """The n-dimensional hypersphere.
 
-The n-dimensional hypersphere embedded in the
-(n+1)-dimensional Euclidean space.
+The n-dimensional hypersphere embedded in (n+1)-dimensional
+Euclidean space.
 """
 
 import logging
@@ -392,9 +392,9 @@ class HypersphereMetric(RiemannianMetric):
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
-        """Compute squared norm of a vector.
+        """Squared norm of a vector.
 
-        Squared norm of a vector associated to the inner product
+        Squared norm of a vector associated with the inner product
         at the tangent space at a base point.
 
         Parameters
@@ -476,7 +476,7 @@ class HypersphereMetric(RiemannianMetric):
         return exp
 
     def log(self, point, base_point):
-        """Compute Riemannian logarithm of a point.
+        """Riemannian logarithm of a point.
 
         Parameters
         ----------
