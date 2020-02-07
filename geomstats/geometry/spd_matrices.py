@@ -629,7 +629,8 @@ class SPDMetricAffine(RiemannianMetric):
         Closed-form solution for the parallel transport of a tangent vector a
         along the geodesic defined by exp_(base_point)(tangent_vec_b).
         Denoting `tangent_vec_a` by `S`, `base_point` by `A`, let
-        `B = Exp_A(tangent_vec_b)` and `E = (AB^{-1})^({- 1 / 2})`. Then the
+        `B = Exp_A(tangent_vec_b)` and :math: `E = (BA^{- 1})^({ 1 / 2})`.
+        Then the
         parallel transport to `B`is:
 
         ..math::
@@ -646,12 +647,9 @@ class SPDMetricAffine(RiemannianMetric):
         transported_tangent_vec: array-like, shape=[n_samples, dimension + 1]
         """
         end_point = self.exp(tangent_vec_b, base_point)
-        inverse_end_point = GeneralLinear.inv(end_point)
-        conjugation_mat = GeneralLinear.mul(base_point, inverse_end_point)
-        transported = GeneralLinear.mul(conjugation_mat, tangent_vec_a)
-        transported = GeneralLinear.mul(transported, GeneralLinear.transpose(
-            conjugation_mat))
-        return transported
+        inverse_base_point = GeneralLinear.inv(base_point)
+        congruence_mat = GeneralLinear.mul(end_point, inverse_base_point)
+        return GeneralLinear.cong(tangent_vec_a, congruence_mat)
 
 
 class SPDMetricProcrustes(RiemannianMetric):
