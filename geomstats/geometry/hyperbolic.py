@@ -698,9 +698,9 @@ class HyperbolicMetric(RiemannianMetric):
         Mobius addition operation that is necessary operation
         to compute the log and exp using the 'poincare'
         representation set as point_type.
-        
+
         .. math::
-        
+
             a\\oplus b=\\frac{(1+2\\langle a,b\\rangle + ||b||^2)a+
             (1-||a||^2)b}{1+2\\langle a,b\\rangle + ||a||^2||b||^2}
 
