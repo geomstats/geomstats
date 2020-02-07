@@ -15,6 +15,9 @@ class Grassmannian(EmbeddedManifold):
 
     Class for Grassmann manifolds Gr(n, k) of k-dimensional
     subspaces in the n-dimensional euclidean space.
+
+    The subspaces are represented by their (unique) orthogonal projection
+    matrix onto themselves.
     """
 
     def __init__(self, n, k):
@@ -37,8 +40,9 @@ class Grassmannian(EmbeddedManifold):
 
         Parameters
         ----------
-        point
-        tolerance
+        point : array-like, shape=[n_samples, n, n]
+        tolerance : int
+            default: TOLERANCE
 
         Returns
         -------

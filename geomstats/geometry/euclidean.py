@@ -44,7 +44,9 @@ class Euclidean(Manifold):
         Parameters
         ----------
         n_samples: int, optional
+            default: 1
         bound: float, optional
+            default: 1.0
 
         Returns
         -------
@@ -143,6 +145,7 @@ class EuclideanMetric(RiemannianMetric):
         points: array-like, shape=[n_samples, dimension]
 
         weights: array-like, shape=[n_samples, 1], optional
+            default: None, which gives every point the same weight
 
         Returns
         -------
