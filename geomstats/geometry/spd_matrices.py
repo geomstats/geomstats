@@ -649,6 +649,7 @@ class SPDMetricAffine(RiemannianMetric):
         end_point = self.exp(tangent_vec_b, base_point)
         inverse_base_point = GeneralLinear.inv(base_point)
         congruence_mat = GeneralLinear.mul(end_point, inverse_base_point)
+        congruence_mat = gs.linalg.sqrtm(congruence_mat)
         return GeneralLinear.cong(tangent_vec_a, congruence_mat)
 
 
