@@ -21,6 +21,15 @@ class Stiefel(EmbeddedManifold):
     """
 
     def __init__(self, n, p):
+        """Construct the Stiefel object.
+
+        Parameters
+        ----------
+        n : int
+            Dimension of the ambient vector space
+        p : int
+            Number of basis vectors in the orthonormal frames
+        """
         assert isinstance(n, int) and isinstance(p, int)
         assert p <= n
 
@@ -37,8 +46,21 @@ class Stiefel(EmbeddedManifold):
     def belongs(self, point, tolerance=TOLERANCE):
         """Evaluate if a point belongs to St(n,p).
 
-        i.e. if it is a p-frame in n-dimensional space,
-        and it is orthonormal
+        Evaluate if the point is a p-frame in n-dimensional space,
+        and it is orthonormal.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, n, p]
+            Points
+        tolerance : float, optional
+            Tolerance at which to evaluate.
+
+        Returns
+        -------
+        belongs : array-like, shape=[n_samples, 1]
+            Array of booleans evaluating if the corresponding points
+            belong to the Stiefel manifold.
         """
         point = gs.to_ndarray(point, to_ndim=3)
         n_points, n, p = point.shape
@@ -64,6 +86,17 @@ class Stiefel(EmbeddedManifold):
         If :math:`Z(p,n) \sim N(0,1)`, then :math:`St(n,p) \sim U`,
         according to Haar measure:
         :math:`St(n,p) := Z(Z^TZ)^{-1/2}`
+
+        Parameters
+        ----------
+        n_samples : int
+            Optional
+            Number of samples
+
+        Returns
+        -------
+        point : array-like, shape=[n_samples, n, p]
+            Points sampled on the Stiefel manifold
         """
         std_normal = gs.random.normal(size=(n_samples, self.n, self.p))
         std_normal_transpose = gs.transpose(std_normal, axes=(0, 2, 1))
@@ -76,9 +109,18 @@ class Stiefel(EmbeddedManifold):
 
 
 class StiefelCanonicalMetric(RiemannianMetric):
-    """Define the canonical metric for Stiefel manifolds."""
+    """Class that defines the canonical metric for Stiefel manifolds."""
 
     def __init__(self, n, p):
+        """Construct the StiefelCanonicalMetric object.
+
+        Parameters
+        ----------
+        n : int
+            Dimension of the ambient vector space
+        p : int
+            Number of basis vectors in the orthonormal frames
+        """
         dimension = int(p * n - (p * (p + 1) / 2))
         super(StiefelCanonicalMetric, self).__init__(
             dimension=dimension,
@@ -88,7 +130,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         self.p = p
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
-        r"""Compute the inner product on the tangent space at a base point.
+        r"""Inner product of two tangent vectors at a base point.
 
         Canonical inner product on the tangent space at `base_point`,
         which is different from the inner product induced by the embedding.
@@ -105,6 +147,20 @@ class StiefelCanonicalMetric(RiemannianMetric):
           Riemannian logarithm on the Stiefel manifold under the canonical
           metric. SIAM Journal on Matrix Analysis and Applications 38 (2),
           322-342, 2017. https://epubs.siam.org/doi/pdf/10.1137/16M1074485
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[n_samples, n, p]
+            First tangent vector at base point
+        tangent_vec_b : array-like, shape=[n_samples, n, p]
+            Second tangent vector at base point
+        base_point : array-like, shape=[n_samples, n, p]
+            Point in the Stiefel manifold
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[n_samples, 1]
+            Inner-product of the two tangent vectors
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
@@ -120,7 +176,21 @@ class StiefelCanonicalMetric(RiemannianMetric):
         return inner_prod
 
     def exp(self, tangent_vec, base_point):
-        """Compute Riemannian exponential of tan. vector wrt to base point."""
+        """Riemannian exponential of a tangent vector.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[n_samples, n, p]
+            Tangent vector at a base point
+        base_point : array-like, shape=[n_samples, n, p]
+            Point in the Stiefel manifold
+
+        Returns
+        -------
+        exp : array-like, shape=[n_samples, n, p]
+            Point in the Stiefel manifold equal to the Riemannian exponential
+            of tangent_vec at the base point
+        """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         n_tangent_vecs, _, _ = tangent_vec.shape
 
@@ -171,7 +241,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         return exp
 
     def log(self, point, base_point, max_iter=30):
-        """Compute Riemannian logarithm of a point wrt a base point.
+        """Riemannian logarithm of a point.
 
         Based on [ZR2017]_.
 
@@ -181,22 +251,53 @@ class StiefelCanonicalMetric(RiemannianMetric):
           Riemannian Logarithm on the Stiefel Manifold under the Canonical
           Metric" SIAM J. Matrix Anal. & Appl., 38(2), 322–342, 2017.
           https://arxiv.org/pdf/1604.05054.pdf
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, n, p]
+            Point in the Stiefel manifold
+        base_point : array-like, shape=[n_samples, n, p]
+            Point in the Stiefel manifold
+
+        Returns
+        -------
+        log : array-like, shape=[n_samples, dimension + 1]
+            Tangent vector at the base point equal to the Riemannian logarithm
+            of point at the base point.
         """
         def normal_component_qr(point, base_point, matrix_m):
-            """Compute QR decomposition of the normal component of a point."""
+            """QR decomposition of the normal component of a point.
+
+            Parameters
+            ----------
+            point : array-like, shape=[n_samples, n, p]
+            base_point : array-like, shape=[n_samples, n, p]
+            matrix_m : array-like
+
+            Returns
+            -------
+            matrix_q : array-like
+            matrix_n : array-like
+            """
+            # TODO(nina): Fill in
             matrix_k = point - gs.matmul(base_point, matrix_m)
 
             matrix_q, matrix_n = gs.linalg.qr(matrix_k)
             return matrix_q, matrix_n
 
         def orthogonal_completion(matrix_m, matrix_n):
-            """Compute the orthogonal matrix completion. TODO: fill in.
+            """Orthogonal matrix completion.
 
             Parameters
             ----------
-            matrix_m
-            matrix_n
+            matrix_m : array-like
+            matrix_n : array-like
+
+            Returns
+            -------
+            matrix_v : array-like
             """
+            # TODO(nina): Fill in
             matrix_w = gs.concatenate([matrix_m, matrix_n], axis=1)
 
             matrix_v = gs.zeros((
@@ -210,14 +311,19 @@ class StiefelCanonicalMetric(RiemannianMetric):
             return matrix_v
 
         def procrustes_preprocessing(matrix_v, matrix_m, matrix_n):
-            """TODO: fill in.
+            """Procrustes preprocessing.
 
             Parameters
             ----------
-            matrix_v
-            matrix_m
-            matrix_n
+            matrix_v : array-like
+            matrix_m : array-like
+            matrix_n : array-like
+
+            Returns
+            -------
+            matrix_v : array-like
             """
+            # TODO(nina): Fill in
             [matrix_d, matrix_s, matrix_r] = gs.linalg.svd(
                 matrix_v[:, p:2 * p, p:2 * p])
 
@@ -277,9 +383,24 @@ class StiefelCanonicalMetric(RiemannianMetric):
         return matrix_xv + matrix_qv
 
     def retraction(self, tangent_vec, base_point):
-        """Compute retraction map based on QR-decomposition.
+        """Retraction of a tangent vector.
+
+        This computation is based on the QR-decomposition.
 
         e.g. :math:`P_x(V) = qf(X + V)`
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[n_samples, n, p]
+            Tangent vector at a base point
+        base_point : array-like, shape=[n_samples, n, p]
+            Point in the Stiefel manifold
+
+        Returns
+        -------
+        exp : array-like, shape=[n_samples, n, p]
+            Point in the Stiefel manifold equal to the retraction
+            of tangent_vec at the base point
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         n_tangent_vecs, _, _ = tangent_vec.shape
@@ -306,9 +427,24 @@ class StiefelCanonicalMetric(RiemannianMetric):
         return result
 
     def lifting(self, point, base_point):
-        """Compute lifting map based on QR-decomposion.
+        """Lifting of a point.
+
+        This computation is based on the QR-decomposion.
 
         e.g. :math:`P_x^{-1}(Q) = QR - X`
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, n, p]
+            Point in the Stiefel manifold
+        base_point : array-like, shape=[n_samples, n, p]
+            Point in the Stiefel manifold
+
+        Returns
+        -------
+        log : array-like, shape=[n_samples, dimension + 1]
+            Tangent vector at the base point equal to the lifting
+            of point at the base point.
         """
         point = gs.to_ndarray(point, to_ndim=3)
         n_points, _, _ = point.shape
@@ -327,11 +463,37 @@ class StiefelCanonicalMetric(RiemannianMetric):
         n_liftings = gs.maximum(n_base_points, n_points)
 
         def make_minor(i, matrix):
-            """TODO: fill in."""
+            """Minor of a matrix.
+
+            Parameters
+            ----------
+            i : int
+                Index at which to extract the minor
+            matrix : array-like
+                Matrix from which to extract the minor
+
+            Returns
+            -------
+            minor : array-like
+                Minor of the matrix at index i
+            """
             return matrix[:i + 1, :i + 1]
 
         def make_column_r(i, matrix):
-            """TODO: fill in."""
+            """Auxiliary function constructing the column r.
+
+            Parameters
+            ----------
+            i : int
+                Index at which to extract the minor
+            matrix : array-like
+                Matrix
+
+            Returns
+            -------
+            column_r_i :  array-like
+            """
+            # TODO(nina): Fill in
             if i == 0:
                 assert matrix[0, 0] > 0, 'M[0,0] <= 0'
                 return gs.array([1. / matrix[0, 0]])
@@ -350,7 +512,19 @@ class StiefelCanonicalMetric(RiemannianMetric):
                 return column_r_i
 
         def make_b(i, matrix, list_matrices_r):
-            """TODO: fill in."""
+            """Auxialiary function constructing b.
+
+            Parameters
+            ----------
+            i : int
+            matrix : array-like
+            list_matrices_r : list
+
+            Returns
+            -------
+            b : array-like
+            """
+            # TODO(nina): Fill in
             b = gs.ones(i + 1)
 
             for j in range(i):
