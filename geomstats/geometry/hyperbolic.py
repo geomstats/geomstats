@@ -556,7 +556,6 @@ class HyperbolicMetric(RiemannianMetric):
         -------
         inner_prod : array-like, shape=[n_samples, 1]
             Inner-product of the two tangent vectors
-
         """
         inner_prod = self.scale ** 2 * self.embedding_metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point)
@@ -682,7 +681,6 @@ class HyperbolicMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-
         if self.point_type == 'extrinsic':
             point = gs.to_ndarray(point, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
