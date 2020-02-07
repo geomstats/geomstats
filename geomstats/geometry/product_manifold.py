@@ -50,7 +50,7 @@ class ProductManifold(Manifold):
 
         Parameters
         ----------
-        point
+        point : array-like
         point_type : str, {'vector', 'matrix'}
 
         Returns
@@ -87,12 +87,12 @@ class ProductManifold(Manifold):
 
         Parameters
         ----------
-        point
+        point : array-like
         point_type : str, {'vector', 'matrix'}
 
         Returns
         -------
-        regularize_points
+        regularize_points : array-like
         """
         # TODO(nina): Vectorize.
         if point_type is None:
@@ -120,10 +120,10 @@ class ProductManifold(Manifold):
 
         Parameters
         ----------
-        initial_point
-        end_point
-        initial_tangent_vec
-        point_type
+        initial_point : array-like, shape=[n_samples, dimension]
+        end_point : array-like, shape=[n_samples, dimension]
+        initial_tangent_vec : array-like, shape=[n_samples, dimension]
+        point_type : str, {'vector', 'matrix'}
 
         Returns
         -------
