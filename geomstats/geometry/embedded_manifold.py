@@ -13,9 +13,9 @@ class EmbeddedManifold(Manifold):
 
         Parameters
         ----------
-        dimension: int
+        dimension : int
             Dimension of the embedded manifold
-        embedding_manifold: Manifold
+        embedding_manifold : Manifold
             Embedding manifold
         """
         assert isinstance(dimension, int) or dimension == math.inf
@@ -29,7 +29,7 @@ class EmbeddedManifold(Manifold):
 
         Parameters
         ----------
-        point_intrinsic: array-like, shape=[n_samples, dim]
+        point_intrinsic : array-like, shape=[n_samples, dim]
             Point in the embedded manifold in intrinsic coordinates
         """
         raise NotImplementedError(
@@ -40,7 +40,7 @@ class EmbeddedManifold(Manifold):
 
         Parameters
         ----------
-        point_extrinsic: array-like, shape=[n_samples, dim_embedding]
+        point_extrinsic : array-like, shape=[n_samples, dim_embedding]
             Point in the embedded manifold in extrinsic coordinates,
             i. e. in the coordinates of the embedding manifold.
         """
@@ -52,7 +52,7 @@ class EmbeddedManifold(Manifold):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, dim_embedding]
+        point : array-like, shape=[n_samples, dim_embedding]
             Point in embedding manifold
         """
         raise NotImplementedError(
@@ -63,9 +63,9 @@ class EmbeddedManifold(Manifold):
 
         Parameters
         ----------
-        vector: array-like, shape=[n_samples, dim_embedding]
+        vector : array-like, shape=[n_samples, dim_embedding]
             Vector at the tangent space of the embedding manifold
-        base_point: array-like, shape=[n_samples, dim_embedding]
+        base_point : array-like, shape=[n_samples, dim_embedding]
             Point on the embedded manifold, in extrinsic coordinates.
         """
         raise NotImplementedError(
