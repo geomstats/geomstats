@@ -17,7 +17,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         Parameters
         ----------
         metrics : list
-            List of metrics in the product
+            List of metrics in the product.
         """
         self.n_metrics = len(metrics)
         dimensions = [metric.dimension for metric in metrics]
@@ -35,20 +35,20 @@ class ProductRiemannianMetric(RiemannianMetric):
             signature=(sig_0, sig_1, sig_2))
 
     def inner_product_matrix(self, base_point=None):
-        """Matrix of the inner product.
+        """Compute the matrix of the inner product.
 
         Matrix of the inner product defined by the Riemmanian metric
         at point base_point of the manifold.
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, dimension]
-            Point on the manifold at which to compute the inner-product matrix
+        base_point : array-like, shape=[n_samples, dimension], optional
+            Point on the manifold at which to compute the inner-product matrix.
 
         Returns
         -------
         matrix : array-like, shape=[n_samples, dimension, dimension]
-            Matrix of the inner-product at the base point
+            Matrix of the inner-product at the base point.
         """
         matrix = gs.zeros([self.dimension, self.dimension])
         b = self.dimensions[0]
@@ -66,21 +66,21 @@ class ProductRiemannianMetric(RiemannianMetric):
         return matrix
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Inner product of two tangent vectors at a base point.
+        """Compute the inner product of two tangent vectors at a base point.
 
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[n_samples, dimension + 1]
-            First tangent vector at base point
+            First tangent vector at base point.
         tangent_vec_b : array-like, shape=[n_samples, dimension + 1]
-            Second tangent vector at base point
-        base_point : array-like, shape=[n_samples, dimension + 1]
-            Point on the manifold
+            Second tangent vector at base point.
+        base_point : array-like, shape=[n_samples, dimension + 1], optional
+            Point on the manifold.
 
         Returns
         -------
         inner_prod : array-like, shape=[n_samples, 1]
-            Inner-product of the two tangent vectors
+            Inner-product of the two tangent vectors.
         """
         if base_point is None:
             base_point = [None, ] * self.n_metrics
@@ -94,20 +94,20 @@ class ProductRiemannianMetric(RiemannianMetric):
         return inner_product
 
     def exp(self, tangent_vec, base_point=None):
-        """Riemannian exponential of a tangent vector.
+        """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
         ----------
         tangent_vec : array-like, shape=[n_samples, dimension]
-            Tangent vector at a base point
+            Tangent vector at a base point.
         base_point : array-like, shape=[n_samples, dimension]
-            Point on the manifold
+            Point on the manifold.
 
         Returns
         -------
         exp : array-like, shape=[n_samples, dimension]
             Point on the manifold equal to the Riemannian exponential
-            of tangent_vec at the base point
+            of tangent_vec at the base point.
         """
         if base_point is None:
             base_point = [None, ] * self.n_metrics
@@ -118,7 +118,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         return exp
 
     def log(self, point, base_point=None):
-        """Riemannian logarithm of a point.
+        """Compute the Riemannian logarithm of a point.
 
         Parameters
         ----------
@@ -142,19 +142,19 @@ class ProductRiemannianMetric(RiemannianMetric):
         return log
 
     def squared_dist(self, point_a, point_b):
-        """Squared geodesic distance between two points.
+        """Compute the squared geodesic distance between two points.
 
         Parameters
         ----------
         point_a : array-like, shape=[n_samples, dimension]
-            First point on the manifold
+            First point on the manifold.
         point_b : array-like, shape=[n_samples, dimension]
-            Second point on the manifold
+            Second point on the manifold.
 
         Returns
         -------
         sq_dist : array-like, shape=[n_samples, 1]
-            Geodesic distance between the two points
+            Geodesic distance between the two points.
         """
         sq_distances = gs.asarray(
             [self.metrics[i].squared_dist(
