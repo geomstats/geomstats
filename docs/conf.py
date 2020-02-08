@@ -14,7 +14,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'sphinx.ext.napoleon', # enable numpy or google docstrings
+    'sphinx.ext.napoleon',  # enable numpy or google docstrings
 ]
 
 # Configure napoleon for numpy docstring
@@ -44,7 +44,7 @@ html_static_path = ['_static']
 htmlhelp_basename = 'geomstatsdoc'
 
 latex_elements = {
- }
+}
 
 
 latex_documents = [
