@@ -746,8 +746,9 @@ class HyperbolicMetric(RiemannianMetric):
         to compute the log and exp using the 'ball' representation.
 
         .. math::
-        a\\oplus b=\\frac{(1+2\\langle a,b\\rangle + ||b||^2)a+
-        (1-||a||^2)b}{1+2\\langle a,b\\rangle + ||a||^2||b||^2}
+
+            a\\oplus b=\\frac{(1+2\\langle a,b\\rangle + ||b||^2)a+
+            (1-||a||^2)b}{1+2\\langle a,b\\rangle + ||a||^2||b||^2}
 
         Parameters
         ----------

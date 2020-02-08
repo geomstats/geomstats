@@ -20,7 +20,7 @@ extensions = [
 # Configure napoleon for numpy docstring
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True
-napoleon_use_param = True
+napoleon_use_param = False
 napoleon_use_ivar = False
 napoleon_use_rtype = False
 napoleon_include_init_with_doc = False

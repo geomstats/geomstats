@@ -312,15 +312,15 @@ class SpecialEuclidean(LieGroup):
         ----------
         point: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
 
-        Formula
-        -------
-        :math:`(R, t)^{-1} = (R^{-1}, R^{-1}.(-t))`
-
         Returns
         -------
         inverse_point : array-like,
             shape=[n_samples, {dimension, [n + 1, n + 1]}]
             the inverted point
+
+        Notes
+        -----
+        :math:`(R, t)^{-1} = (R^{-1}, R^{-1}.(-t))`
         """
         if point_type is None:
             point_type = self.default_point_type

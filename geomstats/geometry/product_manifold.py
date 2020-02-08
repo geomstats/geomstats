@@ -53,6 +53,7 @@ class ProductManifold(Manifold):
         point : array-like, shape=[n_samples, dim]
                            or shape=[n_samples, dim_2, dim_2]
             Point.
+
         point_type : str, {'vector', 'matrix'}
             Representation of point.
 
