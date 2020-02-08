@@ -31,9 +31,9 @@ class ProductManifold(Manifold):
         Parameters
         ----------
         manifolds : list
-            List of manifolds in the product
+            List of manifolds in the product.
         default_point_type : str, {'vector', 'matrix'}
-            Default representation of points
+            Default representation of points.
         """
         assert default_point_type in ['vector', 'matrix']
         self.default_point_type = default_point_type
@@ -46,21 +46,21 @@ class ProductManifold(Manifold):
             dimension=sum(dimensions))
 
     def belongs(self, point, point_type=None):
-        """Evaluate if a point belongs to the manifold.
+        """Test if a point belongs to the manifold.
 
         Parameters
         ----------
         point : array-like, shape=[n_samples, dim]
                            or shape=[n_samples, dim_2, dim_2]
-            Points
+            Point.
         point_type : str, {'vector', 'matrix'}
-            Representation of point
+            Representation of point.
 
         Returns
         -------
         belongs : array-like, shape=[n_samples, 1]
             Array of booleans evaluating if the corresponding points
-            belong to the manifold
+            belong to the manifold.
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -94,53 +94,50 @@ class ProductManifold(Manifold):
         ----------
         point : array-like, shape=[n_samples, dim]
                            or shape=[n_samples, dim_2, dim_2]
-            Points
+            Point.
         point_type : str, {'vector', 'matrix'}
-            Representation of point
+            Representation of point.
 
         Returns
         -------
-        regularize_points : array-like, shape=[n_samples, dim]
+        regularized_point : array-like, shape=[n_samples, dim]
                            or shape=[n_samples, dim_2, dim_2]
-            Points in the manifold's canonical representation
+            Point in the manifold's canonical representation.
         """
         # TODO(nina): Vectorize.
         if point_type is None:
             point_type = self.default_point_type
         assert point_type in ['vector', 'matrix']
 
-        regularize_points = [self.manifold[i].regularize(point[i])
+        regularized_point = [self.manifold[i].regularize(point[i])
                              for i in range(self.n_manifolds)]
 
         # TODO(nina): Put this in a decorator
         if point_type == 'vector':
-            regularize_points = gs.hstack(regularize_points)
+            regularized_point = gs.hstack(regularized_point)
         elif point_type == 'matrix':
-            regularize_points = gs.vstack(regularize_points)
-        return gs.all(regularize_points)
+            regularized_point = gs.vstack(regularized_point)
+        return gs.all(regularized_point)
 
-        return regularize_points
+        return regularized_point
 
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
                  point_type=None):
-        """Geodesic as a function of t.
+        """Compute the geodesic as a function of t.
 
         This geodesic is seen as the product of the geodesic on each space.
 
         Parameters
         ----------
-        initial_point : array-like, shape=[n_samples, dimension]
-            Initial point of the geodesic
-        end_point : array-like, shape=[n_samples, dimension]
-            Optional
-            End point of the geodesic
-        initial_tangent_vec : array-like, shape=[n_samples, dimension],
-            Optional
-            Initial tangent vector of the geodesic
-        point_type : str, {'vector', 'matrix'}
-            Optional
-            Representation of point
+        initial_point : array-like, shape=[n_samples, dim]
+            Initial point of the geodesic.
+        end_point : array-like, shape=[n_samples, dim], optional
+            End point of the geodesic.
+        initial_tangent_vec : array-like, shape=[n_samples, dim], optional
+            Initial tangent vector of the geodesic.
+        point_type : str, {'vector', 'matrix'}, optional
+            Representation of point.
 
         Returns
         -------
