@@ -387,50 +387,51 @@ Guidelines for writing documentation
 
 When writing docstrings, follow the `NumPy template <https://numpydoc.readthedocs.io/en/latest/format.html>`_
 ::
-    def my_method(self, my_param_1, my_param_2):
-        """Write a short title for the method.
+   def my_method(self, my_param_1, my_param_2):
+      """Write a short title for the method.
 
-        Write a description of the method, including "big O"
-        (:math:`O\left(g\left(n\right)\right)`) complexities.
+      Write a description of the method, including "big O"
+      (:math:`O\left(g\left(n\right)\right)`) complexities.
 
-        Parameters
-        ----------
-        my_param_1 : array-like, shape=[n_samples, dimension]
-            Write a short description of parameter my_param_1.
-        my_param_2 : str, {'vector', 'matrix'}
-            Write a short description of parameter my_param_2.
+      Parameters
+      ----------
+      my_param_1 : array-like, shape=[n_samples, dimension]
+         Write a short description of parameter my_param_1.
+      my_param_2 : str, {'vector', 'matrix'}
+         Write a short description of parameter my_param_2.
 
-        Returns
-        -------
-        my_result : array-like, shape=[n_samples, dimension, dimension]
-            Write a short description of the result returned by the method.
+      Returns
+      -------
+      my_result : array-like, shape=[n_samples, dimension, dimension]
+         Write a short description of the result returned by the method.
 
-        Notes
-        -----
-        If relevant, provide equations with (:math:)
-        describing computations performed in the method.
+      Notes
+      -----
+      If relevant, provide equations with (:math:)
+      describing computations performed in the method.
 
-        Example
-        -------
-        Provide code snippets showing how the method is used.
-        You can link to scripts of the examples/ directory.
+      Example
+      -------
+      Provide code snippets showing how the method is used.
+      You can link to scripts of the examples/ directory.
 
-        Reference
-        ---------
-        If relevant, provide a reference with associated pdf or
-        wikipedia page.
-        """
+      Reference
+      ---------
+      If relevant, provide a reference with associated pdf or
+      wikipedia page.
+      """
+
 In general, have the following in mind:
-    1. Use Python basic types. (``bool`` instead of ``boolean``)
-    2. Use ``[`` for defining shapes: ``array-like, shape=[n_samples,]``
-    3. For strings with multiple options, use brackets:
-       ``input: str, {'log', 'squared', 'multinomial'}``
-    4. 1D or 2D data can be a subset of
-       ``{array-like, ndarray, sparse matrix, dataframe}``. Note that ``array-like``
-       can also be a ``list``, while ``ndarray`` is explicitly only a ``numpy.ndarray``.
-    5. Add "See also" in docstrings for related classes/functions.
-       "See also" in docstrings should be one line per reference,
-       with a colon and an explanation.
+   1. Use Python basic types. (``bool`` instead of ``boolean``)
+   2. Use ``[`` for defining shapes: ``array-like, shape=[n_samples,]``
+   3. For strings with multiple options, use brackets:
+      ``input: str, {'log', 'squared', 'multinomial'}``
+   4. 1D or 2D data can be a subset of
+      ``{array-like, ndarray, sparse matrix, dataframe}``. Note that ``array-like``
+      can also be a ``list``, while ``ndarray`` is explicitly only a ``numpy.ndarray``.
+   5. Add "See also" in docstrings for related classes/functions.
+      "See also" in docstrings should be one line per reference,
+      with a colon and an explanation.
 
 When editing reStructuredText (``.rst``) files, try to keep line length under 
 80 characters (exceptions include links and tables).
@@ -496,13 +497,13 @@ guidelines:
 
 10. If you need several lines for a function call, use the syntax
 ::
-    my_function_with_a_very_long_name(
-        my_param_1=value_1, my_param_2=value_2)
+   my_function_with_a_very_long_name(
+      my_param_1=value_1, my_param_2=value_2)
 
 and not
 ::
-    my_function_with_a_very_long_name(my_param_1=value_1,
-                                      my_param_2=value_2)
+   my_function_with_a_very_long_name(my_param_1=value_1,
+                                     my_param_2=value_2)
 
 as the indentation will break and raise a flake8 error if the name
 of the function is changed.
