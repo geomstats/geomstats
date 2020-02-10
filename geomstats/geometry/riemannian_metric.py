@@ -225,7 +225,7 @@ class RiemannianMetric(Connection):
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
                  point_type='vector'):
-        """Return the geodesic as function of t.
+        """Geodesic as function of t.
 
         Geodesic curve defined by either:
         - an initial point and an initial tangent vector, or
