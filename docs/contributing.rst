@@ -254,7 +254,7 @@ complies with the following rules. The **bolded** ones are especially important:
    one is preceded by a keyword). Upon merging, those issues/PRs will
    automatically be closed by GitHub. If your pull request is simply
    related to some other issues/PRs, create a link to them without using
-   the keywords (e.g., ``See also #1234``).
+   the keywords (e.g., ``See Also #1234``).
 
 9. PRs should often substantiate the change, through benchmarks of
    performance and efficiency or through examples of usage. Examples also
@@ -386,11 +386,12 @@ Intro to Docstrings
 A docstring is a well-formatted description of your function/class/module which includes 
 its purpose, usage, and other information. 
 
-There are different markdown languages used for docstrings in Python. The most common 
+There are different markdown languages/formats used for docstrings in Python. The most common 
 three are reStructuredText, numpy, and google docstring styles. For geomstats, we are
 using the numpy docstring standard. 
-Check out `NumPy template <https://numpydoc.readthedocs.io/en/latest/format.html>`_ for a thorough walkthrough.
-Following this syntax is important not only for readability, it is also required for automated parsing for inclusion into our generated API Reference.
+When writing up your docstrings, please review the `NumPy template <https://numpydoc.readthedocs.io/en/latest/format.html>`_ 
+to understand the role and syntax of each section. Following this syntax is important not only for readability, 
+it is also required for automated parsing for inclusion into our generated API Reference.
 
 In Python, each module, class, and function has a ``__doc__`` attribute. It is set by default whenever you include
 a pair of three double quotation marks just after the ``def func(a, b):`` line in a .py file.
@@ -409,8 +410,10 @@ These are some of the most common elements for functions (and ones we’d like y
 1. Summary - a one-line (here <79 char) description of the object 
 
    a. Begins immediately after the first “”” with a capital letter, ends with a period
-   
+
    b. If describing a function, use a verb with the imperative mood (e.g. **Compute** vs Computes)
+
+   c. Use a verb which is as specific as possible, but default to Compute when uncertain (as opposed to Calculate or Evaluate, for example)
 
 2. Description - a more informative multi-line description of the function
 
@@ -420,12 +423,17 @@ These are some of the most common elements for functions (and ones we’d like y
 
 3. Parameters - a formatted list of arguments with type information and description
 
-   a. See :ref:`docstring_examples` below
+   a. On the first line, state the parameter name, type, and shape when appropriate. The parameter name should be separated from the rest of the line by a `` : `` (with a space on either side). If a parameter is optional, write ``optional`` after the type information (separated by a comma and a space).
+
+   b. On the next line, indent and write a summary of the parameter beginning with a capital letter and ending with a period.
+   
+   c. See :ref:`docstring_examples` below
 
 4. Returns (esp. for functions) - a formatted list of returned objects type information and description
    
-   a. See :ref:`docstring_examples` below
-
+   a. The syntax here is the same as in the parameters section above.
+   
+   b. See :ref:`docstring_examples` below
 
 If documenting a class, you would also want to include an Attributes section.
 There are many other optional sections you can include which are very helpful.
@@ -513,8 +521,8 @@ In general, have the following in mind:
       ``{array-like, ndarray, sparse matrix, dataframe}``. Note that ``array-like``
       can also be a ``list``, while ``ndarray`` is explicitly only a ``numpy.ndarray``.
  
-   5. Add "See also" in docstrings for related classes/functions.
-      "See also" in docstrings should be one line per reference,
+   5. Add "See Also" in docstrings for related classes/functions.
+      "See Also" in docstrings should be one line per reference,
       with a colon and an explanation.
 
 For Class and Module Examples see the `scikit-learn _weight_boosting.py module <https://github.com/scikit-learn/scikit-learn/blob/b194674c4/sklearn/ensemble/_weight_boosting.py#L285>`_. 
