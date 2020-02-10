@@ -423,7 +423,7 @@ These are some of the most common elements for functions (and ones we’d like y
 
 3. Parameters - a formatted list of arguments with type information and description
 
-   a. On the first line, state the parameter name, type, and shape when appropriate. The parameter name should be separated from the rest of the line by a `` : `` (with a space on either side). If a parameter is optional, write ``optional`` after the type information (separated by a comma and a space).
+   a. On the first line, state the parameter name, type, and shape when appropriate. The parameter name should be separated from the rest of the line by a ``:`` (with a space on either side). If a parameter is optional, write ``optional`` after the type information (separated by a comma and a space).
 
    b. On the next line, indent and write a summary of the parameter beginning with a capital letter and ending with a period.
    
