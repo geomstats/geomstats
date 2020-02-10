@@ -110,7 +110,7 @@ class Hyperbolic(EmbeddedManifold):
         Returns
         -------
         belongs : array-like, shape=[n_samples, 1]
-            Array of booleans evaluating if the corresponding points
+            Array of booleans indicating whether the corresponding points
             belong to the hyperbolic space.
         """
         return gs.sum(point**2, -1) < (1 + tolerance)
