@@ -39,16 +39,14 @@ class Hypersphere(EmbeddedManifold):
 
     By default, points are parameterized by their extrinsic
     (n+1)-coordinates.
+
+    Parameters
+    ----------
+    dimension: int
+        Dimension of the hypersphere.
     """
 
     def __init__(self, dimension):
-        """Construct the Hypersphere object.
-
-        Parameters
-        ----------
-        dimension: int
-            Dimension of the hypersphere.
-        """
         assert isinstance(dimension, int) and dimension > 0
         super(Hypersphere, self).__init__(
             dimension=dimension,
@@ -59,7 +57,7 @@ class Hypersphere(EmbeddedManifold):
     def belongs(self, point, tolerance=TOLERANCE):
         """Test if a point belongs to the hypersphere.
 
-        This evaluates if the point's squared norm in Euclidean space is 1.
+        This tests whether the point's squared norm in Euclidean space is 1.
 
         Parameters
         ----------
@@ -284,7 +282,7 @@ class Hypersphere(EmbeddedManifold):
         return point_intrinsic
 
     def random_uniform(self, n_samples=1):
-        """Sample in the hypersphere with the uniform distribution.
+        """Sample in the hypersphere from the uniform distribution.
 
         Parameters
         ----------
@@ -354,23 +352,22 @@ class Hypersphere(EmbeddedManifold):
 
 
 class HypersphereMetric(RiemannianMetric):
-    """Class for the Hypersphere Metric."""
+    """Class for the Hypersphere Metric.
+
+    Parameters
+    ----------
+    dimension : int
+        Dimension of the hypersphere.
+    """
 
     def __init__(self, dimension):
-        """Construct the HypersphereMetric object.
-
-        Parameters
-        ----------
-        dimension : int
-            Dimension of the hypersphere.
-        """
         super(HypersphereMetric, self).__init__(
             dimension=dimension,
             signature=(dimension, 0, 0))
         self.embedding_metric = EuclideanMetric(dimension + 1)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the inner product of two tangent vectors at a base point.
+        """Compute the inner-product of two tangent vectors at a base point.
 
         Parameters
         ----------
@@ -394,7 +391,7 @@ class HypersphereMetric(RiemannianMetric):
     def squared_norm(self, vector, base_point=None):
         """Compute the squared norm of a vector.
 
-        Squared norm of a vector associated with the inner product
+        Squared norm of a vector associated with the inner-product
         at the tangent space at a base point.
 
         Parameters

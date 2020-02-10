@@ -49,21 +49,19 @@ class Hyperbolic(EmbeddedManifold):
 
     If point_type is set to 'ball' then points are parametrized
     by their coordinates inside the Poincare Ball n-coordinates.
+
+    Parameters
+    ----------
+    dimension : int
+        Dimension of the hyperbolic space.
+    point_type : str, {'extrinsic', 'intrinsic', etc}, optional
+        Default coordinates to represent points in hyperbolic space.
+    scale : int, optional
+        Scale of the hyperbolic space, defined as the set of points
+        in Minkowski space whose squared norm is equal to -scale.
     """
 
     def __init__(self, dimension, point_type='extrinsic', scale=1):
-        """Construct the Hyperbolic object.
-
-        Parameters
-        ----------
-        dimension : int
-            Dimension of the hyperbolic space.
-        point_type : str, {'extrinsic', 'intrinsic', etc}, optional
-            Default coordinates to represent points in hyperbolic space.
-        scale : int, optional
-            Scale of the hyperbolic space, defined as the set of points
-            in Minkowski space whose squared norm is equal to -scale.
-        """
         assert isinstance(dimension, int) and dimension > 0
         super(Hyperbolic, self).__init__(
             dimension=dimension,
@@ -104,10 +102,10 @@ class Hyperbolic(EmbeddedManifold):
         Parameters
         ----------
         point : array-like, shape=[n_samples, dimension]
-            Point.
+            Point to be tested.
         tolerance : float, optional
-            Tolerance at which to evaluate how close is the squared norm
-            compared to 1.
+            Tolerance at which to evaluate how close the squared norm
+            is to the reference value.
 
         Returns
         -------
@@ -242,7 +240,7 @@ class Hyperbolic(EmbeddedManifold):
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         """Convert the parameterization of a point.
 
-        Convert the parameterization of a point in typerbolic space
+        Convert the parameterization of a point in hyperbolic space
         from its extrinsic coordinates, to its intrinsic coordinates
         in Minkowski space.
 
@@ -434,7 +432,7 @@ class Hyperbolic(EmbeddedManifold):
         """Convert coordinates of a point.
 
         Convert the parameterization of a point on the Hyperbolic space
-        from current coordinates system to the coordinates system given.
+        from current coordinate system to the coordinate system given.
 
         Parameters
         ----------
@@ -465,7 +463,7 @@ class Hyperbolic(EmbeddedManifold):
         """Convert to a type of coordinates given some type.
 
         Convert the parameterization of a point in hyperbolic space
-        from given coordinates system to the current coordinates system.
+        from given coordinate system to the current coordinate system.
 
         Parameters
         ----------
@@ -493,7 +491,7 @@ class Hyperbolic(EmbeddedManifold):
             ](extrinsic)
 
     def random_uniform(self, n_samples=1, bound=1.):
-        """Sample in hyperbolic space with the uniform distribution.
+        """Sample in hyperbolic space from the uniform distribution.
 
         Parameters
         ----------
@@ -514,21 +512,20 @@ class Hyperbolic(EmbeddedManifold):
 
 
 class HyperbolicMetric(RiemannianMetric):
-    """Class that defines operations using a Hyperbolic metric."""
+    """Class that defines operations using a Hyperbolic metric.
+
+    Parameters
+    ----------
+    dimension : int
+        Dimension of the hyperbolic space.
+    point_type : str, {'extrinsic', 'intrinsic', etc}, optional
+        Default coordinates to represent points in hyperbolic space.
+    scale : int, optional
+        Scale of the hyperbolic space, defined as the set of points
+        in Minkowski space whose squared norm is equal to -scale.
+    """
 
     def __init__(self, dimension, point_type='extrinsic', scale=1):
-        """Construct the HyperbolicMetric object.
-
-        Parameters
-        ----------
-        dimension : int
-            Dimension of the hyperbolic space.
-        point_type : str, {'extrinsic', 'intrinsic', etc}, optional
-            Default coordinates to represent points in hyperbolic space.
-        scale : int, optional
-            Scale of the hyperbolic space, defined as the set of points
-            in Minkowski space whose squared norm is equal to -scale.
-        """
         super(HyperbolicMetric, self).__init__(
             dimension=dimension,
             signature=(dimension, 0, 0))
@@ -538,7 +535,7 @@ class HyperbolicMetric(RiemannianMetric):
         self.scale = scale
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the inner product of two tangent vectors at a base point.
+        """Compute the inner-product of two tangent vectors at a base point.
 
         Parameters
         ----------
@@ -561,7 +558,7 @@ class HyperbolicMetric(RiemannianMetric):
     def squared_norm(self, vector, base_point=None):
         """Compute the squared norm of a vector.
 
-        Squared norm of a vector associated with the inner product
+        Squared norm of a vector associated with the inner-product
         at the tangent space at a base point.
 
         Parameters

@@ -6,18 +6,17 @@ from geomstats.geometry.manifold import Manifold
 
 
 class EmbeddedManifold(Manifold):
-    """Class for manifolds embedded in another manifold."""
+    """Class for manifolds embedded in an embedding manifold.
+
+    Parameters
+    ----------
+    dimension : int
+        Dimension of the embedded manifold.
+    embedding_manifold : Manifold
+        Embedding manifold.
+    """
 
     def __init__(self, dimension, embedding_manifold):
-        """Construct the EmbeddedManifold object.
-
-        Parameters
-        ----------
-        dimension : int
-            Dimension of the embedded manifold.
-        embedding_manifold : Manifold
-            Embedding manifold.
-        """
         assert isinstance(dimension, int) or dimension == math.inf
         assert dimension > 0
         super(EmbeddedManifold, self).__init__(

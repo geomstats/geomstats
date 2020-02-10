@@ -9,16 +9,15 @@ EPSILON = 1e-5
 # TODO(nina): unit tests
 
 class ProductRiemannianMetric(RiemannianMetric):
-    """Class for product of Riemannian metrics."""
+    """Class for product of Riemannian metrics.
+
+    Parameters
+    ----------
+    metrics : list
+        List of metrics in the product.
+    """
 
     def __init__(self, metrics):
-        """Construct the ProductRiemannianMetric object.
-
-        Parameters
-        ----------
-        metrics : list
-            List of metrics in the product.
-        """
         self.n_metrics = len(metrics)
         dimensions = [metric.dimension for metric in metrics]
         signatures = [metric.signature for metric in metrics]
@@ -35,9 +34,9 @@ class ProductRiemannianMetric(RiemannianMetric):
             signature=(sig_0, sig_1, sig_2))
 
     def inner_product_matrix(self, base_point=None):
-        """Compute the matrix of the inner product.
+        """Compute the matrix of the inner-product.
 
-        Matrix of the inner product defined by the Riemmanian metric
+        Matrix of the inner-product defined by the Riemmanian metric
         at point base_point of the manifold.
 
         Parameters
@@ -66,7 +65,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         return matrix
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the inner product of two tangent vectors at a base point.
+        """Compute the inner-product of two tangent vectors at a base point.
 
         Parameters
         ----------
