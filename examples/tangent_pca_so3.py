@@ -1,7 +1,4 @@
-"""
-Compute the mean of a data set of 3D rotations.
-Performs tangent PCA at the mean.
-"""
+"""Perform tangent PCA at the mean."""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,6 +15,7 @@ N_COMPONENTS = 2
 
 
 def main():
+    """Perform tangent PCA at the mean."""
     fig = plt.figure(figsize=(15, 5))
 
     data = SO3_GROUP.random_uniform(n_samples=N_SAMPLES)
@@ -32,7 +30,7 @@ def main():
     print(tangent_projected_data[:5])
 
     ax_var = fig.add_subplot(121)
-    xticks = np.arange(1, N_COMPONENTS+1, 1)
+    xticks = np.arange(1, N_COMPONENTS + 1, 1)
     ax_var.xaxis.set_ticks(xticks)
     ax_var.set_title('Explained variance')
     ax_var.set_xlabel('Number of Principal Components')

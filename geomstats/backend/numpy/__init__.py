@@ -19,6 +19,7 @@ from autograd.numpy import (  # NOQA
     argmin,
     array,
     asarray,
+    atleast_2d,
     average,
     clip,
     concatenate,
@@ -45,6 +46,7 @@ from autograd.numpy import (  # NOQA
     hstack,
     identity,
     isclose,
+    isnan,
     ix_,
     less,
     less_equal,
@@ -70,6 +72,7 @@ from autograd.numpy import (  # NOQA
     sqrt,
     squeeze,
     stack,
+    std,
     sum,
     tan,
     tanh,
@@ -161,12 +164,10 @@ def to_ndarray(x, to_ndim, axis=0):
     x = _np.array(x)
     if x.ndim == to_ndim - 1:
         x = _np.expand_dims(x, axis=axis)
-    assert x.ndim >= to_ndim
+
+    if x.ndim != 0:
+        assert x.ndim >= to_ndim
     return x
-
-
-def norm(val, axis):
-    return _np.linalg.norm(val, axis=axis)
 
 
 def rand(*args, **largs):
@@ -187,7 +188,7 @@ def diag(x):
     m = int(k / n)
     result = zeros((m, n, n))
     for i in range(m):
-        result[i] = aux[i*n:(i+1)*n, i*n:(i+1)*n]
+        result[i] = aux[i * n:(i + 1) * n, i * n:(i + 1) * n]
     return result
 
 

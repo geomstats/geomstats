@@ -90,9 +90,11 @@ class TestMatricesMethods(geomstats.tests.TestCase):
             [[1., 2.],
              [2., 1.]],
             [[3., 4.],
-             [4., 5.]]])
-        result = gs.all(self.space.is_symmetric(points))
-        expected = True
+             [4., 5.]],
+            [[1., 2.],
+             [3., 4.]]])
+        result = self.space.is_symmetric(points)
+        expected = [True, True, False]
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only

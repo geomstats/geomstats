@@ -11,8 +11,8 @@ import geomstats.vectorization
 class TestVectorizationMethods(geomstats.tests.TestCase):
     def setUp(self):
         @geomstats.vectorization.decorator(
-                ['tangent_vec_a', 'tangent_vec_b'],
-                ['vector', 'vector'])
+            ['tangent_vec_a', 'tangent_vec_b'],
+            ['vector', 'vector'])
         def foo(tangent_vec_a, tangent_vec_b):
             result = gs.einsum(
                 'ni,ni->ni', tangent_vec_a, tangent_vec_b)
@@ -20,8 +20,8 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
             return result
 
         @geomstats.vectorization.decorator(
-                ['tangent_vec_a', 'tangent_vec_b'],
-                ['vector', 'vector'])
+            ['tangent_vec_a', 'tangent_vec_b'],
+            ['vector', 'vector'])
         def foo_scalar_output(tangent_vec_a, tangent_vec_b):
             result = gs.einsum(
                 'ni,ni->n', tangent_vec_a, tangent_vec_b)
@@ -29,8 +29,8 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
             return result
 
         @geomstats.vectorization.decorator(
-                ['tangent_vec_a', 'tangent_vec_b', 'in_scalar'],
-                ['vector', 'vector', 'scalar'])
+            ['tangent_vec_a', 'tangent_vec_b', 'in_scalar'],
+            ['vector', 'vector', 'scalar'])
         def foo_scalar_input_output(tangent_vec_a, tangent_vec_b, in_scalar):
             aux = gs.einsum(
                 'ni,ni->n', tangent_vec_a, tangent_vec_b)

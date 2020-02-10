@@ -14,9 +14,18 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
+    'sphinx.ext.napoleon',  # enable numpy or google docstrings
 ]
 
-templates_path = ['templates']
+# Configure napoleon for numpy docstring
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+napoleon_use_param = False
+napoleon_use_ivar = False
+napoleon_use_rtype = False
+napoleon_include_init_with_doc = False
+
+templates_path = ['_templates']
 
 source_suffix = '.rst'
 
@@ -30,12 +39,12 @@ pygments_style = None
 
 html_theme = 'sphinx_rtd_theme'
 
-html_static_path = ['static']
+html_static_path = ['_static']
 
 htmlhelp_basename = 'geomstatsdoc'
 
 latex_elements = {
- }
+}
 
 
 latex_documents = [

@@ -1,21 +1,28 @@
 """Riemannian and pseudo-Riemannian metrics."""
 
 import math
+import warnings
+
+import autograd
 
 import geomstats.backend as gs
+from geomstats.geometry.connection import Connection
+
 
 EPSILON = 1e-4
 N_CENTERS = 10
 TOLERANCE = 1e-5
 N_REPETITIONS = 20
 N_MAX_ITERATIONS = 50000
+N_STEPS = 10
 
 
 def loss(y_pred, y_true, metric):
-    """Compute loss given by a Riemannian metric.
+    """Compute loss function between prediction and ground truth.
 
-    Loss function given by a Riemannian metric expressed as the squared
-    geodesic distance between the prediction and the ground truth.
+    Loss function given by a Riemannian metric,
+    expressed as the squared geodesic distance between the prediction
+    and the ground truth.
 
     Parameters
     ----------
@@ -26,13 +33,14 @@ def loss(y_pred, y_true, metric):
     Returns
     -------
     loss
+
     """
     loss = metric.squared_dist(y_pred, y_true)
     return loss
 
 
 def grad(y_pred, y_true, metric):
-    """Compute closed-form for the gradient of the loss function."""
+    """Closed-form for the gradient of the loss function."""
     tangent_vec = metric.log(base_point=y_pred, point=y_true)
     grad_vec = - 2. * tangent_vec
 
@@ -45,17 +53,17 @@ def grad(y_pred, y_true, metric):
     return grad
 
 
-class RiemannianMetric(object):
+class RiemannianMetric(Connection):
     """Class for Riemannian and pseudo-Riemannian metrics."""
 
     def __init__(self, dimension, signature=None):
         assert isinstance(dimension, int) or dimension == math.inf
         assert dimension > 0
-        self.dimension = dimension
+        super().__init__(dimension=dimension)
         self.signature = signature
 
     def inner_product_matrix(self, base_point=None):
-        """Compute inner product matrix at the tangent space at base point.
+        """Inner product matrix at the tangent space at a base point.
 
         Parameters
         ----------
@@ -66,31 +74,71 @@ class RiemannianMetric(object):
             ' is not implemented.')
 
     def inner_product_inverse_matrix(self, base_point=None):
-        """Compute inner prod. inv. matrix at the tangent space at base point.
+        """Inner product matrix at the tangent space at a base point.
 
         Parameters
         ----------
         base_point : array-like, shape=[n_samples, dimension], optional
         """
-        raise NotImplementedError(
-                'The computation of the inner product inv. matrix'
-                ' is not implemented.')
+        metric_matrix = self.inner_product_matrix(base_point)
+        cometric_matrix = gs.linalg.inv(metric_matrix)
+        return cometric_matrix
+
+    def inner_product_derivative_matrix(self, base_point=None):
+        """Compute derivative of the inner prod matrix at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[n_samples, dimension], optional
+        """
+        metric_derivative = autograd.jacobian(self.inner_product_matrix)
+        return metric_derivative(base_point)
+
+    def christoffels(self, base_point):
+        """Compute Christoffel symbols associated with the connection.
+
+        Parameters
+        ----------
+        base_point: array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        christoffels: array-like,
+                             shape=[n_samples, dimension, dimension, dimension]
+        """
+        cometric_mat_at_point = self.inner_product_inverse_matrix(base_point)
+        metric_derivative_at_point = self.inner_product_derivative_matrix(
+            base_point)
+        term_1 = gs.einsum('nim,nmkl->nikl',
+                           cometric_mat_at_point,
+                           metric_derivative_at_point)
+        term_2 = gs.einsum('nim,nmlk->nilk',
+                           cometric_mat_at_point,
+                           metric_derivative_at_point)
+        term_3 = - gs.einsum('nim,nklm->nikl',
+                             cometric_mat_at_point,
+                             metric_derivative_at_point)
+
+        christoffels = 0.5 * (term_1 + term_2 + term_3)
+        return christoffels
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute inner product between two tangent vectors at a base point.
+        """Inner product between two tangent vectors at a base point.
 
         Parameters
         ----------
         tangent_vec_a: array-like, shape=[n_samples, dimension]
                                    or shape=[1, dimension]
+
         tangent_vec_b: array-like, shape=[n_samples, dimension]
                                    or shape=[1, dimension]
+
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
 
         Returns
         -------
-        inner_product
+        inner_product : array-like, shape=[n_samples,]
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
@@ -135,21 +183,19 @@ class RiemannianMetric(object):
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
-        """Compute the squared norm of a vector.
+        """Compute the square of the norm of a vector.
 
         Squared norm of a vector associated to the inner product
         at the tangent space at a base point.
 
         Parameters
         ----------
-        vector: array-like, shape=[n_samples, dimension]
-                            or shape=[1, dimension]
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
+        vector : array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
-        sq_norm
+        sq_norm : array-like, shape=[n_samples,]
         """
         sq_norm = self.inner_product(vector, vector, base_point)
         return sq_norm
@@ -165,76 +211,39 @@ class RiemannianMetric(object):
 
         Parameters
         ----------
-        vector: array-like, shape=[n_samples, dimension]
-                            or shape=[1, dimension]
-
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
+        vector : array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
-        norm
+        norm : array-like, shape=[n_samples,]
         """
         sq_norm = self.squared_norm(vector, base_point)
         norm = gs.sqrt(sq_norm)
         return norm
 
-    def exp(self, tangent_vec, base_point=None):
-        """Compute Riemannian exponential of tangent vector wrt to base point.
-
-        Parameters
-        ----------
-        tangent_vec: array-like, shape=[n_samples, dimension]
-                                 or shape=[1, dimension]
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
-
-        Returns
-        -------
-        exp
-        """
-        raise NotImplementedError(
-            'The Riemannian exponential is not implemented.')
-
-    def log(self, point, base_spoint=None):
-        """Compute Riemannian logarithm of a point wrt a base point.
-
-        Parameters
-        ----------
-        point: array-like, shape=[n_samples, dimension]
-                           or shape=[1, dimension]
-
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
-
-        Returns
-        -------
-        log
-        """
-        raise NotImplementedError(
-            'The Riemannian logarithm is not implemented.')
-
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
                  point_type='vector'):
-        """Compute geodesic curve.
+        """Return the geodesic as function of t.
 
         Geodesic curve defined by either:
         - an initial point and an initial tangent vector, or
-        -an initial point and an end point.
+        - an initial point and an end point.
 
         The geodesic is returned as a function parameterized by t.
 
         Parameters
         ----------
-        initial_point
-        end_point
-        initial_tangent_vec
-        point_type
+        initial_point : array-like, shape=[n_samples, dimension]
+        end_point : array-like, shape=[n_samples, dimension], optional
+        initial_tangent_vec : array-like, shape=[n_samples, dimension],
+            optional
+        point_type : str, optional
 
         Returns
         -------
-        point_on_geodesic : callable
+        path : callable
         """
         point_ndim = 1
         if point_type == 'matrix':
@@ -258,12 +267,12 @@ class RiemannianMetric(object):
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
                                             to_ndim=point_ndim + 1)
 
-        def point_on_geodesic(t):
+        def path(t):
             """Generate a function parameterizing the geodesic.
 
             Parameters
             ----------
-            t
+            t :  parameter value of the geodesic
 
             Returns
             -------
@@ -292,21 +301,19 @@ class RiemannianMetric(object):
                                        base_point=new_initial_point)
             return point_at_time_t
 
-        return point_on_geodesic
+        return path
 
     def squared_dist(self, point_a, point_b):
-        """Compute squared geodesic distance between two points.
+        """Squared geodesic distance between two points.
 
         Parameters
         ----------
-        point_a: array-like, shape=[n_samples, dimension]
-                             or shape=[1, dimension]
-        point_b: array-like, shape=[n_samples, dimension]
-                             or shape=[1, dimension]
+        point_a : array-like, shape=[n_samples, dimension]
+        point_b : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
-        sq_dist
+        sq_dist : array-like, shape=[n_samples,]
         """
         log = self.log(point=point_b, base_point=point_a)
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
@@ -314,20 +321,19 @@ class RiemannianMetric(object):
         return sq_dist
 
     def dist(self, point_a, point_b):
-        """Compute geodesic distance between two points.
+        """Geodesic distance between two points.
 
-        Note: It only works for positive definite Riemannian metrics.
+        Note: It only works for positive definite
+        Riemannian metrics.
 
         Parameters
         ----------
-        point_a: array-like, shape=[n_samples, dimension]
-                             or shape=[1, dimension]
-        point_b: array-like, shape=[n_samples, dimension]
-                             or shape=[1, dimension]
+        point_a : array-like, shape=[n_samples, dimension]
+        point_b : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
-        dist
+        dist : array-like, shape=[n_samples,]
         """
         sq_dist = self.squared_dist(point_a, point_b)
         dist = gs.sqrt(sq_dist)
@@ -338,16 +344,13 @@ class RiemannianMetric(object):
                  weights=None,
                  base_point=None,
                  point_type='vector'):
-        """Compute variance of (weighted) points wrt a base point.
+        """Variance of (weighted) points wrt a base point.
 
         Parameters
         ----------
         points: array-like, shape=[n_samples, dimension]
-        weights: array-like, shape=[n_samples, 1], optional
 
-        Returns
-        -------
-        variance
+        weights: array-like, shape=[n_samples, 1], optional
         """
         if point_type == 'vector':
             points = gs.to_ndarray(points, to_ndim=2)
@@ -383,100 +386,143 @@ class RiemannianMetric(object):
              n_max_iterations=32,
              epsilon=EPSILON,
              point_type='vector',
+             mean_method='default',
              verbose=False):
-        """Compute the Frechet mean of (weighted) points.
+        """Frechet mean of (weighted) points.
 
         Parameters
         ----------
-        points: array-like, shape=[n_samples, dimension]
-        weights: array-like, shape=[n_samples, 1], optional
-        verbose: bool, optional
+        points : array-like, shape=[n_samples, dimension]
+        weights : array-like, shape=[n_samples, 1], optional
+        verbose : bool, optional
 
         Returns
         -------
-        mean
+        mean : array-like
+            the Frechet mean of points, a point on the manifold
         """
-        # TODO(nina): Profile this code to study performance,
-        # i.e. what to do with sq_dists_between_iterates.
-        def while_loop_cond(iteration, mean, variance, sq_dist):
-            result = ~gs.logical_or(
-                gs.isclose(variance, 0.),
-                gs.less_equal(sq_dist, epsilon * variance))
-            return result[0, 0] or iteration == 0
+        if mean_method == 'default':
 
-        def while_loop_body(iteration, mean, variance, sq_dist):
-            logs = self.log(point=points, base_point=mean)
-            tangent_mean = gs.einsum('nk,nj->j', weights, logs)
+            # TODO(nina): Profile this code to study performance,
+            # i.e. what to do with sq_dists_between_iterates.
+            def while_loop_cond(iteration, mean, variance, sq_dist):
+                result = ~gs.logical_or(
+                    gs.isclose(variance, 0.),
+                    gs.less_equal(sq_dist, epsilon * variance))
+                return result[0, 0] or iteration == 0
 
-            tangent_mean /= sum_weights
+            def while_loop_body(iteration, mean, variance, sq_dist):
 
-            mean_next = self.exp(
-                tangent_vec=tangent_mean,
-                base_point=mean)
+                logs = self.log(point=points, base_point=mean)
 
-            sq_dist = self.squared_dist(mean_next, mean)
-            sq_dists_between_iterates.append(sq_dist)
+                tangent_mean = gs.einsum('nk,nj->j', weights, logs)
 
-            variance = self.variance(points=points,
-                                     weights=weights,
-                                     base_point=mean_next)
+                tangent_mean /= sum_weights
 
-            mean = mean_next
-            iteration += 1
-            return [iteration, mean, variance, sq_dist]
+                mean_next = self.exp(
+                    tangent_vec=tangent_mean,
+                    base_point=mean)
 
-        if point_type == 'vector':
-            points = gs.to_ndarray(points, to_ndim=2)
-        if point_type == 'matrix':
-            points = gs.to_ndarray(points, to_ndim=3)
-        n_points = gs.shape(points)[0]
+                sq_dist = self.squared_dist(mean_next, mean)
+                sq_dists_between_iterates.append(sq_dist)
 
-        if weights is None:
-            weights = gs.ones((n_points, 1))
+                variance = self.variance(points=points,
+                                         weights=weights,
+                                         base_point=mean_next)
 
-        weights = gs.array(weights)
-        weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
+                mean = mean_next
+                iteration += 1
+                return [iteration, mean, variance, sq_dist]
 
-        sum_weights = gs.sum(weights)
+            if point_type == 'vector':
+                points = gs.to_ndarray(points, to_ndim=2)
+            if point_type == 'matrix':
+                points = gs.to_ndarray(points, to_ndim=3)
+            n_points = gs.shape(points)[0]
 
-        mean = points[0]
-        if point_type == 'vector':
+            if weights is None:
+                weights = gs.ones((n_points, 1))
+
+            weights = gs.array(weights)
+            weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
+
+            sum_weights = gs.sum(weights)
+
+            mean = points[0]
+            if point_type == 'vector':
+                mean = gs.to_ndarray(mean, to_ndim=2)
+            if point_type == 'matrix':
+                mean = gs.to_ndarray(mean, to_ndim=3)
+
+            if n_points == 1:
+                return mean
+
+            sq_dists_between_iterates = []
+            iteration = 0
+            sq_dist = gs.array([[0.]])
+            variance = gs.array([[0.]])
+
+            last_iteration, mean, variance, sq_dist = gs.while_loop(
+                lambda i, m, v, sq: while_loop_cond(i, m, v, sq),
+                lambda i, m, v, sq: while_loop_body(i, m, v, sq),
+                loop_vars=[iteration, mean, variance, sq_dist],
+                maximum_iterations=n_max_iterations)
+
+            if last_iteration == n_max_iterations:
+                print('Maximum number of iterations {} reached.'
+                      'The mean may be inaccurate'.format(n_max_iterations))
+
+            if verbose:
+                print('n_iter: {}, final variance: {}, final dist: {}'.format(
+                    last_iteration, variance, sq_dist))
+
             mean = gs.to_ndarray(mean, to_ndim=2)
-        if point_type == 'matrix':
-            mean = gs.to_ndarray(mean, to_ndim=3)
-
-        if n_points == 1:
             return mean
 
-        sq_dists_between_iterates = []
-        iteration = 0
-        sq_dist = gs.array([[0.]])
-        variance = gs.array([[0.]])
+        if mean_method == 'frechet-poincare-ball':
 
-        last_iteration, mean, variance, sq_dist = gs.while_loop(
-            lambda i, m, v, sq: while_loop_cond(i, m, v, sq),
-            lambda i, m, v, sq: while_loop_body(i, m, v, sq),
-            loop_vars=[iteration, mean, variance, sq_dist],
-            maximum_iterations=n_max_iterations)
+            lr = 1e-3
+            tau = 5e-3
 
-        if last_iteration == n_max_iterations:
-            print('Maximum number of iterations {} reached.'
-                  'The mean may be inaccurate'.format(n_max_iterations))
+            if len(points) == 1:
+                return points
 
-        if verbose:
-            print('n_iter: {}, final variance: {}, final dist: {}'.format(
-                last_iteration, variance, sq_dist))
+            iteration = 0
+            convergence = math.inf
+            barycenter = points.mean(0, keepdims=True) * 0
 
-        mean = gs.to_ndarray(mean, to_ndim=2)
-        return mean
+            while convergence > tau and n_max_iterations > iteration:
+
+                iteration += 1
+
+                expand_barycenter = gs.repeat(barycenter, points.shape[0], 0)
+
+                grad_tangent = 2 * self.log(points, expand_barycenter)
+
+                cc_barycenter = self.exp(lr * grad_tangent.sum(0,
+                                                               keepdims=True),
+                                         barycenter)
+
+                convergence = self.dist(cc_barycenter, barycenter).max().item()
+
+                barycenter = cc_barycenter
+
+            if iteration == n_max_iterations:
+                warnings.warn(
+                    'Maximum number of iterations {} reached. The '
+                    'mean may be inaccurate'.format(n_max_iterations))
+
+            return barycenter
 
     def adaptive_gradientdescent_mean(self, points,
                                       weights=None,
-                                      n_max_iterations=32,
+                                      n_max_iterations=40,
                                       epsilon=1e-12,
-                                      init_points=[]):
+                                      init_points=[],
+                                      verbose=False):
         """Compute Frechet mean of (weighted) points using adaptive time-steps.
 
+        Frechet mean of (weighted) points using adaptive time-steps
         The loss function optimized is ||M_1(x)||_x (where M_1(x) is
         the tangent mean at x) rather than the mean-square-distance (MSD)
         because this saves computation time.
@@ -484,17 +530,21 @@ class RiemannianMetric(object):
         Parameters
         ----------
         points: array-like, shape=[n_samples, dimension]
+
         weights: array-like, shape=[n_samples, 1], optional
+
         init_points: array-like, shape=[n_init, dimension]
         epsilon: tolerance for stopping the gradient descent
+        verbose: verbose mode printing the surrogate value
 
-        Returns
-        -------
-        mean
+        epsilon: tolerance for stopping the gradient descent
         """
         # TODO(Xavier): This function assumes that all points are lists
         #  of vectors and not of matrices
         n_points = gs.shape(points)[0]
+
+        if n_points == 1:
+            return gs.to_ndarray(points[0], to_ndim=2)
 
         if weights is None:
             weights = gs.ones((n_points, 1))
@@ -511,11 +561,8 @@ class RiemannianMetric(object):
         else:
             current_mean = init_points[0]
 
-        if n_points == 1:
-            return gs.to_ndarray(current_mean, to_ndim=2)
-
         tau = 1.0
-        iter = 0
+        iteration = 0
 
         logs = self.log(point=points, base_point=current_mean)
         current_tangent_mean = gs.einsum('nk,nj->j', weights, logs)
@@ -523,8 +570,8 @@ class RiemannianMetric(object):
         norm_current_tangent_mean = gs.linalg.norm(current_tangent_mean)
 
         while (norm_current_tangent_mean > epsilon
-                and iter < n_max_iterations):
-            iter = iter + 1
+                and iteration < n_max_iterations):
+            iteration = iteration + 1
             shooting_vector = gs.to_ndarray(
                 tau * current_tangent_mean,
                 to_ndim=2)
@@ -535,56 +582,31 @@ class RiemannianMetric(object):
             next_tangent_mean = gs.einsum('nk,nj->j', weights, logs)
             next_tangent_mean /= sum_weights
             norm_next_tangent_mean = gs.linalg.norm(next_tangent_mean)
+            if verbose:
+                print(
+                    "Iter {0}: tau= {1}, "
+                    "norm_current_tangent_mean = {2}".format(
+                        iter, tau, norm_current_tangent_mean))
             if norm_next_tangent_mean < norm_current_tangent_mean:
                 current_mean = next_mean
                 current_tangent_mean = next_tangent_mean
                 norm_current_tangent_mean = norm_next_tangent_mean
-                tau = max(1.0, 1.0511111*tau)
+                tau = max(1.0, 1.0511111 * tau)
             else:
                 tau = tau * 0.8
 
-        if iter == n_max_iterations:
-            print('Maximum number of iterations {} reached.'
-                  'The mean may be inaccurate'.format(n_max_iterations))
+        if iteration == n_max_iterations:
+            warnings.warn(
+                'Maximum number of iterations {} reached.'
+                'The mean may be inaccurate'.format(n_max_iterations))
 
         return gs.to_ndarray(current_mean, to_ndim=2)
 
-    def tangent_pca(self, points, base_point=None, point_type='vector'):
-        """Perform tPCA of points on the tangent space at a base point.
-
-        Tangent Principal Component Analysis (tPCA) of points
-        on the tangent space at a base point.
-
-        Parameters
-        ----------
-        points
-        base_point
-        point_type
-
-        Returns
-        -------
-        eigenvalues
-        tangent_eigenvecs
-        """
-        if point_type == 'matrix':
-            raise NotImplementedError(
-                'This is currently only implemented for vectors.')
-        if base_point is None:
-            base_point = self.mean(points)
-
-        tangent_vecs = self.log(points, base_point=base_point)
-
-        covariance_mat = gs.cov(tangent_vecs.transpose())
-        eigenvalues, tangent_eigenvecs = gs.linalg.eig(covariance_mat)
-
-        idx = eigenvalues.argsort()[::-1]
-        eigenvalues = eigenvalues[idx]
-        tangent_eigenvecs = tangent_eigenvecs[idx]
-
-        return eigenvalues, tangent_eigenvecs
-
     def diameter(self, points):
-        """Compute distance between the two points farthest from each other.
+        """Give the distance between two farthest points.
+
+        Distance between the two points that are farthest away from each other
+        in points.
 
         Parameters
         ----------
@@ -593,6 +615,7 @@ class RiemannianMetric(object):
         Returns
         -------
         diameter
+
         """
         diameter = 0.0
         n_points = points.shape[0]
@@ -605,16 +628,16 @@ class RiemannianMetric(object):
         return diameter
 
     def closest_neighbor_index(self, point, neighbors):
-        """Compute closest neighbor of point among neighbors.
+        """Closest neighbor of point among neighbors.
 
         Parameters
         ----------
         point
         neighbors
-
         Returns
         -------
         closest_neighbor_index
+
         """
         dist = self.dist(point, neighbors)
         closest_neighbor_index = gs.argmin(dist)

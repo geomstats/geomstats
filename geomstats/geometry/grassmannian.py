@@ -26,8 +26,8 @@ class Grassmannian(EmbeddedManifold):
 
         dimension = int(k * (n - k))
         super(Grassmannian, self).__init__(
-              dimension=dimension,
-              embedding_manifold=Matrices(n, n))
+            dimension=dimension,
+            embedding_manifold=Matrices(n, n))
 
     def belongs(self, point, tolerance=TOLERANCE):
         """Check if the point belongs to the manifold.
@@ -45,8 +45,8 @@ class Grassmannian(EmbeddedManifold):
         belongs : bool
         """
         raise NotImplementedError(
-                'The Grassmann `belongs` is not implemented.'
-                'It shall test whether p*=p, p^2 = p and rank(p) = k.')
+            'The Grassmann `belongs` is not implemented.'
+            'It shall test whether p*=p, p^2 = p and rank(p) = k.')
 
 
 class GrassmannianCanonicalMetric(RiemannianMetric):
@@ -63,8 +63,8 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
 
         dimension = int(p * (n - p))
         super(GrassmannianCanonicalMetric, self).__init__(
-                dimension=dimension,
-                signature=(dimension, 0, 0))
+            dimension=dimension,
+            signature=(dimension, 0, 0))
         self.embedding_metric = EuclideanMetric(n * p)
 
     def exp(self, vector, point):
