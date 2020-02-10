@@ -145,7 +145,7 @@ class Hyperbolic(EmbeddedManifold):
                 if point_dim is self.dimension:
                     logging.warning(
                         'Use the extrinsic coordinates to '
-                        'represent points on the hyperbolic space.')
+                        'represent points in the hyperbolic space.')
                     return gs.array([[False]])
 
             sq_norm = self.embedding_metric.squared_norm(point)
@@ -363,7 +363,7 @@ class Hyperbolic(EmbeddedManifold):
     def _half_plane_to_extrinsic_coordinates(point):
         """Convert half plane to extrinsic coordinates.
 
-        Convert the parameterization of a point on the hyperbolic plane
+        Convert the parameterization of a point in the hyperbolic plane
         from its upper half plane model coordinates, to the extrinsic
         coordinates.
 
@@ -392,19 +392,19 @@ class Hyperbolic(EmbeddedManifold):
     def _extrinsic_to_half_plane_coordinates(point):
         """Convert extrinsic to half plane coordinates.
 
-        Convert the parameterization of a point on the hyperbolic plane
+        Convert the parameterization of a point in the hyperbolic plane
         from its intrinsic coordinates, to the poincare upper half plane
         coordinates.
 
         Parameters
         ----------
         point : array-like, shape=[n_samples, 2]
-            Point on the hyperbolic plane in intrinsic coordinates.
+            Point in the hyperbolic plane in intrinsic coordinates.
 
         Returns
         -------
         point_half_plane : array-like, shape=[n_samples, 2]
-            Point on the hyperbolic plane in Poincare upper half-plane
+            Point in the hyperbolic plane in Poincare upper half-plane
             coordinates.
         """
         point_ball = \
@@ -431,7 +431,7 @@ class Hyperbolic(EmbeddedManifold):
     def to_coordinates(self, point, to_point_type='ball'):
         """Convert coordinates of a point.
 
-        Convert the parameterization of a point on the Hyperbolic space
+        Convert the parameterization of a point in the hyperbolic space
         from current coordinate system to the coordinate system given.
 
         Parameters
