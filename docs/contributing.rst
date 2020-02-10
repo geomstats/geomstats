@@ -370,25 +370,79 @@ Building the documentation
 
 Building the documentation requires installing sphinx::
 
-    pip3 install sphinx
+   pip3 install sphinx
 
-To build the documentation, you need to be in the ``docs`` folder::
+To build the documentation, you need to be in the main ``geomstats`` folder. You can do this with::
 
-    cd docs
-
-In the vast majority of cases, you only need to generate the full web site::
-
-    sphinx-build -b html . build/html
-    make html
+   sphinx-build docs/ docs/html
 
 
-Guidelines for writing documentation
-====================================
+Writing Docstrings
+==================
 
-When writing docstrings, follow the `NumPy template <https://numpydoc.readthedocs.io/en/latest/format.html>`_
-::
+Intro to Docstrings
+^^^^^^^^^^^^^^^^^^^
+
+A docstring is a well-formatted description of your function/class/module which includes 
+its purpose, usage, and other information. 
+
+There are different markdown languages used for docstrings in Python. The most common 
+three are reStructuredText, numpy, and google docstring styles. For geomstats, we are
+using the numpy docstring standard. 
+Check out `NumPy template <https://numpydoc.readthedocs.io/en/latest/format.html>`_ for a thorough walkthrough.
+Following this syntax is important not only for readability, it is also required for automated parsing for inclusion into our generated API Reference.
+
+In Python, each module, class, and function has a `__doc__` attribute. It is set by default whenever you include
+a pair of three double quotation marks just after the `def func(a, b):` line in a .py file.
+
+You can look at these for any object by printing out the `__doc__` attribute. 
+Try this out with the np.array class and the np.mean function to see good examples::
+
+    >>> import numpy as np
+    >>> print(np.mean.__doc__)
+
+The Anatomy of a Docstring
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+These are some of the most common elements for functions (and ones we’d like you to add where appropriate):
+
+1. Summary - a one-line (here <79 char) description of the object 
+
+   a. Begins immediately after the first “”” with a capital letter, ends with a period
+   
+   b. If describing a function, use a verb with the imperative mood (e.g. **Compute** vs Computes)
+
+2. Description - a more informative multi-line description of the function
+
+   a. Separated from the summary line by a blank line
+
+   b. Begins with a capital letter and ends with period
+
+3. Parameters - a formatted list of arguments with type information and description
+
+   a. See :ref:`docstring_examples` below
+
+4. Returns (esp. for functions) - a formatted list of returned objects type information and description
+   
+   a. See :ref:`docstring_examples` below
+
+
+If documenting a class, you would also want to include an Attributes section.
+There are many other optional sections you can include which are very helpful.
+For example: Raises, See Also, Notes, Examples, References, etc.
+
+N.B. Within Notes, you can 
+	- include LaTex code 
+	- cite references in text using ids placed in References
+
+.. _docstring_examples:
+
+Docstring examples
+^^^^^^^^^^^^^^^^^^
+Here's a generic docstring template::
+
    def my_method(self, my_param_1, my_param_2):
-      """Write a short title for the method.
+      """Write a one-line summary for the method.
 
       Write a description of the method, including "big O"
       (:math:`O\left(g\left(n\right)\right)`) complexities.
@@ -421,17 +475,51 @@ When writing docstrings, follow the `NumPy template <https://numpydoc.readthedoc
       wikipedia page.
       """
 
+And here's a filled-in example from the Scikit-Learn project, modified to our syntax::
+
+   def fit_predict(self, X, y=None, sample_weight=None):
+      """Compute cluster centers and predict cluster index for each sample.
+
+      Convenience method; equivalent to calling fit(X) followed by
+      predict(X).
+
+      Parameters
+      ----------
+      X : {array-like, sparse_matrix} of shape=[n_samples, n_features]
+         New data to transform.
+      y : Ignored
+         Not used, present here for API consistency by convention.
+      sample_weight : array-like, shape [n_samples,], optional
+         The weights for each observation in X. If None, all observations
+         are assigned equal weight (default: None).
+
+      Returns
+      -------
+      labels : array, shape=[n_samples,]
+         Index of the cluster each sample belongs to.
+      """
+      return self.fit(X, sample_weight=sample_weight).labels_
+
 In general, have the following in mind:
+ 
    1. Use Python basic types. (``bool`` instead of ``boolean``)
+ 
    2. Use ``[`` for defining shapes: ``array-like, shape=[n_samples,]``
+ 
    3. For strings with multiple options, use brackets:
       ``input: str, {'log', 'squared', 'multinomial'}``
+ 
    4. 1D or 2D data can be a subset of
       ``{array-like, ndarray, sparse matrix, dataframe}``. Note that ``array-like``
       can also be a ``list``, while ``ndarray`` is explicitly only a ``numpy.ndarray``.
+ 
    5. Add "See also" in docstrings for related classes/functions.
       "See also" in docstrings should be one line per reference,
       with a colon and an explanation.
+
+For Class and Module Examples see the `scikit-learn _weight_boosting.py module <https://github.com/scikit-learn/scikit-learn/blob/b194674c4/sklearn/ensemble/_weight_boosting.py#L285>`_. 
+The class AdaBoost has a great example using the elements we’ve discussed here. Of course, these 
+examples are rather verbose, but they’re good for understanding the components.
 
 When editing reStructuredText (``.rst``) files, try to keep line length under 
 80 characters (exceptions include links and tables).
