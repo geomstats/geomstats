@@ -11,7 +11,7 @@ python:
 install:
     - pip install --upgrade pip setuptools wheel
     - pip install -q -r dev-requirements.txt
-    - pip install -q -r requirements.txt --only-binary=numpy,scipy
+    - pip install -q -r requirements.txt
 script:
     - >
       flake8 $(git diff --name-only master HEAD geomstats examples tests)
