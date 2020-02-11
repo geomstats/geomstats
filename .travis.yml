@@ -10,6 +10,7 @@ python:
 
 install:
     - pip install --upgrade pip setuptools wheel
+    - pip install -q -r ci-requirements.txt
     - pip install -q -r dev-requirements.txt
     - pip install -q -r requirements.txt
 script:
