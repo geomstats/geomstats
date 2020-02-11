@@ -24,3 +24,13 @@ env:
 
 after_success:
     - bash <(curl -s https://codecov.io/bash) -c -F $GEOMSTATS_BACKEND
+
+deploy:
+  - provider: pypi
+    username: $PYPI_USER
+    password: $PYPI_PASSWORD
+    on:
+      repo: geomstats/geomstats
+      tags: true
+    distributions: "sdist bdist_wheel"
+    skip_existing: true
