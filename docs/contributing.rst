@@ -165,9 +165,9 @@ It is often helpful to keep your local feature branch synchronized with the
 latest changes of the main geomstats repository::
 
     $ git fetch upstream
-    $ git merge upstream/master
+    $ git rebase upstream/master
 
-Subsequently, you might need to solve the conflicts. You can refer to the
+Subsequently, you might need to solve potential conflicts. Refer to the
 `Git documentation related to resolving merge conflict using the command
 line
 <https://help.github.com/articles/resolving-a-merge-conflict-using-the-command-line/>`_.
@@ -220,17 +220,24 @@ complies with the following rules. The **bolded** ones are especially important:
 
 5. **Make sure that your PR follows Python international style guidelines**,
    `PEP8 <https://www.python.org/dev/peps/pep-0008>`_, which you should read.
-   The software `flake8` automatically looks for style violations when you submit
-   your PR. We recommend installing flake8 with its plugins on your machine
+   The `flake8` package automatically checks for style violations when you
+   submit your PR. We recommend installing flake8 with its plugins on your
+   machine by running
 
-   `pip3 install flake8 flake8-docstrings flake8-import-order`
+   `pip3 install -r dev-requirements.txt`
 
    Then you can run
 
    `flake8 geomstats tests examples`
-   
-   Please avoid reformatting parts of the file that your pull request doesn't change, as it distracts
-   from code review.
+
+   To prevent adding commits which fail to adhere to the PEP8 guidelines, we
+   include a `pre-commit <https://pre-commit.com/>` config, which immediately
+   invokes flake8 on all files staged for commit when running `git commit`. To
+   enable the hook, simply run `pre-commit install` after installing
+   `pre-commit` either manually via `pip` or as part of `dev-requirements.txt`.
+
+   Please avoid reformatting parts of the file that your pull request doesn't
+   change, as it distracts during code reviews.
 
 6. **Make sure that your PR follows geomstats coding style and API**,
    see our `coding-guidelines`_ below. Ensuring style consistency throughout
@@ -432,7 +439,7 @@ In general, have the following in mind:
        "See also" in docstrings should be one line per reference,
        with a colon and an explanation.
 
-When editing reStructuredText (``.rst``) files, try to keep line length under 
+When editing reStructuredText (``.rst``) files, try to keep line length under
 80 characters (exceptions include links and tables).
 
 .. _coding-guidelines:
