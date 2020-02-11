@@ -10,9 +10,10 @@ python:
 
 install:
     - pip install --upgrade pip setuptools wheel
-    - pip install -q -r ci-requirements.txt
-    - pip install -q -r dev-requirements.txt
-    - pip install -q -r requirements.txt
+    - |
+      for req in ci-requirements.txt dev-requirements.txt requirements.txt; do
+        pip install -q -r $req
+      done
 script:
     - >
       flake8 $(git diff --name-only master HEAD geomstats examples tests)
