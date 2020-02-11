@@ -15,8 +15,8 @@ install:
 script:
     - >
       flake8 $(git diff --name-only master HEAD geomstats examples tests)
-      --ignore=D,W503,W504
-    - flake8 geomstats/geometry --ignore=W503,W504
+      --ignore=D
+    - flake8 geomstats/geometry
     - |
       if [[ $TRAVIS_PYTHON_VERSION != 3.8 ||
             ($TRAVIS_PYTHON_VERSION == 3.8 &&
