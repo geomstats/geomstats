@@ -1,4 +1,8 @@
-BCH_COEFFICIENTS = (
+"""Module exposing Baker-Campbell-Hausdorff approximation coefficents."""
+import geomstats.backend as gs
+
+
+BCH_COEFFICIENTS = gs.array([
     (1, 1, 0, 1, 1),
     (2, 2, 0, 1, 1),
     (3, 2, 1, -1, 2),
@@ -4719,4 +4723,4 @@ BCH_COEFFICIENTS = (
     (4718, 69, 41, 30517, 3632428800),
     (4719, 70, 41, 37151, 7264857600),
     (4720, 71, 41, 1513, 66528000)
-)
+])
