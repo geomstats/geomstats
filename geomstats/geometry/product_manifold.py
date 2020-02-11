@@ -13,28 +13,26 @@ class ProductManifold(Manifold):
     In contrast to the class Landmarks or DiscretizedCruves,
     the manifolds M_1, ..., M_n need not be the same, nor of
     same dimension, but the list of manifolds needs to be provided.
+
+    By default, a point is represented by an array of shape:
+        [n_samples, dim_1 + ... + dim_n_manifolds]
+    where n_manifolds is the number of manifolds in the product.
+    This type of representation is called 'vector'.
+
+    Alternatively, a point can be represented by an array of shape:
+        [n_samples, n_manifolds, dim]
+    if the n_manifolds have same dimension dim.
+    This type of representation is called `matrix`.
+
+    Parameters
+    ----------
+    manifolds : list
+        List of manifolds in the product.
+    default_point_type : str, {'vector', 'matrix'}
+        Default representation of points.
     """
 
     def __init__(self, manifolds, default_point_type='vector'):
-        """Instantiate an object of the class ProductManifold.
-
-        By default, a point is represented by an array of shape:
-            [n_samples, dim_1 + ... + dim_n_manifolds]
-        where n_manifolds is the number of manifolds in the product.
-        This type of representation is called 'vector'.
-
-        Alternatively, a point can be represented by an array of shape:
-            [n_samples, n_manifolds, dim]
-        if the n_manifolds have same dimension dim.
-        This type of representation is called `matrix`.
-
-        Parameters
-        ----------
-        manifolds : list
-            list of manifolds in the product
-        default_point_type : str, {'vector', 'matrix'}
-            default representation of points
-        """
         assert default_point_type in ['vector', 'matrix']
         self.default_point_type = default_point_type
 
@@ -46,16 +44,22 @@ class ProductManifold(Manifold):
             dimension=sum(dimensions))
 
     def belongs(self, point, point_type=None):
-        """Check if the point belongs to the manifold.
+        """Test if a point belongs to the manifold.
 
         Parameters
         ----------
-        point : array-like
+        point : array-like, shape=[n_samples, dim]
+                           or shape=[n_samples, dim_2, dim_2]
+            Point.
+
         point_type : str, {'vector', 'matrix'}
+            Representation of point.
 
         Returns
         -------
-        belongs: array-like, shape=[n_samples, 1]
+        belongs : array-like, shape=[n_samples, 1]
+            Array of booleans evaluating if the corresponding points
+            belong to the manifold.
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -87,47 +91,57 @@ class ProductManifold(Manifold):
 
         Parameters
         ----------
-        point : array-like
+        point : array-like, shape=[n_samples, dim]
+                           or shape=[n_samples, dim_2, dim_2]
+            Point to be regularized.
         point_type : str, {'vector', 'matrix'}
+            Representation of point.
 
         Returns
         -------
-        regularize_points : array-like
+        regularized_point : array-like, shape=[n_samples, dim]
+                            or shape=[n_samples, dim_2, dim_2]
+            Point in the manifold's canonical representation.
         """
         # TODO(nina): Vectorize.
         if point_type is None:
             point_type = self.default_point_type
         assert point_type in ['vector', 'matrix']
 
-        regularize_points = [self.manifold[i].regularize(point[i])
+        regularized_point = [self.manifold[i].regularize(point[i])
                              for i in range(self.n_manifolds)]
 
         # TODO(nina): Put this in a decorator
         if point_type == 'vector':
-            regularize_points = gs.hstack(regularize_points)
+            regularized_point = gs.hstack(regularized_point)
         elif point_type == 'matrix':
-            regularize_points = gs.vstack(regularize_points)
-        return gs.all(regularize_points)
+            regularized_point = gs.vstack(regularized_point)
+        return gs.all(regularized_point)
 
-        return regularize_points
+        return regularized_point
 
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
                  point_type=None):
-        """Compute geodesic curve for a product metric.
+        """Compute the geodesic as a function of t.
 
         This geodesic is seen as the product of the geodesic on each space.
 
         Parameters
         ----------
-        initial_point : array-like, shape=[n_samples, dimension]
-        end_point : array-like, shape=[n_samples, dimension]
-        initial_tangent_vec : array-like, shape=[n_samples, dimension]
-        point_type : str, {'vector', 'matrix'}
+        initial_point : array-like, shape=[n_samples, dim]
+            Initial point of the geodesic.
+        end_point : array-like, shape=[n_samples, dim], optional
+            End point of the geodesic.
+        initial_tangent_vec : array-like, shape=[n_samples, dim], optional
+            Initial tangent vector of the geodesic.
+        point_type : str, {'vector', 'matrix'}, optional
+            Representation of point.
 
         Returns
         -------
-        geodesics : array-like
+        geodesics : list
+            List of callables
         """
         if point_type is None:
             point_type = self.default_point_type
