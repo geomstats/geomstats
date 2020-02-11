@@ -170,14 +170,6 @@ def to_ndarray(x, to_ndim, axis=0):
     return x
 
 
-def rand(*args, **largs):
-    return _np.random.rand(*args, **largs)
-
-
-def randint(*args, **kwargs):
-    return _np.random.randint(*args, **kwargs)
-
-
 def diag(x):
     x = to_ndarray(x, to_ndim=2)
     _, n = shape(x)
@@ -204,10 +196,6 @@ def cumprod(x, axis=0):
     if axis is None:
         raise NotImplementedError('cumprod is not defined where axis is None')
     return _np.cumprod(x, axis=axis)
-
-
-def normal(*args, **kwargs):
-    return _np.random.normal(*args, **kwargs)
 
 
 def copy(x):
