@@ -9,7 +9,7 @@ python:
     - "3.8"
 
 install:
-    - pip install --upgrade "pip<20.0" setuptools wheel
+    - pip install --upgrade pip setuptools wheel
     - pip install -q -r dev-requirements.txt
     - pip install -q -r requirements.txt --only-binary=numpy,scipy
 script:
