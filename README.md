@@ -49,7 +49,7 @@ And run unit tests from this folder:
 nose2 tests
 ```
 
-See our [contributing.rst](docs/contributing.rst) file!
+See our [contributing](https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst) guidelines!
 
 ## Acknowledgements
 

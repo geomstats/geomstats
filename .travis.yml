@@ -56,3 +56,11 @@ deploy:
                    ($TRAVIS_BRANCH = "master" || -n $TRAVIS_TAG)
         repo: geomstats/geomstats
       local_dir: docs/_build
+  - provider: pypi
+    username: $PYPI_USER
+    password: $PYPI_PASSWORD
+    on:
+      repo: geomstats/geomstats
+      tags: true
+    distributions: "sdist bdist_wheel"
+    skip_existing: true
