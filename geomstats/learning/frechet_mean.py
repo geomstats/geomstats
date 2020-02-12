@@ -21,9 +21,9 @@ def variance(points,
 
     Parameters
     ----------
-    points: array-like, shape=[n_samples, dimension]
+    points : array-like, shape=[n_samples, dimension]
 
-    weights: array-like, shape=[n_samples, 1], optional
+    weights : array-like, shape=[n_samples, 1], optional
     """
     if point_type == 'vector':
         points = gs.to_ndarray(points, to_ndim=2)
@@ -55,21 +55,24 @@ def variance(points,
 
 
 def linear_mean(points, weights=None):
-    """Compute the frechet mean.
+    """Compute the possible weighted linear mean.
 
-    The Frechet mean of (weighted) points computed with the
-    Euclidean metric is the weighted average of the points
-    in the Euclidean space.
+    The linear mean is the Frechet mean when points:
+    - lie in a Euclidean space with Euclidean metric,
+    - lie in a Minkowski space with Minkowski metric.
 
     Parameters
     ----------
-    points: array-like, shape=[n_samples, dimension]
+    points : array-like, shape=[n_samples, dimension]
+        Points to be averaged.
 
-    weights: array-like, shape=[n_samples, 1], optional
+    weights : array-like, shape=[n_samples, 1], optional
+        Weights associated to the points.
 
     Returns
     -------
-    mean: array-like, shape=[1, dimension]
+    mean : array-like, shape=[1, dimension]
+        Weighted linear mean of the points.
     """
     if isinstance(points, list):
         points = gs.vstack(points)
@@ -81,7 +84,7 @@ def linear_mean(points, weights=None):
     elif weights is None:
         weights = gs.ones((n_points, ))
 
-    weighted_points = gs.einsum('n,nj->nj', weights, points)
+    weighted_points = gs.einsum('...,...j->...j', weights, points)
     mean = (gs.sum(weighted_points, axis=0) / gs.sum(weights))
     mean = gs.to_ndarray(mean, to_ndim=2)
     return mean
@@ -167,9 +170,8 @@ def _default_gradient_descent(points, metric, weights,
     return mean
 
 
-def _ball_gradient_descent(points, metric, weights, n_max_iterations):
-    lr = 1e-3
-    tau = 5e-3
+def _ball_gradient_descent(points, metric, weights, n_max_iterations,
+                           lr=1e-3, tau=5e-3):
 
     if len(points) == 1:
         return points
@@ -182,9 +184,7 @@ def _ball_gradient_descent(points, metric, weights, n_max_iterations):
 
         iteration += 1
 
-        expand_barycenter = gs.repeat(barycenter, points.shape[0], 0)
-
-        grad_tangent = 2 * metric.log(points, expand_barycenter)
+        grad_tangent = 2 * metric.log(points, barycenter)
 
         cc_barycenter = metric.exp(
             lr * grad_tangent.sum(0, keepdims=True), barycenter)
@@ -206,26 +206,41 @@ def _adaptive_gradient_descent(points,
                                weights=None,
                                n_max_iterations=32,
                                epsilon=1e-12,
-                               init_points=[]):
+                               init_points=[],
+                               point_type='vector'):
     """Compute the Frechet mean using gradient descent.
 
     Frechet mean of (weighted) points using adaptive time-steps
-    The loss function optimized is ||M_1(x)||_x (where M_1(x) is
-    the tangent mean at x) rather than the mean-square-distance (MSD)
-    because this saves computation time.
+    The loss function optimized is :math:`||M_1(x)||_x`
+    (where :math:`M_1(x)` is the tangent mean at x) rather than
+    the mean-square-distance (MSD) because this saves computation time.
 
     Parameters
     ----------
-    points: array-like, shape=[n_samples, dimension]
+    points : array-like, shape=[n_samples, dimension]
+        Points to be averaged.
 
-    weights: array-like, shape=[n_samples, 1], optional
+    weights : array-like, shape=[n_samples, 1], optional
+        Weights associated to the points.
 
-    init_points: array-like, shape=[n_init, dimension]
+    n_max_iterations : int, optional
+        Maximum number of iterations for the gradient descent.
 
-    epsilon: tolerance for stopping the gradient descent
+    init_points : array-like, shape=[n_init, dimension], optional
+        Initial points.
+
+    epsilon : float, optional
+        Tolerance for stopping the gradient descent.
+
+    Returns
+    -------
+    current_mean: array-like, shape=[n_samples, dimension]
+        Weighted Frechet mean of the points.
     """
-    # TODO(xpennec): This function assumes that all points are lists
-    #  of vectors and not of matrices
+    if point_type == 'matrix':
+        raise NotImplementedError(
+            'The Frechet mean with adaptive gradient descent is only'
+            ' implemented for lists of vectors, and not matrices.')
     n_points = gs.shape(points)[0]
 
     if weights is None:
