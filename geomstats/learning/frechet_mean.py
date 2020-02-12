@@ -55,7 +55,7 @@ def variance(points,
 
 
 def linear_mean(points, weights=None):
-    """Compute the possible weighted linear mean.
+    """Compute the weighted linear mean.
 
     The linear mean is the Frechet mean when points:
     - lie in a Euclidean space with Euclidean metric,
