@@ -32,8 +32,30 @@ env:
 
 after_success:
     - bash <(curl -s https://codecov.io/bash) -c -F $GEOMSTATS_BACKEND
+    - >
+      PYTHONPATH=. sphinx-build
+      -b html
+      -D version=latest
+      -D release=latest
+      docs
+      docs/_build
 
 deploy:
+    - provider: pages
+      skip_cleanup: true
+      token: $GITHUB_PAGES_TOKEN
+      keep_history: true
+      repo: geomstats/geomstats.github.io
+      target_branch: master
+      fqdn: geomstats.github.io
+      project_name: geomstats
+      on:
+        condition: >
+                   $TRAVIS_PYTHON_VERSION = "3.7" &&
+                   $GEOMSTATS_BACKEND = "numpy" &&
+                   ($TRAVIS_BRANCH = "master" || -n $TRAVIS_TAG)
+        repo: geomstats/geomstats
+      local_dir: docs/_build
   - provider: pypi
     username: $PYPI_USER
     password: $PYPI_PASSWORD
