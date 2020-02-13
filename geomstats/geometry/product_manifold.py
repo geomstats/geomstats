@@ -2,6 +2,8 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.product_riemannian_metric import \
+    ProductRiemannianMetric
 
 # TODO(nina): get rid of for loops
 # TODO(nina): unit tests
@@ -37,7 +39,8 @@ class ProductManifold(Manifold):
         self.default_point_type = default_point_type
 
         self.manifolds = manifolds
-        self.n_manifolds = len(manifolds)
+        self.metric = ProductRiemannianMetric(
+            [manifold.metric for manifold in manifolds])
 
         dimensions = [manifold.dimension for manifold in manifolds]
         super(ProductManifold, self).__init__(
@@ -70,12 +73,10 @@ class ProductManifold(Manifold):
         else:
             point = gs.to_ndarray(point, to_ndim=3)
 
-        n_manifolds = self.n_manifolds
-        belongs = gs.empty((point.shape[0], n_manifolds))
+        belongs = gs.empty((point.shape[0], len(self.manifolds)))
         cum_dim = 0
         # FIXME: this only works if the points are in intrinsic representation
-        for i in range(n_manifolds):
-            manifold_i = self.manifolds[i]
+        for i, manifold_i in enumerate(self.manifolds):
             cum_dim_next = cum_dim + manifold_i.dimension
             point_i = point[:, cum_dim:cum_dim_next]
             belongs_i = manifold_i.belongs(point_i)
@@ -108,8 +109,9 @@ class ProductManifold(Manifold):
             point_type = self.default_point_type
         assert point_type in ['vector', 'matrix']
 
-        regularized_point = [self.manifold[i].regularize(point[i])
-                             for i in range(self.n_manifolds)]
+        regularized_point = [
+            manifold_i.regularize(point_i)
+            for manifold_i, point_i in zip(self.manifolds, point)]
 
         # TODO(nina): Put this in a decorator
         if point_type == 'vector':
@@ -117,40 +119,3 @@ class ProductManifold(Manifold):
         elif point_type == 'matrix':
             regularized_point = gs.vstack(regularized_point)
         return gs.all(regularized_point)
-
-        return regularized_point
-
-    def geodesic(self, initial_point,
-                 end_point=None, initial_tangent_vec=None,
-                 point_type=None):
-        """Compute the geodesic as a function of t.
-
-        This geodesic is seen as the product of the geodesic on each space.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[n_samples, dim]
-            Initial point of the geodesic.
-        end_point : array-like, shape=[n_samples, dim], optional
-            End point of the geodesic.
-        initial_tangent_vec : array-like, shape=[n_samples, dim], optional
-            Initial tangent vector of the geodesic.
-        point_type : str, {'vector', 'matrix'}, optional
-            Representation of point.
-
-        Returns
-        -------
-        geodesics : list
-            List of callables
-        """
-        if point_type is None:
-            point_type = self.default_point_type
-        assert point_type in ['vector', 'matrix']
-
-        geodesics = gs.asarray([[self.manifold[i].metric.geodesic(
-            initial_point,
-            end_point=end_point,
-            initial_tangent_vec=initial_tangent_vec,
-            point_type=point_type)
-            for i in range(self.n_manifolds)]])
-        return geodesics

@@ -111,8 +111,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         if base_point is None:
             base_point = [None, ] * self.n_metrics
 
-        exp = gs.asarray([self.metrics[i].exp(tangent_vec[i],
-                                              base_point[i])
+        exp = gs.asarray([self.metrics[i].exp(tangent_vec[i], base_point[i])
                           for i in range(self.n_metrics)])
         return exp
 
@@ -135,8 +134,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         if base_point is None:
             base_point = [None, ] * self.n_metrics
 
-        log = gs.asarray([self.metrics[i].log(point[i],
-                                              base_point[i])
+        log = gs.asarray([self.metrics[i].log(point[i], base_point[i])
                           for i in range(self.n_metrics)])
         return log
 
@@ -156,8 +154,41 @@ class ProductRiemannianMetric(RiemannianMetric):
             Geodesic distance between the two points.
         """
         sq_distances = gs.asarray(
-            [self.metrics[i].squared_dist(
-                point_a[i], point_b[i])
+            [self.metrics[i].squared_dist(point_a[i], point_b[i])
              for i in range(self.n_metrics)])
 
         return sum(sq_distances)
+
+    def geodesic(self, initial_point,
+                 end_point=None, initial_tangent_vec=None,
+                 point_type=None):
+        """Compute the geodesic as a function of t.
+
+        This geodesic is seen as the product of the geodesic on each space.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[n_samples, dim]
+            Initial point of the geodesic.
+        end_point : array-like, shape=[n_samples, dim], optional
+            End point of the geodesic.
+        initial_tangent_vec : array-like, shape=[n_samples, dim], optional
+            Initial tangent vector of the geodesic.
+        point_type : str, {'vector', 'matrix'}, optional
+            Representation of point.
+
+        Returns
+        -------
+        geodesics : list
+            List of callables
+        """
+        if point_type is None:
+            point_type = self.default_point_type
+        assert point_type in ['vector', 'matrix']
+
+        geodesics = [
+            metric.geodesic(initial_point, end_point=end_point,
+                            initial_tangent_vec=initial_tangent_vec,
+                            point_type=point_type)
+            for metric in self.metrics]
+        return geodesics
