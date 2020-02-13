@@ -1,3 +1,4 @@
+"""k-means clustering."""
 from random import randint
 
 from sklearn.base import BaseEstimator, ClusterMixin
@@ -8,10 +9,18 @@ from geomstats.learning.frechet_mean import FrechetMean
 
 
 class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
+    """Class for k-means clustering on manifolds.
+
+    Example
+    -------
+    Available example on the Poincaré Ball and Hypersphere manifolds
+    :mod:`examples.plot_kmeans_manifolds`
+
+    """
 
     def __init__(self, riemannian_metric, n_clusters=8, init='random',
                  tol=1e-2, mean_method='default', verbose=0):
-        """ K-Means algorithm using Riemannian manifolds
+        """k-means algorithm using Riemannian manifolds.
 
         Parameters
         ----------
@@ -33,6 +42,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         -------
         self : object
             Returns the instance itself.
+
         """
         self.n_clusters = n_clusters
         self.init = init
@@ -42,8 +52,10 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self.mean_method = mean_method
 
     def fit(self, X, max_iter=100):
-        """Predict for each data point the closest center in terms of
-            riemannian_metric distance
+        """Provide clusters centroids and data labels.
+
+        Alternate between computing the mean of each cluster
+        and labelling data according to the new positions of the centroids.
 
         Parameters
         ----------
@@ -58,7 +70,6 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self : object
             Return centroids array
         """
-
         n_samples = X.shape[0]
         belongs = gs.zeros(n_samples)
         self.centroids = [gs.expand_dims(X[randint(0, n_samples - 1)], 0)
@@ -105,9 +116,10 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         return gs.copy(self.centroids)
 
     def predict(self, X):
+        """Predict the labels for each data pointe closest centroid.
 
-        """Predict for each data point the closest center in terms of
-            riemannian_metric distance
+        Label each data point with the cluster having the nearest
+        centroid using riemannian_metric distance.
 
         Parameters
         ----------
