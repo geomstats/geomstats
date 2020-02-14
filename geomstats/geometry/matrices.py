@@ -136,7 +136,7 @@ class Matrices(Euclidean):
     def cong(cls, mat_1, mat_2):
         """Compute the congruent action of mat_2 on mat_1.
 
-        This is `mat_2 mat_1 mat_2^T`
+        This is :math: `mat_2 mat_1 mat_2^T`.
 
         Parameters
         ----------
