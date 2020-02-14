@@ -19,7 +19,7 @@ class InvariantMetric(RiemannianMetric):
     ----------
     group : LieGroup
         The group to equip with the invariant metric
-    inner_product_mat_at_identity : array-like, [dimension, dimension]
+    inner_product_mat_at_identity : array-like, shape=[dimension, dimension]
         The matrix that defines the metric at identity.
     left_or_right : str, {'left', 'right'}
         Wether to use a left or right invariant metric.
@@ -124,8 +124,7 @@ class InvariantMetric(RiemannianMetric):
         tangent_vec_b : array-like, shape=[n_samples, dimension]
             Second tangent vector at base_point.
         base_point : array-like, shape=[n_samples, dimension], optional
-            default : identity
-            Point in the group.
+            Point in the group (the default is identity).
 
         Returns
         -------
@@ -158,8 +157,7 @@ class InvariantMetric(RiemannianMetric):
         Parameters
         ----------
         base_point : array-like, shape=[n_samples, dimension], optional
-            default : identity
-            Point in the group.
+            Point in the group (the default is identity).
 
         Returns
         -------
@@ -192,7 +190,7 @@ class InvariantMetric(RiemannianMetric):
         return metric_mat
 
     def left_exp_from_identity(self, tangent_vec):
-        """Compute Riemannian exp of tan vector at id with left-invar. metric.
+        """Compute the exponential from identity with the left-invariant metric.
 
         Compute Riemannian exponential of a tangent vector at the identity
         associated to the left-invariant metric.
@@ -233,7 +231,7 @@ class InvariantMetric(RiemannianMetric):
         return exp
 
     def exp_from_identity(self, tangent_vec):
-        """Compute Riemannian exponential of tangent vector at the identity.
+        """Compute Riemannian exponential of tangent vector from the identity.
 
         Parameters
         ----------
@@ -371,15 +369,15 @@ class InvariantMetric(RiemannianMetric):
         return log
 
     def log(self, point, base_point=None):
-        """Compute Riemannian logarithm of a point wrt a base point.
+        """Compute Riemannian logarithm of a point from a base point.
 
         Parameters
         ----------
         point : array-like, shape=[n_samples, dimension]
             Point in the group.
         base_point : array-like, shape=[n_samples, dimension], optional
-            default : identity
-            Point in the group, from which to compute the log.
+            Point in the group, from which to compute the log,
+            (the default is identity).
 
         Returns
         -------
