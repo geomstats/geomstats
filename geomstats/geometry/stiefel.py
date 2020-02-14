@@ -129,7 +129,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
         r"""Compute the inner-product of two tangent vectors at a base point.
 
         Canonical inner-product on the tangent space at `base_point`,
-        which is different from the inner-product induced by the embedding.
+        which is different from the inner-product induced by the embedding
+        (see [RLSMRZ2017]_).
 
         .. math::
 
