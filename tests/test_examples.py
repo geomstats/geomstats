@@ -36,6 +36,7 @@ class TestExamples(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
         warnings.simplefilter('ignore', category=UserWarning)
+        plt.rcParams.update({'figure.max_open_warning': 0})
         plt.figure()
 
     @geomstats.tests.np_only

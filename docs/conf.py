@@ -1,26 +1,25 @@
+import geomstats
+
+
 project = 'Geomstats'
-copyright = '2019, Geomstats, Inc.'
+copyright = '2019-2020, Geomstats, Inc.'
 author = 'Geomstats Team'
-
-version = '0.1'
-# The full version, including alpha/beta/rc tags
-release = '0.1'
-
+release = version = geomstats.__version__
 
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.doctest',
     'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
+    'sphinx.ext.doctest',
     'sphinx.ext.githubpages',
-    'sphinx.ext.napoleon', # enable numpy or google docstrings
+    'sphinx.ext.mathjax',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.viewcode'
 ]
 
 # Configure napoleon for numpy docstring
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True
-napoleon_use_param = True
+napoleon_use_param = False
 napoleon_use_ivar = False
 napoleon_use_rtype = False
 napoleon_include_init_with_doc = False
@@ -44,7 +43,7 @@ html_static_path = ['_static']
 htmlhelp_basename = 'geomstatsdoc'
 
 latex_elements = {
- }
+}
 
 
 latex_documents = [

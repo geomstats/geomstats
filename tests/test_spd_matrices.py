@@ -448,6 +448,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_parallel_transport_affine_invariant(self):
         n_samples = self.n_samples
+        gs.random.seed(1)
         point = self.space.random_uniform(n_samples)
         tan_a = self.space.random_tangent_vec_uniform(n_samples, point)
         tan_b = self.space.random_tangent_vec_uniform(n_samples, point)

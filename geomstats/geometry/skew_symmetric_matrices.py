@@ -2,7 +2,7 @@
 
 This is the Lie algebra of the Special Orthogonal Group.
 As basis we choose the matrices with a single 1 on the upper triangular part
-of the matrices (and a -1 in int lower triangular part).
+of the matrices (and a -1 in its lower triangular part).
 """
 import geomstats.backend as gs
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
