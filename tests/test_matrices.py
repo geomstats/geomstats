@@ -179,7 +179,7 @@ class TestMatricesMethods(geomstats.tests.TestCase):
             [0., -10., 0.],
             [30., 1., 1.]])
 
-        result = self.space.cong(tangent_vector, base_point)
+        result = self.space.congruent(tangent_vector, base_point)
         expected = gs.matmul(
             tangent_vector, gs.transpose(base_point))
         expected = gs.matmul(base_point, expected)

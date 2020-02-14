@@ -639,18 +639,23 @@ class SPDMetricAffine(RiemannianMetric):
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[n_samples, dimension + 1]
+            Tangent vector at base point to be transported.
         tangent_vec_b : array-like, shape=[n_samples, dimension + 1]
+            Tangent vector at base point, initial speed of the geodesic along
+            which the parallel transport is computed.
         base_point : array-like, shape=[n_samples, dimension + 1]
+            point on the manifold of SPD matrices
 
         Returns
         -------
         transported_tangent_vec: array-like, shape=[n_samples, dimension + 1]
+            Transported tangent vector at exp_(base_point)(tangent_vec_b).
         """
         end_point = self.exp(tangent_vec_b, base_point)
         inverse_base_point = GeneralLinear.inv(base_point)
         congruence_mat = GeneralLinear.mul(end_point, inverse_base_point)
         congruence_mat = gs.linalg.sqrtm(congruence_mat)
-        return GeneralLinear.cong(tangent_vec_a, congruence_mat)
+        return GeneralLinear.congruent(tangent_vec_a, congruence_mat)
 
 
 class SPDMetricProcrustes(RiemannianMetric):
