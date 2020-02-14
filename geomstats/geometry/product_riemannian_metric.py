@@ -84,10 +84,9 @@ class ProductRiemannianMetric(RiemannianMetric):
         if base_point is None:
             base_point = [None, ] * self.n_metrics
 
-        inner_products = [self.metrics[i].inner_product(tangent_vec_a[i],
-                                                        tangent_vec_b[i],
-                                                        base_point[i])
-                          for i in range(self.n_metrics)]
+        inner_products = [metric.inner_product(tangent_vec_a[i],
+                                               tangent_vec_b[i], base_point[i])
+                          for i, metric in enumerate(self.metrics)]
         inner_product = gs.sum(inner_products)
 
         return inner_product
@@ -111,9 +110,8 @@ class ProductRiemannianMetric(RiemannianMetric):
         if base_point is None:
             base_point = [None, ] * self.n_metrics
 
-        exp = gs.asarray([self.metrics[i].exp(tangent_vec[i],
-                                              base_point[i])
-                          for i in range(self.n_metrics)])
+        exp = gs.asarray([metric.exp(tangent_vec[i], base_point[i])
+                          for i, metric in enumerate(self.metrics)])
         return exp
 
     def log(self, point, base_point=None):
@@ -135,9 +133,8 @@ class ProductRiemannianMetric(RiemannianMetric):
         if base_point is None:
             base_point = [None, ] * self.n_metrics
 
-        log = gs.asarray([self.metrics[i].log(point[i],
-                                              base_point[i])
-                          for i in range(self.n_metrics)])
+        log = gs.asarray([metric.log(point[i], base_point[i])
+                          for i, metric in enumerate(self.metrics)])
         return log
 
     def squared_dist(self, point_a, point_b):
@@ -156,8 +153,44 @@ class ProductRiemannianMetric(RiemannianMetric):
             Geodesic distance between the two points.
         """
         sq_distances = gs.asarray(
-            [self.metrics[i].squared_dist(
-                point_a[i], point_b[i])
-             for i in range(self.n_metrics)])
+            [metric.squared_dist(point_a[i], point_b[i])
+             for i, metric in enumerate(self.metrics)])
 
         return sum(sq_distances)
+
+    def geodesic(self, initial_point,
+                 end_point=None, initial_tangent_vec=None,
+                 point_type=None):
+        """Compute the geodesic as a function of t.
+
+        This geodesic is seen as the product of the geodesic on each space.
+
+        Parameters
+        ----------
+        initial_point : array-like, shape=[n_samples, dim]
+            Initial point of the geodesic.
+        end_point : array-like, shape=[n_samples, dim], optional
+            End point of the geodesic.
+        initial_tangent_vec : array-like, shape=[n_samples, dim], optional
+            Initial tangent vector of the geodesic.
+        point_type : str, {'vector', 'matrix'}, optional
+            Representation of point.
+
+        Returns
+        -------
+        path : callable
+            The time-parameterized geodesic.
+        """
+        if point_type is None:
+            point_type = self.default_point_type
+        assert point_type in ['vector', 'matrix']
+
+        geodesics = [
+            metric.geodesic(initial_point[i], end_point=end_point[i],
+                            initial_tangent_vec=initial_tangent_vec[i],
+                            point_type=point_type[i])
+            for i, metric in enumerate(self.metrics)]
+
+        def path(t):
+            return [geodesic(t) for geodesic in geodesics]
+        return path
