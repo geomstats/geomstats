@@ -1,3 +1,5 @@
+"""Sphinx configuration file."""
+
 import geomstats
 
 
@@ -37,9 +39,7 @@ exclude_patterns = ['build', 'Thumbs.db', '.DS_Store']
 pygments_style = None
 
 html_theme = 'sphinx_rtd_theme'
-
-html_static_path = ['_static']
-
+html_baseurl = 'geomstats.github.io'
 htmlhelp_basename = 'geomstatsdoc'
 
 latex_elements = {
