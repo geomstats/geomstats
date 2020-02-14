@@ -314,8 +314,8 @@ class Hypersphere(EmbeddedManifold):
         Sample in the 2-sphere with the von Mises distribution centered at the
         north pole.
 
-        Reference
-        ---------
+        References
+        ----------
         https://en.wikipedia.org/wiki/Von_Mises_distribution
 
         Parameters
@@ -623,10 +623,8 @@ class HypersphereMetric(RiemannianMetric):
 
         Returns
         -------
-        christoffel : array-like, shape=[n_samples,
-                                         contravariant index,
-                                         first covariant index,
-                                         second covariant index]
+        christoffel : array-like, shape=[n_samples, contravariant index, 1st
+                                         covariant index, 2nd covariant index]
             Christoffel symbols at point.
         """
         if self.dimension != 2 or point_type != 'spherical':

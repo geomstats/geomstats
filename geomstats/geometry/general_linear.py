@@ -80,8 +80,6 @@ class GeneralLinear(Matrices):
         r"""
         Compute the one-parameter orbit of base_point passing through point.
 
-        The orbit is returned as the path function satisfying:
-
         Parameters
         ----------
         point : array-like, shape=[n, n]
@@ -93,12 +91,12 @@ class GeneralLinear(Matrices):
         -------
         path : callable
             The one-parameter orbit.
-            Satisfies `path(0) = base_point` and `point(1) = point`.
+            Satisfies `path(0) = base_point` and `path(1) = point`.
 
-        Note
-        ----
-        Denoting `point` by :math: `g` and `base_point` by :math: `h`,
-        the orbit :math: `\gamma` satisfies:
+        Notes
+        -----
+        Denoting `point` by :math:`g` and `base_point` by :math:`h`,
+        the orbit :math:`\gamma` satisfies:
 
         .. math::
 
@@ -106,8 +104,8 @@ class GeneralLinear(Matrices):
             \quad {\mathrm with} \quad\\
             {\mathrm e}^{X} = g h^{-1}
 
-        The path is not uniquely defined and depends on
-        the choice of :math: `V` returned by `class.log`.
+        The path is not uniquely defined and depends on the choice of :math:`V`
+        returned by :py:meth:`log`.
 
         Vectorization
         -------------
@@ -121,5 +119,4 @@ class GeneralLinear(Matrices):
         def path(time):
             vecs = gs.einsum('t,...ij->...tij', time, tangent_vec)
             return cls.exp(vecs, base_point)
-
         return path
