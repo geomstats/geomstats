@@ -654,7 +654,7 @@ class SPDMetricProcrustes(RiemannianMetric):
         ----------
         tangent_vec_a : array-like, shape=[n_samples, n, n]
         tangent_vec_b : array-like, shape=[n_samples, n, n]
-        base_point : array-like, shape={n_samples, n, n]
+        base_point : array-like, shape=[n_samples, n, n]
 
         Returns
         -------
@@ -721,7 +721,7 @@ class SPDMetricEuclidean(RiemannianMetric):
         ----------
         tangent_vec_a : array-like, shape=[n_samples, n, n]
         tangent_vec_b : array-like, shape=[n_samples, n, n]
-        base_point : array-like, shape={n_samples, n, n]
+        base_point : array-like, shape=[n_samples, n, n]
 
         Returns
         -------
@@ -832,7 +832,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         ----------
         tangent_vec_a : array-like, shape=[n_samples, n, n]
         tangent_vec_b : array-like, shape=[n_samples, n, n]
-        base_point : array-like, shape={n_samples, n, n]
+        base_point : array-like, shape=[n_samples, n, n]
 
         Returns
         -------
@@ -892,7 +892,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         Parameters
         ----------
         tangent_vec : array-like, shape=[n_samples, n, n]
-        base_point : array-like, shape={n_samples, n, n]
+        base_point : array-like, shape=[n_samples, n, n]
 
         Returns
         -------
@@ -917,7 +917,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         Parameters
         ----------
         point : array-like, shape=[n_samples, n, n]
-        base_point : array-like, shape={n_samples, n, n]
+        base_point : array-like, shape=[n_samples, n, n]
 
         Returns
         -------
@@ -939,7 +939,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         Parameters
         ----------
         initial_point : array-like, shape=[n_samples, n, n]
-        initial_tangent_vec : array-like, shape={n_samples, n, n]
+        initial_tangent_vec : array-like, shape=[n_samples, n, n]
 
         Returns
         -------
