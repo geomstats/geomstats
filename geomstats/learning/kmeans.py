@@ -117,7 +117,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         return gs.copy(self.centroids)
 
     def predict(self, X):
-        """Predict the labels for each data point closest centroid.
+        """Predict the labels for each data point.
 
         Label each data point with the cluster having the nearest
         centroid using riemannian_metric distance.
