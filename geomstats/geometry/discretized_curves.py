@@ -44,6 +44,8 @@ class DiscretizedCurves(Manifold):
 class SRVMetric(RiemannianMetric):
     """Elastic metric defined using the Square Root Velocity Function.
 
+    See [Sea2011]_ for details.
+
     References
     ----------
     .. [Sea2011] Srivastava et al. 2011.
