@@ -1,4 +1,4 @@
-"""Package implementing learning algorithms on manifolds."""
+"""Learning algorithms on manifolds."""
 
 __all__ = ['TemplateEstimator', 'TemplateClassifier', 'TemplateTransformer']
 
