@@ -15,31 +15,28 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
     Parameters
     ----------
-    n_clusters :    int
-                    Number of clusters (k value of the k-means).
+    n_clusters : int
+        Number of clusters (k value of the k-means).
 
     riemannian_metric : object of class RiemannianMetric
-                        The geomstats Riemmanian metric associate to
-                        the space used.
+        The geomstats Riemmanian metric associate to the space used.
 
-    init :  str
-            How to init centroids at the beginning of the algorithm.
-           'random' : will select random uniformally train point as
-                     initial centroids.
+    init : str
+        How to initialize centroids at the beginning of the algorithm. The
+        choice 'random' will select training points as initial centroids
+        uniformly at random.
 
-    tol :   float
-            Convergence factor. Convergence is achieved when the difference
-            of mean distance between two steps is lower than tol.
+    tol : float
+        Convergence factor. Convergence is achieved when the difference of mean
+        distance between two steps is lower than tol.
 
-    verbose :   int
-                if verbose > 0, information will be print during learning.
-
+    verbose : int
+        If verbose > 0, information will be printed during learning.
 
     Example
     -------
     Available example on the Poincaré Ball and Hypersphere manifolds
     :mod:`examples.plot_kmeans_manifolds`
-
     """
 
     def __init__(self, riemannian_metric, n_clusters=8, init='random',
@@ -51,6 +48,8 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self.verbose = verbose
         self.mean_method = mean_method
 
+        self.centroid = None
+
     def fit(self, X, max_iter=100):
         """Provide clusters centroids and data labels.
 
@@ -60,16 +59,16 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         Parameters
         ----------
         X : array-like, shape=[n_samples, n_features]
-            Training data, where n_samples is the number of samples
-            and n_features is the number of features.
+            Training data, where n_samples is the number of samples and
+            n_features is the number of features.
 
-        max_iter :  int
-                    Maximum number of iterations
+        max_iter : int
+            Maximum number of iterations
 
         Returns
         -------
-        self : object
-            Return centroids array
+        self : array-like, shape=[n_clusters,]
+            centroids array
         """
         n_samples = X.shape[0]
         belongs = gs.zeros(n_samples)
@@ -125,15 +124,15 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         Parameters
         ----------
         X : array-like, shape=[n_samples, n_features]
-            data, where n_samples is the number of samples
-            and n_features is the number of features.
+            Input data
 
         Returns
         -------
-        self : object
-            Return array containing for each point the cluster associated
+        self : array-like, shape=[n_samples,]
+            Array of predicted cluster indices for each sample
         """
-        dists = gs.hstack([self.riemannian_metric.dist(self.centroids[i], X)
-                           for i in range(self.n_clusters)])
+        assert self.centroids is not None, 'fit needs to be called first'
+        dists = gs.hstack([self.riemannian_metric.dist(centroid, X)
+                           for centroid in self.centroids])
         belongs = gs.argmin(dists, -1)
         return belongs
