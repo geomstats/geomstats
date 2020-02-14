@@ -48,13 +48,9 @@ class MatrixLieAlgebra:
     def baker_campbell_hausdorff(self, matrix_a, matrix_b, order=2):
         """Calculate the Baker-Campbell-Hausdorff approximation of given order.
 
-        We use the algorithm published by Casas / Murua in their paper "An
-        efficient algorithm for computing the Baker–Campbell–Hausdorff series
-        and some of its applications" in J.o.Math.Physics 50 (2009) as well as
-        their computed constants from
-            http://www.ehu.eus/ccwmuura/research/bchHall20.dat.
-        Our coefficients are truncated to enable us to calculate BCH up to
-        order 15.
+        The implementation is based on [CM2009a]_ with the pre-computed
+        constants taken from [CM2009b]_. Our coefficients are truncated to
+        enable us to calculate BCH up to order 15.
 
         This represents Z = log(exp(X)exp(Y)) as an infinite linear combination
         of the form Z = sum z_i e_i where z_i are rational numbers and e_i are
@@ -63,11 +59,17 @@ class MatrixLieAlgebra:
 
         Parameters
         ----------
-        matrix_a: array-like, shape=[n_sample, n, n]
-        matrix_b: array-like, shape=[n_sample, n, n]
-        order: int
-            the order to which the approximation is calculated. Note that this
-            is NOT the same as using only e_i with i < order
+        matrix_a, matrix_b : array-like, shape=[n_sample, n, n]
+        order : int
+            The order to which the approximation is calculated. Note that this
+            is NOT the same as using only e_i with i < order.
+
+        References
+        ----------
+        .. [CM2009a] F. Casas and A. Murua. An efficient algorithm for
+           computing the Baker–Campbell–Hausdorff series and some of its
+           applications. Journal of Mathematical Physics 50, 2009
+        .. [CM2009b] http://www.ehu.eus/ccwmuura/research/bchHall20.dat
         """
         if order > 15:
             raise NotImplementedError("BCH is not implemented for order > 15.")

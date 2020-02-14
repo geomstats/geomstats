@@ -16,14 +16,13 @@ class ProductManifold(Manifold):
     the manifolds M_1, ..., M_n need not be the same, nor of
     same dimension, but the list of manifolds needs to be provided.
 
-    By default, a point is represented by an array of shape:
-        [n_samples, dim_1 + ... + dim_n_manifolds]
-    where n_manifolds is the number of manifolds in the product.
-    This type of representation is called 'vector'.
+    By default, a point is represented by an array of shape
+    [n_samples, dim_1 + ... + dim_n_manifolds] where n_manifolds is the number
+    of manifolds in the product. This type of representation is called
+    'vector'.
 
-    Alternatively, a point can be represented by an array of shape:
-        [n_samples, n_manifolds, dim]
-    if the n_manifolds have same dimension dim.
+    Alternatively, a point can be represented by an array of shape
+    [n_samples, n_manifolds, dim] if the n_manifolds have same dimension dim.
     This type of representation is called `matrix`.
 
     Parameters
