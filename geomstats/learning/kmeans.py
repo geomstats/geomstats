@@ -1,4 +1,4 @@
-"""k-means clustering."""
+"""K-means clustering."""
 from random import randint
 
 from sklearn.base import BaseEstimator, ClusterMixin
@@ -11,6 +11,30 @@ from geomstats.learning.frechet_mean import FrechetMean
 class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
     """Class for k-means clustering on manifolds.
 
+    K-means algorithm using Riemannian manifolds.
+
+    Parameters
+    ----------
+    n_clusters :    int
+                    Number of clusters (k value of the k-means).
+
+    riemannian_metric : object of class RiemannianMetric
+                        The geomstats Riemmanian metric associate to
+                        the space used.
+
+    init :  str
+            How to init centroids at the beginning of the algorithm.
+           'random' : will select random uniformally train point as
+                     initial centroids.
+
+    tol :   float
+            Convergence factor. Convergence is achieved when the difference
+            of mean distance between two steps is lower than tol.
+
+    verbose :   int
+                if verbose > 0, information will be print during learning.
+
+
     Example
     -------
     Available example on the Poincaré Ball and Hypersphere manifolds
@@ -20,30 +44,6 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
     def __init__(self, riemannian_metric, n_clusters=8, init='random',
                  tol=1e-2, mean_method='default', verbose=0):
-        """k-means algorithm using Riemannian manifolds.
-
-        Parameters
-        ----------
-        n_clusters : Number of clusters (k value of the k-means)
-
-        riemannian_metric : The geomstats riemmanian metric associate to
-                            the space used
-
-        init : How to init centroids at the beginning of the algorithm.
-               'random' : will select random uniformally train point as
-                         initial centroids
-
-        tol : convergence factor. If the difference of mean distance
-             between two step is lower than tol
-
-        verbose : if verbose > 0, information will be print during learning
-
-        Returns
-        -------
-        self : object
-            Returns the instance itself.
-
-        """
         self.n_clusters = n_clusters
         self.init = init
         self.riemannian_metric = riemannian_metric
@@ -63,7 +63,8 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
             Training data, where n_samples is the number of samples
             and n_features is the number of features.
 
-        max_iter : Maximum number of iterations
+        max_iter :  int
+                    Maximum number of iterations
 
         Returns
         -------
