@@ -12,14 +12,17 @@ def loss(y_pred, y_true, group, metric=None):
 
     Parameters
     ----------
-    y_pred
-    y_true
-    group
-    metric
+    y_pred : array-like, shape=[n_samples, {dimension, [n, n]}]
+    y_true : array-like, shape=[n_samples, {dimension, [n, n]}]
+        shape has to match y_pred
+    group : LieGroup
+    metric : RiemannianMetric, optional
+        default: the left invariant metric of the Lie group
 
     Returns
     -------
-    loss
+    loss : array-like, shape=[n_samples, {dimension, [n, n]}]
+        the squared (geodesic) distance between y_pred and y_true
     """
     if metric is None:
         metric = group.left_invariant_metric
@@ -32,14 +35,16 @@ def grad(y_pred, y_true, group, metric=None):
 
     Parameters
     ----------
-    y_pred
-    y_true
-    group
-    metric
+    y_pred : array-like, shape=[n_samples, {dimension, [n, n]}]
+    y_true : array-like, shape=[n_samples, {dimension, [n, n]}]
+        shape has to match y_pred
+    group : LieGroup
+    metric : RiemannianMetric, optional
+        default: the left invariant metric of the Lie group
 
     Returns
     -------
-    grad :
+    grad : array-like, shape=[n_samples, {dimension, [n, n]}]
         tangent vector at point `y_pred`
     """
     if metric is None:
@@ -83,7 +88,12 @@ class LieGroup(Manifold):
 
         Parameters
         ----------
-        point_type: str, optional
+        point_type : str, {'matrix', 'vector'}, optional
+            default: the default point type
+
+        Returns
+        -------
+        identity : array-like, shape={[dimension], [n, n]}
         """
         raise NotImplementedError(
             "The Lie group identity" " is not implemented."
@@ -102,12 +112,12 @@ class LieGroup(Manifold):
             the left factor in the product
         point_b : array-like, shape=[n_samples, {dimension, [n, n]}]
             the right factor in the product
-        point_type : {'vector', 'matrix'}
+        point_type : str, {'vector', 'matrix'}
             the point_type of the passed point_a and point_b
 
         Returns
         -------
-        composed: [n_samples, {dimension, [n,n]}]
+        composed : array-like, shape=[n_samples, {dimension, [n,n]}]
             the product of point_a and point_b along the first dimension
         """
         raise NotImplementedError(
@@ -119,15 +129,15 @@ class LieGroup(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dimension, [n,n]]
+        point : array-like, shape=[n_samples, {dimension, [n,n]}]
             the points to be inverted
 
-        point_type : {'vector', 'matrix'}
+        point_type : str, {'vector', 'matrix'}, optional
             the point type of the passed point
 
         Returns
         -------
-        inverse :
+        inverse : array-like, shape=[n_samples, {dimension, [n,n]}]
             the inverted point
         """
         raise NotImplementedError("The Lie group inverse is not implemented.")
@@ -149,12 +159,13 @@ class LieGroup(Manifold):
             indicate whether to calculate the differential of left or right
             translations
 
-        point_type : str, {'vector', 'matrix'}
+        point_type : str, {'vector', 'matrix'}, optional
+            default: the default point type
             the point type of the passed point
 
         Returns
         -------
-        jacobian
+        jacobian :
             the jacobian of the left/right translation by point
         """
         raise NotImplementedError(
@@ -169,6 +180,7 @@ class LieGroup(Manifold):
         tangent_vec : array-like, shape=[n_samples, {dimension,[n,n]}]
             the tangent vector to exponentiate
         point_type : str, {'vector', 'matrix'}
+            default: the default point type
 
         Returns
         -------
@@ -186,6 +198,7 @@ class LieGroup(Manifold):
         tangent_vec : array-like, shape=[n_samples, {dimension,[n,n]}]
         base_point : array-like, shape=[n_samples, {dimension,[n,n]}]
         point_type : str, {'vector', 'matrix'}
+            default: the default point type
 
         Returns
         -------
@@ -225,8 +238,9 @@ class LieGroup(Manifold):
         ----------
         tangent_vec : array-like, shape=[n_samples, {dimension,[n,n]}]
         base_point : array-like, shape=[n_samples, {dimension,[n,n]}]
-            Default: self.identity
+            default: self.identity
         point_type : str, {'vector', 'matrix'}
+            default: the default point type
             the type of the point
 
         Returns
@@ -280,7 +294,8 @@ class LieGroup(Manifold):
         Parameters
         ----------
         point : array-like, shape=[n_samples, {dimension,[n,n]}]
-        point_type : str, {'vector', 'matrix'}
+        point_type : str, {'vector', 'matrix'}, optional
+            defaults to the default point type
 
         Returns
         -------
@@ -297,7 +312,8 @@ class LieGroup(Manifold):
         ----------
         point : array-like, shape=[n_samples, {dimension,[n,n]}]
         base_point : array-like, shape=[n_samples, {dimension,[n,n]}]
-        point_type : str, {'vector', 'matrix'}
+        point_type : str, {'vector', 'matrix'}, optional
+            defaults to the default point type
 
         Returns
         -------
@@ -408,7 +424,7 @@ class LieGroup(Manifold):
 
         For matrix Lie groups with tangent vectors A,B at the same base point P
         this is given by (translate to identity, compute commutator, go back)
-            :math: `[A,B] = AP^-1B - BP^-1A.`
+        :math:`[A,B] = A_P^{-1}B - B_P^{-1}A`
 
         Parameters
         ----------

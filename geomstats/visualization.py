@@ -62,7 +62,7 @@ class Trihedron():
 
 class Circle():
     def __init__(self, n_angles=100, points=None):
-        angles = gs.linspace(0, 2*gs.pi, n_angles)
+        angles = gs.linspace(0, 2 * gs.pi, n_angles)
         self.circle_x = gs.cos(angles)
         self.circle_y = gs.sin(angles)
         self.points = []
@@ -357,7 +357,7 @@ def convert_to_trihedron(point, space=None):
         translation = gs.zeros((n_points, 3))
     else:
         raise NotImplementedError(
-                'Trihedrons are only implemented for SO(3) and SE(3).')
+            'Trihedrons are only implemented for SO(3) and SE(3).')
 
     rot_mat = SO3_GROUP.matrix_from_rotation_vector(rot_vec)
     rot_mat = SO3_GROUP.projection(rot_mat)
@@ -386,9 +386,9 @@ def plot(points, ax=None, space=None,
     """
     if space not in IMPLEMENTED:
         raise NotImplementedError(
-                'The plot function is not implemented'
-                ' for space {}. The spaces available for visualization'
-                ' are: {}.'.format(space, IMPLEMENTED))
+            'The plot function is not implemented'
+            ' for space {}. The spaces available for visualization'
+            ' are: {}.'.format(space, IMPLEMENTED))
 
     if points is None:
         raise ValueError("No points given for plotting.")

@@ -156,10 +156,10 @@ def allclose(a, b, **kwargs):
     n_b = b.shape[0]
     ndim = len(a.shape)
     if n_a > n_b:
-        reps = (int(n_a / n_b),) + (ndim-1) * (1,)
+        reps = (int(n_a / n_b),) + (ndim - 1) * (1,)
         b = tile(b, reps)
     elif n_a < n_b:
-        reps = (int(n_b / n_a),) + (ndim-1) * (1,)
+        reps = (int(n_b / n_a),) + (ndim - 1) * (1,)
         a = tile(a, reps)
     return torch.allclose(a, b, **kwargs)
 
@@ -191,11 +191,11 @@ def tanh(*args, **kwargs):
 
 
 def arcsinh(x):
-    return torch.log(x + torch.sqrt(x*x+1))
+    return torch.log(x + torch.sqrt(x * x + 1))
 
 
 def arcosh(x):
-    return torch.log(x + torch.sqrt(x*x-1))
+    return torch.log(x + torch.sqrt(x * x - 1))
 
 
 def tan(val):
@@ -235,7 +235,6 @@ def to_ndarray(x, to_ndim, axis=0):
     x = array(x)
     if x.dim() == to_ndim - 1:
         x = torch.unsqueeze(x, dim=axis)
-    assert x.dim() >= to_ndim
     return x
 
 
@@ -260,7 +259,7 @@ def less(a, b):
 
 
 def less_equal(a, b):
-    return _np.less_equal(a, b)
+    return torch.le(a, b)
 
 
 def eye(*args, **kwargs):
@@ -322,7 +321,7 @@ def mod(*args, **kwargs):
 
 
 def arctanh(x):
-    return 0.5 * torch.log((1+x)/(1-x))
+    return 0.5 * torch.log((1 + x) / (1 - x))
 
 
 def linspace(start, stop, num):
@@ -349,8 +348,8 @@ def triu_indices(*args, **kwargs):
     return torch.triu_indices(*args, **kwargs)
 
 
-def where(*args, **kwargs):
-    return torch.where(*args, **kwargs)
+def where(test, x, y):
+    return torch.where(test, torch.tensor(x), torch.tensor(y))
 
 
 def tile(x, y):
@@ -479,3 +478,7 @@ def cumprod(x, axis=0):
         raise NotImplementedError('cumprod is not defined where axis is None')
     else:
         return torch.cumprod(x, dim=axis)
+
+
+def isnan(*args, **kwargs):
+    return torch.isnan(*args, **kwargs)

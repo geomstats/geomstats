@@ -10,6 +10,7 @@ contribute.
 The project is hosted on https://github.com/geomstats/geomstats
 
 Code is not the only way to help the project:
+
 - reviewing pull requests,
 - submitting an issue or a bug report,
 - submitting a thumb up on issues that are important for you,
@@ -21,6 +22,7 @@ Code is not the only way to help the project:
 - working on the website and improving the documentation,
 - reference the project in your articles,
 - or simply star it to say "I use it",
+
 are all priceless contributions.
 
 If you have questions, do not hesitate to send an email to the mailing
@@ -31,8 +33,8 @@ contributing code, writing documentation, following code style guidelines,
 and reviewing code. This document is largely inspired by the
 Scikit-Learn project.
 
-Submitting an issue: a bug report or a feature request
-======================================================
+Submitting An Issue: a bug report or a feature request
+------------------------------------------------------
 
 We use GitHub issues to track all bugs and feature requests; feel free to `open
 an issue <https://github.com/geomstats/geomstats/issues>`_ if you have found a
@@ -51,7 +53,7 @@ following rules before submitting:
 .. _filing_bugs:
 
 How to make a good bug report
------------------------------
+=============================
 
 When you submit an issue to `Github
 <https://github.com/geomstats/geomstats/issues>`__, please do your best to
@@ -81,8 +83,8 @@ feedback:
   <https://help.github.com/articles/creating-and-highlighting-code-blocks>`_
   for more details.
 
-Contributing code workflow
-==========================
+Contributing Code Workflow
+--------------------------
 
   To avoid duplicating work, it is highly advised that you search through the
   `issue tracker <https://github.com/geomstats/geomstats/issues>`_ and
@@ -93,7 +95,7 @@ Contributing code workflow
   to get some feedbacks from core developers.
 
 How to contribute: GitHub workflow
-----------------------------------
+==================================
 
 The preferred way to contribute to geomstats is to fork the `main
 repository <https://github.com/geomstats/geomstats/>`__ on GitHub,
@@ -163,9 +165,9 @@ It is often helpful to keep your local feature branch synchronized with the
 latest changes of the main geomstats repository::
 
     $ git fetch upstream
-    $ git merge upstream/master
+    $ git rebase upstream/master
 
-Subsequently, you might need to solve the conflicts. You can refer to the
+Subsequently, you might need to solve potential conflicts. Refer to the
 `Git documentation related to resolving merge conflict using the command
 line
 <https://help.github.com/articles/resolving-a-merge-conflict-using-the-command-line/>`_.
@@ -174,7 +176,7 @@ http://try.github.io are excellent resources to get started with git,
 and understanding all of the commands shown here.
 
 Pull request checklist
-----------------------
+======================
 
 
 In order to ease the reviewing process, we recommend that your contribution
@@ -204,22 +206,38 @@ complies with the following rules. The **bolded** ones are especially important:
 4. **Make sure your code passes all unit tests**. First,
    run the tests related to your changes. For example, if you changed
    something in `geomstats/spd_matrices_space.py`:
-   - `nose2 --verbose tests.test_spd_matrices_space`
+
+   `nose2 --verbose tests.test_spd_matrices_space`
+
    and then run the tests of the whole codebase to check that your feature is
    not breaking any of them:
-   - `nose2`
+
+   `nose2`
+
    This way, further modifications on the code base are granted
    to be consistent with the desired behavior. Merging your PR should not break
    any test in any backend (numpy, tensorflow or pytorch).
 
 5. **Make sure that your PR follows Python international style guidelines**,
    `PEP8 <https://www.python.org/dev/peps/pep-0008>`_, which you should read.
-   The software `flake8` automatically looks for style violations when you submit
-   your PR. We recommend installing flake8 with its plugins on your machine
-   `pip3 install flake8 flake8-docstrings flake8-import-order`. Then you can run
-   `flake8 geomstats tests examples`. Please avoid reformatting
-   parts of the file that your pull request doesn't change, as it distracts
-   from code review.
+   The `flake8` package automatically checks for style violations when you
+   submit your PR. We recommend installing flake8 with its plugins on your
+   machine by running
+
+   `pip3 install -r dev-requirements.txt`
+
+   Then you can run
+
+   `flake8 geomstats tests examples`
+
+   To prevent adding commits which fail to adhere to the PEP8 guidelines, we
+   include a `pre-commit <https://pre-commit.com/>` config, which immediately
+   invokes flake8 on all files staged for commit when running `git commit`. To
+   enable the hook, simply run `pre-commit install` after installing
+   `pre-commit` either manually via `pip` or as part of `dev-requirements.txt`.
+
+   Please avoid reformatting parts of the file that your pull request doesn't
+   change, as it distracts during code reviews.
 
 6. **Make sure that your PR follows geomstats coding style and API**,
    see our `coding-guidelines`_ below. Ensuring style consistency throughout
@@ -308,7 +326,7 @@ A good etiquette to take over is:
 .. _new_contributors:
 
 Issues for New Contributors
----------------------------
+===========================
 
 New contributors should look for the following tags when looking for issues.  We
 strongly recommend that new contributors tackle "easy" issues first: this helps
@@ -347,7 +365,7 @@ underestimate how easy an issue is to solve!
 .. _contribute_documentation:
 
 Documentation
-=============
+-------------
 
 We are glad to accept any sort of documentation: function docstrings,
 reStructuredText documents (like this one), tutorials, etc. reStructuredText
@@ -355,7 +373,7 @@ documents live in the source code repository under the ``docs/`` directory.
 
 
 Building the documentation
---------------------------
+==========================
 
 Building the documentation requires installing sphinx::
 
@@ -372,30 +390,15 @@ In the vast majority of cases, you only need to generate the full web site::
 
 
 Guidelines for writing documentation
-------------------------------------
+====================================
 
-* When writing docstrings, follow the `<NumPy template https://numpydoc.readthedocs.io/en/latest/format.html>`_::
-
+When writing docstrings, follow the `NumPy template <https://numpydoc.readthedocs.io/en/latest/format.html>`_
+::
     def my_method(self, my_param_1, my_param_2):
         """Write a short title for the method.
 
         Write a description of the method, including "big O"
         (:math:`O\left(g\left(n\right)\right)`) complexities.
-
-        Example
-        -------
-        Provide code snippets showing how the method is used.
-        You can link to scripts of the examples/ directory.
-
-        Equation
-        --------
-        If relevant, provide equations with (:math:)
-        describing computations performed in the method.
-
-        Reference
-        ---------
-        If relevant, provide a reference with associated pdf or
-        wikipedia page.
 
         Parameters
         ----------
@@ -408,9 +411,23 @@ Guidelines for writing documentation
         -------
         my_result : array-like, shape=[n_samples, dimension, dimension]
             Write a short description of the result returned by the method.
-        """
 
-* In general have the following in mind:
+        Notes
+        -----
+        If relevant, provide equations with (:math:)
+        describing computations performed in the method.
+
+        Example
+        -------
+        Provide code snippets showing how the method is used.
+        You can link to scripts of the examples/ directory.
+
+        Reference
+        ---------
+        If relevant, provide a reference with associated pdf or
+        wikipedia page.
+        """
+In general, have the following in mind:
     1. Use Python basic types. (``bool`` instead of ``boolean``)
     2. Use ``[`` for defining shapes: ``array-like, shape=[n_samples,]``
     3. For strings with multiple options, use brackets:
@@ -422,13 +439,13 @@ Guidelines for writing documentation
        "See also" in docstrings should be one line per reference,
        with a colon and an explanation.
 
-* When editing reStructuredText (``.rst``) files, try to keep line length under
-  80 characters (exceptions include links and tables).
+When editing reStructuredText (``.rst``) files, try to keep line length under
+80 characters (exceptions include links and tables).
 
 .. _coding-guidelines:
 
-Coding style guidelines
-=======================
+Coding Style Guidelines
+-----------------------
 
 The following are some guidelines on how new code should be written. Of
 course, there are special cases and there will be exceptions to these
@@ -474,7 +491,7 @@ guidelines:
    find bugs in geomstats.
 
 8. Avoid the use of ``import ... as`` and of ``from ... import foo, bar``,
-   , i.e. do not rename modules or modules' functions, because you would create
+   i.e. do not rename modules or modules' functions, because you would create
    objects living in several namespaces which creates confusion, see
    `<https://docs.python.org/2/howto/doanddont.html#language-constructs-you-should-not-use>`_.
    Keeping the original namespace ensures naming consistency in the codebase
@@ -484,13 +501,15 @@ guidelines:
 
 9. Use single quotes ' and not double quotes " for strings.
 
-10. If you need several lines for a function call, use the syntax::
-   my_function_with_a_very_long_name(
-       my_param_1=value_1, my_param_2=value_2)
+10. If you need several lines for a function call, use the syntax
+::
+    my_function_with_a_very_long_name(
+        my_param_1=value_1, my_param_2=value_2)
 
-and not::
-   my_function_with_a_very_long_name(my_param_1=value_1,
-                                     my_param_2=value_2)
+and not
+::
+    my_function_with_a_very_long_name(my_param_1=value_1,
+                                      my_param_2=value_2)
 
 as the indentation will break and raise a flake8 error if the name
 of the function is changed.
@@ -505,7 +524,7 @@ corresponding changes in the codebase.
 .. _code_review:
 
 Code Review Guidelines
-======================
+----------------------
 
 Reviewing code contributed to the project as PRs is a crucial component of
 geomstats development. We encourage anyone to start reviewing code of other
