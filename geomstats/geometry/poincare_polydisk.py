@@ -18,8 +18,6 @@ from geomstats.geometry.product_manifold import ProductManifold
 from geomstats.geometry.product_riemannian_metric \
     import ProductRiemannianMetric  # NOQA
 
-TOLERANCE = 1e-6
-
 
 class PoincarePolydisk(ProductManifold):
     """Class defining the Poincare polydisk.

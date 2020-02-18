@@ -2,6 +2,8 @@
 
 import math
 
+import autograd
+
 import geomstats.backend as gs
 from geomstats.geometry.connection import Connection
 
