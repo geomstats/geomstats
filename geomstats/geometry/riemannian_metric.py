@@ -3,19 +3,23 @@
 import math
 
 import geomstats.backend as gs
+from geomstats.geometry.connection import Connection
+
 
 EPSILON = 1e-4
 N_CENTERS = 10
 TOLERANCE = 1e-5
 N_REPETITIONS = 20
 N_MAX_ITERATIONS = 50000
+N_STEPS = 10
 
 
 def loss(y_pred, y_true, metric):
     """Compute loss given by a Riemannian metric.
 
-    Loss function given by a Riemannian metric expressed as the squared
-    geodesic distance between the prediction and the ground truth.
+    Loss function given by a Riemannian metric,
+    expressed as the squared geodesic distance between the prediction
+    and the ground truth.
 
     Parameters
     ----------
@@ -32,7 +36,7 @@ def loss(y_pred, y_true, metric):
 
 
 def grad(y_pred, y_true, metric):
-    """Compute closed-form for the gradient of the loss function."""
+    """Compute the closed-form for the gradient of the loss function."""
     tangent_vec = metric.log(base_point=y_pred, point=y_true)
     grad_vec = - 2. * tangent_vec
 
@@ -45,13 +49,13 @@ def grad(y_pred, y_true, metric):
     return grad
 
 
-class RiemannianMetric(object):
+class RiemannianMetric(Connection):
     """Class for Riemannian and pseudo-Riemannian metrics."""
 
     def __init__(self, dimension, signature=None):
         assert isinstance(dimension, int) or dimension == math.inf
         assert dimension > 0
-        self.dimension = dimension
+        super().__init__(dimension=dimension)
         self.signature = signature
 
     def inner_product_matrix(self, base_point=None):
@@ -72,9 +76,47 @@ class RiemannianMetric(object):
         ----------
         base_point : array-like, shape=[n_samples, dimension], optional
         """
-        raise NotImplementedError(
-            'The computation of the inner product inv. matrix'
-            'is not implemented.')
+        metric_matrix = self.inner_product_matrix(base_point)
+        cometric_matrix = gs.linalg.inv(metric_matrix)
+        return cometric_matrix
+
+    def inner_product_derivative_matrix(self, base_point=None):
+        """Compute derivative of the inner prod matrix at base point.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[n_samples, dimension], optional
+        """
+        metric_derivative = autograd.jacobian(self.inner_product_matrix)
+        return metric_derivative(base_point)
+
+    def christoffels(self, base_point):
+        """Compute Christoffel symbols associated with the connection.
+
+        Parameters
+        ----------
+        base_point: array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        christoffels: array-like,
+                             shape=[n_samples, dimension, dimension, dimension]
+        """
+        cometric_mat_at_point = self.inner_product_inverse_matrix(base_point)
+        metric_derivative_at_point = self.inner_product_derivative_matrix(
+            base_point)
+        term_1 = gs.einsum('nim,nmkl->nikl',
+                           cometric_mat_at_point,
+                           metric_derivative_at_point)
+        term_2 = gs.einsum('nim,nmlk->nilk',
+                           cometric_mat_at_point,
+                           metric_derivative_at_point)
+        term_3 = - gs.einsum('nim,nklm->nikl',
+                             cometric_mat_at_point,
+                             metric_derivative_at_point)
+
+        christoffels = 0.5 * (term_1 + term_2 + term_3)
+        return christoffels
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product between two tangent vectors at a base point.
@@ -90,7 +132,7 @@ class RiemannianMetric(object):
 
         Returns
         -------
-        inner_product
+        inner_product : array-like, shape=[n_samples,]
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
@@ -142,49 +184,42 @@ class RiemannianMetric(object):
 
         Parameters
         ----------
-        vector: array-like, shape=[n_samples, dimension]
-                            or shape=[1, dimension]
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
+        vector : array-like, shape=[n_samples, dimension]
+
+        base_point : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
-        sq_norm
+        sq_norm : array-like, shape=[n_samples,]
         """
         sq_norm = self.inner_product(vector, vector, base_point)
         return sq_norm
 
     def norm(self, vector, base_point=None):
-        """Compute norm of a vector.
+        """Compute the norm of a vector.
 
         Norm of a vector associated to the inner product
         at the tangent space at a base point.
 
-        Notes
-        -----
-        This only works for positive-definite
+        Note: This only works for positive-definite
         Riemannian metrics and inner products.
 
         Parameters
         ----------
-        vector: array-like, shape=[n_samples, dimension]
-                            or shape=[1, dimension]
+        vector : array-like, shape=[n_samples, dimension]
 
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
+        base_point : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
-        norm
+        norm : array-like, shape=[n_samples,]
         """
         sq_norm = self.squared_norm(vector, base_point)
         norm = gs.sqrt(sq_norm)
         return norm
 
     def exp(self, tangent_vec, base_point=None):
-        """Compute the Riemannian exponential map.
-
-        Riemannian exponential of a tangent vector wrt to a base point.
+        """Compute Riemannian exponential of tangent vector wrt to base point.
 
         Parameters
         ----------
@@ -200,10 +235,8 @@ class RiemannianMetric(object):
         raise NotImplementedError(
             'The Riemannian exponential is not implemented.')
 
-    def log(self, point, base_point=None):
-        """Compute the Riemannian logarithm map.
-
-        Riemannian logarithm of a point wrt a base point.
+    def log(self, point, base_spoint=None):
+        """Compute Riemannian logarithm of a point wrt a base point.
 
         Parameters
         ----------
@@ -223,20 +256,23 @@ class RiemannianMetric(object):
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
                  point_type='vector'):
-        """Compute geodesic curve.
+        """Compute the geodesic curve as a function of t.
 
         Geodesic curve defined by either:
         - an initial point and an initial tangent vector, or
-        -an initial point and an end point.
+        - an initial point and an end point.
 
         The geodesic is returned as a function parameterized by t.
 
         Parameters
         ----------
-        initial_point
-        end_point
-        initial_tangent_vec
-        point_type
+        initial_point : array-like, shape=[n_samples, dimension]
+
+        end_point : array-like, shape=[n_samples, dimension], optional
+        initial_tangent_vec : array-like, shape=[n_samples, dimension],
+            optional
+
+        point_type : str, optional
 
         Returns
         -------
@@ -264,12 +300,12 @@ class RiemannianMetric(object):
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
                                             to_ndim=point_ndim + 1)
 
-        def point_on_geodesic(t):
+        def path(t):
             """Generate a function parameterizing the geodesic.
 
             Parameters
             ----------
-            t
+            t :  parameter value of the geodesic
 
             Returns
             -------
@@ -298,23 +334,20 @@ class RiemannianMetric(object):
                                        base_point=new_initial_point)
             return point_at_time_t
 
-        return point_on_geodesic
+        return path
 
     def squared_dist(self, point_a, point_b):
-        """Compute the squared distance.
-
-        Squared geodesic distance between two points.
+        """Compute squared geodesic distance between two points.
 
         Parameters
         ----------
-        point_a: array-like, shape=[n_samples, dimension]
-                             or shape=[1, dimension]
-        point_b: array-like, shape=[n_samples, dimension]
-                             or shape=[1, dimension]
+        point_a : array-like, shape=[n_samples, dimension]
+
+        point_b : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
-        sq_dist
+        sq_dist : array-like, shape=[n_samples,]
         """
         log = self.log(point=point_b, base_point=point_a)
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
@@ -322,25 +355,19 @@ class RiemannianMetric(object):
         return sq_dist
 
     def dist(self, point_a, point_b):
-        """Define the distance between two points.
+        """Compute the geodesic distance between two points.
 
-        Geodesic distance between two points.
-
-        Notes
-        -----
-        It only works for positive definite
-        Riemannian metrics.
+        Note: It only works for positive definite Riemannian metrics.
 
         Parameters
         ----------
-        point_a: array-like, shape=[n_samples, dimension]
-                             or shape=[1, dimension]
-        point_b: array-like, shape=[n_samples, dimension]
-                             or shape=[1, dimension]
+        point_a : array-like, shape=[n_samples, dimension]
+
+        point_b : array-like, shape=[n_samples, dimension]
 
         Returns
         -------
-        dist
+        dist : array-like, shape=[n_samples,]
         """
         sq_dist = self.squared_dist(point_a, point_b)
         dist = gs.sqrt(sq_dist)
@@ -351,13 +378,12 @@ class RiemannianMetric(object):
                  weights=None,
                  base_point=None,
                  point_type='vector'):
-        """Compute the variance of a set of points.
-
-        Variance of (weighted) points wrt a base point.
+        """Compute variance of (weighted) points wrt a base point.
 
         Parameters
         ----------
         points: array-like, shape=[n_samples, dimension]
+
         weights: array-like, shape=[n_samples, 1], optional
 
         Returns
@@ -490,9 +516,7 @@ class RiemannianMetric(object):
                                       n_max_iterations=32,
                                       epsilon=1e-12,
                                       init_points=[]):
-        """Compute the Frechet mean using adaptive time-steps.
-
-        Frechet mean of (weighted) points using adaptive time-steps.
+        """Compute Frechet mean of (weighted) points using adaptive time-steps.
 
         The loss function optimized is ||M_1(x)||_x (where M_1(x) is
         the tangent mean at x) rather than the mean-square-distance (MSD)
@@ -603,6 +627,9 @@ class RiemannianMetric(object):
     def diameter(self, points):
         """Compute the largest distance between two points in a dataset.
 
+        Distance between the two points that are farthest away from each other
+        in points.
+
         Parameters
         ----------
         points
@@ -627,6 +654,7 @@ class RiemannianMetric(object):
         Parameters
         ----------
         point
+
         neighbors
 
         Returns

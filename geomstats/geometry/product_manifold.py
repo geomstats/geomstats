@@ -2,6 +2,8 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.product_riemannian_metric import \
+    ProductRiemannianMetric
 
 # TODO(nina): get rid of for loops
 # TODO(nina): unit tests
@@ -39,23 +41,30 @@ class ProductManifold(Manifold):
         self.default_point_type = default_point_type
 
         self.manifolds = manifolds
-        self.n_manifolds = len(manifolds)
+        self.metric = ProductRiemannianMetric(
+            [manifold.metric for manifold in manifolds])
 
         dimensions = [manifold.dimension for manifold in manifolds]
         super(ProductManifold, self).__init__(
             dimension=sum(dimensions))
 
     def belongs(self, point, point_type=None):
-        """Check if the point belongs to the manifold.
+        """Test if a point belongs to the manifold.
 
         Parameters
         ----------
-        point
+        point : array-like, shape=[n_samples, dim]
+                           or shape=[n_samples, dim_2, dim_2]
+            Point.
+
         point_type : str, {'vector', 'matrix'}
+            Representation of point.
 
         Returns
         -------
-        belongs: array-like, shape=[n_samples, 1]
+        belongs : array-like, shape=[n_samples, 1]
+            Array of booleans evaluating if the corresponding points
+            belong to the manifold.
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -66,12 +75,10 @@ class ProductManifold(Manifold):
         else:
             point = gs.to_ndarray(point, to_ndim=3)
 
-        n_manifolds = self.n_manifolds
-        belongs = gs.empty((point.shape[0], n_manifolds))
+        belongs = gs.empty((point.shape[0], len(self.manifolds)))
         cum_dim = 0
         # FIXME: this only works if the points are in intrinsic representation
-        for i in range(n_manifolds):
-            manifold_i = self.manifolds[i]
+        for i, manifold_i in enumerate(self.manifolds):
             cum_dim_next = cum_dim + manifold_i.dimension
             point_i = point[:, cum_dim:cum_dim_next]
             belongs_i = manifold_i.belongs(point_i)
@@ -87,55 +94,31 @@ class ProductManifold(Manifold):
 
         Parameters
         ----------
-        point
+        point : array-like, shape=[n_samples, dim]
+                           or shape=[n_samples, dim_2, dim_2]
+            Point to be regularized.
+
         point_type : str, {'vector', 'matrix'}
+            Representation of point.
 
         Returns
         -------
-        regularize_points
+        regularized_point : array-like, shape=[n_samples, dim]
+                            or shape=[n_samples, dim_2, dim_2]
+            Point in the manifold's canonical representation.
         """
         # TODO(nina): Vectorize.
         if point_type is None:
             point_type = self.default_point_type
         assert point_type in ['vector', 'matrix']
 
-        regularize_points = [self.manifold[i].regularize(point[i])
-                             for i in range(self.n_manifolds)]
+        regularized_point = [
+            manifold_i.regularize(point_i)
+            for manifold_i, point_i in zip(self.manifolds, point)]
 
         # TODO(nina): Put this in a decorator
         if point_type == 'vector':
-            regularize_points = gs.hstack(regularize_points)
+            regularized_point = gs.hstack(regularized_point)
         elif point_type == 'matrix':
-            regularize_points = gs.vstack(regularize_points)
-        return gs.all(regularize_points)
-
-        return regularize_points
-
-    def geodesic(self, initial_point,
-                 end_point=None, initial_tangent_vec=None, point_type=None):
-        """Compute geodesic curve for a product metric.
-
-        This geodesic is seen as the product of the geodesic on each space.
-
-        Parameters
-        ----------
-        initial_point
-        end_point
-        initial_tangent_vec
-        point_type
-
-        Returns
-        -------
-        geodesics : array-like
-        """
-        if point_type is None:
-            point_type = self.default_point_type
-        assert point_type in ['vector', 'matrix']
-
-        geodesics = gs.asarray([[self.manifold[i].metric.geodesic(
-            initial_point,
-            end_point=end_point,
-            initial_tangent_vec=initial_tangent_vec,
-            point_type=point_type)
-            for i in range(self.n_manifolds)]])
-        return geodesics
+            regularized_point = gs.vstack(regularized_point)
+        return gs.all(regularized_point)

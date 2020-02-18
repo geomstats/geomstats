@@ -22,10 +22,10 @@ TOLERANCE = 1e-6
 
 
 class PoincarePolydisk(ProductManifold):
-    """Class for the Poincare polydisk.
+    """Class defining the Poincare polydisk.
 
-    The Poincare polydisk is a direct product of n Poincare disks,
-    i.e. hyperbolic spaces of dimension 2.
+    Class for the Poincare polydisk, which is a direct product
+    of n Poincare disks, i.e. hyperbolic spaces of dimension 2.
     """
 
     def __init__(self, n_disks, point_type='ball'):
@@ -47,18 +47,18 @@ class PoincarePolydisk(ProductManifold):
 
         Parameters
         ----------
-        point_intrinsic : array-like, shape=[n_diskx, n_samples, dimension]
+        point_intrinsic : array-like, shape=[n_samples, n_disk, dimension]
 
         Returns
         -------
-        point_extrinsic : array-like, shape=[n_disks, n_samples, dimension + 1]
+        point_extrinsic : array-like, shape=[n_samples, n_disks, dimension + 1]
         """
         n_disks = point_intrinsic.shape[1]
         hyperbolic_space = Hyperbolic(dimension=2)
         point_extrinsic = gs.stack(
             [hyperbolic_space.intrinsic_to_extrinsic_coords(
-                point_intrinsic=point_intrinsic[:, i_disks, :])
-                for i_disks in range(n_disks)], axis=1)
+                point_intrinsic=point_intrinsic[:, i_disk, ...])
+                for i_disk in range(n_disks)], axis=1)
         return point_extrinsic
 
     def projection_to_tangent_space(self, vector, base_point):
@@ -69,21 +69,21 @@ class PoincarePolydisk(ProductManifold):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, dimension + 1]
-        base_point : array-like, shape=[n_samples, dimension + 1]
+        vector : array-like, shape=[n_samples, n_disks, dimension + 1]
+        base_point : array-like, shape=[n_samples, n_disks, dimension + 1]
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, dimension + 1]
+        tangent_vec : array-like, shape=[n_samples, n_disks, dimension + 1]
         """
         n_disks = base_point.shape[1]
         hyperbolic_space = Hyperbolic(dimension=2,
                                       point_type=self.point_type)
         tangent_vec = gs.stack([Hyperbolic.projection_to_tangent_space(
             self=hyperbolic_space,
-            vector=vector[:, i_disks, :],
-            base_point=base_point[:, i_disks, :])
-            for i_disks in range(n_disks)], axis=1)
+            vector=vector[:, i_disk, :],
+            base_point=base_point[:, i_disk, :])
+            for i_disk in range(n_disks)], axis=1)
         return tangent_vec
 
 
@@ -91,14 +91,15 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
     """Class defining the Poincare polydisk metric.
 
     The Poincare polydisk metric is a product of n Poincare metrics,
-    each of them being multiplied by a specific constant factor.
+    each of them being multiplied by a specific constant factor (see
+    [JV2016]_).
 
-    This metric come from a model used to represent
-    stationary complex signals.
+    This metric comes from a model used to represent
+    stationary complex autoregressive Gaussian signals.
 
     References
     ----------
-    .. [JV2016] B. Jeuris and R. Vandebril. The Kahler mean of Block-Toeplitz
+    .. [JV2016] B. Jeuris and R. Vandebril. The Kähler mean of Block-Toeplitz
       matrices with Toeplitz structured blocks, 2016.
       https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
@@ -106,6 +107,7 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
     def __init__(self, n_disks, point_type='ball'):
         self.n_disks = n_disks
         self.point_type = point_type
+        self.default_point_type = 'vector'
         list_metrics = []
         for i_disk in range(n_disks):
             scale_i = (n_disks - i_disk) ** 0.5
