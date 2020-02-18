@@ -2,6 +2,7 @@
 
 The n-dimensional hyperbolic space embedded in (n+1)-dimensional
 Minkowski space.
+=======
 """
 
 import logging
