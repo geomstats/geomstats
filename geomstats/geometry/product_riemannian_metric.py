@@ -48,12 +48,12 @@ class ProductRiemannianMetric(RiemannianMetric):
         matrix[:b, :b] = self.metrics.inner_product_matrix(base_point[0])
         dim_current = 0
 
-        for i in range(self.n_metrics-1):
+        for i in range(self.n_metrics - 1):
             dim_current += self.dimensions[i]
-            dim_next = self.dimensions[i+1]
+            dim_next = self.dimensions[i + 1]
             a = dim_current
             b = dim_current + dim_next
-            matrix_next = self.metrics.inner_product_matrix(base_point[i+1])
+            matrix_next = self.metrics.inner_product_matrix(base_point[i + 1])
             matrix[a:b, a:b] = matrix_next
 
         return matrix
@@ -144,7 +144,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         """
         sq_distances = gs.asarray([self.metrics[i].squared_dist(
             point_a[i], point_b[i])
-                                   for i in range(self.n_metrics)])
+            for i in range(self.n_metrics)])
 
         return sum(sq_distances)
 
@@ -166,17 +166,17 @@ class ProductRiemannianMetric(RiemannianMetric):
                 point_at_time_t = gs.stack(
                     [RiemannianMetric.geodesic(
                         self.metrics[i_space],
-                        initial_point=initial_point[i_space, ...],
-                        end_point=end_point[i_space, ...])(t)
+                        initial_point=initial_point[:, i_space, ...],
+                        end_point=end_point[:, i_space, ...])(t)
                         for i_space in range(self.n_metrics)], axis=1)
 
             if initial_tangent_vec is not None:
                 point_at_time_t = gs.stack(
                     [RiemannianMetric.geodesic(
                         self.metrics[i_space],
-                        initial_point=initial_point[i_space, ...],
-                        initial_tangent_vec=initial_tangent_vec[i_space, ...])
-                     (t)
+                        initial_point=initial_point[:, i_space, ...],
+                        initial_tangent_vec=initial_tangent_vec
+                        [:, i_space, ...])(t)
                         for i_space in range(self.n_metrics)], axis=1)
 
             return point_at_time_t

@@ -73,8 +73,8 @@ class RiemannianMetric(object):
         base_point : array-like, shape=[n_samples, dimension], optional
         """
         raise NotImplementedError(
-                'The computation of the inner product inv. matrix'
-                ' is not implemented.')
+            'The computation of the inner product inv. matrix'
+            'is not implemented.')
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute inner product between two tangent vectors at a base point.
@@ -556,7 +556,7 @@ class RiemannianMetric(object):
                 current_mean = next_mean
                 current_tangent_mean = next_tangent_mean
                 norm_current_tangent_mean = norm_next_tangent_mean
-                tau = max(1.0, 1.0511111*tau)
+                tau = max(1.0, 1.0511111 * tau)
             else:
                 tau = tau * 0.8
 

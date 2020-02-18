@@ -53,12 +53,12 @@ class PoincarePolydisk(ProductManifold):
         -------
         point_extrinsic : array-like, shape=[n_disks, n_samples, dimension + 1]
         """
-        n_disks = point_intrinsic.shape[0]
+        n_disks = point_intrinsic.shape[1]
         hyperbolic_space = Hyperbolic(dimension=2)
-        point_extrinsic = gs.vstack(
+        point_extrinsic = gs.stack(
             [hyperbolic_space.intrinsic_to_extrinsic_coords(
-                point_intrinsic=point_intrinsic[i_disks, ...])
-                for i_disks in range(n_disks)])
+                point_intrinsic=point_intrinsic[:, i_disks, :])
+                for i_disks in range(n_disks)], axis=1)
         return point_extrinsic
 
     def projection_to_tangent_space(self, vector, base_point):
@@ -76,14 +76,14 @@ class PoincarePolydisk(ProductManifold):
         -------
         tangent_vec : array-like, shape=[n_samples, dimension + 1]
         """
-        n_disks = base_point.shape[0]
+        n_disks = base_point.shape[1]
         hyperbolic_space = Hyperbolic(dimension=2,
                                       point_type=self.point_type)
-        tangent_vec = gs.vstack([Hyperbolic.projection_to_tangent_space(
+        tangent_vec = gs.stack([Hyperbolic.projection_to_tangent_space(
             self=hyperbolic_space,
-            vector=vector[i_disks, ...],
-            base_point=base_point[i_disks, ...])
-            for i_disks in range(n_disks)])
+            vector=vector[:, i_disks, :],
+            base_point=base_point[:, i_disks, :])
+            for i_disks in range(n_disks)], axis=1)
         return tangent_vec
 
 
@@ -114,4 +114,4 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
                                         scale=scale_i)
             list_metrics.append(metric_i)
         super(PoincarePolydiskMetric, self).__init__(
-                metrics=list_metrics)
+            metrics=list_metrics)
