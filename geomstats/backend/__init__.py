@@ -1,7 +1,10 @@
+import logging
 import os
-import sys
 
 from numpy import pi  # NOQA
+
+logging.basicConfig()
+logging.getLogger().setLevel(logging.INFO)
 
 
 _BACKEND = os.environ.get('GEOMSTATS_BACKEND')
@@ -16,4 +19,4 @@ elif _BACKEND == 'tensorflow':
     from geomstats.backend.tensorflow import *  # NOQA
 else:
     raise RuntimeError('Unknown backend \'{:s}\''.format(_BACKEND))
-print('Using {:s} backend'.format(_BACKEND), file=sys.stderr)
+logging.info('Using {:s} backend'.format(_BACKEND))
