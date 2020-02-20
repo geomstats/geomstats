@@ -1,7 +1,7 @@
 """Frechet mean."""
 
+import logging
 import math
-import warnings
 
 from sklearn.base import BaseEstimator
 
@@ -103,7 +103,8 @@ def _default_gradient_descent(points, metric, weights,
 
         logs = metric.log(point=points, base_point=mean)
 
-        tangent_mean = gs.einsum(einsum_str, weights, logs)
+        tangent_mean = gs.einsum('nk,nj->j', weights, logs)
+
         tangent_mean /= sum_weights
 
         estimate_next = metric.exp(
@@ -325,7 +326,7 @@ class FrechetMean(BaseEstimator):
         self.method = method
         self.verbose = verbose
 
-    def fit(self, X, y=None, weights=None):
+    def fit(self, X, y=None, weights=None, verbose=False):
         """Compute the empirical Frechet mean.
 
         Parameters
