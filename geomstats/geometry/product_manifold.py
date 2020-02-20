@@ -69,6 +69,14 @@ class ProductManifold(Manifold):
 
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
+            # detect if intrinsic of extrinsic
+            if point.shape[1] == self.dimension:
+                intrinsic = True
+            elif point.shape[1] == sum(
+                    [man.dimension + 1 for man in self.manifolds]):
+                intrinsic = False
+            else:
+                raise ValueError('invalid input dimension')
         else:
             point = gs.to_ndarray(point, to_ndim=3)
 
@@ -77,9 +85,11 @@ class ProductManifold(Manifold):
         # FIXME: this only works if the points are in intrinsic representation
         for i, manifold_i in enumerate(self.manifolds):
             cum_dim_next = cum_dim + manifold_i.dimension
+            if not intrinsic:
+                cum_dim_next += 1
             point_i = point[:, cum_dim:cum_dim_next]
             belongs_i = manifold_i.belongs(point_i)
-            belongs[:, i] = belongs_i
+            belongs[:, i] = belongs_i.flatten()
             cum_dim = cum_dim_next
 
         belongs = gs.all(belongs, axis=1)
