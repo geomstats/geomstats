@@ -235,37 +235,31 @@ class Connection(object):
                 'end_point': end_point}
 
     def pole_ladder_parallel_transport(
-            self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1,
-            **single_step_kwargs):
+            self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1):
         """Approximate parallel transport using the pole ladder scheme.
 
         Approximate Parallel transport using the pole ladder scheme [LP2013b]_
         [GJSP2019]_. `tangent_vec_a` is transported along the geodesic starting
         at the base_point with initial tangent vector `tangent_vec_b`.
 
+        Returns a tangent vector at the point
+        exp_(`base_point`)(`tangent_vec_b`).
+
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[n_samples, dimension]
-            Tangent vector at base point to transport.
+                                   or shape=[1, dimension]
         tangent_vec_b : array-like, shape=[n_samples, dimension]
-            Tangent vector at base point, initial speed of the geodesic along
-            which to transport.
+                                   or shape=[1, dimension]
         base_point : array-like, shape=[n_samples, dimension]
-            Point on the manifold, initial position of the geodesic along
-            which to transport.
-        n_steps : int
-            The number of pole ladder steps.
-        **single_step_kwargs : keyword arguments for the step functions
+                                or shape=[1, dimension]
+        n_steps: int
+            the number of pole ladder steps
 
         Returns
         -------
-        ladder : dict of array-like and callable with following keys
-            transported_tangent_vector : array-like, shape=[n_samples, dim]
-                Approximation of the parallel transport of tangent vector a.
-            trajectory : list of list of callable, len=n_steps
-                List of lists containing the geodesics of the
-                construction, only if `return_geodesics=True` in the step
-                function. The geodesics are methods of the class connection.
+        transported_tangent_vector : array-like, shape=[n_samples, dimension]
+                                                or shape=[1, dimension]
 
         References
         ----------
@@ -284,19 +278,19 @@ class Connection(object):
         base_shoot = self.exp(base_point=current_point,
                               tangent_vec=next_tangent_vec)
         trajectory = []
+        methods = {'pole': self.pole_ladder_step,
+                   'schild': self.schild_ladder_step}
+        single_step = methods[scheme]
         for i_point in range(0, n_steps):
             frac_tangent_vector_b = (i_point + 1) / n_steps * tangent_vec_b
             next_point = self.exp(
                 base_point=base_point,
                 tangent_vec=frac_tangent_vector_b)
-            next_step = self._pole_ladder_step(
+            transported_tangent_vector, base_shoot = single_step(
                 base_point=current_point,
                 next_point=next_point,
-                base_shoot=base_shoot,
-                **single_step_kwargs)
+                base_shoot=base_shoot)
             current_point = next_point
-            base_shoot = next_step['end_point']
-            trajectory.append(next_step['geodesics'])
 
         return {'transported_tangent_vec': next_step['next_tangent_vec'],
                 'trajectory': trajectory}
