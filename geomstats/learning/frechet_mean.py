@@ -1,7 +1,7 @@
 """Frechet mean."""
 
-import logging
 import math
+import warnings
 
 from sklearn.base import BaseEstimator
 
@@ -44,8 +44,8 @@ def variance(points,
     var = 0.
 
     sq_dists = metric.squared_dist(base_point, points)
-    var += gs.einsum('nk,nj->j', weights, sq_dists)
-
+    # var += gs.einsum('nk,nj->j', weights, sq_dists)
+    var += gs.sum(weights * sq_dists)
     var = gs.array(var)
     var /= sum_weights
 
@@ -134,7 +134,11 @@ def _default_gradient_descent(points, metric, weights,
 
     if weights is None:
         weights = gs.ones((n_points, 1))
+
     weights = gs.array(weights)
+    weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
+
+    sum_weights = gs.sum(weights)
 
     mean = points[0]
     if point_type == 'vector':
