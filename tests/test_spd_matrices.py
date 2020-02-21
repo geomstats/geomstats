@@ -1,6 +1,4 @@
-"""
-Unit tests for the manifold of symmetric positive definite matrices.
-"""
+"""Unit tests for the manifold of symmetric positive definite matrices."""
 
 import warnings
 
@@ -446,3 +444,20 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         result = metric.squared_dist(point_1, point_2)
 
         self.assertAllClose(gs.shape(result), (1, 1))
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_parallel_transport_affine_invariant(self):
+        n_samples = self.n_samples
+        gs.random.seed(1)
+        point = self.space.random_uniform(n_samples)
+        tan_a = self.space.random_tangent_vec_uniform(n_samples, point)
+        tan_b = self.space.random_tangent_vec_uniform(n_samples, point)
+
+        metric = self.metric_affine
+        expected = metric.norm(tan_a, point)
+        end_point = metric.exp(tan_b, point)
+
+        transported = metric.parallel_transport(tan_a, tan_b, point)
+        result = metric.norm(transported, end_point)
+
+        self.assertAllClose(expected, result, atol=1e-5)

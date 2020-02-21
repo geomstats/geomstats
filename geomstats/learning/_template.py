@@ -1,6 +1,5 @@
-"""
-This is a module to be used as a reference for building other modules
-"""
+"""Module exposing estimator base class."""
+
 from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
 from sklearn.metrics import euclidean_distances
 from sklearn.utils.multiclass import unique_labels
@@ -10,7 +9,7 @@ import geomstats.backend as gs
 
 
 class TemplateEstimator(BaseEstimator):
-    """ A template estimator to be used as a reference implementation.
+    """A template estimator to be used as a reference implementation.
 
     For more information regarding how to build your own estimator, read more
     in the :ref:`User Guide <user_guide>`.
@@ -20,11 +19,12 @@ class TemplateEstimator(BaseEstimator):
     demo_param : str, default='demo_param'
         A parameter used for demonstation of how to pass and store paramters.
     """
+
     def __init__(self, demo_param='demo_param'):
         self.demo_param = demo_param
 
     def fit(self, X, y):
-        """A reference implementation of a fitting function.
+        """Train estimator on labeled data.
 
         Parameters
         ----------
@@ -45,7 +45,7 @@ class TemplateEstimator(BaseEstimator):
         return self
 
     def predict(self, X):
-        """ A reference implementation of a predicting function.
+        """Perform prediction.
 
         Parameters
         ----------
@@ -63,7 +63,7 @@ class TemplateEstimator(BaseEstimator):
 
 
 class TemplateClassifier(BaseEstimator, ClassifierMixin):
-    """ An example classifier which implements a 1-NN algorithm.
+    """An example classifier which implements a 1-NN algorithm.
 
     For more information regarding how to build your own classifier, read more
     in the :ref:`User Guide <user_guide>`.
@@ -82,11 +82,12 @@ class TemplateClassifier(BaseEstimator, ClassifierMixin):
     classes_ : ndarray, shape (n_classes,)
         The classes seen at :meth:`fit`.
     """
+
     def __init__(self, demo_param='demo'):
         self.demo_param = demo_param
 
     def fit(self, X, y):
-        """A reference implementation of a fitting function for a classifier.
+        """Train classifier on labeled data.
 
         Parameters
         ----------
@@ -111,7 +112,7 @@ class TemplateClassifier(BaseEstimator, ClassifierMixin):
         return self
 
     def predict(self, X):
-        """ A reference implementation of a prediction for a classifier.
+        """Classify input data.
 
         Parameters
         ----------
@@ -135,7 +136,7 @@ class TemplateClassifier(BaseEstimator, ClassifierMixin):
 
 
 class TemplateTransformer(BaseEstimator, TransformerMixin):
-    """ An example transformer that returns the element-wise square root.
+    """An example transformer that returns the element-wise square root.
 
     For more information regarding how to build your own transformer, read more
     in the :ref:`User Guide <user_guide>`.
@@ -150,11 +151,12 @@ class TemplateTransformer(BaseEstimator, TransformerMixin):
     n_features_ : int
         The number of features of the data passed to :meth:`fit`.
     """
+
     def __init__(self, demo_param='demo'):
         self.demo_param = demo_param
 
     def fit(self, X, y=None):
-        """A reference implementation of a fitting function for a transformer.
+        """Train function for a transformer.
 
         Parameters
         ----------
@@ -177,7 +179,7 @@ class TemplateTransformer(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        """Reference implementation of a transform function.
+        """Transform input data.
 
         Parameters
         ----------

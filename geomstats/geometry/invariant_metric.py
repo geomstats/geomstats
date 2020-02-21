@@ -14,6 +14,15 @@ class InvariantMetric(RiemannianMetric):
 
     Points are parameterized by the Riemannian logarithm
     for the canonical left-invariant metric.
+
+    Parameters
+    ----------
+    group : LieGroup
+        The group to equip with the invariant metric
+    inner_product_mat_at_identity : array-like, shape=[dimension, dimension]
+        The matrix that defines the metric at identity.
+    left_or_right : str, {'left', 'right'}
+        Wether to use a left or right invariant metric.
     """
 
     def __init__(self, group,
@@ -44,16 +53,19 @@ class InvariantMetric(RiemannianMetric):
         self.signature = (n_pos_eigval, n_null_eigval, n_neg_eigval)
 
     def inner_product_at_identity(self, tangent_vec_a, tangent_vec_b):
-        """Compute inner product matrix at tangent space at identity.
+        """Compute inner product at tangent space at identity.
 
         Parameters
         ----------
-        tangent_vec_a
-        tangent_vec_b
+        tangent_vec_a : array-like, shape=[n_samples, dimension]
+            First tangent vector at identity.
+        tangent_vec_b : array-like, shape=[n_samples, dimension]
+            Second tangent vector at identity.
 
         Returns
         -------
-        inner_prod
+        inner_prod : array-like, shape=[n_samples, dimension]
+            Inner-product of the two tangent vectors.
         """
         assert self.group.default_point_type in ('vector', 'matrix')
 
@@ -107,13 +119,17 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a
-        tangent_vec_b
-        base_point
+        tangent_vec_a : array-like, shape=[n_samples, dimension]
+            First tangent vector at base_point.
+        tangent_vec_b : array-like, shape=[n_samples, dimension]
+            Second tangent vector at base_point.
+        base_point : array-like, shape=[n_samples, dimension], optional
+            Point in the group (the default is identity).
 
         Returns
         -------
-        inner_prod
+        inner_prod : array-like, shape=[n_samples, dimension]
+            Inner-product of the two tangent vectors.
         """
         if base_point is None:
             return self.inner_product_at_identity(tangent_vec_a,
@@ -140,11 +156,13 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point
+        base_point : array-like, shape=[n_samples, dimension], optional
+            Point in the group (the default is identity).
 
         Returns
         -------
-        metric_mat
+        metric_mat : array-like, shape=[n_samples, dimension, dimension]
+            The metric matrix at base_point.
         """
         if self.group.default_point_type == 'matrix':
             raise NotImplementedError(
@@ -172,9 +190,9 @@ class InvariantMetric(RiemannianMetric):
         return metric_mat
 
     def left_exp_from_identity(self, tangent_vec):
-        """Compute Riemannian exp of tan vector wrt. id of left-invar. metric.
+        """Compute the exponential from identity with the left-invariant metric.
 
-        Compute Riemannian exponential of a tangent vector wrt the identity
+        Compute Riemannian exponential of a tangent vector at the identity
         associated to the left-invariant metric.
 
         If the method is called by a right-invariant metric, it uses the
@@ -183,11 +201,13 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec
+        tangent_vec : array-like, shape=[n_samples, dimension]
+            Tangent vector at identity.
 
         Returns
         -------
-        exp
+        exp : array-like, shape=[n_samples, dimension]
+            Point in the group.
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
 
@@ -211,15 +231,17 @@ class InvariantMetric(RiemannianMetric):
         return exp
 
     def exp_from_identity(self, tangent_vec):
-        """Compute Riemannian exponential of tangent vector wrt the identity.
+        """Compute Riemannian exponential of tangent vector from the identity.
 
         Parameters
         ----------
-        tangent_vec
+        tangent_vec : array-like, shape=[n_samples, dimension]
+            Tangent vector at identity.
 
         Returns
         -------
-        exp
+        exp : array-like, shape=[n_samples, dimension]
+            Point in the group.
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
 
@@ -238,12 +260,16 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec
-        base_point
+        tangent_vec : array-like, shape=[n_samples, dimension]
+            Tangent vector at a base point.
+        base_point : array-like, shape=[n_samples, dimension]
+            Point in the group.
 
         Returns
         -------
-        exp
+        exp : array-like, shape=[n_samples, dimension]
+            Point in the group equal to the Riemannian exponential
+            of tangent_vec at the base point.
         """
         if base_point is None:
             base_point = self.group.identity
@@ -294,11 +320,14 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point
+        point : array-like, shape=[n_samples, dimension]
+            Point in the group.
 
         Returns
         -------
-        log
+        log : array-like, shape=[n_samples, dimension]
+            Tangent vector at the identity equal to the Riemannian logarithm
+            of point at the identity.
         """
         point = self.group.regularize(point)
         inner_prod_mat = self.inner_product_mat_at_identity
@@ -318,11 +347,14 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point
+        point : array-like, shape=[n_samples, dimension]
+            Point in the group.
 
         Returns
         -------
-        log
+        log : array-like, shape=[n_samples, dimension]
+            Tangent vector at the identity equal to the Riemannian logarithm
+            of point at the identity.
         """
         point = self.group.regularize(point)
         if self.left_or_right == 'left':
@@ -337,16 +369,21 @@ class InvariantMetric(RiemannianMetric):
         return log
 
     def log(self, point, base_point=None):
-        """Compute Riemannian logarithm of a point wrt a base point.
+        """Compute Riemannian logarithm of a point from a base point.
 
         Parameters
         ----------
-        point
-        base_point
+        point : array-like, shape=[n_samples, dimension]
+            Point in the group.
+        base_point : array-like, shape=[n_samples, dimension], optional
+            Point in the group, from which to compute the log,
+            (the default is identity).
 
         Returns
         -------
-        log
+        log : array-like, shape=[n_samples, dimension]
+            Tangent vector at the base point equal to the Riemannian logarithm
+            of point at the base point.
         """
         if base_point is None:
             base_point = self.group.identity
