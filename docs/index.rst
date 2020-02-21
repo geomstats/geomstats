@@ -8,20 +8,12 @@ Geomstats
 .. code-block:: bash
 
     pip3 install geomstats
-    export GEOMSTATS_BACKEND=numpy
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Getting Started
 
    install.rst
    api-reference.rst
    contributing.rst
    tutorials.rst
-   changelog.rst
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Support
-
-   troubleshooting.rst
