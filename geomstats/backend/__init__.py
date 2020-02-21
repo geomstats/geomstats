@@ -3,7 +3,7 @@ import os
 
 from numpy import pi  # NOQA
 
-logging.basicConfig()
+logging.basicConfig(format= '%(levelname)s: %(message)s')
 logging.getLogger().setLevel(logging.INFO)
 
 
