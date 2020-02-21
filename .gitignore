@@ -120,4 +120,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Idea folder
+.idea/
+
 # End of https://www.gitignore.io/api/python,jupyternotebooks
