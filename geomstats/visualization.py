@@ -257,7 +257,6 @@ class PoincarePolyDisk():
     """Class used to plot points in the Poincare polydisk."""
 
     def __init__(self, points=None, point_type='ball', n_disks=2):
-        """Define the necessary attribute to draw the Poincare polydisk."""
         self.center = gs.array([0., 0.])
         self.points = []
         self.point_type = point_type
