@@ -13,9 +13,9 @@ import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.poincare_polydisk import PoincarePolydisk
 
-n_disks = 4
+N_DISKS = 4
 
-POINCARE_POLYDISK = PoincarePolydisk(n_disks=n_disks, point_type='extrinsic')
+POINCARE_POLYDISK = PoincarePolydisk(n_disks=N_DISKS, point_type='extrinsic')
 METRIC = POINCARE_POLYDISK.metric
 
 
@@ -47,7 +47,7 @@ def main():
     """Plot the geodesics."""
     initial_point = gs.array([np.sqrt(2), 1., 0.])
     stack_initial_point = gs.vstack(
-        [initial_point for i_disk in range(n_disks)])
+        [initial_point for i_disk in range(N_DISKS)])
     initial_point = gs.to_ndarray(stack_initial_point, to_ndim=3)
 
     end_point_intrinsic = gs.array([1.5, 1.5])
@@ -55,11 +55,11 @@ def main():
     end_point = POINCARE_POLYDISK.intrinsic_to_extrinsic_coords(
         end_point_intrinsic)
     end_point = gs.concatenate(
-        [end_point for i_disk in range(n_disks)],
+        [end_point for i_disk in range(N_DISKS)],
         axis=1)
 
     vector = gs.array([3.5, 0.6, 0.8])
-    stack_vector = gs.vstack([vector for i_disk in range(n_disks)])
+    stack_vector = gs.vstack([vector for i_disk in range(N_DISKS)])
     vector = gs.to_ndarray(stack_vector, to_ndim=3)
     initial_tangent_vec = POINCARE_POLYDISK.projection_to_tangent_space(
         vector=vector,
