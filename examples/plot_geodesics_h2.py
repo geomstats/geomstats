@@ -1,6 +1,6 @@
 """Plot a geodesic in H2.
 
-Plot a geodesic on the Hyperbolic space H2.
+Plot a geodesic on the hyperbolic space H2.
 With Poincare Disk visualization.
 """
 

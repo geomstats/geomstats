@@ -40,7 +40,7 @@ EPSILON = 1e-5
 
 
 class Hyperbolic(EmbeddedManifold):
-    """Class for the n-dimensional Hyperbolic space.
+    """Class for the n-dimensional hyperbolic space.
 
     Class for the n-dimensional hyperbolic space
     as embedded in (n+1)-dimensional Minkowski space.
@@ -96,7 +96,7 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _belongs_ball(point, tolerance=TOLERANCE):
-        """Evaluate if a point belongs to the Hyperbolic space (poin. ball).
+        """Evaluate if a point belongs to the hyperbolic space (ball).
 
         Test if a point belongs to the hyperbolic space based on
         the poincare ball representation, i.e. evaluate if its
@@ -119,9 +119,9 @@ class Hyperbolic(EmbeddedManifold):
         return gs.sum(point**2, -1) < (1 + tolerance)
 
     def belongs(self, point, tolerance=TOLERANCE):
-        """Evaluate if a point belongs to the Hyperbolic space.
+        """Evaluate if a point belongs to the hyperbolic space.
 
-        Evaluate if a point belongs to the Hyperbolic space according
+        Evaluate if a point belongs to the hyperbolic space according
         to the current representation
 
         Parameters
@@ -149,7 +149,7 @@ class Hyperbolic(EmbeddedManifold):
                 if point_dim is self.dimension:
                     logging.warning(
                         'Use the extrinsic coordinates to '
-                        'represent points in the Hyperbolic space.')
+                        'represent points in the hyperbolic space.')
                     return gs.array([[False]])
 
             sq_norm = self.embedding_metric.squared_norm(point)
@@ -164,7 +164,7 @@ class Hyperbolic(EmbeddedManifold):
         """Regularize a point to the canonical representation.
 
         Regularize a point to the canonical representation chosen
-        for the Hyperbolic space, to avoid numerical issues.
+        for the hyperbolic space, to avoid numerical issues.
 
         Parameters
         ----------
@@ -195,7 +195,7 @@ class Hyperbolic(EmbeddedManifold):
         """Project a vector in Minkowski space.
 
         Project a vector in Minkowski space on the tangent space
-        of the Hyperbolic space at a base point.
+        of the hyperbolic space at a base point.
 
         Parameters
         ----------
@@ -517,7 +517,7 @@ class Hyperbolic(EmbeddedManifold):
 
 
 class HyperbolicMetric(RiemannianMetric):
-    """Class that defines operations using a Hyperbolic metric.
+    """Class that defines operations using a hyperbolic metric.
 
     Parameters
     ----------
@@ -759,6 +759,7 @@ class HyperbolicMetric(RiemannianMetric):
         ----------
         point_a : array-like, shape=[n_samples, dimension + 1]
             Point on the hyperbolic space.
+
         point_b : array-like, shape=[n_samples, dimension + 1]
             Point on the hyperbolic space.
 

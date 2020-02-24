@@ -39,7 +39,7 @@ class PoincarePolydisk(ProductManifold):
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """Convert point from intrinsic to extrensic coordinates.
 
-        Convert the parameterization of a point on the Hyperbolic space
+        Convert the parameterization of a point on the hyperbolic space
         from its intrinsic coordinates, to its extrinsic coordinates
         in Minkowski space.
 
@@ -63,7 +63,7 @@ class PoincarePolydisk(ProductManifold):
         """Project a vector in the tangent space.
 
         Project a vector in Minkowski space
-        on the tangent space of the Hyperbolic space at a base point.
+        on the tangent space of the hyperbolic space at a base point.
 
         Parameters
         ----------
