@@ -96,7 +96,7 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _belongs_ball(point, tolerance=TOLERANCE):
-        """Evaluate if a point belongs to the hyperbolic space (ball).
+        """Test if a point belongs to the hyperbolic space.
 
         Test if a point belongs to the hyperbolic space based on
         the poincare ball representation, i.e. evaluate if its
@@ -106,6 +106,7 @@ class Hyperbolic(EmbeddedManifold):
         ----------
         point : array-like, shape=[n_samples, dimension]
             Points to be tested.
+
         tolerance : float, optional
             Tolerance at which to evaluate how close the squared norm
             is to the reference value.
@@ -119,17 +120,17 @@ class Hyperbolic(EmbeddedManifold):
         return gs.sum(point**2, -1) < (1 + tolerance)
 
     def belongs(self, point, tolerance=TOLERANCE):
-        """Evaluate if a point belongs to the hyperbolic space.
+        """Test if a point belongs to the hyperbolic space.
 
-        Evaluate if a point belongs to the hyperbolic space according
+        Test if a point belongs to the hyperbolic space according
         to the current representation
 
         Parameters
         ----------
         point : array-like, shape=[n_samples, dimension] or
-                shape=[n_samples, dimension + 1] for extrinsic
-                coordinates
+                shape=[n_samples, dimension + 1] for extrinsic coordinates.
                 Input points.
+
         tolerance : float, optional
             Tolerance at which to evaluate how close is the squared norm
             compared to the reference value.
