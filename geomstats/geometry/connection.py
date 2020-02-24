@@ -136,7 +136,8 @@ class Connection(object):
         tangent_vec = gs.reshape(tangent_vec, base_point.shape)
         return tangent_vec
 
-    def pole_ladder_step(self, base_point, next_point, base_shoot):
+    def _pole_ladder_step(self, base_point, next_point, base_shoot,
+                          return_trajectories=False, n_points=10):
         """Compute one Pole Ladder step.
 
         One step of pole ladder scheme [LP2013a]_ using the geodesic to
@@ -188,10 +189,29 @@ class Connection(object):
             base_point=next_point,
             tangent_vec=transported_tangent_vector)
 
-        return transported_tangent_vector, end_point
+        if return_trajectories:
+            diagonal = self.geodesic(
+                initial_point=base_point,
+                end_point=next_point)
+            second_diag = self.geodesic(
+                initial_point=mid_point,
+                end_point=base_shoot)
+            final_geo = self.geodesic(
+                initial_point=next_point,
+                end_point=end_shoot)
+            trajectories = []
+            t = gs.linspace(0, 1, n_points)
+            trajectories.append([
+                diagonal(gs.linspace(0, 1, n_points * 4)), second_diag(t),
+                second_diag(-t), final_geo(-t),
+                final_geo(t)])
+            return transported_tangent_vector, end_point, trajectories
+        else:
+            return transported_tangent_vector, end_point, []
 
     def pole_ladder_parallel_transport(
-            self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1):
+            self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1,
+            **single_step_kwargs):
         """Approximate parallel transport using the pole ladder scheme.
 
         Approximate Parallel transport using the pole ladder scheme [LP2013b]_
@@ -230,21 +250,24 @@ class Connection(object):
           ⟨hal-02148832⟩
         """
         current_point = gs.copy(base_point)
-        transported_tangent_vector = gs.copy(tangent_vec_a)
+        transported_tangent_vec = gs.copy(tangent_vec_a)
         base_shoot = self.exp(base_point=current_point,
-                              tangent_vec=transported_tangent_vector)
+                              tangent_vec=transported_tangent_vec)
+        trajectory = []
         for i_point in range(0, n_steps):
             frac_tangent_vector_b = (i_point + 1) / n_steps * tangent_vec_b
             next_point = self.exp(
                 base_point=base_point,
                 tangent_vec=frac_tangent_vector_b)
-            transported_tangent_vector, base_shoot = self.pole_ladder_step(
+            transported_tangent_vec, base_shoot, pts = self._pole_ladder_step(
                 base_point=current_point,
                 next_point=next_point,
-                base_shoot=base_shoot)
+                base_shoot=base_shoot,
+                **single_step_kwargs)
             current_point = next_point
+            trajectory += pts
 
-        return transported_tangent_vector
+        return transported_tangent_vec, trajectory
 
     def riemannian_curvature(self, base_point):
         """Compute Riemannian curvature tensor associated with the connection.
