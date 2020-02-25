@@ -217,6 +217,7 @@ class Connection(object):
             base_point=next_point,
             tangent_vec=transported_tangent_vector)
 
+        trajectories = []
         if return_trajectories:
             diagonal = self.geodesic(
                 initial_point=base_point,
@@ -227,7 +228,6 @@ class Connection(object):
             final_geo = self.geodesic(
                 initial_point=next_point,
                 end_point=end_shoot)
-            trajectories = []
             if base_point.ndim > 1:
                 n_samples = base_point.shape[0]
             else:
@@ -240,9 +240,7 @@ class Connection(object):
                 second_diag(-t),
                 final_geo(-t),
                 final_geo(t)])
-            return transported_tangent_vector, end_point, trajectories
-        else:
-            return transported_tangent_vector, end_point, []
+        return transported_tangent_vector, end_point, trajectories
 
     def pole_ladder_parallel_transport(
             self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1,
@@ -263,7 +261,7 @@ class Connection(object):
         base_point : array-like, shape=[n_samples, dimension]
             Point on the manifold, initial position of the geodesic along
             which to transport.
--        n_steps : int
+        n_steps : int
             The number of pole ladder steps.
         **single_step_kwargs : keyword arguments for the step functions
 
