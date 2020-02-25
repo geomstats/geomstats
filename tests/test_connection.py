@@ -55,9 +55,9 @@ class TestConnectionMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_pytorch_only
     def test_parallel_transport(self):
-        n_samples = 10
+        n_samples = 2
         base_point = self.hypersphere.random_uniform(n_samples)
         tan_vec_a = self.hypersphere.projection_to_tangent_space(
             gs.random.rand(n_samples, 3), base_point)
@@ -65,10 +65,26 @@ class TestConnectionMethods(geomstats.tests.TestCase):
             gs.random.rand(n_samples, 3), base_point)
         expected = self.hypersphere.metric.parallel_transport(
             tan_vec_a, tan_vec_b, base_point)
-        result = self.hypersphere.metric.pole_ladder_parallel_transport(
+        result, _ = self.hypersphere.metric.pole_ladder_parallel_transport(
             tan_vec_a, tan_vec_b, base_point)
 
-        self.assertAllClose(result, expected, rtol=1e-7, atol=1e-5)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_parallel_transport_trajectory(self):
+        n_samples = 2
+        base_point = self.hypersphere.random_uniform(n_samples)
+        tan_vec_a = self.hypersphere.projection_to_tangent_space(
+            gs.random.rand(n_samples, 3), base_point)
+        tan_vec_b = self.hypersphere.projection_to_tangent_space(
+            gs.random.rand(n_samples, 3), base_point)
+        expected = self.hypersphere.metric.parallel_transport(
+            tan_vec_a, tan_vec_b, base_point)
+        result, pts = self.hypersphere.metric.pole_ladder_parallel_transport(
+            tan_vec_a, tan_vec_b, base_point, return_trajectories=True,
+            n_points=5)
+
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_exp(self):
