@@ -18,7 +18,7 @@ class Connection(object):
     ----------
     dimension: int
         Dimension of the underlying manifold.
-"""
+    """
 
     def __init__(self, dimension):
         self.dimension = dimension
@@ -369,6 +369,7 @@ class Connection(object):
 
         def path(t):
             """Generate parameterized function for geodesic curve.
+
             Parameters
             ----------
             t : array, shape=[n_points,]
