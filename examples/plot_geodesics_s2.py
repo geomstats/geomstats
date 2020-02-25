@@ -2,6 +2,7 @@
 Plot a geodesic on the sphere S2
 """
 
+import logging
 import os
 
 import matplotlib.pyplot as plt
@@ -32,9 +33,9 @@ def main():
 
 if __name__ == "__main__":
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        print('Examples with visualizations are only implemented '
-              'with numpy backend.\n'
-              'To change backend, write: '
-              'export GEOMSTATS_BACKEND = \'numpy\'.')
+        logging.info('Examples with visualizations are only implemented '
+                     'with numpy backend.\n'
+                     'To change backend, write: '
+                     'export GEOMSTATS_BACKEND = \'numpy\'.')
     else:
         main()
