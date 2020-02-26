@@ -231,9 +231,95 @@ class Connection(object):
             trajectories = [diagonal, second_diag, final_geo]
         return transported_tangent_vector, end_point, trajectories
 
+    def _schild_ladder_step(self, base_point, next_point, base_shoot,
+                          return_trajectories=False, n_points=10):
+        """Compute one Schild's Ladder step.
+
+        One step of pole ladder scheme [LP2013a]_ using the geodesic to
+        transport along as diagonal of the parallelogram.
+
+        Parameters
+        ----------
+        base_point : array-like, shape=[n_samples, dimension]
+            Point on the manifold, from which to transport.
+        next_point : array-like, shape=[n_samples, dimension]
+            Point on the manifold, to transport to.
+        base_shoot : array-like, shape=[n_samples, dimension]
+            Point on the manifold, end point of the geodesics starting
+            from the base point with initial speed to be transported.
+        return_trajectories : bool, optional (defaults to False)
+            Whether to return points computed along each geodesic of the
+            construction.
+        n_points : int, optional (defaults to 10)
+            The number of points to compute in each geodesic when
+            `return_trajectories=True`.
+
+        Returns
+        -------
+        transported_tangent_vector : array-like, shape=[n_samples, dimension]
+            Tangent vector at end point.
+        end_point : array-like, shape=[n_samples, dimension]
+            Point on the manifold, closes the geodesic parallelogram of the
+            construction.
+
+        References
+        ----------
+        .. [LP2013a] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transport
+         of Deformations in Time Series of Images: from Schild's to
+         Pole Ladder. Journal of Mathematical Imaging and Vision, Springer
+         Verlag, 2013,50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
+        """
+        mid_tangent_vector_to_shoot = 1. / 2. * self.log(
+            base_point=base_shoot,
+            point=next_point)
+
+        mid_point = self.exp(
+            base_point=base_shoot,
+            tangent_vec=mid_tangent_vector_to_shoot)
+
+        tangent_vector_to_shoot = - self.log(
+            base_point=mid_point,
+            point=base_point)
+
+        end_shoot = self.exp(
+            base_point=mid_point,
+            tangent_vec=tangent_vector_to_shoot)
+
+        transported_tangent_vector = - self.log(
+            base_point=next_point, point=end_shoot)
+
+        trajectories = []
+        if return_trajectories:
+            main_geo = self.geodesic(
+                initial_point=base_point,
+                end_point=next_point)
+            diagonal = self.geodesic(
+                initial_point=base_point,
+                end_point=end_shoot)
+            second_diag = self.geodesic(
+                initial_point=base_shoot,
+                end_point=next_point)
+            final_geo = self.geodesic(
+                initial_point=next_point,
+                end_point=end_shoot)
+            if base_point.ndim > 1:
+                n_samples = base_point.shape[0]
+            else:
+                n_samples = 1
+            t_diag = gs.stack([gs.linspace(0, 1, n_points * 2)] * n_samples)
+            print(t_diag.shape)
+            t_main = gs.stack([gs.linspace(0, 1, n_points * 4)] * n_samples)
+            t = gs.stack([gs.linspace(0, 1, n_points)] * n_samples)
+            trajectories.append([
+                main_geo(t_main),
+                diagonal(t_diag),
+                second_diag(t_diag),
+                final_geo(t)])
+        return transported_tangent_vector, end_shoot, trajectories
+
     def pole_ladder_parallel_transport(
             self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1,
-            **single_step_kwargs):
+            step='pole', **single_step_kwargs):
         """Approximate parallel transport using the pole ladder scheme.
 
         Approximate Parallel transport using the pole ladder scheme [LP2013b]_
@@ -279,6 +365,8 @@ class Connection(object):
         transported_tangent_vec = gs.copy(tangent_vec_a)
         base_shoot = self.exp(base_point=current_point,
                               tangent_vec=transported_tangent_vec)
+        single_step = self._pole_ladder_step if step == 'pole' else \
+            self._schild_ladder_step
         trajectory = []
         for i_point in range(0, n_steps):
             frac_tangent_vector_b = (i_point + 1) / n_steps * tangent_vec_b
