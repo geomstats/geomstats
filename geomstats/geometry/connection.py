@@ -279,24 +279,24 @@ class Connection(object):
           ⟨hal-02148832⟩
         """
         current_point = gs.copy(base_point)
-        transported_tangent_vec = gs.copy(tangent_vec_a)
+        next_tangent_vec = gs.copy(tangent_vec_a)
         base_shoot = self.exp(base_point=current_point,
-                              tangent_vec=transported_tangent_vec)
+                              tangent_vec=next_tangent_vec)
         trajectory = []
         for i_point in range(0, n_steps):
             frac_tangent_vector_b = (i_point + 1) / n_steps * tangent_vec_b
             next_point = self.exp(
                 base_point=base_point,
                 tangent_vec=frac_tangent_vector_b)
-            transported_tangent_vec, base_shoot, pts = self._pole_ladder_step(
+            next_tangent_vec, base_shoot, geodesics = self._pole_ladder_step(
                 base_point=current_point,
                 next_point=next_point,
                 base_shoot=base_shoot,
                 **single_step_kwargs)
             current_point = next_point
-            trajectory.append(pts)
+            trajectory.append(geodesics)
 
-        return transported_tangent_vec, trajectory
+        return next_tangent_vec, trajectory
 
     def riemannian_curvature(self, base_point):
         """Compute Riemannian curvature tensor associated with the connection.

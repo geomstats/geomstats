@@ -14,6 +14,7 @@ import examples.plot_geodesics_se3 as plot_geodesics_se3
 import examples.plot_geodesics_so3 as plot_geodesics_so3
 import examples.plot_grid_h2 as plot_grid_h2
 import examples.plot_kmeans_manifolds as plot_kmeans_manifolds
+import examples.plot_pole_ladder_s2 as plot_pole_ladder_s2
 import examples.plot_online_kmeans_s1 as plot_online_kmeans_s1
 import examples.plot_online_kmeans_s2 as plot_online_kmeans_s2
 import examples.plot_square_h2_klein_disk as plot_square_h2_klein_disk
@@ -104,3 +105,7 @@ class TestExamples(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_plot_online_kmeans_s2(self):
         plot_online_kmeans_s2.main()
+
+    def test_plot_pole_ladder_s2(self):
+        plot_pole_ladder_s2.main()
+
