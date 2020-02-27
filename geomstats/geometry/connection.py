@@ -157,7 +157,7 @@ class Connection(object):
         return tangent_vec
 
     def _pole_ladder_step(self, base_point, next_point, base_shoot,
-                          return_trajectories=False, n_points=10):
+                          return_geodesics=False):
         """Compute one Pole Ladder step.
 
         One step of pole ladder scheme [LP2013a]_ using the geodesic to
@@ -172,7 +172,7 @@ class Connection(object):
         base_shoot : array-like, shape=[n_samples, dimension]
             Point on the manifold, end point of the geodesics starting
             from the base point with initial speed to be transported.
-        return_trajectories : bool, optional (defaults to False)
+        return_geodesics : bool, optional (defaults to False)
             Whether to return points computed along each geodesic of the
             construction.
         n_points : int, optional (defaults to 10)
@@ -218,7 +218,7 @@ class Connection(object):
             tangent_vec=transported_tangent_vector)
 
         trajectories = []
-        if return_trajectories:
+        if return_geodesics:
             diagonal = self.geodesic(
                 initial_point=base_point,
                 end_point=next_point)
@@ -228,18 +228,7 @@ class Connection(object):
             final_geo = self.geodesic(
                 initial_point=next_point,
                 end_point=end_shoot)
-            if base_point.ndim > 1:
-                n_samples = base_point.shape[0]
-            else:
-                n_samples = 1
-            t = gs.stack([gs.linspace(0, 1, n_points)] * n_samples)
-            t_diag = gs.stack([gs.linspace(0, 1, n_points * 4)] * n_samples)
-            trajectories.append([
-                diagonal(t_diag),
-                second_diag(t),
-                second_diag(-t),
-                final_geo(-t),
-                final_geo(t)])
+            trajectories = [diagonal, second_diag, final_geo]
         return transported_tangent_vector, end_point, trajectories
 
     def pole_ladder_parallel_transport(
@@ -302,7 +291,7 @@ class Connection(object):
                 base_shoot=base_shoot,
                 **single_step_kwargs)
             current_point = next_point
-            trajectory += pts
+            trajectory.append(pts)
 
         return transported_tangent_vec, trajectory
 
@@ -356,10 +345,10 @@ class Connection(object):
             raise ValueError('Specify an end point or an initial tangent '
                              'vector to define the geodesic.')
         if end_point is not None:
-            end_point = gs.to_ndarray(
-                end_point, to_ndim=point_ndim + 1)
-            shooting_tangent_vec = self.log(point=end_point,
-                                            base_point=initial_point)
+            end_point = gs.to_ndarray(end_point, to_ndim=point_ndim + 1)
+            shooting_tangent_vec = self.log(
+                point=end_point,
+                base_point=initial_point)
             if initial_tangent_vec is not None:
                 assert gs.allclose(shooting_tangent_vec, initial_tangent_vec)
             initial_tangent_vec = shooting_tangent_vec
