@@ -7,13 +7,12 @@ import matplotlib.pyplot as plt
 space = Hypersphere(2)
 metric = space.metric
 
-n_samples = 1
 n_steps = 4
 
-point = space.random_uniform(n_samples)
-tan_b = space.random_uniform(n_samples)
+point = space.random_uniform(1)
+tan_b = space.random_uniform(1)
 tan_b = space.projection_to_tangent_space(tan_b, point) * n_steps / 2
-tan_a = space.random_uniform(n_samples)
+tan_a = space.random_uniform(1)
 tan_a = space.projection_to_tangent_space(tan_a, point) / 4
 
 
