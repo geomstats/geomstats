@@ -1,6 +1,4 @@
-"""
-Plot a geodesic on the sphere S2
-"""
+"""Plot a geodesic on the sphere S2."""
 
 import os
 
