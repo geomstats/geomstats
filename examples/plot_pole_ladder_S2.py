@@ -1,7 +1,15 @@
-import geomstats.backend as gs
-from geomstats.geometry.hypersphere import Hypersphere
-import geomstats.visualization as visualization
+"""Plot the pole ladder scheme for parallel transport on S2.
+
+Sample a point on S2 and two tangent vectors to transport one along the
+other.
+
+"""
+
 import matplotlib.pyplot as plt
+
+import geomstats.backend as gs
+import geomstats.visualization as visualization
+from geomstats.geometry.hypersphere import Hypersphere
 
 
 space = Hypersphere(2)
