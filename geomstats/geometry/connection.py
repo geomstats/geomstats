@@ -161,7 +161,7 @@ class Connection(object):
         """Compute one Pole Ladder step.
 
         One step of pole ladder scheme [LP2013a]_ using the geodesic to
-        transport along as diagonal of the parallelogram.
+        transport along as main_geodesic of the parallelogram.
 
         Parameters
         ----------
@@ -173,7 +173,7 @@ class Connection(object):
             Point on the manifold, end point of the geodesics starting
             from the base point with initial speed to be transported.
         return_geodesics : bool, optional (defaults to False)
-            Whether to return points computed along each geodesic of the
+            Whether to return the geodesics of the
             construction.
         n_points : int, optional (defaults to 10)
             The number of points to compute in each geodesic when
@@ -186,6 +186,9 @@ class Connection(object):
         end_point : array-like, shape=[n_samples, dimension]
             Point on the manifold, closes the geodesic parallelogram of the
             construction.
+        trajectories : list of callable, len=3 (only if
+            `return_geodesics=True`)
+            The 3 three geodesics of the construction.
 
         References
         ----------
@@ -219,16 +222,16 @@ class Connection(object):
 
         trajectories = []
         if return_geodesics:
-            diagonal = self.geodesic(
+            main_geodesic = self.geodesic(
                 initial_point=base_point,
                 end_point=next_point)
-            second_diag = self.geodesic(
+            diagonal = self.geodesic(
                 initial_point=mid_point,
                 end_point=base_shoot)
-            final_geo = self.geodesic(
+            final_geodesic = self.geodesic(
                 initial_point=next_point,
                 end_point=end_shoot)
-            trajectories = [diagonal, second_diag, final_geo]
+            trajectories = [main_geodesic, diagonal, final_geodesic]
         return transported_tangent_vector, end_point, trajectories
 
     def pole_ladder_parallel_transport(
@@ -258,10 +261,10 @@ class Connection(object):
         -------
         transported_tangent_vector : array-like, shape=[n_samples, dimension]
             Approximation of the parallel transport of tangent vector a.
-        trajectory : array-like, shape=[n_steps, 5, n_points]
-            List of arrays representing points on the geodesics of the
-            construction, only if `return_trajectories=True` in the step
-            function.
+        trajectory : list of list of callable, len=n_steps
+            List of lists containing the geodesics of the
+            construction, only if `return_geodesics=True` in the step
+            function. The geodesics are methods of the class connection.
 
         References
         ----------
