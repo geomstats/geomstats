@@ -232,7 +232,7 @@ class Connection(object):
         return transported_tangent_vector, end_point, trajectories
 
     def _schild_ladder_step(self, base_point, next_point, base_shoot,
-                          return_trajectories=False, n_points=10):
+                            return_geodesics=False, n_points=10):
         """Compute one Schild's Ladder step.
 
         One step of pole ladder scheme [LP2013a]_ using the geodesic to
@@ -247,7 +247,7 @@ class Connection(object):
         base_shoot : array-like, shape=[n_samples, dimension]
             Point on the manifold, end point of the geodesics starting
             from the base point with initial speed to be transported.
-        return_trajectories : bool, optional (defaults to False)
+        return_geodesics : bool, optional (defaults to False)
             Whether to return points computed along each geodesic of the
             construction.
         n_points : int, optional (defaults to 10)
@@ -289,35 +289,27 @@ class Connection(object):
             base_point=next_point, point=end_shoot)
 
         trajectories = []
-        if return_trajectories:
-            main_geo = self.geodesic(
+        if return_geodesics:
+            main_geodesic = self.geodesic(
                 initial_point=base_point,
                 end_point=next_point)
             diagonal = self.geodesic(
                 initial_point=base_point,
                 end_point=end_shoot)
-            second_diag = self.geodesic(
+            second_diagonal = self.geodesic(
                 initial_point=base_shoot,
                 end_point=next_point)
-            final_geo = self.geodesic(
+            final_geodesic = self.geodesic(
                 initial_point=next_point,
                 end_point=end_shoot)
-            if base_point.ndim > 1:
-                n_samples = base_point.shape[0]
-            else:
-                n_samples = 1
-            t_diag = gs.stack([gs.linspace(0, 1, n_points * 2)] * n_samples)
-            print(t_diag.shape)
-            t_main = gs.stack([gs.linspace(0, 1, n_points * 4)] * n_samples)
-            t = gs.stack([gs.linspace(0, 1, n_points)] * n_samples)
             trajectories.append([
-                main_geo(t_main),
-                diagonal(t_diag),
-                second_diag(t_diag),
-                final_geo(t)])
+                main_geodesic,
+                diagonal,
+                second_diagonal,
+                final_geodesic])
         return transported_tangent_vector, end_shoot, trajectories
 
-    def pole_ladder_parallel_transport(
+    def ladder_parallel_transport(
             self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1,
             step='pole', **single_step_kwargs):
         """Approximate parallel transport using the pole ladder scheme.
