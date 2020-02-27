@@ -3,7 +3,7 @@ import os
 
 from numpy import pi  # NOQA
 
-logging.basicConfig(format= '%(levelname)s: %(message)s')
+logging.basicConfig(format='%(levelname)s: %(message)s')
 logging.getLogger().setLevel(logging.INFO)
 
 
@@ -20,3 +20,7 @@ elif _BACKEND == 'tensorflow':
 else:
     raise RuntimeError('Unknown backend \'{:s}\''.format(_BACKEND))
 logging.info('Using {:s} backend'.format(_BACKEND))
+
+loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
+if loggers:
+    logging.getLogger().setLevel(logging.WARNING)
