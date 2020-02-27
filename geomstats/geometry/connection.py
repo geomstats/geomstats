@@ -285,7 +285,7 @@ class Connection(object):
             base_point=mid_point,
             tangent_vec=tangent_vector_to_shoot)
 
-        transported_tangent_vector = - self.log(
+        transported_tangent_vector = self.log(
             base_point=next_point, point=end_shoot)
 
         trajectories = []
@@ -302,11 +302,11 @@ class Connection(object):
             final_geodesic = self.geodesic(
                 initial_point=next_point,
                 end_point=end_shoot)
-            trajectories.append([
+            trajectories =[
                 main_geodesic,
                 diagonal,
                 second_diagonal,
-                final_geodesic])
+                final_geodesic]
         return transported_tangent_vector, end_shoot, trajectories
 
     def ladder_parallel_transport(
@@ -365,7 +365,7 @@ class Connection(object):
             next_point = self.exp(
                 base_point=base_point,
                 tangent_vec=frac_tangent_vector_b)
-            transported_tangent_vec, base_shoot, pts = self._pole_ladder_step(
+            transported_tangent_vec, base_shoot, pts = single_step(
                 base_point=current_point,
                 next_point=next_point,
                 base_shoot=base_shoot,
