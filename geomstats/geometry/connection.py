@@ -181,14 +181,14 @@ class Connection(object):
 
         Returns
         -------
-        transported_tangent_vector : array-like, shape=[n_samples, dimension]
+        next_tangent_vec : array-like, shape=[n_samples, dimension]
             Tangent vector at end point.
         end_point : array-like, shape=[n_samples, dimension]
             Point on the manifold, closes the geodesic parallelogram of the
             construction.
-        trajectories : list of callable, len=3 (only if
+        geodesics : list of callable, len=3 (only if
             `return_geodesics=True`)
-            The 3 three geodesics of the construction.
+            The three geodesics of the construction.
 
         References
         ----------
@@ -213,14 +213,14 @@ class Connection(object):
             base_point=mid_point,
             tangent_vec=tangent_vector_to_shoot)
 
-        transported_tangent_vector = - self.log(
+        next_tangent_vec = - self.log(
             base_point=next_point, point=end_shoot)
 
         end_point = self.exp(
             base_point=next_point,
-            tangent_vec=transported_tangent_vector)
+            tangent_vec=next_tangent_vec)
 
-        trajectories = []
+        geodesics = []
         if return_geodesics:
             main_geodesic = self.geodesic(
                 initial_point=base_point,
@@ -231,8 +231,10 @@ class Connection(object):
             final_geodesic = self.geodesic(
                 initial_point=next_point,
                 end_point=end_shoot)
-            trajectories = [main_geodesic, diagonal, final_geodesic]
-        return transported_tangent_vector, end_point, trajectories
+            geodesics = [main_geodesic, diagonal, final_geodesic]
+        return {'next_tangent_vec': next_tangent_vec,
+                'geodesics': geodesics,
+                'end_point': end_point}
 
     def pole_ladder_parallel_transport(
             self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1,
@@ -288,15 +290,17 @@ class Connection(object):
             next_point = self.exp(
                 base_point=base_point,
                 tangent_vec=frac_tangent_vector_b)
-            next_tangent_vec, base_shoot, geodesics = self._pole_ladder_step(
+            next_step = self._pole_ladder_step(
                 base_point=current_point,
                 next_point=next_point,
                 base_shoot=base_shoot,
                 **single_step_kwargs)
             current_point = next_point
-            trajectory.append(geodesics)
+            base_shoot = next_step['end_point']
+            trajectory.append(next_step['geodesics'])
 
-        return next_tangent_vec, trajectory
+        return {'transported_tangent_vec': next_step['next_tangent_vec'],
+                'trajectory': trajectory}
 
     def riemannian_curvature(self, base_point):
         """Compute Riemannian curvature tensor associated with the connection.
