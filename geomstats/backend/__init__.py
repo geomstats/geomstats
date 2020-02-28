@@ -22,5 +22,5 @@ else:
 logging.info('Using {:s} backend'.format(_BACKEND))
 
 loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
-if loggers:
+if loggers and loggers[0].name.startswith('nose2'):
     logging.getLogger().setLevel(logging.WARNING)
