@@ -33,12 +33,15 @@ def main():
     tangent_vec_a = SPACE.projection_to_tangent_space(
         tangent_vec_a, base_point) / 4
 
-    pole_ladder, trajectory = METRIC.pole_ladder_parallel_transport(
+    ladder = METRIC.pole_ladder_parallel_transport(
         tangent_vec_a,
         tangent_vec_b,
         base_point,
         n_steps=N_STEPS,
         return_geodesics=True)
+
+    pole_ladder = ladder['transported_tangent_vec']
+    trajectory = ladder['trajectory']
 
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(111, projection='3d')
