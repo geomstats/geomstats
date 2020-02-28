@@ -11,12 +11,12 @@ such as manifolds and Riemannian metrics, with an object-oriented approach.
 
 The module `learning` implements statistics and learning algorithms for data
 on manifolds. The code is object-oriented and classes inherit from
-Scikit-Learn base classes and mixin.
+scikit-learn's base classes and mixins.
 
 To learn how to use `geomstats`, visit the page :ref:`first_steps`.
 To contribute to `geomstats` visit the page :ref:`contributing`.
 
-**Quick install**
+**QUICK INSTALL**
 
 .. code-block:: bash
 
