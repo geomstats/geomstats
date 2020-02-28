@@ -113,8 +113,8 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                 return gs.copy(self.centroids)
 
         if index == max_iter:
-            logging.info('K-means maximum number of iterations {} reached.'
-                         'The mean may be inaccurate'.format(max_iter))
+            logging.warning('K-means maximum number of iterations {} reached.'
+                            'The mean may be inaccurate'.format(max_iter))
 
         return gs.copy(self.centroids)
 
