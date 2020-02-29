@@ -175,20 +175,18 @@ class Connection(object):
         return_geodesics : bool, optional (defaults to False)
             Whether to return the geodesics of the
             construction.
-        n_points : int, optional (defaults to 10)
-            The number of points to compute in each geodesic when
-            `return_trajectories=True`.
 
         Returns
         -------
-        next_tangent_vec : array-like, shape=[n_samples, dimension]
-            Tangent vector at end point.
-        end_point : array-like, shape=[n_samples, dimension]
-            Point on the manifold, closes the geodesic parallelogram of the
-            construction.
-        geodesics : list of callable, len=3 (only if
+        next_step : dict of array-like and callable with following keys:
+            next_tangent_vec : array-like, shape=[n_samples, dimension]
+                Tangent vector at end point.
+            end_point : array-like, shape=[n_samples, dimension]
+                Point on the manifold, closes the geodesic parallelogram of the
+                construction.
+            geodesics : list of callable, len=3 (only if
             `return_geodesics=True`)
-            The three geodesics of the construction.
+                The three geodesics of the construction.
 
         References
         ----------
@@ -261,12 +259,13 @@ class Connection(object):
 
         Returns
         -------
-        transported_tangent_vector : array-like, shape=[n_samples, dimension]
-            Approximation of the parallel transport of tangent vector a.
-        trajectory : list of list of callable, len=n_steps
-            List of lists containing the geodesics of the
-            construction, only if `return_geodesics=True` in the step
-            function. The geodesics are methods of the class connection.
+        ladder : dict of array-like and callable with following keys
+            transported_tangent_vector : array-like, shape=[n_samples, dim]
+                Approximation of the parallel transport of tangent vector a.
+            trajectory : list of list of callable, len=n_steps
+                List of lists containing the geodesics of the
+                construction, only if `return_geodesics=True` in the step
+                function. The geodesics are methods of the class connection.
 
         References
         ----------
