@@ -56,5 +56,5 @@ See our [contributing](https://github.com/geomstats/geomstats/blob/master/docs/c
 This work is supported by:
 - the Inria-Stanford associated team [GeomStats](http://www-sop.inria.fr/asclepios/projects/GeomStats/),
 - the European Research Council (ERC) under the European Union's Horizon 2020 research and innovation program (grant agreement [G-Statistics](https://team.inria.fr/epione/en/research/erc-g-statistics/) No. 786854),
-- the French society for applied and industrial mathematics ([SMAI](http://smai.emath.fr/),
+- the French society for applied and industrial mathematics ([SMAI](http://smai.emath.fr/)),
 - the National Science Foundation (grant NSF DMS RTG 1501767).
