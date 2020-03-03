@@ -2,7 +2,6 @@
 
 The n-dimensional hyperbolic space embedded in (n+1)-dimensional
 Minkowski space.
-=======
 """
 
 import logging
@@ -55,10 +54,8 @@ class Hyperbolic(EmbeddedManifold):
     ----------
     dimension : int
         Dimension of the hyperbolic space.
-
     point_type : str, {'extrinsic', 'intrinsic', etc}, optional
         Default coordinates to represent points on the hyperbolic space.
-
     scale : int, optional
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
@@ -100,13 +97,12 @@ class Hyperbolic(EmbeddedManifold):
 
         Test if a point belongs to the hyperbolic space based on
         the poincare ball representation, i.e. evaluate if its
-        squared norm is lower than one.
+        squared norm is lower than 1.
 
         Parameters
         ----------
         point : array-like, shape=[n_samples, dimension]
-            Points to be tested.
-
+            Point to be tested.
         tolerance : float, optional
             Tolerance at which to evaluate how close the squared norm
             is to the reference value.
@@ -128,9 +124,8 @@ class Hyperbolic(EmbeddedManifold):
         Parameters
         ----------
         point : array-like, shape=[n_samples, dimension] or
-                shape=[n_samples, dimension + 1] for extrinsic coordinates.
-                Input points.
-
+            shape=[n_samples, dimension + 1] for extrinsic coordinates.
+            Input points.
         tolerance : float, optional
             Tolerance at which to evaluate how close is the squared norm
             compared to the reference value.
