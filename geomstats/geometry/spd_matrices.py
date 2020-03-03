@@ -623,6 +623,40 @@ class SPDMetricAffine(RiemannianMetric):
             initial_tangent_vec=initial_tangent_vec,
             point_type='matrix')
 
+    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+        r"""Parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector a
+        along the geodesic defined by exp_(base_point)(tangent_vec_b).
+        Denoting `tangent_vec_a` by `S`, `base_point` by `A`, let
+        `B = Exp_A(tangent_vec_b)` and :math: `E = (BA^{- 1})^({ 1 / 2})`.
+        Then the
+        parallel transport to `B`is:
+
+        ..math::
+                        S' = ESE^T
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[n_samples, dimension + 1]
+            Tangent vector at base point to be transported.
+        tangent_vec_b : array-like, shape=[n_samples, dimension + 1]
+            Tangent vector at base point, initial speed of the geodesic along
+            which the parallel transport is computed.
+        base_point : array-like, shape=[n_samples, dimension + 1]
+            point on the manifold of SPD matrices
+
+        Returns
+        -------
+        transported_tangent_vec: array-like, shape=[n_samples, dimension + 1]
+            Transported tangent vector at exp_(base_point)(tangent_vec_b).
+        """
+        end_point = self.exp(tangent_vec_b, base_point)
+        inverse_base_point = GeneralLinear.inv(base_point)
+        congruence_mat = GeneralLinear.mul(end_point, inverse_base_point)
+        congruence_mat = gs.linalg.sqrtm(congruence_mat)
+        return GeneralLinear.congruent(tangent_vec_a, congruence_mat)
+
 
 class SPDMetricProcrustes(RiemannianMetric):
     """Class for the Procrustes metric on the SPD manifold.

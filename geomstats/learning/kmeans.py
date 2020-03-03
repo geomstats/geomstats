@@ -1,4 +1,6 @@
 """K-means clustering."""
+
+import logging
 from random import randint
 
 from sklearn.base import BaseEstimator, ClusterMixin
@@ -105,13 +107,14 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
             if gs.mean(centroids_distances) < self.tol:
                 if self.verbose > 0:
-                    print("Convergence Reached after ", index, " iterations")
+                    logging.info('Convergence Reached after {} '
+                                 'iterations'.format(index))
 
                 return gs.copy(self.centroids)
 
         if index == max_iter:
-            print('K-means maximum number of iterations {} reached.'
-                  'The mean may be inaccurate'.format(max_iter))
+            logging.warning('K-means maximum number of iterations {} reached.'
+                            'The mean may be inaccurate'.format(max_iter))
 
         return gs.copy(self.centroids)
 

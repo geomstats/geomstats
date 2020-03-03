@@ -1,4 +1,0 @@
-Troubleshooting
-===============
-
-Trouble shooting.
