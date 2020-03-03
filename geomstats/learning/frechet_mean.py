@@ -326,7 +326,7 @@ class FrechetMean(BaseEstimator):
         self.method = method
         self.verbose = verbose
 
-    def fit(self, X, y=None, weights=None, verbose=False):
+    def fit(self, X, y=None, weights=None):
         """Compute the empirical Frechet mean.
 
         Parameters
