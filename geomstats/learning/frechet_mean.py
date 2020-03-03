@@ -318,8 +318,9 @@ class FrechetMean(BaseEstimator):
         self.epsilon = epsilon
         self.point_type = point_type
         self.method = method
+        self.verbose = verbose
 
-    def fit(self, X, y=None, weights=None, verbose=False):
+    def fit(self, X, y=None, weights=None):
         """Compute the empirical Frechet mean.
 
         Parameters
@@ -348,7 +349,7 @@ class FrechetMean(BaseEstimator):
                 points=X, weights=weights, metric=self.metric,
                 n_max_iterations=self.n_max_iterations,
                 point_type=self.point_type, epsilon=self.epsilon,
-                verbose=verbose)
+                verbose=self.verbose)
         elif self.method == 'adaptive':
             mean = _adaptive_gradient_descent(
                 points=X, weights=weights, metric=self.metric,
