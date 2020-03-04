@@ -665,7 +665,7 @@ class HyperbolicMetric(RiemannianMetric):
         """Compute Riemannian logarithm of a point wrt a base point.
 
         If point_type = 'poincare' then base_point belongs
-        to the Poincare ball and point is a vector in the euclidean
+        to the Poincare ball and point is a vector in the Euclidean
         space of the same dimension as the ball.
 
         Parameters
