@@ -351,18 +351,12 @@ class Connection(object):
           ⟨hal-02148832⟩
         """
         current_point = gs.copy(base_point)
-        next_tangent_vec = gs.copy(tangent_vec_a)
-        base_shoot = self.exp(base_point=current_point,
-                              tangent_vec=next_tangent_vec)
-        trajectory = []
+        next_tangent_vec = gs.copy(tangent_vec_a) / n_steps
         methods = {'pole': self._pole_ladder_step,
                    'schild': self._schild_ladder_step}
         single_step = methods[step]
-        transported_tangent_vec = gs.copy(tangent_vec_a)
         base_shoot = self.exp(base_point=current_point,
-                              tangent_vec=transported_tangent_vec)
-        single_step = self._pole_ladder_step if step == 'pole' else \
-            self._schild_ladder_step
+                              tangent_vec=next_tangent_vec)
         trajectory = []
         for i_point in range(0, n_steps):
             frac_tangent_vector_b = (i_point + 1) / n_steps * tangent_vec_b
@@ -377,8 +371,9 @@ class Connection(object):
             current_point = next_point
             base_shoot = next_step['end_point']
             trajectory.append(next_step['geodesics'])
+        transported_tangent_vec = n_steps * next_step['next_tangent_vec']
 
-        return {'transported_tangent_vec': next_step['next_tangent_vec'],
+        return {'transported_tangent_vec': transported_tangent_vec,
                 'trajectory': trajectory}
 
     def riemannian_curvature(self, base_point):
