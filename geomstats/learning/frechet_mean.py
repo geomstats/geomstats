@@ -253,15 +253,15 @@ def _adaptive_gradient_descent(points,
 
     sum_weights = gs.sum(weights)
 
+    if n_points == 1:
+        return gs.to_ndarray(points[0], to_ndim=2)
+
     n_init = len(init_points)
 
     if n_init == 0:
         current_mean = points[0]
     else:
         current_mean = init_points[0]
-
-    if n_points == 1:
-        return gs.to_ndarray(current_mean, to_ndim=2)
 
     tau = 1.0
     iteration = 0
