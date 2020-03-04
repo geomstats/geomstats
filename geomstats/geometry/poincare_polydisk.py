@@ -20,10 +20,10 @@ from geomstats.geometry.product_riemannian_metric \
 
 
 class PoincarePolydisk(ProductManifold):
-    """Class defining the Poincare polydisk.
+    """Class for the Poincare polydisk.
 
-    Class for the Poincare polydisk, which is a direct product
-    of n Poincare disks, i.e. hyperbolic spaces of dimension 2.
+    The Poincare polydisk is a direct product of n Poincare disks,
+    i.e. hyperbolic spaces of dimension 2.
     """
 
     def __init__(self, n_disks, point_type='ball'):
@@ -39,7 +39,7 @@ class PoincarePolydisk(ProductManifold):
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """Convert point from intrinsic to extrensic coordinates.
 
-        Convert the parameterization of a point on the hyperbolic space
+        Convert the parameterization of a point in the hyperbolic space
         from its intrinsic coordinates, to its extrinsic coordinates
         in Minkowski space.
 
