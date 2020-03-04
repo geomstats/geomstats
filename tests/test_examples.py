@@ -17,6 +17,7 @@ import examples.plot_grid_h2 as plot_grid_h2
 import examples.plot_kmeans_manifolds as plot_kmeans_manifolds
 import examples.plot_online_kmeans_s1 as plot_online_kmeans_s1
 import examples.plot_online_kmeans_s2 as plot_online_kmeans_s2
+import examples.plot_pole_ladder_s2 as plot_pole_ladder_s2
 import examples.plot_square_h2_klein_disk as plot_square_h2_klein_disk
 import examples.plot_square_h2_poincare_disk as plot_square_h2_poincare_disk
 import examples.plot_square_h2_poincare_half_plane as plot_square_h2_poincare_half_plane  # NOQA
@@ -109,3 +110,7 @@ class TestExamples(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_plot_online_kmeans_s2(self):
         plot_online_kmeans_s2.main()
+
+    @geomstats.tests.np_only
+    def test_plot_pole_ladder_s2(self):
+        plot_pole_ladder_s2.main()
