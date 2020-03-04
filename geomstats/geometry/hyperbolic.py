@@ -119,13 +119,12 @@ class Hyperbolic(EmbeddedManifold):
         """Test if a point belongs to the hyperbolic space.
 
         Test if a point belongs to the hyperbolic space according
-        to the current representation
+        to the current representation.
 
         Parameters
         ----------
         point : array-like, shape=[n_samples, dimension] or
             shape=[n_samples, dimension + 1] for extrinsic coordinates.
-            Input points.
         tolerance : float, optional
             Tolerance at which to evaluate how close is the squared norm
             compared to the reference value.
@@ -165,12 +164,12 @@ class Hyperbolic(EmbeddedManifold):
         Parameters
         ----------
         point : array-like, shape=[n_samples, dimension + 1]
-                Input points.
+            Point.
 
         Returns
         -------
         projected_point : array-like, shape=[n_samples, dimension + 1]
-            Point on the hyperbolic space in canonical representation
+            Point in hyperbolic space in canonical representation
             in extrinsic coordinates.
         """
         point = gs.to_ndarray(point, to_ndim=2)
@@ -188,7 +187,7 @@ class Hyperbolic(EmbeddedManifold):
         return projected_point
 
     def projection_to_tangent_space(self, vector, base_point):
-        """Project a vector in Minkowski space.
+        """Project a vector to a tangent space of the hyperbolic space.
 
         Project a vector in Minkowski space on the tangent space
         of the hyperbolic space at a base point.
@@ -197,9 +196,8 @@ class Hyperbolic(EmbeddedManifold):
         ----------
         vector : array-like, shape=[n_samples, dimension + 1]
             Vector in Minkowski space to be projected.
-
         base_point : array-like, shape=[n_samples, dimension + 1]
-            Point on the hyperbolic space.
+            Point in hyperbolic space.
 
         Returns
         -------
@@ -233,7 +231,7 @@ class Hyperbolic(EmbeddedManifold):
         Returns
         -------
         point_extrinsic : array-like, shape=[n_samples, dimension + 1]
-            Point on the hyperbolic space in extrinsic coordinates.
+            Point in hyperbolic space in intrinsic coordinates.
         """
         return Hyperbolic._intrinsic_to_extrinsic_coordinates(
             point_intrinsic)
@@ -241,19 +239,19 @@ class Hyperbolic(EmbeddedManifold):
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         """Convert the parameterization of a point.
 
-        Convert the parameterization of a point on the hyperbolic space
+        Convert the parameterization of a point in hyperbolic space
         from its extrinsic coordinates, to its intrinsic coordinates
         in Minkowski space.
 
         Parameters
         ----------
         point_extrinsic : array-like, shape=[n_samples, dimension + 1]
-            Point on the hyperbolic space in extrinsic coordinates.
+            Point in hyperbolic space in extrinsic coordinates.
 
         Returns
         -------
         point_intrinsic : array-like, shape=[n_samples, dimension]
-            Point on the hyperbolic space in intrinsic coordinates.
+            Point in hyperbolic space in intrinsic coordinates.
         """
         return Hyperbolic._extrinsic_to_intrinsic_coordinates(
             point_extrinsic)
@@ -264,9 +262,9 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _intrinsic_to_extrinsic_coordinates(point_intrinsic):
-        """Convert point parameterization from intrinsic to extrensic coords.
+        """Convert intrinsic to extrinsic coordinates.
 
-        Convert the parameterization of a point on the hyperbolic space
+        Convert the parameterization of a point in hyperbolic space
         from its intrinsic coordinates, to its extrinsic coordinates
         in Minkowski space.
 
@@ -277,7 +275,7 @@ class Hyperbolic(EmbeddedManifold):
         Returns
         -------
         point_extrinsic : array-like, shape=[n_samples, dimension + 1]
-            Point on the hyperbolic space in extrinsic coordinates
+            Point in hyperbolic space in extrinsic coordinates
         """
         point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
 
@@ -290,9 +288,9 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _extrinsic_to_intrinsic_coordinates(point_extrinsic):
-        """Convert point parameterization from extrensic to intrinsic coords.
+        """Convert extrinsic to intrinsic coordinates.
 
-        Convert the parameterization of a point on the hyperbolic space
+        Convert the parameterization of a point in hyperbolic space
         from its extrinsic coordinates in Minkowski space, to its
         intrinsic coordinates.
 
@@ -312,41 +310,41 @@ class Hyperbolic(EmbeddedManifold):
 
     @staticmethod
     def _extrinsic_to_ball_coordinates(point):
-        """Convert point parameterization from extrensic to ball coordinates.
+        """Convert extrinsic to ball coordinates.
 
-        Convert the parameterization of a point on the hyperbolic space
+        Convert the parameterization of a point in hyperbolic space
         from its intrinsic coordinates, to the poincare ball model
         coordinates.
 
         Parameters
         ----------
         point : array-like, shape=[n_samples, dimension + 1]
-            Points on the hyperblic space in extrinsic coordinates.
+            Point in hyperbolic space in extrinsic coordinates.
 
         Returns
         -------
         point_ball : array-like, shape=[n_samples, dimension]
-            Points on the Poincare ball coordinates.
+            Point in hyperbolic space in Poincare ball coordinates.
         """
         return point[:, 1:] / (1 + point[:, :1])
 
     @staticmethod
     def _ball_to_extrinsic_coordinates(point):
-        """Convert point parameterization from ball to extrensic coordinates.
+        """Convert ball to extrinsic coordinates.
 
-        Convert the parameterization of a point on the hyperbolic space
+        Convert the parameterization of a point in hyperbolic space
         from its poincare ball model coordinates, to the extrinsic
         coordinates.
 
         Parameters
         ----------
         point : array-like, shape=[n_samples, dimension]
-            Points on the hyperbolic space in Poincare ball coordinates.
+            Point in hyperbolic space in Poincare ball coordinates.
 
         Returns
         -------
         extrinsic : array-like, shape=[n_samples, dimension + 1]
-            Point on the hyperbolic space in extrinsic coordinates.
+            Point in hyperbolic space in extrinsic coordinates.
         """
         squared_norm = gs.sum(point**2, -1)
         denominator = 1 - squared_norm
@@ -361,7 +359,7 @@ class Hyperbolic(EmbeddedManifold):
     def _half_plane_to_extrinsic_coordinates(point):
         """Convert point parameterization from half-plane to extrinsic coords.
 
-        Convert the parameterization of a point on the hyperbolic space
+        Convert the parameterization of a point in hyperbolic space
         from its upper half plane model coordinates, to the extrinsic
         coordinates.
 
@@ -437,7 +435,6 @@ class Hyperbolic(EmbeddedManifold):
         point : array-like, shape=[n_samples, dimension] expected or
                 shape=[n_samples, dimension + 1] for extrinsic
                 coordinates only.
-
         to_point_type : coordinates type to transform the point, can be
                         'ball', 'extrinsic', 'intrinsic', 'half_plane'
 
