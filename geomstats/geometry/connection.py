@@ -231,11 +231,11 @@ class Connection(object):
                 'end_point': end_point}
 
     def _schild_ladder_step(self, base_point, next_point, base_shoot,
-                            return_geodesics=False, n_points=10):
+                            return_geodesics=False):
         """Compute one Schild's Ladder step.
 
-        One step of pole ladder scheme [LP2013a]_ using the geodesic to
-        transport along as diagonal of the parallelogram.
+        One step of the Schild's ladder scheme [LP2013a]_ using the geodesic to
+        transport along as one side of the parallelogram.
 
         Parameters
         ----------
@@ -329,7 +329,10 @@ class Connection(object):
             which to transport.
         n_steps : int
             The number of pole ladder steps.
+        step : str, {'pole', 'schild'}
+            The scheme to use for the construction of the ladder at each step.
         **single_step_kwargs : keyword arguments for the step functions
+
         Returns
         -------
         ladder : dict of array-like and callable with following keys
