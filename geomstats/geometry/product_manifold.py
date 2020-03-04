@@ -28,10 +28,9 @@ class ProductManifold(Manifold):
     Parameters
     ----------
     manifolds : list
-        list of manifolds in the product
-
+        List of manifolds in the product.
     default_point_type : str, {'vector', 'matrix'}
-        default representation of points
+        Default representation of points.
     """
 
     def __init__(self, manifolds, default_point_type='vector'):
@@ -54,7 +53,6 @@ class ProductManifold(Manifold):
         point : array-like, shape=[n_samples, dim]
                            or shape=[n_samples, dim_2, dim_2]
             Point.
-
         point_type : str, {'vector', 'matrix'}
             Representation of point.
 
@@ -95,7 +93,6 @@ class ProductManifold(Manifold):
         point : array-like, shape=[n_samples, dim]
                            or shape=[n_samples, dim_2, dim_2]
             Point to be regularized.
-
         point_type : str, {'vector', 'matrix'}
             Representation of point.
 
