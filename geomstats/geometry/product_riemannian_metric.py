@@ -36,9 +36,9 @@ class ProductRiemannianMetric(RiemannianMetric):
             signature=(sig_0, sig_1, sig_2))
 
     def inner_product_matrix(self, base_point=None):
-        """Compute matrix of the corresponding inner product.
+        """Compute the matrix of the inner-product.
 
-        Matrix of the inner product defined by the Riemmanian metric
+        Matrix of the inner-product defined by the Riemmanian metric
         at point base_point of the manifold.
 
         Parameters
@@ -67,7 +67,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         return matrix
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute inner product between two tan space vectors at a base point.
+        """Compute the inner-product of two tangent vectors at a base point.
 
         Inner product defined by the Riemannian metric at point `base_point`
         between tangent vectors `tangent_vec_a` and `tangent_vec_b`.
@@ -76,17 +76,15 @@ class ProductRiemannianMetric(RiemannianMetric):
         ----------
         tangent_vec_a : array-like, shape=[n_samples, dimension + 1]
             First tangent vector at base point.
-
         tangent_vec_b : array-like, shape=[n_samples, dimension + 1]
             Second tangent vector at base point.
-
         base_point : array-like, shape=[n_samples, dimension + 1], optional
             Point on the manifold.
 
         Returns
         -------
         inner_prod : array-like, shape=[n_samples, 1]
-            Inner product of the two tangent vectors.
+            Inner-product of the two tangent vectors.
         """
         if base_point is None:
             base_point = [None, ] * self.n_metrics
@@ -109,7 +107,6 @@ class ProductRiemannianMetric(RiemannianMetric):
         ----------
         tangent_vec : array-like, shape=[n_samples, dimension]
             Tangent vector at a base point.
-
         base_point : array-like, shape=[n_samples, dimension]
             Point on the manifold.
 
@@ -128,13 +125,12 @@ class ProductRiemannianMetric(RiemannianMetric):
         return exp
 
     def log(self, point, base_point=None):
-        """Compute Riemannian logarithm of a point wrt a base point.
+        """Compute the Riemannian logarithm of a point.
 
         Parameters
         ----------
         point : array-like, shape=[n_samples, dimension]
             Point on the manifold.
-
         base_point : array-like, shape=[n_samples, dimension]
             Point on the manifold.
 
@@ -159,7 +155,6 @@ class ProductRiemannianMetric(RiemannianMetric):
         ----------
         point_a : array-like, shape=[n_samples, dimension]
             First point on the manifold.
-
         point_b : array-like, shape=[n_samples, dimension]
             Second point on the manifold.
 
@@ -189,13 +184,10 @@ class ProductRiemannianMetric(RiemannianMetric):
         ----------
         initial_point : array-like, shape=[n_samples, dim]
             Initial point of the geodesic.
-
         end_point : array-like, shape=[n_samples, dim], optional
             End point of the geodesic.
-
         initial_tangent_vec : array-like, shape=[n_samples, dim], optional
             Initial tangent vector of the geodesic.
-
         point_type : str, {'vector', 'matrix'}, optional
             Representation of point.
 
