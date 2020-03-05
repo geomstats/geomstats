@@ -738,7 +738,7 @@ class HyperbolicMetric(RiemannianMetric):
                 'log is only implemented for ball and extrinsic')
 
     def mobius_add(self, point_a, point_b):
-        """Compute the Mobius addition of two points.
+        r"""Compute the Mobius addition of two points.
 
         Mobius addition operation that is a necessary operation
         to compute the log and exp using the 'ball' representation.
