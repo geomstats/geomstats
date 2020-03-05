@@ -738,18 +738,22 @@ class HyperbolicMetric(RiemannianMetric):
                 'log is only implemented for ball and extrinsic')
 
     def mobius_add(self, point_a, point_b):
-        """Compute the mobius addition of two points.
+        """Compute the Mobius addition of two points.
 
-        Mobius addition is necessary for computation of the log and exp
-        using the 'poincare' representation set as point_type.
+        Mobius addition operation that is a necessary operation
+        to compute the log and exp using the 'ball' representation.
+
+        .. math::
+
+            a\oplus b=\frac{(1+2\langle a,b\rangle + ||b||^2)a+
+            (1-||a||^2)b}{1+2\langle a,b\rangle + ||a||^2||b||^2}
 
         Parameters
         ----------
         point_a : array-like, shape=[n_samples, dimension + 1]
-            Point on the hyperbolic space.
-
+            Point in hyperbolic space.
         point_b : array-like, shape=[n_samples, dimension + 1]
-            Point on the hyperbolic space.
+            Point in hyperbolic space.
 
         Returns
         -------
