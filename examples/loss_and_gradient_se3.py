@@ -2,6 +2,8 @@
 Predict on SE3: losses.
 """
 
+import logging
+
 import geomstats.backend as gs
 import geomstats.geometry.lie_group as lie_group
 from geomstats.geometry.special_euclidean import SpecialEuclidean
@@ -99,9 +101,9 @@ def main():
     loss_rot_vec = loss(y_pred, y_true)
     grad_rot_vec = grad(y_pred, y_true)
 
-    print('The loss between the poses using rotation vectors is: {}'.format(
-        loss_rot_vec[0, 0]))
-    print('The riemannian gradient is: {}'.format(grad_rot_vec))
+    logging.info('The loss between the poses using rotation '
+                 'vectors is: {}'.format(loss_rot_vec[0, 0]))
+    logging.info('The riemannian gradient is: {}'.format(grad_rot_vec))
 
     angle = gs.array(gs.pi / 6)
     cos = gs.cos(angle / 2)
@@ -127,9 +129,9 @@ def main():
                            representation='quaternion')
     grad_quaternion = grad(y_pred_quaternion, y_true_quaternion,
                            representation='quaternion')
-    print('The loss between the poses using quaternions is: {}'.format(
+    logging.info('The loss between the poses using quaternions is: {}'.format(
         loss_quaternion[0, 0]))
-    print('The riemannian gradient is: {}'.format(
+    logging.info('The riemannian gradient is: {}'.format(
         grad_quaternion))
 
 

@@ -3,6 +3,7 @@ Plot a grid on H2
 with Poincare Disk visualization.
 """
 
+import logging
 import os
 
 import matplotlib.pyplot as plt
@@ -45,9 +46,9 @@ def main(left=-128,
 
 if __name__ == "__main__":
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        print('Examples with visualizations are only implemented '
-              'with numpy backend.\n'
-              'To change backend, write: '
-              'export GEOMSTATS_BACKEND = \'numpy\'.')
+        logging.info('Examples with visualizations are only implemented '
+                     'with numpy backend.\n'
+                     'To change backend, write: '
+                     'export GEOMSTATS_BACKEND = \'numpy\'.')
     else:
         main()

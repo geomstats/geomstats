@@ -1,5 +1,7 @@
 """Online kmeans algorithm on Manifolds."""
 
+import logging
+
 from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
@@ -89,8 +91,9 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20,
             break
 
     if iteration == n_max_iterations - 1:
-        print('Maximum number of iterations {} reached. The'
-              'clustering may be inaccurate'.format(n_max_iterations))
+        logging.warning(
+            'Maximum number of iterations {} reached. The'
+            'clustering may be inaccurate'.format(n_max_iterations))
 
     labels = gs.zeros(n_samples)
     for i in range(n_samples):

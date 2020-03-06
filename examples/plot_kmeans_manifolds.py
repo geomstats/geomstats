@@ -7,6 +7,8 @@ algorithm and plot the points labels as two distinct colors. For the moment
 the example works on the Poincaré Ball and the Hypersphere.
 Computed means are marked as green stars.
 """
+
+import logging
 import os
 
 import matplotlib.pyplot as plt
@@ -136,9 +138,9 @@ def main():
 
 if __name__ == "__main__":
     if os.environ['GEOMSTATS_BACKEND'] != 'numpy':
-        print('Examples with visualizations are only implemented '
-              'with numpy backend.\n'
-              'To change backend, write: '
-              'export GEOMSTATS_BACKEND = \'numpy\'.')
+        logging.info('Examples with visualizations are only implemented '
+                     'with numpy backend.\n'
+                     'To change backend, write: '
+                     'export GEOMSTATS_BACKEND = \'numpy\'.')
     else:
         main()

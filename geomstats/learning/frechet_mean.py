@@ -1,7 +1,7 @@
 """Frechet mean."""
 
+import logging
 import math
-import warnings
 
 from sklearn.base import BaseEstimator
 
@@ -159,11 +159,12 @@ def _default_gradient_descent(points, metric, weights,
         maximum_iterations=n_max_iterations)
 
     if last_iteration == n_max_iterations:
-        print('Maximum number of iterations {} reached.'
-              'The mean may be inaccurate'.format(n_max_iterations))
+        logging.warning(
+            'Maximum number of iterations {} reached.'
+            'The mean may be inaccurate'.format(n_max_iterations))
 
     if verbose:
-        print('n_iter: {}, final variance: {}, final dist: {}'.format(
+        logging.info('n_iter: {}, final variance: {}, final dist: {}'.format(
             last_iteration, var, sq_dist))
 
     mean = gs.to_ndarray(mean, to_ndim=2)
@@ -194,7 +195,7 @@ def _ball_gradient_descent(points, metric, weights, n_max_iterations,
         barycenter = cc_barycenter
 
     if iteration == n_max_iterations:
-        warnings.warn(
+        logging.warning(
             'Maximum number of iterations {} reached. The '
             'mean may be inaccurate'.format(n_max_iterations))
 
@@ -291,7 +292,7 @@ def _adaptive_gradient_descent(points,
             tau = tau * 0.8
 
     if iteration == n_max_iterations:
-        warnings.warn(
+        logging.warning(
             'Maximum number of iterations {} reached.'
             'The mean may be inaccurate'.format(n_max_iterations))
 
