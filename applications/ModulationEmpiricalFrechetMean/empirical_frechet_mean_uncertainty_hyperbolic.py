@@ -230,7 +230,7 @@ def main():
     for isotropic distributions on hyper-spheres of radius 0 < theta < 5 in
     the hyperbolic space H_dim (called here a bubble).
     """
-    n_expectation = 50
+    n_expectation = 5000
 
     print('Var of empirical mean for 1 sample, theta=0.1 '
                  'in H2 {} \n'.format(empirical_frechet_var_bubble(
@@ -245,7 +245,7 @@ def main():
                          1, 0.1, 2, n_expectation=n_expectation)))
 
     print('Modulation factor for 500 sample theta close to 5 in H5 '
-                 '(should be around 25): {} \n'.format(
+                 '(should be around 0.56): {} \n'.format(
                      modulation_factor(
                          500, 5, 5,
                          n_expectation=n_expectation)))
