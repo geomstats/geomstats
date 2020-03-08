@@ -81,7 +81,6 @@ class ProductManifold(Manifold):
 
         belongs = gs.empty((point.shape[0], len(self.manifolds)))
         cum_dim = 0
-        # FIXME: this only works if the points are in intrinsic representation
         for i, manifold_i in enumerate(self.manifolds):
             cum_dim_next = cum_dim + manifold_i.dimension
             if not intrinsic:
