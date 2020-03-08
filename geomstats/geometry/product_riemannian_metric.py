@@ -1,5 +1,7 @@
 """Product of Riemannian metrics."""
 
+import multiprocessing as mp
+
 import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -63,6 +65,24 @@ class ProductRiemannianMetric(RiemannianMetric):
             matrix[a:b, a:b] = matrix_next
 
         return matrix
+
+    def _iterate_over_manifolds(
+            self, func, args, string, out, intrinsic=False, n_jobs=1):
+
+        def get_method(manifold, method_name, *manifold_args):
+            return getattr(manifold, method_name)(*manifold_args)
+
+        arguments = {key: gs.split(
+            args[key],
+            gs.cumsum(self.metrics.dimension), axis=1) for key in args.keys()}
+        args_list = [{key: arg[key] for key in args.keys()} for arg in
+                     arguments.items()]
+        pool = mp.Pool(min(n_jobs, mp.cpu_count()))
+        out = pool.starmap(
+            get_method,
+            [(self.metrics[i], func, args_list) for i in range(self.n_metrics)])
+
+        return out
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.

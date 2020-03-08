@@ -442,6 +442,10 @@ def sign(*args, **kwargs):
     return torch.sign(*args, **kwargs)
 
 
+def split(*args, **kwargs):
+    return torch.split(*args, **kwargs)
+
+
 def mean(x, axis=None):
     if axis is None:
         return torch.mean(x)
