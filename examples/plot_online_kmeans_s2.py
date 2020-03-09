@@ -3,6 +3,7 @@ Plot the result of optimal quantization of the von Mises Fisher distribution
 on the sphere using online k-means clustering of a sample.
 """
 
+import logging
 import os
 
 import matplotlib.pyplot as plt
@@ -39,9 +40,9 @@ def main():
 
 if __name__ == "__main__":
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        print('Examples with visualizations are only implemented '
-              'with numpy backend.\n'
-              'To change backend, write: '
-              'export GEOMSTATS_BACKEND = \'numpy\'.')
+        logging.info('Examples with visualizations are only implemented '
+                     'with numpy backend.\n'
+                     'To change backend, write: '
+                     'export GEOMSTATS_BACKEND = \'numpy\'.')
     else:
         main()
