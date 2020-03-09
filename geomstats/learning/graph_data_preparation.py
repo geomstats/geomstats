@@ -1,5 +1,5 @@
 """Prepare and Process Graph-structured data."""
-import geomstats.backend
+
 
 class Graph():
     """Class for generating a graph object from a dataset.
