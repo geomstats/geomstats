@@ -118,7 +118,7 @@ class ProductManifold(Manifold):
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
             # TODO(nguigs) call different iterator
-        belongs = gs.all(belongs, axis=1)
+        belongs = gs.all(belongs, axis=0)
         belongs = gs.to_ndarray(belongs, to_ndim=2)
         return belongs
 
