@@ -1,5 +1,7 @@
 """Product of manifolds."""
 
+import multiprocessing as mp
+
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.product_riemannian_metric import \
@@ -33,7 +35,7 @@ class ProductManifold(Manifold):
         Default representation of points.
     """
 
-    def __init__(self, manifolds, default_point_type='vector'):
+    def __init__(self, manifolds, default_point_type='vector', n_jobs=1):
         assert default_point_type in ['vector', 'matrix']
         self.default_point_type = default_point_type
 
@@ -41,9 +43,51 @@ class ProductManifold(Manifold):
         self.metric = ProductRiemannianMetric(
             [manifold.metric for manifold in manifolds])
 
-        dimensions = [manifold.dimension for manifold in manifolds]
+        self.dimensions = [manifold.dimension for manifold in manifolds]
         super(ProductManifold, self).__init__(
-            dimension=sum(dimensions))
+            dimension=sum(self.dimensions))
+        self.n_jobs = n_jobs
+
+    def _detect_intrinsic_extrinsic(self, point, point_type):
+        assert point_type in ['vector', 'matrix']
+        if point_type == 'vector':
+            point = gs.to_ndarray(point, to_ndim=2)
+            # detect if intrinsic of extrinsic
+            if point.shape[1] == self.dimension:
+                intrinsic = True
+            elif point.shape[1] == sum(
+                    [man.dimension + 1 for man in self.manifolds]):
+                intrinsic = False
+        else:
+            point = gs.to_ndarray(point, to_ndim=3)
+            if point.shape[2] == self.dimension:
+                intrinsic = True
+            elif point.shape[1] == sum(
+                    [man.dimension + 1 for man in self.manifolds]):
+                intrinsic = False
+        return intrinsic
+
+    @staticmethod
+    def _get_method(manifold, method_name, metric_args):
+        return getattr(manifold, method_name)(**metric_args)
+
+    def _iterate_over_manifolds(
+            self, func, args, intrinsic=False):
+
+        cum_index = gs.cumsum(self.dimensions)[:-1] if intrinsic else \
+            gs.cumsum([k + 1 for k in self.dimensions])
+        arguments = {key: gs.split(
+            args[key], cum_index, axis=1) for key in args.keys()}
+        args_list = [{key: arguments[key][j] for key in args.keys()} for j in
+                     range(len(self.manifolds))]
+        pool = mp.Pool(min(self.n_jobs, mp.cpu_count()))
+        out = pool.starmap(
+            self._get_method,
+            [(self.manifolds[i], func, args_list[i]) for i in range(
+                len(self.manifolds))])
+        pool.close()
+
+        return out
 
     def belongs(self, point, point_type=None):
         """Test if a point belongs to the manifold.
@@ -64,32 +108,15 @@ class ProductManifold(Manifold):
         """
         if point_type is None:
             point_type = self.default_point_type
-        assert point_type in ['vector', 'matrix']
-
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
-            # detect if intrinsic of extrinsic
-            if point.shape[1] == self.dimension:
-                intrinsic = True
-            elif point.shape[1] == sum(
-                    [man.dimension + 1 for man in self.manifolds]):
-                intrinsic = False
-            else:
-                raise ValueError('invalid input dimension')
-        else:
+            intrinsic = self._detect_intrinsic_extrinsic(point, point_type)
+            belongs = self._iterate_over_manifolds(
+                'belongs', {'point': point}, intrinsic)
+
+        elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
-
-        belongs = gs.empty((point.shape[0], len(self.manifolds)))
-        cum_dim = 0
-        for i, manifold_i in enumerate(self.manifolds):
-            cum_dim_next = cum_dim + manifold_i.dimension
-            if not intrinsic:
-                cum_dim_next += 1
-            point_i = point[:, cum_dim:cum_dim_next]
-            belongs_i = manifold_i.belongs(point_i)
-            belongs[:, i] = belongs_i.flatten()
-            cum_dim = cum_dim_next
-
+            # TODO(nguigs) call different iterator
         belongs = gs.all(belongs, axis=1)
         belongs = gs.to_ndarray(belongs, to_ndim=2)
         return belongs

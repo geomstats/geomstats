@@ -22,7 +22,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         List of metrics in the product.
     """
 
-    def __init__(self, metrics):
+    def __init__(self, metrics, default_point_type='vector', n_jobs=1):
         self.n_metrics = len(metrics)
         dimensions = [metric.dimension for metric in metrics]
         signatures = [metric.signature for metric in metrics]
@@ -30,6 +30,8 @@ class ProductRiemannianMetric(RiemannianMetric):
         self.metrics = metrics
         self.dimensions = dimensions
         self.signatures = signatures
+        self.default_point_type = default_point_type
+        self.n_jobs = n_jobs
 
         sig_0 = sum([sig[0] for sig in signatures])
         sig_1 = sum([sig[1] for sig in signatures])
@@ -69,25 +71,50 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         return matrix
 
-    def _iterate_over_manifolds(
-            self, func, args, string, out, intrinsic=False, n_jobs=1):
+    def _detect_intrinsic_extrinsic(self, point, point_type):
+        assert point_type in ['vector', 'matrix']
+        if point_type == 'vector':
+            point = gs.to_ndarray(point, to_ndim=2)
+            # detect if intrinsic of extrinsic
+            if point.shape[1] == self.dimension:
+                intrinsic = True
+            elif point.shape[1] == sum(
+                    [man.dimension + 1 for man in self.manifolds]):
+                intrinsic = False
+        else:
+            point = gs.to_ndarray(point, to_ndim=3)
+            if point.shape[2] == self.dimension:
+                intrinsic = True
+            elif point.shape[1] == sum(
+                    [man.dimension + 1 for man in self.manifolds]):
+                intrinsic = False
+        return intrinsic
 
-        def get_method(manifold, method_name, *manifold_args):
-            return getattr(manifold, method_name)(*manifold_args)
+    @staticmethod
+    def _get_method(manifold, method_name, metric_args):
+        return getattr(manifold, method_name)(**metric_args)
 
+    def _iterate_over_metrics(
+            self, func, args, intrinsic=False):
+
+        cum_index = gs.cumsum(self.dimensions)[:-1] if intrinsic else \
+            gs.cumsum([k + 1 for k in self.dimensions])
         arguments = {key: gs.split(
-            args[key],
-            gs.cumsum(self.metrics.dimension), axis=1) for key in args.keys()}
-        args_list = [{key: arg[key] for key in args.keys()} for arg in
-                     arguments.items()]
-        pool = mp.Pool(min(n_jobs, mp.cpu_count()))
+            args[key], cum_index, axis=1) for key in args.keys()}
+        args_list = [{key: arguments[key][j] for key in args.keys()} for j in
+                     range(self.n_metrics)]
+        pool = mp.Pool(min(self.n_jobs, mp.cpu_count()))
         out = pool.starmap(
-            get_method,
-            [(self.metrics[i], func, args_list) for i in range(self.n_metrics)])
+            self._get_method,
+            [(self.metrics[i], func, args_list[i]) for i in range(
+                self.n_metrics)])
+        pool.close()
 
         return out
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+    def inner_product(
+            self, tangent_vec_a, tangent_vec_b, base_point=None,
+            point_type=None):
         """Compute the inner-product of two tangent vectors at a base point.
 
         Inner product defined by the Riemannian metric at point `base_point`
@@ -141,6 +168,20 @@ class ProductRiemannianMetric(RiemannianMetric):
             cum_dim = cum_dim_next
 
         return gs.sum(inner_prod, axis=1)
+        if point_type is None:
+            point_type = self.default_point_type
+        if point_type == 'vector':
+            tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
+            tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
+        elif point_type == 'matrix':
+            tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
+            tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
+        intrinsic = self._detect_intrinsic_extrinsic(tangent_vec_b, point_type)
+        args = {'tangent_vec_a': tangent_vec_a,
+                'tangent_vec_b': tangent_vec_b,
+                'base_point': base_point}
+        inner_prod = self._iterate_over_metrics('inner_prod', args, intrinsic)
+        return inner_prod
 
     def exp(self, tangent_vec, base_point=None):
         """Compute the Riemannian exponential of a tangent vector.
