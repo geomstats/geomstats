@@ -50,21 +50,17 @@ class ProductManifold(Manifold):
 
     def _detect_intrinsic_extrinsic(self, point, point_type):
         assert point_type in ['vector', 'matrix']
-        if point_type == 'vector':
-            point = gs.to_ndarray(point, to_ndim=2)
-            # detect if intrinsic of extrinsic
-            if point.shape[1] == self.dimension:
-                intrinsic = True
-            elif point.shape[1] == sum(
-                    [man.dimension + 1 for man in self.manifolds]):
-                intrinsic = False
+        index = 1 if point_type == 'vector' else 2
+        if point.shape[index] == self.dimension:
+            intrinsic = True
+        elif point.shape[index] == sum(
+                [dim + 1 for dim in self.dimensions]):
+            intrinsic = False
         else:
-            point = gs.to_ndarray(point, to_ndim=3)
-            if point.shape[2] == self.dimension:
-                intrinsic = True
-            elif point.shape[1] == sum(
-                    [man.dimension + 1 for man in self.manifolds]):
-                intrinsic = False
+            raise ValueError('Input shape does not match the dimension of'
+                             'the manifold, {0} expected {1} or {2}'.format(
+                              point.shape, self.dimension,  sum(
+                              [dim + 1 for dim in self.dimensions])))
         return intrinsic
 
     @staticmethod
