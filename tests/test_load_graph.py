@@ -21,3 +21,13 @@ class TestLoadDefaultGraph(geomstats.tests.TestCase):
                   len(self.G2.edges) + len(self.G2.labels)]
         expected = [20, 68]
         self.assertAllClose(result, expected)
+
+    def test_random_walks(self):
+        """Test that random walks have the right length."""
+
+        paths1 = self.G1.random_walk()
+        paths2 = self.G2.random_walk()
+
+        result = [len(paths1), len(paths2)]
+        expected = [len(self.G1.edges), len(self.G2.edges)]
+        self.assertAllClose(result, expected)
