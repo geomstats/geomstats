@@ -2,6 +2,8 @@
 
 import random
 
+import geomstats.backend as gs
+
 
 class Graph():
     """Class for generating a graph object from a dataset.
@@ -21,6 +23,7 @@ class Graph():
     labels = None
     paths = None
     walk_length = 5
+    number_walks_per_node = 1
 
     def __init__(self,
                  Graph_Matrix_Path=r'examples\data_example'
@@ -41,7 +44,7 @@ class Graph():
                     self.labels[i] = []
                     self.labels[i].append(int(line))
 
-    def random_walk(self, walk_length=5, number_walks_per_node=1):
+    def random_walk(self, walk_length=5, number_walks_per_node=2):
         """Compute a set of random walks on a graph.
 
         For each node of the graph, generates a a number of
@@ -64,21 +67,21 @@ class Graph():
             array containing random walks
         """
         self.walk_length = walk_length
-
-        paths = []
-        for index in range(len(self.edges)):
+        self.number_walks_per_node = number_walks_per_node
+        paths = gs.empty((0, walk_length + 1), dtype=int)
+        for index in range(0, len(self.edges)):
             for i in range(number_walks_per_node):
-                paths.append(self._walk(index))
-
+                paths = gs.vstack((paths, self._walk(index)))
+        self.paths = paths
         return paths
 
     def _walk(self, index):
         """Generate a single random walk."""
-        path = []
-        c_index = index
-        path.append(c_index)
+        path = gs.array([], dtype=int)
+        count_index = index
+        path = gs.append(path, count_index)
         for i in range(self.walk_length):
-            c_index = self.edges[c_index][random.randint(
-                0, len(self.edges[c_index]) - 1)]
-            path.append(c_index)
+            count_index = self.edges[count_index][random.randint(
+                0, len(self.edges[count_index]) - 1)]
+            path = gs.append(path, count_index)
         return path
