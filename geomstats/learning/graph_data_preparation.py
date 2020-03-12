@@ -2,6 +2,7 @@
 
 import random
 
+
 class Graph():
     """Class for generating a graph object from a dataset.
 
@@ -43,9 +44,10 @@ class Graph():
     def random_walk(self, walk_length=5, number_walks_per_node=1):
         """Compute a set of random walks on a graph.
 
-        For each node of the graph, generates a a number of random walks of a specified length.
-        Two consecutive nodes in the random walk, are necessarily related with an edge.
-        The walks capture the structure of the graph.
+        For each node of the graph, generates a a number of
+        random walks of a specified length.
+        Two consecutive nodes in the random walk, are necessarily
+        related with an edge. The walks capture the structure of the graph.
 
         Parameters
         ----------
@@ -57,8 +59,9 @@ class Graph():
 
         Returns
         -------
-        self : array-like, shape=[number_walks_per_node*len(self.edges), walk_length]
-        array containing random walks
+        self : array-like,
+            shape=[number_walks_per_node*len(self.edges), walk_length]
+            array containing random walks
         """
         self.walk_length = walk_length
 
@@ -70,12 +73,12 @@ class Graph():
         return paths
 
     def _walk(self, index):
-        """Generates a single random walk."""
+        """Generate a single random walk."""
         path = []
         c_index = index
         path.append(c_index)
         for i in range(self.walk_length):
-
-            c_index = self.edges[c_index][random.randint(0, len(self.edges[c_index]) - 1)]
+            c_index = self.edges[c_index][random.randint(
+                0, len(self.edges[c_index]) - 1)]
             path.append(c_index)
         return path
