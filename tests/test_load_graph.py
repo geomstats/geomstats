@@ -24,12 +24,14 @@ class TestLoadDefaultGraph(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_random_walks(self):
-        """Test that random walks have the right length."""
+        """Test that random walks have the right length and number."""
         paths1 = self.G1.random_walk(walk_length=3)
         paths2 = self.G2.random_walk(walk_length=6)
 
         result = [len(paths1), len(paths1[0]), len(paths2), len(paths2[0])]
-        expected = [len(self.G1.edges), self.G1.walk_length + 1,
-                    len(self.G2.edges), self.G2.walk_length + 1]
+        expected = [len(self.G1.edges) * self.G1.number_walks_per_node,
+                    self.G1.walk_length + 1,
+                    len(self.G2.edges) * self.G2.number_walks_per_node,
+                    self.G2.walk_length + 1]
 
         self.assertAllClose(result, expected)
