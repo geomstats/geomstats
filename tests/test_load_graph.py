@@ -7,6 +7,7 @@ from geomstats.learning.graph_data_preparation import Graph
 class TestLoadDefaultGraph(geomstats.tests.TestCase):
     """Test for loading graph-structured data."""
 
+    @geomstats.tests.np_only
     def setUp(self):
         """Declare the graph by default and the Karate club graph."""
         self.G1 = Graph()
@@ -15,6 +16,7 @@ class TestLoadDefaultGraph(geomstats.tests.TestCase):
             Labels_Path=r'examples\data_example'
             r'\graph_karate\Karate_Labels.txt')
 
+    @geomstats.tests.np_only
     def test_graph_load(self):
         """Test the correct number of edges and nodes for each graph."""
         result = [len(self.G1.edges) + len(self.G1.labels),
