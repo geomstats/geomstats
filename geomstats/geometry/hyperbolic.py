@@ -55,7 +55,7 @@ class Hyperbolic(EmbeddedManifold):
     dimension : int
         Dimension of the hyperbolic space.
     point_type : str, {'extrinsic', 'intrinsic', etc}, optional
-        Default coordinates to represent points on the hyperbolic space.
+        Default coordinates to represent points in hyperbolic space.
     scale : int, optional
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
@@ -123,8 +123,9 @@ class Hyperbolic(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension] or
-            shape=[n_samples, dimension + 1] for extrinsic coordinates.
+        point : array-like, shape=[n_samples, dimension]
+                            or shape=[n_samples, dimension + 1]
+            Point.
         tolerance : float, optional
             Tolerance at which to evaluate how close is the squared norm
             compared to the reference value.
@@ -226,12 +227,12 @@ class Hyperbolic(EmbeddedManifold):
         Parameters
         ----------
         point_intrinsic : array-like, shape=[n_samples, dimension]
-            Point on the hyperbolic space in intrinsic coordinates.
+            Point in hyperbolic space in intrinsic coordinates.
 
         Returns
         -------
         point_extrinsic : array-like, shape=[n_samples, dimension + 1]
-            Point in hyperbolic space in intrinsic coordinates.
+            Point in hyperbolic space in extrinsic coordinates.
         """
         return Hyperbolic._intrinsic_to_extrinsic_coordinates(
             point_intrinsic)
@@ -271,11 +272,12 @@ class Hyperbolic(EmbeddedManifold):
         Parameters
         ----------
         point_intrinsic : array-like, shape=[n_samples, dimension]
+            Point in hyperbolic space in intrinsic coordinates.
 
         Returns
         -------
         point_extrinsic : array-like, shape=[n_samples, dimension + 1]
-            Point in hyperbolic space in extrinsic coordinates
+            Point in hyperbolic space in extrinsic coordinates.
         """
         point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
 
@@ -297,6 +299,7 @@ class Hyperbolic(EmbeddedManifold):
         Parameters
         ----------
         point_extrinsic : array-like, shape=[n_samples, dimension + 1]
+            Point in hyperbolic space in extrinsic coordinates.
 
         Returns
         -------
@@ -487,7 +490,7 @@ class Hyperbolic(EmbeddedManifold):
             ](extrinsic)
 
     def random_uniform(self, n_samples=1, bound=1.):
-        """Sample in the hyperbolic space with the uniform distribution.
+        """Sample in hyperbolic space from the uniform distribution.
 
         Parameters
         ----------
