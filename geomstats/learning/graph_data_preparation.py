@@ -26,10 +26,10 @@ class Graph():
     number_walks_per_node = 1
 
     def __init__(self,
-                 Graph_Matrix_Path=r'examples\data_example'
-                                   r'\graph_random\Graph_Example_Random.txt',
-                 Labels_Path=r'examples\data_example'
-                             r'\graph_random\Graph_Example_Random_Labels.txt'):
+                 Graph_Matrix_Path='examples\\data_example'
+                                   '\\graph_random\\Graph_Example_Random.txt',
+                 Labels_Path='examples\\data_example\\graph_random'
+                             '\\Graph_Example_Random_Labels.txt'):
         self.edges = {}
         with open(Graph_Matrix_Path, "r") as edges_file:
             for i, line in enumerate(edges_file):
@@ -44,7 +44,7 @@ class Graph():
                     self.labels[i] = []
                     self.labels[i].append(int(line))
 
-    def random_walk(self, walk_length=5, number_walks_per_node=2):
+    def random_walk(self, walk_length=5, number_walks_per_node=1):
         """Compute a set of random walks on a graph.
 
         For each node of the graph, generates a a number of
