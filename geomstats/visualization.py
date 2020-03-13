@@ -392,9 +392,9 @@ class KleinDisk():
 
 
 def convert_to_trihedron(point, space=None):
-    """Transform a rigid pointrmation into a trihedron.
+    """Transform a rigid point into a trihedron.
 
-    Transform a rigid pointrmation
+    Transform a rigid point
     into a trihedron s.t.:
     - the trihedron's base point is the translation of the origin
     of R^3 by the translation part of point,
