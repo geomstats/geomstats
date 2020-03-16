@@ -128,10 +128,8 @@ class RiemannianMetric(Connection):
         ----------
         tangent_vec_a: array-like, shape=[n_samples, dimension]
                                    or shape=[1, dimension]
-
         tangent_vec_b: array-like, shape=[n_samples, dimension]
                                    or shape=[1, dimension]
-
         base_point: array-like, shape=[n_samples, dimension]
                                 or shape=[1, dimension]
 

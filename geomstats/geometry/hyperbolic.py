@@ -1,6 +1,6 @@
 """The n-dimensional hyperbolic space.
 
-The n-dimensional Hyperbolic space embedded in (n+1)-dimensional
+The n-dimensional hyperbolic space embedded in (n+1)-dimensional
 Minkowski space.
 """
 
@@ -125,7 +125,7 @@ class Hyperbolic(EmbeddedManifold):
         ----------
         point : array-like, shape=[n_samples, dimension]
                             or shape=[n_samples, dimension + 1]
-            Points.
+            Point.
         tolerance : float, optional
             Tolerance at which to evaluate how close is the squared norm
             compared to the reference value.
@@ -276,8 +276,8 @@ class Hyperbolic(EmbeddedManifold):
 
         Returns
         -------
-        point_extrinsic : array-like, shape=[n_samples, dimensio.n + 1]
-            Point in hyperbolic space in extrinsic coordinates
+        point_extrinsic : array-like, shape=[n_samples, dimension + 1]
+            Point in hyperbolic space in extrinsic coordinates.
         """
         point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
 
@@ -304,7 +304,6 @@ class Hyperbolic(EmbeddedManifold):
         Returns
         -------
         point_intrinsic : array-like, shape=[n_samples, dimension]
-            Point in hyperbolic space in intrinsic coordinates.
         """
         point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=2)
 
@@ -512,7 +511,7 @@ class Hyperbolic(EmbeddedManifold):
 
 
 class HyperbolicMetric(RiemannianMetric):
-    """Class that defines operations using a Hyperbolic metric.
+    """Class that defines operations using a hyperbolic metric.
 
     Parameters
     ----------
@@ -551,8 +550,9 @@ class HyperbolicMetric(RiemannianMetric):
         inner_prod : array-like, shape=[n_samples, 1]
             Inner-product of the two tangent vectors.
         """
-        inner_prod = self.scale ** 2 * self.embedding_metric.inner_product(
+        inner_prod = self.embedding_metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point)
+        inner_prod *= self.scale ** 2
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
@@ -573,8 +573,8 @@ class HyperbolicMetric(RiemannianMetric):
         sq_norm : array-like, shape=[n_samples, 1]
             Squared norm of the vector.
         """
-        sq_norm = self.scale ** 2 * self.embedding_metric.squared_norm(vector)
-
+        sq_norm = self.embedding_metric.squared_norm(vector)
+        sq_norm *= self.scale ** 2
         return sq_norm
 
     def exp(self, tangent_vec, base_point):
@@ -660,7 +660,11 @@ class HyperbolicMetric(RiemannianMetric):
                 'exp is only implemented for ball and extrinsic')
 
     def log(self, point, base_point):
-        """Compute the Riemannian logarithm of a point.
+        """Compute Riemannian logarithm of a point wrt a base point.
+
+        If point_type = 'poincare' then base_point belongs
+        to the Poincare ball and point is a vector in the Euclidean
+        space of the same dimension as the ball.
 
         Parameters
         ----------
@@ -679,7 +683,7 @@ class HyperbolicMetric(RiemannianMetric):
             point = gs.to_ndarray(point, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
 
-            angle = self.dist(base_point, point)
+            angle = self.dist(base_point, point) / self.scale
             angle = gs.to_ndarray(angle, to_ndim=1)
             angle = gs.to_ndarray(angle, to_ndim=2)
 
@@ -808,25 +812,23 @@ class HyperbolicMetric(RiemannianMetric):
             cosh_angle = gs.clip(cosh_angle, 1.0, 1e24)
 
             dist = gs.arccosh(cosh_angle)
-
-            return self.scale * dist
+            dist *= self.scale
+            return dist
 
         elif self.point_type == 'ball':
 
             point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0., 1 - EPSILON)
-
             point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0., 1 - EPSILON)
 
             diff_norm = gs.sum((point_a - point_b) ** 2, -1)
-
             norm_function = 1 + 2 * \
                 diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
 
             dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
             dist = gs.to_ndarray(dist, to_ndim=1)
             dist = gs.to_ndarray(dist, to_ndim=2, axis=1)
-
-            return self.scale * dist
+            dist *= self.scale
+            return dist
 
         else:
             raise NotImplementedError(
