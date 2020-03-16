@@ -31,18 +31,18 @@ class TestLoadDefaultGraph(geomstats.tests.TestCase):
         walk_length_g1 = 3
         walk_length_g2 = 6
 
-        walks_per_node_g1 = 1
-        walks_per_node_g2 = 2
+        n_walks_per_node_g1 = 1
+        n_walks_per_node_g2 = 2
 
         paths1 = self.g1.random_walk(walk_length=walk_length_g1,
-                                     number_walks_per_node=walks_per_node_g1)
+                                     n_walks_per_node=n_walks_per_node_g1)
         paths2 = self.g2.random_walk(walk_length=walk_length_g2,
-                                     number_walks_per_node=walks_per_node_g2)
+                                     n_walks_per_node=n_walks_per_node_g2)
 
         result = [len(paths1), len(paths1[0]), len(paths2), len(paths2[0])]
-        expected = [len(self.g1.edges) * walks_per_node_g1,
+        expected = [len(self.g1.edges) * n_walks_per_node_g1,
                     walk_length_g1 + 1,
-                    len(self.g2.edges) * walks_per_node_g2,
+                    len(self.g2.edges) * n_walks_per_node_g2,
                     walk_length_g2 + 1]
 
         self.assertAllClose(result, expected)
