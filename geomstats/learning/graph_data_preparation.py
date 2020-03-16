@@ -5,41 +5,38 @@ import random
 import geomstats.backend as gs
 
 
-class Graph():
+class Graph:
     """Class for generating a graph object from a dataset.
 
     Prepare Graph object from a dataset file.
 
     Parameters
     ----------
-    Graph_Matrix_Path : string
+    graph_matrix_path : string
         Path to graph adjacency matrix.
 
-    Labels_Path : string
+    labels_path : string
         Path to labels of the nodes of the graph.
     """
 
     edges = None
     labels = None
-    paths = None
-    walk_length = 5
-    number_walks_per_node = 1
 
     def __init__(self,
-                 Graph_Matrix_Path='examples\\data_example'
-                                   '\\graph_random\\Graph_Example_Random.txt',
-                 Labels_Path='examples\\data_example\\graph_random'
-                             '\\Graph_Example_Random_Labels.txt'):
+                 graph_matrix_path='examples\\data'
+                                   '\\graph_random\\graph_random.txt',
+                 labels_path='examples\\data\\graph_random'
+                             '\\graph_random_labels.txt'):
         self.edges = {}
-        with open(Graph_Matrix_Path, "r") as edges_file:
+        with open(graph_matrix_path, 'r') as edges_file:
             for i, line in enumerate(edges_file):
                 lsp = line.split()
                 self.edges[i] = [k for k, value in
                                  enumerate(lsp) if (int(value) == 1)]
 
-        if Labels_Path is not None:
+        if labels_path is not None:
             self.labels = {}
-            with open(Labels_Path, "r") as label_file:
+            with open(labels_path, 'r') as label_file:
                 for i, line in enumerate(label_file):
                     self.labels[i] = []
                     self.labels[i].append(int(line))
@@ -66,21 +63,18 @@ class Graph():
             shape=[number_walks_per_node*len(self.edges), walk_length]
             array containing random walks
         """
-        self.walk_length = walk_length
-        self.number_walks_per_node = number_walks_per_node
         paths = gs.empty((0, walk_length + 1), dtype=int)
         for index in range(0, len(self.edges)):
             for i in range(number_walks_per_node):
-                paths = gs.vstack((paths, self._walk(index)))
-        self.paths = paths
+                paths = gs.vstack((paths, self._walk(index, walk_length)))
         return paths
 
-    def _walk(self, index):
+    def _walk(self, index, walk_length):
         """Generate a single random walk."""
-        path = gs.array([], dtype=int)
+        path = []
         count_index = index
         path = gs.append(path, count_index)
-        for i in range(self.walk_length):
+        for i in range(walk_length):
             count_index = self.edges[count_index][random.randint(
                 0, len(self.edges[count_index]) - 1)]
             path = gs.append(path, count_index)
