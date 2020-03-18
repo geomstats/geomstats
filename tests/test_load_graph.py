@@ -1,7 +1,7 @@
 """Unit tests for loading Graph dataset."""
 
 import geomstats.tests
-from geomstats.learning.graph_data_preparation import Graph
+from geomstats.datasets.graph_data_preparation import Graph
 
 
 class TestLoadDefaultGraph(geomstats.tests.TestCase):
