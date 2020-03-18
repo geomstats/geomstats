@@ -4,10 +4,10 @@ import random
 
 import geomstats.backend as gs
 
-DEFAULT_GRAPH_MATRIX_PATH = 'examples\\data\\' \
-                            'graph_random\\graph_random.txt'
-DEFAULT_GRAPH_LABELS_PATH = 'examples\\data\\' \
-                            'graph_random\\graph_random_labels.txt'
+DEFAULT_GRAPH_MATRIX_PATH = r'examples\data' \
+                            r'\graph_random\graph_random.txt'
+DEFAULT_GRAPH_LABELS_PATH = r'examples\data' \
+                            r'\graph_random\graph_random_labels.txt'
 
 
 class Graph:
