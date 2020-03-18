@@ -2,7 +2,7 @@
 Applies K-means on manifolds and plots the results.
 
 Two random clusters are generated in seperate regions of the
-manifold. Then apply K-means is applied using the metric of the manifold
+manifold. Then K-means is applied using the metric of the manifold
 algorithm and plot the points labels as two distinct colors. For the moment
 the example works on the Poincaré Ball and the Hypersphere.
 Computed means are marked as green stars.
