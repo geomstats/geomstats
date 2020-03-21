@@ -33,7 +33,7 @@ def main():
     tangent_vec_a = SPACE.projection_to_tangent_space(
         tangent_vec_a, base_point) / 4
 
-    ladder = METRIC.pole_ladder_parallel_transport(
+    ladder = METRIC.ladder_parallel_transport(
         tangent_vec_a,
         tangent_vec_b,
         base_point,

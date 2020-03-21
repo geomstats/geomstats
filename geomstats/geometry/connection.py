@@ -161,7 +161,7 @@ class Connection(object):
         """Compute one Pole Ladder step.
 
         One step of pole ladder scheme [LP2013a]_ using the geodesic to
-        transport along as diagonal of the parallelogram.
+        transport along as main_geodesic of the parallelogram.
 
         Parameters
         ----------
@@ -173,19 +173,20 @@ class Connection(object):
             Point on the manifold, end point of the geodesics starting
             from the base point with initial speed to be transported.
         return_geodesics : bool, optional (defaults to False)
-            Whether to return points computed along each geodesic of the
+            Whether to return the geodesics of the
             construction.
-        n_points : int, optional (defaults to 10)
-            The number of points to compute in each geodesic when
-            `return_trajectories=True`.
 
         Returns
         -------
-        transported_tangent_vector : array-like, shape=[n_samples, dimension]
-            Tangent vector at end point.
-        end_point : array-like, shape=[n_samples, dimension]
-            Point on the manifold, closes the geodesic parallelogram of the
-            construction.
+        next_step : dict of array-like and callable with following keys:
+            next_tangent_vec : array-like, shape=[n_samples, dimension]
+                Tangent vector at end point.
+            end_point : array-like, shape=[n_samples, dimension]
+                Point on the manifold, closes the geodesic parallelogram of the
+                construction.
+            geodesics : list of callable, len=3 (only if
+            `return_geodesics=True`)
+                The three geodesics of the construction.
 
         References
         ----------
@@ -210,26 +211,28 @@ class Connection(object):
             base_point=mid_point,
             tangent_vec=tangent_vector_to_shoot)
 
-        transported_tangent_vector = - self.log(
+        next_tangent_vec = - self.log(
             base_point=next_point, point=end_shoot)
 
         end_point = self.exp(
             base_point=next_point,
-            tangent_vec=transported_tangent_vector)
+            tangent_vec=next_tangent_vec)
 
-        trajectories = []
+        geodesics = []
         if return_geodesics:
-            diagonal = self.geodesic(
+            main_geodesic = self.geodesic(
                 initial_point=base_point,
                 end_point=next_point)
-            second_diag = self.geodesic(
+            diagonal = self.geodesic(
                 initial_point=mid_point,
                 end_point=base_shoot)
-            final_geo = self.geodesic(
+            final_geodesic = self.geodesic(
                 initial_point=next_point,
                 end_point=end_shoot)
-            trajectories = [diagonal, second_diag, final_geo]
-        return transported_tangent_vector, end_point, trajectories
+            geodesics = [main_geodesic, diagonal, final_geodesic]
+        return {'next_tangent_vec': next_tangent_vec,
+                'geodesics': geodesics,
+                'end_point': end_point}
 
     def _schild_ladder_step(self, base_point, next_point, base_shoot,
                             return_geodesics=False, n_points=10):
@@ -288,7 +291,7 @@ class Connection(object):
         transported_tangent_vector = self.log(
             base_point=next_point, point=end_shoot)
 
-        trajectories = []
+        geodesics = []
         if return_geodesics:
             main_geodesic = self.geodesic(
                 initial_point=base_point,
@@ -302,20 +305,26 @@ class Connection(object):
             final_geodesic = self.geodesic(
                 initial_point=next_point,
                 end_point=end_shoot)
-            trajectories =[
+            geodesics = [
                 main_geodesic,
                 diagonal,
                 second_diagonal,
                 final_geodesic]
-        return transported_tangent_vector, end_shoot, trajectories
+        return {'next_tangent_vec': transported_tangent_vector,
+                'geodesics': geodesics,
+                'end_point': end_shoot}
 
     def ladder_parallel_transport(
             self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1,
             step='pole', **single_step_kwargs):
         """Approximate parallel transport using the pole ladder scheme.
 
-        Approximate Parallel transport using the pole ladder scheme [LP2013b]_
-        [GJSP2019]_. `tangent_vec_a` is transported along the geodesic starting
+        Approximate Parallel transport using either the pole ladder or the
+        Schild's ladder scheme [LP2013b]_. Pole ladder is exact in symmetric
+        spaces [GJSP2019]_ while Schild's ladder is a first order
+        approximation. Both schemes are available any affine connection
+        manifolds whose exponential and logarithm maps are implemented.
+        `tangent_vec_a` is transported along the geodesic starting
         at the base_point with initial tangent vector `tangent_vec_b`.
 
         Parameters
@@ -330,16 +339,19 @@ class Connection(object):
             which to transport.
         n_steps : int
             The number of pole ladder steps.
+        step : str, {'pole', 'schild'}
+            Scheme to use at each step of the construction.
         **single_step_kwargs : keyword arguments for the step functions
 
         Returns
         -------
-        transported_tangent_vector : array-like, shape=[n_samples, dimension]
-            Approximation of the parallel transport of tangent vector a.
-        trajectory : array-like, shape=[n_steps, 5, n_points]
-            List of arrays representing points on the geodesics of the
-            construction, only if `return_trajectories=True` in the step
-            function.
+        ladder : dict of array-like and callable with following keys
+            transported_tangent_vector : array-like, shape=[n_samples, dim]
+                Approximation of the parallel transport of tangent vector a.
+            trajectory : list of list of callable, len=n_steps
+                List of lists containing the geodesics of the
+                construction, only if `return_geodesics=True` in the step
+                function. The geodesics are methods of the class connection.
 
         References
         ----------
@@ -354,9 +366,9 @@ class Connection(object):
           ⟨hal-02148832⟩
         """
         current_point = gs.copy(base_point)
-        transported_tangent_vec = gs.copy(tangent_vec_a)
+        next_tangent_vec = gs.copy(tangent_vec_a)
         base_shoot = self.exp(base_point=current_point,
-                              tangent_vec=transported_tangent_vec)
+                              tangent_vec=next_tangent_vec)
         single_step = self._pole_ladder_step if step == 'pole' else \
             self._schild_ladder_step
         trajectory = []
@@ -365,15 +377,17 @@ class Connection(object):
             next_point = self.exp(
                 base_point=base_point,
                 tangent_vec=frac_tangent_vector_b)
-            transported_tangent_vec, base_shoot, pts = single_step(
+            next_step = single_step(
                 base_point=current_point,
                 next_point=next_point,
                 base_shoot=base_shoot,
                 **single_step_kwargs)
             current_point = next_point
-            trajectory.append(pts)
+            base_shoot = next_step['end_point']
+            trajectory.append(next_step['geodesics'])
 
-        return transported_tangent_vec, trajectory
+        return {'transported_tangent_vec': next_step['next_tangent_vec'],
+                'trajectory': trajectory}
 
     def riemannian_curvature(self, base_point):
         """Compute Riemannian curvature tensor associated with the connection.
@@ -441,9 +455,10 @@ class Connection(object):
 
             Parameters
             ----------
-            t : array, shape=[n_points,]
+            t : array-like, shape=[n_points,]
                 Times at which to compute points of the geodesics.
             """
+            t = gs.array(t)
             t = gs.cast(t, gs.float32)
             t = gs.to_ndarray(t, to_ndim=1)
             t = gs.to_ndarray(t, to_ndim=2, axis=1)
