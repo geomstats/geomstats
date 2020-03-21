@@ -235,11 +235,11 @@ class Connection(object):
                 'end_point': end_point}
 
     def _schild_ladder_step(self, base_point, next_point, base_shoot,
-                            return_geodesics=False, n_points=10):
+                            return_geodesics=False):
         """Compute one Schild's Ladder step.
 
-        One step of pole ladder scheme [LP2013a]_ using the geodesic to
-        transport along as diagonal of the parallelogram.
+        One step of the Schild's ladder scheme [LP2013a]_ using the geodesic to
+        transport along as one side of the parallelogram.
 
         Parameters
         ----------
@@ -253,9 +253,6 @@ class Connection(object):
         return_geodesics : bool, optional (defaults to False)
             Whether to return points computed along each geodesic of the
             construction.
-        n_points : int, optional (defaults to 10)
-            The number of points to compute in each geodesic when
-            `return_trajectories=True`.
 
         Returns
         -------
@@ -288,7 +285,7 @@ class Connection(object):
             base_point=mid_point,
             tangent_vec=tangent_vector_to_shoot)
 
-        transported_tangent_vector = self.log(
+        next_tangent_vec = self.log(
             base_point=next_point, point=end_shoot)
 
         geodesics = []
@@ -310,7 +307,7 @@ class Connection(object):
                 diagonal,
                 second_diagonal,
                 final_geodesic]
-        return {'next_tangent_vec': transported_tangent_vector,
+        return {'next_tangent_vec': next_tangent_vec,
                 'geodesics': geodesics,
                 'end_point': end_shoot}
 
@@ -340,7 +337,7 @@ class Connection(object):
         n_steps : int
             The number of pole ladder steps.
         step : str, {'pole', 'schild'}
-            Scheme to use at each step of the construction.
+            The scheme to use for the construction of the ladder at each step.
         **single_step_kwargs : keyword arguments for the step functions
 
         Returns
@@ -366,11 +363,12 @@ class Connection(object):
           ⟨hal-02148832⟩
         """
         current_point = gs.copy(base_point)
-        next_tangent_vec = gs.copy(tangent_vec_a)
+        next_tangent_vec = gs.copy(tangent_vec_a) / n_steps
+        methods = {'pole': self._pole_ladder_step,
+                   'schild': self._schild_ladder_step}
+        single_step = methods[step]
         base_shoot = self.exp(base_point=current_point,
                               tangent_vec=next_tangent_vec)
-        single_step = self._pole_ladder_step if step == 'pole' else \
-            self._schild_ladder_step
         trajectory = []
         for i_point in range(0, n_steps):
             frac_tangent_vector_b = (i_point + 1) / n_steps * tangent_vec_b
@@ -385,8 +383,9 @@ class Connection(object):
             current_point = next_point
             base_shoot = next_step['end_point']
             trajectory.append(next_step['geodesics'])
+        transported_tangent_vec = n_steps * next_step['next_tangent_vec']
 
-        return {'transported_tangent_vec': next_step['next_tangent_vec'],
+        return {'transported_tangent_vec': transported_tangent_vec,
                 'trajectory': trajectory}
 
     def riemannian_curvature(self, base_point):

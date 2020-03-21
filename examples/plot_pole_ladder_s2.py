@@ -31,7 +31,7 @@ def main():
     tangent_vec_b *= N_STEPS / 2
     tangent_vec_a = SPACE.random_uniform(1)
     tangent_vec_a = SPACE.projection_to_tangent_space(
-        tangent_vec_a, base_point) / 4
+        tangent_vec_a, base_point) * N_STEPS / 4
 
     ladder = METRIC.ladder_parallel_transport(
         tangent_vec_a,
@@ -60,7 +60,7 @@ def main():
         sphere_visu.draw_points(ax, final_geodesic(t), marker='o', c='g', s=2)
 
     tangent_vectors = gs.concatenate(
-        [tangent_vec_b / N_STEPS, tangent_vec_a, pole_ladder])
+        [tangent_vec_b, tangent_vec_a, pole_ladder]) / N_STEPS
     origin = gs.concatenate(
         [base_point, base_point, final_geodesic(gs.array([0]))])
 
