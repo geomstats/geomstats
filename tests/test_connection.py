@@ -59,8 +59,8 @@ class TestConnectionMethods(geomstats.tests.TestCase):
     def test_parallel_transport(self):
         n_samples = 2
         for step in ['pole', 'schild']:
-            n_steps = 1 if step == 'pole' else 400
-            tol = 1e-6 if step == 'pole' else 1e-2
+            n_steps = 1 if step == 'pole' else 100
+            tol = 1e-6 if step == 'pole' else 1e-1
             base_point = self.hypersphere.random_uniform(n_samples)
             tan_vec_a = self.hypersphere.projection_to_tangent_space(
                 gs.random.rand(n_samples, 3), base_point)
@@ -78,8 +78,8 @@ class TestConnectionMethods(geomstats.tests.TestCase):
     def test_parallel_transport_trajectory(self):
         n_samples = 2
         for step in ['pole', 'schild']:
-            n_steps = 1 if step == 'pole' else 400
-            rtol = 1e-6 if step == 'pole' else 1e-2
+            n_steps = 1 if step == 'pole' else 100
+            rtol = 1e-6 if step == 'pole' else 1e-1
             base_point = self.hypersphere.random_uniform(n_samples)
             tan_vec_a = self.hypersphere.projection_to_tangent_space(
                 gs.random.rand(n_samples, 3), base_point)
