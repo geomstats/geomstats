@@ -29,21 +29,22 @@ def variance(points,
     if weights is None:
         weights = gs.ones((n_points, 1))
     weights = gs.array(weights)
-    weights = gs.reshape(weights, (n_points, 1))
-    einsum_str = 'nk,nj->j'
 
     sum_weights = gs.sum(weights)
     if point_type == 'vector':
         points = gs.to_ndarray(points, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
+        weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
     if point_type == 'matrix':
         points = gs.to_ndarray(points, to_ndim=3)
         base_point = gs.to_ndarray(base_point, to_ndim=3)
+        weights = gs.to_ndarray(weights, to_ndim=3, axis=1)
+        weights = weights[:, :, 0]
 
     var = 0.
 
     sq_dists = metric.squared_dist(base_point, points)
-    var += gs.einsum(einsum_str, weights, sq_dists)
+    var += gs.einsum('nk,nj->j', weights, sq_dists)
 
     var = gs.array(var)
     var /= sum_weights
@@ -116,7 +117,8 @@ def _default_gradient_descent(points, metric, weights,
             points=points,
             weights=weights,
             metric=metric,
-            base_point=estimate_next)
+            base_point=estimate_next,
+            point_type=point_type)
 
         mean = estimate_next
         iteration += 1
