@@ -134,7 +134,7 @@ def _default_gradient_descent(points, metric, weights,
         weights = gs.ones((n_points, 1))
     weights = gs.array(weights)
 
-    mean = points.mean(axis=0)
+    mean = points[0]
     if point_type == 'vector':
         weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
         mean = gs.to_ndarray(mean, to_ndim=2)
