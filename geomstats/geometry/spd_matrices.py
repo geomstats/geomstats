@@ -514,7 +514,7 @@ class SPDMetricAffine(RiemannianMetric):
             base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
 
         if power_affine == 1:
-            sqrt_base_point = gs.linalg.powerm(base_point, 1./2)
+            sqrt_base_point = gs.linalg.powerm(base_point, 1. / 2)
             inv_sqrt_base_point = gs.linalg.powerm(sqrt_base_point, -1)
             exp = self._aux_exp(tangent_vec, sqrt_base_point,
                                 inv_sqrt_base_point)
@@ -589,7 +589,7 @@ class SPDMetricAffine(RiemannianMetric):
             base_point = gs.tile(base_point, (n_points, 1, 1))
 
         if power_affine == 1:
-            sqrt_base_point = gs.linalg.powerm(base_point, 1./2)
+            sqrt_base_point = gs.linalg.powerm(base_point, 1. / 2)
             inv_sqrt_base_point = gs.linalg.powerm(sqrt_base_point, -1)
             log = self._aux_log(point, sqrt_base_point, inv_sqrt_base_point)
         else:
