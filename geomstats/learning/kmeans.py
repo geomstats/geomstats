@@ -95,7 +95,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                     mean = FrechetMean(
                         metric=self.riemannian_metric,
                         method=self.mean_method,
-                        n_max_iterations=150)
+                        max_iter=150)
                     mean.fit(fold)
 
                     self.centroids[i] = mean.estimate_
