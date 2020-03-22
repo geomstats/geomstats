@@ -78,3 +78,7 @@ def qr(*args, mode='reduced'):
         dtype=(tf.float32, tf.float32))
 
     return qr
+
+
+def powerm(x, power):
+    return expm(power * logm(x))
