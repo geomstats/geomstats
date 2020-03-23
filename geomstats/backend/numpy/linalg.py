@@ -16,10 +16,12 @@ from autograd.numpy.linalg import (  # NOQA
 # TODO(nina): Clean this import
 from geomstats.backend.numpy.__init__ import to_ndarray
 
+TOL = 1e-10
 
-def is_symmetric(x):
+
+def is_symmetric(x, tol=TOL):
     new_x = to_ndarray(x, to_ndim=3)
-    return (new_x - np.transpose(new_x, axes=(0, 2, 1)) == 0).all()
+    return (np.abs(new_x - np.transpose(new_x, axes=(0, 2, 1))) < tol).all()
 
 
 def expsym(x):
@@ -51,8 +53,8 @@ def logm(x):
     new_x = to_ndarray(x, to_ndim=3)
     if is_symmetric(new_x):
         eigvals, eigvecs = np.linalg.eigh(new_x)
-        eigvals = np.log(eigvals)
         if (eigvals > 0).all():
+            eigvals = np.log(eigvals)
             eigvals = np.vectorize(np.diag, signature='(n)->(n,n)')(eigvals)
             transp_eigvecs = np.transpose(eigvecs, axes=(0, 2, 1))
             result = np.matmul(eigvecs, eigvals)
@@ -74,8 +76,8 @@ def powerm(x, power):
     new_x = to_ndarray(x, to_ndim=3)
     if is_symmetric(new_x):
         eigvals, eigvecs = np.linalg.eigh(new_x)
-        eigvals = eigvals**power
         if (eigvals > 0).all():
+            eigvals = eigvals ** power
             eigvals = np.vectorize(np.diag, signature='(n)->(n,n)')(eigvals)
             transp_eigvecs = np.transpose(eigvecs, axes=(0, 2, 1))
             result = np.matmul(eigvecs, eigvals)
