@@ -10,38 +10,51 @@ Embleton 1987.
 """
 
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+# from mpl_toolkits.mplot3d import Axes3D
 
 import numpy as np
+import random
 from xlrd import open_workbook
 import geomstats.backend as gs
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.frechet_mean import _adaptive_gradient_descent
 
 
-def mean_sq_dist_s2(location, dataset):
-    """compute the mean-square deviation from the location to the points of
-    the dataset"""
-    sphere = Hypersphere(2)
-    num_sample = len(dataset)
-    assert num_sample > 0, "Dataset needs to have at least one data"
-    MSD = 0.0
-    for item in dataset:
-        sq_dist = sphere.metric.squared_dist(location, item)
-        MSD = MSD + sq_dist
-    return MSD / num_sample
+def mean_sq_dist_s2(location, data):
+    """compute the mean-square deviation from location to data"
+
+    Parameters
+    ----------
+    data: empirical distribution
+    location: location where to compute MSD
+
+    Returns
+    -------
+    MSD: mean square deviation
+    """
+    n_samples, dim = gs.shape(data)
+    assert n_samples > 0, "Dataset needs to have at least one data"
+    assert dim > 1, "Embedding dimension must be at least 2 (was " \
+                    "{0})".format(dim)
+    sphere = Hypersphere(dim - 1)
+
+    msd = 0.0
+    for item in data:
+        sq_dist = sphere.metric.squared_dist(location, item)[0, 0]
+        msd = msd + sq_dist
+    return msd / n_samples
 
 
-def var_hbar_s2(location, dataset):
+def msd_hbar_s2(location, data):
     """compute the mean-square deviation from the location to the points of
     the dataset and the mean Hessian of square distance at the location"""
     sphere = Hypersphere(2)
-    num_sample = len(dataset)
+    num_sample = len(data)
     assert num_sample > 0, "Dataset needs to have at least one data"
     var = 0.0
     hbar = 0.0
-    for item in dataset:
-        sq_dist = sphere.metric.squared_dist(location, item)
+    for item in data:
+        sq_dist = sphere.metric.squared_dist(location, item)[0, 0]
         var = var + sq_dist
         # hbar = E(h(dist ^ 2)) with h(t) = sqrt(t) cot( sqrt(t) )  for kappa=1
         if sq_dist > 1e-4:
@@ -51,7 +64,7 @@ def var_hbar_s2(location, dataset):
             h = 1.0 - sq_dist / 3.0 - sq_dist ** 2 / 45.0 - 2 / 945 * \
                 sq_dist ** 3 - sq_dist ** 4 / 4725
         hbar = hbar + h
-    return var / num_sample, h / num_sample
+    return var / num_sample, hbar / num_sample
 
 
 def cov_hessian_covmean_sphere(mean, dataset):
@@ -59,105 +72,136 @@ def cov_hessian_covmean_sphere(mean, dataset):
 
     Returns
     -------
-    Cov: $Cov = 1/n \sum_i=1^n log_mean(x_i) log_mean(x_i)^t$
-    Hess: $H = 1/n \sum_i=1^n \partial^2 \dist^2(mean, x_i) / \partial mean^2$
-    Hinv: inverse Hessian restricted to the tangent space
-    Cov_mean_CLT: covariance predicted on mean by CLT
-    Cov_mean_HC: covariance predicted on mean by high concentration expansion
+    cov: Cov = 1/n \\sum_i=1^n log_mean(x_i) log_mean(x_i)^t
+    hess: H = 1/n \\sum_i=1^n \\partial^2 \\dist^2(mean, x_i) / \\partial mean^2
+    hinv: inverse Hessian restricted to the tangent space
+    cov_mean_clt: covariance predicted on mean by CLT
+    cov_mean_hc: covariance predicted on mean by high concentration expansion
     """
-    num_sample = len(dataset)
-    assert num_sample > 0, "dataset needs to have at least one data"
-    dim = len(dataset[0])
-    sphere = Hypersphere(dim)
-    Cov = np.zeros((dim, dim), 'float')
-    Hess = np.zeros((dim, dim), 'float')
-    identity = np.identity(dim, 'float')
+    n_samples, dim = gs.shape(dataset)
+    assert n_samples > 0, "dataset needs to have at least one data"
+    assert dim > 1, "Dimension of embedding space should be at least 2"
+    assert len(mean) == dim, "Mean should have dimension dim"
+
+    sphere = Hypersphere(dim - 1)
+    cov = np.zeros((dim, dim), 'float')
+    hess = np.zeros((dim, dim), 'float')
+    idmat = np.identity(dim, 'float')
     for item in dataset:
         xy = sphere.metric.log(item, mean)
         theta = sphere.metric.norm(xy, mean)
-        Cov += np.outer(xy, xy)
+        cov += np.outer(xy, xy)
         # Numerical issues
         if theta < 1e-3:
             a = 1. / 3. + theta ** 2 / 45. + (2. / 945.) * theta ** 4 \
-                + theta ** 6 / 4725 + ( 2. / 93555.) * theta ** 8
+                + theta ** 6 / 4725 + (2. / 93555.) * theta ** 8
             b = 1. - theta ** 2 / 3. - theta ** 4 / 45. \
                 - (2. / 945.) * theta ** 6 - theta ** 8 / 4725
         else:
             a = 1. / theta ** 2 - 1.0 / np.tan(theta) / theta
             b = theta / np.tan(theta)
-        Hess += a * np.outer(xy, xy) + b * (identity - np.outer(mean, mean))
-    Hess = 2 * Hess / num_sample
-    Cov = Cov / num_sample
+        hess += a * np.outer(xy, xy) + b * (idmat - np.outer(mean, mean))
+    hess = 2 * hess / n_samples
+    cov = cov / n_samples
     # ATTN inverse should be restricted to the tangent space because mean is
     # an eigenvector of Hessian with eigenvalue 0
     # Thus, we add a component along mean.mean^t to make eigenvalue 1 before
     # inverting
-    Hinv = np.linalg.inv(Hess + np.outer(mean, mean))
+    hinv = np.linalg.inv(hess + np.outer(mean, mean))
     # and we remove the component along mean.mean^t afterward
-    Hinv -= np.dot(mean, np.matmul(Hinv, mean)) * np.outer(mean, mean)
+    hinv -= np.dot(mean, np.matmul(hinv, mean)) * np.outer(mean, mean)
     # Compute covariance of the mean predicted
-    Cov_mean_CLT = 4 * np.matmul(Hinv, np.matmul(Cov, Hinv)) / num_sample
-    Cov_mean_HC = np.matmul(Cov, 2.0 * (identity - (1.0 - 1.0 /
-                                                        num_sample) / 3.0
-                                      * (Cov - np.trace(Cov) * identity))) / \
-                num_sample
-    return Cov, Hess, Hinv,  Cov_mean_CLT, Cov_mean_HC
+    cov_mean_clt = 4 * np.matmul(hinv, np.matmul(cov, hinv)) / n_samples
+    cov_mean_hc = np.matmul(cov, 2.0 * (idmat - (1.0 - 1.0 / n_samples) / 3.0 *
+                                        (cov - np.trace(
+                                            cov) * idmat))) / n_samples
+    return cov, hess, hinv, cov_mean_clt, cov_mean_hc
 
 
-def anisotropic_modulation_factor_sphere(mean, dataset):
+def isotropic_modulation_factor_sphere(mean, data):
+    """compute isotropic modulation factor for Fréchet mean on sphere"
+
+     Parameters
+     ----------
+     data: empirical distribution to bootstrap from
+     mean: Fréchet mean of that distribution
+
+     Returns
+     -------
+     alpha_clt: modulation predicted by CLT
+     alpha_hc: modulation predicted by high concentration expansion
+     """
+    n_samples = len(data)
+    assert n_samples > 0, "dataset needs to have at least one data"
+    dim = len(data[0]) - 1
+    assert dim > 0, "sphere dimension needs to be at least 1"
+    var, hbar = msd_hbar_s2(mean, data)
+    alpha_clt = (1.0 / dim + (1.0 - 1.0 / dim) * hbar) ** (-2)
+    alpha_hc = 1.0 + 2.0 / 3.0 * var * (1.0 - 1.0 / dim) * (1.0 - 1.0
+                                                            / n_samples)
+    return alpha_clt, alpha_hc
+
+
+def anisotropic_modulation_factor_sphere(mean, data):
     """compute anisotropic modulation factor for Fréchet mean on sphere"
+
+    Parameters
+    ----------
+    data: empirical distribution to bootstrap from
+    mean: Fréchet mean of that distribution
 
     Returns
     -------
-    alpha_CLT: modulation predicted by CLT
-    alpha_HC: modulation predicted by high concentration expansion
+    alpha_clt: modulation predicted by CLT
+    alpha_hc: modulation predicted by high concentration expansion
     """
-    (Cov, Hess, Hinv,  Cov_mean_CLT, Cov_mean_HC) = \
-        cov_hessian_covmean_sphere(mean, dataset)
-    sig2 = np.trace(Cov)
-    sig2_HC = np.trace(Cov_mean_HC)
-    sig2_CLT = np.trace(Cov_mean_CLT)
-    print("Var = {0}, VarMeanSM = {1}, VarMeanCLT = {2}".format(sig2, sig2_HC,
-                                                                sig2_CLT))
-    alpha_HC = sig2_HC / sig2 * len(dataset)
-    alpha_CLT = sig2_CLT / sig2 * len(dataset)
+    mean = gs.to_ndarray(mean, to_ndim=2)
+    (cov, hess, hinv, cov_mean_clt, cov_mean_hc) = \
+        cov_hessian_covmean_sphere(mean, data)
+    sig2 = np.trace(cov)
+    sig2_hc = np.trace(cov_mean_hc)
+    sig2_clt = np.trace(cov_mean_clt)
+    print("Var = {0}, VarMeanSM = {1}, VarMeanCLT = {2}".format(sig2, sig2_hc,
+                                                                sig2_clt))
+    alpha_hc = sig2_hc / sig2 * len(data)
+    alpha_clt = sig2_clt / sig2 * len(data)
     print(
         "Anisotropic modulation factor: small var {0} / asymptotic {1}".format(
-            alpha_HC, alpha_CLT))
-    return alpha_HC, alpha_CLT
+            alpha_hc, alpha_clt))
+    return alpha_hc, alpha_clt
 
 
-def max_extent_s2(location, dataset):
+def max_extent_s2(location, data):
     """compute maximal extension of the dataset in two orthogonal directions"""
     sphere = Hypersphere(2)
-    num_sample = len(dataset)
-    assert num_sample > 0, "Dataset needs to have at least one data"
+    num_sample = len(data)
+    assert num_sample > 0, "Dataset needs to have at least one data point"
     max_1 = 0.0
     log_1 = sphere.metric.log(location, location)  # point, base_point
-    for item in dataset:
+    for item in data:
         xy = sphere.metric.log(item, location)
-        theta = sphere.metric.norm(xy, location)
+        theta = sphere.metric.norm(xy, location)[0, 0]
         if theta > max_1:
             max_1 = theta
             log_1 = xy
-    log_1 = log_1 / sphere.metric.norm(log_1, location)
+    log_1 = log_1 / sphere.metric.norm(log_1, location)[0, 0]
     max_2 = 0.0
-    for item in dataset:
+    for item in data:
         xy = sphere.metric.log(item, location)
         # project to get the orthogonal part to Log_1
         xy = xy - sphere.metric.inner_product(xy, log_1, location) * log_1
-        theta = sphere.metric.norm(xy, location)
+        theta = sphere.metric.norm(xy, location)[0, 0]
         if theta > max_2:
             max_2 = theta
     return max_1, max_2
 
 
-def stat_dataset_s2(dataset, title, frechet_mean):
+def stat_dataset_s2(data, title, frechet_mean):
     """Print concentration statistics on a dataset on the sphere S2"
 
     Parameters
     ----------
-    dataset: spherical samples to be drawn
+    data: spherical samples to be drawn
     title: title of dataset
     frechet_mean: list of Fréchet mean points
     """
@@ -165,10 +209,10 @@ def stat_dataset_s2(dataset, title, frechet_mean):
                                   "be provided"
 
     # print some statistics on the concentration of the dataset
-    (var, hbar) = var_hbar_s2(frechet_mean[0], dataset)
+    var, hbar = msd_hbar_s2(frechet_mean[0], data)
     print("{2}: Var {0} rad (Stddev {1} deg)".format(var, np.sqrt(
         var) * 180 / gs.pi, title))
-    (max1, max2) = max_extent_s2(frechet_mean[0], dataset)
+    (max1, max2) = max_extent_s2(frechet_mean[0], data)
     print("{2}: Extent {0} deg / {1} deg".format(max1 * 180 / gs.pi,
                                                  max2 * 180 / gs.pi,
                                                  title))
@@ -205,7 +249,9 @@ def plot_dataset_s2(dataset, title, frechet_mean_list=[]):
         for unit_vect in frechet_mean_list:
             ax.scatter(unit_vect[0], unit_vect[1], unit_vect[2], c='r',
                        marker='o')
-    plt.show()
+    # plt.show()
+    plt.draw()  # non blocking in a script
+    plt.pause(0.01)
     return plt
 
 
@@ -300,8 +346,8 @@ def empirical_frechet_mean_random_init_s2(data, n_init=1, init_points=[]):
     return mean
 
 
-def empirical_frechet_var_bootstrap(n_samples, theta, dim,
-                                 n_expectation=1000):
+def empirical_frechet_var_bootstrap_s2(data, mean, n_samples, n_init,
+                                       n_expectation=1000):
     """Variance of the empirical Fréchet mean for a bootstrap distribution.
 
     Draw n_samples from an empirical distribution, computes its empirical
@@ -314,225 +360,226 @@ def empirical_frechet_var_bootstrap(n_samples, theta, dim,
     data: empirical distribution to bootstrap from
     mean: Fréchet mean of that distribution
     n_samples: number of samples to draw
-    theta: radius of the bubble distribution
-    dim: dimension of the sphere (embedded in R^{dim+1})
+    n_init: number of initial points for gradient descent
     n_expectation: number of computations for approximating the expectation
 
     Returns
     -------
     tuple (variance, std-dev on the computed variance)
     """
-def ComputeBootstrapFrechetCV(Dataset, title, FM, M=1000, N_init=1,
-                              NumSample=[2, 100]):
-    # Dataset = original dataset to study
-    # M = number of points for stochastic expectation
-    # should start with many initial points and keep the best
-    # FM = EmpiricalFrechetMeanRandomInit(Dataset, 1000)
-    (var, hbar) = var_hbar(FM, Dataset)
-    (Cov, CovMeanSM, CovMeanCLT) = Cov_CovMean(FM, Dataset)
-    Id = np.identity(len(Dataset[0]), 'float')
-
-    MeanAlpha = []
-    StdAlpha = []
-    PredictedFactor = []
-    AsymptoticFactor = []
-    AnisoPredictedFactor = []
-    AnisoAsymptoticFactor = []
-    dim = len(Dataset[0]) - 1
-    for n_samples in NumSample:
-        alphalist = []
-        # h = []
-        for i in range(M):
-            # bootstrap: Sample n_samples points from the empirical distribution DataList
-            # BootstrapDataset = random.sample(Dataset, n_samples)
-            BootstrapDataset = []
-            for j in range(n_samples):
-                BootstrapDataset.append(random.choice(Dataset))
-            # FM_i = EmpiricalFrechetMean( BootstrapDataset, [FM] )
-            FM_i = EmpiricalFrechetMeanRandomInit(BootstrapDataset, N_init,
-                                                  [FM])
-            di = Dist(FM_i, FM)
-            alphalist.append(di ** 2 / var * n_samples)
-            # h.append( di / np.tan(di))  # hbar = E(h(dist^2)) for a spere or kappa=1
-            # print( di**2 /var * n_samples )
-            # print("h = {0}".format(di / np.tan(di)))
-            # print( "di = {0}   h = {1}".format(di, di/ np.tan(di)))
-        # get mean_alpha and stddev of mean_alpha
-        mean = np.mean(alphalist)
-        stddev = np.std(alphalist) / np.sqrt(M - 1.0)
-        MeanAlpha.append(mean)
-        StdAlpha.append(stddev)
-        Predicted = 1.0 + kappa * 2.0 / 3.0 * var * (1.0 - 1.0 / dim) * (
-                    1.0 - 1.0 / (n_samples))
-        PredictedFactor.append(Predicted)
-        # hbar = np.mean(h)
-        # print("hbar = {0}".format(hbar))
-        Asymptotic = (1.0 / dim + (1.0 - 1.0 / dim) * hbar) ** (-2)
-        AsymptoticFactor.append(Asymptotic)
-        print(
-            "{0} samples : Modulation ratio = {1} pm {2} / Small var prediction {3} / Asymptotic {4}".format(
-                n_samples, mean, stddev, Predicted, Asymptotic))
-        AnisoCov = np.matmul(Cov, (
-                    Id - 2.0 * kappa * (1.0 - 1.0 / n_samples) / 3.0 * (
-                        Cov - np.trace(Cov) * Id))) / n_samples
-        alpha_smallVar = np.trace(AnisoCov) / var * n_samples
-        AnisoPredictedFactor.append(alpha_smallVar)
-        alpha_clt = np.trace(CovMeanCLT) / var * len(Dataset)
-        AnisoAsymptoticFactor.append(alpha_clt)
-        print(
-            "{0} samples : Anisotropic pridiction  Small var  {1} / Asymptotic {2}".format(
-                n_samples, alpha_smallVar, alpha_clt))
-
-    return (MeanAlpha, StdAlpha, PredictedFactor, AnisoPredictedFactor,
-            AsymptoticFactor, AnisoAsymptoticFactor)
+    assert n_init >= 1, "Gradient descent needs at least one starting point"
+    dim = len(data[0]) - 1
+    sphere = Hypersphere(dimension=dim)
+    sq_dist = []
+    for i in range(n_expectation):
+        # bootstrap n_samples points from the empirical distribution data
+        bootstrap = []
+        for j in range(n_samples):
+            bootstrap.append(random.choice(data))
+        mean_i = empirical_frechet_mean_random_init_s2(bootstrap,
+                                                       n_init=n_init,
+                                                       init_points=[mean])
+        sq_dist.append(sphere.metric.squared_dist(mean_i, mean)[0, 0])
+    return np.mean(sq_dist), np.std(sq_dist) / np.sqrt(n_expectation - 1.0)
 
 
-#
-# def empirical_frechet_var_bubble(n_samples, theta, dim,
-#                                  n_expectation=1000):
-#     """Variance of the empirical Fréchet mean for a bubble distribution.
-#
-#     Draw n_sampless from a bubble distribution, computes its empirical
-#     Fréchet mean and the square distance to the asymptotic mean. This
-#     is repeated n_expectation times to compute an approximation of its
-#     expectation (i.e. its variance) by sampling.
-#
-#     The bubble distribution is an isotropic distributions on a Riemannian
-#     hyper sub-sphere of radius 0 < theta < Pi around the north pole of the
-#     sphere of dimension dim.
-#
-#     Parameters
-#     ----------
-#     n_samples: number of samples to draw
-#     theta: radius of the bubble distribution
-#     dim: dimension of the sphere (embedded in R^{dim+1})
-#     n_expectation: number of computations for approximating the expectation
-#
-#     Returns
-#     -------
-#     tuple (variance, std-dev on the computed variance)
-#     """
-#     assert dim > 1, "Dim > 1 needed to draw a uniform sample on sub-sphere"
-#     var = []
-#     sphere = Hypersphere(dimension=dim)
-#     bubble = Hypersphere(dimension=dim - 1)
-#
-#     north_pole = gs.zeros(dim + 1)
-#     north_pole[dim] = 1.0
-#     for k in range(n_expectation):
-#         # Sample n points from the uniform distribution on a sub-sphere
-#         # of radius theta (i.e cos(theta) in ambient space)
-#         # TODO(nina): Add this code as a method of hypersphere
-#         data = gs.zeros((n_samples, dim + 1), dtype=gs.float64)
-#         directions = bubble.random_uniform(n_samples)
-#
-#         for i in range(n_samples):
-#             for j in range(dim):
-#                 data[i, j] = gs.sin(theta) * directions[i, j]
-#             data[i, dim] = gs.cos(theta)
-#         # TODO(nina): Use FrechetMean here
-#         current_mean = _adaptive_gradient_descent(
-#             data, metric=sphere.metric,
-#             n_max_iterations=64, init_points=[north_pole])
-#         var.append(sphere.metric.squared_dist(north_pole, current_mean))
-#     return np.mean(var), 2 * np.std(var) / gs.sqrt(n_expectation)
-#
-#
-# def modulation_factor(n_samples, theta, dim, n_expectation=1000):
-#     """Modulation factor on the convergence of the empirical Fréchet mean.
+# def empirical_frechet_modulation_bootstrap_s2(data, mean, n_samples, n_init,
+#                                               n_expectation=1000):
+#     """Modulation of the empirical Fréchet mean for a bootstrap distribution.
 #
 #     The modulation factor is the ratio of the variance of the empirical
 #     Fréchet mean on the manifold to the variance in a Euclidean space,
-#     for n_sampless drawn from an isotropic distributions on a Riemannian
-#     hyper sub-sphere of radius 0 < theta < Pi around the north pole of the
-#     sphere of dimension dim.
+#     for a bootstrap n_sampless drawn from an empirical distributions data on a
+#     Riemannian sphere of dimension 2.
 #
 #     Parameters
 #     ----------
+#     data: empirical distribution to bootstrap from
+#     mean: Fréchet mean of that distribution
 #     n_samples: number of samples to draw
-#     theta: radius of the bubble distribution
-#     dim: dimension of the sphere (embedded in R^{dim+1})
+#     n_init: number of initial points for gradient descent
 #     n_expectation: number of computations for approximating the expectation
 #
 #     Returns
 #     -------
-#     tuple (modulation factor, std-dev on the modulation factor)
+#     tuple (variance, std-dev on the modulation factor)
 #     """
-#     (var, std_var) = empirical_frechet_var_bubble(
-#         n_samples, theta, dim, n_expectation=n_expectation)
-#     return var * n_samples / theta ** 2, std_var * n_samples / theta ** 2
-#
-#
-# def asymptotic_modulation(dim, theta):
-#     """Compute the asymptotic modulation factor.
-#
-#     Parameters
-#     ----------
-#     dim: dimension of the sphere (embedded in R^{dim+1})
-#     theta: radius of the bubble distribution
-#
-#     Returns
-#     -------
-#     tuple (modulation factor, std-dev on the modulation factor)
-#     """
-#     gamma = 1.0 / dim + (1.0 - 1.0 / dim) * theta / gs.tan(theta)
-#     return (1.0 / gamma) ** 2
-#
-#
-# def plot_modulation_factor(n_samples, dim, n_expectation=1000, n_theta=20):
-#     """Plot the modulation factor curve w.r.t. the dispersion.
-#
-#     Plot the curve of modulation factor on the convergence of the
-#     empirical Fréchet mean as a function of the radius of the bubble
-#     distribution and for n_samples points on the sphere S_dim
-#     embedded in R^{dim+1}.
-#
-#     Parameters
-#     ----------
-#     n_samples: number of samples to draw
-#     dim: dimension of the sphere (embedded in R^{dim+1})
-#     n_expectation: number of computations for approximating the expectation
-#     n_theta: number of sampled radii for the bubble distribution
-#
-#     Returns
-#     -------
-#     matplolib figure
-#     """
-#     theta = gs.linspace(0.000001, gs.pi / 2.0 - 0.000001, n_theta)
-#     measured_modulation_factor = []
-#     error = []
-#     small_var_modulation_factor = []
-#     asymptotic_modulation_factor = []
-#     for theta_i in theta:
-#         (var, std_var) = modulation_factor(
-#             n_samples, theta_i, dim, n_expectation=n_expectation)
-#         measured_modulation_factor.append(var)
-#         error.append(std_var)
-#         print('{} {} {} {}\n'.format(n_samples, theta_i, var, std_var))
-#         small_var_modulation_factor.append(
-#             1.0 + 2.0 / 3.0 * theta_i ** 2
-#             * (1.0 - 1.0 / dim) * (1.0 - 1.0 / n_samples))
-#         asymptotic_modulation_factor.append(
-#             asymptotic_modulation(dim, theta_i))
-#     plt.figure()
-#     plt.errorbar(theta, measured_modulation_factor,
-#                  yerr=error, color='r', label='Measured')
-#     plt.plot(theta, small_var_modulation_factor,
-#              'g', label='Small variance prediction')
-#     plt.plot(theta, asymptotic_modulation_factor,
-#              'grey', label='Asymptotic prediction')
-#     plt.xlabel(r'Standard deviation $\theta$')
-#     plt.ylabel(r'Modulation factor $\alpha$')
-#     plt.title("Convergence rate modulation factor, "
-#               "sphere dim={1}, n={0}".format(n_samples, dim))
-#     plt.legend(loc='best')
-#     plt.draw()
-#     plt.pause(0.01)
-#     plt.savefig("Figures/SphVarModulation_N{0}_d{1}_m{2}.png".format(
-#         n_samples, dim, n_expectation))
-#     plt.savefig("Figures/SphVarModulation_N{0}_d{1}_m{2}.pdf".format(
-#         n_samples, dim, n_expectation))
-#     return plt
+#     var_mean, var_stddev = \
+#         empirical_frechet_var_bootstrap_s2(data, mean, n_samples,
+#                                            n_init, n_expectation)
+#     var = mean_sq_dist_s2(mean, data)
+#     return var_mean * n_samples / var, var_stddev * n_samples / var
+
+
+def empirical_frechet_modulation_bootstrap_s2(data, mean,
+                                              n_init=1,
+                                              n_expectation=1000,
+                                              n_samples_list=[2, 100]):
+    """Modulation of the empirical Fréchet mean for a bootstrap distribution.
+
+    The modulation factor is the ratio of the variance of the empirical
+    Fréchet mean on the manifold to the variance in a Euclidean space,
+    for a bootstrap n_samples drawn from an empirical distributions data
+    on a Riemannian sphere of dimension 2.
+
+    This function computes the observed and predicted modulation factor for
+    n_expectation bootstrap samples of size n_sample for each n_sample from
+    the n_samples_list.  It returns lists that can be plotted independently.
+
+    Parameters
+    ----------
+    data: empirical distribution to bootstrap from
+    mean: Fréchet mean of that distribution
+    n_init: number of initial points for gradient descent
+    n_expectation: number of computations for approximating the expectation
+    n_samples_list: list of number of samples
+
+    Returns
+    -------
+    alpha_mean: mean measured modulation list
+    alpha_std: std dev on the mean measured modulation list
+    alpha_iso_hc: predicted isotropic high concentration modulation list
+    alpha_aniso_hc: predicted anisotropic high concentration modulation list
+    alpha_iso_clt: : predicted isotropic asymptotic CLT modulation list
+    alpha_aniso_clt: : predicted aniisotropic asymptotic CLT modulation list
+    """
+
+    # compute isotropic modulation factor for Fréchet mean on sphere
+    n_samples_orig, dim = gs.shape(data)
+    assert n_samples_orig > 0, "dataset needs to have at least one data"
+    dim = dim - 1
+    assert dim > 0, "sphere dimension needs to be at least one"
+
+    assert len(mean) == 1, "Mean should be a list with a unique mean"
+    mean = mean[0]
+    assert len(mean) == dim + 1, "Mean should have same dimension as data"
+
+    var, hbar = msd_hbar_s2(mean, data)
+    # alpha_iso_clt_orig = (1.0 / dim + (1.0 - 1.0 / dim) * hbar) ** (-2)
+    # alpha_iso_hc_orig = 1.0 + 2.0 / 3.0 * var \
+    # * (1.0 - 1.0 / dim) * (1.0 - 1.0 / n_samples_orig)
+
+    # compute anisotropic modulation factor for Fréchet mean on sphere
+    (cov, hess, hinv, cov_mean_clt, cov_mean_hc) = \
+        cov_hessian_covmean_sphere(mean, data)
+    # sig2 = np.trace(cov)
+    # sig2_hc = np.trace(cov_mean_hc)
+    # sig2_clt = np.trace(cov_mean_clt)
+    # aniso_hc_alpha_orig = sig2_hc / sig2 * n_samples_orig
+    iso_clt_alpha = (1.0 / dim + (1.0 - 1.0 / dim) * hbar) ** (-2)
+    aniso_clt_alpha = np.trace(cov_mean_clt) / var * n_samples_orig
+    idmat = np.identity(dim + 1, 'float')
+    kappa = +1.0  # sectional curvature of the sphere
+
+    list_alpha_mean = []
+    list_alpha_std = []
+    list_alpha_iso_hc = []
+    list_alpha_aniso_hc = []
+    list_alpha_iso_clt = []
+    list_alpha_aniso_clt = []
+
+    for n_samples in n_samples_list:
+        var_mean, var_stddev = \
+            empirical_frechet_var_bootstrap_s2(data, mean, n_samples,
+                                               n_init, n_expectation)
+        mean_alpha = var_mean * n_samples / var
+        std_alpha = var_stddev * n_samples / var
+        list_alpha_mean.append(mean_alpha)
+        list_alpha_std.append(std_alpha)
+        print("{0} samples : Measured modulation = {1} pm {2}".format(
+            n_samples, mean_alpha, std_alpha))
+
+        # Asymptotic CLT predictions of modulation are independent of n_samples
+        list_alpha_iso_clt.append(iso_clt_alpha)
+        list_alpha_aniso_clt.append(aniso_clt_alpha)
+
+        # Compute HC isotropic predictions of modulation
+        iso_hc_alpha = 1.0 + 2.0 / 3.0 * var \
+                       * (1.0 - 1.0 / dim) * (1.0 - 1.0 / n_samples)
+        list_alpha_iso_hc.append(iso_hc_alpha)
+
+        print("{0} samples : Predicted isotropic modulation = HC {1} / "
+              "CLT {2}".format(n_samples, iso_hc_alpha, iso_clt_alpha))
+
+        # Compute HC and CLT anisotropic predictions of modulation
+        # aniso_hc_alpha needs is non linear in n_sample: recompute it
+        aniso_cov = np.matmul(cov, (
+                idmat - 2.0 * kappa * (1.0 - 1.0 / n_samples) / 3.0 * (
+                cov - np.trace(cov) * idmat))) / n_samples
+        aniso_hc_alpha = np.trace(aniso_cov) / var * n_samples
+        list_alpha_aniso_hc.append(aniso_hc_alpha)
+
+        print("{0} samples : Predicted anisotropic modulation = HC {1} / "
+              "CLT {2}".format(n_samples, aniso_hc_alpha, aniso_clt_alpha))
+
+    return list_alpha_mean, list_alpha_std, list_alpha_iso_hc, \
+           list_alpha_aniso_hc, list_alpha_iso_clt, list_alpha_aniso_clt
+
+
+def plot_empirical_frechet_modulation_bootstrap_s2(data, title, mean,
+                                                   n_init=1,
+                                                   n_expectation=1000):
+    """Modulation of the empirical Fréchet mean for a bootstrap distribution.
+
+    The modulation factor is the ratio of the variance of the empirical
+    Fréchet mean on the manifold to the variance in a Euclidean space,
+    for a bootstrap n_samples drawn from an empirical distributions data
+    on a Riemannian sphere of dimension 2.
+
+    This function computes the observed and predicted modulation factor for
+    n_expectation bootstrap samples of size n_sample for each n_sample from
+    the n_samples_list.  It returns lists that can be plotted independently.
+
+    Parameters
+    ----------
+    data: empirical distribution to bootstrap from
+    title: title of the plot
+    mean: Fréchet mean of that distribution
+    n_init: number of initial points for gradient descent
+    n_expectation: number of computations for approximating the expectation
+
+    Returns
+    -------
+    matplotlib figure
+    """
+    assert len(mean) == 1, "Mean should be a list with a unique mean"
+
+    n_samples_list = [1, 2, 3, 4, 5, 7, 10, 12, 15, 20, 30, 40, 50, 100, 200]
+    alpha_mean, alpha_std, alpha_iso_hc, alpha_aniso_hc, alpha_iso_clt, \
+    alpha_aniso_clt = empirical_frechet_modulation_bootstrap_s2(data, mean,
+                                                                n_init,
+                                                                n_expectation,
+                                                                n_samples_list)
+
+    plt.figure()
+    ax = plt.axes()
+    ax.set_xscale("log", nonposx='clip')
+    # plt.loglog(NumSample, MeanAlpha, color='r', label='Measured')
+    ax.errorbar(n_samples_list, alpha_mean, yerr=alpha_std, color='r',
+                label='Measured')
+    plt.plot(n_samples_list, alpha_iso_hc, 'g',
+             label='Isotropic high concentration prediction',
+             linestyle='--')
+    plt.plot(n_samples_list, alpha_iso_clt, 'grey',
+             label='Isotropic asymptotic CLT prediction',
+             linestyle='--')
+    plt.plot(n_samples_list, alpha_aniso_hc, 'g',
+             label='Anisotropic high concentration prediction')
+    plt.plot(n_samples_list, alpha_aniso_clt, 'grey',
+             label='Anisotropic asymptotic CLT prediction')
+    plt.xlabel(r'Number of samples')
+    plt.ylabel(r'Modulation factor for boostrap distributions')
+    plt.title("Modulation of convergence rate for spherical dataset {0}".format(
+        title))
+    plt.legend(loc='best')
+    # plt.show()
+    plt.draw()  # non blocking in a script
+    plt.pause(0.01)
+    plt.savefig("Figures/BootstrapModulationSph_"
+                "{0}_m{1}_i{2}.pdf".format(title, n_expectation, n_init))
+    plt.savefig("Figures/BootstrapModulationSph_"
+                "{0}_m{1}_i{2}.png".format(title, n_expectation, n_init))
+    return plt
 
 
 def main():
@@ -549,7 +596,7 @@ def main():
 
     n_expectation = 50  # for test # use 50 000 for production
 
-    ## Read the data and transform them into a data matrix of unit vectors
+    # Read the data and transform them into a data matrix of unit vectors
     book = open_workbook("FisherDatasets.xlsx")
 
     # FisherB2: Almost Euclidean with low number of points
@@ -565,16 +612,50 @@ def main():
         print("index {0}: decl={1} incl={2}".format(index, decl, incl))
         FisherB2.append(polar_2_unit_axis(90.0 + incl, 360. - decl))
 
-    mean_B2 = empirical_frechet_mean_random_init_s2(FisherB2, 1000)
+    mean_B2 = empirical_frechet_mean_random_init_s2(FisherB2, 1)  # 1000)
     stat_dataset_s2(FisherB2, 'Fisher B2', mean_B2)
     plot_dataset_s2(FisherB2, 'Fisher B2', mean_B2)
     # Fisher B2: Var 0.02040048949198819 rad (Stddev 8.18357235244161 deg)
     # Fisher B2: Extent 14.220727879958375 deg / 11.523491168361373 deg
-    # ComputeBootstrapFrechetCV(FisherB2, "Fisher B2", mean_B2, 5000)
-    # PlotBootstrapFrechetCV(FisherB2, "Fisher B2", mean_B2, n_expectation)
-    # PlotBootstrapFrechetCV(FisherB2, "Fisher B2", FMB2, 50000) # for production
+    plot_empirical_frechet_modulation_bootstrap_s2(FisherB2, 'Fisher B2',
+                                                   mean_B2, n_init=1,
+                                                   n_expectation=n_expectation)
+    # use n_expectation=50000 for production
+    plot_empirical_frechet_modulation_bootstrap_s2(FisherB2, 'Fisher B2',
+                                                   mean_B2, n_init=1,
+                                                   n_expectation=50000)
     # planned 1.007 measured 1.005, but uncertainty is relatively high:
     # should be redone with 100 000 bootstrap samples?
+
+
+    # Fisher B9: Highly concentrated,
+    # CV schould be almost Euclidean
+    sheet = book.sheet_by_name("B9")
+    FisherB9 = []
+    for row in range(1, sheet.nrows):  # start at row 1 to avoid titles...
+        # Columns: index dec incl
+        index = sheet.cell_value(row, 0)
+        decl = float(sheet.cell_value(row, 1))
+        incl = float(sheet.cell_value(row, 2))
+        print("index {0}: decl={1} incl={2}".format(index, decl, incl))
+        FisherB9.append(polar_2_unit_axis(90.0 + incl, 360. - decl))
+    mean_B9 = empirical_frechet_mean_random_init_s2(FisherB9, 100)  # 1000)
+    stat_dataset_s2(FisherB9, 'Fisher B9', mean_B9)
+    plot_dataset_s2(FisherB9, 'Fisher B9', mean_B9)
+    # Fisher B9: Var 0.05753728121234058 rad (Stddev 13.743498540265614 deg)
+    # Fisher B9: Extent 25.663975367020726 deg / 20.346326339517464 deg
+    plot_empirical_frechet_modulation_bootstrap_s2(FisherB9, 'Fisher B9',
+                                                   mean_B9, n_init=1,
+                                                   n_expectation=n_expectation)
+    # use n_expectation=50000 for production
+    plot_empirical_frechet_modulation_bootstrap_s2(FisherB9, 'Fisher B9',
+                                                   mean_B9, n_init=1,
+                                                   n_expectation=50000)
+    #  planned: 1.016/1.020 measured 1.025
+
+    # to avoid exiting
+    plt.figure()
+    plt.show()
 
 
 if __name__ == "__main__":
