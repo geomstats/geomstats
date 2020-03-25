@@ -8,7 +8,7 @@ described in the [paper](https://arxiv.org/abs/1906.07418).
 
 ## Requirements
 - geomstats
-
+- xlrd
 
 
 ## Acknowledgements
