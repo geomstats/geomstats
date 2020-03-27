@@ -10,7 +10,7 @@ Embleton 1987.
 """
 
 import matplotlib.pyplot as plt
-# from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import Axes3D
 
 import numpy as np
 import random
@@ -594,7 +594,8 @@ def main():
     and Embleton 1987.
     """
 
-    n_expectation = 50  # for test # use 50 000 for production
+    # n_expectation = 50  # for test
+    n_expectation = 50000  # for production
 
     # Read the data and transform them into a data matrix of unit vectors
     book = open_workbook("FisherDatasets.xlsx")
@@ -604,7 +605,7 @@ def main():
     # CV should be almost Euclidean
     sheet = book.sheet_by_name("B2")
     FisherB2 = []
-    for row in range(1, sheet.nrows):  ## start at row 1 to avoid titles...
+    for row in range(1, sheet.nrows):
         # Columns: index dec incl
         index = sheet.cell_value(row, 0)
         decl = float(sheet.cell_value(row, 1))
@@ -620,10 +621,6 @@ def main():
     plot_empirical_frechet_modulation_bootstrap_s2(FisherB2, 'Fisher B2',
                                                    mean_B2, n_init=1,
                                                    n_expectation=n_expectation)
-    # use n_expectation=50000 for production
-    plot_empirical_frechet_modulation_bootstrap_s2(FisherB2, 'Fisher B2',
-                                                   mean_B2, n_init=1,
-                                                   n_expectation=50000)
     # planned 1.007 measured 1.005, but uncertainty is relatively high:
     # should be redone with 100 000 bootstrap samples?
 
@@ -632,7 +629,7 @@ def main():
     # CV schould be almost Euclidean
     sheet = book.sheet_by_name("B9")
     FisherB9 = []
-    for row in range(1, sheet.nrows):  # start at row 1 to avoid titles...
+    for row in range(1, sheet.nrows):
         # Columns: index dec incl
         index = sheet.cell_value(row, 0)
         decl = float(sheet.cell_value(row, 1))
@@ -647,11 +644,103 @@ def main():
     plot_empirical_frechet_modulation_bootstrap_s2(FisherB9, 'Fisher B9',
                                                    mean_B9, n_init=1,
                                                    n_expectation=n_expectation)
-    # use n_expectation=50000 for production
-    plot_empirical_frechet_modulation_bootstrap_s2(FisherB9, 'Fisher B9',
-                                                   mean_B9, n_init=1,
-                                                   n_expectation=50000)
     #  planned: 1.016/1.020 measured 1.025
+
+    # Fisher B7: Highly concentrated, should be Euclidean
+    sheet = book.sheet_by_name("B7")
+    FisherB7 = []
+    for row in range(1, sheet.nrows):
+        # Columns: index dec incl
+        index = sheet.cell_value(row, 0)
+        decl = float(sheet.cell_value(row, 1))
+        incl = float(sheet.cell_value(row, 2))
+        print("index {0}: decl={1} incl={2}".format(index, decl, incl))
+        FisherB7.append(polar_2_unit_axis(90.0 + incl, 360. - decl))
+    mean_B7 = empirical_frechet_mean_random_init_s2(FisherB7, 100)  # 1000)
+    stat_dataset_s2(FisherB7, 'Fisher B7', mean_B7)
+    plot_dataset_s2(FisherB7, 'Fisher B7', mean_B7)
+    # Fisher B7: Var 0.1206856924106185 rad (Stddev 19.904465765278466 deg)
+    # Fisher B7: Extent 44.25142281508782 deg / 17.973096463950736 deg
+    plot_empirical_frechet_modulation_bootstrap_s2(FisherB7, 'Fisher B7',
+                                                   mean_B7, n_init=1,
+                                                   n_expectation=n_expectation)
+    # planned 1.04 measured 1.04
+    # but incertainty is relatively high:
+    # should it be redone with more bootstrapsamples?
+
+
+
+    ###########################################################################
+    # Non isotropic distributions - Predictions will be over-estimated
+    # close to Euclidean 1D: prediction of modulation where there is actually
+    # not in practice
+
+    # FisherB4: Almsot linear along an arc of radius +/-45 deg on a small circle
+    # Should be close to Euclidean because the strip is too narrow to feel
+    # the curvature curvature
+    sheet = book.sheet_by_name("B4")
+    FisherB4 = []
+    for row in range(1, sheet.nrows):
+        # Columns: index plunge pl_azimut (deg)
+        index = sheet.cell_value(row, 0)
+        plunge = float(sheet.cell_value(row, 1))
+        azimuth = float(sheet.cell_value(row, 2))
+        print("index {0}: plunge={1} plunge azimuth={2}".format(index, plunge,
+                                                                azimuth))
+        FisherB4.append(polar_2_unit_axis(90.0 + plunge, azimuth))
+    mean_B4 = empirical_frechet_mean_random_init_s2(FisherB4, 1000)
+    stat_dataset_s2(FisherB4, 'Fisher B4', mean_B4)
+    plot_dataset_s2(FisherB4, 'Fisher B4', mean_B4)
+    # Fisher B4: Var 0.40478008151475997 rad (Stddev 36.45290965005298 deg)
+    # Fisher B4: Extent 53.62326868546807 deg / 11.221098634988639 deg
+    plot_empirical_frechet_modulation_bootstrap_s2(FisherB4, 'Fisher B4',
+                                                   mean_B4, n_init=1,
+                                                   n_expectation=n_expectation)
+    # planned 1.13/1.16, measured 1.0 -> no effect
+
+    ###########################################################################
+    # With a large dispersion beyond the KKC conditions
+
+    # FisherB15: Projective, rather Gaussian on the northern hemisphere
+    sheet = book.sheet_by_name("B15")
+    FisherB15 = []
+    for row in range(1, sheet.nrows):
+        # Columns: index latitude longitude
+        index = sheet.cell(row, 0).value
+        lat = sheet.cell(row, 1).value
+        long = sheet.cell(row, 2).value
+        print("index {0}: lat={1} long={2}".format(index, lat, long))
+        FisherB15.append(geographical_2_unit_axis(lat, long))
+    mean_B15 = empirical_frechet_mean_random_init_s2(FisherB15, 1000)
+    stat_dataset_s2(FisherB15, 'Fisher B15', mean_B15)
+    plot_dataset_s2(FisherB15, 'Fisher B15', mean_B15)
+    # Fisher B15: Var 0.3222337762399972 rad (Stddev 32.524315316835285 deg)
+    # Fisher B15: Extent 76.22236184016303 deg / 63.571256094063564 deg
+    plot_empirical_frechet_modulation_bootstrap_s2(FisherB15, 'Fisher B15',
+                                                   mean_B15, n_init=1,
+                                                   n_expectation=n_expectation)
+
+    # FisherB1:  Projective, 14 pts below 45 deg, 36 closer to north pole
+    # Not in projective KKC conditions -> Need to add random init
+    sheet = book.sheet_by_name("B1")
+    FisherB1 = []
+    for row in range(1, sheet.nrows):
+        # Columns: index lat long
+        index = sheet.cell_value(row, 0)
+        lat = float(sheet.cell_value(row, 1))
+        long = float(sheet.cell_value(row, 2))
+        print("index {0}: lat={1} long={2}".format(index, lat, long))
+        FisherB1.append(geographical_2_unit_axis(lat, long))
+    mean_B1 = empirical_frechet_mean_random_init_s2(FisherB1, 1000)
+    stat_dataset_s2(FisherB1, 'Fisher B1', mean_B1)
+    plot_dataset_s2(FisherB1, 'Fisher B1', mean_B1)
+    # Fisher B1 Projective: Var 0.52141924375251 rad (Stddev 41.3729187320 deg)
+    # Fisher B1 Projective: Extent 98.561481928706 deg / 67.82394894422913 deg
+    plot_empirical_frechet_modulation_bootstrap_s2(FisherB1, 'Fisher B1',
+                                                   mean_B1, n_init=5,
+                                                   n_expectation=int(
+                                                       n_expectation/5))
+
 
     # to avoid exiting
     plt.figure()
