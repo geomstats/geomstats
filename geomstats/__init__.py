@@ -1,4 +1,4 @@
-__version__ = '1.16'
+__version__ = '1.17'
 
 import geomstats.geometry.discretized_curves
 import geomstats.geometry.euclidean
