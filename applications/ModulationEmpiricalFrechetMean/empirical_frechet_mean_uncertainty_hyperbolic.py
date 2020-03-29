@@ -236,23 +236,20 @@ def main():
     """
     n_expectation = 5000
 
-    print('Var of empirical mean for 1 sample, theta=0.1 '
-                 'in H2 {} \n'.format(empirical_frechet_var_bubble(
+    print('Var of empirical mean for 1 sample, theta=0.1 in H2 '
+          '(should be close to 0.1) {} \n'.format(empirical_frechet_var_bubble(
                      1, 0.1, 2, n_expectation=n_expectation)))
-    print('Var of empirical mean for 1 sample, theta=0.1 '
-                 'in H3 {} \n'.format(empirical_frechet_var_bubble(
+    print('Var of empirical mean for 1 sample, theta=0.1 in H3 '
+          '(should be close to 0.1) {} \n'.format(empirical_frechet_var_bubble(
                      1, 0.1, 3, n_expectation=n_expectation)))
 
     print('Modulation factor for 1 sample theta=0.1 in H2 '
-                 '(should be close to 1): {} \n'.format(
-                     modulation_factor(
-                         1, 0.1, 2, n_expectation=n_expectation)))
+          '(should be close to 1): {} \n'.format(modulation_factor(
+                     1, 0.1, 2, n_expectation=n_expectation)))
 
     print('Modulation factor for 500 sample theta close to 5 in H5 '
-                 '(should be around 0.56): {} \n'.format(
-                     modulation_factor(
-                         500, 5, 5,
-                         n_expectation=n_expectation)))
+          '(should be around 0.56): {} \n'.format(modulation_factor(
+                    500, 5, 5, n_expectation=n_expectation)))
 
     # plot_modulation_factor(2, 2, n_expectation=n_expectation)
     # plot_modulation_factor(4, 2, n_expectation=n_expectation)
@@ -261,7 +258,7 @@ def main():
 
     plot_modulation_factor(2, 3, n_expectation=n_expectation)
     plot_modulation_factor(5, 3, n_expectation=n_expectation)
-    #plot_modulation_factor(6, 3, n_expectation=n_expectation)
+    # plot_modulation_factor(6, 3, n_expectation=n_expectation)
     multi_plot_modulation_factor(3, n_expectation=n_expectation)
 
     # plot_modulation_factor(2, 4, n_expectation=n_expectation)
