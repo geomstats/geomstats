@@ -34,6 +34,9 @@ if __name__ == '__main__':
     }
     extras_require['all'] = list(chain(*extras_require.values()))
 
+    with open(os.path.join(base_dir, "README.md")) as f:
+        long_description = f.read()
+
     setup(
         name='geomstats',
         version=geomstats['__version__'],
@@ -44,6 +47,25 @@ if __name__ == '__main__':
         author='Nina Miolane',
         author_email='ninamio78@gmail.com',
         license='MIT',
+        classifiers=[
+            'Development Status :: 5 - Production/Stable',
+            'Intended Audience :: Science/Research',
+            'Topic :: Scientific/Engineering',
+            'Topic :: Scientific/Engineering :: Artificial Intelligence',
+            'Topic :: Scientific/Engineering :: Mathematics',
+            'License :: OSI Approved :: BSD License',
+            'Programming Language :: Python :: 3',
+            'Programming Language :: Python :: 3.5',
+            'Programming Language :: Python :: 3.6',
+            'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8'
+        ],
+        long_description=long_description,
+        long_description_content_type='text/markdown',
         packages=find_packages(),
-        zip_safe=False
+        data_files=[
+            "LICENSE.md",
+            "README.md"
+        ],
+        zip_safe=False,
     )

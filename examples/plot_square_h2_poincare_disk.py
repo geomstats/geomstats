@@ -1,16 +1,15 @@
-"""
-Plot a square on H2 with Poincare Disk visualization.
-"""
+"""Plot a square on H2 with Poincare Disk visualization."""
 
+import logging
 import os
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hyperbolic import Hyperbolic
 
-H2 = HyperbolicSpace(dimension=2)
+H2 = Hyperbolic(dimension=2)
 METRIC = H2.metric
 
 SQUARE_SIZE = 50
@@ -26,7 +25,7 @@ def main():
     n_steps = 20
     ax = plt.gca()
     for i, src in enumerate(corners_ext):
-        dst_id = (i+1) % len(corners_ext)
+        dst_id = (i + 1) % len(corners_ext)
         dst = corners_ext[dst_id]
         tangent_vec = METRIC.log(point=dst, base_point=src)
         geodesic = METRIC.geodesic(initial_point=src,
@@ -46,9 +45,9 @@ def main():
 
 if __name__ == "__main__":
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        print('Examples with visualizations are only implemented '
-              'with numpy backend.\n'
-              'To change backend, write: '
-              'export GEOMSTATS_BACKEND = \'numpy\'.')
+        logging.info('Examples with visualizations are only implemented '
+                     'with numpy backend.\n'
+                     'To change backend, write: '
+                     'export GEOMSTATS_BACKEND = \'numpy\'.')
     else:
         main()

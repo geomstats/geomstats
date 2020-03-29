@@ -3,15 +3,16 @@ Plot a geodesic of SE(3) equipped
 with its left-invariant canonical METRIC.
 """
 
+import logging
 import os
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
-from geomstats.geometry.special_euclidean_group import SpecialEuclideanGroup
+from geomstats.geometry.special_euclidean import SpecialEuclidean
 
-SE3_GROUP = SpecialEuclideanGroup(n=3)
+SE3_GROUP = SpecialEuclidean(n=3)
 METRIC = SE3_GROUP.left_canonical_metric
 
 
@@ -32,9 +33,9 @@ def main():
 
 if __name__ == "__main__":
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        print('Examples with visualizations are only implemented '
-              'with numpy backend.\n'
-              'To change backend, write: '
-              'export GEOMSTATS_BACKEND = \'numpy\'.')
+        logging.info('Examples with visualizations are only implemented '
+                     'with numpy backend.\n'
+                     'To change backend, write: '
+                     'export GEOMSTATS_BACKEND = \'numpy\'.')
     else:
         main()

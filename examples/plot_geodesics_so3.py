@@ -3,15 +3,16 @@ Plot a geodesic of SO(3) equipped
 with its left-invariant canonical METRIC.
 """
 
+import logging
 import os
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
-from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
-SO3_GROUP = SpecialOrthogonalGroup(n=3)
+SO3_GROUP = SpecialOrthogonal(n=3)
 METRIC = SO3_GROUP.bi_invariant_metric
 
 
@@ -31,9 +32,9 @@ def main():
 
 if __name__ == "__main__":
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        print('Examples with visualizations are only implemented '
-              'with numpy backend.\n'
-              'To change backend, write: '
-              'export GEOMSTATS_BACKEND = \'numpy\'.')
+        logging.info('Examples with visualizations are only implemented '
+                     'with numpy backend.\n'
+                     'To change backend, write: '
+                     'export GEOMSTATS_BACKEND = \'numpy\'.')
     else:
         main()

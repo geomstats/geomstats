@@ -11,6 +11,8 @@ on the sphere. We solve this in 3 dimension on the 2-sphere
 manifold so that we can visualize and render the path as a video.
 """
 
+import logging
+
 import matplotlib
 matplotlib.use("Agg")  # NOQA
 import matplotlib.animation as animation
@@ -20,7 +22,7 @@ import numpy as np
 import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.spd_matrices_space import SPDMatricesSpace
+from geomstats.geometry.spd_matrices import SPDMatrices
 
 
 SPHERE2 = Hypersphere(dimension=2)
@@ -41,13 +43,13 @@ def gradient_descent(start,
         x_prev = x
         euclidean_grad = - lr * grad(x)
         tangent_vec = manifold.projection_to_tangent_space(
-                vector=euclidean_grad, base_point=x)
+            vector=euclidean_grad, base_point=x)
         x = manifold.metric.exp(base_point=x, tangent_vec=tangent_vec)[0]
         if (gs.abs(loss(x, use_gs=True) - loss(x_prev, use_gs=True))
                 <= precision):
-            print('x: %s' % x)
-            print('reached precision %s' % precision)
-            print('iterations: %d' % i)
+            logging.info('x: %s' % x)
+            logging.info('reached precision %s' % precision)
+            logging.info('iterations: %d' % i)
             break
         yield x, loss(x)
 
@@ -78,7 +80,7 @@ def plot_and_save_video(geodesics,
 
 def generate_well_behaved_matrix():
     """Generate a matrix with real eigenvalues."""
-    matrix = 2 * SPDMatricesSpace(n=3).random_uniform()[0]
+    matrix = 2 * SPDMatrices(n=3).random_uniform()[0]
     assert np.linalg.det(matrix) > 0
     return matrix
 

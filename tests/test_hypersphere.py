@@ -82,12 +82,12 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         gives the identity.
         """
         point_int = gs.array(
-                [[.1, 0., 0., .1],
-                 [.1, .1, .1, .4],
-                 [.1, .3, 0., .1],
-                 [-0.1, .1, -.4, .1],
-                 [0., 0., .1, .1],
-                 [.1, .1, .1, .1]])
+            [[.1, 0., 0., .1],
+             [.1, .1, .1, .4],
+             [.1, .3, 0., .1],
+             [-0.1, .1, -.4, .1],
+             [0., 0., .1, .1],
+             [.1, .1, .1, .1]])
         point_ext = self.space.intrinsic_to_extrinsic_coords(point_int)
         result = self.space.extrinsic_to_intrinsic_coords(point_ext)
         expected = point_int
@@ -230,8 +230,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         base_point = base_point / gs.linalg.norm(base_point)
         vector = gs.array([9., 5., 0., 0., -1.])
         vector = self.space.projection_to_tangent_space(
-                                                   vector=vector,
-                                                   base_point=base_point)
+            vector=vector, base_point=base_point)
 
         # exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
         # result = self.metric.log(point=exp, base_point=base_point)
@@ -259,14 +258,12 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         base_point = base_point / gs.linalg.norm(base_point)
         vector = 1e-10 * gs.array([.06, -51., 6., 5., 3.])
         vector = self.space.projection_to_tangent_space(
-                                                    vector=vector,
-                                                    base_point=base_point)
+            vector=vector, base_point=base_point)
 
         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
         result = self.metric.log(point=exp, base_point=base_point)
         expected = self.space.projection_to_tangent_space(
-                                                    vector=vector,
-                                                    base_point=base_point)
+            vector=vector, base_point=base_point)
         expected = helper.to_vector(expected)
 
         self.assertAllClose(result, expected, atol=1e-8)
@@ -359,11 +356,10 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         base_point = base_point / gs.linalg.norm(base_point)
         vector = gs.array([9., 0., -1., -2., 1.])
         tangent_vec = self.space.projection_to_tangent_space(
-                                                  vector=vector,
-                                                  base_point=base_point)
+            vector=vector, base_point=base_point)
 
-        exp = self.metric.exp(tangent_vec=tangent_vec,
-                              base_point=base_point)
+        exp = self.metric.exp(
+            tangent_vec=tangent_vec, base_point=base_point)
         result = self.metric.dist(base_point, exp)
         expected = gs.linalg.norm(tangent_vec) % (2 * gs.pi)
         expected = helper.to_scalar(expected)
@@ -380,15 +376,14 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         base_point = base_point / scalar_norm
         vector = gs.array(
-                [[9., 0., -1., -2., 1.],
-                 [9., 0., -1., -2., 1]])
+            [[9., 0., -1., -2., 1.],
+             [9., 0., -1., -2., 1]])
 
         tangent_vec = self.space.projection_to_tangent_space(
-                vector=vector,
-                base_point=base_point)
+            vector=vector, base_point=base_point)
 
-        exp = self.metric.exp(tangent_vec=tangent_vec,
-                              base_point=base_point)
+        exp = self.metric.exp(
+            tangent_vec=tangent_vec, base_point=base_point)
 
         result = self.metric.dist(base_point, exp)
         expected = gs.linalg.norm(tangent_vec, axis=-1) % (2 * gs.pi)
@@ -402,11 +397,10 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         initial_point = self.space.random_uniform()
         vector = gs.array([2., 0., -1., -2., 1.])
         initial_tangent_vec = self.space.projection_to_tangent_space(
-                                            vector=vector,
-                                            base_point=initial_point)
+            vector=vector, base_point=initial_point)
         geodesic = self.metric.geodesic(
-                                   initial_point=initial_point,
-                                   initial_tangent_vec=initial_tangent_vec)
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec)
 
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)
@@ -421,60 +415,10 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         tangent_vec_b = gs.array([0., 1., 0., 0., 0.])
         base_point = gs.array([0., 0., 0., 0., 1.])
         result = self.metric.inner_product(
-                tangent_vec_a, tangent_vec_b, base_point)
+            tangent_vec_a, tangent_vec_b, base_point)
         expected = gs.array([[0.]])
 
         self.assertAllClose(expected, result)
-
-    @geomstats.tests.np_and_pytorch_only
-    def test_variance(self):
-        point = gs.array([0., 0., 0., 0., 1.])
-        points = gs.zeros((2, point.shape[0]))
-        points[0, :] = point
-        points[1, :] = point
-        result = self.metric.variance(points)
-        expected = helper.to_scalar(0.)
-
-        self.assertAllClose(expected, result)
-
-    @geomstats.tests.np_and_pytorch_only
-    def test_mean(self):
-        point = gs.array([0., 0., 0., 0., 1.])
-        points = gs.zeros((2, point.shape[0]))
-        points[0, :] = point
-        points[1, :] = point
-        result = self.metric.mean(points)
-        expected = helper.to_vector(point)
-
-        self.assertAllClose(expected, result)
-
-    @geomstats.tests.np_only
-    def test_adaptive_gradientdescent_mean(self):
-        n_tests = 100
-        result = gs.zeros(n_tests)
-        expected = gs.zeros(n_tests)
-
-        for i in range(n_tests):
-            # take 2 random points, compute their mean, and verify that
-            # log of each at the mean is opposite
-            points = self.space.random_uniform(n_samples=2)
-            mean = self.metric.adaptive_gradientdescent_mean(points)
-            logs = self.metric.log(point=points, base_point=mean)
-            result[i] = gs.linalg.norm(logs[1, :] + logs[0, :])
-
-        self.assertAllClose(expected, result, rtol=1e-10, atol=1e-10)
-
-    @geomstats.tests.np_and_pytorch_only
-    def test_mean_and_belongs(self):
-        point_a = gs.array([1., 0., 0., 0., 0.])
-        point_b = gs.array([0., 1., 0., 0., 0.])
-        points = gs.zeros((2, point_a.shape[0]))
-        points[0, :] = point_a
-        points[1, :] = point_b
-        mean = self.metric.mean(points)
-        result = self.space.belongs(mean)
-        expected = gs.array([[True]])
-        self.assertAllClose(result, expected)
 
     def test_diameter(self):
         dim = 2
@@ -523,8 +467,8 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = mean
         result = mean_estimate
         self.assertTrue(
-                gs.allclose(result, expected, atol=MEAN_ESTIMATION_TOL)
-                )
+            gs.allclose(result, expected, atol=MEAN_ESTIMATION_TOL)
+        )
         # check concentration parameter for dispersed distribution
         kappa = 1
         points = sphere.random_von_mises_fisher(kappa, n_points)
@@ -536,16 +480,16 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         p = dim + 1
         n_steps = 100
         for i in range(n_steps):
-            bessel_func_1 = scipy.special.iv(p/2., kappa_estimate)
-            bessel_func_2 = scipy.special.iv(p/2.-1., kappa_estimate)
+            bessel_func_1 = scipy.special.iv(p / 2., kappa_estimate)
+            bessel_func_2 = scipy.special.iv(p / 2. - 1., kappa_estimate)
             ratio = bessel_func_1 / bessel_func_2
-            denominator = 1. - ratio**2 - (p-1.)*ratio/kappa_estimate
+            denominator = 1. - ratio**2 - (p - 1.) * ratio / kappa_estimate
             mean_norm = gs.cast(mean_norm, gs.float64)
-            kappa_estimate = kappa_estimate - (ratio-mean_norm)/denominator
+            kappa_estimate = kappa_estimate - (ratio - mean_norm) / denominator
         expected = kappa
         result = kappa_estimate
         self.assertTrue(
-                gs.allclose(result, expected, atol=KAPPA_ESTIMATION_TOL))
+            gs.allclose(result, expected, atol=KAPPA_ESTIMATION_TOL))
 
     @geomstats.tests.np_and_pytorch_only
     def test_spherical_to_extrinsic(self):
@@ -558,8 +502,9 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         points_spherical = gs.array([[gs.pi / 2, 0],
                                      [gs.pi / 6, gs.pi / 4]])
         result = sphere.spherical_to_extrinsic(points_spherical)
-        expected = gs.array([[1., 0., 0.],
-                             [gs.sqrt(2)/4, gs.sqrt(2)/4, gs.sqrt(3)/2]])
+        expected = gs.array(
+            [[1., 0., 0.],
+             [gs.sqrt(2) / 4, gs.sqrt(2) / 4, gs.sqrt(3) / 2]])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
@@ -576,7 +521,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         tangent_vecs_spherical = gs.array([[0.25, 0.5],
                                           [0.3, 0.2]])
         result = sphere.tangent_spherical_to_extrinsic(
-                tangent_vecs_spherical, base_points_spherical)
+            tangent_vecs_spherical, base_points_spherical)
         expected = gs.array([[0, 0.5, -0.25],
                              [0, 0.2, -0.3]])
         self.assertAllClose(result, expected)
@@ -591,7 +536,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         points_spherical = gs.array([[gs.pi / 2, 0],
                                      [gs.pi / 6, gs.pi / 4]])
         christoffel = sphere.metric.christoffels(
-                points_spherical)
+            points_spherical)
         result = christoffel.shape
         expected = gs.array([2, dim, dim, dim])
         self.assertAllClose(result, expected)

@@ -3,15 +3,16 @@ Plot a grid on H2
 with Poincare Disk visualization.
 """
 
+import logging
 import os
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
-from geomstats.geometry.hyperbolic_space import HyperbolicSpace
+from geomstats.geometry.hyperbolic import Hyperbolic
 
-H2 = HyperbolicSpace(dimension=2)
+H2 = Hyperbolic(dimension=2)
 METRIC = H2.metric
 
 
@@ -45,9 +46,9 @@ def main(left=-128,
 
 if __name__ == "__main__":
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        print('Examples with visualizations are only implemented '
-              'with numpy backend.\n'
-              'To change backend, write: '
-              'export GEOMSTATS_BACKEND = \'numpy\'.')
+        logging.info('Examples with visualizations are only implemented '
+                     'with numpy backend.\n'
+                     'To change backend, write: '
+                     'export GEOMSTATS_BACKEND = \'numpy\'.')
     else:
         main()

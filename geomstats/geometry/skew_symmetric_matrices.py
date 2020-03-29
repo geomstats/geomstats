@@ -2,14 +2,14 @@
 
 This is the Lie algebra of the Special Orthogonal Group.
 As basis we choose the matrices with a single 1 on the upper triangular part
-of the matrices (and a -1 in int lower triangular part).
+of the matrices (and a -1 in its lower triangular part).
 """
 import geomstats.backend as gs
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 
 
 class SkewSymmetricMatrices(MatrixLieAlgebra):
-    """Implementation of skew symmetric matrices."""
+    """Class for skew symmetric matrices."""
 
     def __init__(self, n):
         """Instantiate the class.
@@ -39,7 +39,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         matrix_representation: array-like, shape=[n_sample, n, n]
 
         Returns
-        ------
+        -------
         basis_representation: array-like, shape=[n_sample, dimension]
         """
         old_shape = gs.shape(matrix_representation)

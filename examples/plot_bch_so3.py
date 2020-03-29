@@ -18,13 +18,13 @@ import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
-from geomstats.geometry.special_orthogonal_group import SpecialOrthogonalGroup
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 N = 3
 MAX_ORDER = 10
 
-GROUP = SpecialOrthogonalGroup(n=N)
+GROUP = SpecialOrthogonal(n=N)
 GROUP.default_point_type = 'matrix'
 
 DIM = int(N * (N - 1) / 2)

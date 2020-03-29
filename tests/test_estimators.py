@@ -19,6 +19,7 @@ class TestEstimators(geomstats.tests.TestCase):
     def setUp(self):
         self.data = load_iris(return_X_y=True)
 
+    @geomstats.tests.np_only
     def test_template_estimator(self):
         est = TemplateEstimator()
         self.assertEqual(est.demo_param, 'demo_param')
@@ -54,6 +55,7 @@ class TestEstimators(geomstats.tests.TestCase):
         X_trans = trans.fit_transform(X)
         self.assertAllClose(X_trans, gs.sqrt(X))
 
+    @geomstats.tests.np_and_tf_only
     def test_template_classifier(self):
         X, y = self.data
         clf = TemplateClassifier()
