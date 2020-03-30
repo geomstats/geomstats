@@ -20,7 +20,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
     n_clusters : int
         Number of clusters (k value of the k-means).
 
-    riemannian_metric : object of class RiemannianMetric
+    Riemannian_metric : object of class RiemannianMetric
         The geomstats Riemmanian metric associate to the space used.
 
     init : str
@@ -107,7 +107,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
             if gs.mean(centroids_distances) < self.tol:
                 if self.verbose > 0:
-                    logging.info('Convergence Reached after {} '
+                    logging.info('Convergence reached after {} '
                                  'iterations'.format(index))
 
                 return gs.copy(self.centroids)
