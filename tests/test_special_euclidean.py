@@ -683,7 +683,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         # Riemannian left-invariant metric given by
         # the canonical inner product on the lie algebra
         # Expect the identity function
-        # because we use the riemannian left logarithm with canonical
+        # because we use the Riemannian left logarithm with canonical
         # inner product to parameterize the transformations
         metric = self.metrics_all['left_canonical']
         # General case
@@ -703,7 +703,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         # Riemannian left-invariant metric given by
         # the canonical inner product on the lie algebra
         # Expect the identity function
-        # because we use the riemannian left logarithm with canonical
+        # because we use the Riemannian left logarithm with canonical
         # inner product to parameterize the transformations
 
         metric = self.metrics_all['left_canonical']
@@ -735,8 +735,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_exp_then_log_from_identity_left(self):
         """
-        Test that the riemannian left exponential from the identity
-        and the riemannian left logarithm from the identity
+        Test that the Riemannian left exponential from the identity
+        and the Riemannian left logarithm from the identity
         are inverse.
         Expect their composition to give the identity function.
         """
@@ -761,8 +761,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_exp_then_log_from_identity_left_with_angles_close_to_pi(self):
         """
-        Test that the riemannian left exponential from the identity
-        and the riemannian left logarithm from the identity
+        Test that the Riemannian left exponential from the identity
+        and the Riemannian left logarithm from the identity
         are inverse.
         Expect their composition to give the identity function.
         """
@@ -792,8 +792,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_exp_then_log_from_identity_right(self):
         """
-        Test that the riemannian right exponential from the identity
-        and the riemannian right logarithm from the identity
+        Test that the Riemannian right exponential from the identity
+        and the Riemannian right logarithm from the identity
         are inverse.
         Expect their composition to give the identity function.
         """
@@ -818,8 +818,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_exp_then_log_from_identity_right_with_angles_close_to_pi(self):
         """
-        Test that the riemannian right exponential from the identity
-        and the riemannian right logarithm from the identity
+        Test that the Riemannian right exponential from the identity
+        and the Riemannian right logarithm from the identity
         are inverse.
         Expect their composition to give the identity function.
         """
@@ -901,8 +901,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_log_then_exp_left(self):
         """
-        Test that the riemannian left exponential and the
-        riemannian left logarithm are inverse.
+        Test that the Riemannian left exponential and the
+        Riemannian left logarithm are inverse.
         Expect their composition to give the identity function.
         """
         for metric in [self.metrics_all['left_canonical'],
@@ -929,8 +929,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_log_then_exp_left_with_angles_close_to_pi(self):
         """
-        Test that the riemannian left exponential and the
-        riemannian left logarithm are inverse.
+        Test that the Riemannian left exponential and the
+        Riemannian left logarithm are inverse.
         Expect their composition to give the identity function.
         """
         angle_types = self.angles_close_to_pi
@@ -963,8 +963,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_exp_then_log_left(self):
         """
-        Test that the riemannian left exponential and the
-        riemannian left logarithm are inverse.
+        Test that the Riemannian left exponential and the
+        Riemannian left logarithm are inverse.
         Expect their composition to give the identity function.
         """
         for metric in [self.metrics_all['left_canonical'],
@@ -996,8 +996,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_exp_then_log_left_with_angles_close_to_pi(self):
         """
-        Test that the riemannian left exponential and the
-        riemannian left logarithm are inverse.
+        Test that the Riemannian left exponential and the
+        Riemannian left logarithm are inverse.
         Expect their composition to give the identity function.
         """
         angle_types = self.angles_close_to_pi
@@ -1033,8 +1033,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_log_then_exp_right(self):
         """
-        Test that the riemannian right exponential and the
-        riemannian right logarithm are inverse.
+        Test that the Riemannian right exponential and the
+        Riemannian right logarithm are inverse.
         Expect their composition to give the identity function.
         """
         for metric in [self.metrics_all['right_canonical'],
@@ -1063,8 +1063,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_log_then_exp_right_with_angles_close_to_pi(self):
         """
-        Test that the riemannian right exponential and the
-        riemannian right logarithm are inverse.
+        Test that the Riemannian right exponential and the
+        Riemannian right logarithm are inverse.
         Expect their composition to give the identity function.
         """
         angle_types = self.angles_close_to_pi
@@ -1102,8 +1102,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_exp_then_log_right(self):
         """
-        Test that the riemannian left exponential and the
-        riemannian left logarithm are inverse.
+        Test that the Riemannian left exponential and the
+        Riemannian left logarithm are inverse.
         Expect their composition to give the identity function.
         """
         # FIXME
@@ -1131,8 +1131,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_exp_then_log_right_with_angles_close_to_pi(self):
         """
-        Test that the riemannian right exponential and the
-        riemannian right logarithm are inverse.
+        Test that the Riemannian right exponential and the
+        Riemannian right logarithm are inverse.
         Expect their composition to give the identity function.
         """
         # FIXME

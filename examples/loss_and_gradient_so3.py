@@ -77,7 +77,7 @@ def main():
 
     logging.info('The loss between the rotation vectors is: {}'.format(
         loss_rot_vec[0, 0]))
-    logging.info('The riemannian gradient is: {}'.format(
+    logging.info('The Riemannian gradient is: {}'.format(
         grad_rot_vec))
 
     angle = gs.array(gs.pi / 6)
@@ -105,7 +105,7 @@ def main():
 
     logging.info('The loss between the quaternions is: {}'.format(
         loss_quaternion[0, 0]))
-    logging.info('The riemannian gradient is: {}'.format(
+    logging.info('The Riemannian gradient is: {}'.format(
         grad_quaternion))
 
 
