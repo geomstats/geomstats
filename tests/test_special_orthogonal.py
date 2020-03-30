@@ -2949,7 +2949,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                             point=rot_vec_1)
         self.assertAllClose(result, expected)
 
-        # General case: this is the inverse test of test 1 for riemannian exp
+        # General case: this is the inverse test of test 1 for Riemannian exp
         expected = gs.pi / 4 * gs.array([1., 0., 0.])
         phi = (gs.pi / 10) / (gs.tan(gs.pi / 10))
         skew = gs.array([[0., -1., 1.],

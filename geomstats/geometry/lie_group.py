@@ -8,7 +8,7 @@ from geomstats.geometry.manifold import Manifold
 
 
 def loss(y_pred, y_true, group, metric=None):
-    """Compute loss given by riemannian metric.
+    """Compute loss given by Riemannian metric.
 
     Parameters
     ----------

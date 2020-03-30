@@ -109,8 +109,8 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_left_exp_and_log_from_identity_left_diag_metrics(self):
         """
-        Test that the riemannian left exponential and the
-        riemannian left logarithm are inverse.
+        Test that the Riemannian left exponential and the
+        Riemannian left logarithm are inverse.
         Expect their composition to give the identity function.
         """
         # - exp then log
@@ -145,8 +145,8 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_left_exp_and_log_from_identity_left_metrics(self):
         """
-        Test that the riemannian left exponential and the
-        riemannian left logarithm are inverse.
+        Test that the Riemannian left exponential and the
+        Riemannian left logarithm are inverse.
         Expect their composition to give the identity function.
         """
         # - exp then log
@@ -180,8 +180,8 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_exp_and_log_from_identity_left_diag_metrics(self):
         """
-        Test that the riemannian exponential and the
-        riemannian logarithm are inverse.
+        Test that the Riemannian exponential and the
+        Riemannian logarithm are inverse.
         Expect their composition to give the identity function.
         """
         # - exp then log
@@ -215,8 +215,8 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_exp_and_log_from_identity_left_metrics(self):
         """
-        Test that the riemannian exponential and the
-        riemannian logarithm are inverse.
+        Test that the Riemannian exponential and the
+        Riemannian logarithm are inverse.
         Expect their composition to give the identity function.
         """
         # - exp then log
@@ -250,8 +250,8 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_exp_and_log_from_identity_right_diag_metrics(self):
         """
-        Test that the riemannian exponential and the
-        riemannian logarithm are inverse.
+        Test that the Riemannian exponential and the
+        Riemannian logarithm are inverse.
         Expect their composition to give the identity function.
         """
         # - exp then log
@@ -285,8 +285,8 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_exp_and_log_from_identity_right_metrics(self):
         """
-        Test that the riemannian exponential and the
-        riemannian logarithm are inverse.
+        Test that the Riemannian exponential and the
+        Riemannian logarithm are inverse.
         Expect their composition to give the identity function.
         """
         # For right metric, point and point_small
@@ -315,8 +315,8 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_exp_and_log_left_diag_metrics(self):
         """
-        Test that the riemannian exponential and the
-        riemannian logarithm are inverse.
+        Test that the Riemannian exponential and the
+        Riemannian logarithm are inverse.
         Expect their composition to give the identity function.
         """
         # FIXME:
@@ -338,8 +338,8 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_exp_and_log_left_metrics(self):
         """
-        Test that the riemannian exponential and the
-        riemannian logarithm are inverse.
+        Test that the Riemannian exponential and the
+        Riemannian logarithm are inverse.
         Expect their composition to give the identity function.
         """
         # FIXME
@@ -360,8 +360,8 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_exp_and_log_right_diag_metrics(self):
         """
-        Test that the riemannian exponential and the
-        riemannian logarithm are inverse.
+        Test that the Riemannian exponential and the
+        Riemannian logarithm are inverse.
         Expect their composition to give the identity function.
         """
         # FIXME
@@ -381,8 +381,8 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_exp_and_log_right_metrics(self):
         """
-        Test that the riemannian exponential and the
-        riemannian logarithm are inverse.
+        Test that the Riemannian exponential and the
+        Riemannian logarithm are inverse.
         Expect their composition to give the identity function.
         """
         # FIXME

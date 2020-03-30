@@ -18,7 +18,7 @@ def loss(y_pred, y_true,
          metric=SE3.left_canonical_metric,
          representation='vector'):
     """
-    Loss function given by a riemannian metric on a Lie group,
+    Loss function given by a Riemannian metric on a Lie group,
     by default the left-invariant canonical metric.
     """
     if gs.ndim(y_pred) == 1:
@@ -103,7 +103,7 @@ def main():
 
     logging.info('The loss between the poses using rotation '
                  'vectors is: {}'.format(loss_rot_vec[0, 0]))
-    logging.info('The riemannian gradient is: {}'.format(grad_rot_vec))
+    logging.info('The Riemannian gradient is: {}'.format(grad_rot_vec))
 
     angle = gs.array(gs.pi / 6)
     cos = gs.cos(angle / 2)
@@ -131,7 +131,7 @@ def main():
                            representation='quaternion')
     logging.info('The loss between the poses using quaternions is: {}'.format(
         loss_quaternion[0, 0]))
-    logging.info('The riemannian gradient is: {}'.format(
+    logging.info('The Riemannian gradient is: {}'.format(
         grad_quaternion))
 
 
