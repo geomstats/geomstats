@@ -110,7 +110,8 @@ class ProductManifold(Manifold):
 
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
-            # TODO(nguigs) call different iterator
+            belongs = [space.belongs(point[:, i]) for i, space in enumerate(
+                self.manifolds)]
         belongs = gs.all(belongs, axis=0)
         belongs = gs.to_ndarray(belongs, to_ndim=2)
         return belongs
@@ -147,3 +148,35 @@ class ProductManifold(Manifold):
         elif point_type == 'matrix':
             regularized_point = gs.vstack(regularized_point)
         return gs.all(regularized_point)
+
+    def random_uniform(self, n_samples, point_type=None):
+        """Sample in the the product space from the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int, optional
+            Number of samples.
+        point_type : str, {'vector', 'matrix'}
+            Representation of point.
+
+        Returns
+        -------
+        samples : array-like, shape=[n_samples, dimension + 1]
+            Points sampled on the hypersphere.
+        """
+
+        if point_type is None:
+            point_type = self.default_point_type
+        assert point_type in ['vector', 'matrix']
+        if point_type == 'vector':
+            data = self.manifolds[0].random_uniform(n_samples)
+            if len(self.manifolds) > 1:
+                for i, space in enumerate(self.manifolds[1:]):
+                    data = gs.concatenate(
+                        [data, space.random_uniform(n_samples)],
+                        axis=1)
+            return data
+        else:
+            point = [
+                space.random_uniform(n_samples) for space in self.manifolds]
+            return gs.stack(point, axis=1)
