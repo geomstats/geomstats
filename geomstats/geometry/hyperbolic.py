@@ -833,3 +833,18 @@ class HyperbolicMetric(RiemannianMetric):
         else:
             raise NotImplementedError(
                 'dist is only implemented for ball and extrinsic')
+
+    def squared_dist(self, point_a, point_b):
+        """ Redefine Riemannian squared distance between two points
+            for hyperbolic manifold.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[n_samples, dimension]
+        point_b : array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        sq_dist : array-like, shape=[n_samples,]
+        """
+        return self.dist(point_a, point_b)**2
