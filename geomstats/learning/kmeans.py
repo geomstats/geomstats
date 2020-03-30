@@ -20,7 +20,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
     n_clusters : int
         Number of clusters (k value of the k-means).
 
-    Riemannian_metric : object of class RiemannianMetric
+    riemannian_metric : object of class RiemannianMetric
         The geomstats Riemmanian metric associate to the space used.
 
     init : str
