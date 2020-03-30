@@ -131,6 +131,8 @@ def plot_modulation_factor(n_samples, dim, n_expectation=1000, n_theta=20):
     error = []
     small_var_modulation_factor = []
     asymptotic_modulation_factor = []
+    print("Convergence rate modulation factor, "
+          "hyperbolic space dim={1}, n={0}".format(n_samples, dim))
     for theta_i in theta:
         (var, std_var) = modulation_factor(
             n_samples, theta_i, dim, n_expectation=n_expectation)
@@ -157,9 +159,9 @@ def plot_modulation_factor(n_samples, dim, n_expectation=1000, n_theta=20):
     plt.ylim([0, 1.3])
     plt.draw()
     plt.pause(0.01)
-    plt.savefig("Figures/HypVarModulation_N{0}_d{1}_m{2}.png".format(
+    plt.savefig("Figures/HypVarModulation_n{0}_d{1}_m{2}.png".format(
         n_samples, dim, n_expectation))
-    plt.savefig("Figures/HypVarModulation_N{0}_d{1}_m{2}.pdf".format(
+    plt.savefig("Figures/HypVarModulation_n{0}_d{1}_m{2}.pdf".format(
         n_samples, dim, n_expectation))
     return plt
 
@@ -185,6 +187,8 @@ def multi_plot_modulation_factor(dim, n_expectation=1000, n_theta=20):
     theta = gs.linspace(0.000001, 5, n_theta)
     small_var_modulation_factor = []
     asymptotic_modulation_actor = []
+    print("Convergence rate modulation factor, "
+          "hyperbolic space, dim={0}, n > 5".format(dim))
     plt.figure()
     for theta_i in theta:
         small_var_modulation_factor.append(
@@ -204,18 +208,18 @@ def multi_plot_modulation_factor(dim, n_expectation=1000, n_theta=20):
             measured_modulation_factor.append(var)
             print('{} {} {} {}\n'.format(n_samples, theta_i, var, std_var))
         plt.plot(theta, measured_modulation_factor,
-                 color=color[n_samples], label="N={0}".format(n_samples))
+                 color=color[n_samples], label="n={0}".format(n_samples))
     plt.xlabel(r'Standard deviation $\theta$')
     plt.ylabel(r'Modulation factor $\alpha$')
     plt.legend(loc='best')
     plt.title("Convergence rate modulation factor, "
-              "hyperbolic space, dim={0}, N > 5".format(dim))
+              "hyperbolic space, dim={0}, n > 5".format(dim))
     plt.ylim([0, 1.3])
     plt.draw()
     plt.pause(0.01)
-    plt.savefig("Figures/HypVarModulation_N10p_d{0}_m{1}.png".format(
+    plt.savefig("Figures/HypVarModulation_n10p_d{0}_m{1}.png".format(
         dim, n_expectation))
-    plt.savefig("Figures/HypVarModulation_N10p_d{0}_m{1}.pdf".format(
+    plt.savefig("Figures/HypVarModulation_n10p_d{0}_m{1}.pdf".format(
         dim, n_expectation))
     return plt
 
@@ -232,23 +236,20 @@ def main():
     """
     n_expectation = 5000
 
-    print('Var of empirical mean for 1 sample, theta=0.1 '
-                 'in H2 {} \n'.format(empirical_frechet_var_bubble(
+    print('Var of empirical mean for 1 sample, theta=0.1 in H2 '
+          '(should be close to 0.1) {} \n'.format(empirical_frechet_var_bubble(
                      1, 0.1, 2, n_expectation=n_expectation)))
-    print('Var of empirical mean for 1 sample, theta=0.1 '
-                 'in H3 {} \n'.format(empirical_frechet_var_bubble(
+    print('Var of empirical mean for 1 sample, theta=0.1 in H3 '
+          '(should be close to 0.1) {} \n'.format(empirical_frechet_var_bubble(
                      1, 0.1, 3, n_expectation=n_expectation)))
 
     print('Modulation factor for 1 sample theta=0.1 in H2 '
-                 '(should be close to 1): {} \n'.format(
-                     modulation_factor(
-                         1, 0.1, 2, n_expectation=n_expectation)))
+          '(should be close to 1): {} \n'.format(modulation_factor(
+                     1, 0.1, 2, n_expectation=n_expectation)))
 
     print('Modulation factor for 500 sample theta close to 5 in H5 '
-                 '(should be around 0.56): {} \n'.format(
-                     modulation_factor(
-                         500, 5, 5,
-                         n_expectation=n_expectation)))
+          '(should be around 0.56): {} \n'.format(modulation_factor(
+                    500, 5, 5, n_expectation=n_expectation)))
 
     # plot_modulation_factor(2, 2, n_expectation=n_expectation)
     # plot_modulation_factor(4, 2, n_expectation=n_expectation)
@@ -257,7 +258,7 @@ def main():
 
     plot_modulation_factor(2, 3, n_expectation=n_expectation)
     plot_modulation_factor(5, 3, n_expectation=n_expectation)
-    #plot_modulation_factor(6, 3, n_expectation=n_expectation)
+    # plot_modulation_factor(6, 3, n_expectation=n_expectation)
     multi_plot_modulation_factor(3, n_expectation=n_expectation)
 
     # plot_modulation_factor(2, 4, n_expectation=n_expectation)

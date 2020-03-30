@@ -624,7 +624,6 @@ def main():
     # planned 1.007 measured 1.005, but uncertainty is relatively high:
     # should be redone with 100 000 bootstrap samples?
 
-
     # Fisher B9: Highly concentrated,
     # CV schould be almost Euclidean
     sheet = book.sheet_by_name("B9")
@@ -667,8 +666,6 @@ def main():
     # planned 1.04 measured 1.04
     # but incertainty is relatively high:
     # should it be redone with more bootstrapsamples?
-
-
 
     ###########################################################################
     # Non isotropic distributions - Predictions will be over-estimated
@@ -739,8 +736,7 @@ def main():
     plot_empirical_frechet_modulation_bootstrap_s2(FisherB1, 'Fisher B1',
                                                    mean_B1, n_init=5,
                                                    n_expectation=int(
-                                                       n_expectation/5))
-
+                                                       n_expectation / 5))
 
     # to avoid exiting
     plt.figure()
