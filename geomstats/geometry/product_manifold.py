@@ -1,6 +1,6 @@
 """Product of manifolds."""
 
-import multiprocessing as mp
+from joblib import cpu_count, Parallel, delayed
 
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
@@ -76,13 +76,11 @@ class ProductManifold(Manifold):
             args[key], cum_index, axis=1) for key in args.keys()}
         args_list = [{key: arguments[key][j] for key in args.keys()} for j in
                      range(len(self.manifolds))]
-        pool = mp.Pool(min(self.n_jobs, mp.cpu_count()))
-        out = pool.starmap(
-            self._get_method,
-            [(self.manifolds[i], func, args_list[i]) for i in range(
-                len(self.manifolds))])
-        pool.close()
-
+        pool = Parallel(n_jobs=self.n_jobs)
+        out = pool(
+            delayed(self._get_method)(
+                self.manifolds[i], func, args_list[i]) for i in range(
+                len(self.manifolds)))
         return out
 
     def belongs(self, point, point_type=None):

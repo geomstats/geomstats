@@ -3,7 +3,7 @@
 Define the metric of a product manifold endowed with a product metric.
 """
 
-import multiprocessing as mp
+from joblib import cpu_count, Parallel, delayed
 
 import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -97,12 +97,11 @@ class ProductRiemannianMetric(RiemannianMetric):
             args[key], cum_index, axis=1) for key in args.keys()}
         args_list = [{key: arguments[key][j] for key in args.keys()} for j in
                      range(self.n_metrics)]
-        pool = mp.Pool(min(self.n_jobs, mp.cpu_count()))
-        out = pool.starmap(
-            self._get_method,
-            [(self.metrics[i], func, args_list[i]) for i in range(
-                self.n_metrics)])
-        pool.close()
+        pool = Parallel(n_jobs=min(self.n_jobs, cpu_count()))
+        out = pool(
+            delayed(self._get_method)(
+                self.metrics[i], func, args_list[i]) for i in range(
+                self.n_metrics))
         return out
 
     def inner_product(
