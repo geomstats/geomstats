@@ -1,6 +1,6 @@
 """Product of manifolds."""
 
-from joblib import cpu_count, Parallel, delayed
+from joblib import delayed, Parallel
 
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
@@ -35,6 +35,8 @@ class ProductManifold(Manifold):
         Default representation of points.
     """
 
+    # TODO(nguigs): This only works for 1d points
+
     def __init__(self, manifolds, default_point_type='vector', n_jobs=1):
         assert default_point_type in ['vector', 'matrix']
         self.default_point_type = default_point_type
@@ -57,10 +59,8 @@ class ProductManifold(Manifold):
                 [dim + 1 for dim in self.dimensions]):
             intrinsic = False
         else:
-            raise ValueError('Input shape does not match the dimension of'
-                             'the manifold, {0} expected {1} or {2}'.format(
-                              point.shape, self.dimension,  sum(
-                              [dim + 1 for dim in self.dimensions])))
+            raise ValueError(
+                'Input shape does not match the dimension of the manifold,')
         return intrinsic
 
     @staticmethod
@@ -164,7 +164,6 @@ class ProductManifold(Manifold):
         samples : array-like, shape=[n_samples, dimension + 1]
             Points sampled on the hypersphere.
         """
-
         if point_type is None:
             point_type = self.default_point_type
         assert point_type in ['vector', 'matrix']
