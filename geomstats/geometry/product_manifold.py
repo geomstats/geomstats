@@ -107,13 +107,18 @@ class ProductManifold(Manifold):
             intrinsic = self._detect_intrinsic_extrinsic(point, point_type)
             belongs = self._iterate_over_manifolds(
                 'belongs', {'point': point}, intrinsic)
+            belongs = gs.hstack(belongs)
+            print(belongs)
 
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
-            belongs = [space.belongs(point[:, i]) for i, space in enumerate(
-                self.manifolds)]
-        belongs = gs.all(belongs, axis=0)
-        belongs = gs.to_ndarray(belongs, to_ndim=2)
+            belongs = gs.stack([
+                space.belongs(point[:, i]) for i, space in enumerate(
+                    self.manifolds)],
+                axis=1)
+        print(belongs.shape)
+        belongs = gs.all(belongs, axis=1)
+        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
         return belongs
 
     def regularize(self, point, point_type=None):
