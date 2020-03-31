@@ -48,6 +48,16 @@ class Grassmannian(EmbeddedManifold):
             'The Grassmann `belongs` is not implemented.'
             'It shall test whether p*=p, p^2 = p and rank(p) = k.')
 
+    def is_tangent(self, tangent_vec, point):
+        is_inf_rot = Matrices.is_skew_symmetric(tangent_vec)
+        is_transverse = Matrices.equal(
+                Matrices.bracket(tangent_vec, point), 
+                point)
+        return gs.and(is_inf_rot, is_transverse)
+
+    def to_tangent(self, tangent_vec, point):
+        inf_rot = Matrices.to_skew_symmetric(tangent_vec)
+        return Matrices.bracket(inf_rot, point)
 
 class GrassmannianCanonicalMetric(RiemannianMetric):
     """Canonical metric of the Grassmann manifold.
