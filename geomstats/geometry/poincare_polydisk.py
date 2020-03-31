@@ -54,8 +54,8 @@ class PoincarePolydisk(ProductManifold):
         n_disks = point_intrinsic.shape[1]
         hyperbolic_space = Hyperbolic(dimension=2)
         point_extrinsic = gs.stack(
-            [hyperbolic_space.intrinsic_to_extrinsic_coords(
-                point_intrinsic=point_intrinsic[:, i_disk, ...])
+            [hyperbolic_space.from_coordinates(
+                point_intrinsic[:, i_disk, ...], 'intrinsic')
                 for i_disk in range(n_disks)], axis=1)
         return point_extrinsic
 
