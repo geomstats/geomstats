@@ -107,13 +107,13 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
             if gs.mean(centroids_distances) < self.tol:
                 if self.verbose > 0:
-                    logging.info('Convergence Reached after {} '
+                    logging.info('Convergence reached after {} '
                                  'iterations'.format(index))
 
                 return gs.copy(self.centroids)
 
         if index == max_iter:
-            logging.warning('K-means maximum number of iterations {} reached.'
+            logging.warning('K-means maximum number of iterations {} reached. '
                             'The mean may be inaccurate'.format(max_iter))
 
         return gs.copy(self.centroids)

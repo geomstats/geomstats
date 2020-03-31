@@ -105,8 +105,8 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_log_and_exp_general_case(self):
         """
-        Test that the riemannian exponential
-        and the riemannian logarithm are inverse.
+        Test that the Riemannian exponential
+        and the Riemannian logarithm are inverse.
 
         Expect their composition to give the identity function.
 
@@ -130,8 +130,8 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_log_and_exp_edge_case(self):
         """
-        Test that the riemannian exponential
-        and the riemannian logarithm are inverse.
+        Test that the Riemannian exponential
+        and the Riemannian logarithm are inverse.
 
         Expect their composition to give the identity function.
 
@@ -213,8 +213,8 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
         """
-        Test that the riemannian exponential
-        and the riemannian logarithm are inverse.
+        Test that the Riemannian exponential
+        and the Riemannian logarithm are inverse.
 
         Expect their composition to give the identity function.
 
@@ -244,8 +244,8 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """
-        Test that the riemannian exponential
-        and the riemannian logarithm are inverse.
+        Test that the Riemannian exponential
+        and the Riemannian logarithm are inverse.
 
         Expect their composition to give the identity function.
 

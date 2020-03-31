@@ -84,8 +84,8 @@ class TestBetaMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_log_and_exp(self):
         """
-        Test that the riemannian exponential
-        and the riemannian logarithm are inverse.
+        Test that the Riemannian exponential
+        and the Riemannian logarithm are inverse.
 
         Expect their composition to give the identity function.
         """
