@@ -517,7 +517,7 @@ And here's a filled-in example from the Scikit-Learn project, modified to our sy
 
 In general, have the following in mind:
  
-   1. Use Python basic types. (``bool`` instead of ``boolean``)
+   1. Use built-in Python types. (``bool`` instead of ``boolean``)
  
    2. Use ``[`` for defining shapes: ``array-like, shape=[n_samples,]``
  
