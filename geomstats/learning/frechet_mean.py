@@ -25,21 +25,21 @@ def variance(points,
 
     weights : array-like, shape=[n_samples, 1], optional
     """
+    n_points = gs.shape(points)[0]
+    if weights is None:
+        weights = gs.ones((n_points, 1))
+    weights = gs.array(weights)
+
+    sum_weights = gs.sum(weights)
     if point_type == 'vector':
         points = gs.to_ndarray(points, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
+        weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
     if point_type == 'matrix':
         points = gs.to_ndarray(points, to_ndim=3)
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-    n_points = gs.shape(points)[0]
-
-    if weights is None:
-        weights = gs.ones((n_points, 1))
-
-    weights = gs.array(weights)
-    # weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
-
-    sum_weights = gs.sum(weights)
+        weights = gs.to_ndarray(weights, to_ndim=3, axis=1)
+        weights = weights[:, :, 0]
 
     var = 0.
 
@@ -118,7 +118,8 @@ def _default_gradient_descent(points, metric, weights,
             points=points,
             weights=weights,
             metric=metric,
-            base_point=estimate_next)
+            base_point=estimate_next,
+            point_type=point_type)
 
         mean = estimate_next
         iteration += 1
@@ -126,7 +127,9 @@ def _default_gradient_descent(points, metric, weights,
 
     if point_type == 'vector':
         points = gs.to_ndarray(points, to_ndim=2)
+        einsum_str = 'nk,nj->j'
     if point_type == 'matrix':
+        einsum_str = 'nkl,nij->ij'
         points = gs.to_ndarray(points, to_ndim=3)
     n_points = gs.shape(points)[0]
 
@@ -140,13 +143,16 @@ def _default_gradient_descent(points, metric, weights,
 
     mean = points[0]
     if point_type == 'vector':
+        weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
         mean = gs.to_ndarray(mean, to_ndim=2)
     if point_type == 'matrix':
+        weights = gs.to_ndarray(weights, to_ndim=3, axis=1)
         mean = gs.to_ndarray(mean, to_ndim=3)
 
     if n_points == 1:
         return mean
 
+    sum_weights = gs.sum(weights)
     sq_dists_between_iterates = []
     iteration = 0
     sq_dist = gs.array([[0.]])
@@ -304,17 +310,17 @@ class FrechetMean(BaseEstimator):
 
     Parameters
     ----------
-    n_max_iterations:
+    max_iter:
     """
 
     def __init__(self, metric,
-                 n_max_iterations=32,
+                 max_iter=32,
                  epsilon=EPSILON,
                  point_type='vector',
                  method='default',
                  verbose=False):
         self.metric = metric
-        self.n_max_iterations = n_max_iterations
+        self.n_max_iterations = max_iter
         self.epsilon = epsilon
         self.point_type = point_type
         self.method = method

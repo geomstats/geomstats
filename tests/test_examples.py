@@ -9,6 +9,7 @@ import examples.gradient_descent_s2 as gradient_descent_s2
 import examples.loss_and_gradient_se3 as loss_and_gradient_se3
 import examples.loss_and_gradient_so3 as loss_and_gradient_so3
 import examples.plot_geodesics_h2 as plot_geodesics_h2
+import examples.plot_geodesics_poincare_polydisk as plot_geodesics_poincare_polydisk # NOQA
 import examples.plot_geodesics_s2 as plot_geodesics_s2
 import examples.plot_geodesics_se3 as plot_geodesics_se3
 import examples.plot_geodesics_so3 as plot_geodesics_so3
@@ -57,6 +58,10 @@ class TestExamples(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_plot_geodesics_h2(self):
         plot_geodesics_h2.main()
+
+    @geomstats.tests.np_only
+    def test_plot_geodesics_poincare_polydisk(self):
+        plot_geodesics_poincare_polydisk.main()
 
     @geomstats.tests.np_only
     def test_plot_geodesics_s2(self):
