@@ -517,7 +517,7 @@ class Hyperbolic(EmbeddedManifold):
         Sample over the hyperbolic space. The sampling is performed
         by sampling over uniform distribution, the sampled examples
         are considered in the intrinsic coordinates system.
-        The function then transform intrasic samples into system
+        The function then transforms intrinsic samples into system
         coordinate selected.
 
         Parameters
