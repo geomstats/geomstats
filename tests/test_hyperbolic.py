@@ -22,6 +22,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         self.space = Hyperbolic(dimension=self.dimension)
         self.metric = self.space.metric
         self.n_samples = 10
+        self.ball_manifold = Hyperbolic(
+            dimension=self.dimension, point_type='ball')
 
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
@@ -120,6 +122,17 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
                          base_point=base_point)
         with self.session():
             self.assertTrue(gs.eval(H2.belongs(exp)))
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_ball_retraction(self):
+        x = gs.array([0.5, 0.6])
+        y = gs.array([0.3, 0.5])
+
+        ball_metric = self.ball_manifold.metric
+        tan_v = ball_metric.log(y, x)
+
+        ball_metric.retraction(tan_v, x)
+
 
     @geomstats.tests.np_and_pytorch_only
     def test_exp_vectorization(self):
@@ -463,6 +476,21 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
             tangent_vec, base_point)
         result = squared_norm_scaled_metric
         expected = scale ** 2 * squared_norm_default_metric
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_scaled_distance(self):
+        point_a_intrinsic = gs.array([1, 2, 3])
+        point_b_intrinsic = gs.array([4, 5, 6])
+        point_a = self.space.from_coordinates(point_a_intrinsic, "intrinsic")
+        point_b = self.space.from_coordinates(point_b_intrinsic, "intrinsic")
+        scale = 2
+        default_space = Hyperbolic(dimension=self.dimension)
+        scaled_space = Hyperbolic(dimension=self.dimension, scale=2)
+        distance_default_metric = default_space.metric.dist(point_a, point_b)
+        distance_scaled_metric = scaled_space.metric.dist(point_a, point_b)
+        result = distance_scaled_metric
+        expected = scale * distance_default_metric
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only

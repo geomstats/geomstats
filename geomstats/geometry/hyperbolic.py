@@ -889,26 +889,9 @@ class HyperbolicMetric(RiemannianMetric):
             Retraction point.
         """
         if self.point_type == 'ball':
-            retractation_factor = ((1 - (base_point**2).sum())**2) / 4
-            return base_point - retractation_factor * tan_vector
+            retraction_factor = ((1 - (base_point**2).sum())**2) / 4
+            return base_point - retraction_factor * tan_vector
 
         else:
             raise NotImplementedError(
                 'Retraction is only implemented for ball and extrinsic')
-
-    def squared_dist(self, point_a, point_b):
-        """Hyperbolic squared distance.
-
-        Redefine Riemannian squared distance between two points
-            for hyperbolic manifold.
-
-        Parameters
-        ----------
-        point_a : array-like, shape=[n_samples, dimension]
-        point_b : array-like, shape=[n_samples, dimension]
-
-        Returns
-        -------
-        sq_dist : array-like, shape=[n_samples,]
-        """
-        return self.dist(point_a, point_b)**2
