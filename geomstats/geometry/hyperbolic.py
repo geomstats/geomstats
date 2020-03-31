@@ -712,9 +712,10 @@ class HyperbolicMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
+        point = gs.to_ndarray(point, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+
         if self.point_type == 'extrinsic':
-            point = gs.to_ndarray(point, to_ndim=2)
-            base_point = gs.to_ndarray(base_point, to_ndim=2)
 
             angle = self.dist(base_point, point) / self.scale
             angle = gs.to_ndarray(angle, to_ndim=1)
