@@ -1,7 +1,6 @@
 """The n-dimensional hyperbolic space.
 
-The n-dimensional hyperbolic space embedded in (n+1)-dimensional
-Minkowski space.
+The n-dimensional hyperbolic space embedded and the its different models.
 """
 
 import logging
@@ -35,7 +34,7 @@ INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
                           0., + 2. / 945.,
                           0., -1. / 4725.]
 
-EPSILON = 1e-5
+EPSILON = 1e-8
 
 
 class Hyperbolic(EmbeddedManifold):
@@ -71,6 +70,10 @@ class Hyperbolic(EmbeddedManifold):
         self.scale = scale
         self.metric = HyperbolicMetric(self.dimension, point_type, self.scale)
 
+        if(point_type=="half-plane" and dimension!=2):
+            raise NotImplementedError(
+                'Poincaré upper half plane is only valid in dimension 2')
+
         self.transform_to = {
             'ball-extrinsic':
                 Hyperbolic._ball_to_extrinsic_coordinates,
@@ -88,11 +91,13 @@ class Hyperbolic(EmbeddedManifold):
                 Hyperbolic._extrinsic_to_extrinsic_coordinates
         }
         self.belongs_to = {
-            'ball': Hyperbolic._belongs_ball
+            'ball': self._belongs_ball,
+            'extrinsic': self._belongs_hyperboloid,
+            'intrinsic': self._belongs_hyperboloid,
+            'half-plane': self._belongs_half_plane
         }
 
-    @staticmethod
-    def _belongs_ball(point, tolerance=TOLERANCE):
+    def _belongs_ball(self, point, tolerance=TOLERANCE):
         """Test if a point belongs to the hyperbolic space.
 
         Test if a point belongs to the hyperbolic space based on
@@ -113,7 +118,67 @@ class Hyperbolic(EmbeddedManifold):
             Array of booleans indicating whether the corresponding points
             belong to the hyperbolic space.
         """
-        return gs.sum(point**2, -1) < (1 + tolerance)
+        return gs.sum(point**2, -1) < (1 - tolerance)
+
+    def _belongs_hyperboloid(self, point, tolerance=TOLERANCE):
+        """Test if a point belongs to the hyperbolic space.
+
+        Test if a point belongs to the hyperbolic space based on
+        the poincare ball representation, i.e. evaluate if its
+        squared norm is lower than 1.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dimension]
+            Point to be tested.
+        tolerance : float, optional
+            Tolerance at which to evaluate how close the squared norm
+            is to the reference value.
+
+        Returns
+        -------
+        belongs : array-like, shape=[n_samples, 1]
+            Array of booleans indicating whether the corresponding points
+            belong to the hyperbolic space.
+        """
+        point = gs.to_ndarray(point, to_ndim=2)
+        _, point_dim = point.shape
+        if point_dim is not self.dimension + 1:
+            if point_dim is self.dimension and self.point_type == "intrasic":
+                return gs.array([[True]])
+            else:
+                return gs.array([[False]])
+
+        sq_norm = self.embedding_metric.squared_norm(point)
+        euclidean_sq_norm = gs.linalg.norm(point, axis=-1) ** 2
+        euclidean_sq_norm = gs.to_ndarray(euclidean_sq_norm,
+                                          to_ndim=2, axis=1)
+        diff = gs.abs(sq_norm + 1)
+        belongs = diff < tolerance * euclidean_sq_norm
+        return belongs
+
+    def _belongs_half_plane(self, point, tolerance=TOLERANCE):
+        """Test if a point belongs to the Poincaré Half Plane.
+
+        Test if a point belongs to the hyperbolic space based on
+        the poincare Half Plane representation, i.e. evaluate if its
+        second coordinate is > 0
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, 2]
+            Point to be tested.
+        tolerance : float, optional
+            Tolerance at which to evaluate how close the squared norm
+            is to the reference value.
+
+        Returns
+        -------
+        belongs : array-like, shape=[n_samples, 1]
+            Array of booleans indicating whether the corresponding points
+            belong to the hyperbolic space.
+        """
+        return point[:, -1] > (0. + TOLERANCE)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """Test if a point belongs to the hyperbolic space.
@@ -136,25 +201,8 @@ class Hyperbolic(EmbeddedManifold):
             Array of booleans evaluating if the corresponding points
             belong to the hyperbolic space.
         """
-        if self.point_type == 'ball':
-            return self.belongs_to[self.point_type](point, tolerance=tolerance)
-        else:
-            point = gs.to_ndarray(point, to_ndim=2)
-            _, point_dim = point.shape
-            if point_dim is not self.dimension + 1:
-                if point_dim is self.dimension:
-                    logging.warning(
-                        'Use the extrinsic coordinates to '
-                        'represent points in the hyperbolic space.')
-                    return gs.array([[False]])
 
-            sq_norm = self.embedding_metric.squared_norm(point)
-            euclidean_sq_norm = gs.linalg.norm(point, axis=-1) ** 2
-            euclidean_sq_norm = gs.to_ndarray(euclidean_sq_norm,
-                                              to_ndim=2, axis=1)
-            diff = gs.abs(sq_norm + 1)
-            belongs = diff < tolerance * euclidean_sq_norm
-            return belongs
+        return self.belongs_to[self.point_type](point, tolerance=tolerance)
 
     def regularize(self, point):
         """Regularize a point to the canonical representation.
@@ -217,27 +265,8 @@ class Hyperbolic(EmbeddedManifold):
         tangent_vec = vector - gs.einsum('ni,nj->nj', coef, base_point)
         return tangent_vec
 
-    def intrinsic_to_extrinsic_coords(self, point_intrinsic):
-        """Convert the parameterization of a point.
-
-        Convert the parameterization of a point on the hyperbolic
-        space from its intrinsic coordinates to its extrinsic coordinates
-        in Minkowski space.
-
-        Parameters
-        ----------
-        point_intrinsic : array-like, shape=[n_samples, dimension]
-            Point in hyperbolic space in intrinsic coordinates.
-
-        Returns
-        -------
-        point_extrinsic : array-like, shape=[n_samples, dimension + 1]
-            Point in hyperbolic space in extrinsic coordinates.
-        """
-        return Hyperbolic._intrinsic_to_extrinsic_coordinates(
-            point_intrinsic)
-
-    def extrinsic_to_intrinsic_coords(self, point_extrinsic):
+    @staticmethod
+    def _extrinsic_to_extrinsic_coordinates(point):
         """Convert the parameterization of a point.
 
         Convert the parameterization of a point in hyperbolic space
@@ -254,11 +283,6 @@ class Hyperbolic(EmbeddedManifold):
         point_intrinsic : array-like, shape=[n_samples, dimension]
             Point in hyperbolic space in intrinsic coordinates.
         """
-        return Hyperbolic._extrinsic_to_intrinsic_coordinates(
-            point_extrinsic)
-
-    @staticmethod
-    def _extrinsic_to_extrinsic_coordinates(point):
         return gs.to_ndarray(point, to_ndim=2)
 
     @staticmethod
@@ -490,7 +514,8 @@ class Hyperbolic(EmbeddedManifold):
             ](extrinsic)
 
     def random_uniform(self, n_samples=1, bound=1.):
-        """Sample in hyperbolic space from the uniform distribution.
+        """Sample in hyperbolic space from the uniform distribution
+        in intrasic representation.
 
         Parameters
         ----------
@@ -507,7 +532,7 @@ class Hyperbolic(EmbeddedManifold):
         size = (n_samples, self.dimension)
         samples = bound * 2. * (gs.random.rand(*size) - 0.5)
 
-        return self.intrinsic_to_extrinsic_coords(samples)
+        return self.transform_to["intrinsic-" + self.point_type](samples)
 
 
 class HyperbolicMetric(RiemannianMetric):
@@ -738,7 +763,7 @@ class HyperbolicMetric(RiemannianMetric):
             return log
         else:
             raise NotImplementedError(
-                'log is only implemented for ball and extrinsic')
+                'log map is only implemented for ball and extrinsic')
 
     def mobius_add(self, point_a, point_b):
         r"""Compute the Mobius addition of two points.
@@ -833,6 +858,33 @@ class HyperbolicMetric(RiemannianMetric):
         else:
             raise NotImplementedError(
                 'dist is only implemented for ball and extrinsic')
+
+    def retraction(self, tan_vector, base_point):
+        """Approximate the exponential map of hyperbolic space,
+           currently working only with poincare ball.
+           The retraction used is the one proposed in "Poincaré
+           Embedding for Learning Hierarchical Representation"
+           (nickel et.al 2017)
+
+        Parameters
+        ----------
+        tan_vector : array-like, shape=[n_samples, dimension]
+            Point in a tangent space.
+        base_point : array-like, shape=[n_samples, dimension]
+            Second point in hyperbolic space.
+
+        Returns
+        -------
+        point : array-like, shape=[n_samples, dimension]
+            Retraction point.
+        """
+        if self.point_type == 'ball':
+            retractation_factor = ((1 - (base_point**2).sum())**2) / 4
+            return base_point - retractation_factor * tan_vector
+
+        else:
+            raise NotImplementedError(
+                'Retraction is only implemented for ball and extrinsic')
 
     def squared_dist(self, point_a, point_b):
         """ Redefine Riemannian squared distance between two points
