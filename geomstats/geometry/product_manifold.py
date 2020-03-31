@@ -43,7 +43,8 @@ class ProductManifold(Manifold):
 
         self.manifolds = manifolds
         self.metric = ProductRiemannianMetric(
-            [manifold.metric for manifold in manifolds])
+            [manifold.metric for manifold in manifolds],
+            default_point_type=default_point_type)
 
         self.dimensions = [manifold.dimension for manifold in manifolds]
         super(ProductManifold, self).__init__(
@@ -106,7 +107,6 @@ class ProductManifold(Manifold):
             belongs = self._iterate_over_manifolds(
                 'belongs', {'point': point}, intrinsic)
             belongs = gs.hstack(belongs)
-            print(belongs)
 
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
