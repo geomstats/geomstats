@@ -69,12 +69,10 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         return matrix
 
-    def _detect_intrinsic_extrinsic(self, point, point_type):
-        assert point_type in ['vector', 'matrix']
-        index = 1 if point_type == 'vector' else 2
-        if point.shape[index] == self.dimension:
+    def _detect_intrinsic_extrinsic(self, point):
+        if point.shape[1] == self.dimension:
             intrinsic = True
-        elif point.shape[index] == sum(
+        elif point.shape[1] == sum(
                 [dim + 1 for dim in self.dimensions]):
             intrinsic = False
         else:
@@ -91,13 +89,13 @@ class ProductRiemannianMetric(RiemannianMetric):
     def _iterate_over_metrics(
             self, func, args, intrinsic=False):
 
-        cum_index = gs.cumsum(self.dimensions)[:-1] if intrinsic else \
-            gs.cumsum([k + 1 for k in self.dimensions])
-        arguments = {key: gs.split(
-            args[key], cum_index, axis=1) for key in args.keys()}
+        cum_index = gs.cumsum(self.dimensions, axis=0)[:-1] if intrinsic else \
+            gs.cumsum(gs.array([k + 1 for k in self.dimensions]), axis=0)
+        arguments = {
+            key: gs.split(args[key], cum_index, axis=1) for key in args.keys()}
         args_list = [{key: arguments[key][j] for key in args.keys()} for j in
                      range(self.n_metrics)]
-        pool = Parallel(n_jobs=min(self.n_jobs, cpu_count()))
+        pool = Parallel(n_jobs=self.n_jobs, prefer='threads')
         out = pool(
             delayed(self._get_method)(
                 self.metrics[i], func, args_list[i]) for i in range(
@@ -137,8 +135,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
             tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
-            intrinsic = self._detect_intrinsic_extrinsic(tangent_vec_b,
-                                                         point_type)
+            intrinsic = self._detect_intrinsic_extrinsic(tangent_vec_b)
             args = {'tangent_vec_a': tangent_vec_a,
                     'tangent_vec_b': tangent_vec_b,
                     'base_point': base_point}
@@ -184,7 +181,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         if point_type == 'vector':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
-            intrinsic = self._detect_intrinsic_extrinsic(base_point, point_type)
+            intrinsic = self._detect_intrinsic_extrinsic(base_point)
             args = {'tangent_vec': tangent_vec, 'base_point': base_point}
             exp = self._iterate_over_metrics('exp', args, intrinsic)
             return gs.hstack(exp)
@@ -224,7 +221,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
-            intrinsic = self._detect_intrinsic_extrinsic(base_point, point_type)
+            intrinsic = self._detect_intrinsic_extrinsic(base_point)
             args = {'point': point, 'base_point': base_point}
             log = self._iterate_over_metrics('log', args, intrinsic)
             return gs.hstack(log)

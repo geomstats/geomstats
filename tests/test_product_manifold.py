@@ -23,7 +23,7 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
 
     def test_dimension(self):
         expected = 7
-        result = self.space.dimension
+        result = self.space_vector.dimension
         self.assertAllClose(result, expected)
 
     def test_random_and_belongs_matrix(self):
@@ -38,4 +38,26 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
         data = self.space_vector.random_uniform(n_samples)
         result = self.space_vector.belongs(data)
         expected = gs.array([[True] * n_samples]).transpose(1, 0)
+        self.assertAllClose(result, expected)
+
+    def test_exp_log_vector(self):
+        n_samples = 5
+        expected = self.space_vector.random_uniform(n_samples)
+        base_point = self.space_vector.random_uniform(n_samples)
+        logs = self.space_vector.metric.log(expected, base_point)
+        result = self.space_vector.metric.exp(logs, base_point)
+        self.assertAllClose(result, expected)
+
+    def test_dist(self):
+        n_samples = 5
+        point = self.space_vector.random_uniform(n_samples)
+        base_point = self.space_vector.random_uniform(n_samples)
+        logs = self.space_vector.metric.log(point, base_point)
+        logs = gs.einsum(
+            '..., ...j->...j',
+            1. / self.space_vector.metric.norm(logs, base_point),
+            logs)
+        point = self.space_vector.metric.exp(logs, base_point)
+        result = self.space_vector.metric.dist(point, base_point)
+        expected = gs.ones(n_samples)
         self.assertAllClose(result, expected)

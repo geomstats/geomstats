@@ -442,8 +442,8 @@ def sign(*args, **kwargs):
     return torch.sign(*args, **kwargs)
 
 
-def split(*args, **kwargs):
-    return torch.split(*args, **kwargs)
+def split(*args, axis=0):
+    return torch.split(*args, dim=axis)
 
 
 def mean(x, axis=None):
@@ -486,3 +486,10 @@ def cumprod(x, axis=0):
 
 def isnan(*args, **kwargs):
     return torch.isnan(*args, **kwargs)
+
+
+def cumsum(x, axis=0):
+    if axis is None:
+        raise NotImplementedError('cumsum is not defined where axis is None')
+    else:
+        return torch.cumsum(x, dim=axis)
