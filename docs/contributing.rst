@@ -396,7 +396,7 @@ its purpose, usage, and other information.
 There are different markdown languages/formats used for docstrings in Python. The most common 
 three are reStructuredText, numpy, and google docstring styles. For geomstats, we are
 using the numpy docstring standard. 
-When writing up your docstrings, please review the `NumPy template <https://numpydoc.readthedocs.io/en/latest/format.html>`_ 
+When writing up your docstrings, please review the `NumPy docstring guidge <https://numpydoc.readthedocs.io/en/latest/format.html>`_ 
 to understand the role and syntax of each section. Following this syntax is important not only for readability, 
 it is also required for automated parsing for inclusion into our generated API Reference.
 
