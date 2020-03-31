@@ -1,14 +1,11 @@
 """Product of manifolds."""
 
-from joblib import delayed, Parallel
+import joblib
 
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.product_riemannian_metric import \
     ProductRiemannianMetric
-
-# TODO(nina): get rid of for loops
-# TODO(nina): unit tests
 
 
 class ProductManifold(Manifold):
@@ -35,7 +32,7 @@ class ProductManifold(Manifold):
         Default representation of points.
     """
 
-    # TODO(nguigs): This only works for 1d points
+    # FIXME(nguigs): This only works for 1d points
 
     def __init__(self, manifolds, default_point_type='vector', n_jobs=1):
         assert default_point_type in ['vector', 'matrix']
@@ -51,17 +48,6 @@ class ProductManifold(Manifold):
             dimension=sum(self.dimensions))
         self.n_jobs = n_jobs
 
-    def _detect_intrinsic_extrinsic(self, point):
-        if point.shape[1] == self.dimension:
-            intrinsic = True
-        elif point.shape[1] == sum(
-                [dim + 1 for dim in self.dimensions]):
-            intrinsic = False
-        else:
-            raise ValueError(
-                'Input shape does not match the dimension of the manifold')
-        return intrinsic
-
     @staticmethod
     def _get_method(manifold, method_name, metric_args):
         return getattr(manifold, method_name)(**metric_args)
@@ -75,9 +61,9 @@ class ProductManifold(Manifold):
             args[key], cum_index, axis=1) for key in args.keys()}
         args_list = [{key: arguments[key][j] for key in args.keys()} for j in
                      range(len(self.manifolds))]
-        pool = Parallel(n_jobs=self.n_jobs)
+        pool = joblib.Parallel(n_jobs=self.n_jobs)
         out = pool(
-            delayed(self._get_method)(
+            joblib.delayed(self._get_method)(
                 self.manifolds[i], func, args_list[i]) for i in range(
                 len(self.manifolds)))
         return out
@@ -103,7 +89,7 @@ class ProductManifold(Manifold):
             point_type = self.default_point_type
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
-            intrinsic = self._detect_intrinsic_extrinsic(point)
+            intrinsic = self.metric.is_intrinsic(point)
             belongs = self._iterate_over_manifolds(
                 'belongs', {'point': point}, intrinsic)
             belongs = gs.hstack(belongs)
@@ -153,7 +139,7 @@ class ProductManifold(Manifold):
         return gs.all(regularized_point)
 
     def random_uniform(self, n_samples, point_type=None):
-        """Sample in the the product space from the uniform distribution.
+        """Sample in the product space from the uniform distribution.
 
         Parameters
         ----------
