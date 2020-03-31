@@ -3,13 +3,13 @@
 Define the metric of a product manifold endowed with a product metric.
 """
 
+import joblib
+
 import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 EPSILON = 1e-5
 
-
-# TODO(nina): unit tests
 
 class ProductRiemannianMetric(RiemannianMetric):
     """Class for product of Riemannian metrics.
@@ -20,13 +20,16 @@ class ProductRiemannianMetric(RiemannianMetric):
         List of metrics in the product.
     """
 
-    def __init__(self, metrics):
+    def __init__(self, metrics, default_point_type='vector', n_jobs=1):
         self.n_metrics = len(metrics)
-        self.metrics = metrics
         dimensions = [metric.dimension for metric in metrics]
-        self.dimensions = dimensions
         signatures = [metric.signature for metric in metrics]
+
+        self.metrics = metrics
+        self.dimensions = dimensions
         self.signatures = signatures
+        self.default_point_type = default_point_type
+        self.n_jobs = n_jobs
 
         sig_0 = sum([sig[0] for sig in signatures])
         sig_1 = sum([sig[1] for sig in signatures])
@@ -52,21 +55,52 @@ class ProductRiemannianMetric(RiemannianMetric):
             Matrix of the inner-product at the base point.
         """
         matrix = gs.zeros([self.dimension, self.dimension])
-        b = self.dimensions[0]
-        matrix[:b, :b] = self.metrics.inner_product_matrix(base_point[0])
         dim_current = 0
-
         for i in range(self.n_metrics - 1):
             dim_current += self.dimensions[i]
             dim_next = self.dimensions[i + 1]
             a = dim_current
             b = dim_current + dim_next
-            matrix_next = self.metrics.inner_product_matrix(base_point[i + 1])
+            matrix_next = self.metrics[i].inner_product_matrix(
+                base_point[i + 1])
             matrix[a:b, a:b] = matrix_next
 
         return matrix
 
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
+    def _is_intrinsic(self, point):
+        if point.shape[1] == self.dimension:
+            intrinsic = True
+        elif point.shape[1] == sum(
+                [dim + 1 for dim in self.dimensions]):
+            intrinsic = False
+        else:
+            raise ValueError(
+                'Input shape does not match the dimension of the manifold')
+        return intrinsic
+
+    @staticmethod
+    def _get_method(metric, method_name, metric_args):
+        return getattr(metric, method_name)(**metric_args)
+
+    def _iterate_over_metrics(
+            self, func, args, intrinsic=False):
+
+        cum_index = gs.cumsum(self.dimensions, axis=0)[:-1] if intrinsic else \
+            gs.cumsum(gs.array([k + 1 for k in self.dimensions]), axis=0)
+        arguments = {
+            key: gs.split(args[key], cum_index, axis=1) for key in args.keys()}
+        args_list = [{key: arguments[key][j] for key in args.keys()} for j in
+                     range(self.n_metrics)]
+        pool = joblib.Parallel(n_jobs=self.n_jobs, prefer='threads')
+        out = pool(
+            joblib.delayed(self._get_method)(
+                self.metrics[i], func, args_list[i]) for i in range(
+                self.n_metrics))
+        return out
+
+    def inner_product(
+            self, tangent_vec_a, tangent_vec_b, base_point=None,
+            point_type=None):
         """Compute the inner-product of two tangent vectors at a base point.
 
         Inner product defined by the Riemannian metric at point `base_point`
@@ -80,6 +114,8 @@ class ProductRiemannianMetric(RiemannianMetric):
             Second tangent vector at base point.
         base_point : array-like, shape=[n_samples, dimension + 1], optional
             Point on the manifold.
+        point_type : str, {'vector', 'matrix'}
+            Type of representation used for points.
 
         Returns
         -------
@@ -89,19 +125,34 @@ class ProductRiemannianMetric(RiemannianMetric):
         if base_point is None:
             base_point = [None, ] * self.n_metrics
 
-        inner_products = [metric.inner_product(tangent_vec_a[i],
-                                               tangent_vec_b[i],
-                                               base_point[i])
-                          for i, metric in enumerate(self.metrics)]
-        inner_product = gs.sum(inner_products)
+        if point_type is None:
+            point_type = self.default_point_type
+        if point_type == 'vector':
+            tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
+            tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
+            base_point = gs.to_ndarray(base_point, to_ndim=2)
+            intrinsic = self._is_intrinsic(tangent_vec_b)
+            args = {'tangent_vec_a': tangent_vec_a,
+                    'tangent_vec_b': tangent_vec_b,
+                    'base_point': base_point}
+            inner_prod = self._iterate_over_metrics(
+                'inner_product', args, intrinsic)
+            return gs.sum(gs.hstack(inner_prod), axis=1)
+        elif point_type == 'matrix':
+            tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
+            tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
+            base_point = gs.to_ndarray(base_point, to_ndim=3)
+            inner_products = [metric.inner_product(tangent_vec_a[:, i],
+                                                   tangent_vec_b[:, i],
+                                                   base_point[:, i])
+                              for i, metric in enumerate(self.metrics)]
+            return sum(inner_products)
+        else:
+            raise ValueError('invalid point_type argument: {}, expected '
+                             'either matrix of vector'.format(point_type))
 
-        return inner_product
-
-    def exp(self, tangent_vec, base_point=None):
-        """Compute Riemannian exponential of tangent vector at base point.
-
-        Riemannian exponential at point base_point
-        of tangent vector tangent_vec wrt the Riemannian metric.
+    def exp(self, tangent_vec, base_point=None, point_type=None):
+        """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
         ----------
@@ -109,6 +160,8 @@ class ProductRiemannianMetric(RiemannianMetric):
             Tangent vector at a base point.
         base_point : array-like, shape=[n_samples, dimension]
             Point on the manifold.
+        point_type : str, {'vector', 'matrix'}
+            Type of representation used for points.
 
         Returns
         -------
@@ -119,12 +172,26 @@ class ProductRiemannianMetric(RiemannianMetric):
         if base_point is None:
             base_point = [None, ] * self.n_metrics
 
-        exp = gs.asarray([self.metrics[i].exp(tangent_vec[i],
-                                              base_point[i])
-                          for i in range(self.n_metrics)])
-        return exp
+        if point_type is None:
+            point_type = self.default_point_type
+        if point_type == 'vector':
+            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+            base_point = gs.to_ndarray(base_point, to_ndim=2)
+            intrinsic = self._is_intrinsic(base_point)
+            args = {'tangent_vec': tangent_vec, 'base_point': base_point}
+            exp = self._iterate_over_metrics('exp', args, intrinsic)
+            return gs.hstack(exp)
+        elif point_type == 'matrix':
+            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
+            base_point = gs.to_ndarray(base_point, to_ndim=3)
+            return gs.stack([
+                self.metrics[i].exp(tangent_vec[:, i], base_point[:, i])
+                for i in range(self.n_metrics)], axis=1)
+        else:
+            raise ValueError('invalid point_type argument: {}, expected '
+                             'either matrix of vector'.format(point_type))
 
-    def log(self, point, base_point=None):
+    def log(self, point, base_point=None, point_type=None):
         """Compute the Riemannian logarithm of a point.
 
         Parameters
@@ -133,6 +200,8 @@ class ProductRiemannianMetric(RiemannianMetric):
             Point on the manifold.
         base_point : array-like, shape=[n_samples, dimension]
             Point on the manifold.
+        point_type : str, {'vector', 'matrix'}
+            Type of representation used for points.
 
         Returns
         -------
@@ -143,80 +212,21 @@ class ProductRiemannianMetric(RiemannianMetric):
         if base_point is None:
             base_point = [None, ] * self.n_metrics
 
-        log = gs.asarray([self.metrics[i].log(point[i],
-                                              base_point[i])
-                          for i in range(self.n_metrics)])
-        return log
-
-    def squared_dist(self, point_a, point_b):
-        """Compute squared geodesic distance between two points.
-
-        Parameters
-        ----------
-        point_a : array-like, shape=[n_samples, dimension]
-            First point on the manifold.
-        point_b : array-like, shape=[n_samples, dimension]
-            Second point on the manifold.
-
-        Returns
-        -------
-        sq_dist : array-like, shape=[n_samples, 1]
-            Geodesic distance between the two points.
-        """
-        sq_distances = gs.asarray(
-            [metric.squared_dist(point_a[i], point_b[i])
-             for i, metric in enumerate(self.metrics)])
-
-        return sum(sq_distances)
-
-    def geodesic(self, initial_point,
-                 end_point=None, initial_tangent_vec=None,
-                 point_type=None):
-        """Compute the geodesic as a function of t.
-
-        This geodesic is seen as the product of the geodesic on each space.
-        The geodesic curve is defined by either:
-        - an initial point and an initial tangent vector,
-        or
-        -an initial point and an end point.
-
-        Parameters
-        ----------
-        initial_point : array-like, shape=[n_samples, dim]
-            Initial point of the geodesic.
-        end_point : array-like, shape=[n_samples, dim], optional
-            End point of the geodesic.
-        initial_tangent_vec : array-like, shape=[n_samples, dim], optional
-            Initial tangent vector of the geodesic.
-        point_type : str, {'vector', 'matrix'}, optional
-            Representation of point.
-
-        Returns
-        -------
-        path : callable
-            The time-parameterized geodesic.
-        """
         if point_type is None:
             point_type = self.default_point_type
-        assert point_type in ['vector', 'matrix']
-
-        if end_point is not None:
-            geodesics = [
-                metric.geodesic(
-                    initial_point[:, i_space, ...],
-                    end_point=end_point[:, i_space, ...],
-                    point_type=point_type)
-                for i_space, metric in enumerate(self.metrics)]
+        if point_type == 'vector':
+            point = gs.to_ndarray(point, to_ndim=2)
+            base_point = gs.to_ndarray(base_point, to_ndim=2)
+            intrinsic = self._is_intrinsic(base_point)
+            args = {'point': point, 'base_point': base_point}
+            log = self._iterate_over_metrics('log', args, intrinsic)
+            return gs.hstack(log)
+        elif point_type == 'matrix':
+            point = gs.to_ndarray(point, to_ndim=3)
+            base_point = gs.to_ndarray(base_point, to_ndim=3)
+            return gs.stack(
+                [self.metrics[i].log(point[:, i], base_point[:, i])
+                 for i in range(self.n_metrics)], axis=1)
         else:
-            geodesics = [
-                metric.geodesic(
-                    initial_point[:, i, ...],
-                    initial_tangent_vec=initial_tangent_vec[:, i, ...],
-                    point_type=point_type)
-                for i, metric in enumerate(self.metrics)]
-
-        def path(t):
-            geod = gs.stack([geodesic(t) for geodesic in geodesics], axis=0)
-            geod = gs.swapaxes(geod, 0, 1)
-            return geod
-        return path
+            raise ValueError('invalid point_type argument: {}, expected '
+                             'either matrix of vector'.format(point_type))
