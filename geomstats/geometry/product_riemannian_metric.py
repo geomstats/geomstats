@@ -3,7 +3,7 @@
 Define the metric of a product manifold endowed with a product metric.
 """
 
-from joblib import cpu_count, Parallel, delayed
+from joblib import delayed, Parallel
 
 import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -76,10 +76,8 @@ class ProductRiemannianMetric(RiemannianMetric):
                 [dim + 1 for dim in self.dimensions]):
             intrinsic = False
         else:
-            raise ValueError('Input shape does not match the dimension of'
-                             'the manifold, {0} expected {1} or {2}'.format(
-                              point.shape, self.dimension,  sum(
-                              [dim + 1 for dim in self.dimensions])))
+            raise ValueError(
+                'Input shape does not match the dimension of the manifold')
         return intrinsic
 
     @staticmethod

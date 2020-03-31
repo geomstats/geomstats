@@ -50,17 +50,15 @@ class ProductManifold(Manifold):
             dimension=sum(self.dimensions))
         self.n_jobs = n_jobs
 
-    def _detect_intrinsic_extrinsic(self, point, point_type):
-        assert point_type in ['vector', 'matrix']
-        index = 1 if point_type == 'vector' else 2
-        if point.shape[index] == self.dimension:
+    def _detect_intrinsic_extrinsic(self, point):
+        if point.shape[1] == self.dimension:
             intrinsic = True
-        elif point.shape[index] == sum(
+        elif point.shape[1] == sum(
                 [dim + 1 for dim in self.dimensions]):
             intrinsic = False
         else:
             raise ValueError(
-                'Input shape does not match the dimension of the manifold,')
+                'Input shape does not match the dimension of the manifold')
         return intrinsic
 
     @staticmethod
@@ -116,7 +114,7 @@ class ProductManifold(Manifold):
                 space.belongs(point[:, i]) for i, space in enumerate(
                     self.manifolds)],
                 axis=1)
-        print(belongs.shape)
+
         belongs = gs.all(belongs, axis=1)
         belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
         return belongs
