@@ -200,7 +200,6 @@ class Hyperbolic(EmbeddedManifold):
             Array of booleans evaluating if the corresponding points
             belong to the hyperbolic space.
         """
-
         return self.belongs_to[self.point_type](point, tolerance=tolerance)
 
     def regularize(self, point):
@@ -513,8 +512,13 @@ class Hyperbolic(EmbeddedManifold):
             ](extrinsic)
 
     def random_uniform(self, n_samples=1, bound=1.):
-        """Sample in hyperbolic space from the uniform distribution
-        in intrasic representation.
+        """Sample in hyperbolic space from the uniform distribution.
+
+        Sample over the hyperbolic space. The sampling is performed
+        by sampling over uniform distribution, the sampled examples
+        are considered in the intrinsic coordinates system.
+        The function then transform intrasic samples into system
+        coordinate selected.
 
         Parameters
         ----------
@@ -677,6 +681,11 @@ class HyperbolicMetric(RiemannianMetric):
             factor = gs.tanh(lambda_base_point * norm_tan)
 
             exp = self.mobius_add(base_point, direction * factor)
+
+            # check if tangent vector is not zero and replace by
+            # base point if
+            zero_tan = gs.isclose(tangent_vec.sum(axis=-1), 0.)
+            exp[zero_tan] = base_point
 
             return exp
         else:
@@ -859,7 +868,9 @@ class HyperbolicMetric(RiemannianMetric):
                 'dist is only implemented for ball and extrinsic')
 
     def retraction(self, tan_vector, base_point):
-        """Approximate the exponential map of hyperbolic space,
+        """Poincaré ball model retraction.
+
+           Approximate the exponential map of hyperbolic space,
            currently working only with poincare ball.
            The retraction used is the one proposed in "Poincaré
            Embedding for Learning Hierarchical Representation"
@@ -886,7 +897,9 @@ class HyperbolicMetric(RiemannianMetric):
                 'Retraction is only implemented for ball and extrinsic')
 
     def squared_dist(self, point_a, point_b):
-        """ Redefine Riemannian squared distance between two points
+        """Hyperbolic squared distance.
+
+        Redefine Riemannian squared distance between two points
             for hyperbolic manifold.
 
         Parameters
