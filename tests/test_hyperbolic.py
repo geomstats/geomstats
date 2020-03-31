@@ -449,7 +449,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_scaled_squared_norm(self):
         base_point_intrinsic = gs.array([1, 1, 1])
-        base_point = self.space.from_coordinates(base_point_intrinsic, "intrinsic")
+        base_point = self.space.from_coordinates(base_point_intrinsic,
+                                                 "intrinsic")
         tangent_vec = gs.array([1, 2, 3, 4])
         tangent_vec = self.space.projection_to_tangent_space(
             tangent_vec, base_point)

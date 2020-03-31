@@ -3,7 +3,6 @@
 The n-dimensional hyperbolic space embedded and the its different models.
 """
 
-import logging
 import math
 
 
@@ -70,7 +69,7 @@ class Hyperbolic(EmbeddedManifold):
         self.scale = scale
         self.metric = HyperbolicMetric(self.dimension, point_type, self.scale)
 
-        if(point_type=="half-plane" and dimension!=2):
+        if point_type == "half-plane" and dimension != 2:
             raise NotImplementedError(
                 'Poincaré upper half plane is only valid in dimension 2')
 
