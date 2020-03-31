@@ -190,8 +190,8 @@ class ProductRiemannianMetric(RiemannianMetric):
                 self.metrics[i].exp(tangent_vec[:, i], base_point[:, i])
                 for i in range(self.n_metrics)], axis=1)
         else:
-            raise ValueError(f'invalid point_type argument: {point_type}, '
-                             f'expected either matrix of vector')
+            raise ValueError('invalid point_type argument: {}, expected '
+                             'either matrix of vector'.format(point_type))
 
     def log(self, point, base_point=None, point_type=None):
         """Compute the Riemannian logarithm of a point.
@@ -230,5 +230,5 @@ class ProductRiemannianMetric(RiemannianMetric):
                 [self.metrics[i].log(point[:, i], base_point[:, i])
                  for i in range(self.n_metrics)], axis=1)
         else:
-            raise ValueError(f'invalid point_type argument: {point_type}, '
-                             f'expected either matrix of vector')
+            raise ValueError('invalid point_type argument: {}, expected '
+                             'either matrix of vector'.format(point_type))
