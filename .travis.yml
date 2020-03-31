@@ -29,7 +29,7 @@ env:
   - GEOMSTATS_BACKEND=tensorflow
 
 after_success:
-  - bash <(curl -s https://codecov.io/bash) -c -F $GEOMSTATS_BACKEND -y .
+  - bash <(curl -s https://codecov.io/bash) -c -F $GEOMSTATS_BACKEND
   - >
     PYTHONPATH=. sphinx-build
     -b html
