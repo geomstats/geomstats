@@ -117,7 +117,7 @@ class Hyperbolic(EmbeddedManifold):
             Array of booleans indicating whether the corresponding points
             belong to the hyperbolic space.
         """
-        return gs.sum(point**2, -1) < (1 - tolerance)
+        return gs.sum(point**2, axis=-1) < (1 - tolerance)
 
     def _belongs_hyperboloid(self, point, tolerance=TOLERANCE):
         """Test if a point belongs to the hyperbolic space.
@@ -143,7 +143,7 @@ class Hyperbolic(EmbeddedManifold):
         point = gs.to_ndarray(point, to_ndim=2)
         _, point_dim = point.shape
         if point_dim is not self.dimension + 1:
-            if point_dim is self.dimension and self.point_type == "intrasic":
+            if point_dim is self.dimension and self.point_type == "intrinsic":
                 return gs.array([[True]])
             else:
                 return gs.array([[False]])
@@ -684,7 +684,7 @@ class HyperbolicMetric(RiemannianMetric):
 
             # check if tangent vector is not zero and replace by
             # base point if
-            zero_tan = gs.isclose(tangent_vec.sum(axis=-1), 0.)
+            zero_tan = gs.isclose((tangent_vec * tangent_vec).sum(axis=-1), 0.)
             exp[zero_tan] = base_point
 
             return exp

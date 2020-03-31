@@ -42,6 +42,40 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         self.assertAllClose(x, x2, atol=1e-8)
 
     @geomstats.tests.np_and_pytorch_only
+    def test_belongs_intrinsic(self):
+        x_in = gs.array([[0.5, 7]])
+        is_in = self.intrinsic_manifold.belongs(x_in)
+        self.assertTrue(is_in)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_belongs_extrinsic(self):
+        x_true = self.intrinsic_manifold.to_coordinates(gs.array([[0.5, 7]]),
+                                                        "extrinsic")
+        x_false = gs.array([[0.5, 7, 3.]])
+        is_in = self.extrinsic_manifold.belongs(x_true)
+        self.assertTrue(is_in)
+        is_out = self.extrinsic_manifold.belongs(x_false)
+        self.assertFalse(is_out)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_belongs_ball(self):
+        x_true = gs.array([[0.5, 0.5]])
+        x_false = gs.array([[0.8, 0.8]])
+        is_in = self.ball_manifold.belongs(x_true)
+        self.assertTrue(is_in)
+        is_out = self.ball_manifold.belongs(x_false)
+        self.assertFalse(is_out)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_belongs_half_plane(self):
+        x_true = gs.array([[0.5, 0.5]])
+        x_false = gs.array([[0.8, -0.8]])
+        is_in = self.half_plane_manifold.belongs(x_true)
+        self.assertTrue(is_in)
+        is_out = self.half_plane_manifold.belongs(x_false)
+        self.assertFalse(is_out)
+
+    @geomstats.tests.np_and_pytorch_only
     def test_extrinsic_half_plane_extrinsic(self):
         x_in = gs.array([[0.5, 7]])
         x = self.intrinsic_manifold.to_coordinates(
@@ -68,12 +102,6 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         x_e = self.ball_manifold.to_coordinates(x, to_point_type='extrinsic')
         x2 = self.extrinsic_manifold.to_coordinates(x_e, to_point_type='ball')
         self.assertAllClose(x, x2, atol=1e-10)
-
-    @geomstats.tests.np_and_pytorch_only
-    def test_belongs_ball(self):
-        x = gs.array([[0.5, 0.2]])
-        belong = self.ball_manifold.belongs(x)
-        assert(belong[0])
 
     @geomstats.tests.np_and_pytorch_only
     def test_distance_ball_extrinsic_from_ball(self):
