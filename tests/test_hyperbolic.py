@@ -1,6 +1,4 @@
-"""
-Unit tests for the Hyperbolic space.
-"""
+"""Unit tests for the Hyperbolic space."""
 
 import math
 
@@ -91,8 +89,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
     def test_log_and_exp_general_case(self):
         """
-        Test that the riemannian exponential
-        and the riemannian logarithm are inverse.
+        Test that the Riemannian exponential
+        and the Riemannian logarithm are inverse.
 
         Expect their composition to give the identity function.
         """
@@ -265,8 +263,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
     def test_log_and_exp_edge_case(self):
         """
-        Test that the riemannian exponential
-        and the riemannian logarithm are inverse.
+        Test that the Riemannian exponential
+        and the Riemannian logarithm are inverse.
 
         Expect their composition to give the identity function.
         """
@@ -291,8 +289,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
         """
-        Test that the riemannian exponential
-        and the riemannian logarithm are inverse.
+        Test that the Riemannian exponential
+        and the Riemannian logarithm are inverse.
 
         Expect their composition to give the identity function.
         """
@@ -338,14 +336,25 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
             self.assertAllClose(result, expected)
 
     def test_exp_poincare(self):
+
+        self.space.metric.point_type = 'ball'
         result = 0
         expected = 0
+        self.space.metric.point_type = 'extrinsic'
         with self.session():
             self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_log_poincare(self):
-        result = 0
-        expected = 0
+
+        point = gs.array([0.3, 0.5])
+        base_point = gs.array([0.3, 0.3])
+
+        self.space.metric.point_type = 'ball'
+        result = self.space.metric.log(point, base_point)
+        expected = gs.array([-0.01733576, 0.21958634])
+
+        self.space.metric.point_type = 'extrinsic'
         with self.session():
             self.assertAllClose(result, expected)
 
@@ -389,8 +398,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """
-        Test that the riemannian exponential
-        and the riemannian logarithm are inverse.
+        Test that the Riemannian exponential and
+        the Riemannian logarithm are inverse.
 
         Expect their composition to give the identity function.
         """
@@ -407,37 +416,6 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=1e-8)
 
-    @geomstats.tests.np_and_tf_only
-    def test_variance(self):
-        point = gs.array([2., 1., 1., 1.])
-        points = gs.array([point, point])
-        result = self.metric.variance(points)
-        expected = helper.to_scalar(0.)
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_tf_only
-    def test_mean(self):
-        point = gs.array([2., 1., 1., 1.])
-        points = gs.array([point, point])
-        result = self.metric.mean(points)
-        expected = helper.to_vector(point)
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_tf_only
-    def test_mean_and_belongs(self):
-        point_a = self.space.random_uniform()
-        point_b = self.space.random_uniform()
-        point_c = self.space.random_uniform()
-        points = gs.concatenate([point_a, point_b, point_c], axis=0)
-
-        mean = self.metric.mean(points)
-        result = self.space.belongs(mean)
-        expected = gs.array([[True]])
-
-        self.assertAllClose(result, expected)
-
     @geomstats.tests.np_only
     def test_scaled_inner_product(self):
         base_point_intrinsic = gs.array([1, 1, 1])
@@ -446,16 +424,24 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         tangent_vec_a = gs.array([1, 2, 3, 4])
         tangent_vec_b = gs.array([5, 6, 7, 8])
         tangent_vec_a = self.space.projection_to_tangent_space(
-            tangent_vec_a, base_point)
+            tangent_vec_a,
+            base_point)
         tangent_vec_b = self.space.projection_to_tangent_space(
-            tangent_vec_b, base_point)
+            tangent_vec_b,
+            base_point)
         scale = 2
         default_space = Hyperbolic(dimension=self.dimension)
         scaled_space = Hyperbolic(dimension=self.dimension, scale=2)
-        inner_product_default_metric = default_space.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point)
-        inner_product_scaled_metric = scaled_space.metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point)
+        inner_product_default_metric = \
+            default_space.metric.inner_product(
+                tangent_vec_a,
+                tangent_vec_b,
+                base_point)
+        inner_product_scaled_metric = \
+            scaled_space.metric.inner_product(
+                tangent_vec_a,
+                tangent_vec_b,
+                base_point)
         result = inner_product_scaled_metric
         expected = scale ** 2 * inner_product_default_metric
         self.assertAllClose(result, expected)

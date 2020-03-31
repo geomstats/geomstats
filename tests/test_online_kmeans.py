@@ -1,10 +1,9 @@
-"""
-Unit tests for Online k-means.
-"""
+"""Unit tests for Online k-means."""
 
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.online_kmeans import OnlineKMeans
 
 TOLERANCE = 1e-3
@@ -28,8 +27,10 @@ class TestOnlineKmeansMethods(geomstats.tests.TestCase):
         clustering.fit(X)
 
         center = clustering.cluster_centers_
-        mean = self.metric.mean(X)
-        result = self.metric.dist(center, mean)
+        mean = FrechetMean(metric=self.metric)
+        mean.fit(X)
+
+        result = self.metric.dist(center, mean.estimate_)
         expected = 0.
         self.assertAllClose(expected, result, atol=TOLERANCE)
 

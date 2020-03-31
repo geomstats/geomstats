@@ -19,7 +19,9 @@ from autograd.numpy import (  # NOQA
     argmin,
     array,
     asarray,
+    atleast_2d,
     average,
+    ceil,
     clip,
     concatenate,
     cos,
@@ -45,6 +47,7 @@ from autograd.numpy import (  # NOQA
     hstack,
     identity,
     isclose,
+    isnan,
     ix_,
     less,
     less_equal,
@@ -70,7 +73,9 @@ from autograd.numpy import (  # NOQA
     sqrt,
     squeeze,
     stack,
+    std,
     sum,
+    swapaxes,
     tan,
     tanh,
     tile,
@@ -161,20 +166,10 @@ def to_ndarray(x, to_ndim, axis=0):
     x = _np.array(x)
     if x.ndim == to_ndim - 1:
         x = _np.expand_dims(x, axis=axis)
-    assert x.ndim >= to_ndim
+
+    if x.ndim != 0:
+        assert x.ndim >= to_ndim
     return x
-
-
-def norm(val, axis):
-    return _np.linalg.norm(val, axis=axis)
-
-
-def rand(*args, **largs):
-    return _np.random.rand(*args, **largs)
-
-
-def randint(*args, **kwargs):
-    return _np.random.randint(*args, **kwargs)
 
 
 def diag(x):
@@ -187,7 +182,7 @@ def diag(x):
     m = int(k / n)
     result = zeros((m, n, n))
     for i in range(m):
-        result[i] = aux[i*n:(i+1)*n, i*n:(i+1)*n]
+        result[i] = aux[i * n:(i + 1) * n, i * n:(i + 1) * n]
     return result
 
 
@@ -203,10 +198,6 @@ def cumprod(x, axis=0):
     if axis is None:
         raise NotImplementedError('cumprod is not defined where axis is None')
     return _np.cumprod(x, axis=axis)
-
-
-def normal(*args, **kwargs):
-    return _np.random.normal(*args, **kwargs)
 
 
 def copy(x):

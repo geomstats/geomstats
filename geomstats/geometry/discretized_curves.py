@@ -44,9 +44,11 @@ class DiscretizedCurves(Manifold):
 class SRVMetric(RiemannianMetric):
     """Elastic metric defined using the Square Root Velocity Function.
 
+    See [Sea2011]_ for details.
+
     References
     ----------
-    .. [1] Srivastava et al. 2011.
+    .. [Sea2011] Srivastava et al. 2011.
     """
 
     def __init__(self, ambient_manifold):

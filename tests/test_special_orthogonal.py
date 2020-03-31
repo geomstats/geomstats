@@ -22,6 +22,7 @@ ATOL = 1e-5
 class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
+        warnings.simplefilter('ignore', category=UserWarning)
 
         gs.random.seed(1234)
 
@@ -57,7 +58,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 'with_angle_close_2pi_low': with_angle_close_2pi_low,
                 'with_angle_2pi': with_angle_2pi,
                 'with_angle_close_2pi_high': with_angle_close_2pi_high}
-            }
+        }
         elements = elements_all
         if geomstats.tests.tf_backend():
             # Tf is extremely slow
@@ -73,42 +74,42 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                      for n, group in so.items()}
         left_diag_metrics = {
             n: InvariantMetric(
-                   group=group,
-                   inner_product_mat_at_identity=diag_mat,
-                   left_or_right='left')
+                group=group,
+                inner_product_mat_at_identity=diag_mat,
+                left_or_right='left')
             for n, group, diag_mat in zip(n_seq,
                                           so.values(),
                                           diag_mats.values())
-            }
+        }
 
         right_diag_metrics = {
             n: InvariantMetric(
-                   group=group,
-                   inner_product_mat_at_identity=diag_mat,
-                   left_or_right='right')
+                group=group,
+                inner_product_mat_at_identity=diag_mat,
+                left_or_right='right')
             for n, group, diag_mat in zip(n_seq,
                                           so.values(),
                                           diag_mats.values())
-            }
+        }
 
         mats = {2: 4 * gs.eye(1),
                 3: 87 * gs.eye(3)}
 
         left_metrics = {
             n: InvariantMetric(
-                   group=group,
-                   inner_product_mat_at_identity=mat,
-                   left_or_right='left')
+                group=group,
+                inner_product_mat_at_identity=mat,
+                left_or_right='left')
             for n, group, mat in zip(n_seq, so.values(), mats.values())
-            }
+        }
 
         right_metrics = {
             n: InvariantMetric(
-                   group=group,
-                   inner_product_mat_at_identity=mat,
-                   left_or_right='right')
+                group=group,
+                inner_product_mat_at_identity=mat,
+                left_or_right='right')
             for n, group, mat in zip(n_seq, so.values(), mats.values())
-            }
+        }
         all_metrics = zip(n_seq,
                           canonical_metrics.values(),
                           left_diag_metrics.values(),
@@ -123,14 +124,14 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 'left': left,
                 'right': right}
             for n, canonical, left_diag, right_diag, left, right in all_metrics
-            }
+        }
         metrics = metrics_all
         if geomstats.tests.tf_backend():
             metrics = {
                 n: {'right': InvariantMetric(
-                   group=group,
-                   inner_product_mat_at_identity=mat,
-                   left_or_right='right')}
+                    group=group,
+                    inner_product_mat_at_identity=mat,
+                    left_or_right='right')}
                 for n, group, mat in zip(n_seq, so.values(), mats.values())
             }
 
@@ -138,12 +139,12 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             3: ['with_angle_close_pi_low',
                 'with_angle_pi',
                 'with_angle_close_pi_high']
-            }
+        }
         angles_close_to_pi = angles_close_to_pi_all
         if geomstats.tests.tf_backend():
             angles_close_to_pi = {
                 3: ['with_angle_close_pi_low']
-                }
+            }
 
         # -- Set attributes
         self.n_seq = n_seq
@@ -2948,7 +2949,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                             point=rot_vec_1)
         self.assertAllClose(result, expected)
 
-        # General case: this is the inverse test of test 1 for riemannian exp
+        # General case: this is the inverse test of test 1 for Riemannian exp
         expected = gs.pi / 4 * gs.array([1., 0., 0.])
         phi = (gs.pi / 10) / (gs.tan(gs.pi / 10))
         skew = gs.array([[0., -1., 1.],
@@ -3045,8 +3046,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 result = helper.exp_then_log_from_identity(metric, tangent_vec)
 
                 reg_vec = group.regularize_tangent_vec_at_identity(
-                                             tangent_vec=tangent_vec,
-                                             metric=metric)
+                    tangent_vec=tangent_vec, metric=metric)
                 expected = reg_vec
 
                 self.assertAllClose(result, expected)
@@ -3071,8 +3071,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 result = helper.exp_then_log_from_identity(metric, tangent_vec)
 
                 expected = group.regularize_tangent_vec_at_identity(
-                                                tangent_vec=tangent_vec,
-                                                metric=metric)
+                    tangent_vec=tangent_vec, metric=metric)
                 inv_expected = - expected
                 self.assertTrue(
                     gs.eval(gs.allclose(result, expected))
@@ -3150,9 +3149,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                                                  base_point=base_point)
 
                     reg_tangent_vec = group.regularize_tangent_vec(
-                                                 tangent_vec=tangent_vec,
-                                                 base_point=base_point,
-                                                 metric=metric)
+                        tangent_vec=tangent_vec,
+                        base_point=base_point,
+                        metric=metric)
                     expected = reg_tangent_vec
 
                     self.assertAllClose(result, expected, atol=1e-4)
@@ -3180,9 +3179,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                                                  base_point=base_point)
 
                     reg_tangent_vec = group.regularize_tangent_vec(
-                                                 tangent_vec=tangent_vec,
-                                                 base_point=base_point,
-                                                 metric=metric)
+                        tangent_vec=tangent_vec,
+                        base_point=base_point,
+                        metric=metric)
                     expected = reg_tangent_vec
                     inv_expected = - expected
 
@@ -3386,8 +3385,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 continue
             tangent_vec = self.elements[3][angle_type]
             result = helper.group_exp_then_log_from_identity(
-                                         group=group,
-                                         tangent_vec=tangent_vec)
+                group=group, tangent_vec=tangent_vec)
             expected = group.regularize(tangent_vec)
             self.assertAllClose(result, expected)
 
@@ -3404,8 +3402,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         for angle_type in angle_types:
             tangent_vec = self.elements[3][angle_type]
             result = helper.group_exp_then_log_from_identity(
-                                         group=group,
-                                         tangent_vec=tangent_vec)
+                group=group,
+                tangent_vec=tangent_vec)
             expected = group.regularize(tangent_vec)
             inv_expected = - expected
 
@@ -3426,8 +3424,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         for angle_type in self.elements[3]:
             point = self.elements[3][angle_type]
             result = helper.group_log_then_exp_from_identity(
-                                         group=group,
-                                         point=point)
+                group=group,
+                point=point)
             expected = group.regularize(point)
             self.assertAllClose(result, expected)
 
@@ -3444,8 +3442,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         for angle_type in angle_types:
             point = self.elements[3][angle_type]
             result = helper.group_log_then_exp_from_identity(
-                                         group=group,
-                                         point=point)
+                group=group,
+                point=point)
             expected = group.regularize(point)
             inv_expected = - expected
 
@@ -3472,17 +3470,17 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 base_point = self.elements[3][angle_type_base]
 
                 result = helper.group_exp_then_log(
-                                             group=group,
-                                             tangent_vec=tangent_vec,
-                                             base_point=base_point)
+                    group=group,
+                    tangent_vec=tangent_vec,
+                    base_point=base_point)
 
                 # TODO(nina): Investigate what it means to regularize
                 # the tangent vector when there is no metric.
                 metric = group.left_canonical_metric
                 expected = group.regularize_tangent_vec(
-                                     tangent_vec=tangent_vec,
-                                     base_point=base_point,
-                                     metric=metric)
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    metric=metric)
 
                 self.assertAllClose(result, expected, atol=1e-6)
 
@@ -3502,17 +3500,17 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 base_point = self.elements[3][angle_type_base]
 
                 result = helper.group_exp_then_log(
-                                             group=group,
-                                             tangent_vec=tangent_vec,
-                                             base_point=base_point)
+                    group=group,
+                    tangent_vec=tangent_vec,
+                    base_point=base_point)
 
                 # TODO(nina): Investigate what it means to regularize
                 # the tangent vector when there is no metric.
                 metric = group.left_canonical_metric
                 reg_tangent_vec = group.regularize_tangent_vec(
-                                     tangent_vec=tangent_vec,
-                                     base_point=base_point,
-                                     metric=metric)
+                    tangent_vec=tangent_vec,
+                    base_point=base_point,
+                    metric=metric)
                 expected = reg_tangent_vec
                 inv_expected = - expected
 
@@ -3540,9 +3538,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 base_point = self.elements[3][angle_type_base]
 
                 result = helper.group_log_then_exp(
-                                             group=group,
-                                             point=point,
-                                             base_point=base_point)
+                    group=group,
+                    point=point,
+                    base_point=base_point)
                 expected = group.regularize(point)
 
                 self.assertAllClose(result, expected, atol=ATOL)
@@ -3563,9 +3561,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 base_point = self.elements[3][angle_type_base]
 
                 result = helper.group_log_then_exp(
-                                             group=group,
-                                             point=point,
-                                             base_point=base_point)
+                    group=group,
+                    point=point,
+                    base_point=base_point)
                 expected = group.regularize(point)
                 inv_expected = - expected
 
@@ -3581,7 +3579,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         rot_vec = group.random_uniform()
         points = gs.vstack([rot_vec, rot_vec])
         result = group.exponential_barycenter(
-                                points=points)
+            points=points)
         expected = rot_vec
         self.assertAllClose(result, expected)
 
@@ -3589,8 +3587,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         points = gs.vstack([rot_vec, rot_vec])
         weights = gs.array([1., 2.])
         result = group.exponential_barycenter(
-                                points=points,
-                                weights=weights)
+            points=points,
+            weights=weights)
         expected = rot_vec
         self.assertAllClose(result, expected)
 
@@ -3617,10 +3615,10 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     point_2 = group.regularize(point_2)
 
                     sq_dist_1_2 = gs.mod(
-                        metric.squared_dist(point_1, point_2)+1e-4,
+                        metric.squared_dist(point_1, point_2) + 1e-4,
                         gs.pi**2)
                     sq_dist_2_1 = gs.mod(
-                        metric.squared_dist(point_2, point_1)+1e-4,
+                        metric.squared_dist(point_2, point_1) + 1e-4,
                         gs.pi**2)
 
                     self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=1e-4)
@@ -3806,19 +3804,19 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         base_point = gs.array([gs.eye(dim), gs.eye(dim)])
         first_tan = gs.array([
-                [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
-                [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
-                ])
+            [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
+            [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
+        ])
         second_tan = gs.array([
-                [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
-                [[0., 0., -1.], [0., 0., 0.], [1., 0., 0.]]
-            ])
+            [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
+            [[0., 0., -1.], [0., 0., 0.], [1., 0., 0.]]
+        ])
 
         result = space.lie_bracket(first_tan, second_tan, base_point)
         expected = gs.array([
-                gs.zeros((dim, dim)),
-                [[0., 0., 0.], [0., 0., -1.], [0., 1., 0.]]
-                ])
+            gs.zeros((dim, dim)),
+            [[0., 0., 0.], [0., 0., -1.], [0., 1., 0.]]
+        ])
 
         self.assertAllClose(result, expected)
 
@@ -3829,13 +3827,13 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         base_point = gs.array([
             [[-1., 0., 0.], [0., -1., 0.], [0., 0., 1.]]])
         first_tan = gs.matmul(
-                base_point,
-                gs.array([[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]])
-                )
+            base_point,
+            gs.array([[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]])
+        )
         second_tan = gs.matmul(
-                base_point,
-                gs.array([[0., 0., -1.], [0., 0., 0.], [1., 0., 0.]])
-                )
+            base_point,
+            gs.array([[0., 0., -1.], [0., 0., 0.], [1., 0., 0.]])
+        )
 
         result = space.lie_bracket(first_tan, second_tan, base_point)
         expected = gs.matmul(

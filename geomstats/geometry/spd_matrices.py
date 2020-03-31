@@ -5,6 +5,7 @@ import math
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 EPSILON = 1e-6
@@ -21,19 +22,15 @@ class SPDMatrices(EmbeddedManifold):
             embedding_manifold=GeneralLinear(n=n))
         self.n = n
 
-    def belongs(self, mat, tolerance=TOLERANCE):
-        """Check if a matrix belongs to the manifold of SPD matrices."""
-        mat = gs.to_ndarray(mat, to_ndim=3)
-        n_mats, mat_dim, _ = mat.shape
-
-        mask_is_symmetric = self.embedding_manifold.is_symmetric(
-                mat, tolerance=tolerance)
-        mask_is_invertible = self.embedding_manifold.belongs(mat)
-
-        belongs = mask_is_symmetric & mask_is_invertible
-        belongs = gs.to_ndarray(belongs, to_ndim=1)
-        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
-        return belongs
+    @staticmethod
+    def belongs(mat, atol=TOLERANCE):
+        """Check if a matrix is symmetric and invertible."""
+        # TODO (opeltre): check positivity, implying invertibility.
+        #
+        # note : vectorized "and" on numpy works with:
+        #       [bool] * [bool] -> bool
+        # but does not on tf.
+        return Matrices.is_symmetric(mat)
 
     def vector_from_symmetric_matrix(self, mat):
         """Convert the symmetric part of a symmetric matrix into a vector."""
@@ -75,9 +72,8 @@ class SPDMatrices(EmbeddedManifold):
     def random_uniform(self, n_samples=1):
         """Define a log-uniform random sample of SPD matrices."""
         mat = 2 * gs.random.rand(n_samples, self.n, self.n) - 1
+        spd_mat = GeneralLinear.exp(mat + Matrices.transpose(mat))
 
-        spd_mat = self.embedding_manifold.exp(
-                mat + gs.transpose(mat, axes=(0, 2, 1)))
         return spd_mat
 
     def random_tangent_vec_uniform(self, n_samples=1, base_point=None):
@@ -117,9 +113,9 @@ class SPDMatrices(EmbeddedManifold):
         ----------
         power : int
         tangent_vec : array_like, shape=[n_samples, n, n]
-                      Tangent vectors.
+            Tangent vectors.
         base_point : array_like, shape=[n_samples, n, n]
-                     Base points.
+            Base points.
 
         Returns
         -------
@@ -169,10 +165,14 @@ class SPDMatrices(EmbeddedManifold):
                                  numerator)
             denominator = gs.where(denominator == 0, one_matrix, denominator)
         else:
-            numerator = gs.where(denominator == 0, power*vertical_index_power,
-                                 numerator)
-            denominator = gs.where(denominator == 0, vertical_index,
-                                   denominator)
+            numerator = gs.where(
+                denominator == 0,
+                power * vertical_index_power,
+                numerator)
+            denominator = gs.where(
+                denominator == 0,
+                vertical_index,
+                denominator)
 
         transp_eigvectors = gs.transpose(eigvectors, (0, 2, 1))
         temp_result = gs.matmul(transp_eigvectors, tangent_vec)
@@ -191,9 +191,9 @@ class SPDMatrices(EmbeddedManifold):
         ----------
         power : int
         tangent_vec : array_like, shape=[n_samples, n, n]
-                      Tangent vectors.
+            Tangent vectors.
         base_point : array_like, shape=[n_samples, n, n]
-                     Base points.
+            Base points.
 
         Returns
         -------
@@ -218,9 +218,9 @@ class SPDMatrices(EmbeddedManifold):
         ----------
         power : int
         tangent_vec : array_like, shape=[n_samples, n, n]
-                      Tangent vectors.
+            Tangent vectors.
         base_point : array_like, shape=[n_samples, n, n]
-                     Base points.
+            Base points.
 
         Returns
         -------
@@ -243,9 +243,9 @@ class SPDMatrices(EmbeddedManifold):
         Parameters
         ----------
         tangent_vec : array_like, shape=[n_samples, n, n]
-                      Tangent vectors.
+            Tangent vectors.
         base_point : array_like, shape=[n_samples, n, n]
-                     Base points.
+            Base points.
 
         Returns
         -------
@@ -269,9 +269,9 @@ class SPDMatrices(EmbeddedManifold):
         Parameters
         ----------
         tangent_vec : array_like, shape=[n_samples, n, n]
-                      Tangent vectors.
+            Tangent vectors.
         base_point : array_like, shape=[n_samples, n, n]
-                     Base points.
+            Base points.
 
         Returns
         -------
@@ -294,9 +294,9 @@ class SPDMatrices(EmbeddedManifold):
         Parameters
         ----------
         tangent_vec : array_like, shape=[n_samples, n, n]
-                      Tangent vectors.
+            Tangent vectors.
         base_point : array_like, shape=[n_samples, n, n]
-                     Base points.
+            Base points.
 
         Returns
         -------
@@ -320,9 +320,9 @@ class SPDMatrices(EmbeddedManifold):
         Parameters
         ----------
         tangent_vec : array_like, shape=[n_samples, n, n]
-                      Tangent vectors.
+            Tangent vectors.
         base_point : array_like, shape=[n_samples, n, n]
-                     Base points.
+            Base points.
 
         Returns
         -------
@@ -343,25 +343,25 @@ class SPDMetricAffine(RiemannianMetric):
     def __init__(self, n, power_affine=1):
         """Build the affine-invariant metric.
 
-        Based on [1]_.
+        Based on [TP2019]_.
 
         Parameters
         ----------
         n : int
             Matrix dimension.
         power_affine : int, optional
-                       Power transformation of the classical SPD metric.
+            Power transformation of the classical SPD metric.
 
         References
         ----------
-        .. [1] Thanwerdas, Pennec. "Is affine-invariance well defined on
-        SPD matrices? A principled continuum of metrics" Proc. of GSI, 2019.
-        https://arxiv.org/abs/1906.01349
+        .. [TP2019] Thanwerdas, Pennec. "Is affine-invariance well defined on
+          SPD matrices? A principled continuum of metrics" Proc. of GSI, 2019.
+          https://arxiv.org/abs/1906.01349
         """
         dimension = int(n * (n + 1) / 2)
         super(SPDMetricAffine, self).__init__(
-                dimension=dimension,
-                signature=(dimension, 0, 0))
+            dimension=dimension,
+            signature=(dimension, 0, 0))
         self.n = n
         self.space = SPDMatrices(n)
         self.power_affine = power_affine
@@ -473,6 +473,7 @@ class SPDMetricAffine(RiemannianMetric):
                                       tangent_vec)
         tangent_vec_at_id = gs.matmul(tangent_vec_at_id,
                                       inv_sqrt_base_point)
+        tangent_vec_at_id = GeneralLinear.make_symmetric(tangent_vec_at_id)
         exp_from_id = gs.linalg.expm(tangent_vec_at_id)
 
         exp = gs.matmul(exp_from_id, sqrt_base_point)
@@ -513,8 +514,8 @@ class SPDMetricAffine(RiemannianMetric):
             base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
 
         if power_affine == 1:
-            sqrt_base_point = gs.linalg.sqrtm(base_point)
-            inv_sqrt_base_point = gs.linalg.inv(sqrt_base_point)
+            sqrt_base_point = gs.linalg.powerm(base_point, 1. / 2)
+            inv_sqrt_base_point = gs.linalg.powerm(sqrt_base_point, -1)
             exp = self._aux_exp(tangent_vec, sqrt_base_point,
                                 inv_sqrt_base_point)
         else:
@@ -522,11 +523,11 @@ class SPDMetricAffine(RiemannianMetric):
                                                                  tangent_vec,
                                                                  base_point)
             power_sqrt_base_point = gs.linalg.powerm(base_point,
-                                                     power_affine/2)
+                                                     power_affine / 2)
             power_inv_sqrt_base_point = gs.linalg.inv(power_sqrt_base_point)
             exp = self._aux_exp(modified_tangent_vec, power_sqrt_base_point,
                                 power_inv_sqrt_base_point)
-            exp = gs.linalg.powerm(exp, 1/power_affine)
+            exp = gs.linalg.powerm(exp, 1 / power_affine)
 
         if ndim == 2:
             return exp[0]
@@ -547,6 +548,7 @@ class SPDMetricAffine(RiemannianMetric):
         """
         point_near_id = gs.matmul(inv_sqrt_base_point, point)
         point_near_id = gs.matmul(point_near_id, inv_sqrt_base_point)
+        point_near_id = GeneralLinear.make_symmetric(point_near_id)
         log_at_id = gs.linalg.logm(point_near_id)
 
         log = gs.matmul(sqrt_base_point, log_at_id)
@@ -587,16 +589,18 @@ class SPDMetricAffine(RiemannianMetric):
             base_point = gs.tile(base_point, (n_points, 1, 1))
 
         if power_affine == 1:
-            sqrt_base_point = gs.linalg.sqrtm(base_point)
-            inv_sqrt_base_point = gs.linalg.inv(sqrt_base_point)
+            sqrt_base_point = gs.linalg.powerm(base_point, 1. / 2)
+            inv_sqrt_base_point = gs.linalg.powerm(sqrt_base_point, -1)
             log = self._aux_log(point, sqrt_base_point, inv_sqrt_base_point)
         else:
             power_point = gs.linalg.powerm(point, power_affine)
-            power_sqrt_base_point = gs.linalg.powerm(base_point,
-                                                     power_affine/2)
+            power_sqrt_base_point = gs.linalg.powerm(
+                base_point, power_affine / 2)
             power_inv_sqrt_base_point = gs.linalg.inv(power_sqrt_base_point)
-            log = self._aux_log(power_point, power_sqrt_base_point,
-                                power_inv_sqrt_base_point)
+            log = self._aux_log(
+                power_point,
+                power_sqrt_base_point,
+                power_inv_sqrt_base_point)
             log = self.space.inverse_differential_power(power_affine, log,
                                                         base_point)
 
@@ -617,21 +621,55 @@ class SPDMetricAffine(RiemannianMetric):
         geodesic
         """
         return super(SPDMetricAffine, self).geodesic(
-                                      initial_point=initial_point,
-                                      initial_tangent_vec=initial_tangent_vec,
-                                      point_type='matrix')
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec,
+            point_type='matrix')
+
+    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+        r"""Parallel transport of a tangent vector.
+
+        Closed-form solution for the parallel transport of a tangent vector a
+        along the geodesic defined by exp_(base_point)(tangent_vec_b).
+        Denoting `tangent_vec_a` by `S`, `base_point` by `A`, let
+        `B = Exp_A(tangent_vec_b)` and :math: `E = (BA^{- 1})^({ 1 / 2})`.
+        Then the
+        parallel transport to `B`is:
+
+        ..math::
+                        S' = ESE^T
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[n_samples, dimension + 1]
+            Tangent vector at base point to be transported.
+        tangent_vec_b : array-like, shape=[n_samples, dimension + 1]
+            Tangent vector at base point, initial speed of the geodesic along
+            which the parallel transport is computed.
+        base_point : array-like, shape=[n_samples, dimension + 1]
+            point on the manifold of SPD matrices
+
+        Returns
+        -------
+        transported_tangent_vec: array-like, shape=[n_samples, dimension + 1]
+            Transported tangent vector at exp_(base_point)(tangent_vec_b).
+        """
+        end_point = self.exp(tangent_vec_b, base_point)
+        inverse_base_point = GeneralLinear.inv(base_point)
+        congruence_mat = GeneralLinear.mul(end_point, inverse_base_point)
+        congruence_mat = gs.linalg.sqrtm(congruence_mat)
+        return GeneralLinear.congruent(tangent_vec_a, congruence_mat)
 
 
 class SPDMetricProcrustes(RiemannianMetric):
     """Class for the Procrustes metric on the SPD manifold.
 
-    Based on [1].
+    Based on [BJL2017].
 
     References
     ----------
-    .. [1]_ Bhatia, Jain, Lim. "On the Bures-Wasserstein distance between
-    positive definite matrices" Elsevier, Expositiones Mathematicae,
-    vol. 37(2), 165-191, 2017. https://arxiv.org/pdf/1712.01504.pdf
+    .. [BJL2017]_ Bhatia, Jain, Lim. "On the Bures-Wasserstein distance between
+      positive definite matrices" Elsevier, Expositiones Mathematicae,
+      vol. 37(2), 165-191, 2017. https://arxiv.org/pdf/1712.01504.pdf
     """
 
     def __init__(self, n):
@@ -652,7 +690,7 @@ class SPDMetricProcrustes(RiemannianMetric):
         ----------
         tangent_vec_a : array-like, shape=[n_samples, n, n]
         tangent_vec_b : array-like, shape=[n_samples, n, n]
-        base_point : array-like, shape={n_samples, n, n]
+        base_point : array-like, shape=[n_samples, n, n]
 
         Returns
         -------
@@ -719,7 +757,7 @@ class SPDMetricEuclidean(RiemannianMetric):
         ----------
         tangent_vec_a : array-like, shape=[n_samples, n, n]
         tangent_vec_b : array-like, shape=[n_samples, n, n]
-        base_point : array-like, shape={n_samples, n, n]
+        base_point : array-like, shape=[n_samples, n, n]
 
         Returns
         -------
@@ -800,9 +838,9 @@ class SPDMetricEuclidean(RiemannianMetric):
         eigvals = gs.linalg.eigvalsh(reduced_vec)
         min_eig = gs.amin(eigvals, axis=1)
         max_eig = gs.amax(eigvals, axis=1)
-        inf_value = gs.where(max_eig <= 0, -math.inf, - 1/max_eig)
+        inf_value = gs.where(max_eig <= 0, -math.inf, - 1 / max_eig)
         inf_value = gs.to_ndarray(inf_value, to_ndim=2)
-        sup_value = gs.where(min_eig >= 0, math.inf, - 1/min_eig)
+        sup_value = gs.where(min_eig >= 0, math.inf, - 1 / min_eig)
         sup_value = gs.to_ndarray(sup_value, to_ndim=2)
         domain = gs.concatenate((inf_value, sup_value), axis=1)
 
@@ -830,7 +868,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         ----------
         tangent_vec_a : array-like, shape=[n_samples, n, n]
         tangent_vec_b : array-like, shape=[n_samples, n, n]
-        base_point : array-like, shape={n_samples, n, n]
+        base_point : array-like, shape=[n_samples, n, n]
 
         Returns
         -------
@@ -890,7 +928,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         Parameters
         ----------
         tangent_vec : array-like, shape=[n_samples, n, n]
-        base_point : array-like, shape={n_samples, n, n]
+        base_point : array-like, shape=[n_samples, n, n]
 
         Returns
         -------
@@ -915,7 +953,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         Parameters
         ----------
         point : array-like, shape=[n_samples, n, n]
-        base_point : array-like, shape={n_samples, n, n]
+        base_point : array-like, shape=[n_samples, n, n]
 
         Returns
         -------
@@ -934,20 +972,17 @@ class SPDMetricLogEuclidean(RiemannianMetric):
     def geodesic(self, initial_point, initial_tangent_vec):
         """Compute the Log-Euclidean geodesic.
 
-        Compute the Riemannian geodesic starting at point base_point
-        in direction of initial_tangent_vec.
-        This gives a function from real numbers to SPD matrices.
-
         Parameters
         ----------
         initial_point : array-like, shape=[n_samples, n, n]
-        initial_tangent_vec : array-like, shape={n_samples, n, n]
+        initial_tangent_vec : array-like, shape=[n_samples, n, n]
 
         Returns
         -------
-        geodesic : callable
+        path : callable
+            The time parameterized geodesic.
         """
-        def point_on_geodesic(t):
-            return self.exp(t*initial_tangent_vec, initial_point)
+        def path(t):
+            return self.exp(t * initial_tangent_vec, initial_point)
 
-        return point_on_geodesic
+        return path

@@ -11,6 +11,8 @@ on the sphere. We solve this in 3 dimension on the 2-sphere
 manifold so that we can visualize and render the path as a video.
 """
 
+import logging
+
 import matplotlib
 matplotlib.use("Agg")  # NOQA
 import matplotlib.animation as animation
@@ -41,13 +43,13 @@ def gradient_descent(start,
         x_prev = x
         euclidean_grad = - lr * grad(x)
         tangent_vec = manifold.projection_to_tangent_space(
-                vector=euclidean_grad, base_point=x)
+            vector=euclidean_grad, base_point=x)
         x = manifold.metric.exp(base_point=x, tangent_vec=tangent_vec)[0]
         if (gs.abs(loss(x, use_gs=True) - loss(x_prev, use_gs=True))
                 <= precision):
-            print('x: %s' % x)
-            print('reached precision %s' % precision)
-            print('iterations: %d' % i)
+            logging.info('x: %s' % x)
+            logging.info('reached precision %s' % precision)
+            logging.info('iterations: %d' % i)
             break
         yield x, loss(x)
 

@@ -2,6 +2,7 @@
 Plot a square on H2 with Poincare Disk visualization.
 """
 
+import logging
 import os
 
 import matplotlib.pyplot as plt
@@ -26,7 +27,7 @@ def main():
     n_steps = 20
     ax = plt.gca()
     for i, src in enumerate(corners_ext):
-        dst_id = (i+1) % len(corners_ext)
+        dst_id = (i + 1) % len(corners_ext)
         dst = corners_ext[dst_id]
         tangent_vec = METRIC.log(point=dst, base_point=src)
         geodesic = METRIC.geodesic(initial_point=src,
@@ -44,9 +45,9 @@ def main():
 
 if __name__ == "__main__":
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        print('Examples with visualizations are only implemented '
-              'with numpy backend.\n'
-              'To change backend, write: '
-              'export GEOMSTATS_BACKEND = \'numpy\'.')
+        logging.info('Examples with visualizations are only implemented '
+                     'with numpy backend.\n'
+                     'To change backend, write: '
+                     'export GEOMSTATS_BACKEND = \'numpy\'.')
     else:
         main()

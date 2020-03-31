@@ -58,13 +58,14 @@ class MinkowskiMetric(RiemannianMetric):
 
     The metric is flat: the inner product is independent of the base point.
     """
+
     def __init__(self, dimension):
         super(MinkowskiMetric, self).__init__(
-                                          dimension=dimension,
-                                          signature=(dimension - 1, 1, 0))
+            dimension=dimension,
+            signature=(dimension - 1, 1, 0))
 
     def inner_product_matrix(self, base_point=None):
-        """ Compute the inner product matrix, independent of the base point.
+        """Compute the inner product matrix, independent of the base point.
 
         Parameters
         ----------
@@ -74,7 +75,7 @@ class MinkowskiMetric(RiemannianMetric):
         -------
         inner_prod_mat: array-like, shape=[n_samples, dimension, dimension]
         """
-        inner_prod_mat = gs.eye(self.dimension-1, self.dimension-1)
+        inner_prod_mat = gs.eye(self.dimension - 1, self.dimension - 1)
         first_row = gs.array([0.] * (self.dimension - 1))
         first_row = gs.to_ndarray(first_row, to_ndim=2, axis=1)
         inner_prod_mat = gs.vstack([gs.transpose(first_row),
@@ -130,34 +131,3 @@ class MinkowskiMetric(RiemannianMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         log = point - base_point
         return log
-
-    def mean(self, points, weights=None):
-        """Compute the Frechet mean of (weighted) points.
-
-        The Frechet mean of (weighted) points is the weighted average of
-        the points in the Minkowski space.
-
-        Parameters
-        ----------
-        points: array-like, shape=[n_samples, dimension]
-        weights: array-like, shape=[n_samples, 1], optional
-
-        Returns
-        -------
-        mean: array-like, shape=[1, dimension]
-        """
-        if isinstance(points, list):
-            points = gs.vstack(points)
-        points = gs.to_ndarray(points, to_ndim=2)
-        n_points = gs.shape(points)[0]
-
-        if isinstance(weights, list):
-            weights = gs.vstack(weights)
-        elif weights is None:
-            weights = gs.ones((n_points,))
-
-        weighted_points = gs.einsum('n,nj->nj', weights, points)
-        mean = (gs.sum(weighted_points, axis=0)
-                / gs.sum(weights))
-        mean = gs.to_ndarray(mean, to_ndim=2)
-        return mean

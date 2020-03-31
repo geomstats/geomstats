@@ -13,40 +13,43 @@ import geomstats.backend as gs
 
 
 def pytorch_backend():
+    """Check if pytorch is set as backend."""
     return os.environ['GEOMSTATS_BACKEND'] == 'pytorch'
 
 
 def tf_backend():
+    """Check if tensorflow is set as backend."""
     return os.environ['GEOMSTATS_BACKEND'] == 'tensorflow'
 
 
 def np_backend():
+    """Check if numpy is set as backend."""
     return os.environ['GEOMSTATS_BACKEND'] == 'numpy'
 
 
 def np_only(test_item):
-    """Decorator to filter tests for numpy only."""
+    """Decorate to filter tests for numpy only."""
     if np_backend():
         return test_item
     return unittest.skip('Test for numpy backend only.')(test_item)
 
 
 def pytorch_only(test_item):
-    """Decorator to filter tests for pytorch only."""
+    """Decorate to filter tests for pytorch only."""
     if pytorch_backend():
         return test_item
     return unittest.skip('Test for pytorch backend only.')(test_item)
 
 
 def tf_only(test_item):
-    """Decorator to filter tests for tensorflow only."""
+    """Decorate to filter tests for tensorflow only."""
     if tf_backend():
         return test_item
     return unittest.skip('Test for tensorflow backend only.')(test_item)
 
 
 def np_and_tf_only(test_item):
-    """Decorator to filter tests for numpy and tensorflow only."""
+    """Decorate to filter tests for numpy and tensorflow only."""
     if np_backend() or tf_backend():
         return test_item
     return unittest.skip('Test for numpy and tensorflow backends only.')(
@@ -54,7 +57,7 @@ def np_and_tf_only(test_item):
 
 
 def np_and_pytorch_only(test_item):
-    """Decorator to filter tests for numpy and pytorch only."""
+    """Decorate to filter tests for numpy and pytorch only."""
     if np_backend() or pytorch_backend():
         return test_item
     return unittest.skip('Test for numpy and pytorch backends only.')(
@@ -62,10 +65,14 @@ def np_and_pytorch_only(test_item):
 
 
 class DummySession:
+    """Class for dummy sessions."""
+
     def __enter__(self):
+        """Enter."""
         pass
 
     def __exit__(self, a, b, c):
+        """Exit."""
         pass
 
 
@@ -76,8 +83,6 @@ if tf_backend():
 
 
 class TestCase(_TestBaseClass):
-    _multiprocess_can_split_ = True
-
     def assertAllClose(self, a, b, rtol=1e-6, atol=1e-6):
         if tf_backend():
             return super().assertAllClose(a, b, rtol=rtol, atol=atol)

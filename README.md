@@ -49,11 +49,12 @@ And run unit tests from this folder:
 nose2 tests
 ```
 
-See our [CONTRIBUTING.md](CONTRIBUTING.md) file!
+See our [contributing](https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst) guidelines!
 
 ## Acknowledgements
 
-This work is partially supported by:
-- the National Science Foundation (grant NSF DMS RTG 1501767),
-- the Inria-Stanford associated team [GeomStats](http://www-sop.inria.fr/asclepios/projects/GeomStats/).
-- the European Research Council (ERC) under the European Union's Horizon 2020 research and innovation program (grant agreement [G-Statistics](https://team.inria.fr/epione/en/research/erc-g-statistics/) No. 786854)
+This work is supported by:
+- the Inria-Stanford associated team [GeomStats](http://www-sop.inria.fr/asclepios/projects/GeomStats/),
+- the European Research Council (ERC) under the European Union's Horizon 2020 research and innovation program (grant agreement [G-Statistics](https://team.inria.fr/epione/en/research/erc-g-statistics/) No. 786854),
+- the French society for applied and industrial mathematics ([SMAI](http://smai.emath.fr/)),
+- the National Science Foundation (grant NSF DMS RTG 1501767).

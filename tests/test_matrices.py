@@ -39,7 +39,7 @@ class TestMatricesMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
-    def test_commutator(self):
+    def test_bracket(self):
         x = gs.array([
             [0., 0., 0.],
             [0., 0., -1.],
@@ -52,11 +52,11 @@ class TestMatricesMethods(geomstats.tests.TestCase):
             [0., -1., 0.],
             [1., 0., 0.],
             [0., 0., 0.]])
-        result = self.space.commutator([x, y], [y, z])
+        result = self.space.bracket([x, y], [y, z])
         expected = gs.array([z, x])
         self.assertAllClose(result, expected)
 
-        result = self.space.commutator(x, [x, y, z])
+        result = self.space.bracket(x, [x, y, z])
         expected = gs.array([gs.zeros((3, 3)), z, -y])
         self.assertAllClose(result, expected)
 
@@ -74,14 +74,14 @@ class TestMatricesMethods(geomstats.tests.TestCase):
         sym_mat = gs.array([[1., 2.],
                             [2., 1.]])
         result = self.space.is_symmetric(sym_mat)
-        expected = gs.array([[True]])
+        expected = gs.array(True)
         self.assertAllClose(result, expected)
 
         not_a_sym_mat = gs.array([[1., 0.6, -3.],
                                   [6., -7., 0.],
                                   [0., 7., 8.]])
         result = self.space.is_symmetric(not_a_sym_mat)
-        expected = gs.array([[False]])
+        expected = gs.array(False)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
@@ -90,9 +90,11 @@ class TestMatricesMethods(geomstats.tests.TestCase):
             [[1., 2.],
              [2., 1.]],
             [[3., 4.],
-             [4., 5.]]])
-        result = gs.all(self.space.is_symmetric(points))
-        expected = True
+             [4., 5.]],
+            [[1., 2.],
+             [3., 4.]]])
+        result = self.space.is_symmetric(points)
+        expected = [True, True, False]
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
@@ -100,28 +102,28 @@ class TestMatricesMethods(geomstats.tests.TestCase):
         sym_mat = gs.array([[1., 2.],
                             [2., 1.]])
         result = self.space.make_symmetric(sym_mat)
-        expected = helper.to_matrix(sym_mat)
+        expected = sym_mat
         self.assertAllClose(result, expected)
 
         mat = gs.array([[1., 2., 3.],
                         [0., 0., 0.],
                         [3., 1., 1.]])
         result = self.space.make_symmetric(mat)
-        expected = gs.array([[[1., 1., 3.],
-                              [1., 0., 0.5],
-                              [3., 0.5, 1.]]])
+        expected = gs.array([[1., 1., 3.],
+                             [1., 0., 0.5],
+                             [3., 0.5, 1.]])
         self.assertAllClose(result, expected)
 
-        mat = gs.array([[[1e100, 1e-100, 1e100],
-                         [1e100, 1e-100, 1e100],
-                         [1e-100, 1e-100, 1e100]]])
+        mat = gs.array([[1e100, 1e-100, 1e100],
+                        [1e100, 1e-100, 1e100],
+                        [1e-100, 1e-100, 1e100]])
         result = self.space.make_symmetric(mat)
 
         res = 0.5 * (1e100 + 1e-100)
 
-        expected = gs.array([[[1e100, res, res],
-                              [res, 1e-100, res],
-                              [res, res, 1e100]]])
+        expected = gs.array([[1e100, res, res],
+                             [res, 1e-100, res],
+                             [res, res, 1e100]])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
@@ -163,5 +165,23 @@ class TestMatricesMethods(geomstats.tests.TestCase):
                 gs.transpose(tangent_vector_1),
                 tangent_vector_2))
         expected = helper.to_scalar(expected)
+
+        self.assertAllClose(result, expected)
+
+    def test_cong(self):
+        base_point = gs.array([
+            [1., 2., 3.],
+            [0., 0., 0.],
+            [3., 1., 1.]])
+
+        tangent_vector = gs.array([
+            [1., 2., 3.],
+            [0., -10., 0.],
+            [30., 1., 1.]])
+
+        result = self.space.congruent(tangent_vector, base_point)
+        expected = gs.matmul(
+            tangent_vector, gs.transpose(base_point))
+        expected = gs.matmul(base_point, expected)
 
         self.assertAllClose(result, expected)

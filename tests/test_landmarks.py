@@ -42,9 +42,9 @@ class TestLandmarksMethods(geomstats.tests.TestCase):
         self.atol = 1e-6
         gs.random.seed(1234)
         self.space_landmarks_in_euclidean_3d = Landmarks(
-                ambient_manifold=r3)
+            ambient_manifold=r3)
         self.space_landmarks_in_sphere_2d = Landmarks(
-                ambient_manifold=s2)
+            ambient_manifold=s2)
         self.l2_metric_s2 = self.space_landmarks_in_sphere_2d.l2_metric
         self.l2_metric_r3 = self.space_landmarks_in_euclidean_3d.l2_metric
         self.landmarks_a = landmark_set_a
@@ -64,10 +64,10 @@ class TestLandmarksMethods(geomstats.tests.TestCase):
         Test that squared norm of logarithm is squared dist.
         """
         tangent_vec = self.l2_metric_s2.log(
-                landmarks=self.landmarks_b, base_landmarks=self.landmarks_a)
+            landmarks=self.landmarks_b, base_landmarks=self.landmarks_a)
         log_ab = tangent_vec
         result = self.l2_metric_s2.squared_norm(
-                vector=log_ab, base_point=self.landmarks_a)
+            vector=log_ab, base_point=self.landmarks_a)
         expected = self.l2_metric_s2.dist(
             self.landmarks_a, self.landmarks_b) ** 2
         expected = helper.to_scalar(expected)
@@ -80,9 +80,10 @@ class TestLandmarksMethods(geomstats.tests.TestCase):
         Test that exp and log are inverse maps.
         """
         tangent_vec = self.l2_metric_s2.log(
-                landmarks=self.landmarks_b, base_landmarks=self.landmarks_a)
-        result = self.l2_metric_s2.exp(tangent_vec=tangent_vec,
-                                       base_landmarks=self.landmarks_a)
+            landmarks=self.landmarks_b, base_landmarks=self.landmarks_a)
+        result = self.l2_metric_s2.exp(
+            tangent_vec=tangent_vec,
+            base_landmarks=self.landmarks_a)
         expected = self.landmarks_b
 
         self.assertAllClose(result, expected, atol=self.atol)
@@ -101,10 +102,10 @@ class TestLandmarksMethods(geomstats.tests.TestCase):
         landmarks_bc = landmarks_bc(self.times)
 
         tangent_vecs = self.l2_metric_s2.log(
-                landmarks=landmarks_bc, base_landmarks=landmarks_ab)
+            landmarks=landmarks_bc, base_landmarks=landmarks_ab)
 
         result = self.l2_metric_s2.inner_product(
-                tangent_vecs, tangent_vecs, landmarks_ab)
+            tangent_vecs, tangent_vecs, landmarks_ab)
 
         self.assertAllClose(gs.shape(result), (n_samples, 1))
 
@@ -122,7 +123,7 @@ class TestLandmarksMethods(geomstats.tests.TestCase):
         landmarks_bc = landmarks_bc(self.times)
 
         result = self.l2_metric_s2.dist(
-                landmarks_ab, landmarks_bc)
+            landmarks_ab, landmarks_bc)
         self.assertAllClose(gs.shape(result), (n_samples, 1))
 
     @geomstats.tests.np_and_tf_only
@@ -138,11 +139,10 @@ class TestLandmarksMethods(geomstats.tests.TestCase):
         landmarks_bc = landmarks_bc(self.times)
 
         tangent_vecs = self.l2_metric_s2.log(
-                landmarks=landmarks_bc, base_landmarks=landmarks_ab)
+            landmarks=landmarks_bc, base_landmarks=landmarks_ab)
 
         result = self.l2_metric_s2.exp(
-                tangent_vec=tangent_vecs,
-                base_landmarks=landmarks_ab)
+            tangent_vec=tangent_vecs, base_landmarks=landmarks_ab)
         self.assertAllClose(gs.shape(result), gs.shape(landmarks_ab))
 
     @geomstats.tests.np_only
@@ -158,7 +158,7 @@ class TestLandmarksMethods(geomstats.tests.TestCase):
         landmarks_bc = landmarks_bc(self.times)
 
         tangent_vecs = self.l2_metric_s2.log(
-                landmarks=landmarks_bc, base_landmarks=landmarks_ab)
+            landmarks=landmarks_bc, base_landmarks=landmarks_ab)
 
         result = tangent_vecs
         self.assertAllClose(gs.shape(result), gs.shape(landmarks_ab))
@@ -179,12 +179,12 @@ class TestLandmarksMethods(geomstats.tests.TestCase):
         expected = gs.zeros(landmarks_ab.shape)
         for k in range(self.n_sampling_points):
             geod = self.l2_metric_s2.ambient_metric.geodesic(
-                    initial_point=self.landmarks_a[k, :],
-                    end_point=self.landmarks_b[k, :])
+                initial_point=self.landmarks_a[k, :],
+                end_point=self.landmarks_b[k, :])
             expected[:, k, :] = geod(self.times)
 
         self.assertAllClose(result, expected)
 
         geod = self.l2_metric_s2.geodesic(
-                initial_landmarks=landmarks_ab,
-                end_landmarks=landmarks_bc)
+            initial_landmarks=landmarks_ab,
+            end_landmarks=landmarks_bc)
