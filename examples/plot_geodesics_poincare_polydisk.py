@@ -25,7 +25,8 @@ def plot_geodesic_between_two_points(initial_point,
                                      ax=None):
     """Plot the geodesic between two points."""
     geodesic = METRIC.geodesic(initial_point=initial_point,
-                               end_point=end_point)
+                               end_point=end_point,
+                               point_type='matrix')
     t = gs.linspace(0, 1, n_steps)
     points = geodesic(t)
     visualization.plot(points, ax=ax, space='poincare_polydisk')
@@ -37,7 +38,8 @@ def plot_geodesic_with_initial_tangent_vector(initial_point,
                                               ax=None):
     """Plot the geodesic with initial speed the tangent vector."""
     geodesic = METRIC.geodesic(initial_point=initial_point,
-                               initial_tangent_vec=initial_tangent_vec)
+                               initial_tangent_vec=initial_tangent_vec,
+                               point_type='matrix')
     t = np.linspace(0, 1, n_steps)
     points = geodesic(t)
     visualization.plot(points, ax=ax, space='poincare_polydisk')
@@ -46,20 +48,17 @@ def plot_geodesic_with_initial_tangent_vector(initial_point,
 def main():
     """Plot the geodesics."""
     initial_point = gs.array([np.sqrt(2), 1., 0.])
-    stack_initial_point = gs.vstack(
-        [initial_point for i_disk in range(N_DISKS)])
+    stack_initial_point = gs.stack([initial_point] * N_DISKS, axis=0)
     initial_point = gs.to_ndarray(stack_initial_point, to_ndim=3)
 
     end_point_intrinsic = gs.array([1.5, 1.5])
     end_point_intrinsic = end_point_intrinsic.reshape(1, 1, 2)
     end_point = POINCARE_POLYDISK.intrinsic_to_extrinsic_coords(
         end_point_intrinsic)
-    end_point = gs.concatenate(
-        [end_point for i_disk in range(N_DISKS)],
-        axis=1)
+    end_point = gs.concatenate([end_point] * N_DISKS, axis=1)
 
     vector = gs.array([3.5, 0.6, 0.8])
-    stack_vector = gs.vstack([vector for i_disk in range(N_DISKS)])
+    stack_vector = gs.stack([vector] * N_DISKS, axis=0)
     vector = gs.to_ndarray(stack_vector, to_ndim=3)
     initial_tangent_vec = POINCARE_POLYDISK.projection_to_tangent_space(
         vector=vector,

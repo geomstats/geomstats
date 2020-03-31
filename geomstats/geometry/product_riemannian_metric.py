@@ -191,10 +191,9 @@ class ProductRiemannianMetric(RiemannianMetric):
         elif point_type == 'matrix':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
             base_point = gs.to_ndarray(base_point, to_ndim=3)
-            return gs.asarray(
-                [self.metrics[i].exp(
-                    tangent_vec[i], base_point[i]) for i in range(
-                    self.n_metrics)])
+            return gs.stack([
+                self.metrics[i].exp(tangent_vec[:, i], base_point[:, i])
+                for i in range(self.n_metrics)], axis=1)
         else:
             raise ValueError(f'invalid point_type argument: {point_type}, '
                              f'expected either matrix of vector')
@@ -233,7 +232,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             point = gs.to_ndarray(point, to_ndim=3)
             base_point = gs.to_ndarray(base_point, to_ndim=3)
             return gs.stack(
-                [self.metrics[i].log( point[:, i], base_point[:, i]) \
+                [self.metrics[i].log(point[:, i], base_point[:, i])
                  for i in range(self.n_metrics)], axis=1)
         else:
             raise ValueError(f'invalid point_type argument: {point_type}, '
