@@ -102,7 +102,7 @@ class ProductManifold(Manifold):
             point_type = self.default_point_type
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
-            intrinsic = self._detect_intrinsic_extrinsic(point, point_type)
+            intrinsic = self._detect_intrinsic_extrinsic(point)
             belongs = self._iterate_over_manifolds(
                 'belongs', {'point': point}, intrinsic)
             belongs = gs.hstack(belongs)

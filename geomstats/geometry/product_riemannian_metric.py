@@ -150,8 +150,8 @@ class ProductRiemannianMetric(RiemannianMetric):
                               for i, metric in enumerate(self.metrics)]
             return sum(inner_products)
         else:
-            raise ValueError(f'invalid point_type argument: {point_type}, '
-                             f'expected either matrix of vector')
+            raise ValueError('invalid point_type argument: {}, expected '
+                             'either matrix of vector'.format(point_type))
 
     def exp(self, tangent_vec, base_point=None, point_type=None):
         """Compute the Riemannian exponential of a tangent vector.
