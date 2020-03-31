@@ -400,9 +400,6 @@ When writing up your docstrings, please review the `NumPy docstring guidge <http
 to understand the role and syntax of each section. Following this syntax is important not only for readability, 
 it is also required for automated parsing for inclusion into our generated API Reference.
 
-In Python, each module, class, and function has a ``__doc__`` attribute. It is set by default whenever you include
-a pair of three double quotation marks just after the ``def func(a, b):`` line in a .py file.
-
 You can look at these for any object by printing out the ``__doc__`` attribute. 
 Try this out with the np.array class and the np.mean function to see good examples::
 
