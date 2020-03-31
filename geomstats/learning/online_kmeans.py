@@ -1,14 +1,18 @@
-"""Online kmeans algorithm on Manifolds.
-"""
+"""Online kmeans algorithm on Manifolds."""
+
+import logging
 
 from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
 
 
+# TODO(nkoep): Move this into the OnlineKMeans class.
+
 def online_kmeans(X, metric, n_clusters, n_repetitions=20,
                   tolerance=1e-5, n_max_iterations=5e4):
-    """
+    """Perform online K-means clustering.
+
     Perform online version of k-means algorithm on data contained in X.
     The data points are treated sequentially and the cluster centers are
     updated one at a time. This version of k-means avoids computing the
@@ -24,39 +28,31 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20,
 
     Parameters
     ----------
-
     X : array-like, shape=[n_samples, n_features]
         Input data. It is treated sequentially by the algorithm, i.e.
         one datum is chosen randomly at each iteration.
-
     metric : object
         Metric of the space in which the data lives. At each iteration,
         one of the cluster centers is moved in the direction of the new
         datum, according the exponential map of the underlying space, which
         is a method of metric.
-
     n_clusters : int
         Number of clusters of the k-means clustering, or number of desired
         atoms of the quantized distribution.
-
     n_repetitions : int, default=20
         The cluster centers are updated using decreasing step sizes, each
         of which stays constant for n_repetitions iterations to allow a better
         exploration of the data points.
-
     n_max_iterations : int, default=5e4
         Maximum number of iterations. If it is reached, the
         quantization may be inacurate.
 
     Returns
     -------
-
     cluster_centers : array, shape=[n_clusters, n_features]
         Coordinates of cluster centers.
-
     labels : array, shape=[n_samples]
         Cluster labels for each point.
-
     """
     n_samples = X.shape[0]
 
@@ -95,8 +91,9 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20,
             break
 
     if iteration == n_max_iterations - 1:
-        print('Maximum number of iterations {} reached. The'
-              'clustering may be inaccurate'.format(n_max_iterations))
+        logging.warning(
+            'Maximum number of iterations {} reached. The'
+            'clustering may be inaccurate'.format(n_max_iterations))
 
     labels = gs.zeros(n_samples)
     for i in range(n_samples):
@@ -106,7 +103,7 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20,
 
 
 class OnlineKMeans(BaseEstimator, ClusterMixin):
-    """Online k-means clustering
+    """Online k-means clustering.
 
     Online k-means clustering seeks to divide a set of data points into
     a specified number of classes, while minimizing intra-class variance.
@@ -115,26 +112,22 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
     distribution supported by a smaller number of points with respect to the
     Wasserstein distance. The algorithm used can either be seen as an online
     version of the k-means algorithm or as Competitive Learning Riemannian
-    Quantization.
+    Quantization (see [LBP2019]_).
 
     Parameters
     ----------
-
     metric : object
         Metric of the space in which the data lives. At each iteration,
         one of the cluster centers is moved in the direction of the new
         datum, according the exponential map of the underlying space, which
         is a method of metric.
-
     n_clusters : int
         Number of clusters of the k-means clustering, or number of desired
         atoms of the quantized distribution.
-
     n_repetitions : int, default=20
         The cluster centers are updated using decreasing step sizes, each
         of which stays constant for n_repetitions iterations to allow a better
         exploration of the data points.
-
     n_max_iterations : int, default=5e4
         Maximum number of iterations. If it is reached, the
         quantization may be inacurate.
@@ -143,7 +136,6 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
     ----------
     cluster_centers_ : array, [n_clusters, n_features]
         Coordinates of cluster centers.
-
     labels_ :
         Labels of each point.
 
@@ -158,12 +150,13 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
     >>> clustering.cluster_centers_
     >>> clustering.labels_
 
-    Reference
-    ---------
-    A. Le Brigant and S. Puechmorel, Optimal Riemannian quantization
-    with an application to air traffic analysis. J. Multivar. Anal.
-    173 (2019), 685 - 703.
+    References
+    ----------
+    .. [LBP2019] A. Le Brigant and S. Puechmorel, Optimal Riemannian
+       quantization with an application to air traffic analysis. J. Multivar.
+       Anal. 173 (2019), 685 - 703.
     """
+
     def __init__(self, metric, n_clusters, n_repetitions=20,
                  tolerance=1e-5, n_max_iterations=5e4):
         self.metric = metric
@@ -201,5 +194,4 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
         -------
         labels : Index of the cluster each sample belongs to.
         """
-
         return self.metric.closest_neighbor_index(point, self.cluster_centers_)

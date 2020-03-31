@@ -9,6 +9,7 @@ import examples.gradient_descent_s2 as gradient_descent_s2
 import examples.loss_and_gradient_se3 as loss_and_gradient_se3
 import examples.loss_and_gradient_so3 as loss_and_gradient_so3
 import examples.plot_geodesics_h2 as plot_geodesics_h2
+import examples.plot_geodesics_poincare_polydisk as plot_geodesics_poincare_polydisk # NOQA
 import examples.plot_geodesics_s2 as plot_geodesics_s2
 import examples.plot_geodesics_se3 as plot_geodesics_se3
 import examples.plot_geodesics_so3 as plot_geodesics_so3
@@ -16,6 +17,7 @@ import examples.plot_grid_h2 as plot_grid_h2
 import examples.plot_kmeans_manifolds as plot_kmeans_manifolds
 import examples.plot_online_kmeans_s1 as plot_online_kmeans_s1
 import examples.plot_online_kmeans_s2 as plot_online_kmeans_s2
+import examples.plot_pole_ladder_s2 as plot_pole_ladder_s2
 import examples.plot_square_h2_klein_disk as plot_square_h2_klein_disk
 import examples.plot_square_h2_poincare_disk as plot_square_h2_poincare_disk
 import examples.plot_square_h2_poincare_half_plane as plot_square_h2_poincare_half_plane  # NOQA
@@ -36,6 +38,7 @@ class TestExamples(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
         warnings.simplefilter('ignore', category=UserWarning)
+        plt.rcParams.update({'figure.max_open_warning': 0})
         plt.figure()
 
     @geomstats.tests.np_only
@@ -55,6 +58,10 @@ class TestExamples(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_plot_geodesics_h2(self):
         plot_geodesics_h2.main()
+
+    @geomstats.tests.np_only
+    def test_plot_geodesics_poincare_polydisk(self):
+        plot_geodesics_poincare_polydisk.main()
 
     @geomstats.tests.np_only
     def test_plot_geodesics_s2(self):
@@ -103,3 +110,7 @@ class TestExamples(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_plot_online_kmeans_s2(self):
         plot_online_kmeans_s2.main()
+
+    @geomstats.tests.np_only
+    def test_plot_pole_ladder_s2(self):
+        plot_pole_ladder_s2.main()

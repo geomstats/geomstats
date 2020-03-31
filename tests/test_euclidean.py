@@ -322,39 +322,3 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
         expected = gs.array(n_geodesic_points * [[True]])
 
         self.assertAllClose(expected, result)
-
-    def test_mean(self):
-        point = gs.array([[1., 4.]])
-        result = self.metric.mean(points=[point, point, point])
-        expected = point
-        expected = helper.to_vector(expected)
-
-        self.assertAllClose(result, expected)
-
-        points = gs.array([
-            [1., 2.],
-            [2., 3.],
-            [3., 4.],
-            [4., 5.]])
-        weights = gs.array([1., 2., 1., 2.])
-
-        result = self.metric.mean(points, weights)
-        expected = gs.array([16. / 6., 22. / 6.])
-        expected = helper.to_vector(expected)
-
-        self.assertAllClose(result, expected)
-
-    def test_variance(self):
-        points = gs.array([
-            [1., 2.],
-            [2., 3.],
-            [3., 4.],
-            [4., 5.]])
-        weights = gs.array([1., 2., 1., 2.])
-        base_point = gs.zeros(2)
-        result = self.metric.variance(points, weights, base_point)
-        # we expect the average of the points' sq norms.
-        expected = (1 * 5. + 2 * 13. + 1 * 25. + 2 * 41.) / 6.
-        expected = helper.to_scalar(expected)
-
-        self.assertAllClose(result, expected)

@@ -1,10 +1,13 @@
 """Perform tangent PCA at the mean."""
 
+import logging
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.pca import TangentPCA
 
 
@@ -15,17 +18,21 @@ def main():
     sphere = Hypersphere(dimension=2)
 
     data = sphere.random_von_mises_fisher(kappa=15, n_samples=140)
-    mean = sphere.metric.mean(data)
+
+    mean = FrechetMean(metric=sphere.metric)
+    mean.fit(data)
+
+    mean_estimate = mean.estimate_
 
     tpca = TangentPCA(metric=sphere.metric, n_components=2)
-    tpca = tpca.fit(data, base_point=mean)
+    tpca = tpca.fit(data, base_point=mean_estimate)
     tangent_projected_data = tpca.transform(data)
 
     geodesic_0 = sphere.metric.geodesic(
-        initial_point=mean,
+        initial_point=mean_estimate,
         initial_tangent_vec=tpca.components_[0])
     geodesic_1 = sphere.metric.geodesic(
-        initial_point=mean,
+        initial_point=mean_estimate,
         initial_tangent_vec=tpca.components_[1])
 
     n_steps = 100
@@ -33,10 +40,10 @@ def main():
     geodesic_points_0 = geodesic_0(t)
     geodesic_points_1 = geodesic_1(t)
 
-    print(
+    logging.info(
         'Coordinates of the Log of the first 5 data points at the mean, '
         'projected on the principal components:')
-    print(tangent_projected_data[:5])
+    logging.info('\n{}'.format(tangent_projected_data[:5]))
 
     ax_var = fig.add_subplot(121)
     xticks = np.arange(1, 2 + 1, 1)
@@ -49,7 +56,7 @@ def main():
     ax = fig.add_subplot(122, projection="3d")
 
     visualization.plot(
-        mean, ax, space='S2', color='darkgreen', s=10)
+        mean_estimate, ax, space='S2', color='darkgreen', s=10)
     visualization.plot(
         geodesic_points_0, ax, space='S2', linewidth=2)
     visualization.plot(

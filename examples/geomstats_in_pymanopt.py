@@ -8,6 +8,7 @@ The example currently requires installing the pymanopt HEAD from git:
 """
 
 import functools
+import logging
 import os
 
 from pymanopt import Problem
@@ -101,11 +102,11 @@ if __name__ == '__main__':
             gs.sign(dominant_eigenvector_estimate[0])):
         dominant_eigenvector_estimate = -dominant_eigenvector_estimate
 
-    print('l2-norm of dominant eigenvector:',
-          gs.linalg.norm(dominant_eigenvector))
-    print('l2-norm of dominant eigenvector estimate:',
-          gs.linalg.norm(dominant_eigenvector_estimate))
+    logging.info('l2-norm of dominant eigenvector: {}'.format(
+        gs.linalg.norm(dominant_eigenvector)))
+    logging.info('l2-norm of dominant eigenvector estimate: {}'.format(
+        gs.linalg.norm(dominant_eigenvector_estimate)))
     error_norm = gs.linalg.norm(
         dominant_eigenvector - dominant_eigenvector_estimate)
-    print('l2-norm of difference vector:', error_norm)
-    print('solution found: %s' % gs.isclose(error_norm, 0.0, atol=1e-3))
+    logging.info('l2-norm of difference vector: {}'.format(error_norm))
+    logging.info('solution found: %s' % gs.isclose(error_norm, 0.0, atol=1e-3))

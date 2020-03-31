@@ -8,10 +8,13 @@ for isotropic distributions on hyper-spheres of radius 0 < theta < Pi in
 the sphere S_dim (called here a bubble).
 """
 
+import logging
+
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.learning.frechet_mean import _adaptive_gradient_descent
 
 
 def empirical_frechet_var_bubble(n_samples, theta, dim,
@@ -57,8 +60,10 @@ def empirical_frechet_var_bubble(n_samples, theta, dim,
                 data[i, j] = gs.sin(theta) * directions[i, j]
             data[i, dim] = gs.cos(theta)
 
-        current_mean = sphere.metric.adaptive_gradientdescent_mean(
-            data, n_max_iterations=64, init_points=[north_pole])
+        # TODO(nina): Use FrechetMean here
+        current_mean = _adaptive_gradient_descent(
+            data, metric=sphere.metric,
+            n_max_iterations=64, init_points=[north_pole])
         var.append(sphere.metric.squared_dist(north_pole, current_mean))
     return gs.mean(var), 2 * gs.std(var) / gs.sqrt(n_expectation)
 
@@ -133,7 +138,8 @@ def plot_modulation_factor(n_samples, dim, n_expectation=1000, n_theta=20):
             n_samples, theta_i, dim, n_expectation=n_expectation)
         measured_modulation_factor.append(var)
         error.append(std_var)
-        print(n_samples, theta_i, var, std_var, '\n')
+        logging.info(
+            '{} {} {} {}\n'.format(n_samples, theta_i, var, std_var))
         small_var_modulation_factor.append(
             1.0 + 2.0 / 3.0 * theta_i ** 2
             * (1.0 - 1.0 / dim) * (1.0 - 1.0 / n_samples))
@@ -194,7 +200,8 @@ def multi_plot_modulation_factor(dim, n_expectation=1000, n_theta=20):
             (var, std_var) = modulation_factor(
                 n_samples, theta_i, dim, n_expectation=n_expectation)
             measured_modulation_factor.append(var)
-            print(n_samples, theta_i, var, std_var, '\n')
+            logging.info(
+                '{} {} {} {}\n'.format(n_samples, theta_i, var, std_var))
         plt.plot(theta, measured_modulation_factor,
                  color=color[n_samples], label="N={0}".format(n_samples))
     plt.xlabel(r'Standard deviation $\theta$')
@@ -219,23 +226,23 @@ def main():
     """
     n_expectation = 10
 
-    print("Var of empirical mean for 1 sample, theta=0.1 in S2",
-          empirical_frechet_var_bubble(
-              1, 0.1, 2, n_expectation=n_expectation), "\n")
-    print("Var of empirical mean for 1 sample, theta=0.1 in S3",
-          empirical_frechet_var_bubble(
-              1, 0.1, 3, n_expectation=n_expectation), "\n")
+    logging.info('Var of empirical mean for 1 sample, theta=0.1 '
+                 'in S2 {} \n'.format(empirical_frechet_var_bubble(
+                     1, 0.1, 2, n_expectation=n_expectation)))
+    logging.info('Var of empirical mean for 1 sample, theta=0.1 '
+                 'in S3 {} \n'.format(empirical_frechet_var_bubble(
+                     1, 0.1, 3, n_expectation=n_expectation)))
 
-    print("Modulation factor for 1 sample theta=0.1 in S2 "
-          "(should be close to 1):",
-          modulation_factor(
-              1, 0.1, 2, n_expectation=n_expectation), "\n")
+    logging.info('Modulation factor for 1 sample theta=0.1 in S2 '
+                 '(should be close to 1): {} \n'.format(
+                     modulation_factor(
+                         1, 0.1, 2, n_expectation=n_expectation)))
 
-    print("Modulation factor for 500 sample theta close to Pi/2 in S5 "
-          "(should be around 25):",
-          modulation_factor(
-              500, gs.pi / 2 - 0.001, 5,
-              n_expectation=n_expectation), "\n")
+    logging.info('Modulation factor for 500 sample theta close to Pi/2 in S5 '
+                 '(should be around 25): {} \n'.format(
+                     modulation_factor(
+                         500, gs.pi / 2 - 0.001, 5,
+                         n_expectation=n_expectation)))
 
     plot_modulation_factor(2, 2, n_expectation=n_expectation)
     plot_modulation_factor(4, 2, n_expectation=n_expectation)

@@ -161,7 +161,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_tf_only
     def test_powerm_diagonal(self):
         power = .5
         point = gs.array([[1., 0., 0.],
@@ -174,7 +174,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_tf_only
     def test_powerm(self):
         power = 2.4
         point = gs.array([[1., 0., 0.],
@@ -196,7 +196,7 @@ class TestBackends(geomstats.tests.TestCase):
                             [0., 2.5, 1.5],
                             [0., 1.5, 2.5]]])
         result = gs.linalg.powerm(points, power)
-        result = gs.linalg.powerm(result, 1 / power)
+        result = gs.linalg.powerm(result, 1. / power)
         expected = points
 
         self.assertAllClose(result, expected)
@@ -227,3 +227,13 @@ class TestBackends(geomstats.tests.TestCase):
             tensor_2 = gs.ones((0, 1))
 
             tensor_1 + tensor_2
+
+    @geomstats.tests.pytorch_only
+    def test_cumsum(self):
+        result = gs.cumsum(gs.arange(10))
+        expected = gs.array(([0, 1, 3, 6, 10, 15, 21, 28, 36, 45]))
+        self.assertAllClose(result, expected)
+
+        result = gs.cumsum(gs.arange(10).reshape(2, 5), axis=1)
+        expected = gs.array(([[0, 1, 3, 6, 10], [5, 11, 18, 26, 35]]))
+        self.assertAllClose(result, expected)

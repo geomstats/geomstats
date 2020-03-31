@@ -89,8 +89,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
     def test_log_and_exp_general_case(self):
         """
-        Test that the riemannian exponential
-        and the riemannian logarithm are inverse.
+        Test that the Riemannian exponential
+        and the Riemannian logarithm are inverse.
 
         Expect their composition to give the identity function.
         """
@@ -263,8 +263,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
     def test_log_and_exp_edge_case(self):
         """
-        Test that the riemannian exponential
-        and the riemannian logarithm are inverse.
+        Test that the Riemannian exponential
+        and the Riemannian logarithm are inverse.
 
         Expect their composition to give the identity function.
         """
@@ -289,8 +289,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
         """
-        Test that the riemannian exponential
-        and the riemannian logarithm are inverse.
+        Test that the Riemannian exponential
+        and the Riemannian logarithm are inverse.
 
         Expect their composition to give the identity function.
         """
@@ -398,8 +398,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """
-        Test that the riemannian exponential and
-        the riemannian logarithm are inverse.
+        Test that the Riemannian exponential and
+        the Riemannian logarithm are inverse.
 
         Expect their composition to give the identity function.
         """
@@ -415,37 +415,6 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
             base_point=base_point)
 
         self.assertAllClose(result, expected, atol=1e-8)
-
-    @geomstats.tests.np_and_tf_only
-    def test_variance(self):
-        point = gs.array([2., 1., 1., 1.])
-        points = gs.array([point, point])
-        result = self.metric.variance(points)
-        expected = helper.to_scalar(0.)
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_tf_only
-    def test_mean(self):
-        point = gs.array([2., 1., 1., 1.])
-        points = gs.array([point, point])
-        result = self.metric.mean(points)
-        expected = helper.to_vector(point)
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_tf_only
-    def test_mean_and_belongs(self):
-        point_a = self.space.random_uniform()
-        point_b = self.space.random_uniform()
-        point_c = self.space.random_uniform()
-        points = gs.concatenate([point_a, point_b, point_c], axis=0)
-
-        mean = self.metric.mean(points)
-        result = self.space.belongs(mean)
-        expected = gs.array([[True]])
-
-        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_scaled_inner_product(self):

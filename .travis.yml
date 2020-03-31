@@ -1,26 +1,64 @@
-sudo: false
+os: linux
 dist: xenial
 cache: pip
 language: python
 python:
-    - "3.5"
-    - "3.6"
-    - "3.7"
-    - "3.8"
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  - "3.8"
 
 install:
-    - pip install --upgrade "pip<20.0" setuptools wheel
-    - pip install -q -r dev-requirements.txt
-    - pip install -q -r requirements.txt --only-binary=numpy,scipy
+  - pip install --upgrade pip setuptools wheel
+  - |
+    for req in ci-requirements.txt dev-requirements.txt requirements.txt; do
+      pip install -q -r $req
+    done
 script:
-    - flake8 $(git diff --name-only master HEAD geomstats examples tests) --ignore=D,W503,W504
-    - flake8 geomstats/geometry --ignore=W503,W504
-    - if [[ $TRAVIS_PYTHON_VERSION != 3.8 ]]; then nose2 --with-coverage --verbose tests; fi
-    - if [[ $TRAVIS_PYTHON_VERSION == 3.8 && $GEOMSTATS_BACKEND != tensorflow ]]; then nose2 --with-coverage --verbose tests; fi
+  - flake8 --ignore=D,W503,W504 geomstats examples tests
+  - flake8 geomstats/geometry geomstats/learning
+  - |
+    if [[ $TRAVIS_PYTHON_VERSION != 3.8 ||
+          ($TRAVIS_PYTHON_VERSION == 3.8 &&
+           $GEOMSTATS_BACKEND != tensorflow) ]]; then
+      nose2 --with-coverage --verbose tests
+    fi
 env:
-    - GEOMSTATS_BACKEND=numpy
-    - GEOMSTATS_BACKEND=pytorch
-    - GEOMSTATS_BACKEND=tensorflow
+  - GEOMSTATS_BACKEND=numpy
+  - GEOMSTATS_BACKEND=pytorch
+  - GEOMSTATS_BACKEND=tensorflow
 
 after_success:
-    - bash <(curl -s https://codecov.io/bash) -c -F $GEOMSTATS_BACKEND
+  - bash <(curl -s https://codecov.io/bash) -c -F $GEOMSTATS_BACKEND
+  - >
+    PYTHONPATH=. sphinx-build
+    -b html
+    -D version=latest
+    -D release=latest
+    docs
+    docs/_build
+
+deploy:
+  - provider: pages
+    skip_cleanup: true
+    token: $GITHUB_PAGES_TOKEN
+    keep_history: true
+    repo: geomstats/geomstats.github.io
+    target_branch: master
+    fqdn: geomstats.github.io
+    project_name: geomstats
+    on:
+      condition: >
+                 $TRAVIS_PYTHON_VERSION = "3.7" &&
+                 $GEOMSTATS_BACKEND = "numpy" &&
+                 ($TRAVIS_BRANCH = "master" || -n $TRAVIS_TAG)
+      repo: geomstats/geomstats
+    local_dir: docs/_build
+  - provider: pypi
+    username: $PYPI_USER
+    password: $PYPI_PASSWORD
+    on:
+      repo: geomstats/geomstats
+      tags: true
+    distributions: "sdist bdist_wheel"
+    skip_existing: true

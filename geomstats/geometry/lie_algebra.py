@@ -7,11 +7,7 @@ in that base. This base will be provided in child classes
 (e.g. SkewSymmetricMatrices).
 """
 import geomstats.backend as gs
-
-BCH_INFO = gs.asarray([
-    [int(x) for x in i.strip().split()]
-    for i in open("geomstats/geometry/bch_coefficients.dat").readlines()
-])
+from ._bch_coefficients import BCH_COEFFICIENTS
 
 
 class MatrixLieAlgebra:
@@ -50,29 +46,30 @@ class MatrixLieAlgebra:
         return gs.matmul(matrix_a, matrix_b) - gs.matmul(matrix_b, matrix_a)
 
     def baker_campbell_hausdorff(self, matrix_a, matrix_b, order=2):
-        """Calculate the Baker Campbell Hausdorff approximation of given order.
+        """Calculate the Baker-Campbell-Hausdorff approximation of given order.
 
-        We use the algorithm published by Casas / Murua in their paper
-        "An efficient algorithm for computing the Baker–Campbell–Hausdorff
-        series and some of its applications" in J.o.Math.Physics 50 (2009) as
-        well as their computed constants from
-        http://www.ehu.eus/ccwmuura/research/bchHall20.dat.
-        Our file is truncated to enable us to calculate BCH up to order 15
+        The implementation is based on [CM2009a]_ with the pre-computed
+        constants taken from [CM2009b]_. Our coefficients are truncated to
+        enable us to calculate BCH up to order 15.
 
-        This represents Z =log(exp(X)exp(Y)) as an infinite linear combination
-        of the form
-        Z = sum z_i e_i
-        where z_i are rational numbers and e_i are iterated Lie brackets
-        starting with e_1 = X, e_2 = Y, each e_i is given by some i',i'':
-        e_i = [e_i', e_i''].
+        This represents Z = log(exp(X)exp(Y)) as an infinite linear combination
+        of the form Z = sum z_i e_i where z_i are rational numbers and e_i are
+        iterated Lie brackets starting with e_1 = X, e_2 = Y, each e_i is given
+        by some i',i'': e_i = [e_i', e_i''].
 
         Parameters
         ----------
-        matrix_a: array-like, shape=[n_sample, n, n]
-        matrix_b: array-like, shape=[n_sample, n, n]
-        order: int
-            the order to which the approximation is calculated. Note that this
-            is NOT the same as using only e_i with i < order
+        matrix_a, matrix_b : array-like, shape=[n_sample, n, n]
+        order : int
+            The order to which the approximation is calculated. Note that this
+            is NOT the same as using only e_i with i < order.
+
+        References
+        ----------
+        .. [CM2009a] F. Casas and A. Murua. An efficient algorithm for
+           computing the Baker–Campbell–Hausdorff series and some of its
+           applications. Journal of Mathematical Physics 50, 2009
+        .. [CM2009b] http://www.ehu.eus/ccwmuura/research/bchHall20.dat
         """
         if order > 15:
             raise NotImplementedError("BCH is not implemented for order > 15.")
@@ -87,11 +84,13 @@ class MatrixLieAlgebra:
         result = matrix_a + matrix_b
 
         for i in gs.arange(2, n_terms):
-            i_p = BCH_INFO[i, 1] - 1
-            i_pp = BCH_INFO[i, 2] - 1
+            i_p = BCH_COEFFICIENTS[i, 1] - 1
+            i_pp = BCH_COEFFICIENTS[i, 2] - 1
 
             ei[i] = self.lie_bracket(ei[i_p], ei[i_pp])
-            result = result + BCH_INFO[i, 3] / float(BCH_INFO[i, 4]) * ei[i]
+            result += (BCH_COEFFICIENTS[i, 3] /
+                       float(BCH_COEFFICIENTS[i, 4]) *
+                       ei[i])
 
         return result
 

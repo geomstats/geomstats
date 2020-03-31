@@ -1,7 +1,7 @@
 """The n-dimensional hypersphere.
 
-The n-dimensional hypersphere embedded in the
-(n+1)-dimensional Euclidean space.
+The n-dimensional hypersphere embedded in (n+1)-dimensional
+Euclidean space.
 """
 
 import logging
@@ -39,6 +39,11 @@ class Hypersphere(EmbeddedManifold):
 
     By default, points are parameterized by their extrinsic
     (n+1)-coordinates.
+
+    Parameters
+    ----------
+    dimension: int
+        Dimension of the hypersphere.
     """
 
     def __init__(self, dimension):
@@ -50,19 +55,22 @@ class Hypersphere(EmbeddedManifold):
         self.metric = HypersphereMetric(dimension)
 
     def belongs(self, point, tolerance=TOLERANCE):
-        """Evaluate if a point belongs to the Hypersphere.
+        """Test if a point belongs to the hypersphere.
 
-        i.e. evaluate if its squared norm in the Euclidean space is 1.
+        This tests whether the point's squared norm in Euclidean space is 1.
 
         Parameters
         ----------
         point : array-like, shape=[n_samples, dimension + 1]
-                Input points.
+            Points in Euclidean space.
         tolerance : float, optional
+            Tolerance at which to evaluate norm == 1 (default: TOLERANCE).
 
         Returns
         -------
         belongs : array-like, shape=[n_samples, 1]
+            Array of booleans evaluating if each point belongs to
+            the hypersphere.
         """
         point = gs.asarray(point)
         point_dim = point.shape[-1]
@@ -80,23 +88,35 @@ class Hypersphere(EmbeddedManifold):
         """Regularize a point to the canonical representation.
 
         Regularize a point to the canonical representation chosen
-        for the Hypersphere, to avoid numerical issues.
+        for the hypersphere, to avoid numerical issues.
 
         Parameters
         ----------
         point : array-like, shape=[n_samples, dimension + 1]
-                Input points.
+            Points on the hypersphere.
 
         Returns
         -------
         projected_point : array-like, shape=[n_samples, dimension + 1]
+            Points in canonical representation chosen for the hypersphere.
         """
         assert gs.all(self.belongs(point))
 
         return self.projection(point)
 
     def projection(self, point):
-        """Project a point on the Hypersphere."""
+        """Project a point on the hypersphere.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dimension + 1]
+            Point in embedding Euclidean space.
+
+        Returns
+        -------
+        projected_point : array-like, shape=[n_samples, dimension + 1]
+            Point projected on the hypersphere.
+        """
         point = gs.to_ndarray(point, to_ndim=2)
 
         norm = self.embedding_metric.norm(point)
@@ -108,16 +128,21 @@ class Hypersphere(EmbeddedManifold):
         """Project a vector to the tangent space.
 
         Project a vector in Euclidean space
-        on the tangent space of the Hypersphere at a base point.
+        on the tangent space of the hypersphere at a base point.
 
         Parameters
         ----------
         vector : array-like, shape=[n_samples, dimension + 1]
+            Vector in Euclidean space.
         base_point : array-like, shape=[n_samples, dimension + 1]
+            Point on the hypersphere defining the tangent space,
+            where the vector will be projected.
 
         Returns
         -------
         tangent_vec : array-like, shape=[n_samples, dimension + 1]
+            Tangent vector in the tangent space of the hypersphere
+            at the base point.
         """
         vector = gs.to_ndarray(vector, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -130,19 +155,21 @@ class Hypersphere(EmbeddedManifold):
         return tangent_vec
 
     def spherical_to_extrinsic(self, point_spherical):
-        """Convert point from spherical to extrensic coordinates.
+        """Convert point from spherical to extrinsic coordinates.
 
-        Convert from the spherical coordinates in the Hypersphere
+        Convert from the spherical coordinates in the hypersphere
         to the extrinsic coordinates in Euclidean space.
         Only implemented in dimension 2.
 
         Parameters
         ----------
         point_spherical : array-like, shape=[n_samples, dimension]
+            Point on the sphere, in spherical coordinates.
 
         Returns
         -------
         point_extrinsic : array_like, shape=[n_samples, dimension + 1]
+            Point on the sphere, in extrinsic coordinates in Euclidean space.
         """
         if self.dimension != 2:
             raise NotImplementedError(
@@ -163,20 +190,24 @@ class Hypersphere(EmbeddedManifold):
 
     def tangent_spherical_to_extrinsic(self, tangent_vec_spherical,
                                        base_point_spherical):
-        """Convert tan vector from spherical to extrensic coordinates.
+        """Convert tangent vector from spherical to extrinsic coordinates.
 
-        Convert from the spherical coordinates in the Hypersphere
+        Convert from the spherical coordinates in the hypersphere
         to the extrinsic coordinates in Euclidean space for a tangent
         vector. Only implemented in dimension 2.
 
         Parameters
         ----------
         tangent_vec_spherical : array-like, shape=[n_samples, dimension]
+            Tangent vector to the sphere, in spherical coordinates.
         base_point_spherical : array-like, shape=[n_samples, dimension]
+            Point on the sphere, in spherical coordinates.
 
         Returns
         -------
         tangent_vec_extrinsic : array-like, shape=[n_samples, dimension + 1]
+            Tangent vector to the sphere, at base point,
+            in extrinsic coordinates in Euclidean space.
         """
         if self.dimension != 2:
             raise NotImplementedError(
@@ -200,18 +231,21 @@ class Hypersphere(EmbeddedManifold):
         return tangent_vec_extrinsic
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
-        """Convert point from intrinsic to extrensic coordinates.
+        """Convert point from intrinsic to extrinsic coordinates.
 
-        Convert from the intrinsic coordinates in the Hypersphere,
+        Convert from the intrinsic coordinates in the hypersphere,
         to the extrinsic coordinates in Euclidean space.
 
         Parameters
         ----------
         point_intrinsic : array-like, shape=[n_samples, dimension]
+            Point on the hypersphere, in intrinsic coordinates.
 
         Returns
         -------
         point_extrinsic : array-like, shape=[n_samples, dimension + 1]
+            Point on the hypersphere, in extrinsic coordinates in
+            Euclidean space.
         """
         point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
 
@@ -225,18 +259,21 @@ class Hypersphere(EmbeddedManifold):
         return point_extrinsic
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
-        """Convert point from extrensic to intrinsic coordinates.
+        """Convert point from extrinsic to intrinsic coordinates.
 
         Convert from the extrinsic coordinates in Euclidean space,
-        to some intrinsic coordinates in Hypersphere.
+        to some intrinsic coordinates in the hypersphere.
 
         Parameters
         ----------
         point_extrinsic : array-like, shape=[n_samples, dimension + 1]
+            Point on the hypersphere, in extrinsic coordinates in
+            Euclidean space.
 
         Returns
         -------
         point_intrinsic : array-like, shape=[n_samples, dimension]
+            Point on the hypersphere, in intrinsic coordinates.
         """
         point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=2)
 
@@ -245,15 +282,17 @@ class Hypersphere(EmbeddedManifold):
         return point_intrinsic
 
     def random_uniform(self, n_samples=1):
-        """Sample in the Hypersphere with the uniform distribution.
+        """Sample in the hypersphere from the uniform distribution.
 
         Parameters
         ----------
         n_samples : int, optional
+            Number of samples.
 
         Returns
         -------
         samples : array-like, shape=[n_samples, dimension + 1]
+            Points sampled on the hypersphere.
         """
         size = (n_samples, self.dimension + 1)
 
@@ -272,17 +311,25 @@ class Hypersphere(EmbeddedManifold):
     def random_von_mises_fisher(self, kappa=10, n_samples=1):
         """Sample in the 2-sphere with the von Mises distribution.
 
-        Sample in the 2-sphere with the von Mises distribution centered in the
+        Sample in the 2-sphere with the von Mises distribution centered at the
         north pole.
+
+        References
+        ----------
+        https://en.wikipedia.org/wiki/Von_Mises_distribution
 
         Parameters
         ----------
         kappa : int, optional
+            Kappa parameter of the von Mises distribution.
         n_samples : int, optional
+            Number of samples.
 
         Returns
         -------
-        point : array-like
+        point : array-like, shape=[n_samples, 3]
+            Points sampled on the sphere in extrinsic coordinates
+            in Euclidean space of dimension 3.
         """
         if self.dimension != 2:
             raise NotImplementedError(
@@ -305,7 +352,13 @@ class Hypersphere(EmbeddedManifold):
 
 
 class HypersphereMetric(RiemannianMetric):
-    """Class for the Hypersphere Metric."""
+    """Class for the Hypersphere Metric.
+
+    Parameters
+    ----------
+    dimension : int
+        Dimension of the hypersphere.
+    """
 
     def __init__(self, dimension):
         super(HypersphereMetric, self).__init__(
@@ -314,21 +367,21 @@ class HypersphereMetric(RiemannianMetric):
         self.embedding_metric = EuclideanMetric(dimension + 1)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the inner product of two tangent vectors at a base point.
+        """Compute the inner-product of two tangent vectors at a base point.
 
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[n_samples, dimension + 1]
-                                    or shape=[1, dimension + 1]
+            First tangent vector at base point.
         tangent_vec_b : array-like, shape=[n_samples, dimension + 1]
-                                    or shape=[1, dimension + 1]
-        base_point : array-like, shape=[n_samples, dimension + 1]
-                                 or shape=[1, dimension + 1]
+            Second tangent vector at base point.
+        base_point : array-like, shape=[n_samples, dimension + 1], optional
+            Point on the hypersphere.
 
         Returns
         -------
         inner_prod : array-like, shape=[n_samples, 1]
-                                 or shape=[1, 1]
+            Inner-product of the two tangent vectors.
         """
         inner_prod = self.embedding_metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point)
@@ -336,40 +389,41 @@ class HypersphereMetric(RiemannianMetric):
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
-        """Compute squared norm of a vector.
+        """Compute the squared norm of a vector.
 
-        Squared norm of a vector associated to the inner product
+        Squared norm of a vector associated with the inner-product
         at the tangent space at a base point.
 
         Parameters
         ----------
         vector : array-like, shape=[n_samples, dimension + 1]
-                             or shape=[1, dimension + 1]
-        base_point : array-like, shape=[n_samples, dimension + 1]
-                                 or shape=[1, dimension + 1]
+            Vector on the tangent space of the hypersphere at base point.
+        base_point : array-like, shape=[n_samples, dimension + 1], optional
+            Point on the hypersphere.
 
         Returns
         -------
         sq_norm : array-like, shape=[n_samples, 1]
-                              or shape=[1, 1]
+            Squared norm of the vector.
         """
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
     def exp(self, tangent_vec, base_point):
-        """Riemannian exponential of a tangent vector wrt to a base point.
+        """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
         ----------
         tangent_vec : array-like, shape=[n_samples, dimension + 1]
-                                  or shape=[1, dimension + 1]
+            Tangent vector at a base point.
         base_point : array-like, shape=[n_samples, dimension + 1]
-                                 or shape=[1, dimension + 1]
+            Point on the hypersphere.
 
         Returns
         -------
         exp : array-like, shape=[n_samples, dimension + 1]
-                          or shape=[1, dimension + 1]
+            Point on the hypersphere equal to the Riemannian exponential
+            of tangent_vec at the base point.
         """
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -419,19 +473,20 @@ class HypersphereMetric(RiemannianMetric):
         return exp
 
     def log(self, point, base_point):
-        """Compute Riemannian logarithm of a point wrt a base point.
+        """Compute the Riemannian logarithm of a point.
 
         Parameters
         ----------
         point : array-like, shape=[n_samples, dimension + 1]
-                            or shape=[1, dimension + 1]
+            Point on the hypersphere.
         base_point : array-like, shape=[n_samples, dimension + 1]
-                                 or shape=[1, dimension + 1]
+            Point on the hypersphere.
 
         Returns
         -------
         log : array-like, shape=[n_samples, dimension + 1]
-                          or shape=[1, dimension + 1]
+            Tangent vector at the base point equal to the Riemannian logarithm
+            of point at the base point.
         """
         point = gs.to_ndarray(point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -493,19 +548,19 @@ class HypersphereMetric(RiemannianMetric):
         return log
 
     def dist(self, point_a, point_b):
-        """Compute geodesic distance between two points.
+        """Compute the geodesic distance between two points.
 
         Parameters
         ----------
         point_a : array-like, shape=[n_samples, dimension + 1]
-                              or shape=[1, dimension + 1]
+            First point on the hypersphere.
         point_b : array-like, shape=[n_samples, dimension + 1]
-                              or shape=[1, dimension + 1]
+            Second point on the hypersphere.
 
         Returns
         -------
         dist : array-like, shape=[n_samples, 1]
-                           or shape=[1, 1]
+            Geodesic distance between the two points.
         """
         norm_a = self.embedding_metric.norm(point_a)
         norm_b = self.embedding_metric.norm(point_b)
@@ -519,25 +574,30 @@ class HypersphereMetric(RiemannianMetric):
         return dist
 
     def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
-        """Parallel transport of a tangent vector.
+        """Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
-        along the geodesic defined by exp_(base_point)(tangent_vec_b)
+        along the geodesic defined by exp_(base_point)(tangent_vec_b).
 
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[n_samples, dimension + 1]
+            Tangent vector at base point to be transported.
         tangent_vec_b : array-like, shape=[n_samples, dimension + 1]
+            Tangent vector at base point, along which the parallel transport
+            is computed.
         base_point : array-like, shape=[n_samples, dimension + 1]
+            Point on the hypersphere.
 
         Returns
         -------
         transported_tangent_vec: array-like, shape=[n_samples, dimension + 1]
+            Transported tangent vector at exp_(base_point)(tangent_vec_b).
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
-        # TODO @nguigs: work around this condition
+        # TODO(nguigs): work around this condition
         assert len(base_point) == len(tangent_vec_a) == len(tangent_vec_b)
         theta = gs.linalg.norm(tangent_vec_b, axis=1)
         normalized_b = gs.einsum('n, ni->ni', 1 / theta, tangent_vec_b)
@@ -549,22 +609,23 @@ class HypersphereMetric(RiemannianMetric):
         return transported
 
     def christoffels(self, point, point_type='spherical'):
-        """Compute Christoffel symbols.
+        """Compute the Christoffel symbols at a point.
 
         Only implemented in dimension 2 and for spherical coordinates.
 
         Parameters
         ----------
         point : array-like, shape=[n_samples, dimension]
+            Point on hypersphere where the Christoffel symbols are computed.
 
-        point_type: str
+        point_type: str, {'spherical', 'intrinsic', 'extrinsic'}
+            Coordinates in which to express the Christoffel symbols.
 
         Returns
         -------
-        christoffel : array-like, shape=[n_samples,
-                                         contravariant index,
-                                         first covariant index,
-                                         second covariant index]
+        christoffel : array-like, shape=[n_samples, contravariant index, 1st
+                                         covariant index, 2nd covariant index]
+            Christoffel symbols at point.
         """
         if self.dimension != 2 or point_type != 'spherical':
             raise NotImplementedError(
