@@ -413,7 +413,7 @@ These are some of the most common elements for functions (and ones we’d like y
 
 1. Summary - a one-line (here <79 char) description of the object 
 
-   a. Begins immediately after the first “”” with a capital letter, ends with a period
+   a. Begins immediately after the first """ with a capital letter, ends with a period
 
    b. If describing a function, use a verb with the imperative mood (e.g. **Compute** vs Computes)
 
