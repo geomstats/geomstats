@@ -363,9 +363,9 @@ def einsum(equation, *inputs, **kwargs):
     input_str_list = input_str.split(',')
 
     is_ellipsis = [input_str[:3] == '...' for input_str in input_str_list]
-    at_least_one_ellipsis = bool(_np.sum(is_ellipsis))
+    all_ellipsis = bool(_np.prod(is_ellipsis))
 
-    if at_least_one_ellipsis:
+    if all_ellipsis:
         if len(input_str_list) > 2:
             raise NotImplementedError(
                 'Ellipsis support not implemented for >2 input tensors')
