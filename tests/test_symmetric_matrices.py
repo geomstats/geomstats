@@ -7,9 +7,11 @@ import geomstats.tests
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
-
 class TestSymmetricMatricesMethods(geomstats.tests.TestCase):
+    """Test of SymmetricMatrices methods."""
+
     def setUp(self):
+        """Set up the test."""
         warnings.simplefilter('ignore', category=ImportWarning)
 
         gs.random.seed(1234)
@@ -17,6 +19,7 @@ class TestSymmetricMatricesMethods(geomstats.tests.TestCase):
         self.n = 3
 
     def test_belongs(self):
+        """Test of belongs method."""
         Sym_n = SymmetricMatrices(self.n)
         mat_sym = gs.array([[1., 2., 3.],
                             [2., 4., 5.],
