@@ -160,6 +160,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         base_point = self.group.random_uniform()
         result = self.group.belongs(base_point)
         expected = gs.array([True])
+        print(result, expected)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -181,6 +182,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         result_3 = self.group.belongs(base_point_3, local_point_type)
         result = gs.array([result_1, result_2, result_3])
         expected = gs.array([True, False, False])
+        print(result, expected)
         self.assertAllClose(result, expected)
 
     def test_random_and_belongs_vectorization(self):
@@ -188,6 +190,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         points = self.group.random_uniform(n_samples=n_samples)
         result = self.group.belongs(points)
         expected = gs.array([True] * n_samples)
+        print(result, expected)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only

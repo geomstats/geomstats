@@ -28,6 +28,10 @@ def logical_or(x, y):
     return x or y
 
 
+def logical_and(x, y):
+    return x and y
+
+
 def cond(pred, true_fn, false_fn):
     if pred:
         return true_fn()
@@ -451,6 +455,14 @@ def mean(x, axis=None):
 
 def argmin(*args, **kwargs):
     return torch.argmin(*args, **kwargs)
+
+
+def reshape(*args, **kwargs):
+    return torch.reshape(*args, **kwargs)
+
+
+def flatten(x):
+    return torch.flatten(x)
 
 
 def arange(*args, **kwargs):
