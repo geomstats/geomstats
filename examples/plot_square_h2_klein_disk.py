@@ -23,7 +23,7 @@ def main():
     left = - SQUARE_SIZE / 2.0
     right = SQUARE_SIZE / 2.0
     corners_int = [(bot, left), (bot, right), (top, right), (top, left)]
-    corners_ext = H2.intrinsic_to_extrinsic_coords(corners_int)
+    corners_ext = H2.from_coordinates(corners_int, 'intrinsic')
     n_steps = 20
     ax = plt.gca()
     for i, src in enumerate(corners_ext):
