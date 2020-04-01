@@ -17,7 +17,7 @@ class TestKNearestNeighborsClassifier(geomstats.tests.TestCase):
         self.n_neighbors = 3
         self.dimension = 2
         self.space = Euclidean(dimension=self.dimension)
-        self.metric = self.space.metric
+        self.distance = self.space.metric.dist
 
     @geomstats.tests.np_only
     def test_predict(self):
@@ -26,7 +26,7 @@ class TestKNearestNeighborsClassifier(geomstats.tests.TestCase):
         labels = [0, 0, 1, 1]
 
         neigh = KNearestNeighborsClassifier(n_neighbors=self.n_neighbors,
-                                            metric=self.metric)
+                                            metric=self.distance)
         neigh.fit(training_dataset, labels)
         result = neigh.predict([[1.1]])
         expected = gs.array([0])
@@ -38,7 +38,7 @@ class TestKNearestNeighborsClassifier(geomstats.tests.TestCase):
         training_dataset = gs.array([[0], [1], [2], [3]])
         labels = [0, 0, 1, 1]
         neigh = KNearestNeighborsClassifier(n_neighbors=self.n_neighbors,
-                                            metric=self.metric)
+                                            metric=self.distance)
         neigh.fit(training_dataset, labels)
         result = neigh.predict_proba([[0.9]])
         expected = gs.array([[2 / 3, 1 / 3]])
