@@ -2,21 +2,22 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.learning.knn import KNearestNeighborsClassifier
 
 TOLERANCE = 1e-4
 
 
-class TestOnlineKmeansMethods(geomstats.tests.TestCase):
+class TestKNearestNeighborsClassifier(geomstats.tests.TestCase):
     """Class defining the Poincare polydisk tests."""
 
     def setUp(self):
         """Define the parameters to test."""
         gs.random.seed(1234)
         self.n_neighbors = 3
-        self.metric = EuclideanMetric
         self.dimension = 2
+        self.space = Euclidean(dimension=self.dimension)
+        self.metric = self.space.metric
 
     @geomstats.tests.np_only
     def test_predict(self):
@@ -25,8 +26,7 @@ class TestOnlineKmeansMethods(geomstats.tests.TestCase):
         labels = [0, 0, 1, 1]
 
         neigh = KNearestNeighborsClassifier(n_neighbors=self.n_neighbors,
-                                            metric=self.metric,
-                                            dimension=self.dimension)
+                                            metric=self.metric)
         neigh.fit(training_dataset, labels)
         result = neigh.predict([[1.1]])
         expected = gs.array([0])
@@ -38,8 +38,7 @@ class TestOnlineKmeansMethods(geomstats.tests.TestCase):
         training_dataset = gs.array([[0], [1], [2], [3]])
         labels = [0, 0, 1, 1]
         neigh = KNearestNeighborsClassifier(n_neighbors=self.n_neighbors,
-                                            metric=self.metric,
-                                            dimension=self.dimension)
+                                            metric=self.metric)
         neigh.fit(training_dataset, labels)
         result = neigh.predict_proba([[0.9]])
         expected = gs.array([[2 / 3, 1 / 3]])
