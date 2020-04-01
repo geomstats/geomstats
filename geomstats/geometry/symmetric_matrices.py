@@ -18,5 +18,5 @@ class SymmetricMatrices(EmbeddedManifold):
         self.n = n
 
     def belongs(self, mat, atol=TOLERANCE):
-        """Check if mat belongs to the manifold of symmetric matrices."""
+        """Check if mat belongs to the vector space of symmetric matrices."""
         return Matrices(self.n, self.n).is_symmetric(mat=mat, atol=atol)
