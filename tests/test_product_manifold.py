@@ -90,6 +90,7 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
         expected = gs.ones((n_samples, 1))
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_inner_product_matrix_matrix(self):
         space = ProductManifold(
             manifolds=[Hypersphere(dimension=2).embedding_manifold,
@@ -101,6 +102,7 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
         expected[3, 3] = - 1
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_inner_product_matrix_vector(self):
         space = ProductManifold(
             manifolds=[Hypersphere(dimension=2).embedding_manifold,
@@ -112,11 +114,13 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
         result = space.metric.inner_product_matrix(point)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_regularize_vector(self):
         expected = self.space_vector.random_uniform(5)
         result = self.space_vector.regularize(expected)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_regularize_matrix(self):
         expected = self.space_matrix.random_uniform(5)
         result = self.space_matrix.regularize(expected)
