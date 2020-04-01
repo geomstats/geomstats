@@ -194,8 +194,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_log_exp_ball_null_tangent(self):
-        x = gs.array([[0.1, 0.2]])
-        tangent_vec = gs.array([[0.0, 0.0]])
-
+        x = gs.array([[0.1, 0.2], [0.1, 0.2]])
+        tangent_vec = gs.array([[0.0, 0.0], [0.0, 0.0]])
         exp = self.ball_metric.exp(tangent_vec, x)
         self.assertAllClose(exp, x, atol=1e-10)

@@ -33,7 +33,7 @@ INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
                           0., + 2. / 945.,
                           0., -1. / 4725.]
 
-EPSILON = 1e-8
+EPSILON = 1e-6
 
 
 class Hyperbolic(EmbeddedManifold):
@@ -677,9 +677,11 @@ class HyperbolicMetric(RiemannianMetric):
 
         elif self.coords_type == 'ball':
             norm_base_point = gs.to_ndarray(
-                gs.linalg.norm(base_point, -1), 2, -1)
+                gs.linalg.norm(base_point, axis=-1), 2, axis=-1)
+            norm_base_point = gs.to_ndarray(norm_base_point, to_ndim=2)
+
             norm_base_point = gs.repeat(
-                norm_base_point, base_point.shape[-1], -1)
+                norm_base_point, base_point.shape[-1], axis=-1)
             den = 1 - norm_base_point**2
 
             norm_tan = gs.to_ndarray(gs.linalg.norm(
