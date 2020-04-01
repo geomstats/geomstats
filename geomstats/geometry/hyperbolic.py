@@ -517,7 +517,7 @@ class Hyperbolic(EmbeddedManifold):
                                          ](extrinsic)
 
     def random_uniform(self, n_samples=1, bound=1.):
-        """Sampling over the hyperbolic space using uniform distribution.
+        """Sample over the hyperbolic space using uniform distribution.
 
         Sample over the hyperbolic space. The sampling is performed
         by sampling over uniform distribution, the sampled examples
