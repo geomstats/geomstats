@@ -50,7 +50,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_belongs_extrinsic(self):
         x_true = self.intrinsic_manifold.to_coordinates(gs.array([[0.5, 7]]),
-                                                        "extrinsic")
+                                                        'extrinsic')
         x_false = gs.array([[0.5, 7, 3.]])
         is_in = self.extrinsic_manifold.belongs(x_true)
         self.assertTrue(is_in)

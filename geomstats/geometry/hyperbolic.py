@@ -59,8 +59,8 @@ class Hyperbolic(EmbeddedManifold):
         in Minkowski space whose squared norm is equal to -scale.
     """
 
-    default_coords_type = "extrinsic"
-    default_point_type = "vector"
+    default_coords_type = 'extrinsic'
+    default_point_type = 'vector'
 
     def __init__(self, dimension, coords_type='extrinsic', scale=1):
         assert isinstance(dimension, int) and dimension > 0
@@ -150,7 +150,7 @@ class Hyperbolic(EmbeddedManifold):
         point = gs.to_ndarray(point, to_ndim=2)
         _, point_dim = point.shape
         if point_dim is not self.dimension + 1:
-            if point_dim is self.dimension and self.coords_type == "intrinsic":
+            if point_dim is self.dimension and self.coords_type == 'intrinsic':
                 return gs.array([[True]])
             else:
                 return gs.array([[False]])
@@ -512,8 +512,8 @@ class Hyperbolic(EmbeddedManifold):
             return point
         else:
             extrinsic =\
-                self.coords_transform[from_coords_type + "-extrinsic"](point)
-            return self.coords_transform["extrinsic-" + self.coords_type
+                self.coords_transform[from_coords_type + '-extrinsic'](point)
+            return self.coords_transform['extrinsic-' + self.coords_type
                                          ](extrinsic)
 
     def random_uniform(self, n_samples=1, bound=1.):
@@ -540,7 +540,7 @@ class Hyperbolic(EmbeddedManifold):
         size = (n_samples, self.dimension)
         samples = bound * 2. * (gs.random.rand(*size) - 0.5)
 
-        return self.coords_transform["intrinsic-" + self.coords_type](samples)
+        return self.coords_transform['intrinsic-' + self.coords_type](samples)
 
 
 class HyperbolicMetric(RiemannianMetric):
@@ -557,8 +557,8 @@ class HyperbolicMetric(RiemannianMetric):
         in Minkowski space whose squared norm is equal to -scale.
     """
 
-    default_point_type = "vector"
-    default_coords_type = "extrinsic"
+    default_point_type = 'vector'
+    default_coords_type = 'extrinsic'
 
     def __init__(self, dimension, coords_type='extrinsic', scale=1):
         super(HyperbolicMetric, self).__init__(
