@@ -21,7 +21,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         self.dimension = 3
         self.space = Hyperbolic(dimension=self.dimension)
         self.metric = self.space.metric
-        self.ball_manifold = Hyperbolic(dimension=2, coords_type="ball")
+        self.ball_manifold = Hyperbolic(dimension=2, coords_type='ball')
         self.n_samples = 10
 
     def test_random_uniform_and_belongs(self):
@@ -44,15 +44,15 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         gives the identity.
         """
         point_int = gs.ones(self.dimension)
-        point_ext = self.space.from_coordinates(point_int, "intrinsic")
-        result = self.space.to_coordinates(point_ext, "intrinsic")
+        point_ext = self.space.from_coordinates(point_int, 'intrinsic')
+        result = self.space.to_coordinates(point_ext, 'intrinsic')
         expected = point_int
         expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
         point_ext = gs.array([2.0, 1.0, 1.0, 1.0])
-        point_int = self.space.to_coordinates(point_ext, "intrinsic")
-        result = self.space.from_coordinates(point_int, "intrinsic")
+        point_int = self.space.to_coordinates(point_ext, 'intrinsic')
+        result = self.space.from_coordinates(point_int, 'intrinsic')
         expected = point_ext
         expected = helper.to_vector(expected)
 
@@ -71,8 +71,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
                               [-0.1, .1, -.4, .1, -.01, 0.],
                               [0., 0., .1, .1, -0.08, -0.1],
                               [.1, .1, .1, .1, 0., -0.5]])
-        point_ext = self.space.from_coordinates(point_int, "intrinsic")
-        result = self.space.to_coordinates(point_ext, "intrinsic")
+        point_ext = self.space.from_coordinates(point_int, 'intrinsic')
+        result = self.space.to_coordinates(point_ext, 'intrinsic')
         expected = point_int
         expected = helper.to_vector(expected)
 
@@ -81,8 +81,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         point_ext = gs.array([[2., 1., 1., 1.],
                               [4., 1., 3., math.sqrt(5.)],
                               [3., 2., 0., 2.]])
-        point_int = self.space.to_coordinates(point_ext, "intrinsic")
-        result = self.space.from_coordinates(point_int, "intrinsic")
+        point_int = self.space.to_coordinates(point_ext, 'intrinsic')
+        result = self.space.from_coordinates(point_int, 'intrinsic')
         expected = point_ext
         expected = helper.to_vector(expected)
 
@@ -274,11 +274,11 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         # form an angle < epsilon
         base_point_intrinsic = gs.array([1., 2., 3.])
         base_point =\
-            self.space.from_coordinates(base_point_intrinsic, "intrinsic")
+            self.space.from_coordinates(base_point_intrinsic, 'intrinsic')
         point_intrinsic = (base_point_intrinsic +
                            1e-12 * gs.array([-1., -2., 1.]))
         point =\
-            self.space.from_coordinates(point_intrinsic, "intrinsic")
+            self.space.from_coordinates(point_intrinsic, 'intrinsic')
 
         log = self.metric.log(point=point, base_point=base_point)
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
@@ -451,7 +451,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
     def test_scaled_squared_norm(self):
         base_point_intrinsic = gs.array([1, 1, 1])
         base_point = self.space.from_coordinates(base_point_intrinsic,
-                                                 "intrinsic")
+                                                 'intrinsic')
         tangent_vec = gs.array([1, 2, 3, 4])
         tangent_vec = self.space.projection_to_tangent_space(
             tangent_vec, base_point)

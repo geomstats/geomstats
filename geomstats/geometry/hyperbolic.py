@@ -766,7 +766,6 @@ class HyperbolicMetric(RiemannianMetric):
         elif self.coords_type == 'ball':
 
             add_base_point = self.mobius_add(-base_point, point)
-
             norm_add = gs.to_ndarray(gs.linalg.norm(
                 add_base_point, axis=-1), 2, -1)
             norm_add = gs.repeat(norm_add, base_point.shape[-1], -1)
@@ -778,7 +777,7 @@ class HyperbolicMetric(RiemannianMetric):
             log = (1 - norm_base_point**2) * gs.arctanh(norm_add)\
                 * (add_base_point / norm_add)
 
-            mask_0 = gs.all(gs.isclose(norm_add, 0.))
+            mask_0 = gs.isclose(norm_add, 0.)
             log[mask_0] = 0
 
             return log
@@ -885,9 +884,9 @@ class HyperbolicMetric(RiemannianMetric):
 
         Approximate the exponential map of hyperbolic space,
         currently working only with poincare ball.
-        The retraction used is the one proposed in "Poincaré
-        Embedding for Learning Hierarchical Representation"
-        (nickel et.al 2017)
+        .. [1] nickel et.al, "Poincaré Embedding for
+         Learning Hierarchical Representation", 2017.
+
 
         Parameters
         ----------
