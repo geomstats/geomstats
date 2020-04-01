@@ -25,6 +25,7 @@ class PoincarePolydisk(ProductManifold):
     The Poincare polydisk is a direct product of n Poincare disks,
     i.e. hyperbolic spaces of dimension 2.
     """
+
     default_coords_type = 'ball'
     default_point_type = 'matrix'
 

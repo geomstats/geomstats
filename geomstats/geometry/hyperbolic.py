@@ -58,6 +58,7 @@ class Hyperbolic(EmbeddedManifold):
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
     """
+
     default_coords_type = "extrinsic"
     default_point_type = "vector"
 
@@ -516,7 +517,7 @@ class Hyperbolic(EmbeddedManifold):
                                          ](extrinsic)
 
     def random_uniform(self, n_samples=1, bound=1.):
-        """Sampling over the hyperbolic space from the uniform distribution.
+        """Sampling over the hyperbolic space using uniform distribution.
 
         Sample over the hyperbolic space. The sampling is performed
         by sampling over uniform distribution, the sampled examples
@@ -555,6 +556,7 @@ class HyperbolicMetric(RiemannianMetric):
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
     """
+
     default_point_type = "vector"
     default_coords_type = "extrinsic"
 
