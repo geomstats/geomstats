@@ -5,7 +5,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from geomstats.geometry.euclidean import Euclidean
 
 EUCLIDEAN = Euclidean(dimension=1)
-EUCLIDEAN_DISTANCE = EUCLIDEAN.metric.dist
+EUCLIDEAN_METRIC = EUCLIDEAN.metric
 
 
 class KNearestNeighborsClassifier(KNeighborsClassifier):
@@ -25,7 +25,7 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
         - [callable] : a user-defined function which accepts an
           array of distances, and returns an array of the same shape
           containing the weights.
-    metric : callable or string, default EuclideanMetric
+    metric : callable or string, default is Euclidean metric in dimension 1.
         The distance metric to use.
         The 'minkowski' string metric with p=2 is equivalent to the standard
         Euclidean metric.
@@ -72,7 +72,7 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
 
     def __init__(self, n_neighbors=5,
                  weights='uniform',
-                 metric=EUCLIDEAN_DISTANCE,
+                 metric=EUCLIDEAN_METRIC,
                  metric_params=None,
                  p=2,
                  n_jobs=None,
@@ -82,7 +82,7 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
             n_neighbors=n_neighbors,
             weights=weights,
             algorithm='brute',
-            metric=metric,
+            metric=metric.dist,
             metric_params=metric_params,
             p=p,
             n_jobs=n_jobs,
