@@ -153,7 +153,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         self.n_samples = 3
 
     def test_random_and_belongs(self):
-        """
+        """Checks random_uniform and belongs
+
         Test that the random uniform method samples
         on the special euclidean group.
         """
@@ -180,9 +181,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         result_1 = self.group.belongs(base_point_1, local_point_type)
         result_2 = self.group.belongs(base_point_2, local_point_type)
         result_3 = self.group.belongs(base_point_3, local_point_type)
-        result = gs.array([result_1, result_2, result_3])
+        result = gs.concatenate([result_1, result_2, result_3])
         expected = gs.array([True, False, False])
-        print(result, expected)
         self.assertAllClose(result, expected)
 
     def test_random_and_belongs_vectorization(self):
@@ -483,7 +483,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             point=points, left_or_right='left')
         self.assertAllClose(
             gs.shape(result),
-            (n_samples, *self.group.get_dimension(), *self.group.get_dimension()))
+            (n_samples, *self.group.get_dimension(),
+             *self.group.get_dimension()))
 
     @geomstats.tests.np_only
     def test_exp_from_identity_vectorization(self):
