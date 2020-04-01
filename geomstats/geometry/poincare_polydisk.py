@@ -25,16 +25,19 @@ class PoincarePolydisk(ProductManifold):
     The Poincare polydisk is a direct product of n Poincare disks,
     i.e. hyperbolic spaces of dimension 2.
     """
+    default_coords_type = 'ball'
+    default_point_type = 'matrix'
 
-    def __init__(self, n_disks, point_type='ball'):
+    def __init__(self, n_disks, coords_type='ball'):
         self.n_disks = n_disks
-        self.point_type = point_type
-        disk = Hyperbolic(dimension=2, point_type=point_type)
+        self.coords_type = coords_type
+        self.point_type = PoincarePolydisk.default_point_type
+        disk = Hyperbolic(dimension=2, coords_type=coords_type)
         list_disks = [disk, ] * n_disks
         super(PoincarePolydisk, self).__init__(
             manifolds=list_disks, default_point_type='matrix')
         self.metric = PoincarePolydiskMetric(n_disks=n_disks,
-                                             point_type=point_type)
+                                             coords_type=coords_type)
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """Convert point from intrinsic to extrensic coordinates.
@@ -76,7 +79,7 @@ class PoincarePolydisk(ProductManifold):
         """
         n_disks = base_point.shape[1]
         hyperbolic_space = Hyperbolic(dimension=2,
-                                      point_type=self.point_type)
+                                      coords_type=self.coords_type)
         tangent_vec = gs.stack([Hyperbolic.projection_to_tangent_space(
             self=hyperbolic_space,
             vector=vector[:, i_disk, :],
@@ -102,15 +105,18 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
       https://epubs.siam.org/doi/pdf/10.1137/15M102112X
     """
 
-    def __init__(self, n_disks, point_type='ball'):
+    default_coords_type = 'ball'
+    default_point_type = 'vector'
+
+    def __init__(self, n_disks, coords_type='ball'):
         self.n_disks = n_disks
-        self.point_type = point_type
+        self.coords_type = coords_type
         self.default_point_type = 'matrix'
         list_metrics = []
         for i_disk in range(n_disks):
             scale_i = (n_disks - i_disk) ** 0.5
             metric_i = HyperbolicMetric(dimension=2,
-                                        point_type=point_type,
+                                        coords_type=coords_type,
                                         scale=scale_i)
             list_metrics.append(metric_i)
         super(PoincarePolydiskMetric, self).__init__(
