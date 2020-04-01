@@ -83,7 +83,7 @@ class ProductRiemannianMetric(RiemannianMetric):
     def is_intrinsic(self, point):
         """Test in a point is represented in intrinsic coordinates.
 
-        This method is only useful for `point_type=vector`
+        This method is only useful for `point_type=vector`.
 
         Parameters
         ----------
