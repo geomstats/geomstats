@@ -905,7 +905,7 @@ class HyperbolicMetric(RiemannianMetric):
 
             retraction_factor = ((1 - (base_point**2).sum(axis=-1))**2) / 4
             retraction_factor =\
-                gs.expand_dims(retraction_factor, 1).repeat(2, axis=1)
+                gs.repeat(gs.expand_dims(retraction_factor, -1), 2, axis=1)
             return base_point - retraction_factor * tangent_vec
         else:
             raise NotImplementedError(

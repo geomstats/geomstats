@@ -482,10 +482,9 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_ball_retraction(self):
-        x = gs.array([[0.5, 0.6], [0.2, -0.1]])
-        y = gs.array([[0.3, 0.5], [0.3, -0.6]])
+        x = gs.array([[0.5, 0.6], [0.2, -0.1], [0.2, -0.4]])
+        y = gs.array([[0.3, 0.5], [0.3, -0.6], [0.3, -0.3]])
 
         ball_metric = self.ball_manifold.metric
-        tan_v = ball_metric.log(y, x)
-
-        ball_metric.retraction(tan_v, x)
+        tangent_vec = ball_metric.log(y, x)
+        ball_metric.retraction(tangent_vec, x)
