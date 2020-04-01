@@ -2,11 +2,6 @@
 
 from sklearn.neighbors import KNeighborsClassifier
 
-from geomstats.geometry.euclidean import Euclidean
-
-EUCLIDEAN = Euclidean(dimension=1)
-EUCLIDEAN_METRIC = EUCLIDEAN.metric
-
 
 class KNearestNeighborsClassifier(KNeighborsClassifier):
     """Classifier implementing the k-nearest neighbors vote on manifolds.
@@ -25,23 +20,21 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
         - [callable] : a user-defined function which accepts an
           array of distances, and returns an array of the same shape
           containing the weights.
-    metric : callable or string, default is Euclidean metric in dimension 1.
-        The distance metric to use.
-        The 'minkowski' string metric with p=2 is equivalent to the standard
-        Euclidean metric.
-        See the documentation of the DistanceMetric class in the scikit-learn
-        library for a list of available metrics.
-        If metric is "precomputed", X is assumed to be a distance matrix and
-        must be square during fit.
-    dimension : int, optional (default = 1)
-        Dimension of the manifold used if the metric parameter is callable.
-    metric_params : dict, optional (default = None)
-        Additional keyword arguments for the metric function.
     p : integer, optional (default = 2)
         Power parameter for the 'minkowski' string metric.
         When p = 1, this is equivalent to using manhattan_distance (l1),
         and euclidean_distance (l2) for p = 2.
         For arbitrary p, minkowski_distance (l_p) is used.
+    metric : string or callable, default 'minkowski'
+        The distance metric to use.
+        The default metric is minkowski, and with p=2 is equivalent to the
+        standard Euclidean metric.
+        See the documentation of the DistanceMetric class in the scikit-learn
+        library for a list of available metrics.
+        If metric is "precomputed", X is assumed to be a distance matrix and
+        must be square during fit.
+    metric_params : dict, optional (default = None)
+        Additional keyword arguments for the metric function.
     n_jobs : int or None, optional (default=None)
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1; ``-1`` means using all processors.
@@ -72,9 +65,9 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
 
     def __init__(self, n_neighbors=5,
                  weights='uniform',
-                 metric=EUCLIDEAN_METRIC,
-                 metric_params=None,
                  p=2,
+                 metric='minkowski',
+                 metric_params=None,
                  n_jobs=None,
                  **kwargs):
 
@@ -82,8 +75,8 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
             n_neighbors=n_neighbors,
             weights=weights,
             algorithm='brute',
-            metric=metric.dist,
-            metric_params=metric_params,
             p=p,
+            metric=metric,
+            metric_params=metric_params,
             n_jobs=n_jobs,
             **kwargs)
