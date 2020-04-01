@@ -42,6 +42,7 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.foo_scalar_output = foo_scalar_output
         self.foo_scalar_input_output = foo_scalar_input_output
 
+    @geomstats.tests.np_and_tf_only
     def test_decorator_with_squeeze_dim0(self):
         vec_a = gs.array([1, 2, 3])
         vec_b = gs.array([0, 1, 0])
@@ -51,6 +52,7 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.assertAllClose(result.shape, expected.shape)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_decorator_without_squeeze_dim0(self):
         vec_a = gs.array([[1, 2, 3]])
         vec_b = gs.array([0, 1, 0])
@@ -60,6 +62,7 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.assertAllClose(result.shape, expected.shape)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_decorator_vectorization(self):
         vec_a = gs.array([[1, 2, 3], [1, 2, 3]])
         vec_b = gs.array([0, 1, 0])
@@ -69,6 +72,7 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.assertAllClose(result.shape, expected.shape)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_decorator_scalar_with_squeeze_dim1(self):
         vec_a = gs.array([1, 2, 3])
         vec_b = gs.array([0, 1, 0])
@@ -77,6 +81,7 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_decorator_scalar_without_squeeze_dim1(self):
         vec_a = gs.array([1, 2, 3])
         vec_b = gs.array([0, 1, 0])
@@ -86,6 +91,7 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_decorator_scalar_output_vectorization(self):
         vec_a = gs.array([[1, 2, 3], [1, 2, 3]])
         vec_b = gs.array([0, 1, 0])

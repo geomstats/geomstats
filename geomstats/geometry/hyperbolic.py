@@ -267,7 +267,7 @@ class Hyperbolic(EmbeddedManifold):
                                                          vector)
 
         coef = inner_prod / sq_norm
-        tangent_vec = vector - gs.einsum('ni,nj->nj', coef, base_point)
+        tangent_vec = vector - gs.einsum('...i,...j->...j', coef, base_point)
         return tangent_vec
 
     @staticmethod
@@ -668,8 +668,8 @@ class HyperbolicMetric(RiemannianMetric):
                 (gs.sinh(norm_tangent_vec) / (norm_tangent_vec)))
 
             exp = (
-                gs.einsum('ni,nj->nj', coef_1, base_point)
-                + gs.einsum('ni,nj->nj', coef_2, tangent_vec))
+                gs.einsum('...i,...j->...j', coef_1, base_point)
+                + gs.einsum('...i,...j->...j', coef_2, tangent_vec))
 
             hyperbolic_space = Hyperbolic(dimension=self.dimension)
             exp = hyperbolic_space.regularize(exp)
@@ -761,8 +761,8 @@ class HyperbolicMetric(RiemannianMetric):
             coef_1 += mask_else_float * (angle / gs.sinh(angle))
             coef_2 += mask_else_float * (angle / gs.tanh(angle))
 
-            log = (gs.einsum('ni,nj->nj', coef_1, point) -
-                   gs.einsum('ni,nj->nj', coef_2, base_point))
+            log = (gs.einsum('...i,...j->...j', coef_1, point) -
+                   gs.einsum('...i,...j->...j', coef_2, base_point))
             return log
 
         elif self.coords_type == 'ball':
