@@ -31,7 +31,6 @@ class Grassmannian(EmbeddedManifold):
             dimension=dimension,
             embedding_manifold=Matrices(n, n))
 
-
     def belongs(self, point, tolerance=TOLERANCE):
         """Check if the point belongs to the manifold.
 
