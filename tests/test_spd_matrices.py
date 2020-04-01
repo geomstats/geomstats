@@ -48,7 +48,8 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
-    def vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(self):
+    def test_vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(
+            self):
         """Test for matrix to vector and vector to matrix conversions."""
         sym_mat_1 = gs.array([[1., 0.6, -3.],
                               [0.6, 7., 0.],
@@ -67,7 +68,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         self.assertTrue(gs.allclose(result_2, expected_2))
 
     @geomstats.tests.np_and_tf_only
-    def vector_and_symmetric_matrix_vectorization(self):
+    def test_vector_and_symmetric_matrix_vectorization(self):
         """Test of vectorization."""
         n_samples = self.n_samples
         vector = gs.random.rand(n_samples, 6)
