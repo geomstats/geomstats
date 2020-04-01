@@ -695,7 +695,9 @@ class HyperbolicMetric(RiemannianMetric):
             exp = self.mobius_add(base_point, direction * factor)
 
             zero_tan = gs.isclose((tangent_vec * tangent_vec).sum(axis=-1), 0.)
-            exp[zero_tan] = base_point
+
+            if exp[zero_tan].shape[0] != 0:
+                exp[zero_tan] = base_point
 
             return exp
         else:
