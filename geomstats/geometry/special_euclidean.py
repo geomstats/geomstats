@@ -96,9 +96,9 @@ class SpecialEuclidean(LieGroup):
         return identity
     identity = property(get_identity)
 
-    def get_dimension(self):
-        """Get the dimension of each object given the default_point_style."""
-        return self.identity.shape
+    def get_point_type_shape(self, point_type=None):
+        """Get the shape of the instance given the default_point_style."""
+        return self.get_identity(point_type).shape
 
     def belongs(self, point, point_type=None):
         """Evaluate if a point belongs to SE(n).
@@ -122,31 +122,28 @@ class SpecialEuclidean(LieGroup):
             point = gs.to_ndarray(point, to_ndim=2)
             n_points, point_dim = point.shape
             belongs = point_dim == self.dimension
-            belongs = gs.logical_and(belongs,
-                                     self.rotations.belongs(point[:, :self.n]))
+            belongs = gs.logical_and(
+                belongs, self.rotations.belongs(point[:, :self.n]))
             # TODO: Should to_ndarray do this if to_ndim = ndim(x) - 1 ?
             belongs = gs.flatten(belongs)
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
             n_points, point_dim1, point_dim2 = point.shape
-            # Check dimensions
             belongs = (point_dim1 == point_dim2 == self.n + 1)
-            # Check rotation part
             rotation = point[:, :self.n, :self.n]
-            rot_belongs = self.rotations.belongs(rotation,
-                                                 point_type=point_type)
+            rot_belongs = self.rotations.belongs(
+                rotation, point_type=point_type)
             belongs = gs.logical_and(belongs, rot_belongs)
-            # Check that last line is [0, ..., 0, 1]
+
             last_line_except_last_term = point[:, self.n:, :-1]
             all_but_last_zeros = ~ last_line_except_last_term.any(axis=(1, 2))
-            # Preferred to gs.all(last_line == 0, axis=1)
-            # TODO Fails with Pytorch, and probably Tensorflow too
-            all_but_last_zeros = gs.to_ndarray(all_but_last_zeros,
-                                               to_ndim=2, axis=1)
+            # TODO(pchauchat) Fails with Pytorch, and probably Tensorflow too
+            all_but_last_zeros = gs.to_ndarray(
+                all_but_last_zeros, to_ndim=2, axis=1)
             belongs *= all_but_last_zeros
+
             last_term = point[:, self.n:, self.n:]
             belongs *= gs.all(last_term == 1, axis=1)
-            # Flatten full array
             belongs = belongs.flatten()
 
         return belongs
@@ -281,12 +278,13 @@ class SpecialEuclidean(LieGroup):
         trans_vec = vec[:, self.rotations.dimension:]
 
         rot_mat = self.rotations.matrix_from_rotation_vector(rot_vec)
-        # Concatenate rotation and translation
         trans_vec = gs.reshape(trans_vec, (n_vecs, self.n, 1))
         mat = gs.concatenate((rot_mat, trans_vec), axis=2)
-        # Add the last line for homogeneous coordinates
         last_lines = gs.zeros((n_vecs, 1, self.n + 1))
-        last_lines[:, :, -1:] = 1
+        # TODO(pchauchat) Change assignment for Tensorflow
+        last_lines = gs.array(gs.get_mask_i_float(self.n, self.n + 1))
+        print(last_lines)
+        # last_lines[:, :, -1:] = 1
         mat = gs.concatenate((mat, last_lines), axis=1)
 
         return mat
@@ -407,14 +405,11 @@ class SpecialEuclidean(LieGroup):
 
         elif point_type == 'matrix':
             inverse_point = gs.empty_like(point)
-            # Set rotational part
             inverse_point[:, :self.n, :self.n] = gs.transpose(
                 point[:, :self.n, :self.n], axes=(0, 2, 1))
-            # Set translational part
             inverse_point[:, :self.n, self.n:] = gs.matmul(
                 inverse_point[:, :self.n, :self.n],
                 - point[:, :self.n, self.n:])
-            # Add last line
             inverse_point[:, self.n:, :] = point[:, self.n:, :]
 
         inverse_point = self.regularize(inverse_point, point_type=point_type)
@@ -690,7 +685,7 @@ class SpecialEuclidean(LieGroup):
         -------
         random_point: array-like,
             shape=[n_samples, {dimension, [n + 1, n + 1]}]
-            an array of random elements in SE(n) having the given point_type
+            An array of random elements in SE(n) having the given point_type.
         """
         if point_type is None:
             point_type = self.default_point_type

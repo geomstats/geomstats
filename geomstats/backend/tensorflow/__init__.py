@@ -35,6 +35,12 @@ def get_mask_i_float(i, n):
     return mask_i_float
 
 
+# def get_mask_list_float(indices, shape):
+#     mask_numpy = equal(zeros(shape), ones(shape))
+#     for (row, column) in indices:
+#
+
+
 def gather(*args, **kwargs):
     return tf.gather(*args, **kwargs)
 
