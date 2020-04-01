@@ -1,4 +1,4 @@
-"""Visualizes convergenve of the BCH formula approximation on so(n).
+"""Visualize convergenve of the BCH formula approximation on so(n).
 
 Visualize the first, second and third order approximation of the Baker Campbell
 Hausdorf formula on so(n). To this end, sample 2 random elements a,b of so(n)
