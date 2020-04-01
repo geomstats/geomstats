@@ -88,7 +88,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         return mul(expm(tangent_vec), base_point, expm(-tangent_vec))
 
     def log(self, point, base_point):
-        r"""Compute the riemannian logarithm of point w.r.t. base_point.
+        r"""Compute the Riemannian logarithm of point w.r.t. base_point.
 
         Given :math:`P, P'` in Gr(n, k) the logarithm from :math:`P`
         to :math:`P` is given by the infinitesimal rotation [Batzies2015]_:
