@@ -77,8 +77,8 @@ class Graph:
             Shape=[n_walks_per_node*self.n_edges), walk_length]
             array containing random walks.
         """
-        paths = gs.empty((self.n_nodes * n_walks_per_node,
-                          walk_length + 1), dtype=int)
+        paths = gs.empty(
+            (self.n_nodes * n_walks_per_node, walk_length + 1), dtype=int)
         for index in range(len(self.edges)):
             for i in range(n_walks_per_node):
                 paths[index * n_walks_per_node + i] =\

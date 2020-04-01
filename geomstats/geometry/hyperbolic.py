@@ -1,6 +1,6 @@
 """The n-dimensional hyperbolic space.
 
-The n-dimensional hyperbolic space embedded and the its different models.
+The n-dimensional hyperbolic space embedded and its different representations.
 """
 
 import math
@@ -58,22 +58,28 @@ class Hyperbolic(EmbeddedManifold):
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
     """
+    default_coords_type = "extrinsic"
+    default_point_type = "vector"
 
-    def __init__(self, dimension, point_type='extrinsic', scale=1):
+    def __init__(self, dimension, coords_type='extrinsic', scale=1):
         assert isinstance(dimension, int) and dimension > 0
         super(Hyperbolic, self).__init__(
             dimension=dimension,
             embedding_manifold=Minkowski(dimension + 1))
+        self.coords_type = coords_type
+        self.point_type = Hyperbolic.default_point_type
+
         self.embedding_metric = self.embedding_manifold.metric
-        self.point_type = point_type
+
         self.scale = scale
-        self.metric = HyperbolicMetric(self.dimension, point_type, self.scale)
+        self.metric =\
+            HyperbolicMetric(self.dimension, self.coords_type, self.scale)
 
-        if point_type == "half-plane" and dimension != 2:
+        if coords_type == 'half-plane' and dimension != 2:
             raise NotImplementedError(
-                'Poincaré upper half plane is only valid in dimension 2')
+                'Poincarz upper half plane is only valid in dimension 2')
 
-        self.transform_to = {
+        self.coords_transform = {
             'ball-extrinsic':
                 Hyperbolic._ball_to_extrinsic_coordinates,
             'extrinsic-ball':
@@ -143,7 +149,7 @@ class Hyperbolic(EmbeddedManifold):
         point = gs.to_ndarray(point, to_ndim=2)
         _, point_dim = point.shape
         if point_dim is not self.dimension + 1:
-            if point_dim is self.dimension and self.point_type == "intrinsic":
+            if point_dim is self.dimension and self.coords_type == "intrinsic":
                 return gs.array([[True]])
             else:
                 return gs.array([[False]])
@@ -200,7 +206,7 @@ class Hyperbolic(EmbeddedManifold):
             Array of booleans evaluating if the corresponding points
             belong to the hyperbolic space.
         """
-        return self.belongs_to[self.point_type](point, tolerance=tolerance)
+        return self.belongs_to[self.coords_type](point, tolerance=tolerance)
 
     def regularize(self, point):
         """Regularize a point to the canonical representation.
@@ -449,7 +455,7 @@ class Hyperbolic(EmbeddedManifold):
             (1 - point_ball_x2 - point_ball_y**2) / denom))
         return point_half_plane
 
-    def to_coordinates(self, point, to_point_type='ball'):
+    def to_coordinates(self, point, to_coords_type='ball'):
         """Convert coordinates of a point.
 
         Convert the parameterization of a point in the hyperbolic space
@@ -470,17 +476,17 @@ class Hyperbolic(EmbeddedManifold):
             Point in hyperbolic space in coordinates given by to_point_type.
         """
         point = gs.to_ndarray(point, to_ndim=2, axis=0)
-        if self.point_type == to_point_type:
+        if self.coords_type == to_coords_type:
             return point
         else:
-            extrinsic = self.transform_to[
-                self.point_type + '-extrinsic'
-            ](point)
-            return self.transform_to[
-                'extrinsic-' + to_point_type
+            extrinsic =\
+                self.coords_transform[self.coords_type + '-extrinsic'
+                                      ](point)
+            return self.coords_transform[
+                'extrinsic-' + to_coords_type
             ](extrinsic)
 
-    def from_coordinates(self, point, from_point_type):
+    def from_coordinates(self, point, from_coords_type):
         """Convert to a type of coordinates given some type.
 
         Convert the parameterization of a point in hyperbolic space
@@ -501,18 +507,16 @@ class Hyperbolic(EmbeddedManifold):
             Point in hyperbolic space.
         """
         point = gs.to_ndarray(point, to_ndim=2, axis=0)
-        if self.point_type == from_point_type:
+        if self.coords_type == from_coords_type:
             return point
         else:
-            extrinsic = self.transform_to[
-                from_point_type + "-extrinsic"
-            ](point)
-            return self.transform_to[
-                "extrinsic-" + self.point_type
-            ](extrinsic)
+            extrinsic =\
+                self.coords_transform[from_coords_type + "-extrinsic"](point)
+            return self.coords_transform["extrinsic-" + self.coords_type
+                                         ](extrinsic)
 
     def random_uniform(self, n_samples=1, bound=1.):
-        """Sample in hyperbolic space from the uniform distribution.
+        """Sampling over the hyperbolic space from the uniform distribution.
 
         Sample over the hyperbolic space. The sampling is performed
         by sampling over uniform distribution, the sampled examples
@@ -535,7 +539,7 @@ class Hyperbolic(EmbeddedManifold):
         size = (n_samples, self.dimension)
         samples = bound * 2. * (gs.random.rand(*size) - 0.5)
 
-        return self.transform_to["intrinsic-" + self.point_type](samples)
+        return self.coords_transform["intrinsic-" + self.coords_type](samples)
 
 
 class HyperbolicMetric(RiemannianMetric):
@@ -551,13 +555,18 @@ class HyperbolicMetric(RiemannianMetric):
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
     """
+    default_point_type = "vector"
+    default_coords_type = "extrinsic"
 
-    def __init__(self, dimension, point_type='extrinsic', scale=1):
+    def __init__(self, dimension, coords_type='extrinsic', scale=1):
         super(HyperbolicMetric, self).__init__(
             dimension=dimension,
             signature=(dimension, 0, 0))
         self.embedding_metric = MinkowskiMetric(dimension + 1)
-        self.point_type = point_type
+
+        self.coords_type = coords_type
+        self.point_type = HyperbolicMetric.default_point_type
+
         assert scale > 0, 'The scale should be strictly positive'
         self.scale = scale
 
@@ -621,7 +630,7 @@ class HyperbolicMetric(RiemannianMetric):
             Point in hyperbolic space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        if self.point_type == 'extrinsic':
+        if self.coords_type == 'extrinsic':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
 
@@ -663,7 +672,7 @@ class HyperbolicMetric(RiemannianMetric):
             exp = hyperbolic_space.regularize(exp)
             return exp
 
-        elif self.point_type == 'ball':
+        elif self.coords_type == 'ball':
             norm_base_point = gs.to_ndarray(
                 gs.linalg.norm(base_point, -1), 2, -1)
             norm_base_point = gs.repeat(
@@ -682,8 +691,6 @@ class HyperbolicMetric(RiemannianMetric):
 
             exp = self.mobius_add(base_point, direction * factor)
 
-            # check if tangent vector is not zero and replace by
-            # base point if
             zero_tan = gs.isclose((tangent_vec * tangent_vec).sum(axis=-1), 0.)
             exp[zero_tan] = base_point
 
@@ -715,7 +722,7 @@ class HyperbolicMetric(RiemannianMetric):
         point = gs.to_ndarray(point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
-        if self.point_type == 'extrinsic':
+        if self.coords_type == 'extrinsic':
 
             angle = self.dist(base_point, point) / self.scale
             angle = gs.to_ndarray(angle, to_ndim=1)
@@ -751,7 +758,7 @@ class HyperbolicMetric(RiemannianMetric):
                    gs.einsum('ni,nj->nj', coef_2, base_point))
             return log
 
-        elif self.point_type == 'ball':
+        elif self.coords_type == 'ball':
 
             add_base_point = self.mobius_add(-base_point, point)
 
@@ -836,7 +843,7 @@ class HyperbolicMetric(RiemannianMetric):
         dist : array-like, shape=[n_samples, 1]
             Geodesic distance between the two points.
         """
-        if self.point_type == 'extrinsic':
+        if self.coords_type == 'extrinsic':
 
             sq_norm_a = self.embedding_metric.squared_norm(point_a)
             sq_norm_b = self.embedding_metric.squared_norm(point_b)
@@ -849,7 +856,7 @@ class HyperbolicMetric(RiemannianMetric):
             dist *= self.scale
             return dist
 
-        elif self.point_type == 'ball':
+        elif self.coords_type == 'ball':
 
             point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0., 1 - EPSILON)
             point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0., 1 - EPSILON)
@@ -868,19 +875,19 @@ class HyperbolicMetric(RiemannianMetric):
             raise NotImplementedError(
                 'dist is only implemented for ball and extrinsic')
 
-    def retraction(self, tan_vector, base_point):
+    def retraction(self, tangent_vec, base_point):
         """Poincaré ball model retraction.
 
-           Approximate the exponential map of hyperbolic space,
-           currently working only with poincare ball.
-           The retraction used is the one proposed in "Poincaré
-           Embedding for Learning Hierarchical Representation"
-           (nickel et.al 2017)
+        Approximate the exponential map of hyperbolic space,
+        currently working only with poincare ball.
+        The retraction used is the one proposed in "Poincaré
+        Embedding for Learning Hierarchical Representation"
+        (nickel et.al 2017)
 
         Parameters
         ----------
-        tan_vector : array-like, shape=[n_samples, dimension]
-            Point in a tangent space.
+        tangent_vec : array-like, shape=[n_samples, dimension]
+            vector in tangent space.
         base_point : array-like, shape=[n_samples, dimension]
             Second point in hyperbolic space.
 
@@ -889,10 +896,16 @@ class HyperbolicMetric(RiemannianMetric):
         point : array-like, shape=[n_samples, dimension]
             Retraction point.
         """
-        if self.point_type == 'ball':
-            retraction_factor = ((1 - (base_point**2).sum())**2) / 4
-            return base_point - retraction_factor * tan_vector
+        if self.coords_type == 'ball':
+            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+            base_point = gs.to_ndarray(base_point, to_ndim=2)
 
+            retraction_factor = ((1 - (base_point**2).sum(axis=-1))**2) / 4
+            retraction_factor =\
+                gs.expand_dims(retraction_factor, 1).repeat(2, axis=1)
+            print(retraction_factor.shape, tangent_vec.shape, base_point.shape)
+            print(retraction_factor)
+            return base_point - retraction_factor * tangent_vec
         else:
             raise NotImplementedError(
                 'Retraction is only implemented for ball and extrinsic')
