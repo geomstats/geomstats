@@ -35,7 +35,7 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         @geomstats.vectorization.decorator(['vector', 'vector', 'scalar'])
         def foo_optional_input(tangent_vec_a, tangent_vec_b, in_scalar=None):
             if in_scalar is None:
-                in_scalar = gs.array([[1.]])
+                in_scalar = gs.array([[1]])
             aux = gs.einsum(
                 'ni,ni->n', tangent_vec_a, tangent_vec_b)
             result = gs.einsum('n,nk->n', aux, in_scalar)
