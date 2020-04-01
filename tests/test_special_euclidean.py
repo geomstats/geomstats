@@ -94,7 +94,9 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                 'point_2': point_2}
 
         else:  # matrix_from_vector fails with tensorflow
-            elements_matrices_all = {key: group.matrix_from_vector(elements_all[key]) for key in elements_all}
+            elements_matrices_all = {
+                key: group.matrix_from_vector(elements_all[key]) for key in
+                elements_all}
             elements_matrices = elements_matrices_all
 
         # Metrics - only diagonals
@@ -136,9 +138,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         self.metrics_all = metrics_all
         self.metrics = metrics
         self.elements_all = elements_all
-        self.elements_matrices_all = elements_matrices_all
         self.elements = elements
-        self.elements_matrices = elements_matrices
         self.angles_close_to_pi_all = [
             'with_angle_close_pi_low',
             'with_angle_pi',
@@ -146,6 +146,10 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         self.angles_close_to_pi = self.angles_close_to_pi_all
         if geomstats.tests.tf_backend():
             self.angles_close_to_pi = ['with_angle_close_pi_low']
+        else:
+            self.elements_matrices_all = elements_matrices_all
+            self.elements_matrices = elements_matrices
+
         self.n_samples = 3
 
     def test_random_and_belongs(self):
@@ -168,8 +172,10 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         base_point_1 = self.group.random_uniform(1, local_point_type)
         base_point_2 = gs.copy(base_point_1)
         base_point_3 = gs.copy(base_point_1)
-        base_point_2[0][-1, 0] = 1  # Violates SE(n) structure on the last line
-        base_point_3[0][-1, -1] = 2  # Violates SE(n) homogeneous coordinates structure
+        # Violates SE(n) structure on the last line
+        base_point_2[0][-1, 0] = 1  
+        # Violates SE(n) homogeneous coordinates structure
+        base_point_3[0][-1, -1] = 2  
         result_1 = self.group.belongs(base_point_1, local_point_type)
         result_2 = self.group.belongs(base_point_2, local_point_type)
         result_3 = self.group.belongs(base_point_3, local_point_type)
@@ -188,7 +194,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
     def test_random_and_belongs_vectorization_matrix_form(self):
         local_point_type = 'matrix'
         n_samples = self.n_samples
-        points = self.group.random_uniform(n_samples=n_samples, point_type=local_point_type)
+        points = self.group.random_uniform(n_samples=n_samples, 
+                                           point_type=local_point_type)
         result = self.group.belongs(points, local_point_type)
         expected = gs.array([True] * n_samples)
         self.assertAllClose(result, expected)
@@ -278,11 +285,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_regularize_matrix_form(self):
-        change_point_type = False
-        if self.group.default_point_type != 'matrix':
-            old_point_type = self.group.default_point_type
-            self.group.default_point_type = 'matrix'
-            change_point_type = True
+        old_point_type = self.group.default_point_type
+        self.group.default_point_type = 'matrix'
 
         for point in self.elements_matrices.values():
             point = self.group.regularize(point)
@@ -291,8 +295,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             expected = helper.to_matrix(expected)
             self.assertAllClose(result, expected)
 
-        if change_point_type:
-            self.group.default_point_type = old_point_type
+        self.group.default_point_type = old_point_type
 
     def test_regularize_vectorization(self):
         n_samples = self.n_samples
@@ -305,11 +308,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_regularize_vectorization_matrix_form(self):
-        change_point_type = False
-        if self.group.default_point_type != 'matrix':
-            old_point_type = self.group.default_point_type
-            self.group.default_point_type = 'matrix'
-            change_point_type = True
+        old_point_type = self.group.default_point_type
+        self.group.default_point_type = 'matrix'
 
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
@@ -319,8 +319,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             gs.shape(regularized_points),
             (n_samples, *self.group.get_dimension()))
 
-        if change_point_type:
-            self.group.default_point_type = old_point_type
+        self.group.default_point_type = old_point_type
 
     @geomstats.tests.np_only
     def test_compose(self):
@@ -401,11 +400,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_compose_and_inverse_matrix_form(self):
-        change_point_type = False
-        if self.group.default_point_type != 'matrix':
-            old_point_type = self.group.default_point_type
-            self.group.default_point_type = 'matrix'
-            change_point_type = True
+        old_point_type = self.group.default_point_type
+        self.group.default_point_type = 'matrix'
 
         point = self.elements_all['point_1']
         point = self.group.matrix_from_vector(point)
@@ -425,8 +421,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             expected = helper.to_matrix(expected)
             self.assertAllClose(result, expected)
 
-        if change_point_type:
-            self.group.default_point_type = old_point_type
+        self.group.default_point_type = old_point_type
 
     @geomstats.tests.np_only
     def test_compose_vectorization(self):
@@ -454,16 +449,12 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_compose_vectorization_matrix_form(self):
-        change_point_type = False
-        if self.group.default_point_type != 'matrix':
-            old_point_type = self.group.default_point_type
-            self.group.default_point_type = 'matrix'
-            change_point_type = True
+        old_point_type = self.group.default_point_type
+        self.group.default_point_type = 'matrix'
 
         self.test_compose_vectorization()
 
-        if change_point_type:
-            self.group.default_point_type = old_point_type
+        self.group.default_point_type = old_point_type
 
     def test_inverse_vectorization(self):
         n_samples = self.n_samples
@@ -474,16 +465,12 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_inverse_vectorization_matrix_form(self):
-        change_point_type = False
-        if self.group.default_point_type != 'matrix':
-            old_point_type = self.group.default_point_type
-            self.group.default_point_type = 'matrix'
-            change_point_type = True
+        old_point_type = self.group.default_point_type
+        self.group.default_point_type = 'matrix'
 
         self.test_inverse_vectorization()
 
-        if change_point_type:
-            self.group.default_point_type = old_point_type
+        self.group.default_point_type = old_point_type
 
     @geomstats.tests.np_only
     def test_left_jacobian_vectorization(self):
