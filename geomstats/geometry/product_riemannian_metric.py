@@ -38,7 +38,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             dimension=sum(dimensions),
             signature=(sig_0, sig_1, sig_2))
 
-    def inner_product_matrix(self, base_point=None):
+    def inner_product_matrix(self, base_point=None, point_type=None):
         """Compute the matrix of the inner-product.
 
         Matrix of the inner-product defined by the Riemmanian metric
@@ -46,26 +46,39 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, dimension], optional
+        base_point : array-like, shape=[n_samples, n_metrics, dimension] or
+            [n_samples, dimension], optional
             Point on the manifold at which to compute the inner-product matrix.
+        point_type : str, {'vector', 'matrix'}, optional
+            Type of representation used for points.
 
         Returns
         -------
-        matrix : array-like, shape=[n_samples, dimension, dimension]
+        matrix : array-like, shape=[n_samples, dimension, dimension] or
+        [n_samples, dimension + n_metrics, dimension + n_metrics]
             Matrix of the inner-product at the base point.
-        """
-        matrix = gs.zeros([self.dimension, self.dimension])
-        dim_current = 0
-        for i in range(self.n_metrics - 1):
-            dim_current += self.dimensions[i]
-            dim_next = self.dimensions[i + 1]
-            a = dim_current
-            b = dim_current + dim_next
-            matrix_next = self.metrics[i].inner_product_matrix(
-                base_point[i + 1])
-            matrix[a:b, a:b] = matrix_next
 
-        return matrix
+        """
+        if point_type is None:
+            point_type = self.default_point_type
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
+        matrix = gs.zeros([
+            len(base_point), self.dimension, self.dimension])
+        cum_dim = 0
+        for i in range(self.n_metrics):
+            cum_dim_next = cum_dim + self.dimensions[i]
+            if point_type == 'matrix':
+                matrix_next = self.metrics[i].inner_product_matrix(
+                    base_point[:, i])
+            elif point_type == 'vector':
+                matrix_next = self.metrics[i].inner_product_matrix(
+                    base_point[:, cum_dim:cum_dim_next, cum_dim:cum_dim_next])
+            else:
+                raise ValueError('invalid point_type argument: {}, expected '
+                                 'either matrix of vector'.format(point_type))
+            matrix[:, cum_dim:cum_dim_next, cum_dim:cum_dim_next] = matrix_next
+            cum_dim = cum_dim_next
+        return matrix[0] if len(base_point) == 1 else matrix
 
     def _is_intrinsic(self, point):
         if point.shape[1] == self.dimension:
@@ -114,7 +127,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             Second tangent vector at base point.
         base_point : array-like, shape=[n_samples, dimension + 1], optional
             Point on the manifold.
-        point_type : str, {'vector', 'matrix'}
+        point_type : str, {'vector', 'matrix'}, optional
             Type of representation used for points.
 
         Returns
@@ -160,7 +173,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             Tangent vector at a base point.
         base_point : array-like, shape=[n_samples, dimension]
             Point on the manifold.
-        point_type : str, {'vector', 'matrix'}
+        point_type : str, {'vector', 'matrix'}, optional
             Type of representation used for points.
 
         Returns
@@ -200,7 +213,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             Point on the manifold.
         base_point : array-like, shape=[n_samples, dimension]
             Point on the manifold.
-        point_type : str, {'vector', 'matrix'}
+        point_type : str, {'vector', 'matrix'}, optional
             Type of representation used for points.
 
         Returns
