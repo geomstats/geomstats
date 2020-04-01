@@ -38,36 +38,20 @@ class SPDMatrices(EmbeddedManifold):
         assert gs.all(self.embedding_manifold.is_symmetric(mat))
         mat = self.embedding_manifold.make_symmetric(mat)
 
-        _, mat_dim, _ = mat.shape
-        vec_dim = int(mat_dim * (mat_dim + 1) / 2)
-        vec = gs.zeros(vec_dim)
-
-        idx = 0
-        for i in range(mat_dim):
-            for j in range(i + 1):
-                if i == j:
-                    vec[idx] = mat[j, j]
-                else:
-                    vec[idx] = mat[j, i]
-                idx += 1
-
-        return vec
+        _, dim, _ = mat.shape
+        i, j = gs.tril_indices(dim)
+        return mat[:, i, j]
 
     def symmetric_matrix_from_vector(self, vec):
         """Convert a vector into a symmetric matrix."""
         vec = gs.to_ndarray(vec, to_ndim=2)
-        _, vec_dim = vec.shape
+        n_samples, vec_dim = vec.shape
         mat_dim = int((gs.sqrt(8 * vec_dim + 1) - 1) / 2)
-        mat = gs.zeros((mat_dim,) * 2)
-
-        lower_triangle_indices = gs.tril_indices(mat_dim)
-        diag_indices = gs.diag_indices(mat_dim)
-
-        mat[lower_triangle_indices] = 2 * vec
-        mat[diag_indices] = vec
-
-        mat = self.embedding_manifold.make_symmetric(mat)
-        return mat
+        mask = gs.tril(gs.ones((mat_dim, mat_dim))) != 0
+        sym = gs.zeros((n_samples, mat_dim, mat_dim))
+        sym[..., mask != 0] = vec
+        sym.swapaxes(-1, -2)[..., mask] = vec
+        return self.embedding_manifold.make_symmetric(sym)
 
     def random_uniform(self, n_samples=1):
         """Define a log-uniform random sample of SPD matrices."""
