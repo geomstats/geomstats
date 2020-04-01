@@ -78,7 +78,8 @@ class Connection(object):
         return - gs.einsum('...kij,...i,...j->...k', gamma, velocity,
                            velocity)
 
-    def exp(self, tangent_vec, base_point, n_steps=N_STEPS, step='euler'):
+    def exp(self, tangent_vec, base_point, n_steps=N_STEPS, step='euler',
+            point_type=None):
         """Exponential map associated to the affine connection.
 
         Exponential map at base_point of tangent_vec computed by integration
@@ -95,6 +96,8 @@ class Connection(object):
             The number of discrete time steps to take in the integration.
         step : str, {'euler', 'rk4'}
             The numerical scheme to use for integration.
+        point_type : str, {'vector', 'matrix'}
+            Type of representation used for points.
 
         Returns
         -------

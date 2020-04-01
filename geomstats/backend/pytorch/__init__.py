@@ -482,3 +482,10 @@ def cumprod(x, axis=0):
 
 def isnan(*args, **kwargs):
     return torch.isnan(*args, **kwargs)
+
+
+def cumsum(x, axis=0):
+    if axis is None:
+        raise NotImplementedError('cumsum is not defined where axis is None')
+    else:
+        return torch.cumsum(x, dim=axis)
