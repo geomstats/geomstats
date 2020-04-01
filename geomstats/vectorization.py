@@ -110,6 +110,8 @@ def decorator(point_types):
     ----------
     point_types : list
         List of inputs' point_types, including for optional inputs.
+        The `point_type`s of optional inputs will not be read
+        by the decorator if the corresponding input is not given.
     """
     def aux_decorator(function):
         def wrapper(*args, **kwargs):
@@ -118,7 +120,6 @@ def decorator(point_types):
             initial_ndims = []
 
             for i_arg, arg in enumerate(args):
-                # Enumerate args that have been input (not default args)
                 point_type = point_types[i_arg]
 
                 if point_type == 'scalar':
@@ -137,7 +138,6 @@ def decorator(point_types):
                     vect_arg = gs.to_ndarray(arg, to_ndim=1)
                     vect_arg = gs.to_ndarray(vect_arg, to_ndim=2, axis=1)
                 elif point_type in ['vector', 'matrix']:
-                    print('hello')
                     vect_arg = gs.to_ndarray(
                         arg, to_ndim=POINT_TYPES_TO_NDIMS[point_type])
                 vect_args.append(vect_arg)
