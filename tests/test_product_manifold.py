@@ -82,7 +82,7 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
         base_point = self.space_matrix.random_uniform(n_samples)
         logs = self.space_matrix.metric.log(point, base_point)
         logs = gs.einsum(
-            '..., ...j->...j',
+            '...k, ...jl->...jl',
             1. / self.space_matrix.metric.norm(logs, base_point),
             logs)
         point = self.space_matrix.metric.exp(logs, base_point)

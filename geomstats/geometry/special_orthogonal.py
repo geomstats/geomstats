@@ -390,7 +390,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         if self.n == 2:  # SO(2)
             id_skew = gs.array([[[0., 1.], [-1., 0.]]] * n_vecs)
             skew_mat = gs.einsum(
-                'nij,ni->nij', gs.cast(id_skew, gs.float32), vec)
+                '...ij,...i->...ij', gs.cast(id_skew, gs.float32), vec)
 
         elif self.n == 3:  # SO(3)
             # This avois dividing by 0.
