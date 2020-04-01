@@ -78,7 +78,8 @@ class Stiefel(EmbeddedManifold):
         belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
         return belongs
 
-    def to_grassmannian(self, point):
+    @staticmethod
+    def to_grassmannian(point):
         r"""Project a point of St(n, p) to Gr(n, p).
 
         If :math:`U \in St(n, p)` is an orthonormal frame,
