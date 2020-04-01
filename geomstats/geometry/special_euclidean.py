@@ -282,7 +282,7 @@ class SpecialEuclidean(LieGroup):
 
         rot_mat = self.rotations.matrix_from_rotation_vector(rot_vec)
         # Concatenate rotation and translation
-        trans_vec = trans_vec.reshape(n_vecs, self.n, 1)
+        trans_vec = gs.reshape(trans_vec, (n_vecs, self.n, 1))
         mat = gs.concatenate((rot_mat, trans_vec), axis=2)
         # Add the last line for homogeneous coordinates
         last_lines = gs.zeros((n_vecs, 1, self.n + 1))

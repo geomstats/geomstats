@@ -93,7 +93,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                 'point_1': point_1,
                 'point_2': point_2}
 
-        else:  # matrix_from_vector fails with tensorflow
+        else:
             elements_matrices_all = {
                 key: group.matrix_from_vector(elements_all[key]) for key in
                 elements_all}
@@ -175,9 +175,9 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         base_point_2 = gs.copy(base_point_1)
         base_point_3 = gs.copy(base_point_1)
         # Violates SE(n) structure on the last line
-        base_point_2[0][-1, 0] = 1  
+        base_point_2[0][-1, 0] = 1
         # Violates SE(n) homogeneous coordinates structure
-        base_point_3[0][-1, -1] = 2  
+        base_point_3[0][-1, -1] = 2
         result_1 = self.group.belongs(base_point_1, local_point_type)
         result_2 = self.group.belongs(base_point_2, local_point_type)
         result_3 = self.group.belongs(base_point_3, local_point_type)
@@ -197,7 +197,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
     def test_random_and_belongs_vectorization_matrix_form(self):
         local_point_type = 'matrix'
         n_samples = self.n_samples
-        points = self.group.random_uniform(n_samples=n_samples, 
+        points = self.group.random_uniform(n_samples=n_samples,
                                            point_type=local_point_type)
         result = self.group.belongs(points, local_point_type)
         expected = gs.array([True] * n_samples)
