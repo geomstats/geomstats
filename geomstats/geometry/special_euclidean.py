@@ -1,11 +1,12 @@
 """The special euclidean group SE(n).
+
 i.e. the Lie group of rigid transformations in n dimensions.
 """
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
@@ -96,6 +97,7 @@ class SpecialEuclidean(LieGroup):
     identity = property(get_identity)
 
     def get_dimension(self):
+        """Get the dimension of each object given the default_point_style."""
         return self.identity.shape
 
     def belongs(self, point, point_type=None):
@@ -134,9 +136,11 @@ class SpecialEuclidean(LieGroup):
             belongs *= self.rotations.belongs(rotation, point_type=point_type)
             # Check that last line is [0, ..., 0, 1]
             last_line_except_last_term = point[:, self.n:, :-1]
-            all_but_last_zeros = ~ last_line_except_last_term.any(axis=(1, 2))  # TODO Fails with Pytorch
+            all_but_last_zeros = ~ last_line_except_last_term.any(axis=(1, 2))
             # Preferred to gs.all(last_line == 0, axis=1)
-            all_but_last_zeros = gs.to_ndarray(all_but_last_zeros, to_ndim=2, axis=1)
+            # TODO Fails with Pytorch
+            all_but_last_zeros = gs.to_ndarray(all_but_last_zeros,
+                                               to_ndim=2, axis=1)
             belongs *= all_but_last_zeros
             last_term = point[:, self.n:, self.n:]
             belongs *= gs.all(last_term == 1, axis=1)
@@ -185,12 +189,14 @@ class SpecialEuclidean(LieGroup):
     def regularize_tangent_vec_at_identity(
             self, tangent_vec, metric=None, point_type=None):
         """Regularize a tangent vector at the identity.
+
         Parameters
         ----------
         tangent_vec: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
         metric : RiemannianMetric, optional
         point_type : str, {'vector', 'matrix'}, optional
             default: self.default_point_type
+
         Returns
         -------
         regularized_vec : the regularized tangent vector
@@ -274,7 +280,8 @@ class SpecialEuclidean(LieGroup):
 
         rot_mat = self.rotations.matrix_from_rotation_vector(rot_vec)
         # Concatenate rotation and translation
-        mat = gs.concatenate((rot_mat, trans_vec.reshape(n_vecs, self.n, 1)), axis=2)
+        trans_vec = trans_vec.reshape(n_vecs, self.n, 1)
+        mat = gs.concatenate((rot_mat, trans_vec), axis=2)
         # Add the last line for homogeneous coordinates
         last_lines = gs.zeros((n_vecs, 1, self.n + 1))
         last_lines[:, :, -1:] = 1
@@ -399,10 +406,12 @@ class SpecialEuclidean(LieGroup):
         elif point_type == 'matrix':
             inverse_point = gs.empty_like(point)
             # Set rotational part
-            inverse_point[:, :self.n, :self.n] = gs.transpose(point[:, :self.n, :self.n], axes=(0, 2, 1))
+            inverse_point[:, :self.n, :self.n] = gs.transpose(
+                point[:, :self.n, :self.n], axes=(0, 2, 1))
             # Set translational part
-            inverse_point[:, :self.n, self.n:] = gs.matmul(inverse_point[:, :self.n, :self.n],
-                                                           - point[:, :self.n, self.n:])
+            inverse_point[:, :self.n, self.n:] = gs.matmul(
+                inverse_point[:, :self.n, :self.n],
+                - point[:, :self.n, self.n:])
             # Add last line
             inverse_point[:, self.n:, :] = point[:, self.n:, :]
 
@@ -674,6 +683,7 @@ class SpecialEuclidean(LieGroup):
             default: 1
         point_type: str, {'vector', 'matrix'}, optional
             default: self.default_point_type
+
         Returns
         -------
         random_point: array-like,
@@ -704,6 +714,7 @@ class SpecialEuclidean(LieGroup):
 
     def exponential_matrix(self, rot_vec):
         """Compute exponential of rotation matrix represented by rot_vec.
+
         Parameters
         ----------
         rot_vec : array-like, shape=[n_samples, dimension]
@@ -756,7 +767,8 @@ class SpecialEuclidean(LieGroup):
 
         return exponential_mat
 
-    def exponential_barycenter(self, points, weights=None, point_type=None, verbose=False):
+    def exponential_barycenter(
+            self, points, weights=None, point_type=None, verbose=False):
         """Compute the group exponential barycenter in SE(n).
 
         Parameters
