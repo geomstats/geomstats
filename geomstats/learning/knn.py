@@ -10,8 +10,8 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
     ----------
     n_neighbors : int, optional (default = 5)
         Number of neighbors to use by default.
-    weights : str or callable, optional (default = 'uniform')
-        Weight function used in prediction.  Possible values:
+    weights : string or callable, optional (default = 'uniform')
+        Weight function used in prediction. Possible values:
         - 'uniform' : uniform weights.  All points in each neighborhood
           are weighted equally.
         - 'distance' : weight points by the inverse of their distance.
@@ -25,7 +25,7 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
         When p = 1, this is equivalent to using manhattan_distance (l1),
         and euclidean_distance (l2) for p = 2.
         For arbitrary p, minkowski_distance (l_p) is used.
-    metric : string or callable, default 'minkowski'
+    metric : string or callable, optional (default = 'minkowski')
         The distance metric to use.
         The default metric is minkowski, and with p=2 is equivalent to the
         standard Euclidean metric.
@@ -35,7 +35,7 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
         must be square during fit.
     metric_params : dict, optional (default = None)
         Additional keyword arguments for the metric function.
-    n_jobs : int or None, optional (default=None)
+    n_jobs : int or None, optional (default = None)
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1; ``-1`` means using all processors.
 
@@ -43,7 +43,7 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
     ----------
     classes_ : array, shape=[n_classes,]
         Class labels known to the classifier
-    effective_metric_ : callable or string
+    effective_metric_ : string or callable
         The distance metric used. It will be same as the `metric` parameter
         or a synonym of it, e.g. 'euclidean' if the `metric` parameter set to
         'minkowski' and `p` parameter set to 2.
