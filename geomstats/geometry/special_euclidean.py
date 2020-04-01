@@ -122,10 +122,17 @@ class SpecialEuclidean(LieGroup):
             point = gs.to_ndarray(point, to_ndim=2)
             n_points, point_dim = point.shape
             belongs = point_dim == self.dimension
-            belongs *= self.rotations.belongs(point[:, :self.n])
+            import geomstats.backend.numpy as np
+            belongs = gs.logical_and(belongs,
+                                     self.rotations.belongs(point[:, :self.n]))
+            print(belongs)
             # TODO: Should to_ndarray do this if to_ndim = ndim(x) - 1 ?
-            belongs = belongs.reshape(1, n_points)
-            belongs = belongs.flatten()
+            # belongs = gs.reshape(belongs, (1, n_points))
+            belongs = gs.flatten(belongs)
+            print(belongs.shape)
+            print(gs.ndim(belongs))
+            print(belongs)
+            # belongs = gs.to_ndarray(belongs, to_ndim=2)
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
             n_points, point_dim1, point_dim2 = point.shape
@@ -133,7 +140,11 @@ class SpecialEuclidean(LieGroup):
             belongs = (point_dim1 == point_dim2 == self.n + 1)
             # Check rotation part
             rotation = point[:, :self.n, :self.n]
-            belongs *= self.rotations.belongs(rotation, point_type=point_type)
+            rot_belongs = self.rotations.belongs(point[:, :self.n],
+                                                 point_type=point_type)
+            print(rot_belongs)
+            belongs = gs.logical_and(belongs, rot_belongs)
+            print(belongs)
             # Check that last line is [0, ..., 0, 1]
             last_line_except_last_term = point[:, self.n:, :-1]
             all_but_last_zeros = ~ last_line_except_last_term.any(axis=(1, 2))
@@ -141,13 +152,16 @@ class SpecialEuclidean(LieGroup):
             # TODO Fails with Pytorch
             all_but_last_zeros = gs.to_ndarray(all_but_last_zeros,
                                                to_ndim=2, axis=1)
+            print(belongs)
             belongs *= all_but_last_zeros
             last_term = point[:, self.n:, self.n:]
+            print(belongs)
             belongs *= gs.all(last_term == 1, axis=1)
             # Flatten full array
+            print(belongs)
             belongs = belongs.flatten()
 
-        return belongs[0] if n_points == 1 else belongs
+        return belongs
 
     def regularize(self, point, point_type=None):
         """Regularize a point to the default representation for SE(n).

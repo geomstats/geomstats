@@ -23,6 +23,10 @@ def logical_or(x, y):
     return tf.logical_or(x, y)
 
 
+def logical_and(x, y):
+    return tf.logical_and(x, y)
+
+
 def get_mask_i_float(i, n):
     range_n = arange(n)
     i_float = cast(array([i]), int32)[0]
@@ -67,6 +71,13 @@ def cond(*args, **kwargs):
 
 def reshape(*args, **kwargs):
     return tf.reshape(*args, **kwargs)
+
+
+def flatten(x):
+    """Collapses the tensor into 1-D.
+
+    Following https://www.tensorflow.org/api_docs/python/tf/reshape"""
+    return tf.reshape(x, [-1])
 
 
 def arange(*args, **kwargs):

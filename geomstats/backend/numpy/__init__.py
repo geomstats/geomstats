@@ -127,6 +127,15 @@ def logical_or(x, y):
     return bool_result
 
 
+def logical_and(x, y):
+    bool_result = x and y
+    return bool_result
+
+
+def flatten(x):
+    return x.flatten()
+
+
 def get_mask_i_float(i, n):
     range_n = arange(n)
     i_float = cast(array([i]), int32)[0]
