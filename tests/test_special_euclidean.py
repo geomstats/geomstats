@@ -86,17 +86,16 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             'point_1': point_1,
             'point_2': point_2,
             'rot_with_parallel_trans': rot_with_parallel_trans}
-        elements_matrices_all = {key: group.matrix_from_vector(elements_all[key]) for key in elements_all}
         elements = elements_all
-        elements_matrices = elements_matrices_all
         if geomstats.tests.tf_backend():
             # Tf is extremely slow
             elements = {
                 'point_1': point_1,
                 'point_2': point_2}
-            elements_matrices = {
-                'point_1': elements_matrices['point_1'],
-                'point_2': elements_matrices['point_2']}
+
+        else:  # matrix_from_vector fails with tensorflow
+            elements_matrices_all = {key: group.matrix_from_vector(elements_all[key]) for key in elements_all}
+            elements_matrices = elements_matrices_all
 
         # Metrics - only diagonals
         diag_mat_at_identity = gs.eye(6) * gs.array([2., 2., 2., 3., 3., 3.])
@@ -159,6 +158,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         expected = gs.array([True])
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_random_and_belongs_matrix_form(self):
         """
         Test that the random uniform method samples
@@ -184,6 +184,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         expected = gs.array([True] * n_samples)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_random_and_belongs_vectorization_matrix_form(self):
         local_point_type = 'matrix'
         n_samples = self.n_samples
@@ -275,6 +276,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             expected = helper.to_vector(expected)
             self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_regularize_matrix_form(self):
         change_point_type = False
         if self.group.default_point_type != 'matrix':
@@ -301,6 +303,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             gs.shape(regularized_points),
             (n_samples, *self.group.get_dimension()))
 
+    @geomstats.tests.np_only
     def test_regularize_vectorization_matrix_form(self):
         change_point_type = False
         if self.group.default_point_type != 'matrix':
@@ -348,6 +351,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             expected = helper.to_vector(expected)
             self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_compose_matrix_form(self):
         # Composition by identity, on the right
         # Expect the original transformation
@@ -395,6 +399,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             expected = helper.to_vector(expected)
             self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_compose_and_inverse_matrix_form(self):
         change_point_type = False
         if self.group.default_point_type != 'matrix':
@@ -447,6 +452,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             self.assertAllClose(
                 gs.shape(result), (n_samples, *self.group.get_dimension()))
 
+    @geomstats.tests.np_only
     def test_compose_vectorization_matrix_form(self):
         change_point_type = False
         if self.group.default_point_type != 'matrix':
@@ -466,6 +472,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         self.assertAllClose(
             gs.shape(result), (n_samples, *self.group.get_dimension()))
 
+    @geomstats.tests.np_only
     def test_inverse_vectorization_matrix_form(self):
         change_point_type = False
         if self.group.default_point_type != 'matrix':

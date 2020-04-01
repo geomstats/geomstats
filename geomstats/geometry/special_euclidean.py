@@ -134,7 +134,8 @@ class SpecialEuclidean(LieGroup):
             belongs *= self.rotations.belongs(rotation, point_type=point_type)
             # Check that last line is [0, ..., 0, 1]
             last_line_except_last_term = point[:, self.n:, :-1]
-            all_but_last_zeros = ~ last_line_except_last_term.any(axis=(1, 2))  # preferred to gs.all(last_line == 0, axis=1)
+            all_but_last_zeros = ~ last_line_except_last_term.any(axis=(1, 2))  # TODO Fails with Pytorch
+            # Preferred to gs.all(last_line == 0, axis=1)
             all_but_last_zeros = gs.to_ndarray(all_but_last_zeros, to_ndim=2, axis=1)
             belongs *= all_but_last_zeros
             last_term = point[:, self.n:, self.n:]
@@ -254,7 +255,7 @@ class SpecialEuclidean(LieGroup):
 
         return regularized_vec
 
-    def matrix_from_vector(self, vec):
+    def matrix_from_vector(self, vec):  # TODO Fails with Tensorflow for now
         """Convert point in vector point-type to matrix.
 
         Parameters
