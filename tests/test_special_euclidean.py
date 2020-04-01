@@ -162,6 +162,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         base_point = self.group.random_uniform()
         result = self.group.belongs(base_point)
         expected = gs.array([True])
+        print(result, expected)
         self.assertAllClose(result, expected)
 
     # @geomstats.tests.np_and_tf_only
@@ -193,6 +194,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         points = self.group.random_uniform(n_samples=n_samples)
         result = self.group.belongs(points)
         expected = gs.array([True] * n_samples)
+        print(result, expected)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
