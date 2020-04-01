@@ -62,7 +62,7 @@ class TestGrassmannianMethods(geomstats.tests.TestCase):
             p_xy)
         expected = pi_4 * r_y
         self.assertAllClose(result, expected)
-    
+
     @geomstats.tests.np_only
     def test_log_vectorized(self):
         tangent_vecs = pi_4 * gs.array([r_y, r_z])
