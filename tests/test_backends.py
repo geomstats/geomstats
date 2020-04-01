@@ -227,3 +227,13 @@ class TestBackends(geomstats.tests.TestCase):
             tensor_2 = gs.ones((0, 1))
 
             tensor_1 + tensor_2
+
+    @geomstats.tests.pytorch_only
+    def test_cumsum(self):
+        result = gs.cumsum(gs.arange(10))
+        expected = gs.array(([0, 1, 3, 6, 10, 15, 21, 28, 36, 45]))
+        self.assertAllClose(result, expected)
+
+        result = gs.cumsum(gs.arange(10).reshape(2, 5), axis=1)
+        expected = gs.array(([[0, 1, 3, 6, 10], [5, 11, 18, 26, 35]]))
+        self.assertAllClose(result, expected)

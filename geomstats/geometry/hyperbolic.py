@@ -636,6 +636,7 @@ class HyperbolicMetric(RiemannianMetric):
 
             sq_norm_tangent_vec = self.embedding_metric.squared_norm(
                 tangent_vec)
+            sq_norm_tangent_vec = gs.clip(sq_norm_tangent_vec, 0, math.inf)
             norm_tangent_vec = gs.sqrt(sq_norm_tangent_vec)
 
             mask_0 = gs.isclose(sq_norm_tangent_vec, 0.)

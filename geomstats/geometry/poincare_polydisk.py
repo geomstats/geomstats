@@ -32,7 +32,7 @@ class PoincarePolydisk(ProductManifold):
         disk = Hyperbolic(dimension=2, point_type=point_type)
         list_disks = [disk, ] * n_disks
         super(PoincarePolydisk, self).__init__(
-            manifolds=list_disks)
+            manifolds=list_disks, default_point_type='matrix')
         self.metric = PoincarePolydiskMetric(n_disks=n_disks,
                                              point_type=point_type)
 
@@ -105,7 +105,7 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
     def __init__(self, n_disks, point_type='ball'):
         self.n_disks = n_disks
         self.point_type = point_type
-        self.default_point_type = 'vector'
+        self.default_point_type = 'matrix'
         list_metrics = []
         for i_disk in range(n_disks):
             scale_i = (n_disks - i_disk) ** 0.5
@@ -114,4 +114,4 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
                                         scale=scale_i)
             list_metrics.append(metric_i)
         super(PoincarePolydiskMetric, self).__init__(
-            metrics=list_metrics)
+            metrics=list_metrics, default_point_type='matrix')

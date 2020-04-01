@@ -33,8 +33,8 @@ class TestPoincarePolydiskMethods(geomstats.tests.TestCase):
     def test_product_distance_extrinsic_representation(self):
         """Test the distance using the extrinsic representation."""
         point_type = 'extrinsic'
-        point_a_intrinsic = gs.array([0.01, 0.0])
-        point_b_intrinsic = gs.array([0.0, 0.0])
+        point_a_intrinsic = gs.array([[0.01, 0.0]])
+        point_b_intrinsic = gs.array([[0.0, 0.0]])
         hyperbolic_space = Hyperbolic(dimension=2, point_type=point_type)
         point_a = hyperbolic_space.from_coordinates(
             point_a_intrinsic, "intrinsic")

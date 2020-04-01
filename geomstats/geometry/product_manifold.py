@@ -1,12 +1,11 @@
 """Product of manifolds."""
 
+import joblib
+
 import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.product_riemannian_metric import \
     ProductRiemannianMetric
-
-# TODO(nina): get rid of for loops
-# TODO(nina): unit tests
 
 
 class ProductManifold(Manifold):
@@ -33,17 +32,41 @@ class ProductManifold(Manifold):
         Default representation of points.
     """
 
-    def __init__(self, manifolds, default_point_type='vector'):
+    # FIXME(nguigs): This only works for 1d points
+
+    def __init__(self, manifolds, default_point_type='vector', n_jobs=1):
         assert default_point_type in ['vector', 'matrix']
         self.default_point_type = default_point_type
 
         self.manifolds = manifolds
         self.metric = ProductRiemannianMetric(
-            [manifold.metric for manifold in manifolds])
+            [manifold.metric for manifold in manifolds],
+            default_point_type=default_point_type)
 
-        dimensions = [manifold.dimension for manifold in manifolds]
+        self.dimensions = [manifold.dimension for manifold in manifolds]
         super(ProductManifold, self).__init__(
-            dimension=sum(dimensions))
+            dimension=sum(self.dimensions))
+        self.n_jobs = n_jobs
+
+    @staticmethod
+    def _get_method(manifold, method_name, metric_args):
+        return getattr(manifold, method_name)(**metric_args)
+
+    def _iterate_over_manifolds(
+            self, func, args, intrinsic=False):
+
+        cum_index = gs.cumsum(self.dimensions)[:-1] if intrinsic else \
+            gs.cumsum([k + 1 for k in self.dimensions])
+        arguments = {key: gs.split(
+            args[key], cum_index, axis=1) for key in args.keys()}
+        args_list = [{key: arguments[key][j] for key in args.keys()} for j in
+                     range(len(self.manifolds))]
+        pool = joblib.Parallel(n_jobs=self.n_jobs)
+        out = pool(
+            joblib.delayed(self._get_method)(
+                self.manifolds[i], func, args_list[i]) for i in range(
+                len(self.manifolds)))
+        return out
 
     def belongs(self, point, point_type=None):
         """Test if a point belongs to the manifold.
@@ -64,25 +87,22 @@ class ProductManifold(Manifold):
         """
         if point_type is None:
             point_type = self.default_point_type
-        assert point_type in ['vector', 'matrix']
-
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
-        else:
-            point = gs.to_ndarray(point, to_ndim=3)
+            intrinsic = self.metric._is_intrinsic(point)
+            belongs = self._iterate_over_manifolds(
+                'belongs', {'point': point}, intrinsic)
+            belongs = gs.hstack(belongs)
 
-        belongs = gs.empty((point.shape[0], len(self.manifolds)))
-        cum_dim = 0
-        # FIXME: this only works if the points are in intrinsic representation
-        for i, manifold_i in enumerate(self.manifolds):
-            cum_dim_next = cum_dim + manifold_i.dimension
-            point_i = point[:, cum_dim:cum_dim_next]
-            belongs_i = manifold_i.belongs(point_i)
-            belongs[:, i] = belongs_i
-            cum_dim = cum_dim_next
+        elif point_type == 'matrix':
+            point = gs.to_ndarray(point, to_ndim=3)
+            belongs = gs.stack([
+                space.belongs(point[:, i]) for i, space in enumerate(
+                    self.manifolds)],
+                axis=1)
 
         belongs = gs.all(belongs, axis=1)
-        belongs = gs.to_ndarray(belongs, to_ndim=2)
+        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
         return belongs
 
     def regularize(self, point, point_type=None):
@@ -117,3 +137,34 @@ class ProductManifold(Manifold):
         elif point_type == 'matrix':
             regularized_point = gs.vstack(regularized_point)
         return gs.all(regularized_point)
+
+    def random_uniform(self, n_samples, point_type=None):
+        """Sample in the product space from the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int, optional
+            Number of samples.
+        point_type : str, {'vector', 'matrix'}
+            Representation of point.
+
+        Returns
+        -------
+        samples : array-like, shape=[n_samples, dimension + 1]
+            Points sampled on the hypersphere.
+        """
+        if point_type is None:
+            point_type = self.default_point_type
+        assert point_type in ['vector', 'matrix']
+        if point_type == 'vector':
+            data = self.manifolds[0].random_uniform(n_samples)
+            if len(self.manifolds) > 1:
+                for i, space in enumerate(self.manifolds[1:]):
+                    data = gs.concatenate(
+                        [data, space.random_uniform(n_samples)],
+                        axis=1)
+            return data
+        else:
+            point = [
+                space.random_uniform(n_samples) for space in self.manifolds]
+            return gs.stack(point, axis=1)
