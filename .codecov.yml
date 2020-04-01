@@ -1,0 +1,14 @@
+# Team Yaml
+coverage:
+  round: up
+  precision: 2
+
+# Repository Yaml
+coverage:
+  round: up
+  range: 50..100
+
+# Files to ignore
+ignore:
+  - "examples/data"
+  - "examples/imgs"
