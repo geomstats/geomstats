@@ -80,7 +80,22 @@ class ProductRiemannianMetric(RiemannianMetric):
             cum_dim = cum_dim_next
         return matrix[0] if len(base_point) == 1 else matrix
 
-    def _is_intrinsic(self, point):
+    def is_intrinsic(self, point):
+        """Test in a point is represented in intrinsic coordinates.
+
+        This method is only useful for `point_type=vector`
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dimension]
+            Point on the product manifold.
+
+        Returns
+        -------
+        intrinsic: bool
+            Whether intrinsic coordinates are used for all manifolds.
+        """
+        assert self.default_point_type == 'vector'
         if point.shape[1] == self.dimension:
             intrinsic = True
         elif point.shape[1] == sum(
@@ -144,7 +159,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
             tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
-            intrinsic = self._is_intrinsic(tangent_vec_b)
+            intrinsic = self.is_intrinsic(tangent_vec_b)
             args = {'tangent_vec_a': tangent_vec_a,
                     'tangent_vec_b': tangent_vec_b,
                     'base_point': base_point}
@@ -190,7 +205,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         if point_type == 'vector':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
-            intrinsic = self._is_intrinsic(base_point)
+            intrinsic = self.is_intrinsic(base_point)
             args = {'tangent_vec': tangent_vec, 'base_point': base_point}
             exp = self._iterate_over_metrics('exp', args, intrinsic)
             return gs.hstack(exp)
@@ -230,7 +245,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
-            intrinsic = self._is_intrinsic(base_point)
+            intrinsic = self.is_intrinsic(base_point)
             args = {'point': point, 'base_point': base_point}
             log = self._iterate_over_metrics('log', args, intrinsic)
             return gs.hstack(log)
