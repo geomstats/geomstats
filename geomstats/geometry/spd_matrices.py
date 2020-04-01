@@ -111,7 +111,7 @@ class SPDMatrices(EmbeddedManifold):
 
         Parameters
         ----------
-        power : int
+        power : float
         tangent_vec : array_like, shape=[n_samples, n, n]
             Tangent vectors.
         base_point : array_like, shape=[n_samples, n, n]
