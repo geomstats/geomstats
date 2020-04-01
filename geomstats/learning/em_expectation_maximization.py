@@ -9,19 +9,24 @@ from geomstats.learning._template import TransformerMixin
 import torch
 import math
 
-pi_2_3 = pow((2*math.pi),2/3)
-a_for_erf = 8.0/(3.0*gs.pi)*(gs.pi-3.0)/(4.0-gs.pi)
+PI_2_3 = pow((2*math.pi),2/3)
+A_FOR_ERF = 8.0/(3.0*gs.pi)*(gs.pi-3.0)/(4.0-gs.pi)
 ZETA_CST = math.sqrt(math.pi/2)
 
-
+EM_CONV_RATE = 1e-4
 DEFAULT_MAX_ITER = 100
 DEFAULT_LR = 5e-2
 DEFAULT_TAU = 1e-4
 
 class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
-    def __init__(self, riemannian_metric, n_gaussian=8, init='random',
-                 tol=1e-2, mean_method='default', verbose=0):
+    def __init__(self,
+                 riemannian_metric,
+                 n_gaussian=8,
+                 init='random',
+                 tol=1e-2,
+                 mean_method='default',
+                 verbose=0):
         """Expectation-maximization algorithm on Riemannian manifolds.
 
         Perform expectation-maximization to fit data into a Gaussian
@@ -72,11 +77,14 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
     def update_variances(self, X, weights_ik, g_index=-1):
         """Variances update function"""
 
-    def _expectation(self, X):
+    def _expectation(self, data):
         """Compute weights_ik given the data, means and variances"""
 
+        probability_distribution_function =
+        wik = gs.ones((data.shape[0], self._mu.shape[0]))
+        return wik
 
-    def _maximisation(self, X):
+    def _maximization(self, data, weights, lr_mu, tau_mu, max_iter = math.inf ):
         """Given the weights and data, will update the means and variances."""
 
     def fit(self, data, max_iter= DEFAULT_MAX_ITER,
@@ -84,7 +92,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             tau_mu=DEFAULT_TAU):
         """Fit a Gaussian mixture model (GMM) given the data.
 
-        Alternates between expectation and maximisation steps
+        Alternates between Expectation and Maximisation steps
         for some number of iterations.
 
         Parameters
@@ -104,27 +112,39 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         #Initialization
 
         if(self.init =='random'):
-            self._d = data.size(-1)
-            self._mu = (gs.rand(self.n_gaussian, self._d) - 0.5) / self._d
-            self._sigma = gs.rand(self.n_gaussian) / 10 + 0.8
+
+            self._dimension = data.shape[1]
+            self._mu = (gs.random.rand(self.n_gaussian, self._dimension) - 0.5) / self._dimension
+            self._sigma = gs.random.rand(self.n_gaussian) / 10 + 0.8
             self._w = gs.ones(self.n_gaussian) / self.n_gaussian
-            self.zeta_phi = ZetaPhiStorage(torch.arange(5e-2, 2., 0.001), self._d)
+            wik = gs.ones((data.shape[0], self._mu.shape[0]))
+            #self.zeta_phi = ZetaPhiStorage(gs.arange(5e-2, 2., 0.001), self._dimension)
 
-        if (self._verbose):
-            print("size", data.size())
+        if (self.verbose):
+            print("Number of data samples", data.shape[0])
+            print("Number of Gaussian distribution", self._dimension)
+            print("Initial Variances", self._sigma)
+            print("Initial Mixture Weights", self._w)
+            print("Initial Weights", wik)
 
+        for epoch in range(max_iter):
+            old_wik = wik
 
-        for i in range(max_iter):
+            wik = self._expectation(data)
 
-            _weights = self._expectation(data)
+            if gs.mean(gs.abs(old_wik-wik)) < EM_CONV_RATE and epoch>10:
+                print('EM converged in ', epoch, 'iterations')
+                return self._mu, self._sigma, self._w
 
-            self._maximization(data, _weights, lr_mu=lr_mu, tau_mu=tau_mu)
+            self._maximization(data, wik, lr_mu=lr_mu, tau_mu=tau_mu)
+
+        print('WARNING: EM did not converge')
 
         return self._mu, self._sigma, self._w
 
     def predict(self, X):
 
-        """Predict for each data point the most probable community.
+        """Predict for each data point its community.
 
         Given each Gaussin of the computed GMM, we compute for each data point
         the probability to belong to the Gaussian then takes the maximum probability
@@ -147,15 +167,17 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
 
 class ZetaPhiStorage(object):
+    """A class for computing the normalization factor."""
 
-    def __init__(self, sigma, N):
-        self.N = N
+    def __init__(self, sigma, dimension):
+        self.dimension = dimension
         self.sigma = sigma
-        self.m_zeta_var = (new_zeta(sigma, N)).detach()
+        self.m_zeta_var = new_zeta(sigma, dimension)
 
         c1 = self.m_zeta_var.sum() != self.m_zeta_var.sum()
         c2 = self.m_zeta_var.sum() == math.inf
         c3 = self.m_zeta_var.sum() == -math.inf
+
         if (c1 or c2 or c3):
             print("WARNING : ZetaPhiStorage , untracktable normalisation factor :")
             max_nf = len(sigma)
@@ -171,7 +193,7 @@ class ZetaPhiStorage(object):
             print("\t Max variance is now : ", self.sigma[-1])
             print("\t Number of possible variance is now : " + str(len(self.sigma)) + "/" + str(max_nf))
 
-        self.phi_inv_var = (self.sigma ** 3 * log_grad_zeta(self.sigma, N)).detach()
+        self.phi_inv_var = (self.sigma ** 3 * log_grad_zeta(self.sigma, dimension)).detach()
         print(self.phi_inv_var.type())
 
     def zeta(self, sigma):
@@ -197,44 +219,55 @@ class ZetaPhiStorage(object):
 
 
 def new_zeta(x, N):
-    sigma = nn.Parameter(x)
+    sigma = x
     # print(sigma.grad)
     binomial_coefficient=None
     M = sigma.shape[0]
-    sigma_u = sigma.unsqueeze(0).expand(N,M)
-    if(binomial_coefficient is None):
-        # we compute coeficient
-        v = torch.arange(N)
-        v[0] = 1
-        n_fact = v.prod()
-        k_fact = torch.cat([v[:i].prod().unsqueeze(0) for i in range(1, v.shape[0]+1)],0)
-        nmk_fact = k_fact.flip(0)
-        # print(nmk_fact)
-        binomial_coefficient = n_fact/(k_fact * nmk_fact)
-    binomial_coefficient = binomial_coefficient.unsqueeze(-1).expand(N,M).double()
 
-    range_ = torch.arange(N ,device=sigma.device).unsqueeze(-1).expand(N,M).double()
-    ones_ = torch.ones(N ,device=sigma.device).unsqueeze(-1).expand(N,M).double()
+    sigma_u = gs.expand_dims(sigma,0)
 
-    alternate_neg = (-ones_)**(range_)
+    #sigma_u = gs.expand_dims(sigma_u, )
 
-    ins = (((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2)
-    ins_squared = ((((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2))**2
-    as_o = (1+torch.erf(ins)) * torch.exp(ins_squared)
-    bs_o = binomial_coefficient * as_o
-    r = alternate_neg * bs_o
+    #sigma_u = sigma.unsqueeze(0).expand(N,M)
 
-
-    zeta = ZETA_CST * sigma * r.sum(0) * (1/(2**(N-1)))
-
+    # if(binomial_coefficient is None):
+    #     # we compute coeficient
+    #     v = torch.arange(N)
+    #     v[0] = 1
+    #     n_fact = v.prod()
+    #     k_fact = torch.cat([v[:i].prod().unsqueeze(0) for i in range(1, v.shape[0]+1)],0)
+    #     nmk_fact = k_fact.flip(0)
+    #     # print(nmk_fact)
+    #     binomial_coefficient = n_fact/(k_fact * nmk_fact)
+    # binomial_coefficient = binomial_coefficient.unsqueeze(-1).expand(N,M).double()
+    #
+    # range_ = torch.arange(N ,device=sigma.device).unsqueeze(-1).expand(N,M).double()
+    # ones_ = torch.ones(N ,device=sigma.device).unsqueeze(-1).expand(N,M).double()
+    #
+    # alternate_neg = (-ones_)**(range_)
+    #
+    # ins = (((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2)
+    # ins_squared = ((((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2))**2
+    # as_o = (1+torch.erf(ins)) * torch.exp(ins_squared)
+    # bs_o = binomial_coefficient * as_o
+    # r = alternate_neg * bs_o
+    #
+    #
+    #zeta = ZETA_CST * sigma * r.sum(0) * (1/(2**(N-1)))
+    zeta = ZETA_CST * sigma * (1 / (2 ** (N - 1)))
     return zeta
 
 def log_grad_zeta(x, N):
-    sigma = nn.Parameter(x)
+    #sigma = nn.Parameter(x)
+    sigma = x
     # print(sigma.grad)
     binomial_coefficient=None
     M = sigma.shape[0]
-    sigma_u = sigma.unsqueeze(0).expand(N,M)
+    #sigma_u = sigma.unsqueeze(0).expand(N,M)
+
+    #TODO@HADI: CHECK EXPAND
+    sigma_u = gs.expand_dims(sigma,0)
+
     if(binomial_coefficient is None):
         # we compute coeficient
         v = torch.arange(N)
@@ -244,7 +277,8 @@ def log_grad_zeta(x, N):
         nmk_fact = k_fact.flip(0)
         binomial_coefficient = n_fact/(k_fact * nmk_fact)
     binomial_coefficient = binomial_coefficient.unsqueeze(-1).expand(N,M).double()
-    range_ = torch.arange(N ,device=sigma.device).unsqueeze(-1).expand(N,M).double()
+    #range_ = torch.arange(N ,device=sigma.device).unsqueeze(-1).expand(N,M).double()
+    range_ = gs.arange(N).unsqueeze(-1).expand(N,M).double()
     ones_ = torch.ones(N ,device=sigma.device).unsqueeze(-1).expand(N,M).double()
 
     alternate_neg = (-ones_)**(range_)
@@ -264,3 +298,24 @@ def log_grad_zeta(x, N):
     # print("ins.grad ", ins.grad)
     # print("log_grad ",log_grad)
     return sigma.grad.data
+
+def gaussianPDF(x, mu, sigma, distance=pf.distance, norm_func=zeta):
+    # norm_func = zeta
+    # print(x.shape, mu.shape)
+    N, D, M = x.shape + (mu.shape[0],)
+    # print("N, M, D ->", N, M, D)
+    # x <- N x M x D
+    # mu <- N x M x D
+    # sigma <- N x M
+    x_rd = x.unsqueeze(1).expand(N, M, D)
+    mu_rd = mu.unsqueeze(0).expand(N, M, D)
+    sigma_rd = sigma.unsqueeze(0).expand(N, M)
+    # computing numerator
+    num = torch.exp(-((distance(x_rd, mu_rd)**2))/(2*(sigma_rd)**2))
+    # print("num mean ",num.mean())
+    den = norm_func(sigma)
+    # print("den mean ",den.mean() )
+    # print("sigma",num)
+    # print("den ", den)
+    # print("pdf max ", (num/den.unsqueeze(0).expand(N, M)).max())
+    return num/den.unsqueeze(0).expand(N, M)
