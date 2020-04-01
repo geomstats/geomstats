@@ -279,6 +279,7 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         expected = p_xy
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_to_grassmanniann_vectorized(self):
         inf_rots = gs.array([gs.pi * r_z / n for n in [2, 3, 4]])
         rots = GeneralLinear.exp(inf_rots)
