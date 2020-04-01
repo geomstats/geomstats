@@ -2,18 +2,21 @@
 
 from sklearn.neighbors import KNeighborsClassifier
 
-from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry.euclidean import Euclidean
+
+EUCLIDEAN = Euclidean(dimension=1)
+EUCLIDEAN_DISTANCE = EUCLIDEAN.metric.dist
 
 
 class KNearestNeighborsClassifier(KNeighborsClassifier):
-    """Classifier implementing the k-nearest neighbors vote on manifolds..
+    """Classifier implementing the k-nearest neighbors vote on manifolds.
 
     Parameters
     ----------
     n_neighbors : int, optional (default = 5)
         Number of neighbors to use by default.
     weights : str or callable, optional (default = 'uniform')
-        weight function used in prediction.  Possible values:
+        Weight function used in prediction.  Possible values:
         - 'uniform' : uniform weights.  All points in each neighborhood
           are weighted equally.
         - 'distance' : weight points by the inverse of their distance.
@@ -23,7 +26,7 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
           array of distances, and returns an array of the same shape
           containing the weights.
     metric : callable or string, default EuclideanMetric
-        the distance metric to use.
+        The distance metric to use.
         The 'minkowski' string metric with p=2 is equivalent to the standard
         Euclidean metric.
         See the documentation of the DistanceMetric class in the scikit-learn
@@ -45,7 +48,7 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
 
     Attributes
     ----------
-    classes_ : array of shape (n_classes,)
+    classes_ : array, shape=[n_classes,]
         Class labels known to the classifier
     effective_metric_ : callable or string
         The distance metric used. It will be same as the `metric` parameter
@@ -69,24 +72,17 @@ class KNearestNeighborsClassifier(KNeighborsClassifier):
 
     def __init__(self, n_neighbors=5,
                  weights='uniform',
-                 metric=EuclideanMetric,
-                 dimension=1,
+                 metric=EUCLIDEAN_DISTANCE,
                  metric_params=None,
                  p=2,
                  n_jobs=None,
                  **kwargs):
 
-        if isinstance(metric, str):
-            distance = metric
-        else:
-            manifold_metric = metric(dimension=dimension)
-            distance = manifold_metric.dist
-
         super().__init__(
             n_neighbors=n_neighbors,
             weights=weights,
             algorithm='brute',
-            metric=distance,
+            metric=metric,
             metric_params=metric_params,
             p=p,
             n_jobs=n_jobs,
