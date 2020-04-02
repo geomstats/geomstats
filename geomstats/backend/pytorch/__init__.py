@@ -29,8 +29,13 @@ def logical_or(x, y):
 
 
 def logical_and(x, y):
+    print('there')
     return x and y
 
+
+def any(x, axis=0):
+    print('there')
+    return torch.any(x.type(torch.bool), axis)
 
 def cond(pred, true_fn, false_fn):
     if pred:
@@ -417,6 +422,8 @@ def eval(x):
 
 
 def ndim(x):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
     return x.dim()
 
 
@@ -480,6 +487,23 @@ def get_mask_i_float(i, n):
     mask_i = equal(range_n, i_float)
     mask_i_float = cast(mask_i, float32)
     return mask_i_float
+
+
+def assignment(x, values, indices, axis=0):
+    x_new = copy(x)
+    single_index = ndim(indices) == 0 or (ndim(indices) <= 1 and ndim(x) > 1)
+    if single_index:
+        indices = [indices]
+    if ndim(values) == 0:
+        values = [values] * len(indices)
+    for (nb_index, index) in enumerate(indices):
+        if len(indices[0]) < len(shape(x)):
+            for n_axis in range(shape(x)[axis]):
+                extended_index = index[:axis] + (n_axis,) + index[axis:]
+                x_new[extended_index] = values[nb_index]
+        else:
+            x_new[index] = values[nb_index]
+    return x_new
 
 
 def copy(x):

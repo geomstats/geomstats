@@ -28,6 +28,11 @@ def logical_and(x, y):
     return tf.logical_and(x, y)
 
 
+def any(x, axis=0):
+    print('there')
+    return tf.math.reduce_any(tf.cast(x, bool), axis=axis)
+
+
 def get_mask_i_float(i, n):
     range_n = arange(n)
     i_float = cast(array([i]), int32)[0]
@@ -52,24 +57,27 @@ def get_mask_float(indices, mask_shape):
     """
     np_mask = _np.zeros(mask_shape)
 
-    if ndim(indices) == 1 and ndim(mask_shape) > 1:
+    if ndim(indices) <= 1 and ndim(np_mask) == 1:
+        indices = list(indices)
+
+    if ndim(indices) == 1 and ndim(np_mask) > 1:
         if len(indices) != len(mask_shape):
             raise ValueError('The index must have the same size as shape')
+        indices = [indices]
 
     else:
         for index in indices:
             if len(index) != len(mask_shape):
                 raise ValueError('Indices must have the same size as shape')
 
-    if ndim(indices) == 1 and ndim(mask_shape) == 1:
-        indices = list(indices)
-    np_mask[indices] = 1
+    for index in indices:
+        np_mask[index] = 1
     tf_mask = array(np_mask, dtype=float32)
     return tf_mask
 
 
 def duplicate_array(x, n_samples, axis=0):
-    multiples = _np.ones(ndim(x) + 1)
+    multiples = _np.ones(ndim(x) + 1, dtype=_np.int32)
     multiples[axis] = n_samples
     return tile(to_ndarray(x, ndim(x) + 1), multiples)
 
@@ -99,21 +107,19 @@ def get_vectorized_mask_float(
 
 
 def assignment_single_value(x, value, indices, axis=0):
-    if ndim(indices) == 0:
+    single_index = ndim(indices) == 0 or (ndim(indices) <= 1 and ndim(x) > 1)
+    if single_index:
         indices = [indices]
-    single_index = (ndim(indices) <= 1 and ndim(x) > 1)
-    use_vectorization = (
-            (single_index and len(single_index) < ndim(x))
-            or (len(indices[0]) < ndim(x)))
+    use_vectorization = (len(indices[0]) < ndim(x))
 
     if use_vectorization:
-        n_samples = shape(x)[0]
+        n_samples = shape(x).numpy()[0]
         mask = get_vectorized_mask_float(
-            n_samples, indices, shape(x)[1:], axis)
+            n_samples, indices, shape(x).numpy()[1:], axis)
     else:
         mask = get_mask_float(indices, shape(x))
-    x += value * mask
-    return
+    x = x + value * mask
+    return x
 
 
 def assignment(x, values, indices, axis=0):
@@ -128,8 +134,8 @@ def assignment(x, values, indices, axis=0):
             raise ValueError('Either one value or as many values as indices')
 
         for (nb_index, index) in enumerate(indices):
-            assignment_single_value(x, values[nb_index], index, axis)
-        return
+            x = assignment_single_value(x, values[nb_index], index, axis)
+        return x
 
 
 def gather(*args, **kwargs):

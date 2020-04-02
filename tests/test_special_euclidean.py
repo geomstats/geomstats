@@ -92,6 +92,9 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             elements = {
                 'point_1': point_1,
                 'point_2': point_2}
+            elements_matrices_all = {
+                key: group.matrix_from_vector(elements_all[key]) for key in
+                elements_all}
 
         else:
             elements_matrices_all = {
@@ -161,7 +164,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         base_point = self.group.random_uniform()
         result = self.group.belongs(base_point)
         expected = gs.array([True])
-        print(result, expected)
         self.assertAllClose(result, expected)
 
     def test_random_and_belongs_matrix_form(self):
@@ -174,13 +176,15 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         base_point_2 = gs.copy(base_point_1)
         base_point_3 = gs.copy(base_point_1)
         # Violates SE(n) structure on the last line
-        base_point_2[0][-1, 0] = 1
+        base_point_2 = gs.assignment(base_point_2, 1, (0, -1, 0))
+        # base_point_2[0][-1, 0] = 1
         # Violates SE(n) homogeneous coordinates structure
-        base_point_3[0][-1, -1] = 2
+        base_point_3 = gs.assignment(base_point_3, 2, (0, -1, -1))
+        # base_point_3[0][-1, -1] = 2
         result_1 = self.group.belongs(base_point_1, local_point_type)
         result_2 = self.group.belongs(base_point_2, local_point_type)
         result_3 = self.group.belongs(base_point_3, local_point_type)
-        result = gs.concatenate([result_1, result_2, result_3])
+        result = gs.concatenate([result_1, result_2, result_3], axis=0)
         expected = gs.array([True, False, False])
         self.assertAllClose(result, expected)
 
@@ -189,7 +193,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         points = self.group.random_uniform(n_samples=n_samples)
         result = self.group.belongs(points)
         expected = gs.array([True] * n_samples)
-        print(result, expected)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only

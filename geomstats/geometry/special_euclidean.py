@@ -136,15 +136,17 @@ class SpecialEuclidean(LieGroup):
             belongs = gs.logical_and(belongs, rot_belongs)
 
             last_line_except_last_term = point[:, self.n:, :-1]
-            all_but_last_zeros = ~ last_line_except_last_term.any(axis=(1, 2))
+
+            all_but_last_zeros = ~ gs.any(
+                last_line_except_last_term, axis=(1, 2))
             # TODO(pchauchat) Fails with Pytorch, and probably Tensorflow too
             all_but_last_zeros = gs.to_ndarray(
                 all_but_last_zeros, to_ndim=2, axis=1)
-            belongs *= all_but_last_zeros
+            belongs = gs.logical_and(belongs, all_but_last_zeros)
 
             last_term = point[:, self.n:, self.n:]
-            belongs *= gs.all(last_term == 1, axis=1)
-            belongs = belongs.flatten()
+            belongs = gs.logical_and(belongs, gs.all(last_term == 1, axis=1))
+            belongs = gs.flatten(belongs)
 
         return belongs
 
@@ -280,11 +282,9 @@ class SpecialEuclidean(LieGroup):
         rot_mat = self.rotations.matrix_from_rotation_vector(rot_vec)
         trans_vec = gs.reshape(trans_vec, (n_vecs, self.n, 1))
         mat = gs.concatenate((rot_mat, trans_vec), axis=2)
-        last_lines = gs.zeros((n_vecs, 1, self.n + 1))
-        # TODO(pchauchat) Change assignment for Tensorflow
         last_lines = gs.array(gs.get_mask_i_float(self.n, self.n + 1))
-        print(last_lines)
-        # last_lines[:, :, -1:] = 1
+        last_lines = gs.to_ndarray(last_lines, to_ndim=2)
+        last_lines = gs.to_ndarray(last_lines, to_ndim=3)
         mat = gs.concatenate((mat, last_lines), axis=1)
 
         return mat
@@ -702,15 +702,14 @@ class SpecialEuclidean(LieGroup):
         elif point_type == 'matrix':
             random_rotation = self.rotations.random_uniform(
                 n_samples, point_type=point_type)
+            random_translation = gs.to_ndarray(
+                gs.transpose(random_translation), to_ndim=3)
             random_point = gs.concatenate(
                 (random_rotation, random_translation), axis=2)
             last_line = gs.zeros((n_samples, 1, self.n + 1))
             random_point = gs.concatenate(
                 (random_point, last_line), axis=1)
-            gs.assignment(random_point, 1, (-1, -1), axis=0)
-            # random_point[:, :self.n, :self.n] = random_rotation
-            # random_point[:, :self.n, self.n] = random_translation
-            # random_point[:, self.n, self.n] = 1
+            random_point = gs.assignment(random_point, 1, (-1, -1), axis=0)
 
         return random_point
 
