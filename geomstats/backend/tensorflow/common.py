@@ -1,8 +1,11 @@
 import tensorflow as tf
 
 
-def array(x):
-    return tf.convert_to_tensor(x)
+def array(x, dtype=None):
+    if dtype is not None:
+        return tf.convert_to_tensor(x, dtype=dtype)
+    else:
+        return tf.convert_to_tensor(x)
 
 
 def ndim(x):
