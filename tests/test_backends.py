@@ -237,30 +237,30 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_einsum(self):
-        np_array_1 = _np.array([[1, 1]])
-        np_array_2 = _np.array([[1, 1]])
-        array_1 = gs.array([[1, 1]])
-        array_2 = gs.array([[1, 1]])
+        np_array_1 = _np.array([[1, 4]])
+        np_array_2 = _np.array([[2, 3]])
+        array_1 = gs.array([[1, 4]])
+        array_2 = gs.array([[2, 3]])
 
         np_result = _np.einsum('...i,...i->...', np_array_1, np_array_2)
         gs_result = gs.einsum('...i,...i->...', array_1, array_2)
 
         self.assertAllCloseToNp(gs_result, np_result)
 
-        np_array_1 = _np.array([[1, 1], [1, 1]])
-        np_array_2 = _np.array([[1, 1]])
-        array_1 = gs.array([[1, 1], [1, 1]])
-        array_2 = gs.array([[1, 1]])
+        np_array_1 = _np.array([[1, 4], [-1, 5]])
+        np_array_2 = _np.array([[2, 3]])
+        array_1 = gs.array([[1, 4], [-1, 5]])
+        array_2 = gs.array([[2, 3]])
 
         np_result = _np.einsum('...i,...i->...', np_array_1, np_array_2)
         gs_result = gs.einsum('...i,...i->...', array_1, array_2)
 
         self.assertAllCloseToNp(gs_result, np_result)
 
-        np_array_1 = _np.array([[1, 1]])
-        np_array_2 = _np.array([[1, 1], [1, 1]])
-        array_1 = gs.array([[1, 1]])
-        array_2 = gs.array([[1, 1], [1, 1]])
+        np_array_1 = _np.array([[1, 4]])
+        np_array_2 = _np.array([[2, 3], [5, 6]])
+        array_1 = gs.array([[1, 4]])
+        array_2 = gs.array([[2, 3], [5, 6]])
 
         np_result = _np.einsum('...i,...i->...', np_array_1, np_array_2)
         gs_result = gs.einsum('...i,...i->...', array_1, array_2)
