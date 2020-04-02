@@ -309,17 +309,17 @@ def einsum(*args, **kwargs):
         if n_tensor_a != n_tensor_b:
             if n_tensor_a == 1:
                 tensor_a = squeeze(tensor_a, axis=0)
-                input_prefix_list = ['', 'n']
-                output_prefix = 'n'
+                input_prefix_list = ['', 'r']
+                output_prefix = 'r'
             elif n_tensor_b == 1:
                 tensor_b = squeeze(tensor_b, axis=0)
-                input_prefix_list = ['n', '']
-                output_prefix = 'n'
+                input_prefix_list = ['r', '']
+                output_prefix = 'r'
             else:
                 raise ValueError('Shape mismatch for einsum.')
         else:
-            input_prefix_list = ['n', 'n']
-            output_prefix = 'n'
+            input_prefix_list = ['r', 'r']
+            output_prefix = 'r'
 
         input_str_list = [
             input_str.replace('...', prefix) for input_str, prefix in zip(
