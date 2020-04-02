@@ -161,7 +161,7 @@ def _default_gradient_descent(points, metric, weights,
 
     if last_iteration == n_max_iterations:
         logging.warning(
-            'Maximum number of iterations {} reached.'
+            'Maximum number of iterations {} reached. '
             'The mean may be inaccurate'.format(n_max_iterations))
 
     if verbose:
@@ -294,7 +294,7 @@ def _adaptive_gradient_descent(points,
 
     if iteration == n_max_iterations:
         logging.warning(
-            'Maximum number of iterations {} reached.'
+            'Maximum number of iterations {} reached. '
             'The mean may be inaccurate'.format(n_max_iterations))
 
     return gs.to_ndarray(current_mean, to_ndim=2)
