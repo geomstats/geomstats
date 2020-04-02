@@ -32,13 +32,14 @@ def main():
     labels = gs.concatenate((labels_dataset_1, labels_dataset_2))
     target = sphere.random_uniform(n_samples=n_targets)
 
-    neigh = KNearestNeighborsClassifier(n_neighbors=2,
-                                        metric=sphere_distance)
+    neigh = KNearestNeighborsClassifier(
+        n_neighbors=2,
+        metric=sphere_distance)
     neigh.fit(training_dataset, labels)
     target_labels = neigh.predict(target)
 
     plt.figure(0)
-    ax = plt.subplot(111, projection="3d")
+    ax = plt.subplot(111, projection='3d')
     plt.title('Training set')
     sphere_plot = visualization.Sphere()
     sphere_plot.draw(ax=ax)
@@ -47,7 +48,7 @@ def main():
         sphere_plot.draw_points(ax=ax, points=points_label_i)
 
     plt.figure(1)
-    ax = plt.subplot(111, projection="3d")
+    ax = plt.subplot(111, projection='3d')
     plt.title('Classification')
     sphere_plot = visualization.Sphere()
     sphere_plot.draw(ax=ax)
