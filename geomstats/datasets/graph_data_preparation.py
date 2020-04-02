@@ -77,19 +77,20 @@ class Graph:
             Shape=[n_walks_per_node*self.n_edges), walk_length]
             array containing random walks.
         """
-        paths = gs.empty((0, walk_length + 1), dtype=int)
+        paths = gs.empty(
+            (self.n_nodes * n_walks_per_node, walk_length + 1), dtype=int)
         for index in range(len(self.edges)):
             for i in range(n_walks_per_node):
-                paths = gs.vstack((paths, self._walk(index, walk_length)))
+                paths[index * n_walks_per_node + i] =\
+                    self._walk(index, walk_length)
         return paths
 
     def _walk(self, index, walk_length):
         """Generate a single random walk."""
-        path = []
         count_index = index
-        path = gs.append(path, count_index)
+        path = [index]
         for i in range(walk_length):
             count_index = self.edges[count_index][random.randint(
                 0, len(self.edges[count_index]) - 1)]
-            path = gs.append(path, count_index)
-        return path
+            path.append(count_index)
+        return gs.array(path, dtype=int)
