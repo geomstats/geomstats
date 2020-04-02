@@ -10,14 +10,14 @@ import torch
 from torch import nn
 import math
 
-PI_2_3 = pow((2*math.pi),2/3)
-A_FOR_ERF = 8.0/(3.0*gs.pi)*(gs.pi-3.0)/(4.0-gs.pi)
-ZETA_CST = math.sqrt(math.pi/2)
+
+
 
 EM_CONV_RATE = 1e-4
 DEFAULT_MAX_ITER = 100
 DEFAULT_LR = 5e-2
 DEFAULT_TAU = 1e-4
+ZETA_CST = gs.sqrt(gs.pi/2)
 
 
 class RawDataloader(object):
@@ -101,9 +101,9 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             # get omega mu
 
             if(g_index > 0):
-                self._w[g_index] = wik[:, g_index].mean()
+                self.mixture_coefficients[g_index] = wik[:, g_index].mean()
             else:
-                self._w = wik.mean(0)
+                self.mixture_coefficients = wik.mean(0)
 
     def update_means(self, z, wik, lr_mu, tau_mu, g_index=-1, max_iter=150):
         """ Means update functions"""
@@ -116,36 +116,36 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                 # print(from_, to_, " to_from :")
 
                 zz = z.unsqueeze(1).expand(N, to_-from_, D)
-                self._mu[from_:to_] = barycenter(zz, wik[:, from_:to_], lr_mu, tau_mu, max_iter=max_iter,
-                                                    verbose=True, normed=True).squeeze()
+                self.means[from_:to_] = barycenter(zz, wik[:, from_:to_], lr_mu, tau_mu, max_iter=max_iter,
+                                                   verbose=True, normed=True).squeeze()
         else:
             if(g_index>0):
-                self._mu[g_index] = barycenter(z, wik[:, g_index], lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
+                self.means[g_index] = barycenter(z, wik[:, g_index], lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
             else:
-                self._mu = barycenter(z.unsqueeze(1).expand(N, M, D), wik, lr_mu,  tau_mu, max_iter=max_iter, normed=True).squeeze()
+                self.means = barycenter(z.unsqueeze(1).expand(N, M, D), wik, lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
         # print("1",self._mu)
     def update_variances(self, z, wik, g_index=-1):
         """Variances update function"""
         with torch.no_grad():
-            N, D, M = z.shape + (self._mu.shape[0],)
+            N, D, M = z.shape + (self.means.shape[0],)
             if (g_index > 0):
-                dtm = ((distance(z, self._mu[:, g_index].expand(N)) ** 2) * wik[:, g_index]).sum() / wik[:,
+                dtm = ((distance(z, self.means[:, g_index].expand(N)) ** 2) * wik[:, g_index]).sum() / wik[:,
                                                                                                            g_index].sum()
-                self._sigma[:, g_index] = self.zeta_phi.phi(dtm)
+                self.variances[:, g_index] = self.normalization_factor.phi(dtm)
             else:
                 dtm = ((distance(z.unsqueeze(1).expand(N, M, D),
-                                       self._mu.unsqueeze(0).expand(N, M, D)) ** 2) * wik).sum(0) / wik.sum(0)
+                                 self.means.unsqueeze(0).expand(N, M, D)) ** 2) * wik).sum(0) / wik.sum(0)
                 # print("dtms ", dtm.size())
-                self._sigma = self.zeta_phi.phi(dtm)
+                self.variances = self.normalization_factor.phi(dtm)
 
     def _expectation(self, data):
         """Compute weights_ik given the data, means and variances"""
 
         probability_distribution_function = gaussianPDF(data,
-                                                        self._mu,
-                                                        self._sigma,
+                                                        self.means,
+                                                        self.variances,
                                                         distance= distance,
-                                                        norm_func=self.zeta_phi.zeta)
+                                                        norm_func=self.normalization_factor.zeta)
 
         if (probability_distribution_function.mean() !=
                 probability_distribution_function.mean()):
@@ -153,8 +153,8 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             quit()
 
         p_pdf = probability_distribution_function * \
-                self._w.unsqueeze(0).expand_as(probability_distribution_function)
-        wik = gs.ones((data.shape[0], self._mu.shape[0]))
+                self.mixture_coefficients.unsqueeze(0).expand_as(probability_distribution_function)
+        wik = gs.ones((data.shape[0], self.means.shape[0]))
         if (p_pdf.sum(-1).min() <= 1e-15):
             if (self._verbose):
                 print("EXPECTATION : pdf.sum(-1) contain zero for ", (p_pdf.sum(-1) <= 1e-15).sum().item(), "items")
@@ -174,26 +174,28 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
     def _maximization(self, data, wik, lr_mu, tau_mu, max_iter = math.inf ):
         """Given the weights and data, will update the means and variances."""
         self.update_weights(data, wik)
-        if(self._w.mean() != self._w.mean()):
+        if(self.mixture_coefficients.mean() != self.mixture_coefficients.mean()):
             print("UPDATE : w contain not a number elements")
             quit()
         # print("w", self._w)
         self.update_means(data, wik, lr_mu=lr_mu, tau_mu=tau_mu, max_iter=max_iter)
         if(self.verbose):
-            print(self._mu)
-        if(self._mu.mean() != self._mu.mean()):
+            print(self.means)
+        if(self.means.mean() != self.means.mean()):
             print("UPDATE : mu contain not a number elements")
             quit()
         if(self.verbose):
-            print("sigma b", self._sigma)
+            print("sigma b", self.variances)
         self.update_variances(data, wik)
         if(self.verbose):
-            print("sigma ", self._sigma)
-        if(self._sigma.mean() != self._sigma.mean()):
+            print("sigma ", self.variances)
+        if(self.variances.mean() != self.variances.mean()):
             print("UPDATE : sigma contain not a number elements")
             quit()
 
-    def fit(self, data, max_iter= DEFAULT_MAX_ITER,
+    def fit(self,
+            data,
+            max_iter= DEFAULT_MAX_ITER,
             lr_mu=DEFAULT_LR,
             tau_mu=DEFAULT_TAU):
         """Fit a Gaussian mixture model (GMM) given the data.
@@ -215,48 +217,39 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             Return Gaussian mixture model
         """
 
-        #Initialization
-
-        #data = torch.from_numpy(data)
-
         if(self.init =='random'):
 
-            self._dimension = data.shape[1]
-            #self._mu = (gs.random.rand(self.n_gaussian, self._dimension) - 0.5) / self._dimension
-            self._mu = (torch.rand(self.n_gaussian, self._dimension) - 0.5) / self._dimension
-            #self._sigma = gs.random.rand(self.n_gaussian) / 10 + 0.8
-            self._sigma = torch.rand(self.n_gaussian) / 10 + 0.8
-            #self._w = gs.ones(self.n_gaussian) / self.n_gaussian
-            self._w = torch.ones(self.n_gaussian) / self.n_gaussian
-            #wik = gs.ones((data.shape[0], self._mu.shape[0]))
+            self._dimension = data.size(-1)
+            self.means = (gs.random.rand(self.n_gaussian, self._dimension) - 0.5) / self._dimension
+            self.variances = gs.random.rand(self.n_gaussian) / 10 + 0.8
+            self.mixture_coefficients = gs.ones(self.n_gaussian) / self.n_gaussian
+            posterior_probabilities = gs.ones((data.size(0), self.means.size(0)))
 
-            wik = torch.ones(data.shape[0], self._mu.size(0)).to(self._mu.device)
-            #wik = torch.ones(20, self._mu.size(0)).to(self._mu.device)
-            #self.zeta_phi = ZetaPhiStorage(gs.arange(5e-2, 2., 0.1), self._dimension)
-            self.zeta_phi = ZetaPhiStorage(torch.arange(5e-2, 2., 0.001), self._dimension)
+            #TODO Write properly ZetaPhiStorage
+            self.normalization_factor = ZetaPhiStorage(torch.arange(5e-2, 2., 0.001), self._dimension)
 
 
         if (self.verbose):
             print("Number of data samples", data.shape[0])
             print("Number of Gaussian distribution", self._dimension)
-            print("Initial Variances", self._sigma)
-            print("Initial Mixture Weights", self._w)
-            print("Initial Weights", wik)
+            print("Initial Variances", self.variances)
+            print("Initial Mixture Weights", self.mixture_coefficients)
+            print("Initial Weights", posterior_probabilities)
 
         for epoch in range(max_iter):
-            old_wik = wik
+            old_wik = posterior_probabilities
 
-            wik = self._expectation(data)
-            if((old_wik-wik).abs().mean() < 1e-4 and epoch>10):
-            #if gs.mean(gs.abs(old_wik-wik)) < EM_CONV_RATE and epoch>10:
+            posterior_probabilities = self._expectation(data)
+            if((old_wik - posterior_probabilities).abs().mean() < 1e-4 and epoch>10):
+
                 print('EM converged in ', epoch, 'iterations')
-                return self._mu, self._sigma, self._w
+                return self.means, self.variances, self.mixture_coefficients
 
-            self._maximization(data, wik, lr_mu=lr_mu, tau_mu=tau_mu)
+            self._maximization(data, posterior_probabilities, lr_mu=lr_mu, tau_mu=tau_mu)
 
         print('WARNING: EM did not converge')
 
-        return self._mu, self._sigma, self._w
+        return self.means, self.variances, self.mixture_coefficients
 
     def predict(self, X):
 

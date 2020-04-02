@@ -84,19 +84,14 @@ def plot_embedding_distribution(W, pi, mu, sigma,  labels=None, N=100, colors=No
 
     plt.savefig(save_path, format="png")
 
+    return plt
+
 
 
 def expectation_maximisation_poincare_ball():
 
-    # cluster_1 = gs.random.rand(low=0.2, high=0.6, size=(20, 2))
-    # cluster_2 = gs.random.rand(low=0, high=-0.5, size=(20, 2))
-    # cluster_3 = gs.random.rand(low=0.2, high=0.6, size=(20, 2))
+    #Generate random data in 3 different parts of the manifold
 
-    r1 = 0.2
-    r2 = 0.5
-    r3 = 0
-    r4 = -0.5
-    r5 = 0.6
     cluster_1 = (0.3)* gs.random.rand(20, 2) +0.3
     cluster_2 = -(0.5)* gs.random.rand(20, 2)-0.2
     cluster_3 = (0.4)* gs.random.rand(20, 2)
@@ -106,55 +101,23 @@ def expectation_maximisation_poincare_ball():
 
     n_clusters = 3
 
-    plt.figure(1)
-
-    ax = plt.gca()
-
     manifold = Hyperbolic(dimension=2, point_type='ball')
 
     metric = manifold.metric
 
-    visualization.plot(
-        data,
-        ax=ax,
-        space='H2_poincare_disk',
-        marker='.',
-        color='black',
-        point_type=manifold.point_type)
-
-    EM = RiemannianEM (riemannian_metric=metric,
+    EM = RiemannianEM(riemannian_metric=metric,
                        n_gaussian= n_clusters,
                        init='random',
                        mean_method='frechet-poincare-ball',
                        verbose=1,
                        )
 
-    # dataset_o1 = corpora.NeigbhorFlatCorpus(X, Y)
-    #
-    # batch_size = 10000
-    #
-    # training_dataloader_o1 = data.RawDataloader(dataset_o1,
-    #                             batch_size=batch_size*10,
-    #                             shuffle=True
-    #                     )
-
     mu, sigma, pi = EM.fit(
         data=data,
         max_iter=100)
 
 
-    print('mu', mu)
-    print('sigma', sigma)
-    print('pi', pi)
-
-
-    # plot_embedding_distribution(data,
-    #                                              [pi.cpu()], [mu.cpu()], [sigma.cpu()],
-    #                                              labels=None, N=100, colors=None,
-    #                                              save_path=os.path.join("result.png")
-    #                                              )
-
-    plot_embedding_distribution(data, pi, mu, sigma,
+    plot = plot_embedding_distribution(data, pi, mu, sigma,
                                                  labels=None, N=100, colors=None,
                                                  save_path=os.path.join("result.png")
                                                  )
@@ -182,9 +145,7 @@ def expectation_maximisation_poincare_ball():
     #     s=100,
     #     point_type=manifold.point_type)
 
-    ax.set_title('Expectation Maximisation on Poincaré Ball Manifold')
-
-    return plt
+    return plot
 
 
 def plot_embedding_distribution_multi(W, pi, mu, sigma, labels=None, N=100, colors=None, save_path="figures/default.pdf"):
