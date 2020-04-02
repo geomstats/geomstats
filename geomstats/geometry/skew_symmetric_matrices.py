@@ -7,6 +7,7 @@ of the matrices (and a -1 in its lower triangular part).
 import geomstats.backend as gs
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.matrices import Matrices
+import geomstats.tests as tests
 
 
 TOLERANCE = 1e-12
@@ -29,11 +30,21 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         self.basis = gs.zeros((dimension, n, n))
         loop_index = 0
 
-        for row in gs.arange(n - 1):
-            for col in gs.arange(row + 1, n):
-                self.basis[loop_index, row, col] = 1
-                self.basis[loop_index, col, row] = -1
-                loop_index += 1
+        if tests.tf_backend():
+            basis = []
+            for row in gs.arange(n - 1):
+                for col in gs.arange(row + 1, n):
+                    basis.append(gs.get_from_sparse(
+                        [(row, col), (col, row)], [1, -1], (n, n)))
+            self.basis = gs.stack(basis)
+
+        else:
+            for row in gs.arange(n - 1):
+                for col in gs.arange(row + 1, n):
+                    self.basis[loop_index, row, col] = 1
+                    self.basis[loop_index, col, row] = -1
+                    loop_index += 1
+
 
     def belongs(self, mat, atol=TOLERANCE):
         """Check if mat belongs to the vector space of symmetric matrices."""
