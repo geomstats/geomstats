@@ -704,6 +704,8 @@ class SpecialEuclidean(LieGroup):
                 n_samples, point_type=point_type)
             random_translation = gs.to_ndarray(
                 gs.transpose(random_translation), to_ndim=3)
+            print(random_rotation)
+            print(random_translation)
             random_point = gs.concatenate(
                 (random_rotation, random_translation), axis=2)
             last_line = gs.zeros((n_samples, 1, self.n + 1))
