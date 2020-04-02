@@ -632,9 +632,11 @@ class HyperbolicMetric(RiemannianMetric):
             Point in hyperbolic space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
+
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+
         if self.coords_type == 'extrinsic':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-            base_point = gs.to_ndarray(base_point, to_ndim=2)
 
             sq_norm_tangent_vec = self.embedding_metric.squared_norm(
                 tangent_vec)
@@ -685,7 +687,7 @@ class HyperbolicMetric(RiemannianMetric):
             den = 1 - norm_base_point**2
 
             norm_tan = gs.to_ndarray(gs.linalg.norm(
-                tangent_vec, axis=-1), 2, -1)
+                tangent_vec, axis=-1), 2, axis=-1)
             norm_tan = gs.repeat(norm_tan, base_point.shape[-1], -1)
 
             lambda_base_point = 1 / den
