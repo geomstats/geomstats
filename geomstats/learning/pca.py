@@ -11,6 +11,8 @@ from sklearn.utils.extmath import svd_flip
 from sklearn.utils.validation import check_array
 
 import geomstats.backend as gs
+from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.learning.frechet_mean import FrechetMean
 
 
@@ -99,7 +101,7 @@ class TangentPCA(_BasePCA):
 
     def __init__(self, metric, n_components=None, copy=True,
                  whiten=False, tol=0.0, iterated_power='auto',
-                 random_state=None):
+                 random_state=None, point_type='vector'):
         self.metric = metric
         self.n_components = n_components
         self.copy = copy
@@ -107,31 +109,31 @@ class TangentPCA(_BasePCA):
         self.tol = tol
         self.iterated_power = iterated_power
         self.random_state = random_state
+        self.point_type = point_type
 
-    def fit(self, X, y=None, base_point=None, point_type='vector'):
+    def fit(self, X, y=None, base_point=None):
         """Fit the model with X.
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, n_features]
+        X : array-like, shape=[n_samples, n_features], optional
             Training data, where n_samples is the number of samples
             and n_features is the number of features.
         y : Ignored (Compliance with scikit-learn interface)
-        base_point : array-like, shape=[n_samples, n_features]
+        base_point : array-like, shape=[n_samples, n_features], optional
             Point at which to perform the tangent PCA
             Optional, default to Frechet mean if None
-        point_type : str, {'vector', 'matrix'}
-            Optional
+        point_type : str, {'vector', 'matrix'}, optional
 
         Returns
         -------
         self : object
             Returns the instance itself.
         """
-        self._fit(X, base_point=base_point, point_type=point_type)
+        self._fit(X, base_point=base_point)
         return self
 
-    def fit_transform(self, X, y=None, base_point=None, point_type='vector'):
+    def fit_transform(self, X, y=None, base_point=None):
         """Fit the model with X and apply the dimensionality reduction on X.
 
         Parameters
@@ -143,23 +145,73 @@ class TangentPCA(_BasePCA):
         base_point : array-like, shape=[n_samples, n_features]
             Point at which to perform the tangent PCA
             Optional, default to Frechet mean if None
-        point_type : str, {'vector', 'matrix'}
-            Optional
 
         Returns
         -------
         X_new : array-like, shape (n_samples, n_components)
-
         """
         U, S, _ = self._fit(
             X, base_point=base_point, point_type=point_type)
         U = U[:, :self.n_components_]
 
         U *= S[:self.n_components_]
-
         return U
 
-    def _fit(self, X, base_point=None, point_type='vector'):
+    def transform(self, X, y=None):
+        """Project X on the principal components.
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_samples, n_features]
+            Data, where n_samples is the number of samples
+            and n_features is the number of features.
+        y : Ignored (Compliance with scikit-learn interface)
+
+        Returns
+        -------
+        X_new : array-like, shape=[n_samples, n_components]
+        """
+        tangent_vecs = self.metric.log(X, base_point=self._base_point_fit)
+        if self.point_type == 'matrix':
+            if Matrices.is_symmetric(tangent_vecs).all():
+                X = SPDMatrices(
+                    n=tangent_vecs.shape[-1]).vector_from_symmetric_matrix(
+                    tangent_vecs)
+            else:
+                X = gs.reshape(tangent_vecs, (len(X), - 1))
+        else:
+            X = tangent_vecs
+
+        return super(TangentPCA, self).transform(X)
+
+    def inverse_transform(self, X):
+        """Low-dimensional reconstruction of X.
+
+        The reconstruction will match X_original whose transform would be X
+        if `n_components=min(n_samples, n_features)`.
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_samples, n_components]
+            New data, where n_samples is the number of samples
+            and n_components is the number of components.
+
+        Returns
+        -------
+        X_original array-like, shape=[n_samples, n_features]
+        """
+        scores = self.mean_ + gs.matmul(
+            X, self.components_)
+        if self.point_type == 'matrix':
+            if Matrices.is_symmetric(self._base_point_fit).all():
+                scores = SPDMatrices(
+                    n=self._base_point_fit.shape[-1]
+                ).symmetric_matrix_from_vector(scores)
+            else:
+                scores = gs.reshape(scores, X.shape)
+        return self.metric.exp(scores, self._base_point_fit)
+
+    def _fit(self, X, base_point=None):
         """Fit the model by computing full SVD on X.
 
         Parameters
@@ -178,18 +230,22 @@ class TangentPCA(_BasePCA):
         -------
         U, S, V: SVD decomposition
         """
-        if point_type == 'matrix':
-            raise NotImplementedError(
-                'This is currently only implemented for vectors.')
         if base_point is None:
-            mean = FrechetMean(metric=self.metric)
+            mean = FrechetMean(metric=self.metric, point_type=self.point_type)
             mean.fit(X)
             base_point = mean.estimate_
 
         tangent_vecs = self.metric.log(X, base_point=base_point)
 
-        # Convert to sklearn format
-        X = tangent_vecs
+        if self.point_type == 'matrix':
+            if Matrices.is_symmetric(tangent_vecs).all():
+                X = SPDMatrices(
+                    n=tangent_vecs.shape[-1]).vector_from_symmetric_matrix(
+                    tangent_vecs)
+            else:
+                X = gs.reshape(tangent_vecs, (len(X), - 1))
+        else:
+            X = tangent_vecs
 
         X = check_array(X, dtype=[gs.float64, gs.float32], ensure_2d=True,
                         copy=self.copy)
@@ -216,6 +272,8 @@ class TangentPCA(_BasePCA):
                                  "was of type=%r"
                                  % (n_components, type(n_components)))
 
+        # save the Frecht mean to transform future points
+        self._base_point_fit = base_point
         # Center data - the mean should be 0 if base_point is the Frechet mean
         self.mean_ = gs.mean(X, axis=0)
         X -= self.mean_
