@@ -207,7 +207,7 @@ def _adaptive_gradient_descent(points,
                                metric,
                                weights=None,
                                n_max_iterations=32,
-                               epsilon=1e-12,
+                               epsilon=1e-11,
                                init_points=[],
                                point_type='vector'):
     """Compute the Frechet mean using gradient descent.
@@ -239,6 +239,11 @@ def _adaptive_gradient_descent(points,
     current_mean: array-like, shape=[n_samples, dimension]
         Weighted Frechet mean of the points.
     """
+    # Levenberg-Marquardt adaptive time-step scheme constants
+    TAU_MAX = 1e6
+    TAU_MUL_UP = 1.6511111
+    TAU_MIN = 1e-6
+    TAU_MUL_DOWN = 0.1
     if point_type == 'matrix':
         raise NotImplementedError(
             'The Frechet mean with adaptive gradient descent is only'
@@ -269,9 +274,10 @@ def _adaptive_gradient_descent(points,
     logs = metric.log(point=points, base_point=current_mean)
     current_tangent_mean = gs.einsum('nk,nj->j', weights, logs)
     current_tangent_mean /= sum_weights
-    norm_current_tangent_mean = gs.linalg.norm(current_tangent_mean)
+    sq_norm_current_tangent_mean = metric.squared_norm(current_tangent_mean,
+                                                       base_point=current_mean)
 
-    while (norm_current_tangent_mean > epsilon
+    while (sq_norm_current_tangent_mean > epsilon ** 2
            and iteration < n_max_iterations):
         iteration = iteration + 1
         shooting_vector = gs.to_ndarray(
@@ -283,14 +289,15 @@ def _adaptive_gradient_descent(points,
         logs = metric.log(point=points, base_point=next_mean)
         next_tangent_mean = gs.einsum('nk,nj->j', weights, logs)
         next_tangent_mean /= sum_weights
-        norm_next_tangent_mean = gs.linalg.norm(next_tangent_mean)
-        if norm_next_tangent_mean < norm_current_tangent_mean:
+        sq_norm_next_tangent_mean = metric.squared_norm(next_tangent_mean,
+                                                        base_point=next_mean)
+        if sq_norm_next_tangent_mean < sq_norm_current_tangent_mean:
             current_mean = next_mean
             current_tangent_mean = next_tangent_mean
-            norm_current_tangent_mean = norm_next_tangent_mean
-            tau = max(1.0, 1.0511111 * tau)
+            sq_norm_current_tangent_mean = sq_norm_next_tangent_mean
+            tau = min(TAU_MAX, TAU_MUL_UP * tau)
         else:
-            tau = tau * 0.8
+            tau = max(TAU_MIN, TAU_MUL_DOWN * tau)
 
     if iteration == n_max_iterations:
         logging.warning(
