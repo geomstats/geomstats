@@ -30,8 +30,8 @@ def main(left=-128,
     for p in np.linspace(top, bottom, grid_size):
         starts.append(np.array([p, left]))
         ends.append(np.array([p, right]))
-    starts = [H2.intrinsic_to_extrinsic_coords(s) for s in starts]
-    ends = [H2.intrinsic_to_extrinsic_coords(e) for e in ends]
+    starts = [H2.from_coordinates(s, 'intrinsic') for s in starts]
+    ends = [H2.from_coordinates(e, 'intrinsic') for e in ends]
     ax = plt.gca()
     for start, end in zip(starts, ends):
         geodesic = METRIC.geodesic(initial_point=start,
