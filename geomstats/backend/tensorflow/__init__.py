@@ -136,6 +136,10 @@ def assignment(x, values, indices, axis=0):
         return x
 
 
+def get_from_sparse(indices, data, shape):
+    return tf.sparse.to_dense(tf.SparseTensor(indices, data, shape))
+
+
 def gather(*args, **kwargs):
     return tf.gather(*args, **kwargs)
 
@@ -172,13 +176,6 @@ def cond(*args, **kwargs):
 
 def reshape(*args, **kwargs):
     return tf.reshape(*args, **kwargs)
-
-
-def flatten(x):
-    """Collapses the tensor into 1-D.
-
-    Following https://www.tensorflow.org/api_docs/python/tf/reshape"""
-    return tf.reshape(x, [-1])
 
 
 def arange(*args, **kwargs):
@@ -353,52 +350,6 @@ def sum(*args, **kwargs):
 
 
 def einsum(equation, *inputs, **kwargs):
-    einsum_str = equation
-    input_tensors_list = inputs
-
-    einsum_list = einsum_str.split('->')
-    input_str = einsum_list[0]
-    output_str = einsum_list[1]
-
-    input_str_list = input_str.split(',')
-
-    is_ellipsis = [input_str[:3] == '...' for input_str in input_str_list]
-    all_ellipsis = bool(_np.prod(is_ellipsis))
-
-    if all_ellipsis:
-        if len(input_str_list) > 2:
-            raise NotImplementedError(
-                'Ellipsis support not implemented for >2 input tensors')
-        tensor_a = input_tensors_list[0]
-        tensor_b = input_tensors_list[1]
-        n_tensor_a = tensor_a.shape[0]
-        n_tensor_b = tensor_b.shape[0]
-
-        if n_tensor_a != n_tensor_b:
-            if n_tensor_a == 1:
-                tensor_a = squeeze(tensor_a, axis=0)
-                input_prefix_list = ['', 'r']
-                output_prefix = 'r'
-            elif n_tensor_b == 1:
-                tensor_b = squeeze(tensor_b, axis=0)
-                input_prefix_list = ['r', '']
-                output_prefix = 'r'
-            else:
-                raise ValueError('Shape mismatch for einsum.')
-        else:
-            input_prefix_list = ['r', 'r']
-            output_prefix = 'r'
-
-        input_str_list = [
-            input_str.replace('...', prefix) for input_str, prefix in zip(
-                input_str_list, input_prefix_list)]
-        output_str = output_str.replace('...', output_prefix)
-
-        input_str = input_str_list[0] + ',' + input_str_list[1]
-        einsum_str = input_str + '->' + output_str
-
-        return tf.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
-
     return tf.einsum(equation, *inputs, **kwargs)
 
 
