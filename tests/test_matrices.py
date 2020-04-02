@@ -185,3 +185,12 @@ class TestMatricesMethods(geomstats.tests.TestCase):
         expected = gs.matmul(base_point, expected)
 
         self.assertAllClose(result, expected)
+
+    def test_belongs(self):
+        base_point = gs.array([
+            [1., 2., 3.],
+            [0., 0., 0.],
+            [3., 1., 1.]])
+        result = self.space.belongs(base_point)
+        expected = True
+        self.assertAllClose(result, expected)
