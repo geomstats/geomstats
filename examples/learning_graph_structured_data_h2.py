@@ -102,8 +102,8 @@ def main():
 
     nb_vertices_by_edges =\
         [len(e_2) for e_1, e_2 in karate_graph.edges.items()]
-    logging.info("Nb edges: %s" % len(karate_graph.edges))
-    logging.info("Mean vertices by edges: %s" % (sum(nb_vertices_by_edges, 0) /
+    logging.info('Nb edges: %s' % len(karate_graph.edges))
+    logging.info('Mean vertices by edges: %s' % (sum(nb_vertices_by_edges, 0) /
                  len(karate_graph.edges)))
 
     negative_table_parameter = 5
@@ -118,7 +118,7 @@ def main():
     embeddings = gs.random.randn(karate_graph.n_nodes, dim)
     embeddings = embeddings * 0.2
 
-    hyperbolic_manifold = Hyperbolic(2, coords_type="ball")
+    hyperbolic_manifold = Hyperbolic(2, coords_type='ball')
     labels =\
         [karate_graph.labels[i][0] for i in range(len(karate_graph.labels))]
     colors = {1: "b", 2: "r"}
