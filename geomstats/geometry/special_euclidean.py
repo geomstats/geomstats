@@ -259,7 +259,7 @@ class SpecialEuclidean(LieGroup):
 
         return regularized_vec
 
-    def matrix_from_vector(self, vec):
+    def matrix_from_vector(self, vec):  # TODO Fails with Tensorflow for now
         """Convert point in vector point-type to matrix.
 
         Parameters

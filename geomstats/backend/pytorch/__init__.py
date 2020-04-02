@@ -2,41 +2,6 @@
 
 import numpy as _np
 import torch
-from torch import (  # NOQA
-    abs,
-    arange,
-    argmax,
-    argmin,
-    average,
-    clamp,
-    cos,
-    cosh,
-    cov,
-    diag,
-    diagonal,
-    empty_like,
-    eq,
-    exp,
-    eye,
-    flatten,
-    floor,
-    greater_equal,
-    gt,
-    hsplit,
-    isnan,
-    log,
-    matmul,
-    nonzero,
-    ones_like,
-    reshape,
-    sign,
-    sin,
-    sinh,
-    tan,
-    tanh,
-    triu_indices,
-    zeros_like
-)
 
 from . import linalg  # NOQA
 from . import random  # NOQA
@@ -164,12 +129,24 @@ def array(val):
     return val
 
 
+def abs(val):
+    return torch.abs(val)
+
+
 def zeros(*args):
     return torch.from_numpy(_np.zeros(*args)).float()
 
 
 def ones(*args):
     return torch.from_numpy(_np.ones(*args)).float()
+
+
+def ones_like(*args, **kwargs):
+    return torch.ones_like(*args, **kwargs)
+
+
+def empty_like(*args, **kwargs):
+    return torch.empty_like(*args, **kwargs)
 
 
 def all(x, axis=None):
@@ -198,10 +175,30 @@ def allclose(a, b, **kwargs):
     return torch.allclose(a, b, **kwargs)
 
 
+def sin(val):
+    return torch.sin(val)
+
+
+def cos(val):
+    return torch.cos(val)
+
+
+def cosh(*args, **kwargs):
+    return torch.cosh(*args, **kwargs)
+
+
 def arccosh(x):
     c0 = torch.log(x)
     c1 = torch.log1p(torch.sqrt(x * x - 1) / x)
     return c0 + c1
+
+
+def sinh(*args, **kwargs):
+    return torch.sinh(*args, **kwargs)
+
+
+def tanh(*args, **kwargs):
+    return torch.tanh(*args, **kwargs)
 
 
 def arcsinh(x):
@@ -210,6 +207,10 @@ def arcsinh(x):
 
 def arcosh(x):
     return torch.log(x + torch.sqrt(x * x - 1))
+
+
+def tan(val):
+    return torch.tan(val)
 
 
 def arcsin(val):
@@ -235,6 +236,10 @@ def maximum(a, b):
 
 def greater(a, b):
     return torch.gt(a, b)
+
+
+def greater_equal(a, b):
+    return torch.greater_equal(a, b)
 
 
 def to_ndarray(x, to_ndim, axis=0):
@@ -266,6 +271,18 @@ def less(a, b):
 
 def less_equal(a, b):
     return torch.le(a, b)
+
+
+def eye(*args, **kwargs):
+    return torch.eye(*args, **kwargs)
+
+
+def average(*args, **kwargs):
+    return torch.average(*args, **kwargs)
+
+
+def matmul(*args, **kwargs):
+    return torch.matmul(*args, **kwargs)
 
 
 def sum(x, axis=None, keepdims=None, **kwargs):
@@ -301,6 +318,10 @@ def squeeze(x, axis=None):
         return torch.squeeze(x, axis)
 
 
+def zeros_like(*args, **kwargs):
+    return torch.zeros_like(*args, **kwargs)
+
+
 def trace(*args, **kwargs):
     trace = _np.trace(*args, **kwargs)
     return torch.from_numpy(_np.array(trace)).float()
@@ -326,8 +347,16 @@ def equal(a, b, **kwargs):
     return torch.eq(a, b, **kwargs)
 
 
+def floor(*args, **kwargs):
+    return torch.floor(*args, **kwargs)
+
+
 def cross(x, y):
     return torch.from_numpy(_np.cross(x, y))
+
+
+def triu_indices(*args, **kwargs):
+    return torch.triu_indices(*args, **kwargs)
 
 
 def where(test, x, y):
@@ -345,6 +374,14 @@ def clip(x, amin, amax):
     return _np.clip(x, amin, amax)
 
 
+def clamp(*args, **kwargs):
+    return torch.clamp(*args, **kwargs)
+
+
+def diag(*args, **kwargs):
+    return torch.diag(*args, **kwargs)
+
+
 def expand_dims(x, axis=0):
     return torch.unsqueeze(x, dim=axis)
 
@@ -353,12 +390,48 @@ def outer(*args, **kwargs):
     return torch.ger(*args, **kwargs)
 
 
+def hsplit(*args, **kwargs):
+    return torch.hsplit(*args, **kwargs)
+
+
+def argmax(*args, **kwargs):
+    return torch.argmax(*args, **kwargs)
+
+
+def diagonal(*args, **kwargs):
+    return torch.diagonal(*args, **kwargs)
+
+
+def exp(input):
+    return torch.exp(input)
+
+
+def log(*args, **kwargs):
+    return torch.log(*args, **kwargs)
+
+
+def cov(*args, **kwargs):
+    return torch.cov(*args, **kwargs)
+
+
 def eval(x):
     return x
 
 
 def ndim(x):
     return x.dim()
+
+
+def gt(*args, **kwargs):
+    return torch.gt(*args, **kwargs)
+
+
+def eq(*args, **kwargs):
+    return torch.eq(*args, **kwargs)
+
+
+def nonzero(*args, **kwargs):
+    return torch.nonzero(*args, **kwargs)
 
 
 def seed(x):
@@ -372,11 +445,31 @@ def prod(x, axis=None):
         return torch.prod(x, dim=axis)
 
 
+def sign(*args, **kwargs):
+    return torch.sign(*args, **kwargs)
+
+
 def mean(x, axis=None):
     if axis is None:
         return torch.mean(x)
     else:
         return _np.mean(x, axis)
+
+
+def argmin(*args, **kwargs):
+    return torch.argmin(*args, **kwargs)
+
+
+def reshape(*args, **kwargs):
+    return torch.reshape(*args, **kwargs)
+
+
+def flatten(x):
+    return torch.flatten(x)
+
+
+def arange(*args, **kwargs):
+    return torch.arange(*args, **kwargs)
 
 
 def gather(x, indices, axis=0):
@@ -417,6 +510,10 @@ def cumprod(x, axis=0):
         raise NotImplementedError('cumprod is not defined where axis is None')
     else:
         return torch.cumprod(x, dim=axis)
+
+
+def isnan(*args, **kwargs):
+    return torch.isnan(*args, **kwargs)
 
 
 def cumsum(x, axis=0):
