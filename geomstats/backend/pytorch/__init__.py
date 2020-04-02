@@ -142,7 +142,7 @@ def empty_like(*args, **kwargs):
 def all(x, axis=None):
     if axis is None:
         return x.byte().all()
-    return torch.from_numpy(_np.all(_np.array(x), axis=axis).astype(int))
+    return torch.from_numpy(_np.array(_np.all(_np.array(x), axis=axis).astype(int)))
 
 
 def allclose(a, b, **kwargs):
