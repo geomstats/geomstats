@@ -10,54 +10,85 @@ from geomstats.datasets import graph_data_preparation as gdp
 from geomstats.geometry.hyperbolic import Hyperbolic
 
 
-def log_sigmoid(x):
-    """Logsigmoid function."""
-    return gs.log((1 / (1 + gs.exp(-x))))
+def log_sigmoid(vector):
+    """Logsigmoid function.
+
+    Apply log sigmoid function
+
+    Parameters
+    ----------
+    vector : array-like, shape=[n_samples, dimension]
+
+    Returns
+    -------
+    result : array-like, shape=[n_samples, dimension]
+    """
+    return gs.log((1 / (1 + gs.exp(-vector))))
 
 
-def grad_log_sigmoid(x):
-    """Gradient of logsigmoid function."""
-    return (1 / (1 + gs.exp(x)))
+def grad_log_sigmoid(vector):
+    """Gradient of log sigmoid function.
+
+    Parameters
+    ----------
+    vector : array-like, shape=[n_samples, dimension]
+
+    Returns
+    -------
+    gradient : array-like, shape=[n_samples, dimension]
+    """
+    return (1 / (1 + gs.exp(vector)))
 
 
-def squared_distance(example_embedding, context_embedding,
-                     manifold):
-    """Squared distance considering the manifold metric."""
-    return \
-        manifold.metric.dist(example_embedding, context_embedding)**2
+def grad_squared_distance(point_a, point_b):
+    """Gradient of squared hyperbolic distance.
 
+    Gradient of the squared distance based on the
+    Ball representation according to point_a
 
-def grad_squared_distance(example_embedding, context_embedding,
-                          manifold):
-    """Gradient of the squared distance in the manifold."""
+    Parameters
+    ----------
+    point_a : array-like, shape=[n_samples, dimension]
+        First point in hyperbolic space.
+    point_b : array-like, shape=[n_samples, dimension]
+        Second point in hyperbolic space.
+
+    Returns
+    -------
+    dist : array-like, shape=[n_samples, 1]
+        Geodesic squared distance between the two points.
+    """
+    hyperbolic_metric = Hyperbolic(2, coords_type='ball').metric
     log_map =\
-        manifold.metric.log(context_embedding, example_embedding)
+        hyperbolic_metric.log(point_b, point_a)
 
     return -2 * log_map
 
 
-def loss(example_embedding, context_embedding, negative_embedding, manifold):
+def loss(example_embedding, context_embedding, negative_embedding,
+         manifold):
     """Compute loss and grad.
 
     Compute loss and grad given embedding of the current example,
     embedding of the context and negative sampling embedding.
     """
-    N, D = negative_embedding.shape[0], example_embedding.shape[-1]
+    n_edges, dim =\
+        negative_embedding.shape[0], example_embedding.shape[-1]
     example_embedding = gs.expand_dims(example_embedding, 0)
     context_embedding = gs.expand_dims(context_embedding, 0)
 
     positive_distance =\
-        squared_distance(example_embedding, context_embedding, manifold)
+        manifold.metric.squared_distance(example_embedding, context_embedding)
 
     positive_loss =\
         log_sigmoid(-positive_distance)
 
     reshaped_example_embedding =\
-        gs.repeat(example_embedding, N, axis=0)
+        gs.repeat(example_embedding, n_edges, axis=0)
 
     negative_distance =\
-        squared_distance(reshaped_example_embedding,
-                         negative_embedding, manifold)
+        manifold.metric.squared_distance(reshaped_example_embedding,
+                                         negative_embedding)
     negative_loss = log_sigmoid(negative_distance)
 
     total_loss = -(positive_loss + negative_loss.sum())
@@ -66,20 +97,19 @@ def loss(example_embedding, context_embedding, negative_embedding, manifold):
         -grad_log_sigmoid(-positive_distance)
 
     positive_distance_grad =\
-        grad_squared_distance(example_embedding, context_embedding, manifold)
+        grad_squared_distance(example_embedding, context_embedding)
 
     positive_grad =\
-        gs.repeat(positive_log_sigmoid_grad, D, axis=-1)\
+        gs.repeat(positive_log_sigmoid_grad, dim, axis=-1)\
         * positive_distance_grad
 
     negative_distance_grad =\
-        grad_squared_distance(reshaped_example_embedding, negative_embedding,
-                              manifold)
+        grad_squared_distance(reshaped_example_embedding, negative_embedding)
 
     negative_log_sigmoid_grad =\
         grad_log_sigmoid(negative_distance)
 
-    negative_grad = gs.repeat(negative_log_sigmoid_grad, D, axis=-1)\
+    negative_grad = gs.repeat(negative_log_sigmoid_grad, dim, axis=-1)\
         * negative_distance_grad
 
     example_grad = -(positive_grad + negative_grad.sum(axis=0))
@@ -99,12 +129,12 @@ def main():
     n_negative = 2
     context_size = 1
     karate_graph = gdp.Graph(
-        graph_matrix_path="examples/data/graph_karate/karate.txt",
-        labels_path="examples/data/graph_karate/karate_labels.txt")
+        graph_matrix_path='examples/data/graph_karate/karate.txt',
+        labels_path='examples/data/graph_karate/karate_labels.txt')
 
     nb_vertices_by_edges =\
-        [len(e_2) for e_1, e_2 in karate_graph.edges.items()]
-    logging.info('Nb edges: %s' % len(karate_graph.edges))
+        [len(e_2) for _, e_2 in karate_graph.edges.items()]
+    logging.info('Number of edges: %s' % len(karate_graph.edges))
     logging.info('Mean vertices by edges: %s' % (sum(nb_vertices_by_edges, 0) /
                  len(karate_graph.edges)))
 
@@ -121,9 +151,8 @@ def main():
     embeddings = embeddings * 0.2
 
     hyperbolic_manifold = Hyperbolic(2, coords_type='ball')
-    labels =\
-        [karate_graph.labels[i][0] for i in range(len(karate_graph.labels))]
-    colors = {1: "b", 2: "r"}
+
+    colors = {1: 'b', 2: 'r'}
     for epoch in range(max_epochs):
         total_loss = []
         for path in random_walks:
@@ -164,7 +193,7 @@ def main():
     circle.draw(ax=ax)
     for i in range(len(embeddings)):
         plt.scatter(embeddings[i][0], embeddings[i][1],
-                    c=colors[labels[i]])
+                    c=colors[karate_graph.labels[i][0]])
     plt.show()
 
 
