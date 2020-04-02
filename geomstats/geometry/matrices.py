@@ -113,6 +113,22 @@ class Matrices(Euclidean):
         return cls.equal(mat, cls.transpose(mat), atol)
 
     @classmethod
+    def is_skew_symmetric(cls, mat, atol=TOLERANCE):
+        """
+        Check if a matrix is skew symmetric.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[n_samples, n, n]
+        atol : float, absolute tolerance. defaults to TOLERANCE
+
+        Returns
+        -------
+        is_skew_sym : array-like boolean, shape=[n_samples]
+        """
+        return cls.equal(mat, - cls.transpose(mat), atol)
+
+    @classmethod
     def make_symmetric(cls, mat):
         """
         Make a matrix symmetric, by averaging with its transpose.
