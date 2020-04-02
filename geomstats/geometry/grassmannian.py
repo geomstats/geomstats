@@ -3,6 +3,7 @@
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import EuclideanMetric
+from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -23,6 +24,7 @@ class Grassmannian(EmbeddedManifold):
 
         self.n = n
         self.k = k
+        self.metric = GrassmannianCanonicalMetric(3, 2)
 
         dimension = int(k * (n - k))
         super(Grassmannian, self).__init__(
@@ -77,7 +79,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
             signature=(dimension, 0, 0))
         self.embedding_metric = EuclideanMetric(n * p)
 
-    def exp(self, vector, point):
+    def exp(self, tangent_vec, base_point):
         """Exponentiate the invariant vector field v from base point p.
 
         Parameters
@@ -93,4 +95,39 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         """
         expm = gs.linalg.expm
         mul = Matrices.mul
-        return mul(expm(vector), point, expm(-vector))
+        return mul(expm(tangent_vec), base_point, expm(-tangent_vec))
+
+    def log(self, point, base_point):
+        r"""Compute the Riemannian logarithm of point w.r.t. base_point.
+
+        Given :math:`P, P'` in Gr(n, k) the logarithm from :math:`P`
+        to :math:`P` is given by the infinitesimal rotation [Batzies2015]_:
+
+        .. math::
+
+            \omega = \frac 1 2 \log \big((2 P' - 1)(2 P - 1)\big)
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, n, n]
+            Point in the Grassmannian.
+        base_point : array-like, shape=[n_samples, n, n]
+            Point in the Grassmannian.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[n_samples, n, n]
+            Tangent vector at `base_point`.
+
+        References
+        ----------
+        .. [Batzies2015] Batzies, Hüper, Machado, Leite.
+            "Geometric Mean and Geodesic Regression on Grassmannians"
+            Linear Algebra and its Applications, 466, 83-101, 2015.
+        """
+        GLn = GeneralLinear(self.n)
+        id_n = GLn.identity()
+        sym2 = 2 * point - id_n
+        sym1 = 2 * base_point - id_n
+        rot = GLn.mul(sym2, sym1)
+        return GLn.log(rot) / 2
