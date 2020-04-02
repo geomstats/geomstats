@@ -358,8 +358,6 @@ def eval(x):
 
 
 def ndim(x):
-    if not torch.is_tensor(x):
-        x = torch.tensor(x)
     return x.dim()
 
 

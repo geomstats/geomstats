@@ -222,7 +222,7 @@ def eval(x):
 
 
 def ndim(x):
-    return _np.array(x).ndim
+    return x.ndim
 
 
 def cumprod(x, axis=0):
