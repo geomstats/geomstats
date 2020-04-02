@@ -47,7 +47,6 @@ class InvariantMetric(RiemannianMetric):
         mask_null_eigval = gs.isclose(eigenvalues, 0.)
         n_null_eigval = gs.sum(gs.cast(mask_null_eigval, gs.int32))
 
-
         self.inner_product_mat_at_identity = inner_product_mat_at_identity
         self.left_or_right = left_or_right
         self.signature = (n_pos_eigval, n_null_eigval, n_neg_eigval)
