@@ -209,24 +209,22 @@ class TestBackends(geomstats.tests.TestCase):
     @geomstats.tests.tf_only
     def test_vstack(self):
         import tensorflow as tf
-        with self.test_session():
-            tensor_1 = tf.convert_to_tensor([[1., 2., 3.], [4., 5., 6.]])
-            tensor_2 = tf.convert_to_tensor([[7., 8., 9.]])
+        tensor_1 = tf.convert_to_tensor([[1., 2., 3.], [4., 5., 6.]])
+        tensor_2 = tf.convert_to_tensor([[7., 8., 9.]])
 
-            result = gs.vstack([tensor_1, tensor_2])
-            expected = tf.convert_to_tensor([
-                [1., 2., 3.],
-                [4., 5., 6.],
-                [7., 8., 9.]])
-            self.assertAllClose(result, expected)
+        result = gs.vstack([tensor_1, tensor_2])
+        expected = tf.convert_to_tensor([
+            [1., 2., 3.],
+            [4., 5., 6.],
+            [7., 8., 9.]])
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.tf_only
     def test_tensor_addition(self):
-        with self.test_session():
-            tensor_1 = gs.ones((1, 1))
-            tensor_2 = gs.ones((0, 1))
+        tensor_1 = gs.ones((1, 1))
+        tensor_2 = gs.ones((0, 1))
 
-            tensor_1 + tensor_2
+        tensor_1 + tensor_2
 
     @geomstats.tests.pytorch_only
     def test_cumsum(self):

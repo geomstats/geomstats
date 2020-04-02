@@ -2559,10 +2559,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             expected = group.regularize(point)
             inv_expected = - expected
 
-            with self.session():
-                self.assertTrue(
-                    gs.eval(gs.allclose(result, expected))
-                    or gs.eval(gs.allclose(result, inv_expected)))
+            self.assertTrue(
+                gs.eval(gs.allclose(result, expected))
+                or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_quaternion_and_rotation_vector_vectorization(self):
         n = 3
@@ -3407,10 +3406,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             expected = group.regularize(tangent_vec)
             inv_expected = - expected
 
-            with self.session():
-                self.assertTrue(
-                    gs.eval(gs.allclose(result, expected))
-                    or gs.eval(gs.allclose(result, inv_expected)))
+            self.assertTrue(
+                gs.eval(gs.allclose(result, expected))
+                or gs.eval(gs.allclose(result, inv_expected)))
 
     def test_group_log_then_exp_from_identity(self):
         """
@@ -3447,10 +3445,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             expected = group.regularize(point)
             inv_expected = - expected
 
-            with self.session():
-                self.assertTrue(
-                    gs.eval(gs.allclose(result, expected))
-                    or gs.eval(gs.allclose(result, inv_expected)))
+            self.assertTrue(
+                gs.eval(gs.allclose(result, expected))
+                or gs.eval(gs.allclose(result, inv_expected)))
 
     @geomstats.tests.np_only
     def test_group_exp_then_log(self):
