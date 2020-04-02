@@ -164,7 +164,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         print(result, expected)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_random_and_belongs_matrix_form(self):
         """
         Test that the random uniform method samples

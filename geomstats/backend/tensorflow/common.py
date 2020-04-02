@@ -1,8 +1,8 @@
 import tensorflow as tf
 
 
-def array(x):
-    return tf.convert_to_tensor(x)
+def array(x, dtype=tf.float64):
+    return tf.convert_to_tensor(x, dtype=dtype)
 
 
 def ndim(x):
