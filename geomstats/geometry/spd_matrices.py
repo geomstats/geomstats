@@ -367,7 +367,8 @@ class SPDMetricAffine(RiemannianMetric):
         self.space = SPDMatrices(n)
         self.power_affine = power_affine
 
-    def _aux_inner_product(self, tangent_vec_a, tangent_vec_b, inv_base_point):
+    @staticmethod
+    def _aux_inner_product(tangent_vec_a, tangent_vec_b, inv_base_point):
         """Compute the inner product (auxiliary).
 
         Parameters
@@ -457,7 +458,8 @@ class SPDMetricAffine(RiemannianMetric):
 
         return inner_product
 
-    def _aux_exp(self, tangent_vec, sqrt_base_point, inv_sqrt_base_point):
+    @staticmethod
+    def _aux_exp(tangent_vec, sqrt_base_point, inv_sqrt_base_point):
         """Compute the exponential map (auxiliary function).
 
         Parameters
