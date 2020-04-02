@@ -12,14 +12,14 @@ from autograd.numpy.linalg import (  # NOQA
     svd
 )
 
-# TODO(nina): Clean this import
-from geomstats.backend.numpy.__init__ import to_ndarray
+# TODO(nina): Clean this import.
+from geomstats.backend.numpy.__init__ import to_ndarray as _to_ndarray
 
 TOL = 1e-10
 
 
 def _is_symmetric(x, tol=TOL):
-    new_x = to_ndarray(x, to_ndim=3)
+    new_x = _to_ndarray(x, to_ndim=3)
     return (np.abs(new_x - np.transpose(new_x, axes=(0, 2, 1))) < tol).all()
 
 
@@ -35,7 +35,7 @@ def _expsym(x):
 
 def expm(x):
     ndim = x.ndim
-    new_x = to_ndarray(x, to_ndim=3)
+    new_x = _to_ndarray(x, to_ndim=3)
     if _is_symmetric(new_x):
         result = _expsym(new_x)
     else:
@@ -49,7 +49,7 @@ def expm(x):
 
 def logm(x):
     ndim = x.ndim
-    new_x = to_ndarray(x, to_ndim=3)
+    new_x = _to_ndarray(x, to_ndim=3)
     if _is_symmetric(new_x):
         eigvals, eigvecs = np.linalg.eigh(new_x)
         if (eigvals > 0).all():
@@ -72,7 +72,7 @@ def logm(x):
 
 def powerm(x, power):
     ndim = x.ndim
-    new_x = to_ndarray(x, to_ndim=3)
+    new_x = _to_ndarray(x, to_ndim=3)
     if _is_symmetric(new_x):
         eigvals, eigvecs = np.linalg.eigh(new_x)
         if (eigvals > 0).all():
