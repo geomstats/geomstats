@@ -6,6 +6,10 @@ of the matrices (and a -1 in its lower triangular part).
 """
 import geomstats.backend as gs
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
+from geomstats.geometry.matrices import Matrices
+
+
+TOLERANCE = 1e-12
 
 
 class SkewSymmetricMatrices(MatrixLieAlgebra):
@@ -30,6 +34,10 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
                 self.basis[loop_index, row, col] = 1
                 self.basis[loop_index, col, row] = -1
                 loop_index += 1
+
+    def belongs(self, mat, atol=TOLERANCE):
+        """Check if mat belongs to the vector space of symmetric matrices."""
+        return Matrices(self.n, self.n).is_skew_symmetric(mat=mat, atol=atol)
 
     def basis_representation(self, matrix_representation):
         """Calculate the coefficients of given matrix in the basis.
