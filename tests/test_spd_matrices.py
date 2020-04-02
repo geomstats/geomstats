@@ -445,7 +445,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (1, 1))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_tf_only
     def test_parallel_transport_affine_invariant(self):
         n_samples = self.n_samples
         gs.random.seed(1)
