@@ -882,6 +882,26 @@ class HyperbolicMetric(RiemannianMetric):
             raise NotImplementedError(
                 'dist is only implemented for ball and extrinsic')
 
+    def squared_distance(self, point_a, point_b):
+        """Geodesic squared hyperbolic distance.
+
+        Redefinition the squared distance implemented
+        in RiemannianMetric
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[n_samples, dimension]
+            First point in hyperbolic space.
+        point_b : array-like, shape=[n_samples, dimension]
+            Second point in hyperbolic space.
+
+        Returns
+        -------
+        dist : array-like, shape=[n_samples, 1]
+            Geodesic squared distance between the two points.
+        """
+        return self.dist(point_a, point_b)**2
+
     def retraction(self, tangent_vec, base_point):
         """Poincaré ball model retraction.
 
