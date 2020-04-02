@@ -86,6 +86,7 @@ from autograd.numpy import (  # NOQA
     triu_indices,
     tril_indices,
     diag_indices,
+    searchsorted,
     tril,
     vstack,
     where,
