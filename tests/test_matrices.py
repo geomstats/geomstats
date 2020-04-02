@@ -85,7 +85,7 @@ class TestMatricesMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
-    def test_is_symmetric(self):
+    def test_is_skew_symmetric(self):
         skew_mat = gs.array([[0, - 2.],
                             [2., 0]])
         result = self.space.is_skew_symmetric(skew_mat)
