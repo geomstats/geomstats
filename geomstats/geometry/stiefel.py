@@ -272,7 +272,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
         matrix_n : array-like
         """
         matrix_k = point - gs.matmul(base_point, matrix_m)
-
         matrix_q, matrix_n = gs.linalg.qr(matrix_k)
         return matrix_q, matrix_n
 
