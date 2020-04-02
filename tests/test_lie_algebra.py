@@ -16,14 +16,17 @@ class TestLieAlgebraMethods(geomstats.tests.TestCase):
         expected = self.dimension
         self.assertAllClose(result, expected)
 
-    def test_basis_and_matrix_representation(self):
+    @geomstats.tests.np_only
+    def test_matrix_representation_and_belongs(self):
         n_samples = 2
-        expected = gs.random.rand(n_samples * self.dimension)
-        expected = gs.reshape(expected, (n_samples, self.dimension))
-        mat = self.algebra.matrix_representation(expected)
-        result = self.algebra.belongs(mat)
+        point = gs.random.rand(n_samples * self.dimension)
+        point = gs.reshape(point, (n_samples, self.dimension))
+        mat = self.algebra.matrix_representation(point)
+        result = self.algebra.belongs(mat).all()
+        expected = True
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_basis_and_matrix_representation(self):
         n_samples = 2
         expected = gs.random.rand(n_samples * self.dimension)
