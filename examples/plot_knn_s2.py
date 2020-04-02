@@ -27,8 +27,8 @@ def main():
         kappa=10,
         n_samples=n_samples_per_dataset)
     training_dataset = gs.concatenate((dataset_1, dataset_2), axis=0)
-    labels_dataset_1 = gs.zeros([n_samples_per_dataset], dtype=int)
-    labels_dataset_2 = gs.ones([n_samples_per_dataset], dtype=int)
+    labels_dataset_1 = gs.zeros([n_samples_per_dataset], dtype=gs.int64)
+    labels_dataset_2 = gs.ones([n_samples_per_dataset], dtype=gs.int64)
     labels = gs.concatenate((labels_dataset_1, labels_dataset_2))
     target = sphere.random_uniform(n_samples=n_targets)
 
