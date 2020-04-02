@@ -1,7 +1,7 @@
 """Tensorflow based computation backend."""
 
-import tensorflow as tf
 import numpy as _np
+import tensorflow as tf
 
 from .common import array, ndim, to_ndarray  # NOQA
 from . import linalg  # NOQA
@@ -105,7 +105,8 @@ def get_vectorized_mask_float(
 
 
 def assignment_single_value(x, value, indices, axis=0):
-    single_index = ndim(array(indices)) == 0 or (ndim(array(indices)) <= 1 and ndim(x) > 1)
+    single_index = ndim(array(indices)) == 0 or (
+                ndim(array(indices)) <= 1 and ndim(x) > 1)
     if single_index:
         indices = [indices]
     use_vectorization = (len(indices[0]) < ndim(x))
