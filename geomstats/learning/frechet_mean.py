@@ -207,8 +207,8 @@ def _adaptive_gradient_descent(points,
                                metric,
                                weights=None,
                                max_iter=32,
-                               epsilon=1e-11,
-                               init_points=[],
+                               epsilon=1e-12,
+                               init_point=None,
                                point_type='vector'):
     """Compute the Frechet mean using gradient descent.
 
@@ -230,7 +230,7 @@ def _adaptive_gradient_descent(points,
     max_iter : int, optional
         Maximum number of iterations for the gradient descent.
 
-    init_points : array-like, shape=[n_init, dimension], optional
+    init_point : array-like, shape=[n_init, dimension], optional
         Initial points.
 
     epsilon : float, optional
@@ -259,15 +259,10 @@ def _adaptive_gradient_descent(points,
 
     sum_weights = gs.sum(weights)
 
-    if n_points == 1:
-        return gs.to_ndarray(points[0], to_ndim=2)
-
-    n_init = len(init_points)
-
-    if n_init == 0:
+    if init_point is None:
         current_mean = points[0]
     else:
-        current_mean = init_points[0]
+        current_mean = init_point
 
     tau = 1.0
     iteration = 0
@@ -363,7 +358,7 @@ class FrechetMean(BaseEstimator):
             mean = _adaptive_gradient_descent(
                 points=X, weights=weights, metric=self.metric,
                 max_iter=self.max_iter,
-                epsilon=1e-12, init_points=[])
+                epsilon=1e-12)
         elif self.method == 'frechet-poincare-ball':
             mean = _ball_gradient_descent(
                 points=X, weights=weights, metric=self.metric,
