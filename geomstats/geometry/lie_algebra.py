@@ -21,7 +21,7 @@ class MatrixLieAlgebra:
         dimension: int
             The dimension of the Lie algebra as a real vector space
         n: int
-            The amount of rows and columns in the matrx representation of the
+            The amount of rows and columns in the matrix representation of the
             Lie algebra
         """
         self.dimension = dimension
