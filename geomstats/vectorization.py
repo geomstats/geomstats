@@ -52,11 +52,11 @@ def is_scalar(vect_array):
 
 
 def squeeze_output_dim_1(result, initial_shapes, point_types):
-    """Determine if the output needs to squeeze a singular dimension 1.
+    """Determine if the output needs to be squeezed on dim 1.
 
     This happens if the user represents scalars as array of shapes:
     [n_samples,] instead of [n_samples, 1]
-    Dimension 1 is squeezed by default if the return point type is a scalar.
+    Dimension 1 is squeezed by default if point_type is 'scalar'.
     Dimension 1 is not squeezed if the user inputs at least one scalar with
     a singleton in dimension 1.
 
@@ -97,7 +97,7 @@ def decorator(point_types):
     where "fully-vectorized" means that:
     - one scalar has shape [1, 1],
     - n scalars have shape [n, 1],
-    - on d-D vector has shape [1, d],
+    - one d-D vector has shape [1, d],
     - n d-D vectors have shape [n, d],
     etc.
 
