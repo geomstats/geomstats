@@ -700,13 +700,17 @@ class SpecialEuclidean(LieGroup):
                 axis=1)
 
         elif point_type == 'matrix':
-            random_point = gs.zeros((n_samples, self.n + 1, self.n + 1))
             random_rotation = self.rotations.random_uniform(
                 n_samples, point_type=point_type)
-            print(self.rotations.belongs(random_rotation, 'matrix'))
-            random_point[:, :self.n, :self.n] = random_rotation
-            random_point[:, :self.n, self.n] = random_translation
-            random_point[:, self.n, self.n] = 1
+            random_point = gs.concatenate(
+                (random_rotation, random_translation), axis=2)
+            last_line = gs.zeros((n_samples, 1, self.n + 1))
+            random_point = gs.concatenate(
+                (random_point, last_line), axis=1)
+            gs.assignment(random_point, 1, (-1, -1), axis=0)
+            # random_point[:, :self.n, :self.n] = random_rotation
+            # random_point[:, :self.n, self.n] = random_translation
+            # random_point[:, self.n, self.n] = 1
 
         return random_point
 

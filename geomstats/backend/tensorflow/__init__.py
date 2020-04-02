@@ -1,6 +1,7 @@
 """Tensorflow based computation backend."""
 
 import tensorflow as tf
+import numpy as _np
 
 from .common import array, ndim, to_ndarray  # NOQA
 from . import linalg  # NOQA
@@ -35,10 +36,100 @@ def get_mask_i_float(i, n):
     return mask_i_float
 
 
-# def get_mask_list_float(indices, shape):
-#     mask_numpy = equal(zeros(shape), ones(shape))
-#     for (row, column) in indices:
-#
+def get_mask_float(indices, mask_shape):
+    """Create a binary mask.
+
+    Parameters
+    ----------
+    indices : tuple
+        Single index or tuple of indices where ones will be.
+    mask_shape : tuple
+        Shape of the mask.
+
+    Returns
+    -------
+    tf_mask : array
+    """
+    np_mask = _np.zeros(mask_shape)
+
+    if ndim(indices) == 1 and ndim(mask_shape) > 1:
+        if len(indices) != len(mask_shape):
+            raise ValueError('The index must have the same size as shape')
+
+    else:
+        for index in indices:
+            if len(index) != len(mask_shape):
+                raise ValueError('Indices must have the same size as shape')
+
+    if ndim(indices) == 1 and ndim(mask_shape) == 1:
+        indices = list(indices)
+    np_mask[indices] = 1
+    tf_mask = array(np_mask, dtype=float32)
+    return tf_mask
+
+
+def duplicate_array(x, n_samples, axis=0):
+    multiples = _np.ones(ndim(x) + 1)
+    multiples[axis] = n_samples
+    return tile(to_ndarray(x, ndim(x) + 1), multiples)
+
+
+def get_vectorized_mask_float(
+        n_samples=1, indices=None, mask_shape=None, axis=0):
+    """Create a vectorized binzary mask.
+
+    Parameters
+    ----------
+    n_samples: int
+        Number of copies of the mask along the additional dimension.
+    indices : tuple, optional
+        Single index or tuple of indices where ones will be.
+    mask_shape : tuple, optional
+        Shape of the mask.
+    axis: int
+        Axis along which the mask is vectorized.
+
+    Returns
+    -------
+    tf_mask : array
+    TODO(pchauchat): give shape of the output according to guideline
+    """
+    mask = get_mask_float(indices, mask_shape)
+    return duplicate_array(mask, n_samples, axis=axis)
+
+
+def assignment_single_value(x, value, indices, axis=0):
+    if ndim(indices) == 0:
+        indices = [indices]
+    single_index = (ndim(indices) <= 1 and ndim(x) > 1)
+    use_vectorization = (
+            (single_index and len(single_index) < ndim(x))
+            or (len(indices[0]) < ndim(x)))
+
+    if use_vectorization:
+        n_samples = shape(x)[0]
+        mask = get_vectorized_mask_float(
+            n_samples, indices, shape(x)[1:], axis)
+    else:
+        mask = get_mask_float(indices, shape(x))
+    x += value * mask
+    return
+
+
+def assignment(x, values, indices, axis=0):
+    if ndim(values) == 0:
+        return assignment_single_value(x, values, indices, axis)
+
+    else:
+        if ndim(indices) == 0:
+            indices = [indices]
+
+        if len(values) != len(indices):
+            raise ValueError('Either one value or as many values as indices')
+
+        for (nb_index, index) in enumerate(indices):
+            assignment_single_value(x, values[nb_index], index, axis)
+        return
 
 
 def gather(*args, **kwargs):
