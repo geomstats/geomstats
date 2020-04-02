@@ -4,12 +4,13 @@ Poincaré Ball model representation
 """
 
 import logging
-import geomstats.backend as gs
-from geomstats.geometry.hyperbolic import Hyperbolic
-from geomstats.datasets import graph_data_preparation as gdp
-import geomstats.visualization as visualization
+
 import matplotlib.pyplot as plt
 
+import geomstats.backend as gs
+import geomstats.visualization as visualization
+from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.datasets import graph_data_preparation as gdp
 
 def log_sigmoid(x):
     """logsigmoid function.
