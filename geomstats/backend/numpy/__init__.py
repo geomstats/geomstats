@@ -7,7 +7,6 @@ from autograd.numpy import (  # NOQA
     allclose,
     amax,
     amin,
-    append,
     arange,
     arccos,
     arccosh,
@@ -18,35 +17,29 @@ from autograd.numpy import (  # NOQA
     argmin,
     array,
     asarray,
-    atleast_2d,
     average,
     ceil,
     clip,
     concatenate,
     cos,
     cosh,
-    cov,
-    cross,
     cumsum,
     diagonal,
     divide,
     dot,
     einsum,
     empty,
-    empty_like,
     equal,
     exp,
     expand_dims,
     eye,
     flip,
     floor,
-    greater_equal,
     greater,
     hsplit,
     hstack,
     identity,
     isclose,
-    isnan,
     less,
     less_equal,
     linspace,
@@ -58,12 +51,9 @@ from autograd.numpy import (  # NOQA
     mean,
     meshgrid,
     mod,
-    nonzero,
     ones,
     ones_like,
     outer,
-    prod,
-    real,
     repeat,
     reshape,
     shape,
@@ -104,6 +94,7 @@ float32 = _np.float32
 float64 = _np.float64
 
 
+<<<<<<< HEAD
 def indexing(x):
     return x
 
@@ -120,6 +111,9 @@ def any(x, axis=0):
     return _np.any(x, axis)
 
 
+=======
+# XXX(nkoep): Can we get rid of this now?
+>>>>>>> 7bcef57... numpy: remove all unused functions from backend
 def while_loop(cond, body, loop_vars, maximum_iterations):
     iteration = 0
     while cond(*loop_vars):
@@ -242,18 +236,11 @@ def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
     return _np.vectorize(pyfunc, signature=signature)(x)
 
 
+# XXX(nkoep): Can we get rid of this now?
 def cond(pred, true_fn, false_fn):
     if pred:
         return true_fn()
     return false_fn()
-
-
-def cast_to_complex(x):
-    return _np.vectorize(complex)(x)
-
-
-def boolean_mask(x, mask):
-    return x[mask]
 
 
 def cast(x, dtype):
@@ -290,13 +277,6 @@ def eval(x):
 
 def ndim(x):
     return x.ndim
-
-
-def cumprod(x, axis=0):
-    if axis is None:
-        raise NotImplementedError('cumprod is not defined where axis is None')
-    return _np.cumprod(x, axis=axis)
-
 
 def copy(x):
     return x.copy()
