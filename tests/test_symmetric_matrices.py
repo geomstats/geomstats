@@ -2,6 +2,8 @@
 
 import warnings
 
+import math
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -29,4 +31,18 @@ class TestSymmetricMatricesMethods(geomstats.tests.TestCase):
                                 [3., 5., 6.]])
         result = sym_n.belongs(mat_sym) and not sym_n.belongs(mat_not_sym)
         expected = True
+        self.assertAllClose(result, expected)
+
+    def test_expm(self):
+        """Test of expm method."""
+        v = gs.array([[[0., 1., 0.],
+                       [1., 0., 0.],
+                       [0., 0., 1.]]])
+        result = SymmetricMatrices.expm(v)
+        c = math.cosh(1)
+        s = math.sinh(1)
+        e = math.exp(1)
+        expected = gs.array([[[c, s, 0.],
+                              [s, c, 0.],
+                              [0., 0., e]]])
         self.assertAllClose(result, expected)

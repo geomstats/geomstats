@@ -572,3 +572,10 @@ def array_from_sparse(indices, data, target_shape):
         torch.LongTensor(indices).t(),
         torch.FloatTensor(data),
         torch.Size(target_shape)).to_dense()
+
+
+def from_vector_to_diagonal_matrix(x):
+    n = shape(x)[-1]
+    id = identity(n)
+    diagonals = einsum('ki,ij->kij', x, id)
+    return diagonals
