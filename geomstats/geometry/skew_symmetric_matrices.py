@@ -5,9 +5,9 @@ As basis we choose the matrices with a single 1 on the upper triangular part
 of the matrices (and a -1 in its lower triangular part).
 """
 import geomstats.backend as gs
+import geomstats.tests as tests
 from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.matrices import Matrices
-import geomstats.tests as tests
 
 
 TOLERANCE = 1e-12
@@ -44,7 +44,6 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
                     self.basis[loop_index, row, col] = 1
                     self.basis[loop_index, col, row] = -1
                     loop_index += 1
-
 
     def belongs(self, mat, atol=TOLERANCE):
         """Check if mat belongs to the vector space of symmetric matrices."""
