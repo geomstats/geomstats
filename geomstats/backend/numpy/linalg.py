@@ -105,10 +105,6 @@ def sqrtm(x):
         scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)
 
 
-def exp(*args, **kwargs):
-    return np.exp(*args, **kwargs)
-
-
 def qr(*args, **kwargs):
     return np.vectorize(np.linalg.qr,
                         signature='(n,m)->(n,k),(k,m)',
