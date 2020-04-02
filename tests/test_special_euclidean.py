@@ -92,6 +92,9 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             elements = {
                 'point_1': point_1,
                 'point_2': point_2}
+            elements_matrices_all = {
+                key: group.matrix_from_vector(elements_all[key]) for key in
+                elements_all}
 
         elements_matrices_all = {
             key: group.matrix_from_vector(elements_all[key]) for key in
@@ -159,7 +162,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         base_point = self.group.random_uniform()
         result = self.group.belongs(base_point)
         expected = gs.array([True])
-        print(result, expected)
         self.assertAllClose(result, expected)
 
     # @geomstats.tests.np_and_tf_only
@@ -191,7 +193,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         points = self.group.random_uniform(n_samples=n_samples)
         result = self.group.belongs(points)
         expected = gs.array([True] * n_samples)
-        print(result, expected)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
