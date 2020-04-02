@@ -29,7 +29,6 @@ def logical_and(x, y):
 
 
 def any(x, axis=0):
-    print('there')
     return tf.math.reduce_any(tf.cast(x, bool), axis=axis)
 
 

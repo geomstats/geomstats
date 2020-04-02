@@ -52,6 +52,8 @@ from autograd.numpy import (  # NOQA
     less_equal,
     linspace,
     log,
+    logical_and,
+    logical_or,
     matmul,
     maximum,
     mean,
@@ -111,7 +113,6 @@ def byte_to_float(x):
 
 
 def any(x, axis=0):
-    print('there')
     return _np.any(x, axis)
 
 
@@ -123,16 +124,6 @@ def while_loop(cond, body, loop_vars, maximum_iterations):
         if iteration >= maximum_iterations:
             break
     return loop_vars
-
-
-def logical_or(x, y):
-    bool_result = x or y
-    return bool_result
-
-
-def logical_and(x, y):
-    bool_result = x and y
-    return bool_result
 
 
 def flatten(x):
