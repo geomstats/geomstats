@@ -20,13 +20,13 @@ class TestSymmetricMatricesMethods(geomstats.tests.TestCase):
 
     def test_belongs(self):
         """Test of belongs method."""
-        Sym_n = SymmetricMatrices(self.n)
+        sym_n = SymmetricMatrices(self.n)
         mat_sym = gs.array([[1., 2., 3.],
                             [2., 4., 5.],
                             [3., 5., 6.]])
         mat_not_sym = gs.array([[1., 0., 3.],
                                 [2., 4., 5.],
                                 [3., 5., 6.]])
-        result = Sym_n.belongs(mat_sym) and not Sym_n.belongs(mat_not_sym)
+        result = sym_n.belongs(mat_sym) and not sym_n.belongs(mat_not_sym)
         expected = True
         self.assertAllClose(result, expected)
