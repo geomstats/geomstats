@@ -141,11 +141,10 @@ def get_mask_i_float(i, n):
 
 def assignment(x, values, indices, axis=0):
     x_new = copy(x)
-    single_index = ndim(array(indices)) == 0 or (
-                ndim((array(indices))) <= 1 and ndim(x) > 1)
+    single_index = not isinstance(indices, list)
     if single_index:
         indices = [indices]
-    if ndim((array(values))) == 0:
+    if not isinstance(values, list):
         values = [values] * len(indices)
     for (nb_index, index) in enumerate(indices):
         if len(indices[0]) < len(shape(x)):

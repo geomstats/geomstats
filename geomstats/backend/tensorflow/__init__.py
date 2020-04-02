@@ -105,8 +105,7 @@ def get_vectorized_mask_float(
 
 
 def assignment_single_value(x, value, indices, axis=0):
-    single_index = ndim(array(indices)) == 0 or (
-                ndim(array(indices)) <= 1 and ndim(x) > 1)
+    single_index = not isinstance(indices, list)
     if single_index:
         indices = [indices]
     use_vectorization = (len(indices[0]) < ndim(x))
@@ -122,11 +121,11 @@ def assignment_single_value(x, value, indices, axis=0):
 
 
 def assignment(x, values, indices, axis=0):
-    if ndim((array(values))) == 0:
+    if not isinstance(values, list):
         return assignment_single_value(x, values, indices, axis)
 
     else:
-        if ndim(array(indices)) == 0:
+        if not isinstance(indices, list):
             indices = [indices]
 
         if len(values) != len(indices):
