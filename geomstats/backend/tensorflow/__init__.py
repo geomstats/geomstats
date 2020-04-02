@@ -83,11 +83,10 @@ def get_mask_float(indices, mask_shape):
     tf_mask : array
     """
     np_mask = _np.zeros(mask_shape)
-
-    if ndim(indices) <= 1 and ndim(np_mask) == 1:
+    if ndim(array(indices)) <= 1 and ndim(np_mask) == 1:
         indices = list(indices)
 
-    if ndim(indices) == 1 and ndim(np_mask) > 1:
+    if ndim(array(indices)) == 1 and ndim(np_mask) > 1:
         if len(indices) != len(mask_shape):
             raise ValueError('The index must have the same size as shape')
         indices = [indices]
@@ -134,7 +133,7 @@ def get_vectorized_mask_float(
 
 
 def assignment_single_value(x, value, indices, axis=0):
-    single_index = ndim(indices) == 0 or (ndim(indices) <= 1 and ndim(x) > 1)
+    single_index = ndim(array(indices)) == 0 or (ndim(array(indices)) <= 1 and ndim(x) > 1)
     if single_index:
         indices = [indices]
     use_vectorization = (len(indices[0]) < ndim(x))
@@ -150,11 +149,11 @@ def assignment_single_value(x, value, indices, axis=0):
 
 
 def assignment(x, values, indices, axis=0):
-    if ndim(values) == 0:
+    if ndim((array(values))) == 0:
         return assignment_single_value(x, values, indices, axis)
 
     else:
-        if ndim(indices) == 0:
+        if ndim(array(indices)) == 0:
             indices = [indices]
 
         if len(values) != len(indices):
