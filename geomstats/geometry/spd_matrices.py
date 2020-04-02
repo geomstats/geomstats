@@ -112,6 +112,7 @@ class SPDMatrices(EmbeddedManifold):
         Parameters
         ----------
         power : float
+            Power function to differentiate.
         tangent_vec : array_like, shape=[n_samples, n, n]
             Tangent vectors.
         base_point : array_like, shape=[n_samples, n, n]
