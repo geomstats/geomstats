@@ -124,7 +124,6 @@ class SpecialEuclidean(LieGroup):
             belongs = point_dim == self.dimension
             belongs = gs.logical_and(
                 belongs, self.rotations.belongs(point[:, :self.n]))
-            # TODO: Should to_ndarray do this if to_ndim = ndim(x) - 1 ?
             belongs = gs.flatten(belongs)
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
@@ -136,10 +135,8 @@ class SpecialEuclidean(LieGroup):
             belongs = gs.logical_and(belongs, rot_belongs)
 
             last_line_except_last_term = point[:, self.n:, :-1]
-
             all_but_last_zeros = ~ gs.any(
                 last_line_except_last_term, axis=(1, 2))
-            # TODO(pchauchat) Fails with Pytorch, and probably Tensorflow too
             all_but_last_zeros = gs.to_ndarray(
                 all_but_last_zeros, to_ndim=2, axis=1)
             belongs = gs.logical_and(belongs, all_but_last_zeros)

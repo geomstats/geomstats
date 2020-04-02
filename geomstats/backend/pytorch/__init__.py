@@ -33,7 +33,10 @@ def logical_and(x, y):
 
 
 def any(x, axis=0):
-    return torch.any(x.type(torch.bool), axis)
+    numpy_result = _np.array(_np.any(_np.array(x), axis=axis))
+    return torch.from_numpy(numpy_result)
+    # return x.type(torch.bool).any(axis)
+
 
 def cond(pred, true_fn, false_fn):
     if pred:
@@ -377,10 +380,6 @@ def clamp(*args, **kwargs):
 
 def diag(*args, **kwargs):
     return torch.diag(*args, **kwargs)
-
-
-def any(x):
-    return x.byte().any()
 
 
 def expand_dims(x, axis=0):
