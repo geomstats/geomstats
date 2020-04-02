@@ -27,14 +27,14 @@ class TestTangentPCA(geomstats.tests.TestCase):
         tpca = TangentPCA(self.metric, n_components=self.n_components)
         tpca.fit(X)
         X_diff_size = gs.ones((self.n_samples, gs.shape(X)[1] + 1))
-        self.assertRaises(ValueError, tpca.tpcaform, X_diff_size)
+        self.assertRaises(ValueError, tpca.transform, X_diff_size)
 
     @geomstats.tests.np_only
     def test_tangent_pca(self):
         X = self.X
         tpca = TangentPCA(self.metric, n_components=gs.shape(X)[1])
         tpca.fit(X)
-        self.assertEquals(tpca.n_features_, gs.shape(X)[1])
+        self.assertEqual(tpca.n_features_, gs.shape(X)[1])
 
     @geomstats.tests.np_only
     def test_fit_mle(self):
@@ -65,38 +65,38 @@ class TestTangentPCA(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
-    def test_fit_tpcaform_matrix(self):
+    def test_fit_transform_matrix(self):
         expected = 2
         X = self.spd.random_uniform(n_samples=5)
         tpca = TangentPCA(
             metric=self.spd_metric, point_type='matrix', n_components=expected)
-        tangent_projected_data = tpca.fit_tpcaform(X)
+        tangent_projected_data = tpca.fit_transform(X)
         result = tangent_projected_data.shape[-1]
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
-    def test_fit_inverse_tpcaform_matrix(self):
+    def test_fit_inverse_transform_matrix(self):
         X = self.spd.random_uniform(n_samples=5)
         tpca = TangentPCA(
             metric=self.spd_metric, point_type='matrix')
-        tangent_projected_data = tpca.fit_tpcaform(X)
-        result = tpca.inverse_tpcaform(tangent_projected_data)
+        tangent_projected_data = tpca.fit_transform(X)
+        result = tpca.inverse_transform(tangent_projected_data)
         expected = X
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
-    def test_fit_tpcaform_vector(self):
+    def test_fit_transform_vector(self):
         expected = 2
         tpca = TangentPCA(
             metric=self.metric, point_type='vector', n_components=expected)
-        tangent_projected_data = tpca.fit_tpcaform(self.X)
+        tangent_projected_data = tpca.fit_transform(self.X)
         result = tangent_projected_data.shape[-1]
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
-    def test_fit_tpcaform_reconstruct_vector(self):
+    def test_fit_transform_reconstruct_vector(self):
         tpca = TangentPCA(metric=self.metric, point_type='vector')
-        tangent_projected_data = tpca.fit_tpcaform(self.X)
-        result = tpca.inverse_tpcaform(tangent_projected_data)
+        tangent_projected_data = tpca.fit_transform(self.X)
+        result = tpca.inverse_transform(tangent_projected_data)
         expected = self.X
         self.assertAllClose(result, expected)
