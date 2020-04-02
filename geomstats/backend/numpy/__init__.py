@@ -203,3 +203,10 @@ def cumprod(x, axis=0):
 
 def copy(x):
     return x.copy()
+
+
+def from_vector_to_diagonal_matrix(x):
+    n = shape(x)[-1]
+    id = identity(n)
+    diagonals = einsum('ki,ij->kij', x, id)
+    return diagonals

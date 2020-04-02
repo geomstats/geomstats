@@ -329,3 +329,10 @@ def cumprod(x, axis=0):
         raise NotImplementedError('cumprod is not defined where axis is None')
     else:
         return tf.math.cumprod(x, axis=axis)
+
+
+def from_vector_to_diagonal_matrix(x):
+    n = shape(x)[-1]
+    identity = eye(n)
+    diagonals = einsum('ki,ij->kij', x, identity)
+    return diagonals

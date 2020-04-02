@@ -490,3 +490,10 @@ def cumsum(x, axis=0):
         raise NotImplementedError('cumsum is not defined where axis is None')
     else:
         return torch.cumsum(x, dim=axis)
+
+
+def from_vector_to_diagonal_matrix(x):
+    n = shape(x)[-1]
+    id = identity(n)
+    diagonals = einsum('ki,ij->kij', x, id)
+    return diagonals
