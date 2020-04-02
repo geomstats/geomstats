@@ -29,12 +29,10 @@ def logical_or(x, y):
 
 
 def logical_and(x, y):
-    print('there')
     return x and y
 
 
 def any(x, axis=0):
-    print('there')
     return torch.any(x.type(torch.bool), axis)
 
 def cond(pred, true_fn, false_fn):

@@ -166,6 +166,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         expected = gs.array([True])
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_random_and_belongs_matrix_form(self):
         """
         Test that the random uniform method samples
@@ -445,12 +446,14 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
         if not geomstats.tests.tf_backend():
             self.assertAllClose(
-                gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result),
+                (n_samples, *self.group.get_point_type_shape()))
 
             result = self.group.compose(n_points_a,
                                         n_points_b)
             self.assertAllClose(
-                gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result),
+                (n_samples, *self.group.get_point_type_shape()))
 
     @geomstats.tests.np_only
     def test_compose_vectorization_matrix_form(self):
@@ -496,7 +499,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             result = metric.exp_from_identity(tangent_vecs)
 
             self.assertAllClose(
-                gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result),
+                (n_samples, *self.group.get_point_type_shape()))
 
             if geomstats.tests.tf_backend():
                 break
@@ -509,7 +513,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             result = metric.log_from_identity(points)
 
             self.assertAllClose(
-                gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result),
+                (n_samples, *self.group.get_point_type_shape()))
 
             if geomstats.tests.tf_backend():
                 break
@@ -529,7 +534,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             # Test with the 1 base point, and n tangent vecs
             result = metric.exp(n_tangent_vec, one_base_point)
             self.assertAllClose(
-                gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result),
+                (n_samples, *self.group.get_point_type_shape()))
 
             if geomstats.tests.tf_backend():
                 break
@@ -537,12 +543,14 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             # Test with the several base point, and one tangent vec
             result = metric.exp(one_tangent_vec, n_base_point)
             self.assertAllClose(
-                gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result),
+                (n_samples, *self.group.get_point_type_shape()))
 
             # Test with the same number n of base point and n tangent vec
             result = metric.exp(n_tangent_vec, n_base_point)
             self.assertAllClose(
-                gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result),
+                (n_samples, *self.group.get_point_type_shape()))
 
     @geomstats.tests.np_only
     def test_log_vectorization(self):
@@ -558,7 +566,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             # Test with the 1 base point, and several different points
             result = metric.log(n_point, one_base_point)
             self.assertAllClose(
-                gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result),
+                (n_samples, *self.group.get_point_type_shape()))
 
             if geomstats.tests.tf_backend():
                 break
@@ -566,12 +575,14 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             # Test with the several base point, and 1 point
             result = metric.log(one_point, n_base_point)
             self.assertAllClose(
-                gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result),
+                (n_samples, *self.group.get_point_type_shape()))
 
             # Test with the same number n of base point and point
             result = metric.log(n_point, n_base_point)
             self.assertAllClose(
-                gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result),
+                (n_samples, *self.group.get_point_type_shape()))
 
     @geomstats.tests.np_only
     def test_group_exp_from_identity_vectorization(self):
@@ -609,7 +620,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             result = self.group.exp(tangent_vecs, base_points)
 
             self.assertAllClose(
-                gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result),
+                (n_samples, *self.group.get_point_type_shape()))
 
             # Test with the several base_points, and 1 tangent_vec
             tangent_vec = self.group.random_uniform(n_samples=1)
@@ -617,7 +629,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             result = self.group.exp(tangent_vec, base_points)
 
             self.assertAllClose(
-                gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result),
+                (n_samples, *self.group.get_point_type_shape()))
 
     @geomstats.tests.np_only
     def test_group_log_vectorization(self):
@@ -638,7 +651,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             result = self.group.log(points, base_points)
 
             self.assertAllClose(
-                gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result),
+                (n_samples, *self.group.get_point_type_shape()))
 
             # Test with the several base points, and 1 point
             point = self.group.random_uniform(n_samples=1)
@@ -646,7 +660,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             result = self.group.log(point, base_points)
 
             self.assertAllClose(
-                gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+                gs.shape(result),
+                (n_samples, *self.group.get_point_type_shape()))
 
     @geomstats.tests.np_only
     def test_group_exp_from_identity(self):

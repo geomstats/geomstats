@@ -702,10 +702,12 @@ class SpecialEuclidean(LieGroup):
         elif point_type == 'matrix':
             random_rotation = self.rotations.random_uniform(
                 n_samples, point_type=point_type)
-            random_translation = gs.to_ndarray(
-                gs.transpose(random_translation), to_ndim=3)
-            print(random_rotation)
-            print(random_translation)
+            if n_samples == 1:
+                random_translation = gs.to_ndarray(
+                    gs.transpose(random_translation), to_ndim=3)
+            else:
+                random_translation = gs.transpose(gs.to_ndarray(
+                    random_translation, to_ndim=3))
             random_point = gs.concatenate(
                 (random_rotation, random_translation), axis=2)
             last_line = gs.zeros((n_samples, 1, self.n + 1))
