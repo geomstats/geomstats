@@ -25,7 +25,7 @@ def grad_log_sigmoid(x):
 
 def squared_distance(example_embedding, context_embedding,
                      manifold):
-    """Squared distance considering the manifold metric
+    """Squared distance considering the manifold metric.
     """
     return \
         manifold.metric.dist(example_embedding, context_embedding)**2
@@ -33,7 +33,7 @@ def squared_distance(example_embedding, context_embedding,
 
 def grad_squared_distance(example_embedding, context_embedding,
                           manifold):
-    """Gradient of the squared distance in the manifold
+    """Gradient of the squared distance in the manifold.
     """
     log_map =\
         manifold.metric.log(context_embedding, example_embedding)
