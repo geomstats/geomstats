@@ -1,6 +1,4 @@
-"""Learning embedding of graph data using hyperbolic space and
-Poincaré Ball model representation.
-"""
+"""Learning embedding of graph using Poincare Ball Model."""
 
 import logging
 
@@ -13,29 +11,25 @@ from geomstats.geometry.hyperbolic import Hyperbolic
 
 
 def log_sigmoid(x):
-    """logsigmoid function.
-    """
+    """Logsigmoid function."""
     return gs.log((1 / (1 + gs.exp(-x))))
 
 
 def grad_log_sigmoid(x):
-    """Gradient of logsigmoid function.
-    """
+    """Gradient of logsigmoid function."""
     return (1 / (1 + gs.exp(x)))
 
 
 def squared_distance(example_embedding, context_embedding,
                      manifold):
-    """Squared distance considering the manifold metric.
-    """
+    """Squared distance considering the manifold metric."""
     return \
         manifold.metric.dist(example_embedding, context_embedding)**2
 
 
 def grad_squared_distance(example_embedding, context_embedding,
                           manifold):
-    """Gradient of the squared distance in the manifold.
-    """
+    """Gradient of the squared distance in the manifold."""
     log_map =\
         manifold.metric.log(context_embedding, example_embedding)
 
@@ -43,7 +37,9 @@ def grad_squared_distance(example_embedding, context_embedding,
 
 
 def loss(example_embedding, context_embedding, negative_embedding, manifold):
-    """Compute loss and grad given embedding of the current example,
+    """Compute loss and grad.
+
+    Compute loss and grad given embedding of the current example,
     embedding of the context and negative sampling embedding.
     """
     N, D = negative_embedding.shape[0], example_embedding.shape[-1]
@@ -92,6 +88,11 @@ def loss(example_embedding, context_embedding, negative_embedding, manifold):
 
 
 def main():
+    """Learning Poincaré graph embedding.
+
+    Learns Poincaré Ball embedding by using Riemannian
+    gradient descent algorithm
+    """
     dim = 2
     max_epochs = 100
     lr = .05
