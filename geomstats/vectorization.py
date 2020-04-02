@@ -13,7 +13,7 @@ POINT_TYPES_TO_NDIMS = {
 
 
 def squeeze_output_dim_0(initial_ndims, point_types):
-    """Determine if the output needs to squeeze a singular dimension 0.
+    """Determine if the output needs to be squeezed on dim 0.
 
     The dimension 0 is squeezed iff all input parameters:
     - contain one sample,
