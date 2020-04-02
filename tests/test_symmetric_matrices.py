@@ -1,8 +1,7 @@
 """Unit tests for the vector space of symmetric matrices."""
 
-import warnings
-
 import math
+import warnings
 
 import geomstats.backend as gs
 import geomstats.tests
