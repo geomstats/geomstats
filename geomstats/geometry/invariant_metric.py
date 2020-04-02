@@ -28,6 +28,9 @@ class InvariantMetric(RiemannianMetric):
     def __init__(self, group,
                  inner_product_mat_at_identity=None,
                  left_or_right='left'):
+
+        self.group = group
+
         if inner_product_mat_at_identity is None:
             inner_product_mat_at_identity = gs.eye(self.group.dimension)
         inner_product_mat_at_identity = gs.to_ndarray(
@@ -44,9 +47,6 @@ class InvariantMetric(RiemannianMetric):
         mask_null_eigval = gs.isclose(eigenvalues, 0.)
         n_null_eigval = gs.sum(gs.cast(mask_null_eigval, gs.int32))
 
-        self.group = group
-        if inner_product_mat_at_identity is None:
-            inner_product_mat_at_identity = gs.eye(self.group.dimension)
 
         self.inner_product_mat_at_identity = inner_product_mat_at_identity
         self.left_or_right = left_or_right
