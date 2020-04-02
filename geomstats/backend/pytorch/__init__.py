@@ -28,6 +28,16 @@ def logical_or(x, y):
     return x or y
 
 
+def logical_and(x, y):
+    return x and y
+
+
+def any(x, axis=0):
+    numpy_result = _np.array(_np.any(_np.array(x), axis=axis))
+    return torch.from_numpy(numpy_result)
+    # return x.type(torch.bool).any(axis)
+
+
 def cond(pred, true_fn, false_fn):
     if pred:
         return true_fn()
@@ -372,10 +382,6 @@ def diag(*args, **kwargs):
     return torch.diag(*args, **kwargs)
 
 
-def any(x):
-    return x.byte().any()
-
-
 def expand_dims(x, axis=0):
     return torch.unsqueeze(x, dim=axis)
 
@@ -454,6 +460,14 @@ def argmin(*args, **kwargs):
     return torch.argmin(*args, **kwargs)
 
 
+def reshape(*args, **kwargs):
+    return torch.reshape(*args, **kwargs)
+
+
+def flatten(x):
+    return torch.flatten(x)
+
+
 def arange(*args, **kwargs):
     return torch.arange(*args, **kwargs)
 
@@ -468,6 +482,23 @@ def get_mask_i_float(i, n):
     mask_i = equal(range_n, i_float)
     mask_i_float = cast(mask_i, float32)
     return mask_i_float
+
+
+def assignment(x, values, indices, axis=0):
+    x_new = copy(x)
+    single_index = not isinstance(indices, list)
+    if single_index:
+        indices = [indices]
+    if not isinstance(values, list):
+        values = [values] * len(indices)
+    for (nb_index, index) in enumerate(indices):
+        if len(indices[0]) < len(shape(x)):
+            for n_axis in range(shape(x)[axis]):
+                extended_index = index[:axis] + (n_axis,) + index[axis:]
+                x_new[extended_index] = values[nb_index]
+        else:
+            x_new[index] = values[nb_index]
+    return x_new
 
 
 def copy(x):
