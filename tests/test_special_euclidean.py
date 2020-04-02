@@ -92,15 +92,11 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             elements = {
                 'point_1': point_1,
                 'point_2': point_2}
-            elements_matrices_all = {
-                key: group.matrix_from_vector(elements_all[key]) for key in
-                elements_all}
 
-        else:
-            elements_matrices_all = {
-                key: group.matrix_from_vector(elements_all[key]) for key in
-                elements_all}
-            elements_matrices = elements_matrices_all
+        elements_matrices_all = {
+            key: group.matrix_from_vector(elements_all[key]) for key in
+            elements_all}
+        elements_matrices = elements_matrices_all
 
         # Metrics - only diagonals
         diag_mat_at_identity = gs.eye(6) * gs.array([2., 2., 2., 3., 3., 3.])
@@ -142,6 +138,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         self.metrics = metrics
         self.elements_all = elements_all
         self.elements = elements
+        self.elements_matrices_all = elements_matrices_all
+        self.elements_matrices = elements_matrices
         self.angles_close_to_pi_all = [
             'with_angle_close_pi_low',
             'with_angle_pi',
@@ -149,9 +147,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         self.angles_close_to_pi = self.angles_close_to_pi_all
         if geomstats.tests.tf_backend():
             self.angles_close_to_pi = ['with_angle_close_pi_low']
-        else:
-            self.elements_matrices_all = elements_matrices_all
-            self.elements_matrices = elements_matrices
 
         self.n_samples = 3
 
