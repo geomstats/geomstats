@@ -13,7 +13,6 @@ from geomstats.datasets import graph_data_preparation as gdp
 from geomstats.geometry.hyperbolic import Hyperbolic
 
 
-
 def log_sigmoid(x):
     """logsigmoid function.
     """
