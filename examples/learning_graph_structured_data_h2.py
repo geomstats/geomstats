@@ -1,6 +1,5 @@
-"""
-Learning embedding of graph data using hyperbolic space and
-Poincaré Ball model representation
+"""Learning embedding of graph data using hyperbolic space and
+Poincaré Ball model representation.
 """
 
 import logging
