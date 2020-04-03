@@ -190,17 +190,16 @@ def assignment_by_sum(x, values, indices, axis=0):
     if not isinstance(values, list):
         return __assignment_single_value_by_sum(x, values, indices, axis)
 
-    else:
-        if not isinstance(indices, list):
-            indices = [indices]
+    if not isinstance(indices, list):
+        indices = [indices]
 
-        if len(values) != len(indices):
-            raise ValueError('Either one value or as many values as indices')
+    if len(values) != len(indices):
+        raise ValueError('Either one value or as many values as indices')
 
-        for (nb_index, index) in enumerate(indices):
-            x = __assignment_single_value_by_sum(
-                x, values[nb_index], index, axis)
-        return x
+    for (nb_index, index) in enumerate(indices):
+        x = __assignment_single_value_by_sum(
+            x, values[nb_index], index, axis)
+    return x
 
 
 def _assignment_single_value(x, value, indices, axis=0):
@@ -276,16 +275,15 @@ def assignment(x, values, indices, axis=0):
     if not isinstance(values, list):
         return _assignment_single_value(x, values, indices, axis)
 
-    else:
-        if not isinstance(indices, list):
-            indices = [indices]
+    if not isinstance(indices, list):
+        indices = [indices]
 
-        if len(values) != len(indices):
-            raise ValueError('Either one value or as many values as indices')
+    if len(values) != len(indices):
+        raise ValueError('Either one value or as many values as indices')
 
-        for (nb_index, index) in enumerate(indices):
-            x = _assignment_single_value(x, values[nb_index], index, axis)
-        return x
+    for (nb_index, index) in enumerate(indices):
+        x = _assignment_single_value(x, values[nb_index], index, axis)
+    return x
 
 
 def array_from_sparse(indices, data, target_shape):
