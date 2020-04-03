@@ -40,15 +40,16 @@ def plot_gaussian_mixture_distribution(data,
 
     for z_index in range(len(z_axis_samples)):
 
-        x_y_plane_mesh_gs = gs.concatenate((gs.expand_dims(x_axis_samples[z_index],-1),
+        x_y_plane_mesh = gs.concatenate((gs.expand_dims(x_axis_samples[z_index],-1),
                                            gs.expand_dims(y_axis_samples[z_index],-1)),
                                            axis=-1)
 
         mesh_probabilities = weighted_gmm_pdf(mixture_coefficients,
-                                              x_y_plane_mesh_gs,
+                                              x_y_plane_mesh,
                                               means,
                                               variances,
-                                              distance)
+                                              distance,
+                                              metric)
 
         mesh_probabilities[mesh_probabilities != mesh_probabilities ]= 0
 
@@ -78,16 +79,16 @@ def plot_gaussian_mixture_distribution(data,
                              zdir="z")
 
     for data_index in range(len(data)):
-        ax.scatter(data[data_index][0].item(),
-                       data[data_index][1].item(),
+        ax.scatter(data[data_index][0],
+                       data[data_index][1],
                        z_circle,
                        c='b',
                        marker='.')
 
 
     for means_index in range(len(means)):
-        ax.scatter(means[means_index][0].item(),
-                   means[means_index][1].item(),
+        ax.scatter(means[means_index][0],
+                   means[means_index][1],
                    z_circle,
                    c='r',
                    marker='D')
@@ -140,9 +141,9 @@ def expectation_maximisation_poincare_ball():
         max_iter=100)
 
 
-    plot = plot_gaussian_mixture_distribution(data,
+    plot = plot_gaussian_mixture_distribution(data.data.numpy(),
                                        mixture_coefficients,
-                                       means,
+                                       means.data.numpy(),
                                        variances,
                                        labels=None,
                                        plot_precision=10,
@@ -166,22 +167,21 @@ def weighted_gmm_pdf(mixture_coefficients,
                      mesh_data,
                      means,
                      variances,
-                     distance):
+                     distance,
+                     metric):
 
     mesh_data_units = gs.expand_dims(mesh_data, 1)
 
     mesh_data_units = gs.repeat(mesh_data_units, len(means), axis = 1)
 
-    #means_units = gs.expand_dims(means,0)
-
     means_units = gs.expand_dims(means,0)
 
-
     means_units = gs.repeat(means_units,mesh_data_units.shape[0],axis = 0)
-    mesh_data_units = torch.from_numpy(mesh_data_units)
-    means_units = torch.from_numpy(means_units)
 
-    distance_to_mean = distance(mesh_data_units, means_units)
+    distance_to_mean = torch.from_numpy(metric(mesh_data_units,means_units))
+
+    #distance_to_mean = distance(mesh_data_units, means_units)
+
     variances_units = variances.unsqueeze(0).expand_as(distance_to_mean)
     distribution_normal = torch.exp(-((distance_to_mean)**2)/(2 * variances_units**2))
     zeta_sigma = PI_2_3 * variances * torch.exp((variances ** 2 / 2) * erf_approx(variances / math.sqrt(2)))
