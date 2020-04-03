@@ -20,7 +20,6 @@ class TestSymmetricMatricesMethods(geomstats.tests.TestCase):
         self.n = 3
         self.space = SymmetricMatrices(self.n)
 
-
     def test_belongs(self):
         """Test of belongs method."""
         sym_n = self.space
