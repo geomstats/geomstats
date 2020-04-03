@@ -33,6 +33,16 @@ class TestSymmetricMatricesMethods(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
+    def test_basis(self):
+        """Test of belongs method."""
+        sym_n = SymmetricMatrices(2)
+        mat_sym_1 = gs.array([[1., 0.], [0, 0]])
+        mat_sym_2 = gs.array([[0, 1.], [1., 0]])
+        mat_sym_3 = gs.array([[0, 0.], [0, 1.]])
+        expected = gs.stack([mat_sym_1, mat_sym_2, mat_sym_3])
+        result = sym_n.basis
+        self.assertAllClose(result, expected)
+
     def test_expm(self):
         """Test of expm method."""
         sym_n = SymmetricMatrices(self.n)

@@ -24,6 +24,18 @@ class SymmetricMatrices(EmbeddedManifold):
         """Check if mat belongs to the vector space of symmetric matrices."""
         return self.embedding_manifold.is_symmetric(mat=mat, atol=atol)
 
+    def get_basis(self):
+        basis = [
+            gs.array_from_sparse([
+                        (row, col), (col, row)], [1., 1.], (self.n, self.n))
+            for row in gs.arange(self.n)
+            for col in gs.arange(row, self.n)]
+        basis = gs.stack(
+            basis) * (gs.ones((self.n, self.n)) - 1. / 2 * gs.eye(self.n))
+        return basis
+
+    basis = property(get_basis)
+
     @staticmethod
     def vector_from_symmetric_matrix(mat):
         """Convert the symmetric part of a symmetric matrix into a vector."""
@@ -32,24 +44,18 @@ class SymmetricMatrices(EmbeddedManifold):
             logging.warning('non-symmetric matrix encountered.')
         mat = Matrices.make_symmetric(mat)
         _, dim, _ = mat.shape
-        i, j = gs.tril_indices(dim)
+        i, j = gs.triu_indices(dim)
         return mat[:, i, j]
 
-    @staticmethod
-    def symmetric_matrix_from_vector(vec):
+    def symmetric_matrix_from_vector(self, vec):
         """Convert a vector into a symmetric matrix."""
-        vec = gs.to_ndarray(vec, to_ndim=2)
-        n_samples, vec_dim = vec.shape
+        vec_dim = vec.shape[-1]
         mat_dim = (gs.sqrt(8. * vec_dim + 1) - 1) / 2
+        basis = self.get_basis()
         if mat_dim != int(mat_dim):
             raise ValueError('Invalid input dimension, it must be of the form'
                              '(n_samples, n * (n - 1) / 2)')
-        mat_dim = int(mat_dim)
-        mask = gs.tril(gs.ones((mat_dim, mat_dim))) != 0
-        sym = gs.zeros((n_samples, mat_dim, mat_dim))
-        sym[..., mask != 0] = vec
-        sym.swapaxes(-1, -2)[..., mask] = vec
-        return Matrices.make_symmetric(sym)
+        return gs.einsum("...i,ijk", vec, basis)
 
     def expm(self, x):
         """
