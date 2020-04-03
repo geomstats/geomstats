@@ -145,7 +145,7 @@ class BackendImporter:
                 except AttributeError:
                     raise RuntimeError(
                         'Backend \'{}\' exposes no \'{}\' submodule'.format(
-                            backend_name, module_name))
+                            backend_name, module_name)) from None
             else:
                 module = backend
             for attribute_name in attributes:
@@ -161,7 +161,7 @@ class BackendImporter:
                         error = (
                             'Backend \'{}\' provides no attribute '
                             '\'{}\''.format(backend_name, attribute_name))
-                    raise RuntimeError(error)
+                    raise RuntimeError(error) from None
 
         from numpy import pi
         backend.pi = pi
