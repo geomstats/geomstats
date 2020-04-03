@@ -1,5 +1,7 @@
 """The vector space of symmetric matrices."""
 
+import logging
+
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.matrices import Matrices
@@ -20,7 +22,40 @@ class SymmetricMatrices(EmbeddedManifold):
 
     def belongs(self, mat, atol=TOLERANCE):
         """Check if mat belongs to the vector space of symmetric matrices."""
-        return Matrices(self.n, self.n).is_symmetric(mat=mat, atol=atol)
+        return self.embedding_manifold.is_symmetric(mat=mat, atol=atol)
+
+    def get_basis(self):
+        basis = [
+            gs.array_from_sparse([
+                        (row, col), (col, row)], [1., 1.], (self.n, self.n))
+            for row in gs.arange(self.n)
+            for col in gs.arange(row, self.n)]
+        basis = gs.stack(
+            basis) * (gs.ones((self.n, self.n)) - 1. / 2 * gs.eye(self.n))
+        return basis
+
+    basis = property(get_basis)
+
+    @staticmethod
+    def vector_from_symmetric_matrix(mat):
+        """Convert the symmetric part of a symmetric matrix into a vector."""
+        mat = gs.to_ndarray(mat, to_ndim=3)
+        if not gs.all(Matrices.is_symmetric(mat)):
+            logging.warning('non-symmetric matrix encountered.')
+        mat = Matrices.make_symmetric(mat)
+        _, dim, _ = mat.shape
+        i, j = gs.triu_indices(dim)
+        return mat[:, i, j]
+
+    def symmetric_matrix_from_vector(self, vec):
+        """Convert a vector into a symmetric matrix."""
+        vec_dim = vec.shape[-1]
+        mat_dim = (gs.sqrt(8. * vec_dim + 1) - 1) / 2
+        basis = self.get_basis()
+        if mat_dim != int(mat_dim):
+            raise ValueError('Invalid input dimension, it must be of the form'
+                             '(n_samples, n * (n - 1) / 2)')
+        return gs.einsum("...i,ijk", vec, basis)
 
     def expm(self, x):
         """

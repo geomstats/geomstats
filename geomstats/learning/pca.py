@@ -202,9 +202,11 @@ class TangentPCA(_BasePCA):
             X, self.components_)
         if self.point_type == 'matrix':
             if Matrices.is_symmetric(self.base_point_fit).all():
-                scores = SymmetricMatrices.symmetric_matrix_from_vector(scores)
+                scores = SymmetricMatrices(
+                    self.base_point_fit.shape[-1]
+                ).symmetric_matrix_from_vector(scores)
             else:
-                scores = gs.reshape(scores, X.shape)
+                scores = gs.reshape(scores, self.base_point_fit.shape)
         return self.metric.exp(scores, self.base_point_fit)
 
     def _fit(self, X, base_point=None):
@@ -303,7 +305,7 @@ class TangentPCA(_BasePCA):
         self.base_point_fit = base_point
         self.n_samples_, self.n_features_ = n_samples, n_features
         self.components_ = components_[:n_components]
-        self.n_components_ = n_components
+        self.n_components_ = int(n_components)
         self.explained_variance_ = explained_variance_[:n_components]
         self.explained_variance_ratio_ = \
             explained_variance_ratio_[:n_components]
