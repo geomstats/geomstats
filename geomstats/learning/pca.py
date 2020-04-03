@@ -149,8 +149,8 @@ class TangentPCA(_BasePCA):
         -------
         X_new : array-like, shape (n_samples, n_components)
         """
-        U, S, _ = self._fit(
-            X, base_point=base_point, point_type=point_type)
+        U, S, _ = self._fit(X, base_point=base_point)
+
         U = U[:, :self.n_components_]
 
         U *= S[:self.n_components_]
