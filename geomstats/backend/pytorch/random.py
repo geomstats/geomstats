@@ -8,6 +8,8 @@ def rand(*args, **kwargs):
 
 
 def randn(*args, **kwargs):
+    """Sample over a normal N(0,1)
+    """
     return torch.randn(*args, **kwargs)
 
 

@@ -15,8 +15,8 @@ import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
-from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.learning.kmeans import RiemannianKMeans
 
 

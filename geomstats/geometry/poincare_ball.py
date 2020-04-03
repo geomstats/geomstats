@@ -291,7 +291,7 @@ class PoincareBallMetric(RiemannianMetric):
         -------
         inner_prod_mat: array-like, shape=[n_samples, dimension, dimension]
         """
-        if(base_point is None):
+        if base_point is None:
             base_point = gs.zeros((1, self.dimension))
         dim = base_point.shape[-1]
         n_sample = base_point.shape[0]

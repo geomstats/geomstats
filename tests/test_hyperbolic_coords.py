@@ -9,7 +9,6 @@ distance (implemented for ball model and extrinsic only)
 
 import geomstats.backend as gs
 import geomstats.tests
-
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.poincare_ball import PoincareBall

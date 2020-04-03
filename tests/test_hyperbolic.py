@@ -6,10 +6,9 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-
 from geomstats.geometry.hyperboloid import Hyperboloid
-from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.minkowski import Minkowski
+from geomstats.geometry.poincare_ball import PoincareBall
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
 # of the vector, as opposed to the standard behavior of gs.allclose
