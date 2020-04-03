@@ -41,12 +41,10 @@ class PoincareBall(hyperbolic.Hyperbolic):
         assert isinstance(dimension, int) and dimension > 0
         super(PoincareBall, self).__init__(
             dimension=dimension,
-            embedding_manifold=None)
+            embedding_manifold=None,
+            scale=scale)
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
-
-
-        self.scale = scale
         self.metric =\
             PoincareBallMetric(self.dimension, self.coords_type, self.scale)
 
@@ -116,28 +114,6 @@ class PoincareBallMetric(RiemannianMetric):
 
         assert scale > 0, 'The scale should be strictly positive'
         self.scale = scale
-
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute the inner-product of two tangent vectors at a base point.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[n_samples, dimension + 1]
-            First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[n_samples, dimension + 1]
-            Second tangent vector at base point.
-        base_point : array-like, shape=[n_samples, dimension + 1], optional
-            Point in hyperbolic space.
-
-        Returns
-        -------
-        inner_prod : array-like, shape=[n_samples, 1]
-            Inner-product of the two tangent vectors.
-        """
-        inner_prod = self.embedding_metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_point)
-        inner_prod *= self.scale ** 2
-        return inner_prod
 
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
@@ -222,6 +198,54 @@ class PoincareBallMetric(RiemannianMetric):
 
         return log
 
+    def mobius_add(self, point_a, point_b):
+        r"""Compute the Mobius addition of two points.
+
+        Mobius addition operation that is a necessary operation
+        to compute the log and exp using the 'ball' representation.
+
+        .. math::
+
+            a\oplus b=\frac{(1+2\langle a,b\rangle + ||b||^2)a+
+            (1-||a||^2)b}{1+2\langle a,b\rangle + ||a||^2||b||^2}
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[n_samples, dimension + 1]
+            Point in hyperbolic space.
+        point_b : array-like, shape=[n_samples, dimension + 1]
+            Point in hyperbolic space.
+
+        Returns
+        -------
+        mobius_add : array-like, shape=[n_samples, 1]
+            Result of the Mobius addition.
+        """
+        norm_point_a = gs.sum(point_a ** 2, axis=-1,
+                              keepdims=True)
+
+        # to redefine to use autograd
+        norm_point_a = gs.repeat(norm_point_a, point_a.shape[-1], -1)
+
+        norm_point_b = gs.sum(point_b ** 2, axis=-1,
+                              keepdims=True)
+        norm_point_b = gs.repeat(norm_point_b, point_a.shape[-1], -1)
+
+        sum_prod_a_b = gs.sum(point_a * point_b,
+                              axis=-1, keepdims=True)
+
+        sum_prod_a_b = gs.repeat(sum_prod_a_b, point_a.shape[-1], -1)
+
+        add_nominator = ((1 + 2 * sum_prod_a_b + norm_point_b) * point_a +
+                         (1 - norm_point_a) * point_b)
+
+        add_denominator = (1 + 2 * sum_prod_a_b + norm_point_a * norm_point_b)
+
+        mobius_add = add_nominator / add_denominator
+
+        return mobius_add
+
+
     def dist(self, point_a, point_b):
         """Compute the geodesic distance between two points.
 
@@ -303,7 +327,7 @@ class PoincareBallMetric(RiemannianMetric):
         n_sample = base_point.shape[0]
 
         lambda_base =\
-            2 / (1 - gs.sum(base_point * base_point, axis=-1))
+            (2 / (1 - gs.sum(base_point * base_point, axis=-1)))**2
 
         expanded_lambda_base =\
             gs.expand_dims(gs.expand_dims(lambda_base, axis=-1), -1)
@@ -315,4 +339,6 @@ class PoincareBallMetric(RiemannianMetric):
         reshaped_identity =\
             gs.repeat(gs.expand_dims(identity, 0), n_sample, axis=0)
 
-        return reshaped_lambda_base * reshaped_identity
+        results = reshaped_lambda_base * reshaped_identity
+        print("ressss", results)
+        return results
