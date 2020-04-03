@@ -250,7 +250,7 @@ class Hypersphere(EmbeddedManifold):
         point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
 
         sq_coord_0 = 1. - gs.linalg.norm(point_intrinsic, axis=-1) ** 2
-        if gs.less(sq_coord_0, 0.):
+        if gs.any(gs.less(sq_coord_0, 0.)):
             raise ValueError('Square-root of a negative number.')
         coord_0 = gs.sqrt(sq_coord_0)
         coord_0 = gs.to_ndarray(coord_0, to_ndim=2, axis=-1)
