@@ -3,12 +3,6 @@
 import numpy as _np
 import tensorflow as tf
 from tensorflow import (  # NOQA
-    # Types
-    int32,
-    int64,
-    float32,
-    float64,
-    # Functions
     abs,
     argmax,
     argmin,
@@ -18,10 +12,14 @@ from tensorflow import (  # NOQA
     einsum,
     equal,
     exp,
+    float32,
+    float64,
     floor,
     gather,
     greater,
     greater_equal,
+    int32,
+    int64,
     less,
     less_equal,
     logical_and,

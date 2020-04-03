@@ -33,10 +33,14 @@ from autograd.numpy import (  # NOQA
     expand_dims,
     eye,
     flip,
+    float32,
+    float64,
     floor,
     greater,
     hsplit,
     hstack,
+    int32,
+    int64,
     isclose,
     less,
     less_equal,
@@ -83,12 +87,6 @@ from scipy.sparse import coo_matrix
 
 from . import linalg  # NOQA
 from . import random  # NOQA
-
-int8 = _np.int8
-int32 = _np.int32
-int64 = _np.int64
-float32 = _np.float32
-float64 = _np.float64
 
 
 # XXX(nkoep): Can we get rid of this now?

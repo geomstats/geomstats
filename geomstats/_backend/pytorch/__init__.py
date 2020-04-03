@@ -3,12 +3,6 @@
 import numpy as _np
 import torch
 from torch import (  # NOQA
-    # Types
-    int32,
-    int64,
-    float32,
-    float64,
-    # Functions
     abs,
     arange,
     argmax,
@@ -24,8 +18,12 @@ from torch import (  # NOQA
     exp,
     eye,
     flatten,
+    float32,
+    float64,
     floor,
     gt as greater,
+    int32,
+    int64,
     isnan,
     log,
     matmul,
