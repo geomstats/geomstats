@@ -40,7 +40,7 @@ def get_mask_i_float(i, n):
     return mask_i_float
 
 
-def get_mask_float(indices, mask_shape, dtype=float32):
+def _mask_from_indices(indices, mask_shape, dtype=float32):
     """Create a binary mask.
 
     Parameters
@@ -72,7 +72,7 @@ def get_mask_float(indices, mask_shape, dtype=float32):
     return tf_mask
 
 
-def duplicate_array(x, n_samples, axis=0):
+def _duplicate_array(x, n_samples, axis=0):
     """Stack copies of an array along an additional dimension.
 
     Parameters
@@ -94,7 +94,7 @@ def duplicate_array(x, n_samples, axis=0):
     return tile(to_ndarray(x, ndim(x) + 1, axis), multiples)
 
 
-def get_vectorized_mask_float(
+def _vectorized_mask_from_indices(
         n_samples=1, indices=None, mask_shape=None, axis=0, dtype=float32):
     """Create a vectorized binary mask.
 
@@ -115,11 +115,11 @@ def get_vectorized_mask_float(
     -------
     tf_mask : array, shape=[mask_shape[:axis], n_samples, mask_shape[axis:]]
     """
-    mask = get_mask_float(indices, mask_shape, dtype)
-    return duplicate_array(mask, n_samples, axis=axis)
+    mask = _mask_from_indices(indices, mask_shape, dtype)
+    return _duplicate_array(mask, n_samples, axis=axis)
 
 
-def assignment_single_value_by_sum(x, value, indices, axis=0):
+def __assignment_single_value_by_sum(x, value, indices, axis=0):
     """Add a value at given indices of an array.
 
     Parameters
@@ -152,10 +152,10 @@ def assignment_single_value_by_sum(x, value, indices, axis=0):
 
     if use_vectorization:
         n_samples = shape(x).numpy()[0]
-        mask = get_vectorized_mask_float(
+        mask = _vectorized_mask_from_indices(
             n_samples, indices, shape(x).numpy()[1:], axis, x.dtype)
     else:
-        mask = get_mask_float(indices, shape(x), x.dtype)
+        mask = _mask_from_indices(indices, shape(x), x.dtype)
     x_new = x + value * mask
     return x_new
 
@@ -188,7 +188,7 @@ def assignment_by_sum(x, values, indices, axis=0):
     If a list is given, it must have the same length as indices.
     """
     if not isinstance(values, list):
-        return assignment_single_value_by_sum(x, values, indices, axis)
+        return __assignment_single_value_by_sum(x, values, indices, axis)
 
     else:
         if not isinstance(indices, list):
@@ -198,12 +198,12 @@ def assignment_by_sum(x, values, indices, axis=0):
             raise ValueError('Either one value or as many values as indices')
 
         for (nb_index, index) in enumerate(indices):
-            x = assignment_single_value_by_sum(
+            x = __assignment_single_value_by_sum(
                 x, values[nb_index], index, axis)
         return x
 
 
-def assignment_single_value(x, value, indices, axis=0):
+def _assignment_single_value(x, value, indices, axis=0):
     """Assign a value at given indices of an array.
 
     Parameters
@@ -238,10 +238,10 @@ def assignment_single_value(x, value, indices, axis=0):
         full_shape = shape(x).numpy()
         n_samples = full_shape[axis]
         tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1:])
-        mask = get_vectorized_mask_float(
+        mask = _vectorized_mask_from_indices(
             n_samples, indices, tile_shape, axis, x.dtype)
     else:
-        mask = get_mask_float(indices, shape(x), x.dtype)
+        mask = _mask_from_indices(indices, shape(x), x.dtype)
     x_new = x + -x * mask + value * mask
     return x_new
 
@@ -274,7 +274,7 @@ def assignment(x, values, indices, axis=0):
     If a list is given, it must have the same length as indices.
     """
     if not isinstance(values, list):
-        return assignment_single_value(x, values, indices, axis)
+        return _assignment_single_value(x, values, indices, axis)
 
     else:
         if not isinstance(indices, list):
@@ -284,7 +284,7 @@ def assignment(x, values, indices, axis=0):
             raise ValueError('Either one value or as many values as indices')
 
         for (nb_index, index) in enumerate(indices):
-            x = assignment_single_value(x, values[nb_index], index, axis)
+            x = _assignment_single_value(x, values[nb_index], index, axis)
         return x
 
 
