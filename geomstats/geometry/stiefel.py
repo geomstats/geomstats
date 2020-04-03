@@ -211,7 +211,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         n_tangent_vecs, _, _ = tangent_vec.shape
 
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_base_points, n, p = base_point.shape
+        n_base_points, _, p = base_point.shape
 
         assert (n_tangent_vecs == n_base_points
                 or n_tangent_vecs == 1
@@ -314,7 +314,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         -------
         matrix_v : array-like
         """
-        [matrix_d, matrix_s, matrix_r] = gs.linalg.svd(
+        [matrix_d, _, matrix_r] = gs.linalg.svd(
             matrix_v[:, p:2 * p, p:2 * p])
 
         matrix_rd = gs.matmul(
@@ -377,7 +377,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         matrix_v = StiefelCanonicalMetric._procrustes_preprocessing(
             p, matrix_v, matrix_m, matrix_n)
 
-        for k in range(max_iter):
+        for _ in range(max_iter):
             matrix_lv = gs.linalg.logm(matrix_v)
 
             matrix_c = matrix_lv[:, p:2 * p, p:2 * p]
@@ -424,7 +424,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         n_tangent_vecs, _, _ = tangent_vec.shape
 
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_base_points, n, p = base_point.shape
+        n_base_points, _, p = base_point.shape
 
         assert (n_tangent_vecs == n_base_points
                 or n_tangent_vecs == 1
@@ -468,7 +468,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         n_points, _, _ = point.shape
 
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_base_points, p, n = base_point.shape
+        n_base_points, _, n = base_point.shape
 
         assert (n_points == n_base_points
                 or n_points == 1

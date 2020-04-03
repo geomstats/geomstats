@@ -48,7 +48,7 @@ def empirical_frechet_var_bubble(n_samples, theta, dim,
 
     north_pole = gs.zeros(dim + 1)
     north_pole[dim] = 1.0
-    for k in range(n_expectation):
+    for _ in range(n_expectation):
         # Sample n points from the uniform distribution on a sub-sphere
         # of radius theta (i.e cos(theta) in ambient space)
         # TODO(nina): Add this code as a method of hypersphere
