@@ -29,10 +29,6 @@ def svd(x):
     return u, s, tf.transpose(v_t, perm=(0, 2, 1))
 
 
-def matrix_rank(x):
-    return tf.rank(x)
-
-
 def qr(*args, mode='reduced'):
     def qr_aux(x, mode):
         if mode == 'complete':
