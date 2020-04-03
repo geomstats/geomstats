@@ -247,7 +247,7 @@ def assignment_single_value(x, value, indices, axis=0):
     if use_vectorization:
         full_shape = shape(x).numpy()
         n_samples = full_shape[axis]
-        tile_shape = list(full_shape[:axis]) + list(full_shape[axis+1:])
+        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1:])
         mask = get_vectorized_mask_float(
             n_samples, indices, tile_shape, axis, x.dtype)
     else:
