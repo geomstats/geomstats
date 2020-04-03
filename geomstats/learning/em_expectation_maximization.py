@@ -9,7 +9,7 @@ from geomstats.learning._template import TransformerMixin
 import torch
 from torch import nn
 import math
-
+import os
 
 
 
@@ -18,6 +18,7 @@ DEFAULT_MAX_ITER = 100
 DEFAULT_LR = 5e-2
 DEFAULT_TAU = 1e-4
 ZETA_CST = gs.sqrt(gs.pi/2)
+
 
 
 class RawDataloader(object):
@@ -216,14 +217,13 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self : object
             Return Gaussian mixture model
         """
-
         if(self.init =='random'):
 
             self._dimension = data.size(-1)
-            self.means = (gs.random.rand(self.n_gaussian, self._dimension) - 0.5) / self._dimension
-            self.variances = gs.random.rand(self.n_gaussian) / 10 + 0.8
-            self.mixture_coefficients = gs.ones(self.n_gaussian) / self.n_gaussian
-            posterior_probabilities = gs.ones((data.size(0), self.means.size(0)))
+            self.means = (torch.rand(self.n_gaussian, self._dimension) - 0.5) / self._dimension
+            self.variances = torch.rand(self.n_gaussian) / 10 + 0.8
+            self.mixture_coefficients = torch.ones(self.n_gaussian) / self.n_gaussian
+            posterior_probabilities = torch.ones((data.size(0), self.means.size(0)))
 
             #TODO Write properly ZetaPhiStorage
             self.normalization_factor = ZetaPhiStorage(torch.arange(5e-2, 2., 0.001), self._dimension)
