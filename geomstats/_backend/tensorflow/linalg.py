@@ -13,6 +13,10 @@ norm = tf.linalg.norm
 sqrtm = tf.linalg.sqrtm
 
 
+def eig(*args, **kwargs):
+    raise NotImplementedError
+
+
 def logm(x):
     x = tf.cast(x, tf.complex64)
     logm = tf.linalg.logm(x)
