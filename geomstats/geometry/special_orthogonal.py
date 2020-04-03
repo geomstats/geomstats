@@ -113,7 +113,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             belongs = gs.tile(belongs, (n_points, 1))
             return belongs
 
-        elif point_type == 'matrix':
+        if point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
             point_transpose = gs.transpose(point, axes=(0, 2, 1))
             mask = gs.isclose(gs.matmul(point, point_transpose),
@@ -123,6 +123,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             mask = gs.to_ndarray(mask, to_ndim=1)
             mask = gs.to_ndarray(mask, to_ndim=2, axis=1)
             return mask
+
+        raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
     def regularize(self, point, point_type=None):
         """Regularize a point to be in accordance with convention.
@@ -1411,8 +1413,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         if point_type == 'vector':
             if self.n == 3:
                 return -self.regularize(point, point_type=point_type)
-            else:
-                point = self.matrix_from_rotation_vector(point)
+            point = self.matrix_from_rotation_vector(point)
 
         transpose_order = (0, 2, 1) if gs.ndim(point) == 3 else (1, 0)
         inv_point = gs.transpose(point, transpose_order)

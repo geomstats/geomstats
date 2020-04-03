@@ -358,8 +358,7 @@ def transpose(x, axes=None):
 def squeeze(x, axis=None):
     if axis is None:
         return torch.squeeze(x)
-    else:
-        return torch.squeeze(x, axis)
+    return torch.squeeze(x, axis)
 
 
 def zeros_like(*args, **kwargs):
@@ -485,8 +484,7 @@ def seed(x):
 def prod(x, axis=None):
     if axis is None:
         return torch.prod(x)
-    else:
-        return torch.prod(x, dim=axis)
+    return torch.prod(x, dim=axis)
 
 
 def sign(*args, **kwargs):
@@ -496,8 +494,7 @@ def sign(*args, **kwargs):
 def mean(x, axis=None):
     if axis is None:
         return torch.mean(x)
-    else:
-        return _np.mean(x, axis)
+    return _np.mean(x, axis)
 
 
 def argmin(*args, **kwargs):
