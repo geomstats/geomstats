@@ -11,9 +11,8 @@ import geomstats.backend as gs
 import geomstats.tests
 
 from geomstats.geometry.hyperboloid import Hyperboloid
-from geomstats.geometry.hyperboloid import HyperboloidMetric
 from geomstats.geometry.poincare_ball import PoincareBall
-from geomstats.geometry.poincare_ball import PoincareBallMetric
+
 
 class TestHyperbolicMethods(geomstats.tests.TestCase):
     def setUp(self):
@@ -22,10 +21,16 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
         self.extrinsic_manifold = Hyperboloid(
             dimension=self.dimension)
+        self.extrinsic_metric = self.extrinsic_manifold.metric
+
         self.ball_manifold = PoincareBall(
             dimension=self.dimension)
+        self.ball_metric = self.ball_manifold.metric
+
         self.intrinsic_manifold = Hyperboloid(
             dimension=self.dimension, coords_type='intrinsic')
+        self.intrinsic_metric = self.intrinsic_manifold.metric
+
         # self.half_plane_manifold = Hyperbolic(
         #     # dimension=self.dimension, coords_type='half-plane')
         self.n_samples = 10
@@ -64,26 +69,26 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         is_out = self.ball_manifold.belongs(x_false)
         self.assertFalse(is_out)
 
-    @geomstats.tests.np_and_pytorch_only
-    def test_belongs_half_plane(self):
-        x_true = gs.array([[0.5, 0.5]])
-        x_false = gs.array([[0.8, -0.8]])
-        is_in = self.half_plane_manifold.belongs(x_true)
-        self.assertTrue(is_in)
-        is_out = self.half_plane_manifold.belongs(x_false)
-        self.assertFalse(is_out)
+    # @geomstats.tests.np_and_pytorch_only
+    # def test_belongs_half_plane(self):
+    #     x_true = gs.array([[0.5, 0.5]])
+    #     x_false = gs.array([[0.8, -0.8]])
+    #     is_in = self.half_plane_manifold.belongs(x_true)
+    #     self.assertTrue(is_in)
+    #     is_out = self.half_plane_manifold.belongs(x_false)
+    #     self.assertFalse(is_out)
 
-    @geomstats.tests.np_and_pytorch_only
-    def test_extrinsic_half_plane_extrinsic(self):
-        x_in = gs.array([[0.5, 7]])
-        x = self.intrinsic_manifold.to_coordinates(
-            x_in, to_coords_type='extrinsic')
-        x_up = self.extrinsic_manifold.to_coordinates(
-            x, to_coords_type='half-plane')
+    # @geomstats.tests.np_and_pytorch_only
+    # def test_extrinsic_half_plane_extrinsic(self):
+    #     x_in = gs.array([[0.5, 7]])
+    #     x = self.intrinsic_manifold.to_coordinates(
+    #         x_in, to_coords_type='extrinsic')
+    #     x_up = self.extrinsic_manifold.to_coordinates(
+    #         x, to_coords_type='half-plane')
 
-        x2 = self.half_plane_manifold.to_coordinates(
-            x_up, to_coords_type='extrinsic')
-        self.assertAllClose(x, x2, atol=1e-8)
+    #     x2 = self.half_plane_manifold.to_coordinates(
+    #         x_up, to_coords_type='extrinsic')
+    #     self.assertAllClose(x, x2, atol=1e-8)
 
     @geomstats.tests.np_and_pytorch_only
     def test_intrinsic_extrinsic_intrinsic(self):
@@ -130,12 +135,16 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         self.assertAllClose(dst_ball, dst_extr)
 
     @geomstats.tests.np_and_pytorch_only
-    def test_distance_ball_extrinsic_from_extr_5_dim(self):
+    def test_distance_ball_extrinsic_from_extr_4_dim(self):
         x_int = gs.array([[10, 0.2, 3, 4]])
         y_int = gs.array([[1, 6, 2., 1]])
-        extrinsic_manifold = Hyperbolic(4, coords_type='extrinsic')
-        ball_metric = HyperbolicMetric(4, coords_type='ball')
-        extrinsic_metric = HyperbolicMetric(4, coords_type='extrinsic')
+
+        ball_manifold = PoincareBall(4)
+        extrinsic_manifold = Hyperboloid(4)
+
+        ball_metric = ball_manifold.metric
+        extrinsic_metric = extrinsic_manifold.metric
+
         x_extr = extrinsic_manifold.from_coordinates(
             x_int, from_coords_type='intrinsic')
         y_extr = extrinsic_manifold.from_coordinates(
@@ -145,6 +154,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         y_ball = extrinsic_manifold.to_coordinates(
             y_extr, to_coords_type='ball')
         dst_ball = ball_metric.dist(x_ball, y_ball)
+        print(x_extr, y_extr)
         dst_extr = extrinsic_metric.dist(x_extr, y_extr)
         self.assertAllClose(dst_ball, dst_extr)
 

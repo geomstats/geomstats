@@ -68,7 +68,8 @@ class PoincareBall(hyperbolic.Hyperbolic):
             Array of booleans indicating whether the corresponding points
             belong to the hyperbolic space.
         """
-        pass
+        return gs.sum(point**2, axis=-1) < (1 - tolerance)
+
 
 class PoincareBallMetric(RiemannianMetric):
     """Class that defines operations using a hyperbolic metric.
