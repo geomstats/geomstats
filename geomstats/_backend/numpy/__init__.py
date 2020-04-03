@@ -91,26 +91,7 @@ float32 = _np.float32
 float64 = _np.float64
 
 
-<<<<<<< HEAD
-def indexing(x):
-    return x
-
-
-def float_to_double(x):
-    return x
-
-
-def byte_to_float(x):
-    return x
-
-
-def any(x, axis=0):
-    return _np.any(x, axis)
-
-
-=======
 # XXX(nkoep): Can we get rid of this now?
->>>>>>> 7bcef57... numpy: remove all unused functions from backend
 def while_loop(cond, body, loop_vars, maximum_iterations):
     iteration = 0
     while cond(*loop_vars):
