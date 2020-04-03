@@ -28,7 +28,8 @@ def plot_gaussian_mixture_distribution(data,
                                 variances, labels=None,
                                 plot_precision=10,
                                 colors=None,
-                                save_path=""):
+                                save_path="",
+                                metric=None):
 
     x_axis_samples = gs.linspace(-1, 1, plot_precision)
     y_axis_samples = gs.linspace(-1, 1, plot_precision)
@@ -146,7 +147,8 @@ def expectation_maximisation_poincare_ball():
                                        labels=None,
                                        plot_precision=10,
                                        colors=None,
-                                       save_path=os.path.join("result.png")
+                                       save_path=os.path.join("result.png"),
+                                       metric = metric.dist
                                        )
 
     return plot
@@ -178,9 +180,6 @@ def weighted_gmm_pdf(mixture_coefficients,
     means_units = gs.repeat(means_units,mesh_data_units.shape[0],axis = 0)
     mesh_data_units = torch.from_numpy(mesh_data_units)
     means_units = torch.from_numpy(means_units)
-
-
-    #means_units = means_units.expand_as(mesh_data_units)
 
     distance_to_mean = distance(mesh_data_units, means_units)
     variances_units = variances.unsqueeze(0).expand_as(distance_to_mean)
