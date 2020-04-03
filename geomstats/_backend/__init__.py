@@ -25,7 +25,6 @@ BACKEND_FUNCTIONS = {
         'argmin',
         'array',
         'asarray',
-        'average',
         'cast',
         'ceil',
         'clip',
