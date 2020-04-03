@@ -14,7 +14,7 @@ TOLERANCE = 1e-12
 
 
 class SkewSymmetricMatrices(MatrixLieAlgebra):
-    """Class for skew symmetric matrices."""
+    """Class for skew-symmetric matrices."""
 
     def __init__(self, n):
         """Instantiate the class.
@@ -22,7 +22,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         Parameters
         ----------
         n: int
-            the amount of columns / rows
+            The number of rows and columns.
         """
         dimension = int(n * (n - 1) / 2)
         super(SkewSymmetricMatrices, self).__init__(dimension, n)
@@ -46,19 +46,32 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
                     loop_index += 1
 
     def belongs(self, mat, atol=TOLERANCE):
-        """Check if mat belongs to the vector space of symmetric matrices."""
+        """Evaluate if mat belongs is a skew-symmetric matrix.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[n_samples, n, n]
+            The square matrix to check.
+
+        Returns
+        -------
+        belongs : bool
+        """
         return Matrices(self.n, self.n).is_skew_symmetric(mat=mat, atol=atol)
 
     def basis_representation(self, matrix_representation):
         """Calculate the coefficients of given matrix in the basis.
 
+        Compute a 1d-array that corresponds to the input matrix in the basis
+        representation.
+
         Parameters
         ----------
-        matrix_representation: array-like, shape=[n_sample, n, n]
+        matrix_representation: array-like, shape=[n_samples, n, n]
 
         Returns
         -------
-        basis_representation: array-like, shape=[n_sample, dimension]
+        basis_representation: array-like, shape=[n_samples, dimension]
         """
         old_shape = gs.shape(matrix_representation)
         as_vector = gs.reshape(matrix_representation, (old_shape[0], -1))
