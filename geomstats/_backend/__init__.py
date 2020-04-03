@@ -108,11 +108,10 @@ BACKEND_FUNCTIONS = {
         'svd'
     ],
     'random': [
-        'choice',
         'normal',
         # TODO(nkoep): Remove 'rand' and replace it by 'uniform'. Much like
         #              'randn' is a convenience wrapper (which we don't use)
-        #              around 'normal', 'rand' only wraps 'uniform'.
+        #              for 'normal', 'rand' only wraps 'uniform'.
         'rand',
         'randint',
         'seed',

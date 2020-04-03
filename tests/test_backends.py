@@ -201,11 +201,6 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.pytorch_only
-    def test_sampling_choice(self):
-        res = gs.random.choice(10, (5, 1, 3))
-        self.assertAllClose(res.shape, [5, 1, 3])
-
     @geomstats.tests.tf_only
     def test_vstack(self):
         import tensorflow as tf
