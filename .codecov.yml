@@ -1,4 +1,3 @@
-# Team Yaml
 coverage:
   round: up
   precision: 2
@@ -7,23 +6,27 @@ coverage:
       default:
         target: 90%
         threshold: 2%
-    numpy:
-      target: 90%
-      flags:
-          - numpy
-    pytorch:
-      target: 40%
-      flags:
-          - pytorch
-    tensorflow:
-      target: 40%
-      flags:
-          - tensorflow
-
-# Repository Yaml
-coverage:
-  round: up
-  range: 50..80
+        base: auto
+       # advanced
+        branches:
+          - master
+        if_not_found: success
+        if_ci_failed: error
+        informational: False
+        only_pulls: false
+    patch:
+      default:
+        # basic
+        target: 90%
+        threshold: 2%
+        base: auto
+        # advanced
+        branches:
+          - master
+        if_no_uploads: error
+        if_not_found: success
+        if_ci_failed: error
+        only_pulls: false
 
 # Files to ignore
 ignore:
