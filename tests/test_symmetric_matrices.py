@@ -33,6 +33,7 @@ class TestSymmetricMatricesMethods(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_basis(self):
         """Test of belongs method."""
         sym_n = SymmetricMatrices(2)
