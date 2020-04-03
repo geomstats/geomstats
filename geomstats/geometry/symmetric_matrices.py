@@ -39,7 +39,8 @@ class SymmetricMatrices(EmbeddedManifold):
         n_samples, vec_dim = vec.shape
         mat_dim = (gs.sqrt(8. * vec_dim + 1) - 1) / 2
         if mat_dim != int(mat_dim):
-            raise ValueError('Invalid input dimension')
+            raise ValueError('Invalid input dimension, it must be of the form'
+                             '(n_samples, n * (n - 1) / 2)')
         mat_dim = int(mat_dim)
         mask = gs.tril(gs.ones((mat_dim, mat_dim))) != 0
         sym = gs.zeros((n_samples, mat_dim, mat_dim))
