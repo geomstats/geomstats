@@ -5,7 +5,6 @@ the hyperboloid representation (embedded in minkowsky space).
 """
 import geomstats.backend as gs
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry import hyperbolic
 
 TOLERANCE = 1e-6
@@ -46,7 +45,7 @@ class PoincareBall(hyperbolic.Hyperbolic):
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
         self.metric =\
-            PoincareBallMetric(self.dimension, self.coords_type, self.scale)
+            PoincareBallMetric(self.dimension, self.scale)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """Test if a point belongs to the hyperbolic space.
@@ -69,22 +68,7 @@ class PoincareBall(hyperbolic.Hyperbolic):
             Array of booleans indicating whether the corresponding points
             belong to the hyperbolic space.
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        _, point_dim = point.shape
-        if point_dim is not self.dimension + 1:
-            if point_dim is self.dimension and self.coords_type == 'intrinsic':
-                return gs.array([[True]])
-            else:
-                return gs.array([[False]])
-
-        sq_norm = self.embedding_metric.squared_norm(point)
-        euclidean_sq_norm = gs.linalg.norm(point, axis=-1) ** 2
-        euclidean_sq_norm = gs.to_ndarray(euclidean_sq_norm,
-                                          to_ndim=2, axis=1)
-        diff = gs.abs(sq_norm + 1)
-        belongs = diff < tolerance * euclidean_sq_norm
-        return belongs
-
+        pass
 
 class PoincareBallMetric(RiemannianMetric):
     """Class that defines operations using a hyperbolic metric.
@@ -103,14 +87,14 @@ class PoincareBallMetric(RiemannianMetric):
     default_point_type = 'vector'
     default_coords_type = 'extrinsic'
 
-    def __init__(self, dimension, coords_type='extrinsic', scale=1):
+    def __init__(self, dimension, scale=1):
         super(PoincareBallMetric, self).__init__(
             dimension=dimension,
             signature=(dimension, 0, 0))
         self.embedding_metric = None
 
-        self.coords_type = coords_type
-        self.point_type = PoincareBallMetric.default_point_type
+        self.coords_type = PoincareBall.default_coords_type
+        self.point_type = PoincareBall.default_point_type
 
         assert scale > 0, 'The scale should be strictly positive'
         self.scale = scale

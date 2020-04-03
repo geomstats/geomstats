@@ -93,4 +93,4 @@ class Graph:
             count_index = self.edges[count_index][random.randint(
                 0, len(self.edges[count_index]) - 1)]
             path.append(count_index)
-        return gs.array(path, dtype=int)
+        return gs.array(path).astype(int)

@@ -9,27 +9,25 @@ distance (implemented for ball model and extrinsic only)
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.hyperbolic import Hyperbolic
-from geomstats.geometry.hyperbolic import HyperbolicMetric
 
+from geomstats.geometry.hyperboloid import Hyperboloid
+from geomstats.geometry.hyperboloid import HyperboloidMetric
+from geomstats.geometry.poincare_ball import PoincareBall
+from geomstats.geometry.poincare_ball import PoincareBallMetric
 
 class TestHyperbolicMethods(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
         self.dimension = 2
 
-        self.extrinsic_manifold = Hyperbolic(
+        self.extrinsic_manifold = Hyperboloid(
             dimension=self.dimension)
-        self.ball_manifold = Hyperbolic(
-            dimension=self.dimension, coords_type='ball')
-        self.intrinsic_manifold = Hyperbolic(
+        self.ball_manifold = PoincareBall(
+            dimension=self.dimension)
+        self.intrinsic_manifold = Hyperboloid(
             dimension=self.dimension, coords_type='intrinsic')
-        self.half_plane_manifold = Hyperbolic(
-            dimension=self.dimension, coords_type='half-plane')
-        self.ball_metric = HyperbolicMetric(
-            dimension=self.dimension, coords_type='ball')
-        self.extrinsic_metric = HyperbolicMetric(
-            dimension=self.dimension, coords_type='extrinsic')
+        # self.half_plane_manifold = Hyperbolic(
+        #     # dimension=self.dimension, coords_type='half-plane')
         self.n_samples = 10
 
     @geomstats.tests.np_and_pytorch_only
