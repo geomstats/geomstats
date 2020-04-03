@@ -57,24 +57,14 @@ def get_mask_float(indices, mask_shape, dtype=float32):
     tf_mask : array, shape=[mask_shape]
     """
     np_mask = _np.zeros(mask_shape)
-    single_index = not isinstance(indices, list)
-
-    if single_index:
-        indices = [indices]
 
     for (nb_index, index) in enumerate(indices):
         if not isinstance(index, tuple):
             indices[nb_index] = (index,)
 
-    if single_index:
-        if len(indices) != len(mask_shape):
-            raise ValueError('The index must have the same size as shape')
-        indices = [indices]
-
-    else:
-        for index in indices:
-            if len(index) != len(mask_shape):
-                raise ValueError('Indices must have the same size as shape')
+    for index in indices:
+        if len(index) != len(mask_shape):
+            raise ValueError('Indices must have the same size as shape')
 
     for index in indices:
         np_mask[index] = 1
