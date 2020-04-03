@@ -88,7 +88,7 @@ def duplicate_array(x, n_samples, axis=0):
 
     Returns
     -------
-    extended_array: array, shape=[dimension[:axis], n_samples, dimension[aixs:]]
+    tiled_array: array, shape=[dimension[:axis], n_samples, dimension[aixs:]]
         Copies of x stacked along dimension axis
     """
     multiples = _np.ones(ndim(x) + 1, dtype=_np.int32)
@@ -119,26 +119,28 @@ def get_vectorized_mask_float(
     return duplicate_array(mask, n_samples, axis=axis)
 
 
-def assignment_single_value(x, value, indices, axis=0):
-    """Create a vectorized binary mask.
+def assignment_single_value_by_sum(x, value, indices, axis=0):
+    """Add a value at given indices of an array.
 
-        Parameters
-        ----------
-        x: array-like, shape=[dimension]
-            Initial array.
-        value: float
-            Value to be assigned.
-        indices: {tuple, list(tuple)}
-            Single tuple, or list of tuples of indices where value is assigned.
-            If the length of the tuples is shorter than ndim(x), value is
-            assigned to each copy along axis.
-        axis: int, optional
-            Axis along which value is assigned, if vectorized.
+    Parameters
+    ----------
+    x: array-like, shape=[dimension]
+        Initial array.
+    value: float
+        Value to be added.
+    indices: {tuple, list(tuple)}
+        Single tuple, or list of tuples of indices where value is assigned.
+        If the length of the tuples is shorter than ndim(x), value is
+        assigned to each copy along axis.
+    axis: int, optional
+        Axis along which value is assigned, if vectorized.
 
-        Returns
-        -------
-        x_new : array-like, shape=[dimension]
-        """
+    Returns
+    -------
+    x_new : array-like, shape=[dimension]
+        Copy of x where value was added at all indices (and possibly along
+        an axis).
+    """
     single_index = not isinstance(indices, list)
     if single_index:
         indices = [indices]
@@ -154,8 +156,87 @@ def assignment_single_value(x, value, indices, axis=0):
     return x_new
 
 
+def assignment_by_sum(x, values, indices, axis=0):
+    """Add values at given indices of an array.
+
+    Parameters
+    ----------
+    x: array-like, shape=[dimension]
+        Initial array.
+    values: {float, list(float)}
+        Value or list of values to be assigned.
+    indices: {tuple, list(tuple)}
+        Single tuple, or list of tuples of indices where values are added.
+        If the length of the tuples is shorter than ndim(x), values are
+        assigned to each copy along axis.
+    axis: int, optional
+        Axis along which values are assigned, if vectorized.
+
+    Returns
+    -------
+    x_new : array-like, shape=[dimension]
+        Copy of x as the sum of x and the values at the given indices.
+
+    Notes
+    -----
+    If a single value is provided, it is assigned at all the indices.
+    If a list is given, it must have the same length as indices.
+    """
+    if not isinstance(values, list):
+        return assignment_single_value_by_sum(x, values, indices, axis)
+
+    else:
+        if not isinstance(indices, list):
+            indices = [indices]
+
+        if len(values) != len(indices):
+            raise ValueError('Either one value or as many values as indices')
+
+        for (nb_index, index) in enumerate(indices):
+            x = assignment_single_value_by_sum(
+                x, values[nb_index], index, axis)
+        return x
+
+
+def assignment_single_value(x, value, indices, axis=0):
+    """Assign a value at given indices of an array.
+
+    Parameters
+    ----------
+    x: array-like, shape=[dimension]
+        Initial array.
+    value: float
+        Value to be added.
+    indices: {tuple, list(tuple)}
+        Single tuple, or list of tuples of indices where value is assigned.
+        If the length of the tuples is shorter than ndim(x), value is
+        assigned to each copy along axis.
+    axis: int, optional
+        Axis along which value is assigned, if vectorized.
+
+    Returns
+    -------
+    x_new : array-like, shape=[dimension]
+        Copy of x where value was assigned at all indices (and possibly
+        along an axis).
+    """
+    single_index = not isinstance(indices, list)
+    if single_index:
+        indices = [indices]
+    use_vectorization = (len(indices[0]) < ndim(x))
+
+    if use_vectorization:
+        n_samples = shape(x).numpy()[0]
+        mask = get_vectorized_mask_float(
+            n_samples, indices, shape(x).numpy()[1:], axis)
+    else:
+        mask = get_mask_float(indices, shape(x))
+    x_new = x + -x * mask + value * mask
+    return x_new
+
+
 def assignment(x, values, indices, axis=0):
-    """Create a vectorized binary mask.
+    """Assign values at given indices of an array.
 
     Parameters
     ----------
@@ -173,7 +254,7 @@ def assignment(x, values, indices, axis=0):
     Returns
     -------
     x_new : array-like, shape=[dimension]
-        New array as the sum of x and the values at the given indices.
+        Copy of x with the values assigned at the given indices.
 
     Notes
     -----
