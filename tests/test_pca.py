@@ -2,8 +2,8 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.pca import TangentPCA
 
 
@@ -94,9 +94,18 @@ class TestTangentPCA(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
-    def test_fit_transform_reconstruct_vector(self):
+    def test_fit_inverse_transform_vector(self):
         tpca = TangentPCA(metric=self.metric, point_type='vector')
         tangent_projected_data = tpca.fit_transform(self.X)
         result = tpca.inverse_transform(tangent_projected_data)
         expected = self.X
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_fit_fit_transform_matrix(self):
+        X = self.spd.random_uniform(n_samples=5)
+        tpca = TangentPCA(
+            metric=self.spd_metric, point_type='matrix')
+        expected = tpca.fit_transform(X)
+        result = tpca.fit(X).transform(X)
         self.assertAllClose(result, expected)

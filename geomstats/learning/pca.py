@@ -12,7 +12,7 @@ from sklearn.utils.validation import check_array
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.spd_matrices import SPDMatrices
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.learning.frechet_mean import FrechetMean
 
 
@@ -116,14 +116,13 @@ class TangentPCA(_BasePCA):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, n_features], optional
+        X : array-like, shape=[n_samples, n_features]
             Training data, where n_samples is the number of samples
             and n_features is the number of features.
         y : Ignored (Compliance with scikit-learn interface)
         base_point : array-like, shape=[n_samples, n_features], optional
             Point at which to perform the tangent PCA
             Optional, default to Frechet mean if None
-        point_type : str, {'vector', 'matrix'}, optional
 
         Returns
         -------
@@ -171,11 +170,10 @@ class TangentPCA(_BasePCA):
         -------
         X_new : array-like, shape=[n_samples, n_components]
         """
-        tangent_vecs = self.metric.log(X, base_point=self._base_point_fit)
+        tangent_vecs = self.metric.log(X, base_point=self.base_point_fit)
         if self.point_type == 'matrix':
             if Matrices.is_symmetric(tangent_vecs).all():
-                X = SPDMatrices(
-                    n=tangent_vecs.shape[-1]).vector_from_symmetric_matrix(
+                X = SymmetricMatrices.vector_from_symmetric_matrix(
                     tangent_vecs)
             else:
                 X = gs.reshape(tangent_vecs, (len(X), - 1))
@@ -203,13 +201,11 @@ class TangentPCA(_BasePCA):
         scores = self.mean_ + gs.matmul(
             X, self.components_)
         if self.point_type == 'matrix':
-            if Matrices.is_symmetric(self._base_point_fit).all():
-                scores = SPDMatrices(
-                    n=self._base_point_fit.shape[-1]
-                ).symmetric_matrix_from_vector(scores)
+            if Matrices.is_symmetric(self.base_point_fit).all():
+                scores = SymmetricMatrices.symmetric_matrix_from_vector(scores)
             else:
                 scores = gs.reshape(scores, X.shape)
-        return self.metric.exp(scores, self._base_point_fit)
+        return self.metric.exp(scores, self.base_point_fit)
 
     def _fit(self, X, base_point=None):
         """Fit the model by computing full SVD on X.
@@ -239,8 +235,7 @@ class TangentPCA(_BasePCA):
 
         if self.point_type == 'matrix':
             if Matrices.is_symmetric(tangent_vecs).all():
-                X = SPDMatrices(
-                    n=tangent_vecs.shape[-1]).vector_from_symmetric_matrix(
+                X = SymmetricMatrices.vector_from_symmetric_matrix(
                     tangent_vecs)
             else:
                 X = gs.reshape(tangent_vecs, (len(X), - 1))
@@ -272,8 +267,6 @@ class TangentPCA(_BasePCA):
                                  "was of type=%r"
                                  % (n_components, type(n_components)))
 
-        # save the Frecht mean to transform future points
-        self._base_point_fit = base_point
         # Center data - the mean should be 0 if base_point is the Frechet mean
         self.mean_ = gs.mean(X, axis=0)
         X -= self.mean_
@@ -307,6 +300,7 @@ class TangentPCA(_BasePCA):
         else:
             self.noise_variance_ = 0.
 
+        self.base_point_fit = base_point
         self.n_samples_, self.n_features_ = n_samples, n_features
         self.components_ = components_[:n_components]
         self.n_components_ = n_components
