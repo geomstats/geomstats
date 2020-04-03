@@ -21,7 +21,7 @@ class MatrixLieAlgebra:
         dimension: int
             The dimension of the Lie algebra as a real vector space
         n: int
-            The amount of rows and columns in the matrx representation of the
+            The amount of rows and columns in the matrix representation of the
             Lie algebra
         """
         self.dimension = dimension
@@ -78,20 +78,17 @@ class MatrixLieAlgebra:
             [2, 1, 2, 3, 6, 9, 18, 30, 56, 99, 186, 335, 630, 1161, 2182])
         n_terms = gs.sum(number_of_hom_degree[:order])
 
-        ei = gs.zeros((n_terms, self.n, self.n))
-        ei[0] = matrix_a
-        ei[1] = matrix_b
+        el = [matrix_a, matrix_b]
         result = matrix_a + matrix_b
 
         for i in gs.arange(2, n_terms):
             i_p = BCH_COEFFICIENTS[i, 1] - 1
             i_pp = BCH_COEFFICIENTS[i, 2] - 1
 
-            ei[i] = self.lie_bracket(ei[i_p], ei[i_pp])
-            result += (BCH_COEFFICIENTS[i, 3] /
+            el.append(self.lie_bracket(el[i_p], el[i_pp]))
+            result += (float(BCH_COEFFICIENTS[i, 3]) /
                        float(BCH_COEFFICIENTS[i, 4]) *
-                       ei[i])
-
+                       el[i])
         return result
 
     def basis_representation(self, matrix_representation):

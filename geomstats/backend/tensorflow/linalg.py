@@ -2,25 +2,15 @@
 
 import tensorflow as tf
 
-from .common import to_ndarray
-
-
-def sqrtm(sym_mat):
-    sym_mat = to_ndarray(sym_mat, to_ndim=3)
-
-    [eigenvalues, vectors] = tf.linalg.eigh(sym_mat)
-
-    sqrt_eigenvalues = tf.sqrt(eigenvalues)
-
-    aux = tf.einsum('ijk,ik->ijk', vectors, sqrt_eigenvalues)
-    sqrt_mat = tf.einsum('ijk,ilk->ijl', aux, vectors)
-
-    sqrt_mat = to_ndarray(sqrt_mat, to_ndim=3)
-    return sqrt_mat
-
-
-def expm(x):
-    return tf.linalg.expm(x)
+# "Forward-import" primitives. Due to the way the 'linalg' module is exported
+# in TF, this does not work with 'from tensorflow.linalg import ...'.
+det = tf.linalg.det
+eigh = tf.linalg.eigh
+eigvalsh = tf.linalg.eigvalsh
+expm = tf.linalg.expm
+inv = tf.linalg.inv
+norm = tf.linalg.norm
+sqrtm = tf.linalg.sqrtm
 
 
 def logm(x):
@@ -30,37 +20,13 @@ def logm(x):
     return logm
 
 
-def det(x):
-    return tf.linalg.det(x)
-
-
-def eigh(x):
-    return tf.linalg.eigh(x)
-
-
-def eig(x):
-    return tf.linalg.eig(x)
-
-
 def svd(x):
     s, u, v_t = tf.linalg.svd(x, full_matrices=True)
     return u, s, tf.transpose(v_t, perm=(0, 2, 1))
 
 
-def norm(x, axis=None):
-    return tf.linalg.norm(x, axis=axis)
-
-
-def inv(x):
-    return tf.linalg.inv(x)
-
-
 def matrix_rank(x):
     return tf.rank(x)
-
-
-def eigvalsh(x):
-    return tf.linalg.eigvalsh(x)
 
 
 def qr(*args, mode='reduced'):

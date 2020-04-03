@@ -78,6 +78,25 @@ class Stiefel(EmbeddedManifold):
         belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
         return belongs
 
+    @staticmethod
+    def to_grassmannian(point):
+        r"""Project a point of St(n, p) to Gr(n, p).
+
+        If :math:`U \in St(n, p)` is an orthonormal frame,
+        return the orthogonal projector :math:`P = U U^T`
+        onto the subspace of :math:`\mathbb{R}^n` spanned by
+        :math:`U`.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, n, p]
+
+        Returns
+        -------
+        projector : array-like, shape=[n_samples, n, n]
+        """
+        return Matrices.mul(point, Matrices.transpose(point))
+
     def random_uniform(self, n_samples=1):
         r"""Sample on St(n,p) from the uniform distribution.
 
@@ -253,7 +272,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
         matrix_n : array-like
         """
         matrix_k = point - gs.matmul(base_point, matrix_m)
-
         matrix_q, matrix_n = gs.linalg.qr(matrix_k)
         return matrix_q, matrix_n
 

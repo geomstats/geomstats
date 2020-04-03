@@ -1,5 +1,6 @@
 """Tensorflow based computation backend."""
 
+import numpy as _np
 import tensorflow as tf
 
 from .common import array, ndim, to_ndarray  # NOQA
@@ -23,12 +24,121 @@ def logical_or(x, y):
     return tf.logical_or(x, y)
 
 
+def logical_and(x, y):
+    return tf.logical_and(x, y)
+
+
+def any(x, axis=0):
+    return tf.math.reduce_any(tf.cast(x, bool), axis=axis)
+
+
 def get_mask_i_float(i, n):
     range_n = arange(n)
     i_float = cast(array([i]), int32)[0]
     mask_i = equal(range_n, i_float)
     mask_i_float = cast(mask_i, float32)
     return mask_i_float
+
+
+def get_mask_float(indices, mask_shape):
+    """Create a binary mask.
+
+    Parameters
+    ----------
+    indices : tuple
+        Single index or tuple of indices where ones will be.
+    mask_shape : tuple
+        Shape of the mask.
+
+    Returns
+    -------
+    tf_mask : array
+    """
+    np_mask = _np.zeros(mask_shape)
+    if ndim(array(indices)) <= 1 and ndim(np_mask) == 1:
+        indices = list(indices)
+
+    if ndim(array(indices)) == 1 and ndim(np_mask) > 1:
+        if len(indices) != len(mask_shape):
+            raise ValueError('The index must have the same size as shape')
+        indices = [indices]
+
+    else:
+        for index in indices:
+            if len(index) != len(mask_shape):
+                raise ValueError('Indices must have the same size as shape')
+
+    for index in indices:
+        np_mask[index] = 1
+    tf_mask = array(np_mask, dtype=float32)
+    return tf_mask
+
+
+def duplicate_array(x, n_samples, axis=0):
+    multiples = _np.ones(ndim(x) + 1, dtype=_np.int32)
+    multiples[axis] = n_samples
+    return tile(to_ndarray(x, ndim(x) + 1), multiples)
+
+
+def get_vectorized_mask_float(
+        n_samples=1, indices=None, mask_shape=None, axis=0):
+    """Create a vectorized binzary mask.
+
+    Parameters
+    ----------
+    n_samples: int
+        Number of copies of the mask along the additional dimension.
+    indices : tuple, optional
+        Single index or tuple of indices where ones will be.
+    mask_shape : tuple, optional
+        Shape of the mask.
+    axis: int
+        Axis along which the mask is vectorized.
+
+    Returns
+    -------
+    tf_mask : array
+    TODO(pchauchat): give shape of the output according to guideline
+    """
+    mask = get_mask_float(indices, mask_shape)
+    return duplicate_array(mask, n_samples, axis=axis)
+
+
+def assignment_single_value(x, value, indices, axis=0):
+    single_index = not isinstance(indices, list)
+    if single_index:
+        indices = [indices]
+    use_vectorization = (len(indices[0]) < ndim(x))
+
+    if use_vectorization:
+        n_samples = shape(x).numpy()[0]
+        mask = get_vectorized_mask_float(
+            n_samples, indices, shape(x).numpy()[1:], axis)
+    else:
+        mask = get_mask_float(indices, shape(x))
+    x = x + value * mask
+    return x
+
+
+def assignment(x, values, indices, axis=0):
+    if not isinstance(values, list):
+        return assignment_single_value(x, values, indices, axis)
+
+    else:
+        if not isinstance(indices, list):
+            indices = [indices]
+
+        if len(values) != len(indices):
+            raise ValueError('Either one value or as many values as indices')
+
+        for (nb_index, index) in enumerate(indices):
+            x = assignment_single_value(x, values[nb_index], index, axis)
+        return x
+
+
+def array_from_sparse(indices, data, target_shape):
+    return tf.sparse.to_dense(tf.sparse.reorder(
+        tf.SparseTensor(indices, data, target_shape)))
 
 
 def gather(*args, **kwargs):
@@ -67,6 +177,13 @@ def cond(*args, **kwargs):
 
 def reshape(*args, **kwargs):
     return tf.reshape(*args, **kwargs)
+
+
+def flatten(x):
+    """Collapses the tensor into 1-D.
+
+    Following https://www.tensorflow.org/api_docs/python/tf/reshape"""
+    return tf.reshape(x, [-1])
 
 
 def arange(*args, **kwargs):
@@ -241,6 +358,52 @@ def sum(*args, **kwargs):
 
 
 def einsum(equation, *inputs, **kwargs):
+    einsum_str = equation
+    input_tensors_list = inputs
+
+    einsum_list = einsum_str.split('->')
+    input_str = einsum_list[0]
+    output_str = einsum_list[1]
+
+    input_str_list = input_str.split(',')
+
+    is_ellipsis = [input_str[:3] == '...' for input_str in input_str_list]
+    all_ellipsis = bool(_np.prod(is_ellipsis))
+
+    if all_ellipsis:
+        if len(input_str_list) > 2:
+            raise NotImplementedError(
+                'Ellipsis support not implemented for >2 input tensors')
+        tensor_a = input_tensors_list[0]
+        tensor_b = input_tensors_list[1]
+        n_tensor_a = tensor_a.shape[0]
+        n_tensor_b = tensor_b.shape[0]
+
+        if n_tensor_a != n_tensor_b:
+            if n_tensor_a == 1:
+                tensor_a = squeeze(tensor_a, axis=0)
+                input_prefix_list = ['', 'r']
+                output_prefix = 'r'
+            elif n_tensor_b == 1:
+                tensor_b = squeeze(tensor_b, axis=0)
+                input_prefix_list = ['r', '']
+                output_prefix = 'r'
+            else:
+                raise ValueError('Shape mismatch for einsum.')
+        else:
+            input_prefix_list = ['r', 'r']
+            output_prefix = 'r'
+
+        input_str_list = [
+            input_str.replace('...', prefix) for input_str, prefix in zip(
+                input_str_list, input_prefix_list)]
+        output_str = output_str.replace('...', output_prefix)
+
+        input_str = input_str_list[0] + ',' + input_str_list[1]
+        einsum_str = input_str + '->' + output_str
+
+        return tf.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
+
     return tf.einsum(equation, *inputs, **kwargs)
 
 

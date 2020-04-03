@@ -28,6 +28,8 @@ class InvariantMetric(RiemannianMetric):
     def __init__(self, group,
                  inner_product_mat_at_identity=None,
                  left_or_right='left'):
+
+        self.group = group
         if inner_product_mat_at_identity is None:
             inner_product_mat_at_identity = gs.eye(self.group.dimension)
         inner_product_mat_at_identity = gs.to_ndarray(
@@ -43,10 +45,6 @@ class InvariantMetric(RiemannianMetric):
         n_neg_eigval = gs.sum(gs.cast(mask_neg_eigval, gs.int32))
         mask_null_eigval = gs.isclose(eigenvalues, 0.)
         n_null_eigval = gs.sum(gs.cast(mask_null_eigval, gs.int32))
-
-        self.group = group
-        if inner_product_mat_at_identity is None:
-            inner_product_mat_at_identity = gs.eye(self.group.dimension)
 
         self.inner_product_mat_at_identity = inner_product_mat_at_identity
         self.left_or_right = left_or_right
@@ -274,7 +272,7 @@ class InvariantMetric(RiemannianMetric):
         if base_point is None:
             base_point = self.group.identity
         base_point = self.group.regularize(base_point)
-        if base_point is self.group.identity:
+        if gs.allclose(base_point, self.group.identity):
             return self.exp_from_identity(tangent_vec)
 
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
@@ -388,7 +386,7 @@ class InvariantMetric(RiemannianMetric):
         if base_point is None:
             base_point = self.group.identity
         base_point = self.group.regularize(base_point)
-        if base_point is self.group.identity:
+        if gs.allclose(base_point, self.group.identity):
             return self.log_from_identity(point)
 
         point = self.group.regularize(point)

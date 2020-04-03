@@ -28,6 +28,15 @@ def logical_or(x, y):
     return x or y
 
 
+def logical_and(x, y):
+    return x and y
+
+
+def any(x, axis=0):
+    numpy_result = _np.array(_np.any(_np.array(x), axis=axis))
+    return torch.from_numpy(numpy_result)
+
+
 def cond(pred, true_fn, false_fn):
     if pred:
         return true_fn()
@@ -286,7 +295,52 @@ def sum(x, axis=None, keepdims=None, **kwargs):
 
 
 def einsum(*args, **kwargs):
-    return torch.from_numpy(_np.einsum(*args, **kwargs)).float()
+    einsum_str = args[0]
+    input_tensors_list = args[1:]
+
+    einsum_list = einsum_str.split('->')
+    input_str = einsum_list[0]
+    output_str = einsum_list[1]
+
+    input_str_list = input_str.split(',')
+
+    is_ellipsis = [input_str[:3] == '...' for input_str in input_str_list]
+    all_ellipsis = bool(_np.prod(is_ellipsis))
+
+    if all_ellipsis:
+        if len(input_str_list) > 2:
+            raise NotImplementedError(
+                'Ellipsis support not implemented for >2 input tensors')
+        tensor_a = input_tensors_list[0]
+        tensor_b = input_tensors_list[1]
+        n_tensor_a = tensor_a.shape[0]
+        n_tensor_b = tensor_b.shape[0]
+
+        if n_tensor_a != n_tensor_b:
+            if n_tensor_a == 1:
+                tensor_a = squeeze(tensor_a, axis=0)
+                input_prefix_list = ['', 'r']
+                output_prefix = 'r'
+            elif n_tensor_b == 1:
+                tensor_b = squeeze(tensor_b, axis=0)
+                input_prefix_list = ['r', '']
+                output_prefix = 'r'
+            else:
+                raise ValueError('Shape mismatch for einsum.')
+        else:
+            input_prefix_list = ['r', 'r']
+            output_prefix = 'r'
+
+        input_str_list = [
+            input_str.replace('...', prefix) for input_str, prefix in zip(
+                input_str_list, input_prefix_list)]
+        output_str = output_str.replace('...', output_prefix)
+
+        input_str = input_str_list[0] + ',' + input_str_list[1]
+        einsum_str = input_str + '->' + output_str
+
+        return torch.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
+    return torch.einsum(*args, **kwargs)
 
 
 def T(x):
@@ -372,10 +426,6 @@ def diag(*args, **kwargs):
     return torch.diag(*args, **kwargs)
 
 
-def any(x):
-    return x.byte().any()
-
-
 def expand_dims(x, axis=0):
     return torch.unsqueeze(x, dim=axis)
 
@@ -454,6 +504,14 @@ def argmin(*args, **kwargs):
     return torch.argmin(*args, **kwargs)
 
 
+def reshape(*args, **kwargs):
+    return torch.reshape(*args, **kwargs)
+
+
+def flatten(x):
+    return torch.flatten(x)
+
+
 def arange(*args, **kwargs):
     return torch.arange(*args, **kwargs)
 
@@ -468,6 +526,23 @@ def get_mask_i_float(i, n):
     mask_i = equal(range_n, i_float)
     mask_i_float = cast(mask_i, float32)
     return mask_i_float
+
+
+def assignment(x, values, indices, axis=0):
+    x_new = copy(x)
+    single_index = not isinstance(indices, list)
+    if single_index:
+        indices = [indices]
+    if not isinstance(values, list):
+        values = [values] * len(indices)
+    for (nb_index, index) in enumerate(indices):
+        if len(indices[0]) < len(shape(x)):
+            for n_axis in range(shape(x)[axis]):
+                extended_index = index[:axis] + (n_axis,) + index[axis:]
+                x_new[extended_index] = values[nb_index]
+        else:
+            x_new[index] = values[nb_index]
+    return x_new
 
 
 def copy(x):
@@ -490,3 +565,10 @@ def cumsum(x, axis=0):
         raise NotImplementedError('cumsum is not defined where axis is None')
     else:
         return torch.cumsum(x, dim=axis)
+
+
+def array_from_sparse(indices, data, target_shape):
+    return torch.sparse.FloatTensor(
+        torch.LongTensor(indices).t(),
+        torch.FloatTensor(data),
+        torch.Size(target_shape)).to_dense()
