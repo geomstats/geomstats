@@ -136,8 +136,9 @@ def assignment(x, values, indices, axis=0):
         return x
 
 
-def get_from_sparse(indices, data, shape):
-    return tf.sparse.to_dense(tf.SparseTensor(indices, data, shape))
+def array_from_sparse(indices, data, target_shape):
+    return tf.sparse.to_dense(tf.sparse.reorder(
+        tf.SparseTensor(indices, data, target_shape)))
 
 
 def gather(*args, **kwargs):
