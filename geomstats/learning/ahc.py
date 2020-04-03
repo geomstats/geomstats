@@ -80,6 +80,17 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
         at the i-th iteration, children[i][0] and children[i][1]
         are merged to form node `n_samples + i`.
 
+    Example
+    -------
+    # >>> from geomstats.geometry.hypersphere import Hypersphere
+    # >>> from geomstats.learning.ahc import AgglomerativeHierarchicalClustering
+    # >>> sphere = Hypersphere(dimension=2)
+    # >>> X = sphere.random_uniform(10)
+    # >>> distance = sphere.metric.dist
+    # >>> clustering = AgglomerativeHierarchicalClustering(distance=distance)
+    # >>> clustering.fit(X)
+    # >>> print(clustering.labels_)
+
     References
     ----------
         This algorithm uses the scikit-learn library:
