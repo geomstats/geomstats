@@ -75,6 +75,22 @@ def get_mask_float(indices, mask_shape):
 
 
 def duplicate_array(x, n_samples, axis=0):
+    """Stack copies of an array along an additional dimension.
+
+    Parameters
+    ----------
+    x: array-like, shape=dimension
+        Initial array which will be copied.
+    n_samples: int
+        Number of copies of the array to create.
+    axis: int, optional
+        Dimension of the new array along which the copies of x are made.
+
+    Returns
+    -------
+    extended_array: array, shape=[dimension[:axis], n_samples, dimension[aixs:]]
+        Copies of x stacked along dimension axis
+    """
     multiples = _np.ones(ndim(x) + 1, dtype=_np.int32)
     multiples[axis] = n_samples
     return tile(to_ndarray(x, ndim(x) + 1), multiples)
@@ -82,29 +98,47 @@ def duplicate_array(x, n_samples, axis=0):
 
 def get_vectorized_mask_float(
         n_samples=1, indices=None, mask_shape=None, axis=0):
-    """Create a vectorized binzary mask.
+    """Create a vectorized binary mask.
 
     Parameters
     ----------
     n_samples: int
         Number of copies of the mask along the additional dimension.
-    indices : tuple, optional
-        Single index or tuple of indices where ones will be.
-    mask_shape : tuple, optional
+    indices : {tuple, list(tuple)}
+        Single tuple, or list of tuples of indices where ones will be.
+    mask_shape : tuple
         Shape of the mask.
     axis: int
         Axis along which the mask is vectorized.
 
     Returns
     -------
-    tf_mask : array
-    TODO(pchauchat): give shape of the output according to guideline
+    tf_mask : array, shape=[mask_shape[:axis], n_samples, mask_shape[axis:]]
     """
     mask = get_mask_float(indices, mask_shape)
     return duplicate_array(mask, n_samples, axis=axis)
 
 
 def assignment_single_value(x, value, indices, axis=0):
+    """Create a vectorized binary mask.
+
+        Parameters
+        ----------
+        x: array-like, shape=[dimension]
+            Initial array.
+        value: float
+            Value to be assigned.
+        indices: {tuple, list(tuple)}
+            Single tuple, or list of tuples of indices where value is assigned.
+            If the length of the tuples is shorter than ndim(x), value is
+            assigned to each copy along axis.
+        axis: int, optional
+            Axis along which value is assigned, if vectorized.
+
+        Returns
+        -------
+        x_new : array-like, shape=[dimension]
+        """
     single_index = not isinstance(indices, list)
     if single_index:
         indices = [indices]
@@ -116,11 +150,36 @@ def assignment_single_value(x, value, indices, axis=0):
             n_samples, indices, shape(x).numpy()[1:], axis)
     else:
         mask = get_mask_float(indices, shape(x))
-    x = x + value * mask
-    return x
+    x_new = x + value * mask
+    return x_new
 
 
 def assignment(x, values, indices, axis=0):
+    """Create a vectorized binary mask.
+
+    Parameters
+    ----------
+    x: array-like, shape=[dimension]
+        Initial array.
+    values: {float, list(float)}
+        Value or list of values to be assigned.
+    indices: {tuple, list(tuple)}
+        Single tuple, or list of tuples of indices where values are assigned.
+        If the length of the tuples is shorter than ndim(x), values are
+        assigned to each copy along axis.
+    axis: int, optional
+        Axis along which values are assigned, if vectorized.
+
+    Returns
+    -------
+    x_new : array-like, shape=[dimension]
+        New array as the sum of x and the values at the given indices.
+
+    Notes
+    -----
+    If a single value is provided, it is assigned at all the indices.
+    If a list is given, it must have the same length as indices.
+    """
     if not isinstance(values, list):
         return assignment_single_value(x, values, indices, axis)
 
