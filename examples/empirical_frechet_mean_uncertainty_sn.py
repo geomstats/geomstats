@@ -203,12 +203,12 @@ def multi_plot_modulation_factor(dim, n_expectation=1000, n_theta=20):
             logging.info(
                 '{} {} {} {}\n'.format(n_samples, theta_i, var, std_var))
         plt.plot(theta, measured_modulation_factor,
-                 color=color[n_samples], label="N={0}".format(n_samples))
+                 color=color[n_samples], label="n={0}".format(n_samples))
     plt.xlabel(r'Standard deviation $\theta$')
     plt.ylabel(r'Modulation factor $\alpha$')
     plt.legend(loc='best')
     plt.title("Convergence rate modulation factor, "
-              "sphere, dim={0}, N > 5".format(dim))
+              "sphere, dim={0}, n > 5".format(dim))
     plt.draw()
     plt.pause(0.01)
     return plt
