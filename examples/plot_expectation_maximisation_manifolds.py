@@ -22,11 +22,11 @@ from geomstats.learning.em_expectation_maximization import distance
 PI_2_3 = pow((2 * gs.pi), 2 / 3)
 CST_FOR_ERF = 8.0 / (3.0 * gs.pi) * (gs.pi - 3.0) / (4.0 - gs.pi)
 
-def plot_embedding_distribution(data,
+def plot_gaussian_mixture_distribution(data,
                                 mixture_coefficients,
                                 means,
                                 variances, labels=None,
-                                plot_precision=100,
+                                plot_precision=10,
                                 colors=None,
                                 save_path=""):
 
@@ -44,7 +44,7 @@ def plot_embedding_distribution(data,
                                            axis=-1)
 
         mesh_probabilities = weighted_gmm_pdf(mixture_coefficients,
-                                              torch.from_numpy(x_y_plane_mesh_gs),
+                                              x_y_plane_mesh_gs,
                                               means,
                                               variances,
                                               distance)
@@ -114,7 +114,7 @@ def expectation_maximisation_poincare_ball():
 
     cluster_1 = gs.random.uniform(low=0.2, high=0.6, size=(n_samples, dim))
     cluster_2 = gs.random.uniform(low=-0.2, high=-0.6, size=(n_samples, dim))
-    cluster_3 = gs.random.uniform(low=0, high=-0.2, size=(n_samples, dim))
+    cluster_3 = gs.random.uniform(low=0, high=-0.3, size=(n_samples, dim))
     cluster_3[:,0] = -cluster_3[:,0]
 
     data = gs.concatenate((cluster_1, cluster_2, cluster_3), axis=0)
@@ -139,12 +139,12 @@ def expectation_maximisation_poincare_ball():
         max_iter=100)
 
 
-    plot = plot_embedding_distribution(data,
+    plot = plot_gaussian_mixture_distribution(data,
                                        mixture_coefficients,
                                        means,
                                        variances,
                                        labels=None,
-                                       plot_precision=100,
+                                       plot_precision=10,
                                        colors=None,
                                        save_path=os.path.join("result.png")
                                        )
@@ -157,20 +157,37 @@ def expectation_maximisation_poincare_ball():
 def erf_approx(x):
     return torch.sign(x)*torch.sqrt(1 - torch.exp(-x * x * (4 / np.pi + CST_FOR_ERF * x * x) / (1 + CST_FOR_ERF * x * x)))
 
-def weighted_gmm_pdf(w, z, mu, sigma, distance):
-    # print(z.size())
-    # print(z.size(0), len(mu), z.size(1))
-    z_u = z.unsqueeze(1).expand(z.size(0), len(mu), z.size(1))
-    # print(z_u.size())
-    # print(mu.size())
-    mu_u = mu.unsqueeze(0).expand_as(z_u)
 
-    distance_to_mean = distance(z_u, mu_u)
-    sigma_u = sigma.unsqueeze(0).expand_as(distance_to_mean)
-    distribution_normal = torch.exp(-((distance_to_mean)**2)/(2 * sigma_u**2))
-    zeta_sigma = PI_2_3 * sigma * torch.exp((sigma ** 2 / 2) * erf_approx(sigma / math.sqrt(2)))
 
-    return w.unsqueeze(0).expand_as(distribution_normal) * distribution_normal/zeta_sigma.unsqueeze(0).expand_as(distribution_normal)
+
+def weighted_gmm_pdf(mixture_coefficients,
+                     mesh_data,
+                     means,
+                     variances,
+                     distance):
+
+    mesh_data_units = gs.expand_dims(mesh_data, 1)
+
+    mesh_data_units = gs.repeat(mesh_data_units, len(means), axis = 1)
+
+    #means_units = gs.expand_dims(means,0)
+
+    means_units = gs.expand_dims(means,0)
+
+
+    means_units = gs.repeat(means_units,mesh_data_units.shape[0],axis = 0)
+    mesh_data_units = torch.from_numpy(mesh_data_units)
+    means_units = torch.from_numpy(means_units)
+
+
+    #means_units = means_units.expand_as(mesh_data_units)
+
+    distance_to_mean = distance(mesh_data_units, means_units)
+    variances_units = variances.unsqueeze(0).expand_as(distance_to_mean)
+    distribution_normal = torch.exp(-((distance_to_mean)**2)/(2 * variances_units**2))
+    zeta_sigma = PI_2_3 * variances * torch.exp((variances ** 2 / 2) * erf_approx(variances / math.sqrt(2)))
+
+    return mixture_coefficients.unsqueeze(0).expand_as(distribution_normal) * distribution_normal / zeta_sigma.unsqueeze(0).expand_as(distribution_normal)
 
 def main():
 
