@@ -40,25 +40,33 @@ def get_mask_i_float(i, n):
     return mask_i_float
 
 
-def get_mask_float(indices, mask_shape):
+def get_mask_float(indices, mask_shape, dtype=float32):
     """Create a binary mask.
 
     Parameters
     ----------
-    indices : tuple
+    indices: tuple
         Single index or tuple of indices where ones will be.
-    mask_shape : tuple
+    mask_shape: tuple
         Shape of the mask.
+    dtype: dtype
+        Type of the mask.
 
     Returns
     -------
-    tf_mask : array
+    tf_mask : array, shape=[mask_shape]
     """
     np_mask = _np.zeros(mask_shape)
-    if ndim(array(indices)) <= 1 and ndim(np_mask) == 1:
-        indices = list(indices)
+    single_index = not isinstance(indices, list)
 
-    if ndim(array(indices)) == 1 and ndim(np_mask) > 1:
+    if single_index:
+        indices = [indices]
+
+    for (nb_index, index) in enumerate(indices):
+        if not isinstance(index, tuple):
+            indices[nb_index] = index,
+
+    if single_index:
         if len(indices) != len(mask_shape):
             raise ValueError('The index must have the same size as shape')
         indices = [indices]
@@ -70,7 +78,7 @@ def get_mask_float(indices, mask_shape):
 
     for index in indices:
         np_mask[index] = 1
-    tf_mask = array(np_mask, dtype=float32)
+    tf_mask = array(np_mask, dtype=dtype)
     return tf_mask
 
 
@@ -79,7 +87,7 @@ def duplicate_array(x, n_samples, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=dimension
+    x: array-like, shape=[dimension]
         Initial array which will be copied.
     n_samples: int
         Number of copies of the array to create.
@@ -88,7 +96,7 @@ def duplicate_array(x, n_samples, axis=0):
 
     Returns
     -------
-    tiled_array: array, shape=[dimension[:axis], n_samples, dimension[aixs:]]
+    tiled_array: array, shape=[dimension[:axis], n_samples, dimension[axis:]]
         Copies of x stacked along dimension axis
     """
     multiples = _np.ones(ndim(x) + 1, dtype=_np.int32)
@@ -97,7 +105,7 @@ def duplicate_array(x, n_samples, axis=0):
 
 
 def get_vectorized_mask_float(
-        n_samples=1, indices=None, mask_shape=None, axis=0):
+        n_samples=1, indices=None, mask_shape=None, axis=0, dtype=float32):
     """Create a vectorized binary mask.
 
     Parameters
@@ -110,12 +118,15 @@ def get_vectorized_mask_float(
         Shape of the mask.
     axis: int
         Axis along which the mask is vectorized.
+    dtype: dtype
+        Type of the returned array.
 
     Returns
     -------
     tf_mask : array, shape=[mask_shape[:axis], n_samples, mask_shape[axis:]]
     """
-    mask = get_mask_float(indices, mask_shape)
+    mask = get_mask_float(indices, mask_shape, dtype)
+    print('mask', mask)
     return duplicate_array(mask, n_samples, axis=axis)
 
 
@@ -145,14 +156,17 @@ def assignment_single_value_by_sum(x, value, indices, axis=0):
     single_index = not isinstance(indices, list)
     if single_index:
         indices = [indices]
-    use_vectorization = (len(indices[0]) < ndim(x))
+    if isinstance(indices[0], tuple):
+        use_vectorization = (len(indices[0]) < ndim(x))
+    else:
+        use_vectorization = ndim(x) > 1
 
     if use_vectorization:
         n_samples = shape(x).numpy()[0]
         mask = get_vectorized_mask_float(
-            n_samples, indices, shape(x).numpy()[1:], axis)
+            n_samples, indices, shape(x).numpy()[1:], axis, x.dtype)
     else:
-        mask = get_mask_float(indices, shape(x))
+        mask = get_mask_float(indices, shape(x), x.dtype)
     x_new = x + value * mask
     return x_new
 
@@ -226,14 +240,23 @@ def assignment_single_value(x, value, indices, axis=0):
     single_index = not isinstance(indices, list)
     if single_index:
         indices = [indices]
-    use_vectorization = (len(indices[0]) < ndim(x))
+    if isinstance(indices[0], tuple):
+        use_vectorization = (len(indices[0]) < ndim(x))
+    else:
+        use_vectorization = ndim(x) > 1
 
     if use_vectorization:
         n_samples = shape(x).numpy()[0]
         mask = get_vectorized_mask_float(
-            n_samples, indices, shape(x).numpy()[1:], axis)
+            n_samples, indices, shape(x).numpy()[1:], axis, x.dtype)
     else:
-        mask = get_mask_float(indices, shape(x))
+        mask = get_mask_float(indices, shape(x), x.dtype)
+    print(axis)
+    print(x)
+    print(mask)
+    print(value * mask)
+    print(-x)
+    print(-x * mask)
     x_new = x + -x * mask + value * mask
     return x_new
 
