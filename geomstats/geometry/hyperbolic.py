@@ -62,15 +62,14 @@ class Hyperbolic(EmbeddedManifold):
     default_coords_type = 'extrinsic'
     default_point_type = 'vector'
 
-    def __init__(self, dimension, coords_type='extrinsic', scale=1):
+    def __init__(self, dimension, embedding_manifold=None, coords_type='extrinsic', scale=1,):
         assert isinstance(dimension, int) and dimension > 0
         super(Hyperbolic, self).__init__(
             dimension=dimension,
-            embedding_manifold=Minkowski(dimension + 1))
+            embedding_manifold=embedding_manifold)
         self.coords_type = coords_type
         self.point_type = Hyperbolic.default_point_type
 
-        self.embedding_metric = self.embedding_manifold.metric
 
         self.scale = scale
         self.metric =\
