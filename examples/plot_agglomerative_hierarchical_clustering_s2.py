@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.learning.ahc import AgglomerativeHierarchicalClustering
+from geomstats.learning.agglomerative_hierarchical_clustering \
+    import AgglomerativeHierarchicalClustering
 
 
 def main():
