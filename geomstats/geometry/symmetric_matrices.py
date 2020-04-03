@@ -22,7 +22,7 @@ class SymmetricMatrices(EmbeddedManifold):
 
     def belongs(self, mat, atol=TOLERANCE):
         """Check if mat belongs to the vector space of symmetric matrices."""
-        return Matrices.is_symmetric(mat=mat, atol=atol)
+        return self.embedding_manifold.is_symmetric(mat=mat, atol=atol)
 
     @staticmethod
     def vector_from_symmetric_matrix(mat):
