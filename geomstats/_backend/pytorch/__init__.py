@@ -122,13 +122,7 @@ def divide(*args, **kwargs):
 
 
 def repeat(a, repeats, axis=None):
-    if torch.__version__ >= '1.1':
-        return torch.repeat_interleave(a, repeats, axis)
-    if(axis is None):
-        axis = 0
-    shape = list(a.shape)
-    shape[axis] = shape[axis] * repeats
-    return a.repeat(*shape)
+    return torch.repeat_interleave(a, repeats, axis)
 
 
 def asarray(x):
@@ -260,12 +254,12 @@ def norm(val, axis):
     return torch.norm(val, 2, axis)
 
 
-if torch.__version__ >= '1.1':
-    def isclose(*args, **kwargs):
-        return torch.from_numpy(_np.isclose(*args, **kwargs))
-else:
-    def isclose(*args, **kwargs):
-        return torch.from_numpy(_np.isclose(*args, **kwargs).astype(_np.uint8))
+# TODO(nkoep): PyTorch exposes its own 'isclose' function, which is currently
+#              undocumented for some reason, see
+#                https://github.com/pytorch/pytorch/issues/35471
+#              In the future, we may simply use that function instead.
+def isclose(*args, **kwargs):
+    return torch.from_numpy(_np.isclose(*args, **kwargs))
 
 
 def less(a, b):
