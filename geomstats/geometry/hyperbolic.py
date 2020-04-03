@@ -3,8 +3,6 @@
 The n-dimensional hyperbolic space embedded and its different representations.
 """
 
-import math
-
 
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
@@ -47,23 +45,6 @@ class Hyperbolic(EmbeddedManifold):
         self.scale = scale
         self.metric =\
             HyperbolicMetric(self.dimension, self.scale)
-
-        self.coords_transform = {
-            'ball-extrinsic':
-                Hyperbolic._ball_to_extrinsic_coordinates,
-            'extrinsic-ball':
-                Hyperbolic._extrinsic_to_ball_coordinates,
-            'intrinsic-extrinsic':
-                Hyperbolic._intrinsic_to_extrinsic_coordinates,
-            'extrinsic-intrinsic':
-                Hyperbolic._extrinsic_to_intrinsic_coordinates,
-            'extrinsic-half-plane':
-                Hyperbolic._extrinsic_to_half_plane_coordinates,
-            'half-plane-extrinsic':
-                Hyperbolic._half_plane_to_extrinsic_coordinates,
-            'extrinsic-extrinsic':
-                Hyperbolic._extrinsic_to_extrinsic_coordinates
-        }
 
     @staticmethod
     def _extrinsic_to_extrinsic_coordinates(point):
@@ -200,7 +181,8 @@ class Hyperbolic(EmbeddedManifold):
         extrinsic : array-like, shape=[n_samples, 3]
             Point in hyperbolic plane in extrinsic coordinates.
         """
-        assert point.shape[-1] == 2
+        assert point.shape[-1] == 2, "For the upper half-plane\
+             the dimension should be set to 2"
         x, y = point[:, 0], point[:, 1]
         x2 = point[:, 0]**2
         den = x2 + (1 + y)**2
@@ -232,7 +214,8 @@ class Hyperbolic(EmbeddedManifold):
         """
         point_ball = \
             Hyperbolic._extrinsic_to_ball_coordinates(point)
-        assert point_ball.shape[-1] == 2
+        assert point_ball.shape[-1] == 2, "For the upper half-plane\
+             the dimension should be set to 2"
         point_ball_x, point_ball_y = point_ball[:, 0], point_ball[:, 1]
         point_ball_x2 = point_ball_x**2
         denom = point_ball_x2 + (1 - point_ball_y)**2
@@ -250,6 +233,68 @@ class Hyperbolic(EmbeddedManifold):
             (2 * point_ball_x) / denom,
             (1 - point_ball_x2 - point_ball_y**2) / denom))
         return point_half_plane
+
+    @staticmethod
+    def change_coordinates_system(point,
+                                  from_coordinates_system,
+                                  to_coordinates_system):
+        """Convert coordinates of a point.
+
+        Convert the parameterization of a point in the hyperbolic space
+        from current given coordinate system to an other also given in
+        parameters. The possible coordinates system are 'extrinsic',
+        'intrinsic', 'ball' and 'half-plane' that correspond respectivelly
+        to extrinsic coordinates in the hyperboloid , intrinsic
+        coordinates in the hyperboloid, ball coordinates in the Poincare
+        ball model and coordinates in the Poincare upper half-plane model.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dimension]
+                            or shape=[n_samples, dimension + 1]
+            Point in hyperbolic space.
+
+        from_coordinates_system : str, {'extrinsic', 'intrinsic', etc}
+            Coordinates type.
+
+        to_coordinates_system : str, {'extrinsic', 'intrinsic', etc}
+            Coordinates type.
+
+        Returns
+        -------
+        point_to : array-like, shape=[n_samples, dimension]
+                               or shape=[n_sample, dimension + 1]
+            Point in hyperbolic space in coordinates given by to_point_type.
+        """
+
+        coords_transform = {
+            'ball-extrinsic':
+                Hyperbolic._ball_to_extrinsic_coordinates,
+            'extrinsic-ball':
+                Hyperbolic._extrinsic_to_ball_coordinates,
+            'intrinsic-extrinsic':
+                Hyperbolic._intrinsic_to_extrinsic_coordinates,
+            'extrinsic-intrinsic':
+                Hyperbolic._extrinsic_to_intrinsic_coordinates,
+            'extrinsic-half-plane':
+                Hyperbolic._extrinsic_to_half_plane_coordinates,
+            'half-plane-extrinsic':
+                Hyperbolic._half_plane_to_extrinsic_coordinates,
+            'extrinsic-extrinsic':
+                Hyperbolic._extrinsic_to_extrinsic_coordinates
+        }
+
+        point = gs.to_ndarray(point, to_ndim=2, axis=0)
+
+        if from_coordinates_system == to_coordinates_system:
+            return point
+        else:
+            extrinsic =\
+                coords_transform[from_coordinates_system +
+                                 '-extrinsic'](point)
+            return \
+                coords_transform['extrinsic-' +
+                                 to_coordinates_system](extrinsic)
 
     def to_coordinates(self, point, to_coords_type='ball'):
         """Convert coordinates of a point.
@@ -271,16 +316,9 @@ class Hyperbolic(EmbeddedManifold):
                                or shape=[n_sample, dimension + 1]
             Point in hyperbolic space in coordinates given by to_point_type.
         """
-        point = gs.to_ndarray(point, to_ndim=2, axis=0)
-        if self.coords_type == to_coords_type:
-            return point
-        else:
-            extrinsic =\
-                self.coords_transform[self.coords_type + '-extrinsic'
-                                      ](point)
-            return self.coords_transform[
-                'extrinsic-' + to_coords_type
-            ](extrinsic)
+        return Hyperbolic.change_coordinates_system(point,
+                                                    self.coords_type,
+                                                    to_coords_type)
 
     def from_coordinates(self, point, from_coords_type):
         """Convert to a type of coordinates given some type.
@@ -302,14 +340,9 @@ class Hyperbolic(EmbeddedManifold):
                                     or shape=[n_sample, dimension + 1]
             Point in hyperbolic space.
         """
-        point = gs.to_ndarray(point, to_ndim=2, axis=0)
-        if self.coords_type == from_coords_type:
-            return point
-        else:
-            extrinsic =\
-                self.coords_transform[from_coords_type + '-extrinsic'](point)
-            return self.coords_transform['extrinsic-' + self.coords_type
-                                         ](extrinsic)
+        return Hyperbolic.change_coordinates_system(point,
+                                                    from_coords_type,
+                                                    self.coords_type)
 
     def random_uniform(self, n_samples=1, bound=1.):
         """Sample over the hyperbolic space using uniform distribution.
@@ -335,7 +368,9 @@ class Hyperbolic(EmbeddedManifold):
         size = (n_samples, self.dimension)
         samples = bound * 2. * (gs.random.rand(*size) - 0.5)
 
-        return self.coords_transform['intrinsic-' + self.coords_type](samples)
+        return\
+            Hyperbolic.change_coordinates_system(samples, 'intrinsic',
+                                                 self.coords_type)
 
 
 class HyperbolicMetric(RiemannianMetric):
@@ -409,12 +444,12 @@ class HyperbolicMetric(RiemannianMetric):
         return sq_norm
 
     def _squared_norm(self, vector, base_point=None):
-        """Squared norm with hyperbolic scale 1
+        """Squared norm with hyperbolic scale 1.
         """
         return super().squared_norm(vector, base_point=base_point)
 
     def _inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Inner product with hyperbolic scale 1
+        """Inner product with hyperbolic scale 1.
         """
         return super().inner_product(tangent_vec_a, tangent_vec_b,
                                      base_point=base_point)

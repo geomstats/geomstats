@@ -11,8 +11,6 @@ import geomstats.backend as gs
 from geomstats.geometry import hyperbolic
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.minkowski import MinkowskiMetric
-from geomstats.geometry.riemannian_metric import RiemannianMetric
-
 
 TOLERANCE = 1e-6
 
@@ -36,6 +34,7 @@ INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
                           0., -1. / 4725.]
 
 EPSILON = 1e-6
+
 
 class Hyperboloid(hyperbolic.Hyperbolic):
     """Class for the n-dimensional hyperbolic space.
@@ -113,7 +112,6 @@ class Hyperboloid(hyperbolic.Hyperbolic):
         belongs = diff < tolerance * euclidean_sq_norm
         return belongs
 
-
     def regularize(self, point):
         """Regularize a point to the canonical representation.
 
@@ -174,6 +172,28 @@ class Hyperboloid(hyperbolic.Hyperbolic):
         coef = inner_prod / sq_norm
         tangent_vec = vector - gs.einsum('ni,nj->nj', coef, base_point)
         return tangent_vec
+
+    def intrinsic_to_extrinsic_coords(self, point_intrinsic):
+        """Convert from intrinsic to extrinsic coordinates.
+
+        Parameters
+        ----------
+        point_intrinsic : array-like, shape=[n_samples, dim]
+            Point in the embedded manifold in intrinsic coordinates.
+        """
+
+    def extrinsic_to_intrinsic_coords(self, point_extrinsic):
+        """Convert from extrinsic to intrinsic coordinates.
+
+        Parameters
+        ----------
+        point_extrinsic : array-like, shape=[n_samples, dim_embedding]
+            Point in the embedded manifold in extrinsic coordinates,
+            i. e. in the coordinates of the embedding manifold.
+        """
+        raise NotImplementedError(
+            'extrinsic_to_intrinsic_coords is not implemented.')
+
 
 class HyperboloidMetric(hyperbolic.HyperbolicMetric):
     """Class that defines operations using a hyperbolic metric.
@@ -358,7 +378,7 @@ class HyperboloidMetric(hyperbolic.HyperbolicMetric):
         coef_2 += mask_else_float * (angle / gs.tanh(angle))
 
         log = (gs.einsum('ni,nj->nj', coef_1, point) -
-                gs.einsum('ni,nj->nj', coef_2, base_point))
+               gs.einsum('ni,nj->nj', coef_2, base_point))
         return log
 
     def dist(self, point_a, point_b):

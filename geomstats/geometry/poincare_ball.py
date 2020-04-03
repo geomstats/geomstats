@@ -72,28 +72,24 @@ class PoincareBall(hyperbolic.Hyperbolic):
 
 
 class PoincareBallMetric(RiemannianMetric):
-    """Class that defines operations using a hyperbolic metric.
+    """Class that defines operations using a Poincare ball.
 
     Parameters
     ----------
     dimension : int
         Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic', etc}, optional
-        Default coordinates to represent points in hyperbolic space.
     scale : int, optional
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
     """
 
     default_point_type = 'vector'
-    default_coords_type = 'extrinsic'
+    default_coords_type = 'ball'
 
     def __init__(self, dimension, scale=1):
         super(PoincareBallMetric, self).__init__(
             dimension=dimension,
             signature=(dimension, 0, 0))
-        self.embedding_metric = None
-
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
 
@@ -105,14 +101,14 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dimension + 1]
+        tangent_vec : array-like, shape=[n_samples, dimension]
             Tangent vector at a base point.
-        base_point : array-like, shape=[n_samples, dimension + 1]
+        base_point : array-like, shape=[n_samples, dimension]
             Point in hyperbolic space.
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dimension + 1]
+        exp : array-like, shape=[n_samples, dimension]
             Point in hyperbolic space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
@@ -155,14 +151,14 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension + 1]
+        point : array-like, shape=[n_samples, dimension]
             Point in hyperbolic space.
-        base_point : array-like, shape=[n_samples, dimension + 1]
+        base_point : array-like, shape=[n_samples, dimension]
             Point in hyperbolic space.
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dimension + 1]
+        log : array-like, shape=[n_samples, dimension]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
@@ -196,9 +192,9 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, dimension + 1]
+        point_a : array-like, shape=[n_samples, dimension]
             Point in hyperbolic space.
-        point_b : array-like, shape=[n_samples, dimension + 1]
+        point_b : array-like, shape=[n_samples, dimension]
             Point in hyperbolic space.
 
         Returns
@@ -209,7 +205,6 @@ class PoincareBallMetric(RiemannianMetric):
         norm_point_a = gs.sum(point_a ** 2, axis=-1,
                               keepdims=True)
 
-        # to redefine to use autograd
         norm_point_a = gs.repeat(norm_point_a, point_a.shape[-1], -1)
 
         norm_point_b = gs.sum(point_b ** 2, axis=-1,
@@ -230,15 +225,14 @@ class PoincareBallMetric(RiemannianMetric):
 
         return mobius_add
 
-
     def dist(self, point_a, point_b):
         """Compute the geodesic distance between two points.
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, dimension + 1]
+        point_a : array-like, shape=[n_samples, dimension]
             First point in hyperbolic space.
-        point_b : array-like, shape=[n_samples, dimension + 1]
+        point_b : array-like, shape=[n_samples, dimension]
             Second point in hyperbolic space.
 
         Returns
@@ -325,5 +319,4 @@ class PoincareBallMetric(RiemannianMetric):
             gs.repeat(gs.expand_dims(identity, 0), n_sample, axis=0)
 
         results = reshaped_lambda_base * reshaped_identity
-        print("ressss", results)
         return results
