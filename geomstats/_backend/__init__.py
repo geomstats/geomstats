@@ -1,8 +1,9 @@
 import logging
 import os
 import sys
+import types
 
-BACKEND_FUNCTIONS = {
+BACKEND_ATTRIBUTES = {
     '': [
         # Types
         'int32',
@@ -126,7 +127,7 @@ class BackendImporter:
     def __init__(self, path):
         self._path = path
 
-    def _verify_backend_module(self, backend_name):
+    def _import_backend(self, backend_name):
         if backend_name == 'numpy':
             from geomstats._backend import numpy as backend
         elif backend_name == 'pytorch':
@@ -135,20 +136,32 @@ class BackendImporter:
             from geomstats._backend import tensorflow as backend
         else:
             raise RuntimeError('Unknown backend \'{:s}\''.format(backend_name))
+        return backend
 
-        for module_name, attributes in BACKEND_FUNCTIONS.items():
+    def _create_backend_module(self, backend_name):
+        backend = self._import_backend(backend_name)
+
+        new_module = types.ModuleType('geomstats.backend')
+        new_module.__file__ = backend.__file__
+
+        for module_name, attributes in BACKEND_ATTRIBUTES.items():
             if module_name:
                 try:
-                    module = getattr(backend, module_name)
+                    submodule = getattr(backend, module_name)
                 except AttributeError:
                     raise RuntimeError(
                         'Backend \'{}\' exposes no \'{}\' module'.format(
                             backend_name, module_name)) from None
+                new_submodule = types.ModuleType(
+                    'geomstats.backend.{}'.format(module_name))
+                new_submodule.__file__ = submodule.__file__
+                setattr(new_module, module_name, new_submodule)
             else:
-                module = backend
+                submodule = backend
+                new_submodule = new_module
             for attribute_name in attributes:
                 try:
-                    getattr(module, attribute_name)
+                    attribute = getattr(submodule, attribute_name)
                 except AttributeError:
                     if module_name:
                         error = (
@@ -160,11 +173,13 @@ class BackendImporter:
                             'Backend \'{}\' has no attribute \'{}\''.format(
                                 backend_name, attribute_name))
                     raise RuntimeError(error) from None
+                else:
+                    setattr(new_submodule, attribute_name, attribute)
 
         from numpy import pi
-        backend.pi = pi
+        new_module.pi = pi
 
-        return backend
+        return new_module
 
     def find_module(self, fullname, path=None):
         if self._path != fullname:
@@ -179,7 +194,7 @@ class BackendImporter:
         if _BACKEND is None:
             os.environ['GEOMSTATS_BACKEND'] = _BACKEND = 'numpy'
 
-        module = self._verify_backend_module(_BACKEND)
+        module = self._create_backend_module(_BACKEND)
         module.__loader__ = self
         sys.modules[fullname] = module
 
