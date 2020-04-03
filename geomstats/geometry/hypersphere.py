@@ -150,7 +150,7 @@ class Hypersphere(EmbeddedManifold):
         sq_norm = self.embedding_metric.squared_norm(base_point)
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
-        tangent_vec = vector - gs.einsum('ni,nj->nj', coef, base_point)
+        tangent_vec = vector - gs.einsum('...i,...j->...j', coef, base_point)
 
         return tangent_vec
 
@@ -527,8 +527,8 @@ class HypersphereMetric(RiemannianMetric):
         coef_1 += mask_else_float * angle / gs.sin(angle)
         coef_2 += mask_else_float * angle / gs.tan(angle)
 
-        log = (gs.einsum('ni,nj->nj', coef_1, point)
-               - gs.einsum('ni,nj->nj', coef_2, base_point))
+        log = (gs.einsum('...i,...j->...j', coef_1, point)
+               - gs.einsum('...i,...j->...j', coef_2, base_point))
 
         mask_same_values = gs.isclose(point, base_point)
 
