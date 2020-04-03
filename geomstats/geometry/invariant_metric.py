@@ -272,7 +272,7 @@ class InvariantMetric(RiemannianMetric):
         if base_point is None:
             base_point = self.group.identity
         base_point = self.group.regularize(base_point)
-        if base_point is self.group.identity:
+        if gs.isclose(base_point, self.group.identity).all():
             return self.exp_from_identity(tangent_vec)
 
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
@@ -386,7 +386,7 @@ class InvariantMetric(RiemannianMetric):
         if base_point is None:
             base_point = self.group.identity
         base_point = self.group.regularize(base_point)
-        if base_point is self.group.identity:
+        if gs.isclose(base_point, self.group.identity).all():
             return self.log_from_identity(point)
 
         point = self.group.regularize(point)
