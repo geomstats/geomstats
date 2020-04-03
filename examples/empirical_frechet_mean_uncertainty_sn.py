@@ -63,7 +63,7 @@ def empirical_frechet_var_bubble(n_samples, theta, dim,
         # TODO(nina): Use FrechetMean here
         current_mean = _adaptive_gradient_descent(
             data, metric=sphere.metric,
-            n_max_iterations=64, init_points=[north_pole])
+            max_iter=32, init_points=[north_pole])
         var.append(sphere.metric.squared_dist(north_pole, current_mean))
     return gs.mean(var), 2 * gs.std(var) / gs.sqrt(n_expectation)
 
