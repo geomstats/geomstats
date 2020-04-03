@@ -1,4 +1,4 @@
-"""Unit tests for the KNN classifier."""
+"""Unit tests for the Agglomerative Hierarchical Clustering."""
 
 import geomstats.backend as gs
 import geomstats.tests
@@ -8,14 +8,30 @@ from geomstats.learning.ahc import AgglomerativeHierarchicalClustering
 
 
 class TestAgglomerativeHierarchicalClustering(geomstats.tests.TestCase):
-    """Class defining the Poincare polydisk tests."""
+    """Class defining the Agglomerative Hierarchical Clustering tests."""
 
     def setUp(self):
         """Define the parameters to test."""
         gs.random.seed(1234)
 
     @geomstats.tests.np_only
-    def test_fit_euclidean_distance(self):
+    def test_fit_euclidean_distance_string(self):
+        """Test the 'fit' class method using the 'euclidean' distance."""
+        n_clusters = 2
+        distance = 'euclidean'
+        dataset = gs.array([[1, 2], [1, 4], [1, 0], [4, 2], [4, 4], [4, 0]])
+        clustering = AgglomerativeHierarchicalClustering(
+            n_clusters=n_clusters,
+            distance=distance)
+        clustering.fit(dataset)
+        clustering_labels = clustering.labels_
+        result = ((clustering_labels == gs.array([1, 1, 1, 0, 0, 0])).all() or
+                  (clustering_labels == gs.array([0, 0, 0, 1, 1, 1])).all())
+        expected = True
+        self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_only
+    def test_fit_euclidean_distance_callable(self):
         """Test the 'fit' class method using the Euclidean distance."""
         n_clusters = 2
         dimension = 2
