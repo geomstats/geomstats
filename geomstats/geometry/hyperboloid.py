@@ -6,7 +6,6 @@ the hyperboloid representation (embedded in minkowsky space).
 
 import math
 
-
 import geomstats.backend as gs
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hyperbolic import HyperbolicMetric
@@ -63,10 +62,10 @@ class Hyperboloid(Hyperbolic):
     def __init__(self, dimension, coords_type='extrinsic', scale=1):
         super(Hyperboloid, self).__init__(
             dimension=dimension,
-            embedding_manifold=Minkowski(dimension + 1),
             scale=scale)
         self.coords_type = coords_type
         self.point_type = Hyperboloid.default_point_type
+        self.embedding_manifold = Minkowski(dimension + 1)
         self.embedding_metric = self.embedding_manifold.metric
         self.metric =\
             HyperboloidMetric(self.dimension, self.coords_type, self.scale)

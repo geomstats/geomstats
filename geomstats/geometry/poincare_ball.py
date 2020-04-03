@@ -4,14 +4,14 @@ The n-dimensional hyperbolic space embedded with
 the hyperboloid representation (embedded in minkowsky space).
 """
 import geomstats.backend as gs
-from geomstats.geometry import hyperbolic
+from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-6
 EPSILON = 1e-6
 
 
-class PoincareBall(hyperbolic.Hyperbolic):
+class PoincareBall(Hyperbolic):
     """Class for the n-dimensional hyperbolic space.
 
     Class for the n-dimensional hyperbolic space
@@ -31,7 +31,6 @@ class PoincareBall(hyperbolic.Hyperbolic):
     def __init__(self, dimension, scale=1):
         super(PoincareBall, self).__init__(
             dimension=dimension,
-            embedding_manifold=None,
             scale=scale)
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type

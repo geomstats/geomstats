@@ -5,11 +5,11 @@ The n-dimensional hyperbolic space embedded and its different representations.
 
 
 import geomstats.backend as gs
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-class Hyperbolic(EmbeddedManifold):
+class Hyperbolic(Manifold):
     """Class for the n-dimensional hyperbolic space.
 
     Class for the n-dimensional hyperbolic space
@@ -35,10 +35,9 @@ class Hyperbolic(EmbeddedManifold):
     default_coords_type = 'extrinsic'
     default_point_type = 'vector'
 
-    def __init__(self, dimension, embedding_manifold=None, scale=1):
+    def __init__(self, dimension, scale=1):
         super(Hyperbolic, self).__init__(
-            dimension=dimension,
-            embedding_manifold=embedding_manifold)
+            dimension=dimension)
         self.point_type = Hyperbolic.default_point_type
         self.coords_type = Hyperbolic.default_coords_type
         self.scale = scale
