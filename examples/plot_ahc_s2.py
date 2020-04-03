@@ -12,7 +12,7 @@ from geomstats.learning.ahc import AgglomerativeHierarchicalClustering
 
 
 def main():
-    """Plot the result of a KNN classification on the sphere."""
+    """Plot an Agglomerative Hierarchical Clustering on the sphere."""
     sphere = Hypersphere(dimension=2)
     sphere_distance = sphere.metric.dist
 
