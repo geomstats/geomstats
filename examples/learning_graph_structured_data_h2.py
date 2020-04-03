@@ -78,7 +78,7 @@ def loss(example_embedding, context_embedding, negative_embedding,
     context_embedding = gs.expand_dims(context_embedding, 0)
 
     positive_distance =\
-        manifold.metric.squared_distance(example_embedding, context_embedding)
+        manifold.metric.squared_dist(example_embedding, context_embedding)
 
     positive_loss =\
         log_sigmoid(-positive_distance)
@@ -87,7 +87,7 @@ def loss(example_embedding, context_embedding, negative_embedding,
         gs.repeat(example_embedding, n_edges, axis=0)
 
     negative_distance =\
-        manifold.metric.squared_distance(reshaped_example_embedding,
+        manifold.metric.squared_dist(reshaped_example_embedding,
                                          negative_embedding)
     negative_loss = log_sigmoid(negative_distance)
 
