@@ -46,7 +46,6 @@ from tensorflow import (  # NOQA
     stack,
     tan,
     tanh,
-    transpose,
     unstack,
     where,
     while_loop,
@@ -72,7 +71,6 @@ def _raise_not_implemented_error(*args, **kwargs):
 # TODO(nkoep): The 'repeat' function was added in TF 2.1. Backport the
 #              implementation from tensorflow/python/ops/array_ops.py.
 repeat = _raise_not_implemented_error
-triu_indices = _raise_not_implemented_error
 
 
 def cumsum(a, axis=None):
@@ -580,3 +578,7 @@ def triu_indices(n, k=0, m=None):
     if m is None:
         m = n
     return _np.triu_indices(n, k, m)
+
+
+def transpose(x, axes=None):
+    return tf.transpose(x, perm=axes)
