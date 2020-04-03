@@ -7,7 +7,6 @@ from autograd.numpy import (  # NOQA
     allclose,
     amax,
     amin,
-    any,
     append,
     arange,
     arccos,
@@ -53,6 +52,8 @@ from autograd.numpy import (  # NOQA
     less_equal,
     linspace,
     log,
+    logical_and,
+    logical_or,
     matmul,
     maximum,
     mean,
@@ -88,6 +89,7 @@ from autograd.numpy import (  # NOQA
     zeros,
     zeros_like
 )
+from scipy.sparse import coo_matrix
 
 from . import linalg  # NOQA
 from . import random  # NOQA
@@ -112,6 +114,10 @@ def byte_to_float(x):
     return x
 
 
+def any(x, axis=0):
+    return _np.any(x, axis)
+
+
 def while_loop(cond, body, loop_vars, maximum_iterations):
     iteration = 0
     while cond(*loop_vars):
@@ -122,9 +128,8 @@ def while_loop(cond, body, loop_vars, maximum_iterations):
     return loop_vars
 
 
-def logical_or(x, y):
-    bool_result = x or y
-    return bool_result
+def flatten(x):
+    return x.flatten()
 
 
 def get_mask_i_float(i, n):
@@ -133,6 +138,23 @@ def get_mask_i_float(i, n):
     mask_i = equal(range_n, i_float)
     mask_i_float = cast(mask_i, float32)
     return mask_i_float
+
+
+def assignment(x, values, indices, axis=0):
+    x_new = copy(x)
+    single_index = not isinstance(indices, list)
+    if single_index:
+        indices = [indices]
+    if not isinstance(values, list):
+        values = [values] * len(indices)
+    for (nb_index, index) in enumerate(indices):
+        if len(indices[0]) < len(shape(x)):
+            for n_axis in range(shape(x)[axis]):
+                extended_index = index[:axis] + (n_axis,) + index[axis:]
+                x_new[extended_index] = values[nb_index]
+        else:
+            x_new[index] = values[nb_index]
+    return x_new
 
 
 def gather(x, indices, axis=0):
@@ -203,3 +225,15 @@ def cumprod(x, axis=0):
 
 def copy(x):
     return x.copy()
+
+
+def array_from_sparse(indices, data, target_shape):
+    return array(
+        coo_matrix((data, list(zip(*indices))), target_shape).todense())
+
+
+def from_vector_to_diagonal_matrix(x):
+    n = shape(x)[-1]
+    id = identity(n)
+    diagonals = einsum('ki,ij->kij', x, id)
+    return diagonals

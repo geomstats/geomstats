@@ -113,16 +113,14 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         METRIC = H2.metric
 
         base_point = gs.array([1., 0., 0.])
-        with self.session():
-            self.assertTrue(gs.eval(H2.belongs(base_point)))
+        self.assertTrue(gs.eval(H2.belongs(base_point)))
 
         tangent_vec = H2.projection_to_tangent_space(
             vector=gs.array([1., 2., 1.]),
             base_point=base_point)
         exp = METRIC.exp(tangent_vec=tangent_vec,
                          base_point=base_point)
-        with self.session():
-            self.assertTrue(gs.eval(H2.belongs(exp)))
+        self.assertTrue(gs.eval(H2.belongs(exp)))
 
     @geomstats.tests.np_and_pytorch_only
     def test_exp_vectorization(self):
@@ -151,12 +149,11 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
         expected = gs.zeros((n_samples, dim))
 
-        with self.session():
-            for i in range(n_samples):
-                expected[i] = gs.eval(
-                    self.metric.exp(n_tangent_vecs[i], one_base_point))
-            expected = helper.to_vector(gs.array(expected))
-            self.assertAllClose(result, expected)
+        for i in range(n_samples):
+            expected[i] = gs.eval(
+                self.metric.exp(n_tangent_vecs[i], one_base_point))
+        expected = helper.to_vector(gs.array(expected))
+        self.assertAllClose(result, expected)
 
         one_tangent_vec = self.space.projection_to_tangent_space(
             one_vec, base_point=n_base_points)
@@ -164,12 +161,11 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
         expected = gs.zeros((n_samples, dim))
-        with self.session():
-            for i in range(n_samples):
-                expected[i] = gs.eval(self.metric.exp(one_tangent_vec[i],
-                                      n_base_points[i]))
-            expected = helper.to_vector(gs.array(expected))
-            self.assertAllClose(result, expected)
+        for i in range(n_samples):
+            expected[i] = gs.eval(self.metric.exp(one_tangent_vec[i],
+                                  n_base_points[i]))
+        expected = helper.to_vector(gs.array(expected))
+        self.assertAllClose(result, expected)
 
         n_tangent_vecs = self.space.projection_to_tangent_space(
             n_vecs, base_point=n_base_points)
@@ -177,12 +173,11 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
         expected = gs.zeros((n_samples, dim))
-        with self.session():
-            for i in range(n_samples):
-                expected[i] = gs.eval(self.metric.exp(n_tangent_vecs[i],
-                                      n_base_points[i]))
-            expected = helper.to_vector(gs.array(expected))
-            self.assertAllClose(result, expected)
+        for i in range(n_samples):
+            expected[i] = gs.eval(self.metric.exp(n_tangent_vecs[i],
+                                  n_base_points[i]))
+        expected = helper.to_vector(gs.array(expected))
+        self.assertAllClose(result, expected)
 
     def test_log_vectorization(self):
         n_samples = 3
@@ -233,8 +228,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         expected = minkowski_space.metric.inner_product(
             tangent_vec_a, tangent_vec_b, base_point)
 
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     def test_squared_norm_and_squared_dist(self):
         """
@@ -247,8 +241,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         result = self.metric.squared_norm(vector=log)
         expected = self.metric.squared_dist(point_a, point_b)
 
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     def test_norm_and_dist(self):
         """
@@ -261,8 +254,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         result = self.metric.norm(vector=log)
         expected = self.metric.dist(point_a, point_b)
 
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     def test_log_and_exp_edge_case(self):
         """
@@ -286,8 +278,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
 
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
@@ -308,8 +299,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         result = self.metric.log(point=exp, base_point=base_point)
 
         expected = vector
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     def test_dist(self):
         # Distance between a point and itself is 0.
@@ -317,9 +307,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         point_b = point_a
         result = self.metric.dist(point_a, point_b)
         expected = gs.array([[0]])
-
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
     def test_dist_poincare(self):
@@ -333,9 +321,19 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         result = dist_a_b
         expected = gs.array([[2.887270927429199]])
 
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
+<<<<<<< HEAD
+=======
+    def test_exp_poincare(self):
+
+        self.space.metric.coords_type = 'ball'
+        result = 0
+        expected = 0
+        self.space.metric.coords_type = 'extrinsic'
+        self.assertAllClose(result, expected)
+
+>>>>>>> f9a360513fc8b0bd11ae4d63021b0c729fdb3ca3
     @geomstats.tests.np_only
     def test_log_poincare(self):
 
@@ -346,8 +344,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         expected = gs.array([[-0.01733576, 0.21958634]])
 
         self.space.metric.coords_type = 'extrinsic'
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         base_point = gs.array([4.0, 1., 3.0, math.sqrt(5)])
@@ -362,8 +359,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         sq_norm = self.metric.embedding_metric.squared_norm(
             tangent_vec)
         expected = sq_norm
-        with self.session():
-            self.assertAllClose(result, expected, atol=1e-2)
+        self.assertAllClose(result, expected, atol=1e-2)
 
     def test_geodesic_and_belongs(self):
         # TODO(nina): Fix this tests, as it fails when geodesic goes "too far"
@@ -384,8 +380,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         result = self.space.belongs(points)
         expected = gs.array(n_geodesic_points * [[True]])
 
-        with self.session():
-            self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result)
 
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """

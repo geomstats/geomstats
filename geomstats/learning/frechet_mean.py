@@ -91,7 +91,7 @@ def linear_mean(points, weights=None):
 
 
 def _default_gradient_descent(points, metric, weights,
-                              n_max_iterations, point_type, epsilon, verbose):
+                              max_iter, point_type, epsilon, verbose):
 
     def while_loop_cond(iteration, mean, var, sq_dist):
         result = ~gs.logical_or(
@@ -157,12 +157,12 @@ def _default_gradient_descent(points, metric, weights,
         lambda i, m, v, sq: while_loop_cond(i, m, v, sq),
         lambda i, m, v, sq: while_loop_body(i, m, v, sq),
         loop_vars=[iteration, mean, var, sq_dist],
-        maximum_iterations=n_max_iterations)
+        maximum_iterations=max_iter)
 
-    if last_iteration == n_max_iterations:
+    if last_iteration == max_iter:
         logging.warning(
-            'Maximum number of iterations {} reached.'
-            'The mean may be inaccurate'.format(n_max_iterations))
+            'Maximum number of iterations {} reached. '
+            'The mean may be inaccurate'.format(max_iter))
 
     if verbose:
         logging.info('n_iter: {}, final variance: {}, final dist: {}'.format(
@@ -172,7 +172,7 @@ def _default_gradient_descent(points, metric, weights,
     return mean
 
 
-def _ball_gradient_descent(points, metric, weights, n_max_iterations,
+def _ball_gradient_descent(points, metric, weights, max_iter,
                            lr=1e-3, tau=5e-3):
 
     if len(points) == 1:
@@ -182,7 +182,7 @@ def _ball_gradient_descent(points, metric, weights, n_max_iterations,
     convergence = math.inf
     barycenter = points.mean(0, keepdims=True) * 0
 
-    while convergence > tau and n_max_iterations > iteration:
+    while convergence > tau and max_iter > iteration:
 
         iteration += 1
 
@@ -195,10 +195,10 @@ def _ball_gradient_descent(points, metric, weights, n_max_iterations,
 
         barycenter = cc_barycenter
 
-    if iteration == n_max_iterations:
+    if iteration == max_iter:
         logging.warning(
             'Maximum number of iterations {} reached. The '
-            'mean may be inaccurate'.format(n_max_iterations))
+            'mean may be inaccurate'.format(max_iter))
 
     return barycenter
 
@@ -206,8 +206,8 @@ def _ball_gradient_descent(points, metric, weights, n_max_iterations,
 def _adaptive_gradient_descent(points,
                                metric,
                                weights=None,
-                               n_max_iterations=32,
-                               epsilon=1e-12,
+                               max_iter=32,
+                               epsilon=1e-11,
                                init_points=[],
                                point_type='vector'):
     """Compute the Frechet mean using gradient descent.
@@ -215,7 +215,9 @@ def _adaptive_gradient_descent(points,
     Frechet mean of (weighted) points using adaptive time-steps
     The loss function optimized is :math:`||M_1(x)||_x`
     (where :math:`M_1(x)` is the tangent mean at x) rather than
-    the mean-square-distance (MSD) because this saves computation time.
+    the mean-square-distance (MSD) because this simplifies computations.
+    Adaptivity is done in a Levenberg-Marquardt style weighting variable tau
+    between the first order and the second order Gauss-Newton gradient descent.
 
     Parameters
     ----------
@@ -225,7 +227,7 @@ def _adaptive_gradient_descent(points,
     weights : array-like, shape=[n_samples, 1], optional
         Weights associated to the points.
 
-    n_max_iterations : int, optional
+    max_iter : int, optional
         Maximum number of iterations for the gradient descent.
 
     init_points : array-like, shape=[n_init, dimension], optional
@@ -239,6 +241,10 @@ def _adaptive_gradient_descent(points,
     current_mean: array-like, shape=[n_samples, dimension]
         Weighted Frechet mean of the points.
     """
+    tau_max = 1e6
+    tau_mul_up = 1.6511111
+    tau_min = 1e-6
+    tau_mul_down = 0.1
     if point_type == 'matrix':
         raise NotImplementedError(
             'The Frechet mean with adaptive gradient descent is only'
@@ -253,6 +259,9 @@ def _adaptive_gradient_descent(points,
 
     sum_weights = gs.sum(weights)
 
+    if n_points == 1:
+        return gs.to_ndarray(points[0], to_ndim=2)
+
     n_init = len(init_points)
 
     if n_init == 0:
@@ -260,19 +269,17 @@ def _adaptive_gradient_descent(points,
     else:
         current_mean = init_points[0]
 
-    if n_points == 1:
-        return gs.to_ndarray(current_mean, to_ndim=2)
-
     tau = 1.0
     iteration = 0
 
     logs = metric.log(point=points, base_point=current_mean)
     current_tangent_mean = gs.einsum('nk,nj->j', weights, logs)
     current_tangent_mean /= sum_weights
-    norm_current_tangent_mean = gs.linalg.norm(current_tangent_mean)
+    sq_norm_current_tangent_mean = metric.squared_norm(current_tangent_mean,
+                                                       base_point=current_mean)
 
-    while (norm_current_tangent_mean > epsilon
-           and iteration < n_max_iterations):
+    while (sq_norm_current_tangent_mean > epsilon ** 2
+           and iteration < max_iter):
         iteration = iteration + 1
         shooting_vector = gs.to_ndarray(
             tau * current_tangent_mean,
@@ -283,19 +290,20 @@ def _adaptive_gradient_descent(points,
         logs = metric.log(point=points, base_point=next_mean)
         next_tangent_mean = gs.einsum('nk,nj->j', weights, logs)
         next_tangent_mean /= sum_weights
-        norm_next_tangent_mean = gs.linalg.norm(next_tangent_mean)
-        if norm_next_tangent_mean < norm_current_tangent_mean:
+        sq_norm_next_tangent_mean = metric.squared_norm(next_tangent_mean,
+                                                        base_point=next_mean)
+        if sq_norm_next_tangent_mean < sq_norm_current_tangent_mean:
             current_mean = next_mean
             current_tangent_mean = next_tangent_mean
-            norm_current_tangent_mean = norm_next_tangent_mean
-            tau = max(1.0, 1.0511111 * tau)
+            sq_norm_current_tangent_mean = sq_norm_next_tangent_mean
+            tau = min(tau_max, tau_mul_up * tau)
         else:
-            tau = tau * 0.8
+            tau = max(tau_min, tau_mul_down * tau)
 
-    if iteration == n_max_iterations:
+    if iteration == max_iter:
         logging.warning(
-            'Maximum number of iterations {} reached.'
-            'The mean may be inaccurate'.format(n_max_iterations))
+            'Maximum number of iterations {} reached. '
+            'The mean may be inaccurate'.format(max_iter))
 
     return gs.to_ndarray(current_mean, to_ndim=2)
 
@@ -315,7 +323,7 @@ class FrechetMean(BaseEstimator):
                  method='default',
                  verbose=False):
         self.metric = metric
-        self.n_max_iterations = max_iter
+        self.max_iter = max_iter
         self.epsilon = epsilon
         self.point_type = point_type
         self.method = method
@@ -348,18 +356,18 @@ class FrechetMean(BaseEstimator):
         elif self.method == 'default':
             mean = _default_gradient_descent(
                 points=X, weights=weights, metric=self.metric,
-                n_max_iterations=self.n_max_iterations,
+                max_iter=self.max_iter,
                 point_type=self.point_type, epsilon=self.epsilon,
                 verbose=self.verbose)
         elif self.method == 'adaptive':
             mean = _adaptive_gradient_descent(
                 points=X, weights=weights, metric=self.metric,
-                n_max_iterations=self.n_max_iterations,
+                max_iter=self.max_iter,
                 epsilon=1e-12, init_points=[])
         elif self.method == 'frechet-poincare-ball':
             mean = _ball_gradient_descent(
                 points=X, weights=weights, metric=self.metric,
-                n_max_iterations=self.n_max_iterations)
+                max_iter=self.max_iter)
 
         self.estimate_ = mean
 

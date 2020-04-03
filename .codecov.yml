@@ -6,7 +6,7 @@ coverage:
 # Repository Yaml
 coverage:
   round: up
-  range: 50..100
+  range: 50..80
 
 # Files to ignore
 ignore:

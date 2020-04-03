@@ -14,7 +14,10 @@ from geomstats.geometry.spd_matrices import (
 
 
 class TestSPDMatricesMethods(geomstats.tests.TestCase):
+    """Test of SPDMatrices methods."""
+
     def setUp(self):
+        """Set up the test."""
         warnings.simplefilter('ignore', category=ImportWarning)
 
         gs.random.seed(1234)
@@ -28,6 +31,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         self.n_samples = 4
 
     def test_belongs(self):
+        """Test of belongs method."""
         mats = gs.array([
             [[1., 1.], [1., 1.]],
             [[1., 2.], [2., 1.]],
@@ -37,6 +41,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_random_uniform_and_belongs(self):
+        """Test of random_uniform and belongs methods."""
         points = self.space.random_uniform(4)
         result = self.space.belongs(points)
         expected = gs.array([True] * 4)
@@ -44,6 +49,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_tf_only
     def vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(self):
+        """Test for matrix to vector and vector to matrix conversions."""
         sym_mat_1 = gs.array([[1., 0.6, -3.],
                               [0.6, 7., 0.],
                               [-3., 0., 8.]])
@@ -62,6 +68,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_tf_only
     def vector_and_symmetric_matrix_vectorization(self):
+        """Test of vectorization."""
         n_samples = self.n_samples
         vector = gs.random.rand(n_samples, 6)
         sym_mat = self.space.symmetric_matrix_from_vector(vector)
@@ -78,6 +85,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         self.assertTrue(gs.allclose(result, expected))
 
     def test_differential_power(self):
+        """Test of differential_power method."""
         base_point = gs.array([[1., 0., 0.],
                                [0., 2.5, 1.5],
                                [0., 1.5, 2.5]])
@@ -95,6 +103,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_inverse_differential_power(self):
+        """Test of inverse_differential_power method."""
         base_point = gs.array([[1., 0., 0.],
                                [0., 2.5, 1.5],
                                [0., 1.5, 2.5]])
@@ -113,6 +122,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_differential_log(self):
+        """Test of differential_log method."""
         base_point = gs.array([[1., 0., 0.],
                                [0., 1., 0.],
                                [0., 0., 4.]])
@@ -128,6 +138,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_inverse_differential_log(self):
+        """Test of inverse_differential_log method."""
         base_point = gs.array([[1., 0., 0.],
                                [0., 1., 0.],
                                [0., 0., 4.]])
@@ -143,6 +154,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_differential_exp(self):
+        """Test of differential_exp method."""
         base_point = gs.array([[1., 0., 0.],
                                [0., 1., 0.],
                                [0., 0., -1.]])
@@ -159,6 +171,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_inverse_differential_exp(self):
+        """Test of inverse_differential_exp method."""
         base_point = gs.array([[1., 0., 0.],
                                [0., 1., 0.],
                                [0., 0., -1.]])
@@ -175,6 +188,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_procrustes_inner_product(self):
+        """Test of SPDMetricProcrustes.inner_product method."""
         base_point = gs.array([[1., 0., 0.],
                                [0., 1.5, .5],
                                [0., .5, 1.5]])
@@ -192,6 +206,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_power_affine_inner_product(self):
+        """Test of SPDMetricAffine.inner_product method."""
         base_point = gs.array([[1., 0., 0.],
                                [0., 2.5, 1.5],
                                [0., 1.5, 2.5]])
@@ -206,6 +221,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_power_euclidean_inner_product(self):
+        """Test of SPDMetricEuclidean.inner_product method."""
         base_point = gs.array([[1., 0., 0.],
                                [0., 2.5, 1.5],
                                [0., 1.5, 2.5]])
@@ -220,6 +236,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_euclidean_exp_domain(self):
+        """Test of SPDMetricEuclidean.exp_domain method."""
         base_point = gs.array([[1., 0., 0.],
                                [0., 2., 0.],
                                [0., 0., 3.]])
@@ -234,6 +251,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_log_euclidean_inner_product(self):
+        """Test of SPDMetricLogEuclidean.inner_product method."""
         base_point = gs.array([[1., 0., 0.],
                                [0., 1., 0.],
                                [0., 0., 4.]])
@@ -249,6 +267,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_tf_only
     def test_log_and_exp_affine_invariant(self):
+        """Test of SPDMetricAffine.log and exp methods with power=1."""
         base_point = gs.array([[5., 0., 0.],
                                [0., 7., 2.],
                                [0., 2., 8.]])
@@ -265,6 +284,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_log_and_exp_power_affine(self):
+        """Test of SPDMetricAffine.log and exp methods with power!=1."""
         base_point = gs.array([[5., 0., 0.],
                                [0., 7., 2.],
                                [0., 2., 8.]])
@@ -279,6 +299,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_log_and_exp_logeuclidean(self):
+        """Test of SPDMetricLogEuclidean.log and exp methods."""
         base_point = gs.array([[5., 0., 0.],
                                [0., 7., 2.],
                                [0., 2., 8.]])
@@ -295,6 +316,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_tf_only
     def test_exp_and_belongs(self):
+        """Test of SPDMetricAffine.exp with power=1 and belongs methods."""
         n_samples = self.n_samples
         base_point = self.space.random_uniform(n_samples=1)
         tangent_vec = self.space.random_tangent_vec_uniform(
@@ -308,6 +330,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_tf_only
     def test_exp_vectorization(self):
+        """Test of SPDMetricAffine.exp with power=1 and vectorization."""
         n_samples = self.n_samples
         one_base_point = self.space.random_uniform(n_samples=1)
         n_base_point = self.space.random_uniform(n_samples=n_samples)
@@ -332,6 +355,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_tf_only
     def test_log_vectorization(self):
+        """Test of SPDMetricAffine.log with power 1 and vectorization."""
         n_samples = self.n_samples
         one_base_point = self.space.random_uniform(n_samples=1)
         n_base_point = self.space.random_uniform(n_samples=n_samples)
@@ -360,6 +384,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_tf_only
     def test_geodesic_and_belongs(self):
+        """Test of SPDMetricAffine.geodesic with power 1 and belongs."""
         initial_point = self.space.random_uniform()
         initial_tangent_vec = self.space.random_tangent_vec_uniform(
             n_samples=1, base_point=initial_point)
@@ -378,6 +403,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_squared_dist_is_symmetric(self):
+        """Test of SPDMetricAffine.squared_dist (power=1) and is_symmetric."""
         n_samples = self.n_samples
 
         point_1 = self.space.random_uniform(n_samples=1)
@@ -415,6 +441,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_tf_only
     def test_squared_dist_vectorization(self):
+        """Test of SPDMetricAffine.squared_dist (power=1) and vectorization."""
         n_samples = self.n_samples
         point_1 = self.space.random_uniform(n_samples=n_samples)
         point_2 = self.space.random_uniform(n_samples=n_samples)
@@ -445,8 +472,9 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (1, 1))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_tf_only
     def test_parallel_transport_affine_invariant(self):
+        """Test of SPDMetricAffine.parallel_transport method with power=1."""
         n_samples = self.n_samples
         gs.random.seed(1)
         point = self.space.random_uniform(n_samples)

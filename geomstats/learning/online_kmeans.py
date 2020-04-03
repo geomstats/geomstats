@@ -10,7 +10,7 @@ import geomstats.backend as gs
 # TODO(nkoep): Move this into the OnlineKMeans class.
 
 def online_kmeans(X, metric, n_clusters, n_repetitions=20,
-                  tolerance=1e-5, n_max_iterations=5e4):
+                  tolerance=1e-5, max_iter=5e4):
     """Perform online K-means clustering.
 
     Perform online version of k-means algorithm on data contained in X.
@@ -43,7 +43,7 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20,
         The cluster centers are updated using decreasing step sizes, each
         of which stays constant for n_repetitions iterations to allow a better
         exploration of the data points.
-    n_max_iterations : int, default=5e4
+    max_iter : int, default=5e4
         Maximum number of iterations. If it is reached, the
         quantization may be inacurate.
 
@@ -63,7 +63,7 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20,
     gap = 1.0
     iteration = 0
 
-    while iteration < n_max_iterations:
+    while iteration < max_iter:
         iteration += 1
         step_size = gs.floor(gs.array(iteration / n_repetitions)) + 1
 
@@ -90,10 +90,10 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20,
         if gs.isclose(gap, 0, atol=tolerance):
             break
 
-    if iteration == n_max_iterations - 1:
+    if iteration == max_iter - 1:
         logging.warning(
             'Maximum number of iterations {} reached. The'
-            'clustering may be inaccurate'.format(n_max_iterations))
+            'clustering may be inaccurate'.format(max_iter))
 
     labels = gs.zeros(n_samples)
     for i in range(n_samples):
@@ -128,7 +128,7 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
         The cluster centers are updated using decreasing step sizes, each
         of which stays constant for n_repetitions iterations to allow a better
         exploration of the data points.
-    n_max_iterations : int, default=5e4
+    max_iter : int, default=5e4
         Maximum number of iterations. If it is reached, the
         quantization may be inacurate.
 
@@ -158,12 +158,13 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
     """
 
     def __init__(self, metric, n_clusters, n_repetitions=20,
-                 tolerance=1e-5, n_max_iterations=5e4):
+                 tolerance=1e-5, max_iter=5e4, point_type='vector'):
         self.metric = metric
         self.n_clusters = n_clusters
         self.n_repetitions = n_repetitions
         self.tolerance = tolerance
-        self.n_max_iterations = n_max_iterations
+        self.max_iter = max_iter
+        self.point_type = point_type
 
     def fit(self, X):
         """Perform clustering.
@@ -178,7 +179,7 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
                           n_clusters=self.n_clusters,
                           n_repetitions=self.n_repetitions,
                           tolerance=self.tolerance,
-                          n_max_iterations=self.n_max_iterations)
+                          max_iter=self.max_iter)
 
         return self
 
