@@ -101,6 +101,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
         expected = self.X
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
     def test_fit_fit_transform_matrix(self):
         X = self.spd.random_uniform(n_samples=5)
         tpca = TangentPCA(

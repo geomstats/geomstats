@@ -116,7 +116,7 @@ class TangentPCA(_BasePCA):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, n_features], optional
+        X : array-like, shape=[n_samples, n_features]
             Training data, where n_samples is the number of samples
             and n_features is the number of features.
         y : Ignored (Compliance with scikit-learn interface)
