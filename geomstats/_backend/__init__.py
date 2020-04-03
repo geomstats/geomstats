@@ -148,7 +148,7 @@ class BackendImporter:
     def _create_backend_module(self, backend_name):
         backend = self._import_backend(backend_name)
 
-        new_module = types.ModuleType('geomstats.backend')
+        new_module = types.ModuleType(self._path)
         new_module.__file__ = backend.__file__
 
         for module_name, attributes in BACKEND_ATTRIBUTES.items():
@@ -160,7 +160,7 @@ class BackendImporter:
                         'Backend \'{}\' exposes no \'{}\' module'.format(
                             backend_name, module_name)) from None
                 new_submodule = types.ModuleType(
-                    'geomstats.backend.{}'.format(module_name))
+                    '{}.{}'.format(self._path, module_name))
                 new_submodule.__file__ = submodule.__file__
                 setattr(new_module, module_name, new_submodule)
             else:
