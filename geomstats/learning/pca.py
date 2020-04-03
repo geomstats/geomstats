@@ -12,7 +12,7 @@ from sklearn.utils.validation import check_array
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.spd_matrices import SPDMatrices
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 from geomstats.learning.frechet_mean import FrechetMean
 
 
@@ -123,7 +123,6 @@ class TangentPCA(_BasePCA):
         base_point : array-like, shape=[n_samples, n_features], optional
             Point at which to perform the tangent PCA
             Optional, default to Frechet mean if None
-        point_type : str, {'vector', 'matrix'}, optional
 
         Returns
         -------
@@ -173,8 +172,7 @@ class TangentPCA(_BasePCA):
         tangent_vecs = self.metric.log(X, base_point=self._base_point_fit)
         if self.point_type == 'matrix':
             if Matrices.is_symmetric(tangent_vecs).all():
-                X = SPDMatrices(
-                    n=tangent_vecs.shape[-1]).vector_from_symmetric_matrix(
+                X = SymmetricMatrices.vector_from_symmetric_matrix(
                     tangent_vecs)
             else:
                 X = gs.reshape(tangent_vecs, (len(X), - 1))
@@ -203,9 +201,7 @@ class TangentPCA(_BasePCA):
             X, self.components_)
         if self.point_type == 'matrix':
             if Matrices.is_symmetric(self._base_point_fit).all():
-                scores = SPDMatrices(
-                    n=self._base_point_fit.shape[-1]
-                ).symmetric_matrix_from_vector(scores)
+                scores = SymmetricMatrices.symmetric_matrix_from_vector(scores)
             else:
                 scores = gs.reshape(scores, X.shape)
         return self.metric.exp(scores, self._base_point_fit)
@@ -238,8 +234,7 @@ class TangentPCA(_BasePCA):
 
         if self.point_type == 'matrix':
             if Matrices.is_symmetric(tangent_vecs).all():
-                X = SPDMatrices(
-                    n=tangent_vecs.shape[-1]).vector_from_symmetric_matrix(
+                X = SymmetricMatrices.vector_from_symmetric_matrix(
                     tangent_vecs)
             else:
                 X = gs.reshape(tangent_vecs, (len(X), - 1))
