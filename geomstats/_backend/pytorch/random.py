@@ -39,4 +39,5 @@ def choice(a, size=None, replace=True, p=None):
 def uniform(low=0.0, high=1.0, size=None):
     if size is None:
         size = (1,)
+    assert low <= high
     return (high - low) * torch.rand(*size) + low
