@@ -885,8 +885,8 @@ class HyperbolicMetric(RiemannianMetric):
     def squared_dist(self, point_a, point_b):
         """Geodesic squared hyperbolic distance.
 
-        Redefinition the squared distance implemented
-        in RiemannianMetric
+        Redefine the squared distance implemented
+        in RiemannianMetric.
 
         Parameters
         ----------
@@ -900,7 +900,7 @@ class HyperbolicMetric(RiemannianMetric):
         dist : array-like, shape=[n_samples, 1]
             Geodesic squared distance between the two points.
         """
-        if self.coords_type in ["intrinsic", "extrinsic"]:
+        if self.coords_type in ['intrinsic', 'extrinsic']:
             return super().squared_dist(point_a, point_b)
 
         return self.dist(point_a, point_b)**2
