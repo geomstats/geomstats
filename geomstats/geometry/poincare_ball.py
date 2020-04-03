@@ -15,20 +15,12 @@ class PoincareBall(hyperbolic.Hyperbolic):
     """Class for the n-dimensional hyperbolic space.
 
     Class for the n-dimensional hyperbolic space
-    as embedded in (n+1)-dimensional Minkowski space.
-
-    The point_type variable allows to choose the
-    representation of the points as input.
-
-    If point_type is set to 'ball' then points are parametrized
-    by their coordinates inside the Poincare Ball n-coordinates.
+    as embedded in the Poincaré ball model.
 
     Parameters
     ----------
     dimension : int
         Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic', etc}, optional
-        Default coordinates to represent points in hyperbolic space.
     scale : int, optional
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
@@ -51,8 +43,7 @@ class PoincareBall(hyperbolic.Hyperbolic):
         """Test if a point belongs to the hyperbolic space.
 
         Test if a point belongs to the hyperbolic space based on
-        the poincare ball representation, i.e. evaluate if its
-        squared norm is lower than 1.
+        the poincare ball representation.
 
         Parameters
         ----------
@@ -128,6 +119,10 @@ class PoincareBallMetric(RiemannianMetric):
         norm_tan = gs.repeat(norm_tan, base_point.shape[-1], -1)
 
         lambda_base_point = 1 / den
+
+        zero_tan = gs.isclose((tangent_vec * tangent_vec).sum(axis=-1), 0.)
+        if norm_tan[zero_tan].shape[0] != 0:
+            norm_tan[zero_tan] = EPSILON
 
         direction = tangent_vec / norm_tan
 
@@ -256,8 +251,7 @@ class PoincareBallMetric(RiemannianMetric):
     def retraction(self, tangent_vec, base_point):
         """Poincaré ball model retraction.
 
-        Approximate the exponential map of hyperbolic space,
-        currently working only with poincare ball.
+        Approximate the exponential map of hyperbolic space
         .. [1] nickel et.al, "Poincaré Embedding for
          Learning Hierarchical Representation", 2017.
 
@@ -274,19 +268,16 @@ class PoincareBallMetric(RiemannianMetric):
         point : array-like, shape=[n_samples, dimension]
             Retraction point.
         """
-        if self.coords_type == 'ball':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-            base_point = gs.to_ndarray(base_point, to_ndim=2)
 
-            retraction_factor = ((1 - (base_point**2).sum(axis=-1))**2) / 4
-            retraction_factor =\
-                gs.repeat(gs.expand_dims(retraction_factor, -1),
-                          base_point.shape[1],
-                          axis=1)
-            return base_point - retraction_factor * tangent_vec
-        else:
-            raise NotImplementedError(
-                'Retraction is only implemented for ball and extrinsic')
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+
+        retraction_factor = ((1 - (base_point**2).sum(axis=-1))**2) / 4
+        retraction_factor =\
+            gs.repeat(gs.expand_dims(retraction_factor, -1),
+                      base_point.shape[1],
+                      axis=1)
+        return base_point - retraction_factor * tangent_vec
 
     def inner_product_matrix(self, base_point=None):
         """Compute the inner product matrix, independent of the base point.
