@@ -89,6 +89,7 @@ from autograd.numpy import (  # NOQA
     zeros,
     zeros_like
 )
+from scipy.sparse import coo_matrix
 
 from . import linalg  # NOQA
 from . import random  # NOQA
@@ -224,3 +225,8 @@ def cumprod(x, axis=0):
 
 def copy(x):
     return x.copy()
+
+
+def array_from_sparse(indices, data, target_shape):
+    return array(
+        coo_matrix((data, list(zip(*indices))), target_shape).todense())

@@ -565,3 +565,10 @@ def cumsum(x, axis=0):
         raise NotImplementedError('cumsum is not defined where axis is None')
     else:
         return torch.cumsum(x, dim=axis)
+
+
+def array_from_sparse(indices, data, target_shape):
+    return torch.sparse.FloatTensor(
+        torch.LongTensor(indices).t(),
+        torch.FloatTensor(data),
+        torch.Size(target_shape)).to_dense()

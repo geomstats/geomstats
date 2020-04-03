@@ -236,10 +236,9 @@ class TestBackends(geomstats.tests.TestCase):
         expected = gs.array(([[0, 1, 3, 6, 10], [5, 11, 18, 26, 35]]))
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.tf_only
-    def test_get_from_sparse(self):
+    def test_array_from_sparse(self):
         expected = gs.array([[0, 1, 0], [0, 0, 2]])
-        result = gs.get_from_sparse([(0, 1), (1, 2)], [1, 2], (2, 3))
+        result = gs.array_from_sparse([(0, 1), (1, 2)], [1, 2], (2, 3))
         self.assertAllClose(result, expected)
 
     def test_einsum(self):
