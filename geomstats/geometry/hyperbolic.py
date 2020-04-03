@@ -445,11 +445,40 @@ class HyperbolicMetric(RiemannianMetric):
 
     def _squared_norm(self, vector, base_point=None):
         """Squared norm with hyperbolic scale 1.
+
+        Squared norm of a vector associated with the inner-product
+        at the tangent space at a base point with scale=1..
+
+        Parameters
+        ----------
+        vector : array-like, shape=[n_samples, dimension + 1]
+            Vector on the tangent space of the hyperbolic space at base point.
+        base_point : array-like, shape=[n_samples, dimension + 1], optional
+            Point in hyperbolic space in extrinsic coordinates.
+
+        Returns
+        -------
+        sq_norm : array-like, shape=[n_samples, 1]
+            Squared norm of the vector.
         """
         return super().squared_norm(vector, base_point=base_point)
 
     def _inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Inner product with hyperbolic scale 1.
+        """Compute the inner-product of two tangent vectors with scale=1.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[n_samples, dimension + 1]
+            First tangent vector at base point.
+        tangent_vec_b : array-like, shape=[n_samples, dimension + 1]
+            Second tangent vector at base point.
+        base_point : array-like, shape=[n_samples, dimension + 1], optional
+            Point in hyperbolic space.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[n_samples, 1]
+            Inner-product of the two tangent vectors.
         """
         return super().inner_product(tangent_vec_a, tangent_vec_b,
                                      base_point=base_point)

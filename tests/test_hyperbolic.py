@@ -6,7 +6,9 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.hyperbolic import Hyperbolic
+
+from geomstats.geometry.hyperboloid import Hyperboloid
+from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.minkowski import Minkowski
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
@@ -19,9 +21,9 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
         self.dimension = 3
-        self.space = Hyperbolic(dimension=self.dimension)
+        self.space = Hyperboloid(dimension=self.dimension)
         self.metric = self.space.metric
-        self.ball_manifold = Hyperbolic(dimension=2, coords_type='ball')
+        self.ball_manifold = PoincareBall(dimension=2)
         self.n_samples = 10
 
     def test_random_uniform_and_belongs(self):
@@ -107,7 +109,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_exp_and_belongs(self):
-        H2 = Hyperbolic(dimension=2)
+        H2 = Hyperboloid(dimension=2)
         METRIC = H2.metric
 
         base_point = gs.array([1., 0., 0.])
@@ -325,23 +327,12 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         point_a = gs.array([0.5, 0.5])
         point_b = gs.array([0.5, -0.5])
 
-        self.space.metric.coords_type = 'ball'
-
-        dist_a_b = self.metric.dist(point_a, point_b)
-        self.space.metric.coords_type = 'extrinsic'
+        dist_a_b =\
+            self.ball_manifold.metric.dist(point_a, point_b)
 
         result = dist_a_b
         expected = gs.array([[2.887270927429199]])
 
-        with self.session():
-            self.assertAllClose(result, expected)
-
-    def test_exp_poincare(self):
-
-        self.space.metric.coords_type = 'ball'
-        result = 0
-        expected = 0
-        self.space.metric.coords_type = 'extrinsic'
         with self.session():
             self.assertAllClose(result, expected)
 
@@ -351,8 +342,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         point = gs.array([[0.3, 0.5]])
         base_point = gs.array([[0.3, 0.3]])
 
-        self.space.metric.coords_type = 'ball'
-        result = self.space.metric.log(point, base_point)
+        result = self.ball_manifold.metric.log(point, base_point)
         expected = gs.array([[-0.01733576, 0.21958634]])
 
         self.space.metric.coords_type = 'extrinsic'

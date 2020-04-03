@@ -8,7 +8,8 @@ import math
 
 
 import geomstats.backend as gs
-from geomstats.geometry import hyperbolic
+from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.hyperbolic import HyperbolicMetric
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.minkowski import MinkowskiMetric
 
@@ -36,23 +37,20 @@ INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
 EPSILON = 1e-6
 
 
-class Hyperboloid(hyperbolic.Hyperbolic):
+class Hyperboloid(Hyperbolic):
     """Class for the n-dimensional hyperbolic space.
 
     Class for the n-dimensional hyperbolic space
     as embedded in (n+1)-dimensional Minkowski space.
 
-    The point_type variable allows to choose the
+    The coords_type parameter allows to choose the
     representation of the points as input.
-
-    If point_type is set to 'ball' then points are parametrized
-    by their coordinates inside the Poincare Ball n-coordinates.
 
     Parameters
     ----------
     dimension : int
         Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic', etc}, optional
+    point_type : str, {'extrinsic', 'intrinsic'}, optional
         Default coordinates to represent points in hyperbolic space.
     scale : int, optional
         Scale of the hyperbolic space, defined as the set of points
@@ -65,22 +63,19 @@ class Hyperboloid(hyperbolic.Hyperbolic):
         assert isinstance(dimension, int) and dimension > 0
         super(Hyperboloid, self).__init__(
             dimension=dimension,
-            embedding_manifold=Minkowski(dimension + 1))
+            embedding_manifold=Minkowski(dimension + 1),
+            scale=scale)
         self.coords_type = coords_type
         self.point_type = Hyperboloid.default_point_type
-
         self.embedding_metric = self.embedding_manifold.metric
-
-        self.scale = scale
         self.metric =\
             HyperboloidMetric(self.dimension, self.coords_type, self.scale)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """Test if a point belongs to the hyperbolic space.
 
-        Test if a point belongs to the hyperbolic space based on
-        the poincare ball representation, i.e. evaluate if its
-        squared norm is lower than 1.
+        Test if a point belongs to the hyperbolic space in
+        its hyperboloid representation.
 
         Parameters
         ----------
@@ -129,6 +124,9 @@ class Hyperboloid(hyperbolic.Hyperbolic):
             Point in hyperbolic space in canonical representation
             in extrinsic coordinates.
         """
+        if self.coords_type == 'intrinsic':
+            point = self.intrinsic_to_extrinsic_coords(point)
+
         point = gs.to_ndarray(point, to_ndim=2)
 
         sq_norm = self.embedding_metric.squared_norm(point)
@@ -162,6 +160,9 @@ class Hyperboloid(hyperbolic.Hyperbolic):
             Tangent vector at the base point, equal to the projection of
             the vector in Minkowski space.
         """
+        if self.coords_type == 'intrinsic':
+            base_point = self.intrinsic_to_extrinsic_coords(base_point)
+
         vector = gs.to_ndarray(vector, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
@@ -181,8 +182,12 @@ class Hyperboloid(hyperbolic.Hyperbolic):
         point_intrinsic : array-like, shape=[n_samples, dim]
             Point in the embedded manifold in intrinsic coordinates.
         """
+        return\
+            Hyperbolic.change_coordinates_system(point_intrinsic,
+                                                 'intrinsic',
+                                                 'extrinsic')
 
-    def extrinsic_to_intrinsic_coords(self, point_extrinsic):
+    def extrinsic_to_intrinsic_coords(self, point_intrinsic):
         """Convert from extrinsic to intrinsic coordinates.
 
         Parameters
@@ -191,11 +196,13 @@ class Hyperboloid(hyperbolic.Hyperbolic):
             Point in the embedded manifold in extrinsic coordinates,
             i. e. in the coordinates of the embedding manifold.
         """
-        raise NotImplementedError(
-            'extrinsic_to_intrinsic_coords is not implemented.')
+        return\
+            Hyperbolic.change_coordinates_system(point_intrinsic,
+                                                 'extrinsic',
+                                                 'intrinsic')
 
 
-class HyperboloidMetric(hyperbolic.HyperbolicMetric):
+class HyperboloidMetric(HyperbolicMetric):
     """Class that defines operations using a hyperbolic metric.
 
     Parameters
@@ -219,7 +226,7 @@ class HyperboloidMetric(hyperbolic.HyperbolicMetric):
         self.embedding_metric = MinkowskiMetric(dimension + 1)
 
         self.coords_type = coords_type
-        self.point_type = hyperbolic.HyperbolicMetric.default_point_type
+        self.point_type = HyperbolicMetric.default_point_type
 
         assert scale > 0, 'The scale should be strictly positive'
         self.scale = scale

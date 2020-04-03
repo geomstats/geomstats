@@ -121,6 +121,7 @@ class PoincareBallMetric(RiemannianMetric):
         lambda_base_point = 1 / den
 
         zero_tan = gs.isclose((tangent_vec * tangent_vec).sum(axis=-1), 0.)
+
         if norm_tan[zero_tan].shape[0] != 0:
             norm_tan[zero_tan] = EPSILON
 
