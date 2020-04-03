@@ -885,7 +885,7 @@ class HyperbolicMetric(RiemannianMetric):
     def squared_dist(self, point_a, point_b):
         """Geodesic squared hyperbolic distance.
 
-        Redefine the squared distance implemented
+        Override the squared distance implemented
         in RiemannianMetric.
 
         Parameters
