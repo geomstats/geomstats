@@ -25,9 +25,10 @@ class SymmetricMatrices(EmbeddedManifold):
         return self.embedding_manifold.is_symmetric(mat=mat, atol=atol)
 
     def get_basis(self):
+        """Compute the basis of the vector space of symmetric matrices"""
         basis = [
             gs.array_from_sparse([
-                        (row, col), (col, row)], [1., 1.], (self.n, self.n))
+                (row, col), (col, row)], [1., 1.], (self.n, self.n))
             for row in gs.arange(self.n)
             for col in gs.arange(row, self.n)]
         basis = gs.stack(
