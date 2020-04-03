@@ -552,6 +552,6 @@ def array_from_sparse(indices, data, target_shape):
 
 def from_vector_to_diagonal_matrix(x):
     n = shape(x)[-1]
-    identity_n = identity(n)
+    identity_n = eye(n)
     diagonals = einsum('ki,ij->kij', x, identity_n)
     return diagonals

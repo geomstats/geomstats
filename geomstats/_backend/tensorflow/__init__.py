@@ -190,7 +190,7 @@ def _vectorized_mask_from_indices(
     return _duplicate_array(mask, n_samples, axis=axis)
 
 
-def __assignment_single_value_by_sum(x, value, indices, axis=0):
+def _assignment_single_value_by_sum(x, value, indices, axis=0):
     """Add a value at given indices of an array.
 
     Parameters
@@ -259,7 +259,7 @@ def assignment_by_sum(x, values, indices, axis=0):
     If a list is given, it must have the same length as indices.
     """
     if not isinstance(values, list):
-        return __assignment_single_value_by_sum(x, values, indices, axis)
+        return _assignment_single_value_by_sum(x, values, indices, axis)
 
     if not isinstance(indices, list):
         indices = [indices]
@@ -268,7 +268,7 @@ def assignment_by_sum(x, values, indices, axis=0):
         raise ValueError('Either one value or as many values as indices')
 
     for (nb_index, index) in enumerate(indices):
-        x = __assignment_single_value_by_sum(
+        x = _assignment_single_value_by_sum(
             x, values[nb_index], index, axis)
     return x
 
