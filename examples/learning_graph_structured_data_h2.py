@@ -121,7 +121,7 @@ def main():
     """Learning Poincaré graph embedding.
 
     Learns Poincaré Ball embedding by using Riemannian
-    gradient descent algorithm
+    gradient descent algorithm.
     """
     dim = 2
     max_epochs = 100
