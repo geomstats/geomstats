@@ -505,7 +505,7 @@ class SPDMetricAffine(RiemannianMetric):
         n_tangent_vecs, _, _ = tangent_vec.shape
 
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_base_points, mat_dim, _ = base_point.shape
+        n_base_points, _, _ = base_point.shape
 
         assert (n_tangent_vecs == n_base_points
                 or n_tangent_vecs == 1
@@ -580,7 +580,7 @@ class SPDMetricAffine(RiemannianMetric):
         n_points, _, _ = point.shape
 
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_base_points, mat_dim, _ = base_point.shape
+        n_base_points, _, _ = base_point.shape
 
         assert (n_points == n_base_points
                 or n_points == 1

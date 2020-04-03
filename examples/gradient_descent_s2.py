@@ -101,7 +101,7 @@ def main(output_file='out.mp4', max_iter=128):
     previous_x = initial_point
     geodesics = []
     n_steps = 20
-    for x, fx in gradient_descent(initial_point,
+    for x, _ in gradient_descent(initial_point,
                                   loss,
                                   grad,
                                   max_iter=max_iter,

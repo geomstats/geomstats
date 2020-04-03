@@ -150,7 +150,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
-            n_points, _ = point.shape
 
             regularized_point = point
             if self.n == 3:
@@ -337,7 +336,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         assert mat_dim_1 == mat_dim_2 == self.n
 
         if self.n == 3:
-            mat_unitary_u, diag_s, mat_unitary_v = gs.linalg.svd(mat)
+            mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
             rot_mat = gs.einsum('nij,njk->nik', mat_unitary_u, mat_unitary_v)
             mask = gs.less(gs.linalg.det(rot_mat), 0.)
             mask_float = gs.cast(mask, gs.float32) + self.epsilon
@@ -662,7 +661,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         rot_mat: array-like, shape=[n_samples, {dimension, [n, n]}]
         """
         rot_vec = self.regularize(rot_vec, point_type='vector')
-        n_rot_vecs, _ = rot_vec.shape
 
         if self.n == 3:
             angle = gs.linalg.norm(rot_vec, axis=1)
@@ -743,7 +741,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         assert self.n == 3, ('The quaternion representation does not exist'
                              ' for rotations in %d dimensions.' % self.n)
         rot_vec = self.regularize(rot_vec, point_type='vector')
-        n_rot_vecs, _ = rot_vec.shape
 
         angle = gs.linalg.norm(rot_vec, axis=1)
         angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
@@ -1128,7 +1125,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                              ' do not exist'
                              ' for rotations in %d dimensions.' % self.n)
         tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
-        n_tait_bryan_angles, _ = tait_bryan_angles.shape
 
         extrinsic_zyx = (extrinsic_or_intrinsic == 'extrinsic'
                          and order == 'zyx')

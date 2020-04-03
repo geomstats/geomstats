@@ -391,9 +391,6 @@ class InvariantMetric(RiemannianMetric):
 
         point = self.group.regularize(point)
 
-        n_points, _ = point.shape
-        n_base_points, _ = base_point.shape
-
         if self.left_or_right == 'left':
             point_near_id = self.group.compose(
                 self.group.inverse(base_point), point)

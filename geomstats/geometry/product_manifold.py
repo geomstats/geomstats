@@ -160,7 +160,7 @@ class ProductManifold(Manifold):
         if point_type == 'vector':
             data = self.manifolds[0].random_uniform(n_samples)
             if len(self.manifolds) > 1:
-                for i, space in enumerate(self.manifolds[1:]):
+                for space in self.manifolds[1:]:
                     data = gs.concatenate(
                         [data, space.random_uniform(n_samples)],
                         axis=1)
