@@ -34,3 +34,9 @@ def choice(a, size=None, replace=True, p=None):
         p = torch.ones_like(a) / float(len(a))
     sample = a[torch.multinomial(p, size_prod, replacement=replace)]
     return sample.reshape(size)
+
+
+def uniform(low=0.0, high=1.0, size=None):
+    if size is None:
+        size = (1,)
+    return (high - low) * torch.rand(*size) + low
