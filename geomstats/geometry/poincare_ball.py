@@ -25,12 +25,10 @@ class PoincareBall(hyperbolic.Hyperbolic):
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
     """
-
     default_coords_type = 'ball'
     default_point_type = 'vector'
 
     def __init__(self, dimension, scale=1):
-        assert isinstance(dimension, int) and dimension > 0
         super(PoincareBall, self).__init__(
             dimension=dimension,
             embedding_manifold=None,
@@ -85,7 +83,6 @@ class PoincareBallMetric(RiemannianMetric):
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
 
-        assert scale > 0, 'The scale should be strictly positive'
         self.scale = scale
 
     def exp(self, tangent_vec, base_point):

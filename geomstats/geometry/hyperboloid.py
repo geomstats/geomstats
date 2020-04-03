@@ -61,7 +61,6 @@ class Hyperboloid(Hyperbolic):
     default_point_type = 'vector'
 
     def __init__(self, dimension, coords_type='extrinsic', scale=1):
-        assert isinstance(dimension, int) and dimension > 0
         super(Hyperboloid, self).__init__(
             dimension=dimension,
             embedding_manifold=Minkowski(dimension + 1),
@@ -229,7 +228,6 @@ class HyperboloidMetric(HyperbolicMetric):
         self.coords_type = coords_type
         self.point_type = HyperbolicMetric.default_point_type
 
-        assert scale > 0, 'The scale should be strictly positive'
         self.scale = scale
 
     def _inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):

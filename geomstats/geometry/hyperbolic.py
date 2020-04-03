@@ -35,8 +35,7 @@ class Hyperbolic(EmbeddedManifold):
     default_coords_type = 'extrinsic'
     default_point_type = 'vector'
 
-    def __init__(self, dimension, embedding_manifold=None, scale=1,):
-        assert isinstance(dimension, int) and dimension > 0
+    def __init__(self, dimension, embedding_manifold=None, scale=1):
         super(Hyperbolic, self).__init__(
             dimension=dimension,
             embedding_manifold=embedding_manifold)
@@ -181,8 +180,6 @@ class Hyperbolic(EmbeddedManifold):
         extrinsic : array-like, shape=[n_samples, 3]
             Point in hyperbolic plane in extrinsic coordinates.
         """
-        assert point.shape[-1] == 2, "For the upper half-plane\
-             the dimension should be set to 2"
         x, y = point[:, 0], point[:, 1]
         x2 = point[:, 0]**2
         den = x2 + (1 + y)**2
@@ -214,8 +211,6 @@ class Hyperbolic(EmbeddedManifold):
         """
         point_ball = \
             Hyperbolic._extrinsic_to_ball_coordinates(point)
-        assert point_ball.shape[-1] == 2, "For the upper half-plane\
-             the dimension should be set to 2"
         point_ball_x, point_ball_y = point_ball[:, 0], point_ball[:, 1]
         point_ball_x2 = point_ball_x**2
         denom = point_ball_x2 + (1 - point_ball_y)**2
@@ -395,7 +390,6 @@ class HyperbolicMetric(RiemannianMetric):
             signature=(dimension, 0, 0))
         self.point_type = HyperbolicMetric.default_point_type
 
-        assert scale > 0, 'The scale should be strictly positive'
         self.scale = scale
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
