@@ -34,7 +34,7 @@ def main():
 
     neigh = KNearestNeighborsClassifier(
         n_neighbors=2,
-        metric=sphere_distance)
+        distance=sphere_distance)
     neigh.fit(training_dataset, labels)
     target_labels = neigh.predict(target)
 
