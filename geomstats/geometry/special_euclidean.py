@@ -5,6 +5,7 @@ i.e. the Lie group of rigid transformations in n dimensions.
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
@@ -35,7 +36,9 @@ TAYLOR_COEFFS_2_AT_0 = [+ 1. / 6., 0.,
 class SpecialEuclidean(LieGroup):
     """Class for the special euclidean group SE(n).
 
-    i.e. the Lie group of rigid transformations.
+    i.e. the Lie group of rigid transformations. Elements of SE(n) can either
+    be represented as vectors (in 3d) or as matrices in general. The matrix
+    representation corresponds to homogeneous coordinates.
     """
 
     def __init__(self, n, point_type=None, epsilon=0.):
@@ -88,10 +91,14 @@ class SpecialEuclidean(LieGroup):
             point_type = self.default_point_type
 
         identity = gs.zeros(self.dimension)
-        if self.default_point_type == 'matrix':
-            identity = gs.eye(self.n)
+        if point_type == 'matrix':
+            identity = gs.eye(self.n + 1)
         return identity
     identity = property(get_identity)
+
+    def get_point_type_shape(self, point_type=None):
+        """Get the shape of the instance given the default_point_style."""
+        return self.get_identity(point_type).shape
 
     def belongs(self, point, point_type=None):
         """Evaluate if a point belongs to SE(n).
@@ -115,12 +122,28 @@ class SpecialEuclidean(LieGroup):
             point = gs.to_ndarray(point, to_ndim=2)
             n_points, point_dim = point.shape
             belongs = point_dim == self.dimension
-            belongs = gs.to_ndarray(belongs, to_ndim=1)
-            belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
-            belongs = gs.tile(belongs, (n_points, 1))
+            belongs = gs.logical_and(
+                belongs, self.rotations.belongs(point[:, :self.n]))
+            belongs = gs.flatten(belongs)
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
-            raise NotImplementedError()
+            n_points, point_dim1, point_dim2 = point.shape
+            belongs = (point_dim1 == point_dim2 == self.n + 1)
+            rotation = point[:, :self.n, :self.n]
+            rot_belongs = self.rotations.belongs(
+                rotation, point_type=point_type)
+            belongs = gs.logical_and(belongs, rot_belongs)
+
+            last_line_except_last_term = point[:, self.n:, :-1]
+            all_but_last_zeros = ~ gs.any(
+                last_line_except_last_term, axis=(1, 2))
+            all_but_last_zeros = gs.to_ndarray(
+                all_but_last_zeros, to_ndim=2, axis=1)
+            belongs = gs.logical_and(belongs, all_but_last_zeros)
+
+            last_term = point[:, self.n:, self.n:]
+            belongs = gs.logical_and(belongs, gs.all(last_term == 1, axis=1))
+            belongs = gs.flatten(belongs)
 
         return belongs
 
@@ -157,8 +180,7 @@ class SpecialEuclidean(LieGroup):
                 [regularized_rot_vec, translation], axis=1)
 
         elif point_type == 'matrix':
-            point = gs.to_ndarray(point, to_ndim=3)
-            regularized_point = gs.copy(point)
+            regularized_point = gs.to_ndarray(point, to_ndim=3)
 
         return regularized_point
 
@@ -223,7 +245,6 @@ class SpecialEuclidean(LieGroup):
                 inner_product_mat_at_identity=rot_metric_mat,
                 left_or_right=metric.left_or_right)
 
-            regularized_vec = gs.zeros_like(tangent_vec)
             rotations_vec = rotations.regularize_tangent_vec(
                 tangent_vec=rot_tangent_vec,
                 base_point=rot_base_point,
@@ -237,6 +258,33 @@ class SpecialEuclidean(LieGroup):
             regularized_vec = tangent_vec
 
         return regularized_vec
+
+    def matrix_from_vector(self, vec):
+        """Convert point in vector point-type to matrix.
+
+        Parameters
+        ----------
+        vec: array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        mat: array-like, shape=[n_samples, {dimension, [n+1, n+1]}]
+        """
+        vec = self.regularize(vec, point_type='vector')
+        n_vecs, _ = vec.shape
+
+        rot_vec = vec[:, :self.rotations.dimension]
+        trans_vec = vec[:, self.rotations.dimension:]
+
+        rot_mat = self.rotations.matrix_from_rotation_vector(rot_vec)
+        trans_vec = gs.reshape(trans_vec, (n_vecs, self.n, 1))
+        mat = gs.concatenate((rot_mat, trans_vec), axis=2)
+        last_lines = gs.array(gs.get_mask_i_float(self.n, self.n + 1))
+        last_lines = gs.to_ndarray(last_lines, to_ndim=2)
+        last_lines = gs.to_ndarray(last_lines, to_ndim=3)
+        mat = gs.concatenate((mat, last_lines), axis=1)
+
+        return mat
 
     def compose(self, point_1, point_2, point_type=None):
         r"""Compose two elements of SE(n).
@@ -300,7 +348,7 @@ class SpecialEuclidean(LieGroup):
                                           composition_translation), axis=1)
 
         elif point_type == 'matrix':
-            raise NotImplementedError()
+            composition = GeneralLinear.compose(point_1, point_2)
 
         composition = self.regularize(composition, point_type=point_type)
         return composition
@@ -311,6 +359,8 @@ class SpecialEuclidean(LieGroup):
         Parameters
         ----------
         point: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point_type: str, {'vector', 'matrix'}, optional
+            default: self.default_point_type
 
         Returns
         -------
@@ -351,7 +401,13 @@ class SpecialEuclidean(LieGroup):
                 [inverse_rotation, inverse_translation], axis=1)
 
         elif point_type == 'matrix':
-            raise NotImplementedError()
+            inverse_point = gs.empty_like(point)
+            inverse_point[:, :self.n, :self.n] = gs.transpose(
+                point[:, :self.n, :self.n], axes=(0, 2, 1))
+            inverse_point[:, :self.n, self.n:] = gs.matmul(
+                inverse_point[:, :self.n, :self.n],
+                - point[:, :self.n, self.n:])
+            inverse_point[:, self.n:, :] = point[:, self.n:, :]
 
         inverse_point = self.regularize(inverse_point, point_type=point_type)
         return inverse_point
@@ -363,6 +419,7 @@ class SpecialEuclidean(LieGroup):
         Compute the jacobian matrix of the differential
         of the left/right translations from the identity to point in SE(n).
         Currently only implemented for point_type == 'vector'.
+        # TODO(nguigs): implement for matrix, formula p157 in Xavier's thesis
 
         Parameters
         ----------
@@ -430,7 +487,7 @@ class SpecialEuclidean(LieGroup):
             assert gs.ndim(jacobian) == 3
 
         elif point_type == 'matrix':
-            raise NotImplementedError()
+            jacobian = point
 
         return jacobian
 
@@ -515,8 +572,9 @@ class SpecialEuclidean(LieGroup):
 
             group_exp = self.regularize(group_exp, point_type=point_type)
             return group_exp
+
         elif point_type == 'matrix':
-            raise NotImplementedError()
+            return GeneralLinear.exp(tangent_vec)
 
     def log_from_identity(self, point, point_type=None):
         """Compute the group logarithm of the point at the identity.
@@ -606,7 +664,7 @@ class SpecialEuclidean(LieGroup):
             assert gs.ndim(group_log) == 2
 
         elif point_type == 'matrix':
-            raise NotImplementedError()
+            group_log = GeneralLinear.log(point)
 
         return group_log
 
@@ -617,33 +675,44 @@ class SpecialEuclidean(LieGroup):
         ----------
         n_samples: int, optional
             default: 1
-        point_typ: str, {'vector', 'matrix'}, optional
+        point_type: str, {'vector', 'matrix'}, optional
             default: self.default_point_type
-
 
         Returns
         -------
-        random_transfo: array-like,
+        random_point: array-like,
             shape=[n_samples, {dimension, [n + 1, n + 1]}]
-            an array of random elements in SE(n) having the given point_type
+            An array of random elements in SE(n) having the given point_type.
         """
         if point_type is None:
             point_type = self.default_point_type
 
-        random_rot_vec = self.rotations.random_uniform(
-            n_samples, point_type=point_type)
         random_translation = self.translations.random_uniform(n_samples)
 
         if point_type == 'vector':
-            random_transfo = gs.concatenate(
+            random_rot_vec = self.rotations.random_uniform(
+                n_samples, point_type=point_type)
+            random_point = gs.concatenate(
                 [random_rot_vec, random_translation],
                 axis=1)
 
         elif point_type == 'matrix':
-            raise NotImplementedError()
+            random_rotation = self.rotations.random_uniform(
+                n_samples, point_type=point_type)
+            if n_samples == 1:
+                random_translation = gs.to_ndarray(
+                    gs.transpose(random_translation), to_ndim=3)
+            else:
+                random_translation = gs.transpose(gs.to_ndarray(
+                    random_translation, to_ndim=3))
+            random_point = gs.concatenate(
+                (random_rotation, random_translation), axis=2)
+            last_line = gs.zeros((n_samples, 1, self.n + 1))
+            random_point = gs.concatenate(
+                (random_point, last_line), axis=1)
+            random_point = gs.assignment(random_point, 1, (-1, -1), axis=0)
 
-        random_transfo = self.regularize(random_transfo, point_type=point_type)
-        return random_transfo
+        return random_point
 
     def exponential_matrix(self, rot_vec):
         """Compute exponential of rotation matrix represented by rot_vec.
@@ -701,7 +770,7 @@ class SpecialEuclidean(LieGroup):
         return exponential_mat
 
     def exponential_barycenter(
-            self, points, weights=None, point_type=None):
+            self, points, weights=None, point_type=None, verbose=False):
         """Compute the group exponential barycenter in SE(n).
 
         Parameters
@@ -721,21 +790,20 @@ class SpecialEuclidean(LieGroup):
         if point_type is None:
             point_type = self.default_point_type
 
-        n_points = points.shape[0]
-        assert n_points > 0
-
-        if weights is None:
-            weights = gs.ones((n_points, 1))
-
-        weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
-        n_weights, _ = weights.shape
-        assert n_points == n_weights
-
         dim = self.dimension
         rotations = self.rotations
         dim_rotations = rotations.dimension
 
         if point_type == 'vector':
+            n_points = points.shape[0]
+            assert n_points > 0
+
+            if weights is None:
+                weights = gs.ones((n_points, 1))
+
+            weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
+            n_weights, _ = weights.shape
+            assert n_points == n_weights
             rotation_vectors = points[:, :dim_rotations]
             translations = points[:, dim_rotations:dim]
             assert rotation_vectors.shape == (n_points, dim_rotations)
@@ -773,8 +841,7 @@ class SpecialEuclidean(LieGroup):
             exp_bar[0, dim_rotations:dim] = mean_translation
 
         elif point_type == 'matrix':
-            vector_points = self.rotation_vector_from_matrix(points)
-            vector_exp_bar = self.exponential_barycenter(
-                vector_points, weights, point_type='vector')
-            exp_bar = self.matrix_from_rotation_vector(vector_exp_bar)
+            exp_bar = super(SpecialEuclidean, self).exponential_barycenter(
+                points, weights, point_type='matrix', verbose=verbose)
+
         return exp_bar

@@ -1,4 +1,5 @@
-"""
+"""Visualize convergence of the BCH formula approximation on so(n).
+
 Visualize the first, second and third order approximation of the Baker Campbell
 Hausdorf formula on so(n). To this end, sample 2 random elements a,b of so(n)
 and compute both the BCH approximations of different orders as well as
@@ -32,15 +33,15 @@ ALGEBRA = SkewSymmetricMatrices(n=N)
 
 
 def main():
-    norm_rv_1 = gs.normal(size=DIM)
+    norm_rv_1 = gs.random.normal(size=DIM)
     tan_rv_1 = ALGEBRA.matrix_representation(
-        norm_rv_1 / gs.norm(norm_rv_1, axis=0) / 2
+        norm_rv_1 / gs.linalg.norm(norm_rv_1, axis=0) / 2
     )
     exp_1 = gs.linalg.expm(tan_rv_1)
 
-    norm_rv_2 = gs.normal(size=DIM)
+    norm_rv_2 = gs.random.normal(size=DIM)
     tan_rv_2 = ALGEBRA.matrix_representation(
-        norm_rv_2 / gs.norm(norm_rv_2, axis=0) / 2
+        norm_rv_2 / gs.linalg.norm(norm_rv_2, axis=0) / 2
     )
     exp_2 = gs.linalg.expm(tan_rv_2)
 
@@ -86,7 +87,6 @@ def main():
     plt.grid()
 
     plt.show()
-    plt.close()
 
 
 if __name__ == '__main__':

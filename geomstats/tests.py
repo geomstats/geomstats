@@ -64,18 +64,6 @@ def np_and_pytorch_only(test_item):
         test_item)
 
 
-class DummySession:
-    """Class for dummy sessions."""
-
-    def __enter__(self):
-        """Enter."""
-        pass
-
-    def __exit__(self, a, b, c):
-        """Exit."""
-        pass
-
-
 _TestBaseClass = unittest.TestCase
 if tf_backend():
     import tensorflow as tf
@@ -97,11 +85,6 @@ class TestCase(_TestBaseClass):
         else:
             are_same = np.all(a == np_a)
         return are_same_shape and are_same
-
-    def session(self):
-        if tf_backend():
-            return super().test_session()
-        return DummySession()
 
     def assertShapeEqual(self, a, b):
         if tf_backend():
