@@ -215,7 +215,9 @@ def _adaptive_gradient_descent(points,
     Frechet mean of (weighted) points using adaptive time-steps
     The loss function optimized is :math:`||M_1(x)||_x`
     (where :math:`M_1(x)` is the tangent mean at x) rather than
-    the mean-square-distance (MSD) because this saves computation time.
+    the mean-square-distance (MSD) because this simplifies computations.
+    Adaptivity is done in a Levenberg-Marquardt style weighting variable tau
+    between the first order and the second order Gauss-Newton gradient descent.
 
     Parameters
     ----------
@@ -239,11 +241,10 @@ def _adaptive_gradient_descent(points,
     current_mean: array-like, shape=[n_samples, dimension]
         Weighted Frechet mean of the points.
     """
-    # Levenberg-Marquardt adaptive time-step scheme constants
-    TAU_MAX = 1e6
-    TAU_MUL_UP = 1.6511111
-    TAU_MIN = 1e-6
-    TAU_MUL_DOWN = 0.1
+    tau_max = 1e6
+    tau_mul_up = 1.6511111
+    tau_min = 1e-6
+    tau_mul_down = 0.1
     if point_type == 'matrix':
         raise NotImplementedError(
             'The Frechet mean with adaptive gradient descent is only'
@@ -295,9 +296,9 @@ def _adaptive_gradient_descent(points,
             current_mean = next_mean
             current_tangent_mean = next_tangent_mean
             sq_norm_current_tangent_mean = sq_norm_next_tangent_mean
-            tau = min(TAU_MAX, TAU_MUL_UP * tau)
+            tau = min(tau_max, tau_mul_up * tau)
         else:
-            tau = max(TAU_MIN, TAU_MUL_DOWN * tau)
+            tau = max(tau_min, tau_mul_down * tau)
 
     if iteration == n_max_iterations:
         logging.warning(
