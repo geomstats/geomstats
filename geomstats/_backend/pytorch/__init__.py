@@ -6,12 +6,12 @@ import torch
 from . import linalg  # NOQA
 from . import random  # NOQA
 
-double = 'torch.DoubleTensor'
-float16 = 'torch.Float'
+# XXX(nkoep): Why are we using CPU tensor names here instead of dtype literals
+#             like torch.int32, etc.?
+int32 = 'torch.IntTensor'
+int64 = 'torch.LongTensor'
 float32 = 'torch.FloatTensor'
 float64 = 'torch.DoubleTensor'
-int32 = 'torch.LongTensor'
-int8 = 'torch.ByteTensor'
 
 
 def while_loop(cond, body, loop_vars, maximum_iterations):

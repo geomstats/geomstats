@@ -86,7 +86,6 @@ from scipy.sparse import coo_matrix
 from . import linalg  # NOQA
 from . import random  # NOQA
 
-integer = _np.integer
 int8 = _np.int8
 int32 = _np.int32
 int64 = _np.int64
