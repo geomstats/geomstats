@@ -94,7 +94,7 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
     def test_inner_product_matrix_matrix(self):
         space = ProductManifold(
             manifolds=[Hypersphere(dimension=2).embedding_manifold,
-                       Hyperbolic(dimension=2).embedding_manifold],
+                       Hyperboloid(dimension=2).embedding_manifold],
             default_point_type='matrix')
         point = space.random_uniform(1)
         result = space.metric.inner_product_matrix(point)
@@ -106,7 +106,7 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
     def test_inner_product_matrix_vector(self):
         space = ProductManifold(
             manifolds=[Hypersphere(dimension=2).embedding_manifold,
-                       Hyperbolic(dimension=2).embedding_manifold],
+                       Hyperboloid(dimension=2).embedding_manifold],
             default_point_type='vector')
         point = space.random_uniform(1)
         expected = gs.identity(6)
