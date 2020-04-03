@@ -3,19 +3,14 @@
 The n-dimensional hyperbolic space embedded with
 the hyperboloid representation (embedded in minkowsky space).
 """
-
-import math
-
-
 import geomstats.backend as gs
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
-from geomstats.geometry.minkowski import Minkowski
-from geomstats.geometry.minkowski import MinkowskiMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-
+from geomstats.geometry.minkowski import Minkowski
+from geomstats.geometry import hyperbolic
 
 TOLERANCE = 1e-6
 EPSILON = 1e-6
+
 
 class PoincareBall(hyperbolic.Hyperbolic):
     """Class for the n-dimensional hyperbolic space.
@@ -46,11 +41,10 @@ class PoincareBall(hyperbolic.Hyperbolic):
         assert isinstance(dimension, int) and dimension > 0
         super(PoincareBall, self).__init__(
             dimension=dimension,
-            embedding_manifold=Minkowski(dimension + 1))
+            embedding_manifold=None)
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
 
-        self.embedding_metric = self.embedding_manifold.metric
 
         self.scale = scale
         self.metric =\
@@ -115,7 +109,7 @@ class PoincareBallMetric(RiemannianMetric):
         super(PoincareBallMetric, self).__init__(
             dimension=dimension,
             signature=(dimension, 0, 0))
-        self.embedding_metric = MinkowskiMetric(dimension + 1)
+        self.embedding_metric = None
 
         self.coords_type = coords_type
         self.point_type = PoincareBallMetric.default_point_type
@@ -256,3 +250,69 @@ class PoincareBallMetric(RiemannianMetric):
         dist *= self.scale
         return dist
 
+    def retraction(self, tangent_vec, base_point):
+        """Poincaré ball model retraction.
+
+        Approximate the exponential map of hyperbolic space,
+        currently working only with poincare ball.
+        .. [1] nickel et.al, "Poincaré Embedding for
+         Learning Hierarchical Representation", 2017.
+
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[n_samples, dimension]
+            vector in tangent space.
+        base_point : array-like, shape=[n_samples, dimension]
+            Second point in hyperbolic space.
+
+        Returns
+        -------
+        point : array-like, shape=[n_samples, dimension]
+            Retraction point.
+        """
+        if self.coords_type == 'ball':
+            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+            base_point = gs.to_ndarray(base_point, to_ndim=2)
+
+            retraction_factor = ((1 - (base_point**2).sum(axis=-1))**2) / 4
+            retraction_factor =\
+                gs.repeat(gs.expand_dims(retraction_factor, -1),
+                          base_point.shape[1],
+                          axis=1)
+            return base_point - retraction_factor * tangent_vec
+        else:
+            raise NotImplementedError(
+                'Retraction is only implemented for ball and extrinsic')
+
+    def inner_product_matrix(self, base_point=None):
+        """Compute the inner product matrix, independent of the base point.
+
+        Parameters
+        ----------
+        base_point: array-like, shape=[n_samples, dimension]
+
+        Returns
+        -------
+        inner_prod_mat: array-like, shape=[n_samples, dimension, dimension]
+        """
+
+        if(base_point is None):
+            base_point = gs.zeros((1, self.dimension))
+        dim = base_point.shape[-1]
+        n_sample = base_point.shape[0]
+
+        lambda_base =\
+            2 / (1 - gs.sum(base_point * base_point, axis=-1))
+
+        expanded_lambda_base =\
+            gs.expand_dims(gs.expand_dims(lambda_base, axis=-1), -1)
+        reshaped_lambda_base =\
+            gs.repeat(gs.repeat(expanded_lambda_base, dim, axis=-2),
+                      dim, axis=-1)
+
+        identity = gs.eye(self.dimension, self.dimension)
+        reshaped_identity =\
+            gs.repeat(gs.expand_dims(identity, 0), n_sample, axis=0)
+
+        return reshaped_lambda_base * reshaped_identity
