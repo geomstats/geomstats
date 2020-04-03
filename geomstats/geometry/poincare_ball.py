@@ -25,6 +25,7 @@ class PoincareBall(Hyperbolic):
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
     """
+
     default_coords_type = 'ball'
     default_point_type = 'vector'
 
