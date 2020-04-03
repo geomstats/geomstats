@@ -15,10 +15,10 @@ from autograd.numpy.linalg import (  # NOQA
 # TODO(nina): Clean this import.
 from geomstats._backend.numpy.__init__ import to_ndarray as _to_ndarray
 
-TOL = 1e-10
+_TOL = 1e-10
 
 
-def _is_symmetric(x, tol=TOL):
+def _is_symmetric(x, tol=_TOL):
     new_x = _to_ndarray(x, to_ndim=3)
     return (np.abs(new_x - np.transpose(new_x, axes=(0, 2, 1))) < tol).all()
 
