@@ -206,7 +206,7 @@ def _ball_gradient_descent(points, metric, weights, max_iter,
 def _adaptive_gradient_descent(points,
                                metric,
                                weights=None,
-                               max_iter=32,,
+                               max_iter=32,
                                epsilon=1e-11,
                                init_points=[],
                                point_type='vector'):
