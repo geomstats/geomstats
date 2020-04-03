@@ -13,7 +13,7 @@ from autograd.numpy.linalg import (  # NOQA
 )
 
 # TODO(nina): Clean this import.
-from geomstats.backend.numpy.__init__ import to_ndarray as _to_ndarray
+from geomstats._backend.numpy.__init__ import to_ndarray as _to_ndarray
 
 TOL = 1e-10
 
