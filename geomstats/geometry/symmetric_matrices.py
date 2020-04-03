@@ -1,5 +1,7 @@
 """The vector space of symmetric matrices."""
 
+import logging
+
 import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.matrices import Matrices
@@ -26,7 +28,8 @@ class SymmetricMatrices(EmbeddedManifold):
     def vector_from_symmetric_matrix(mat):
         """Convert the symmetric part of a symmetric matrix into a vector."""
         mat = gs.to_ndarray(mat, to_ndim=3)
-        assert gs.all(Matrices.is_symmetric(mat))
+        if not gs.all(Matrices.is_symmetric(mat)):
+            logging.warning('non-symmetric matrix encountered.')
         mat = Matrices.make_symmetric(mat)
         _, dim, _ = mat.shape
         i, j = gs.tril_indices(dim)

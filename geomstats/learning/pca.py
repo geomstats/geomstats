@@ -169,7 +169,7 @@ class TangentPCA(_BasePCA):
         -------
         X_new : array-like, shape=[n_samples, n_components]
         """
-        tangent_vecs = self.metric.log(X, base_point=self._base_point_fit)
+        tangent_vecs = self.metric.log(X, base_point=self.base_point_fit)
         if self.point_type == 'matrix':
             if Matrices.is_symmetric(tangent_vecs).all():
                 X = SymmetricMatrices.vector_from_symmetric_matrix(
@@ -200,11 +200,11 @@ class TangentPCA(_BasePCA):
         scores = self.mean_ + gs.matmul(
             X, self.components_)
         if self.point_type == 'matrix':
-            if Matrices.is_symmetric(self._base_point_fit).all():
+            if Matrices.is_symmetric(self.base_point_fit).all():
                 scores = SymmetricMatrices.symmetric_matrix_from_vector(scores)
             else:
                 scores = gs.reshape(scores, X.shape)
-        return self.metric.exp(scores, self._base_point_fit)
+        return self.metric.exp(scores, self.base_point_fit)
 
     def _fit(self, X, base_point=None):
         """Fit the model by computing full SVD on X.
@@ -266,8 +266,6 @@ class TangentPCA(_BasePCA):
                                  "was of type=%r"
                                  % (n_components, type(n_components)))
 
-        # save the Frecht mean to transform future points
-        self._base_point_fit = base_point
         # Center data - the mean should be 0 if base_point is the Frechet mean
         self.mean_ = gs.mean(X, axis=0)
         X -= self.mean_
@@ -301,6 +299,7 @@ class TangentPCA(_BasePCA):
         else:
             self.noise_variance_ = 0.
 
+        self.base_point_fit = base_point
         self.n_samples_, self.n_features_ = n_samples, n_features
         self.components_ = components_[:n_components]
         self.n_components_ = n_components
