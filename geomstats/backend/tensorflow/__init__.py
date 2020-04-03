@@ -101,7 +101,7 @@ def duplicate_array(x, n_samples, axis=0):
     """
     multiples = _np.ones(ndim(x) + 1, dtype=_np.int32)
     multiples[axis] = n_samples
-    return tile(to_ndarray(x, ndim(x) + 1), multiples)
+    return tile(to_ndarray(x, ndim(x) + 1, axis), multiples)
 
 
 def get_vectorized_mask_float(
@@ -126,7 +126,6 @@ def get_vectorized_mask_float(
     tf_mask : array, shape=[mask_shape[:axis], n_samples, mask_shape[axis:]]
     """
     mask = get_mask_float(indices, mask_shape, dtype)
-    print('mask', mask)
     return duplicate_array(mask, n_samples, axis=axis)
 
 
@@ -246,17 +245,13 @@ def assignment_single_value(x, value, indices, axis=0):
         use_vectorization = ndim(x) > 1
 
     if use_vectorization:
-        n_samples = shape(x).numpy()[0]
+        full_shape = shape(x).numpy()
+        n_samples = full_shape[axis]
+        tile_shape = list(full_shape[:axis]) + list(full_shape[axis+1:])
         mask = get_vectorized_mask_float(
-            n_samples, indices, shape(x).numpy()[1:], axis, x.dtype)
+            n_samples, indices, tile_shape, axis, x.dtype)
     else:
         mask = get_mask_float(indices, shape(x), x.dtype)
-    print(axis)
-    print(x)
-    print(mask)
-    print(value * mask)
-    print(-x)
-    print(-x * mask)
     x_new = x + -x * mask + value * mask
     return x_new
 
