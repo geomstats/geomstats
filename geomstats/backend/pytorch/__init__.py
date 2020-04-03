@@ -35,7 +35,6 @@ def logical_and(x, y):
 def any(x, axis=0):
     numpy_result = _np.array(_np.any(_np.array(x), axis=axis))
     return torch.from_numpy(numpy_result)
-    # return x.type(torch.bool).any(axis)
 
 
 def cond(pred, true_fn, false_fn):
