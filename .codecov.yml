@@ -2,6 +2,23 @@
 coverage:
   round: up
   precision: 2
+  status:
+    project:
+      default:
+        target: 90%
+        threshold: 2%
+    numpy:
+      target: 90%
+      flags:
+          - numpy
+    pytorch:
+      target: 40%
+      flags:
+          - pytorch
+    tensorflow:
+      target: 40%
+      flags:
+          - tensorflow
 
 # Repository Yaml
 coverage:
