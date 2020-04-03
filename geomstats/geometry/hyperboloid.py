@@ -8,7 +8,7 @@ import math
 
 
 import geomstats.backend as gs
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
+from geomstats.geometry import hyperbolic
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.minkowski import MinkowskiMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -175,7 +175,7 @@ class Hyperboloid(hyperbolic.Hyperbolic):
         tangent_vec = vector - gs.einsum('ni,nj->nj', coef, base_point)
         return tangent_vec
 
-class HyperbolicMetric(RiemannianMetric):
+class HyperboloidMetric(hyperbolic.HyperbolicMetric):
     """Class that defines operations using a hyperbolic metric.
 
     Parameters
@@ -193,13 +193,13 @@ class HyperbolicMetric(RiemannianMetric):
     default_coords_type = 'extrinsic'
 
     def __init__(self, dimension, coords_type='extrinsic', scale=1):
-        super(HyperbolicMetric, self).__init__(
+        super(hyperbolic.HyperbolicMetric, self).__init__(
             dimension=dimension,
-            signature=(dimension, 0, 0))
+            scale=scale)
         self.embedding_metric = MinkowskiMetric(dimension + 1)
 
         self.coords_type = coords_type
-        self.point_type = HyperbolicMetric.default_point_type
+        self.point_type = hyperbolic.HyperbolicMetric.default_point_type
 
         assert scale > 0, 'The scale should be strictly positive'
         self.scale = scale
