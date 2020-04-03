@@ -296,7 +296,6 @@ class TestBackends(geomstats.tests.TestCase):
         gs_result = gs.assignment(gs_array_4, 1, (0, 1), axis=1)
         self.assertAllCloseToNp(gs_result, np_array_4)
 
-
     def test_assignment_by_sum(self):
         np_array_1 = _np.ones(3)
         gs_array_1 = gs.ones_like(gs.array(np_array_1))
@@ -325,6 +324,3 @@ class TestBackends(geomstats.tests.TestCase):
         np_array_4[0, :, 1] += 1
         gs_result = gs.assignment_by_sum(gs_array_4, 1, (0, 1), axis=1)
         self.assertAllCloseToNp(gs_result, np_array_4)
-
-
-
