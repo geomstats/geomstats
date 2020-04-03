@@ -22,12 +22,24 @@ class SymmetricMatrices(EmbeddedManifold):
         """Check if mat belongs to the vector space of symmetric matrices."""
         return Matrices(self.n, self.n).is_symmetric(mat=mat, atol=atol)
 
-    def expm(x):
-        """Compute the matrix exponential."""
+    def expm(self, x):
+        """
+        Compute the matrix exponential.
+
+        Parameters
+        ----------
+        x : array_like, shape=[n_samples, n, n]
+            Symmetric matrix.
+
+        Returns
+        -------
+        exponential : array_like, shape=[n_samples, n, n]
+            Exponential of x.
+        """
         eigvals, eigvecs = gs.linalg.eigh(x)
         eigvals = gs.exp(eigvals)
         eigvals = gs.from_vector_to_diagonal_matrix(eigvals)
         transp_eigvecs = gs.transpose(eigvecs, axes=(0, 2, 1))
-        result = gs.matmul(eigvecs, eigvals)
-        result = gs.matmul(result, transp_eigvecs)
-        return result
+        exponential = gs.matmul(eigvecs, eigvals)
+        exponential = gs.matmul(exponential, transp_eigvecs)
+        return exponential
