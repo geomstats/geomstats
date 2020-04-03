@@ -323,17 +323,6 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-<<<<<<< HEAD
-=======
-    def test_exp_poincare(self):
-
-        self.space.metric.coords_type = 'ball'
-        result = 0
-        expected = 0
-        self.space.metric.coords_type = 'extrinsic'
-        self.assertAllClose(result, expected)
-
->>>>>>> f9a360513fc8b0bd11ae4d63021b0c729fdb3ca3
     @geomstats.tests.np_only
     def test_log_poincare(self):
 
