@@ -2,8 +2,8 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.pca import TangentPCA
 
 
