@@ -128,8 +128,9 @@ def assignment_single_value_by_sum(x, value, indices, axis=0):
         Initial array.
     value: float
         Value to be added.
-    indices: {tuple, list(tuple)}
-        Single tuple, or list of tuples of indices where value is assigned.
+    indices: {int, tuple, list(int), list(tuple)}
+        Single int or tuple, or list of ints or tuples of indices where value
+        is assigned.
         If the length of the tuples is shorter than ndim(x), value is
         assigned to each copy along axis.
     axis: int, optional
@@ -165,8 +166,9 @@ def assignment_by_sum(x, values, indices, axis=0):
         Initial array.
     values: {float, list(float)}
         Value or list of values to be assigned.
-    indices: {tuple, list(tuple)}
-        Single tuple, or list of tuples of indices where values are added.
+    indices: {int, tuple, list(int), list(tuple)}
+        Single int or tuple, or list of ints or tuples of indices where value
+        is assigned.
         If the length of the tuples is shorter than ndim(x), values are
         assigned to each copy along axis.
     axis: int, optional
@@ -207,8 +209,9 @@ def assignment_single_value(x, value, indices, axis=0):
         Initial array.
     value: float
         Value to be added.
-    indices: {tuple, list(tuple)}
-        Single tuple, or list of tuples of indices where value is assigned.
+    indices: {int, tuple, list(int), list(tuple)}
+        Single int or tuple, or list of ints or tuples of indices where value
+        is assigned.
         If the length of the tuples is shorter than ndim(x), value is
         assigned to each copy along axis.
     axis: int, optional
@@ -244,8 +247,9 @@ def assignment(x, values, indices, axis=0):
         Initial array.
     values: {float, list(float)}
         Value or list of values to be assigned.
-    indices: {tuple, list(tuple)}
-        Single tuple, or list of tuples of indices where values are assigned.
+    indices: {int, tuple, list(int), list(tuple)}
+        Single int or tuple, or list of ints or tuples of indices where value
+        is assigned.
         If the length of the tuples is shorter than ndim(x), values are
         assigned to each copy along axis.
     axis: int, optional
