@@ -571,8 +571,10 @@ class SpecialEuclidean(LieGroup):
             group_exp = self.regularize(group_exp, point_type=point_type)
             return group_exp
 
-        elif point_type == 'matrix':
+        if point_type == 'matrix':
             return GeneralLinear.exp(tangent_vec)
+
+        raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
     def log_from_identity(self, point, point_type=None):
         """Compute the group logarithm of the point at the identity.

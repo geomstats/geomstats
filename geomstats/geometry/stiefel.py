@@ -487,14 +487,13 @@ class StiefelCanonicalMetric(RiemannianMetric):
             if i == 0:
                 assert matrix[0, 0] > 0, 'M[0,0] <= 0'
                 return gs.array([1. / matrix[0, 0]])
-            else:
-                matrix_m_i = _make_minor(i, matrix_m_k)
-                inv_matrix_m_i = gs.linalg.inv(matrix_m_i)
-                b_i = _make_b(i, matrix_m_k, columns_list)
-                column_r_i = gs.matmul(inv_matrix_m_i, b_i)
+            matrix_m_i = _make_minor(i, matrix_m_k)
+            inv_matrix_m_i = gs.linalg.inv(matrix_m_i)
+            b_i = _make_b(i, matrix_m_k, columns_list)
+            column_r_i = gs.matmul(inv_matrix_m_i, b_i)
 
-                assert column_r_i[i] > 0, '(r_i)_i <= 0'
-                return column_r_i
+            assert column_r_i[i] > 0, '(r_i)_i <= 0'
+            return column_r_i
 
         def _make_b(i, matrix, list_matrices_r):
             b = gs.ones(i + 1)
