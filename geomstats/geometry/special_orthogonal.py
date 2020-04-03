@@ -117,7 +117,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             point = gs.to_ndarray(point, to_ndim=3)
             point_transpose = gs.transpose(point, axes=(0, 2, 1))
             mask = gs.isclose(gs.matmul(point, point_transpose),
-                              gs.eye(self.n))
+                              gs.eye(self.n), atol=1e-7)
             mask = gs.all(mask, axis=(1, 2))
 
             mask = gs.to_ndarray(mask, to_ndim=1)
@@ -390,7 +390,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         if self.n == 2:  # SO(2)
             id_skew = gs.array([[[0., 1.], [-1., 0.]]] * n_vecs)
             skew_mat = gs.einsum(
-                'nij,ni->nij', gs.cast(id_skew, gs.float32), vec)
+                '...ij,...i->...ij', gs.cast(id_skew, gs.float32), vec)
 
         elif self.n == 3:  # SO(3)
             # This avois dividing by 0.

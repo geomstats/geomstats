@@ -7,7 +7,7 @@ In exceptional cases, numpy's results or API may not be followed.
 
 import warnings
 
-import numpy as np
+import numpy as _np
 import scipy.linalg
 
 import geomstats.backend as gs
@@ -31,11 +31,11 @@ class TestBackends(geomstats.tests.TestCase):
                  [0., 0., 1.]]
         gs_mat_a = gs.array(mat_a)
         gs_mat_b = gs.array(mat_b)
-        np_mat_a = np.array(mat_a)
-        np_mat_b = np.array(mat_b)
+        np_mat_a = _np.array(mat_a)
+        np_mat_b = _np.array(mat_b)
 
         gs_result = gs.matmul(gs_mat_a, gs_mat_b)
-        np_result = np.matmul(np_mat_a, np_mat_b)
+        np_result = _np.matmul(np_mat_a, np_mat_b)
 
         self.assertAllCloseToNp(gs_result, np_result)
 
@@ -53,12 +53,12 @@ class TestBackends(geomstats.tests.TestCase):
         gs_mat_a = gs.array(mat_a)
         gs_mat_b = gs.array(mat_b)
         gs_mat_c = gs.array(mat_c)
-        np_mat_a = np.array(mat_a)
-        np_mat_b = np.array(mat_b)
-        np_mat_c = np.array(mat_c)
+        np_mat_a = _np.array(mat_a)
+        np_mat_b = _np.array(mat_b)
+        np_mat_c = _np.array(mat_c)
 
         gs_result = gs.matmul(gs_mat_a, [gs_mat_b, gs_mat_c])
-        np_result = np.matmul(np_mat_a, [np_mat_b, np_mat_c])
+        np_result = _np.matmul(np_mat_a, [np_mat_b, np_mat_c])
 
         self.assertAllCloseToNp(gs_result, np_result)
 
@@ -73,7 +73,7 @@ class TestBackends(geomstats.tests.TestCase):
                              [0., 0., 1.38629436]])
         self.assertAllClose(result, expected)
 
-        np_point = np.array(
+        np_point = _np.array(
             [[2., 0., 0.],
              [0., 3., 0.],
              [0., 0., 4.]])
@@ -89,7 +89,7 @@ class TestBackends(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(result, expected)
 
-        np_point = np.array(
+        np_point = _np.array(
             [[2., 0., 0.],
              [0., 3., 0.],
              [0., 0., 4.]])
@@ -235,3 +235,34 @@ class TestBackends(geomstats.tests.TestCase):
         result = gs.cumsum(gs.arange(10).reshape(2, 5), axis=1)
         expected = gs.array(([[0, 1, 3, 6, 10], [5, 11, 18, 26, 35]]))
         self.assertAllClose(result, expected)
+
+    def test_einsum(self):
+        np_array_1 = _np.array([[1, 4]])
+        np_array_2 = _np.array([[2, 3]])
+        array_1 = gs.array([[1, 4]])
+        array_2 = gs.array([[2, 3]])
+
+        np_result = _np.einsum('...i,...i->...', np_array_1, np_array_2)
+        gs_result = gs.einsum('...i,...i->...', array_1, array_2)
+
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_array_1 = _np.array([[1, 4], [-1, 5]])
+        np_array_2 = _np.array([[2, 3]])
+        array_1 = gs.array([[1, 4], [-1, 5]])
+        array_2 = gs.array([[2, 3]])
+
+        np_result = _np.einsum('...i,...i->...', np_array_1, np_array_2)
+        gs_result = gs.einsum('...i,...i->...', array_1, array_2)
+
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_array_1 = _np.array([[1, 4]])
+        np_array_2 = _np.array([[2, 3], [5, 6]])
+        array_1 = gs.array([[1, 4]])
+        array_2 = gs.array([[2, 3], [5, 6]])
+
+        np_result = _np.einsum('...i,...i->...', np_array_1, np_array_2)
+        gs_result = gs.einsum('...i,...i->...', array_1, array_2)
+
+        self.assertAllCloseToNp(gs_result, np_result)

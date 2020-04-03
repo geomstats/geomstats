@@ -202,6 +202,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_skew_matrix_from_vector_vectorization(self):
         point_type = 'vector'
         n_samples = self.n_samples
