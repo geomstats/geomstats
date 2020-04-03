@@ -56,6 +56,7 @@ class Hyperboloid(Hyperbolic):
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
     """
+
     default_coords_type = 'extrinsic'
     default_point_type = 'vector'
 
@@ -403,7 +404,6 @@ class HyperboloidMetric(HyperbolicMetric):
         dist : array-like, shape=[n_samples, 1]
             Geodesic distance between the two points.
         """
-
         sq_norm_a = self.embedding_metric.squared_norm(point_a)
         sq_norm_b = self.embedding_metric.squared_norm(point_b)
         inner_prod = self.embedding_metric.inner_product(point_a, point_b)

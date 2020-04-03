@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
-from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.learning.kmeans import RiemannianKMeans
 
@@ -25,7 +25,7 @@ def kmean_poincare_ball():
     n_samples = 20
     dim = 2
     n_clusters = 2
-    manifold = Hyperbolic(dimension=dim, coords_type='ball')
+    manifold = PoincareBall(dimension=dim)
     metric = manifold.metric
 
     cluster_1 = gs.random.uniform(low=0.5, high=0.6, size=(n_samples, dim))

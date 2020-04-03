@@ -4,8 +4,8 @@ The n-dimensional hyperbolic space embedded with
 the hyperboloid representation (embedded in minkowsky space).
 """
 import geomstats.backend as gs
-from geomstats.geometry.riemannian_metric import RiemannianMetric
 from geomstats.geometry import hyperbolic
+from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-6
 EPSILON = 1e-6
@@ -25,6 +25,7 @@ class PoincareBall(hyperbolic.Hyperbolic):
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
     """
+
     default_coords_type = 'ball'
     default_point_type = 'vector'
 
@@ -269,7 +270,6 @@ class PoincareBallMetric(RiemannianMetric):
         point : array-like, shape=[n_samples, dimension]
             Retraction point.
         """
-
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
@@ -291,7 +291,6 @@ class PoincareBallMetric(RiemannianMetric):
         -------
         inner_prod_mat: array-like, shape=[n_samples, dimension, dimension]
         """
-
         if(base_point is None):
             base_point = gs.zeros((1, self.dimension))
         dim = base_point.shape[-1]

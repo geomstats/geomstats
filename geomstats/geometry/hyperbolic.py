@@ -41,7 +41,7 @@ class Hyperbolic(EmbeddedManifold):
             dimension=dimension,
             embedding_manifold=embedding_manifold)
         self.point_type = Hyperbolic.default_point_type
-        self.coords_type = Hyperbolic.default_point_type
+        self.coords_type = Hyperbolic.default_coords_type
         self.scale = scale
         self.metric =\
             HyperbolicMetric(self.dimension, self.scale)
@@ -266,7 +266,6 @@ class Hyperbolic(EmbeddedManifold):
                                or shape=[n_sample, dimension + 1]
             Point in hyperbolic space in coordinates given by to_point_type.
         """
-
         coords_transform = {
             'ball-extrinsic':
                 Hyperbolic._ball_to_extrinsic_coordinates,

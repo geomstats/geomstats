@@ -7,7 +7,7 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.learning.frechet_mean import _adaptive_gradient_descent
@@ -20,7 +20,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
     def setUp(self):
         self.sphere = Hypersphere(dimension=4)
-        self.hyperbolic = Hyperbolic(dimension=3)
+        self.hyperbolic = Hyperboloid(dimension=3)
         self.euclidean = Euclidean(dimension=2)
         self.minkowski = Minkowski(dimension=2)
 

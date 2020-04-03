@@ -11,9 +11,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
-from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.hyperboloid import Hyperboloid
 
-H2 = Hyperbolic(dimension=2, coords_type='extrinsic')
+H2 = Hyperboloid(dimension=2, coords_type='extrinsic')
 METRIC = H2.metric
 
 

@@ -5,7 +5,7 @@ Unit tests for ProductManifold.
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.product_manifold import ProductManifold
 
@@ -15,10 +15,10 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
         gs.random.seed(1234)
 
         self.space_matrix = ProductManifold(
-            manifolds=[Hypersphere(dimension=2), Hyperbolic(dimension=2)],
+            manifolds=[Hypersphere(dimension=2), Hyperboloid(dimension=2)],
             default_point_type='matrix')
         self.space_vector = ProductManifold(
-            manifolds=[Hypersphere(dimension=2), Hyperbolic(dimension=5)],
+            manifolds=[Hypersphere(dimension=2), Hyperboloid(dimension=5)],
             default_point_type='vector')
 
     def test_dimension(self):
