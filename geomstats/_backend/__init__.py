@@ -52,7 +52,6 @@ BACKEND_FUNCTIONS = {
         'greater',
         'hsplit',
         'hstack',
-        'identity',
         'isclose',
         'less',
         'less_equal',

@@ -37,7 +37,6 @@ from autograd.numpy import (  # NOQA
     greater,
     hsplit,
     hstack,
-    identity,
     isclose,
     less,
     less_equal,

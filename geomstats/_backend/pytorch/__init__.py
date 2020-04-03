@@ -140,10 +140,6 @@ def concatenate(seq, axis=0, out=None):
     return torch.cat(seq, dim=axis, out=out)
 
 
-def identity(val):
-    return torch.eye(val)
-
-
 def hstack(seq):
     return concatenate(seq, axis=1)
 
