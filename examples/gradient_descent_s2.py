@@ -102,10 +102,10 @@ def main(output_file='out.mp4', max_iter=128):
     geodesics = []
     n_steps = 20
     for x, _ in gradient_descent(initial_point,
-                                  loss,
-                                  grad,
-                                  max_iter=max_iter,
-                                  manifold=SPHERE2):
+                                 loss,
+                                 grad,
+                                 max_iter=max_iter,
+                                 manifold=SPHERE2):
         initial_tangent_vec = METRIC.log(point=x, base_point=previous_x)
         geodesic = METRIC.geodesic(initial_point=previous_x,
                                    initial_tangent_vec=initial_tangent_vec)
