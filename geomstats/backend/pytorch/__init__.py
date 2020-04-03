@@ -562,7 +562,7 @@ def assignment(x, values, indices, axis=0):
         values = [values] * len(indices)
     for (nb_index, index) in enumerate(indices):
         if not isinstance(index, tuple):
-            index = index,
+            index = (index,)
         if len(index) < len(shape(x)):
             for n_axis in range(shape(x)[axis]):
                 extended_index = index[:axis] + (n_axis,) + index[axis:]
@@ -607,7 +607,7 @@ def assignment_by_sum(x, values, indices, axis=0):
         values = [values] * len(indices)
     for (nb_index, index) in enumerate(indices):
         if not isinstance(index, tuple):
-            index = index,
+            index = (index,)
         if len(index) < len(shape(x)):
             for n_axis in range(shape(x)[axis]):
                 extended_index = index[:axis] + (n_axis,) + index[axis:]
