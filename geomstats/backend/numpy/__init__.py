@@ -145,6 +145,31 @@ def get_mask_i_float(i, n):
 
 
 def assignment(x, values, indices, axis=0):
+    """Create a vectorized binary mask.
+
+    Parameters
+    ----------
+    x: array-like, shape=[dimension]
+        Initial array.
+    values: {float, list(float)}
+        Value or list of values to be assigned.
+    indices: {tuple, list(tuple)}
+        Single tuple, or list of tuples of indices where values are assigned.
+        If the length of the tuples is shorter than ndim(x), values are
+        assigned to each copy along axis.
+    axis: int, optional
+        Axis along which values are assigned, if vectorized.
+
+    Returns
+    -------
+    x_new : array-like, shape=[dimension]
+        Copy of x with the values assigned at the given indices.
+
+    Notes
+    -----
+    If a single value is provided, it is assigned at all the indices.
+    If a list is given, it must have the same length as indices.
+    """
     x_new = copy(x)
     single_index = not isinstance(indices, list)
     if single_index:
