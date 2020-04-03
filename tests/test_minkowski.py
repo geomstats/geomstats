@@ -86,16 +86,15 @@ class TestMinkowskiMethods(geomstats.tests.TestCase):
         self.assertAllClose(gs.shape(result_on), (n_samples, 1))
         self.assertAllClose(gs.shape(result_nn), (n_samples, 1))
 
-        with self.session():
-            expected = np.zeros(n_samples)
-            for i in range(n_samples):
-                expected[i] = gs.eval(gs.dot(n_points_a[i],
-                                             n_points_b[i]))
-                expected[i] -= (2 * gs.eval(n_points_a[i, self.time_like_dim])
-                                * gs.eval(n_points_b[i, self.time_like_dim]))
-            expected = helper.to_scalar(gs.array(expected))
+        expected = np.zeros(n_samples)
+        for i in range(n_samples):
+            expected[i] = gs.eval(gs.dot(n_points_a[i],
+                                         n_points_b[i]))
+            expected[i] -= (2 * gs.eval(n_points_a[i, self.time_like_dim])
+                            * gs.eval(n_points_b[i, self.time_like_dim]))
+        expected = helper.to_scalar(gs.array(expected))
 
-            self.assertAllClose(result_nn, expected)
+        self.assertAllClose(result_nn, expected)
 
     def test_squared_norm(self):
         point = gs.array([-2., 4.])
