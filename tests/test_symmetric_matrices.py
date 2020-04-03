@@ -34,10 +34,11 @@ class TestSymmetricMatricesMethods(geomstats.tests.TestCase):
 
     def test_expm(self):
         """Test of expm method."""
+        sym_n = SymmetricMatrices(self.n)
         v = gs.array([[[0., 1., 0.],
                        [1., 0., 0.],
                        [0., 0., 1.]]])
-        result = SymmetricMatrices.expm(v)
+        result = sym_n.expm(v)
         c = math.cosh(1)
         s = math.sinh(1)
         e = math.exp(1)
