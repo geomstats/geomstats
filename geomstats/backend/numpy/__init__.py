@@ -173,7 +173,9 @@ def assignment(x, values, indices, axis=0):
     if not isinstance(values, list):
         values = [values] * len(indices)
     for (nb_index, index) in enumerate(indices):
-        if len(indices[0]) < len(shape(x)):
+        if not isinstance(index, tuple):
+            index = index,
+        if len(index) < len(shape(x)):
             for n_axis in range(shape(x)[axis]):
                 extended_index = index[:axis] + (n_axis,) + index[axis:]
                 x_new[extended_index] = values[nb_index]
