@@ -64,7 +64,7 @@ def get_mask_float(indices, mask_shape, dtype=float32):
 
     for (nb_index, index) in enumerate(indices):
         if not isinstance(index, tuple):
-            indices[nb_index] = index,
+            indices[nb_index] = (index,)
 
     if single_index:
         if len(indices) != len(mask_shape):
