@@ -17,7 +17,6 @@ from tensorflow import (  # NOQA
     floor,
     gather,
     greater,
-    greater_equal,
     int32,
     int64,
     less,
@@ -44,7 +43,6 @@ from tensorflow import (  # NOQA
     stack,
     tan,
     tanh,
-    unstack,
     where,
     while_loop,
     zeros,
@@ -79,6 +77,13 @@ def empty(shape, dtype=float64):
     assert isinstance(dtype, tf.DType)
     np_dtype = dtype.as_numpy_dtype
     return tf.convert_to_tensor(_np.empty(shape, dtype=numpy_dtype))
+
+
+def empty_like(prototype, dtype=None):
+    shape_ = shape(prototype)
+    if dtype is None:
+        dtype = prototype.dtype
+    return empty(shape, dtype=dtype)
 
 
 def flip(m, axis=None):

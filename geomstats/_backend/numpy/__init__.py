@@ -28,6 +28,7 @@ from autograd.numpy import (  # NOQA
     dot,
     einsum,
     empty,
+    empty_like,
     equal,
     exp,
     expand_dims,
