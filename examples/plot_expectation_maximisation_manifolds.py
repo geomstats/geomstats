@@ -17,7 +17,6 @@ import math
 import torch
 import mpl_toolkits.mplot3d.art3d as art3d
 from matplotlib.patches import Circle
-from geomstats.learning.em_expectation_maximization import distance
 
 PI_2_3 = pow((2 * gs.pi), 2 / 3)
 CST_FOR_ERF = 8.0 / (3.0 * gs.pi) * (gs.pi - 3.0) / (4.0 - gs.pi)
@@ -25,9 +24,8 @@ CST_FOR_ERF = 8.0 / (3.0 * gs.pi) * (gs.pi - 3.0) / (4.0 - gs.pi)
 def plot_gaussian_mixture_distribution(data,
                                 mixture_coefficients,
                                 means,
-                                variances, labels=None,
+                                variances,
                                 plot_precision=10,
-                                colors=None,
                                 save_path="",
                                 metric=None):
 
@@ -48,7 +46,6 @@ def plot_gaussian_mixture_distribution(data,
                                               x_y_plane_mesh,
                                               means,
                                               variances,
-                                              distance,
                                               metric)
 
         mesh_probabilities[mesh_probabilities != mesh_probabilities ]= 0
@@ -142,32 +139,23 @@ def expectation_maximisation_poincare_ball():
 
 
     plot = plot_gaussian_mixture_distribution(data.data.numpy(),
-                                       mixture_coefficients,
+                                       mixture_coefficients.data.numpy(),
                                        means.data.numpy(),
-                                       variances,
-                                       labels=None,
-                                       plot_precision=10,
-                                       colors=None,
+                                       variances.data.numpy(),
+                                       plot_precision=100,
                                        save_path=os.path.join("result.png"),
                                        metric = metric.dist
                                        )
 
     return plot
 
-
-
-
 def erf_approx(x):
-    return torch.sign(x)*torch.sqrt(1 - torch.exp(-x * x * (4 / np.pi + CST_FOR_ERF * x * x) / (1 + CST_FOR_ERF * x * x)))
-
-
-
+    return gs.sign(x)*gs.sqrt(1 - gs.exp(-x * x * (4 / gs.pi + CST_FOR_ERF * x * x) / (1 + CST_FOR_ERF * x * x)))
 
 def weighted_gmm_pdf(mixture_coefficients,
                      mesh_data,
                      means,
                      variances,
-                     distance,
                      metric):
 
     mesh_data_units = gs.expand_dims(mesh_data, 1)
@@ -178,15 +166,22 @@ def weighted_gmm_pdf(mixture_coefficients,
 
     means_units = gs.repeat(means_units,mesh_data_units.shape[0],axis = 0)
 
-    distance_to_mean = torch.from_numpy(metric(mesh_data_units,means_units))
+    distance_to_mean = metric(mesh_data_units, means_units)
+    variances_units = gs.expand_dims(variances,0)
+    variances_units = gs.repeat(variances_units, distance_to_mean.shape[0], axis = 0)
 
-    #distance_to_mean = distance(mesh_data_units, means_units)
+    distribution_normal = gs.exp(-((distance_to_mean)**2)/(2 * variances_units**2))
 
-    variances_units = variances.unsqueeze(0).expand_as(distance_to_mean)
-    distribution_normal = torch.exp(-((distance_to_mean)**2)/(2 * variances_units**2))
-    zeta_sigma = PI_2_3 * variances * torch.exp((variances ** 2 / 2) * erf_approx(variances / math.sqrt(2)))
+    zeta_sigma =PI_2_3 * variances * gs.exp((variances ** 2 / 2) * erf_approx(variances / gs.sqrt(2)))
 
-    return mixture_coefficients.unsqueeze(0).expand_as(distribution_normal) * distribution_normal / zeta_sigma.unsqueeze(0).expand_as(distribution_normal)
+    result_num_gs = gs.expand_dims(mixture_coefficients,0)
+    result_num_gs = gs.repeat(result_num_gs,len(distribution_normal), axis = 0) * distribution_normal
+    result_denum_gs = gs.expand_dims(zeta_sigma,0)
+    result_denum_gs = gs.repeat(result_denum_gs,len(distribution_normal), axis = 0)
+
+    result = result_num_gs/result_denum_gs
+
+    return result
 
 def main():
 
