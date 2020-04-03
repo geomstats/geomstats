@@ -88,7 +88,7 @@ def loss(example_embedding, context_embedding, negative_embedding,
 
     negative_distance =\
         manifold.metric.squared_dist(reshaped_example_embedding,
-                                         negative_embedding)
+                                     negative_embedding)
     negative_loss = log_sigmoid(negative_distance)
 
     total_loss = -(positive_loss + negative_loss.sum())
