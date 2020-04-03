@@ -10,6 +10,7 @@ TOLERANCE = 1e-4
 
 class TestKNearestNeighborsClassifier(geomstats.tests.TestCase):
     """Class defining the KNN tests."""
+
     def setUp(self):
         """Define the parameters to test."""
         gs.random.seed(1234)
