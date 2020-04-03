@@ -47,6 +47,7 @@ from . import random  # NOQA
 def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
+
 flip = _raise_not_implemented_error
 hsplit = _raise_not_implemented_error
 vectorize = _raise_not_implemented_error

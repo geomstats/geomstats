@@ -9,7 +9,6 @@ from tensorflow import (  # NOQA
     cond,
     cos,
     cosh,
-    einsum,
     equal,
     exp,
     float32,
@@ -76,11 +75,11 @@ def cumsum(a, axis=None):
 def empty(shape, dtype=float64):
     assert isinstance(dtype, tf.DType)
     np_dtype = dtype.as_numpy_dtype
-    return tf.convert_to_tensor(_np.empty(shape, dtype=numpy_dtype))
+    return tf.convert_to_tensor(_np.empty(shape, dtype=np_dtype))
 
 
 def empty_like(prototype, dtype=None):
-    shape_ = shape(prototype)
+    shape = tf.shape(prototype)
     if dtype is None:
         dtype = prototype.dtype
     return empty(shape, dtype=dtype)
@@ -93,10 +92,6 @@ def flip(m, axis=None):
     elif not hasattr(axis, '__iter__'):
         axis = (axis,)
     return tf.reverse(m, axis=axis)
-
-
-def logical_and(x, y):
-    return tf.logical_and(x, y)
 
 
 def any(x, axis=0):
@@ -557,10 +552,6 @@ def arctan2(*args, **kwargs):
 
 def diagonal(*args, **kwargs):
     return tf.linalg.diag_part(*args)
-
-
-def mean(x, axis=None):
-    return tf.reduce_mean(x, axis)
 
 
 def cumprod(x, axis=0):

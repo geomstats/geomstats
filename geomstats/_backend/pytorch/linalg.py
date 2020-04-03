@@ -8,7 +8,8 @@ import torch
 def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
-eig =  _raise_not_implemented_error
+
+eig = _raise_not_implemented_error
 logm = _raise_not_implemented_error
 powerm = _raise_not_implemented_error
 
@@ -36,6 +37,7 @@ def eigvalsh(*args, **kwargs):
 def eigh(*args, **kwargs):
     eigs = np.linalg.eigh(*args, **kwargs)
     return torch.from_numpy(eigs[0]), torch.from_numpy(eigs[1])
+
 
 def svd(*args, **kwargs):
     svds = np.linalg.svd(*args, **kwargs)
