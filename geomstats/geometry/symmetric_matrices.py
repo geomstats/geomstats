@@ -48,15 +48,23 @@ class SymmetricMatrices(EmbeddedManifold):
         i, j = gs.triu_indices(dim)
         return mat[:, i, j]
 
-    def symmetric_matrix_from_vector(self, vec):
+    @staticmethod
+    def symmetric_matrix_from_vector(vec, dtype=gs.float32):
         """Convert a vector into a symmetric matrix."""
+        vec = gs.to_ndarray(vec, to_ndim=2)
         vec_dim = vec.shape[-1]
         mat_dim = (gs.sqrt(8. * vec_dim + 1) - 1) / 2
-        basis = self.get_basis()
         if mat_dim != int(mat_dim):
             raise ValueError('Invalid input dimension, it must be of the form'
                              '(n_samples, n * (n - 1) / 2)')
-        return gs.einsum("...i,ijk", vec, basis)
+        mat_dim = int(mat_dim)
+        mask = 2 * gs.ones((mat_dim, mat_dim)) - gs.eye(mat_dim)
+        indices = list(zip(*gs.triu_indices(3)))
+        shape = (mat_dim, mat_dim)
+        vec = gs.cast(vec, dtype)
+        upper_triangular = gs.stack([
+            gs.array_from_sparse(indices, data, shape) for data in vec])
+        return Matrices.make_symmetric(upper_triangular) * mask
 
     def expm(self, x):
         """
