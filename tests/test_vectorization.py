@@ -49,11 +49,34 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
             result = helper.to_scalar(result)
             return result
 
+        @geomstats.vectorization.decorator(['scalar'])
+        def is_scalar_vectorized(scalar):
+            is_scalar_vec = gs.ndim(scalar) == 2
+            has_dim_1 = gs.shape(scalar)[-1] == 1
+            result = is_scalar_vec and has_dim_1
+            result = helper.to_scalar(result)
+            return result
+
+        @geomstats.vectorization.decorator(['vector'])
+        def is_vector_vectorized(vector):
+            is_vector_vec = gs.ndim(vector) == 2
+            is_vector_vec = helper.to_scalar(is_vector_vec)
+            return is_vector_vec
+
+        @geomstats.vectorization.decorator(['matrix'])
+        def is_matrix_vectorized(matrix):
+            is_matrix_vec = gs.ndim(matrix) == 3
+            is_matrix_vec = helper.to_scalar(is_matrix_vec)
+            return is_matrix_vec
+
         self.foo = foo
         self.foo_scalar_output = foo_scalar_output
         self.foo_scalar_input_output = foo_scalar_input_output
         self.foo_optional_input = foo_optional_input
         self.foo_else = foo_else
+        self.is_scalar_vectorized = is_scalar_vectorized
+        self.is_vector_vectorized = is_vector_vectorized
+        self.is_matrix_vectorized = is_matrix_vectorized
 
     @geomstats.tests.np_and_tf_only
     def test_decorator_with_squeeze_dim0(self):
@@ -130,4 +153,22 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         result = self.foo_else(else_a, vec_a, else_b, vec_b)
         expected = 4
 
+        self.assertAllClose(result, expected)
+
+    def test_is_scalar_vectorized(self):
+        scalar = 1.3
+        result = self.is_scalar_vectorized(scalar)
+        expected = True
+        self.assertAllClose(result, expected)
+
+    def test_is_vector_vectorized(self):
+        vector = gs.array([1.3, 3.3])
+        result = self.is_vector_vectorized(vector)
+        expected = True
+        self.assertAllClose(result, expected)
+
+    def test_is_matrix_vectorized(self):
+        matrix = gs.array([[1.3, 3.3], [1.2, 3.1]])
+        result = self.is_matrix_vectorized(matrix)
+        expected = True
         self.assertAllClose(result, expected)
