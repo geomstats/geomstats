@@ -7,7 +7,6 @@ from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.spd_matrices import SPDMetricAffine
 from geomstats.learning.mdm import RiemannianMinimumDistanceToMeanClassifier
 
-
 def main():
     """Execute illustration of MDM supervised classifier."""
     n_samples = 100
