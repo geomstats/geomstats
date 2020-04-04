@@ -118,7 +118,7 @@ def expectation_maximisation_poincare_ball():
 
     data = gs.concatenate((cluster_1, cluster_2, cluster_3), axis=0)
 
-    data = torch.from_numpy(data)
+
 
     n_clusters = 3
 
@@ -138,7 +138,7 @@ def expectation_maximisation_poincare_ball():
         max_iter=100)
 
 
-    plot = plot_gaussian_mixture_distribution(data.data.numpy(),
+    plot = plot_gaussian_mixture_distribution(data,
                                        mixture_coefficients.data.numpy(),
                                        means.data.numpy(),
                                        variances.data.numpy(),

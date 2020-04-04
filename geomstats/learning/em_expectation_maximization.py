@@ -142,6 +142,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
     def _expectation(self, data):
         """Compute weights_ik given the data, means and variances"""
 
+
         probability_distribution_function = gaussianPDF(data,
                                                         self.means,
                                                         self.variances,
@@ -217,17 +218,21 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self : object
             Return Gaussian mixture model
         """
+
+
         if(self.init =='random'):
 
-            self._dimension = data.size(-1)
-            self.means = (torch.rand(self.n_gaussian, self._dimension) - 0.5) / self._dimension
-            self.variances = torch.rand(self.n_gaussian) / 10 + 0.8
-            self.mixture_coefficients = torch.ones(self.n_gaussian) / self.n_gaussian
-            posterior_probabilities = torch.ones((data.size(0), self.means.size(0)))
+            self._dimension = data.shape[-1]
+
+            self.means = (gs.random.rand(self.n_gaussian, self._dimension) - 0.5) / self._dimension
+            self.variances = gs.random.rand(self.n_gaussian) / 10 + 0.8
+            self.mixture_coefficients = gs.ones(self.n_gaussian) / self.n_gaussian
+            posterior_probabilities = gs.ones((data.shape[0], self.means.shape[0]))
+
+
 
             #TODO Write properly ZetaPhiStorage
-            self.normalization_factor = ZetaPhiStorage(torch.arange(5e-2, 2., 0.001), self._dimension)
-
+            self.normalization_factor = ZetaPhiStorage(gs.arange(5e-2, 2., 0.001), self._dimension)
 
         if (self.verbose):
             print("Number of data samples", data.shape[0])
@@ -235,6 +240,12 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             print("Initial Variances", self.variances)
             print("Initial Mixture Weights", self.mixture_coefficients)
             print("Initial Weights", posterior_probabilities)
+
+        self.means = torch.from_numpy(self.means)
+        self.variances = torch.from_numpy(self.variances)
+        self.mixture_coefficients = torch.from_numpy(self.mixture_coefficients)
+        posterior_probabilities = torch.from_numpy(posterior_probabilities)
+        data = torch.from_numpy(data)
 
         for epoch in range(max_iter):
             old_wik = posterior_probabilities
@@ -279,6 +290,7 @@ class ZetaPhiStorage(object):
     """A class for computing the normalization factor."""
 
     def __init__(self, sigma, dimension):
+        sigma = torch.from_numpy(sigma)
         self.dimension = dimension
         self.sigma = sigma
         self.m_zeta_var = new_zeta(sigma, dimension)
@@ -403,21 +415,22 @@ def log_grad_zeta(x, N):
     # print("log_grad ",log_grad)
     return sigma.grad.data
 
-def gaussianPDF(x, mu, sigma, distance, norm_func):
+def gaussianPDF(data, means, variances, distance, norm_func):
     # norm_func = zeta
     # print(x.shape, mu.shape)
-    N, D, M = x.shape + (mu.shape[0],)
+
+    N, D, M = data.shape + (means.shape[0],)
     # print("N, M, D ->", N, M, D)
     # x <- N x M x D
     # mu <- N x M x D
     # sigma <- N x M
-    x_rd = x.unsqueeze(1).expand(N, M, D)
-    mu_rd = mu.unsqueeze(0).expand(N, M, D)
-    sigma_rd = sigma.unsqueeze(0).expand(N, M)
+    x_rd = data.unsqueeze(1).expand(N, M, D)
+    mu_rd = means.unsqueeze(0).expand(N, M, D)
+    sigma_rd = variances.unsqueeze(0).expand(N, M)
     # computing numerator
     num = torch.exp(-((distance(x_rd, mu_rd)**2))/(2*(sigma_rd)**2))
     # print("num mean ",num.mean())
-    den = norm_func(sigma)
+    den = norm_func(variances)
     # print("den mean ",den.mean() )
     # print("sigma",num)
     # print("den ", den)
