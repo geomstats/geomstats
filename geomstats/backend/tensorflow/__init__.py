@@ -499,3 +499,9 @@ def from_vector_to_diagonal_matrix(x):
     identity = eye(n)
     diagonals = einsum('ki,ij->kij', x, identity)
     return diagonals
+
+
+def triu_indices(n, k=0, m=None):
+    if m is None:
+        m = n
+    return _np.triu_indices(n, k, m)

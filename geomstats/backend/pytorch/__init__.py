@@ -398,8 +398,10 @@ def cross(x, y):
     return torch.from_numpy(_np.cross(x, y))
 
 
-def triu_indices(*args, **kwargs):
-    return torch.triu_indices(*args, **kwargs)
+def triu_indices(n, k=0, m=None, **kwargs):
+    if m is None:
+        m = n
+    return torch.triu_indices(row=n, col=m, offset=k, **kwargs)
 
 
 def where(test, x, y):
@@ -567,7 +569,7 @@ def cumsum(x, axis=0):
 def array_from_sparse(indices, data, target_shape):
     return torch.sparse.FloatTensor(
         torch.LongTensor(indices).t(),
-        torch.FloatTensor(data),
+        torch.FloatTensor(cast(data, float32)),
         torch.Size(target_shape)).to_dense()
 
 

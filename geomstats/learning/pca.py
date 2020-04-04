@@ -110,6 +110,7 @@ class TangentPCA(_BasePCA):
         self.iterated_power = iterated_power
         self.random_state = random_state
         self.point_type = point_type
+        self.base_point_fit = None
 
     def fit(self, X, y=None, base_point=None):
         """Fit the model with X.
