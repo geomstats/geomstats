@@ -81,7 +81,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
 
         result = self.metric.exp(one_tangent_vec, one_base_point)
         expected = one_tangent_vec + one_base_point
-        expected = helper.to_vector(expected)
 
         self.assertAllClose(result, expected)
 
@@ -111,7 +110,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
 
         result = self.metric.log(one_point, one_base_point)
         expected = one_point - one_base_point
-        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
         result = self.metric.log(n_points, one_base_point)
@@ -203,7 +201,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
         result = self.metric.inner_product_matrix()
 
         expected = gs.eye(self.dimension)
-        expected = helper.to_matrix(expected)
 
         self.assertAllClose(result, expected)
 
@@ -272,7 +269,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
         result = self.metric.exp(tangent_vec=vector,
                                  base_point=base_point)
         expected = base_point + vector
-        expected = helper.to_vector(expected)
 
         self.assertAllClose(result, expected)
 
@@ -282,7 +278,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
 
         result = self.metric.log(point=point, base_point=base_point)
         expected = point - base_point
-        expected = helper.to_vector(expected)
 
         self.assertAllClose(result, expected)
 
