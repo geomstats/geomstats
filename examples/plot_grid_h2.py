@@ -44,7 +44,7 @@ def main(left=-128,
     plt.show()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
         logging.info('Examples with visualizations are only implemented '
                      'with numpy backend.\n'
