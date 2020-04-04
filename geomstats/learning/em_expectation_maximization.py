@@ -147,7 +147,8 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                                                         self.means,
                                                         self.variances,
                                                         distance= distance,
-                                                        norm_func=self.normalization_factor.zeta)
+                                                        norm_func=self.normalization_factor.zeta_numpy,
+                                                        metric =self.riemannian_metric)
 
         if (probability_distribution_function.mean() !=
                 probability_distribution_function.mean()):
@@ -325,6 +326,21 @@ class ZetaPhiStorage(object):
 
         return self.m_zeta_var[index]
 
+    def zeta_numpy(self, sigma):
+        N, P = sigma.shape[0], self.sigma.shape[0]
+
+        sigma_self = self.sigma.data.numpy()
+        ref = gs.expand_dims(sigma_self,0)
+        ref = gs.repeat(ref, N, axis= 0)
+        val = gs.expand_dims(sigma, 1)
+        val = gs.repeat(val,P, axis = 1)
+
+        difference = gs.abs(ref-val)
+
+        index = gs.argmin(difference,axis = -1)
+
+        return self.m_zeta_var[index]
+
     def phi(self, phi_val):
         N, P = phi_val.shape[0], self.sigma.shape[0]
         ref = self.phi_inv_var.unsqueeze(0).expand(N, P)
@@ -415,20 +431,34 @@ def log_grad_zeta(x, N):
     # print("log_grad ",log_grad)
     return sigma.grad.data
 
-def gaussianPDF(data, means, variances, distance, norm_func):
+def gaussianPDF(data, means, variances, distance, norm_func, metric):
     # norm_func = zeta
     # print(x.shape, mu.shape)
 
+    data = data.data.numpy()
+    means = means.data.numpy()
+    variances = variances.data.numpy()
+
     N, D, M = data.shape + (means.shape[0],)
-    # print("N, M, D ->", N, M, D)
-    # x <- N x M x D
-    # mu <- N x M x D
-    # sigma <- N x M
-    x_rd = data.unsqueeze(1).expand(N, M, D)
-    mu_rd = means.unsqueeze(0).expand(N, M, D)
-    sigma_rd = variances.unsqueeze(0).expand(N, M)
+
+    x_rd = gs.expand_dims(data,1)
+    x_rd = gs.repeat(x_rd, M, axis = 1)
+
+    mu_rd = gs.expand_dims(means,0)
+    mu_rd = gs.repeat(mu_rd, N, axis = 0)
+
+    sigma_rd = gs.expand_dims(variances,0)
+    sigma_rd = gs.repeat(sigma_rd,N,0)
+
+    num = gs.exp(-((metric(x_rd, mu_rd)**2))/(2*(sigma_rd)**2))
+
+
+    num = torch.from_numpy(num)
+
+    #mu_rd = means.unsqueeze(0).expand(N, M, D)
+    #sigma_rd = variances.unsqueeze(0).expand(N, M)
     # computing numerator
-    num = torch.exp(-((distance(x_rd, mu_rd)**2))/(2*(sigma_rd)**2))
+    #num = torch.exp(-((distance(x_rd, mu_rd)**2))/(2*(sigma_rd)**2))
     # print("num mean ",num.mean())
     den = norm_func(variances)
     # print("den mean ",den.mean() )

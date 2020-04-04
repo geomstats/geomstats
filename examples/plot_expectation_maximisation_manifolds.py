@@ -126,7 +126,7 @@ def expectation_maximisation_poincare_ball():
 
     metric = manifold.metric
 
-    EM = RiemannianEM(riemannian_metric=metric,
+    EM = RiemannianEM(riemannian_metric=metric.dist,
                        n_gaussian= n_clusters,
                        init='random',
                        mean_method='frechet-poincare-ball',
