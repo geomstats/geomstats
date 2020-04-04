@@ -29,12 +29,10 @@ class Euclidean(Manifold):
         -------
         belongs : array-like, shape=[n_samples, 1]
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        n_points, point_dim = point.shape
+        point_dim = point.shape[-1]
         belongs = point_dim == self.dimension
-        belongs = gs.to_ndarray(belongs, to_ndim=1)
-        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
-        belongs = gs.tile(belongs, (n_points, 1))
+        if point.ndim == 2:
+            belongs = gs.tile([belongs], (point.shape[0],))
 
         return belongs
 
@@ -50,7 +48,9 @@ class Euclidean(Manifold):
         -------
         point : array-like, shape=[n_samples, dimension]
         """
-        size = (n_samples, self.dimension)
+        size = (self.dimension,)
+        if n_samples != 1:
+            size = (n_samples, self.dimension)
         point = bound * (gs.random.rand(*size) - 0.5) * 2
 
         return point

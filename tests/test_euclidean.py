@@ -33,7 +33,7 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
-        expected = gs.array([[True]])
+        expected = True
 
         self.assertAllClose(result, expected)
 
@@ -197,7 +197,7 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
     def test_random_uniform(self):
         result = self.space.random_uniform()
 
-        self.assertAllClose(gs.shape(result), (1, self.dimension))
+        self.assertAllClose(gs.shape(result), (self.dimension,))
 
     def test_inner_product_matrix(self):
         result = self.metric.inner_product_matrix()
@@ -319,6 +319,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
         points = geodesic(t)
 
         result = self.space.belongs(points)
-        expected = gs.array(n_geodesic_points * [[True]])
+        expected = gs.array(n_geodesic_points * [True])
 
         self.assertAllClose(expected, result)
