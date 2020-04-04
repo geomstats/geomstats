@@ -29,6 +29,10 @@ def logical_or(x, y):
 
 
 def logical_and(x, y):
+    if torch.is_tensor(x):
+        return x.eq(y)
+    elif torch.is_tensor(y):
+        return y.eq(x)
     return x and y
 
 
@@ -109,7 +113,7 @@ def array(val):
         if not isinstance(val[0], torch.Tensor):
             val = _np.copy(_np.array(val))
         else:
-            val = concatenate(val)
+            val = stack(val)
 
     if isinstance(val, bool):
         val = _np.array(val)
