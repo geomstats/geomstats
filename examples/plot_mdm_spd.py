@@ -5,7 +5,7 @@ from geomstats.learning.mdm import RiemannianMinimumDistanceToMeanClassifier
 import matplotlib.pyplot as plt
 import sys
 sys.path.append('.')
-import plot_helper_mdm_spd
+import plot_mdm_spd_helper
 
 def main():
 
@@ -14,11 +14,11 @@ def main():
     n_classes=3
 
     # generate toy dataset of 2D SPD matrices
-    dataset_generator=plot_helper_mdm_spd.DatasetSPD_2D(n_samples,n_features,n_classes)
+    dataset_generator=plot_mdm_spd_helper.DatasetSPD_2D(n_samples,n_features,n_classes)
     data,labels=dataset_generator.generate_sample_dataset()
 
     # plot dataset as ellipses
-    plot_helper=plot_helper_mdm_spd.PlotHelper()
+    plot_helper=plot_mdm_spd_helper.PlotHelper()
     for i in range(n_samples):
         x=data[i]
         y=dataset_generator.data_helper.get_label_at_index(i,labels)
