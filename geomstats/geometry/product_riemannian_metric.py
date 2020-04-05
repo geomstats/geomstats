@@ -31,9 +31,9 @@ class ProductRiemannianMetric(RiemannianMetric):
         self.default_point_type = default_point_type
         self.n_jobs = n_jobs
 
-        sig_0 = sum([sig[0] for sig in signatures])
-        sig_1 = sum([sig[1] for sig in signatures])
-        sig_2 = sum([sig[2] for sig in signatures])
+        sig_0 = sum(sig[0] for sig in signatures)
+        sig_1 = sum(sig[1] for sig in signatures)
+        sig_2 = sum(sig[2] for sig in signatures)
         super(ProductRiemannianMetric, self).__init__(
             dimension=sum(dimensions),
             signature=(sig_0, sig_1, sig_2))
@@ -98,8 +98,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         assert self.default_point_type == 'vector'
         if point.shape[1] == self.dimension:
             intrinsic = True
-        elif point.shape[1] == sum(
-                [dim + 1 for dim in self.dimensions]):
+        elif point.shape[1] == sum(dim + 1 for dim in self.dimensions):
             intrinsic = False
         else:
             raise ValueError(
@@ -155,6 +154,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         if point_type is None:
             point_type = self.default_point_type
+
         if point_type == 'vector':
             tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
             tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
@@ -166,7 +166,8 @@ class ProductRiemannianMetric(RiemannianMetric):
             inner_prod = self._iterate_over_metrics(
                 'inner_product', args, intrinsic)
             return gs.sum(gs.hstack(inner_prod), axis=1)
-        elif point_type == 'matrix':
+
+        if point_type == 'matrix':
             tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
             tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
             base_point = gs.to_ndarray(base_point, to_ndim=3)
@@ -175,9 +176,9 @@ class ProductRiemannianMetric(RiemannianMetric):
                                                    base_point[:, i])
                               for i, metric in enumerate(self.metrics)]
             return sum(inner_products)
-        else:
-            raise ValueError('invalid point_type argument: {}, expected '
-                             'either matrix of vector'.format(point_type))
+
+        raise ValueError('invalid point_type argument: {}, expected '
+                         'either matrix of vector'.format(point_type))
 
     def exp(self, tangent_vec, base_point=None, point_type=None):
         """Compute the Riemannian exponential of a tangent vector.
@@ -202,6 +203,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         if point_type is None:
             point_type = self.default_point_type
+
         if point_type == 'vector':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -209,15 +211,16 @@ class ProductRiemannianMetric(RiemannianMetric):
             args = {'tangent_vec': tangent_vec, 'base_point': base_point}
             exp = self._iterate_over_metrics('exp', args, intrinsic)
             return gs.hstack(exp)
-        elif point_type == 'matrix':
+
+        if point_type == 'matrix':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
             base_point = gs.to_ndarray(base_point, to_ndim=3)
             return gs.stack([
                 self.metrics[i].exp(tangent_vec[:, i], base_point[:, i])
                 for i in range(self.n_metrics)], axis=1)
-        else:
-            raise ValueError('invalid point_type argument: {}, expected '
-                             'either matrix of vector'.format(point_type))
+
+        raise ValueError('invalid point_type argument: {}, expected '
+                         'either matrix of vector'.format(point_type))
 
     def log(self, point, base_point=None, point_type=None):
         """Compute the Riemannian logarithm of a point.
@@ -242,6 +245,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         if point_type is None:
             point_type = self.default_point_type
+
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -249,12 +253,13 @@ class ProductRiemannianMetric(RiemannianMetric):
             args = {'point': point, 'base_point': base_point}
             log = self._iterate_over_metrics('log', args, intrinsic)
             return gs.hstack(log)
-        elif point_type == 'matrix':
+
+        if point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
             base_point = gs.to_ndarray(base_point, to_ndim=3)
             return gs.stack(
                 [self.metrics[i].log(point[:, i], base_point[:, i])
                  for i in range(self.n_metrics)], axis=1)
-        else:
-            raise ValueError('invalid point_type argument: {}, expected '
-                             'either matrix of vector'.format(point_type))
+
+        raise ValueError('invalid point_type argument: {}, expected '
+                         'either matrix of vector'.format(point_type))

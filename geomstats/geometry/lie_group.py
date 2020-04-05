@@ -227,9 +227,11 @@ class LieGroup(Manifold):
             exp = self.regularize(exp, point_type=point_type)
             return exp
 
-        elif point_type == "matrix":
+        if point_type == "matrix":
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
             raise NotImplementedError()
+
+        raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
     def exp(self, tangent_vec, base_point=None, point_type=None):
         """Compute the group exponential at `base_point` of `tangent_vec`.

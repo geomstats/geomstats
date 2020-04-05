@@ -14,7 +14,7 @@ manifold so that we can visualize and render the path as a video.
 import logging
 
 import matplotlib
-matplotlib.use("Agg")  # NOQA
+matplotlib.use('Agg')  # NOQA
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
@@ -101,11 +101,11 @@ def main(output_file='out.mp4', max_iter=128):
     previous_x = initial_point
     geodesics = []
     n_steps = 20
-    for x, fx in gradient_descent(initial_point,
-                                  loss,
-                                  grad,
-                                  max_iter=max_iter,
-                                  manifold=SPHERE2):
+    for x, _ in gradient_descent(initial_point,
+                                 loss,
+                                 grad,
+                                 max_iter=max_iter,
+                                 manifold=SPHERE2):
         initial_tangent_vec = METRIC.log(point=x, base_point=previous_x)
         geodesic = METRIC.geodesic(initial_point=previous_x,
                                    initial_tangent_vec=initial_tangent_vec)
@@ -119,5 +119,5 @@ def main(output_file='out.mp4', max_iter=128):
     np.testing.assert_almost_equal(loss(x), np.min(eig), decimal=2)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

@@ -62,9 +62,8 @@ class GeneralLinear(Matrices):
         expm = gs.linalg.expm
         if base_point is None:
             return expm(tangent_vec)
-        else:
-            lie_algebra_vec = cls.mul(cls.inv(base_point), tangent_vec)
-            return cls.mul(base_point, cls.exp(lie_algebra_vec))
+        lie_algebra_vec = cls.mul(cls.inv(base_point), tangent_vec)
+        return cls.mul(base_point, cls.exp(lie_algebra_vec))
 
     @classmethod
     def log(cls, point, base_point=None):
@@ -97,9 +96,8 @@ class GeneralLinear(Matrices):
         logm = gs.linalg.logm
         if base_point is None:
             return logm(point)
-        else:
-            lie_algebra_vec = logm(cls.mul(cls.inv(base_point), point))
-            return cls.mul(base_point, lie_algebra_vec)
+        lie_algebra_vec = logm(cls.mul(cls.inv(base_point), point))
+        return cls.mul(base_point, lie_algebra_vec)
 
     @classmethod
     def orbit(cls, point, base_point=None):

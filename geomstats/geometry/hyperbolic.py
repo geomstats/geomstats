@@ -632,9 +632,10 @@ class HyperbolicMetric(RiemannianMetric):
             Point in hyperbolic space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
+        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+
         if self.coords_type == 'extrinsic':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-            base_point = gs.to_ndarray(base_point, to_ndim=2)
 
             sq_norm_tangent_vec = self.embedding_metric.squared_norm(
                 tangent_vec)
@@ -685,7 +686,7 @@ class HyperbolicMetric(RiemannianMetric):
             den = 1 - norm_base_point**2
 
             norm_tan = gs.to_ndarray(gs.linalg.norm(
-                tangent_vec, axis=-1), 2, -1)
+                tangent_vec, axis=-1), 2, axis=-1)
             norm_tan = gs.repeat(norm_tan, base_point.shape[-1], -1)
 
             lambda_base_point = 1 / den
@@ -880,6 +881,29 @@ class HyperbolicMetric(RiemannianMetric):
         else:
             raise NotImplementedError(
                 'dist is only implemented for ball and extrinsic')
+
+    def squared_dist(self, point_a, point_b):
+        """Geodesic squared hyperbolic distance.
+
+        Override the squared distance implemented
+        in RiemannianMetric.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[n_samples, dimension]
+            First point in hyperbolic space.
+        point_b : array-like, shape=[n_samples, dimension]
+            Second point in hyperbolic space.
+
+        Returns
+        -------
+        dist : array-like, shape=[n_samples, 1]
+            Geodesic squared distance between the two points.
+        """
+        if self.coords_type in ['intrinsic', 'extrinsic']:
+            return super().squared_dist(point_a, point_b)
+
+        return self.dist(point_a, point_b)**2
 
     def retraction(self, tangent_vec, base_point):
         """Poincaré ball model retraction.

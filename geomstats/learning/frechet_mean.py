@@ -208,14 +208,16 @@ def _adaptive_gradient_descent(points,
                                weights=None,
                                max_iter=32,
                                epsilon=1e-12,
-                               init_points=[],
+                               init_point=None,
                                point_type='vector'):
     """Compute the Frechet mean using gradient descent.
 
     Frechet mean of (weighted) points using adaptive time-steps
     The loss function optimized is :math:`||M_1(x)||_x`
     (where :math:`M_1(x)` is the tangent mean at x) rather than
-    the mean-square-distance (MSD) because this saves computation time.
+    the mean-square-distance (MSD) because this simplifies computations.
+    Adaptivity is done in a Levenberg-Marquardt style weighting variable tau
+    between the first order and the second order Gauss-Newton gradient descent.
 
     Parameters
     ----------
@@ -228,7 +230,7 @@ def _adaptive_gradient_descent(points,
     max_iter : int, optional
         Maximum number of iterations for the gradient descent.
 
-    init_points : array-like, shape=[n_init, dimension], optional
+    init_point : array-like, shape=[n_init, dimension], optional
         Initial points.
 
     epsilon : float, optional
@@ -239,6 +241,10 @@ def _adaptive_gradient_descent(points,
     current_mean: array-like, shape=[n_samples, dimension]
         Weighted Frechet mean of the points.
     """
+    tau_max = 1e6
+    tau_mul_up = 1.6511111
+    tau_min = 1e-6
+    tau_mul_down = 0.1
     if point_type == 'matrix':
         raise NotImplementedError(
             'The Frechet mean with adaptive gradient descent is only'
@@ -253,15 +259,10 @@ def _adaptive_gradient_descent(points,
 
     sum_weights = gs.sum(weights)
 
-    n_init = len(init_points)
-
-    if n_init == 0:
+    if init_point is None:
         current_mean = points[0]
     else:
-        current_mean = init_points[0]
-
-    if n_points == 1:
-        return gs.to_ndarray(current_mean, to_ndim=2)
+        current_mean = init_point
 
     tau = 1.0
     iteration = 0
@@ -269,9 +270,10 @@ def _adaptive_gradient_descent(points,
     logs = metric.log(point=points, base_point=current_mean)
     current_tangent_mean = gs.einsum('nk,nj->j', weights, logs)
     current_tangent_mean /= sum_weights
-    norm_current_tangent_mean = gs.linalg.norm(current_tangent_mean)
+    sq_norm_current_tangent_mean = metric.squared_norm(current_tangent_mean,
+                                                       base_point=current_mean)
 
-    while (norm_current_tangent_mean > epsilon
+    while (sq_norm_current_tangent_mean > epsilon ** 2
            and iteration < max_iter):
         iteration = iteration + 1
         shooting_vector = gs.to_ndarray(
@@ -283,14 +285,15 @@ def _adaptive_gradient_descent(points,
         logs = metric.log(point=points, base_point=next_mean)
         next_tangent_mean = gs.einsum('nk,nj->j', weights, logs)
         next_tangent_mean /= sum_weights
-        norm_next_tangent_mean = gs.linalg.norm(next_tangent_mean)
-        if norm_next_tangent_mean < norm_current_tangent_mean:
+        sq_norm_next_tangent_mean = metric.squared_norm(next_tangent_mean,
+                                                        base_point=next_mean)
+        if sq_norm_next_tangent_mean < sq_norm_current_tangent_mean:
             current_mean = next_mean
             current_tangent_mean = next_tangent_mean
-            norm_current_tangent_mean = norm_next_tangent_mean
-            tau = max(1.0, 1.0511111 * tau)
+            sq_norm_current_tangent_mean = sq_norm_next_tangent_mean
+            tau = min(tau_max, tau_mul_up * tau)
         else:
-            tau = tau * 0.8
+            tau = max(tau_min, tau_mul_down * tau)
 
     if iteration == max_iter:
         logging.warning(
@@ -355,7 +358,7 @@ class FrechetMean(BaseEstimator):
             mean = _adaptive_gradient_descent(
                 points=X, weights=weights, metric=self.metric,
                 max_iter=self.max_iter,
-                epsilon=1e-12, init_points=[])
+                epsilon=1e-12)
         elif self.method == 'frechet-poincare-ball':
             mean = _ball_gradient_descent(
                 points=X, weights=weights, metric=self.metric,

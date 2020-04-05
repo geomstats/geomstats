@@ -120,7 +120,7 @@ class SpecialEuclidean(LieGroup):
 
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
-            n_points, point_dim = point.shape
+            _, point_dim = point.shape
             belongs = point_dim == self.dimension
             belongs = gs.logical_and(
                 belongs, self.rotations.belongs(point[:, :self.n]))
@@ -381,8 +381,6 @@ class SpecialEuclidean(LieGroup):
         point = self.regularize(point)
 
         if point_type == 'vector':
-            n_points, _ = point.shape
-
             rot_vec = point[:, :dim_rotations]
             translation = point[:, dim_rotations:]
 
@@ -573,8 +571,10 @@ class SpecialEuclidean(LieGroup):
             group_exp = self.regularize(group_exp, point_type=point_type)
             return group_exp
 
-        elif point_type == 'matrix':
+        if point_type == 'matrix':
             return GeneralLinear.exp(tangent_vec)
+
+        raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
     def log_from_identity(self, point, point_type=None):
         """Compute the group logarithm of the point at the identity.

@@ -41,14 +41,14 @@ def empirical_frechet_var_bubble(n_samples, theta, dim,
     -------
     tuple (variance, std-dev on the computed variance)
     """
-    assert dim > 1, "Dim > 1 needed to draw a uniform sample on sub-sphere"
+    assert dim > 1, 'Dim > 1 needed to draw a uniform sample on sub-sphere'
     var = []
     sphere = Hypersphere(dimension=dim)
     bubble = Hypersphere(dimension=dim - 1)
 
     north_pole = gs.zeros(dim + 1)
     north_pole[dim] = 1.0
-    for k in range(n_expectation):
+    for _ in range(n_expectation):
         # Sample n points from the uniform distribution on a sub-sphere
         # of radius theta (i.e cos(theta) in ambient space)
         # TODO(nina): Add this code as a method of hypersphere
@@ -63,7 +63,7 @@ def empirical_frechet_var_bubble(n_samples, theta, dim,
         # TODO(nina): Use FrechetMean here
         current_mean = _adaptive_gradient_descent(
             data, metric=sphere.metric,
-            max_iter=32, init_points=[north_pole])
+            max_iter=32, init_point=north_pole)
         var.append(sphere.metric.squared_dist(north_pole, current_mean))
     return gs.mean(var), 2 * gs.std(var) / gs.sqrt(n_expectation)
 
@@ -154,8 +154,8 @@ def plot_modulation_factor(n_samples, dim, n_expectation=1000, n_theta=20):
              'grey', label='Asymptotic prediction')
     plt.xlabel(r'Standard deviation $\theta$')
     plt.ylabel(r'Modulation factor $\alpha$')
-    plt.title("Convergence rate modulation factor, "
-              "sphere dim={1}, n={0}".format(n_samples, dim))
+    plt.title('Convergence rate modulation factor, '
+              'sphere dim={1}, n={0}'.format(n_samples, dim))
     plt.legend(loc='best')
     plt.draw()
     plt.pause(0.01)
@@ -203,12 +203,12 @@ def multi_plot_modulation_factor(dim, n_expectation=1000, n_theta=20):
             logging.info(
                 '{} {} {} {}\n'.format(n_samples, theta_i, var, std_var))
         plt.plot(theta, measured_modulation_factor,
-                 color=color[n_samples], label="N={0}".format(n_samples))
+                 color=color[n_samples], label='n={0}'.format(n_samples))
     plt.xlabel(r'Standard deviation $\theta$')
     plt.ylabel(r'Modulation factor $\alpha$')
     plt.legend(loc='best')
-    plt.title("Convergence rate modulation factor, "
-              "sphere, dim={0}, N > 5".format(dim))
+    plt.title('Convergence rate modulation factor, '
+              'sphere, dim={0}, n > 5'.format(dim))
     plt.draw()
     plt.pause(0.01)
     return plt
@@ -267,5 +267,5 @@ def main():
     plt.show()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

@@ -78,6 +78,25 @@ class Stiefel(EmbeddedManifold):
         belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
         return belongs
 
+    @staticmethod
+    def to_grassmannian(point):
+        r"""Project a point of St(n, p) to Gr(n, p).
+
+        If :math:`U \in St(n, p)` is an orthonormal frame,
+        return the orthogonal projector :math:`P = U U^T`
+        onto the subspace of :math:`\mathbb{R}^n` spanned by
+        :math:`U`.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, n, p]
+
+        Returns
+        -------
+        projector : array-like, shape=[n_samples, n, n]
+        """
+        return Matrices.mul(point, Matrices.transpose(point))
+
     def random_uniform(self, n_samples=1):
         r"""Sample on St(n,p) from the uniform distribution.
 
@@ -192,7 +211,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         n_tangent_vecs, _, _ = tangent_vec.shape
 
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_base_points, n, p = base_point.shape
+        n_base_points, _, p = base_point.shape
 
         assert (n_tangent_vecs == n_base_points
                 or n_tangent_vecs == 1
@@ -253,7 +272,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
         matrix_n : array-like
         """
         matrix_k = point - gs.matmul(base_point, matrix_m)
-
         matrix_q, matrix_n = gs.linalg.qr(matrix_k)
         return matrix_q, matrix_n
 
@@ -296,7 +314,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         -------
         matrix_v : array-like
         """
-        [matrix_d, matrix_s, matrix_r] = gs.linalg.svd(
+        [matrix_d, _, matrix_r] = gs.linalg.svd(
             matrix_v[:, p:2 * p, p:2 * p])
 
         matrix_rd = gs.matmul(
@@ -359,7 +377,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         matrix_v = StiefelCanonicalMetric._procrustes_preprocessing(
             p, matrix_v, matrix_m, matrix_n)
 
-        for k in range(max_iter):
+        for _ in range(max_iter):
             matrix_lv = gs.linalg.logm(matrix_v)
 
             matrix_c = matrix_lv[:, p:2 * p, p:2 * p]
@@ -406,7 +424,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         n_tangent_vecs, _, _ = tangent_vec.shape
 
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_base_points, n, p = base_point.shape
+        n_base_points, _, p = base_point.shape
 
         assert (n_tangent_vecs == n_base_points
                 or n_tangent_vecs == 1
@@ -450,7 +468,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         n_points, _, _ = point.shape
 
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_base_points, p, n = base_point.shape
+        n_base_points, _, n = base_point.shape
 
         assert (n_points == n_base_points
                 or n_points == 1
@@ -469,14 +487,13 @@ class StiefelCanonicalMetric(RiemannianMetric):
             if i == 0:
                 assert matrix[0, 0] > 0, 'M[0,0] <= 0'
                 return gs.array([1. / matrix[0, 0]])
-            else:
-                matrix_m_i = _make_minor(i, matrix_m_k)
-                inv_matrix_m_i = gs.linalg.inv(matrix_m_i)
-                b_i = _make_b(i, matrix_m_k, columns_list)
-                column_r_i = gs.matmul(inv_matrix_m_i, b_i)
+            matrix_m_i = _make_minor(i, matrix_m_k)
+            inv_matrix_m_i = gs.linalg.inv(matrix_m_i)
+            b_i = _make_b(i, matrix_m_k, columns_list)
+            column_r_i = gs.matmul(inv_matrix_m_i, b_i)
 
-                assert column_r_i[i] > 0, '(r_i)_i <= 0'
-                return column_r_i
+            assert column_r_i[i] > 0, '(r_i)_i <= 0'
+            return column_r_i
 
         def _make_b(i, matrix, list_matrices_r):
             b = gs.ones(i + 1)

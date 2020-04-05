@@ -272,7 +272,7 @@ class InvariantMetric(RiemannianMetric):
         if base_point is None:
             base_point = self.group.identity
         base_point = self.group.regularize(base_point)
-        if base_point is self.group.identity:
+        if gs.allclose(base_point, self.group.identity):
             return self.exp_from_identity(tangent_vec)
 
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
@@ -386,13 +386,10 @@ class InvariantMetric(RiemannianMetric):
         if base_point is None:
             base_point = self.group.identity
         base_point = self.group.regularize(base_point)
-        if base_point is self.group.identity:
+        if gs.allclose(base_point, self.group.identity):
             return self.log_from_identity(point)
 
         point = self.group.regularize(point)
-
-        n_points, _ = point.shape
-        n_base_points, _ = base_point.shape
 
         if self.left_or_right == 'left':
             point_near_id = self.group.compose(

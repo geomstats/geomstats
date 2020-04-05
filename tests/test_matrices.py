@@ -84,6 +84,21 @@ class TestMatricesMethods(geomstats.tests.TestCase):
         expected = gs.array(False)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_only
+    def test_is_skew_symmetric(self):
+        skew_mat = gs.array([[0, - 2.],
+                            [2., 0]])
+        result = self.space.is_skew_symmetric(skew_mat)
+        expected = gs.array(True)
+        self.assertAllClose(result, expected)
+
+        not_a_sym_mat = gs.array([[1., 0.6, -3.],
+                                  [6., -7., 0.],
+                                  [0., 7., 8.]])
+        result = self.space.is_skew_symmetric(not_a_sym_mat)
+        expected = gs.array(False)
+        self.assertAllClose(result, expected)
+
     @geomstats.tests.np_and_tf_only
     def test_is_symmetric_vectorization(self):
         points = gs.array([
