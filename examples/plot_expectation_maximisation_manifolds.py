@@ -142,7 +142,7 @@ def expectation_maximisation_poincare_ball():
                                        mixture_coefficients.data.numpy(),
                                        means.data.numpy(),
                                        variances.data.numpy(),
-                                       plot_precision=100,
+                                       plot_precision=20,
                                        save_path=os.path.join("result.png"),
                                        metric = metric.dist
                                        )

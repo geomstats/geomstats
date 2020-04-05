@@ -142,36 +142,68 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
     def _expectation(self, data):
         """Compute weights_ik given the data, means and variances"""
 
+        # self.data = self.data.data.numpy()
+        # self.means = self.means.data.numpy()
+        # self.variances = self.variances.data.numpy()
 
-        probability_distribution_function = gaussianPDF(data,
-                                                        self.means,
-                                                        self.variances,
+        self.mixture_coefficients = self.mixture_coefficients.data.numpy()
+
+        probability_distribution_function = gaussianPDF(data.data.numpy(),
+                                                        self.means.data.numpy(),
+                                                        self.variances.data.numpy(),
                                                         distance= distance,
                                                         norm_func=self.normalization_factor.zeta_numpy,
                                                         metric =self.riemannian_metric)
+
+        probability_distribution_function = probability_distribution_function.data.numpy()
 
         if (probability_distribution_function.mean() !=
                 probability_distribution_function.mean()):
             print("EXPECTATION : pdf contain not a number elements")
             quit()
 
-        p_pdf = probability_distribution_function * \
-                self.mixture_coefficients.unsqueeze(0).expand_as(probability_distribution_function)
-        wik = gs.ones((data.shape[0], self.means.shape[0]))
-        if (p_pdf.sum(-1).min() <= 1e-15):
-            if (self._verbose):
-                print("EXPECTATION : pdf.sum(-1) contain zero for ", (p_pdf.sum(-1) <= 1e-15).sum().item(), "items")
-            p_pdf[p_pdf.sum(-1) <= 1e-15] = 1
 
-        wik = p_pdf / p_pdf.sum(-1, keepdim=True).expand_as(probability_distribution_function)
-        if (wik.mean() != wik.mean()):
+
+        multi = gs.repeat(gs.expand_dims(self.mixture_coefficients,0),
+                          len(probability_distribution_function),
+                          axis = 0)
+
+        p_pdf = probability_distribution_function* \
+                   multi
+
+        # p_pdf = probability_distribution_function * \
+        #         self.mixture_coefficients.unsqueeze(0).expand_as(probability_distribution_function)
+
+        valid_pdf_condition = gs.amin(gs.sum(p_pdf, -1))
+
+        if (valid_pdf_condition <= 1e-15):
+
+            if (self._verbose):
+                print("EXPECTATION : pdf.sum(-1) contain zero for ", gs.sum(gs.sum(p_pdf,-1) <= 1e-15), "items")
+            p_pdf[gs.sum(p_pdf,-1) <= 1e-15] = 1
+
+
+        denum_wik = gs.repeat(gs.sum(p_pdf,-1, keepdims=True),p_pdf.shape[-1], axis = 1)
+
+        wik = p_pdf / denum_wik
+
+
+
+        if (gs.mean(wik) != gs.mean(wik)):
+
             print("EXPECTATION : wik contain not a number elements")
             quit()
-        # print(wik.mean(0))
-        if (wik.sum(1).mean() <= 1 - 1e-4 and wik.sum(1).mean() >= 1 + 1e-4):
+
+
+
+        if gs.mean(gs.sum(wik,1)) <= 1-1e-4 and gs.mean(gs.sum(wik,1)) >= 1+1e-4:
+        #if (wik.sum(1).mean() <= 1 - 1e-4 and wik.sum(1).mean() >= 1 + 1e-4):
             print("EXPECTATION : wik don't sum to 1")
-            print(wik.sum(1))
+            print(gs.sum(wik,1))
             quit()
+
+        self.mixture_coefficients = torch.from_numpy(self.mixture_coefficients)
+        wik = torch.from_numpy(wik)
         return wik
 
     def _maximization(self, data, wik, lr_mu, tau_mu, max_iter = math.inf ):
@@ -435,9 +467,7 @@ def gaussianPDF(data, means, variances, distance, norm_func, metric):
     # norm_func = zeta
     # print(x.shape, mu.shape)
 
-    data = data.data.numpy()
-    means = means.data.numpy()
-    variances = variances.data.numpy()
+
 
     N, D, M = data.shape + (means.shape[0],)
 
