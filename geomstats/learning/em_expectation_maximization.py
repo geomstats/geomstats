@@ -95,35 +95,48 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self.verbose = verbose
         self.mean_method = mean_method
 
-    def update_weights(self,X, wik, g_index=-1):
+    def update_weights(self, wik, g_index=-1):
         """ Weights update function
         """
-        with torch.no_grad():
+        wik  = wik.data.numpy()
+        #with torch.no_grad():
             # get omega mu
 
-            if(g_index > 0):
-                self.mixture_coefficients[g_index] = wik[:, g_index].mean()
-            else:
-                self.mixture_coefficients = wik.mean(0)
+        if (g_index > 0):
+            self.mixture_coefficients[g_index] = gs.mean(wik[:, g_index])
+        else:
+            self.mixture_coefficients = gs.mean(wik,0)
+
+        # if(g_index > 0):
+        #     self.mixture_coefficients[g_index] = wik[:, g_index].mean()
+        # else:
+        #     self.mixture_coefficients = wik.mean(0)
+
+        self.mixture_coefficients = torch.from_numpy(self.mixture_coefficients)
 
     def update_means(self, z, wik, lr_mu, tau_mu, g_index=-1, max_iter=150):
         """ Means update functions"""
-        N, D, M = z.shape + (wik.shape[-1],)
-        # if too much gaussian we compute mean for each gaussian separately (To avoid too large memory)
-        if(M>40):
-            for g_index in range(M//40 + (1 if(M%40 != 0) else 0)):
-                from_ = g_index * 40
-                to_ = min((g_index+1) * 40, M)
-                # print(from_, to_, " to_from :")
 
-                zz = z.unsqueeze(1).expand(N, to_-from_, D)
-                self.means[from_:to_] = barycenter(zz, wik[:, from_:to_], lr_mu, tau_mu, max_iter=max_iter,
-                                                   verbose=True, normed=True).squeeze()
+        wik = wik.data.numpy()
+        N, D, M = z.shape + (wik.shape[-1],)
+        #N, D, M = z.shape + (wik.shape[-1],)
+
+        wik = torch.from_numpy(wik)
+        # if too much gaussian we compute mean for each gaussian separately (To avoid too large memory)
+        # if(M>40):
+        #     for g_index in range(M//40 + (1 if(M%40 != 0) else 0)):
+        #         from_ = g_index * 40
+        #         to_ = min((g_index+1) * 40, M)
+        #         # print(from_, to_, " to_from :")
+        #
+        #         zz = z.unsqueeze(1).expand(N, to_-from_, D)
+        #         self.means[from_:to_] = barycenter(zz, wik[:, from_:to_], lr_mu, tau_mu, max_iter=max_iter,
+        #                                            verbose=True, normed=True).squeeze()
+        # else:
+        if(g_index>0):
+            self.means[g_index] = barycenter(z, wik[:, g_index], lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
         else:
-            if(g_index>0):
-                self.means[g_index] = barycenter(z, wik[:, g_index], lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
-            else:
-                self.means = barycenter(z.unsqueeze(1).expand(N, M, D), wik, lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
+            self.means = barycenter(z.unsqueeze(1).expand(N, M, D), wik, lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
         # print("1",self._mu)
     def update_variances(self, z, wik, g_index=-1):
         """Variances update function"""
@@ -142,10 +155,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
     def _expectation(self, data):
         """Compute weights_ik given the data, means and variances"""
 
-        # self.data = self.data.data.numpy()
-        # self.means = self.means.data.numpy()
-        # self.variances = self.variances.data.numpy()
-
         self.mixture_coefficients = self.mixture_coefficients.data.numpy()
 
         probability_distribution_function = gaussianPDF(data.data.numpy(),
@@ -163,16 +172,12 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             quit()
 
 
-
         multi = gs.repeat(gs.expand_dims(self.mixture_coefficients,0),
                           len(probability_distribution_function),
                           axis = 0)
 
         p_pdf = probability_distribution_function* \
                    multi
-
-        # p_pdf = probability_distribution_function * \
-        #         self.mixture_coefficients.unsqueeze(0).expand_as(probability_distribution_function)
 
         valid_pdf_condition = gs.amin(gs.sum(p_pdf, -1))
 
@@ -182,22 +187,17 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                 print("EXPECTATION : pdf.sum(-1) contain zero for ", gs.sum(gs.sum(p_pdf,-1) <= 1e-15), "items")
             p_pdf[gs.sum(p_pdf,-1) <= 1e-15] = 1
 
-
         denum_wik = gs.repeat(gs.sum(p_pdf,-1, keepdims=True),p_pdf.shape[-1], axis = 1)
 
         wik = p_pdf / denum_wik
-
-
 
         if (gs.mean(wik) != gs.mean(wik)):
 
             print("EXPECTATION : wik contain not a number elements")
             quit()
 
-
-
         if gs.mean(gs.sum(wik,1)) <= 1-1e-4 and gs.mean(gs.sum(wik,1)) >= 1+1e-4:
-        #if (wik.sum(1).mean() <= 1 - 1e-4 and wik.sum(1).mean() >= 1 + 1e-4):
+
             print("EXPECTATION : wik don't sum to 1")
             print(gs.sum(wik,1))
             quit()
@@ -208,7 +208,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
     def _maximization(self, data, wik, lr_mu, tau_mu, max_iter = math.inf ):
         """Given the weights and data, will update the means and variances."""
-        self.update_weights(data, wik)
+        self.update_weights(wik)
         if(self.mixture_coefficients.mean() != self.mixture_coefficients.mean()):
             print("UPDATE : w contain not a number elements")
             quit()
@@ -262,8 +262,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             self.mixture_coefficients = gs.ones(self.n_gaussian) / self.n_gaussian
             posterior_probabilities = gs.ones((data.shape[0], self.means.shape[0]))
 
-
-
             #TODO Write properly ZetaPhiStorage
             self.normalization_factor = ZetaPhiStorage(gs.arange(5e-2, 2., 0.001), self._dimension)
 
@@ -315,6 +313,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self : object
             Return array containing for each point the associated Gaussian community
         """
+        #TODO Hadi: Write prediction method
         belongs = None
         return belongs
 
