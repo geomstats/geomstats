@@ -115,7 +115,7 @@ def array(val):
         else:
             val = stack(val)
 
-    if isinstance(val, bool):
+    if isinstance(val, (bool, int, float)):
         val = _np.array(val)
     if isinstance(val, _np.ndarray):
         if val.dtype == bool:
@@ -524,7 +524,7 @@ def gather(x, indices, axis=0):
 
 
 def get_mask_i_float(i, n):
-    range_n = arange(cast(array(n), int32)[0])
+    range_n = arange(cast(array(n), int32))
     i_float = cast(array(i), int32)
     mask_i = equal(range_n, i_float)
     mask_i_float = cast(mask_i, float32)
