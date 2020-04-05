@@ -695,7 +695,7 @@ class SpecialEuclidean(LieGroup):
                 [random_rot_vec, random_translation],
                 axis=1)
 
-        elif point_type == 'matrix':
+        if point_type == 'matrix':
             random_rotation = self.rotations.random_uniform(
                 n_samples, point_type=point_type)
             random_translation = gs.transpose(gs.to_ndarray(
