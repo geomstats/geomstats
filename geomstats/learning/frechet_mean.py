@@ -82,7 +82,7 @@ def linear_mean(points, weights=None):
     if isinstance(weights, list):
         weights = gs.vstack(weights)
     elif weights is None:
-        weights = gs.ones((n_points, ))
+        weights = gs.ones((n_points,))
 
     weighted_points = gs.einsum('...,...j->...j', weights, points)
     mean = (gs.sum(weighted_points, axis=0) / gs.sum(weights))
@@ -92,7 +92,6 @@ def linear_mean(points, weights=None):
 
 def _default_gradient_descent(points, metric, weights,
                               n_max_iterations, point_type, epsilon, verbose):
-
     def while_loop_cond(iteration, mean, var, sq_dist):
         result = ~gs.logical_or(
             gs.isclose(var, 0.),
@@ -174,7 +173,6 @@ def _default_gradient_descent(points, metric, weights,
 
 def _ball_gradient_descent(points, metric, weights, n_max_iterations,
                            lr=1e-3, tau=5e-3):
-
     if len(points) == 1:
         return points
 
@@ -183,7 +181,6 @@ def _ball_gradient_descent(points, metric, weights, n_max_iterations,
     barycenter = points.mean(0, keepdims=True) * 0
 
     while convergence > tau and n_max_iterations > iteration:
-
         iteration += 1
 
         grad_tangent = 2 * metric.log(points, barycenter)
@@ -207,7 +204,7 @@ def _adaptive_gradient_descent(points,
                                metric,
                                weights=None,
                                n_max_iterations=32,
-                               epsilon=1e-12,
+                               epsilon=1e-11,
                                init_points=[],
                                point_type='vector'):
     """Compute the Frechet mean using gradient descent.
@@ -253,6 +250,9 @@ def _adaptive_gradient_descent(points,
 
     sum_weights = gs.sum(weights)
 
+    if n_points == 1:
+        return gs.to_ndarray(points[0], to_ndim=2)
+
     n_init = len(init_points)
 
     if n_init == 0:
@@ -260,18 +260,16 @@ def _adaptive_gradient_descent(points,
     else:
         current_mean = init_points[0]
 
-    if n_points == 1:
-        return gs.to_ndarray(current_mean, to_ndim=2)
-
     tau = 1.0
     iteration = 0
 
     logs = metric.log(point=points, base_point=current_mean)
     current_tangent_mean = gs.einsum('nk,nj->j', weights, logs)
     current_tangent_mean /= sum_weights
-    norm_current_tangent_mean = gs.linalg.norm(current_tangent_mean)
+    sq_norm_current_tangent_mean = metric.squared_norm(current_tangent_mean,
+                                                       base_point=current_mean)
 
-    while (norm_current_tangent_mean > epsilon
+    while (sq_norm_current_tangent_mean > epsilon ** 2
            and iteration < n_max_iterations):
         iteration = iteration + 1
         shooting_vector = gs.to_ndarray(
@@ -283,14 +281,15 @@ def _adaptive_gradient_descent(points,
         logs = metric.log(point=points, base_point=next_mean)
         next_tangent_mean = gs.einsum('nk,nj->j', weights, logs)
         next_tangent_mean /= sum_weights
-        norm_next_tangent_mean = gs.linalg.norm(next_tangent_mean)
-        if norm_next_tangent_mean < norm_current_tangent_mean:
+        sq_norm_next_tangent_mean = metric.squared_norm(next_tangent_mean,
+                                                        base_point=next_mean)
+        if sq_norm_next_tangent_mean < sq_norm_current_tangent_mean:
             current_mean = next_mean
             current_tangent_mean = next_tangent_mean
-            norm_current_tangent_mean = norm_next_tangent_mean
-            tau = max(1.0, 1.0511111 * tau)
+            sq_norm_current_tangent_mean = sq_norm_next_tangent_mean
+            tau = min(15, 1.6511111 * tau)  # 1.0511111
         else:
-            tau = tau * 0.8
+            tau = tau * 0.1
 
     if iteration == n_max_iterations:
         logging.warning(
