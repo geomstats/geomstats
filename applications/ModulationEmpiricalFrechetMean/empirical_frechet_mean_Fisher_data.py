@@ -594,8 +594,8 @@ def main():
     and Embleton 1987.
     """
 
-    # n_expectation = 50  # for test
-    n_expectation = 50000  # for production
+    n_expectation = 50  # for test
+    # n_expectation = 50000  # for production
 
     # Read the data and transform them into a data matrix of unit vectors
     book = open_workbook("FisherDatasets.xlsx")

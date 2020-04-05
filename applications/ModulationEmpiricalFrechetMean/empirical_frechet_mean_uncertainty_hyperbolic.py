@@ -234,7 +234,8 @@ def main():
     for isotropic distributions on hyper-spheres of radius 0 < theta < 5 in
     the hyperbolic space H_dim (called here a bubble).
     """
-    n_expectation = 5000
+    n_expectation = 50 # for test
+    # n_expectation = 5000 # for production of figures
 
     print('Var of empirical mean for 1 sample, theta=0.1 in H2 '
           '(should be close to 0.1) {} \n'.format(empirical_frechet_var_bubble(
