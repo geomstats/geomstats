@@ -31,7 +31,7 @@ def logical_or(x, y):
 def logical_and(x, y):
     if torch.is_tensor(x):
         return x.eq(y)
-    elif torch.is_tensor(y):
+    if torch.is_tensor(y):
         return y.eq(x)
     return x and y
 
