@@ -8,10 +8,9 @@ import geomstats.backend as gs
 from geomstats.learning._template import TransformerMixin
 import torch
 from torch import nn
+from geomstats.learning.frechet_mean import FrechetMean
 import math
 import os
-
-
 
 EM_CONV_RATE = 1e-4
 DEFAULT_MAX_ITER = 100
@@ -19,32 +18,6 @@ DEFAULT_LR = 5e-2
 DEFAULT_TAU = 1e-4
 ZETA_CST = gs.sqrt(gs.pi/2)
 
-
-
-class RawDataloader(object):
-    def __init__(self, dataset, batch_size=200, shuffle=False):
-        self.dataset = dataset
-        self.batch_size = batch_size
-        self.shuffle = shuffle
-    def __iter__(self):
-        if(self.shuffle):
-            self.indexed = torch.randperm(len(self.dataset))
-        self.indexed = torch.arange(len(self.dataset))
-        self.ci = 0
-        return self
-
-    def __len__(self):
-        return len(self.dataset)//self.batch_size +  (0 if(len(self.dataset)%self.batch_size == 0) else 1)
-
-    def _next_index(self):
-        if(self.ci >= (len(self))):
-            raise StopIteration
-        value = self.dataset[self.indexed[self.ci*self.batch_size: min((self.ci+1)*self.batch_size, len(self.dataset)) ]]
-        self.ci += 1
-        return value
-
-    def __next__(self):
-        return self._next_index()
 
 class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
@@ -54,6 +27,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                  init='random',
                  tol=1e-2,
                  mean_method='default',
+                 point_type='vector',
                  verbose=0):
         """Expectation-maximization algorithm on Riemannian manifolds.
 
@@ -94,6 +68,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self.tol = tol
         self.verbose = verbose
         self.mean_method = mean_method
+        self.point_type = point_type
 
     def update_weights(self, wik, g_index=-1):
         """ Weights update function
@@ -114,14 +89,26 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
         self.mixture_coefficients = torch.from_numpy(self.mixture_coefficients)
 
-    def update_means(self, z, wik, lr_mu, tau_mu, g_index=-1, max_iter=150):
+    def update_means(self, data, wik, lr_mu, tau_mu, g_index=-1, max_iter=150):
         """ Means update functions"""
 
         wik = wik.data.numpy()
-        N, D, M = z.shape + (wik.shape[-1],)
+        N, D, M = data.shape + (wik.shape[-1],)
         #N, D, M = z.shape + (wik.shape[-1],)
 
+        mean = FrechetMean(
+            metric=self.riemannian_metric,
+            method=self.mean_method,
+            max_iter=150,
+            point_type=self.point_type)
+
+
         wik = torch.from_numpy(wik)
+
+
+        # means_gs = torch.from_numpy(mean.fit(data.unsqueeze(1).expand(N, M, D).data.numpy(),
+        #                     wik.data.numpy())).squeeze()
+
         # if too much gaussian we compute mean for each gaussian separately (To avoid too large memory)
         # if(M>40):
         #     for g_index in range(M//40 + (1 if(M%40 != 0) else 0)):
@@ -134,10 +121,11 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         #                                            verbose=True, normed=True).squeeze()
         # else:
         if(g_index>0):
-            self.means[g_index] = barycenter(z, wik[:, g_index], lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
+            self.means[g_index] = barycenter(data, wik[:, g_index], lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
         else:
-            self.means = barycenter(z.unsqueeze(1).expand(N, M, D), wik, lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
-        # print("1",self._mu)
+            self.means = barycenter(data.unsqueeze(1).expand(N, M, D), wik, lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
+
+
     def update_variances(self, z, wik, g_index=-1):
         """Variances update function"""
         with torch.no_grad():
@@ -466,8 +454,6 @@ def gaussianPDF(data, means, variances, distance, norm_func, metric):
     # norm_func = zeta
     # print(x.shape, mu.shape)
 
-
-
     N, D, M = data.shape + (means.shape[0],)
 
     x_rd = gs.expand_dims(data,1)
@@ -479,7 +465,7 @@ def gaussianPDF(data, means, variances, distance, norm_func, metric):
     sigma_rd = gs.expand_dims(variances,0)
     sigma_rd = gs.repeat(sigma_rd,N,0)
 
-    num = gs.exp(-((metric(x_rd, mu_rd)**2))/(2*(sigma_rd)**2))
+    num = gs.exp(-((metric.dist(x_rd, mu_rd)**2))/(2*(sigma_rd)**2))
 
 
     num = torch.from_numpy(num)

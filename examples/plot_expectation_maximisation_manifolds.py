@@ -11,7 +11,7 @@ import os
 import matplotlib.pyplot as plt
 import geomstats.backend as gs
 from geomstats.geometry.hyperbolic import Hyperbolic
-from geomstats.learning.em_expectation_maximization import RiemannianEM,RawDataloader
+from geomstats.learning.em_expectation_maximization import RiemannianEM
 import numpy as np
 import math
 import torch
@@ -126,7 +126,7 @@ def expectation_maximisation_poincare_ball():
 
     metric = manifold.metric
 
-    EM = RiemannianEM(riemannian_metric=metric.dist,
+    EM = RiemannianEM(riemannian_metric=metric,
                        n_gaussian= n_clusters,
                        init='random',
                        mean_method='frechet-poincare-ball',
