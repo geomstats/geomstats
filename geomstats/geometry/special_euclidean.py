@@ -688,6 +688,7 @@ class SpecialEuclidean(LieGroup):
             point_type = self.default_point_type
 
         random_translation = self.translations.random_uniform(n_samples)
+        random_translation = gs.to_ndarray(random_translation, to_ndim=2)
 
         if point_type == 'vector':
             random_rot_vec = self.rotations.random_uniform(

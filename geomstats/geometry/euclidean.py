@@ -31,7 +31,7 @@ class Euclidean(Manifold):
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dimension
-        if point.ndim == 2:
+        if gs.ndim(point) == 2:
             belongs = gs.tile([belongs], (point.shape[0],))
 
         return belongs
