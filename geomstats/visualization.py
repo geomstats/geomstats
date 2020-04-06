@@ -97,8 +97,6 @@ class Circle():
     def draw_points(self, ax, points=None, **plot_kwargs):
         if points is None:
             points = self.points
-        else:
-            points = points
         points = gs.array(points)
         ax.plot(points[:, 0], points[:, 1], marker='o', linestyle="None",
                 **plot_kwargs)
@@ -160,8 +158,6 @@ class Sphere():
     def draw_points(self, ax, points=None, **scatter_kwargs):
         if points is None:
             points = self.points
-        else:
-            points = points
         points_x = gs.vstack([point[0] for point in points])
         points_y = gs.vstack([point[1] for point in points])
         points_z = gs.vstack([point[2] for point in points])

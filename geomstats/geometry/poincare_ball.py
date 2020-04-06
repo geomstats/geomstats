@@ -195,6 +195,13 @@ class PoincareBallMetric(RiemannianMetric):
         mobius_add : array-like, shape=[n_samples, 1]
             Result of the Mobius addition.
         """
+        ball_manifold = PoincareBall(self.dimension, scale=self.scale)
+        point_a_belong = ball_manifold.belongs(point_a)
+        point_b_belong = ball_manifold.belongs(point_b)
+
+        if(not point_a_belong or not point_b_belong):
+            raise NameError("Point do not belong to the Poincare ball")
+
         norm_point_a = gs.sum(point_a ** 2, axis=-1,
                               keepdims=True)
 
@@ -266,6 +273,12 @@ class PoincareBallMetric(RiemannianMetric):
         point : array-like, shape=[n_samples, dimension]
             Retraction point.
         """
+        ball_manifold = PoincareBall(self.dimension, scale=self.scale)
+        base_point_belong = ball_manifold.belongs(base_point)
+
+        if(not base_point_belong):
+            raise NameError("Point do not belong to the Poincare ball")
+
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 

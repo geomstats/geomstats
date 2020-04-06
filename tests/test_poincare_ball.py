@@ -80,13 +80,13 @@ class TestPoincareBallMethods(geomstats.tests.TestCase):
     def test_belong_true_poincare(self):
         point = gs.array([[0.3, 0.5]])
         belong = self.manifold.belongs(point)
-        assert(belong)
+        self.assertTrue(belong)
 
     @geomstats.tests.np_only
     def test_belong_false_poincare(self):
         point = gs.array([[1.2, 0.5]])
         belong = self.manifold.belongs(point)
-        assert(belong is not False)
+        self.assertFalse(belong)
 
     @geomstats.tests.np_only
     def test_exp_poincare(self):
