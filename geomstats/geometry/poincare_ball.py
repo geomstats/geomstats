@@ -84,7 +84,6 @@ class PoincareBallMetric(RiemannianMetric):
             signature=(dimension, 0, 0))
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
-
         assert scale > 0, 'The scale should be strictly positive'
         self.scale = scale
 
