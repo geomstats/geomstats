@@ -106,9 +106,8 @@ class InvariantMetric(RiemannianMetric):
                 ' by matrices.')
             tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
             tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
-            aux_prod = gs.matmul(gs.transpose(tangent_vec_a, axes=(0, 2, 1)),
-                                 tangent_vec_b)
-            inner_prod = gs.trace(aux_prod)
+            aux_prod = tangent_vec_a * tangent_vec_b
+            inner_prod = gs.sum(aux_prod, axis=0)
 
         return inner_prod
 
