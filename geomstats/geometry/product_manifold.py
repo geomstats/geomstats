@@ -166,5 +166,6 @@ class ProductManifold(Manifold):
                         axis=1)
             return data
         point = [
-            space.random_uniform(n_samples) for space in self.manifolds]
+            space.random_uniform(n_samples)
+            for space in self.manifolds]
         return gs.stack(point, axis=1)
