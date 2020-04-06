@@ -99,15 +99,17 @@ class InvariantMetric(RiemannianMetric):
 
             inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
-        elif self.group.default_point_type == 'matrix':
+        else:
+            # TODO(nguigs): allow for diagonal metric_matrices
             logging.warning(
                 'Only the canonical inner product -Frobenius inner product-'
                 ' is implemented for Lie groups whose elements are represented'
                 ' by matrices.')
-            tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
-            tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
+            is_vectorized = \
+                (gs.ndim(tangent_vec_a) == 3) or (gs.ndim(tangent_vec_b) == 3)
+            axes = (2, 1) if is_vectorized else (0, 1)
             aux_prod = tangent_vec_a * tangent_vec_b
-            inner_prod = gs.sum(aux_prod, axis=0)
+            inner_prod = gs.sum(aux_prod, axis=axes)
 
         return inner_prod
 
@@ -137,15 +139,20 @@ class InvariantMetric(RiemannianMetric):
                 tangent_vec_b,
                 base_point)
 
-        if self.left_or_right == 'right':
-            raise NotImplementedError(
-                'inner_product not implemented for right invariant metrics.')
         jacobian = self.group.jacobian_translation(base_point)
-        inv_jacobian = gs.linalg.inv(jacobian)
-        tangent_vec_a_at_id = gs.matmul(inv_jacobian, tangent_vec_a)
-        tangent_vec_b_at_id = gs.matmul(inv_jacobian, tangent_vec_b)
-        inner_prod = self.inner_product_at_identity(tangent_vec_a_at_id,
-                                                    tangent_vec_b_at_id)
+        inv_jacobian = self.group.inverse(jacobian)
+        if self.left_or_right == 'left':
+            tangent_vec_a_at_id = self.group.compose(
+                inv_jacobian, tangent_vec_a)
+            tangent_vec_b_at_id = self.group.compose(
+                inv_jacobian, tangent_vec_b)
+        elif self.left_or_right == 'right':
+            tangent_vec_a_at_id = self.group.compose(
+                tangent_vec_a, inv_jacobian)
+            tangent_vec_b_at_id = self.group.compose(
+                tangent_vec_b, inv_jacobian)
+        inner_prod = self.inner_product_at_identity(
+            tangent_vec_a_at_id, tangent_vec_b_at_id)
         return inner_prod
 
     def inner_product_matrix(self, base_point=None):
@@ -399,6 +406,8 @@ class InvariantMetric(RiemannianMetric):
                 point, self.group.inverse(base_point))
 
         log_from_id = self.log_from_identity(point_near_id)
+        log_from_id = self.group.regularize_tangent_vec_at_identity(
+            log_from_id)
 
         jacobian = self.group.jacobian_translation(
             base_point, left_or_right=self.left_or_right)
