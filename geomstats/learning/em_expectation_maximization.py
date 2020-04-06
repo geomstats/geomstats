@@ -327,7 +327,7 @@ class ZetaPhiStorage(object):
         self.dimension = dimension
         sigma = torch.from_numpy(sigma)
         self.sigma = sigma
-        self.m_zeta_var = new_zeta(sigma, dimension)
+        self.m_zeta_var = torch.from_numpy(new_zeta(sigma, dimension))
 
 
         c1 = self.m_zeta_var.sum() != self.m_zeta_var.sum()
@@ -475,7 +475,7 @@ def new_zeta(x, N):
     #
     # zeta = ZETA_CST * sigma * r.sum(0) * (1/(2**(N-1)))
 
-    return torch.from_numpy(zeta)
+    return zeta
 
 
 def log_grad_zeta(x, N):
