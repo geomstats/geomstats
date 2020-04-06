@@ -568,10 +568,12 @@ def from_vector_to_diagonal_matrix(x):
     return diagonals
 
 
-def triu_indices(n, k=0, m=None):
-    if m is None:
-        m = n
-    return _np.triu_indices(n, k, m)
+def tril_indices(*args, **kwargs):
+    return tuple(map(tf.convert_to_tensor, _np.tril_indices(*args, **kwargs)))
+
+
+def triu_indices(*args, **kwargs):
+    return tuple(map(tf.convert_to_tensor, _np.triu_indices(*args, **kwargs)))
 
 
 def transpose(x, axes=None):

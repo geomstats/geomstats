@@ -375,10 +375,12 @@ def cross(x, y):
     return torch.from_numpy(_np.cross(x, y))
 
 
-def triu_indices(n, k=0, m=None, **kwargs):
-    if m is None:
-        m = n
-    return torch.triu_indices(row=n, col=m, offset=k, **kwargs)
+def tril_indices(*args, **kwargs):
+    return tuple(map(torch.from_numpy, _np.tril_indices(*args, **kwargs)))
+
+
+def triu_indices(*args, **kwargs):
+    return tuple(map(torch.from_numpy, _np.triu_indices(*args, **kwargs)))
 
 
 def where(test, x, y):
