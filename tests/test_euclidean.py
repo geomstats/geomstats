@@ -188,7 +188,7 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
         point = gs.array([0., 1.])
 
         result = self.space.belongs(point)
-        expected = gs.array([[True]])
+        expected = True
 
         self.assertAllClose(result, expected)
 

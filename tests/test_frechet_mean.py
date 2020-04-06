@@ -193,7 +193,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         mean.fit(points, weights=weights)
         result = mean.estimate_
         result = self.minkowski.belongs(result)
-        expected = gs.array([[True]])
+        expected = gs.array([True])
 
         self.assertAllClose(result, expected)
 
