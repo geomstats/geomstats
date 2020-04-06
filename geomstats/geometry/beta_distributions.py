@@ -211,8 +211,7 @@ class BetaMetric(RiemannianMetric):
             christoffel.append(gs.stack([gamma_0, gamma_1]))
         if len(base_point) == 1:
             return christoffel[0]
-        else:
-            return gs.stack(christoffel)
+        return gs.stack(christoffel)
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS):
         """Exponential map associated to the Fisher information metric.

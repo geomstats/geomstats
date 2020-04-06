@@ -4,7 +4,8 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.learning.ahc import AgglomerativeHierarchicalClustering
+from geomstats.learning.agglomerative_hierarchical_clustering \
+    import AgglomerativeHierarchicalClustering
 
 
 class TestAgglomerativeHierarchicalClustering(geomstats.tests.TestCase):

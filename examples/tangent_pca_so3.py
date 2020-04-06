@@ -44,8 +44,8 @@ def main():
     ax_var.set_ylim((0, 1))
     ax_var.plot(xticks, tpca.explained_variance_ratio_)
 
-    ax = fig.add_subplot(122, projection="3d")
-    plt.setp(ax, xlabel="X", ylabel="Y", zlabel="Z")
+    ax = fig.add_subplot(122, projection='3d')
+    plt.setp(ax, xlabel='X', ylabel='Y', zlabel='Z')
 
     ax.set_title('Data in SO3 (black) and Frechet mean (color)')
     visualization.plot(data, ax, space='SO3_GROUP', color='black')
@@ -56,5 +56,5 @@ def main():
     plt.show()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

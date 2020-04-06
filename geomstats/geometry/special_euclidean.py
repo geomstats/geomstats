@@ -120,7 +120,7 @@ class SpecialEuclidean(LieGroup):
 
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
-            n_points, point_dim = point.shape
+            _, point_dim = point.shape
             belongs = point_dim == self.dimension
             belongs = gs.logical_and(
                 belongs, self.rotations.belongs(point[:, :self.n]))
@@ -381,8 +381,6 @@ class SpecialEuclidean(LieGroup):
         point = self.regularize(point)
 
         if point_type == 'vector':
-            n_points, _ = point.shape
-
             rot_vec = point[:, :dim_rotations]
             translation = point[:, dim_rotations:]
 
@@ -401,13 +399,12 @@ class SpecialEuclidean(LieGroup):
                 [inverse_rotation, inverse_translation], axis=1)
 
         elif point_type == 'matrix':
-            inverse_point = gs.empty_like(point)
-            inverse_point[:, :self.n, :self.n] = gs.transpose(
+            inv_rot = gs.transpose(
                 point[:, :self.n, :self.n], axes=(0, 2, 1))
-            inverse_point[:, :self.n, self.n:] = gs.matmul(
-                inverse_point[:, :self.n, :self.n],
-                - point[:, :self.n, self.n:])
-            inverse_point[:, self.n:, :] = point[:, self.n:, :]
+            inv_trans = gs.matmul(inv_rot, - point[:, :self.n, self.n:])
+            last_line = point[:, self.n:, :]
+            inverse_point = gs.concatenate((inv_rot, inv_trans), axis=2)
+            inverse_point = gs.concatenate((inverse_point, last_line), axis=1)
 
         inverse_point = self.regularize(inverse_point, point_type=point_type)
         return inverse_point
@@ -573,8 +570,10 @@ class SpecialEuclidean(LieGroup):
             group_exp = self.regularize(group_exp, point_type=point_type)
             return group_exp
 
-        elif point_type == 'matrix':
+        if point_type == 'matrix':
             return GeneralLinear.exp(tangent_vec)
+
+        raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
     def log_from_identity(self, point, point_type=None):
         """Compute the group logarithm of the point at the identity.
@@ -696,15 +695,11 @@ class SpecialEuclidean(LieGroup):
                 [random_rot_vec, random_translation],
                 axis=1)
 
-        elif point_type == 'matrix':
+        if point_type == 'matrix':
             random_rotation = self.rotations.random_uniform(
                 n_samples, point_type=point_type)
-            if n_samples == 1:
-                random_translation = gs.to_ndarray(
-                    gs.transpose(random_translation), to_ndim=3)
-            else:
-                random_translation = gs.transpose(gs.to_ndarray(
-                    random_translation, to_ndim=3))
+            random_translation = gs.transpose(gs.to_ndarray(
+                random_translation, to_ndim=3, axis=1), (0, 2, 1))
             random_point = gs.concatenate(
                 (random_rotation, random_translation), axis=2)
             last_line = gs.zeros((n_samples, 1, self.n + 1))

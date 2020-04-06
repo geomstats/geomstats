@@ -34,7 +34,7 @@ class TestEstimators(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_template_transformer_error(self):
-        X, y = self.data
+        X, _ = self.data
         n_samples = gs.shape(X)[0]
         trans = TemplateTransformer()
         trans.fit(X)
@@ -42,7 +42,7 @@ class TestEstimators(geomstats.tests.TestCase):
         self.assertRaises(ValueError, trans.transform, X_diff_size)
 
     def test_template_transformer(self):
-        X, y = self.data
+        X, _ = self.data
         trans = TemplateTransformer()
         assert trans.demo_param == 'demo'
 

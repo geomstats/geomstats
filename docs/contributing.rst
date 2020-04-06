@@ -515,23 +515,29 @@ And here's a filled-in example from the Scikit-Learn project, modified to our sy
 In general, have the following in mind:
  
    1. Use built-in Python types. (``bool`` instead of ``boolean``)
- 
+
    2. Use ``[`` for defining shapes: ``array-like, shape=[n_samples,]``
- 
-   3. For strings with multiple options, use brackets:
+
+   3. If a shape can vary, use a list-like notation:
+      ``array-like, shape=[dimension[:axis], n, dimension[axis:]]``
+
+   4. For strings with multiple options, use brackets:
       ``input: str, {'log', 'squared', 'multinomial'}``
- 
-   4. 1D or 2D data can be a subset of
-      ``{array-like, ndarray, sparse matrix, dataframe}``. Note that ``array-like``
-      can also be a ``list``, while ``ndarray`` is explicitly only a ``numpy.ndarray``.
- 
-   5. Add "See Also" in docstrings for related classes/functions.
+
+   5. 1D or 2D data can be a subset of
+      ``{array-like, ndarray, sparse matrix, dataframe}``. Note that
+      ``array-like`` can also be a ``list``, while ``ndarray`` is explicitly
+      only a ``numpy.ndarray``.
+
+   6. Add "See Also" in docstrings for related classes/functions.
       "See Also" in docstrings should be one line per reference,
       with a colon and an explanation.
 
-For Class and Module Examples see the `scikit-learn _weight_boosting.py module <https://github.com/scikit-learn/scikit-learn/blob/b194674c4/sklearn/ensemble/_weight_boosting.py#L285>`_. 
-The class AdaBoost has a great example using the elements we’ve discussed here. Of course, these 
-examples are rather verbose, but they’re good for understanding the components.
+For Class and Module Examples see the `scikit-learn _weight_boosting.py module
+<https://github.com/scikit-learn/scikit-learn/blob/b194674c4/sklearn/ensemble/_weight_boosting.py#L285>`_.
+The class AdaBoost has a great example using the elements we’ve discussed here.
+Of course, these examples are rather verbose, but they’re good for
+understanding the components.
 
 When editing reStructuredText (``.rst``) files, try to keep line length under
 80 characters (exceptions include links and tables).
@@ -581,8 +587,8 @@ guidelines:
    It makes the code harder to read as the origin of symbols is no
    longer explicitly referenced, but most important, it prevents
    using a static analysis tool like `pyflakes
-   <https://divmod.readthedocs.io/en/latest/products/pyflakes.html>`_ to automatically
-   find bugs in geomstats.
+   <https://divmod.readthedocs.io/en/latest/products/pyflakes.html>`_ to
+   automatically find bugs in geomstats.
 
 8. Avoid the use of ``import ... as`` and of ``from ... import foo, bar``,
    i.e. do not rename modules or modules' functions, because you would create
@@ -640,7 +646,8 @@ from high-level questions to a more detailed check-list.
   functions/classes/parameters well named and intuitively designed?
 
 - Are all public functions/classes and their parameters, return types, and
-  stored attributes named according to geomstats conventions and documented clearly?
+  stored attributes named according to geomstats conventions and documented
+  clearly?
 
 - Is every public function/class tested? Are a reasonable set of
   parameters, their values, value types, and combinations tested? Do

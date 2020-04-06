@@ -84,6 +84,10 @@ from autograd.numpy import (  # NOQA
     trace,
     transpose,
     triu_indices,
+    tril_indices,
+    diag_indices,
+    searchsorted,
+    tril,
     vstack,
     where,
     zeros,
@@ -141,6 +145,32 @@ def get_mask_i_float(i, n):
 
 
 def assignment(x, values, indices, axis=0):
+    """Assign values at given indices of an array.
+
+    Parameters
+    ----------
+    x: array-like, shape=[dimension]
+        Initial array.
+    values: {float, list(float)}
+        Value or list of values to be assigned.
+    indices: {int, tuple, list(int), list(tuple)}
+        Single int or tuple, or list of ints or tuples of indices where value
+        is assigned.
+        If the length of the tuples is shorter than ndim(x), values are
+        assigned to each copy along axis.
+    axis: int, optional
+        Axis along which values are assigned, if vectorized.
+
+    Returns
+    -------
+    x_new : array-like, shape=[dimension]
+        Copy of x with the values assigned at the given indices.
+
+    Notes
+    -----
+    If a single value is provided, it is assigned at all the indices.
+    If a list is given, it must have the same length as indices.
+    """
     x_new = copy(x)
     single_index = not isinstance(indices, list)
     if single_index:
@@ -148,12 +178,59 @@ def assignment(x, values, indices, axis=0):
     if not isinstance(values, list):
         values = [values] * len(indices)
     for (nb_index, index) in enumerate(indices):
-        if len(indices[0]) < len(shape(x)):
+        if not isinstance(index, tuple):
+            index = (index,)
+        if len(index) < len(shape(x)):
             for n_axis in range(shape(x)[axis]):
                 extended_index = index[:axis] + (n_axis,) + index[axis:]
                 x_new[extended_index] = values[nb_index]
         else:
             x_new[index] = values[nb_index]
+    return x_new
+
+
+def assignment_by_sum(x, values, indices, axis=0):
+    """Add values at given indices of an array.
+
+    Parameters
+    ----------
+    x: array-like, shape=[dimension]
+        Initial array.
+    values: {float, list(float)}
+        Value or list of values to be assigned.
+    indices: {int, tuple, list(int), list(tuple)}
+        Single int or tuple, or list of ints or tuples of indices where value
+        is assigned.
+        If the length of the tuples is shorter than ndim(x), values are
+        assigned to each copy along axis.
+    axis: int, optional
+        Axis along which values are assigned, if vectorized.
+
+    Returns
+    -------
+    x_new : array-like, shape=[dimension]
+        Copy of x with the values assigned at the given indices.
+
+    Notes
+    -----
+    If a single value is provided, it is assigned at all the indices.
+    If a list is given, it must have the same length as indices.
+    """
+    x_new = copy(x)
+    single_index = not isinstance(indices, list)
+    if single_index:
+        indices = [indices]
+    if not isinstance(values, list):
+        values = [values] * len(indices)
+    for (nb_index, index) in enumerate(indices):
+        if not isinstance(index, tuple):
+            index = (index,)
+        if len(index) < len(shape(x)):
+            for n_axis in range(shape(x)[axis]):
+                extended_index = index[:axis] + (n_axis,) + index[axis:]
+                x_new[extended_index] += values[nb_index]
+        else:
+            x_new[index] += values[nb_index]
     return x_new
 
 
@@ -234,6 +311,6 @@ def array_from_sparse(indices, data, target_shape):
 
 def from_vector_to_diagonal_matrix(x):
     n = shape(x)[-1]
-    id = identity(n)
-    diagonals = einsum('ki,ij->kij', x, id)
+    identity_n = identity(n)
+    diagonals = einsum('ki,ij->kij', x, identity_n)
     return diagonals

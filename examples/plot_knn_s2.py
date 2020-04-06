@@ -34,7 +34,7 @@ def main():
 
     neigh = KNearestNeighborsClassifier(
         n_neighbors=2,
-        metric=sphere_distance)
+        distance=sphere_distance)
     neigh.fit(training_dataset, labels)
     target_labels = neigh.predict(target)
 
@@ -59,7 +59,7 @@ def main():
     plt.show()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
         logging.info('Examples with visualizations are only implemented '
                      'with numpy backend.\n'

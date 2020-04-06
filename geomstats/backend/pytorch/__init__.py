@@ -29,6 +29,10 @@ def logical_or(x, y):
 
 
 def logical_and(x, y):
+    if torch.is_tensor(x):
+        return x.eq(y)
+    if torch.is_tensor(y):
+        return y.eq(x)
     return x and y
 
 
@@ -109,9 +113,9 @@ def array(val):
         if not isinstance(val[0], torch.Tensor):
             val = _np.copy(_np.array(val))
         else:
-            val = concatenate(val)
+            val = stack(val)
 
-    if isinstance(val, bool):
+    if isinstance(val, (bool, int, float)):
         val = _np.array(val)
     if isinstance(val, _np.ndarray):
         if val.dtype == bool:
@@ -358,8 +362,7 @@ def transpose(x, axes=None):
 def squeeze(x, axis=None):
     if axis is None:
         return torch.squeeze(x)
-    else:
-        return torch.squeeze(x, axis)
+    return torch.squeeze(x, axis)
 
 
 def zeros_like(*args, **kwargs):
@@ -399,8 +402,10 @@ def cross(x, y):
     return torch.from_numpy(_np.cross(x, y))
 
 
-def triu_indices(*args, **kwargs):
-    return torch.triu_indices(*args, **kwargs)
+def triu_indices(n, k=0, m=None, **kwargs):
+    if m is None:
+        m = n
+    return torch.triu_indices(row=n, col=m, offset=k, **kwargs)
 
 
 def where(test, x, y):
@@ -485,8 +490,7 @@ def seed(x):
 def prod(x, axis=None):
     if axis is None:
         return torch.prod(x)
-    else:
-        return torch.prod(x, dim=axis)
+    return torch.prod(x, dim=axis)
 
 
 def sign(*args, **kwargs):
@@ -496,8 +500,7 @@ def sign(*args, **kwargs):
 def mean(x, axis=None):
     if axis is None:
         return torch.mean(x)
-    else:
-        return _np.mean(x, axis)
+    return _np.mean(x, axis)
 
 
 def argmin(*args, **kwargs):
@@ -521,7 +524,7 @@ def gather(x, indices, axis=0):
 
 
 def get_mask_i_float(i, n):
-    range_n = arange(cast(array(n), int32)[0])
+    range_n = arange(cast(array(n), int32))
     i_float = cast(array(i), int32)
     mask_i = equal(range_n, i_float)
     mask_i_float = cast(mask_i, float32)
@@ -529,6 +532,32 @@ def get_mask_i_float(i, n):
 
 
 def assignment(x, values, indices, axis=0):
+    """Assign values at given indices of an array.
+
+    Parameters
+    ----------
+    x: array-like, shape=[dimension]
+        Initial array.
+    values: {float, list(float)}
+        Value or list of values to be assigned.
+    indices: {int, tuple, list(int), list(tuple)}
+        Single int or tuple, or list of ints or tuples of indices where value
+        is assigned.
+        If the length of the tuples is shorter than ndim(x), values are
+        assigned to each copy along axis.
+    axis: int, optional
+        Axis along which values are assigned, if vectorized.
+
+    Returns
+    -------
+    x_new : array-like, shape=[dimension]
+        Copy of x with the values assigned at the given indices.
+
+    Notes
+    -----
+    If a single value is provided, it is assigned at all the indices.
+    If a list is given, it must have the same length as indices.
+    """
     x_new = copy(x)
     single_index = not isinstance(indices, list)
     if single_index:
@@ -536,12 +565,59 @@ def assignment(x, values, indices, axis=0):
     if not isinstance(values, list):
         values = [values] * len(indices)
     for (nb_index, index) in enumerate(indices):
-        if len(indices[0]) < len(shape(x)):
+        if not isinstance(index, tuple):
+            index = (index,)
+        if len(index) < len(shape(x)):
             for n_axis in range(shape(x)[axis]):
                 extended_index = index[:axis] + (n_axis,) + index[axis:]
                 x_new[extended_index] = values[nb_index]
         else:
             x_new[index] = values[nb_index]
+    return x_new
+
+
+def assignment_by_sum(x, values, indices, axis=0):
+    """Add values at given indices of an array.
+
+    Parameters
+    ----------
+    x: array-like, shape=[dimension]
+        Initial array.
+    values: {float, list(float)}
+        Value or list of values to be assigned.
+    indices: {int, tuple, list(int), list(tuple)}
+        Single int or tuple, or list of ints or tuples of indices where value
+        is assigned.
+        If the length of the tuples is shorter than ndim(x), values are
+        assigned to each copy along axis.
+    axis: int, optional
+        Axis along which values are assigned, if vectorized.
+
+    Returns
+    -------
+    x_new : array-like, shape=[dimension]
+        Copy of x with the values assigned at the given indices.
+
+    Notes
+    -----
+    If a single value is provided, it is assigned at all the indices.
+    If a list is given, it must have the same length as indices.
+    """
+    x_new = copy(x)
+    single_index = not isinstance(indices, list)
+    if single_index:
+        indices = [indices]
+    if not isinstance(values, list):
+        values = [values] * len(indices)
+    for (nb_index, index) in enumerate(indices):
+        if not isinstance(index, tuple):
+            index = (index,)
+        if len(index) < len(shape(x)):
+            for n_axis in range(shape(x)[axis]):
+                extended_index = index[:axis] + (n_axis,) + index[axis:]
+                x_new[extended_index] += values[nb_index]
+        else:
+            x_new[index] += values[nb_index]
     return x_new
 
 
@@ -570,12 +646,12 @@ def cumsum(x, axis=0):
 def array_from_sparse(indices, data, target_shape):
     return torch.sparse.FloatTensor(
         torch.LongTensor(indices).t(),
-        torch.FloatTensor(data),
+        torch.FloatTensor(cast(data, float32)),
         torch.Size(target_shape)).to_dense()
 
 
 def from_vector_to_diagonal_matrix(x):
     n = shape(x)[-1]
-    id = identity(n)
-    diagonals = einsum('ki,ij->kij', x, id)
+    identity_n = identity(n)
+    diagonals = einsum('ki,ij->kij', x, identity_n)
     return diagonals

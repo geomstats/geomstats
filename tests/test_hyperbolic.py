@@ -13,6 +13,7 @@ from geomstats.geometry.poincare_ball import PoincareBall
 # Tolerance for errors on predicted vectors, relative to the *norm*
 # of the vector, as opposed to the standard behavior of gs.allclose
 # where it is relative to each element of the array
+
 RTOL = 1e-6
 
 
@@ -36,6 +37,26 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         result = self.space.random_uniform()
 
         self.assertAllClose(gs.shape(result), (1, self.dimension + 1))
+
+    def test_projection_to_tangent_space(self):
+        base_point = gs.array([1., 0., 0., 0.])
+        self.assertTrue(gs.eval(self.space.belongs(base_point)))
+
+        tangent_vec = self.space.projection_to_tangent_space(
+            vector=gs.array([1., 2., 1., 3.]),
+            base_point=base_point)
+
+        result = self.metric.inner_product(tangent_vec, base_point)
+        expected = helper.to_scalar(0.)
+
+        self.assertAllClose(result, expected)
+
+        result = self.space.projection_to_tangent_space(
+            vector=gs.array([1., 2., 1., 3.]),
+            base_point=base_point)
+        expected = tangent_vec
+
+        self.assertAllClose(result, expected)
 
     def test_intrinsic_and_extrinsic_coords(self):
         """

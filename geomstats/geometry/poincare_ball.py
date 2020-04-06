@@ -82,7 +82,6 @@ class PoincareBallMetric(RiemannianMetric):
             signature=(dimension, 0, 0))
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
-
         self.scale = scale
 
     def exp(self, tangent_vec, base_point):

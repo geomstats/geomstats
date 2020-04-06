@@ -11,8 +11,8 @@ coordinates systems.
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.hyperboloid import Hyperboloid
+from geomstats.geometry.poincare_ball import PoincareBall
 
 
 class TestPoincareBallMethods(geomstats.tests.TestCase):
