@@ -231,15 +231,15 @@ class HyperboloidMetric(HyperbolicMetric):
         self.scale = scale
 
     def inner_product_matrix(self, base_point=None):
-        """Compute the inner product matrix, independent of the base point.
+        """Compute the inner product matrix.
 
         Parameters
         ----------
-        base_point: array-like, shape=[n_samples, dimension]
+        base_point: array-like, shape=[n_samples, dimension+1]
 
         Returns
         -------
-        inner_prod_mat: array-like, shape=[n_samples, dimension, dimension]
+        inner_prod_mat: array-like, shape=[n_samples, dimension+1, dimension+1]
         """
         self.embedding_metric.inner_product_matrix(base_point)
 
