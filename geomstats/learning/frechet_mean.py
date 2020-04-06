@@ -8,6 +8,8 @@ from sklearn.base import BaseEstimator
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.minkowski import MinkowskiMetric
+import torch
+
 
 EPSILON = 1e-4
 
@@ -172,28 +174,51 @@ def _default_gradient_descent(points, metric, weights,
     return mean
 
 
-def _ball_gradient_descent(points, metric, weights, max_iter,
+def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
                            lr=1e-3, tau=5e-3):
 
     if len(points) == 1:
         return points
 
-    iteration = 0
-    convergence = math.inf
-    barycenter = points.mean(0, keepdims=True) * 0
+    if weights.all() == None:
 
-    while convergence > tau and max_iter > iteration:
+        iteration = 0
+        convergence = math.inf
+        barycenter = points.mean(0, keepdims=True) * 0
+        while convergence > tau and max_iter > iteration:
 
-        iteration += 1
+            iteration += 1
 
-        grad_tangent = 2 * metric.log(points, barycenter)
+            grad_tangent = 2 * metric.log(points, barycenter)
 
-        cc_barycenter = metric.exp(
-            lr * grad_tangent.sum(0, keepdims=True), barycenter)
+            cc_barycenter = metric.exp(
+                lr * grad_tangent.sum(0, keepdims=True), barycenter)
 
-        convergence = metric.dist(cc_barycenter, barycenter).max().item()
+            convergence = metric.dist(cc_barycenter, barycenter).max().item()
 
-        barycenter = cc_barycenter
+            barycenter = cc_barycenter
+    else:
+        lr = 5e-2
+        tau = 5e-3
+        #weights = weights.unsqueeze(-1).expand_as(points)
+        weights = gs.expand_dims(weights,-1)
+        weights = gs.repeat(weights,points.shape[-1], axis = 2)
+
+        barycenter = (points * weights).sum(0, keepdims=True) / weights.sum(0)
+        iteration = 0
+        convergence = math.inf
+
+        while convergence > tau and max_iter > iteration:
+
+            iteration += 1
+            grad_tangent = 2 * log(torch.from_numpy(gs.repeat(barycenter, len(points), axis = 0)),
+                                   torch.from_numpy(points)) * torch.from_numpy(weights)
+            grad_tangent = grad_tangent.data.numpy()
+            cc_barycenter = exp(torch.from_numpy(barycenter),
+                                torch.from_numpy(lr * grad_tangent.sum(0, keepdims=True)))
+            cc_barycenter = cc_barycenter.data.numpy()
+            convergence = metric.dist(cc_barycenter, barycenter).max().item()
+            barycenter = cc_barycenter
 
     if iteration == max_iter:
         logging.warning(
@@ -367,3 +392,38 @@ class FrechetMean(BaseEstimator):
         self.estimate_ = mean
 
         return self
+
+def log(k, x):
+    kpx = add(-k,x)
+    # print("START KPX")
+    # print((-k).sum(0))
+    # print((x).sum(0))
+    # print(kpx.sum(0))
+    # print("END KPX")
+    norm_kpx = kpx.norm(2,-1, keepdim=True).expand_as(kpx)
+    norm_k = k.norm(2,-1, keepdim=True).expand_as(kpx)
+    res = (1-norm_k**2)* ((atanh(norm_kpx))) * (kpx/norm_kpx)
+    if(0 != len((norm_kpx==0).nonzero())):
+        res[norm_kpx == 0] = 0
+    return res
+
+def add(x, y):
+    nx = torch.sum(x ** 2, dim=-1, keepdim=True).expand_as(x) *1
+    ny = torch.sum(y ** 2, dim=-1, keepdim=True).expand_as(x) *1
+    xy = (x * y).sum(-1, keepdim=True).expand_as(x)*1
+    return ((1 + 2*xy+ ny)*x + (1-nx)*y)/(1+2*xy+nx*ny)
+
+
+def atanh(x):
+    return 0.5*torch.log((1+x)/(1-x))
+
+def exp(k, x):
+    norm_k = k.norm(2,-1, keepdim=True).expand_as(k)*1
+    lambda_k = 1/(1-norm_k**2)
+    norm_x = x.norm(2,-1, keepdim=True).expand_as(x)*1
+    direction = x/norm_x
+    factor = torch.tanh(lambda_k * norm_x)
+    res = add(k, direction*factor)
+    if(0 != len((norm_x==0).nonzero())):
+        res[norm_x == 0] = k[norm_x == 0]
+    return res

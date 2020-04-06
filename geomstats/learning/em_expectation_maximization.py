@@ -103,11 +103,21 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             point_type=self.point_type)
 
 
+
         wik = torch.from_numpy(wik)
 
 
-        # means_gs = torch.from_numpy(mean.fit(data.unsqueeze(1).expand(N, M, D).data.numpy(),
-        #                     wik.data.numpy())).squeeze()
+        data_gs = gs.expand_dims(data.data.numpy(),1)
+        data_gs = gs.repeat(data_gs,M,axis = 1)
+
+
+        data_torch = data.unsqueeze(1).expand(N, M, D)
+
+        mean.fit(data_gs,weights = wik.data.numpy())
+        mean_gs = mean.estimate_
+
+
+        #TODO Adapt to big number of gaussians
 
         # if too much gaussian we compute mean for each gaussian separately (To avoid too large memory)
         # if(M>40):
@@ -120,6 +130,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         #         self.means[from_:to_] = barycenter(zz, wik[:, from_:to_], lr_mu, tau_mu, max_iter=max_iter,
         #                                            verbose=True, normed=True).squeeze()
         # else:
+
         if(g_index>0):
             self.means[g_index] = barycenter(data, wik[:, g_index], lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
         else:
