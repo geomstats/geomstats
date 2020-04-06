@@ -403,8 +403,6 @@ def eval(x):
 
 
 def ndim(x):
-    if not torch.is_tensor(x):
-        x = torch.tensor(x)
     return x.dim()
 
 
@@ -419,9 +417,7 @@ def prod(x, axis=None):
 
 
 def mean(x, axis=None):
-    if axis is None:
-        return torch.mean(x)
-    return _np.mean(x, axis)
+    return torch.mean(x, dim=axis)
 
 
 def gather(x, indices, axis=0):
