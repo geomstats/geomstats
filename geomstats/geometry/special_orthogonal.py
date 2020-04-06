@@ -320,7 +320,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         return regularized_tangent_vec
 
-    def projection(self, mat):
+    def projection(self, point):
         """Project a matrix on SO(n) using the Frobenius norm.
 
         Parameters
@@ -331,7 +331,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         rot_mat : array-like, shape=[n_samples, n, n]
         """
-        mat = gs.to_ndarray(mat, to_ndim=3)
+        mat = gs.to_ndarray(point, to_ndim=3)
 
         n_mats, mat_dim_1, mat_dim_2 = mat.shape
 
@@ -1355,7 +1355,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         return tait_bryan_angles
 
-    def compose(self, point_1, point_2, point_type=None):
+    def compose(self, point_a, point_b, point_type=None):
         """Compose two elements of SO(n).
 
         Parameters
@@ -1372,27 +1372,27 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         if point_type is None:
             point_type = self.default_point_type
 
-        point_1 = self.regularize(point_1, point_type=point_type)
-        point_2 = self.regularize(point_2, point_type=point_type)
+        point_a = self.regularize(point_a, point_type=point_type)
+        point_b = self.regularize(point_b, point_type=point_type)
 
         if point_type == 'vector':
-            point_1 = self.matrix_from_rotation_vector(point_1)
-            point_2 = self.matrix_from_rotation_vector(point_2)
+            point_a = self.matrix_from_rotation_vector(point_a)
+            point_b = self.matrix_from_rotation_vector(point_b)
 
-        n_points_1 = point_1.shape[0]
-        n_points_2 = point_2.shape[0]
+        n_points_a = point_a.shape[0]
+        n_points_b = point_b.shape[0]
 
-        assert (point_1.shape == point_2.shape
-                or n_points_1 == 1
-                or n_points_2 == 1)
+        assert (point_a.shape == point_b.shape
+                or n_points_a == 1
+                or n_points_b == 1)
 
-        if n_points_1 == 1:
-            point_1 = gs.stack([point_1[0]] * n_points_2)
+        if n_points_a == 1:
+            point_a = gs.stack([point_a[0]] * n_points_b)
 
-        if n_points_2 == 1:
-            point_2 = gs.stack([point_2[0]] * n_points_1)
+        if n_points_b == 1:
+            point_b = gs.stack([point_b[0]] * n_points_a)
 
-        point_prod = gs.einsum('ijk,ikl->ijl', point_1, point_2)
+        point_prod = gs.einsum('ijk,ikl->ijl', point_a, point_b)
 
         if point_type == 'vector':
             point_prod = self.rotation_vector_from_matrix(point_prod)

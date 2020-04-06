@@ -286,7 +286,7 @@ class SpecialEuclidean(LieGroup):
 
         return mat
 
-    def compose(self, point_1, point_2, point_type=None):
+    def compose(self, point_a, point_b, point_type=None):
         r"""Compose two elements of SE(n).
 
         Parameters
@@ -311,44 +311,44 @@ class SpecialEuclidean(LieGroup):
         rotations = self.rotations
         dim_rotations = rotations.dimension
 
-        point_1 = self.regularize(point_1, point_type=point_type)
-        point_2 = self.regularize(point_2, point_type=point_type)
+        point_a = self.regularize(point_a, point_type=point_type)
+        point_b = self.regularize(point_b, point_type=point_type)
 
         if point_type == 'vector':
-            n_points_1, _ = point_1.shape
-            n_points_2, _ = point_2.shape
+            n_points_a, _ = point_a.shape
+            n_points_b, _ = point_b.shape
 
-            assert (point_1.shape == point_2.shape
-                    or n_points_1 == 1
-                    or n_points_2 == 1)
+            assert (point_a.shape == point_b.shape
+                    or n_points_a == 1
+                    or n_points_b == 1)
 
-            if n_points_1 == 1:
-                point_1 = gs.stack([point_1[0]] * n_points_2)
+            if n_points_a == 1:
+                point_a = gs.stack([point_a[0]] * n_points_b)
 
-            if n_points_2 == 1:
-                point_2 = gs.stack([point_2[0]] * n_points_1)
+            if n_points_b == 1:
+                point_b = gs.stack([point_b[0]] * n_points_a)
 
-            rot_vec_1 = point_1[:, :dim_rotations]
-            rot_mat_1 = rotations.matrix_from_rotation_vector(rot_vec_1)
+            rot_vec_a = point_a[:, :dim_rotations]
+            rot_mat_a = rotations.matrix_from_rotation_vector(rot_vec_a)
 
-            rot_vec_2 = point_2[:, :dim_rotations]
-            rot_mat_2 = rotations.matrix_from_rotation_vector(rot_vec_2)
+            rot_vec_b = point_b[:, :dim_rotations]
+            rot_mat_b = rotations.matrix_from_rotation_vector(rot_vec_b)
 
-            translation_1 = point_1[:, dim_rotations:]
-            translation_2 = point_2[:, dim_rotations:]
+            translation_a = point_a[:, dim_rotations:]
+            translation_b = point_b[:, dim_rotations:]
 
-            composition_rot_mat = gs.matmul(rot_mat_1, rot_mat_2)
+            composition_rot_mat = gs.matmul(rot_mat_a, rot_mat_b)
             composition_rot_vec = rotations.rotation_vector_from_matrix(
                 composition_rot_mat)
 
             composition_translation = gs.einsum(
-                'ij,ikj->ik', translation_2, rot_mat_1) + translation_1
+                'ij,ikj->ik', translation_b, rot_mat_a) + translation_a
 
             composition = gs.concatenate((composition_rot_vec,
                                           composition_translation), axis=1)
 
         elif point_type == 'matrix':
-            composition = GeneralLinear.compose(point_1, point_2)
+            composition = GeneralLinear.compose(point_a, point_b)
 
         composition = self.regularize(composition, point_type=point_type)
         return composition
