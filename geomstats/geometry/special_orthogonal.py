@@ -1624,7 +1624,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return tangent_vec
 
     def exponential_barycenter(
-            self, points, weights=None, point_type=None):
+            self, points, weights=None, point_type=None, verbose=False):
         """Compute the group exponential barycenter in SO(n).
 
         This is the Frechet mean of the canonical bi-invariant metric on SO(n).
@@ -1665,7 +1665,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         elif point_type == 'matrix':
             points = self.rotation_vector_from_matrix(points)
             exp_bar = self.exponential_barycenter(
-                points, weights, point_type='vector')
+                points, weights, point_type='vector', verbose=verbose)
             exp_bar = self.matrix_from_rotation_vector(exp_bar)
 
         return exp_bar

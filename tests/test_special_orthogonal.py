@@ -2538,11 +2538,11 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             else:
                 point = group.random_uniform()
                 self.assertRaises(
-                    AssertionError,
+                    ValueError,
                     lambda: group.quaternion_from_rotation_vector(point))
                 fake_quaternion = gs.random.rand(1, n + 1)
                 self.assertRaises(
-                    AssertionError,
+                    ValueError,
                     lambda: group.rotation_vector_from_quaternion(
                         fake_quaternion))
 
@@ -2639,11 +2639,11 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
                 rot_mat = group.matrix_from_rotation_vector(rot_vec)
                 self.assertRaises(
-                    AssertionError,
+                    ValueError,
                     lambda: group.quaternion_from_matrix(rot_mat))
                 fake_quaternion = gs.random.rand(1, n + 1)
                 self.assertRaises(
-                    AssertionError,
+                    ValueError,
                     lambda: group.matrix_from_quaternion(
                         fake_quaternion))
 
