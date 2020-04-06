@@ -247,10 +247,8 @@ class Hyperbolic(Manifold):
         point : array-like, shape=[n_samples, dimension]
                             or shape=[n_samples, dimension + 1]
             Point in hyperbolic space.
-
         from_coordinates_system : str, {'extrinsic', 'intrinsic', etc}
             Coordinates type.
-
         to_coordinates_system : str, {'extrinsic', 'intrinsic', etc}
             Coordinates type.
 
@@ -281,13 +279,35 @@ class Hyperbolic(Manifold):
 
         if from_coordinates_system == to_coordinates_system:
             return point
-        else:
-            extrinsic =\
-                coords_transform[from_coordinates_system +
-                                 '-extrinsic'](point)
-            return \
-                coords_transform['extrinsic-' +
-                                 to_coordinates_system](extrinsic)
+
+        extrinsic =\
+            coords_transform[from_coordinates_system +
+                             '-extrinsic'](point)
+        return \
+            coords_transform['extrinsic-' +
+                             to_coordinates_system](extrinsic)
+
+    def belongs(self, point):
+        """Test if a point belongs to the hyperbolic space.
+
+        Test if a point belongs to the hyperbolic space in
+        its hyperboloid representation.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, dimension]
+            Point to be tested.
+        tolerance : float, optional
+            Tolerance at which to evaluate how close the squared norm
+            is to the reference value.
+
+        Returns
+        -------
+        belongs : array-like, shape=[n_samples, 1]
+            Array of booleans indicating whether the corresponding points
+            belong to the hyperbolic space.
+        """
+        raise NotImplementedError
 
     def to_coordinates(self, point, to_coords_type='ball'):
         """Convert coordinates of a point.

@@ -95,8 +95,7 @@ class Hyperboloid(Hyperbolic):
         if point_dim is not self.dimension + 1:
             if point_dim is self.dimension and self.coords_type == 'intrinsic':
                 return gs.array([[True]])
-            else:
-                return gs.array([[False]])
+            return gs.array([[False]])
 
         sq_norm = self.embedding_metric.squared_norm(point)
         euclidean_sq_norm = gs.linalg.norm(point, axis=-1) ** 2

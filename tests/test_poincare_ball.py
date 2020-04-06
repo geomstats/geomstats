@@ -49,3 +49,62 @@ class TestPoincareBallMethods(geomstats.tests.TestCase):
             self.hyperboloid_metric.dist(point_a_h, point_b_h)
 
         self.assertAllClose(dist_in_ball, dist_in_hype, atol=1e-8)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_dist_poincare(self):
+
+        point_a = gs.array([0.5, 0.5])
+        point_b = gs.array([0.5, -0.5])
+
+        dist_a_b =\
+            self.manifold.metric.dist(point_a, point_b)
+
+        result = dist_a_b
+        expected = gs.array([[2.887270927429199]])
+
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_log_poincare(self):
+
+        point = gs.array([[0.3, 0.5]])
+        base_point = gs.array([[0.3, 0.3]])
+
+        result = self.manifold.metric.log(point, base_point)
+        expected = gs.array([[-0.01733576, 0.21958634]])
+
+        self.manifold.metric.coords_type = 'extrinsic'
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_belong_true_poincare(self):
+        point = gs.array([[0.3, 0.5]])
+        belong = self.manifold.belongs(point)
+        assert(belong)
+
+    @geomstats.tests.np_only
+    def test_belong_false_poincare(self):
+        point = gs.array([[1.2, 0.5]])
+        belong = self.manifold.belongs(point)
+        assert(belong is not False)
+
+    @geomstats.tests.np_only
+    def test_exp_poincare(self):
+
+        point = gs.array([[0.3, 0.5]])
+        base_point = gs.array([[0.3, 0.3]])
+
+        tangent_vec = self.manifold.metric.log(point, base_point)
+        result = self.manifold.metric.exp(tangent_vec, base_point)
+
+        self.manifold.metric.coords_type = 'extrinsic'
+        self.assertAllClose(result, point)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_ball_retraction(self):
+        x = gs.array([[0.5, 0.6], [0.2, -0.1], [0.2, -0.4]])
+        y = gs.array([[0.3, 0.5], [0.3, -0.6], [0.3, -0.3]])
+
+        ball_metric = self.manifold.metric
+        tangent_vec = ball_metric.log(y, x)
+        ball_metric.retraction(tangent_vec, x)

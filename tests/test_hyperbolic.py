@@ -329,32 +329,6 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         expected = gs.array([[0]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
-    def test_dist_poincare(self):
-
-        point_a = gs.array([0.5, 0.5])
-        point_b = gs.array([0.5, -0.5])
-
-        dist_a_b =\
-            self.ball_manifold.metric.dist(point_a, point_b)
-
-        result = dist_a_b
-        expected = gs.array([[2.887270927429199]])
-
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_only
-    def test_log_poincare(self):
-
-        point = gs.array([[0.3, 0.5]])
-        base_point = gs.array([[0.3, 0.3]])
-
-        result = self.ball_manifold.metric.log(point, base_point)
-        expected = gs.array([[-0.01733576, 0.21958634]])
-
-        self.space.metric.coords_type = 'extrinsic'
-        self.assertAllClose(result, expected)
-
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         base_point = gs.array([4.0, 1., 3.0, math.sqrt(5)])
         vector = gs.array([0.001, 0., -.00001, -.00003])
@@ -473,12 +447,3 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         result = distance_scaled_metric
         expected = scale * distance_default_metric
         self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_pytorch_only
-    def test_ball_retraction(self):
-        x = gs.array([[0.5, 0.6], [0.2, -0.1], [0.2, -0.4]])
-        y = gs.array([[0.3, 0.5], [0.3, -0.6], [0.3, -0.3]])
-
-        ball_metric = self.ball_manifold.metric
-        tangent_vec = ball_metric.log(y, x)
-        ball_metric.retraction(tangent_vec, x)

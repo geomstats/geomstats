@@ -31,8 +31,6 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
             dimension=self.dimension, coords_type='intrinsic')
         self.intrinsic_metric = self.intrinsic_manifold.metric
 
-        # self.half_plane_manifold = Hyperbolic(
-        #     # dimension=self.dimension, coords_type='half-plane')
         self.n_samples = 10
 
     @geomstats.tests.np_and_pytorch_only
