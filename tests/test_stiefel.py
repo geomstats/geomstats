@@ -8,9 +8,15 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.stiefel import Stiefel
 
 ATOL = 1e-6
+
+p_xy = gs.array([[1., 0., 0.], [0., 1., 0.], [0., 0., 0.]])
+r_z = gs.array([[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]])
+point1 = gs.array([[1., 0.], [0., 1.], [0., 0.]])
 
 
 class TestStiefelMethods(geomstats.tests.TestCase):
@@ -266,3 +272,20 @@ class TestStiefelMethods(geomstats.tests.TestCase):
             tangent_vector_2,
             base_point=base_point)
         self.assertAllClose(gs.shape(result), (1, 1))
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_to_grassmannian(self):
+        point2 = gs.array([[1., -1.], [1., 1.], [0., 0.]]) / gs.sqrt(2)
+        result = self.space.to_grassmannian(point2)
+        expected = p_xy
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_to_grassmanniann_vectorized(self):
+        inf_rots = gs.array([gs.pi * r_z / n for n in [2, 3, 4]])
+        rots = GeneralLinear.exp(inf_rots)
+        points = Matrices.mul(rots, point1)
+
+        result = Stiefel.to_grassmannian(points)
+        expected = gs.array([p_xy, p_xy, p_xy])
+        self.assertAllClose(result, expected)

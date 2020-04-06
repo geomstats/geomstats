@@ -26,7 +26,7 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
 
         left_diag_metric = InvariantMetric(
             group=group,
-            inner_product_mat_at_identity=diag_mat_at_identity,
+            inner_product_mat_at_identity=None,
             left_or_right='left')
         right_diag_metric = InvariantMetric(
             group=group,
@@ -72,7 +72,7 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_inner_product_matrix(self):
         base_point = self.group.identity
-        result = self.left_metric.inner_product_matrix(base_point=base_point)
+        result = self.left_metric.inner_product_matrix(base_point=None)
 
         expected = self.left_metric.inner_product_mat_at_identity
         self.assertAllClose(result, expected)
@@ -152,6 +152,12 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
         # - exp then log
         # For left metric: point_1 and point_small
         result = helper.left_exp_then_log_from_identity(
+            metric=self.left_metric,
+            tangent_vec=self.point_1)
+        expected = self.point_1
+        self.assertAllClose(result, expected)
+
+        result = helper.exp_then_log(
             metric=self.left_metric,
             tangent_vec=self.point_1)
         expected = self.point_1

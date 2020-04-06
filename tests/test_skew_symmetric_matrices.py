@@ -7,26 +7,24 @@ from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 
 
 class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
-    @geomstats.tests.np_and_pytorch_only
     def setUp(self):
         self.n_seq = [3, 4, 5, 6, 7, 8, 9, 10]
         self.skew = {n: SkewSymmetricMatrices(n=n) for n in self.n_seq}
 
-    @geomstats.tests.np_and_pytorch_only
     def test_basis_is_skew_symmetric(self):
+        result = []
         for n in self.n_seq:
             skew = self.skew[n]
-            self.assertAllClose(
-                skew.basis + gs.transpose(skew.basis, axes=(0, 2, 1)), 0
-            )
+            result.append(gs.all(skew.belongs(skew.basis)))
+        result = gs.stack(result)
+        expected = gs.array([True] * len(self.n_seq))
+        self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_basis_has_the_right_dimension(self):
         for n in self.n_seq:
             skew = self.skew[n]
             self.assertEqual(int(n * (n - 1) / 2), skew.dimension)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_bch_up_to_fourth_order_works(self):
         for n in self.n_seq:
             skew = self.skew[n]
