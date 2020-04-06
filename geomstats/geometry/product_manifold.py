@@ -161,9 +161,8 @@ class ProductManifold(Manifold):
             data = self.manifolds[0].random_uniform(n_samples)
             if len(self.manifolds) > 1:
                 for space in self.manifolds[1:]:
-                    data = gs.concatenate(
-                        [data, space.random_uniform(n_samples)],
-                        axis=1)
+                    samples = space.random_uniform(n_samples)
+                    data = gs.concatenate([data, samples], axis=-1)
             return data
         point = [
             space.random_uniform(n_samples)

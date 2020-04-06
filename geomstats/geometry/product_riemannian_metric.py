@@ -61,7 +61,10 @@ class ProductRiemannianMetric(RiemannianMetric):
         """
         if point_type is None:
             point_type = self.default_point_type
+
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=3)
+
         matrix = gs.zeros([
             len(base_point), self.dimension, self.dimension])
         cum_dim = 0
