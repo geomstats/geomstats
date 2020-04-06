@@ -170,11 +170,8 @@ class Hyperboloid(Hyperbolic):
                                                          vector)
 
         coef = inner_prod / sq_norm
-        if(vector.shape[0] > base_point.shape[0] and
-           base_point.shape[0] == 1):
-            base_point = gs.repeat(base_point, vector.shape[0], axis=0)
 
-        tangent_vec = vector - gs.einsum('ni,nj->nj', coef, base_point)
+        tangent_vec = vector - gs.einsum('...i,...j->...j', coef, base_point)
         return tangent_vec
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
@@ -325,16 +322,9 @@ class HyperboloidMetric(HyperbolicMetric):
         coef_2 += mask_else_float * (
             (gs.sinh(norm_tangent_vec) / (norm_tangent_vec)))
 
-        if(tangent_vec.shape[0] > base_point.shape[0] and
-           base_point.shape[0] == 1):
-            base_point = gs.repeat(base_point, tangent_vec.shape[0], axis=0)
-
-        if(tangent_vec.shape[0] < base_point.shape[0] and
-           tangent_vec.shape[0] == 1):
-            tangent_vec = gs.repeat(tangent_vec, base_point.shape[0], axis=0)
         exp = (
-            gs.einsum('ni,nj->nj', coef_1, base_point)
-            + gs.einsum('ni,nj->nj', coef_2, tangent_vec))
+            gs.einsum('...i,...j->...j', coef_1, base_point)
+            + gs.einsum('...i,...j->...j', coef_2, tangent_vec))
 
         hyperbolic_space = Hyperboloid(dimension=self.dimension)
         exp = hyperbolic_space.regularize(exp)
@@ -390,19 +380,11 @@ class HyperboloidMetric(HyperbolicMetric):
         # This avoids dividing by 0.
         angle += mask_0_float * 1.
 
-        if(point.shape[0] > base_point.shape[0] and
-           base_point.shape[0] == 1):
-            base_point = gs.repeat(base_point, point.shape[0], axis=0)
-
-        if(point.shape[0] < base_point.shape[0] and
-           point.shape[0] == 1):
-            point = gs.repeat(point, base_point.shape[0], axis=0)
-
         coef_1 += mask_else_float * (angle / gs.sinh(angle))
         coef_2 += mask_else_float * (angle / gs.tanh(angle))
 
-        log = (gs.einsum('ni,nj->nj', coef_1, point) -
-               gs.einsum('ni,nj->nj', coef_2, base_point))
+        log = (gs.einsum('...i,...j->...j', coef_1, point) -
+               gs.einsum('...i,...j->...j', coef_2, base_point))
         return log
 
     def dist(self, point_a, point_b):
