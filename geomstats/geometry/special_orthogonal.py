@@ -109,6 +109,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             belongs = vec_dim == self.dimension
             if point.ndim == 2:
                 belongs = gs.tile([belongs], (point.shape[0],))
+            belongs = gs.to_ndarray(belongs, to_ndim=1)
+            belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
             return belongs
 
         if point_type == 'matrix':
