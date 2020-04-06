@@ -113,16 +113,18 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             belongs = gs.tile(belongs, (n_points, 1))
             return belongs
 
-        elif point_type == 'matrix':
+        if point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
             point_transpose = gs.transpose(point, axes=(0, 2, 1))
             mask = gs.isclose(gs.matmul(point, point_transpose),
-                              gs.eye(self.n))
+                              gs.eye(self.n), atol=1e-7)
             mask = gs.all(mask, axis=(1, 2))
 
             mask = gs.to_ndarray(mask, to_ndim=1)
             mask = gs.to_ndarray(mask, to_ndim=2, axis=1)
             return mask
+
+        raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
     def regularize(self, point, point_type=None):
         """Regularize a point to be in accordance with convention.
@@ -150,7 +152,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
-            n_points, _ = point.shape
 
             regularized_point = point
             if self.n == 3:
@@ -337,7 +338,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         assert mat_dim_1 == mat_dim_2 == self.n
 
         if self.n == 3:
-            mat_unitary_u, diag_s, mat_unitary_v = gs.linalg.svd(mat)
+            mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
             rot_mat = gs.einsum('nij,njk->nik', mat_unitary_u, mat_unitary_v)
             mask = gs.less(gs.linalg.det(rot_mat), 0.)
             mask_float = gs.cast(mask, gs.float32) + self.epsilon
@@ -390,7 +391,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         if self.n == 2:  # SO(2)
             id_skew = gs.array([[[0., 1.], [-1., 0.]]] * n_vecs)
             skew_mat = gs.einsum(
-                'nij,ni->nij', gs.cast(id_skew, gs.float32), vec)
+                '...ij,...i->...ij', gs.cast(id_skew, gs.float32), vec)
 
         elif self.n == 3:  # SO(3)
             # This avois dividing by 0.
@@ -662,7 +663,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         rot_mat: array-like, shape=[n_samples, {dimension, [n, n]}]
         """
         rot_vec = self.regularize(rot_vec, point_type='vector')
-        n_rot_vecs, _ = rot_vec.shape
 
         if self.n == 3:
             angle = gs.linalg.norm(rot_vec, axis=1)
@@ -743,7 +743,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         assert self.n == 3, ('The quaternion representation does not exist'
                              ' for rotations in %d dimensions.' % self.n)
         rot_vec = self.regularize(rot_vec, point_type='vector')
-        n_rot_vecs, _ = rot_vec.shape
 
         angle = gs.linalg.norm(rot_vec, axis=1)
         angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
@@ -1128,7 +1127,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                              ' do not exist'
                              ' for rotations in %d dimensions.' % self.n)
         tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
-        n_tait_bryan_angles, _ = tait_bryan_angles.shape
 
         extrinsic_zyx = (extrinsic_or_intrinsic == 'extrinsic'
                          and order == 'zyx')
@@ -1415,8 +1413,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         if point_type == 'vector':
             if self.n == 3:
                 return -self.regularize(point, point_type=point_type)
-            else:
-                point = self.matrix_from_rotation_vector(point)
+            point = self.matrix_from_rotation_vector(point)
 
         transpose_order = (0, 2, 1) if gs.ndim(point) == 3 else (1, 0)
         inv_point = gs.transpose(point, transpose_order)

@@ -28,6 +28,19 @@ def logical_or(x, y):
     return x or y
 
 
+def logical_and(x, y):
+    if torch.is_tensor(x):
+        return x.eq(y)
+    if torch.is_tensor(y):
+        return y.eq(x)
+    return x and y
+
+
+def any(x, axis=0):
+    numpy_result = _np.array(_np.any(_np.array(x), axis=axis))
+    return torch.from_numpy(numpy_result)
+
+
 def cond(pred, true_fn, false_fn):
     if pred:
         return true_fn()
@@ -100,9 +113,9 @@ def array(val):
         if not isinstance(val[0], torch.Tensor):
             val = _np.copy(_np.array(val))
         else:
-            val = concatenate(val)
+            val = stack(val)
 
-    if isinstance(val, bool):
+    if isinstance(val, (bool, int, float)):
         val = _np.array(val)
     if isinstance(val, _np.ndarray):
         if val.dtype == bool:
@@ -142,7 +155,8 @@ def empty_like(*args, **kwargs):
 def all(x, axis=None):
     if axis is None:
         return x.byte().all()
-    return torch.from_numpy(_np.all(_np.array(x), axis=axis).astype(int))
+    numpy_result = _np.array(_np.all(_np.array(x), axis=axis).astype(int))
+    return torch.from_numpy(numpy_result)
 
 
 def allclose(a, b, **kwargs):
@@ -285,7 +299,52 @@ def sum(x, axis=None, keepdims=None, **kwargs):
 
 
 def einsum(*args, **kwargs):
-    return torch.from_numpy(_np.einsum(*args, **kwargs)).float()
+    einsum_str = args[0]
+    input_tensors_list = args[1:]
+
+    einsum_list = einsum_str.split('->')
+    input_str = einsum_list[0]
+    output_str = einsum_list[1]
+
+    input_str_list = input_str.split(',')
+
+    is_ellipsis = [input_str[:3] == '...' for input_str in input_str_list]
+    all_ellipsis = bool(_np.prod(is_ellipsis))
+
+    if all_ellipsis:
+        if len(input_str_list) > 2:
+            raise NotImplementedError(
+                'Ellipsis support not implemented for >2 input tensors')
+        tensor_a = input_tensors_list[0]
+        tensor_b = input_tensors_list[1]
+        n_tensor_a = tensor_a.shape[0]
+        n_tensor_b = tensor_b.shape[0]
+
+        if n_tensor_a != n_tensor_b:
+            if n_tensor_a == 1:
+                tensor_a = squeeze(tensor_a, axis=0)
+                input_prefix_list = ['', 'r']
+                output_prefix = 'r'
+            elif n_tensor_b == 1:
+                tensor_b = squeeze(tensor_b, axis=0)
+                input_prefix_list = ['r', '']
+                output_prefix = 'r'
+            else:
+                raise ValueError('Shape mismatch for einsum.')
+        else:
+            input_prefix_list = ['r', 'r']
+            output_prefix = 'r'
+
+        input_str_list = [
+            input_str.replace('...', prefix) for input_str, prefix in zip(
+                input_str_list, input_prefix_list)]
+        output_str = output_str.replace('...', output_prefix)
+
+        input_str = input_str_list[0] + ',' + input_str_list[1]
+        einsum_str = input_str + '->' + output_str
+
+        return torch.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
+    return torch.einsum(*args, **kwargs)
 
 
 def T(x):
@@ -303,8 +362,7 @@ def transpose(x, axes=None):
 def squeeze(x, axis=None):
     if axis is None:
         return torch.squeeze(x)
-    else:
-        return torch.squeeze(x, axis)
+    return torch.squeeze(x, axis)
 
 
 def zeros_like(*args, **kwargs):
@@ -344,8 +402,10 @@ def cross(x, y):
     return torch.from_numpy(_np.cross(x, y))
 
 
-def triu_indices(*args, **kwargs):
-    return torch.triu_indices(*args, **kwargs)
+def triu_indices(n, k=0, m=None, **kwargs):
+    if m is None:
+        m = n
+    return torch.triu_indices(row=n, col=m, offset=k, **kwargs)
 
 
 def where(test, x, y):
@@ -369,10 +429,6 @@ def clamp(*args, **kwargs):
 
 def diag(*args, **kwargs):
     return torch.diag(*args, **kwargs)
-
-
-def any(x):
-    return x.byte().any()
 
 
 def expand_dims(x, axis=0):
@@ -434,8 +490,7 @@ def seed(x):
 def prod(x, axis=None):
     if axis is None:
         return torch.prod(x)
-    else:
-        return torch.prod(x, dim=axis)
+    return torch.prod(x, dim=axis)
 
 
 def sign(*args, **kwargs):
@@ -445,12 +500,19 @@ def sign(*args, **kwargs):
 def mean(x, axis=None):
     if axis is None:
         return torch.mean(x)
-    else:
-        return _np.mean(x, axis)
+    return _np.mean(x, axis)
 
 
 def argmin(*args, **kwargs):
     return torch.argmin(*args, **kwargs)
+
+
+def reshape(*args, **kwargs):
+    return torch.reshape(*args, **kwargs)
+
+
+def flatten(x):
+    return torch.flatten(x)
 
 
 def arange(*args, **kwargs):
@@ -462,11 +524,101 @@ def gather(x, indices, axis=0):
 
 
 def get_mask_i_float(i, n):
-    range_n = arange(cast(array(n), int32)[0])
+    range_n = arange(cast(array(n), int32))
     i_float = cast(array(i), int32)
     mask_i = equal(range_n, i_float)
     mask_i_float = cast(mask_i, float32)
     return mask_i_float
+
+
+def assignment(x, values, indices, axis=0):
+    """Assign values at given indices of an array.
+
+    Parameters
+    ----------
+    x: array-like, shape=[dimension]
+        Initial array.
+    values: {float, list(float)}
+        Value or list of values to be assigned.
+    indices: {int, tuple, list(int), list(tuple)}
+        Single int or tuple, or list of ints or tuples of indices where value
+        is assigned.
+        If the length of the tuples is shorter than ndim(x), values are
+        assigned to each copy along axis.
+    axis: int, optional
+        Axis along which values are assigned, if vectorized.
+
+    Returns
+    -------
+    x_new : array-like, shape=[dimension]
+        Copy of x with the values assigned at the given indices.
+
+    Notes
+    -----
+    If a single value is provided, it is assigned at all the indices.
+    If a list is given, it must have the same length as indices.
+    """
+    x_new = copy(x)
+    single_index = not isinstance(indices, list)
+    if single_index:
+        indices = [indices]
+    if not isinstance(values, list):
+        values = [values] * len(indices)
+    for (nb_index, index) in enumerate(indices):
+        if not isinstance(index, tuple):
+            index = (index,)
+        if len(index) < len(shape(x)):
+            for n_axis in range(shape(x)[axis]):
+                extended_index = index[:axis] + (n_axis,) + index[axis:]
+                x_new[extended_index] = values[nb_index]
+        else:
+            x_new[index] = values[nb_index]
+    return x_new
+
+
+def assignment_by_sum(x, values, indices, axis=0):
+    """Add values at given indices of an array.
+
+    Parameters
+    ----------
+    x: array-like, shape=[dimension]
+        Initial array.
+    values: {float, list(float)}
+        Value or list of values to be assigned.
+    indices: {int, tuple, list(int), list(tuple)}
+        Single int or tuple, or list of ints or tuples of indices where value
+        is assigned.
+        If the length of the tuples is shorter than ndim(x), values are
+        assigned to each copy along axis.
+    axis: int, optional
+        Axis along which values are assigned, if vectorized.
+
+    Returns
+    -------
+    x_new : array-like, shape=[dimension]
+        Copy of x with the values assigned at the given indices.
+
+    Notes
+    -----
+    If a single value is provided, it is assigned at all the indices.
+    If a list is given, it must have the same length as indices.
+    """
+    x_new = copy(x)
+    single_index = not isinstance(indices, list)
+    if single_index:
+        indices = [indices]
+    if not isinstance(values, list):
+        values = [values] * len(indices)
+    for (nb_index, index) in enumerate(indices):
+        if not isinstance(index, tuple):
+            index = (index,)
+        if len(index) < len(shape(x)):
+            for n_axis in range(shape(x)[axis]):
+                extended_index = index[:axis] + (n_axis,) + index[axis:]
+                x_new[extended_index] += values[nb_index]
+        else:
+            x_new[index] += values[nb_index]
+    return x_new
 
 
 def copy(x):
@@ -489,3 +641,17 @@ def cumsum(x, axis=0):
         raise NotImplementedError('cumsum is not defined where axis is None')
     else:
         return torch.cumsum(x, dim=axis)
+
+
+def array_from_sparse(indices, data, target_shape):
+    return torch.sparse.FloatTensor(
+        torch.LongTensor(indices).t(),
+        torch.FloatTensor(cast(data, float32)),
+        torch.Size(target_shape)).to_dense()
+
+
+def from_vector_to_diagonal_matrix(x):
+    n = shape(x)[-1]
+    identity_n = identity(n)
+    diagonals = einsum('ki,ij->kij', x, identity_n)
+    return diagonals

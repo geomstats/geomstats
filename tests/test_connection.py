@@ -25,8 +25,7 @@ class TestConnectionMethods(geomstats.tests.TestCase):
         result = self.euc_metric.inner_product_matrix(base_point)
         expected = gs.array([gs.eye(self.dimension)])
 
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     def test_cometric_matrix(self):
         base_point = gs.array([0., 1., 0., 0.])
@@ -34,8 +33,7 @@ class TestConnectionMethods(geomstats.tests.TestCase):
         result = self.euc_metric.inner_product_inverse_matrix(base_point)
         expected = gs.array([gs.eye(self.dimension)])
 
-        with self.session():
-            self.assertAllClose(result, expected)
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_metric_derivative(self):

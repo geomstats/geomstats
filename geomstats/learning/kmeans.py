@@ -41,16 +41,18 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
     :mod:`examples.plot_kmeans_manifolds`
     """
 
-    def __init__(self, riemannian_metric, n_clusters=8, init='random',
-                 tol=1e-2, mean_method='default', verbose=0):
+    def __init__(
+            self, riemannian_metric, n_clusters=8, init='random',
+            tol=1e-2, mean_method='default', verbose=0, point_type='vector'):
         self.n_clusters = n_clusters
         self.init = init
         self.riemannian_metric = riemannian_metric
         self.tol = tol
         self.verbose = verbose
         self.mean_method = mean_method
+        self.point_type = point_type
 
-        self.centroid = None
+        self.centroids = None
 
     def fit(self, X, max_iter=100):
         """Provide clusters centroids and data labels.
@@ -95,7 +97,8 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                     mean = FrechetMean(
                         metric=self.riemannian_metric,
                         method=self.mean_method,
-                        max_iter=150)
+                        max_iter=150,
+                        point_type=self.point_type)
                     mean.fit(fold)
 
                     self.centroids[i] = mean.estimate_

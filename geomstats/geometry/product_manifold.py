@@ -89,7 +89,7 @@ class ProductManifold(Manifold):
             point_type = self.default_point_type
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
-            intrinsic = self.metric._is_intrinsic(point)
+            intrinsic = self.metric.is_intrinsic(point)
             belongs = self._iterate_over_manifolds(
                 'belongs', {'point': point}, intrinsic)
             belongs = gs.hstack(belongs)
@@ -122,21 +122,22 @@ class ProductManifold(Manifold):
                             or shape=[n_samples, dim_2, dim_2]
             Point in the manifold's canonical representation.
         """
-        # TODO(nina): Vectorize.
         if point_type is None:
             point_type = self.default_point_type
         assert point_type in ['vector', 'matrix']
 
-        regularized_point = [
-            manifold_i.regularize(point_i)
-            for manifold_i, point_i in zip(self.manifolds, point)]
-
-        # TODO(nina): Put this in a decorator
         if point_type == 'vector':
+            point = gs.to_ndarray(point, to_ndim=2)
+            intrinsic = self.metric.is_intrinsic(point)
+            regularized_point = self._iterate_over_manifolds(
+                'regularize', {'point': point}, intrinsic)
             regularized_point = gs.hstack(regularized_point)
         elif point_type == 'matrix':
-            regularized_point = gs.vstack(regularized_point)
-        return gs.all(regularized_point)
+            regularized_point = [
+                manifold_i.regularize(point[:, i])
+                for i, manifold_i in enumerate(self.manifolds)]
+            regularized_point = gs.stack(regularized_point, axis=1)
+        return regularized_point
 
     def random_uniform(self, n_samples, point_type=None):
         """Sample in the product space from the uniform distribution.
@@ -159,12 +160,11 @@ class ProductManifold(Manifold):
         if point_type == 'vector':
             data = self.manifolds[0].random_uniform(n_samples)
             if len(self.manifolds) > 1:
-                for i, space in enumerate(self.manifolds[1:]):
+                for space in self.manifolds[1:]:
                     data = gs.concatenate(
                         [data, space.random_uniform(n_samples)],
                         axis=1)
             return data
-        else:
-            point = [
-                space.random_uniform(n_samples) for space in self.manifolds]
-            return gs.stack(point, axis=1)
+        point = [
+            space.random_uniform(n_samples) for space in self.manifolds]
+        return gs.stack(point, axis=1)

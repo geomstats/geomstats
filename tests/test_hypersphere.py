@@ -479,7 +479,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         kappa_estimate = gs.cast(kappa_estimate, gs.float64)
         p = dim + 1
         n_steps = 100
-        for i in range(n_steps):
+        for _ in range(n_steps):
             bessel_func_1 = scipy.special.iv(p / 2., kappa_estimate)
             bessel_func_2 = scipy.special.iv(p / 2. - 1., kappa_estimate)
             ratio = bessel_func_1 / bessel_func_2

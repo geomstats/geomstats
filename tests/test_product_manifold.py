@@ -82,10 +82,46 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
         base_point = self.space_matrix.random_uniform(n_samples)
         logs = self.space_matrix.metric.log(point, base_point)
         logs = gs.einsum(
-            '..., ...j->...j',
+            '...k, ...jl->...jl',
             1. / self.space_matrix.metric.norm(logs, base_point),
             logs)
         point = self.space_matrix.metric.exp(logs, base_point)
         result = self.space_matrix.metric.dist(point, base_point)
         expected = gs.ones((n_samples, 1))
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_inner_product_matrix_matrix(self):
+        space = ProductManifold(
+            manifolds=[Hypersphere(dimension=2).embedding_manifold,
+                       Hyperboloid(dimension=2).embedding_manifold],
+            default_point_type='matrix')
+        point = space.random_uniform(1)
+        result = space.metric.inner_product_matrix(point)
+        expected = gs.identity(6)
+        expected[3, 3] = - 1
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_inner_product_matrix_vector(self):
+        space = ProductManifold(
+            manifolds=[Hypersphere(dimension=2).embedding_manifold,
+                       Hyperboloid(dimension=2).embedding_manifold],
+            default_point_type='vector')
+        point = space.random_uniform(1)
+        expected = gs.identity(6)
+        expected[3, 3] = - 1
+        result = space.metric.inner_product_matrix(point)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_regularize_vector(self):
+        expected = self.space_vector.random_uniform(5)
+        result = self.space_vector.regularize(expected)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_regularize_matrix(self):
+        expected = self.space_matrix.random_uniform(5)
+        result = self.space_matrix.regularize(expected)
         self.assertAllClose(result, expected)

@@ -1,7 +1,9 @@
 import tensorflow as tf
 
 
-def array(x):
+def array(x, dtype=None):
+    if dtype is not None:
+        return tf.convert_to_tensor(x, dtype=dtype)
     return tf.convert_to_tensor(x)
 
 

@@ -7,7 +7,7 @@ In exceptional cases, numpy's results or API may not be followed.
 
 import warnings
 
-import numpy as np
+import numpy as _np
 import scipy.linalg
 
 import geomstats.backend as gs
@@ -31,11 +31,11 @@ class TestBackends(geomstats.tests.TestCase):
                  [0., 0., 1.]]
         gs_mat_a = gs.array(mat_a)
         gs_mat_b = gs.array(mat_b)
-        np_mat_a = np.array(mat_a)
-        np_mat_b = np.array(mat_b)
+        np_mat_a = _np.array(mat_a)
+        np_mat_b = _np.array(mat_b)
 
         gs_result = gs.matmul(gs_mat_a, gs_mat_b)
-        np_result = np.matmul(np_mat_a, np_mat_b)
+        np_result = _np.matmul(np_mat_a, np_mat_b)
 
         self.assertAllCloseToNp(gs_result, np_result)
 
@@ -53,12 +53,12 @@ class TestBackends(geomstats.tests.TestCase):
         gs_mat_a = gs.array(mat_a)
         gs_mat_b = gs.array(mat_b)
         gs_mat_c = gs.array(mat_c)
-        np_mat_a = np.array(mat_a)
-        np_mat_b = np.array(mat_b)
-        np_mat_c = np.array(mat_c)
+        np_mat_a = _np.array(mat_a)
+        np_mat_b = _np.array(mat_b)
+        np_mat_c = _np.array(mat_c)
 
         gs_result = gs.matmul(gs_mat_a, [gs_mat_b, gs_mat_c])
-        np_result = np.matmul(np_mat_a, [np_mat_b, np_mat_c])
+        np_result = _np.matmul(np_mat_a, [np_mat_b, np_mat_c])
 
         self.assertAllCloseToNp(gs_result, np_result)
 
@@ -73,7 +73,7 @@ class TestBackends(geomstats.tests.TestCase):
                              [0., 0., 1.38629436]])
         self.assertAllClose(result, expected)
 
-        np_point = np.array(
+        np_point = _np.array(
             [[2., 0., 0.],
              [0., 3., 0.],
              [0., 0., 4.]])
@@ -89,7 +89,7 @@ class TestBackends(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(result, expected)
 
-        np_point = np.array(
+        np_point = _np.array(
             [[2., 0., 0.],
              [0., 3., 0.],
              [0., 0., 4.]])
@@ -209,24 +209,22 @@ class TestBackends(geomstats.tests.TestCase):
     @geomstats.tests.tf_only
     def test_vstack(self):
         import tensorflow as tf
-        with self.test_session():
-            tensor_1 = tf.convert_to_tensor([[1., 2., 3.], [4., 5., 6.]])
-            tensor_2 = tf.convert_to_tensor([[7., 8., 9.]])
+        tensor_1 = tf.convert_to_tensor([[1., 2., 3.], [4., 5., 6.]])
+        tensor_2 = tf.convert_to_tensor([[7., 8., 9.]])
 
-            result = gs.vstack([tensor_1, tensor_2])
-            expected = tf.convert_to_tensor([
-                [1., 2., 3.],
-                [4., 5., 6.],
-                [7., 8., 9.]])
-            self.assertAllClose(result, expected)
+        result = gs.vstack([tensor_1, tensor_2])
+        expected = tf.convert_to_tensor([
+            [1., 2., 3.],
+            [4., 5., 6.],
+            [7., 8., 9.]])
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.tf_only
     def test_tensor_addition(self):
-        with self.test_session():
-            tensor_1 = gs.ones((1, 1))
-            tensor_2 = gs.ones((0, 1))
+        tensor_1 = gs.ones((1, 1))
+        tensor_2 = gs.ones((0, 1))
 
-            tensor_1 + tensor_2
+        tensor_1 + tensor_2
 
     @geomstats.tests.pytorch_only
     def test_cumsum(self):
@@ -237,3 +235,128 @@ class TestBackends(geomstats.tests.TestCase):
         result = gs.cumsum(gs.arange(10).reshape(2, 5), axis=1)
         expected = gs.array(([[0, 1, 3, 6, 10], [5, 11, 18, 26, 35]]))
         self.assertAllClose(result, expected)
+
+    def test_array_from_sparse(self):
+        expected = gs.array([[0, 1, 0], [0, 0, 2]])
+        result = gs.array_from_sparse([(0, 1), (1, 2)], [1, 2], (2, 3))
+        self.assertAllClose(result, expected)
+
+    def test_einsum(self):
+        np_array_1 = _np.array([[1, 4]])
+        np_array_2 = _np.array([[2, 3]])
+        array_1 = gs.array([[1, 4]])
+        array_2 = gs.array([[2, 3]])
+
+        np_result = _np.einsum('...i,...i->...', np_array_1, np_array_2)
+        gs_result = gs.einsum('...i,...i->...', array_1, array_2)
+
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_array_1 = _np.array([[1, 4], [-1, 5]])
+        np_array_2 = _np.array([[2, 3]])
+        array_1 = gs.array([[1, 4], [-1, 5]])
+        array_2 = gs.array([[2, 3]])
+
+        np_result = _np.einsum('...i,...i->...', np_array_1, np_array_2)
+        gs_result = gs.einsum('...i,...i->...', array_1, array_2)
+
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_array_1 = _np.array([[1, 4]])
+        np_array_2 = _np.array([[2, 3], [5, 6]])
+        array_1 = gs.array([[1, 4]])
+        array_2 = gs.array([[2, 3], [5, 6]])
+
+        np_result = _np.einsum('...i,...i->...', np_array_1, np_array_2)
+        gs_result = gs.einsum('...i,...i->...', array_1, array_2)
+
+        self.assertAllCloseToNp(gs_result, np_result)
+
+    def test_assignment(self):
+        np_array_1 = _np.ones(3)
+        gs_array_1 = gs.ones_like(gs.array(np_array_1))
+
+        np_array_1[2] = 1.5
+        gs_result = gs.assignment(gs_array_1, 1.5, 2)
+        self.assertAllCloseToNp(gs_result, np_array_1)
+
+        np_array_1_list = _np.ones(3)
+        gs_array_1_list = gs.ones_like(gs.array(np_array_1_list))
+
+        indices = [1, 2]
+        np_array_1_list[indices] = 1.5
+        gs_result = gs.assignment(gs_array_1_list, 1.5, indices)
+        self.assertAllCloseToNp(gs_result, np_array_1)
+
+        np_array_2 = _np.zeros((3, 2))
+        gs_array_2 = gs.zeros_like(gs.array(np_array_2))
+
+        np_array_2[0, :] = 1
+        gs_result = gs.assignment(gs_array_2, 1, 0, axis=0)
+        self.assertAllCloseToNp(gs_result, np_array_2)
+
+        np_array_3 = _np.zeros((3, 3))
+        gs_array_3 = gs.zeros_like(gs.array(np_array_3))
+
+        np_array_3[0, 1] = 1
+        gs_result = gs.assignment(gs_array_3, 1, (0, 1))
+        self.assertAllCloseToNp(gs_result, np_array_3)
+
+        np_array_4 = _np.zeros((3, 3, 2))
+        gs_array_4 = gs.zeros_like(gs.array(np_array_4))
+
+        np_array_4[0, :, 1] = 1
+        gs_result = gs.assignment(gs_array_4, 1, (0, 1), axis=1)
+        self.assertAllCloseToNp(gs_result, np_array_4)
+
+        np_array_4_list = _np.zeros((3, 3, 2))
+        gs_array_4_list = gs.zeros_like(gs.array(np_array_4_list))
+
+        np_array_4_list[(0, 1), :, (1, 1)] = 1
+        gs_result = gs.assignment(gs_array_4_list, 1, [(0, 1), (1, 1)], axis=1)
+        self.assertAllCloseToNp(gs_result, np_array_4)
+
+    def test_assignment_by_sum(self):
+        np_array_1 = _np.ones(3)
+        gs_array_1 = gs.ones_like(gs.array(np_array_1))
+
+        np_array_1[2] += 1.5
+        gs_result = gs.assignment_by_sum(gs_array_1, 1.5, 2)
+        self.assertAllCloseToNp(gs_result, np_array_1)
+
+        np_array_1_list = _np.ones(3)
+        gs_array_1_list = gs.ones_like(gs.array(np_array_1_list))
+
+        indices = [1, 2]
+        np_array_1_list[indices] += 1.5
+        gs_result = gs.assignment_by_sum(gs_array_1_list, 1.5, indices)
+        self.assertAllCloseToNp(gs_result, np_array_1)
+
+        np_array_2 = _np.zeros((3, 2))
+        gs_array_2 = gs.zeros_like(gs.array(np_array_2))
+
+        np_array_2[0, :] += 1
+        gs_result = gs.assignment_by_sum(gs_array_2, 1, 0, axis=0)
+        self.assertAllCloseToNp(gs_result, np_array_2)
+
+        np_array_3 = _np.zeros((3, 3))
+        gs_array_3 = gs.zeros_like(gs.array(np_array_3))
+
+        np_array_3[0, 1] += 1
+        gs_result = gs.assignment_by_sum(gs_array_3, 1, (0, 1))
+        self.assertAllCloseToNp(gs_result, np_array_3)
+
+        np_array_4 = _np.zeros((3, 3, 2))
+        gs_array_4 = gs.zeros_like(gs.array(np_array_4))
+
+        np_array_4[0, :, 1] += 1
+        gs_result = gs.assignment_by_sum(gs_array_4, 1, (0, 1), axis=1)
+        self.assertAllCloseToNp(gs_result, np_array_4)
+
+        np_array_4_list = _np.zeros((3, 3, 2))
+        gs_array_4_list = gs.zeros_like(gs.array(np_array_4_list))
+
+        np_array_4_list[(0, 1), :, (1, 1)] += 1
+        gs_result = gs.assignment_by_sum(
+            gs_array_4_list, 1, [(0, 1), (1, 1)], axis=1)
+        self.assertAllCloseToNp(gs_result, np_array_4)
