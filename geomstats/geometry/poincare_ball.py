@@ -199,7 +199,7 @@ class PoincareBallMetric(RiemannianMetric):
         point_a_belong = ball_manifold.belongs(point_a)
         point_b_belong = ball_manifold.belongs(point_b)
 
-        if(not point_a_belong or not point_b_belong):
+        if(not gs.all(point_a_belong) or not gs.all(point_b_belong)):
             raise NameError("Point do not belong to the Poincare ball")
 
         norm_point_a = gs.sum(point_a ** 2, axis=-1,
@@ -276,7 +276,7 @@ class PoincareBallMetric(RiemannianMetric):
         ball_manifold = PoincareBall(self.dimension, scale=self.scale)
         base_point_belong = ball_manifold.belongs(base_point)
 
-        if(not base_point_belong):
+        if(not gs.all(base_point_belong)):
             raise NameError("Point do not belong to the Poincare ball")
 
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
