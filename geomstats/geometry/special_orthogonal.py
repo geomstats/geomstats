@@ -46,7 +46,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             rotations
             default: 0
         """
-        assert isinstance(n, int) and n > 1
+        if not (isinstance(n, int) and n > 1):
+            raise ValueError('Parameter `n` is required to be an integer > 1.')
 
         self.n = n
         self.dimension = int((n * (n - 1)) / 2)
@@ -181,8 +182,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
                 regularized_point = gs.einsum(
                     'n,ni->ni', norms_ratio, regularized_point)
-
-            assert gs.ndim(regularized_point) == 2
 
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
@@ -335,7 +334,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         mat = gs.to_ndarray(mat, to_ndim=3)
 
         n_mats, mat_dim_1, mat_dim_2 = mat.shape
-        assert mat_dim_1 == mat_dim_2 == self.n
 
         if self.n == 3:
             mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
@@ -719,8 +717,10 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         quaternion : array-like, shape=[n_samples, 4]
         """
-        assert self.n == 3, ('The quaternion representation does not exist'
-                             ' for rotations in %d dimensions.' % self.n)
+        if self.n != 3:
+            raise ValueError(
+                'The quaternion representation does not exist'
+                ' for rotations in %d dimensions.' % self.n)
         rot_mat = gs.to_ndarray(rot_mat, to_ndim=3)
 
         rot_vec = self.rotation_vector_from_matrix(rot_mat)
@@ -740,8 +740,10 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         quaternion : array-like, shape=[n_samples, 4]
         """
-        assert self.n == 3, ('The quaternion representation does not exist'
-                             ' for rotations in %d dimensions.' % self.n)
+        if self.n != 3:
+            raise ValueError(
+                'The quaternion representation does not exist'
+                ' for rotations in %d dimensions.' % self.n)
         rot_vec = self.regularize(rot_vec, point_type='vector')
 
         angle = gs.linalg.norm(rot_vec, axis=1)
@@ -774,8 +776,10 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         rot_vec : array-like, shape=[n_samples, dimension]
         """
-        assert self.n == 3, ('The quaternion representation does not exist'
-                             ' for rotations in %d dimensions.' % self.n)
+        if self.n != 3:
+            raise ValueError(
+                'The quaternion representation does not exist'
+                ' for rotations in %d dimensions.' % self.n)
         quaternion = gs.to_ndarray(quaternion, to_ndim=2)
         n_quaternions, _ = quaternion.shape
 
@@ -813,8 +817,10 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         rot_mat : array-like, shape=[n_samples, dimension]
         """
-        assert self.n == 3, ('The quaternion representation does not exist'
-                             ' for rotations in %d dimensions.' % self.n)
+        if self.n != 3:
+            raise ValueError(
+                'The quaternion representation does not exist'
+                ' for rotations in %d dimensions.' % self.n)
         quaternion = gs.to_ndarray(quaternion, to_ndim=2)
         n_quaternions, _ = quaternion.shape
 
@@ -867,9 +873,10 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         rot_mat : array-like, shape=[n_samples, n, n]
         """
-        assert self.n == 3, ('The Tait-Bryan angles representation'
-                             ' does not exist'
-                             ' for rotations in %d dimensions.' % self.n)
+        if self.n != 3:
+            raise ValueError(
+                'The Tait-Bryan angles representation'
+                ' does not exist for rotations in %d dimensions.' % self.n)
         tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
         n_tait_bryan_angles, _ = tait_bryan_angles.shape
 
@@ -924,9 +931,10 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         rot_mat : array-like, shape=[n_samples, n, n]
         """
-        assert self.n == 3, ('The Tait-Bryan angles representation'
-                             ' does not exist'
-                             ' for rotations in %d dimensions.' % self.n)
+        if self.n != 3:
+            raise ValueError(
+                'The Tait-Bryan angles representation'
+                ' does not exist for rotations in %d dimensions.' % self.n)
         tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
         n_tait_bryan_angles, _ = tait_bryan_angles.shape
 
@@ -992,12 +1000,10 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         rot_mat : array-like, shape=[n_samples, n, n]
         """
-        assert self.n == 3, ('The Tait-Bryan angles representation'
-                             ' does not exist'
-                             ' for rotations in %d dimensions.' % self.n)
-
-        assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
-        assert order in ('xyz', 'zyx')
+        if self.n != 3:
+            raise ValueError(
+                'The Tait-Bryan angles representation'
+                ' does not exist for rotations in %d dimensions.' % self.n)
 
         tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
 
@@ -1060,8 +1066,10 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         tait_bryan_angles : array-like, shape=[n_samples, 3]
         """
-        assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
-        assert order in ('xyz', 'zyx')
+        if self.n != 3:
+            raise ValueError(
+                'The Tait-Bryan angles representation'
+                ' does not exist for rotations in %d dimensions.' % self.n)
 
         rot_mat = gs.to_ndarray(rot_mat, to_ndim=3)
         quaternion = self.quaternion_from_matrix(rot_mat)
@@ -1087,10 +1095,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         quaternion : array-like, shape=[n_samples, 4]
         """
-        assert self.n == 3, ('The quaternion representation'
-                             ' and the Tait-Bryan angles representation'
-                             ' do not exist'
-                             ' for rotations in %d dimensions.' % self.n)
+        if self.n != 3:
+            raise ValueError(
+                'The Tait-Bryan angles representation'
+                ' and the quaternion representation'
+                ' do not exist for rotations in %d dimensions.' % self.n)
         tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
         n_tait_bryan_angles, _ = tait_bryan_angles.shape
         quaternion = gs.zeros((n_tait_bryan_angles, 4))
@@ -1119,13 +1128,12 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         quat : array-like, shape=[n_samples, 4]
         """
-        assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
-        assert order in ('xyz', 'zyx')
+        if self.n != 3:
+            raise ValueError(
+                'The Tait-Bryan angles representation'
+                ' and the quaternion representation'
+                ' do not exist for rotations in %d dimensions.' % self.n)
 
-        assert self.n == 3, ('The quaternion representation'
-                             ' and the Tait-Bryan angles representation'
-                             ' do not exist'
-                             ' for rotations in %d dimensions.' % self.n)
         tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
 
         extrinsic_zyx = (extrinsic_or_intrinsic == 'extrinsic'
@@ -1185,11 +1193,10 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         rot_vec : array-like, shape=[n_samples, dimension]
         """
-        assert self.n == 3, ('The Tait-Bryan angles representation'
-                             ' does not exist'
-                             ' for rotations in %d dimensions.' % self.n)
-        assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
-        assert order in ('xyz', 'zyx')
+        if self.n != 3:
+            raise ValueError(
+                'The Tait-Bryan angles representation'
+                ' does not exist for rotations in %d dimensions.' % self.n)
 
         quaternion = self.quaternion_from_tait_bryan_angles(
             tait_bryan_angles,
@@ -1211,10 +1218,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         tait_bryan_angles : array-like, shape=[n_samples, 3]
         """
-        assert self.n == 3, ('The quaternion representation'
-                             ' and the Tait-Bryan angles representation'
-                             ' do not exist'
-                             ' for rotations in %d dimensions.' % self.n)
+        if self.n != 3:
+            raise ValueError(
+                'The Tait-Bryan angles representation'
+                ' and the quaternion representation'
+                ' do not exist for rotations in %d dimensions.' % self.n)
         quaternion = gs.to_ndarray(quaternion, to_ndim=2)
 
         w, x, y, z = gs.hsplit(quaternion, 4)
@@ -1238,10 +1246,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         tait_bryan_angles : array-like, shape=[n_samples, 3]
         """
-        assert self.n == 3, ('The quaternion representation'
-                             ' and the Tait-Bryan angles representation'
-                             ' do not exist'
-                             ' for rotations in %d dimensions.' % self.n)
+        if self.n != 3:
+            raise ValueError(
+                'The Tait-Bryan angles representation'
+                ' and the quaternion representation'
+                ' do not exist for rotations in %d dimensions.' % self.n)
         quaternion = gs.to_ndarray(quaternion, to_ndim=2)
 
         w, x, y, z = gs.hsplit(quaternion, 4)
@@ -1272,12 +1281,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         tait_bryan : array-like, shape=[n_samples, 3]
         """
-        assert self.n == 3, ('The quaternion representation'
-                             ' and the Tait-Bryan angles representation'
-                             ' do not exist'
-                             ' for rotations in %d dimensions.' % self.n)
-        assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
-        assert order in ('xyz', 'zyx')
+        if self.n != 3:
+            raise ValueError(
+                'The Tait-Bryan angles representation'
+                ' and the quaternion representation'
+                ' do not exist for rotations in %d dimensions.' % self.n)
 
         quaternion = gs.to_ndarray(quaternion, to_ndim=2)
 
@@ -1332,11 +1340,10 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         tait_bryan_angles : array-like, shape=[n_samples, 3]
         """
-        assert self.n == 3, ('The Tait-Bryan angles representation'
-                             ' does not exist'
-                             ' for rotations in %d dimensions.' % self.n)
-        assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
-        assert order in ('xyz', 'zyx')
+        if self.n != 3:
+            raise ValueError(
+                'The Tait-Bryan angles representation'
+                ' does not exist for rotations in %d dimensions.' % self.n)
 
         rot_vec = gs.to_ndarray(rot_vec, to_ndim=2)
 
@@ -1442,7 +1449,10 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         jacobian : array-like, shape=[n_samples, dimension, dimension]
         """
-        assert left_or_right in ('left', 'right')
+        if left_or_right not in ('left', 'right'):
+            raise ValueError(
+                'Parameter `left_or_right`'
+                ' should be either `left` or `right`.')
 
         if point_type is None:
             point_type = self.default_point_type
