@@ -102,20 +102,24 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             max_iter=150,
             point_type=self.point_type)
 
-
-
         wik = torch.from_numpy(wik)
 
 
         data_gs = gs.expand_dims(data.data.numpy(),1)
         data_gs = gs.repeat(data_gs,M,axis = 1)
 
-
         data_torch = data.unsqueeze(1).expand(N, M, D)
 
-        mean.fit(data_gs,weights = wik.data.numpy())
-        mean_gs = mean.estimate_
+        # mean.fit(data_gs,weights = wik.data.numpy())
+        # mean_gs = mean.estimate_
 
+        if(g_index>0):
+            mean.fit(data.data.from_numpy(), weights=wik.data.numpy()[:,g_index])
+            self.means[g_index] = torch.from_numpy(mean.estimate_).squeeze()
+
+        else:
+            mean.fit(data_gs, weights = wik.data.numpy())
+            self.means = torch.from_numpy(mean.estimate_).squeeze()
 
         #TODO Adapt to big number of gaussians
 
@@ -131,10 +135,10 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         #                                            verbose=True, normed=True).squeeze()
         # else:
 
-        if(g_index>0):
-            self.means[g_index] = barycenter(data, wik[:, g_index], lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
-        else:
-            self.means = barycenter(data.unsqueeze(1).expand(N, M, D), wik, lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
+        # if(g_index>0):
+        #     self.means[g_index] = barycenter(data, wik[:, g_index], lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
+        # else:
+        #     self.means = barycenter(data.unsqueeze(1).expand(N, M, D), wik, lr_mu, tau_mu, max_iter=max_iter, normed=True).squeeze()
 
 
     def update_variances(self, z, wik, g_index=-1):
