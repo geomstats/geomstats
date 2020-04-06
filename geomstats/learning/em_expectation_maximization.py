@@ -73,7 +73,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
     def update_weights(self, wik, g_index=-1):
         """ Weights update function
         """
-        wik  = wik.data.numpy()
+
         #with torch.no_grad():
             # get omega mu
 
@@ -87,12 +87,11 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         # else:
         #     self.mixture_coefficients = wik.mean(0)
 
-        self.mixture_coefficients = torch.from_numpy(self.mixture_coefficients)
+        #self.mixture_coefficients = torch.from_numpy(self.mixture_coefficients)
 
     def update_means(self, data, wik, lr_mu, tau_mu, g_index=-1, max_iter=150):
         """ Means update functions"""
 
-        wik = wik.data.numpy()
         N, D, M = data.shape + (wik.shape[-1],)
         #N, D, M = z.shape + (wik.shape[-1],)
 
@@ -102,27 +101,28 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             max_iter=150,
             point_type=self.point_type)
 
-        wik = torch.from_numpy(wik)
+        #wik = torch.from_numpy(wik)
 
 
-        data_gs = gs.expand_dims(data.data.numpy(),1)
+        data_gs = gs.expand_dims(data,1)
         data_gs = gs.repeat(data_gs,M,axis = 1)
 
-        data_torch = data.unsqueeze(1).expand(N, M, D)
+        #data_torch = data.unsqueeze(1).expand(N, M, D)
 
         # mean.fit(data_gs,weights = wik.data.numpy())
         # mean_gs = mean.estimate_
 
         if(g_index>0):
-            mean.fit(data.data.from_numpy(), weights=wik.data.numpy()[:,g_index])
-            self.means[g_index] = torch.from_numpy(mean.estimate_).squeeze()
+            mean.fit(data, weights=wik[:,g_index])
+            #self.means[g_index] = torch.from_numpy(mean.estimate_).squeeze()
+            self.means[g_index] = gs.squeeze(mean.estimate_)
 
         else:
-            mean.fit(data_gs, weights = wik.data.numpy())
-            self.means = torch.from_numpy(mean.estimate_).squeeze()
+            mean.fit(data_gs, weights = wik)
+            #self.means = torch.from_numpy(mean.estimate_).squeeze()
+            self.means = gs.squeeze(mean.estimate_)
 
         #TODO Adapt to big number of gaussians
-
         # if too much gaussian we compute mean for each gaussian separately (To avoid too large memory)
         # if(M>40):
         #     for g_index in range(M//40 + (1 if(M%40 != 0) else 0)):
@@ -148,21 +148,19 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             if (g_index > 0):
                 dtm = ((distance(z, self.means[:, g_index].expand(N)) ** 2) * wik[:, g_index]).sum() / wik[:,
                                                                                                            g_index].sum()
-                self.variances[:, g_index] = self.normalization_factor.phi(dtm)
+                self.variances[:, g_index] = (self.normalization_factor.phi(dtm)).data.numpy()
             else:
                 dtm = ((distance(z.unsqueeze(1).expand(N, M, D),
                                  self.means.unsqueeze(0).expand(N, M, D)) ** 2) * wik).sum(0) / wik.sum(0)
                 # print("dtms ", dtm.size())
-                self.variances = self.normalization_factor.phi(dtm)
+                self.variances = (self.normalization_factor.phi(dtm)).data.numpy()
 
     def _expectation(self, data):
         """Compute weights_ik given the data, means and variances"""
 
-        self.mixture_coefficients = self.mixture_coefficients.data.numpy()
-
-        probability_distribution_function = gaussianPDF(data.data.numpy(),
-                                                        self.means.data.numpy(),
-                                                        self.variances.data.numpy(),
+        probability_distribution_function = gaussianPDF(data,
+                                                        self.means,
+                                                        self.variances,
                                                         distance= distance,
                                                         norm_func=self.normalization_factor.zeta_numpy,
                                                         metric =self.riemannian_metric)
@@ -205,18 +203,20 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             print(gs.sum(wik,1))
             quit()
 
-        self.mixture_coefficients = torch.from_numpy(self.mixture_coefficients)
-        wik = torch.from_numpy(wik)
         return wik
 
     def _maximization(self, data, wik, lr_mu, tau_mu, max_iter = math.inf ):
         """Given the weights and data, will update the means and variances."""
+
         self.update_weights(wik)
-        if(self.mixture_coefficients.mean() != self.mixture_coefficients.mean()):
+
+        if(gs.mean(self.mixture_coefficients) != gs.mean(self.mixture_coefficients)):
             print("UPDATE : w contain not a number elements")
             quit()
-        # print("w", self._w)
+
         self.update_means(data, wik, lr_mu=lr_mu, tau_mu=tau_mu, max_iter=max_iter)
+
+
         if(self.verbose):
             print(self.means)
         if(self.means.mean() != self.means.mean()):
@@ -224,7 +224,9 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             quit()
         if(self.verbose):
             print("sigma b", self.variances)
-        self.update_variances(data, wik)
+        self.means = torch.from_numpy(self.means)
+        self.update_variances(torch.from_numpy(data), torch.from_numpy(wik))
+        self.means = self.means.data.numpy()
         if(self.verbose):
             print("sigma ", self.variances)
         if(self.variances.mean() != self.variances.mean()):
@@ -275,17 +277,12 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             print("Initial Mixture Weights", self.mixture_coefficients)
             print("Initial Weights", posterior_probabilities)
 
-        self.means = torch.from_numpy(self.means)
-        self.variances = torch.from_numpy(self.variances)
-        self.mixture_coefficients = torch.from_numpy(self.mixture_coefficients)
-        posterior_probabilities = torch.from_numpy(posterior_probabilities)
-        data = torch.from_numpy(data)
-
         for epoch in range(max_iter):
             old_wik = posterior_probabilities
 
             posterior_probabilities = self._expectation(data)
-            if((old_wik - posterior_probabilities).abs().mean() < 1e-4 and epoch>10):
+            condition = gs.mean(gs.abs(old_wik - posterior_probabilities))
+            if(condition < 1e-4 and epoch>10):
 
                 print('EM converged in ', epoch, 'iterations')
                 return self.means, self.variances, self.mixture_coefficients
@@ -316,7 +313,8 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self : object
             Return array containing for each point the associated Gaussian community
         """
-        #TODO Hadi: Write prediction method
+        #TODO Thomas ou Hadi: Write prediction method to
+        # label points with the cluster maximising the likelihood
         belongs = None
         return belongs
 
@@ -325,10 +323,12 @@ class ZetaPhiStorage(object):
     """A class for computing the normalization factor."""
 
     def __init__(self, sigma, dimension):
-        sigma = torch.from_numpy(sigma)
+
         self.dimension = dimension
+        sigma = torch.from_numpy(sigma)
         self.sigma = sigma
         self.m_zeta_var = new_zeta(sigma, dimension)
+
 
         c1 = self.m_zeta_var.sum() != self.m_zeta_var.sum()
         c2 = self.m_zeta_var.sum() == math.inf
@@ -388,10 +388,18 @@ class ZetaPhiStorage(object):
         self.m_zeta_var = self.m_zeta_var.to(device)
         self.phi_inv_var = self.phi_inv_var.to(device)
 
+CST_FOR_ERF = 8.0 / (3.0 * gs.pi) * (gs.pi - 3.0) / (4.0 - gs.pi)
+def erf_approx(x):
+    return gs.sign(x)*gs.sqrt(1 - gs.exp(-x * x * (4 / gs.pi + CST_FOR_ERF * x * x) / (1 + CST_FOR_ERF * x * x)))
 
 def new_zeta(x, N):
+    x = x.data.numpy()
 
-    sigma = nn.Parameter(x)
+    sigma = x
+    #sigma = nn.Parameter(x)
+
+
+
     # binomial_coefficient=None
     # M = sigma.shape[0]
     #
@@ -399,35 +407,76 @@ def new_zeta(x, N):
 
     binomial_coefficient = None
     M = sigma.shape[0]
-    sigma_u = sigma.unsqueeze(0).expand(N, M)
+
+    sigma_u = gs.expand_dims(sigma,0)
+    sigma_u = gs.repeat(sigma_u, N, axis = 0)
+
+
+
+    #sigma_u = sigma.unsqueeze(0).expand(N, M)
 
     if(binomial_coefficient is None):
          # we compute coeficient
-         v = torch.arange(N)
+         #v = torch.arange(N)
+         v = gs.arange(N)
          v[0] = 1
          n_fact = v.prod()
-
-         k_fact = torch.cat([v[:i].prod().unsqueeze(0) for i in range(1, v.shape[0]+1)],0)
-         nmk_fact = k_fact.flip(0)
+         #v = torch.from_numpy(v)
+         k_fact = gs.concatenate([gs.expand_dims(v[:i].prod(),0) for i in range(1, v.shape[0] + 1)], 0)
+         #k_fact = torch.cat([v[:i].prod().unsqueeze(0) for i in range(1, v.shape[0]+1)],0)
+         nmk_fact = gs.flip(k_fact,0)
          # print(nmk_fact)
          binomial_coefficient = n_fact / (k_fact * nmk_fact)
-    binomial_coefficient = binomial_coefficient.unsqueeze(-1).expand(N, M).double()
-    #N = torch.from_numpy(N)
-    range_ = torch.arange(N ,device=sigma.device).unsqueeze(-1).expand(N,M).double()
-    ones_ = torch.ones(N ,device=sigma.device).unsqueeze(-1).expand(N,M).double()
+
+
+
+    #TODO: Check Precision for binomial coefficients
+    binomial_coefficient = gs.expand_dims(binomial_coefficient,-1)
+    binomial_coefficient = gs.repeat(binomial_coefficient,M, axis = 1)
+
+
+
+    range_ = gs.expand_dims(gs.arange(N),-1)
+    range_ = gs.repeat(range_, M, axis = 1)
+
+    ones_ = gs.expand_dims(gs.ones(N),-1)
+    ones_ = gs.repeat(ones_, M, axis = 1)
+
+
 
     alternate_neg = (-ones_)**(range_)
 
-    ins = (((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2)
-    ins_squared = ((((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2))**2
-    as_o = (1+torch.erf(ins)) * torch.exp(ins_squared)
-    bs_o = binomial_coefficient * as_o
-    r = alternate_neg * bs_o
+    ins_gs = (((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2)
+    ins_squared_gs = ((((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2))**2
+    as_o_gs = (1+erf_approx(ins_gs)) * gs.exp(ins_squared_gs)
+    bs_o_gs = binomial_coefficient * as_o_gs
+    r_gs = alternate_neg * bs_o_gs
 
 
-    zeta = ZETA_CST * sigma * r.sum(0) * (1/(2**(N-1)))
+    zeta = ZETA_CST * sigma * r_gs.sum(0) * (1/(2**(N-1)))
 
-    return zeta
+
+    #range_ = torch.arange(N ,device=sigma.device).unsqueeze(-1).expand(N,M).double()
+    #ones_ = torch.ones(N ,device=sigma.device).unsqueeze(-1).expand(N,M).double()
+
+    # alternate_neg = torch.from_numpy(alternate_neg)
+    # range_ = torch.from_numpy(range_)
+    # ones_ = torch.from_numpy(ones_)
+    # sigma = torch.from_numpy(sigma)
+    # sigma_u = torch.from_numpy(sigma_u)
+    # binomial_coefficient = torch.from_numpy(binomial_coefficient)
+    #
+    # ins = (((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2)
+    # ins_squared = ((((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2))**2
+    # as_o = (1+torch.erf(ins)) * torch.exp(ins_squared)
+    # bs_o = binomial_coefficient * as_o
+    # r = alternate_neg * bs_o
+    #
+    #
+    # zeta = ZETA_CST * sigma * r.sum(0) * (1/(2**(N-1)))
+
+    return torch.from_numpy(zeta)
+
 
 def log_grad_zeta(x, N):
     sigma = nn.Parameter(x)
@@ -550,83 +599,7 @@ def log(k, x):
         res[norm_kpx == 0] = 0
     return res
 
-def barycenter(z, wik=None, lr=5e-2, tau=5e-3, max_iter=math.inf, distance=distance, normed=False,
-               init_method="default", verbose=False):
-    with torch.no_grad():
-        if (wik is None):
-            wik = 1.
-            # barycenter = z.mean(0, keepdim=True)
-            barycenter = z.mean(0, keepdim=True) * 0
-        else:
 
-            wik = wik.unsqueeze(-1).expand_as(z)
-            if (init_method == "global_mean"):
-                print("Bad init selected")
-                barycenter = z.mean(0, keepdim=True)
-            else:
-                barycenter = (z * wik).sum(0, keepdim=True) / wik.sum(0)
-
-        if (len(z) == 1):
-            return z
-        iteration = 0
-        cvg = math.inf
-        # print("barycenter_init", barycenter)
-        while (cvg > tau and max_iter > iteration):
-
-            iteration += 1
-            if (type(wik) != float):
-                grad_tangent = 2 * log(barycenter.expand_as(z), z) * wik
-                nan_values = (~(barycenter == barycenter))
-                # print("\n\n A At least one barycenter is Nan : ")
-                # print(pf.log(barycenter.expand_as(z), z).sum(0))
-                if (nan_values.squeeze().nonzero().size(0) > 0):
-                    print("\n\n A At least one barycenter is Nan : ")
-                    print(log(barycenter.expand_as(z), z).sum(0))
-                    print("index of nan values ", nan_values.squeeze().nonzero())
-                    quit()
-                    # torch 1.3 minimum for this operation
-
-                    # nan_values = (~(barycenter == barycenter))
-                    # print("Condition value ", (barycenter == barycenter).float().mean().item())
-                    print("index of nan values ", nan_values.squeeze().nonzero())
-                    # print("wik of nan values ", wik[:, nan_values.squeeze()].mean(0))
-                    # print("At iteration ", iteration)
-            else:
-                grad_tangent = 2 * log(barycenter.expand_as(z), z)
-
-            # print(type(wik))
-            if (normed):
-                # print(grad_tangent.size())
-                if (type(wik) != float):
-                    # print(wik.sum(0, keepdim=True))
-                    grad_tangent /= wik.sum(0, keepdim=True).expand_as(wik)
-                else:
-                    grad_tangent /= len(z)
-
-            cc_barycenter = exp(barycenter, lr * grad_tangent.sum(0, keepdim=True))
-            nan_values = (~(cc_barycenter == cc_barycenter))
-
-            if (nan_values.squeeze().nonzero().size(0) > 0):
-                print("\n\n C At least one barycenter is Nan exp update may contain 0: ")
-                print(grad_tangent.sum(0, keepdim=True))
-                quit()
-                # torch 1.3 minimum for this operation
-
-                # print("Condition value ", (cc_barycenter == cc_barycenter).float().mean().item())
-                # print("index of nan values ", nan_values.squeeze().nonzero())
-                # print("wik of nan values ", wik[:, nan_values.squeeze()].mean(0))
-                # print("At iteration ", iteration)
-            cvg = distance(cc_barycenter, barycenter).max().item()
-            # print(cvg)
-            barycenter = cc_barycenter
-            if (cvg <= tau and verbose):
-                print("Frechet Mean converged in ", iteration, " iterations")
-        if (type(wik) != float):
-            # # to debug ponderate version
-            # print(cvg, iteration, max_iter)
-            pass
-        # print("BARYCENTERS -> ", barycenter)
-        return barycenter
 
 def exp(k, x):
     norm_k = k.norm(2,-1, keepdim=True).expand_as(k)*1

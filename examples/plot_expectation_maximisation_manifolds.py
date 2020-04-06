@@ -8,13 +8,11 @@ the example works on the Poincaré Ball.
 """
 import os
 
-import matplotlib.pyplot as plt
+
 import geomstats.backend as gs
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.learning.em_expectation_maximization import RiemannianEM
-import numpy as np
-import math
-import torch
+import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.art3d as art3d
 from matplotlib.patches import Circle
 
@@ -103,7 +101,6 @@ def plot_gaussian_mixture_distribution(data,
     return plt
 
 
-
 def expectation_maximisation_poincare_ball():
 
     #Generate random data in 3 different parts of the manifold
@@ -118,7 +115,7 @@ def expectation_maximisation_poincare_ball():
 
     data = gs.concatenate((cluster_1, cluster_2, cluster_3), axis=0)
 
-
+    #Set up hyperbolic space
 
     n_clusters = 3
 
@@ -126,6 +123,7 @@ def expectation_maximisation_poincare_ball():
 
     metric = manifold.metric
 
+    #Set up EM algorithm and fit
     EM = RiemannianEM(riemannian_metric=metric,
                        n_gaussian= n_clusters,
                        init='random',
@@ -138,12 +136,13 @@ def expectation_maximisation_poincare_ball():
         max_iter=100)
 
 
+    #Plot result
     plot = plot_gaussian_mixture_distribution(data,
-                                       mixture_coefficients.data.numpy(),
-                                       means.data.numpy(),
-                                       variances.data.numpy(),
+                                       mixture_coefficients,
+                                       means,
+                                       variances,
                                        plot_precision=20,
-                                       save_path=os.path.join("result.png"),
+                                       save_path='result.png',
                                        metric = metric.dist
                                        )
 
