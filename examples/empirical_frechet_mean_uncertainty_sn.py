@@ -251,19 +251,17 @@ def main(test=False):
                          n_expectation=n_expectation)))
 
     plot_modulation_factor(2, 2, n_expectation=n_expectation)
+    multi_plot_modulation_factor(3, n_expectation=n_expectation)
 
     if not test:
         plot_modulation_factor(4, 2, n_expectation=n_expectation)
         plot_modulation_factor(6, 2, n_expectation=n_expectation)
 
-        multi_plot_modulation_factor(
-            2, n_expectation=n_expectation)
+        multi_plot_modulation_factor(2, n_expectation=n_expectation)
 
         plot_modulation_factor(2, 3, n_expectation=n_expectation)
         plot_modulation_factor(4, 3, n_expectation=n_expectation)
         plot_modulation_factor(6, 3, n_expectation=n_expectation)
-
-        multi_plot_modulation_factor(3, n_expectation=n_expectation)
 
         plot_modulation_factor(2, 4, n_expectation=n_expectation)
         plot_modulation_factor(4, 4, n_expectation=n_expectation)
