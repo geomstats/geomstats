@@ -35,7 +35,17 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
 
         # General left and right invariant metrics
         # TODO(nina): Replace the matrix below by a general SPD matrix.
-        sym_mat_at_identity = gs.eye(group.dimension)
+        rotation_part = gs.zeros(group.dimension)
+        rotation_part[0] = 1. / 4
+        diagonal_part = gs.ones_like(rotation_part)
+        diagonal_part[0] = 2
+        diagonal_part = gs.diag(diagonal_part)
+        rotation_part = SpecialEuclidean(
+            group.dimension).rotations.matrix_from_rotation_vector(
+            rotation_part)[0]
+        spd = group.compose(rotation_part, diagonal_part, point_type='matrix')
+        sym_mat_at_identity = group.compose(
+            spd, gs.transpose(rotation_part), point_type='matrix')
 
         left_metric = InvariantMetric(
             group=group,
@@ -54,7 +64,7 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
 
         # General case for the point
         point_1 = gs.array([[-0.2, 0.9, 0.5, 5., 5., 5.]])
-        point_2 = gs.array([[0., 2., -0.1, 30., 400., 2.]])
+        point_2 = gs.array([[0., 20., -0.1, 30., 400., 2.]])
         # Edge case for the point, angle < epsilon,
         point_small = gs.array([[-1e-7, 0., -7 * 1e-8, 6., 5., 9.]])
 

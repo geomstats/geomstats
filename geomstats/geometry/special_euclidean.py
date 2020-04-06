@@ -182,6 +182,10 @@ class SpecialEuclidean(LieGroup):
         elif point_type == 'matrix':
             regularized_point = gs.to_ndarray(point, to_ndim=3)
 
+        else:
+            raise ValueError('Invalid point_type, expected \'vector\' or '
+                             '\'matrix\'')
+
         return regularized_point
 
     def regularize_tangent_vec_at_identity(
