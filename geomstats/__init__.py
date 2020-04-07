@@ -1,5 +1,6 @@
 __version__ = '1.17'
 
+import geomstats._backend
 import geomstats._logging
 import geomstats.geometry.discretized_curves
 import geomstats.geometry.euclidean

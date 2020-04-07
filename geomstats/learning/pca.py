@@ -264,7 +264,7 @@ class TangentPCA(_BasePCA):
                              "svd_solver='full'"
                              % (n_components, min(n_samples, n_features)))
         elif n_components >= 1:
-            if not isinstance(n_components, (numbers.Integral, gs.integer)):
+            if not isinstance(n_components, numbers.Integral):
                 raise ValueError("n_components=%r must be of type int "
                                  "when greater than or equal to 1, "
                                  "was of type=%r"

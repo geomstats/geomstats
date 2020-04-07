@@ -13,6 +13,10 @@ norm = tf.linalg.norm
 sqrtm = tf.linalg.sqrtm
 
 
+def eig(*args, **kwargs):
+    raise NotImplementedError
+
+
 def logm(x):
     x = tf.cast(x, tf.complex64)
     logm = tf.linalg.logm(x)
@@ -23,10 +27,6 @@ def logm(x):
 def svd(x):
     s, u, v_t = tf.linalg.svd(x, full_matrices=True)
     return u, s, tf.transpose(v_t, perm=(0, 2, 1))
-
-
-def matrix_rank(x):
-    return tf.rank(x)
 
 
 def qr(*args, mode='reduced'):

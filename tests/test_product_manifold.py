@@ -98,7 +98,7 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
             default_point_type='matrix')
         point = space.random_uniform(1)
         result = space.metric.inner_product_matrix(point)
-        expected = gs.identity(6)
+        expected = gs.eye(6)
         expected[3, 3] = - 1
         self.assertAllClose(result, expected)
 
@@ -109,7 +109,7 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
                        Hyperbolic(dimension=2).embedding_manifold],
             default_point_type='vector')
         point = space.random_uniform(1)
-        expected = gs.identity(6)
+        expected = gs.eye(6)
         expected[3, 3] = - 1
         result = space.metric.inner_product_matrix(point)
         self.assertAllClose(result, expected)
