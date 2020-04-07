@@ -127,6 +127,14 @@ def repeat(a, repeats, axis=None):
     return torch.repeat_interleave(a, repeats, axis)
 
 
+def flip(x, axis):
+    if isinstance(axis, int):
+        axis = [axis]
+    if axis is None:
+        axis = list(range(x.ndim))
+    return torch.flip(x, dims=axis)
+
+
 def asarray(x):
     return _np.asarray(x)
 
@@ -151,8 +159,13 @@ def vstack(seq):
 
 def array(val):
     if isinstance(val, list):
-        if not isinstance(val[0], torch.Tensor):
+        if not any([isinstance(t, torch.Tensor) for t in val]):
             val = _np.copy(_np.array(val))
+        elif any([not isinstance(t, torch.Tensor) for t in val]):
+            for (index, t) in enumerate(val):
+                if not isinstance(t, torch.Tensor):
+                    val[index] = torch.tensor(t)
+            val = stack(val)
         else:
             val = stack(val)
 
@@ -178,6 +191,10 @@ def all(x, axis=None):
         return x.byte().all()
     numpy_result = _np.array(_np.all(_np.array(x), axis=axis).astype(int))
     return torch.from_numpy(numpy_result)
+
+
+def get_slice(x, indices):
+    return x[indices]
 
 
 def allclose(a, b, **kwargs):
@@ -394,6 +411,16 @@ def outer(*args, **kwargs):
     return torch.ger(*args, **kwargs)
 
 
+def hsplit(x, indices_or_section):
+    if isinstance(indices_or_section, int):
+        indices_or_section = indices_or_section // x.shape[1]
+    return torch.split(x, indices_or_section, dim=1)
+
+
+def diagonal(x, offset=0, axis1=0, axis2=1):
+    return torch.diagonal(x, offset=offset, dim1=axis1, dim2=axis2)
+
+
 def eval(x):
     return x
 
@@ -416,10 +443,6 @@ def mean(x, axis=None):
     if axis is None:
         return torch.mean(x)
     return torch.mean(x, dim=axis)
-
-
-def gather(x, indices, axis=0):
-    return x[indices]
 
 
 def get_mask_i_float(i, n):

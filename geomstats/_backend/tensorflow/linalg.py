@@ -11,7 +11,8 @@ expm = tf.linalg.expm
 inv = tf.linalg.inv
 norm = tf.linalg.norm
 sqrtm = tf.linalg.sqrtm
-
+set_diag = tf.linalg.set_diag
+diagonal = tf.linalg.diag_part
 
 def eig(*args, **kwargs):
     raise NotImplementedError

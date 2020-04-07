@@ -144,8 +144,8 @@ class SRVMetric(RiemannianMetric):
 
         index = gs.arange(n_curves * n_sampling_points - 1)
         mask = ~gs.equal((index + 1) % n_sampling_points, 0)
-        index_select = gs.gather(index, gs.squeeze(gs.where(mask)))
-        srv = gs.reshape(gs.gather(srv, index_select), srv_shape)
+        index_select = gs.get_slice(index, gs.squeeze(gs.where(mask)))
+        srv = gs.reshape(gs.get_slice(srv, index_select), srv_shape)
 
         return srv
 

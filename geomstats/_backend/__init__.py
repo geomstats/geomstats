@@ -55,8 +55,8 @@ BACKEND_ATTRIBUTES = {
         'flip',
         'floor',
         'from_vector_to_diagonal_matrix',
-        'gather',
         'get_mask_i_float',
+        'get_slice',
         'greater',
         'hsplit',
         'hstack',
@@ -116,6 +116,7 @@ BACKEND_ATTRIBUTES = {
         'norm',
         'powerm',
         'qr',
+        'set_diag',
         'sqrtm',
         'svd'
     ],

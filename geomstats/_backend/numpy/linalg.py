@@ -23,6 +23,11 @@ def _is_symmetric(x, tol=_TOL):
     return (np.abs(new_x - np.transpose(new_x, axes=(0, 2, 1))) < tol).all()
 
 
+def set_diag(x, new_diag):
+    arr_shape = x.shape
+    x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
+
+
 def _expsym(x):
     eigvals, eigvecs = np.linalg.eigh(x)
     eigvals = np.exp(eigvals)

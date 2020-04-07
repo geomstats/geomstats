@@ -1100,8 +1100,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                     inv_expected = helper.to_vector(inv_expected)
 
                     self.assertTrue(
-                        gs.allclose(result, expected)
-                        or gs.allclose(result, inv_expected))
+                        gs.allclose(result, expected, atol=1e-6)
+                        or gs.allclose(result, inv_expected, atol=1e-6))
 
                     if geomstats.tests.tf_backend():
                         break
