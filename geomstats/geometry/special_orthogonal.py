@@ -559,7 +559,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             rot_vec_not_pi = rot_vec_not_pi * numerator / denominator
 
             vector_outer = 0.5 * (gs.eye(3) + rot_mat)
-            gs.linalg.set_diag(
+            gs.set_diag(
                 vector_outer, gs.maximum(
                     0., gs.diagonal(vector_outer, axis1=1, axis2=2)))
             squared_diag_comp = gs.diagonal(vector_outer, axis1=1, axis2=2)

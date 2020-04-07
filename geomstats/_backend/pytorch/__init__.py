@@ -421,6 +421,11 @@ def diagonal(x, offset=0, axis1=0, axis2=1):
     return torch.diagonal(x, offset=offset, dim1=axis1, dim2=axis2)
 
 
+def set_diag(x, new_diag):
+    arr_shape = x.shape
+    x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
+
+
 def eval(x):
     return x
 

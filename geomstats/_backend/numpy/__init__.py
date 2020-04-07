@@ -246,6 +246,11 @@ def diag(x):
     return result
 
 
+def set_diag(x, new_diag):
+    arr_shape = x.shape
+    x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
+
+
 def eval(x):
     return x
 

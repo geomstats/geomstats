@@ -58,6 +58,7 @@ ceil = tf.math.ceil
 cross = tf.linalg.cross
 matmul = tf.linalg.matmul
 mod = tf.math.mod
+set_diag = tf.linalg.set_diag
 std = tf.math.reduce_std
 
 
