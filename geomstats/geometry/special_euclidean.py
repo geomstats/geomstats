@@ -342,7 +342,7 @@ class SpecialEuclidean(LieGroup):
                 composition_rot_mat)
 
             composition_translation = gs.einsum(
-                'ij,ikj->ik', translation_b, rot_mat_a) + translation_a
+                '...j,...kj->...k', translation_b, rot_mat_a) + translation_a
 
             composition = gs.concatenate((composition_rot_vec,
                                           composition_translation), axis=1)
