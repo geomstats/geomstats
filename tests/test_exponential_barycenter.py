@@ -1,7 +1,7 @@
 """Unit tests for Exponential Barycenter mean."""
 
-import geomstats.tests
 import geomstats.backend as gs
+import geomstats.tests
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.exponential_barycenter import ExponentialBarycenter
