@@ -3,7 +3,6 @@
 
 import geomstats.backend as gs
 import geomstats.geometry.riemannian_metric as riemannian_metric
-from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.manifold import Manifold
 
@@ -229,9 +228,7 @@ class LieGroup(Manifold):
         elif point_type == "matrix":
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
             lie_vec = self.compose(
-                self.inverse(base_point),
-                tangent_vec
-                )
+                self.inverse(base_point), tangent_vec)
             return self.compose(
                 base_point, self.exp_from_identity(lie_vec, point_type))
 
@@ -344,9 +341,7 @@ class LieGroup(Manifold):
         else:
             lie_point = self.compose(self.inverse(base_point), point)
             return self.compose(
-                base_point,
-                self.log_from_identity(lie_point, point_type)
-                )
+                base_point, self.log_from_identity(lie_point, point_type))
 
     def log(self, point, base_point=None, point_type=None):
         """Compute the group logarithm of `point` relative to `base_point`.
@@ -404,26 +399,6 @@ class LieGroup(Manifold):
         )
 
         return result
-
-    def exponential_barycenter(
-        self, points, weights=None, point_type=None
-    ):
-        """Compute the (weighted) group exponential barycenter of `points`.
-
-        Parameters
-        ----------
-        points : array-like, shape=[n_samples, {dimension,[n,n]}]
-        weights : array-like, shape=[n_samples]
-            default is 1 for each point
-        point_type : str, {'vector', 'matrix'}
-
-        Returns
-        -------
-        exp_bar : the exponential_barycenter of the given points
-        """
-        raise NotImplementedError(
-            "The group exponential barycenter is not implemented."
-        )
 
     def add_metric(self, metric):
         """Add a metric to the instance's list of metrics."""

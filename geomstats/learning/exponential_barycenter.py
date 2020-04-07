@@ -100,7 +100,7 @@ def _default_gradient_descent(
     mean = points[0]
     if n_points == 1:
         return mean
-    
+
     mean = gs.to_ndarray(mean, to_ndim=3)
 
     sq_dists_between_iterates = []
@@ -140,11 +140,10 @@ class ExponentialBarycenter(BaseEstimator):
         The learning rate in the gradient descent.
     verbose : bool
         Level of verbosity to inform about convergence.
-    
+
     Attributes
     ----------
     estimate_ : array-like, shape=[dimension, dimension]
-
     """
 
     def __init__(self, group,
@@ -177,7 +176,6 @@ class ExponentialBarycenter(BaseEstimator):
         self : object
             Returns self.
         """
-
         if isinstance(self.group, Euclidean):
             mean = linear_mean(points=X, weights=weights)
 
