@@ -228,16 +228,15 @@ class LieGroup(Manifold):
             exp = self.regularize(exp, point_type=point_type)
             return exp
 
-        elif point_type == "matrix":
+        if point_type == "matrix":
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
             lie_vec = self.compose(
                 self.inverse(base_point), tangent_vec)
             return self.compose(
                 base_point, self.exp_from_identity(lie_vec, point_type))
 
-        else:
-            raise ValueError('Invalid point_type, expected \'vector\' or '
-                             '\'matrix\'')
+        raise ValueError('Invalid point_type, expected \'vector\' or '
+                         '\'matrix\'')
 
     def exp(self, tangent_vec, base_point=None, point_type=None):
         """Compute the group exponential at `base_point` of `tangent_vec`.
@@ -345,14 +344,13 @@ class LieGroup(Manifold):
 
             return log
 
-        elif point_type == 'matrix':
+        if point_type == 'matrix':
             lie_point = self.compose(self.inverse(base_point), point)
             return self.compose(
                 base_point, self.log_from_identity(lie_point, point_type))
 
-        else:
-            raise ValueError('Invalid point_type, expected \'vector\' or '
-                             '\'matrix\'')
+        raise ValueError('Invalid point_type, expected \'vector\' or '
+                         '\'matrix\'')
 
     def log(self, point, base_point=None, point_type=None):
         """Compute the group logarithm of `point` relative to `base_point`.
