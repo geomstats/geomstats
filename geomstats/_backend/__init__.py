@@ -74,6 +74,7 @@ BACKEND_ATTRIBUTES = {
         'repeat',
         'reshape',
         'searchsorted',
+        'set_diag',
         'shape',
         'sign',
         'sin',

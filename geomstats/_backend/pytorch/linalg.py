@@ -58,9 +58,3 @@ def norm(x, ord=2, axis=None, keepdims=False):
 
 def qr(*args, **kwargs):
     return torch.from_numpy(np.linalg.qr(*args, **kwargs))
-
-
-def set_diag(x, new_diag):
-    arr_shape = x.shape
-    x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
-
