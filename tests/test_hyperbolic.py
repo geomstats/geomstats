@@ -36,7 +36,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
     def test_random_uniform(self):
         result = self.space.random_uniform()
 
-        self.assertAllClose(gs.shape(result), (1, self.dimension + 1))
+        self.assertAllClose(gs.shape(result), (self.dimension + 1,))
 
     def test_projection_to_tangent_space(self):
         base_point = gs.array([1., 0., 0., 0.])

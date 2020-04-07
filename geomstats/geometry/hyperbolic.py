@@ -383,9 +383,12 @@ class Hyperbolic(Manifold):
         size = (n_samples, self.dimension)
         samples = bound * 2. * (gs.random.rand(*size) - 0.5)
 
-        return\
-            Hyperbolic.change_coordinates_system(samples, 'intrinsic',
-                                                 self.coords_type)
+        samples = Hyperbolic.change_coordinates_system(
+            samples, 'intrinsic', self.coords_type)
+
+        if n_samples == 1:
+            samples = gs.squeeze(samples, axis=0)
+        return samples
 
 
 class HyperbolicMetric(RiemannianMetric):
