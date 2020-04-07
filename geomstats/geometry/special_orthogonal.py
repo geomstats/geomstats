@@ -773,7 +773,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                 'The quaternion representation does not exist'
                 ' for rotations in %d dimensions.' % self.n)
         quaternion = gs.to_ndarray(quaternion, to_ndim=2)
-        n_quaternions, _ = quaternion.shape
 
         cos_half_angle = quaternion[:, 0]
         cos_half_angle = gs.clip(cos_half_angle, -1, 1)

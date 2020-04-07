@@ -482,8 +482,6 @@ class SpecialEuclidean(LieGroup):
             jacobian = gs.concatenate(
                 [jacobian_block_line_1, jacobian_block_line_2], axis=1)
 
-            assert gs.ndim(jacobian) == 3
-
         elif point_type == 'matrix':
             jacobian = point
 
