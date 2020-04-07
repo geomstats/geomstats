@@ -142,12 +142,11 @@ def assignment(x, values, indices, axis=0):
     If a list is given, it must have the same length as indices.
     """
     x_new = copy(x)
-    single_index = not isinstance(indices, list)
-    if single_index:
+    if not isinstance(indices, list):
         indices = [indices]
     if not isinstance(values, list):
         values = [values] * len(indices)
-    for (nb_index, index) in enumerate(indices):
+    for nb_index, index in enumerate(indices):
         if not isinstance(index, tuple):
             index = (index,)
         if len(index) < len(shape(x)):
@@ -187,12 +186,11 @@ def assignment_by_sum(x, values, indices, axis=0):
     If a list is given, it must have the same length as indices.
     """
     x_new = copy(x)
-    single_index = not isinstance(indices, list)
-    if single_index:
+    if not isinstance(indices, list):
         indices = [indices]
     if not isinstance(values, list):
         values = [values] * len(indices)
-    for (nb_index, index) in enumerate(indices):
+    for nb_index, index in enumerate(indices):
         if not isinstance(index, tuple):
             index = (index,)
         if len(index) < len(shape(x)):
