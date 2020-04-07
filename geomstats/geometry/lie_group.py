@@ -65,7 +65,7 @@ class LieGroup(Manifold):
     and columns of the matrix.
     """
 
-    def __init__(self, dimension):
+    def __init__(self, dimension, point_type='matrix'):
         assert dimension > 0
         Manifold.__init__(self, dimension)
 
@@ -82,6 +82,7 @@ class LieGroup(Manifold):
         )
 
         self.metrics = []
+        self.default_point_type = point_type
 
     def get_identity(self, point_type=None):
         """Get the identity of the group.
@@ -143,8 +144,7 @@ class LieGroup(Manifold):
         raise NotImplementedError("The Lie group inverse is not implemented.")
 
     def jacobian_translation(
-        self, point, left_or_right="left", point_type=None
-    ):
+        self, point, left_or_right="left", point_type=None):
         """Compute the Jacobian of left/right translation by a point.
 
         Compute the Jacobian matrix of the differential of the left
@@ -190,7 +190,7 @@ class LieGroup(Manifold):
             "The group exponential from the identity is not implemented."
         )
 
-    def exp_not_from_identity(self, tangent_vec, base_point, point_type):
+    def exp_not_from_identity(self, tangent_vec, base_point, point_type=None):
         """Calculate the group exponential at base_point.
 
         Parameters
@@ -205,6 +205,9 @@ class LieGroup(Manifold):
         exp : array-like, shape=[n_samples, {dimension,[n,n]}]
             the computed exponential
         """
+        if point_type is None:
+            point_type = self.default_point_type
+
         if point_type == "vector":
             jacobian = self.jacobian_translation(
                 point=base_point, left_or_right="left", point_type=point_type)
@@ -342,10 +345,14 @@ class LieGroup(Manifold):
 
             return log
 
-        else:
+        elif point_type == 'matrix':
             lie_point = self.compose(self.inverse(base_point), point)
             return self.compose(
                 base_point, self.log_from_identity(lie_point, point_type))
+
+        else:
+            raise ValueError('Invalid point_type, expected \'vector\' or '
+                             '\'matrix\'')
 
     def log(self, point, base_point=None, point_type=None):
         """Compute the group logarithm of `point` relative to `base_point`.
