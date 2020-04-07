@@ -512,10 +512,9 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         :math:`S_r = \frac{angle}{(2 * \sin(angle) ) (R - R^T)}`
 
         For the edge case where the angle is close to pi,
-        the formulation is derived by going from rotation matrix to unit
-        quaternion to axis-angle:
-        :math:`r = \frac{angle*v}{|v|}`
-        where :math:`(w, v)` is a unit quaternion.
+        the formulation is derived by using the following equality (see the
+        Axis-angle representation on Wikipedia):
+        :math:`outer(r, r) = \frac{1}{2} (R + I_3)`
 
         In nD, the rotation vector stores the :math:`n(n-1)/2` values
         of the skew-symmetric matrix representing the rotation.
