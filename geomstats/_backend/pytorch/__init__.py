@@ -29,6 +29,7 @@ from torch import (  # NOQA
     matmul,
     meshgrid,
     nonzero,
+    ones,
     ones_like,
     reshape,
     sign,
@@ -37,6 +38,7 @@ from torch import (  # NOQA
     std,
     tan,
     tanh,
+    zeros,
     zeros_like
 )
 
@@ -168,14 +170,6 @@ def array(val):
     if val.dtype == torch.float64:
         val = val.float()
     return val
-
-
-def zeros(*args):
-    return torch.from_numpy(_np.zeros(*args)).float()
-
-
-def ones(*args):
-    return torch.from_numpy(_np.ones(*args)).float()
 
 
 def all(x, axis=None):
