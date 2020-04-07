@@ -563,6 +563,12 @@ def from_vector_to_diagonal_matrix(x):
     return diagonals
 
 
+def tril(m, k=0):
+    if k != 0:
+        raise NotImplementedError("Only k=0 supported so far")
+    return tf.linalg.band_part(m, -1, 0)
+
+
 def tril_indices(*args, **kwargs):
     return tuple(map(tf.convert_to_tensor, _np.tril_indices(*args, **kwargs)))
 

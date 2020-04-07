@@ -38,6 +38,7 @@ from torch import (  # NOQA
     std,
     tan,
     tanh,
+    tril,
     zeros,
     zeros_like
 )

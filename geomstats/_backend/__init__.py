@@ -95,6 +95,7 @@ BACKEND_ATTRIBUTES = {
         'to_ndarray',
         'trace',
         'transpose',
+        'tril',
         'tril_indices',
         'triu_indices',
         'vectorize',
