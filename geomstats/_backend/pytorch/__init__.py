@@ -249,10 +249,6 @@ def sqrt(val):
     return torch.sqrt(torch.tensor(val).float())
 
 
-def norm(val, axis):
-    return torch.norm(val, 2, axis)
-
-
 # TODO(nkoep): PyTorch exposes its own 'isclose' function, which is currently
 #              undocumented for some reason, see
 #                https://github.com/pytorch/pytorch/issues/35471
