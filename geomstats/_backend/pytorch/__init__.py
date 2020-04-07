@@ -54,8 +54,8 @@ searchsorted = _raise_not_implemented_error
 vectorize = _raise_not_implemented_error
 
 
-def empty(tensor_shape, dtype=float64):
-    return torch.empty(*tensor_shape, dtype=dtype)
+def empty(shape, dtype=float64):
+    return torch.empty(*shape, dtype=dtype)
 
 
 def split(ary, indices_or_sections, axis=0):
