@@ -398,8 +398,7 @@ class LieGroup(Manifold):
         return result
 
     def exponential_barycenter(
-        self, points, weights=None, point_type=None
-    ):
+            self, points, weights=None, point_type=None, verbose=False):
         """Compute the (weighted) group exponential barycenter of `points`.
 
         Parameters

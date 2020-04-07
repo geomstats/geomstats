@@ -111,6 +111,9 @@ def decorator(point_types):
         The `point_type`s of optional inputs will not be read
         by the decorator if the corresponding input is not given.
     """
+    if not isinstance(point_types, list):
+        point_types = list(point_types)
+
     def aux_decorator(function):
         def wrapper(*args, **kwargs):
             vect_args = []
