@@ -41,7 +41,7 @@ def empirical_frechet_var_bubble(n_samples, theta, dim,
     -------
     tuple (variance, std-dev on the computed variance)
     """
-    assert dim > 1, "Dim > 1 needed to draw a uniform sample on sub-sphere"
+    assert dim > 1, 'Dim > 1 needed to draw a uniform sample on sub-sphere'
     var = []
     sphere = Hypersphere(dimension=dim)
     bubble = Hypersphere(dimension=dim - 1)
@@ -154,8 +154,8 @@ def plot_modulation_factor(n_samples, dim, n_expectation=1000, n_theta=20):
              'grey', label='Asymptotic prediction')
     plt.xlabel(r'Standard deviation $\theta$')
     plt.ylabel(r'Modulation factor $\alpha$')
-    plt.title("Convergence rate modulation factor, "
-              "sphere dim={1}, n={0}".format(n_samples, dim))
+    plt.title('Convergence rate modulation factor, '
+              'sphere dim={1}, n={0}'.format(n_samples, dim))
     plt.legend(loc='best')
     plt.draw()
     plt.pause(0.01)
@@ -203,18 +203,18 @@ def multi_plot_modulation_factor(dim, n_expectation=1000, n_theta=20):
             logging.info(
                 '{} {} {} {}\n'.format(n_samples, theta_i, var, std_var))
         plt.plot(theta, measured_modulation_factor,
-                 color=color[n_samples], label="n={0}".format(n_samples))
+                 color=color[n_samples], label='n={0}'.format(n_samples))
     plt.xlabel(r'Standard deviation $\theta$')
     plt.ylabel(r'Modulation factor $\alpha$')
     plt.legend(loc='best')
-    plt.title("Convergence rate modulation factor, "
-              "sphere, dim={0}, n > 5".format(dim))
+    plt.title('Convergence rate modulation factor, '
+              'sphere, dim={0}, n > 5'.format(dim))
     plt.draw()
     plt.pause(0.01)
     return plt
 
 
-def main():
+def main(test=False):
     """Visualise the uncertainty of the empirical Fréchet mean on the sphere.
 
     The variance of the Fréchet mean FM_n of a sample of n IID random variables
@@ -223,6 +223,12 @@ def main():
          alpha = Var( FM_n) / ( n * Var)
     for isotropic distributions on hyper-spheres of radius 0 < theta < Pi in
     the sphere S_dim (called here a bubble).
+
+    Parameters
+    ----------
+    test : bool
+        Wether the method is called from a unit test.
+        Use `True` to run only one plot and `False` to run the full example.
     """
     n_expectation = 10
 
@@ -245,27 +251,27 @@ def main():
                          n_expectation=n_expectation)))
 
     plot_modulation_factor(2, 2, n_expectation=n_expectation)
-    plot_modulation_factor(4, 2, n_expectation=n_expectation)
-    plot_modulation_factor(6, 2, n_expectation=n_expectation)
-
-    multi_plot_modulation_factor(
-        2, n_expectation=n_expectation)
-
-    plot_modulation_factor(2, 3, n_expectation=n_expectation)
-    plot_modulation_factor(4, 3, n_expectation=n_expectation)
-    plot_modulation_factor(6, 3, n_expectation=n_expectation)
-
     multi_plot_modulation_factor(3, n_expectation=n_expectation)
 
-    plot_modulation_factor(2, 4, n_expectation=n_expectation)
-    plot_modulation_factor(4, 4, n_expectation=n_expectation)
-    plot_modulation_factor(6, 4, n_expectation=n_expectation)
+    if not test:
+        plot_modulation_factor(4, 2, n_expectation=n_expectation)
+        plot_modulation_factor(6, 2, n_expectation=n_expectation)
 
-    multi_plot_modulation_factor(4, n_expectation=n_expectation)
+        multi_plot_modulation_factor(2, n_expectation=n_expectation)
+
+        plot_modulation_factor(2, 3, n_expectation=n_expectation)
+        plot_modulation_factor(4, 3, n_expectation=n_expectation)
+        plot_modulation_factor(6, 3, n_expectation=n_expectation)
+
+        plot_modulation_factor(2, 4, n_expectation=n_expectation)
+        plot_modulation_factor(4, 4, n_expectation=n_expectation)
+        plot_modulation_factor(6, 4, n_expectation=n_expectation)
+
+        multi_plot_modulation_factor(4, n_expectation=n_expectation)
 
     plt.figure()
     plt.show()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

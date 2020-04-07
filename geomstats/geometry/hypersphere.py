@@ -574,6 +574,22 @@ class HypersphereMetric(RiemannianMetric):
 
         return dist
 
+    def squared_dist(self, point_a, point_b):
+        """Squared geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[n_samples, dimension]
+            Point on the hypersphere.
+        point_b : array-like, shape=[n_samples, dimension]
+            Point on the hypersphere.
+
+        Returns
+        -------
+        sq_dist : array-like, shape=[n_samples,]
+        """
+        return self.dist(point_a, point_b) ** 2
+
     def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the parallel transport of a tangent vector.
 

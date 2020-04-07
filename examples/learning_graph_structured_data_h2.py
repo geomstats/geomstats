@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.datasets import graph_data_preparation as gdp
-from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.poincare_ball import PoincareBall
 
 
 def log_sigmoid(vector):
@@ -58,7 +58,7 @@ def grad_squared_distance(point_a, point_b):
     dist : array-like, shape=[n_samples, 1]
         Geodesic squared distance between the two points.
     """
-    hyperbolic_metric = Hyperbolic(2, coords_type='ball').metric
+    hyperbolic_metric = PoincareBall(2).metric
     log_map =\
         hyperbolic_metric.log(point_b, point_a)
 
@@ -147,10 +147,10 @@ def main():
 
     negative_sampling_table = gs.array(negative_sampling_table)
     random_walks = karate_graph.random_walk()
-    embeddings = gs.random.randn(karate_graph.n_nodes, dim)
+    embeddings = gs.random.normal(size=(karate_graph.n_nodes, dim))
     embeddings = embeddings * 0.2
 
-    hyperbolic_manifold = Hyperbolic(2, coords_type='ball')
+    hyperbolic_manifold = PoincareBall(2)
 
     colors = {1: 'b', 2: 'r'}
     for epoch in range(max_epochs):
@@ -197,5 +197,5 @@ def main():
     plt.show()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
