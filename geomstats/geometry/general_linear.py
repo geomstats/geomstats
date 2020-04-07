@@ -10,8 +10,6 @@ class GeneralLinear(Matrices):
     def __init__(self, n):
         Matrices.__init__(self, n, n)
 
-        self.n = n
-
     @staticmethod
     def belongs(point):
         """Test if a matrix is invertible."""
