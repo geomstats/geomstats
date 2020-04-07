@@ -13,6 +13,7 @@ norm = tf.linalg.norm
 sqrtm = tf.linalg.sqrtm
 diagonal = tf.linalg.diag_part
 
+
 def eig(*args, **kwargs):
     raise NotImplementedError
 
