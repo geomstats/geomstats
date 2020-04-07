@@ -8,6 +8,8 @@ import geomstats.backend as gs
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
+TOLERANCE = 1e-6
+
 
 class Hyperbolic(Manifold):
     """Class for the n-dimensional hyperbolic space.
@@ -287,7 +289,7 @@ class Hyperbolic(Manifold):
             coords_transform['extrinsic-' +
                              to_coordinates_system](extrinsic)
 
-    def belongs(self, point):
+    def belongs(self, point, tolerance=TOLERANCE):
         """Test if a point belongs to the hyperbolic space.
 
         Test if a point belongs to the hyperbolic space in

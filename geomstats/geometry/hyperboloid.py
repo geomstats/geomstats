@@ -181,12 +181,16 @@ class Hyperboloid(Hyperbolic):
         point_intrinsic : array-like, shape=[n_samples, dim]
             Point in the embedded manifold in intrinsic coordinates.
         """
+        if self.dimension != point_intrinsic.shape[-1]:
+            raise NameError("Wrong intrinsic dimension: "
+                            + str(point_intrinsic.shape[-1]) + " instead of "
+                            + str(self.dimension))
         return\
             Hyperbolic.change_coordinates_system(point_intrinsic,
                                                  'intrinsic',
                                                  'extrinsic')
 
-    def extrinsic_to_intrinsic_coords(self, point_intrinsic):
+    def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         """Convert from extrinsic to intrinsic coordinates.
 
         Parameters
@@ -195,8 +199,11 @@ class Hyperboloid(Hyperbolic):
             Point in the embedded manifold in extrinsic coordinates,
             i. e. in the coordinates of the embedding manifold.
         """
+        belong_point = self.belongs(point_extrinsic)
+        if not gs.all(belong_point):
+            raise NameError("Point do not belong to the hyperboloid")
         return\
-            Hyperbolic.change_coordinates_system(point_intrinsic,
+            Hyperbolic.change_coordinates_system(point_extrinsic,
                                                  'extrinsic',
                                                  'intrinsic')
 
