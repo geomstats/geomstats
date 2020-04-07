@@ -34,7 +34,8 @@ class TestFrechetMean(geomstats.tests.TestCase):
             # take 2 random points, compute their mean, and verify that
             # log of each at the mean is opposite
             points = self.sphere.random_uniform(n_samples=2)
-            mean = estimator.fit(points).estimate_
+            estimator.fit(points)
+            mean = estimator.estimate_
 
             logs = self.sphere.metric.log(point=points, base_point=mean)
             result[i] = gs.linalg.norm(logs[1, :] + logs[0, :])
