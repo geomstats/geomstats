@@ -539,8 +539,7 @@ def clip(x, min_value, max_value):
 
 
 def diag(a):
-    return tf.map_fn(
-        lambda x: tf.linalg.tensor_diag(x), a)
+    return tf.map_fn(tf.linalg.tensor_diag, a)
 
 
 def arctanh(x):
