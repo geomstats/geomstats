@@ -54,6 +54,7 @@ def empirical_frechet_var_bubble(n_samples, theta, dim,
         # TODO(nina): Add this code as a method of hypersphere
         data = gs.zeros((n_samples, dim + 1), dtype=gs.float64)
         directions = bubble.random_uniform(n_samples)
+        directions = gs.to_ndarray(directions, to_ndim=2)
 
         for i in range(n_samples):
             for j in range(dim):
