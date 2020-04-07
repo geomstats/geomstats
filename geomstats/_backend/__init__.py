@@ -78,6 +78,7 @@ BACKEND_ATTRIBUTES = {
         'outer',
         'repeat',
         'reshape',
+        'searchsorted',
         'shape',
         'sign',
         'sin',

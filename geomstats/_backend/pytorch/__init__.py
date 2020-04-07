@@ -50,6 +50,7 @@ def _raise_not_implemented_error(*args, **kwargs):
 
 flip = _raise_not_implemented_error
 hsplit = _raise_not_implemented_error
+searchsorted = _raise_not_implemented_error
 vectorize = _raise_not_implemented_error
 
 

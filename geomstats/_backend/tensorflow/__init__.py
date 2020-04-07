@@ -32,6 +32,7 @@ from tensorflow import (  # NOQA
     reduce_min as amin,
     reduce_sum as sum,
     reshape,
+    searchsorted,
     shape,
     sign,
     sin,
