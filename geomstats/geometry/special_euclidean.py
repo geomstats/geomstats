@@ -57,7 +57,8 @@ class SpecialEuclidean(LieGroup):
             rotations
             default: 0
         """
-        assert isinstance(n, int) and n > 1
+        if not (isinstance(n, int) and n > 1):
+            raise ValueError('n must be an integer > 1.')
 
         self.n = n
         self.dimension = int((n * (n - 1)) / 2 + n)
@@ -318,9 +319,10 @@ class SpecialEuclidean(LieGroup):
             n_points_a, _ = point_a.shape
             n_points_b, _ = point_b.shape
 
-            assert (point_a.shape == point_b.shape
+            if not (point_a.shape == point_b.shape
                     or n_points_a == 1
-                    or n_points_b == 1)
+                    or n_points_b == 1):
+                raise ValueError()
 
             if n_points_a == 1:
                 point_a = gs.stack([point_a[0]] * n_points_b)
@@ -437,7 +439,8 @@ class SpecialEuclidean(LieGroup):
         if point_type is None:
             point_type = self.default_point_type
 
-        assert left_or_right in ('left', 'right')
+        if left_or_right not in ('left', 'right'):
+            raise ValueError('`left_or_right` must be `left` or `right`.')
 
         dim = self.dimension
         rotations = self.rotations
@@ -659,8 +662,6 @@ class SpecialEuclidean(LieGroup):
             group_log = gs.concatenate(
                 [rot_vec, log_translation], axis=1)
 
-            assert gs.ndim(group_log) == 2
-
         elif point_type == 'matrix':
             group_log = GeneralLinear.log(point)
 
@@ -764,7 +765,6 @@ class SpecialEuclidean(LieGroup):
             term_2[i] = gs.matmul(skew_rot_vec[i], skew_rot_vec[i]) * coef_2[i]
 
         exponential_mat = term_1 + term_2
-        assert exponential_mat.ndim == 3
 
         return exponential_mat
 
@@ -795,18 +795,19 @@ class SpecialEuclidean(LieGroup):
 
         if point_type == 'vector':
             n_points = points.shape[0]
-            assert n_points > 0
+            if n_points <= 0:
+                raise ValueError('Can\'t take the mean of 0 points.')
 
             if weights is None:
                 weights = gs.ones((n_points, 1))
 
             weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
             n_weights, _ = weights.shape
-            assert n_points == n_weights
+            if n_points != n_weights:
+                raise ValueError(
+                    '`points` and `weights` need to have the same length.')
             rotation_vectors = points[:, :dim_rotations]
             translations = points[:, dim_rotations:dim]
-            assert rotation_vectors.shape == (n_points, dim_rotations)
-            assert translations.shape == (n_points, self.n)
 
             mean_rotation = rotations.exponential_barycenter(
                 points=rotation_vectors, weights=weights)
@@ -819,7 +820,6 @@ class SpecialEuclidean(LieGroup):
             inv_rot_mats = rotations.matrix_from_rotation_vector(
                 -rotation_vectors)
             matrix_aux = gs.matmul(mean_rotation_mat, inv_rot_mats)
-            assert matrix_aux.shape == (n_points,) + (dim_rotations,) * 2
 
             vec_aux = rotations.rotation_vector_from_matrix(matrix_aux)
             matrix_aux = self.exponential_matrix(vec_aux)
