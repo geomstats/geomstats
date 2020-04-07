@@ -10,7 +10,6 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.minkowski import Minkowski
-from geomstats.learning.frechet_mean import _adaptive_gradient_descent
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.frechet_mean import variance
 
@@ -29,13 +28,14 @@ class TestFrechetMean(geomstats.tests.TestCase):
         n_tests = 100
         result = gs.zeros(n_tests)
         expected = gs.zeros(n_tests)
+        estimator = FrechetMean(metric=self.sphere.metric, method='adaptive')
 
         for i in range(n_tests):
             # take 2 random points, compute their mean, and verify that
             # log of each at the mean is opposite
             points = self.sphere.random_uniform(n_samples=2)
-            mean = _adaptive_gradient_descent(
-                points=points, metric=self.sphere.metric)
+            estimator.fit(points)
+            mean = estimator.estimate_
 
             logs = self.sphere.metric.log(point=points, base_point=mean)
             result[i] = gs.linalg.norm(logs[1, :] + logs[0, :])

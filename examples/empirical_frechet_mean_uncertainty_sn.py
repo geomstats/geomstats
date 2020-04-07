@@ -214,7 +214,7 @@ def multi_plot_modulation_factor(dim, n_expectation=1000, n_theta=20):
     return plt
 
 
-def main():
+def main(test=False):
     """Visualise the uncertainty of the empirical Fréchet mean on the sphere.
 
     The variance of the Fréchet mean FM_n of a sample of n IID random variables
@@ -223,6 +223,12 @@ def main():
          alpha = Var( FM_n) / ( n * Var)
     for isotropic distributions on hyper-spheres of radius 0 < theta < Pi in
     the sphere S_dim (called here a bubble).
+
+    Parameters
+    ----------
+    test : bool
+        Wether the method is called from a unit test.
+        Use `True` to run only one plot and `False` to run the full example.
     """
     n_expectation = 10
 
@@ -245,23 +251,23 @@ def main():
                          n_expectation=n_expectation)))
 
     plot_modulation_factor(2, 2, n_expectation=n_expectation)
-    plot_modulation_factor(4, 2, n_expectation=n_expectation)
-    plot_modulation_factor(6, 2, n_expectation=n_expectation)
-
-    multi_plot_modulation_factor(
-        2, n_expectation=n_expectation)
-
-    plot_modulation_factor(2, 3, n_expectation=n_expectation)
-    plot_modulation_factor(4, 3, n_expectation=n_expectation)
-    plot_modulation_factor(6, 3, n_expectation=n_expectation)
-
     multi_plot_modulation_factor(3, n_expectation=n_expectation)
 
-    plot_modulation_factor(2, 4, n_expectation=n_expectation)
-    plot_modulation_factor(4, 4, n_expectation=n_expectation)
-    plot_modulation_factor(6, 4, n_expectation=n_expectation)
+    if not test:
+        plot_modulation_factor(4, 2, n_expectation=n_expectation)
+        plot_modulation_factor(6, 2, n_expectation=n_expectation)
 
-    multi_plot_modulation_factor(4, n_expectation=n_expectation)
+        multi_plot_modulation_factor(2, n_expectation=n_expectation)
+
+        plot_modulation_factor(2, 3, n_expectation=n_expectation)
+        plot_modulation_factor(4, 3, n_expectation=n_expectation)
+        plot_modulation_factor(6, 3, n_expectation=n_expectation)
+
+        plot_modulation_factor(2, 4, n_expectation=n_expectation)
+        plot_modulation_factor(4, 4, n_expectation=n_expectation)
+        plot_modulation_factor(6, 4, n_expectation=n_expectation)
+
+        multi_plot_modulation_factor(4, n_expectation=n_expectation)
 
     plt.figure()
     plt.show()

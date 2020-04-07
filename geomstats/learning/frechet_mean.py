@@ -295,6 +295,9 @@ def _adaptive_gradient_descent(points,
             ' implemented for lists of vectors, and not matrices.')
     n_points = gs.shape(points)[0]
 
+    if n_points == 1:
+        return points
+
     if weights is None:
         weights = gs.ones((n_points, 1))
 
