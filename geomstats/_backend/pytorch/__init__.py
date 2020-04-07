@@ -523,18 +523,10 @@ def copy(x):
     return x.clone()
 
 
-def cumprod(x, axis=0):
+def cumsum(x, axis=None):
     if axis is None:
-        raise NotImplementedError('cumprod is not defined where axis is None')
-    else:
-        return torch.cumprod(x, dim=axis)
-
-
-def cumsum(x, axis=0):
-    if axis is None:
-        raise NotImplementedError('cumsum is not defined where axis is None')
-    else:
-        return torch.cumsum(x, dim=axis)
+        return x.flatten().cumsum(dim=0)
+    return torch.cumsum(x, dim=axis)
 
 
 def array_from_sparse(indices, data, target_shape):

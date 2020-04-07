@@ -69,10 +69,6 @@ def _raise_not_implemented_error(*args, **kwargs):
 repeat = _raise_not_implemented_error
 
 
-def cumsum(a, axis=None):
-    return tf.math.cumsum(a, axis)
-
-
 def empty(shape, dtype=float64):
     assert isinstance(dtype, tf.DType)
     np_dtype = dtype.as_numpy_dtype
@@ -554,11 +550,10 @@ def diagonal(*args, **kwargs):
     return tf.linalg.diag_part(*args)
 
 
-def cumprod(x, axis=0):
+def cumsum(a, axis=None):
     if axis is None:
-        raise NotImplementedError('cumprod is not defined where axis is None')
-    else:
-        return tf.math.cumprod(x, axis=axis)
+        return tf.math.cumsum(flatten(a), axis=0)
+    return tf.math.cumsum(a, axis=axis)
 
 
 def from_vector_to_diagonal_matrix(x):
