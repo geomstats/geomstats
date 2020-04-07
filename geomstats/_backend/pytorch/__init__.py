@@ -115,8 +115,7 @@ def arctan2(*args, **kwargs):
 
 
 def cast(x, dtype):
-    x = array(x)
-    return x.type(dtype)
+    return array(x).to(dtype)
 
 
 def divide(*args, **kwargs):
@@ -132,6 +131,7 @@ def asarray(x):
 
 
 def concatenate(seq, axis=0, out=None):
+    # XXX(nkoep): Why do we cast to float32 instead of float64 here?
     seq = [cast(t, float32) for t in seq]
     return torch.cat(seq, dim=axis, out=out)
 
@@ -188,7 +188,7 @@ def allclose(a, b, **kwargs):
     b = to_ndarray(b.float(), to_ndim=1)
     n_a = a.shape[0]
     n_b = b.shape[0]
-    ndim = len(a.shape)
+    ndim = a.dim()
     if n_a > n_b:
         reps = (int(n_a / n_b),) + (ndim - 1) * (1,)
         b = tile(b, reps)
