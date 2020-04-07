@@ -13,6 +13,8 @@ float64 = 'torch.DoubleTensor'
 int32 = 'torch.LongTensor'
 int8 = 'torch.ByteTensor'
 
+CST_FOR_ERF = 8.0 / (3.0 * _np.pi) * (_np.pi - 3.0) / (4.0 - _np.pi)
+
 
 def while_loop(cond, body, loop_vars, maximum_iterations):
     iteration = 0
@@ -651,3 +653,10 @@ def from_vector_to_diagonal_matrix(x):
     identity_n = identity(n)
     diagonals = einsum('ki,ij->kij', x, identity_n)
     return diagonals
+
+def erf_approx(x):
+    return \
+        torch.sign(x) * \
+        torch.sqrt(1 - torch.exp(-x * x *
+                  (4 / _np.pi + CST_FOR_ERF * x * x) /
+                  (1 + CST_FOR_ERF * x * x)))

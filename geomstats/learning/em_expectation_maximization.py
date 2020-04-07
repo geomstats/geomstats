@@ -512,7 +512,7 @@ def log_grad_zeta(x, N):
     # print("logv.grad ", sigma.grad)
     # print("ins.grad ", ins.grad)
     # print("log_grad ",log_grad)
-    return sigma.grad.data
+    return ZETA_CST * sigma * r.sum(0) * (1/(2**(N-1))),sigma.grad.data
 
 def gaussianPDF(data, means, variances, distance, norm_func, metric):
     # norm_func = zeta
@@ -652,8 +652,11 @@ def zeta_dlogzetat(sigma, dim):
     binomial_coefficient[1:] = (dim - 1 + 1 - dim_range[1:]) / dim_range[1:]
     binomial_coefficient = gs.cumprod(binomial_coefficient)
 
+
     beta = ((-gs.ones(dim)) ** dim_range) * binomial_coefficient
-    prod_alpha_sigma = gs.einsum('ij,j->ij', sigma, alpha)
+    
+    sigma_repeated = gs.repeat(sigma, dim, -1)
+    prod_alpha_sigma = gs.einsum('ij,j->ij', sigma_repeated, alpha)
     term_2 =\
         gs.exp((prod_alpha_sigma)**2) * (1 + gs.erf_approx(prod_alpha_sigma))
     term_1 = math.sqrt(gs.pi / 2.) * (1. / (2**(dim - 1)))
@@ -667,7 +670,7 @@ def zeta_dlogzetat(sigma, dim):
     grad_term_211 =\
         gs.exp((prod_alpha_sigma)**2)\
         * (1 + gs.erf_approx(prod_alpha_sigma))\
-        * gs.einsum('ij,j->ij', sigma, alpha**2)
+        * gs.einsum('ij,j->ij', sigma_repeated, alpha**2) * 2
 
     grad_term_212 = gs.repeat(gs.expand_dims((2 / math.sqrt(gs.pi))
                               * alpha, axis=0),
@@ -682,5 +685,11 @@ def zeta_dlogzetat(sigma, dim):
     return normalisation_coef, log_grad_zeta
 
 
+import numpy as np
+
 if __name__ == "__main__":
-    a, b = zeta_dlogzetat(gs.array([[0.5], [1.2], [1.5]]), 3)
+    a, b = zeta_dlogzetat(gs.array([[0.5], [1.2], [1.5]]), 4)
+    print(a,b)
+    a_o = new_zeta(torch.Tensor([0.5, 1.2, 1.5]), 4)
+    a_o, b_o = log_grad_zeta(torch.Tensor([0.5, 1.2, 1.5]), 4)
+    print(a_o, b_o)
