@@ -101,8 +101,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         data_gs = gs.expand_dims(data,1)
         data_gs = gs.repeat(data_gs,M,axis = 1)
 
-
-
         if(g_index>0):
             mean.fit(data, weights=wik[:,g_index])
             self.means[g_index] = gs.squeeze(mean.estimate_)
@@ -396,7 +394,7 @@ def new_zeta(x, N):
          v = gs.arange(N)
          v[0] = 1
          n_fact = v.prod()
-         #v = torch.from_numpy(v)
+
          k_fact = gs.concatenate([gs.expand_dims(v[:i].prod(),0) for i in range(1, v.shape[0] + 1)], 0)
          #k_fact = torch.cat([v[:i].prod().unsqueeze(0) for i in range(1, v.shape[0]+1)],0)
          nmk_fact = gs.flip(k_fact,0)

@@ -211,11 +211,30 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
         while convergence > tau and max_iter > iteration:
 
             iteration += 1
-            grad_tangent = 2 * log(torch.from_numpy(gs.repeat(barycenter, len(points), axis = 0)),
-                                   torch.from_numpy(points)) * torch.from_numpy(weights)
-            grad_tangent = grad_tangent.data.numpy()
+
+            #rep_barycenter = gs.repeat(barycenter, len(points), axis = 0)
+
+            #grad_tangent = 2 * log(torch.from_numpy(rep_barycenter), torch.from_numpy(points))
+
+            barycenter_gs  = gs.squeeze(barycenter)
+            points_gs = gs.squeeze(points)
+
+            grad_tangent = gs.zeros((len(points),len(barycenter_gs),len(points[0][0])))
+
+
+            for j in range(len(points)):
+                for i in range(len(barycenter_gs)):
+
+                    grad_tangent[j][i] = 2*metric.log(points_gs[j][0], barycenter_gs[i] )
+
+            grad_tangent = grad_tangent * weights
+
+            #cc_barycenter_gs = metric.exp(barycenter_gs,
+                                       #lr * grad_tangent.sum(0, keepdims=True))
+
             cc_barycenter = exp(torch.from_numpy(barycenter),
                                 torch.from_numpy(lr * grad_tangent.sum(0, keepdims=True)))
+
             cc_barycenter = cc_barycenter.data.numpy()
             convergence = metric.dist(cc_barycenter, barycenter).max().item()
             barycenter = cc_barycenter
