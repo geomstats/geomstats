@@ -62,9 +62,9 @@ def split(ary, indices_or_sections, axis=0):
     return torch.split(ary, indices_or_sections, dim=axis)
 
 
-def while_loop(cond, body, loop_vars, maximum_iterations):
+def while_loop(condition, body, loop_vars, maximum_iterations):
     iteration = 0
-    while cond(*loop_vars):
+    while condition(*loop_vars):
         loop_vars = body(*loop_vars)
         iteration += 1
         if iteration >= maximum_iterations:
@@ -159,7 +159,7 @@ def array(val):
         if not any([isinstance(t, torch.Tensor) for t in val]):
             val = _np.copy(_np.array(val))
         elif any([not isinstance(t, torch.Tensor) for t in val]):
-            for (index, t) in enumerate(val):
+            for index, t in enumerate(val):
                 if not isinstance(t, torch.Tensor):
                     val[index] = torch.tensor(t)
             val = stack(val)

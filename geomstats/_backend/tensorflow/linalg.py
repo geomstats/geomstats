@@ -37,7 +37,7 @@ def qr(*args, mode='reduced'):
         else:
             aux = tf.linalg.qr(x)
 
-        return (aux.q, aux.r)
+        return aux.q, aux.r
 
     qr = tf.map_fn(
         lambda x: qr_aux(x, mode),
