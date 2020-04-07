@@ -333,7 +333,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         """
         mat = gs.to_ndarray(point, to_ndim=3)
 
-        n_mats, mat_dim_1, mat_dim_2 = mat.shape
+        n_mats, _, _ = mat.shape
 
         if self.n == 3:
             mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
@@ -363,7 +363,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
             rot_mat = gs.matmul(mat, inv_sqrt_mat)
 
-        assert gs.ndim(rot_mat) == 3
         return rot_mat
 
     def skew_matrix_from_vector(self, vec):
@@ -439,7 +438,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             for i in range(n_vecs):
                 skew_mat[i][upper_triangle_indices] = vec[i]
                 skew_mat[i] = skew_mat[i] - skew_mat[i].transpose()
-        assert gs.ndim(skew_mat) == 3
         return skew_mat
 
     def vector_from_skew_matrix(self, skew_mat):
@@ -460,9 +458,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         vec : array-like, shape=[n_samples, dimension]
         """
         skew_mat = gs.to_ndarray(skew_mat, to_ndim=3)
-        n_skew_mats, mat_dim_1, mat_dim_2 = skew_mat.shape
-
-        assert mat_dim_1 == mat_dim_2 == self.n
+        n_skew_mats, mat_dim_1, _ = skew_mat.shape
 
         vec_dim = self.dimension
         vec = gs.zeros((n_skew_mats, vec_dim))
@@ -483,7 +479,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                     vec[:, idx] = skew_mat[:, i, j]
                     idx += 1
 
-        assert gs.ndim(vec) == 2
         return vec
 
     def rotation_vector_from_matrix(self, rot_mat):
@@ -516,13 +511,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         regularized_rot_vec : array-like, shape=[n_samples, dimension]
         """
         rot_mat = gs.to_ndarray(rot_mat, to_ndim=3)
-        n_rot_mats, mat_dim_1, mat_dim_2 = rot_mat.shape
-        assert mat_dim_1 == mat_dim_2 == self.n
+        n_rot_mats, _, _ = rot_mat.shape
 
         if self.n == 3:
             trace = gs.trace(rot_mat, axis1=1, axis2=2)
             trace = gs.to_ndarray(trace, to_ndim=2, axis=1)
-            assert trace.shape == (n_rot_mats, 1), trace.shape
 
             cos_angle = .5 * (trace - 1)
             cos_angle = gs.clip(cos_angle, -1, 1)
@@ -726,7 +719,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         rot_vec = self.rotation_vector_from_matrix(rot_mat)
         quaternion = self.quaternion_from_rotation_vector(rot_vec)
 
-        assert gs.ndim(quaternion) == 2
         return quaternion
 
     def quaternion_from_rotation_vector(self, rot_vec):
@@ -788,7 +780,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         half_angle = gs.arccos(cos_half_angle)
 
         half_angle = gs.to_ndarray(half_angle, to_ndim=2, axis=1)
-        assert half_angle.shape == (n_quaternions, 1)
 
         mask_0 = gs.isclose(half_angle, 0.)
         mask_not_0 = ~mask_0
@@ -849,7 +840,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             rot_mat_i = gs.to_ndarray(rot_mat_i, to_ndim=3)
             rot_mat += gs.einsum('n,nij->nij', mask_i, rot_mat_i)
 
-        assert gs.ndim(rot_mat) == 3
         return rot_mat
 
     def matrix_from_tait_bryan_angles_extrinsic_xyz(self, tait_bryan_angles):
@@ -1382,10 +1372,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         n_points_a = point_a.shape[0]
         n_points_b = point_b.shape[0]
 
-        assert (point_a.shape == point_b.shape
-                or n_points_a == 1
-                or n_points_b == 1)
-
         if n_points_a == 1:
             point_a = gs.stack([point_a[0]] * n_points_b)
 
@@ -1647,20 +1633,22 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         if point_type == 'vector':
             n_points = points.shape[0]
-            assert n_points > 0
+            if n_points <= 0:
+                raise ValueError('Can\' compute the mean of 0 points.')
 
             if weights is None:
                 weights = gs.ones((n_points, 1))
 
             n_weights = weights.shape[0]
-            assert n_points == n_weights
+            if n_points != n_weights:
+                raise ValueError(
+                    '`points` and `weights` need to have the same length.')
 
             mean = FrechetMean(metric=self.bi_invariant_metric)
             mean.fit(X=points, weights=weights)
             exp_bar = mean.estimate_
 
             exp_bar = gs.to_ndarray(exp_bar, to_ndim=2)
-            assert gs.ndim(exp_bar) == 2, gs.ndim(exp_bar)
 
         elif point_type == 'matrix':
             points = self.rotation_vector_from_matrix(points)
