@@ -54,8 +54,8 @@ searchsorted = _raise_not_implemented_error
 vectorize = _raise_not_implemented_error
 
 
-def empty(shape, dtype=float64):
-    return torch.empty(*shape, dtype=dtype)
+def empty(tensor_shape, dtype=float64):
+    return torch.empty(*tensor_shape, dtype=dtype)
 
 
 def split(ary, indices_or_sections, axis=0):
@@ -203,12 +203,12 @@ def allclose(a, b, **kwargs):
     b = to_ndarray(b.float(), to_ndim=1)
     n_a = a.shape[0]
     n_b = b.shape[0]
-    ndim = a.dim()
+    nb_dim = a.dim()
     if n_a > n_b:
-        reps = (int(n_a / n_b),) + (ndim - 1) * (1,)
+        reps = (int(n_a / n_b),) + (nb_dim - 1) * (1,)
         b = tile(b, reps)
     elif n_a < n_b:
-        reps = (int(n_b / n_a),) + (ndim - 1) * (1,)
+        reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
         a = tile(a, reps)
     return torch.allclose(a, b, **kwargs)
 
@@ -240,8 +240,8 @@ def shape(val):
 
 
 def dot(a, b):
-    dot = _np.dot(a, b)
-    return torch.from_numpy(_np.array(dot)).float()
+    np_dot = _np.dot(a, b)
+    return torch.from_numpy(_np.array(np_dot)).float()
 
 
 def maximum(a, b):
@@ -355,8 +355,8 @@ def squeeze(x, axis=None):
 
 
 def trace(*args, **kwargs):
-    trace = _np.trace(*args, **kwargs)
-    return torch.from_numpy(_np.array(trace)).float()
+    np_trace = _np.trace(*args, **kwargs)
+    return torch.from_numpy(_np.array(np_trace)).float()
 
 
 def mod(*args, **kwargs):
