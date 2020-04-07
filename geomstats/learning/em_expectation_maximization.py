@@ -74,26 +74,20 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         """ Weights update function
         """
 
-        #with torch.no_grad():
-            # get omega mu
+
 
         if (g_index > 0):
             self.mixture_coefficients[g_index] = gs.mean(wik[:, g_index])
         else:
             self.mixture_coefficients = gs.mean(wik,0)
 
-        # if(g_index > 0):
-        #     self.mixture_coefficients[g_index] = wik[:, g_index].mean()
-        # else:
-        #     self.mixture_coefficients = wik.mean(0)
 
-        #self.mixture_coefficients = torch.from_numpy(self.mixture_coefficients)
 
     def update_means(self, data, wik, lr_mu, tau_mu, g_index=-1, max_iter=150):
         """ Means update functions"""
 
         N, D, M = data.shape + (wik.shape[-1],)
-        #N, D, M = z.shape + (wik.shape[-1],)
+
 
         mean = FrechetMean(
             metric=self.riemannian_metric,
@@ -101,25 +95,20 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             max_iter=150,
             point_type=self.point_type)
 
-        #wik = torch.from_numpy(wik)
+
 
 
         data_gs = gs.expand_dims(data,1)
         data_gs = gs.repeat(data_gs,M,axis = 1)
 
-        #data_torch = data.unsqueeze(1).expand(N, M, D)
 
-        # mean.fit(data_gs,weights = wik.data.numpy())
-        # mean_gs = mean.estimate_
 
         if(g_index>0):
             mean.fit(data, weights=wik[:,g_index])
-            #self.means[g_index] = torch.from_numpy(mean.estimate_).squeeze()
             self.means[g_index] = gs.squeeze(mean.estimate_)
 
         else:
             mean.fit(data_gs, weights = wik)
-            #self.means = torch.from_numpy(mean.estimate_).squeeze()
             self.means = gs.squeeze(mean.estimate_)
 
         #TODO Adapt to big number of gaussians
@@ -165,7 +154,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                                                         norm_func=self.normalization_factor.zeta_numpy,
                                                         metric =self.riemannian_metric)
 
-        probability_distribution_function = probability_distribution_function.data.numpy()
 
         if (probability_distribution_function.mean() !=
                 probability_distribution_function.mean()):
@@ -256,8 +244,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self : object
             Return Gaussian mixture model
         """
-
-
         if(self.init =='random'):
 
             self._dimension = data.shape[-1]
@@ -327,7 +313,7 @@ class ZetaPhiStorage(object):
         self.dimension = dimension
         sigma = torch.from_numpy(sigma)
         self.sigma = sigma
-        self.m_zeta_var = torch.from_numpy(new_zeta(sigma, dimension))
+        self.m_zeta_var = new_zeta(sigma, dimension)
 
 
         c1 = self.m_zeta_var.sum() != self.m_zeta_var.sum()
@@ -396,14 +382,6 @@ def new_zeta(x, N):
     x = x.data.numpy()
 
     sigma = x
-    #sigma = nn.Parameter(x)
-
-
-
-    # binomial_coefficient=None
-    # M = sigma.shape[0]
-    #
-    # sigma_u = gs.expand_dims(sigma,0)
 
     binomial_coefficient = None
     M = sigma.shape[0]
@@ -411,9 +389,6 @@ def new_zeta(x, N):
     sigma_u = gs.expand_dims(sigma,0)
     sigma_u = gs.repeat(sigma_u, N, axis = 0)
 
-
-
-    #sigma_u = sigma.unsqueeze(0).expand(N, M)
 
     if(binomial_coefficient is None):
          # we compute coeficient
@@ -428,21 +403,15 @@ def new_zeta(x, N):
          # print(nmk_fact)
          binomial_coefficient = n_fact / (k_fact * nmk_fact)
 
-
-
     #TODO: Check Precision for binomial coefficients
     binomial_coefficient = gs.expand_dims(binomial_coefficient,-1)
     binomial_coefficient = gs.repeat(binomial_coefficient,M, axis = 1)
-
-
 
     range_ = gs.expand_dims(gs.arange(N),-1)
     range_ = gs.repeat(range_, M, axis = 1)
 
     ones_ = gs.expand_dims(gs.ones(N),-1)
     ones_ = gs.repeat(ones_, M, axis = 1)
-
-
 
     alternate_neg = (-ones_)**(range_)
 
@@ -452,28 +421,7 @@ def new_zeta(x, N):
     bs_o_gs = binomial_coefficient * as_o_gs
     r_gs = alternate_neg * bs_o_gs
 
-
     zeta = ZETA_CST * sigma * r_gs.sum(0) * (1/(2**(N-1)))
-
-
-    #range_ = torch.arange(N ,device=sigma.device).unsqueeze(-1).expand(N,M).double()
-    #ones_ = torch.ones(N ,device=sigma.device).unsqueeze(-1).expand(N,M).double()
-
-    # alternate_neg = torch.from_numpy(alternate_neg)
-    # range_ = torch.from_numpy(range_)
-    # ones_ = torch.from_numpy(ones_)
-    # sigma = torch.from_numpy(sigma)
-    # sigma_u = torch.from_numpy(sigma_u)
-    # binomial_coefficient = torch.from_numpy(binomial_coefficient)
-    #
-    # ins = (((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2)
-    # ins_squared = ((((N-1) - 2 * range_)  * sigma_u)/math.sqrt(2))**2
-    # as_o = (1+torch.erf(ins)) * torch.exp(ins_squared)
-    # bs_o = binomial_coefficient * as_o
-    # r = alternate_neg * bs_o
-    #
-    #
-    # zeta = ZETA_CST * sigma * r.sum(0) * (1/(2**(N-1)))
 
     return zeta
 
@@ -532,7 +480,7 @@ def gaussianPDF(data, means, variances, distance, norm_func, metric):
     num = gs.exp(-((metric.dist(x_rd, mu_rd)**2))/(2*(sigma_rd)**2))
 
 
-    num = torch.from_numpy(num)
+
 
     #mu_rd = means.unsqueeze(0).expand(N, M, D)
     #sigma_rd = variances.unsqueeze(0).expand(N, M)
@@ -544,7 +492,13 @@ def gaussianPDF(data, means, variances, distance, norm_func, metric):
     # print("sigma",num)
     # print("den ", den)
     # print("pdf max ", (num/den.unsqueeze(0).expand(N, M)).max())
-    return num/den.unsqueeze(0).expand(N, M)
+
+    den_gs = gs.expand_dims(den,0)
+    den_gs = gs.repeat(den_gs, N, axis = 0)
+
+    result = num/den_gs
+
+    return result
 
 
 def distance(x, y):
