@@ -419,6 +419,8 @@ def prod(x, axis=None):
 
 
 def mean(x, axis=None):
+    if axis is None:
+        return torch.mean(x)
     return torch.mean(x, dim=axis)
 
 
