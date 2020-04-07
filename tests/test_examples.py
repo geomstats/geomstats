@@ -45,7 +45,7 @@ class TestExamples(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_empirical_frechet_mean_uncertainty_sn(self):
-        empirical_frechet_mean_uncertainty_sn.main()
+        empirical_frechet_mean_uncertainty_sn.main(True)
 
     @geomstats.tests.np_only
     def test_gradient_descent_s2(self):

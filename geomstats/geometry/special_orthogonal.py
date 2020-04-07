@@ -255,13 +255,17 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                 regularized_vec = tangent_vec
 
         elif point_type == 'matrix':
-            regularized_vec = tangent_vec
+            is_vectorized = gs.ndim(gs.array(tangent_vec)) == 3
+            axes = (0, 2, 1) if is_vectorized else (1, 0)
+            regularized_vec = \
+                1. / 2 * (tangent_vec - gs.transpose(tangent_vec, axes))
+        else:
+            raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
         return regularized_vec
 
     def regularize_tangent_vec(
-            self, tangent_vec, base_point,
-            metric=None, point_type=None):
+            self, tangent_vec, base_point, metric=None, point_type=None):
         """Regularize tangent vector at a base point.
 
         In 3D, regularize a tangent_vector by getting the norm of its parallel
@@ -270,6 +274,9 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         Parameters
         ----------
         tangent_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
+            Tangent vector at base point.
+        base_point : array-like, shape=[n_samples, {dimension, [n, n]}]
+            Point on the manifold.
         metric : RiemannianMetric, optional
             default: self.left_canonical_metric
         point_type : str, {'vector', 'matrix'}, optional
@@ -317,7 +324,18 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                 regularized_tangent_vec = tangent_vec
 
         elif point_type == 'matrix':
-            regularized_tangent_vec = tangent_vec
+            if gs.allclose(base_point, self.identity):
+                return self.regularize_tangent_vec_at_identity(
+                    tangent_vec, point_type=point_type)
+            inv_base_point = self.inverse(base_point)
+            tangent_vec_at_id = self.compose(inv_base_point, tangent_vec)
+            regularized_tangent_vec = self.regularize_tangent_vec_at_identity(
+                tangent_vec_at_id, point_type=point_type)
+            regularized_tangent_vec = self.compose(
+                base_point, regularized_tangent_vec)
+
+        else:
+            raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
         return regularized_tangent_vec
 
@@ -440,7 +458,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
             for i in range(n_vecs):
                 skew_mat[i][upper_triangle_indices] = vec[i]
-                skew_mat[i] = skew_mat[i] - skew_mat[i].transpose()
+                skew_mat[i] = skew_mat[i] - gs.transpose(skew_mat[i])
         assert gs.ndim(skew_mat) == 3
         return skew_mat
 
@@ -1534,7 +1552,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                 jacobian = self.matrix_from_rotation_vector(point)
 
         elif point_type == 'matrix':
-            raise NotImplementedError()
+            jacobian = point
 
         return jacobian
 

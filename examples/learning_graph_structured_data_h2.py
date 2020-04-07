@@ -147,7 +147,7 @@ def main():
 
     negative_sampling_table = gs.array(negative_sampling_table)
     random_walks = karate_graph.random_walk()
-    embeddings = gs.random.randn(karate_graph.n_nodes, dim)
+    embeddings = gs.random.normal(size=(karate_graph.n_nodes, dim))
     embeddings = embeddings * 0.2
 
     hyperbolic_manifold = PoincareBall(2)

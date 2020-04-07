@@ -7,7 +7,7 @@ from autograd.numpy import (  # NOQA
     allclose,
     amax,
     amin,
-    append,
+    any,
     arange,
     arccos,
     arccosh,
@@ -18,15 +18,11 @@ from autograd.numpy import (  # NOQA
     argmin,
     array,
     asarray,
-    atleast_2d,
-    average,
     ceil,
     clip,
     concatenate,
     cos,
     cosh,
-    cov,
-    cross,
     cumsum,
     diagonal,
     divide,
@@ -39,15 +35,15 @@ from autograd.numpy import (  # NOQA
     expand_dims,
     eye,
     flip,
+    float32,
+    float64,
     floor,
-    greater_equal,
     greater,
     hsplit,
     hstack,
-    identity,
+    int32,
+    int64,
     isclose,
-    isnan,
-    ix_,
     less,
     less_equal,
     linspace,
@@ -59,12 +55,9 @@ from autograd.numpy import (  # NOQA
     mean,
     meshgrid,
     mod,
-    nonzero,
     ones,
     ones_like,
     outer,
-    prod,
-    real,
     repeat,
     reshape,
     shape,
@@ -77,7 +70,6 @@ from autograd.numpy import (  # NOQA
     stack,
     std,
     sum,
-    swapaxes,
     tan,
     tanh,
     tile,
@@ -85,7 +77,6 @@ from autograd.numpy import (  # NOQA
     transpose,
     triu_indices,
     tril_indices,
-    diag_indices,
     searchsorted,
     tril,
     vstack,
@@ -98,30 +89,8 @@ from scipy.sparse import coo_matrix
 from . import linalg  # NOQA
 from . import random  # NOQA
 
-integer = _np.integer
-int8 = _np.int8
-int32 = _np.int32
-int64 = _np.int64
-float32 = _np.float32
-float64 = _np.float64
 
-
-def indexing(x):
-    return x
-
-
-def float_to_double(x):
-    return x
-
-
-def byte_to_float(x):
-    return x
-
-
-def any(x, axis=0):
-    return _np.any(x, axis)
-
-
+# XXX(nkoep): Can we get rid of this now?
 def while_loop(cond, body, loop_vars, maximum_iterations):
     iteration = 0
     while cond(*loop_vars):
@@ -172,12 +141,11 @@ def assignment(x, values, indices, axis=0):
     If a list is given, it must have the same length as indices.
     """
     x_new = copy(x)
-    single_index = not isinstance(indices, list)
-    if single_index:
+    if not isinstance(indices, list):
         indices = [indices]
     if not isinstance(values, list):
         values = [values] * len(indices)
-    for (nb_index, index) in enumerate(indices):
+    for nb_index, index in enumerate(indices):
         if not isinstance(index, tuple):
             index = (index,)
         if len(index) < len(shape(x)):
@@ -217,12 +185,11 @@ def assignment_by_sum(x, values, indices, axis=0):
     If a list is given, it must have the same length as indices.
     """
     x_new = copy(x)
-    single_index = not isinstance(indices, list)
-    if single_index:
+    if not isinstance(indices, list):
         indices = [indices]
     if not isinstance(values, list):
         values = [values] * len(indices)
-    for (nb_index, index) in enumerate(indices):
+    for nb_index, index in enumerate(indices):
         if not isinstance(index, tuple):
             index = (index,)
         if len(index) < len(shape(x)):
@@ -244,18 +211,11 @@ def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
     return _np.vectorize(pyfunc, signature=signature)(x)
 
 
+# XXX(nkoep): Can we get rid of this now?
 def cond(pred, true_fn, false_fn):
     if pred:
         return true_fn()
     return false_fn()
-
-
-def cast_to_complex(x):
-    return _np.vectorize(complex)(x)
-
-
-def boolean_mask(x, mask):
-    return x[mask]
 
 
 def cast(x, dtype):
@@ -278,7 +238,7 @@ def diag(x):
     aux = _np.vectorize(
         _np.diagflat,
         signature='(m,n)->(k,k)')(x)
-    k, k = shape(aux)
+    k, _ = shape(aux)
     m = int(k / n)
     result = zeros((m, n, n))
     for i in range(m):
@@ -294,12 +254,6 @@ def ndim(x):
     return x.ndim
 
 
-def cumprod(x, axis=0):
-    if axis is None:
-        raise NotImplementedError('cumprod is not defined where axis is None')
-    return _np.cumprod(x, axis=axis)
-
-
 def copy(x):
     return x.copy()
 
@@ -311,6 +265,6 @@ def array_from_sparse(indices, data, target_shape):
 
 def from_vector_to_diagonal_matrix(x):
     n = shape(x)[-1]
-    identity_n = identity(n)
+    identity_n = eye(n)
     diagonals = einsum('ki,ij->kij', x, identity_n)
     return diagonals
