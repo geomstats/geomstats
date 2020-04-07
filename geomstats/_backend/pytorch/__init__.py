@@ -185,12 +185,12 @@ def all(x, axis=None):
 
 
 def allclose(a, b, **kwargs):
-    a = torch.tensor(a)
-    b = torch.tensor(b)
-    a = a.float()
-    b = b.float()
-    a = to_ndarray(a, to_ndim=1)
-    b = to_ndarray(b, to_ndim=1)
+    if not isinstance(a, torch.Tensor):
+        a = torch.tensor(a)
+    if not isinstance(b, torch.Tensor):
+        b = torch.tensor(b)
+    a = to_ndarray(a.float(), to_ndim=1)
+    b = to_ndarray(b.float(), to_ndim=1)
     n_a = a.shape[0]
     n_b = b.shape[0]
     ndim = len(a.shape)
@@ -245,8 +245,10 @@ def to_ndarray(x, to_ndim, axis=0):
     return x
 
 
-def sqrt(val):
-    return torch.sqrt(torch.tensor(val).float())
+def sqrt(x):
+    if not isinstance(x, torch.Tensor):
+        x = torch.tensor(x).float()
+    return torch.sqrt(x)
 
 
 # TODO(nkoep): PyTorch exposes its own 'isclose' function, which is currently
@@ -379,8 +381,8 @@ def triu_indices(*args, **kwargs):
     return tuple(map(torch.from_numpy, _np.triu_indices(*args, **kwargs)))
 
 
-def where(test, x, y):
-    return torch.where(test, torch.tensor(x), torch.tensor(y))
+def where(condition, x, y):
+    return torch.where(condition, x, y)
 
 
 def tile(x, y):
