@@ -9,6 +9,7 @@ import math
 import geomstats.backend as gs
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hyperbolic import HyperbolicMetric
+from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.minkowski import MinkowskiMetric
 
@@ -36,7 +37,7 @@ INV_TANH_TAYLOR_COEFFS = [0., + 1. / 3.,
 EPSILON = 1e-6
 
 
-class Hyperboloid(Hyperbolic):
+class Hyperboloid(Hyperbolic, EmbeddedManifold):
     """Class for the n-dimensional hyperbolic space.
 
     Class for the n-dimensional hyperbolic space
@@ -60,9 +61,8 @@ class Hyperboloid(Hyperbolic):
     default_point_type = 'vector'
 
     def __init__(self, dimension, coords_type='extrinsic', scale=1):
-        super(Hyperboloid, self).__init__(
-            dimension=dimension,
-            scale=scale)
+        self.scale = scale
+        self.dimension = dimension
         self.coords_type = coords_type
         self.point_type = Hyperboloid.default_point_type
         self.embedding_manifold = Minkowski(dimension + 1)
