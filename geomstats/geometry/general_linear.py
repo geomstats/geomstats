@@ -32,13 +32,6 @@ class GeneralLinear(Matrices):
         """Return the inverse of a matrix."""
         return gs.linalg.inv(point)
 
-    def random_uniform(self, n_samples=1, tol=1e-7):
-        approximately_invertible = False
-        while not approximately_invertible:
-            candidate = gs.random.rand(n_samples, self.n, self.n)
-            approximately_invertible = all(abs(gs.linalg.det(candidate) > tol))
-        return candidate
-
     @classmethod
     def exp(cls, tangent_vec, base_point=None):
         r"""
