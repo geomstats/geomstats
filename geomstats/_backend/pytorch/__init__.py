@@ -118,6 +118,11 @@ def array(val):
     if isinstance(val, list):
         if not isinstance(val[0], torch.Tensor):
             val = _np.copy(_np.array(val))
+        elif any([not isinstance(t, torch.Tensor) for t in val]):
+            for (index, t) in enumerate(val):
+                if not isinstance(t, torch.Tensor):
+                    val[index] = torch.tensor(t)
+            val = stack(val)
         else:
             val = stack(val)
 
@@ -143,6 +148,10 @@ def all(x, axis=None):
         return x.bool().all()
     numpy_result = _np.array(_np.all(_np.array(x), axis=axis))
     return torch.from_numpy(numpy_result)
+
+
+def get_slice(x, indices):
+    return x[indices]
 
 
 def allclose(a, b, **kwargs):
@@ -345,10 +354,6 @@ def mean(x, axis=None):
     if axis is None:
         return torch.mean(x)
     return torch.mean(x, dim=axis)
-
-
-def gather(x, indices, axis=0):
-    return x[indices]
 
 
 def get_mask_i_float(i, n):

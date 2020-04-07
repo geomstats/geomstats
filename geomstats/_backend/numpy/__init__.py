@@ -190,7 +190,7 @@ def assignment_by_sum(x, values, indices, axis=0):
     return x_new
 
 
-def gather(x, indices, axis=0):
+def get_slice(x, indices):
     return x[indices]
 
 

@@ -58,7 +58,7 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20,
 
     random_indices = gs.random.randint(low=0, high=n_samples,
                                        size=(n_clusters,))
-    cluster_centers = gs.gather(X, gs.cast(random_indices, gs.int32), axis=0)
+    cluster_centers = gs.get_slice(X, gs.cast(random_indices, gs.int32), axis=0)
 
     gap = 1.0
     iteration = 0
@@ -68,11 +68,11 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20,
         step_size = gs.floor(gs.array(iteration / n_repetitions)) + 1
 
         random_index = gs.random.randint(low=0, high=n_samples, size=(1,))
-        point = gs.gather(X, gs.cast(random_index, gs.int32), axis=0)
+        point = gs.get_slice(X, gs.cast(random_index, gs.int32), axis=0)
 
         index_to_update = metric.closest_neighbor_index(point, cluster_centers)
-        center_to_update = gs.copy(gs.gather(cluster_centers, index_to_update,
-                                             axis=0))
+        center_to_update = gs.copy(
+            gs.get_slice(cluster_centers, index_to_update, axis=0))
 
         tangent_vec_update = metric.log(
             point=point, base_point=center_to_update
