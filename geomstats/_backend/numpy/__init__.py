@@ -239,7 +239,7 @@ def diag(x):
     aux = _np.vectorize(
         _np.diagflat,
         signature='(m,n)->(k,k)')(x)
-    k, k = shape(aux)
+    k, _ = shape(aux)
     m = int(k / n)
     result = zeros((m, n, n))
     for i in range(m):
