@@ -343,7 +343,6 @@ class InvariantMetric(RiemannianMetric):
         log = gs.matmul(point, aux)
         log = self.group.regularize_tangent_vec_at_identity(
             tangent_vec=log, metric=self)
-        assert gs.ndim(log) == 2
         return log
 
     def log_from_identity(self, point):
@@ -369,7 +368,6 @@ class InvariantMetric(RiemannianMetric):
             left_log = self.left_log_from_identity(inv_point)
             log = - left_log
 
-        assert gs.ndim(log) == 2
         return log
 
     def log(self, point, base_point=None):
@@ -423,5 +421,4 @@ class InvariantMetric(RiemannianMetric):
             'ij,ijk->ik',
             log_from_id,
             gs.transpose(jacobian, axes=(0, 2, 1)))
-        assert gs.ndim(log) == 2
         return log

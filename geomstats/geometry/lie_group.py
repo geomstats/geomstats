@@ -3,6 +3,7 @@
 
 import geomstats.backend as gs
 import geomstats.geometry.riemannian_metric as riemannian_metric
+from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.manifold import Manifold
 
@@ -205,11 +206,9 @@ class LieGroup(Manifold):
         exp : array-like, shape=[n_samples, {dimension,[n,n]}]
             the computed exponential
         """
-        jacobian = self.jacobian_translation(
-            point=base_point, left_or_right="left", point_type=point_type
-        )
-
         if point_type == "vector":
+            jacobian = self.jacobian_translation(
+                point=base_point, left_or_right="left", point_type=point_type)
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
             inv_jacobian = gs.linalg.inv(jacobian)
 
@@ -227,11 +226,14 @@ class LieGroup(Manifold):
             exp = self.regularize(exp, point_type=point_type)
             return exp
 
-        if point_type == "matrix":
+        elif point_type == "matrix":
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
-            raise NotImplementedError()
-
-        raise ValueError('point_type should be \'vector\' or \'matrix\'.')
+            lie_vec = self.compose(
+                self.inverse(base_point),
+                tangent_vec
+                )
+            return self.compose(
+                base_point, self.exp_from_identity(lie_vec, point_type))
 
     def exp(self, tangent_vec, base_point=None, point_type=None):
         """Compute the group exponential at `base_point` of `tangent_vec`.
@@ -307,7 +309,7 @@ class LieGroup(Manifold):
             "The group logarithm from the identity is not implemented."
         )
 
-    def log_not_from_identity(self, point, base_point, point_type):
+    def log_not_from_identity(self, point, base_point, point_type=None):
         """Compute the group logarithm of `point` from `base_point`.
 
         Parameters
@@ -321,24 +323,30 @@ class LieGroup(Manifold):
         -------
         tangent_vec : array-like, shape=[n_samples, {dimension,[n,n]}]
         """
-        jacobian = self.jacobian_translation(
-            point=base_point, left_or_right="left", point_type=point_type
-        )
-        point_near_id = self.compose(
-            self.inverse(base_point), point, point_type=point_type
-        )
-        log_from_id = self.log_from_identity(
-            point=point_near_id, point_type=point_type
-        )
+        if point_type is None:
+            point_type = self.default_point_type
 
-        log = gs.einsum(
-            "ni,nij->nj",
-            log_from_id,
-            gs.transpose(jacobian, axes=(0, 2, 1)),
-        )
+        if point_type == 'vector':
+            jacobian = self.jacobian_translation(
+                point=base_point, left_or_right="left", point_type=point_type)
+            point_near_id = self.compose(
+                self.inverse(base_point), point, point_type=point_type)
+            log_from_id = self.log_from_identity(
+                point=point_near_id, point_type=point_type)
 
-        assert gs.ndim(log) == 2
-        return log
+            log = gs.einsum(
+                "ni,nij->nj",
+                log_from_id,
+                gs.transpose(jacobian, axes=(0, 2, 1)))
+
+            return log
+
+        else:
+            lie_point = self.compose(self.inverse(base_point), point)
+            return self.compose(
+                base_point,
+                self.log_from_identity(lie_point, point_type)
+                )
 
     def log(self, point, base_point=None, point_type=None):
         """Compute the group logarithm of `point` relative to `base_point`.
