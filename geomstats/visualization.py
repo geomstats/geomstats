@@ -3,7 +3,7 @@
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
-from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
@@ -13,7 +13,7 @@ SE3_GROUP = SpecialEuclidean(n=3)
 SO3_GROUP = SpecialOrthogonal(n=3)
 S1 = Hypersphere(dimension=1)
 S2 = Hypersphere(dimension=2)
-H2 = Hyperbolic(dimension=2)
+H2 = Hyperboloid(dimension=2)
 
 AX_SCALE = 1.2
 
@@ -98,8 +98,6 @@ class Circle():
     def draw_points(self, ax, points=None, **plot_kwargs):
         if points is None:
             points = self.points
-        else:
-            points = points
         points = gs.array(points)
         ax.plot(points[:, 0], points[:, 1], marker='o', linestyle="None",
                 **plot_kwargs)
@@ -161,8 +159,6 @@ class Sphere():
     def draw_points(self, ax, points=None, **scatter_kwargs):
         if points is None:
             points = self.points
-        else:
-            points = points
         points_x = gs.vstack([point[0] for point in points])
         points_y = gs.vstack([point[1] for point in points])
         points_z = gs.vstack([point[2] for point in points])
