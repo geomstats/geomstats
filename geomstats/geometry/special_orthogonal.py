@@ -7,7 +7,6 @@ import geomstats.backend as gs
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.lie_group import LieGroup
-from geomstats.learning.frechet_mean import FrechetMean
 
 ATOL = 1e-5
 

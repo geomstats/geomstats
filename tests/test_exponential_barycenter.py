@@ -1,6 +1,7 @@
 """Unit tests for Exponential Barycenter mean."""
 
 import geomstats.tests
+import geomstats.backend as gs
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.exponential_barycenter import ExponentialBarycenter
@@ -37,10 +38,10 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
     def test_estimate_and_reach_max_iter_se(self):
         point = self.se.random_uniform(self.n_samples)
         estimator = ExponentialBarycenter(self.se, max_iter=2)
+        point = gs.array([point[0], point[0]])
         estimator.fit(point)
-        barexp = estimator.estimate_
-        result = self.se.belongs(barexp)
-        expected = True
+        result = estimator.estimate_
+        expected = point[0]
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only

@@ -3593,36 +3593,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     or gs.allclose(result, inv_expected, atol=1e-5))
 
     @geomstats.tests.np_only
-    def test_group_exponential_barycenter(self):
-        n = 3
-        group = self.so[n]
-
-        rot_vec = group.random_uniform()
-        points = gs.vstack([rot_vec, rot_vec])
-        result = group.exponential_barycenter(
-            points=points)
-        expected = rot_vec
-        self.assertAllClose(result, expected)
-
-        rot_vec = group.random_uniform()
-        points = gs.vstack([rot_vec, rot_vec])
-        weights = gs.array([1., 2.])
-        result = group.exponential_barycenter(
-            points=points,
-            weights=weights)
-        expected = rot_vec
-        self.assertAllClose(result, expected)
-
-        points = gs.vstack([rot_vec, rot_vec])
-        weights = gs.array([1., 2.])
-        group_bar = group.exponential_barycenter(
-            points=points, weights=weights)
-        result = group.belongs(group_bar)
-        expected = gs.array([[True]])
-
-        self.assertTrue(result, expected)
-
-    @geomstats.tests.np_only
     def test_squared_dist_is_symmetric(self):
         n = 3
         group = self.so[n]

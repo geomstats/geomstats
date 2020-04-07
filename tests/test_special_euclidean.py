@@ -1488,33 +1488,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             result = metric.dist(n_point_1, n_point_2)
             self.assertAllClose(gs.shape(result), (n_samples, 1))
 
-    def test_group_exponential_barycenter(self):
-        """Test group exponential barycenter."""
-        # FIXME
-        # TODO(nina): Fix this test, the barycenter is not accurate.
-        # point_1 = self.group.random_uniform()
-        # points = gs.vstack([point_1, point_1])
-        # result_1 = self.group.exponential_barycenter(
-        #                         points=points)
-        # expected_1 = self.group.regularize(point_1)
-
-        # if not geomstats.tests.tf_backend():
-        #     point_2 = self.group.random_uniform()
-        #     points = gs.vstack([point_2, point_2])
-        #     weights = gs.array([1., 2.])
-        #     result_2 = self.group.exponential_barycenter(
-        #                             points=points,
-        #                             weights=weights)
-        #     expected_2 = self.group.regularize(point_2)
-
-        #     points = gs.vstack([point_1, point_2])
-        #     weights = gs.array([1., 1.])
-        #     result_3 = self.group.exponential_barycenter(
-        #                             points=points,
-        #                             weights=weights)
-
-        #     self.assertTrue(self.group.belongs(result_3))
-
     def test_geodesic_and_belongs(self):
         initial_point = self.group.random_uniform()
         initial_tangent_vec = gs.array([2., 0., -1., 0., 2., 3.])
