@@ -27,7 +27,7 @@ class Euclidean(Manifold):
 
         Returns
         -------
-        belongs : array-like, shape=[n_samples, 1]
+        belongs : array-like, shape=[n_samples,]
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dimension

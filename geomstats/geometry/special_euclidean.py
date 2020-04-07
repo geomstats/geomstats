@@ -324,12 +324,6 @@ class SpecialEuclidean(LieGroup):
                     or n_points_b == 1):
                 raise ValueError()
 
-            if n_points_a == 1:
-                point_a = gs.stack([point_a[0]] * n_points_b)
-
-            if n_points_b == 1:
-                point_b = gs.stack([point_b[0]] * n_points_a)
-
             rot_vec_a = point_a[:, :dim_rotations]
             rot_mat_a = rotations.matrix_from_rotation_vector(rot_vec_a)
 
@@ -714,7 +708,7 @@ class SpecialEuclidean(LieGroup):
 
         return random_point
 
-    def exponential_matrix(self, rot_vec):
+    def _exponential_matrix(self, rot_vec):
         """Compute exponential of rotation matrix represented by rot_vec.
 
         Parameters
@@ -723,7 +717,7 @@ class SpecialEuclidean(LieGroup):
 
         Returns
         -------
-        exponential_mat: The matrix exponential of rot_vec
+        exponential_mat : The matrix exponential of rot_vec
         """
         rot_vec = self.rotations.regularize(rot_vec)
         n_rot_vecs, _ = rot_vec.shape
@@ -822,7 +816,7 @@ class SpecialEuclidean(LieGroup):
             matrix_aux = gs.matmul(mean_rotation_mat, inv_rot_mats)
 
             vec_aux = rotations.rotation_vector_from_matrix(matrix_aux)
-            matrix_aux = self.exponential_matrix(vec_aux)
+            matrix_aux = self._exponential_matrix(vec_aux)
             matrix_aux = gs.linalg.inv(matrix_aux)
 
             for i in range(n_points):

@@ -1368,15 +1368,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             point_a = self.matrix_from_rotation_vector(point_a)
             point_b = self.matrix_from_rotation_vector(point_b)
 
-        n_points_a = point_a.shape[0]
-        n_points_b = point_b.shape[0]
-
-        if n_points_a == 1:
-            point_a = gs.stack([point_a[0]] * n_points_b)
-
-        if n_points_b == 1:
-            point_b = gs.stack([point_b[0]] * n_points_a)
-
         point_prod = gs.einsum('ijk,ikl->ijl', point_a, point_b)
 
         if point_type == 'vector':
