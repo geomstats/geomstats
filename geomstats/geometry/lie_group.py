@@ -232,6 +232,10 @@ class LieGroup(Manifold):
             return self.compose(
                 base_point, self.exp_from_identity(lie_vec, point_type))
 
+        else:
+            raise ValueError('Invalid point_type, expected \'vector\' or '
+                             '\'matrix\'')
+
     def exp(self, tangent_vec, base_point=None, point_type=None):
         """Compute the group exponential at `base_point` of `tangent_vec`.
 
