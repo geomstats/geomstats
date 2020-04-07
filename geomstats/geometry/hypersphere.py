@@ -307,7 +307,10 @@ class Hypersphere(EmbeddedManifold):
             samples[indcs, :] = gs.random.normal(
                 size=(num_bad_samples, self.dimension + 1))
 
-        return gs.einsum('n, ni->ni', 1 / norms, samples)
+        samples = gs.einsum('..., ...i->...i', 1 / norms, samples)
+        if n_samples == 1:
+            samples = gs.squeeze(samples, axis=0)
+        return samples
 
     def random_von_mises_fisher(self, kappa=10, n_samples=1):
         """Sample in the 2-sphere with the von Mises distribution.

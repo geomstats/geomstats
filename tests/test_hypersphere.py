@@ -40,7 +40,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
     def test_random_uniform(self):
         point = self.space.random_uniform()
 
-        self.assertAllClose(gs.shape(point), (1, self.dimension + 1))
+        self.assertAllClose(gs.shape(point), (self.dimension + 1,))
 
     def test_projection_and_belongs(self):
         point = gs.array([1., 2., 3., 4., 5.])
