@@ -459,7 +459,7 @@ class HyperbolicMetric(RiemannianMetric):
         """Squared norm with hyperbolic scale 1.
 
         Squared norm of a vector associated with the inner-product
-        at the tangent space at a base point with scale=1..
+        at the tangent space at a base point with scale=1.
 
         Parameters
         ----------
