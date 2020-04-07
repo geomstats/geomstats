@@ -15,8 +15,8 @@ def seed(*args, **kwargs):
     return torch.manual_seed(*args, **kwargs)
 
 
-def normal(loc=0.0, scale=1.0, size=(1, 1)):
-    return torch.normal(torch.zeros(size), torch.ones(size))
+def normal(loc=0.0, scale=1.0, size=(1,)):
+    return torch.normal(mean=loc, std=scale, size=size)
 
 
 def uniform(low=0.0, high=1.0, size=None):
