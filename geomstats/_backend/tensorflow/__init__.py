@@ -574,7 +574,3 @@ def tril_indices(*args, **kwargs):
 
 def triu_indices(*args, **kwargs):
     return tuple(map(tf.convert_to_tensor, _np.triu_indices(*args, **kwargs)))
-
-
-def transpose(x, axes=None):
-    return tf.transpose(x, perm=axes)
