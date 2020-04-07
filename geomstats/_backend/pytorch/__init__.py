@@ -12,7 +12,6 @@ from torch import (  # NOQA
     cos,
     cosh,
     diag,
-    diagonal,
     empty_like,
     eq,
     exp,
@@ -51,8 +50,6 @@ def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
 
-flip = _raise_not_implemented_error
-hsplit = _raise_not_implemented_error
 searchsorted = _raise_not_implemented_error
 vectorize = _raise_not_implemented_error
 

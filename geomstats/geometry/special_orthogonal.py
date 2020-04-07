@@ -572,7 +572,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             rot_vec_pi = angle * signs * diag_comp
 
             rot_vec = rot_vec_not_pi + mask_pi * rot_vec_pi
-            return rot_vec
 
         else:
             skew_mat = self.embedding_manifold.log(rot_mat)
