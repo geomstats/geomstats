@@ -137,7 +137,8 @@ class BackendImporter:
     def __init__(self, path):
         self._path = path
 
-    def _import_backend(self, backend_name):
+    @staticmethod
+    def _import_backend(backend_name):
         if backend_name == 'numpy':
             from geomstats._backend import numpy as backend
         elif backend_name == 'pytorch':
