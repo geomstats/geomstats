@@ -61,6 +61,8 @@ def main():
 
     tangent_vectors = gs.concatenate(
         [tangent_vec_b, tangent_vec_a, pole_ladder]) / N_STEPS
+
+    base_point = gs.to_ndarray(base_point, to_ndim=2)
     origin = gs.concatenate(
         [base_point, base_point, final_geodesic(gs.array([0]))])
 
