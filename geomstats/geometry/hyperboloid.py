@@ -7,9 +7,9 @@ the hyperboloid representation (embedded in minkowsky space).
 import math
 
 import geomstats.backend as gs
+from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hyperbolic import HyperbolicMetric
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.minkowski import MinkowskiMetric
 
