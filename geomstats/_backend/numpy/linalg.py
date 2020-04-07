@@ -9,22 +9,21 @@ from autograd.numpy.linalg import (  # NOQA
     eigvalsh,
     inv,
     norm,
-    matrix_rank,
     svd
 )
 
-# TODO(nina): Clean this import
-from geomstats.backend.numpy.__init__ import to_ndarray
+# TODO(nina): Clean this import.
+from geomstats._backend.numpy.__init__ import to_ndarray as _to_ndarray
 
-TOL = 1e-10
+_TOL = 1e-10
 
 
-def is_symmetric(x, tol=TOL):
-    new_x = to_ndarray(x, to_ndim=3)
+def _is_symmetric(x, tol=_TOL):
+    new_x = _to_ndarray(x, to_ndim=3)
     return (np.abs(new_x - np.transpose(new_x, axes=(0, 2, 1))) < tol).all()
 
 
-def expsym(x):
+def _expsym(x):
     eigvals, eigvecs = np.linalg.eigh(x)
     eigvals = np.exp(eigvals)
     eigvals = np.vectorize(np.diag, signature='(n)->(n,n)')(eigvals)
@@ -36,9 +35,9 @@ def expsym(x):
 
 def expm(x):
     ndim = x.ndim
-    new_x = to_ndarray(x, to_ndim=3)
-    if is_symmetric(new_x):
-        result = expsym(new_x)
+    new_x = _to_ndarray(x, to_ndim=3)
+    if _is_symmetric(new_x):
+        result = _expsym(new_x)
     else:
         result = np.vectorize(scipy.linalg.expm,
                               signature='(n,m)->(n,m)')(new_x)
@@ -50,8 +49,8 @@ def expm(x):
 
 def logm(x):
     ndim = x.ndim
-    new_x = to_ndarray(x, to_ndim=3)
-    if is_symmetric(new_x):
+    new_x = _to_ndarray(x, to_ndim=3)
+    if _is_symmetric(new_x):
         eigvals, eigvecs = np.linalg.eigh(new_x)
         if (eigvals > 0).all():
             eigvals = np.log(eigvals)
@@ -73,8 +72,8 @@ def logm(x):
 
 def powerm(x, power):
     ndim = x.ndim
-    new_x = to_ndarray(x, to_ndim=3)
-    if is_symmetric(new_x):
+    new_x = _to_ndarray(x, to_ndim=3)
+    if _is_symmetric(new_x):
         eigvals, eigvecs = np.linalg.eigh(new_x)
         if (eigvals > 0).all():
             eigvals = eigvals ** power
@@ -103,10 +102,6 @@ def powerm(x, power):
 def sqrtm(x):
     return np.vectorize(
         scipy.linalg.sqrtm, signature='(n,m)->(n,m)')(x)
-
-
-def exp(*args, **kwargs):
-    return np.exp(*args, **kwargs)
 
 
 def qr(*args, **kwargs):

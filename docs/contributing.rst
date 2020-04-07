@@ -33,8 +33,8 @@ contributing code, writing documentation, following code style guidelines,
 and reviewing code. This document is largely inspired by the
 Scikit-Learn project.
 
-Submitting An Issue: a bug report or a feature request
-------------------------------------------------------
+Submitting a Bug Report or Feature Request
+------------------------------------------
 
 We use GitHub issues to track all bugs and feature requests; feel free to `open
 an issue <https://github.com/geomstats/geomstats/issues>`_ if you have found a
@@ -52,8 +52,8 @@ following rules before submitting:
 
 .. _filing_bugs:
 
-How to make a good bug report
-=============================
+How to Write a Good Bug Report
+==============================
 
 When you submit an issue to `Github
 <https://github.com/geomstats/geomstats/issues>`__, please do your best to
@@ -83,8 +83,8 @@ feedback:
   <https://help.github.com/articles/creating-and-highlighting-code-blocks>`_
   for more details.
 
-Contributing Code Workflow
---------------------------
+Contributing: Code Workflow
+---------------------------
 
   To avoid duplicating work, it is highly advised that you search through the
   `issue tracker <https://github.com/geomstats/geomstats/issues>`_ and
@@ -94,8 +94,8 @@ Contributing Code Workflow
   the `issue tracker <https://github.com/geomstats/geomstats/issues>`_
   to get some feedbacks from core developers.
 
-How to contribute: GitHub workflow
-==================================
+Contributing: GitHub Workflow
+=============================
 
 The preferred way to contribute to geomstats is to fork the `main
 repository <https://github.com/geomstats/geomstats/>`__ on GitHub,
@@ -160,7 +160,6 @@ modifying code and submitting a PR:
    email to the committers. You may want to consider sending an email to the
    mailing list hi@geomstats.ai for more visibility.
 
-
 It is often helpful to keep your local feature branch synchronized with the
 latest changes of the main geomstats repository::
 
@@ -175,9 +174,8 @@ The `Git documentation <https://git-scm.com/documentation>`_ and
 http://try.github.io are excellent resources to get started with git,
 and understanding all of the commands shown here.
 
-Pull request checklist
+Pull Request Checklist
 ======================
-
 
 In order to ease the reviewing process, we recommend that your contribution
 complies with the following rules. The **bolded** ones are especially important:
@@ -294,7 +292,7 @@ list hi@geomstats.ai or on the GitHub issue).
   on all new contributions will get the overall code base quality in the
   right direction.
 
-Stalled pull requests
+Stalled Pull Requests
 ^^^^^^^^^^^^^^^^^^^^^
 
 As contributing a feature can be a lengthy process, some
@@ -371,8 +369,7 @@ We are glad to accept any sort of documentation: function docstrings,
 reStructuredText documents (like this one), tutorials, etc. reStructuredText
 documents live in the source code repository under the ``docs/`` directory.
 
-
-Building the documentation
+Building the Documentation
 ==========================
 
 Building the documentation requires installing sphinx::
@@ -383,24 +380,23 @@ To build the documentation, you need to be in the main ``geomstats`` folder. You
 
    sphinx-build docs/ docs/html
 
-
 Writing Docstrings
 ==================
 
 Intro to Docstrings
 ^^^^^^^^^^^^^^^^^^^
 
-A docstring is a well-formatted description of your function/class/module which includes 
-its purpose, usage, and other information. 
+A docstring is a well-formatted description of your function/class/module which includes
+its purpose, usage, and other information.
 
-There are different markdown languages/formats used for docstrings in Python. The most common 
+There are different markdown languages/formats used for docstrings in Python. The most common
 three are reStructuredText, numpy, and google docstring styles. For geomstats, we are
-using the numpy docstring standard. 
-When writing up your docstrings, please review the `NumPy docstring guidge <https://numpydoc.readthedocs.io/en/latest/format.html>`_ 
-to understand the role and syntax of each section. Following this syntax is important not only for readability, 
+using the numpy docstring standard.
+When writing up your docstrings, please review the `NumPy docstring guidge <https://numpydoc.readthedocs.io/en/latest/format.html>`_
+to understand the role and syntax of each section. Following this syntax is important not only for readability,
 it is also required for automated parsing for inclusion into our generated API Reference.
 
-You can look at these for any object by printing out the ``__doc__`` attribute. 
+You can look at these for any object by printing out the ``__doc__`` attribute.
 Try this out with the np.array class and the np.mean function to see good examples::
 
     >>> import numpy as np
@@ -411,7 +407,7 @@ The Anatomy of a Docstring
 
 These are some of the most common elements for functions (and ones we’d like you to add where appropriate):
 
-1. Summary - a one-line (here <79 char) description of the object 
+1. Summary - a one-line (here <79 char) description of the object
 
    a. Begins immediately after the first """ with a capital letter, ends with a period
 
@@ -430,26 +426,26 @@ These are some of the most common elements for functions (and ones we’d like y
    a. On the first line, state the parameter name, type, and shape when appropriate. The parameter name should be separated from the rest of the line by a ``:`` (with a space on either side). If a parameter is optional, write ``optional`` after the type information (separated by a comma and a space).
 
    b. On the next line, indent and write a summary of the parameter beginning with a capital letter and ending with a period.
-   
+
    c. See :ref:`docstring_examples` below
 
 4. Returns (esp. for functions) - a formatted list of returned objects type information and description
-   
+
    a. The syntax here is the same as in the parameters section above.
-   
+
    b. See :ref:`docstring_examples` below
 
 If documenting a class, you would also want to include an Attributes section.
 There are many other optional sections you can include which are very helpful.
 For example: Raises, See Also, Notes, Examples, References, etc.
 
-N.B. Within Notes, you can 
-	- include LaTex code 
+N.B. Within Notes, you can
+	- include LaTex code
 	- cite references in text using ids placed in References
 
 .. _docstring_examples:
 
-Docstring examples
+Docstring Examples
 ^^^^^^^^^^^^^^^^^^
 Here's a generic docstring template::
 
@@ -513,25 +509,31 @@ And here's a filled-in example from the Scikit-Learn project, modified to our sy
       return self.fit(X, sample_weight=sample_weight).labels_
 
 In general, have the following in mind:
- 
+
    1. Use built-in Python types. (``bool`` instead of ``boolean``)
- 
+
    2. Use ``[`` for defining shapes: ``array-like, shape=[n_samples,]``
- 
-   3. For strings with multiple options, use brackets:
+
+   3. If a shape can vary, use a list-like notation:
+      ``array-like, shape=[dimension[:axis], n, dimension[axis:]]``
+
+   4. For strings with multiple options, use brackets:
       ``input: str, {'log', 'squared', 'multinomial'}``
- 
-   4. 1D or 2D data can be a subset of
-      ``{array-like, ndarray, sparse matrix, dataframe}``. Note that ``array-like``
-      can also be a ``list``, while ``ndarray`` is explicitly only a ``numpy.ndarray``.
- 
-   5. Add "See Also" in docstrings for related classes/functions.
+
+   5. 1D or 2D data can be a subset of
+      ``{array-like, ndarray, sparse matrix, dataframe}``. Note that
+      ``array-like`` can also be a ``list``, while ``ndarray`` is explicitly
+      only a ``numpy.ndarray``.
+
+   6. Add "See Also" in docstrings for related classes/functions.
       "See Also" in docstrings should be one line per reference,
       with a colon and an explanation.
 
-For Class and Module Examples see the `scikit-learn _weight_boosting.py module <https://github.com/scikit-learn/scikit-learn/blob/b194674c4/sklearn/ensemble/_weight_boosting.py#L285>`_. 
-The class AdaBoost has a great example using the elements we’ve discussed here. Of course, these 
-examples are rather verbose, but they’re good for understanding the components.
+For Class and Module Examples see the `scikit-learn _weight_boosting.py module
+<https://github.com/scikit-learn/scikit-learn/blob/b194674c4/sklearn/ensemble/_weight_boosting.py#L285>`_.
+The class AdaBoost has a great example using the elements we’ve discussed here.
+Of course, these examples are rather verbose, but they’re good for
+understanding the components.
 
 When editing reStructuredText (``.rst``) files, try to keep line length under
 80 characters (exceptions include links and tables).
@@ -581,8 +583,8 @@ guidelines:
    It makes the code harder to read as the origin of symbols is no
    longer explicitly referenced, but most important, it prevents
    using a static analysis tool like `pyflakes
-   <https://divmod.readthedocs.io/en/latest/products/pyflakes.html>`_ to automatically
-   find bugs in geomstats.
+   <https://divmod.readthedocs.io/en/latest/products/pyflakes.html>`_ to
+   automatically find bugs in geomstats.
 
 8. Avoid the use of ``import ... as`` and of ``from ... import foo, bar``,
    i.e. do not rename modules or modules' functions, because you would create
@@ -608,12 +610,10 @@ and not
 as the indentation will break and raise a flake8 error if the name
 of the function is changed.
 
-
 These guidelines can be revised and modified at any time, the only constraint
 is that they should remain consistent through the codebase. To change geomstats
 style guidelines, submit a PR to this contributing file, together with the
 corresponding changes in the codebase.
-
 
 .. _code_review:
 
@@ -640,7 +640,8 @@ from high-level questions to a more detailed check-list.
   functions/classes/parameters well named and intuitively designed?
 
 - Are all public functions/classes and their parameters, return types, and
-  stored attributes named according to geomstats conventions and documented clearly?
+  stored attributes named according to geomstats conventions and documented
+  clearly?
 
 - Is every public function/class tested? Are a reasonable set of
   parameters, their values, value types, and combinations tested? Do

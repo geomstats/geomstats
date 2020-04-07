@@ -7,6 +7,8 @@ coverage:
         target: 90%
         threshold: 2%
         base: auto
+        flags:
+          - unit
        # advanced
         branches:
           - master
@@ -20,6 +22,8 @@ coverage:
         target: 90%
         threshold: 2%
         base: auto
+        flags:
+          - unit
         # advanced
         branches:
           - master
