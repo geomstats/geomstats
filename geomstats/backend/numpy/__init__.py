@@ -314,3 +314,10 @@ def from_vector_to_diagonal_matrix(x):
     identity_n = identity(n)
     diagonals = einsum('ki,ij->kij', x, identity_n)
     return diagonals
+
+
+def erf_approx(x):
+    cst_erf = 8.0 / (3.0 * _np.pi) * (_np.pi - 3.0) / (4.0 - _np.pi)
+    return _np.sign(x) * _np.sqrt(1 - _np.exp(-x * x *
+                                  (4 / _np.pi + cst_erf * x * x)
+                                  / (1 + cst_erf * x * x)))

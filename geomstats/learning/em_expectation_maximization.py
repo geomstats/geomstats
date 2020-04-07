@@ -568,3 +568,73 @@ def exp(k, x):
 
 def atanh(x):
     return 0.5*torch.log((1+x)/(1-x))
+
+##### 
+SQRT_2 = math.sqrt(2.)
+
+
+def compute_alpha(dim, current_dim):
+    """Compute factor used in normalisation factor.
+
+    Compute alpha factor given the two arguments.
+    """
+    return (dim - 1 - 2 * current_dim) / SQRT_2
+
+
+def zeta_dlogzetat(sigma, dim):
+    """Compute normalisation factor and its gradient.
+
+    Compute normalisation factor given current variance
+    and dimensionality.
+
+    Parameters
+    ----------
+    sigma : array-like, shape=[n_samples, 1]
+        Value of variance.
+
+    dim : int
+        Dimension of the space
+
+    Returns
+    -------
+    normalization_factor : array-like, shape=[n_samples, 1]
+    """
+    dim_range = gs.arange(0, dim, 1.)
+    alpha = compute_alpha(dim, dim_range)
+
+    binomial_coefficient = gs.ones(dim)
+    binomial_coefficient[1:] = (dim - 1 + 1 - dim_range[1:]) / dim_range[1:]
+    binomial_coefficient = gs.cumprod(binomial_coefficient)
+
+    beta = ((-gs.ones(dim)) ** dim_range) * binomial_coefficient
+    prod_alpha_sigma = gs.einsum('ij,j->ij', sigma, alpha)
+    term_2 =\
+        gs.exp((prod_alpha_sigma)**2) * (1 + gs.erf_approx(prod_alpha_sigma))
+    term_1 = math.sqrt(gs.pi / 2.) * (1. / (2**(dim - 1)))
+    term_2 = gs.einsum('ij,j->ij', term_2, beta)
+    normalisation_coef =\
+        term_1 * sigma * gs.sum(term_2, axis=-1, keepdims=True)
+    grad_term_1 = 1 / sigma
+
+    grad_term_21 = 1 / gs.sum(term_2, axis=-1, keepdims=True)
+
+    grad_term_211 =\
+        gs.exp((prod_alpha_sigma)**2)\
+        * (1 + gs.erf_approx(prod_alpha_sigma))\
+        * gs.einsum('ij,j->ij', sigma, alpha**2)
+
+    grad_term_212 = gs.repeat(gs.expand_dims((2 / math.sqrt(gs.pi))
+                              * alpha, axis=0),
+                              sigma.shape[0], axis=0)
+
+    grad_term_22 = grad_term_211 + grad_term_212
+    grad_term_22 = gs.einsum("ij, j->ij", grad_term_22, beta)
+    grad_term_22 = gs.sum(grad_term_22, axis=-1, keepdims=True)
+
+    log_grad_zeta = grad_term_1 + (grad_term_21 * grad_term_22)
+
+    return normalisation_coef, log_grad_zeta
+
+
+if __name__ == "__main__":
+    a, b = zeta_dlogzetat(gs.array([[0.5], [1.2], [1.5]]), 3)
