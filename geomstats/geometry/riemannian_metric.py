@@ -139,29 +139,13 @@ class RiemannianMetric(Connection):
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
-        n_tangent_vec_a = gs.shape(tangent_vec_a)[0]
-        n_tangent_vec_b = gs.shape(tangent_vec_b)[0]
 
         inner_prod_mat = self.inner_product_matrix(base_point)
         inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
-        n_mats = gs.shape(inner_prod_mat)[0]
 
         aux = gs.einsum('...j,...jk->...k', tangent_vec_a, inner_prod_mat)
-        n_auxs, _ = gs.shape(aux)
 
-        if n_tangent_vec_b != n_auxs:
-            if n_auxs == 1:
-                aux = gs.squeeze(aux, axis=0)
-                einsum_str_b = 'k,nk->n'
-            elif n_tangent_vec_b == 1:
-                tangent_vec_b = gs.squeeze(tangent_vec_b, axis=0)
-                einsum_str_b = 'nk,k->n'
-            else:
-                raise ValueError('Shape mismatch for einsum.')
-        else:
-            einsum_str_b = 'nk,nk->n'
-
-        inner_prod = gs.einsum(einsum_str_b, aux, tangent_vec_b)
+        inner_prod = gs.einsum('...k,...k->...', aux, tangent_vec_b)
         inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
         assert gs.ndim(inner_prod) == 2, inner_prod.shape
