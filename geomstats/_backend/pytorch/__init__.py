@@ -175,7 +175,7 @@ def array(val):
 
 def all(x, axis=None):
     if axis is None:
-        return x.byte().all()
+        return x.bool().all()
     numpy_result = _np.array(_np.all(_np.array(x), axis=axis).astype(int))
     return torch.from_numpy(numpy_result)
 
