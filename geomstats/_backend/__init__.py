@@ -39,6 +39,7 @@ BACKEND_ATTRIBUTES = {
         'cos',
         'cosh',
         'cumsum',
+        'cumprod',
         'diag',
         'diagonal',
         'divide',
@@ -103,7 +104,8 @@ BACKEND_ATTRIBUTES = {
         'where',
         'while_loop',
         'zeros',
-        'zeros_like'
+        'zeros_like',
+        'erf'
     ],
     'linalg': [
         'det',
