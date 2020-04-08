@@ -130,17 +130,33 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
     def update_variances(self, z, wik, g_index=-1):
         """Variances update function"""
-        with torch.no_grad():
-            N, D, M = z.shape + (self.means.shape[0],)
-            if (g_index > 0):
-                dtm = ((distance(z, self.means[:, g_index].expand(N)) ** 2) * wik[:, g_index]).sum() / wik[:,
-                                                                                                           g_index].sum()
-                self.variances[:, g_index] = (self.normalization_factor.phi(dtm)).data.numpy()
-            else:
-                dtm = ((distance(z.unsqueeze(1).expand(N, M, D),
-                                 self.means.unsqueeze(0).expand(N, M, D)) ** 2) * wik).sum(0) / wik.sum(0)
-                # print("dtms ", dtm.size())
-                self.variances = (self.normalization_factor.phi(dtm)).data.numpy()
+        #with torch.no_grad():
+        N, D, M = z.shape + (self.means.shape[0],)
+        if (g_index > 0):
+            dtm = ((distance(z, self.means[:, g_index].expand(N)) ** 2) * wik[:, g_index]).sum() / wik[:,
+                                                                                                       g_index].sum()
+            self.variances[:, g_index] = (self.normalization_factor.phi(dtm)).data.numpy()
+        else:
+
+
+            z_gs = gs.expand_dims(z.data.numpy(), 1)
+            z_gs = gs.repeat(z_gs,M,axis = 1)
+            means_gs = gs.expand_dims(self.means.data.numpy(),0)
+            means_gs = gs.repeat(means_gs,N,axis = 0)
+
+            z_torch = z.unsqueeze(1).expand(N, M, D)
+            means_torch = self.means.unsqueeze(0).expand(N, M, D)
+            wik_gs = wik.data.numpy()
+            dtm_gs = ((self.riemannian_metric.dist(z_gs,
+                             means_gs) ** 2) * wik_gs).sum(0) / wik_gs.sum(0)
+
+            # dtm = ((distance(z.unsqueeze(1).expand(N, M, D),
+            #                  self.means.unsqueeze(0).expand(N, M, D)) ** 2) * wik).sum(0) / wik.sum(0)
+
+
+            #dtm_gs = self.riemannian_metric.dist()
+            # print("dtms ", dtm.size())
+            self.variances = self.normalization_factor.phi(dtm_gs)
 
     def _expectation(self, data):
         """Compute weights_ik given the data, means and variances"""
@@ -334,24 +350,24 @@ class ZetaPhiStorage(object):
             print("\t Number of possible variance is now : " + str(len(self.sigma)) + "/" + str(max_nf))
 
 
-        #sigma_cube = self.sigma ** 3
+        sigma_cube = self.sigma ** 3
 
-        #factor_normalization, log_grad_zeta = zeta_dlogzetat(self.sigma.data.numpy(), dimension)
+        factor_normalization, log_grad_zeta = zeta_dlogzetat(self.sigma.data.numpy(), dimension)
 
-        #self.phi_inv_var = sigma_cube * log_grad_zeta
+        self.phi_inv_var = sigma_cube * log_grad_zeta
 
         #self.phi_inv_var = (self.sigma ** 3 * log_grad_zeta(self.sigma, dimension)).detach()
-        self.phi_inv_var = (self.sigma ** 3 * log_grad_zeta(self.sigma, dimension)).detach()
+        #self.phi_inv_var = (self.sigma ** 3 * log_grad_zeta(self.sigma, dimension)).detach()
 
         print(self.phi_inv_var.type())
 
-    def zeta(self, sigma):
-        N, P = sigma.shape[0], self.sigma.shape[0]
-        ref = self.sigma.unsqueeze(0).expand(N, P)
-        val = sigma.unsqueeze(1).expand(N, P)
-        values, index = torch.abs(ref - val).min(-1)
-
-        return self.m_zeta_var[index]
+    # def zeta(self, sigma):
+    #     N, P = sigma.shape[0], self.sigma.shape[0]
+    #     ref = self.sigma.unsqueeze(0).expand(N, P)
+    #     val = sigma.unsqueeze(1).expand(N, P)
+    #     values, index = torch.abs(ref - val).min(-1)
+    #
+    #     return self.m_zeta_var[index]
 
     def zeta_numpy(self, sigma):
         N, P = sigma.shape[0], self.sigma.shape[0]
@@ -370,10 +386,27 @@ class ZetaPhiStorage(object):
 
     def phi(self, phi_val):
         N, P = phi_val.shape[0], self.sigma.shape[0]
-        ref = self.phi_inv_var.unsqueeze(0).expand(N, P)
-        val = phi_val.unsqueeze(1).expand(N, P)
+        #ref = self.phi_inv_var.unsqueeze(0).expand(N, P)
+
+        #phi_inv_var_gs = self.phi_inv_var.data.numpy()
+        ref = gs.expand_dims(self.phi_inv_var.data.numpy(), 0)
+        ref = gs.repeat(ref,N, axis = 0)
+
+
+        val = gs.expand_dims(phi_val,1)
+        val = gs.repeat(val, P, axis = 1)
+
+        #val = phi_val.unsqueeze(1).expand(N, P)
+
         # print("val ", val)
-        values, index = torch.abs(ref - val).min(-1)
+
+        abs_difference = gs.abs(ref-val)
+
+        #values = abs_difference.min(-1)
+        index = gs.argmin(abs_difference, -1)
+
+        #values, index = torch.abs(ref - val).min(-1)
+        #values_gs,
         return self.sigma[index]
 
     def to(self, device):
