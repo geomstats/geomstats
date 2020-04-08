@@ -78,16 +78,6 @@ def split(ary, indices_or_sections, axis=0):
     return torch.split(ary, indices_or_sections, dim=axis)
 
 
-def while_loop(cond, body, loop_vars, maximum_iterations):
-    iteration = 0
-    while cond(*loop_vars):
-        loop_vars = body(*loop_vars)
-        iteration += 1
-        if iteration >= maximum_iterations:
-            break
-    return loop_vars
-
-
 def logical_or(x, y):
     return x or y
 

@@ -53,7 +53,6 @@ from tensorflow import (  # NOQA
     tanh,
     tile,
     where,
-    while_loop,
     zeros,
     zeros_like
 )

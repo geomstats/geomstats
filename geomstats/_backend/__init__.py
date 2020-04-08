@@ -98,7 +98,6 @@ BACKEND_ATTRIBUTES = {
         'vectorize',
         'vstack',
         'where',
-        'while_loop',
         'zeros',
         'zeros_like'
     ],
