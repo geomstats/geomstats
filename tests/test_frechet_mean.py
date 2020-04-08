@@ -113,7 +113,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         point_a = self.hyperbolic.random_uniform()
         point_b = self.hyperbolic.random_uniform()
         point_c = self.hyperbolic.random_uniform()
-        points = gs.concatenate([point_a, point_b, point_c], axis=0)
+        points = gs.stack([point_a, point_b, point_c], axis=0)
 
         mean = FrechetMean(metric=self.hyperbolic.metric)
         mean.fit(X=points)
