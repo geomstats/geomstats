@@ -123,14 +123,7 @@ def decorator(point_types):
                 args_point_types, args)
             kw_in_shapes, kw_in_ndims = kwargs_initial_shapes_and_ndims(
                 kwargs_point_types, kwargs)
-            print('in_shapes')
-            print(in_shapes)
-            print('in_ndims')
-            print(in_ndims)
-            print('kw_in_shapes')
-            print(kw_in_shapes)
-            print('kw_in_ndims')
-            print(kw_in_ndims)
+
             in_shapes.extend(kw_in_shapes)
             in_ndims.extend(kw_in_ndims)
 
