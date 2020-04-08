@@ -261,10 +261,3 @@ def copy(x):
 def array_from_sparse(indices, data, target_shape):
     return array(
         coo_matrix((data, list(zip(*indices))), target_shape).todense())
-
-
-def from_vector_to_diagonal_matrix(x):
-    n = shape(x)[-1]
-    identity_n = eye(n)
-    diagonals = einsum('ki,ij->kij', x, identity_n)
-    return diagonals

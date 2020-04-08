@@ -54,7 +54,6 @@ BACKEND_ATTRIBUTES = {
         'flatten',
         'flip',
         'floor',
-        'from_vector_to_diagonal_matrix',
         'gather',
         'get_mask_i_float',
         'greater',

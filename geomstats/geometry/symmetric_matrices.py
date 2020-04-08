@@ -66,6 +66,13 @@ class SymmetricMatrices(EmbeddedManifold):
             gs.array_from_sparse(indices, data, shape) for data in vec])
         return Matrices.make_symmetric(upper_triangular) * mask
 
+    @staticmethod
+    def from_vector_to_diagonal_matrix(x):
+        n = gs.shape(x)[-1]
+        identity_n = gs.eye(n)
+        diagonals = gs.einsum('ki,ij->kij', x, identity_n)
+        return diagonals
+
     def expm(self, x):
         """
         Compute the matrix exponential.
@@ -82,7 +89,7 @@ class SymmetricMatrices(EmbeddedManifold):
         """
         eigvals, eigvecs = gs.linalg.eigh(x)
         eigvals = gs.exp(eigvals)
-        eigvals = gs.from_vector_to_diagonal_matrix(eigvals)
+        eigvals = self.from_vector_to_diagonal_matrix(eigvals)
         transp_eigvecs = gs.transpose(eigvecs, axes=(0, 2, 1))
         exponential = gs.matmul(eigvecs, eigvals)
         exponential = gs.matmul(exponential, transp_eigvecs)
