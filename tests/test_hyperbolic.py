@@ -40,7 +40,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
     def test_projection_to_tangent_space(self):
         base_point = gs.array([1., 0., 0., 0.])
-        self.assertTrue(gs.eval(self.space.belongs(base_point)))
+        self.assertTrue(self.space.belongs(base_point))
 
         tangent_vec = self.space.projection_to_tangent_space(
             vector=gs.array([1., 2., 1., 3.]),
@@ -133,14 +133,14 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         METRIC = H2.metric
 
         base_point = gs.array([1., 0., 0.])
-        self.assertTrue(gs.eval(H2.belongs(base_point)))
+        self.assertTrue(H2.belongs(base_point))
 
         tangent_vec = H2.projection_to_tangent_space(
             vector=gs.array([1., 2., 1.]),
             base_point=base_point)
         exp = METRIC.exp(tangent_vec=tangent_vec,
                          base_point=base_point)
-        self.assertTrue(gs.eval(H2.belongs(exp)))
+        self.assertTrue(H2.belongs(exp))
 
     @geomstats.tests.np_and_pytorch_only
     def test_exp_vectorization(self):
@@ -170,8 +170,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         expected = gs.zeros((n_samples, dim))
 
         for i in range(n_samples):
-            expected[i] = gs.eval(
-                self.metric.exp(n_tangent_vecs[i], one_base_point))
+            expected[i] = self.metric.exp(n_tangent_vecs[i], one_base_point)
         expected = helper.to_vector(gs.array(expected))
         self.assertAllClose(result, expected)
 
@@ -182,8 +181,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
         expected = gs.zeros((n_samples, dim))
         for i in range(n_samples):
-            expected[i] = gs.eval(self.metric.exp(one_tangent_vec[i],
-                                  n_base_points[i]))
+            expected[i] = self.metric.exp(one_tangent_vec[i], n_base_points[i])
         expected = helper.to_vector(gs.array(expected))
         self.assertAllClose(result, expected)
 
@@ -194,8 +192,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
         expected = gs.zeros((n_samples, dim))
         for i in range(n_samples):
-            expected[i] = gs.eval(self.metric.exp(n_tangent_vecs[i],
-                                  n_base_points[i]))
+            expected[i] = self.metric.exp(n_tangent_vecs[i], n_base_points[i])
         expected = helper.to_vector(gs.array(expected))
         self.assertAllClose(result, expected)
 

@@ -236,10 +236,6 @@ def diag(x):
     return result
 
 
-def eval(x):
-    return x
-
-
 def ndim(x):
     return x.ndim
 
