@@ -123,17 +123,34 @@ def decorator(point_types):
                 args_point_types, args)
             kw_in_shapes, kw_in_ndims = kwargs_initial_shapes_and_ndims(
                 kwargs_point_types, kwargs)
+            print('in_shapes')
+            print(in_shapes)
+            print('in_ndims')
+            print(in_ndims)
+            print('kw_in_shapes')
+            print(kw_in_shapes)
+            print('kw_in_ndims')
+            print(kw_in_ndims)
+            initial_shapes = in_shapes
+            initial_ndims = in_ndims
+            if len(kw_in_shapes) > 0:
+                initial_shapes = in_shapes.extend(kw_in_shapes)
+                initial_ndims = in_ndims.extend(kw_in_ndims)
+            print('initial_shapes')
+            print(initial_shapes)
+            print('initial_ndims')
+            print(initial_ndims)
 
             vect_args = vectorize_args(args_point_types, args)
             vect_kwargs = vectorize_kwargs(kwargs_point_types, kwargs)
 
             result = function(*vect_args, **vect_kwargs)
 
-            if squeeze_output_dim_1(result, in_shapes, point_types):
+            if squeeze_output_dim_1(result, initial_shapes, point_types):
                 if result.shape[1] == 1:
                     result = gs.squeeze(result, axis=1)
 
-            if squeeze_output_dim_0(in_ndims, point_types):
+            if squeeze_output_dim_0(initial_ndims, point_types):
                 if result.shape[0] == 1:
                     result = gs.squeeze(result, axis=0)
             return result

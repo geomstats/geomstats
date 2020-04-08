@@ -89,10 +89,30 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
+    def test_decorator_with_squeeze_dim0_with_kwargs(self):
+        vec_a = gs.array([1, 2, 3])
+        vec_b = gs.array([0, 1, 0])
+        result = self.foo(tangent_vec_a=vec_a, tangent_vec_b=vec_b)
+        expected = gs.array([0, 2, 0])
+
+        self.assertAllClose(result.shape, expected.shape)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
     def test_decorator_without_squeeze_dim0(self):
         vec_a = gs.array([[1, 2, 3]])
         vec_b = gs.array([0, 1, 0])
         result = self.foo(vec_a, vec_b)
+        expected = gs.array([[0, 2, 0]])
+
+        self.assertAllClose(result.shape, expected.shape)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
+    def test_decorator_without_squeeze_dim0_with_kwargs(self):
+        vec_a = gs.array([[1, 2, 3]])
+        vec_b = gs.array([0, 1, 0])
+        result = self.foo(tangent_vec_a=vec_a, tangent_vec_b=vec_b)
         expected = gs.array([[0, 2, 0]])
 
         self.assertAllClose(result.shape, expected.shape)
