@@ -212,8 +212,37 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
     def test_inner_product_vectorization(self):
         n_samples = 3
 
+        one_point_a = gs.array([[0., 1.]])
+        one_point_b = gs.array([[2., 10.]])
+
+        result = self.metric.inner_product(one_point_a, one_point_b)
+        expected = gs.array([10.])
+        self.assertAllClose(gs.shape(result), (1,))
+        self.assertAllClose(result, expected)
+
+        one_point_a = gs.array([[0., 1.]])
+        one_point_b = gs.array([2., 10.])
+
+        result = self.metric.inner_product(one_point_a, one_point_b)
+        expected = gs.array([10.])
+        self.assertAllClose(gs.shape(result), (1,))
+        self.assertAllClose(result, expected)
+
+        one_point_a = gs.array([0., 1.])
+        one_point_b = gs.array([[2., 10.]])
+
+        result = self.metric.inner_product(one_point_a, one_point_b)
+        expected = gs.array([10.])
+        self.assertAllClose(gs.shape(result), (1,))
+        self.assertAllClose(result, expected)
+
         one_point_a = gs.array([0., 1.])
         one_point_b = gs.array([2., 10.])
+
+        result = self.metric.inner_product(one_point_a, one_point_b)
+        expected = 10.
+        self.assertAllClose(gs.shape(result), ())
+        self.assertAllClose(result, expected)
         n_points_a = gs.array([
             [2., 1.],
             [-2., -4.],
@@ -222,11 +251,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
             [2., 10.],
             [8., -1.],
             [-3., 6.]])
-
-        result = self.metric.inner_product(one_point_a, one_point_b)
-        expected = 10.
-        self.assertAllClose(gs.shape(result), ())
-        self.assertAllClose(result, expected)
 
         result = self.metric.inner_product(n_points_a, one_point_b)
         expected = gs.array([14., -44., 0.])
