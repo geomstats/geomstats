@@ -127,6 +127,15 @@ def decorator(point_types):
             vect_args = vectorize_args(args_point_types, args)
             vect_kwargs = vectorize_kwargs(kwargs_point_types, kwargs)
 
+            print('kwargs')
+            print(kwargs)
+            print('vect_kwargs')
+            print(vect_kwargs)
+
+            print('type(kwargs)')
+            print(type(kwargs))
+            print('type(vect_kwargs)')
+            print(type(vect_kwargs))
             result = function(*vect_args, **vect_kwargs)
 
             if squeeze_output_dim_1(result, in_shapes, point_types):
@@ -168,8 +177,6 @@ def kwargs_initial_shapes_and_ndims(point_types, kwargs):
 
     for i_arg, arg in enumerate(kwargs.values()):
         point_type = point_types[i_arg]
-        print('point_type:')
-        print(point_type)
 
         if point_type == 'scalar':
             arg = gs.array(arg)
@@ -193,23 +200,25 @@ def vectorize_args(point_types, args):
             vect_arg = gs.to_ndarray(arg, to_ndim=1)
             vect_arg = gs.to_ndarray(vect_arg, to_ndim=2, axis=1)
         elif point_type in ['vector', 'matrix']:
-            print('Going to_ndim[point_type]')
             vect_arg = gs.to_ndarray(
                 arg, to_ndim=POINT_TYPES_TO_NDIMS[point_type])
         vect_args.append(vect_arg)
+    return vect_args
 
 
 def vectorize_kwargs(point_types, kwargs):
-    vect_kwargs = []
-    for i_arg, arg in enumerate(kwargs):
+    vect_kwargs = {}
+    for i_arg, key_arg in enumerate(kwargs):
         point_type = point_types[i_arg]
+        arg = kwargs[key_arg]
         if point_type == 'else' or arg is None:
             vect_arg = arg
         elif point_type == 'scalar':
             vect_arg = gs.to_ndarray(arg, to_ndim=1)
             vect_arg = gs.to_ndarray(vect_arg, to_ndim=2, axis=1)
         elif point_type in ['vector', 'matrix']:
-            print('Going to_ndim[point_type]')
             vect_arg = gs.to_ndarray(
                 arg, to_ndim=POINT_TYPES_TO_NDIMS[point_type])
-        vect_kwargs.append(vect_arg)
+            vect_kwargs[key_arg] = vect_arg
+
+    return vect_kwargs
