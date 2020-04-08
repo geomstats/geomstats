@@ -1569,7 +1569,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             exp_bar = mean.estimate_
 
             exp_bar = gs.to_ndarray(exp_bar, to_ndim=2)
-            assert gs.ndim(exp_bar) == 2, gs.ndim(exp_bar)
 
         elif point_type == 'matrix':
             points = self.rotation_vector_from_matrix(points)
