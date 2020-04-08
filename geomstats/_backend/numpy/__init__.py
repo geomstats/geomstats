@@ -211,13 +211,6 @@ def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
     return np.vectorize(pyfunc, signature=signature)(x)
 
 
-# XXX(nkoep): Can we get rid of this now?
-def cond(pred, true_fn, false_fn):
-    if pred:
-        return true_fn()
-    return false_fn()
-
-
 def cast(x, dtype):
     return x.astype(dtype)
 

@@ -12,7 +12,6 @@ from tensorflow import (  # NOQA
     atan2 as arctan2,
     clip_by_value as clip,
     concat as concatenate,
-    cond,
     cos,
     cosh,
     divide,

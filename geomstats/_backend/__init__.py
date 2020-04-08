@@ -33,7 +33,6 @@ BACKEND_ATTRIBUTES = {
         'ceil',
         'clip',
         'concatenate',
-        'cond',
         'copy',
         'cos',
         'cosh',

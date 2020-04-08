@@ -107,12 +107,6 @@ def any(x, axis=None):
     return torch.from_numpy(numpy_result)
 
 
-def cond(pred, true_fn, false_fn):
-    if pred:
-        return true_fn()
-    return false_fn()
-
-
 def cast(x, dtype):
     return array(x).to(dtype)
 
