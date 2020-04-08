@@ -418,6 +418,7 @@ class HypersphereMetric(RiemannianMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
@@ -434,9 +435,6 @@ class HypersphereMetric(RiemannianMetric):
             Point on the hypersphere equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-
         # TODO(ninamiolane): Decide on metric.space or space.metric
         #  for the hypersphere
         # TODO(ninamiolane): Raise error when vector is not tangent

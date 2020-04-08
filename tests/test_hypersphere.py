@@ -142,8 +142,19 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
                  + 1e-12 * gs.array([-1., -2., 1., 1., .1]))
         point = point / gs.linalg.norm(point)
 
+        print('point')
+        print(point)
+        print('base_point')
+        print(base_point)
+
         log = self.metric.log(point=point, base_point=base_point)
+        print('log')
+        print(log)
+        print('base_point')
+        print(base_point)
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
+        print('result')
+        print(result)
         expected = point
 
         self.assertAllClose(result, expected)
