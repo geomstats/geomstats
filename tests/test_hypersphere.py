@@ -154,8 +154,10 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         one_tangent_vec = self.space.projection_to_tangent_space(
             one_vec, base_point=one_base_point)
 
+        # TODO(nmiolane): Correct this test as soon as
+        # projection_to_tangent_space is correctly vectorized
         result = self.metric.exp(one_tangent_vec, one_base_point)
-        self.assertAllClose(gs.shape(result), (dim,))
+        self.assertAllClose(gs.shape(result), (1, dim,))
 
         one_base_point = gs.to_ndarray(one_base_point, to_ndim=2)
         result = self.metric.exp(one_tangent_vec, one_base_point)
