@@ -87,7 +87,9 @@ def logical_and(x, y):
     return x and y
 
 
-def any(x, axis=0):
+def any(x, axis=None):
+    if axis is None:
+        return x.bool().any()
     numpy_result = _np.array(_np.any(_np.array(x), axis=axis))
     return torch.from_numpy(numpy_result)
 
@@ -176,7 +178,7 @@ def array(val):
 def all(x, axis=None):
     if axis is None:
         return x.bool().all()
-    numpy_result = _np.array(_np.all(_np.array(x), axis=axis).astype(int))
+    numpy_result = _np.array(_np.all(_np.array(x), axis=axis))
     return torch.from_numpy(numpy_result)
 
 
