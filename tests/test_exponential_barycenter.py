@@ -78,7 +78,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         point = self.so.random_uniform(self.n_samples)
         estimator = ExponentialBarycenter(self.so, max_iter=32, epsilon=1e-12)
         estimator.fit(point)
-        so_vector = SpecialOrthogonal(3)
+        so_vector = SpecialOrthogonal(3, point_type='vector')
         frechet_estimator = FrechetMean(
             so_vector.bi_invariant_metric, max_iter=32, epsilon=1e-10,
             point_type='vector')

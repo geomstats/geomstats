@@ -64,14 +64,13 @@ class SpecialEuclidean(LieGroup):
 
         self.epsilon = epsilon
 
-        self.default_point_type = point_type
+        super(SpecialEuclidean, self).__init__(
+            dimension=self.dimension, point_type=point_type)
         if point_type is None:
             self.default_point_type = 'vector' if n == 3 else 'matrix'
 
-        super(SpecialEuclidean, self).__init__(
-            dimension=self.dimension)
-
-        self.rotations = SpecialOrthogonal(n=n, epsilon=epsilon)
+        self.rotations = SpecialOrthogonal(
+            n=n, epsilon=epsilon, point_type=point_type)
         self.translations = Euclidean(dimension=n)
 
     def get_identity(self, point_type=None):

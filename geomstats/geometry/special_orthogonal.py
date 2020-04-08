@@ -52,16 +52,14 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         self.epsilon = epsilon
 
-        self.default_point_type = point_type
-        if point_type is None:
-            self.default_point_type = 'vector' if n == 3 else 'matrix'
-
         LieGroup.__init__(self,
-                          dimension=self.dimension)
+                          dimension=self.dimension, point_type=point_type)
         EmbeddedManifold.__init__(self,
                                   dimension=self.dimension,
                                   embedding_manifold=GeneralLinear(n=n))
         self.bi_invariant_metric = self.left_canonical_metric
+        if point_type is None:
+            self.default_point_type = 'vector' if n == 3 else 'matrix'
 
     def get_identity(self, point_type=None):
         """Get the identity of the group.

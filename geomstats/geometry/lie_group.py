@@ -65,7 +65,7 @@ class LieGroup(Manifold):
     and columns of the matrix.
     """
 
-    def __init__(self, dimension, point_type='matrix'):
+    def __init__(self, dimension, point_type='vector'):
         assert dimension > 0
         Manifold.__init__(self, dimension)
 
