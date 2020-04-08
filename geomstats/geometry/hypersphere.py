@@ -117,8 +117,6 @@ class Hypersphere(EmbeddedManifold):
         projected_point : array-like, shape=[n_samples, dimension + 1]
             Point projected on the hypersphere.
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-
         norm = self.embedding_metric.norm(point)
         projected_point = point / norm
 
