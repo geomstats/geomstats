@@ -64,8 +64,6 @@ def empty(shape, dtype=float64):
 def split(ary, indices_or_sections, axis=0):
     return torch.split(ary, indices_or_sections, dim=axis)
 
-CST_FOR_ERF = 8.0 / (3.0 * _np.pi) * (_np.pi - 3.0) / (4.0 - _np.pi)
-
 
 def while_loop(cond, body, loop_vars, maximum_iterations):
     iteration = 0
@@ -532,6 +530,12 @@ def cumsum(x, axis=None):
     return torch.cumsum(x, dim=axis)
 
 
+def cumprod(x, axis=None):
+    if axis is None:
+        return x.flatten().cumprod(dim=0)
+    return torch.cumprod(x, dim=axis)
+
+
 def array_from_sparse(indices, data, target_shape):
     return torch.sparse.FloatTensor(
         torch.LongTensor(indices).t(),
@@ -545,9 +549,6 @@ def from_vector_to_diagonal_matrix(x):
     diagonals = einsum('ki,ij->kij', x, identity_n)
     return diagonals
 
-def erf_approx(x):
-    return \
-        torch.sign(x) * \
-        torch.sqrt(1 - torch.exp(-x * x *
-                  (4 / _np.pi + CST_FOR_ERF * x * x) /
-                  (1 + CST_FOR_ERF * x * x)))
+
+def erf(x):
+    return torch.erf(x)
