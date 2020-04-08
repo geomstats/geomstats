@@ -180,7 +180,29 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
     @geomstats.tests.np_and_pytorch_only
-    def test_log_vectorization(self):
+    def test_log_vectorization_single_samples(self):
+        dim = self.dimension + 1
+
+        one_base_point = self.space.random_uniform()
+        one_point = self.space.random_uniform()
+
+        result = self.metric.log(one_point, one_base_point)
+        self.assertAllClose(gs.shape(result), (dim,))
+
+        one_base_point = gs.to_ndarray(one_base_point, to_ndim=2)
+        result = self.metric.log(one_point, one_base_point)
+        self.assertAllClose(gs.shape(result), (1, dim))
+
+        one_point = gs.to_ndarray(one_base_point, to_ndim=2)
+        result = self.metric.log(one_point, one_base_point)
+        self.assertAllClose(gs.shape(result), (1, dim))
+
+        one_base_point = self.space.random_uniform()
+        result = self.metric.log(one_point, one_base_point)
+        self.assertAllClose(gs.shape(result), (1, dim))
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_log_vectorization_n_samples(self):
         n_samples = self.n_samples
         dim = self.dimension + 1
 
@@ -335,8 +357,14 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         point_b = (1. / gs.sqrt(435.)
                    * gs.array([1., -20., -5., 0., 3.]))
         log = self.metric.log(point=point_a, base_point=point_b)
+
+        self.assertAllClose(gs.shape(log), (5,))
+
         result = self.metric.norm(vector=log)
+        self.assertAllClose(gs.shape(result), ())
+
         expected = self.metric.dist(point_a, point_b)
+        self.assertAllClose(gs.shape(expected), ())
 
         self.assertAllClose(result, expected)
 

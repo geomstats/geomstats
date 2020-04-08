@@ -460,6 +460,7 @@ class HypersphereMetric(RiemannianMetric):
 
         return exp
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def log(self, point, base_point):
         """Compute the Riemannian logarithm of a point.
 
@@ -476,8 +477,9 @@ class HypersphereMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        # TODO(nmiolane): Remove these asserts
+        assert gs.ndim(point) == 2, point
+        assert gs.ndim(base_point) == 2
 
         norm_base_point = self.embedding_metric.norm(base_point)
         norm_point = self.embedding_metric.norm(point)
