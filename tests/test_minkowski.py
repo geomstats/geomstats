@@ -48,6 +48,7 @@ class TestMinkowskiMethods(geomstats.tests.TestCase):
         point_b = gs.array([2., 10.])
 
         result = self.metric.inner_product(point_a, point_b)
+        expected = gs.dot(point_a, point_b)
         expected -= (2 * point_a[self.time_like_dim]
                      * point_b[self.time_like_dim])
 
@@ -55,8 +56,8 @@ class TestMinkowskiMethods(geomstats.tests.TestCase):
 
     def test_inner_product_vectorization(self):
         n_samples = 3
-        one_point_a = gs.array([[-1., 0.]])
-        one_point_b = gs.array([[1.0, 0.]])
+        one_point_a = gs.array([-1., 0.])
+        one_point_b = gs.array([1.0, 0.])
 
         n_points_a = gs.array([
             [-1., 0.],
@@ -69,8 +70,8 @@ class TestMinkowskiMethods(geomstats.tests.TestCase):
 
         result = self.metric.inner_product(one_point_a, one_point_b)
         expected = gs.dot(one_point_a, gs.transpose(one_point_b))
-        expected -= (2 * one_point_a[:, self.time_like_dim]
-                     * one_point_b[:, self.time_like_dim])
+        expected -= (2 * one_point_a[self.time_like_dim]
+                     * one_point_b[self.time_like_dim])
 
         result_no = self.metric.inner_product(n_points_a,
                                               one_point_b)
