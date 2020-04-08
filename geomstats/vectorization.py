@@ -142,6 +142,7 @@ def decorator(point_types):
 
 
 def args_initial_shapes_and_ndims(point_types, args):
+    """Extract shapes and ndims of input args."""
     initial_shapes = []
     initial_ndims = []
 
@@ -161,6 +162,7 @@ def args_initial_shapes_and_ndims(point_types, args):
 
 
 def kwargs_initial_shapes_and_ndims(point_types, kwargs):
+    """Extract shapes and ndims of input kwargs."""
     initial_shapes = []
     initial_ndims = []
 
@@ -180,6 +182,7 @@ def kwargs_initial_shapes_and_ndims(point_types, kwargs):
 
 
 def vectorize_args(point_types, args):
+    """Vectorize input args."""
     vect_args = []
     for i_arg, arg in enumerate(args):
         point_type = point_types[i_arg]
@@ -196,6 +199,7 @@ def vectorize_args(point_types, args):
 
 
 def vectorize_kwargs(point_types, kwargs):
+    """Vectorize input kwargs."""
     vect_kwargs = {}
     for i_arg, key_arg in enumerate(kwargs):
         point_type = point_types[i_arg]
