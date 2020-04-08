@@ -113,11 +113,6 @@ def cond(pred, true_fn, false_fn):
     return false_fn()
 
 
-def boolean_mask(x, mask):
-    idx = _np.argwhere(_np.asarray(mask))
-    return x[idx]
-
-
 def cast(x, dtype):
     return array(x).to(dtype)
 
