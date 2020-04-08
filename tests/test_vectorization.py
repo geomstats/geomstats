@@ -12,14 +12,14 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         @geomstats.vectorization.decorator(['vector', 'vector'])
         def foo(tangent_vec_a, tangent_vec_b):
             result = gs.einsum(
-                'ni,ni->ni', tangent_vec_a, tangent_vec_b)
+                '...i,...i->...i', tangent_vec_a, tangent_vec_b)
             result = helper.to_vector(result)
             return result
 
         @geomstats.vectorization.decorator(['vector', 'vector'])
         def foo_scalar_output(tangent_vec_a, tangent_vec_b):
             result = gs.einsum(
-                'ni,ni->n', tangent_vec_a, tangent_vec_b)
+                '...i,...i->...', tangent_vec_a, tangent_vec_b)
             result = helper.to_scalar(result)
             return result
 
@@ -78,7 +78,6 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.is_vector_vectorized = is_vector_vectorized
         self.is_matrix_vectorized = is_matrix_vectorized
 
-    @geomstats.tests.np_and_tf_only
     def test_decorator_with_squeeze_dim0(self):
         vec_a = gs.array([1, 2, 3])
         vec_b = gs.array([0, 1, 0])
@@ -88,7 +87,6 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.assertAllClose(result.shape, expected.shape)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_decorator_with_squeeze_dim0_with_kwargs(self):
         vec_a = gs.array([1, 2, 3])
         vec_b = gs.array([0, 1, 0])
@@ -98,7 +96,6 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.assertAllClose(result.shape, expected.shape)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_decorator_without_squeeze_dim0(self):
         vec_a = gs.array([[1, 2, 3]])
         vec_b = gs.array([0, 1, 0])
@@ -108,7 +105,6 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.assertAllClose(result.shape, expected.shape)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_decorator_without_squeeze_dim0_with_kwargs(self):
         vec_a = gs.array([[1, 2, 3]])
         vec_b = gs.array([0, 1, 0])
@@ -118,7 +114,6 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.assertAllClose(result.shape, expected.shape)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_decorator_vectorization(self):
         vec_a = gs.array([[1, 2, 3], [1, 2, 3]])
         vec_b = gs.array([0, 1, 0])
@@ -128,7 +123,6 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.assertAllClose(result.shape, expected.shape)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_decorator_vectorization_with_kwargs(self):
         vec_a = gs.array([[1, 2, 3], [1, 2, 3]])
         vec_b = gs.array([0, 1, 0])
@@ -138,7 +132,6 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.assertAllClose(result.shape, expected.shape)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_decorator_scalar_with_squeeze_dim1(self):
         vec_a = gs.array([1, 2, 3])
         vec_b = gs.array([0, 1, 0])
@@ -147,7 +140,6 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_decorator_scalar_with_squeeze_dim1_with_kwargs(self):
         vec_a = gs.array([1, 2, 3])
         vec_b = gs.array([0, 1, 0])
@@ -157,7 +149,6 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_decorator_scalar_without_squeeze_dim1(self):
         vec_a = gs.array([1, 2, 3])
         vec_b = gs.array([0, 1, 0])
@@ -167,7 +158,6 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_decorator_scalar_without_squeeze_dim1_with_kwargs(self):
         vec_a = gs.array([1, 2, 3])
         vec_b = gs.array([0, 1, 0])
@@ -178,7 +168,6 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_decorator_scalar_output_vectorization(self):
         vec_a = gs.array([[1, 2, 3], [1, 2, 3]])
         vec_b = gs.array([0, 1, 0])
@@ -188,7 +177,6 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.assertAllClose(result.shape, expected.shape)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_decorator_scalar_output_vectorization_with_kwargs(self):
         vec_a = gs.array([[1, 2, 3], [1, 2, 3]])
         vec_b = gs.array([0, 1, 0])
