@@ -222,6 +222,10 @@ def cast(x, dtype):
     return x.astype(dtype)
 
 
+# TODO(nkoep): Rename this to emphasize that the behavior is different from
+#              np.diag. Given an n-by-n matrix A, this function creates a
+#              diagonal matrix for each of the n rows of A, returning an
+#              n-by-n-by-n array.
 def diag(x):
     x = to_ndarray(x, to_ndim=2)
     _, n = shape(x)
