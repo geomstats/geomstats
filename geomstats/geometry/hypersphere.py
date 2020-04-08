@@ -151,6 +151,7 @@ class Hypersphere(EmbeddedManifold):
 
         return tangent_vec
 
+    @geomstats.vectorization.decorator(['else', 'vector'])
     def spherical_to_extrinsic(self, point_spherical):
         """Convert point from spherical to extrinsic coordinates.
 
@@ -185,6 +186,7 @@ class Hypersphere(EmbeddedManifold):
 
         return point_extrinsic
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def tangent_spherical_to_extrinsic(self, tangent_vec_spherical,
                                        base_point_spherical):
         """Convert tangent vector from spherical to extrinsic coordinates.
@@ -245,6 +247,8 @@ class Hypersphere(EmbeddedManifold):
             Point on the hypersphere, in extrinsic coordinates in
             Euclidean space.
         """
+        assert gs.ndim(point_intrinsic) == 2, point_intrinsic
+
         sq_coord_0 = 1. - gs.linalg.norm(point_intrinsic, axis=-1) ** 2
         if gs.any(gs.less(sq_coord_0, 0.)):
             raise ValueError('Square-root of a negative number.')
@@ -273,6 +277,7 @@ class Hypersphere(EmbeddedManifold):
         point_intrinsic : array-like, shape=[n_samples, dimension]
             Point on the hypersphere, in intrinsic coordinates.
         """
+        assert gs.ndim(point_extrinsic) == 2, point_extrinsic
         point_intrinsic = point_extrinsic[:, 1:]
 
         return point_intrinsic
