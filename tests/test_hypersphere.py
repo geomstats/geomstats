@@ -512,6 +512,16 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         """
         dim = 2
         sphere = Hypersphere(dim)
+
+        points_spherical = gs.array([gs.pi / 2, 0])
+        result = sphere.spherical_to_extrinsic(points_spherical)
+        expected = gs.array([1., 0., 0.])
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_spherical_to_extrinsic_vectorization(self):
+        dim = 2
+        sphere = Hypersphere(dim)
         points_spherical = gs.array([[gs.pi / 2, 0],
                                      [gs.pi / 6, gs.pi / 4]])
         result = sphere.spherical_to_extrinsic(points_spherical)
