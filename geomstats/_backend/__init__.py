@@ -38,6 +38,7 @@ BACKEND_ATTRIBUTES = {
         'copy',
         'cos',
         'cosh',
+        'cumprod',
         'cumsum',
         'diag',
         'diagonal',
