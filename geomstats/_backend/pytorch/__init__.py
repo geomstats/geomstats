@@ -4,15 +4,19 @@ import numpy as _np
 import torch
 from torch import (  # NOQA
     abs,
+    acos as arccos,
     arange,
     argmax,
     argmin,
+    asin as arcsin,
+    atan2 as arctan2,
     ceil,
     clamp as clip,
     cos,
     cosh,
     diag,
     diagonal,
+    div as divide,
     empty_like,
     eq,
     exp,
@@ -21,24 +25,33 @@ from torch import (  # NOQA
     float32,
     float64,
     floor,
+    fmod as mod,
+    ger as outer,
     gt as greater,
     int32,
     int64,
     isnan,
+    le as less_equal,
     log,
+    lt as less,
     matmul,
+    max as amax,
     meshgrid,
+    min as amin,
     nonzero,
     ones,
     ones_like,
+    repeat_interleave as repeat,
     reshape,
     sign,
     sin,
     sinh,
+    stack,
     std,
     tan,
     tanh,
     tril,
+    where,
     zeros,
     zeros_like
 )
@@ -100,47 +113,23 @@ def cond(pred, true_fn, false_fn):
     return false_fn()
 
 
-def amax(x):
-    return torch.max(x)
-
-
-def amin(x):
-    return torch.min(x)
-
-
 def boolean_mask(x, mask):
     idx = _np.argwhere(_np.asarray(mask))
     return x[idx]
-
-
-def arctan2(*args, **kwargs):
-    return torch.atan2(*args, **kwargs)
 
 
 def cast(x, dtype):
     return array(x).to(dtype)
 
 
-def divide(*args, **kwargs):
-    return torch.div(*args, **kwargs)
-
-
-def repeat(a, repeats, axis=None):
-    return torch.repeat_interleave(a, repeats, axis)
-
-
-def concatenate(seq, axis=0, out=None):
+def concatenate(seq, axis=0):
     # XXX(nkoep): Why do we cast to float32 instead of float64 here?
     seq = [cast(t, float32) for t in seq]
-    return torch.cat(seq, dim=axis, out=out)
+    return torch.cat(seq, dim=axis)
 
 
 def hstack(seq):
     return concatenate(seq, axis=1)
-
-
-def stack(*args, **kwargs):
-    return torch.stack(*args, **kwargs)
 
 
 def vstack(seq):
@@ -211,14 +200,6 @@ def arcosh(x):
     return torch.log(x + torch.sqrt(x * x - 1))
 
 
-def arcsin(val):
-    return torch.asin(val)
-
-
-def arccos(val):
-    return torch.acos(val)
-
-
 def shape(val):
     return val.shape
 
@@ -251,14 +232,6 @@ def sqrt(x):
 #              In the future, we may simply use that function instead.
 def isclose(*args, **kwargs):
     return torch.from_numpy(_np.isclose(*args, **kwargs))
-
-
-def less(a, b):
-    return torch.le(a, b)
-
-
-def less_equal(a, b):
-    return torch.le(a, b)
 
 
 def sum(x, axis=None, keepdims=None, **kwargs):
@@ -327,7 +300,7 @@ def T(x):
 def transpose(x, axes=None):
     if axes:
         return x.permute(axes)
-    if len(shape(x)) == 1:
+    if x.dim() == 1:
         return x
     return x.t()
 
@@ -335,16 +308,12 @@ def transpose(x, axes=None):
 def squeeze(x, axis=None):
     if axis is None:
         return torch.squeeze(x)
-    return torch.squeeze(x, axis)
+    return torch.squeeze(x, dim=axis)
 
 
 def trace(*args, **kwargs):
     trace = _np.trace(*args, **kwargs)
     return torch.from_numpy(_np.array(trace)).float()
-
-
-def mod(*args, **kwargs):
-    return torch.fmod(*args, **kwargs)
 
 
 def arctanh(x):
@@ -375,10 +344,6 @@ def triu_indices(*args, **kwargs):
     return tuple(map(torch.from_numpy, _np.triu_indices(*args, **kwargs)))
 
 
-def where(condition, x, y):
-    return torch.where(condition, x, y)
-
-
 def tile(x, y):
     # TODO(johmathe): Native tile implementation
     return array(_np.tile(x, y))
@@ -388,20 +353,12 @@ def expand_dims(x, axis=0):
     return torch.unsqueeze(x, dim=axis)
 
 
-def outer(*args, **kwargs):
-    return torch.ger(*args, **kwargs)
-
-
 def eval(x):
     return x
 
 
 def ndim(x):
     return x.dim()
-
-
-def seed(x):
-    torch.manual_seed(x)
 
 
 def prod(x, axis=None):
