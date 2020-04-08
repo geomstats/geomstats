@@ -334,14 +334,15 @@ class ZetaPhiStorage(object):
             print("\t Number of possible variance is now : " + str(len(self.sigma)) + "/" + str(max_nf))
 
 
-        sigma_cube = self.sigma ** 3
+        #sigma_cube = self.sigma ** 3
 
-        factor_normalization, log_grad_zeta = zeta_dlogzetat(self.sigma, dimension)
+        #factor_normalization, log_grad_zeta = zeta_dlogzetat(self.sigma.data.numpy(), dimension)
 
-        self.phi_inv_var = sigma_cube * log_grad_zeta
-
+        #self.phi_inv_var = sigma_cube * log_grad_zeta
 
         #self.phi_inv_var = (self.sigma ** 3 * log_grad_zeta(self.sigma, dimension)).detach()
+        self.phi_inv_var = (self.sigma ** 3 * log_grad_zeta(self.sigma, dimension)).detach()
+
         print(self.phi_inv_var.type())
 
     def zeta(self, sigma):
@@ -467,8 +468,8 @@ def log_grad_zeta(x, N):
     # print("ins.grad ", ins.grad)
     # print("log_grad ",log_grad)
     #return ZETA_CST * sigma * r.sum(0) * (1/(2**(N-1))),sigma.grad.data
-    return ZETA_CST * sigma * r.sum(0) * (1 / (2 ** (N - 1))) , log_grad
-    #return sigma.grad.data
+    #return ZETA_CST * sigma * r.sum(0) * (1 / (2 ** (N - 1))) , log_grad
+    return sigma.grad.data
 
 def gaussianPDF(data, means, variances, distance, norm_func, metric):
     # norm_func = zeta
