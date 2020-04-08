@@ -361,7 +361,9 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         points = geodesic(t)
 
         result = self.space.belongs(points)
-        expected = gs.array(n_geodesic_points * [[True]])
+        expected = n_geodesic_points * [[True]]
+        print(result)
+        print(expected)
 
         self.assertAllClose(expected, result)
 

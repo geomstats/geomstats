@@ -79,7 +79,10 @@ class Hypersphere(EmbeddedManifold):
                 logging.warning(
                     'Use the extrinsic coordinates to '
                     'represent points on the hypersphere.')
-            return gs.array([[False]])
+            belongs = False
+            if gs.ndim(point) == 2:
+                belongs = gs.tile([belongs], (point.shape[0],))
+            return belongs
         sq_norm = self.embedding_metric.squared_norm(point)
         diff = gs.abs(sq_norm - 1)
         return gs.less_equal(diff, tolerance)
@@ -122,6 +125,7 @@ class Hypersphere(EmbeddedManifold):
 
         return projected_point
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def projection_to_tangent_space(self, vector, base_point):
         """Project a vector to the tangent space.
 
@@ -142,7 +146,6 @@ class Hypersphere(EmbeddedManifold):
             Tangent vector in the tangent space of the hypersphere
             at the base point.
         """
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
         sq_norm = self.embedding_metric.squared_norm(base_point)
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm

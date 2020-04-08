@@ -90,12 +90,14 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
             Array of booleans indicating whether the corresponding points
             belong to the hyperbolic space.
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        _, point_dim = point.shape
+        point_dim = point.shape[-1]
         if point_dim is not self.dimension + 1:
+            belongs = False
             if point_dim is self.dimension and self.coords_type == 'intrinsic':
-                return gs.array([[True]])
-            return gs.array([[False]])
+                belongs = True
+            if gs.ndim(point) == 2:
+                belongs = gs.tile([belongs], (point.shape[0],))
+            return belongs
 
         sq_norm = self.embedding_metric.squared_norm(point)
         euclidean_sq_norm = gs.linalg.norm(point, axis=-1) ** 2
@@ -135,8 +137,10 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         mask_not_0_float = gs.cast(mask_not_0, gs.float32)
         projected_point = point
 
-        projected_point = mask_not_0_float * (
-            point / real_norm)
+        normalized_point = gs.einsum(
+            '...,...i->...i', 1. / real_norm, point)
+        projected_point = gs.einsum(
+            '...,...i->...i', mask_not_0_float, normalized_point)
         return projected_point
 
     def projection_to_tangent_space(self, vector, base_point):
@@ -170,7 +174,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
 
         coef = inner_prod / sq_norm
 
-        tangent_vec = vector - gs.einsum('...i,...j->...j', coef, base_point)
+        tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
         return tangent_vec
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
@@ -342,8 +346,8 @@ class HyperboloidMetric(HyperbolicMetric):
             (gs.sinh(norm_tangent_vec) / (norm_tangent_vec)))
 
         exp = (
-            gs.einsum('...i,...j->...j', coef_1, base_point)
-            + gs.einsum('...i,...j->...j', coef_2, tangent_vec))
+            gs.einsum('...,...j->...j', coef_1, base_point)
+            + gs.einsum('...,...j->...j', coef_2, tangent_vec))
 
         hyperbolic_space = Hyperboloid(dimension=self.dimension)
         exp = hyperbolic_space.regularize(exp)

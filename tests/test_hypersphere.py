@@ -113,9 +113,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         point = gs.array([0., 5., 6., 2., -1.])
         point = point / gs.linalg.norm(point)
 
-        assert gs.ndim(point) == 1
-        assert gs.ndim(base_point) == 1
-
         log = self.metric.log(point=point, base_point=base_point)
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
@@ -142,7 +139,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
                  + 1e-12 * gs.array([-1., -2., 1., 1., .1]))
         point = point / gs.linalg.norm(point)
 
-
         log = self.metric.log(point=point, base_point=base_point)
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
@@ -158,10 +154,8 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         one_tangent_vec = self.space.projection_to_tangent_space(
             one_vec, base_point=one_base_point)
 
-        # TODO(nmiolane): Correct this test as soon as
-        # projection_to_tangent_space is correctly vectorized
         result = self.metric.exp(one_tangent_vec, one_base_point)
-        self.assertAllClose(gs.shape(result), (1, dim,))
+        self.assertAllClose(gs.shape(result), (dim,))
 
         one_base_point = gs.to_ndarray(one_base_point, to_ndim=2)
         result = self.metric.exp(one_tangent_vec, one_base_point)
