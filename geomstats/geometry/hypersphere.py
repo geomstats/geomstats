@@ -147,7 +147,7 @@ class Hypersphere(EmbeddedManifold):
         sq_norm = self.embedding_metric.squared_norm(base_point)
         inner_prod = self.embedding_metric.inner_product(base_point, vector)
         coef = inner_prod / sq_norm
-        tangent_vec = vector - gs.einsum('...i,...j->...j', coef, base_point)
+        tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
 
         return tangent_vec
 
