@@ -120,7 +120,6 @@ class TestMinkowskiMethods(geomstats.tests.TestCase):
         result = self.metric.exp(tangent_vec=vector,
                                  base_point=base_point)
         expected = base_point + vector
-        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
     def test_exp_vectorization(self):
@@ -158,7 +157,6 @@ class TestMinkowskiMethods(geomstats.tests.TestCase):
 
         result = self.metric.log(point=point, base_point=base_point)
         expected = point - base_point
-        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
     def test_log_vectorization(self):

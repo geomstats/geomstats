@@ -78,13 +78,12 @@ class MinkowskiMetric(RiemannianMetric):
         inner_prod_mat = gs.eye(self.dimension - 1, self.dimension - 1)
         first_row = gs.array([0.] * (self.dimension - 1))
         first_row = gs.to_ndarray(first_row, to_ndim=2, axis=1)
-        inner_prod_mat = gs.vstack([gs.transpose(first_row),
-                                    inner_prod_mat])
+        inner_prod_mat = gs.vstack(
+            [gs.transpose(first_row), inner_prod_mat])
 
         first_column = gs.array([-1.] + [0.] * (self.dimension - 1))
         first_column = gs.to_ndarray(first_column, to_ndim=2, axis=1)
-        inner_prod_mat = gs.hstack([first_column,
-                                    inner_prod_mat])
+        inner_prod_mat = gs.hstack([first_column, inner_prod_mat])
 
         return inner_prod_mat
 
@@ -105,8 +104,6 @@ class MinkowskiMetric(RiemannianMetric):
         exp: array-like, shape=[n_samples, dimension]
                           or shape-[n_samples, dimension]
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
         exp = base_point + tangent_vec
         return exp
 
@@ -127,7 +124,5 @@ class MinkowskiMetric(RiemannianMetric):
         log: array-like, shape=[n_samples, dimension]
                           or shape-[n_samples, dimension]
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
         log = point - base_point
         return log
