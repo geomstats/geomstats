@@ -209,9 +209,7 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    def test_inner_product_vectorization(self):
-        n_samples = 3
-
+    def test_inner_product_vectorization_single_sample(self):
         one_point_a = gs.array([[0., 1.]])
         one_point_b = gs.array([[2., 10.]])
 
@@ -243,6 +241,9 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
         expected = 10.
         self.assertAllClose(gs.shape(result), ())
         self.assertAllClose(result, expected)
+
+    def test_inner_product_vectorization_n_samples(self):
+        n_samples = 3
         n_points_a = gs.array([
             [2., 1.],
             [-2., -4.],
@@ -251,6 +252,63 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
             [2., 10.],
             [8., -1.],
             [-3., 6.]])
+
+        one_point_a = gs.array([0., 1.])
+        one_point_b = gs.array([2., 10.])
+
+        result = self.metric.inner_product(n_points_a, one_point_b)
+        expected = gs.array([14., -44., 0.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        result = self.metric.inner_product(one_point_a, n_points_b)
+        expected = gs.array([10., -1., 6.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        result = self.metric.inner_product(n_points_a, n_points_b)
+        expected = gs.array([14., -12., 21.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        one_point_a = gs.array([[0., 1.]])
+        one_point_b = gs.array([[2., 10]])
+
+        result = self.metric.inner_product(n_points_a, one_point_b)
+        expected = gs.array([14., -44., 0.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        result = self.metric.inner_product(one_point_a, n_points_b)
+        expected = gs.array([10., -1., 6.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        result = self.metric.inner_product(n_points_a, n_points_b)
+        expected = gs.array([14., -12., 21.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        one_point_a = gs.array([[0., 1.]])
+        one_point_b = gs.array([2., 10.])
+
+        result = self.metric.inner_product(n_points_a, one_point_b)
+        expected = gs.array([14., -44., 0.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        result = self.metric.inner_product(one_point_a, n_points_b)
+        expected = gs.array([10., -1., 6.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        result = self.metric.inner_product(n_points_a, n_points_b)
+        expected = gs.array([14., -12., 21.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        one_point_a = gs.array([0., 1.])
+        one_point_b = gs.array([[2., 10.]])
 
         result = self.metric.inner_product(n_points_a, one_point_b)
         expected = gs.array([14., -44., 0.])
