@@ -45,13 +45,16 @@ from torch import (  # NOQA
 
 from . import linalg  # NOQA
 from . import random  # NOQA
-from geomstats._backend.utils import mark_not_supported
+from geomstats._backend.utils import mark_not_supported, alias_argument_names
 
 
 flip = mark_not_supported
 hsplit = mark_not_supported
 searchsorted = mark_not_supported
 vectorize = mark_not_supported
+
+
+clip = alias_argument_names(a="input", a_min="min", a_max="max")(clip)
 
 
 def empty(shape, dtype=float64):
