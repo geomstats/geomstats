@@ -3171,7 +3171,15 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                         metric=metric)
                     expected = reg_tangent_vec
                     inv_expected = - expected
-
+                    print((result - expected))
+                    print(gs.linalg.norm(expected)*5e-3)
+                    print((result - expected)/gs.linalg.norm(expected))
+                    print(result - inv_expected)
+                    print(result - inv_expected/gs.linalg.norm(expected))
+                    print(gs.eval(gs.allclose(
+                            result, expected, atol = 1e-08, rtol=5e-3)))
+                    print(gs.eval(gs.allclose(
+                            result, inv_expected, rtol=5e-3)))
                     self.assertTrue(
                         gs.eval(gs.allclose(
                             result, expected, atol=5e-3))
