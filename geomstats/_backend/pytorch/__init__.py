@@ -45,16 +45,13 @@ from torch import (  # NOQA
 
 from . import linalg  # NOQA
 from . import random  # NOQA
+from geomstats._backend.utils import mark_not_supported
 
 
-def _raise_not_implemented_error(*args, **kwargs):
-    raise NotImplementedError
-
-
-flip = _raise_not_implemented_error
-hsplit = _raise_not_implemented_error
-searchsorted = _raise_not_implemented_error
-vectorize = _raise_not_implemented_error
+flip = mark_not_supported
+hsplit = mark_not_supported
+searchsorted = mark_not_supported
+vectorize = mark_not_supported
 
 
 def empty(shape, dtype=float64):
