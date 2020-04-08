@@ -597,7 +597,7 @@ def zeta_dlogzetat(sigma, dim):
 
     Parameters
     ----------
-    sigma : array-like, shape=[n_samples, 1]
+    sigma : array-like, shape=[n]
         Value of variance.
 
     dim : int
@@ -605,8 +605,9 @@ def zeta_dlogzetat(sigma, dim):
 
     Returns
     -------
-    normalization_factor : array-like, shape=[n_samples, 1]
+    normalization_factor : array-like, shape=[n]
     """
+    sigma = gs.transpose(gs.to_ndarray(sigma, to_ndim=2))
     dim_range = gs.arange(0, dim, 1.)
     alpha = compute_alpha(dim, dim_range)
 
@@ -644,13 +645,13 @@ def zeta_dlogzetat(sigma, dim):
 
     log_grad_zeta = grad_term_1 + (grad_term_21 * grad_term_22)
 
-    return normalisation_coef, log_grad_zeta
+    return gs.squeeze(normalisation_coef), gs.squeeze(log_grad_zeta)
 
 
 import numpy as np
 
 if __name__ == "__main__":
-    a, b = zeta_dlogzetat(gs.array([[0.5], [1.2], [1.5]]), 4)
+    a, b = zeta_dlogzetat(gs.array([[0.5, 1.2 , 1.5]]), 4)
     print(a,b)
     a_o, b_o = log_grad_zeta(torch.Tensor([0.5, 1.2, 1.5]), 4)
     print(a_o, b_o)
