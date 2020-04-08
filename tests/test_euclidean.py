@@ -48,7 +48,22 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
         self.assertAllClose(gs.shape(result), (n_samples,))
         self.assertAllClose(result, expected)
 
-    def test_norm_vectorization(self):
+    def test_norm_vectorization_single_sample(self):
+        one_point = gs.array([[0., 1.]])
+
+        result = self.metric.norm(one_point)
+        expected = gs.array([1.])
+        self.assertAllClose(gs.shape(result), (1,))
+        self.assertAllClose(result, expected)
+
+        one_point = gs.array([0., 1.])
+
+        result = self.metric.norm(one_point)
+        expected = 1.
+        self.assertAllClose(gs.shape(result), ())
+        self.assertAllClose(result, expected)
+
+    def test_norm_vectorization_n_samples(self):
         n_samples = self.n_samples
         n_points = gs.array([
             [2., 1.],
