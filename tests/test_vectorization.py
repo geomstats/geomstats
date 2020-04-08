@@ -129,10 +129,30 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
+    def test_decorator_vectorization_with_kwargs(self):
+        vec_a = gs.array([[1, 2, 3], [1, 2, 3]])
+        vec_b = gs.array([0, 1, 0])
+        result = self.foo(tangent_vec_a=vec_a, tangent_vec_b=vec_b)
+        expected = gs.array([[0, 2, 0], [0, 2, 0]])
+
+        self.assertAllClose(result.shape, expected.shape)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
     def test_decorator_scalar_with_squeeze_dim1(self):
         vec_a = gs.array([1, 2, 3])
         vec_b = gs.array([0, 1, 0])
         result = self.foo_scalar_output(vec_a, vec_b)
+        expected = 2
+
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
+    def test_decorator_scalar_with_squeeze_dim1_with_kwargs(self):
+        vec_a = gs.array([1, 2, 3])
+        vec_b = gs.array([0, 1, 0])
+        result = self.foo_scalar_output(
+            tangent_vec_a=vec_a, tangent_vec_b=vec_b)
         expected = 2
 
         self.assertAllClose(result, expected)
@@ -148,6 +168,17 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
+    def test_decorator_scalar_without_squeeze_dim1_with_kwargs(self):
+        vec_a = gs.array([1, 2, 3])
+        vec_b = gs.array([0, 1, 0])
+        scalar = 4
+        result = self.foo_scalar_input_output(
+            tangent_vec_a=vec_a, tangent_vec_b=vec_b, in_scalar=scalar)
+        expected = 8
+
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
     def test_decorator_scalar_output_vectorization(self):
         vec_a = gs.array([[1, 2, 3], [1, 2, 3]])
         vec_b = gs.array([0, 1, 0])
@@ -157,10 +188,39 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.assertAllClose(result.shape, expected.shape)
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
+    def test_decorator_scalar_output_vectorization_with_kwargs(self):
+        vec_a = gs.array([[1, 2, 3], [1, 2, 3]])
+        vec_b = gs.array([0, 1, 0])
+        result = self.foo_scalar_output(
+            tangent_vec_a=vec_a, tangent_vec_b=vec_b)
+        expected = gs.array([2, 2])
+
+        self.assertAllClose(result.shape, expected.shape)
+        self.assertAllClose(result, expected)
+
     def test_decorator_optional_input(self):
         vec_a = gs.array([1, 2, 3])
         vec_b = gs.array([0, 1, 0])
         result = self.foo_optional_input(vec_a, vec_b)
+        expected = 2
+
+        self.assertAllClose(result, expected)
+
+    def test_decorator_optional_input_with_kwargs(self):
+        vec_a = gs.array([1, 2, 3])
+        vec_b = gs.array([0, 1, 0])
+        result = self.foo_optional_input(
+            tangent_vec_a=vec_a, tangent_vec_b=vec_b, in_scalar=3)
+        expected = 6
+
+        self.assertAllClose(result, expected)
+
+    def test_decorator_optional_input_with_optional_kwargs(self):
+        vec_a = gs.array([1, 2, 3])
+        vec_b = gs.array([0, 1, 0])
+        result = self.foo_optional_input(
+            tangent_vec_a=vec_a, tangent_vec_b=vec_b)
         expected = 2
 
         self.assertAllClose(result, expected)

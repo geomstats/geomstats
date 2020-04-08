@@ -116,8 +116,8 @@ def decorator(point_types):
 
     def aux_decorator(function):
         def wrapper(*args, **kwargs):
-            kwargs_point_types = point_types[-len(kwargs):]
             args_point_types = point_types[:len(args)]
+            kwargs_point_types = point_types[len(args):]
 
             in_shapes, in_ndims = args_initial_shapes_and_ndims(
                 args_point_types, args)
