@@ -101,8 +101,6 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
 
         sq_norm = self.embedding_metric.squared_norm(point)
         euclidean_sq_norm = gs.linalg.norm(point, axis=-1) ** 2
-        euclidean_sq_norm = gs.to_ndarray(euclidean_sq_norm,
-                                          to_ndim=2, axis=1)
         diff = gs.abs(sq_norm + 1)
         belongs = diff < tolerance * euclidean_sq_norm
         return belongs

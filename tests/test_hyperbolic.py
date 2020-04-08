@@ -29,7 +29,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
-        expected = gs.array([[True]])
+        expected = True
 
         self.assertAllClose(result, expected)
 
@@ -47,7 +47,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
             base_point=base_point)
 
         result = self.metric.inner_product(tangent_vec, base_point)
-        expected = helper.to_scalar(0.)
+        expected = 0.
 
         self.assertAllClose(result, expected)
 
@@ -359,13 +359,10 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)
-
         result = self.space.belongs(points)
-        expected = n_geodesic_points * [[True]]
-        print(result)
-        print(expected)
+        expected = n_geodesic_points * [True]
 
-        self.assertAllClose(expected, result)
+        self.assertAllClose(result, expected)
 
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """
