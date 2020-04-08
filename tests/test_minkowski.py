@@ -88,10 +88,9 @@ class TestMinkowskiMethods(geomstats.tests.TestCase):
 
         expected = np.zeros(n_samples)
         for i in range(n_samples):
-            expected[i] = gs.eval(gs.dot(n_points_a[i],
-                                         n_points_b[i]))
-            expected[i] -= (2 * gs.eval(n_points_a[i, self.time_like_dim])
-                            * gs.eval(n_points_b[i, self.time_like_dim]))
+            expected[i] = gs.dot(n_points_a[i], n_points_b[i])
+            expected[i] -= (2 * n_points_a[i, self.time_like_dim]
+                            * n_points_b[i, self.time_like_dim])
         expected = helper.to_scalar(gs.array(expected))
 
         self.assertAllClose(result_nn, expected)

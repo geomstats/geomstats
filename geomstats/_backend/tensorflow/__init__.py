@@ -438,12 +438,6 @@ def cast(x, dtype):
     return tf.cast(x, dtype)
 
 
-def eval(x):
-    if tf.executing_eagerly():
-        return x
-    return x.eval()
-
-
 def dot(x, y):
     return tf.tensordot(x, y, axes=1)
 

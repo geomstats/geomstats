@@ -348,10 +348,6 @@ def expand_dims(x, axis=0):
     return torch.unsqueeze(x, dim=axis)
 
 
-def eval(x):
-    return x
-
-
 def ndim(x):
     return x.dim()
 
