@@ -20,9 +20,9 @@ def eig(*args, **kwargs):
 
 def logm(x):
     x = tf.cast(x, tf.complex64)
-    logm = tf.linalg.logm(x)
-    logm = tf.cast(logm, tf.float32)
-    return logm
+    tf_logm = tf.linalg.logm(x)
+    tf_logm = tf.cast(tf_logm, tf.float32)
+    return tf_logm
 
 
 def svd(x):
@@ -39,12 +39,12 @@ def qr(*args, mode='reduced'):
 
         return aux.q, aux.r
 
-    qr = tf.map_fn(
+    result = tf.map_fn(
         lambda x: qr_aux(x, mode),
         *args,
         dtype=(tf.float32, tf.float32))
 
-    return qr
+    return result
 
 
 def powerm(x, power):
