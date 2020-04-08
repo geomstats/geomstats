@@ -49,7 +49,6 @@ from tensorflow import (  # NOQA
     zeros_like
 )
 
-from .common import array, ndim, to_ndarray  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 
@@ -67,6 +66,24 @@ def _raise_not_implemented_error(*args, **kwargs):
 # TODO(nkoep): The 'repeat' function was added in TF 2.1. Backport the
 #              implementation from tensorflow/python/ops/array_ops.py.
 repeat = _raise_not_implemented_error
+
+
+def array(x, dtype=None):
+    return tf.convert_to_tensor(x, dtype=dtype)
+
+
+def ndim(x):
+    x = array(x)
+    dims = x.get_shape()._dims
+    if dims is not None:
+        return len(dims)
+    return None
+
+
+def to_ndarray(x, to_ndim, axis=0):
+    if ndim(x) == to_ndim - 1:
+        x = tf.expand_dims(x, axis=axis)
+    return x
 
 
 def empty(shape, dtype=float64):
@@ -512,10 +529,8 @@ def trace(x, **kwargs):
     return tf.linalg.trace(x)
 
 
-def all(bool_tensor, axis=None, keepdims=False):
-    bool_tensor = tf.cast(bool_tensor, tf.bool)
-    all_true = tf.reduce_all(bool_tensor, axis, keepdims)
-    return all_true
+def all(x, axis=None):
+    return tf.math.reduce_all(tf.cast(x, bool), axis=axis)
 
 
 def concatenate(*args, **kwargs):
