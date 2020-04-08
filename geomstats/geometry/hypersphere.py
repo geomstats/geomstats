@@ -488,7 +488,7 @@ class HypersphereMetric(RiemannianMetric):
         """
         # TODO(nmiolane): Remove these asserts
         assert gs.ndim(point) == 2, point
-        assert gs.ndim(base_point) == 2
+        assert gs.ndim(base_point) == 2, base_point
 
         norm_base_point = self.embedding_metric.norm(base_point)
         norm_point = self.embedding_metric.norm(point)

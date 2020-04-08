@@ -113,6 +113,9 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         point = gs.array([0., 5., 6., 2., -1.])
         point = point / gs.linalg.norm(point)
 
+        assert gs.ndim(point) == 1
+        assert gs.ndim(base_point) == 1
+
         log = self.metric.log(point=point, base_point=base_point)
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
@@ -198,8 +201,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         result = self.metric.exp(n_tangent_vecs, n_base_points)
 
         self.assertAllClose(gs.shape(result), (n_samples, dim))
-
-
 
     @geomstats.tests.np_and_pytorch_only
     def test_log_vectorization_single_samples(self):
