@@ -23,14 +23,12 @@ class Minkowski(Manifold):
 
         Returns
         -------
-        belongs : array-like, shape=[n_samples, 1]
+        belongs : array-like, shape=[n_samples,]
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        n_points, point_dim = point.shape
+        point_dim = point.shape[-1]
         belongs = point_dim == self.dimension
-        belongs = gs.to_ndarray(belongs, to_ndim=1)
-        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
-        belongs = gs.tile(belongs, (n_points, 1))
+        if gs.ndim(point) == 2:
+            belongs = gs.tile([belongs], (point.shape[0],))
 
         return belongs
 
@@ -47,7 +45,9 @@ class Minkowski(Manifold):
         points : array-like, shape=[n_samples, dimension]
                  Sampled points.
         """
-        size = (n_samples, self.dimension)
+        size = (self.dimension,)
+        if n_samples != 1:
+            size = (n_samples, self.dimension)
         point = bound * gs.random.rand(*size) * 2 - 1
 
         return point

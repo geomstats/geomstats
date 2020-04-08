@@ -33,7 +33,7 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
-        expected = gs.array([[True]])
+        expected = True
 
         self.assertAllClose(result, expected)
 
@@ -81,7 +81,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
 
         result = self.metric.exp(one_tangent_vec, one_base_point)
         expected = one_tangent_vec + one_base_point
-        expected = helper.to_vector(expected)
 
         self.assertAllClose(result, expected)
 
@@ -111,7 +110,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
 
         result = self.metric.log(one_point, one_base_point)
         expected = one_point - one_base_point
-        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
         result = self.metric.log(n_points, one_base_point)
@@ -190,20 +188,19 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
         point = gs.array([0., 1.])
 
         result = self.space.belongs(point)
-        expected = gs.array([[True]])
+        expected = True
 
         self.assertAllClose(result, expected)
 
     def test_random_uniform(self):
         result = self.space.random_uniform()
 
-        self.assertAllClose(gs.shape(result), (1, self.dimension))
+        self.assertAllClose(gs.shape(result), (self.dimension,))
 
     def test_inner_product_matrix(self):
         result = self.metric.inner_product_matrix()
 
         expected = gs.eye(self.dimension)
-        expected = helper.to_matrix(expected)
 
         self.assertAllClose(result, expected)
 
@@ -272,7 +269,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
         result = self.metric.exp(tangent_vec=vector,
                                  base_point=base_point)
         expected = base_point + vector
-        expected = helper.to_vector(expected)
 
         self.assertAllClose(result, expected)
 
@@ -282,7 +278,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
 
         result = self.metric.log(point=point, base_point=base_point)
         expected = point - base_point
-        expected = helper.to_vector(expected)
 
         self.assertAllClose(result, expected)
 
@@ -319,6 +314,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
         points = geodesic(t)
 
         result = self.space.belongs(points)
-        expected = gs.array(n_geodesic_points * [[True]])
+        expected = gs.array(n_geodesic_points * [True])
 
         self.assertAllClose(expected, result)
