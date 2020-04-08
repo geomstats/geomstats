@@ -1,6 +1,6 @@
 """Numpy based computation backend."""
 
-import autograd.numpy as _np
+import autograd.numpy as np
 from autograd.numpy import (  # NOQA
     abs,
     all,
@@ -87,6 +87,7 @@ from scipy.sparse import coo_matrix
 
 from . import linalg  # NOQA
 from . import random  # NOQA
+from .common import to_ndarray
 
 
 # XXX(nkoep): Can we get rid of this now?
@@ -206,8 +207,8 @@ def gather(x, indices, axis=0):
 
 def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
     if multiple_args:
-        return _np.vectorize(pyfunc, signature=signature)(*x)
-    return _np.vectorize(pyfunc, signature=signature)(x)
+        return np.vectorize(pyfunc, signature=signature)(*x)
+    return np.vectorize(pyfunc, signature=signature)(x)
 
 
 # XXX(nkoep): Can we get rid of this now?
@@ -221,21 +222,11 @@ def cast(x, dtype):
     return x.astype(dtype)
 
 
-def to_ndarray(x, to_ndim, axis=0):
-    x = _np.array(x)
-    if x.ndim == to_ndim - 1:
-        x = _np.expand_dims(x, axis=axis)
-
-    if x.ndim != 0:
-        assert x.ndim >= to_ndim
-    return x
-
-
 def diag(x):
     x = to_ndarray(x, to_ndim=2)
     _, n = shape(x)
-    aux = _np.vectorize(
-        _np.diagflat,
+    aux = np.vectorize(
+        np.diagflat,
         signature='(m,n)->(k,k)')(x)
     k, _ = shape(aux)
     m = int(k / n)
