@@ -174,7 +174,8 @@ class Hypersphere(EmbeddedManifold):
                 'The conversion from spherical coordinates'
                 ' to extrinsic coordinates is implemented'
                 ' only in dimension 2.')
-        point_spherical = gs.to_ndarray(point_spherical, to_ndim=2)
+        assert gs.ndim(point_spherical) == 2, point_spherical
+
         theta = point_spherical[:, 0]
         phi = point_spherical[:, 1]
         point_extrinsic = gs.zeros(
@@ -213,8 +214,10 @@ class Hypersphere(EmbeddedManifold):
                 'The conversion from spherical coordinates'
                 ' to extrinsic coordinates is implemented'
                 ' only in dimension 2.')
-        base_point_spherical = gs.to_ndarray(base_point_spherical, to_ndim=2)
-        tangent_vec_spherical = gs.to_ndarray(tangent_vec_spherical, to_ndim=2)
+
+        assert gs.ndim(base_point_spherical) == 2
+        assert gs.ndim(tangent_vec_spherical) == 2
+
         n_samples = base_point_spherical.shape[0]
         theta = base_point_spherical[:, 0]
         phi = base_point_spherical[:, 1]
