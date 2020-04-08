@@ -162,59 +162,7 @@ def plot_modulation_factor(n_samples, dim, n_expectation=1000, n_theta=20):
     return plt
 
 
-def multi_plot_modulation_factor(dim, n_expectation=1000, n_theta=20):
-    """Plot modulation factor curves for large number of samples.
-
-    Plot several curves of modulation factor on the convergence of the
-    empirical Fréchet mean as a function of the radius of the bubble
-    distribution and for 10 to 100 sample points on the sphere S_dim
-    embedded in R^{dim+1}.
-
-    Parameters
-    ----------
-    dim: dimension of the sphere (embedded in R^{dim+1})
-    n_expectation: number of computations for approximating the expectation
-    n_theta: number of sampled radii for the bubble distribution
-
-    Returns
-    -------
-    matplolib figure
-    """
-    theta = gs.linspace(0.000001, gs.pi / 2.0 - 0.000001, n_theta)
-    small_var_modulation_factor = []
-    asymptotic_modulation_actor = []
-    plt.figure()
-    for theta_i in theta:
-        small_var_modulation_factor.append(
-            1.0 + 2.0 / 3.0 * theta_i ** 2 * (1.0 - 1.0 / dim) * 1.0)
-        asymptotic_modulation_actor.append(
-            asymptotic_modulation(dim, theta_i))
-    plt.plot(theta, small_var_modulation_factor,
-             'g', label='Small variance prediction')
-    plt.plot(theta, asymptotic_modulation_actor,
-             'grey', label='Asymptotic prediction')
-    color = {10: 'red', 20: 'orange', 50: 'olive', 100: 'blue'}
-    for n_samples in [10, 20, 50, 100]:
-        measured_modulation_factor = []
-        for theta_i in theta:
-            (var, std_var) = modulation_factor(
-                n_samples, theta_i, dim, n_expectation=n_expectation)
-            measured_modulation_factor.append(var)
-            logging.info(
-                '{} {} {} {}\n'.format(n_samples, theta_i, var, std_var))
-        plt.plot(theta, measured_modulation_factor,
-                 color=color[n_samples], label='n={0}'.format(n_samples))
-    plt.xlabel(r'Standard deviation $\theta$')
-    plt.ylabel(r'Modulation factor $\alpha$')
-    plt.legend(loc='best')
-    plt.title('Convergence rate modulation factor, '
-              'sphere, dim={0}, n > 5'.format(dim))
-    plt.draw()
-    plt.pause(0.01)
-    return plt
-
-
-def main(test=False):
+def main():
     """Visualise the uncertainty of the empirical Fréchet mean on the sphere.
 
     The variance of the Fréchet mean FM_n of a sample of n IID random variables
@@ -251,23 +199,6 @@ def main(test=False):
                          n_expectation=n_expectation)))
 
     plot_modulation_factor(2, 2, n_expectation=n_expectation)
-    multi_plot_modulation_factor(3, n_expectation=n_expectation)
-
-    if not test:
-        plot_modulation_factor(4, 2, n_expectation=n_expectation)
-        plot_modulation_factor(6, 2, n_expectation=n_expectation)
-
-        multi_plot_modulation_factor(2, n_expectation=n_expectation)
-
-        plot_modulation_factor(2, 3, n_expectation=n_expectation)
-        plot_modulation_factor(4, 3, n_expectation=n_expectation)
-        plot_modulation_factor(6, 3, n_expectation=n_expectation)
-
-        plot_modulation_factor(2, 4, n_expectation=n_expectation)
-        plot_modulation_factor(4, 4, n_expectation=n_expectation)
-        plot_modulation_factor(6, 4, n_expectation=n_expectation)
-
-        multi_plot_modulation_factor(4, n_expectation=n_expectation)
 
     plt.figure()
     plt.show()
