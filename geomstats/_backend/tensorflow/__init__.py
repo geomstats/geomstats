@@ -522,10 +522,6 @@ def concatenate(*args, **kwargs):
     return tf.concat(*args, **kwargs)
 
 
-def asarray(x):
-    return x
-
-
 def expand_dims(x, axis=None):
     return tf.expand_dims(x, axis)
 

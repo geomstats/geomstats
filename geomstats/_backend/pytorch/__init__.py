@@ -129,10 +129,6 @@ def repeat(a, repeats, axis=None):
     return torch.repeat_interleave(a, repeats, axis)
 
 
-def asarray(x):
-    return _np.asarray(x)
-
-
 def concatenate(seq, axis=0, out=None):
     # XXX(nkoep): Why do we cast to float32 instead of float64 here?
     seq = [cast(t, float32) for t in seq]
