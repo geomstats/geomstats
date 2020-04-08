@@ -146,7 +146,31 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
-    def test_exp_vectorization(self):
+    def test_exp_vectorization_single_samples(self):
+        dim = self.dimension + 1
+
+        one_vec = self.space.random_uniform()
+        one_base_point = self.space.random_uniform()
+        one_tangent_vec = self.space.projection_to_tangent_space(
+            one_vec, base_point=one_base_point)
+
+        result = self.metric.exp(one_tangent_vec, one_base_point)
+        self.assertAllClose(gs.shape(result), (dim,))
+
+        one_base_point = gs.to_ndarray(one_base_point, to_ndim=2)
+        result = self.metric.exp(one_tangent_vec, one_base_point)
+        self.assertAllClose(gs.shape(result), (1, dim))
+
+        one_tangent_vec = gs.to_ndarray(one_tangent_vec, to_ndim=2)
+        result = self.metric.exp(one_tangent_vec, one_base_point)
+        self.assertAllClose(gs.shape(result), (1, dim))
+
+        one_base_point = self.space.random_uniform()
+        result = self.metric.exp(one_tangent_vec, one_base_point)
+        self.assertAllClose(gs.shape(result), (1, dim))
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_exp_vectorization_n_samples(self):
         n_samples = self.n_samples
         dim = self.dimension + 1
 
@@ -154,12 +178,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         one_base_point = self.space.random_uniform()
         n_vecs = self.space.random_uniform(n_samples=n_samples)
         n_base_points = self.space.random_uniform(n_samples=n_samples)
-
-        one_tangent_vec = self.space.projection_to_tangent_space(
-            one_vec, base_point=one_base_point)
-        result = self.metric.exp(one_tangent_vec, one_base_point)
-
-        self.assertAllClose(gs.shape(result), (dim,))
 
         n_tangent_vecs = self.space.projection_to_tangent_space(
             n_vecs, base_point=one_base_point)
@@ -178,6 +196,8 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         result = self.metric.exp(n_tangent_vecs, n_base_points)
 
         self.assertAllClose(gs.shape(result), (n_samples, dim))
+
+
 
     @geomstats.tests.np_and_pytorch_only
     def test_log_vectorization_single_samples(self):
