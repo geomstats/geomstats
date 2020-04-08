@@ -103,6 +103,12 @@ class PoincareBallMetric(RiemannianMetric):
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
+        if base_point.shape[0] == 1:
+            base_point = gs.repeat(base_point, tangent_vec.shape[0], axis=0)
+
+        if tangent_vec.shape[0] == 1:
+            tangent_vec = gs.repeat(tangent_vec, base_point.shape[0], axis=0)
+
         norm_base_point = gs.to_ndarray(
             gs.linalg.norm(base_point, axis=-1), 2, axis=-1)
         norm_base_point = gs.to_ndarray(norm_base_point, to_ndim=2)
@@ -155,6 +161,15 @@ class PoincareBallMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
+        point = gs.to_ndarray(point, to_ndim=2)
+
+        if base_point.shape[0] == 1:
+            base_point = gs.repeat(base_point, point.shape[0], axis=0)
+
+        if point.shape[0] == 1:
+            point = gs.repeat(point, base_point.shape[0], axis=0)
+
         add_base_point = self.mobius_add(-base_point, point)
         norm_add = gs.to_ndarray(gs.linalg.norm(
             add_base_point, axis=-1), 2, -1)
@@ -195,6 +210,15 @@ class PoincareBallMetric(RiemannianMetric):
         mobius_add : array-like, shape=[n_samples, 1]
             Result of the Mobius addition.
         """
+        point_a = gs.to_ndarray(point_a, to_ndim=2)
+        point_b = gs.to_ndarray(point_b, to_ndim=2)
+
+        if point_a.shape[0] == 1:
+            point_a = gs.repeat(point_a, point_b.shape[0], axis=0)
+
+        if point_b.shape[0] == 1:
+            point_b = gs.repeat(point_b, point_a.shape[0], axis=0)
+
         ball_manifold = PoincareBall(self.dimension, scale=self.scale)
         point_a_belong = ball_manifold.belongs(point_a)
         point_b_belong = ball_manifold.belongs(point_b)
@@ -240,6 +264,9 @@ class PoincareBallMetric(RiemannianMetric):
         dist : array-like, shape=[n_samples, 1]
             Geodesic distance between the two points.
         """
+        point_a = gs.to_ndarray(point_a, to_ndim=2)
+        point_b = gs.to_ndarray(point_b, to_ndim=2)
+
         point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0., 1 - EPSILON)
         point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0., 1 - EPSILON)
 
@@ -290,7 +317,7 @@ class PoincareBallMetric(RiemannianMetric):
         return base_point - retraction_factor * tangent_vec
 
     def inner_product_matrix(self, base_point=None):
-        """Compute the inner product matrix, independent of the base point.
+        """Compute the inner product matrixx.
 
         Parameters
         ----------

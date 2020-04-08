@@ -64,6 +64,71 @@ class TestPoincareBallMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
+    def test_dist_vectorization(self):
+        point_a = gs.array([0.2, 0.5])
+        point_b = gs.array([[0.3, -0.5], [0.2, 0.2]])
+
+        dist_a_b =\
+            self.manifold.metric.dist(point_a, point_b)
+
+        result_vect = dist_a_b
+        result =\
+            [self.manifold.metric.dist(point_a, point_b[i])
+             for i in range(len(point_b))]
+        result = gs.concatenate(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_log_vectorization(self):
+        point_a = gs.array([0.5, 0.5])
+        point_b = gs.array([[0.5, -0.5], [0.4, 0.4]])
+
+        dist_a_b =\
+            self.manifold.metric.log(point_a, point_b)
+
+        result_vect = dist_a_b
+        result =\
+            [self.manifold.metric.log(point_a, point_b[i])
+             for i in range(len(point_b))]
+        result = gs.concatenate(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
+        dist_a_b =\
+            self.manifold.metric.log(point_b, point_a)
+
+        result_vect = dist_a_b
+        result =\
+            [self.manifold.metric.log(point_b[i], point_a)
+             for i in range(len(point_b))]
+        result = gs.concatenate(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_exp_vectorization(self):
+        point_a = gs.array([0.5, 0.5])
+        point_b = gs.array([[0.5, -0.5], [0.4, 0.4]])
+
+        dist_a_b =\
+            self.manifold.metric.exp(point_a, point_b)
+
+        result_vect = dist_a_b
+        result =\
+            [self.manifold.metric.exp(point_a, point_b[i])
+             for i in range(len(point_b))]
+        result = gs.concatenate(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
+        dist_a_b =\
+            self.manifold.metric.exp(point_b, point_a)
+
+        result_vect = dist_a_b
+        result =\
+            [self.manifold.metric.exp(point_b[i], point_a)
+             for i in range(len(point_b))]
+        result = gs.concatenate(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
     @geomstats.tests.np_only
     def test_log_poincare(self):
 
