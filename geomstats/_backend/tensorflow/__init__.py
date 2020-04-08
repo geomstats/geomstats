@@ -91,7 +91,7 @@ def flip(m, axis=None):
     return tf.reverse(m, axis=axis)
 
 
-def any(x, axis=0):
+def any(x, axis=None):
     return tf.math.reduce_any(tf.cast(x, bool), axis=axis)
 
 
