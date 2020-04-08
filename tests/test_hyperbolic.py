@@ -125,7 +125,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         log = self.metric.log(point=point, base_point=base_point)
 
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
-        expected = helper.to_vector(point)
+        expected = point
         self.assertAllClose(result, expected)
 
     def test_exp_and_belongs(self):
@@ -160,7 +160,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         one_tangent_vec = self.space.projection_to_tangent_space(
             one_vec, base_point=one_base_point)
         result = self.metric.exp(one_tangent_vec, one_base_point)
-        self.assertAllClose(gs.shape(result), (1, dim))
+        self.assertAllClose(gs.shape(result), (dim,))
 
         n_tangent_vecs = self.space.projection_to_tangent_space(
             n_vecs, base_point=one_base_point)
@@ -214,7 +214,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
             [1.0, 0.0, 0.0, 0.0]])
 
         result = self.metric.log(one_point, one_base_point)
-        self.assertAllClose(gs.shape(result), (1, dim))
+        self.assertAllClose(gs.shape(result), (dim,))
 
         result = self.metric.log(n_points, one_base_point)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
@@ -326,7 +326,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         point_a = gs.array([4.0, 1., 3.0, math.sqrt(5)])
         point_b = point_a
         result = self.metric.dist(point_a, point_b)
-        expected = gs.array([[0]])
+        expected = 0
         self.assertAllClose(result, expected)
 
     def test_exp_and_dist_and_projection_to_tangent_space(self):
@@ -335,8 +335,9 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         tangent_vec = self.space.projection_to_tangent_space(
             vector=vector,
             base_point=base_point)
-        exp = self.metric.exp(tangent_vec=tangent_vec,
-                              base_point=base_point)
+        exp = self.metric.exp(
+            tangent_vec=tangent_vec,
+            base_point=base_point)
 
         result = self.metric.dist(base_point, exp)
         sq_norm = self.metric.embedding_metric.squared_norm(
