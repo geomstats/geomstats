@@ -24,6 +24,7 @@ from autograd.numpy import (  # NOQA
     concatenate,
     cos,
     cosh,
+    cumprod,
     cumsum,
     diagonal,
     divide,
