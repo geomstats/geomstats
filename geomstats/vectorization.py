@@ -118,31 +118,14 @@ def decorator(point_types):
         def wrapper(*args, **kwargs):
             kwargs_point_types = point_types[-len(kwargs):]
             args_point_types = point_types[:len(args)]
-            print('point_types')
-            print(point_types)
-
-            print('args_point_types')
-            print(args_point_types)
-            print('kwargs_point_types')
-            print(kwargs_point_types)
 
             in_shapes, in_ndims = args_initial_shapes_and_ndims(
                 args_point_types, args)
             kw_in_shapes, kw_in_ndims = kwargs_initial_shapes_and_ndims(
                 kwargs_point_types, kwargs)
 
-            print('type(args):')
-            print(type(args))
-            print('args:')
-            print(args)
-            print('kwargs:')
-            print(kwargs)
             vect_args = vectorize_args(args_point_types, args)
             vect_kwargs = vectorize_kwargs(kwargs_point_types, kwargs)
-            print('vect_args:')
-            print(vect_args)
-            print('vect_kwargs:')
-            print(vect_kwargs)
 
             result = function(*vect_args, **vect_kwargs)
 
