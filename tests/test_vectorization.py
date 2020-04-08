@@ -69,6 +69,14 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
             is_matrix_vec = helper.to_scalar(is_matrix_vec)
             return is_matrix_vec
 
+        @geomstats.vectorization.decorator(['scalar'])
+        def is_kw_scalar_vectorized(scalar=1.):
+            is_scalar_vec = gs.ndim(scalar) == 2
+            has_dim_1 = gs.shape(scalar)[-1] == 1
+            result = is_scalar_vec and has_dim_1
+            result = helper.to_scalar(result)
+            return result
+
         self.foo = foo
         self.foo_scalar_output = foo_scalar_output
         self.foo_scalar_input_output = foo_scalar_input_output
@@ -77,6 +85,7 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.is_scalar_vectorized = is_scalar_vectorized
         self.is_vector_vectorized = is_vector_vectorized
         self.is_matrix_vectorized = is_matrix_vectorized
+        self.is_kw_scalar_vectorized = is_kw_scalar_vectorized
 
     @geomstats.tests.np_and_tf_only
     def test_decorator_with_squeeze_dim0(self):
@@ -158,6 +167,16 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
     def test_is_scalar_vectorized(self):
         scalar = 1.3
         result = self.is_scalar_vectorized(scalar)
+        expected = True
+        self.assertAllClose(result, expected)
+
+    def test_is_kw_scalar_vectorized(self):
+        scalar = 1.3
+        result = self.is_kw_scalar_vectorized(scalar)
+        expected = True
+        self.assertAllClose(result, expected)
+
+        result = self.is_kw_scalar_vectorized()
         expected = True
         self.assertAllClose(result, expected)
 
