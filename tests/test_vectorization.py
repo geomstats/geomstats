@@ -235,6 +235,18 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    def test_decorator_else_with_kwargs(self):
+        vec_a = gs.array([1, 2, 3])
+        vec_b = gs.array([0, 1, 0])
+        else_a = 1
+        else_b = 1
+        result = self.foo_else(
+            else_a=else_a, tangent_vec_a=vec_a,
+            else_b=else_b, tangent_vec_b=vec_b)
+        expected = 4
+
+        self.assertAllClose(result, expected)
+
     def test_is_scalar_vectorized(self):
         scalar = 1.3
         result = self.is_scalar_vectorized(scalar)
