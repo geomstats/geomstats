@@ -8,6 +8,7 @@ import logging
 import math
 
 import geomstats.backend as gs
+import geomstats.vectorization
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.euclidean import EuclideanMetric
@@ -226,6 +227,7 @@ class Hypersphere(EmbeddedManifold):
 
         return tangent_vec_extrinsic
 
+    @geomstats.vectorization.decorator(['else', 'vector'])
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
         """Convert point from intrinsic to extrinsic coordinates.
 
@@ -243,8 +245,6 @@ class Hypersphere(EmbeddedManifold):
             Point on the hypersphere, in extrinsic coordinates in
             Euclidean space.
         """
-        point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
-
         sq_coord_0 = 1. - gs.linalg.norm(point_intrinsic, axis=-1) ** 2
         if gs.any(gs.less(sq_coord_0, 0.)):
             raise ValueError('Square-root of a negative number.')
@@ -255,6 +255,7 @@ class Hypersphere(EmbeddedManifold):
 
         return point_extrinsic
 
+    @geomstats.vectorization.decorator(['else', 'vector'])
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         """Convert point from extrinsic to intrinsic coordinates.
 
@@ -272,8 +273,6 @@ class Hypersphere(EmbeddedManifold):
         point_intrinsic : array-like, shape=[n_samples, dimension]
             Point on the hypersphere, in intrinsic coordinates.
         """
-        point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=2)
-
         point_intrinsic = point_extrinsic[:, 1:]
 
         return point_intrinsic

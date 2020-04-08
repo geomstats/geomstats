@@ -273,7 +273,27 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
-    def test_squared_dist_vectorization(self):
+    def test_squared_dist_vectorization_single_sample(self):
+        one_point_a = self.space.random_uniform()
+        one_point_b = self.space.random_uniform()
+
+        result = self.metric.squared_dist(one_point_a, one_point_b)
+        self.assertAllClose(gs.shape(result), ())
+
+        one_point_a = gs.to_ndarray(one_point_a, to_ndim=2)
+        result = self.metric.squared_dist(one_point_a, one_point_b)
+        self.assertAllClose(gs.shape(result), (1,))
+
+        one_point_b = gs.to_ndarray(one_point_b, to_ndim=2)
+        result = self.metric.squared_dist(one_point_a, one_point_b)
+        self.assertAllClose(gs.shape(result), (1,))
+
+        one_point_a = self.space.random_uniform()
+        result = self.metric.squared_dist(one_point_a, one_point_b)
+        self.assertAllClose(gs.shape(result), (1,))
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_squared_dist_vectorization_n_samples(self):
         n_samples = self.n_samples
 
         one_point_a = self.space.random_uniform()
@@ -283,6 +303,18 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         result = self.metric.squared_dist(one_point_a, one_point_b)
         self.assertAllClose(gs.shape(result), ())
+
+        result = self.metric.squared_dist(n_points_a, one_point_b)
+        self.assertAllClose(gs.shape(result), (n_samples,))
+
+        result = self.metric.squared_dist(one_point_a, n_points_b)
+        self.assertAllClose(gs.shape(result), (n_samples,))
+
+        result = self.metric.squared_dist(n_points_a, n_points_b)
+        self.assertAllClose(gs.shape(result), (n_samples,))
+
+        one_point_a = gs.to_ndarray(one_point_a, to_ndim=2)
+        one_point_b = gs.to_ndarray(one_point_b, to_ndim=2)
 
         result = self.metric.squared_dist(n_points_a, one_point_b)
         self.assertAllClose(gs.shape(result), (n_samples,))
