@@ -127,15 +127,6 @@ def decorator(point_types):
             vect_args = vectorize_args(args_point_types, args)
             vect_kwargs = vectorize_kwargs(kwargs_point_types, kwargs)
 
-            print('kwargs')
-            print(kwargs)
-            print('vect_kwargs')
-            print(vect_kwargs)
-
-            print('type(kwargs)')
-            print(type(kwargs))
-            print('type(vect_kwargs)')
-            print(type(vect_kwargs))
             result = function(*vect_args, **vect_kwargs)
 
             if squeeze_output_dim_1(result, in_shapes, point_types):
@@ -156,8 +147,6 @@ def args_initial_shapes_and_ndims(point_types, args):
 
     for i_arg, arg in enumerate(args):
         point_type = point_types[i_arg]
-        print('point_type:')
-        print(point_type)
 
         if point_type == 'scalar':
             arg = gs.array(arg)
