@@ -717,6 +717,7 @@ class SpecialEuclidean(LieGroup):
         -------
         exponential_mat : The matrix exponential of rot_vec
         """
+        # TODO(nguigs): find usecase for this method
         rot_vec = self.rotations.regularize(rot_vec)
         n_rot_vecs, _ = rot_vec.shape
 
