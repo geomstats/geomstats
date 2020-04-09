@@ -250,8 +250,10 @@ class PoincareDisk():
         ax.add_artist(circle)
         if len(self.points) > 0:
             if gs.all([len(point) == 2 for point in self.points]):
-                points_x = gs.stack([point[0] for point in self.points], axis=0)
-                points_y = gs.stack([point[1] for point in self.points], axis=0)
+                points_x = gs.stack(
+                    [point[0] for point in self.points], axis=0)
+                points_y = gs.stack(
+                    [point[1] for point in self.points], axis=0)
                 ax.scatter(points_x, points_y, **kwargs)
             else:
                 raise ValueError('Points do not have dimension 2.')
