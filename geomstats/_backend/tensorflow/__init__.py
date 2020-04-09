@@ -12,7 +12,6 @@ from tensorflow import (  # NOQA
     atan2 as arctan2,
     clip_by_value as clip,
     concat as concatenate,
-    cond,
     cos,
     cosh,
     divide,
@@ -54,7 +53,6 @@ from tensorflow import (  # NOQA
     tanh,
     tile,
     where,
-    while_loop,
     zeros,
     zeros_like
 )
@@ -67,7 +65,6 @@ from . import random  # NOQA
 arctanh = tf.math.atanh
 ceil = tf.math.ceil
 cross = tf.linalg.cross
-diag = tf.linalg.tensor_diag
 log = tf.math.log
 matmul = tf.linalg.matmul
 mod = tf.math.mod
@@ -103,11 +100,7 @@ def diag(a):
 
 
 def ndim(x):
-    x = array(x)
-    dims = x.get_shape()._dims
-    if dims is not None:
-        return len(dims)
-    return None
+    return tf.convert_to_tensor(x).ndim
 
 
 def to_ndarray(x, to_ndim, axis=0):

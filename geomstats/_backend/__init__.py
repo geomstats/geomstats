@@ -33,7 +33,6 @@ BACKEND_ATTRIBUTES = {
         'ceil',
         'clip',
         'concatenate',
-        'cond',
         'copy',
         'cos',
         'cosh',
@@ -99,7 +98,6 @@ BACKEND_ATTRIBUTES = {
         'vectorize',
         'vstack',
         'where',
-        'while_loop',
         'zeros',
         'zeros_like'
     ],

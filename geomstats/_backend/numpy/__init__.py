@@ -90,17 +90,6 @@ from . import random  # NOQA
 from .common import to_ndarray
 
 
-# XXX(nkoep): Can we get rid of this now?
-def while_loop(cond, body, loop_vars, maximum_iterations):
-    iteration = 0
-    while cond(*loop_vars):
-        loop_vars = body(*loop_vars)
-        iteration += 1
-        if iteration >= maximum_iterations:
-            break
-    return loop_vars
-
-
 def flatten(x):
     return x.flatten()
 
@@ -211,17 +200,14 @@ def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
     return np.vectorize(pyfunc, signature=signature)(x)
 
 
-# XXX(nkoep): Can we get rid of this now?
-def cond(pred, true_fn, false_fn):
-    if pred:
-        return true_fn()
-    return false_fn()
-
-
 def cast(x, dtype):
     return x.astype(dtype)
 
 
+# TODO(nkoep): Rename this to emphasize that the behavior is different from
+#              np.diag. Given an n-by-n matrix A, this function creates a
+#              diagonal matrix for each of the n rows of A, returning an
+#              n-by-n-by-n array.
 def diag(x):
     x = to_ndarray(x, to_ndim=2)
     _, n = shape(x)

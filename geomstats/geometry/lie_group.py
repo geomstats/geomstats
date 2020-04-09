@@ -281,13 +281,11 @@ class LieGroup(Manifold):
         if n_base_points == 1:
             base_point = gs.array([base_point[0]] * n_tangent_vecs)
 
-        result = gs.cond(
-            pred=gs.allclose(base_point, identity),
-            true_fn=lambda: self.exp_from_identity(
-                tangent_vec, point_type=point_type
-            ),
-            false_fn=lambda: self.exp_not_from_identity(
-                tangent_vec, base_point, point_type))
+        if gs.allclose(base_point, identity):
+            result = self.exp_from_identity(tangent_vec, point_type=point_type)
+        else:
+            result = self.exp_not_from_identity(
+                tangent_vec, base_point, point_type)
         return result
 
     def log_from_identity(self, point, point_type=None):
@@ -385,16 +383,10 @@ class LieGroup(Manifold):
         if n_base_points == 1:
             base_point = gs.array([base_point[0]] * n_points)
 
-        result = gs.cond(
-            pred=gs.allclose(base_point, identity),
-            true_fn=lambda: self.log_from_identity(
-                point, point_type=point_type
-            ),
-            false_fn=lambda: self.log_not_from_identity(
-                point, base_point, point_type
-            ),
-        )
-
+        if gs.allclose(base_point, identity):
+            result = self.log_from_identity(point, point_type=point_type)
+        else:
+            result = self.log_not_from_identity(point, base_point, point_type)
         return result
 
     def exponential_barycenter(
