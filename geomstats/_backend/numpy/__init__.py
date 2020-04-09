@@ -226,9 +226,6 @@ def to_ndarray(x, to_ndim, axis=0):
     x = _np.array(x)
     if x.ndim == to_ndim - 1:
         x = _np.expand_dims(x, axis=axis)
-
-    if x.ndim != 0:
-        assert x.ndim >= to_ndim
     return x
 
 
