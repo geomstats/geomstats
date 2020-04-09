@@ -140,7 +140,8 @@ class SRVMetric(RiemannianMetric):
         velocity = coef * self.ambient_metric.log(point=curve[1:, :],
                                                   base_point=curve[:-1, :])
         velocity_norm = self.ambient_metric.norm(velocity, curve[:-1, :])
-        srv = velocity / gs.sqrt(velocity_norm)
+        srv = gs.einsum(
+            '...i,...->...i', velocity, 1. / gs.sqrt(velocity_norm))
 
         index = gs.arange(n_curves * n_sampling_points - 1)
         mask = ~gs.equal((index + 1) % n_sampling_points, 0)
@@ -176,7 +177,8 @@ class SRVMetric(RiemannianMetric):
         srv = gs.reshape(srv,
                          (n_curves * n_sampling_points_minus_one, n_coords))
         srv_norm = self.ambient_metric.norm(srv)
-        delta_points = 1 / n_sampling_points_minus_one * srv_norm * srv
+        delta_points = gs.einsum(
+            '...,...i->...i', 1 / n_sampling_points_minus_one * srv_norm, srv)
         delta_points = gs.reshape(delta_points, srv_shape)
         curve = gs.concatenate((starting_point, delta_points), -2)
         curve = gs.cumsum(curve, -2)
