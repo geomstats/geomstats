@@ -18,13 +18,24 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
 
         warnings.simplefilter('ignore', category=ImportWarning)
 
-    @geomstats.tests.np_only
     def test_belongs(self):
-        mats = gs.array([
-            [[1., 0.], [0., 1]],
-            [[0., 1.], [0., 1.]]])
+        mats = gs.array([gs.eye(3), gs.ones((3, 3))])
         result = self.group.belongs(mats)
         expected = gs.array([True, False])
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_random_and_belongs(self):
+        point = self.group.random_uniform()
+        result = self.group.belongs(point)
+        expected = gs.array([True])
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_random_and_belongs_vectorization(self):
+        point = self.group.random_uniform(n_samples=3)
+        result = self.group.belongs(point)
+        expected = gs.array([True, True, True])
         self.assertAllClose(result, expected)
 
     def test_compose(self):

@@ -12,11 +12,13 @@ class GeneralLinear(Matrices):
 
         self.n = n
 
-    @staticmethod
-    def belongs(point):
-        """Test if a matrix is invertible."""
+    def belongs(self, point):
+        """Test if a matrix is invertible and of the right size."""
+        point = gs.to_ndarray(point, to_ndim=3)
+        _, mat_dim_1, mat_dim_2 = point.shape
         det = gs.linalg.det(point)
-        return gs.where(det != 0., True, False)
+        return gs.logical_and(mat_dim_1 == self.n, gs.where(
+            det != 0., gs.array(True), gs.array(False)))
 
     def identity(self):
         """Return the identity matrix."""
