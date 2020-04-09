@@ -15,7 +15,6 @@ from tensorflow import (  # NOQA
     float64,
     floor,
     gather,
-    gather_nd,
     greater,
     int32,
     int64,
@@ -357,7 +356,7 @@ def array_from_sparse(indices, data, target_shape):
 
 
 def get_slice(x, indices):
-    return gather_nd(x, list(zip(*indices)))
+    return tf.gather_nd(x, list(zip(*indices)))
 
 
 def vectorize(x, pyfunc, multiple_args=False, dtype=None, **kwargs):
