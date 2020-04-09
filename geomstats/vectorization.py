@@ -12,7 +12,7 @@ POINT_TYPES_TO_NDIMS = {
     'matrix': 3}
 
 
-def squeeze_output_dim_0(initial_ndims, point_types):
+def squeeze_output_dim_0(in_shapes, point_types):
     """Determine if the output needs to be squeezed on dim 0.
 
     The dimension 0 is squeezed iff all input parameters:
@@ -23,7 +23,7 @@ def squeeze_output_dim_0(initial_ndims, point_types):
 
     Parameters
     ----------
-    initial_ndims : list
+    in_ndims : list
         Initial ndims of input parameters, as entered by the user.
     point_types : list
         Associated list of point_type of input parameters.
@@ -33,17 +33,31 @@ def squeeze_output_dim_0(initial_ndims, point_types):
     squeeze : bool
         Boolean deciding whether to squeeze dim 0 of the output.
     """
-    for ndim, point_type in zip(initial_ndims, point_types):
-        if point_type != 'else' and ndim is not None:
+    for in_shape, point_type in zip(in_shapes, point_types):
+        in_ndim = None
+        if in_shape is not None:
+            in_ndim = len(in_shape)
+        if point_type != 'else' and in_ndim is not None:
             vect_ndim = POINT_TYPES_TO_NDIMS[point_type]
-            assert ndim <= vect_ndim
-            if ndim == vect_ndim:
+            assert in_ndim <= vect_ndim
+            if in_ndim == vect_ndim:
                 return False
     return True
 
 
 def is_scalar(vect_array):
-    """Test if an array represents a scalar."""
+    """Test if an array represents a scalar.
+
+    Parameters
+    ----------
+    vect_array :  array-like
+        Array to be tested.
+
+    Returns
+    -------
+    is_scalar : bool
+        Boolean determining if vect_array is a fully-vectorized scalar.
+    """
     has_ndim_2 = vect_array.ndim == 2
     if not has_ndim_2:
         return False
@@ -51,7 +65,7 @@ def is_scalar(vect_array):
     return has_singleton_dim_1
 
 
-def squeeze_output_dim_1(result, initial_shapes, point_types):
+def squeeze_output_dim_1(result, in_shapes, point_types):
     """Determine if the output needs to be squeezed on dim 1.
 
     This happens if the user represents scalars as array of shapes:
@@ -64,7 +78,7 @@ def squeeze_output_dim_1(result, initial_shapes, point_types):
     ----------
     result: array-like
         Result output by the function, before reshaping.
-    initial_shapes : list
+    in_shapes : list
         Initial shapes of input parameters, as entered by the user.
     point_types : list
         Associated list of point_type of input parameters.
@@ -77,7 +91,7 @@ def squeeze_output_dim_1(result, initial_shapes, point_types):
     if not is_scalar(result):
         return False
 
-    for shape, point_type in zip(initial_shapes, point_types):
+    for shape, point_type in zip(in_shapes, point_types):
         if point_type != 'else' and shape is not None:
             ndim = len(shape)
             if point_type == 'scalar':
@@ -93,12 +107,14 @@ def decorator(point_types):
     This decorator assumes that its function:
     - works with fully-vectorized inputs,
     - returns fully-vectorized outputs,
+
     where "fully-vectorized" means that:
     - one scalar has shape [1, 1],
     - n scalars have shape [n, 1],
     - one d-D vector has shape [1, d],
     - n d-D vectors have shape [n, d],
     etc.
+
     The decorator:
     - converts the inputs into fully-vectorized inputs,
     - calls the function,
@@ -119,13 +135,9 @@ def decorator(point_types):
             args_point_types = point_types[:len(args)]
             kwargs_point_types = point_types[len(args):]
 
-            in_shapes, in_ndims = args_initial_shapes_and_ndims(
-                args_point_types, args)
-            kw_in_shapes, kw_in_ndims = kwargs_initial_shapes_and_ndims(
-                kwargs_point_types, kwargs)
-
+            in_shapes = initial_shapes(args_point_types, args)
+            kw_in_shapes = initial_shapes(kwargs_point_types, kwargs.values())
             in_shapes.extend(kw_in_shapes)
-            in_ndims.extend(kw_in_ndims)
 
             vect_args = vectorize_args(args_point_types, args)
             vect_kwargs = vectorize_kwargs(kwargs_point_types, kwargs)
@@ -136,7 +148,7 @@ def decorator(point_types):
                 if result.shape[1] == 1:
                     result = gs.squeeze(result, axis=1)
 
-            if squeeze_output_dim_0(in_ndims, point_types):
+            if squeeze_output_dim_0(in_shapes, point_types):
                 if result.shape[0] == 1:
                     result = gs.squeeze(result, axis=0)
             return result
@@ -144,10 +156,25 @@ def decorator(point_types):
     return aux_decorator
 
 
-def args_initial_shapes_and_ndims(point_types, args):
-    """Extract shapes and ndims of input args."""
-    initial_shapes = []
-    initial_ndims = []
+def initial_shapes(point_types, args):
+    """Extract shapes and ndims of input args or kwargs values.
+
+    Store the shapes of the input args, or kwargs values,
+    that are array-like, store None otherwise.
+
+    Parameters
+    ----------
+    point_types : list
+        Point types corresponding to the args, or kwargs values.
+    args : tuple or dict_values
+        Args, or kwargs values, of a function.
+
+    Returns
+    -------
+    in_shapes : list
+        Shapes of array-like input args, or kwargs values.
+    """
+    in_shapes = []
 
     for i_arg, arg in enumerate(args):
         point_type = point_types[i_arg]
@@ -156,36 +183,36 @@ def args_initial_shapes_and_ndims(point_types, args):
             arg = gs.array(arg)
 
         if point_type == 'else' or arg is None:
-            initial_shapes.append(None)
-            initial_ndims.append(None)
+            in_shapes.append(None)
         else:
-            initial_shapes.append(gs.shape(arg))
-            initial_ndims.append(gs.ndim(arg))
-    return initial_shapes, initial_ndims
-
-
-def kwargs_initial_shapes_and_ndims(point_types, kwargs):
-    """Extract shapes and ndims of input kwargs."""
-    initial_shapes = []
-    initial_ndims = []
-
-    for i_arg, arg in enumerate(kwargs.values()):
-        point_type = point_types[i_arg]
-
-        if point_type == 'scalar':
-            arg = gs.array(arg)
-
-        if point_type == 'else' or arg is None:
-            initial_shapes.append(None)
-            initial_ndims.append(None)
-        else:
-            initial_shapes.append(gs.shape(arg))
-            initial_ndims.append(gs.ndim(arg))
-    return initial_shapes, initial_ndims
+            in_shapes.append(gs.shape(arg))
+    return in_shapes
 
 
 def vectorize_args(point_types, args):
-    """Vectorize input args."""
+    """Vectorize input args.
+
+    Transform input array-like args into their fully-vectorized form,
+
+    where "fully-vectorized" means that:
+    - one scalar has shape [1, 1],
+    - n scalars have shape [n, 1],
+    - one d-D vector has shape [1, d],
+    - n d-D vectors have shape [n, d],
+    etc.
+
+    Parameters
+    ----------
+    point_types : list
+        Point types corresponding to the args.
+    args : tuple
+        Args of a function.
+
+    Returns
+    -------
+    vect_args : tuple
+        Args of the function in their fully-vectorized form.
+    """
     vect_args = []
     for i_arg, arg in enumerate(args):
         point_type = point_types[i_arg]
@@ -202,7 +229,29 @@ def vectorize_args(point_types, args):
 
 
 def vectorize_kwargs(point_types, kwargs):
-    """Vectorize input kwargs."""
+    """Vectorize input kwargs.
+
+    Transform input array-like kwargs into their fully-vectorized form,
+
+    where "fully-vectorized" means that:
+    - one scalar has shape [1, 1],
+    - n scalars have shape [n, 1],
+    - one d-D vector has shape [1, d],
+    - n d-D vectors have shape [n, d],
+    etc.
+
+    Parameters
+    ----------
+    point_types :list
+        Point types corresponding to the args.
+    kwargs : dict
+        Kwargs of a function.
+
+    Returns
+    -------
+    vect_kwargs : dict
+        Kwargs of the function in their fully-vectorized form.
+    """
     vect_kwargs = {}
     for i_arg, key_arg in enumerate(kwargs.keys()):
         point_type = point_types[i_arg]
