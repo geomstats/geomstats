@@ -54,7 +54,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         mean.fit(points)
 
         result = self.sphere.belongs(mean.estimate_)
-        expected = gs.array([[True]])
+        expected = True
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
@@ -66,7 +66,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         result = variance(
             points, base_point=point, metric=self.sphere.metric)
-        expected = helper.to_scalar(0.)
+        expected = gs.array([[0.]])
 
         self.assertAllClose(expected, result)
 
@@ -91,7 +91,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         points = gs.array([point, point])
         result = variance(
             points, base_point=point, metric=self.hyperbolic.metric)
-        expected = helper.to_scalar(0.)
+        expected = gs.array([[0.]])
 
         self.assertAllClose(result, expected)
 
@@ -119,7 +119,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         mean.fit(X=points)
 
         result = self.hyperbolic.belongs(mean.estimate_)
-        expected = gs.array([[True]])
+        expected = gs.array([True])
 
         self.assertAllClose(result, expected)
 
@@ -164,8 +164,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
             points, weights=weights, base_point=base_point,
             metric=self.euclidean.metric)
         # we expect the average of the points' sq norms.
-        expected = (1 * 5. + 2 * 13. + 1 * 25. + 2 * 41.) / 6.
-        expected = helper.to_scalar(expected)
+        expected = gs.array([[(1 * 5. + 2 * 13. + 1 * 25. + 2 * 41.) / 6.]])
 
         self.assertAllClose(result, expected)
 
@@ -210,5 +209,5 @@ class TestFrechetMean(geomstats.tests.TestCase):
             metric=self.minkowski.metric)
         result = helper.to_scalar(var != 0)
         # we expect the average of the points' Minkowski sq norms.
-        expected = helper.to_scalar(gs.array([True]))
+        expected = gs.array([[True]])
         self.assertAllClose(result, expected)
