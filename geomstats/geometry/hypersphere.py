@@ -107,6 +107,7 @@ class Hypersphere(EmbeddedManifold):
 
         return self.projection(point)
 
+    @geomstats.vectorization.decorator(['else', 'vector'])
     def projection(self, point):
         """Project a point on the hypersphere.
 
