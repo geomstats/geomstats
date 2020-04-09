@@ -73,7 +73,7 @@ class Hypersphere(EmbeddedManifold):
             Array of booleans evaluating if each point belongs to
             the hypersphere.
         """
-        point_dim = point.shape[-1]
+        point_dim = gs.shape(point)[-1]
         if point_dim != self.dimension + 1:
             if point_dim is self.dimension:
                 logging.warning(

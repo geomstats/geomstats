@@ -2584,8 +2584,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             inv_expected = - expected
 
             self.assertTrue(
-                gs.eval(gs.allclose(result, expected))
-                or gs.eval(gs.allclose(result, inv_expected)))
+                gs.allclose(result, expected)
+                or gs.allclose(result, inv_expected))
 
     def test_quaternion_and_rotation_vector_vectorization(self):
         n = 3
@@ -2687,8 +2687,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             inv_expected = gs.linalg.inv(matrix)
 
             self.assertTrue(
-                gs.eval(gs.allclose(result, expected))
-                or gs.eval(gs.allclose(result, inv_expected)))
+                gs.allclose(result, expected)
+                or gs.allclose(result, inv_expected))
 
     @geomstats.tests.np_only
     def test_quaternion_and_rotation_vector_and_matrix_vectorization(self):
@@ -2725,8 +2725,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     else:
                         inv_expected = - expected
                         self.assertTrue(
-                            gs.eval(gs.allclose(result, expected))
-                            or gs.eval(gs.allclose(result, inv_expected)))
+                            gs.allclose(result, expected)
+                            or gs.allclose(result, inv_expected))
 
                     # Composition by identity, on the left
                     # Expect the original transformation
@@ -2738,8 +2738,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     else:
                         inv_expected = - expected
                         self.assertTrue(
-                            gs.eval(gs.allclose(result, expected))
-                            or gs.eval(gs.allclose(result, inv_expected)))
+                            gs.allclose(result, expected)
+                            or gs.allclose(result, inv_expected))
 
             else:
                 angle = 0.986
@@ -3097,8 +3097,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     tangent_vec=tangent_vec, metric=metric)
                 inv_expected = - expected
                 self.assertTrue(
-                    gs.eval(gs.allclose(result, expected))
-                    or gs.eval(gs.allclose(result, inv_expected)))
+                    gs.allclose(result, expected)
+                    or gs.allclose(result, inv_expected))
 
     @geomstats.tests.np_only
     def test_log_then_exp_from_identity(self):
@@ -3145,8 +3145,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 inv_expected = - expected
 
                 self.assertTrue(
-                    gs.eval(gs.allclose(result, expected))
-                    or gs.eval(gs.allclose(result, inv_expected)))
+                    gs.allclose(result, expected)
+                    or gs.allclose(result, inv_expected))
 
     @geomstats.tests.np_only
     def test_exp_then_log(self):
@@ -3209,10 +3209,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     inv_expected = - expected
 
                     self.assertTrue(
-                        gs.eval(gs.allclose(
-                            result, expected, atol=1e-5))
-                        or gs.eval(gs.allclose(
-                            result, inv_expected, atol=1e-5)))
+                        gs.allclose(result, expected, atol=1e-5)
+                        or gs.allclose(result, inv_expected, atol=1e-5))
 
     @geomstats.tests.np_only
     def test_log_then_exp(self):
@@ -3243,8 +3241,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     inv_expected = - expected
 
                     self.assertTrue(
-                        gs.eval(gs.allclose(result, expected))
-                        or gs.eval(gs.allclose(result, inv_expected)))
+                        gs.allclose(result, expected)
+                        or gs.allclose(result, inv_expected))
 
     @geomstats.tests.np_only
     def test_log_then_exp_with_angles_close_to_pi(self):
@@ -3271,9 +3269,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     inv_expected = - expected
 
                     self.assertTrue(
-                        gs.eval(gs.allclose(result, expected, atol=1e-5))
-                        or gs.eval(gs.allclose(
-                            result, inv_expected, atol=1e-5)))
+                        gs.allclose(result, expected, atol=1e-5)
+                        or gs.allclose(result, inv_expected, atol=1e-5))
 
     @geomstats.tests.np_only
     def test_group_exp_from_identity_coincides_with_expm(self):
@@ -3431,8 +3428,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             inv_expected = - expected
 
             self.assertTrue(
-                gs.eval(gs.allclose(result, expected))
-                or gs.eval(gs.allclose(result, inv_expected)))
+                gs.allclose(result, expected)
+                or gs.allclose(result, inv_expected))
 
     def test_group_log_then_exp_from_identity(self):
         """
@@ -3470,8 +3467,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             inv_expected = - expected
 
             self.assertTrue(
-                gs.eval(gs.allclose(result, expected))
-                or gs.eval(gs.allclose(result, inv_expected)))
+                gs.allclose(result, expected)
+                or gs.allclose(result, inv_expected))
 
     @geomstats.tests.np_only
     def test_group_exp_then_log(self):
@@ -3536,8 +3533,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 inv_expected = - expected
 
                 self.assertTrue(
-                    gs.eval(gs.allclose(result, expected, atol=1e-5))
-                    or gs.eval(gs.allclose(result, inv_expected, atol=1e-5)))
+                    gs.allclose(result, expected, atol=1e-5)
+                    or gs.allclose(result, inv_expected, atol=1e-5))
 
     @geomstats.tests.np_only
     def test_group_log_then_exp(self):
