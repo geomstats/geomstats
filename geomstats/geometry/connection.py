@@ -328,6 +328,91 @@ class Connection:
                 'geodesics': geodesics,
                 'end_point': end_shoot}
 
+    def average_schild_ladder(
+            self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1,
+            step='schild', **single_step_kwargs):
+        """Average two opposite construction Schild's Ladder steps.
+
+        Approximate Parallel transport using either the pole ladder or the
+        Schild's ladder scheme [LP2013b]_. Pole ladder is exact in symmetric
+        spaces [GJSP2019]_ while Schild's ladder is a first order
+        approximation. Both schemes are available any affine connection
+        manifolds whose exponential and logarithm maps are implemented.
+        `tangent_vec_a` is transported along the geodesic starting
+        at the base_point with initial tangent vector `tangent_vec_b`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[n_samples, dimension]
+            Tangent vector at base point to transport.
+        tangent_vec_b : array-like, shape=[n_samples, dimension]
+            Tangent vector at base point, initial speed of the geodesic along
+            which to transport.
+        base_point : array-like, shape=[n_samples, dimension]
+            Point on the manifold, initial position of the geodesic along
+            which to transport.
+        n_steps : int
+            The number of pole ladder steps.
+        step : str, {'pole', 'schild'}
+            The scheme to use for the construction of the ladder at each step.
+        **single_step_kwargs : keyword arguments for the step functions
+
+        Returns
+        -------
+        ladder : dict of array-like and callable with following keys
+            transported_tangent_vector : array-like, shape=[n_samples, dim]
+                Approximation of the parallel transport of tangent vector a.
+            trajectory : list of list of callable, len=n_steps
+                List of lists containing the geodesics of the
+                construction, only if `return_geodesics=True` in the step
+                function. The geodesics are methods of the class connection.
+
+        References
+        ----------
+        .. [LP2013b] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transpor
+          of Deformations in Time Series of Images: from Schild's to
+          Pole Ladder.Journal of Mathematical Imaging and Vision, Springer
+          Verlag, 2013, 50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
+        """
+        current_point = gs.copy(base_point)
+        next_tangent_vec = gs.copy(tangent_vec_a)
+        methods = {'pole': self._pole_ladder_step,
+                   'schild': self._schild_ladder_step}
+        single_step = methods[step]
+        base_shoot_1 = self.exp(
+            base_point=current_point,  tangent_vec=next_tangent_vec)
+        base_shoot_2 = self.exp(
+            base_point=current_point,  tangent_vec=- 1. * next_tangent_vec)
+        trajectory = []
+        for i_point in range(0, n_steps):
+            frac_tangent_vector_b = (i_point + 1) / n_steps * tangent_vec_b
+            next_point = self.exp(
+                base_point=base_point,
+                tangent_vec=frac_tangent_vector_b)
+            next_step_1 = single_step(
+                base_point=current_point,
+                next_point=next_point,
+                base_shoot=base_shoot_1,
+                **single_step_kwargs)
+            next_step_2 = single_step(
+                base_point=current_point,
+                next_point=next_point,
+                base_shoot=base_shoot_2,
+                **single_step_kwargs)
+            current_point = next_point
+            next_tangent_vec_1 = next_step_1['next_tangent_vec']
+            next_tangent_vec_2 = next_step_2['next_tangent_vec']
+            next_tangent_vec = (next_tangent_vec_1 - next_tangent_vec_2) / 2.
+            base_shoot_1 = self.exp(
+                base_point=current_point, tangent_vec=next_tangent_vec)
+            base_shoot_2 = self.exp(
+                base_point=current_point, tangent_vec=- 1. * next_tangent_vec)
+            trajectory.append(next_step_1['geodesics'])
+        transported_tangent_vec = next_tangent_vec
+
+        return {'transported_tangent_vec': transported_tangent_vec,
+                'trajectory': trajectory}
+
     def ladder_parallel_transport(
             self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1,
             step='pole', **single_step_kwargs):
@@ -380,7 +465,7 @@ class Connection:
           ⟨hal-02148832⟩
         """
         current_point = gs.copy(base_point)
-        next_tangent_vec = gs.copy(tangent_vec_a) / n_steps
+        next_tangent_vec = gs.copy(tangent_vec_a)
         methods = {'pole': self._pole_ladder_step,
                    'schild': self._schild_ladder_step}
         single_step = methods[step]
@@ -400,7 +485,7 @@ class Connection:
             current_point = next_point
             base_shoot = next_step['end_point']
             trajectory.append(next_step['geodesics'])
-        transported_tangent_vec = n_steps * next_step['next_tangent_vec']
+        transported_tangent_vec = next_step['next_tangent_vec']
 
         return {'transported_tangent_vec': transported_tangent_vec,
                 'trajectory': trajectory}
