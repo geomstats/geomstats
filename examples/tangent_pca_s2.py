@@ -53,7 +53,7 @@ def main():
     ax_var.set_ylim((0, 1))
     ax_var.plot(xticks, tpca.explained_variance_ratio_)
 
-    ax = fig.add_subplot(122, projection="3d")
+    ax = fig.add_subplot(122, projection='3d')
 
     visualization.plot(
         mean_estimate, ax, space='S2', color='darkgreen', s=10)
@@ -67,5 +67,5 @@ def main():
     plt.show()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

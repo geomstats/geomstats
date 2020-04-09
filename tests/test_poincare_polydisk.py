@@ -3,7 +3,7 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.poincare_polydisk import PoincarePolydisk
 
 
@@ -35,7 +35,7 @@ class TestPoincarePolydiskMethods(geomstats.tests.TestCase):
         coords_type = 'extrinsic'
         point_a_intrinsic = gs.array([[0.01, 0.0]])
         point_b_intrinsic = gs.array([[0.0, 0.0]])
-        hyperbolic_space = Hyperbolic(dimension=2, coords_type=coords_type)
+        hyperbolic_space = Hyperboloid(dimension=2)
         point_a = hyperbolic_space.from_coordinates(
             point_a_intrinsic, "intrinsic")
         point_b = hyperbolic_space.from_coordinates(

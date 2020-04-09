@@ -89,8 +89,8 @@ class Graph:
         """Generate a single random walk."""
         count_index = index
         path = [index]
-        for i in range(walk_length):
+        for _ in range(walk_length):
             count_index = self.edges[count_index][random.randint(
                 0, len(self.edges[count_index]) - 1)]
             path.append(count_index)
-        return gs.array(path, dtype=int)
+        return gs.array(path).astype(gs.int32)

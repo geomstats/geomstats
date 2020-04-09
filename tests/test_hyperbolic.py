@@ -6,12 +6,14 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.minkowski import Minkowski
+from geomstats.geometry.poincare_ball import PoincareBall
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
 # of the vector, as opposed to the standard behavior of gs.allclose
 # where it is relative to each element of the array
+
 RTOL = 1e-6
 
 
@@ -19,9 +21,9 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
         self.dimension = 3
-        self.space = Hyperbolic(dimension=self.dimension)
+        self.space = Hyperboloid(dimension=self.dimension)
         self.metric = self.space.metric
-        self.ball_manifold = Hyperbolic(dimension=2, coords_type='ball')
+        self.ball_manifold = PoincareBall(dimension=2)
         self.n_samples = 10
 
     def test_random_uniform_and_belongs(self):
@@ -35,6 +37,26 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         result = self.space.random_uniform()
 
         self.assertAllClose(gs.shape(result), (1, self.dimension + 1))
+
+    def test_projection_to_tangent_space(self):
+        base_point = gs.array([1., 0., 0., 0.])
+        self.assertTrue(self.space.belongs(base_point))
+
+        tangent_vec = self.space.projection_to_tangent_space(
+            vector=gs.array([1., 2., 1., 3.]),
+            base_point=base_point)
+
+        result = self.metric.inner_product(tangent_vec, base_point)
+        expected = helper.to_scalar(0.)
+
+        self.assertAllClose(result, expected)
+
+        result = self.space.projection_to_tangent_space(
+            vector=gs.array([1., 2., 1., 3.]),
+            base_point=base_point)
+        expected = tangent_vec
+
+        self.assertAllClose(result, expected)
 
     def test_intrinsic_and_extrinsic_coords(self):
         """
@@ -107,18 +129,18 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_exp_and_belongs(self):
-        H2 = Hyperbolic(dimension=2)
+        H2 = Hyperboloid(dimension=2)
         METRIC = H2.metric
 
         base_point = gs.array([1., 0., 0.])
-        self.assertTrue(gs.eval(H2.belongs(base_point)))
+        self.assertTrue(H2.belongs(base_point))
 
         tangent_vec = H2.projection_to_tangent_space(
             vector=gs.array([1., 2., 1.]),
             base_point=base_point)
         exp = METRIC.exp(tangent_vec=tangent_vec,
                          base_point=base_point)
-        self.assertTrue(gs.eval(H2.belongs(exp)))
+        self.assertTrue(H2.belongs(exp))
 
     @geomstats.tests.np_and_pytorch_only
     def test_exp_vectorization(self):
@@ -148,8 +170,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         expected = gs.zeros((n_samples, dim))
 
         for i in range(n_samples):
-            expected[i] = gs.eval(
-                self.metric.exp(n_tangent_vecs[i], one_base_point))
+            expected[i] = self.metric.exp(n_tangent_vecs[i], one_base_point)
         expected = helper.to_vector(gs.array(expected))
         self.assertAllClose(result, expected)
 
@@ -160,8 +181,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
         expected = gs.zeros((n_samples, dim))
         for i in range(n_samples):
-            expected[i] = gs.eval(self.metric.exp(one_tangent_vec[i],
-                                  n_base_points[i]))
+            expected[i] = self.metric.exp(one_tangent_vec[i], n_base_points[i])
         expected = helper.to_vector(gs.array(expected))
         self.assertAllClose(result, expected)
 
@@ -172,8 +192,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
         expected = gs.zeros((n_samples, dim))
         for i in range(n_samples):
-            expected[i] = gs.eval(self.metric.exp(n_tangent_vecs[i],
-                                  n_base_points[i]))
+            expected[i] = self.metric.exp(n_tangent_vecs[i], n_base_points[i])
         expected = helper.to_vector(gs.array(expected))
         self.assertAllClose(result, expected)
 
@@ -307,43 +326,6 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         expected = gs.array([[0]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
-    def test_dist_poincare(self):
-
-        point_a = gs.array([0.5, 0.5])
-        point_b = gs.array([0.5, -0.5])
-
-        self.space.metric.coords_type = 'ball'
-
-        dist_a_b = self.metric.dist(point_a, point_b)
-        self.space.metric.coords_type = 'extrinsic'
-
-        result = dist_a_b
-        expected = gs.array([[2.887270927429199]])
-
-        self.assertAllClose(result, expected)
-
-    def test_exp_poincare(self):
-
-        self.space.metric.coords_type = 'ball'
-        result = 0
-        expected = 0
-        self.space.metric.coords_type = 'extrinsic'
-        self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_only
-    def test_log_poincare(self):
-
-        point = gs.array([[0.3, 0.5]])
-        base_point = gs.array([[0.3, 0.3]])
-
-        self.space.metric.coords_type = 'ball'
-        result = self.space.metric.log(point, base_point)
-        expected = gs.array([[-0.01733576, 0.21958634]])
-
-        self.space.metric.coords_type = 'extrinsic'
-        self.assertAllClose(result, expected)
-
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         base_point = gs.array([4.0, 1., 3.0, math.sqrt(5)])
         vector = gs.array([0.001, 0., -.00001, -.00003])
@@ -414,8 +396,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
             tangent_vec_b,
             base_point)
         scale = 2
-        default_space = Hyperbolic(dimension=self.dimension)
-        scaled_space = Hyperbolic(dimension=self.dimension, scale=2)
+        default_space = Hyperboloid(dimension=self.dimension)
+        scaled_space = Hyperboloid(dimension=self.dimension, scale=2)
         inner_product_default_metric = \
             default_space.metric.inner_product(
                 tangent_vec_a,
@@ -439,8 +421,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         tangent_vec = self.space.projection_to_tangent_space(
             tangent_vec, base_point)
         scale = 2
-        default_space = Hyperbolic(dimension=self.dimension)
-        scaled_space = Hyperbolic(dimension=self.dimension, scale=2)
+        default_space = Hyperboloid(dimension=self.dimension)
+        scaled_space = Hyperboloid(dimension=self.dimension, scale=2)
         squared_norm_default_metric = default_space.metric.squared_norm(
             tangent_vec, base_point)
         squared_norm_scaled_metric = scaled_space.metric.squared_norm(
@@ -456,18 +438,9 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         point_a = self.space.from_coordinates(point_a_intrinsic, "intrinsic")
         point_b = self.space.from_coordinates(point_b_intrinsic, "intrinsic")
         scale = 2
-        scaled_space = Hyperbolic(dimension=self.dimension, scale=2)
+        scaled_space = Hyperboloid(dimension=self.dimension, scale=2)
         distance_default_metric = self.space.metric.dist(point_a, point_b)
         distance_scaled_metric = scaled_space.metric.dist(point_a, point_b)
         result = distance_scaled_metric
         expected = scale * distance_default_metric
         self.assertAllClose(result, expected)
-
-    @geomstats.tests.np_and_pytorch_only
-    def test_ball_retraction(self):
-        x = gs.array([[0.5, 0.6], [0.2, -0.1], [0.2, -0.4]])
-        y = gs.array([[0.3, 0.5], [0.3, -0.6], [0.3, -0.3]])
-
-        ball_metric = self.ball_manifold.metric
-        tangent_vec = ball_metric.log(y, x)
-        ball_metric.retraction(tangent_vec, x)

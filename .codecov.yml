@@ -1,12 +1,36 @@
-# Team Yaml
 coverage:
   round: up
   precision: 2
-
-# Repository Yaml
-coverage:
-  round: up
-  range: 50..80
+  status:
+    project:
+      default:
+        target: 90%
+        threshold: 2%
+        base: auto
+        flags:
+          - unit
+       # advanced
+        branches:
+          - master
+        if_not_found: success
+        if_ci_failed: error
+        informational: False
+        only_pulls: false
+    patch:
+      default:
+        # basic
+        target: 90%
+        threshold: 2%
+        base: auto
+        flags:
+          - unit
+        # advanced
+        branches:
+          - master
+        if_no_uploads: error
+        if_not_found: success
+        if_ci_failed: error
+        only_pulls: false
 
 # Files to ignore
 ignore:

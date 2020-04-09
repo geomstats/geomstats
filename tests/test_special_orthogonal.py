@@ -329,6 +329,29 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     self.assertAllClose(
                         gs.shape(result), (n_samples, n, n))
 
+    @geomstats.tests.np_only
+    def test_regularize_tangent_vec_matrix(self):
+        point_type = 'matrix'
+        for n in self.n_seq:
+            group = self.so[n]
+            group.default_point_type = point_type
+
+            n_samples = self.n_samples
+            rot_vecs = group.random_uniform(n_samples=n_samples)
+            tangent_vecs = group.log_from_identity(rot_vecs)
+            result = group.regularize_tangent_vec_at_identity(
+                tangent_vecs)
+            expected = tangent_vecs
+            self.assertAllClose(result, expected)
+
+            n_samples = self.n_samples
+            base_points = group.random_uniform(n_samples=n_samples)
+            tangent_vecs = group.compose(base_points, tangent_vecs)
+            result = group.regularize_tangent_vec(
+                tangent_vecs, base_points)
+            expected = tangent_vecs
+            self.assertAllClose(result, expected)
+
     def test_matrix_from_rotation_vector(self):
         n = 3
         group = self.so[n]
@@ -2538,11 +2561,11 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             else:
                 point = group.random_uniform()
                 self.assertRaises(
-                    AssertionError,
+                    ValueError,
                     lambda: group.quaternion_from_rotation_vector(point))
                 fake_quaternion = gs.random.rand(1, n + 1)
                 self.assertRaises(
-                    AssertionError,
+                    ValueError,
                     lambda: group.rotation_vector_from_quaternion(
                         fake_quaternion))
 
@@ -2561,8 +2584,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             inv_expected = - expected
 
             self.assertTrue(
-                gs.eval(gs.allclose(result, expected))
-                or gs.eval(gs.allclose(result, inv_expected)))
+                gs.allclose(result, expected)
+                or gs.allclose(result, inv_expected))
 
     def test_quaternion_and_rotation_vector_vectorization(self):
         n = 3
@@ -2639,11 +2662,11 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
                 rot_mat = group.matrix_from_rotation_vector(rot_vec)
                 self.assertRaises(
-                    AssertionError,
+                    ValueError,
                     lambda: group.quaternion_from_matrix(rot_mat))
                 fake_quaternion = gs.random.rand(1, n + 1)
                 self.assertRaises(
-                    AssertionError,
+                    ValueError,
                     lambda: group.matrix_from_quaternion(
                         fake_quaternion))
 
@@ -2664,8 +2687,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             inv_expected = gs.linalg.inv(matrix)
 
             self.assertTrue(
-                gs.eval(gs.allclose(result, expected))
-                or gs.eval(gs.allclose(result, inv_expected)))
+                gs.allclose(result, expected)
+                or gs.allclose(result, inv_expected))
 
     @geomstats.tests.np_only
     def test_quaternion_and_rotation_vector_and_matrix_vectorization(self):
@@ -2702,8 +2725,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     else:
                         inv_expected = - expected
                         self.assertTrue(
-                            gs.eval(gs.allclose(result, expected))
-                            or gs.eval(gs.allclose(result, inv_expected)))
+                            gs.allclose(result, expected)
+                            or gs.allclose(result, inv_expected))
 
                     # Composition by identity, on the left
                     # Expect the original transformation
@@ -2715,8 +2738,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     else:
                         inv_expected = - expected
                         self.assertTrue(
-                            gs.eval(gs.allclose(result, expected))
-                            or gs.eval(gs.allclose(result, inv_expected)))
+                            gs.allclose(result, expected)
+                            or gs.allclose(result, inv_expected))
 
             else:
                 angle = 0.986
@@ -3074,8 +3097,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     tangent_vec=tangent_vec, metric=metric)
                 inv_expected = - expected
                 self.assertTrue(
-                    gs.eval(gs.allclose(result, expected))
-                    or gs.eval(gs.allclose(result, inv_expected)))
+                    gs.allclose(result, expected)
+                    or gs.allclose(result, inv_expected))
 
     @geomstats.tests.np_only
     def test_log_then_exp_from_identity(self):
@@ -3122,8 +3145,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 inv_expected = - expected
 
                 self.assertTrue(
-                    gs.eval(gs.allclose(result, expected))
-                    or gs.eval(gs.allclose(result, inv_expected)))
+                    gs.allclose(result, expected)
+                    or gs.allclose(result, inv_expected))
 
     @geomstats.tests.np_only
     def test_exp_then_log(self):
@@ -3186,10 +3209,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     inv_expected = - expected
 
                     self.assertTrue(
-                        gs.eval(gs.allclose(
-                            result, expected, atol=1e-5))
-                        or gs.eval(gs.allclose(
-                            result, inv_expected, atol=1e-5)))
+                        gs.allclose(result, expected, atol=1e-5)
+                        or gs.allclose(result, inv_expected, atol=1e-5))
 
     @geomstats.tests.np_only
     def test_log_then_exp(self):
@@ -3220,8 +3241,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     inv_expected = - expected
 
                     self.assertTrue(
-                        gs.eval(gs.allclose(result, expected))
-                        or gs.eval(gs.allclose(result, inv_expected)))
+                        gs.allclose(result, expected)
+                        or gs.allclose(result, inv_expected))
 
     @geomstats.tests.np_only
     def test_log_then_exp_with_angles_close_to_pi(self):
@@ -3248,9 +3269,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     inv_expected = - expected
 
                     self.assertTrue(
-                        gs.eval(gs.allclose(result, expected, atol=1e-5))
-                        or gs.eval(gs.allclose(
-                            result, inv_expected, atol=1e-5)))
+                        gs.allclose(result, expected, atol=1e-5)
+                        or gs.allclose(result, inv_expected, atol=1e-5))
 
     @geomstats.tests.np_only
     def test_group_exp_from_identity_coincides_with_expm(self):
@@ -3408,8 +3428,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             inv_expected = - expected
 
             self.assertTrue(
-                gs.eval(gs.allclose(result, expected))
-                or gs.eval(gs.allclose(result, inv_expected)))
+                gs.allclose(result, expected)
+                or gs.allclose(result, inv_expected))
 
     def test_group_log_then_exp_from_identity(self):
         """
@@ -3447,8 +3467,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             inv_expected = - expected
 
             self.assertTrue(
-                gs.eval(gs.allclose(result, expected))
-                or gs.eval(gs.allclose(result, inv_expected)))
+                gs.allclose(result, expected)
+                or gs.allclose(result, inv_expected))
 
     @geomstats.tests.np_only
     def test_group_exp_then_log(self):
@@ -3513,8 +3533,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 inv_expected = - expected
 
                 self.assertTrue(
-                    gs.eval(gs.allclose(result, expected, atol=1e-5))
-                    or gs.eval(gs.allclose(result, inv_expected, atol=1e-5)))
+                    gs.allclose(result, expected, atol=1e-5)
+                    or gs.allclose(result, inv_expected, atol=1e-5))
 
     @geomstats.tests.np_only
     def test_group_log_then_exp(self):

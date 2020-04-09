@@ -72,8 +72,7 @@ class Hypersphere(EmbeddedManifold):
             Array of booleans evaluating if each point belongs to
             the hypersphere.
         """
-        point = gs.asarray(point)
-        point_dim = point.shape[-1]
+        point_dim = gs.shape(point)[-1]
         if point_dim != self.dimension + 1:
             if point_dim is self.dimension:
                 logging.warning(
@@ -249,9 +248,10 @@ class Hypersphere(EmbeddedManifold):
         """
         point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
 
-        # FIXME: The next line needs to be guarded against taking the sqrt of
-        #        negative numbers.
-        coord_0 = gs.sqrt(1. - gs.linalg.norm(point_intrinsic, axis=-1) ** 2)
+        sq_coord_0 = 1. - gs.linalg.norm(point_intrinsic, axis=-1) ** 2
+        if gs.any(gs.less(sq_coord_0, 0.)):
+            raise ValueError('Square-root of a negative number.')
+        coord_0 = gs.sqrt(sq_coord_0)
         coord_0 = gs.to_ndarray(coord_0, to_ndim=2, axis=-1)
 
         point_extrinsic = gs.concatenate([coord_0, point_intrinsic], axis=-1)
@@ -572,6 +572,22 @@ class HypersphereMetric(RiemannianMetric):
         dist = gs.arccos(cos_angle)
 
         return dist
+
+    def squared_dist(self, point_a, point_b):
+        """Squared geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[n_samples, dimension]
+            Point on the hypersphere.
+        point_b : array-like, shape=[n_samples, dimension]
+            Point on the hypersphere.
+
+        Returns
+        -------
+        sq_dist : array-like, shape=[n_samples,]
+        """
+        return self.dist(point_a, point_b) ** 2
 
     def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the parallel transport of a tangent vector.

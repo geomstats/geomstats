@@ -2,16 +2,80 @@
 
 import numpy as _np
 import torch
+from torch import (  # NOQA
+    abs,
+    acos as arccos,
+    arange,
+    argmax,
+    argmin,
+    asin as arcsin,
+    atan2 as arctan2,
+    ceil,
+    clamp as clip,
+    cos,
+    cosh,
+    diag,
+    diagonal,
+    div as divide,
+    empty_like,
+    eq,
+    exp,
+    eye,
+    flatten,
+    float32,
+    float64,
+    floor,
+    fmod as mod,
+    ger as outer,
+    gt as greater,
+    int32,
+    int64,
+    isnan,
+    le as less_equal,
+    log,
+    lt as less,
+    matmul,
+    max as amax,
+    meshgrid,
+    min as amin,
+    nonzero,
+    ones,
+    ones_like,
+    repeat_interleave as repeat,
+    reshape,
+    sign,
+    sin,
+    sinh,
+    stack,
+    std,
+    tan,
+    tanh,
+    tril,
+    where,
+    zeros,
+    zeros_like
+)
 
 from . import linalg  # NOQA
 from . import random  # NOQA
 
-double = 'torch.DoubleTensor'
-float16 = 'torch.Float'
-float32 = 'torch.FloatTensor'
-float64 = 'torch.DoubleTensor'
-int32 = 'torch.LongTensor'
-int8 = 'torch.ByteTensor'
+
+def _raise_not_implemented_error(*args, **kwargs):
+    raise NotImplementedError
+
+
+flip = _raise_not_implemented_error
+hsplit = _raise_not_implemented_error
+searchsorted = _raise_not_implemented_error
+vectorize = _raise_not_implemented_error
+
+
+def empty(shape, dtype=float64):
+    return torch.empty(*shape, dtype=dtype)
+
+
+def split(ary, indices_or_sections, axis=0):
+    return torch.split(ary, indices_or_sections, dim=axis)
 
 
 def while_loop(cond, body, loop_vars, maximum_iterations):
@@ -29,10 +93,16 @@ def logical_or(x, y):
 
 
 def logical_and(x, y):
+    if torch.is_tensor(x):
+        return x.eq(y)
+    if torch.is_tensor(y):
+        return y.eq(x)
     return x and y
 
 
-def any(x, axis=0):
+def any(x, axis=None):
+    if axis is None:
+        return x.bool().any()
     numpy_result = _np.array(_np.any(_np.array(x), axis=axis))
     return torch.from_numpy(numpy_result)
 
@@ -43,61 +113,18 @@ def cond(pred, true_fn, false_fn):
     return false_fn()
 
 
-def amax(x):
-    return torch.max(x)
-
-
-def amin(x):
-    return torch.min(x)
-
-
-def boolean_mask(x, mask):
-    idx = _np.argwhere(_np.asarray(mask))
-    return x[idx]
-
-
-def arctan2(*args, **kwargs):
-    return torch.atan2(*args, **kwargs)
-
-
 def cast(x, dtype):
-    x = array(x)
-    return x.type(dtype)
+    return array(x).to(dtype)
 
 
-def divide(*args, **kwargs):
-    return torch.div(*args, **kwargs)
-
-
-def repeat(a, repeats, axis=None):
-    if torch.__version__ >= '1.1':
-        return torch.repeat_interleave(a, repeats, axis)
-    if(axis is None):
-        axis = 0
-    shape = list(a.shape)
-    shape[axis] = shape[axis] * repeats
-    return a.repeat(*shape)
-
-
-def asarray(x):
-    return _np.asarray(x)
-
-
-def concatenate(seq, axis=0, out=None):
+def concatenate(seq, axis=0):
+    # XXX(nkoep): Why do we cast to float32 instead of float64 here?
     seq = [cast(t, float32) for t in seq]
-    return torch.cat(seq, dim=axis, out=out)
-
-
-def identity(val):
-    return torch.eye(val)
+    return torch.cat(seq, dim=axis)
 
 
 def hstack(seq):
     return concatenate(seq, axis=1)
-
-
-def stack(*args, **kwargs):
-    return torch.stack(*args, **kwargs)
 
 
 def vstack(seq):
@@ -109,9 +136,9 @@ def array(val):
         if not isinstance(val[0], torch.Tensor):
             val = _np.copy(_np.array(val))
         else:
-            val = concatenate(val)
+            val = stack(val)
 
-    if isinstance(val, bool):
+    if isinstance(val, (bool, int, float)):
         val = _np.array(val)
     if isinstance(val, _np.ndarray):
         if val.dtype == bool:
@@ -128,43 +155,23 @@ def array(val):
     return val
 
 
-def abs(val):
-    return torch.abs(val)
-
-
-def zeros(*args):
-    return torch.from_numpy(_np.zeros(*args)).float()
-
-
-def ones(*args):
-    return torch.from_numpy(_np.ones(*args)).float()
-
-
-def ones_like(*args, **kwargs):
-    return torch.ones_like(*args, **kwargs)
-
-
-def empty_like(*args, **kwargs):
-    return torch.empty_like(*args, **kwargs)
-
-
 def all(x, axis=None):
     if axis is None:
-        return x.byte().all()
-    numpy_result = _np.array(_np.all(_np.array(x), axis=axis).astype(int))
+        return x.bool().all()
+    numpy_result = _np.array(_np.all(_np.array(x), axis=axis))
     return torch.from_numpy(numpy_result)
 
 
 def allclose(a, b, **kwargs):
-    a = torch.tensor(a)
-    b = torch.tensor(b)
-    a = a.float()
-    b = b.float()
-    a = to_ndarray(a, to_ndim=1)
-    b = to_ndarray(b, to_ndim=1)
+    if not isinstance(a, torch.Tensor):
+        a = torch.tensor(a)
+    if not isinstance(b, torch.Tensor):
+        b = torch.tensor(b)
+    a = to_ndarray(a.float(), to_ndim=1)
+    b = to_ndarray(b.float(), to_ndim=1)
     n_a = a.shape[0]
     n_b = b.shape[0]
-    ndim = len(a.shape)
+    ndim = a.dim()
     if n_a > n_b:
         reps = (int(n_a / n_b),) + (ndim - 1) * (1,)
         b = tile(b, reps)
@@ -174,30 +181,10 @@ def allclose(a, b, **kwargs):
     return torch.allclose(a, b, **kwargs)
 
 
-def sin(val):
-    return torch.sin(val)
-
-
-def cos(val):
-    return torch.cos(val)
-
-
-def cosh(*args, **kwargs):
-    return torch.cosh(*args, **kwargs)
-
-
 def arccosh(x):
     c0 = torch.log(x)
     c1 = torch.log1p(torch.sqrt(x * x - 1) / x)
     return c0 + c1
-
-
-def sinh(*args, **kwargs):
-    return torch.sinh(*args, **kwargs)
-
-
-def tanh(*args, **kwargs):
-    return torch.tanh(*args, **kwargs)
 
 
 def arcsinh(x):
@@ -206,18 +193,6 @@ def arcsinh(x):
 
 def arcosh(x):
     return torch.log(x + torch.sqrt(x * x - 1))
-
-
-def tan(val):
-    return torch.tan(val)
-
-
-def arcsin(val):
-    return torch.asin(val)
-
-
-def arccos(val):
-    return torch.acos(val)
 
 
 def shape(val):
@@ -233,14 +208,6 @@ def maximum(a, b):
     return torch.max(array(a), array(b))
 
 
-def greater(a, b):
-    return torch.gt(a, b)
-
-
-def greater_equal(a, b):
-    return torch.greater_equal(a, b)
-
-
 def to_ndarray(x, to_ndim, axis=0):
     x = array(x)
     if x.dim() == to_ndim - 1:
@@ -248,40 +215,18 @@ def to_ndarray(x, to_ndim, axis=0):
     return x
 
 
-def sqrt(val):
-    return torch.sqrt(torch.tensor(val).float())
+def sqrt(x):
+    if not isinstance(x, torch.Tensor):
+        x = torch.tensor(x).float()
+    return torch.sqrt(x)
 
 
-def norm(val, axis):
-    return torch.norm(val, 2, axis)
-
-
-if torch.__version__ >= '1.1':
-    def isclose(*args, **kwargs):
-        return torch.from_numpy(_np.isclose(*args, **kwargs))
-else:
-    def isclose(*args, **kwargs):
-        return torch.from_numpy(_np.isclose(*args, **kwargs).astype(_np.uint8))
-
-
-def less(a, b):
-    return torch.le(a, b)
-
-
-def less_equal(a, b):
-    return torch.le(a, b)
-
-
-def eye(*args, **kwargs):
-    return torch.eye(*args, **kwargs)
-
-
-def average(*args, **kwargs):
-    return torch.average(*args, **kwargs)
-
-
-def matmul(*args, **kwargs):
-    return torch.matmul(*args, **kwargs)
+# TODO(nkoep): PyTorch exposes its own 'isclose' function, which is currently
+#              undocumented for some reason, see
+#                https://github.com/pytorch/pytorch/issues/35471
+#              In the future, we may simply use that function instead.
+def isclose(*args, **kwargs):
+    return torch.from_numpy(_np.isclose(*args, **kwargs))
 
 
 def sum(x, axis=None, keepdims=None, **kwargs):
@@ -350,7 +295,7 @@ def T(x):
 def transpose(x, axes=None):
     if axes:
         return x.permute(axes)
-    if len(shape(x)) == 1:
+    if x.dim() == 1:
         return x
     return x.t()
 
@@ -358,21 +303,12 @@ def transpose(x, axes=None):
 def squeeze(x, axis=None):
     if axis is None:
         return torch.squeeze(x)
-    else:
-        return torch.squeeze(x, axis)
-
-
-def zeros_like(*args, **kwargs):
-    return torch.zeros_like(*args, **kwargs)
+    return torch.squeeze(x, dim=axis)
 
 
 def trace(*args, **kwargs):
     trace = _np.trace(*args, **kwargs)
     return torch.from_numpy(_np.array(trace)).float()
-
-
-def mod(*args, **kwargs):
-    return torch.fmod(*args, **kwargs)
 
 
 def arctanh(x):
@@ -391,20 +327,16 @@ def equal(a, b, **kwargs):
     return torch.eq(a, b, **kwargs)
 
 
-def floor(*args, **kwargs):
-    return torch.floor(*args, **kwargs)
-
-
 def cross(x, y):
     return torch.from_numpy(_np.cross(x, y))
 
 
+def tril_indices(*args, **kwargs):
+    return tuple(map(torch.from_numpy, _np.tril_indices(*args, **kwargs)))
+
+
 def triu_indices(*args, **kwargs):
-    return torch.triu_indices(*args, **kwargs)
-
-
-def where(test, x, y):
-    return torch.where(test, torch.tensor(x), torch.tensor(y))
+    return tuple(map(torch.from_numpy, _np.triu_indices(*args, **kwargs)))
 
 
 def tile(x, y):
@@ -412,108 +344,24 @@ def tile(x, y):
     return array(_np.tile(x, y))
 
 
-def clip(x, amin, amax):
-    if x.dtype == 'torch.float':
-        return torch.clamp(x, amin, amax)
-    return _np.clip(x, amin, amax)
-
-
-def clamp(*args, **kwargs):
-    return torch.clamp(*args, **kwargs)
-
-
-def diag(*args, **kwargs):
-    return torch.diag(*args, **kwargs)
-
-
 def expand_dims(x, axis=0):
     return torch.unsqueeze(x, dim=axis)
-
-
-def outer(*args, **kwargs):
-    return torch.ger(*args, **kwargs)
-
-
-def hsplit(*args, **kwargs):
-    return torch.hsplit(*args, **kwargs)
-
-
-def argmax(*args, **kwargs):
-    return torch.argmax(*args, **kwargs)
-
-
-def diagonal(*args, **kwargs):
-    return torch.diagonal(*args, **kwargs)
-
-
-def exp(input):
-    return torch.exp(input)
-
-
-def log(*args, **kwargs):
-    return torch.log(*args, **kwargs)
-
-
-def cov(*args, **kwargs):
-    return torch.cov(*args, **kwargs)
-
-
-def eval(x):
-    return x
 
 
 def ndim(x):
     return x.dim()
 
 
-def gt(*args, **kwargs):
-    return torch.gt(*args, **kwargs)
-
-
-def eq(*args, **kwargs):
-    return torch.eq(*args, **kwargs)
-
-
-def nonzero(*args, **kwargs):
-    return torch.nonzero(*args, **kwargs)
-
-
-def seed(x):
-    torch.manual_seed(x)
-
-
 def prod(x, axis=None):
     if axis is None:
         return torch.prod(x)
-    else:
-        return torch.prod(x, dim=axis)
-
-
-def sign(*args, **kwargs):
-    return torch.sign(*args, **kwargs)
+    return torch.prod(x, dim=axis)
 
 
 def mean(x, axis=None):
     if axis is None:
         return torch.mean(x)
-    else:
-        return _np.mean(x, axis)
-
-
-def argmin(*args, **kwargs):
-    return torch.argmin(*args, **kwargs)
-
-
-def reshape(*args, **kwargs):
-    return torch.reshape(*args, **kwargs)
-
-
-def flatten(x):
-    return torch.flatten(x)
-
-
-def arange(*args, **kwargs):
-    return torch.arange(*args, **kwargs)
+    return torch.mean(x, dim=axis)
 
 
 def gather(x, indices, axis=0):
@@ -521,7 +369,7 @@ def gather(x, indices, axis=0):
 
 
 def get_mask_i_float(i, n):
-    range_n = arange(cast(array(n), int32)[0])
+    range_n = arange(cast(array(n), int32))
     i_float = cast(array(i), int32)
     mask_i = equal(range_n, i_float)
     mask_i_float = cast(mask_i, float32)
@@ -529,6 +377,32 @@ def get_mask_i_float(i, n):
 
 
 def assignment(x, values, indices, axis=0):
+    """Assign values at given indices of an array.
+
+    Parameters
+    ----------
+    x: array-like, shape=[dimension]
+        Initial array.
+    values: {float, list(float)}
+        Value or list of values to be assigned.
+    indices: {int, tuple, list(int), list(tuple)}
+        Single int or tuple, or list of ints or tuples of indices where value
+        is assigned.
+        If the length of the tuples is shorter than ndim(x), values are
+        assigned to each copy along axis.
+    axis: int, optional
+        Axis along which values are assigned, if vectorized.
+
+    Returns
+    -------
+    x_new : array-like, shape=[dimension]
+        Copy of x with the values assigned at the given indices.
+
+    Notes
+    -----
+    If a single value is provided, it is assigned at all the indices.
+    If a list is given, it must have the same length as indices.
+    """
     x_new = copy(x)
     single_index = not isinstance(indices, list)
     if single_index:
@@ -536,7 +410,9 @@ def assignment(x, values, indices, axis=0):
     if not isinstance(values, list):
         values = [values] * len(indices)
     for (nb_index, index) in enumerate(indices):
-        if len(indices[0]) < len(shape(x)):
+        if not isinstance(index, tuple):
+            index = (index,)
+        if len(index) < len(shape(x)):
             for n_axis in range(shape(x)[axis]):
                 extended_index = index[:axis] + (n_axis,) + index[axis:]
                 x_new[extended_index] = values[nb_index]
@@ -545,30 +421,70 @@ def assignment(x, values, indices, axis=0):
     return x_new
 
 
+def assignment_by_sum(x, values, indices, axis=0):
+    """Add values at given indices of an array.
+
+    Parameters
+    ----------
+    x: array-like, shape=[dimension]
+        Initial array.
+    values: {float, list(float)}
+        Value or list of values to be assigned.
+    indices: {int, tuple, list(int), list(tuple)}
+        Single int or tuple, or list of ints or tuples of indices where value
+        is assigned.
+        If the length of the tuples is shorter than ndim(x), values are
+        assigned to each copy along axis.
+    axis: int, optional
+        Axis along which values are assigned, if vectorized.
+
+    Returns
+    -------
+    x_new : array-like, shape=[dimension]
+        Copy of x with the values assigned at the given indices.
+
+    Notes
+    -----
+    If a single value is provided, it is assigned at all the indices.
+    If a list is given, it must have the same length as indices.
+    """
+    x_new = copy(x)
+    single_index = not isinstance(indices, list)
+    if single_index:
+        indices = [indices]
+    if not isinstance(values, list):
+        values = [values] * len(indices)
+    for (nb_index, index) in enumerate(indices):
+        if not isinstance(index, tuple):
+            index = (index,)
+        if len(index) < len(shape(x)):
+            for n_axis in range(shape(x)[axis]):
+                extended_index = index[:axis] + (n_axis,) + index[axis:]
+                x_new[extended_index] += values[nb_index]
+        else:
+            x_new[index] += values[nb_index]
+    return x_new
+
+
 def copy(x):
     return x.clone()
 
 
-def cumprod(x, axis=0):
+def cumsum(x, axis=None):
     if axis is None:
-        raise NotImplementedError('cumprod is not defined where axis is None')
-    else:
-        return torch.cumprod(x, dim=axis)
-
-
-def isnan(*args, **kwargs):
-    return torch.isnan(*args, **kwargs)
-
-
-def cumsum(x, axis=0):
-    if axis is None:
-        raise NotImplementedError('cumsum is not defined where axis is None')
-    else:
-        return torch.cumsum(x, dim=axis)
+        return x.flatten().cumsum(dim=0)
+    return torch.cumsum(x, dim=axis)
 
 
 def array_from_sparse(indices, data, target_shape):
     return torch.sparse.FloatTensor(
         torch.LongTensor(indices).t(),
-        torch.FloatTensor(data),
+        torch.FloatTensor(cast(data, float32)),
         torch.Size(target_shape)).to_dense()
+
+
+def from_vector_to_diagonal_matrix(x):
+    n = shape(x)[-1]
+    identity_n = eye(n)
+    diagonals = einsum('ki,ij->kij', x, identity_n)
+    return diagonals
