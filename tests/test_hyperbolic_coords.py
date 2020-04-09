@@ -106,6 +106,10 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
             y_ball, to_coords_type='extrinsic')
         dst_ball = self.ball_metric.dist(x_ball, y_ball)
         dst_extr = self.extrinsic_metric.dist(x_extr, y_extr)
+
+        # TODO(nmiolane): Remove this when ball is properly vectorized
+        dst_extr = gs.to_ndarray(dst_extr, to_ndim=2, axis=1)
+
         self.assertAllClose(dst_ball, dst_extr)
 
     @geomstats.tests.np_and_pytorch_only
@@ -122,6 +126,9 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
             y_extr, to_coords_type='ball')
         dst_ball = self.ball_metric.dist(x_ball, y_ball)
         dst_extr = self.extrinsic_metric.dist(x_extr, y_extr)
+        # TODO(nmiolane): Remove this when ball is properly vectorized
+        dst_extr = gs.to_ndarray(dst_extr, to_ndim=2, axis=1)
+
         self.assertAllClose(dst_ball, dst_extr)
 
     @geomstats.tests.np_and_pytorch_only
@@ -145,6 +152,9 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
             y_extr, to_coords_type='ball')
         dst_ball = ball_metric.dist(x_ball, y_ball)
         dst_extr = extrinsic_metric.dist(x_extr, y_extr)
+        # TODO(nmiolane): Remove this when ball is properly vectorized
+        dst_extr = gs.to_ndarray(dst_extr, to_ndim=2, axis=1)
+
         self.assertAllClose(dst_ball, dst_extr)
 
     @geomstats.tests.np_and_pytorch_only
