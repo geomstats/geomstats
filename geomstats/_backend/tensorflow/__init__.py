@@ -101,11 +101,7 @@ def diag(a):
 
 
 def ndim(x):
-    x = array(x)
-    dims = x.get_shape()._dims
-    if dims is not None:
-        return len(dims)
-    return None
+    return tf.convert_to_tensor(x).ndim
 
 
 def to_ndarray(x, to_ndim, axis=0):
