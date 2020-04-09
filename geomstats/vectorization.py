@@ -158,22 +158,22 @@ def decorator(point_types):
 
 
 def initial_shapes(point_types, args):
-    """Extract shapes and ndims of input args.
+    """Extract shapes and ndims of input args or kwargs values.
 
-    Return a list with the shapes of the input args
-    that are array-like, with None otherwise.
+    Store the shapes of the input args, or kwargs values,
+    that are array-like, store None otherwise.
 
     Parameters
     ----------
-    point_types :  list
-        Point types corresponding to the args.
+    point_types : list
+        Point types corresponding to the args, or kwargs values.
     args : tuple or dict_values
         Args, or kwargs values, of a function.
 
     Returns
     -------
     initial_shapes : list
-        Shapes of array-like input args.
+        Shapes of array-like input args, or kwargs values.
     """
     initial_shapes = []
 
@@ -191,7 +191,29 @@ def initial_shapes(point_types, args):
 
 
 def vectorize_args(point_types, args):
-    """Vectorize input args."""
+    """Vectorize input args.
+
+    Transform input array-like args into their fully-vectorized form,
+
+    where "fully-vectorized" means that:
+    - one scalar has shape [1, 1],
+    - n scalars have shape [n, 1],
+    - one d-D vector has shape [1, d],
+    - n d-D vectors have shape [n, d],
+    etc.
+
+    Parameters
+    ----------
+    point_types : list
+        Point types corresponding to the args.
+    args : tuple
+        Args of a function.
+
+    Returns
+    -------
+    vect_args : tuple
+        Args of the function in their fully-vectorized form.
+    """
     vect_args = []
     for i_arg, arg in enumerate(args):
         point_type = point_types[i_arg]
@@ -208,7 +230,29 @@ def vectorize_args(point_types, args):
 
 
 def vectorize_kwargs(point_types, kwargs):
-    """Vectorize input kwargs."""
+    """Vectorize input kwargs.
+
+    Transform input array-like kwargs into their fully-vectorized form,
+
+    where "fully-vectorized" means that:
+    - one scalar has shape [1, 1],
+    - n scalars have shape [n, 1],
+    - one d-D vector has shape [1, d],
+    - n d-D vectors have shape [n, d],
+    etc.
+
+    Parameters
+    ----------
+    point_types :list
+        Point types corresponding to the args.
+    kwargs : dict
+        Kwargs of a function.
+
+    Returns
+    -------
+    vect_kwargs : dict
+        Kwargs of the function in their fully-vectorized form.
+    """
     vect_kwargs = {}
     for i_arg, key_arg in enumerate(kwargs.keys()):
         point_type = point_types[i_arg]
