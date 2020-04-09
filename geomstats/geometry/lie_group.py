@@ -66,7 +66,6 @@ class LieGroup(Manifold):
     """
 
     def __init__(self, dimension):
-        assert dimension > 0
         Manifold.__init__(self, dimension)
 
         self.left_canonical_metric = InvariantMetric(
@@ -337,7 +336,6 @@ class LieGroup(Manifold):
             gs.transpose(jacobian, axes=(0, 2, 1)),
         )
 
-        assert gs.ndim(log) == 2
         return log
 
     def log(self, point, base_point=None, point_type=None):
