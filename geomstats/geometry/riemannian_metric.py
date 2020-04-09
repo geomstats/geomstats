@@ -32,8 +32,8 @@ def loss(y_pred, y_true, metric):
     loss
 
     """
-    loss = metric.squared_dist(y_pred, y_true)
-    return loss
+    sq_dist = metric.squared_dist(y_pred, y_true)
+    return sq_dist
 
 
 def grad(y_pred, y_true, metric):
@@ -43,11 +43,12 @@ def grad(y_pred, y_true, metric):
 
     inner_prod_mat = metric.inner_product_matrix(base_point=y_pred)
 
-    grad = gs.einsum('ni,nij->ni',
-                     grad_vec,
-                     gs.transpose(inner_prod_mat, axes=(0, 2, 1)))
+    loss_grad = gs.einsum(
+        'ni,nij->ni',
+        grad_vec,
+        gs.transpose(inner_prod_mat, axes=(0, 2, 1)))
 
-    return grad
+    return loss_grad
 
 
 class RiemannianMetric(Connection):
