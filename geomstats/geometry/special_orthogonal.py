@@ -4,6 +4,7 @@ i.e. the Lie group of rotations in n dimensions.
 """
 
 import geomstats.backend as gs
+from geomstats import utils
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.lie_group import LieGroup
@@ -359,7 +360,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             mask = gs.less(gs.linalg.det(rot_mat), 0.)
             mask_float = gs.cast(mask, gs.float32) + self.epsilon
             diag = gs.array([[1., 1., -1.]])
-            diag = gs.to_ndarray(gs.diag(diag), to_ndim=3) + self.epsilon
+            diag = gs.to_ndarray(utils.from_vector_to_diagonal_matrix(diag),
+                                 to_ndim=3) + self.epsilon
             new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
             aux_mat = gs.einsum(
