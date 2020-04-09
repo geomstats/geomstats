@@ -212,10 +212,6 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
 
             iteration += 1
 
-            #rep_barycenter = gs.repeat(barycenter, len(points), axis = 0)
-
-            #grad_tangent = 2 * log(torch.from_numpy(rep_barycenter), torch.from_numpy(points))
-
             barycenter_gs  = gs.squeeze(barycenter)
             points_gs = gs.squeeze(points)
 
@@ -229,14 +225,19 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
 
             grad_tangent = grad_tangent * weights
 
-            #cc_barycenter_gs = metric.exp(barycenter_gs,
-                                       #lr * grad_tangent.sum(0, keepdims=True))
+            lr_grad_tangent = lr * grad_tangent.sum(0, keepdims=True)
 
-            cc_barycenter = exp(torch.from_numpy(barycenter),
-                                torch.from_numpy(lr * grad_tangent.sum(0, keepdims=True)))
+            lr_grad_tangent_s = lr_grad_tangent.squeeze()
+            cc_barycenter = gs.zeros(lr_grad_tangent_s.shape)
 
-            cc_barycenter = cc_barycenter.data.numpy()
+            for i in range(len(cc_barycenter)):
+                    cc_barycenter[i] = metric.exp(barycenter_gs[i], lr_grad_tangent_s[i])
+
+
+            cc_barycenter = gs.expand_dims(cc_barycenter, 0)
+
             convergence = metric.dist(cc_barycenter, barycenter).max().item()
+            print('conv', convergence)
             barycenter = cc_barycenter
 
     if iteration == max_iter:

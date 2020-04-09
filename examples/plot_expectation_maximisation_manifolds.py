@@ -1,32 +1,34 @@
 """
 Applies Expectation Maximization on manifolds and plots the results.
 
-Two random clusters are generated in seperate regions of the
-manifold. Then apply EM using the metric of the manifold
-algorithm and plot the Gaussian Mixture Model. For the moment
-the example works on the Poincaré Ball.
+Random data is generated in seperate regions of the
+manifold. Then Expectation Maximization deduces a Gaussian Mixture Model
+that best fits the random data. For the moment
+the example works on the Poincaré Ball hyperbolic space.
 """
+
 import os
 
-
-import geomstats.backend as gs
-from geomstats.geometry.hyperbolic import Hyperbolic
-from geomstats.learning.em_expectation_maximization import RiemannianEM
 import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.art3d as art3d
 from matplotlib.patches import Circle
 
-PI_2_3 = pow((2 * gs.pi), 2 / 3)
-CST_FOR_ERF = 8.0 / (3.0 * gs.pi) * (gs.pi - 3.0) / (4.0 - gs.pi)
+import geomstats.backend as gs
+from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.learning.em_expectation_maximization \
+    import RiemannianEM, weighted_gmm_pdf
+
+DEFAULT_PLOT_PRECISION = 100
+
 
 def plot_gaussian_mixture_distribution(data,
-                                mixture_coefficients,
-                                means,
-                                variances,
-                                plot_precision=10,
-                                save_path="",
-                                metric=None):
-
+                                       mixture_coefficients,
+                                       means,
+                                       variances,
+                                       plot_precision=DEFAULT_PLOT_PRECISION,
+                                       save_path="",
+                                       metric=None):
+    """Plot Gaussian Mixture Model."""
     x_axis_samples = gs.linspace(-1, 1, plot_precision)
     y_axis_samples = gs.linspace(-1, 1, plot_precision)
     x_axis_samples, y_axis_samples = gs.meshgrid(x_axis_samples,
@@ -36,9 +38,10 @@ def plot_gaussian_mixture_distribution(data,
 
     for z_index in range(len(z_axis_samples)):
 
-        x_y_plane_mesh = gs.concatenate((gs.expand_dims(x_axis_samples[z_index],-1),
-                                           gs.expand_dims(y_axis_samples[z_index],-1)),
-                                           axis=-1)
+        x_y_plane_mesh = gs.concatenate((
+            gs.expand_dims(x_axis_samples[z_index], -1),
+            gs.expand_dims(y_axis_samples[z_index], -1)),
+            axis=-1)
 
         mesh_probabilities = weighted_gmm_pdf(mixture_coefficients,
                                               x_y_plane_mesh,
@@ -46,11 +49,12 @@ def plot_gaussian_mixture_distribution(data,
                                               variances,
                                               metric)
 
-        mesh_probabilities[mesh_probabilities != mesh_probabilities ]= 0
+        mesh_probabilities[mesh_probabilities != mesh_probabilities] = 0
 
         z_axis_samples[z_index] = mesh_probabilities.sum(-1)
 
-    fig = plt.figure("Learned Gaussian Mixture Model via Expectation Maximisation on Poincaré Disc")
+    fig = plt.figure("Learned Gaussian Mixture Model "
+                     "via Expectation Maximisation on Poincaré Disc")
 
     ax = fig.gca(projection='3d')
     ax.plot_surface(x_axis_samples,
@@ -70,16 +74,15 @@ def plot_gaussian_mixture_distribution(data,
     ax.add_patch(p)
 
     art3d.pathpatch_2d_to_3d(p,
-                             z = z_circle,
+                             z=z_circle,
                              zdir="z")
 
     for data_index in range(len(data)):
         ax.scatter(data[data_index][0],
-                       data[data_index][1],
-                       z_circle,
-                       c='b',
-                       marker='.')
-
+                   data[data_index][1],
+                   z_circle,
+                   c='b',
+                   marker='.')
 
     for means_index in range(len(means)):
         ax.scatter(means[means_index][0],
@@ -102,20 +105,18 @@ def plot_gaussian_mixture_distribution(data,
 
 
 def expectation_maximisation_poincare_ball():
-
-    #Generate random data in 3 different parts of the manifold
-
+    """Apply EM algorithm on three random data clusters."""
     dim = 2
     n_samples = 5
 
     cluster_1 = gs.random.uniform(low=0.2, high=0.6, size=(n_samples, dim))
     cluster_2 = gs.random.uniform(low=-0.2, high=-0.6, size=(n_samples, dim))
     cluster_3 = gs.random.uniform(low=0, high=-0.3, size=(n_samples, dim))
-    cluster_3[:,0] = -cluster_3[:,0]
+    cluster_3[:, 0] = -cluster_3[:, 0]
 
     data = gs.concatenate((cluster_1, cluster_2, cluster_3), axis=0)
 
-    #Set up hyperbolic space
+    # Set up hyperbolic space
 
     n_clusters = 3
 
@@ -123,68 +124,30 @@ def expectation_maximisation_poincare_ball():
 
     metric = manifold.metric
 
-    #Set up EM algorithm and fit
-    EM = RiemannianEM(riemannian_metric=metric,
-                       n_gaussian= n_clusters,
-                       init='random',
-                       mean_method='frechet-poincare-ball',
-                       verbose=1,
-                       )
+    EM = RiemannianEM(n_gaussian=n_clusters,
+                      riemannian_metric=metric,
+                      initialisation_method='random',
+                      mean_method='frechet-poincare-ball',
+                      verbose=1)
 
     means, variances, mixture_coefficients = EM.fit(
         data=data,
         max_iter=100)
 
-
-    #Plot result
+    # Plot result
     plot = plot_gaussian_mixture_distribution(data,
-                                       mixture_coefficients,
-                                       means,
-                                       variances,
-                                       plot_precision=20,
-                                       save_path='result.png',
-                                       metric = metric.dist
-                                       )
+                                              mixture_coefficients,
+                                              means,
+                                              variances,
+                                              plot_precision=100,
+                                              save_path='result.png',
+                                              metric=metric.dist)
 
     return plot
 
-def erf_approx(x):
-    return gs.sign(x)*gs.sqrt(1 - gs.exp(-x * x * (4 / gs.pi + CST_FOR_ERF * x * x) / (1 + CST_FOR_ERF * x * x)))
-
-def weighted_gmm_pdf(mixture_coefficients,
-                     mesh_data,
-                     means,
-                     variances,
-                     metric):
-
-    mesh_data_units = gs.expand_dims(mesh_data, 1)
-
-    mesh_data_units = gs.repeat(mesh_data_units, len(means), axis = 1)
-
-    means_units = gs.expand_dims(means,0)
-
-    means_units = gs.repeat(means_units,mesh_data_units.shape[0],axis = 0)
-
-    distance_to_mean = metric(mesh_data_units, means_units)
-    variances_units = gs.expand_dims(variances,0)
-    variances_units = gs.repeat(variances_units, distance_to_mean.shape[0], axis = 0)
-
-    distribution_normal = gs.exp(-((distance_to_mean)**2)/(2 * variances_units**2))
-
-    zeta_sigma =PI_2_3 * variances * gs.exp((variances ** 2 / 2) * erf_approx(variances / gs.sqrt(2)))
-
-    result_num_gs = gs.expand_dims(mixture_coefficients,0)
-    result_num_gs = gs.repeat(result_num_gs,len(distribution_normal), axis = 0) * distribution_normal
-    result_denum_gs = gs.expand_dims(zeta_sigma,0)
-    result_denum_gs = gs.repeat(result_denum_gs,len(distribution_normal), axis = 0)
-
-    result = result_num_gs/result_denum_gs
-
-    return result
 
 def main():
-
-    # Expectation Maximisation Poincare Ball
+    """Define main function."""
     plots = expectation_maximisation_poincare_ball()
 
     plots.show()
@@ -194,7 +157,7 @@ if __name__ == "__main__":
     if os.environ['GEOMSTATS_BACKEND'] != 'numpy':
         print('Expectation Maximization example\n'
               'works with\n'
-              'with numpy backend.\n'
+              'numpy backend.\n'
               'To change backend, write: '
               'export GEOMSTATS_BACKEND = \'numpy\'.')
     else:
