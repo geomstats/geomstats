@@ -23,7 +23,6 @@ class TestPoincareBallMethods(geomstats.tests.TestCase):
         self.hyperboloid_manifold = Hyperboloid(2)
         self.hyperboloid_metric = self.hyperboloid_manifold.metric
 
-    @geomstats.tests.np_and_pytorch_only
     def test_squared_dist(self):
         point_a = gs.array([-0.3, 0.7])
         point_b = gs.array([0.2, 0.5])
@@ -54,7 +53,6 @@ class TestPoincareBallMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(dist_in_ball, dist_in_hype, atol=1e-8)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_dist_poincare(self):
 
         point_a = gs.array([0.5, 0.5])
@@ -68,7 +66,92 @@ class TestPoincareBallMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    def test_dist_vectorization(self):
+        point_a = gs.array([0.2, 0.5])
+        point_b = gs.array([[0.3, -0.5], [0.2, 0.2]])
+
+        dist_a_b =\
+            self.manifold.metric.dist(point_a, point_b)
+
+        result_vect = dist_a_b
+        result =\
+            [self.manifold.metric.dist(point_a, point_b[i])
+             for i in range(len(point_b))]
+        result = gs.concatenate(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
+    def test_mobius_vectorization(self):
+        point_a = gs.array([0.5, 0.5])
+        point_b = gs.array([[0.5, -0.3], [0.3, 0.4]])
+
+        dist_a_b =\
+            self.manifold.metric.mobius_add(point_a, point_b)
+
+        result_vect = dist_a_b
+        result =\
+            [self.manifold.metric.mobius_add(point_a, point_b[i])
+             for i in range(len(point_b))]
+        result = gs.concatenate(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
+        dist_a_b =\
+            self.manifold.metric.mobius_add(point_b, point_a)
+
+        result_vect = dist_a_b
+        result =\
+            [self.manifold.metric.mobius_add(point_b[i], point_a)
+             for i in range(len(point_b))]
+        result = gs.concatenate(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
+    def test_log_vectorization(self):
+        point_a = gs.array([0.5, 0.5])
+        point_b = gs.array([[0.5, -0.5], [0.4, 0.4]])
+
+        dist_a_b =\
+            self.manifold.metric.log(point_a, point_b)
+
+        result_vect = dist_a_b
+        result =\
+            [self.manifold.metric.log(point_a, point_b[i])
+             for i in range(len(point_b))]
+        result = gs.concatenate(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
+        dist_a_b =\
+            self.manifold.metric.log(point_b, point_a)
+
+        result_vect = dist_a_b
+        result =\
+            [self.manifold.metric.log(point_b[i], point_a)
+             for i in range(len(point_b))]
+        result = gs.concatenate(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
+    def test_exp_vectorization(self):
+        point_a = gs.array([0.5, 0.5])
+        point_b = gs.array([[0.5, -0.5], [0.4, 0.4]])
+
+        dist_a_b =\
+            self.manifold.metric.exp(point_a, point_b)
+
+        result_vect = dist_a_b
+        result =\
+            [self.manifold.metric.exp(point_a, point_b[i])
+             for i in range(len(point_b))]
+        result = gs.concatenate(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
+        dist_a_b =\
+            self.manifold.metric.exp(point_b, point_a)
+
+        result_vect = dist_a_b
+        result =\
+            [self.manifold.metric.exp(point_b[i], point_a)
+             for i in range(len(point_b))]
+        result = gs.concatenate(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
     def test_log_poincare(self):
 
         point = gs.array([[0.3, 0.5]])
@@ -80,19 +163,16 @@ class TestPoincareBallMethods(geomstats.tests.TestCase):
         self.manifold.metric.coords_type = 'extrinsic'
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_belong_true_poincare(self):
         point = gs.array([[0.3, 0.5]])
         belong = self.manifold.belongs(point)
         self.assertTrue(belong)
 
-    @geomstats.tests.np_only
     def test_belong_false_poincare(self):
         point = gs.array([[1.2, 0.5]])
         belong = self.manifold.belongs(point)
         self.assertFalse(belong)
 
-    @geomstats.tests.np_only
     def test_exp_poincare(self):
 
         point = gs.array([[0.3, 0.5]])
@@ -104,7 +184,6 @@ class TestPoincareBallMethods(geomstats.tests.TestCase):
         self.manifold.metric.coords_type = 'extrinsic'
         self.assertAllClose(result, point)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_ball_retraction(self):
         x = gs.array([[0.5, 0.6], [0.2, -0.1], [0.2, -0.4]])
         y = gs.array([[0.3, 0.5], [0.3, -0.6], [0.3, -0.3]])
