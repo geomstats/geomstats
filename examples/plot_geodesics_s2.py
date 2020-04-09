@@ -14,9 +14,9 @@ METRIC = SPHERE2.metric
 
 
 def main():
-    initial_point = [1., 0., 0.]
+    initial_point = np.array([1., 0., 0.])
     initial_tangent_vec = SPHERE2.projection_to_tangent_space(
-        vector=[1., 2., 0.8], base_point=initial_point)
+        vector=np.array([1., 2., 0.8]), base_point=initial_point)
     geodesic = METRIC.geodesic(
         initial_point=initial_point,
         initial_tangent_vec=initial_tangent_vec)

@@ -59,8 +59,8 @@ def main():
         sphere_visu.draw_points(ax, final_geodesic(-t), marker='o', c='g', s=2)
         sphere_visu.draw_points(ax, final_geodesic(t), marker='o', c='g', s=2)
 
-    tangent_vectors = gs.concatenate(
-        [tangent_vec_b, tangent_vec_a, pole_ladder]) / N_STEPS
+    tangent_vectors = gs.stack(
+        [tangent_vec_b, tangent_vec_a, pole_ladder], axis=0) / N_STEPS
 
     base_point = gs.to_ndarray(base_point, to_ndim=2)
     origin = gs.concatenate(
