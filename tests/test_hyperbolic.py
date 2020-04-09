@@ -136,7 +136,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         Expect their composition to give the identity function.
         """
         # Riemannian Log then Riemannian Exp
-        dim = 3
+        dim = 5
         n_samples = self.n_samples
 
         h5 = Hyperboloid(dimension=dim)
@@ -151,30 +151,13 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(result, expected)
 
-        print('### VECTORIZATION')
-
-        print('base_point')
-        print(base_point)
+        # Test vectorization of log
         base_point = gs.stack([base_point] * n_samples, axis=0)
-        print('base_point')
-        print(base_point)
-        print('point')
-        print(point)
         point = gs.stack([point] * n_samples, axis=0)
-        print('point')
-        print(point)
-
-        print('one_log')
-        print(one_log)
         expected = gs.stack([one_log] * n_samples, axis=0)
-        print('expected log from one_log\'s')
-        print(expected)
 
         log = h5_metric.log(point=point, base_point=base_point)
         result = log
-
-        print('result log')
-        print(result)
 
         self.assertAllClose(gs.shape(result), (n_samples, dim + 1))
         self.assertAllClose(result, expected)
@@ -182,6 +165,15 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         result = h5_metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
 
+        self.assertAllClose(gs.shape(result), (n_samples, dim + 1))
+        self.assertAllClose(result, expected)
+
+        # Test vectorization of exp
+        tangent_vec = gs.stack([one_log] * n_samples, axis=0)
+        exp = h5_metric.exp(tangent_vec=tangent_vec, base_point=base_point)
+        result = exp
+
+        expected = point
         self.assertAllClose(gs.shape(result), (n_samples, dim + 1))
         self.assertAllClose(result, expected)
 

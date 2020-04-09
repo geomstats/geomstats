@@ -370,8 +370,6 @@ class HyperboloidMetric(HyperbolicMetric):
             of point at the base point.
         """
         angle = self.dist(base_point, point) / self.scale
-        print('angle.shape')
-        print(angle.shape)
         angle = gs.to_ndarray(angle, to_ndim=1)
 
         mask_0 = gs.isclose(angle, 0.)
