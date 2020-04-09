@@ -29,6 +29,11 @@ class Stiefel(EmbeddedManifold):
     """
 
     def __init__(self, n, p):
+        dimension = int(p * n - (p * (p + 1) / 2))
+        super(Stiefel, self).__init__(
+            dimension=dimension,
+            embedding_manifold=Matrices(n, p))
+
         geomstats.error.check_strictly_positive_integer(n, 'n')
         geomstats.error.check_strictly_positive_integer(p, 'p')
         if p > n:
@@ -36,11 +41,6 @@ class Stiefel(EmbeddedManifold):
 
         self.n = n
         self.p = p
-
-        dimension = int(p * n - (p * (p + 1) / 2))
-        super(Stiefel, self).__init__(
-            dimension=dimension,
-            embedding_manifold=Matrices(n, p))
 
         self.canonical_metric = StiefelCanonicalMetric(n, p)
 

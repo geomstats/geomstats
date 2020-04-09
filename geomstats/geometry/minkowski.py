@@ -1,7 +1,6 @@
 """Minkowski space."""
 
 import geomstats.backend as gs
-import geomstats.error
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -10,9 +9,7 @@ class Minkowski(Manifold):
     """Class for Minkowski Space."""
 
     def __init__(self, dimension):
-        geomstats.error.check_strictly_positive_integer(
-            dimension, 'dimension')
-        self.dimension = dimension
+        super(Minkowski, self).__init__(dimension=dimension)
         self.metric = MinkowskiMetric(dimension)
 
     def belongs(self, point):

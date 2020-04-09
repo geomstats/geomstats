@@ -66,7 +66,7 @@ class LieGroup(Manifold):
     """
 
     def __init__(self, dimension):
-        Manifold.__init__(self, dimension)
+        super(LieGroup, self).__init__(self, dimension)
 
         self.left_canonical_metric = InvariantMetric(
             group=self,
