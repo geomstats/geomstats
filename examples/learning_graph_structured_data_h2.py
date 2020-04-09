@@ -109,8 +109,6 @@ def loss(example_embedding, context_embedding, negative_embedding,
     negative_log_sigmoid_grad =\
         grad_log_sigmoid(negative_distance)
 
-    assert gs.ndim(negative_log_sigmoid_grad) == 1, negative_log_sigmoid_grad
-    assert gs.ndim(negative_distance_grad) == 2, negative_distance_grad
     negative_grad = negative_log_sigmoid_grad\
         * negative_distance_grad
 
