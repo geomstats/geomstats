@@ -1342,18 +1342,18 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
             result = metric.inner_product(one_vector_a, n_vector_b,
                                           one_base_point)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             if geomstats.tests.tf_backend():
                 break
 
             result = metric.inner_product(n_vector_a, one_vector_b,
                                           one_base_point)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             result = metric.inner_product(n_vector_a, n_vector_b,
                                           one_base_point)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
     def test_inner_product_n_base_point_vectorization(self):
         n_samples = self.n_samples
@@ -1367,18 +1367,18 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
             result = metric.inner_product(one_vector_a, n_vector_b,
                                           n_base_point)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             if geomstats.tests.tf_backend():
                 break
 
             result = metric.inner_product(n_vector_a, one_vector_b,
                                           n_base_point)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             result = metric.inner_product(n_vector_a, n_vector_b,
                                           n_base_point)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
     @geomstats.tests.np_only
     def test_squared_dist_is_symmetric(self):
@@ -1429,26 +1429,26 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
             # Identity and n points 2
             result = metric.squared_dist(point_id, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             if geomstats.tests.tf_backend():
                 break
 
             # n points 1 and identity
             result = metric.squared_dist(n_point_1, point_id)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # one point 1 and n points 2
             result = metric.squared_dist(one_point_1, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # n points 1 and one point 2
             result = metric.squared_dist(n_point_1, one_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # n points 1 and n points 2
             result = metric.squared_dist(n_point_1, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
     def test_dist_vectorization(self):
         n_samples = self.n_samples
@@ -1468,25 +1468,25 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
             # Identity and n points 2
             result = metric.dist(point_id, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             if geomstats.tests.tf_backend():
                 break
             # n points 1 and identity
             result = metric.dist(n_point_1, point_id)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # one point 1 and n points 2
             result = metric.dist(one_point_1, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # n points 1 and one point 2
             result = metric.dist(n_point_1, one_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # n points 1 and n points 2
             result = metric.dist(n_point_1, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
     def test_group_exponential_barycenter(self):
         """Test group exponential barycenter."""
