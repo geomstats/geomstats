@@ -42,9 +42,9 @@ def variance(points,
         weights = weights[:, :, 0]
 
     sq_dists = metric.squared_dist(base_point, points)
-    var = gs.einsum('nk,n->', weights, sq_dists)
+    var = gs.einsum('...k,...->...', weights, sq_dists)
 
-    var = gs.array(var)
+    var = gs.sum(var)
     var /= sum_weights
 
     var = gs.to_ndarray(var, to_ndim=1)
