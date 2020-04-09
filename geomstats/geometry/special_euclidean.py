@@ -397,7 +397,7 @@ class SpecialEuclidean(LieGroup):
                 [inverse_rotation, inverse_translation], axis=1)
             return self.regularize(inverse_point, point_type=point_type)
 
-        elif point_type == 'matrix':
+        if point_type == 'matrix':
             inv_rot = gs.transpose(
                 point[:, :self.n, :self.n], axes=(0, 2, 1))
             inv_trans = gs.matmul(inv_rot, - point[:, :self.n, self.n:])

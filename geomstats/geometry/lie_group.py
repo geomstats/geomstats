@@ -385,11 +385,12 @@ class LieGroup(Manifold):
         n_points = point.shape[0]
         n_base_points = base_point.shape[0]
 
-        assert (
+        if (
             point.shape == base_point.shape
             or n_points == 1
             or n_base_points == 1
-        )
+        ):
+            raise ValueError('Inputs shapes do not match')
 
         if n_points == 1:
             point = gs.array([point[0]] * n_base_points)
