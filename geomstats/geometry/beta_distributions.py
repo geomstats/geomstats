@@ -6,6 +6,7 @@ from scipy.integrate import solve_bvp
 from scipy.stats import beta
 
 import geomstats.backend as gs
+import geomstats.error
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -158,7 +159,8 @@ class BetaMetric(RiemannianMetric):
         -------
         base_point : array-like, shape=[n_samples, 2, 2]
         """
-        assert base_point is not None, 'The metric depends on the base point'
+        if base_point is not None:
+            raise ValueError('The metric depends on the base point.')
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         matrices = []
         for point in base_point:
@@ -200,7 +202,8 @@ class BetaMetric(RiemannianMetric):
                 2 * metric_det)
             return c1, c2, c3
 
-        assert base_point is not None, 'The Christoffels require a base point'
+        if base_point is not None:
+            raise ValueError('Christoffels require a base point.')
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         param_a, param_b = base_point[:, 0], base_point[:, 1]
         c1, c2, c3 = coefficients(param_a, param_b)

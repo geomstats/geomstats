@@ -446,7 +446,10 @@ class Connection(object):
                 point=end_point,
                 base_point=initial_point)
             if initial_tangent_vec is not None:
-                assert gs.allclose(shooting_tangent_vec, initial_tangent_vec)
+                if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
+                    raise RuntimeError(
+                        'The shooting tangent vector is too'
+                        ' far from the initial tangent vector.')
             initial_tangent_vec = shooting_tangent_vec
         initial_tangent_vec = gs.array(initial_tangent_vec)
         initial_tangent_vec = gs.to_ndarray(
