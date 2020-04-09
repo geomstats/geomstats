@@ -8,7 +8,6 @@ from geomstats import algebra_utils
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.lie_group import LieGroup
-from geomstats.learning.frechet_mean import FrechetMean
 
 ATOL = 1e-5
 
@@ -55,16 +54,14 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         self.epsilon = epsilon
 
-        self.default_point_type = point_type
-        if point_type is None:
-            self.default_point_type = 'vector' if n == 3 else 'matrix'
-
         LieGroup.__init__(self,
-                          dimension=self.dimension)
+                          dimension=self.dimension, point_type=point_type)
         EmbeddedManifold.__init__(self,
                                   dimension=self.dimension,
                                   embedding_manifold=GeneralLinear(n=n))
         self.bi_invariant_metric = self.left_canonical_metric
+        if point_type is None:
+            self.default_point_type = 'vector' if n == 3 else 'matrix'
 
     def get_identity(self, point_type=None):
         """Get the identity of the group.
@@ -1619,52 +1616,3 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             point = self.rotation_vector_from_matrix(point)
             tangent_vec = self.skew_matrix_from_vector(point)
         return tangent_vec
-
-    def exponential_barycenter(
-            self, points, weights=None, point_type=None, verbose=False):
-        """Compute the group exponential barycenter in SO(n).
-
-        This is the Frechet mean of the canonical bi-invariant metric on SO(n).
-
-        Parameters
-        ----------
-        points : array-like, shape=[n_samples, {dimension, [n, n]}]
-        weights : array-like, shape=[n_samples], optional
-            default: 1 / n_samples for each point
-        point_type : str, {'vector', 'matrix'}, optional
-            default: self.default_point_type
-
-        Returns
-        -------
-        exp_bar : array-like, shape=[{dimension, [n, n]}]
-            the group exponential barycenter
-        """
-        if point_type is None:
-            point_type = self.default_point_type
-
-        if point_type == 'vector':
-            n_points = points.shape[0]
-            if n_points <= 0:
-                raise ValueError('Can\' compute the mean of 0 points.')
-
-            if weights is None:
-                weights = gs.ones((n_points, 1))
-
-            n_weights = weights.shape[0]
-            if n_points != n_weights:
-                raise ValueError(
-                    '`points` and `weights` need to have the same length.')
-
-            mean = FrechetMean(metric=self.bi_invariant_metric)
-            mean.fit(X=points, weights=weights)
-            exp_bar = mean.estimate_
-
-            exp_bar = gs.to_ndarray(exp_bar, to_ndim=2)
-
-        elif point_type == 'matrix':
-            points = self.rotation_vector_from_matrix(points)
-            exp_bar = self.exponential_barycenter(
-                points, weights, point_type='vector', verbose=verbose)
-            exp_bar = self.matrix_from_rotation_vector(exp_bar)
-
-        return exp_bar
