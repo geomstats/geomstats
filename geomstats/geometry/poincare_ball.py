@@ -115,7 +115,8 @@ class PoincareBallMetric(RiemannianMetric):
 
         lambda_base_point = 1 / den
 
-        zero_tan = gs.isclose((tangent_vec * tangent_vec).sum(axis=-1), 0.)
+        zero_tan =\
+            gs.isclose(gs.sum(tangent_vec * tangent_vec, axis=-1), 0.)
 
         if gs.any(zero_tan):
             if norm_tan[zero_tan].shape[0] != 0:
@@ -127,7 +128,8 @@ class PoincareBallMetric(RiemannianMetric):
 
         exp = self.mobius_add(base_point, direction * factor)
 
-        zero_tan = gs.isclose((tangent_vec * tangent_vec).sum(axis=-1), 0.)
+        zero_tan =\
+            gs.isclose(gs.sum(tangent_vec * tangent_vec, axis=-1), 0.)
 
         if gs.any(zero_tan):
             if exp[zero_tan].shape[0] != 0:
@@ -170,7 +172,7 @@ class PoincareBallMetric(RiemannianMetric):
         log = (1 - norm_base_point**2) * gs.arctanh(norm_add)
         log = gs.einsum('...i,...j->...j', log, (add_base_point / norm_add))
 
-        mask_0 = gs.isclose(gs.squeeze(norm_add), 0.)
+        mask_0 = gs.isclose(gs.squeeze(norm_add, axis=-1), 0.)
         if gs.any(mask_0):
             log[mask_0] = 0
 
@@ -290,15 +292,14 @@ class PoincareBallMetric(RiemannianMetric):
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
-        retraction_factor = ((1 - (base_point**2).sum(axis=-1))**2) / 4
         retraction_factor =\
-            gs.repeat(gs.expand_dims(retraction_factor, -1),
-                      base_point.shape[1],
-                      axis=1)
-        return base_point - retraction_factor * tangent_vec
+            ((1 - gs.sum(base_point**2, axis=-1, keepdims=True))**2) / 4
+
+        return base_point\
+            - gs.einsum('...i,...j->...j', retraction_factor, tangent_vec)
 
     def inner_product_matrix(self, base_point=None):
-        """Compute the inner product matrixx.
+        """Compute the inner product matrix.
 
         Parameters
         ----------
@@ -310,21 +311,9 @@ class PoincareBallMetric(RiemannianMetric):
         """
         if base_point is None:
             base_point = gs.zeros((1, self.dimension))
-        dim = base_point.shape[-1]
-        n_sample = base_point.shape[0]
 
         lambda_base =\
             (2 / (1 - gs.sum(base_point * base_point, axis=-1)))**2
-
-        expanded_lambda_base =\
-            gs.expand_dims(gs.expand_dims(lambda_base, axis=-1), -1)
-        reshaped_lambda_base =\
-            gs.repeat(gs.repeat(expanded_lambda_base, dim, axis=-2),
-                      dim, axis=-1)
-
         identity = gs.eye(self.dimension, self.dimension)
-        reshaped_identity =\
-            gs.repeat(gs.expand_dims(identity, 0), n_sample, axis=0)
 
-        results = reshaped_lambda_base * reshaped_identity
-        return results
+        return gs.einsum('i,jk->ijk', lambda_base, identity)
