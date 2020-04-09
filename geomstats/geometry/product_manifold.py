@@ -92,7 +92,7 @@ class ProductManifold(Manifold):
             intrinsic = self.metric.is_intrinsic(point)
             belongs = self._iterate_over_manifolds(
                 'belongs', {'point': point}, intrinsic)
-            belongs = gs.hstack(belongs)
+            belongs = gs.stack(belongs, axis=1)
 
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
