@@ -3,6 +3,7 @@
 from functools import reduce
 
 import geomstats.backend as gs
+import geomstats.error
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -14,7 +15,8 @@ class Matrices(Euclidean):
     """Class for the space of matrices (m, n)."""
 
     def __init__(self, m, n):
-        assert isinstance(m, int) and isinstance(n, int) and m > 0 and n > 0
+        geomstats.error.check_strictly_positive_integer(n, 'n')
+        geomstats.error.check_strictly_positive_integer(m, 'm')
         super(Matrices, self).__init__(dimension=m * n)
         self.m = m
         self.n = n
@@ -178,14 +180,10 @@ class MatricesMetric(RiemannianMetric):
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner product of two tan vecs at `base_point`."""
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
-        n_tangent_vecs_a, _, _ = tangent_vec_a.shape
-
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
-        n_tangent_vecs_b, _, _ = tangent_vec_b.shape
 
-        assert n_tangent_vecs_a == n_tangent_vecs_b
-
-        inner_prod = gs.einsum("nij,nij->n", tangent_vec_a, tangent_vec_b)
+        inner_prod = gs.einsum(
+            '...ij,...ij->...', tangent_vec_a, tangent_vec_b)
         inner_prod = gs.to_ndarray(inner_prod, to_ndim=1)
         inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
         return inner_prod
