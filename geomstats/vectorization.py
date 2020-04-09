@@ -12,7 +12,7 @@ POINT_TYPES_TO_NDIMS = {
     'matrix': 3}
 
 
-def squeeze_output_dim_0(initial_ndims, point_types):
+def squeeze_output_dim_0(initial_shapes, point_types):
     """Determine if the output needs to be squeezed on dim 0.
 
     The dimension 0 is squeezed iff all input parameters:
@@ -33,11 +33,12 @@ def squeeze_output_dim_0(initial_ndims, point_types):
     squeeze : bool
         Boolean deciding whether to squeeze dim 0 of the output.
     """
-    for ndim, point_type in zip(initial_ndims, point_types):
-        if point_type != 'else' and ndim is not None:
+    for in_shape, point_type in zip(initial_shapes, point_types):
+        in_ndim = len(in_shape)
+        if point_type != 'else' and in_ndim is not None:
             vect_ndim = POINT_TYPES_TO_NDIMS[point_type]
-            assert ndim <= vect_ndim
-            if ndim == vect_ndim:
+            assert in_ndim <= vect_ndim
+            if in_ndim == vect_ndim:
                 return False
     return True
 
@@ -121,13 +122,12 @@ def decorator(point_types):
             args_point_types = point_types[:len(args)]
             kwargs_point_types = point_types[len(args):]
 
-            in_shapes, in_ndims = args_initial_shapes_and_ndims(
+            in_shapes = args_initial_shapes(
                 args_point_types, args)
-            kw_in_shapes, kw_in_ndims = kwargs_initial_shapes_and_ndims(
+            kw_in_shapes = kwargs_initial_shapes(
                 kwargs_point_types, kwargs)
 
             in_shapes.extend(kw_in_shapes)
-            in_ndims.extend(kw_in_ndims)
 
             vect_args = vectorize_args(args_point_types, args)
             vect_kwargs = vectorize_kwargs(kwargs_point_types, kwargs)
@@ -138,7 +138,7 @@ def decorator(point_types):
                 if result.shape[1] == 1:
                     result = gs.squeeze(result, axis=1)
 
-            if squeeze_output_dim_0(in_ndims, point_types):
+            if squeeze_output_dim_0(in_shapes, point_types):
                 if result.shape[0] == 1:
                     result = gs.squeeze(result, axis=0)
             return result
@@ -146,10 +146,12 @@ def decorator(point_types):
     return aux_decorator
 
 
-def args_initial_shapes_and_ndims(point_types, args):
-    """Extract shapes and ndims of input args."""
+def args_initial_shapes(point_types, args):
+    """Extract shapes and ndims of input args.
+
+    Return a lists that stores the shapes of the input args.
+    """
     initial_shapes = []
-    initial_ndims = []
 
     for i_arg, arg in enumerate(args):
         point_type = point_types[i_arg]
@@ -159,17 +161,14 @@ def args_initial_shapes_and_ndims(point_types, args):
 
         if point_type == 'else' or arg is None:
             initial_shapes.append(None)
-            initial_ndims.append(None)
         else:
             initial_shapes.append(gs.shape(arg))
-            initial_ndims.append(gs.ndim(arg))
-    return initial_shapes, initial_ndims
+    return initial_shapes
 
 
-def kwargs_initial_shapes_and_ndims(point_types, kwargs):
+def kwargs_initial_shapes(point_types, kwargs):
     """Extract shapes and ndims of input kwargs."""
     initial_shapes = []
-    initial_ndims = []
 
     for i_arg, arg in enumerate(kwargs.values()):
         point_type = point_types[i_arg]
@@ -179,11 +178,9 @@ def kwargs_initial_shapes_and_ndims(point_types, kwargs):
 
         if point_type == 'else' or arg is None:
             initial_shapes.append(None)
-            initial_ndims.append(None)
         else:
             initial_shapes.append(gs.shape(arg))
-            initial_ndims.append(gs.ndim(arg))
-    return initial_shapes, initial_ndims
+    return initial_shapes
 
 
 def vectorize_args(point_types, args):
