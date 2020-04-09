@@ -121,7 +121,7 @@ class Hypersphere(EmbeddedManifold):
             Point projected on the hypersphere.
         """
         norm = self.embedding_metric.norm(point)
-        projected_point = point / norm
+        projected_point = gs.einsum('...,...i->...i', 1. / norm, point)
 
         return projected_point
 
