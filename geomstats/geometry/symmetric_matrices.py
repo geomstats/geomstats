@@ -3,7 +3,7 @@
 import logging
 
 import geomstats.backend as gs
-from geomstats import utils
+from geomstats import algebra_utils
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.matrices import Matrices
 
@@ -83,7 +83,7 @@ class SymmetricMatrices(EmbeddedManifold):
         """
         eigvals, eigvecs = gs.linalg.eigh(x)
         eigvals = gs.exp(eigvals)
-        eigvals = utils.from_vector_to_diagonal_matrix(eigvals)
+        eigvals = algebra_utils.from_vector_to_diagonal_matrix(eigvals)
         transp_eigvecs = gs.transpose(eigvecs, axes=(0, 2, 1))
         exponential = gs.matmul(eigvecs, eigvals)
         exponential = gs.matmul(exponential, transp_eigvecs)
