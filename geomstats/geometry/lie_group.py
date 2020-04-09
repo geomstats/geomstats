@@ -385,7 +385,7 @@ class LieGroup(Manifold):
         n_points = point.shape[0]
         n_base_points = base_point.shape[0]
 
-        if (
+        if not (
             point.shape == base_point.shape
             or n_points == 1
             or n_base_points == 1
