@@ -14,7 +14,6 @@ class SymmetricMatrices(EmbeddedManifold):
     """Class for the vector space of symmetric matrices of size n."""
 
     def __init__(self, n):
-        assert isinstance(n, int) and n > 0
         super(SymmetricMatrices, self).__init__(
             dimension=int(n * (n + 1) / 2),
             embedding_manifold=Matrices(n, n))
