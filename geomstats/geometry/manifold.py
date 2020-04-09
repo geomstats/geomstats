@@ -6,16 +6,17 @@ Euclidean space near each point.
 
 import math
 
+import geomstats.error
+
 
 class Manifold(object):
     """Class for manifolds."""
 
     def __init__(self, dimension):
 
-        if dimension:
-            assert isinstance(dimension, int) or dimension == math.inf
-            assert dimension > 0
-
+        if dimension != math.inf:
+            geomstats.error.check_strictly_positive_integer(
+                dimension, 'dimension')
         self.dimension = dimension
 
     def belongs(self, point, point_type=None):
