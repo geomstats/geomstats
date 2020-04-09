@@ -23,7 +23,7 @@ class TestPoincareBallMethods(geomstats.tests.TestCase):
         self.hyperboloid_manifold = Hyperboloid(2)
         self.hyperboloid_metric = self.hyperboloid_manifold.metric
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_only
     def test_squared_dist(self):
         point_a = gs.array([[-0.3, 0.7]])
         point_b = gs.array([[0.2, 0.5]])
@@ -103,7 +103,7 @@ class TestPoincareBallMethods(geomstats.tests.TestCase):
         result = gs.concatenate(result, axis=0)
         self.assertAllClose(result_vect, result)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_only
     def test_log_vectorization(self):
         point_a = gs.array([0.5, 0.5])
         point_b = gs.array([[0.5, -0.5], [0.4, 0.4]])
