@@ -34,7 +34,9 @@ def squeeze_output_dim_0(initial_shapes, point_types):
         Boolean deciding whether to squeeze dim 0 of the output.
     """
     for in_shape, point_type in zip(initial_shapes, point_types):
-        in_ndim = len(in_shape)
+        in_ndim = None
+        if in_shape is not None:
+            in_ndim = len(in_shape)
         if point_type != 'else' and in_ndim is not None:
             vect_ndim = POINT_TYPES_TO_NDIMS[point_type]
             assert in_ndim <= vect_ndim
