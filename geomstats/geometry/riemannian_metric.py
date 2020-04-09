@@ -203,12 +203,7 @@ class RiemannianMetric(Connection):
         sq_dist : array-like, shape=[n_samples,]
         """
         log = self.log(point=point_b, base_point=point_a)
-        print('log')
-        print(log)
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
-        print('sq dist')
-        print(sq_dist)
-
         return sq_dist
 
     def dist(self, point_a, point_b):

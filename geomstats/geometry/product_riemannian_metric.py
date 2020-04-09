@@ -255,11 +255,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             intrinsic = self.is_intrinsic(base_point)
             args = {'point': point, 'base_point': base_point}
             logs = self._iterate_over_metrics('log', args, intrinsic)
-            print('logs')
-            print(logs)
             logs = gs.concatenate(logs, axis=1)
-            print('logs')
-            print(logs)
             return logs
 
         if point_type == 'matrix':

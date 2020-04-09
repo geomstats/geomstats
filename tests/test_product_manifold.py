@@ -87,15 +87,15 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_dist_log_exp_norm_matrix(self):
-        n_samples = 5
+        n_samples = 10
         point = self.space_matrix.random_uniform(n_samples)
         base_point = self.space_matrix.random_uniform(n_samples)
         logs = self.space_matrix.metric.log(point, base_point)
-        logs = gs.einsum(
-            '...k, ...jl->...jl',
+        normalized_logs = gs.einsum(
+            '..., ...jl->...jl',
             1. / self.space_matrix.metric.norm(logs, base_point),
             logs)
-        point = self.space_matrix.metric.exp(logs, base_point)
+        point = self.space_matrix.metric.exp(normalized_logs, base_point)
         result = self.space_matrix.metric.dist(point, base_point)
         expected = gs.ones((n_samples,))
         self.assertAllClose(result, expected)
