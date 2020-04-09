@@ -84,7 +84,8 @@ class BetaDistributions(EmbeddedManifold):
         samples : array-like, shape=[n_points, n_samples]
         """
         point = gs.to_ndarray(point, to_ndim=2)
-        assert self.belongs(point).all()
+        geomstats.error.check_belongs(
+            point, self, 'beta_distributions')
         samples = []
         for param_a, param_b in point:
             samples.append(beta.rvs(param_a, param_b, size=n_samples))
