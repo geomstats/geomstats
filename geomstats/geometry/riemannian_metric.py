@@ -5,6 +5,7 @@ import math
 import autograd
 
 import geomstats.backend as gs
+import geomstats.error
 from geomstats.geometry.connection import Connection
 
 
@@ -56,8 +57,9 @@ class RiemannianMetric(Connection):
     """Class for Riemannian and pseudo-Riemannian metrics."""
 
     def __init__(self, dimension, signature=None):
-        assert isinstance(dimension, int) or dimension == math.inf
-        assert dimension > 0
+        if dimension != math.inf:
+            geomstats.error.check_strictly_positive_integer(
+                dimension, 'dimension')
         super().__init__(dimension=dimension)
         self.signature = signature
 
@@ -176,7 +178,6 @@ class RiemannianMetric(Connection):
         inner_prod = gs.einsum(einsum_str_b, aux, tangent_vec_b)
         inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
-        assert gs.ndim(inner_prod) == 2, inner_prod.shape
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
