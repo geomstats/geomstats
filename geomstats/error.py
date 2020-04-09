@@ -34,3 +34,21 @@ def check_belongs(point, manifold, manifold_name):
     if not gs.all(manifold.belongs(point)):
         raise RuntimeError(
             'Some points do not belong to manifold \'%s\'.' % manifold_name)
+
+
+def check_parameter_accepted_values(param, param_name, accepted_values):
+    """Raise an error if parameter does not belong to a set of values.
+
+    Parameters
+    ----------
+    param : unspecified
+        Parameter to be tested.
+    param_name : string
+        Name of the parameter.
+    accepted_values : list
+        Accepted values that the parameter can take.
+    """
+    if param not in accepted_values:
+        raise ValueError(
+            'Parameter {} needs to be in {}, got: {}'.format(
+                param_name, accepted_values, param))
