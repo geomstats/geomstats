@@ -65,8 +65,10 @@ class L2Metric(RiemannianMetric):
         -------
         inner_prod
         """
-        assert tangent_vec_a.shape == tangent_vec_b.shape
-        assert tangent_vec_a.shape == base_landmarks.shape
+        if not (tangent_vec_a.shape == tangent_vec_b.shape
+                and tangent_vec_a.shape == base_landmarks.shape):
+            raise NotImplementedError
+
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
         base_landmarks = gs.to_ndarray(base_landmarks, to_ndim=3)
@@ -105,7 +107,9 @@ class L2Metric(RiemannianMetric):
         -------
         dist
         """
-        assert landmarks_a.shape == landmarks_b.shape
+        if landmarks_a.shape != landmarks_b.shape:
+            raise NotImplementedError
+
         landmarks_a = gs.to_ndarray(landmarks_a, to_ndim=3)
         landmarks_b = gs.to_ndarray(landmarks_b, to_ndim=3)
 
@@ -167,7 +171,9 @@ class L2Metric(RiemannianMetric):
         -------
         log
         """
-        assert landmarks.shape == base_landmarks.shape
+        if landmarks.shape != base_landmarks.shape:
+            raise NotImplementedError
+
         landmarks = gs.to_ndarray(landmarks, to_ndim=3)
         base_landmarks = gs.to_ndarray(base_landmarks, to_ndim=3)
 
@@ -215,7 +221,10 @@ class L2Metric(RiemannianMetric):
             shooting_tangent_vec = self.log(landmarks=end_landmarks,
                                             base_landmarks=initial_landmarks)
             if initial_tangent_vec is not None:
-                assert gs.allclose(shooting_tangent_vec, initial_tangent_vec)
+                if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
+                    raise RuntimeError(
+                        'The shooting tangent vector is too'
+                        ' far from the initial tangent vector.')
             initial_tangent_vec = shooting_tangent_vec
         initial_tangent_vec = gs.array(initial_tangent_vec)
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
@@ -227,13 +236,14 @@ class L2Metric(RiemannianMetric):
             t = gs.to_ndarray(t, to_ndim=2, axis=1)
             new_initial_landmarks = gs.to_ndarray(
                 initial_landmarks, to_ndim=landmarks_ndim + 1)
-            new_initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
-                                                    to_ndim=landmarks_ndim + 1)
+            new_initial_tangent_vec = gs.to_ndarray(
+                initial_tangent_vec, to_ndim=landmarks_ndim + 1)
 
             tangent_vecs = gs.einsum('il,nkm->ikm', t, new_initial_tangent_vec)
 
             def point_on_landmarks(tangent_vec):
-                assert gs.ndim(tangent_vec) >= 2
+                if gs.ndim(tangent_vec) < 2:
+                    raise RuntimeError
                 exp = self.exp(
                     tangent_vec=tangent_vec,
                     base_landmarks=new_initial_landmarks)
