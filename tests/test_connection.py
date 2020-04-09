@@ -23,7 +23,7 @@ class TestConnectionMethods(geomstats.tests.TestCase):
         base_point = gs.array([0., 1., 0., 0.])
 
         result = self.euc_metric.inner_product_matrix(base_point)
-        expected = gs.array([gs.eye(self.dimension)])
+        expected = gs.eye(self.dimension)
 
         self.assertAllClose(result, expected)
 
@@ -31,7 +31,7 @@ class TestConnectionMethods(geomstats.tests.TestCase):
         base_point = gs.array([0., 1., 0., 0.])
 
         result = self.euc_metric.inner_product_inverse_matrix(base_point)
-        expected = gs.array([gs.eye(self.dimension)])
+        expected = gs.eye(self.dimension)
 
         self.assertAllClose(result, expected)
 
@@ -40,7 +40,7 @@ class TestConnectionMethods(geomstats.tests.TestCase):
         base_point = gs.array([0., 1., 0., 0.])
 
         result = self.euc_metric.inner_product_derivative_matrix(base_point)
-        expected = gs.zeros((1,) + (self.dimension, ) * 3)
+        expected = gs.zeros((self.dimension, ) * 3)
 
         self.assertAllClose(result, expected)
 
@@ -49,7 +49,7 @@ class TestConnectionMethods(geomstats.tests.TestCase):
         base_point = gs.array([0., 1., 0., 0.])
 
         result = self.euc_metric.christoffels(base_point)
-        expected = gs.zeros((1,) + (self.dimension, ) * 3)
+        expected = gs.zeros((self.dimension, ) * 3)
 
         self.assertAllClose(result, expected)
 

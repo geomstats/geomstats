@@ -24,18 +24,18 @@ class TestMinkowskiMethods(geomstats.tests.TestCase):
     def test_belongs(self):
         point = gs.array([-1., 3.])
         result = self.space.belongs(point)
-        expected = gs.array([[True]])
+        expected = True
 
         self.assertAllClose(result, expected)
 
     def test_random_uniform(self):
         point = self.space.random_uniform()
-        self.assertAllClose(gs.shape(point), (1, self.dimension))
+        self.assertAllClose(gs.shape(point), (self.dimension,))
 
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
-        expected = gs.array([[True]])
+        expected = True
         self.assertAllClose(result, expected)
 
     def test_inner_product_matrix(self):
@@ -88,10 +88,9 @@ class TestMinkowskiMethods(geomstats.tests.TestCase):
 
         expected = np.zeros(n_samples)
         for i in range(n_samples):
-            expected[i] = gs.eval(gs.dot(n_points_a[i],
-                                         n_points_b[i]))
-            expected[i] -= (2 * gs.eval(n_points_a[i, self.time_like_dim])
-                            * gs.eval(n_points_b[i, self.time_like_dim]))
+            expected[i] = gs.dot(n_points_a[i], n_points_b[i])
+            expected[i] -= (2 * n_points_a[i, self.time_like_dim]
+                            * n_points_b[i, self.time_like_dim])
         expected = helper.to_scalar(gs.array(expected))
 
         self.assertAllClose(result_nn, expected)
@@ -214,6 +213,6 @@ class TestMinkowskiMethods(geomstats.tests.TestCase):
         points = geodesic(t)
 
         result = self.space.belongs(points)
-        expected = gs.array(n_geodesic_points * [[True]])
+        expected = gs.array(n_geodesic_points * [True])
 
         self.assertAllClose(result, expected)

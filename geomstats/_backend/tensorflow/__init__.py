@@ -4,13 +4,21 @@ import numpy as _np
 import tensorflow as tf
 from tensorflow import (  # NOQA
     abs,
+    acos as arccos,
+    acosh as arccosh,
     argmax,
     argmin,
+    asin as arcsin,
+    atan2 as arctan2,
+    clip_by_value as clip,
+    concat as concatenate,
     cond,
     cos,
     cosh,
+    divide,
     equal,
     exp,
+    expand_dims,
     float32,
     float64,
     floor,
@@ -20,6 +28,7 @@ from tensorflow import (  # NOQA
     int64,
     less,
     less_equal,
+    linspace,
     logical_and,
     logical_or,
     maximum,
@@ -43,20 +52,26 @@ from tensorflow import (  # NOQA
     stack,
     tan,
     tanh,
+    tile,
     where,
     while_loop,
     zeros,
     zeros_like
 )
 
-from .common import array, ndim, to_ndarray  # NOQA
+
+
 from . import linalg  # NOQA
 from . import random  # NOQA
 
+arctanh = tf.math.atanh
 ceil = tf.math.ceil
 cross = tf.linalg.cross
+diag = tf.linalg.tensor_diag
+log = tf.math.log
 matmul = tf.linalg.matmul
 mod = tf.math.mod
+real = tf.math.real
 std = tf.math.reduce_std
 
 
@@ -67,6 +82,38 @@ def _raise_not_implemented_error(*args, **kwargs):
 # TODO(nkoep): The 'repeat' function was added in TF 2.1. Backport the
 #              implementation from tensorflow/python/ops/array_ops.py.
 repeat = _raise_not_implemented_error
+
+
+def array(x, dtype=None):
+    return tf.convert_to_tensor(x, dtype=dtype)
+
+
+# TODO(nkoep): Handle the optional axis arguments.
+def trace(a, axis1=0, axis2=1):
+    return tf.linalg.trace(a)
+
+
+# TODO(nkoep): Handle the optional axis arguments.
+def diagonal(a, axis1=0, axis2=1):
+    return tf.linalg.diag_part(a)
+
+
+def diag(a):
+    return tf.map_fn(tf.linalg.tensor_diag, a)
+
+
+def ndim(x):
+    x = array(x)
+    dims = x.get_shape()._dims
+    if dims is not None:
+        return len(dims)
+    return None
+
+
+def to_ndarray(x, to_ndim, axis=0):
+    if ndim(x) == to_ndim - 1:
+        x = tf.expand_dims(x, axis=axis)
+    return x
 
 
 def empty(shape, dtype=float64):
@@ -91,7 +138,7 @@ def flip(m, axis=None):
     return tf.reverse(m, axis=axis)
 
 
-def any(x, axis=0):
+def any(x, axis=None):
     return tf.math.reduce_any(tf.cast(x, bool), axis=axis)
 
 
@@ -364,10 +411,6 @@ def hsplit(x, n_splits):
     return tf.split(x, num_or_size_splits=n_splits, axis=1)
 
 
-def real(x):
-    return tf.math.real(x)
-
-
 def flatten(x):
     """Collapses the tensor into 1-D.
 
@@ -383,18 +426,6 @@ def copy(x):
     return tf.Variable(x)
 
 
-def linspace(start, stop, num):
-    return tf.linspace(start, stop, num)
-
-
-def boolean_mask(x, mask, name='boolean_mask', axis=None):
-    return tf.boolean_mask(x, mask, name, axis)
-
-
-def log(x):
-    return tf.math.log(x)
-
-
 def hstack(x):
     return tf.concat(x, axis=1)
 
@@ -405,32 +436,6 @@ def vstack(x):
 
 def cast(x, dtype):
     return tf.cast(x, dtype)
-
-
-def divide(x1, x2):
-    return tf.divide(x1, x2)
-
-
-def tile(x, reps):
-    return tf.tile(x, reps)
-
-
-def eval(x):
-    if tf.executing_eagerly():
-        return x
-    return x.eval()
-
-
-def arccosh(x):
-    return tf.acosh(x)
-
-
-def arcsin(x):
-    return tf.asin(x)
-
-
-def arccos(x):
-    return tf.acos(x)
 
 
 def dot(x, y):
@@ -449,8 +454,6 @@ def allclose(x, y, rtol=1e-05, atol=1e-08):
 def eye(n, m=None):
     if m is None:
         m = n
-    n = cast(n, dtype=int32)
-    m = cast(m, dtype=int32)
     return tf.eye(num_rows=n, num_columns=m)
 
 
@@ -508,46 +511,8 @@ def transpose(x, axes=None):
     return tf.transpose(x, perm=axes)
 
 
-def trace(x, **kwargs):
-    return tf.linalg.trace(x)
-
-
-def all(bool_tensor, axis=None, keepdims=False):
-    bool_tensor = tf.cast(bool_tensor, tf.bool)
-    all_true = tf.reduce_all(bool_tensor, axis, keepdims)
-    return all_true
-
-
-def concatenate(*args, **kwargs):
-    return tf.concat(*args, **kwargs)
-
-
-def asarray(x):
-    return x
-
-
-def expand_dims(x, axis=None):
-    return tf.expand_dims(x, axis)
-
-
-def clip(x, min_value, max_value):
-    return tf.clip_by_value(x, min_value, max_value)
-
-
-def diag(a):
-    return tf.map_fn(tf.linalg.tensor_diag, a)
-
-
-def arctanh(x):
-    return tf.math.atanh(x)
-
-
-def arctan2(*args, **kwargs):
-    return tf.atan2(*args, **kwargs)
-
-
-def diagonal(*args, **kwargs):
-    return tf.linalg.diag_part(*args)
+def all(x, axis=None):
+    return tf.math.reduce_all(tf.cast(x, bool), axis=axis)
 
 
 def cumsum(a, axis=None):
