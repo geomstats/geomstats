@@ -79,6 +79,30 @@ class TestPoincareBallMethods(geomstats.tests.TestCase):
         result = gs.concatenate(result, axis=0)
         self.assertAllClose(result_vect, result)
 
+    def test_mobius_vectorization(self):
+        point_a = gs.array([0.5, 0.5])
+        point_b = gs.array([[0.5, -0.3], [0.3, 0.4]])
+
+        dist_a_b =\
+            self.manifold.metric.mobius_add(point_a, point_b)
+
+        result_vect = dist_a_b
+        result =\
+            [self.manifold.metric.mobius_add(point_a, point_b[i])
+             for i in range(len(point_b))]
+        result = gs.concatenate(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
+        dist_a_b =\
+            self.manifold.metric.mobius_add(point_b, point_a)
+
+        result_vect = dist_a_b
+        result =\
+            [self.manifold.metric.mobius_add(point_b[i], point_a)
+             for i in range(len(point_b))]
+        result = gs.concatenate(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
     @geomstats.tests.np_and_pytorch_only
     def test_log_vectorization(self):
         point_a = gs.array([0.5, 0.5])

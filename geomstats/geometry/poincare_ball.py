@@ -103,32 +103,25 @@ class PoincareBallMetric(RiemannianMetric):
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
 
-        if base_point.shape[0] == 1:
-            base_point = gs.repeat(base_point, tangent_vec.shape[0], axis=0)
+        norm_base_point =\
+            gs.expand_dims(gs.linalg.norm(base_point, axis=-1),
+                           axis=-1)
 
-        if tangent_vec.shape[0] == 1:
-            tangent_vec = gs.repeat(tangent_vec, base_point.shape[0], axis=0)
-
-        norm_base_point = gs.to_ndarray(
-            gs.linalg.norm(base_point, axis=-1), 2, axis=-1)
-        norm_base_point = gs.to_ndarray(norm_base_point, to_ndim=2)
-
-        norm_base_point = gs.repeat(
-            norm_base_point, base_point.shape[-1], axis=-1)
         den = 1 - norm_base_point**2
 
-        norm_tan = gs.to_ndarray(gs.linalg.norm(
-            tangent_vec, axis=-1), 2, axis=-1)
-        norm_tan = gs.repeat(norm_tan, base_point.shape[-1], -1)
+        norm_tan =\
+            gs.expand_dims(gs.linalg.norm(tangent_vec, axis=-1),
+                           axis=-1)
 
         lambda_base_point = 1 / den
 
         zero_tan = gs.isclose((tangent_vec * tangent_vec).sum(axis=-1), 0.)
 
-        if norm_tan[zero_tan].shape[0] != 0:
-            norm_tan[zero_tan] = EPSILON
+        if gs.any(zero_tan):
+            if norm_tan[zero_tan].shape[0] != 0:
+                norm_tan[zero_tan] = EPSILON
 
-        direction = tangent_vec / norm_tan
+        direction = gs.einsum('...i,...k->...i', tangent_vec, 1 / norm_tan)
 
         factor = gs.tanh(lambda_base_point * norm_tan)
 
@@ -136,8 +129,9 @@ class PoincareBallMetric(RiemannianMetric):
 
         zero_tan = gs.isclose((tangent_vec * tangent_vec).sum(axis=-1), 0.)
 
-        if exp[zero_tan].shape[0] != 0:
-            exp[zero_tan] = base_point[zero_tan]
+        if gs.any(zero_tan):
+            if exp[zero_tan].shape[0] != 0:
+                exp[zero_tan] = base_point[zero_tan]
 
         return exp
 
@@ -164,26 +158,21 @@ class PoincareBallMetric(RiemannianMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         point = gs.to_ndarray(point, to_ndim=2)
 
-        if base_point.shape[0] == 1:
-            base_point = gs.repeat(base_point, point.shape[0], axis=0)
-
-        if point.shape[0] == 1:
-            point = gs.repeat(point, base_point.shape[0], axis=0)
-
         add_base_point = self.mobius_add(-base_point, point)
-        norm_add = gs.to_ndarray(gs.linalg.norm(
-            add_base_point, axis=-1), 2, -1)
-        norm_add = gs.repeat(norm_add, base_point.shape[-1], -1)
-        norm_base_point = gs.to_ndarray(gs.linalg.norm(
-            base_point, axis=-1), 2, -1)
-        norm_base_point = gs.repeat(norm_base_point,
-                                    base_point.shape[-1], -1)
+        norm_add =\
+            gs.expand_dims(gs.linalg.norm(
+                           add_base_point, axis=-1), axis=-1)
 
-        log = (1 - norm_base_point**2) * gs.arctanh(norm_add)\
-            * (add_base_point / norm_add)
+        norm_base_point =\
+            gs.expand_dims(gs.linalg.norm(
+                           base_point, axis=-1), axis=-1)
 
-        mask_0 = gs.isclose(norm_add, 0.)
-        log[mask_0] = 0
+        log = (1 - norm_base_point**2) * gs.arctanh(norm_add)
+        log = gs.einsum('...i,...j->...j', log, (add_base_point / norm_add))
+
+        mask_0 = gs.isclose(gs.squeeze(norm_add), 0.)
+        if(gs.any(mask_0)):
+            log[mask_0] = 0
 
         return log
 
@@ -213,39 +202,31 @@ class PoincareBallMetric(RiemannianMetric):
         point_a = gs.to_ndarray(point_a, to_ndim=2)
         point_b = gs.to_ndarray(point_b, to_ndim=2)
 
-        if point_a.shape[0] == 1:
-            point_a = gs.repeat(point_a, point_b.shape[0], axis=0)
-
-        if point_b.shape[0] == 1:
-            point_b = gs.repeat(point_b, point_a.shape[0], axis=0)
-
         ball_manifold = PoincareBall(self.dimension, scale=self.scale)
         point_a_belong = ball_manifold.belongs(point_a)
         point_b_belong = ball_manifold.belongs(point_b)
 
         if(not gs.all(point_a_belong) or not gs.all(point_b_belong)):
-            raise NameError("Point do not belong to the Poincare ball")
+            raise NameError("Points do not belong to the Poincare ball")
 
         norm_point_a = gs.sum(point_a ** 2, axis=-1,
                               keepdims=True)
 
-        norm_point_a = gs.repeat(norm_point_a, point_a.shape[-1], -1)
-
         norm_point_b = gs.sum(point_b ** 2, axis=-1,
                               keepdims=True)
-        norm_point_b = gs.repeat(norm_point_b, point_a.shape[-1], -1)
 
-        sum_prod_a_b = gs.sum(point_a * point_b,
-                              axis=-1, keepdims=True)
+        sum_prod_a_b = gs.einsum('...i,...i->...', point_a, point_b)
+        sum_prod_a_b = gs.expand_dims(sum_prod_a_b, axis=-1)
 
-        sum_prod_a_b = gs.repeat(sum_prod_a_b, point_a.shape[-1], -1)
-
-        add_nominator = ((1 + 2 * sum_prod_a_b + norm_point_b) * point_a +
-                         (1 - norm_point_a) * point_b)
+        add_num_1 = 1 + 2 * sum_prod_a_b + norm_point_b
+        add_num_1 = gs.einsum('...i,...k->...k', add_num_1, point_a)
+        add_num_2 = gs.einsum('...i,...k->...k', (1 - norm_point_a), point_b)
+        add_nominator = add_num_1 + add_num_2
 
         add_denominator = (1 + 2 * sum_prod_a_b + norm_point_a * norm_point_b)
 
-        mobius_add = add_nominator / add_denominator
+        mobius_add =\
+            gs.einsum('...i,...k->...i', add_nominator, 1 / add_denominator)
 
         return mobius_add
 
@@ -304,7 +285,7 @@ class PoincareBallMetric(RiemannianMetric):
         base_point_belong = ball_manifold.belongs(base_point)
 
         if not gs.all(base_point_belong):
-            raise NameError("Point do not belong to the Poincare ball")
+            raise NameError("Points do not belong to the Poincare ball")
 
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
