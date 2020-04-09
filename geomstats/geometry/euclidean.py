@@ -1,6 +1,7 @@
 """Euclidean space."""
 
 import geomstats.backend as gs
+import geomstats.error
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -13,7 +14,8 @@ class Euclidean(Manifold):
     """
 
     def __init__(self, dimension):
-        assert isinstance(dimension, int) and dimension > 0
+        geomstats.error.check_strictly_positive_integer(
+            dimension, 'dimension')
         self.dimension = dimension
         self.metric = EuclideanMetric(dimension)
 
@@ -66,7 +68,8 @@ class EuclideanMetric(RiemannianMetric):
     """
 
     def __init__(self, dimension):
-        assert isinstance(dimension, int) and dimension > 0
+        geomstats.error.check_strictly_positive_integer(
+            dimension, 'dimension')
         super(EuclideanMetric, self).__init__(dimension=dimension,
                                               signature=(dimension, 0, 0))
 
