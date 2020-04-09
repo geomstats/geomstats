@@ -10,6 +10,8 @@ class GeneralLinear(Matrices):
     def __init__(self, n):
         Matrices.__init__(self, n, n)
 
+        self.n = n
+
     @staticmethod
     def belongs(point):
         """Test if a matrix is invertible."""
@@ -29,6 +31,33 @@ class GeneralLinear(Matrices):
     def inv(point):
         """Return the inverse of a matrix."""
         return gs.linalg.inv(point)
+
+    def random_uniform(self, n_samples=1, tol=1e-8):
+        """Sample in GL(n) from the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples: int, optional
+            Number of samples.
+        tol: float, optional
+            Threshold for the absolute value of the determinant of the
+            returned matrix.
+
+        Returns
+        -------
+        samples : array-like, shape=[n_samples, n, n]
+            Points sampled on GL(n).
+        """
+        samples = gs.random.rand(n_samples, self.n, self.n)
+        while True:
+            dets = gs.linalg.det(samples)
+            indcs = gs.isclose(dets, 0.0, atol=tol)
+            num_bad_samples = gs.sum(indcs)
+            if num_bad_samples == 0:
+                break
+            samples[indcs, :] = gs.random.rand(num_bad_samples, self.n, self.n)
+
+        return samples
 
     @classmethod
     def exp(cls, tangent_vec, base_point=None):
