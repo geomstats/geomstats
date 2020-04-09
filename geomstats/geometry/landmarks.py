@@ -18,9 +18,10 @@ class Landmarks(Manifold):
         ambient_manifold : object from the class Manifold
         n_landmarks
         """
-        super(Landmarks, self).__init__(dimension=None)
+        dimension = None
         if n_landmarks:
             self.dimension = n_landmarks * ambient_manifold.dimension
+        super(Landmarks, self).__init__(dimension=dimension)
         self.ambient_manifold = ambient_manifold
         self.l2_metric = L2Metric(self.ambient_manifold)
         self.n_landmarks = n_landmarks
