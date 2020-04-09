@@ -46,7 +46,18 @@ def squeeze_output_dim_0(initial_shapes, point_types):
 
 
 def is_scalar(vect_array):
-    """Test if an array represents a scalar."""
+    """Test if an array represents a scalar.
+
+    Parameters
+    ----------
+    vect_array :  array-like
+        Array to be tested.
+
+    Returns
+    -------
+    is_scalar : bool
+        Boolean determining if vect_array is a fully-vectorized scalar.
+    """
     has_ndim_2 = vect_array.ndim == 2
     if not has_ndim_2:
         return False
@@ -151,7 +162,20 @@ def decorator(point_types):
 def args_initial_shapes(point_types, args):
     """Extract shapes and ndims of input args.
 
-    Return a lists that stores the shapes of the input args.
+    Return a list with the shapes of the input args
+    that are array-like, with None otherwise.
+
+    Parameters
+    ----------
+    point_types :  list
+        Point types corresponding to the args.
+    args : tuple
+        Args of a given function.
+
+    Returns
+    -------
+    initial_shapes : list
+        Shapes of array-like input args.
     """
     initial_shapes = []
 
@@ -169,7 +193,23 @@ def args_initial_shapes(point_types, args):
 
 
 def kwargs_initial_shapes(point_types, kwargs):
-    """Extract shapes and ndims of input kwargs."""
+    """Extract shapes and ndims of input kwargs.
+
+    Return a list with the shapes of the input kwargs
+    that are array-like, with None otherwise.
+
+    Parameters
+    ----------
+    point_types :  list
+        Point types corresponding to the kwargs.
+    args : dict
+        Kwargs of a given function.
+
+    Returns
+    -------
+    initial_shapes : list
+        Shapes of array-like input kwargs.
+    """
     initial_shapes = []
 
     for i_arg, arg in enumerate(kwargs.values()):
