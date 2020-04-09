@@ -20,8 +20,8 @@ class Grassmannian(EmbeddedManifold):
     """
 
     def __init__(self, n, k):
-        geomstats.error.check_strictly_positive_integer(k, 'k')
-        geomstats.error.check_strictly_positive_integer(n, 'n')
+        geomstats.error.check_integer(k, 'k')
+        geomstats.error.check_integer(n, 'n')
         if k > n:
             raise ValueError(
                 'k <= n is required: k-dimensional subspaces in n dimensions.')
@@ -62,8 +62,8 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
     """
 
     def __init__(self, n, p):
-        geomstats.error.check_strictly_positive_integer(p, 'p')
-        geomstats.error.check_strictly_positive_integer(n, 'n')
+        geomstats.error.check_integer(p, 'p')
+        geomstats.error.check_integer(n, 'n')
         if p > n:
             raise ValueError('p <= n is required.')
         self.n = n

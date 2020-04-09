@@ -1,11 +1,8 @@
 """Riemannian and pseudo-Riemannian metrics."""
 
-import math
-
 import autograd
 
 import geomstats.backend as gs
-import geomstats.error
 from geomstats.geometry.connection import Connection
 
 
@@ -57,10 +54,7 @@ class RiemannianMetric(Connection):
     """Class for Riemannian and pseudo-Riemannian metrics."""
 
     def __init__(self, dimension, signature=None):
-        if dimension != math.inf:
-            geomstats.error.check_strictly_positive_integer(
-                dimension, 'dimension')
-        super().__init__(dimension=dimension)
+        super(RiemannianMetric, self).__init__(dimension=dimension)
         self.signature = signature
 
     def inner_product_matrix(self, base_point=None):

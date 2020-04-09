@@ -4,6 +4,7 @@ import autograd
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
+import geomstats.error
 from geomstats.integrator import integrate
 
 
@@ -21,6 +22,7 @@ class Connection:
     """
 
     def __init__(self, dimension):
+        geomstats.error.check_integer(dimension, 'dimension')
         self.dimension = dimension
 
     def christoffels(self, base_point):

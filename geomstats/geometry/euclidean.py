@@ -1,7 +1,6 @@
 """Euclidean space."""
 
 import geomstats.backend as gs
-import geomstats.error
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -66,10 +65,8 @@ class EuclideanMetric(RiemannianMetric):
     """
 
     def __init__(self, dimension):
-        geomstats.error.check_strictly_positive_integer(
-            dimension, 'dimension')
-        super(EuclideanMetric, self).__init__(dimension=dimension,
-                                              signature=(dimension, 0, 0))
+        super(EuclideanMetric, self).__init__(
+            dimension=dimension, signature=(dimension, 0, 0))
 
     def inner_product_matrix(self, base_point=None):
         """Compute inner product matrix, independent of the base point.
