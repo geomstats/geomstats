@@ -93,12 +93,14 @@ def decorator(point_types):
     This decorator assumes that its function:
     - works with fully-vectorized inputs,
     - returns fully-vectorized outputs,
+
     where "fully-vectorized" means that:
     - one scalar has shape [1, 1],
     - n scalars have shape [n, 1],
     - one d-D vector has shape [1, d],
     - n d-D vectors have shape [n, d],
     etc.
+
     The decorator:
     - converts the inputs into fully-vectorized inputs,
     - calls the function,
@@ -116,41 +118,104 @@ def decorator(point_types):
 
     def aux_decorator(function):
         def wrapper(*args, **kwargs):
-            vect_args = []
-            initial_shapes = []
-            initial_ndims = []
+            args_point_types = point_types[:len(args)]
+            kwargs_point_types = point_types[len(args):]
 
-            for i_arg, arg in enumerate(args):
-                point_type = point_types[i_arg]
+            in_shapes, in_ndims = args_initial_shapes_and_ndims(
+                args_point_types, args)
+            kw_in_shapes, kw_in_ndims = kwargs_initial_shapes_and_ndims(
+                kwargs_point_types, kwargs)
 
-                if point_type == 'scalar':
-                    arg = gs.array(arg)
+            in_shapes.extend(kw_in_shapes)
+            in_ndims.extend(kw_in_ndims)
 
-                if point_type == 'else' or arg is None:
-                    initial_shapes.append(None)
-                    initial_ndims.append(None)
-                else:
-                    initial_shapes.append(arg.shape)
-                    initial_ndims.append(gs.ndim(arg))
+            vect_args = vectorize_args(args_point_types, args)
+            vect_kwargs = vectorize_kwargs(kwargs_point_types, kwargs)
 
-                if point_type == 'else' or arg is None:
-                    vect_arg = arg
-                elif point_type == 'scalar':
-                    vect_arg = gs.to_ndarray(arg, to_ndim=1)
-                    vect_arg = gs.to_ndarray(vect_arg, to_ndim=2, axis=1)
-                elif point_type in ['vector', 'matrix']:
-                    vect_arg = gs.to_ndarray(
-                        arg, to_ndim=POINT_TYPES_TO_NDIMS[point_type])
-                vect_args.append(vect_arg)
-            result = function(*vect_args, **kwargs)
+            result = function(*vect_args, **vect_kwargs)
 
-            if squeeze_output_dim_1(result, initial_shapes, point_types):
+            if squeeze_output_dim_1(result, in_shapes, point_types):
                 if result.shape[1] == 1:
                     result = gs.squeeze(result, axis=1)
 
-            if squeeze_output_dim_0(initial_ndims, point_types):
+            if squeeze_output_dim_0(in_ndims, point_types):
                 if result.shape[0] == 1:
                     result = gs.squeeze(result, axis=0)
             return result
         return wrapper
     return aux_decorator
+
+
+def args_initial_shapes_and_ndims(point_types, args):
+    """Extract shapes and ndims of input args."""
+    initial_shapes = []
+    initial_ndims = []
+
+    for i_arg, arg in enumerate(args):
+        point_type = point_types[i_arg]
+
+        if point_type == 'scalar':
+            arg = gs.array(arg)
+
+        if point_type == 'else' or arg is None:
+            initial_shapes.append(None)
+            initial_ndims.append(None)
+        else:
+            initial_shapes.append(gs.shape(arg))
+            initial_ndims.append(gs.ndim(arg))
+    return initial_shapes, initial_ndims
+
+
+def kwargs_initial_shapes_and_ndims(point_types, kwargs):
+    """Extract shapes and ndims of input kwargs."""
+    initial_shapes = []
+    initial_ndims = []
+
+    for i_arg, arg in enumerate(kwargs.values()):
+        point_type = point_types[i_arg]
+
+        if point_type == 'scalar':
+            arg = gs.array(arg)
+
+        if point_type == 'else' or arg is None:
+            initial_shapes.append(None)
+            initial_ndims.append(None)
+        else:
+            initial_shapes.append(gs.shape(arg))
+            initial_ndims.append(gs.ndim(arg))
+    return initial_shapes, initial_ndims
+
+
+def vectorize_args(point_types, args):
+    """Vectorize input args."""
+    vect_args = []
+    for i_arg, arg in enumerate(args):
+        point_type = point_types[i_arg]
+        if point_type == 'else' or arg is None:
+            vect_arg = arg
+        elif point_type == 'scalar':
+            vect_arg = gs.to_ndarray(arg, to_ndim=1)
+            vect_arg = gs.to_ndarray(vect_arg, to_ndim=2, axis=1)
+        elif point_type in ['vector', 'matrix']:
+            vect_arg = gs.to_ndarray(
+                arg, to_ndim=POINT_TYPES_TO_NDIMS[point_type])
+        vect_args.append(vect_arg)
+    return tuple(vect_args)
+
+
+def vectorize_kwargs(point_types, kwargs):
+    """Vectorize input kwargs."""
+    vect_kwargs = {}
+    for i_arg, key_arg in enumerate(kwargs.keys()):
+        point_type = point_types[i_arg]
+        arg = kwargs[key_arg]
+        if point_type == 'else' or arg is None:
+            vect_arg = arg
+        elif point_type == 'scalar':
+            vect_arg = gs.to_ndarray(arg, to_ndim=1)
+            vect_arg = gs.to_ndarray(vect_arg, to_ndim=2, axis=1)
+        elif point_type in ['vector', 'matrix']:
+            vect_arg = gs.to_ndarray(
+                arg, to_ndim=POINT_TYPES_TO_NDIMS[point_type])
+        vect_kwargs[key_arg] = vect_arg
+    return vect_kwargs
