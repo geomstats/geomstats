@@ -97,7 +97,7 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
             logs)
         point = self.space_matrix.metric.exp(logs, base_point)
         result = self.space_matrix.metric.dist(point, base_point)
-        expected = gs.ones((n_samples, 1))
+        expected = gs.ones((n_samples,))
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
