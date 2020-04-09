@@ -106,7 +106,8 @@ def to_ndarray(x, to_ndim, axis=0):
 
 
 def empty(shape, dtype=float64):
-    assert isinstance(dtype, tf.DType)
+    if not isinstance(dtype, tf.DType):
+        raise ValueError('dtype must be one of Tensorflow\'s types')
     np_dtype = dtype.as_numpy_dtype
     return tf.convert_to_tensor(_np.empty(shape, dtype=np_dtype))
 
@@ -119,7 +120,8 @@ def empty_like(prototype, dtype=None):
 
 
 def flip(m, axis=None):
-    assert isinstance(m, tf.Tensor)
+    if not isinstance(m, tf.Tensor):
+        raise ValueError('m must be a Tensorflow tensor')
     if axis is None:
         axis = range(m.ndim)
     elif not hasattr(axis, '__iter__'):
