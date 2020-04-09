@@ -437,7 +437,7 @@ class HypersphereMetric(RiemannianMetric):
         # TODO(ninamiolane): Decide on metric.space or space.metric
         #  for the hypersphere
         # TODO(ninamiolane): Raise error when vector is not tangent
-        n_base_points, extrinsic_dim = base_point.shape
+        _, extrinsic_dim = base_point.shape
         n_tangent_vecs, _ = tangent_vec.shape
 
         hypersphere = Hypersphere(dimension=extrinsic_dim - 1)
