@@ -11,24 +11,40 @@ from geomstats.learning.frechet_mean import FrechetMean
 class TestExponentialBarycenter(geomstats.tests.TestCase):
 
     def setUp(self):
-        self.se = SpecialEuclidean(n=3, point_type='matrix')
+        self.se_mat = SpecialEuclidean(n=3, point_type='matrix')
+        self.se_vec = SpecialEuclidean(n=3, point_type='vector')
         self.so = SpecialOrthogonal(n=3, point_type='matrix')
-        self.n_samples = 15
+        self.n_samples = 3
 
     @geomstats.tests.np_only
     def test_estimate_and_belongs_se(self):
-        point = self.se.random_uniform(self.n_samples)
-        estimator = ExponentialBarycenter(self.se)
+        point = self.se_mat.random_uniform(self.n_samples)
+        estimator = ExponentialBarycenter(self.se_mat)
         estimator.fit(point)
         barexp = estimator.estimate_
-        result = self.se.belongs(barexp)
+        result = self.se_mat.belongs(barexp)
+        expected = True
+        self.assertAllClose(result, expected)
+
+        point = self.se_vec.random_uniform(self.n_samples)
+        estimator = ExponentialBarycenter(self.se_vec)
+        estimator.fit(point)
+        barexp = estimator.estimate_
+        result = self.se_vec.belongs(barexp)
         expected = True
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
     def test_estimate_one_sample_se(self):
-        point = self.se.random_uniform(1)
-        estimator = ExponentialBarycenter(self.se)
+        point = self.se_mat.random_uniform(1)
+        estimator = ExponentialBarycenter(self.se_mat)
+        estimator.fit(point)
+        result = estimator.estimate_
+        expected = point[0]
+        self.assertAllClose(result, expected)
+
+        point = self.se_vec.random_uniform(1)
+        estimator = ExponentialBarycenter(self.se_vec)
         estimator.fit(point)
         result = estimator.estimate_
         expected = point[0]
@@ -36,8 +52,8 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_estimate_and_reach_max_iter_se(self):
-        point = self.se.random_uniform(self.n_samples)
-        estimator = ExponentialBarycenter(self.se, max_iter=2)
+        point = self.se_mat.random_uniform(self.n_samples)
+        estimator = ExponentialBarycenter(self.se_mat, max_iter=2)
         point = gs.array([point[0], point[0]])
         estimator.fit(point)
         result = estimator.estimate_

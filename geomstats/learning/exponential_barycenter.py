@@ -1,4 +1,4 @@
-"""Frechet mean."""
+"""Exponential barycenter."""
 
 import logging
 
@@ -6,44 +6,9 @@ from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
 from geomstats.geometry.euclidean import Euclidean
+from geomstats.learning.frechet_mean import linear_mean
 
 EPSILON = 1e-6
-
-
-def linear_mean(points, weights=None):
-    """Compute the weighted linear mean.
-
-    The linear mean is the Frechet mean when points:
-    - lie in a Euclidean space with Euclidean metric,
-    - lie in a Minkowski space with Minkowski metric.
-
-    Parameters
-    ----------
-    points : array-like, shape=[n_samples, dimension]
-        Points to be averaged.
-
-    weights : array-like, shape=[n_samples, 1], optional
-        Weights associated to the points.
-
-    Returns
-    -------
-    mean : array-like, shape=[1, dimension]
-        Weighted linear mean of the points.
-    """
-    if isinstance(points, list):
-        points = gs.vstack(points)
-    points = gs.to_ndarray(points, to_ndim=2)
-    n_points = gs.shape(points)[0]
-
-    if isinstance(weights, list):
-        weights = gs.vstack(weights)
-    elif weights is None:
-        weights = gs.ones((n_points, ))
-
-    weighted_points = gs.einsum('...,...j->...j', weights, points)
-    mean = (gs.sum(weighted_points, axis=0) / gs.sum(weights))
-    mean = gs.to_ndarray(mean, to_ndim=2)
-    return mean
 
 
 def _default_gradient_descent(
@@ -75,52 +40,48 @@ def _default_gradient_descent(
     exp_bar : array-like, shape=[n,n]
         The exponential_barycenter of the input points.
     """
+
+    ndim = 2 if group.default_point_type == 'vector' else 3
+    if gs.ndim(gs.array(points)) < ndim or len(points) == 1:
+        return points[0] if len(points) == 1 else points
+
     n_points = points.shape[0]
     if weights is None:
         weights = gs.ones((n_points,))
     sum_weights = gs.sum(weights)
 
-    def while_loop_cond(iter_index, current, grad_norm):
-        result = grad_norm > epsilon
-        return result or iter_index == 0
+    mean = points[0]
+    mean = gs.to_ndarray(mean, to_ndim=ndim)
 
-    def while_loop_body(iter_index, current, grad_norm):
-        logs = group.log(point=points, base_point=current)
+    sq_dists_between_iterates = []
+    iteration = 0
+    grad_norm = 0.
+
+    while iteration < max_iter:
+        if not (grad_norm > epsilon or iteration == 0):
+            break
+        centered_points = group.compose(group.inverse(mean), points)
+        logs = group.log_from_identity(point=centered_points)
         tangent_mean = step * gs.einsum(
-            'n, nkl->kl', weights / sum_weights, logs)
-        mean_next = group.exp(tangent_vec=tangent_mean, base_point=current)
+            'n, nk...->k...', weights / sum_weights, logs)
+        mean_next = group.compose(
+            mean,
+            group.exp_from_identity(tangent_vec=tangent_mean))
 
         grad_norm = gs.linalg.norm(tangent_mean)
         sq_dists_between_iterates.append(grad_norm)
 
-        current = mean_next
-        iter_index += 1
-        return [iter_index, current, grad_norm]
+        mean = mean_next
+        iteration += 1
 
-    mean = points[0]
-    if n_points == 1:
-        return mean
-
-    mean = gs.to_ndarray(mean, to_ndim=3)
-
-    sq_dists_between_iterates = []
-    iteration = 0
-    norm = 0.
-
-    last_iteration, mean, norm = gs.while_loop(
-        lambda i, m, sq: while_loop_cond(i, m, sq),
-        lambda i, m, sq: while_loop_body(i, m, sq),
-        loop_vars=[iteration, mean, norm],
-        maximum_iterations=max_iter)
-
-    if last_iteration == max_iter:
+    if iteration == max_iter:
         logging.warning(
             'Maximum number of iterations {} reached. '
             'The mean may be inaccurate'.format(max_iter))
 
     if verbose:
-        logging.info('n_iter: {}, final norm: {}'.format(last_iteration, norm))
-
+        logging.info(
+            'n_iter: {}, final gradient norm: {}'.format(iteration, grad_norm))
     return mean[0]
 
 
@@ -150,12 +111,14 @@ class ExponentialBarycenter(BaseEstimator):
                  max_iter=32,
                  epsilon=EPSILON,
                  step=1.,
+                 point_type=None,
                  verbose=False):
         self.group = group
         self.max_iter = max_iter
         self.epsilon = epsilon
         self.verbose = verbose
         self.step = step
+        self.point_type = point_type
         self.estimate_ = None
 
     def fit(self, X, y=None, weights=None):
@@ -186,7 +149,6 @@ class ExponentialBarycenter(BaseEstimator):
                 epsilon=self.epsilon,
                 step=self.step,
                 verbose=self.verbose)
-
         self.estimate_ = mean
 
         return self

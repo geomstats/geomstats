@@ -124,8 +124,8 @@ class SpecialEuclidean(LieGroup):
             belongs = point_dim == self.dimension
             belongs = gs.logical_and(
                 belongs, self.rotations.belongs(point[:, :self.n]))
-            belongs = gs.flatten(belongs)
-        elif point_type == 'matrix':
+            return gs.flatten(belongs)
+        if point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
             n_points, point_dim1, point_dim2 = point.shape
             belongs = (point_dim1 == point_dim2 == self.n + 1)
@@ -143,9 +143,9 @@ class SpecialEuclidean(LieGroup):
 
             last_term = point[:, self.n:, self.n:]
             belongs = gs.logical_and(belongs, gs.all(last_term == 1, axis=1))
-            belongs = gs.flatten(belongs)
+            return gs.flatten(belongs)
 
-        return belongs
+        raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
     def regularize(self, point, point_type=None):
         """Regularize a point to the default representation for SE(n).
@@ -176,15 +176,13 @@ class SpecialEuclidean(LieGroup):
 
             translation = point[:, dim_rotations:]
 
-            regularized_point = gs.concatenate(
+            return gs.concatenate(
                 [regularized_rot_vec, translation], axis=1)
 
-        elif point_type == 'matrix':
-            regularized_point = gs.to_ndarray(point, to_ndim=3)
+        if point_type == 'matrix':
+            return gs.to_ndarray(point, to_ndim=3)
 
-        else:
-            raise ValueError('Invalid point_type, expected \'vector\' or '
-                             '\'matrix\'')
+        raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
         return regularized_point
 
@@ -255,13 +253,13 @@ class SpecialEuclidean(LieGroup):
                 metric=rot_metric,
                 point_type=point_type)
 
-            regularized_vec = gs.concatenate(
+            return gs.concatenate(
                 [rotations_vec, tangent_vec[:, dim_rotations:]], axis=1)
 
-        elif point_type == 'matrix':
-            regularized_vec = tangent_vec
+        if point_type == 'matrix':
+            return tangent_vec
 
-        return regularized_vec
+        raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
     def matrix_from_vector(self, vec):
         """Convert point in vector point-type to matrix.
@@ -345,12 +343,12 @@ class SpecialEuclidean(LieGroup):
 
             composition = gs.concatenate((composition_rot_vec,
                                           composition_translation), axis=1)
+            return self.regularize(composition, point_type=point_type)
 
-        elif point_type == 'matrix':
-            composition = GeneralLinear.compose(point_a, point_b)
+        if point_type == 'matrix':
+            return GeneralLinear.compose(point_a, point_b)
 
-        composition = self.regularize(composition, point_type=point_type)
-        return composition
+        raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
     def inverse(self, point, point_type=None):
         r"""Compute the group inverse in SE(n).
@@ -383,7 +381,6 @@ class SpecialEuclidean(LieGroup):
             rot_vec = point[:, :dim_rotations]
             translation = point[:, dim_rotations:]
 
-            inverse_point = gs.zeros_like(point)
             inverse_rotation = -rot_vec
 
             inv_rot_mat = rotations.matrix_from_rotation_vector(
@@ -396,6 +393,7 @@ class SpecialEuclidean(LieGroup):
 
             inverse_point = gs.concatenate(
                 [inverse_rotation, inverse_translation], axis=1)
+            return self.regularize(inverse_point, point_type=point_type)
 
         elif point_type == 'matrix':
             inv_rot = gs.transpose(
@@ -403,19 +401,16 @@ class SpecialEuclidean(LieGroup):
             inv_trans = gs.matmul(inv_rot, - point[:, :self.n, self.n:])
             last_line = point[:, self.n:, :]
             inverse_point = gs.concatenate((inv_rot, inv_trans), axis=2)
-            inverse_point = gs.concatenate((inverse_point, last_line), axis=1)
+            return gs.concatenate((inverse_point, last_line), axis=1)
 
-        inverse_point = self.regularize(inverse_point, point_type=point_type)
-        return inverse_point
+        raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
     def jacobian_translation(
             self, point, left_or_right='left', point_type=None):
         """Compute the Jacobian matrix resulting from translation.
 
-        Compute the jacobian matrix of the differential
+        Compute the matrix of the differential
         of the left/right translations from the identity to point in SE(n).
-        Currently only implemented for point_type == 'vector'.
-        # TODO(nguigs): implement for matrix, formula p157 in Xavier's thesis
 
         Parameters
         ----------
@@ -478,13 +473,13 @@ class SpecialEuclidean(LieGroup):
                 jacobian_block_line_2 = gs.concatenate(
                     [inv_skew_mat, eye], axis=2)
 
-            jacobian = gs.concatenate(
+            return gs.concatenate(
                 [jacobian_block_line_1, jacobian_block_line_2], axis=1)
 
-        elif point_type == 'matrix':
-            jacobian = point
+        if point_type == 'matrix':
+            return point
 
-        return jacobian
+        raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
     def exp_from_identity(self, tangent_vec, point_type=None):
         """Compute group exponential of the tangent vector at the identity.
@@ -655,13 +650,13 @@ class SpecialEuclidean(LieGroup):
                 log_translation += mask_i_float * (
                     translation_i + term_1_i + term_2_i)
 
-            group_log = gs.concatenate(
+            return gs.concatenate(
                 [rot_vec, log_translation], axis=1)
 
-        elif point_type == 'matrix':
-            group_log = GeneralLinear.log(point)
+        if point_type == 'matrix':
+            return GeneralLinear.log(point)
 
-        return group_log
+        raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
     def random_uniform(self, n_samples=1, point_type=None):
         """Sample in SE(n) with the uniform distribution.
@@ -688,7 +683,7 @@ class SpecialEuclidean(LieGroup):
         if point_type == 'vector':
             random_rot_vec = self.rotations.random_uniform(
                 n_samples, point_type=point_type)
-            random_point = gs.concatenate(
+            return gs.concatenate(
                 [random_rot_vec, random_translation],
                 axis=1)
 
@@ -702,9 +697,9 @@ class SpecialEuclidean(LieGroup):
             last_line = gs.zeros((n_samples, 1, self.n + 1))
             random_point = gs.concatenate(
                 (random_point, last_line), axis=1)
-            random_point = gs.assignment(random_point, 1, (-1, -1), axis=0)
+            return gs.assignment(random_point, 1, (-1, -1), axis=0)
 
-        return random_point
+        raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
     def _exponential_matrix(self, rot_vec):
         """Compute exponential of rotation matrix represented by rot_vec.
