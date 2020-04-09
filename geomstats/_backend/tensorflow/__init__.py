@@ -95,10 +95,6 @@ def diagonal(a, axis1=0, axis2=1):
     return tf.linalg.diag_part(a)
 
 
-def diag(a):
-    return tf.map_fn(tf.linalg.tensor_diag, a)
-
-
 def ndim(x):
     return tf.convert_to_tensor(x).ndim
 
@@ -512,13 +508,6 @@ def cumsum(a, axis=None):
     if axis is None:
         return tf.math.cumsum(flatten(a), axis=0)
     return tf.math.cumsum(a, axis=axis)
-
-
-def from_vector_to_diagonal_matrix(x):
-    n = shape(x)[-1]
-    identity = eye(n)
-    diagonals = einsum('ki,ij->kij', x, identity)
-    return diagonals
 
 
 def tril(m, k=0):

@@ -204,24 +204,6 @@ def cast(x, dtype):
     return x.astype(dtype)
 
 
-# TODO(nkoep): Rename this to emphasize that the behavior is different from
-#              np.diag. Given an n-by-n matrix A, this function creates a
-#              diagonal matrix for each of the n rows of A, returning an
-#              n-by-n-by-n array.
-def diag(x):
-    x = to_ndarray(x, to_ndim=2)
-    _, n = shape(x)
-    aux = np.vectorize(
-        np.diagflat,
-        signature='(m,n)->(k,k)')(x)
-    k, _ = shape(aux)
-    m = int(k / n)
-    result = zeros((m, n, n))
-    for i in range(m):
-        result[i] = aux[i * n:(i + 1) * n, i * n:(i + 1) * n]
-    return result
-
-
 def ndim(x):
     return x.ndim
 
@@ -233,10 +215,3 @@ def copy(x):
 def array_from_sparse(indices, data, target_shape):
     return array(
         coo_matrix((data, list(zip(*indices))), target_shape).todense())
-
-
-def from_vector_to_diagonal_matrix(x):
-    n = shape(x)[-1]
-    identity_n = eye(n)
-    diagonals = einsum('ki,ij->kij', x, identity_n)
-    return diagonals
