@@ -72,13 +72,13 @@ class LieGroup(Manifold):
         self.left_canonical_metric = InvariantMetric(
             group=self,
             inner_product_mat_at_identity=gs.eye(self.dimension),
-            left_or_right="left",
+            left_or_right='left',
         )
 
         self.right_canonical_metric = InvariantMetric(
             group=self,
             inner_product_mat_at_identity=gs.eye(self.dimension),
-            left_or_right="right",
+            left_or_right='right',
         )
 
         self.metrics = []
@@ -97,7 +97,7 @@ class LieGroup(Manifold):
         identity : array-like, shape={[dimension], [n, n]}
         """
         raise NotImplementedError(
-            "The Lie group identity" " is not implemented."
+            'The Lie group identity is not implemented.'
         )
 
     identity = property(get_identity)
@@ -122,7 +122,7 @@ class LieGroup(Manifold):
             the product of point_a and point_b along the first dimension
         """
         raise NotImplementedError(
-            "The Lie group composition" " is not implemented."
+            'The Lie group composition is not implemented.'
         )
 
     def inverse(self, point, point_type=None):
@@ -141,10 +141,10 @@ class LieGroup(Manifold):
         inverse : array-like, shape=[n_samples, {dimension, [n,n]}]
             the inverted point
         """
-        raise NotImplementedError("The Lie group inverse is not implemented.")
+        raise NotImplementedError('The Lie group inverse is not implemented.')
 
     def jacobian_translation(
-            self, point, left_or_right="left", point_type=None):
+            self, point, left_or_right='left', point_type=None):
         """Compute the Jacobian of left/right translation by a point.
 
         Compute the Jacobian matrix of the differential of the left
@@ -169,7 +169,7 @@ class LieGroup(Manifold):
             the jacobian of the left/right translation by point
         """
         raise NotImplementedError(
-            "The jacobian of the Lie group translation is not implemented."
+            'The jacobian of the Lie group translation is not implemented.'
         )
 
     def exp_from_identity(self, tangent_vec, point_type=None):
@@ -187,7 +187,7 @@ class LieGroup(Manifold):
         point : array-like, shape=[n_samples, {dimension,[n,n]}]
         """
         raise NotImplementedError(
-            "The group exponential from the identity is not implemented."
+            'The group exponential from the identity is not implemented.'
         )
 
     def exp_not_from_identity(self, tangent_vec, base_point, point_type=None):
@@ -208,14 +208,14 @@ class LieGroup(Manifold):
         if point_type is None:
             point_type = self.default_point_type
 
-        if point_type == "vector":
+        if point_type == 'vector':
             jacobian = self.jacobian_translation(
-                point=base_point, left_or_right="left", point_type=point_type)
+                point=base_point, left_or_right='left', point_type=point_type)
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
             inv_jacobian = gs.linalg.inv(jacobian)
 
             tangent_vec_at_id = gs.einsum(
-                "ni,nij->nj",
+                'ni,nij->nj',
                 tangent_vec,
                 gs.transpose(inv_jacobian, axes=(0, 2, 1)),
             )
@@ -228,7 +228,7 @@ class LieGroup(Manifold):
             exp = self.regularize(exp, point_type=point_type)
             return exp
 
-        if point_type == "matrix":
+        if point_type == 'matrix':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
             lie_vec = self.compose(
                 self.inverse(base_point), tangent_vec)
@@ -264,10 +264,10 @@ class LieGroup(Manifold):
             base_point = identity
         base_point = self.regularize(base_point, point_type=point_type)
 
-        if point_type == "vector":
+        if point_type == 'vector':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
-        if point_type == "matrix":
+        if point_type == 'matrix':
             tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
             base_point = gs.to_ndarray(base_point, to_ndim=3)
 
@@ -309,7 +309,7 @@ class LieGroup(Manifold):
         tangent_vec : array-like, shape=[n_samples, {dimension,[n,n]}]
         """
         raise NotImplementedError(
-            "The group logarithm from the identity is not implemented."
+            'The group logarithm from the identity is not implemented.'
         )
 
     def log_not_from_identity(self, point, base_point, point_type=None):
@@ -331,14 +331,14 @@ class LieGroup(Manifold):
 
         if point_type == 'vector':
             jacobian = self.jacobian_translation(
-                point=base_point, left_or_right="left", point_type=point_type)
+                point=base_point, left_or_right='left', point_type=point_type)
             point_near_id = self.compose(
                 self.inverse(base_point), point, point_type=point_type)
             log_from_id = self.log_from_identity(
                 point=point_near_id, point_type=point_type)
 
             log = gs.einsum(
-                "ni,nij->nj",
+                'ni,nij->nj',
                 log_from_id,
                 gs.transpose(jacobian, axes=(0, 2, 1)))
 
@@ -372,10 +372,10 @@ class LieGroup(Manifold):
         if base_point is None:
             base_point = identity
 
-        if point_type == "vector":
+        if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
-        if point_type == "matrix":
+        if point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
             base_point = gs.to_ndarray(base_point, to_ndim=3)
 
@@ -438,7 +438,7 @@ class LieGroup(Manifold):
         tangent_vector_b = gs.to_ndarray(tangent_vector_b, to_ndim=3)
 
         inverse_base = gs.to_ndarray(
-            self.inverse(base_point, point_type="matrix"), to_ndim=3
+            self.inverse(base_point, point_type='matrix'), to_ndim=3
         )
 
         first_term = gs.matmul(

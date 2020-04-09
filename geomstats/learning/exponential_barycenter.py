@@ -40,7 +40,6 @@ def _default_gradient_descent(
     exp_bar : array-like, shape=[n,n]
         The exponential_barycenter of the input points.
     """
-
     ndim = 2 if group.default_point_type == 'vector' else 3
     if gs.ndim(gs.array(points)) < ndim or len(points) == 1:
         return points[0] if len(points) == 1 else points
@@ -48,6 +47,7 @@ def _default_gradient_descent(
     n_points = points.shape[0]
     if weights is None:
         weights = gs.ones((n_points,))
+    weights = gs.cast(weights, gs.float32)
     sum_weights = gs.sum(weights)
 
     mean = points[0]
