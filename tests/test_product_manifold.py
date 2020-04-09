@@ -74,13 +74,7 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
             1. / self.space_vector.metric.norm(logs, base_point),
             logs)
         point = self.space_vector.metric.exp(normalized_logs, base_point)
-        print('point')
-        print(point)
-        print('base_point')
-        print(base_point)
         result = self.space_vector.metric.dist(point, base_point)
-        print('result')
-        print(result)
 
         expected = gs.ones(n_samples)
         self.assertAllClose(result, expected)
