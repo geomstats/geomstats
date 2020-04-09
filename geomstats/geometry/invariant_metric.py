@@ -34,8 +34,6 @@ class InvariantMetric(RiemannianMetric):
             inner_product_mat_at_identity = gs.eye(self.group.dimension)
         inner_product_mat_at_identity = gs.to_ndarray(
             inner_product_mat_at_identity, to_ndim=3)
-        mat_shape = inner_product_mat_at_identity.shape
-        assert mat_shape == (1,) + (group.dimension, ) * 2, mat_shape
 
         assert left_or_right in ('left', 'right')
         eigenvalues = gs.linalg.eigvalsh(inner_product_mat_at_identity)
