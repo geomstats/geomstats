@@ -65,7 +65,6 @@ from . import random  # NOQA
 arctanh = tf.math.atanh
 ceil = tf.math.ceil
 cross = tf.linalg.cross
-diag = tf.linalg.tensor_diag
 log = tf.math.log
 matmul = tf.linalg.matmul
 mod = tf.math.mod
