@@ -34,8 +34,8 @@ class Stiefel(EmbeddedManifold):
             dimension=dimension,
             embedding_manifold=Matrices(n, p))
 
-        geomstats.error.check_strictly_positive_integer(n, 'n')
-        geomstats.error.check_strictly_positive_integer(p, 'p')
+        geomstats.error.check_integer(n, 'n')
+        geomstats.error.check_integer(p, 'p')
         if p > n:
             raise ValueError('p needs to be smaller than n.')
 

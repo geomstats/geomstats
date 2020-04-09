@@ -145,9 +145,9 @@ class Matrices(Euclidean):
         """
         return 1 / 2 * (mat + cls.transpose(mat))
 
-    def random_uniform(self, n_samples=1):
+    def random_uniform(self, n_samples=1, bound=1.):
         """Generate n samples from a uniform distribution."""
-        point = gs.random.rand(n_samples, self.m, self.n)
+        point = bound * (gs.random.rand(n_samples, self.m, self.n) - 0.5)
         return point
 
     @classmethod
