@@ -8,7 +8,6 @@ import logging
 import math
 
 import geomstats.backend as gs
-import geomstats.error
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.euclidean import EuclideanMetric

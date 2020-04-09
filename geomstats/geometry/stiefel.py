@@ -405,7 +405,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         return matrix_xv + matrix_qv
 
-    def retraction(self, tangent_vec, base_point):
+    @staticmethod
+    def retraction(tangent_vec, base_point):
         """Compute the retraction of a tangent vector.
 
         This computation is based on the QR-decomposition.
@@ -450,7 +451,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         return result
 
-    def lifting(self, point, base_point):
+    @staticmethod
+    def lifting(point, base_point):
         """Compute the lifting of a point.
 
         This computation is based on the QR-decomposion.

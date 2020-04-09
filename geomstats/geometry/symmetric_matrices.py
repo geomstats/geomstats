@@ -65,7 +65,8 @@ class SymmetricMatrices(EmbeddedManifold):
             gs.array_from_sparse(indices, data, shape) for data in vec])
         return Matrices.make_symmetric(upper_triangular) * mask
 
-    def expm(self, x):
+    @staticmethod
+    def expm(x):
         """
         Compute the matrix exponential.
 

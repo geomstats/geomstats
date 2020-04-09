@@ -67,7 +67,7 @@ class SPDMatrices(EmbeddedManifold):
         base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, _ = base_point.shape
 
-        if n_base_points != n_samples and n_base_points != 1:
+        if n_base_points not in [n_samples, 1]:
             raise NotImplementedError
 
         if n_base_points == 1:
