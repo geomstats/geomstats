@@ -15,8 +15,8 @@ from matplotlib.patches import Circle
 
 import geomstats.backend as gs
 from geomstats.geometry.hyperbolic import Hyperbolic
-from geomstats.learning.em_expectation_maximization \
-    import RiemannianEM, weighted_gmm_pdf
+from geomstats.geometry.gaussian_distribution import GaussianDistribution
+from geomstats.learning.em_expectation_maximization import RiemannianEM
 
 DEFAULT_PLOT_PRECISION = 100
 
@@ -43,7 +43,7 @@ def plot_gaussian_mixture_distribution(data,
             gs.expand_dims(y_axis_samples[z_index], -1)),
             axis=-1)
 
-        mesh_probabilities = weighted_gmm_pdf(mixture_coefficients,
+        mesh_probabilities = GaussianDistribution.weighted_gmm_pdf(mixture_coefficients,
                                               x_y_plane_mesh,
                                               means,
                                               variances,

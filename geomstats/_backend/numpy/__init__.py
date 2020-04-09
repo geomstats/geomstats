@@ -43,6 +43,7 @@ from autograd.numpy import (  # NOQA
     greater,
     hsplit,
     hstack,
+    inf,
     int32,
     int64,
     isclose,
