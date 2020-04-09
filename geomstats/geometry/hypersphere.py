@@ -48,7 +48,8 @@ class Hypersphere(EmbeddedManifold):
     """
 
     def __init__(self, dimension):
-        assert isinstance(dimension, int) and dimension > 0
+        if not (isinstance(dimension, int) and dimension > 0):
+            raise ValueError('Dimension needs to be an integer > 0.')
         super(Hypersphere, self).__init__(
             dimension=dimension,
             embedding_manifold=Euclidean(dimension + 1))
@@ -103,7 +104,8 @@ class Hypersphere(EmbeddedManifold):
         projected_point : array-like, shape=[n_samples, dimension + 1]
             Points in canonical representation chosen for the hypersphere.
         """
-        assert gs.all(self.belongs(point))
+        if not gs.all(self.belongs(point)):
+            raise ValueError('Points do not belong to the manifold.')
 
         return self.projection(point)
 
@@ -177,7 +179,6 @@ class Hypersphere(EmbeddedManifold):
                 'The conversion from spherical coordinates'
                 ' to extrinsic coordinates is implemented'
                 ' only in dimension 2.')
-        assert gs.ndim(point_spherical) == 2, point_spherical
 
         theta = point_spherical[:, 0]
         phi = point_spherical[:, 1]
@@ -186,7 +187,8 @@ class Hypersphere(EmbeddedManifold):
         point_extrinsic[:, 0] = gs.sin(theta) * gs.cos(phi)
         point_extrinsic[:, 1] = gs.sin(theta) * gs.sin(phi)
         point_extrinsic[:, 2] = gs.cos(theta)
-        assert self.belongs(point_extrinsic).all()
+        if not gs.all(self.belongs(point_extrinsic)):
+            raise ValueError('Points do not belong to the manifold.')
 
         return point_extrinsic
 
@@ -217,9 +219,6 @@ class Hypersphere(EmbeddedManifold):
                 'The conversion from spherical coordinates'
                 ' to extrinsic coordinates is implemented'
                 ' only in dimension 2.')
-
-        assert gs.ndim(base_point_spherical) == 2
-        assert gs.ndim(tangent_vec_spherical) == 2
 
         n_samples = base_point_spherical.shape[0]
         theta = base_point_spherical[:, 0]
@@ -253,8 +252,6 @@ class Hypersphere(EmbeddedManifold):
             Point on the hypersphere, in extrinsic coordinates in
             Euclidean space.
         """
-        assert gs.ndim(point_intrinsic) == 2, point_intrinsic
-
         sq_coord_0 = 1. - gs.linalg.norm(point_intrinsic, axis=-1) ** 2
         if gs.any(gs.less(sq_coord_0, 0.)):
             raise ValueError('Square-root of a negative number.')
@@ -283,7 +280,6 @@ class Hypersphere(EmbeddedManifold):
         point_intrinsic : array-like, shape=[n_samples, dimension]
             Point on the hypersphere, in intrinsic coordinates.
         """
-        assert gs.ndim(point_extrinsic) == 2, point_extrinsic
         point_intrinsic = point_extrinsic[:, 1:]
 
         return point_intrinsic
@@ -487,10 +483,6 @@ class HypersphereMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        # TODO(nmiolane): Remove these asserts
-        assert gs.ndim(point) == 2, point
-        assert gs.ndim(base_point) == 2, base_point
-
         norm_base_point = self.embedding_metric.norm(base_point)
         norm_point = self.embedding_metric.norm(point)
         inner_prod = self.embedding_metric.inner_product(base_point, point)
@@ -613,8 +605,8 @@ class HypersphereMetric(RiemannianMetric):
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
-        # TODO(nguigs): work around this condition
-        assert len(base_point) == len(tangent_vec_a) == len(tangent_vec_b)
+        # TODO(nguigs): work around this condition:
+        # assert len(base_point) == len(tangent_vec_a) == len(tangent_vec_b)
         theta = gs.linalg.norm(tangent_vec_b, axis=1)
         normalized_b = gs.einsum('n, ni->ni', 1 / theta, tangent_vec_b)
         pb = gs.einsum('ni,ni->n', tangent_vec_a, normalized_b)
