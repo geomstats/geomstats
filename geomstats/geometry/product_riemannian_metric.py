@@ -168,7 +168,7 @@ class ProductRiemannianMetric(RiemannianMetric):
                     'base_point': base_point}
             inner_prod = self._iterate_over_metrics(
                 'inner_product', args, intrinsic)
-            return gs.sum(gs.hstack(inner_prod), axis=1)
+            return gs.sum(gs.stack(inner_prod, axis=1), axis=1)
 
         if point_type == 'matrix':
             tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
@@ -254,8 +254,13 @@ class ProductRiemannianMetric(RiemannianMetric):
             base_point = gs.to_ndarray(base_point, to_ndim=2)
             intrinsic = self.is_intrinsic(base_point)
             args = {'point': point, 'base_point': base_point}
-            log = self._iterate_over_metrics('log', args, intrinsic)
-            return gs.hstack(log)
+            logs = self._iterate_over_metrics('log', args, intrinsic)
+            print('logs')
+            print(logs)
+            logs = gs.concatenate(logs, axis=1)
+            print('logs')
+            print(logs)
+            return logs
 
         if point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)

@@ -370,8 +370,9 @@ class HyperboloidMetric(HyperbolicMetric):
             of point at the base point.
         """
         angle = self.dist(base_point, point) / self.scale
+        print('angle.shape')
+        print(angle.shape)
         angle = gs.to_ndarray(angle, to_ndim=1)
-        angle = gs.to_ndarray(angle, to_ndim=2)
 
         mask_0 = gs.isclose(angle, 0.)
         mask_else = ~mask_0
@@ -399,8 +400,8 @@ class HyperboloidMetric(HyperbolicMetric):
         coef_1 += mask_else_float * (angle / gs.sinh(angle))
         coef_2 += mask_else_float * (angle / gs.tanh(angle))
 
-        log = (gs.einsum('...i,...j->...j', coef_1, point) -
-               gs.einsum('...i,...j->...j', coef_2, base_point))
+        log = (gs.einsum('...,...j->...j', coef_1, point) -
+               gs.einsum('...,...j->...j', coef_2, base_point))
         return log
 
     def dist(self, point_a, point_b):

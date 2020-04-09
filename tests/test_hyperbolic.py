@@ -128,6 +128,63 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(result, expected)
 
+    def test_log_and_exp_general_case_general_dim(self):
+        """
+        Test that the Riemannian exponential
+        and the Riemannian logarithm are inverse.
+
+        Expect their composition to give the identity function.
+        """
+        # Riemannian Log then Riemannian Exp
+        dim = 3
+        n_samples = self.n_samples
+
+        h5 = Hyperboloid(dimension=dim)
+        h5_metric = h5.metric
+
+        base_point = h5.random_uniform()
+        point = h5.random_uniform()
+
+        one_log = h5_metric.log(point=point, base_point=base_point)
+
+        result = h5_metric.exp(tangent_vec=one_log, base_point=base_point)
+        expected = point
+        self.assertAllClose(result, expected)
+
+        print('### VECTORIZATION')
+
+        print('base_point')
+        print(base_point)
+        base_point = gs.stack([base_point] * n_samples, axis=0)
+        print('base_point')
+        print(base_point)
+        print('point')
+        print(point)
+        point = gs.stack([point] * n_samples, axis=0)
+        print('point')
+        print(point)
+
+        print('one_log')
+        print(one_log)
+        expected = gs.stack([one_log] * n_samples, axis=0)
+        print('expected log from one_log\'s')
+        print(expected)
+
+        log = h5_metric.log(point=point, base_point=base_point)
+        result = log
+
+        print('result log')
+        print(result)
+
+        self.assertAllClose(gs.shape(result), (n_samples, dim + 1))
+        self.assertAllClose(result, expected)
+
+        result = h5_metric.exp(tangent_vec=log, base_point=base_point)
+        expected = point
+
+        self.assertAllClose(gs.shape(result), (n_samples, dim + 1))
+        self.assertAllClose(result, expected)
+
     def test_exp_and_belongs(self):
         H2 = Hyperboloid(dimension=2)
         METRIC = H2.metric
