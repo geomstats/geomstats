@@ -30,6 +30,10 @@ class TestPoincareBallMethods(geomstats.tests.TestCase):
         distance_a_b = self.metric.dist(point_a, point_b)
         squared_distance = self.metric.squared_dist(point_a, point_b)
 
+        # TODO(nmiolane):
+        # Remove this line when poincare ball is properly vectorized
+        squared_distance = gs.to_ndarray(squared_distance, to_ndim=2, axis=1)
+
         self.assertAllClose(distance_a_b**2, squared_distance, atol=1e-8)
 
     @geomstats.tests.np_and_pytorch_only
