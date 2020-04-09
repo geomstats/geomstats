@@ -48,8 +48,6 @@ class Hypersphere(EmbeddedManifold):
     """
 
     def __init__(self, dimension):
-        geomstats.error.check_strictly_positive_integer(
-            dimension, 'dimension')
         super(Hypersphere, self).__init__(
             dimension=dimension,
             embedding_manifold=Euclidean(dimension + 1))

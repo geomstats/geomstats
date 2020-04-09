@@ -4,8 +4,6 @@ In other words, a topological space that locally resembles
 Euclidean space near each point.
 """
 
-import math
-
 import geomstats.error
 
 
@@ -13,9 +11,7 @@ class Manifold:
     """Class for manifolds."""
 
     def __init__(self, dimension):
-        if dimension != math.inf:
-            geomstats.error.check_strictly_positive_integer(
-                dimension, 'dimension')
+        geomstats.error.check_integer(dimension, 'dimension')
         self.dimension = dimension
 
     def belongs(self, point, point_type=None):

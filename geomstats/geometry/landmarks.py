@@ -18,7 +18,7 @@ class Landmarks(Manifold):
         ambient_manifold : object from the class Manifold
         n_landmarks
         """
-        self.dimension = None
+        super(Landmarks, self).__init__(dimension=None)
         if n_landmarks:
             self.dimension = n_landmarks * ambient_manifold.dimension
         self.ambient_manifold = ambient_manifold

@@ -1,8 +1,5 @@
 """Manifold embedded in another manifold."""
 
-import math
-
-import geomstats.error
 from geomstats.geometry.manifold import Manifold
 
 
@@ -18,11 +15,7 @@ class EmbeddedManifold(Manifold):
     """
 
     def __init__(self, dimension, embedding_manifold):
-        if dimension != math.inf:
-            geomstats.error.check_strictly_positive_integer(
-                dimension, 'dimension')
-        super(EmbeddedManifold, self).__init__(
-            dimension=dimension)
+        super(EmbeddedManifold, self).__init__(dimension=dimension)
         self.embedding_manifold = embedding_manifold
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):

@@ -14,9 +14,7 @@ class Euclidean(Manifold):
     """
 
     def __init__(self, dimension):
-        geomstats.error.check_strictly_positive_integer(
-            dimension, 'dimension')
-        self.dimension = dimension
+        super(Euclidean, self).__init__(dimension=dimension)
         self.metric = EuclideanMetric(dimension)
 
     def belongs(self, point):

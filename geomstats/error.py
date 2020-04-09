@@ -1,9 +1,11 @@
 """Checks and associated errors."""
 
+import math
+
 import geomstats.backend as gs
 
 
-def check_strictly_positive_integer(n, n_name):
+def check_integer(n, n_name):
     """Raise an error if n is not a > 0 integer.
 
     Parameters
@@ -14,9 +16,11 @@ def check_strictly_positive_integer(n, n_name):
        Name of the parameter.
     """
     if not(isinstance(n, int) and n > 0):
-        raise ValueError(
-            '{} is required to be a strictly positive integer,'
-            ' got {}.'.format(n_name, n))
+        if n is not None and n != math.inf:
+            raise ValueError(
+                '{} is required to be either'
+                ' None, math.inf or a strictly positive integer,'
+                ' got {}.'.format(n_name, n))
 
 
 def check_belongs(point, manifold, manifold_name):

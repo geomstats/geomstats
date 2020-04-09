@@ -268,11 +268,10 @@ class LieGroup(Manifold):
         n_tangent_vecs = tangent_vec.shape[0]
         n_base_points = base_point.shape[0]
 
-        assert (
-            tangent_vec.shape == base_point.shape
-            or n_tangent_vecs == 1
-            or n_base_points == 1
-        )
+        if not (tangent_vec.shape == base_point.shape
+                or n_tangent_vecs == 1
+                or n_base_points == 1):
+            raise NotImplementedError
 
         if n_tangent_vecs == 1:
             tangent_vec = gs.array([tangent_vec[0]] * n_base_points)

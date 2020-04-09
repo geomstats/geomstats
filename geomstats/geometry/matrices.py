@@ -15,8 +15,8 @@ class Matrices(Euclidean):
     """Class for the space of matrices (m, n)."""
 
     def __init__(self, m, n):
-        geomstats.error.check_strictly_positive_integer(n, 'n')
-        geomstats.error.check_strictly_positive_integer(m, 'm')
+        geomstats.error.check_integer(n, 'n')
+        geomstats.error.check_integer(m, 'm')
         super(Matrices, self).__init__(dimension=m * n)
         self.m = m
         self.n = n

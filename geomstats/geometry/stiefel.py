@@ -359,7 +359,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         n_points, _, _ = point.shape
 
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_base_points, n, p = base_point.shape
+        n_base_points, _, p = base_point.shape
 
         if not (n_points == n_base_points
                 or n_points == 1
@@ -429,7 +429,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         n_tangent_vecs, _, _ = tangent_vec.shape
 
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_base_points, _, p = base_point.shape
+        n_base_points, _, _ = base_point.shape
 
         if not (n_tangent_vecs == n_base_points
                 or n_tangent_vecs == 1
