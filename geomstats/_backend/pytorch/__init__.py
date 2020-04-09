@@ -14,7 +14,6 @@ from torch import (  # NOQA
     clamp as clip,
     cos,
     cosh,
-    diag,
     diagonal,
     div as divide,
     empty_like,
@@ -78,16 +77,6 @@ def split(ary, indices_or_sections, axis=0):
     return torch.split(ary, indices_or_sections, dim=axis)
 
 
-def while_loop(cond, body, loop_vars, maximum_iterations):
-    iteration = 0
-    while cond(*loop_vars):
-        loop_vars = body(*loop_vars)
-        iteration += 1
-        if iteration >= maximum_iterations:
-            break
-    return loop_vars
-
-
 def logical_or(x, y):
     return x or y
 
@@ -105,12 +94,6 @@ def any(x, axis=None):
         return x.bool().any()
     numpy_result = _np.array(_np.any(_np.array(x), axis=axis))
     return torch.from_numpy(numpy_result)
-
-
-def cond(pred, true_fn, false_fn):
-    if pred:
-        return true_fn()
-    return false_fn()
 
 
 def cast(x, dtype):
@@ -481,10 +464,3 @@ def array_from_sparse(indices, data, target_shape):
         torch.LongTensor(indices).t(),
         torch.FloatTensor(cast(data, float32)),
         torch.Size(target_shape)).to_dense()
-
-
-def from_vector_to_diagonal_matrix(x):
-    n = shape(x)[-1]
-    identity_n = eye(n)
-    diagonals = einsum('ki,ij->kij', x, identity_n)
-    return diagonals

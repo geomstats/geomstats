@@ -5,6 +5,7 @@ A set of all orthonormal p-frames in n-dimensional space, where p <= n
 
 import geomstats.backend as gs
 import geomstats.error
+from geomstats import algebra_utils
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import Matrices
@@ -446,7 +447,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         diagonal = gs.diagonal(matrix_r, axis1=1, axis2=2)
         sign = gs.sign(gs.sign(diagonal) + 0.5)
-        diag = gs.diag(sign)
+        diag = algebra_utils.from_vector_to_diagonal_matrix(sign)
         result = gs.einsum('nij,njk->nik', matrix_q, diag)
 
         return result
