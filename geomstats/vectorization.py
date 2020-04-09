@@ -135,10 +135,8 @@ def decorator(point_types):
             args_point_types = point_types[:len(args)]
             kwargs_point_types = point_types[len(args):]
 
-            in_shapes = args_initial_shapes(
-                args_point_types, args)
-            kw_in_shapes = kwargs_initial_shapes(
-                kwargs_point_types, kwargs)
+            in_shapes = initial_shapes(args_point_types, args)
+            kw_in_shapes = initial_shapes(kwargs_point_types, kwargs.values())
 
             in_shapes.extend(kw_in_shapes)
 
@@ -159,7 +157,7 @@ def decorator(point_types):
     return aux_decorator
 
 
-def args_initial_shapes(point_types, args):
+def initial_shapes(point_types, args):
     """Extract shapes and ndims of input args.
 
     Return a list with the shapes of the input args
@@ -169,8 +167,8 @@ def args_initial_shapes(point_types, args):
     ----------
     point_types :  list
         Point types corresponding to the args.
-    args : tuple
-        Args of a given function.
+    args : tuple or dict_values
+        Args, or kwargs values, of a function.
 
     Returns
     -------
@@ -180,39 +178,6 @@ def args_initial_shapes(point_types, args):
     initial_shapes = []
 
     for i_arg, arg in enumerate(args):
-        point_type = point_types[i_arg]
-
-        if point_type == 'scalar':
-            arg = gs.array(arg)
-
-        if point_type == 'else' or arg is None:
-            initial_shapes.append(None)
-        else:
-            initial_shapes.append(gs.shape(arg))
-    return initial_shapes
-
-
-def kwargs_initial_shapes(point_types, kwargs):
-    """Extract shapes and ndims of input kwargs.
-
-    Return a list with the shapes of the input kwargs
-    that are array-like, with None otherwise.
-
-    Parameters
-    ----------
-    point_types :  list
-        Point types corresponding to the kwargs.
-    args : dict
-        Kwargs of a given function.
-
-    Returns
-    -------
-    initial_shapes : list
-        Shapes of array-like input kwargs.
-    """
-    initial_shapes = []
-
-    for i_arg, arg in enumerate(kwargs.values()):
         point_type = point_types[i_arg]
 
         if point_type == 'scalar':
