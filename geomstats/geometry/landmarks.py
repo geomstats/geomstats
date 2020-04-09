@@ -25,8 +25,6 @@ class Landmarks(Manifold):
         self.l2_metric = L2Metric(self.ambient_manifold)
         self.n_landmarks = n_landmarks
 
-        super(Landmarks, self).__init__(dimension=self.dimension)
-
     def belongs(self, point):
         """Compute whether or not a point belongs to the manifold.
 

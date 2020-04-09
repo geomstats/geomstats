@@ -9,11 +9,10 @@ import math
 import geomstats.error
 
 
-class Manifold(object):
+class Manifold:
     """Class for manifolds."""
 
     def __init__(self, dimension):
-
         if dimension != math.inf:
             geomstats.error.check_strictly_positive_integer(
                 dimension, 'dimension')
