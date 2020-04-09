@@ -87,7 +87,7 @@ from scipy.sparse import coo_matrix
 
 from . import linalg  # NOQA
 from . import random  # NOQA
-from .common import to_ndarray
+from .common import to_ndarray  # NOQA
 
 
 def flatten(x):
