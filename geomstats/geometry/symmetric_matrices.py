@@ -3,6 +3,7 @@
 import logging
 
 import geomstats.backend as gs
+import geomstats.vectorization
 from geomstats import algebra_utils
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.matrices import Matrices
@@ -38,20 +39,21 @@ class SymmetricMatrices(EmbeddedManifold):
     basis = property(get_basis)
 
     @staticmethod
+    @geomstats.vectorization.decorator(['matrix'])
     def vector_from_symmetric_matrix(mat):
         """Convert the symmetric part of a symmetric matrix into a vector."""
-        mat = gs.to_ndarray(mat, to_ndim=3)
         if not gs.all(Matrices.is_symmetric(mat)):
             logging.warning('non-symmetric matrix encountered.')
         mat = Matrices.make_symmetric(mat)
         _, dim, _ = mat.shape
         i, j = gs.triu_indices(dim)
-        return mat[:, i, j]
+        vec = mat[:, i, j]
+        return vec
 
     @staticmethod
+    @geomstats.vectorization.decorator(['vector', 'else'])
     def symmetric_matrix_from_vector(vec, dtype=gs.float32):
         """Convert a vector into a symmetric matrix."""
-        vec = gs.to_ndarray(vec, to_ndim=2)
         vec_dim = vec.shape[-1]
         mat_dim = (gs.sqrt(8. * vec_dim + 1) - 1) / 2
         if mat_dim != int(mat_dim):
@@ -64,9 +66,11 @@ class SymmetricMatrices(EmbeddedManifold):
         vec = gs.cast(vec, dtype)
         upper_triangular = gs.stack([
             gs.array_from_sparse(indices, data, shape) for data in vec])
-        return Matrices.make_symmetric(upper_triangular) * mask
+        mat = Matrices.make_symmetric(upper_triangular) * mask
+        return mat
 
     @staticmethod
+    @geomstats.vectorization.decorator(['matrix'])
     def expm(x):
         """
         Compute the matrix exponential.
