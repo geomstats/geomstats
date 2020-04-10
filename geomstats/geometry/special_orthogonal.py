@@ -1505,9 +1505,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         return point
 
-    def dummy(self):
-        return None
-
     def log_from_identity(self, point, point_type=None):
         """Compute the group logarithm of the point at the identity.
 
