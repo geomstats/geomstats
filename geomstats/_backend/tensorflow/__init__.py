@@ -113,10 +113,10 @@ def empty(shape, dtype=float64):
 
 
 def empty_like(prototype, dtype=None):
-    shape = tf.shape(prototype)
+    initial_shape = tf.shape(prototype)
     if dtype is None:
         dtype = prototype.dtype
-    return empty(shape, dtype=dtype)
+    return empty(initial_shape, dtype=dtype)
 
 
 def flip(m, axis=None):
