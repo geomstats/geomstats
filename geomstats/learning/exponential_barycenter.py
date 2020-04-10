@@ -140,7 +140,7 @@ class ExponentialBarycenter(BaseEstimator):
             Returns self.
         """
         if isinstance(self.group, Euclidean):
-            mean = linear_mean(points=X, weights=weights)
+            mean = linear_mean(points=X, weights=weights)[0]
 
         # TODO(nguigs): use closed form expression for special euclidean
         #  group as before PR #537

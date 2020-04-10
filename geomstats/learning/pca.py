@@ -207,7 +207,8 @@ class TangentPCA(_BasePCA):
                     self.base_point_fit.shape[-1]
                 ).symmetric_matrix_from_vector(scores)
             else:
-                scores = gs.reshape(scores, self.base_point_fit.shape)
+                dim = self.base_point_fit.shape[-1]
+                scores = gs.reshape(scores, (len(scores), dim, dim))
         return self.metric.exp(scores, self.base_point_fit)
 
     def _fit(self, X, base_point=None):

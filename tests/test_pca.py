@@ -3,7 +3,9 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
+from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.learning.exponential_barycenter import ExponentialBarycenter
 from geomstats.learning.pca import TangentPCA
 
 
@@ -108,4 +110,17 @@ class TestTangentPCA(geomstats.tests.TestCase):
             metric=self.spd_metric, point_type='matrix')
         expected = tpca.fit_transform(X)
         result = tpca.fit(X).transform(X)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_fit_matrix_se(self):
+        se_mat = SpecialEuclidean(n=3, point_type='matrix')
+        X = se_mat.random_uniform(self.n_samples)
+        estimator = ExponentialBarycenter(se_mat)
+        estimator.fit(X)
+        mean = estimator.estimate_
+        tpca = TangentPCA(metric=se_mat, point_type='matrix')
+        tangent_projected_data = tpca.fit_transform(X, base_point=mean)
+        result = tpca.inverse_transform(tangent_projected_data)
+        expected = X
         self.assertAllClose(result, expected)
