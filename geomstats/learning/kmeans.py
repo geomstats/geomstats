@@ -143,6 +143,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
              for centroid in self.centroids],
             axis=1)
         dists = gs.squeeze(dists)
+
         belongs = gs.argmin(dists, -1)
 
         return belongs

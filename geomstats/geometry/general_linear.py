@@ -14,7 +14,7 @@ class GeneralLinear(Matrices):
     def belongs(point):
         """Test if a matrix is invertible."""
         det = gs.linalg.det(point)
-        return gs.where(det != 0., True, False)
+        return gs.where(det != 0., gs.array(True), gs.array(False))
 
     def identity(self):
         """Return the identity matrix."""

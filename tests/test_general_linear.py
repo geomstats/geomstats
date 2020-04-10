@@ -18,7 +18,6 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
 
         warnings.simplefilter('ignore', category=ImportWarning)
 
-    @geomstats.tests.np_only
     def test_belongs(self):
         mats = gs.array([
             [[1., 0.], [0., 1]],
@@ -51,7 +50,6 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
         result = self.group.inv(mat_a)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_inv_vectorized(self):
         mat_a = gs.array([
             [0., 1., 0.],
@@ -71,7 +69,6 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_exp_vectorization(self):
         point = gs.array([[[2., 0., 0.],
                            [0., 3., 0.],

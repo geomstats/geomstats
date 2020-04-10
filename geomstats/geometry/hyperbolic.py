@@ -38,13 +38,11 @@ class Hyperbolic(Manifold):
     default_point_type = 'vector'
 
     def __init__(self, dimension, scale=1):
-        super(Hyperbolic, self).__init__(
-            dimension=dimension)
+        super(Hyperbolic, self).__init__(dimension=dimension)
         self.point_type = Hyperbolic.default_point_type
         self.coords_type = Hyperbolic.default_coords_type
         self.scale = scale
-        self.metric =\
-            HyperbolicMetric(self.dimension, self.scale)
+        self.metric = HyperbolicMetric(self.dimension, self.scale)
 
     @staticmethod
     def _extrinsic_to_extrinsic_coordinates(point):

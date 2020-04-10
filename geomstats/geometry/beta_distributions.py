@@ -6,6 +6,7 @@ from scipy.integrate import solve_bvp
 from scipy.stats import beta
 
 import geomstats.backend as gs
+import geomstats.error
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -22,8 +23,7 @@ class BetaDistributions(EmbeddedManifold):
 
     def __init__(self):
         super(BetaDistributions, self).__init__(
-            dimension=2,
-            embedding_manifold=Euclidean(dimension=2))
+            dimension=2, embedding_manifold=Euclidean(dimension=2))
 
     def belongs(self, point, point_type=None):
         """Evaluate if a point belongs to the manifold of beta distributions.
@@ -84,7 +84,8 @@ class BetaDistributions(EmbeddedManifold):
         samples : array-like, shape=[n_points, n_samples]
         """
         point = gs.to_ndarray(point, to_ndim=2)
-        assert self.belongs(point).all()
+        geomstats.error.check_belongs(
+            point, self, 'beta_distributions')
         samples = []
         for param_a, param_b in point:
             samples.append(beta.rvs(param_a, param_b, size=n_samples))
@@ -157,7 +158,8 @@ class BetaMetric(RiemannianMetric):
         -------
         base_point : array-like, shape=[n_samples, 2, 2]
         """
-        assert base_point is not None, 'The metric depends on the base point'
+        if base_point is not None:
+            raise ValueError('The metric depends on the base point.')
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         matrices = []
         for point in base_point:
@@ -199,7 +201,8 @@ class BetaMetric(RiemannianMetric):
                 2 * metric_det)
             return c1, c2, c3
 
-        assert base_point is not None, 'The Christoffels require a base point'
+        if base_point is None:
+            raise ValueError('Christoffels require a base point.')
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         param_a, param_b = base_point[:, 0], base_point[:, 1]
         c1, c2, c3 = coefficients(param_a, param_b)

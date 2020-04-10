@@ -48,8 +48,6 @@ class Hypersphere(EmbeddedManifold):
     """
 
     def __init__(self, dimension):
-        if not (isinstance(dimension, int) and dimension > 0):
-            raise ValueError('Dimension needs to be an integer > 0.')
         super(Hypersphere, self).__init__(
             dimension=dimension,
             embedding_manifold=Euclidean(dimension + 1))
