@@ -10,11 +10,16 @@ class GeneralLinear(Matrices):
     def __init__(self, n):
         Matrices.__init__(self, n, n)
 
-    @staticmethod
-    def belongs(point):
-        """Test if a matrix is invertible."""
+        self.n = n
+
+    def belongs(self, point):
+        """Test if a matrix is invertible and of the right size."""
+        point = gs.to_ndarray(point, to_ndim=3)
+        _, mat_dim_1, mat_dim_2 = point.shape
         det = gs.linalg.det(point)
-        return gs.where(det != 0., gs.array(True), gs.array(False))
+        return gs.logical_and(
+            mat_dim_1 == self.n and mat_dim_2 == self.n, gs.where(
+                det != 0., gs.array(True), gs.array(False)))
 
     def identity(self):
         """Return the identity matrix."""
@@ -29,6 +34,34 @@ class GeneralLinear(Matrices):
     def inv(point):
         """Return the inverse of a matrix."""
         return gs.linalg.inv(point)
+
+    def random_uniform(self, n_samples=1, tol=1e-6):
+        """Sample in GL(n) from the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int, optional
+            Number of samples.
+        tol: float, optional
+            Threshold for the absolute value of the determinant of the
+            returned matrix.
+
+        Returns
+        -------
+        samples : array-like, shape=[n_samples, n, n]
+            Points sampled on GL(n).
+        """
+        samples = gs.random.rand(n_samples, self.n, self.n)
+        while True:
+            dets = gs.linalg.det(samples)
+            indcs = gs.isclose(dets, 0.0, atol=tol)
+            num_bad_samples = gs.sum(indcs)
+            if num_bad_samples == 0:
+                break
+            samples[indcs, :] = gs.random.rand(num_bad_samples, self.n, self.n)
+        if n_samples == 1:
+            samples = gs.squeeze(samples, axis=0)
+        return samples
 
     @classmethod
     def exp(cls, tangent_vec, base_point=None):
