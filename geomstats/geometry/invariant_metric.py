@@ -404,13 +404,11 @@ class InvariantMetric(RiemannianMetric):
                 point, self.group.inverse(base_point))
 
         log_from_id = self.log_from_identity(point_near_id)
-        log_from_id = self.group.regularize_tangent_vec_at_identity(
-            log_from_id)
 
         jacobian = self.group.jacobian_translation(
             base_point, left_or_right=self.left_or_right)
 
-        n_logs, _ = log_from_id.shape
+        n_logs = log_from_id.shape[0]
         n_jacobians, _, _ = jacobian.shape
 
         if n_logs == 1:
