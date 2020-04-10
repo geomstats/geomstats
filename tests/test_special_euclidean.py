@@ -634,12 +634,13 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_group_log_from_identity_vectorization(self):
-        n_samples = self.n_samples
-        points = self.group.random_uniform(n_samples=n_samples)
-        result = self.group.log_from_identity(points)
+        for n_samples in [self.n_samples, self.group.n + 1]:
+            points = self.group.random_uniform(n_samples=n_samples)
+            result = self.group.log_from_identity(points)
 
-        self.assertAllClose(
-            gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
+            self.assertAllClose(
+                gs.shape(result),
+                (n_samples, *self.group.get_point_type_shape()))
 
     @geomstats.tests.np_only
     def test_group_exp_vectorization(self):
