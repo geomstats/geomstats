@@ -28,7 +28,7 @@ def check_belongs(point, manifold, manifold_name):
 
     Parameters
     ----------
-    points: array-like
+    point : array-like
         Point to be tested.
     manifold : Manifold
         Manifold to which the point should belong.
