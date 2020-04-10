@@ -32,7 +32,8 @@ def empirical_frechet_var_bubble(n_samples, theta, dim,
 
     Parameters
     ----------
-    n_samples: number of samples to draw
+    n_samples : int
+        Number of samples to draw.
     theta: radius of the bubble distribution
     dim: dimension of the sphere (embedded in R^{dim+1})
     n_expectation: number of computations for approximating the expectation
