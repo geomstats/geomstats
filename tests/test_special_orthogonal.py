@@ -198,7 +198,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         skew_mat = group.skew_matrix_from_vector(rot_vec)
         result = group.vector_from_skew_matrix(skew_mat)
-        expected = helper.to_vector(rot_vec)
+        expected = rot_vec
 
         self.assertAllClose(result, expected)
 
@@ -443,6 +443,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     result = group.rotation_vector_from_matrix(rot_mat)
 
                     expected = group.regularize(point)
+                    # TODO(ninamiolane): remove this when regularize is properly vectorized
+                    expected = gs.squeeze(expected, 0)
 
                     self.assertAllClose(result, expected)
 
@@ -2540,6 +2542,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
                     expected = group.regularize(point)
 
+                    # TODO(ninamiolane): remove this when regularize is properly vectorized
+                    expected = gs.squeeze(expected, 0)
                     self.assertAllClose(result, expected)
 
             else:
@@ -2777,6 +2781,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
     def test_compose_vectorization(self):
         for point_type in ('vector', 'matrix'):
             for n in self.n_seq:
+                print('n=')
+                print(n)
                 group = self.so[n]
                 group.default_point_type = point_type
 
@@ -2786,6 +2792,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 one_point = group.random_uniform(n_samples=1)
 
                 result = group.compose(one_point, n_points_a)
+                print('result')
+                print(result)
                 if point_type == 'vector':
                     self.assertAllClose(
                         gs.shape(result), (n_samples, group.dimension))
