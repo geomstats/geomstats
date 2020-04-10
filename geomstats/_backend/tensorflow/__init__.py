@@ -69,6 +69,7 @@ log = tf.math.log
 matmul = tf.linalg.matmul
 mod = tf.math.mod
 real = tf.math.real
+set_diag = tf.linalg.set_diag
 std = tf.math.reduce_std
 
 
@@ -106,20 +107,22 @@ def to_ndarray(x, to_ndim, axis=0):
 
 
 def empty(shape, dtype=float64):
-    assert isinstance(dtype, tf.DType)
+    if not isinstance(dtype, tf.DType):
+        raise ValueError('dtype must be one of Tensorflow\'s types')
     np_dtype = dtype.as_numpy_dtype
     return tf.convert_to_tensor(_np.empty(shape, dtype=np_dtype))
 
 
 def empty_like(prototype, dtype=None):
-    shape = tf.shape(prototype)
+    initial_shape = tf.shape(prototype)
     if dtype is None:
         dtype = prototype.dtype
-    return empty(shape, dtype=dtype)
+    return empty(initial_shape, dtype=dtype)
 
 
 def flip(m, axis=None):
-    assert isinstance(m, tf.Tensor)
+    if not isinstance(m, tf.Tensor):
+        raise ValueError('m must be a Tensorflow tensor')
     if axis is None:
         axis = range(m.ndim)
     elif not hasattr(axis, '__iter__'):
@@ -388,6 +391,10 @@ def assignment(x, values, indices, axis=0):
 def array_from_sparse(indices, data, target_shape):
     return tf.sparse.to_dense(tf.sparse.reorder(
         tf.SparseTensor(indices, data, target_shape)))
+
+
+def get_slice(x, indices):
+    return tf.gather_nd(x, list(zip(*indices)))
 
 
 def vectorize(x, pyfunc, multiple_args=False, dtype=None, **kwargs):

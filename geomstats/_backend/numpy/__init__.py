@@ -139,7 +139,7 @@ def assignment(x, values, indices, axis=0):
             index = (index,)
         if len(index) < len(shape(x)):
             for n_axis in range(shape(x)[axis]):
-                extended_index = index[:axis] + (n_axis,) + index[axis:]
+                extendeds_index = index[:axis] + (n_axis,) + index[axis:]
                 x_new[extended_index] = values[nb_index]
         else:
             x_new[index] = values[nb_index]
@@ -190,7 +190,7 @@ def assignment_by_sum(x, values, indices, axis=0):
     return x_new
 
 
-def gather(x, indices, axis=0):
+def get_slice(x, indices):
     return x[indices]
 
 

@@ -14,7 +14,6 @@ from torch import (  # NOQA
     clamp as clip,
     cos,
     cosh,
-    diagonal,
     div as divide,
     empty_like,
     eq,
@@ -63,8 +62,6 @@ def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
 
-flip = _raise_not_implemented_error
-hsplit = _raise_not_implemented_error
 searchsorted = _raise_not_implemented_error
 vectorize = _raise_not_implemented_error
 
@@ -90,7 +87,7 @@ def logical_and(x, y):
 
 
 def any(x, axis=None):
-    if axis is None:
+    if axis is None and torch.is_tensor(x):
         return x.bool().any()
     numpy_result = _np.array(_np.any(_np.array(x), axis=axis))
     return torch.from_numpy(numpy_result)
@@ -100,10 +97,18 @@ def cast(x, dtype):
     return array(x).to(dtype)
 
 
-def concatenate(seq, axis=0):
+def flip(x, axis):
+    if isinstance(axis, int):
+        axis = [axis]
+    if axis is None:
+        axis = list(range(x.ndim))
+    return torch.flip(x, dims=axis)
+
+
+def concatenate(seq, axis=0, out=None):
     # XXX(nkoep): Why do we cast to float32 instead of float64 here?
     seq = [cast(t, float32) for t in seq]
-    return torch.cat(seq, dim=axis)
+    return torch.cat(seq, dim=axis, out=out)
 
 
 def hstack(seq):
@@ -116,8 +121,13 @@ def vstack(seq):
 
 def array(val):
     if isinstance(val, list):
-        if not isinstance(val[0], torch.Tensor):
+        if not any([isinstance(t, torch.Tensor) for t in val]):
             val = _np.copy(_np.array(val))
+        elif any([not isinstance(t, torch.Tensor) for t in val]):
+            for index, t in enumerate(val):
+                if not isinstance(t, torch.Tensor):
+                    val[index] = torch.tensor(t)
+            val = stack(val)
         else:
             val = stack(val)
 
@@ -139,10 +149,14 @@ def array(val):
 
 
 def all(x, axis=None):
-    if axis is None:
+    if axis is None and torch.is_tensor(x):
         return x.bool().all()
     numpy_result = _np.array(_np.all(_np.array(x), axis=axis))
     return torch.from_numpy(numpy_result)
+
+
+def get_slice(x, indices):
+    return x[indices]
 
 
 def allclose(a, b, **kwargs):
@@ -154,12 +168,12 @@ def allclose(a, b, **kwargs):
     b = to_ndarray(b.float(), to_ndim=1)
     n_a = a.shape[0]
     n_b = b.shape[0]
-    ndim = a.dim()
+    nb_dim = a.dim()
     if n_a > n_b:
-        reps = (int(n_a / n_b),) + (ndim - 1) * (1,)
+        reps = (int(n_a / n_b),) + (nb_dim - 1) * (1,)
         b = tile(b, reps)
     elif n_a < n_b:
-        reps = (int(n_b / n_a),) + (ndim - 1) * (1,)
+        reps = (int(n_b / n_a),) + (nb_dim - 1) * (1,)
         a = tile(a, reps)
     return torch.allclose(a, b, **kwargs)
 
@@ -183,8 +197,8 @@ def shape(val):
 
 
 def dot(a, b):
-    dot = _np.dot(a, b)
-    return torch.from_numpy(_np.array(dot)).float()
+    np_dot = _np.dot(a, b)
+    return torch.from_numpy(_np.array(np_dot)).float()
 
 
 def maximum(a, b):
@@ -290,8 +304,8 @@ def squeeze(x, axis=None):
 
 
 def trace(*args, **kwargs):
-    trace = _np.trace(*args, **kwargs)
-    return torch.from_numpy(_np.array(trace)).float()
+    np_trace = _np.trace(*args, **kwargs)
+    return torch.from_numpy(_np.array(np_trace)).float()
 
 
 def arctanh(x):
@@ -335,6 +349,21 @@ def ndim(x):
     return x.dim()
 
 
+def hsplit(x, indices_or_section):
+    if isinstance(indices_or_section, int):
+        indices_or_section = indices_or_section // x.shape[1]
+    return torch.split(x, indices_or_section, dim=1)
+
+
+def diagonal(x, offset=0, axis1=0, axis2=1):
+    return torch.diagonal(x, offset=offset, dim1=axis1, dim2=axis2)
+
+
+def set_diag(x, new_diag):
+    arr_shape = x.shape
+    x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
+
+
 def prod(x, axis=None):
     if axis is None:
         return torch.prod(x)
@@ -345,10 +374,6 @@ def mean(x, axis=None):
     if axis is None:
         return torch.mean(x)
     return torch.mean(x, dim=axis)
-
-
-def gather(x, indices, axis=0):
-    return x[indices]
 
 
 def get_mask_i_float(i, n):
