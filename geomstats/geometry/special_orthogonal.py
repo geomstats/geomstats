@@ -1437,7 +1437,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                         coef_1[i] * gs.eye(self.dimension)
                         + coef_2[i] * gs.outer(point[i], point[i])
                         + sign * self.skew_matrix_from_vector(point[i]) / 2)
-                    jacobian_i = gs.squeeze(jacobian_i, axis=0)
 
                     jacobian += gs.einsum(
                         'n,ij->nij',
