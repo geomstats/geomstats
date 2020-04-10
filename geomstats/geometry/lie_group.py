@@ -66,7 +66,8 @@ class LieGroup(Manifold):
     """
 
     def __init__(self, dimension):
-        assert dimension > 0
+        if dimension <= 0:
+            raise ValueError('dimension must be positive')
         Manifold.__init__(self, dimension)
 
         self.left_canonical_metric = InvariantMetric(
@@ -269,12 +270,6 @@ class LieGroup(Manifold):
         n_tangent_vecs = tangent_vec.shape[0]
         n_base_points = base_point.shape[0]
 
-        assert (
-            tangent_vec.shape == base_point.shape
-            or n_tangent_vecs == 1
-            or n_base_points == 1
-        )
-
         if n_tangent_vecs == 1:
             tangent_vec = gs.array([tangent_vec[0]] * n_base_points)
 
@@ -337,7 +332,6 @@ class LieGroup(Manifold):
             gs.transpose(jacobian, axes=(0, 2, 1)),
         )
 
-        assert gs.ndim(log) == 2
         return log
 
     def log(self, point, base_point=None, point_type=None):
@@ -372,12 +366,6 @@ class LieGroup(Manifold):
 
         n_points = point.shape[0]
         n_base_points = base_point.shape[0]
-
-        assert (
-            point.shape == base_point.shape
-            or n_points == 1
-            or n_base_points == 1
-        )
 
         if n_points == 1:
             point = gs.array([point[0]] * n_base_points)
