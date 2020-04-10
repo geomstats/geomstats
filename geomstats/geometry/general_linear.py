@@ -40,7 +40,7 @@ class GeneralLinear(Matrices):
 
         Parameters
         ----------
-        n_samples: int, optional
+        n_samples : int, optional
             Number of samples.
         tol: float, optional
             Threshold for the absolute value of the determinant of the
