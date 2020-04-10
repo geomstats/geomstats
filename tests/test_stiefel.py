@@ -4,8 +4,6 @@ Unit tests for Stiefel manifolds.
 
 import warnings
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.general_linear import GeneralLinear

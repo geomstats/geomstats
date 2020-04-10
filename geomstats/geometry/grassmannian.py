@@ -26,14 +26,14 @@ class Grassmannian(EmbeddedManifold):
             raise ValueError(
                 'k <= n is required: k-dimensional subspaces in n dimensions.')
 
-        self.n = n
-        self.k = k
-        self.metric = GrassmannianCanonicalMetric(3, 2)
-
         dimension = int(k * (n - k))
         super(Grassmannian, self).__init__(
             dimension=dimension,
             embedding_manifold=Matrices(n, n))
+
+        self.n = n
+        self.k = k
+        self.metric = GrassmannianCanonicalMetric(3, 2)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """Check if the point belongs to the manifold.
@@ -66,13 +66,14 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         geomstats.error.check_integer(n, 'n')
         if p > n:
             raise ValueError('p <= n is required.')
-        self.n = n
-        self.p = p
 
         dimension = int(p * (n - p))
         super(GrassmannianCanonicalMetric, self).__init__(
             dimension=dimension,
             signature=(dimension, 0, 0))
+
+        self.n = n
+        self.p = p
         self.embedding_metric = EuclideanMetric(n * p)
 
     def exp(self, tangent_vec, base_point):
