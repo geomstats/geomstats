@@ -150,7 +150,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         if geomstats.tests.tf_backend():
             self.angles_close_to_pi = ['with_angle_close_pi_low']
 
-        self.n_samples = 3
+        self.n_samples = 4
 
     def test_random_and_belongs(self):
         """Checks random_uniform and belongs
@@ -634,13 +634,13 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_group_log_from_identity_vectorization(self):
-        for n_samples in [self.n_samples, self.group.n + 1]:
-            points = self.group.random_uniform(n_samples=n_samples)
-            result = self.group.log_from_identity(points)
+        n_samples = self.n_samples
+        points = self.group.random_uniform(n_samples=n_samples)
+        result = self.group.log_from_identity(points)
 
-            self.assertAllClose(
-                gs.shape(result),
-                (n_samples, *self.group.get_point_type_shape()))
+        self.assertAllClose(
+            gs.shape(result),
+            (n_samples, *self.group.get_point_type_shape()))
 
     @geomstats.tests.np_only
     def test_group_exp_vectorization(self):
