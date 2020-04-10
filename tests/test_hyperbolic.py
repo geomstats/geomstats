@@ -484,8 +484,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
     def test_scaled_distance(self):
         point_a_intrinsic = gs.array([1, 2, 3])
         point_b_intrinsic = gs.array([4, 5, 6])
-        point_a = self.space.from_coordinates(point_a_intrinsic, "intrinsic")
-        point_b = self.space.from_coordinates(point_b_intrinsic, "intrinsic")
+        point_a = self.space.from_coordinates(point_a_intrinsic, 'intrinsic')
+        point_b = self.space.from_coordinates(point_b_intrinsic, 'intrinsic')
         scale = 2
         scaled_space = Hyperboloid(dimension=self.dimension, scale=2)
         distance_default_metric = self.space.metric.dist(point_a, point_b)
