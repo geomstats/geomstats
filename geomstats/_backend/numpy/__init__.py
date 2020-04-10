@@ -139,7 +139,7 @@ def assignment(x, values, indices, axis=0):
             index = (index,)
         if len(index) < len(shape(x)):
             for n_axis in range(shape(x)[axis]):
-                extendeds_index = index[:axis] + (n_axis,) + index[axis:]
+                extended_index = index[:axis] + (n_axis,) + index[axis:]
                 x_new[extended_index] = values[nb_index]
         else:
             x_new[index] = values[nb_index]
@@ -202,6 +202,11 @@ def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
 
 def cast(x, dtype):
     return x.astype(dtype)
+
+
+def set_diag(x, new_diag):
+    arr_shape = x.shape
+    x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
 
 
 def ndim(x):
