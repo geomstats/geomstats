@@ -155,8 +155,8 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_linear_mean(self):
-        se_mat = SpecialEuclidean(n=3, point_type='vector')
-        translations = se_mat.translations
+        se_vec = SpecialEuclidean(n=3, point_type='vector')
+        translations = se_vec.translations
         point = translations.random_uniform(self.n_samples)
         estimator = ExponentialBarycenter(translations)
         estimator.fit(point)
