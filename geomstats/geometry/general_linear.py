@@ -35,7 +35,7 @@ class GeneralLinear(Matrices):
         """Return the inverse of a matrix."""
         return gs.linalg.inv(point)
 
-    def random_uniform(self, n_samples=1, tol=1e-8):
+    def random_uniform(self, n_samples=1, tol=1e-6):
         """Sample in GL(n) from the uniform distribution.
 
         Parameters
