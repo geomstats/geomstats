@@ -5,6 +5,7 @@ A set of all orthonormal p-frames in n-dimensional space, where p <= n
 
 import geomstats.backend as gs
 import geomstats.error
+import geomstats.vectorization
 from geomstats import algebra_utils
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import EuclideanMetric
@@ -196,6 +197,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
         return inner_prod
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
@@ -212,10 +214,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Point in the Stiefel manifold equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         n_tangent_vecs, _, _ = tangent_vec.shape
-
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, p = base_point.shape
 
         if not (n_tangent_vecs == n_base_points
@@ -332,6 +331,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             axis=2)
         return matrix_v
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector', 'else'])
     def log(self, point, base_point, max_iter=30):
         """Compute the Riemannian logarithm of a point.
 
@@ -357,10 +357,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        point = gs.to_ndarray(point, to_ndim=3)
         n_points, _, _ = point.shape
-
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, p = base_point.shape
 
         if not (n_points == n_base_points

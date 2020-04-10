@@ -116,7 +116,7 @@ class TestStiefelMethods(geomstats.tests.TestCase):
 
         log = self.metric.log(point=point, base_point=base_point)
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
-        expected = helper.to_matrix(point)
+        expected = point
 
         self.assertAllClose(result, expected, atol=ATOL)
 
@@ -133,7 +133,7 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
-    def test_exp_vectorization(self):
+    def test_exp_vectorization_shape(self):
         n_samples = self.n_samples
         n = self.n
         p = self.p
@@ -158,7 +158,7 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
     @geomstats.tests.np_and_tf_only
-    def test_log_vectorization(self):
+    def test_log_vectorization_shape(self):
         n_samples = self.n_samples
         n = self.n
         p = self.p
