@@ -3547,10 +3547,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     gs.allclose(result, expected, atol=5e-3)
                     or gs.allclose(result, inv_expected, atol=5e-3))
 
-    def test_group_exponential_barycenter(self):
-        n = 3
-        group = self.so[n]
-
     def test_squared_dist_is_symmetric(self):
         n = 3
         group = self.so[n]

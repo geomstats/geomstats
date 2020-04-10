@@ -14,7 +14,6 @@ from torch import (  # NOQA
     clamp as clip,
     cos,
     cosh,
-    diagonal,
     div as divide,
     empty_like,
     eq,
