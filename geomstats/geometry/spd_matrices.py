@@ -57,6 +57,9 @@ class SPDMatrices(EmbeddedManifold):
         mat = 2 * gs.random.rand(n_samples, self.n, self.n) - 1
         spd_mat = GeneralLinear.exp(mat + Matrices.transpose(mat))
 
+        if n_samples == 1:
+            spd_mat = gs.squeeze(spd_mat, axis=0)
+
         return spd_mat
 
     def random_tangent_vec_uniform(self, n_samples=1, base_point=None):

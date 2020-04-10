@@ -32,6 +32,14 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
     def test_belongs(self):
         """Test of belongs method."""
+        mats = gs.array(
+            [[1., 1.], [1., 1.]])
+        result = SPDMatrices.belongs(mats)
+        expected = True
+        self.assertAllClose(result, expected)
+
+    def test_belongs_vectorization(self):
+        """Test of belongs method."""
         mats = gs.array([
             [[1., 1.], [1., 1.]],
             [[1., 2.], [2., 1.]],
@@ -41,6 +49,13 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_random_uniform_and_belongs(self):
+        """Test of random_uniform and belongs methods."""
+        point = self.space.random_uniform()
+        result = self.space.belongs(point)
+        expected = True
+        self.assertAllClose(result, expected)
+
+    def test_random_uniform_and_belongs_vectorization(self):
         """Test of random_uniform and belongs methods."""
         points = self.space.random_uniform(4)
         result = self.space.belongs(points)
