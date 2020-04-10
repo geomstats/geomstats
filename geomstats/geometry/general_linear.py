@@ -59,7 +59,8 @@ class GeneralLinear(Matrices):
             if num_bad_samples == 0:
                 break
             samples[indcs, :] = gs.random.rand(num_bad_samples, self.n, self.n)
-
+        if n_samples == 1:
+            samples = gs.squeeze(samples, axis=0)
         return samples
 
     @classmethod
