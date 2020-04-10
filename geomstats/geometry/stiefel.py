@@ -150,6 +150,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         self.n = n
         self.p = p
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'matrix'])
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         r"""Compute the inner-product of two tangent vectors at a base point.
 
@@ -184,9 +185,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
         inner_prod : array-like, shape=[n_samples, 1]
             Inner-product of the two tangent vectors.
         """
-        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
-        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
         base_point_transpose = gs.transpose(base_point, axes=(0, 2, 1))
 
         aux = gs.matmul(

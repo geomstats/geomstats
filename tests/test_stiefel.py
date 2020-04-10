@@ -276,7 +276,7 @@ class TestStiefelMethods(geomstats.tests.TestCase):
             tangent_vector_1,
             tangent_vector_2,
             base_point=base_point)
-        self.assertAllClose(gs.shape(result), (1, 1))
+        self.assertAllClose(gs.shape(result), ())
 
     @geomstats.tests.np_and_pytorch_only
     def test_to_grassmannian(self):
