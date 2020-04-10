@@ -202,19 +202,19 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         lifted = self.metric.lifting(point=point, base_point=base_point)
         result = self.metric.retraction(
             tangent_vec=lifted, base_point=base_point)
-        expected = helper.to_matrix(point)
+        expected = point
 
         self.assertAllClose(result, expected, atol=ATOL)
 
         retract = self.metric.retraction(
             tangent_vec=tangent_vec, base_point=base_point)
         result = self.metric.lifting(point=retract, base_point=base_point)
-        expected = helper.to_matrix(tangent_vec)
+        expected = tangent_vec
 
         self.assertAllClose(result, expected, atol=ATOL)
 
     @geomstats.tests.np_only
-    def test_lifting_vectorization(self):
+    def test_lifting_vectorization_shape(self):
         n_samples = self.n_samples
         n = self.n
         p = self.p
@@ -229,7 +229,7 @@ class TestStiefelMethods(geomstats.tests.TestCase):
             (n_samples, 1, 1))
 
         result = self.metric.lifting(one_point, one_base_point)
-        self.assertAllClose(gs.shape(result), (1, n, p))
+        self.assertAllClose(gs.shape(result), (n, p))
 
         result = self.metric.lifting(n_points, one_base_point)
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
@@ -241,7 +241,7 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
     @geomstats.tests.np_and_tf_only
-    def test_retraction_vectorization(self):
+    def test_retraction_vectorization_shape(self):
         n_samples = self.n_samples
         n = self.n
         p = self.p
@@ -256,7 +256,7 @@ class TestStiefelMethods(geomstats.tests.TestCase):
             (n_samples, 1, 1))
 
         result = self.metric.retraction(one_tangent_vec, one_point)
-        self.assertAllClose(gs.shape(result), (1, n, p))
+        self.assertAllClose(gs.shape(result), (n, p))
 
         result = self.metric.retraction(n_tangent_vecs, one_point)
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
