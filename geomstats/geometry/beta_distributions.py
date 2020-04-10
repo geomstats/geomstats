@@ -201,7 +201,7 @@ class BetaMetric(RiemannianMetric):
                 2 * metric_det)
             return c1, c2, c3
 
-        if base_point is not None:
+        if base_point is None:
             raise ValueError('Christoffels require a base point.')
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         param_a, param_b = base_point[:, 0], base_point[:, 1]
