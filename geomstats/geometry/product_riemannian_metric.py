@@ -99,7 +99,8 @@ class ProductRiemannianMetric(RiemannianMetric):
             Whether intrinsic coordinates are used for all manifolds.
         """
         if self.default_point_type != 'vector':
-            raise ValueError('Invalid default_point_type: \'vector\' expected.')
+            raise ValueError(
+                'Invalid default_point_type: \'vector\' expected.')
 
         if point.shape[1] == self.dimension:
             intrinsic = True
