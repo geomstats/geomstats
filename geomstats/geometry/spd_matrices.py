@@ -933,8 +933,14 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         exp : array-like, shape=[n_samples, n, n]
         """
         log_base_point = gs.linalg.logm(base_point)
+        print('log_base_point')
+        print(log_base_point.shape)
         dlog_tangent_vec = self.space.differential_log(tangent_vec, base_point)
+        print('dlog')
+        print(dlog_tangent_vec.shape)
         exp = gs.linalg.expm(log_base_point + dlog_tangent_vec)
+        print('exp')
+        print(exp.shape)
         return exp
 
     @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])

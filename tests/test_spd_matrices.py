@@ -325,6 +325,8 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
         metric = self.metric_logeuclidean
         log = metric.log(point=point, base_point=base_point)
+        print(log.shape)
+        print(base_point.shape)
         result = metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
 

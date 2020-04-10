@@ -33,7 +33,9 @@ def squeeze_output_dim_0(result, in_shapes, point_types):
     squeeze : bool
         Boolean deciding whether to squeeze dim 0 of the output.
     """
-    if not is_scalar(result):
+    if isinstance(result, tuple):
+        return False
+    if isinstance(result, list):
         return False
 
     for in_shape, point_type in zip(in_shapes, point_types):
