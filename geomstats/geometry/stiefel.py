@@ -30,19 +30,18 @@ class Stiefel(EmbeddedManifold):
     """
 
     def __init__(self, n, p):
-        dimension = int(p * n - (p * (p + 1) / 2))
-        super(Stiefel, self).__init__(
-            dimension=dimension,
-            embedding_manifold=Matrices(n, p))
-
         geomstats.error.check_integer(n, 'n')
         geomstats.error.check_integer(p, 'p')
         if p > n:
             raise ValueError('p needs to be smaller than n.')
 
+        dimension = int(p * n - (p * (p + 1) / 2))
+        super(Stiefel, self).__init__(
+            dimension=dimension,
+            embedding_manifold=Matrices(n, p))
+
         self.n = n
         self.p = p
-
         self.canonical_metric = StiefelCanonicalMetric(n, p)
 
     def belongs(self, point, tolerance=TOLERANCE):
@@ -68,18 +67,17 @@ class Stiefel(EmbeddedManifold):
         n_points, n, p = point.shape
 
         if (n, p) != (self.n, self.p):
-            return gs.array([[False]] * n_points)
+            return gs.array([False] * n_points)
 
         point_transpose = gs.transpose(point, axes=(0, 2, 1))
         identity = gs.to_ndarray(gs.eye(p), to_ndim=3)
-        identity = gs.tile(identity, (n_points, 1, 1))
+        # identity = gs.tile(identity, (n_points, 1, 1))
         diff = gs.einsum('nij,njk->nik', point_transpose, point) - identity
 
         diff_norm = gs.linalg.norm(diff, axis=(1, 2))
         belongs = gs.less_equal(diff_norm, tolerance)
-
-        belongs = gs.to_ndarray(belongs, to_ndim=1)
-        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
+        if n_points == 1:
+            belongs = gs.squeeze(belongs, axis=0)
         return belongs
 
     @staticmethod
@@ -124,6 +122,9 @@ class Stiefel(EmbeddedManifold):
         sqrt_aux = gs.linalg.sqrtm(aux)
         inv_sqrt_aux = gs.linalg.inv(sqrt_aux)
         samples = gs.einsum('nij,njk->nik', std_normal, inv_sqrt_aux)
+
+        if n_samples == 1:
+            samples = gs.squeeze(samples, axis=0)
 
         return samples
 

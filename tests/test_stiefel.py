@@ -81,25 +81,25 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         self.metric = self.space.canonical_metric
 
     @geomstats.tests.np_and_tf_only
-    def test_belongs(self):
+    def test_belongs_shape(self):
         point = self.space.random_uniform()
         belongs = self.space.belongs(point)
 
-        self.assertAllClose(gs.shape(belongs), (1, 1))
+        self.assertAllClose(gs.shape(belongs), ())
 
     @geomstats.tests.np_and_tf_only
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point, tolerance=1e-4)
-        expected = gs.array([[True]])
+        expected = True
 
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
-    def test_random_uniform(self):
+    def test_random_uniform_shape(self):
         result = self.space.random_uniform()
 
-        self.assertAllClose(gs.shape(result), (1, self.n, self.p))
+        self.assertAllClose(gs.shape(result), (self.n, self.p))
 
     @geomstats.tests.np_only
     def test_log_and_exp(self):
@@ -129,7 +129,7 @@ class TestStiefelMethods(geomstats.tests.TestCase):
             tangent_vec=tangent_vec,
             base_point=base_point)
         result = self.space.belongs(exp)
-        expected = gs.array([[True]])
+        expected = True
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
