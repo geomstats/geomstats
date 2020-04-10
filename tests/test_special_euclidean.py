@@ -349,6 +349,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         self.group.default_point_type = 'matrix'
         n = self.group.n
         tangent_vecs = gs.arange(self.n_samples * (self.group.n + 1) ** 2)
+        tangent_vecs = gs.cast(tangent_vecs, gs.float32)
         tangent_vecs = gs.reshape(
             tangent_vecs, (self.n_samples,) + (n + 1,) * 2)
         regularized = self.group.regularize_tangent_vec_at_identity(
