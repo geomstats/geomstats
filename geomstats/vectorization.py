@@ -12,7 +12,7 @@ POINT_TYPES_TO_NDIMS = {
     'matrix': 3}
 
 
-def squeeze_output_dim_0(in_shapes, point_types):
+def squeeze_output_dim_0(result, in_shapes, point_types):
     """Determine if the output needs to be squeezed on dim 0.
 
     The dimension 0 is squeezed iff all input parameters:
@@ -33,6 +33,9 @@ def squeeze_output_dim_0(in_shapes, point_types):
     squeeze : bool
         Boolean deciding whether to squeeze dim 0 of the output.
     """
+    if not is_scalar(result):
+        return False
+
     for in_shape, point_type in zip(in_shapes, point_types):
         in_ndim = None
         if in_shape is not None:
@@ -58,6 +61,11 @@ def is_scalar(vect_array):
     is_scalar : bool
         Boolean determining if vect_array is a fully-vectorized scalar.
     """
+    if isinstance(vect_array, tuple):
+        return False
+    if isinstance(vect_array, list):
+        return False
+
     has_ndim_2 = vect_array.ndim == 2
     if not has_ndim_2:
         return False
@@ -148,7 +156,7 @@ def decorator(point_types):
                 if result.shape[1] == 1:
                     result = gs.squeeze(result, axis=1)
 
-            if squeeze_output_dim_0(in_shapes, point_types):
+            if squeeze_output_dim_0(result, in_shapes, point_types):
                 if result.shape[0] == 1:
                     result = gs.squeeze(result, axis=0)
             return result

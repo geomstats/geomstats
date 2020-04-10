@@ -113,9 +113,9 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
             power=power,
             tangent_vec=tangent_vec,
             base_point=base_point)
-        expected = gs.array([[[1., 1 / 3, 1 / 3],
-                              [1 / 3, .125, .125],
-                              [1 / 3, .125, .125]]])
+        expected = gs.array([[1., 1 / 3, 1 / 3],
+                             [1 / 3, .125, .125],
+                             [1 / 3, .125, .125]])
         self.assertAllClose(result, expected)
 
     def test_inverse_differential_power(self):
@@ -131,9 +131,9 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
             power=power,
             tangent_vec=tangent_vec,
             base_point=base_point)
-        expected = gs.array([[[2., 1., 1.],
+        expected = gs.array([[2., 1., 1.],
                              [1., .5, .5],
-                             [1., .5, .5]]])
+                             [1., .5, .5]])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -147,9 +147,9 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
                                 [3., 3., 4.]])
         result = self.space.differential_log(tangent_vec, base_point)
         x = 2 * gs.log(2)
-        expected = gs.array([[[1., 1., x],
-                              [1., 1., x],
-                              [x, x, 1]]])
+        expected = gs.array([[1., 1., x],
+                             [1., 1., x],
+                             [x, x, 1]])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -163,9 +163,9 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
                                 [1., 1., x],
                                 [x, x, 1]])
         result = self.space.inverse_differential_log(tangent_vec, base_point)
-        expected = gs.array([[[1., 1., 3.],
-                              [1., 1., 3.],
-                              [3., 3., 4.]]])
+        expected = gs.array([[1., 1., 3.],
+                             [1., 1., 3.],
+                             [3., 3., 4.]])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -180,9 +180,9 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         result = self.space.differential_exp(tangent_vec, base_point)
         x = gs.exp(1)
         y = gs.sinh(1)
-        expected = gs.array([[[x, x, y],
-                              [x, x, y],
-                              [y, y, 1 / x]]])
+        expected = gs.array([[x, x, y],
+                             [x, x, y],
+                             [y, y, 1 / x]])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -197,9 +197,9 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
                                 [x, x, y],
                                 [y, y, 1 / x]])
         result = self.space.inverse_differential_exp(tangent_vec, base_point)
-        expected = gs.array([[[1., 1., 1.],
-                              [1., 1., 1.],
-                              [1., 1., 1.]]])
+        expected = gs.array([[1., 1., 1.],
+                             [1., 1., 1.],
+                             [1., 1., 1.]])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -231,7 +231,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
                                [1., .5, .5]])
         metric = SPDMetricAffine(3, power_affine=.5)
         result = metric.inner_product(tangent_vec, tangent_vec, base_point)
-        expected = [[713 / 144]]
+        expected = 713 / 144
 
         self.assertAllClose(result, expected)
 
@@ -246,7 +246,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
                                 [1., .5, .5]])
         metric = SPDMetricEuclidean(3, power_euclidean=.5)
         result = metric.inner_product(tangent_vec, tangent_vec, base_point)
-        expected = [[3472 / 576]]
+        expected = 3472 / 576
 
         self.assertAllClose(result, expected)
 
@@ -261,7 +261,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
                                 [0., 0., 1.]])
         metric = self.metric_euclidean
         result = metric.exp_domain(tangent_vec, base_point)
-        expected = gs.array([[-3, 1]])
+        expected = gs.array([-3, 1])
 
         self.assertAllClose(result, expected)
 
@@ -465,28 +465,28 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         metric = self.metric_affine
         result = metric.squared_dist(point_1, point_2)
 
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        self.assertAllClose(gs.shape(result), (n_samples,))
 
         point_1 = self.space.random_uniform(n_samples=1)
         point_2 = self.space.random_uniform(n_samples=n_samples)
 
         result = metric.squared_dist(point_1, point_2)
 
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        self.assertAllClose(gs.shape(result), (n_samples,))
 
         point_1 = self.space.random_uniform(n_samples=n_samples)
         point_2 = self.space.random_uniform(n_samples=1)
 
         result = metric.squared_dist(point_1, point_2)
 
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        self.assertAllClose(gs.shape(result), (n_samples,))
 
         point_1 = self.space.random_uniform(n_samples=1)
         point_2 = self.space.random_uniform(n_samples=1)
 
         result = metric.squared_dist(point_1, point_2)
 
-        self.assertAllClose(gs.shape(result), (1, 1))
+        self.assertAllClose(gs.shape(result), ())
 
     @geomstats.tests.np_and_tf_only
     def test_parallel_transport_affine_invariant(self):

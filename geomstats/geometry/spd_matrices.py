@@ -3,6 +3,7 @@
 import math
 
 import geomstats.backend as gs
+import geomstats.vectorization
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
@@ -91,6 +92,7 @@ class SPDMatrices(EmbeddedManifold):
 
         return tangent_vec
 
+    @geomstats.vectorization.decorator(['else', 'else', 'matrix', 'matrix'])
     def aux_differential_power(self, power, tangent_vec, base_point):
         """Compute the differential of the matrix power.
 
@@ -114,9 +116,7 @@ class SPDMatrices(EmbeddedManifold):
         denominator : array-like, shape=[n_samples, n, n]
         temp_result : array-like, shape=[n_samples, n, n]
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         n_tangent_vecs, _, _ = tangent_vec.shape
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, _ = base_point.shape
 
         assert (n_tangent_vecs == n_base_points
@@ -166,9 +166,18 @@ class SPDMatrices(EmbeddedManifold):
         transp_eigvectors = gs.transpose(eigvectors, (0, 2, 1))
         temp_result = gs.matmul(transp_eigvectors, tangent_vec)
         temp_result = gs.matmul(temp_result, eigvectors)
+
+        if n_base_points == n_tangent_vecs == 1:
+            transp_eigvectors = gs.squeeze(transp_eigvectors, axis=0)
+            eigvectors = gs.squeeze(eigvectors, axis=0)
+            temp_result = gs.squeeze(temp_result, axis=0)
+            numerator = gs.squeeze(numerator, axis=0)
+            denominator = gs.squeeze(denominator, axis=0)
+
         return (eigvectors, transp_eigvectors, numerator, denominator,
                 temp_result)
 
+    @geomstats.vectorization.decorator(['else', 'else', 'matrix', 'matrix'])
     def differential_power(self, power, tangent_vec, base_point):
         """Compute the differential of the matrix power function.
 
@@ -196,6 +205,7 @@ class SPDMatrices(EmbeddedManifold):
         result = gs.matmul(eigvectors, result)
         return result
 
+    @geomstats.vectorization.decorator(['else', 'else', 'matrix', 'matrix'])
     def inverse_differential_power(self, power, tangent_vec, base_point):
         """Compute the inverse of the differential of the matrix power.
 
@@ -223,6 +233,7 @@ class SPDMatrices(EmbeddedManifold):
         result = gs.matmul(eigvectors, result)
         return result
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def differential_log(self, tangent_vec, base_point):
         """Compute the differential of the matrix logarithm.
 
@@ -248,6 +259,7 @@ class SPDMatrices(EmbeddedManifold):
         result = gs.matmul(eigvectors, result)
         return result
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def inverse_differential_log(self, tangent_vec, base_point):
         """Compute the inverse of the differential of the matrix logarithm.
 
@@ -274,6 +286,7 @@ class SPDMatrices(EmbeddedManifold):
         result = gs.matmul(eigvectors, result)
         return result
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def differential_exp(self, tangent_vec, base_point):
         """Compute the differential of the matrix exponential.
 
@@ -299,6 +312,7 @@ class SPDMatrices(EmbeddedManifold):
         result = gs.matmul(eigvectors, result)
         return result
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def inverse_differential_exp(self, tangent_vec, base_point):
         """Compute the inverse of the differential of the matrix exponential.
 
@@ -356,6 +370,7 @@ class SPDMetricAffine(RiemannianMetric):
         self.power_affine = power_affine
 
     @staticmethod
+    @geomstats.vectorization.decorator(['matrix', 'matrix', 'matrix'])
     def _aux_inner_product(tangent_vec_a, tangent_vec_b, inv_base_point):
         """Compute the inner product (auxiliary).
 
@@ -374,6 +389,7 @@ class SPDMetricAffine(RiemannianMetric):
         inner_product = gs.trace(gs.matmul(aux_a, aux_b), axis1=1, axis2=2)
         return inner_product
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'matrix'])
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the affine-invariant inner product.
 
@@ -391,12 +407,8 @@ class SPDMetricAffine(RiemannianMetric):
         inner_product : array-like, shape=[n_samples, n, n]
         """
         power_affine = self.power_affine
-        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
         n_tangent_vecs_a, _, _ = tangent_vec_a.shape
-        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
         n_tangent_vecs_b, _, _ = tangent_vec_b.shape
-
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, _ = base_point.shape
 
         spd_space = self.space
@@ -447,6 +459,7 @@ class SPDMetricAffine(RiemannianMetric):
         return inner_product
 
     @staticmethod
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def _aux_exp(tangent_vec, sqrt_base_point, inv_sqrt_base_point):
         """Compute the exponential map (auxiliary function).
 
@@ -471,6 +484,7 @@ class SPDMetricAffine(RiemannianMetric):
         exp = gs.matmul(sqrt_base_point, exp)
         return exp
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def exp(self, tangent_vec, base_point):
         """Compute the affine-invariant exponential map.
 
@@ -488,11 +502,7 @@ class SPDMetricAffine(RiemannianMetric):
         exp : array-like, shape=[n_samples, n, n]
         """
         power_affine = self.power_affine
-        ndim = gs.maximum(gs.ndim(tangent_vec), gs.ndim(base_point))
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         n_tangent_vecs, _, _ = tangent_vec.shape
-
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, _ = base_point.shape
 
         assert (n_tangent_vecs == n_base_points
@@ -520,10 +530,9 @@ class SPDMetricAffine(RiemannianMetric):
                                 power_inv_sqrt_base_point)
             exp = gs.linalg.powerm(exp, 1 / power_affine)
 
-        if ndim == 2:
-            return exp[0]
         return exp
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'matrix'])
     def _aux_log(self, point, sqrt_base_point, inv_sqrt_base_point):
         """Compute the log (auxiliary function).
 
@@ -546,6 +555,7 @@ class SPDMetricAffine(RiemannianMetric):
         log = gs.matmul(log, sqrt_base_point)
         return log
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def log(self, point, base_point):
         """Compute the affine-invariant logarithm map.
 
@@ -563,11 +573,7 @@ class SPDMetricAffine(RiemannianMetric):
         log : array-like, shape=[n_samples, n, n]
         """
         power_affine = self.power_affine
-        ndim = gs.maximum(gs.ndim(point), gs.ndim(base_point))
-        point = gs.to_ndarray(point, to_ndim=3)
         n_points, _, _ = point.shape
-
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, _ = base_point.shape
 
         assert (n_points == n_base_points
@@ -595,8 +601,6 @@ class SPDMetricAffine(RiemannianMetric):
             log = self.space.inverse_differential_power(power_affine, log,
                                                         base_point)
 
-        if ndim == 2:
-            return log[0]
         return log
 
     def geodesic(self, initial_point, initial_tangent_vec):
@@ -671,6 +675,7 @@ class SPDMetricProcrustes(RiemannianMetric):
         self.n = n
         self.space = SPDMatrices(n)
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'matrix'])
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the Procrustes inner product.
 
@@ -687,12 +692,8 @@ class SPDMetricProcrustes(RiemannianMetric):
         -------
         inner_product : float
         """
-        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
         n_tangent_vecs_a, _, _ = tangent_vec_a.shape
-        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
         n_tangent_vecs_b, _, _ = tangent_vec_b.shape
-
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, _ = base_point.shape
 
         assert (n_tangent_vecs_a == n_tangent_vecs_b == n_base_points
@@ -738,6 +739,7 @@ class SPDMetricEuclidean(RiemannianMetric):
         self.space = SPDMatrices(n)
         self.power_euclidean = power_euclidean
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'matrix'])
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the Euclidean inner product.
 
@@ -799,6 +801,7 @@ class SPDMetricEuclidean(RiemannianMetric):
                 spd_space.differential_power(power_euclidean, tangent_vec_b,
                                              base_point)
             product = gs.matmul(modified_tangent_vec_a, modified_tangent_vec_b)
+            product = gs.to_ndarray(product, to_ndim=3)
             inner_product = gs.trace(product, axis1=1, axis2=2) \
                 / (power_euclidean ** 2)
 
@@ -806,6 +809,7 @@ class SPDMetricEuclidean(RiemannianMetric):
 
         return inner_product
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def exp_domain(self, tangent_vec, base_point):
         """Compute the domain of the Euclidean exponential map.
 
@@ -821,8 +825,9 @@ class SPDMetricEuclidean(RiemannianMetric):
         -------
         exp_domain : array-like, shape=[n_samples, 2]
         """
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
+        n_tangent_vecs, _, _ = gs.shape(tangent_vec)
+        n_base_points, _, _ = gs.shape(base_point)
+
         invsqrt_base_point = gs.linalg.powerm(base_point, -.5)
         reduced_vec = gs.matmul(invsqrt_base_point, tangent_vec)
         reduced_vec = gs.matmul(reduced_vec, invsqrt_base_point)
@@ -834,6 +839,9 @@ class SPDMetricEuclidean(RiemannianMetric):
         sup_value = gs.where(min_eig >= 0, math.inf, - 1 / min_eig)
         sup_value = gs.to_ndarray(sup_value, to_ndim=2)
         domain = gs.concatenate((inf_value, sup_value), axis=1)
+
+        if n_tangent_vecs == n_base_points == 1:
+            domain = gs.squeeze(domain, axis=0)
 
         return domain
 
@@ -849,6 +857,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         self.n = n
         self.space = SPDMatrices(n)
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'matrix'])
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the Log-Euclidean inner product.
 
@@ -865,12 +874,8 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         -------
         inner_product : float
         """
-        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
         n_tangent_vecs_a, _, _ = tangent_vec_a.shape
-        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
         n_tangent_vecs_b, _, _ = tangent_vec_b.shape
-
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, _ = base_point.shape
 
         spd_space = self.space
@@ -903,12 +908,14 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         modified_tangent_vec_b = spd_space.differential_log(tangent_vec_b,
                                                             base_point)
         product = gs.matmul(modified_tangent_vec_a, modified_tangent_vec_b)
+        product = gs.to_ndarray(product, to_ndim=3)
         inner_product = gs.trace(product, axis1=1, axis2=2)
 
         inner_product = gs.to_ndarray(inner_product, to_ndim=2, axis=1)
 
         return inner_product
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def exp(self, tangent_vec, base_point):
         """Compute the Log-Euclidean exponential map.
 
@@ -925,15 +932,12 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         -------
         exp : array-like, shape=[n_samples, n, n]
         """
-        ndim = gs.maximum(gs.ndim(tangent_vec), gs.ndim(base_point))
         log_base_point = gs.linalg.logm(base_point)
         dlog_tangent_vec = self.space.differential_log(tangent_vec, base_point)
         exp = gs.linalg.expm(log_base_point + dlog_tangent_vec)
-
-        if ndim == 2:
-            return exp[0]
         return exp
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def log(self, point, base_point):
         """Compute the Log-Euclidean logarithm map.
 
@@ -950,14 +954,10 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         -------
         log : array-like, shape=[n_samples, n, n]
         """
-        ndim = gs.maximum(gs.ndim(point), gs.ndim(base_point))
         log_base_point = gs.linalg.logm(base_point)
         log_point = gs.linalg.logm(point)
-        log = self.space.differential_exp(log_point - log_base_point,
-                                          log_base_point)
-
-        if ndim == 2:
-            return log[0]
+        log = self.space.differential_exp(
+            log_point - log_base_point, log_base_point)
         return log
 
     def geodesic(self, initial_point, initial_tangent_vec):
