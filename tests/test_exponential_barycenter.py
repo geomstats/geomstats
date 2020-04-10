@@ -138,7 +138,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_estimate_weights(self):
         point = self.so.random_uniform(self.n_samples)
-        estimator = ExponentialBarycenter(self.so)
+        estimator = ExponentialBarycenter(self.so, verbose=True)
         weights = gs.arange(self.n_samples)
         estimator.fit(point, weights=weights)
         barexp = estimator.estimate_
@@ -152,4 +152,14 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         barexp = estimator.estimate_
         result = self.so_vec.belongs(barexp)
         expected = True
+        self.assertAllClose(result, expected)
+
+    def test_linear_mean(self):
+        se_mat = SpecialEuclidean(n=3, point_type='vector')
+        translations = se_mat.translations
+        point = translations.random_uniform(self.n_samples)
+        estimator = ExponentialBarycenter(translations)
+        estimator.fit(point)
+        result = estimator.estimate_
+        expected = gs.mean(point, axis=0)
         self.assertAllClose(result, expected)
