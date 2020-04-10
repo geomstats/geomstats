@@ -63,33 +63,35 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
-    def test_dist_vector(self):
+    def test_dist_log_exp_norm_vector(self):
         n_samples = 5
         point = self.space_vector.random_uniform(n_samples)
         base_point = self.space_vector.random_uniform(n_samples)
+
         logs = self.space_vector.metric.log(point, base_point)
-        logs = gs.einsum(
+        normalized_logs = gs.einsum(
             '..., ...j->...j',
             1. / self.space_vector.metric.norm(logs, base_point),
             logs)
-        point = self.space_vector.metric.exp(logs, base_point)
+        point = self.space_vector.metric.exp(normalized_logs, base_point)
         result = self.space_vector.metric.dist(point, base_point)
+
         expected = gs.ones(n_samples)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
-    def test_dist_matrix(self):
-        n_samples = 5
+    def test_dist_log_exp_norm_matrix(self):
+        n_samples = 10
         point = self.space_matrix.random_uniform(n_samples)
         base_point = self.space_matrix.random_uniform(n_samples)
         logs = self.space_matrix.metric.log(point, base_point)
-        logs = gs.einsum(
-            '...k, ...jl->...jl',
+        normalized_logs = gs.einsum(
+            '..., ...jl->...jl',
             1. / self.space_matrix.metric.norm(logs, base_point),
             logs)
-        point = self.space_matrix.metric.exp(logs, base_point)
+        point = self.space_matrix.metric.exp(normalized_logs, base_point)
         result = self.space_matrix.metric.dist(point, base_point)
-        expected = gs.ones((n_samples, 1))
+        expected = gs.ones((n_samples,))
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only

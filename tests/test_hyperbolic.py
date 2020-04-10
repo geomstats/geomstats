@@ -29,14 +29,14 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
-        expected = gs.array([[True]])
+        expected = True
 
         self.assertAllClose(result, expected)
 
     def test_random_uniform(self):
         result = self.space.random_uniform()
 
-        self.assertAllClose(gs.shape(result), (1, self.dimension + 1))
+        self.assertAllClose(gs.shape(result), (self.dimension + 1,))
 
     def test_projection_to_tangent_space(self):
         base_point = gs.array([1., 0., 0., 0.])
@@ -47,7 +47,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
             base_point=base_point)
 
         result = self.metric.inner_product(tangent_vec, base_point)
-        expected = helper.to_scalar(0.)
+        expected = 0.
 
         self.assertAllClose(result, expected)
 
@@ -125,7 +125,56 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         log = self.metric.log(point=point, base_point=base_point)
 
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
-        expected = helper.to_vector(point)
+        expected = point
+        self.assertAllClose(result, expected)
+
+    def test_log_and_exp_general_case_general_dim(self):
+        """
+        Test that the Riemannian exponential
+        and the Riemannian logarithm are inverse.
+
+        Expect their composition to give the identity function.
+        """
+        # Riemannian Log then Riemannian Exp
+        dim = 5
+        n_samples = self.n_samples
+
+        h5 = Hyperboloid(dimension=dim)
+        h5_metric = h5.metric
+
+        base_point = h5.random_uniform()
+        point = h5.random_uniform()
+
+        one_log = h5_metric.log(point=point, base_point=base_point)
+
+        result = h5_metric.exp(tangent_vec=one_log, base_point=base_point)
+        expected = point
+        self.assertAllClose(result, expected)
+
+        # Test vectorization of log
+        base_point = gs.stack([base_point] * n_samples, axis=0)
+        point = gs.stack([point] * n_samples, axis=0)
+        expected = gs.stack([one_log] * n_samples, axis=0)
+
+        log = h5_metric.log(point=point, base_point=base_point)
+        result = log
+
+        self.assertAllClose(gs.shape(result), (n_samples, dim + 1))
+        self.assertAllClose(result, expected)
+
+        result = h5_metric.exp(tangent_vec=log, base_point=base_point)
+        expected = point
+
+        self.assertAllClose(gs.shape(result), (n_samples, dim + 1))
+        self.assertAllClose(result, expected)
+
+        # Test vectorization of exp
+        tangent_vec = gs.stack([one_log] * n_samples, axis=0)
+        exp = h5_metric.exp(tangent_vec=tangent_vec, base_point=base_point)
+        result = exp
+
+        expected = point
+        self.assertAllClose(gs.shape(result), (n_samples, dim + 1))
         self.assertAllClose(result, expected)
 
     def test_exp_and_belongs(self):
@@ -160,7 +209,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         one_tangent_vec = self.space.projection_to_tangent_space(
             one_vec, base_point=one_base_point)
         result = self.metric.exp(one_tangent_vec, one_base_point)
-        self.assertAllClose(gs.shape(result), (1, dim))
+        self.assertAllClose(gs.shape(result), (dim,))
 
         n_tangent_vecs = self.space.projection_to_tangent_space(
             n_vecs, base_point=one_base_point)
@@ -211,7 +260,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
             [1.0, 0.0, 0.0, 0.0]])
 
         result = self.metric.log(one_point, one_base_point)
-        self.assertAllClose(gs.shape(result), (1, dim))
+        self.assertAllClose(gs.shape(result), (dim,))
 
         result = self.metric.log(n_points, one_base_point)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
@@ -323,7 +372,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         point_a = gs.array([4.0, 1., 3.0, math.sqrt(5)])
         point_b = point_a
         result = self.metric.dist(point_a, point_b)
-        expected = gs.array([[0]])
+        expected = 0
         self.assertAllClose(result, expected)
 
     def test_exp_and_dist_and_projection_to_tangent_space(self):
@@ -332,8 +381,9 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         tangent_vec = self.space.projection_to_tangent_space(
             vector=vector,
             base_point=base_point)
-        exp = self.metric.exp(tangent_vec=tangent_vec,
-                              base_point=base_point)
+        exp = self.metric.exp(
+            tangent_vec=tangent_vec,
+            base_point=base_point)
 
         result = self.metric.dist(base_point, exp)
         sq_norm = self.metric.embedding_metric.squared_norm(
@@ -356,11 +406,10 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)
-
         result = self.space.belongs(points)
-        expected = gs.array(n_geodesic_points * [[True]])
+        expected = n_geodesic_points * [True]
 
-        self.assertAllClose(expected, result)
+        self.assertAllClose(result, expected)
 
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """

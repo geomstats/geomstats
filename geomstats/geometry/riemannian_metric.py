@@ -3,6 +3,7 @@
 import autograd
 
 import geomstats.backend as gs
+import geomstats.vectorization
 from geomstats.geometry.connection import Connection
 
 
@@ -118,6 +119,7 @@ class RiemannianMetric(Connection):
         christoffels = 0.5 * (term_1 + term_2 + term_3)
         return christoffels
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector', 'vector'])
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
 
@@ -134,43 +136,12 @@ class RiemannianMetric(Connection):
         -------
         inner_product : array-like, shape=[n_samples,]
         """
-        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
-        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
-        n_tangent_vec_a = gs.shape(tangent_vec_a)[0]
-        n_tangent_vec_b = gs.shape(tangent_vec_b)[0]
-
         inner_prod_mat = self.inner_product_matrix(base_point)
         inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
-        n_mats = gs.shape(inner_prod_mat)[0]
 
-        if n_tangent_vec_a != n_mats:
-            if n_tangent_vec_a == 1:
-                tangent_vec_a = gs.squeeze(tangent_vec_a, axis=0)
-                einsum_str_a = 'j,njk->nk'
-            elif n_mats == 1:
-                inner_prod_mat = gs.squeeze(inner_prod_mat, axis=0)
-                einsum_str_a = 'nj,jk->nk'
-            else:
-                raise ValueError('Shape mismatch for einsum.')
-        else:
-            einsum_str_a = 'nj,njk->nk'
+        aux = gs.einsum('...j,...jk->...k', tangent_vec_a, inner_prod_mat)
 
-        aux = gs.einsum(einsum_str_a, tangent_vec_a, inner_prod_mat)
-        n_auxs, _ = gs.shape(aux)
-
-        if n_tangent_vec_b != n_auxs:
-            if n_auxs == 1:
-                aux = gs.squeeze(aux, axis=0)
-                einsum_str_b = 'k,nk->n'
-            elif n_tangent_vec_b == 1:
-                tangent_vec_b = gs.squeeze(tangent_vec_b, axis=0)
-                einsum_str_b = 'nk,k->n'
-            else:
-                raise ValueError('Shape mismatch for einsum.')
-        else:
-            einsum_str_b = 'nk,nk->n'
-
-        inner_prod = gs.einsum(einsum_str_b, aux, tangent_vec_b)
+        inner_prod = gs.einsum('...k,...k->...', aux, tangent_vec_b)
         inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
         return inner_prod
@@ -229,7 +200,6 @@ class RiemannianMetric(Connection):
         """
         log = self.log(point=point_b, base_point=point_a)
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
-
         return sq_dist
 
     def dist(self, point_a, point_b):

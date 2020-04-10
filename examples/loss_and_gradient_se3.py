@@ -102,7 +102,7 @@ def main():
     grad_rot_vec = grad(y_pred, y_true)
 
     logging.info('The loss between the poses using rotation '
-                 'vectors is: {}'.format(loss_rot_vec[0, 0]))
+                 'vectors is: {}'.format(loss_rot_vec))
     logging.info('The Riemannian gradient is: {}'.format(grad_rot_vec))
 
     angle = gs.array(gs.pi / 6)
@@ -130,7 +130,7 @@ def main():
     grad_quaternion = grad(y_pred_quaternion, y_true_quaternion,
                            representation='quaternion')
     logging.info('The loss between the poses using quaternions is: {}'.format(
-        loss_quaternion[0, 0]))
+        loss_quaternion))
     logging.info('The Riemannian gradient is: {}'.format(
         grad_quaternion))
 

@@ -235,7 +235,11 @@ class PoincareDisk():
 
         if not isinstance(points, list):
             points = points.tolist()
-        self.points.extend(points)
+
+        if gs.all([len(point) == 2 for point in self.points]):
+            self.points.extend(points)
+        else:
+            raise ValueError('Points do not have dimension 2.')
 
     def convert_to_poincare_coordinates(self, points):
         poincare_coords = points[:, 1:] / (1 + points[:, :1])
@@ -244,9 +248,15 @@ class PoincareDisk():
     def draw(self, ax, **kwargs):
         circle = plt.Circle((0, 0), radius=1., color='black', fill=False)
         ax.add_artist(circle)
-        points_x = gs.vstack([point[0] for point in self.points])
-        points_y = gs.vstack([point[1] for point in self.points])
-        ax.scatter(points_x, points_y, **kwargs)
+        if len(self.points) > 0:
+            if gs.all([len(point) == 2 for point in self.points]):
+                points_x = gs.stack(
+                    [point[0] for point in self.points], axis=0)
+                points_y = gs.stack(
+                    [point[1] for point in self.points], axis=0)
+                ax.scatter(points_x, points_y, **kwargs)
+            else:
+                raise ValueError('Points do not have dimension 2.')
 
 
 class PoincarePolyDisk():

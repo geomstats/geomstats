@@ -76,7 +76,7 @@ def main():
     grad_rot_vec = grad(y_pred, y_true)
 
     logging.info('The loss between the rotation vectors is: {}'.format(
-        loss_rot_vec[0, 0]))
+        loss_rot_vec))
     logging.info('The Riemannian gradient is: {}'.format(
         grad_rot_vec))
 
@@ -104,7 +104,7 @@ def main():
                            representation='quaternion')
 
     logging.info('The loss between the quaternions is: {}'.format(
-        loss_quaternion[0, 0]))
+        loss_quaternion))
     logging.info('The Riemannian gradient is: {}'.format(
         grad_quaternion))
 
