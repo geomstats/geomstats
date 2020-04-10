@@ -50,7 +50,6 @@ BACKEND_ATTRIBUTES = {
         'flatten',
         'flip',
         'floor',
-        'get_slice',
         'get_mask_i_float',
         'get_slice',
         'greater',

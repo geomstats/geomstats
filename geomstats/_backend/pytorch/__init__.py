@@ -150,7 +150,7 @@ def array(val):
 
 
 def all(x, axis=None):
-    if axis is None:
+    if axis is None and torch.is_tensor(x):
         return x.bool().all()
     numpy_result = _np.array(_np.all(_np.array(x), axis=axis))
     return torch.from_numpy(numpy_result)

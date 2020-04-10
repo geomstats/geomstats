@@ -3176,7 +3176,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                         gs.allclose(result, expected, atol=5e-3)
                         or gs.allclose(result, inv_expected, atol=5e-3))
 
-    @geomstats.tests.np_only
     def test_log_then_exp(self):
         """
         This tests that the composition of
@@ -3208,7 +3207,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                         gs.allclose(result, expected, atol=1e-5)
                         or gs.allclose(result, inv_expected, atol=1e-5))
 
-    @geomstats.tests.np_only
     def test_log_then_exp_with_angles_close_to_pi(self):
         """
         This tests that the composition of
