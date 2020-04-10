@@ -14,6 +14,7 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
+from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
@@ -317,6 +318,43 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             gs.shape(regularized_points),
             (n_samples, *self.group.get_point_type_shape()))
 
+        self.group.default_point_type = old_point_type
+
+    def test_regularize_tangent_vec_at_identity(self):
+        old_point_type = self.group.default_point_type
+        self.group.default_point_type = 'matrix'
+        self.group.n = 3
+        tangent_vec = gs.array([[0.,   -2.,   4.,  12.],
+                                [2.,    0.,   -4.5, 13.],
+                                [-4.,    4.5,   0.,  14.],
+                                [0.,    0.,    0.,    0.]])
+        result = self.group.regularize_tangent_vec_at_identity(tangent_vec)
+        expected = tangent_vec
+        self.assertAllClose(result, expected)
+
+        tangent_vec = gs.array([[.5,   -2.,   4.,  12.],
+                                [2.,    0.,   -4.5, 13.],
+                                [-4.,    4.5,   0.,  14.],
+                                [0.5,    0.,    0.,    0.]])
+        regularized = self.group.regularize_tangent_vec_at_identity(tangent_vec)
+        result = SkewSymmetricMatrices(3).belongs(regularized[:3, :3])
+        expected = True
+        self.assertAllClose(result, expected)
+
+        self.group.default_point_type = old_point_type
+
+    def test_regularize_tangent_vec_at_identity_vectorization(self):
+        old_point_type = self.group.default_point_type
+        self.group.default_point_type = 'matrix'
+        n = self.group.n
+        tangent_vecs = gs.arange(self.n_samples * (self.group.n + 1) ** 2)
+        tangent_vecs = gs.reshape(
+            tangent_vecs, (self.n_samples,) + (n + 1,) * 2)
+        regularized = self.group.regularize_tangent_vec_at_identity(
+            tangent_vecs)
+        result = SkewSymmetricMatrices(n).belongs(regularized[:, :n, :n])
+        expected = gs.array([True] * self.n_samples)
+        self.assertAllClose(result, expected)
         self.group.default_point_type = old_point_type
 
     def test_compose(self):

@@ -204,8 +204,23 @@ class SpecialEuclidean(LieGroup):
         if point_type is None:
             point_type = self.default_point_type
 
-        return self.regularize_tangent_vec(
-            tangent_vec, self.identity, metric, point_type=point_type)
+        if point_type == 'vector':
+            return self.regularize_tangent_vec(
+                tangent_vec, self.identity, metric, point_type=point_type)
+
+        if point_type == 'matrix':
+            translation_mask = gs.hstack([
+                gs.ones((self.n,) * 2), 2 * gs.ones((self.n, 1))])
+            translation_mask = gs.concatenate(
+                [translation_mask, gs.zeros((1, self.n + 1))], axis=0)
+            tangent_vec = tangent_vec * gs.where(
+                translation_mask != 0., gs.array(1.), gs.array(0.))
+            tangent_vec = (
+                tangent_vec - GeneralLinear.transpose(tangent_vec)) / 2.
+            return tangent_vec * translation_mask
+
+        raise ValueError('Invalid point_type, expected \'vector\' or '
+                         '\'matrix\'.')
 
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None, point_type=None):
@@ -257,7 +272,11 @@ class SpecialEuclidean(LieGroup):
                 [rotations_vec, tangent_vec[:, dim_rotations:]], axis=1)
 
         if point_type == 'matrix':
-            return tangent_vec
+            tangent_vec_at_id = self.compose(
+                self.inverse(base_point), tangent_vec)
+            regularized = self.regularize_tangent_vec_at_identity(
+                tangent_vec_at_id, point_type=point_type)
+            return self.compose(base_point, regularized)
 
         raise ValueError('Invalid point_type, expected \'vector\' or '
                          '\'matrix\'.')
