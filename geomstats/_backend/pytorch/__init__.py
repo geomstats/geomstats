@@ -63,8 +63,6 @@ def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
 
-flip = _raise_not_implemented_error
-hsplit = _raise_not_implemented_error
 searchsorted = _raise_not_implemented_error
 vectorize = _raise_not_implemented_error
 
@@ -100,10 +98,18 @@ def cast(x, dtype):
     return array(x).to(dtype)
 
 
-def concatenate(seq, axis=0):
+def flip(x, axis):
+    if isinstance(axis, int):
+        axis = [axis]
+    if axis is None:
+        axis = list(range(x.ndim))
+    return torch.flip(x, dims=axis)
+
+
+def concatenate(seq, axis=0, out=None):
     # XXX(nkoep): Why do we cast to float32 instead of float64 here?
     seq = [cast(t, float32) for t in seq]
-    return torch.cat(seq, dim=axis)
+    return torch.cat(seq, dim=axis, out=out)
 
 
 def hstack(seq):
@@ -116,10 +122,10 @@ def vstack(seq):
 
 def array(val):
     if isinstance(val, list):
-        if not isinstance(val[0], torch.Tensor):
+        if not any([isinstance(t, torch.Tensor) for t in val]):
             val = _np.copy(_np.array(val))
         elif any([not isinstance(t, torch.Tensor) for t in val]):
-            for (index, t) in enumerate(val):
+            for index, t in enumerate(val):
                 if not isinstance(t, torch.Tensor):
                     val[index] = torch.tensor(t)
             val = stack(val)
@@ -342,6 +348,21 @@ def expand_dims(x, axis=0):
 
 def ndim(x):
     return x.dim()
+
+
+def hsplit(x, indices_or_section):
+    if isinstance(indices_or_section, int):
+        indices_or_section = indices_or_section // x.shape[1]
+    return torch.split(x, indices_or_section, dim=1)
+
+
+def diagonal(x, offset=0, axis1=0, axis2=1):
+    return torch.diagonal(x, offset=offset, dim1=axis1, dim2=axis2)
+
+
+def set_diag(x, new_diag):
+    arr_shape = x.shape
+    x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
 
 
 def prod(x, axis=None):

@@ -52,6 +52,7 @@ BACKEND_ATTRIBUTES = {
         'floor',
         'gather',
         'get_mask_i_float',
+        'get_slice',
         'greater',
         'hsplit',
         'hstack',
