@@ -405,6 +405,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         return matrix_xv + matrix_qv
 
     @staticmethod
+    @geomstats.vectorization.decorator(['matrix', 'matrix'])
     def retraction(tangent_vec, base_point):
         """Compute the retraction of a tangent vector.
 
@@ -425,10 +426,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Point in the Stiefel manifold equal to the retraction
             of tangent_vec at the base point.
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         n_tangent_vecs, _, _ = tangent_vec.shape
-
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, _ = base_point.shape
 
         if not (n_tangent_vecs == n_base_points
@@ -451,6 +449,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         return result
 
     @staticmethod
+    @geomstats.vectorization.decorator(['matrix', 'matrix'])
     def lifting(point, base_point):
         """Compute the lifting of a point.
 
@@ -471,10 +470,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Tangent vector at the base point equal to the lifting
             of point at the base point.
         """
-        point = gs.to_ndarray(point, to_ndim=3)
         n_points, _, _ = point.shape
-
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, n = base_point.shape
 
         if not (n_points == n_base_points
