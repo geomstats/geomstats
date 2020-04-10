@@ -88,7 +88,7 @@ def logical_and(x, y):
 
 
 def any(x, axis=None):
-    if axis is None:
+    if axis is None and torch.is_tensor(x):
         return x.bool().any()
     numpy_result = _np.array(_np.any(_np.array(x), axis=axis))
     return torch.from_numpy(numpy_result)
