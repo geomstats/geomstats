@@ -29,8 +29,12 @@ class TestSymmetricMatricesMethods(geomstats.tests.TestCase):
         mat_not_sym = gs.array([[1., 0., 3.],
                                 [2., 4., 5.],
                                 [3., 5., 6.]])
-        result = sym_n.belongs(mat_sym) and not sym_n.belongs(mat_not_sym)
+        result = sym_n.belongs(mat_sym)
         expected = True
+        self.assertAllClose(result, expected)
+
+        result = sym_n.belongs(mat_not_sym)
+        expected = False
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
