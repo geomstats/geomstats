@@ -3590,36 +3590,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     or gs.allclose(result, inv_expected, atol=1e-5))
 
     @geomstats.tests.np_only
-    def test_group_exponential_barycenter(self):
-        n = 3
-        group = self.so[n]
-
-        rot_vec = group.random_uniform()
-        points = gs.vstack([rot_vec, rot_vec])
-        result = group.exponential_barycenter(
-            points=points)
-        expected = rot_vec
-        self.assertAllClose(result, expected)
-
-        rot_vec = group.random_uniform()
-        points = gs.vstack([rot_vec, rot_vec])
-        weights = gs.array([1., 2.])
-        result = group.exponential_barycenter(
-            points=points,
-            weights=weights)
-        expected = rot_vec
-        self.assertAllClose(result, expected)
-
-        points = gs.vstack([rot_vec, rot_vec])
-        weights = gs.array([1., 2.])
-        group_bar = group.exponential_barycenter(
-            points=points, weights=weights)
-        result = group.belongs(group_bar)
-        expected = gs.array([[True]])
-
-        self.assertTrue(result, expected)
-
-    @geomstats.tests.np_only
     def test_squared_dist_is_symmetric(self):
         n = 3
         group = self.so[n]
@@ -3686,23 +3656,23 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
             # Identity and n points 2
             result = metric.squared_dist(point_id, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # n points 1 and identity
             result = metric.squared_dist(n_point_1, point_id)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # one point 1 and n points 2
             result = metric.squared_dist(one_point_1, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # n points 1 and one point 2
             result = metric.squared_dist(n_point_1, one_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # n points 1 and n points 2
             result = metric.squared_dist(n_point_1, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
     @geomstats.tests.np_only
     def test_dist_vectorization(self):
@@ -3726,23 +3696,23 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
             # Identity and n points 2
             result = metric.dist(point_id, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # n points 1 and identity
             result = metric.dist(n_point_1, point_id)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # one point 1 and n points 2
             result = metric.dist(one_point_1, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # n points 1 and one point 2
             result = metric.dist(n_point_1, one_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # n points 1 and n points 2
             result = metric.dist(n_point_1, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
     @geomstats.tests.np_only
     def test_geodesic_and_belongs(self):

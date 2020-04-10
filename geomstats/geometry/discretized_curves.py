@@ -140,7 +140,8 @@ class SRVMetric(RiemannianMetric):
         velocity = coef * self.ambient_metric.log(point=curve[1:, :],
                                                   base_point=curve[:-1, :])
         velocity_norm = self.ambient_metric.norm(velocity, curve[:-1, :])
-        srv = velocity / gs.sqrt(velocity_norm)
+        srv = gs.einsum(
+            '...i,...->...i', velocity, 1. / gs.sqrt(velocity_norm))
 
         index = gs.arange(n_curves * n_sampling_points - 1)
         mask = ~gs.equal((index + 1) % n_sampling_points, 0)
@@ -176,7 +177,8 @@ class SRVMetric(RiemannianMetric):
         srv = gs.reshape(srv,
                          (n_curves * n_sampling_points_minus_one, n_coords))
         srv_norm = self.ambient_metric.norm(srv)
-        delta_points = 1 / n_sampling_points_minus_one * srv_norm * srv
+        delta_points = gs.einsum(
+            '...,...i->...i', 1 / n_sampling_points_minus_one * srv_norm, srv)
         delta_points = gs.reshape(delta_points, srv_shape)
         curve = gs.concatenate((starting_point, delta_points), -2)
         curve = gs.cumsum(curve, -2)
@@ -316,7 +318,10 @@ class SRVMetric(RiemannianMetric):
             shooting_tangent_vec = self.log(curve=end_curve,
                                             base_curve=initial_curve)
             if initial_tangent_vec is not None:
-                assert gs.allclose(shooting_tangent_vec, initial_tangent_vec)
+                if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
+                    raise RuntimeError(
+                        'The shooting tangent vector is too'
+                        ' far from the initial tangent vector.')
             initial_tangent_vec = shooting_tangent_vec
         initial_tangent_vec = gs.array(initial_tangent_vec)
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
@@ -359,7 +364,8 @@ class SRVMetric(RiemannianMetric):
             raise AssertionError('The distance is only implemented for '
                                  'dicretized curves embedded in a '
                                  'Euclidean space.')
-        assert curve_a.shape == curve_b.shape
+        if curve_a.shape != curve_b.shape:
+            raise ValueError('The curves need to have the same shapes.')
 
         srv_a = self.square_root_velocity(curve_a)
         srv_b = self.square_root_velocity(curve_b)

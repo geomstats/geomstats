@@ -16,7 +16,6 @@ class SPDMatrices(EmbeddedManifold):
     """Class for the manifold of symmetric positive definite (SPD) matrices."""
 
     def __init__(self, n):
-        assert isinstance(n, int) and n > 0
         super(SPDMatrices, self).__init__(
             dimension=int(n * (n + 1) / 2),
             embedding_manifold=GeneralLinear(n=n))
@@ -68,7 +67,9 @@ class SPDMatrices(EmbeddedManifold):
         base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, _ = base_point.shape
 
-        assert n_base_points == n_samples or n_base_points == 1
+        if n_base_points not in [n_samples, 1]:
+            raise NotImplementedError
+
         if n_base_points == 1:
             base_point = gs.tile(base_point, (n_samples, 1, 1))
 

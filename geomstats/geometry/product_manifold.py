@@ -3,6 +3,7 @@
 import joblib
 
 import geomstats.backend as gs
+import geomstats.error
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.product_riemannian_metric import \
     ProductRiemannianMetric
@@ -35,7 +36,9 @@ class ProductManifold(Manifold):
     # FIXME(nguigs): This only works for 1d points
 
     def __init__(self, manifolds, default_point_type='vector', n_jobs=1):
-        assert default_point_type in ['vector', 'matrix']
+        geomstats.error.check_parameter_accepted_values(
+            default_point_type, 'default_point_type', ['vector', 'matrix'])
+
         self.default_point_type = default_point_type
 
         self.manifolds = manifolds
@@ -92,7 +95,7 @@ class ProductManifold(Manifold):
             intrinsic = self.metric.is_intrinsic(point)
             belongs = self._iterate_over_manifolds(
                 'belongs', {'point': point}, intrinsic)
-            belongs = gs.hstack(belongs)
+            belongs = gs.stack(belongs, axis=1)
 
         elif point_type == 'matrix':
             point = gs.to_ndarray(point, to_ndim=3)
@@ -124,7 +127,8 @@ class ProductManifold(Manifold):
         """
         if point_type is None:
             point_type = self.default_point_type
-        assert point_type in ['vector', 'matrix']
+        geomstats.error.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
 
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
@@ -156,7 +160,8 @@ class ProductManifold(Manifold):
         """
         if point_type is None:
             point_type = self.default_point_type
-        assert point_type in ['vector', 'matrix']
+        geomstats.error.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
         if point_type == 'vector':
             data = self.manifolds[0].random_uniform(n_samples)
             if len(self.manifolds) > 1:

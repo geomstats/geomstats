@@ -8,7 +8,6 @@ from autograd.numpy import (  # NOQA
     amax,
     amin,
     any,
-    append,
     arange,
     arccos,
     arccosh,
@@ -90,26 +89,7 @@ from scipy.sparse import coo_matrix
 
 from . import linalg  # NOQA
 from . import random  # NOQA
-from .common import to_ndarray
-
-integer = np.integer
-int8 = np.int8
-int32 = np.int32
-int64 = np.int64
-float32 = np.float32
-float64 = np.float64
-
-
-
-# XXX(nkoep): Can we get rid of this now?
-def while_loop(cond, body, loop_vars, maximum_iterations):
-    iteration = 0
-    while cond(*loop_vars):
-        loop_vars = body(*loop_vars)
-        iteration += 1
-        if iteration >= maximum_iterations:
-            break
-    return loop_vars
+from .common import to_ndarray  # NOQA
 
 
 def flatten(x):
@@ -222,29 +202,8 @@ def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
     return np.vectorize(pyfunc, signature=signature)(x)
 
 
-# XXX(nkoep): Can we get rid of this now?
-def cond(pred, true_fn, false_fn):
-    if pred:
-        return true_fn()
-    return false_fn()
-
-
 def cast(x, dtype):
     return x.astype(dtype)
-
-
-def diag(x):
-    x = to_ndarray(x, to_ndim=2)
-    _, n = shape(x)
-    aux = np.vectorize(
-        np.diagflat,
-        signature='(m,n)->(k,k)')(x)
-    k, _ = shape(aux)
-    m = int(k / n)
-    result = zeros((m, n, n))
-    for i in range(m):
-        result[i] = aux[i * n:(i + 1) * n, i * n:(i + 1) * n]
-    return result
 
 
 def ndim(x):
@@ -258,13 +217,6 @@ def copy(x):
 def array_from_sparse(indices, data, target_shape):
     return array(
         coo_matrix((data, list(zip(*indices))), target_shape).todense())
-
-
-def from_vector_to_diagonal_matrix(x):
-    n = shape(x)[-1]
-    identity_n = eye(n)
-    diagonals = einsum('ki,ij->kij', x, identity_n)
-    return diagonals
 
 
 def erf(x):

@@ -107,12 +107,13 @@ def kmean_hypersphere():
         color='black')
 
     for i in range(n_clusters):
-        ax = visualization.plot(
-            data[labels == i],
-            ax=ax,
-            space='S2',
-            marker='.',
-            color=colors[i])
+        if len(data[labels == i]) > 0:
+            ax = visualization.plot(
+                points=data[labels == i],
+                ax=ax,
+                space='S2',
+                marker='.',
+                color=colors[i])
 
     ax = visualization.plot(
         centroids,

@@ -14,6 +14,7 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
+from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
@@ -317,6 +318,64 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             gs.shape(regularized_points),
             (n_samples, *self.group.get_point_type_shape()))
 
+        self.group.default_point_type = old_point_type
+
+    def test_regularize_tangent_vec_at_identity(self):
+        old_point_type = self.group.default_point_type
+        self.group.default_point_type = 'matrix'
+        self.group.n = 3
+        tangent_vec = gs.array([[0., -2., 4., 12.],
+                                [2., 0., -4.5, 13.],
+                                [-4., 4.5, 0., 14.],
+                                [0., 0., 0., 0.]])
+        result = self.group.regularize_tangent_vec_at_identity(tangent_vec)
+        expected = tangent_vec
+        self.assertAllClose(result, expected)
+
+        tangent_vec = gs.array([[.5, -2., 4., 12.],
+                                [2., 0., -4.5, 13.],
+                                [-4., 4.5, 0., 14.],
+                                [0.5, 0., 0., 0.]])
+        regularized = self.group.regularize_tangent_vec_at_identity(
+            tangent_vec)
+        result = SkewSymmetricMatrices(3).belongs(regularized[:3, :3])
+        expected = True
+        self.assertAllClose(result, expected)
+
+        self.group.default_point_type = old_point_type
+
+    def test_regularize_tangent_vec_at_identity_vectorization(self):
+        old_point_type = self.group.default_point_type
+        self.group.default_point_type = 'matrix'
+        n = self.group.n
+        tangent_vecs = gs.arange(self.n_samples * (self.group.n + 1) ** 2)
+        tangent_vecs = gs.cast(tangent_vecs, gs.float32)
+        tangent_vecs = gs.reshape(
+            tangent_vecs, (self.n_samples,) + (n + 1,) * 2)
+        regularized = self.group.regularize_tangent_vec_at_identity(
+            tangent_vecs)
+        result = SkewSymmetricMatrices(n).belongs(regularized[:, :n, :n])
+        expected = gs.array([True] * self.n_samples)
+        self.assertAllClose(result, expected)
+        self.group.default_point_type = old_point_type
+
+    def test_regularize_tangent_vec_vectorization(self):
+        old_point_type = self.group.default_point_type
+        self.group.default_point_type = 'matrix'
+        n = self.group.n
+        tangent_vecs = gs.arange(self.n_samples * (self.group.n + 1) ** 2)
+        tangent_vecs = gs.cast(tangent_vecs, gs.float32)
+        tangent_vecs = gs.reshape(
+            tangent_vecs, (self.n_samples,) + (n + 1,) * 2)
+        point = self.group.random_uniform(self.n_samples)
+        tangent_vecs = self.group.compose(point, tangent_vecs)
+        regularized = self.group.regularize_tangent_vec(tangent_vecs, point)
+        result = self.group.compose(
+            gs.transpose(point, (0, 2, 1)), regularized) + \
+            self.group.compose(gs.transpose(regularized, (0, 2, 1)), point)
+        result = result[:, :n, :n]
+        expected = gs.zeros_like(result)
+        self.assertAllClose(result, expected)
         self.group.default_point_type = old_point_type
 
     def test_compose(self):
@@ -1342,18 +1401,18 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
             result = metric.inner_product(one_vector_a, n_vector_b,
                                           one_base_point)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             if geomstats.tests.tf_backend():
                 break
 
             result = metric.inner_product(n_vector_a, one_vector_b,
                                           one_base_point)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             result = metric.inner_product(n_vector_a, n_vector_b,
                                           one_base_point)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
     def test_inner_product_n_base_point_vectorization(self):
         n_samples = self.n_samples
@@ -1367,18 +1426,18 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
             result = metric.inner_product(one_vector_a, n_vector_b,
                                           n_base_point)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             if geomstats.tests.tf_backend():
                 break
 
             result = metric.inner_product(n_vector_a, one_vector_b,
                                           n_base_point)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             result = metric.inner_product(n_vector_a, n_vector_b,
                                           n_base_point)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
     @geomstats.tests.np_only
     def test_squared_dist_is_symmetric(self):
@@ -1429,26 +1488,26 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
             # Identity and n points 2
             result = metric.squared_dist(point_id, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             if geomstats.tests.tf_backend():
                 break
 
             # n points 1 and identity
             result = metric.squared_dist(n_point_1, point_id)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # one point 1 and n points 2
             result = metric.squared_dist(one_point_1, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # n points 1 and one point 2
             result = metric.squared_dist(n_point_1, one_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # n points 1 and n points 2
             result = metric.squared_dist(n_point_1, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
     def test_dist_vectorization(self):
         n_samples = self.n_samples
@@ -1468,52 +1527,25 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
             # Identity and n points 2
             result = metric.dist(point_id, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             if geomstats.tests.tf_backend():
                 break
             # n points 1 and identity
             result = metric.dist(n_point_1, point_id)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # one point 1 and n points 2
             result = metric.dist(one_point_1, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # n points 1 and one point 2
             result = metric.dist(n_point_1, one_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             # n points 1 and n points 2
             result = metric.dist(n_point_1, n_point_2)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
-
-    def test_group_exponential_barycenter(self):
-        """Test group exponential barycenter."""
-        # FIXME
-        # TODO(nina): Fix this test, the barycenter is not accurate.
-        # point_1 = self.group.random_uniform()
-        # points = gs.vstack([point_1, point_1])
-        # result_1 = self.group.exponential_barycenter(
-        #                         points=points)
-        # expected_1 = self.group.regularize(point_1)
-
-        # if not geomstats.tests.tf_backend():
-        #     point_2 = self.group.random_uniform()
-        #     points = gs.vstack([point_2, point_2])
-        #     weights = gs.array([1., 2.])
-        #     result_2 = self.group.exponential_barycenter(
-        #                             points=points,
-        #                             weights=weights)
-        #     expected_2 = self.group.regularize(point_2)
-
-        #     points = gs.vstack([point_1, point_2])
-        #     weights = gs.array([1., 1.])
-        #     result_3 = self.group.exponential_barycenter(
-        #                             points=points,
-        #                             weights=weights)
-
-        #     self.assertTrue(self.group.belongs(result_3))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
     def test_geodesic_and_belongs(self):
         initial_point = self.group.random_uniform()

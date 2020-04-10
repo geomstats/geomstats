@@ -1,10 +1,9 @@
 """Riemannian and pseudo-Riemannian metrics."""
 
-import math
-
 import autograd
 
 import geomstats.backend as gs
+import geomstats.vectorization
 from geomstats.geometry.connection import Connection
 
 
@@ -34,8 +33,8 @@ def loss(y_pred, y_true, metric):
     loss
 
     """
-    loss = metric.squared_dist(y_pred, y_true)
-    return loss
+    sq_dist = metric.squared_dist(y_pred, y_true)
+    return sq_dist
 
 
 def grad(y_pred, y_true, metric):
@@ -45,20 +44,19 @@ def grad(y_pred, y_true, metric):
 
     inner_prod_mat = metric.inner_product_matrix(base_point=y_pred)
 
-    grad = gs.einsum('ni,nij->ni',
-                     grad_vec,
-                     gs.transpose(inner_prod_mat, axes=(0, 2, 1)))
+    loss_grad = gs.einsum(
+        'ni,nij->ni',
+        grad_vec,
+        gs.transpose(inner_prod_mat, axes=(0, 2, 1)))
 
-    return grad
+    return loss_grad
 
 
 class RiemannianMetric(Connection):
     """Class for Riemannian and pseudo-Riemannian metrics."""
 
     def __init__(self, dimension, signature=None):
-        assert isinstance(dimension, int) or dimension == math.inf
-        assert dimension > 0
-        super().__init__(dimension=dimension)
+        super(RiemannianMetric, self).__init__(dimension=dimension)
         self.signature = signature
 
     def inner_product_matrix(self, base_point=None):
@@ -121,6 +119,7 @@ class RiemannianMetric(Connection):
         christoffels = 0.5 * (term_1 + term_2 + term_3)
         return christoffels
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector', 'vector'])
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Inner product between two tangent vectors at a base point.
 
@@ -137,46 +136,14 @@ class RiemannianMetric(Connection):
         -------
         inner_product : array-like, shape=[n_samples,]
         """
-        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
-        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
-        n_tangent_vec_a = gs.shape(tangent_vec_a)[0]
-        n_tangent_vec_b = gs.shape(tangent_vec_b)[0]
-
         inner_prod_mat = self.inner_product_matrix(base_point)
         inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
-        n_mats = gs.shape(inner_prod_mat)[0]
 
-        if n_tangent_vec_a != n_mats:
-            if n_tangent_vec_a == 1:
-                tangent_vec_a = gs.squeeze(tangent_vec_a, axis=0)
-                einsum_str_a = 'j,njk->nk'
-            elif n_mats == 1:
-                inner_prod_mat = gs.squeeze(inner_prod_mat, axis=0)
-                einsum_str_a = 'nj,jk->nk'
-            else:
-                raise ValueError('Shape mismatch for einsum.')
-        else:
-            einsum_str_a = 'nj,njk->nk'
+        aux = gs.einsum('...j,...jk->...k', tangent_vec_a, inner_prod_mat)
 
-        aux = gs.einsum(einsum_str_a, tangent_vec_a, inner_prod_mat)
-        n_auxs, _ = gs.shape(aux)
-
-        if n_tangent_vec_b != n_auxs:
-            if n_auxs == 1:
-                aux = gs.squeeze(aux, axis=0)
-                einsum_str_b = 'k,nk->n'
-            elif n_tangent_vec_b == 1:
-                tangent_vec_b = gs.squeeze(tangent_vec_b, axis=0)
-                einsum_str_b = 'nk,k->n'
-            else:
-                raise ValueError('Shape mismatch for einsum.')
-        else:
-            einsum_str_b = 'nk,nk->n'
-
-        inner_prod = gs.einsum(einsum_str_b, aux, tangent_vec_b)
+        inner_prod = gs.einsum('...k,...k->...', aux, tangent_vec_b)
         inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
-        assert gs.ndim(inner_prod) == 2, inner_prod.shape
         return inner_prod
 
     def squared_norm(self, vector, base_point=None):
@@ -233,7 +200,6 @@ class RiemannianMetric(Connection):
         """
         log = self.log(point=point_b, base_point=point_a)
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
-
         return sq_dist
 
     def dist(self, point_a, point_b):

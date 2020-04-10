@@ -3,6 +3,7 @@
 import logging
 
 import geomstats.backend as gs
+from geomstats import algebra_utils
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.matrices import Matrices
 
@@ -14,7 +15,6 @@ class SymmetricMatrices(EmbeddedManifold):
     """Class for the vector space of symmetric matrices of size n."""
 
     def __init__(self, n):
-        assert isinstance(n, int) and n > 0
         super(SymmetricMatrices, self).__init__(
             dimension=int(n * (n + 1) / 2),
             embedding_manifold=Matrices(n, n))
@@ -66,7 +66,8 @@ class SymmetricMatrices(EmbeddedManifold):
             gs.array_from_sparse(indices, data, shape) for data in vec])
         return Matrices.make_symmetric(upper_triangular) * mask
 
-    def expm(self, x):
+    @staticmethod
+    def expm(x):
         """
         Compute the matrix exponential.
 
@@ -82,7 +83,7 @@ class SymmetricMatrices(EmbeddedManifold):
         """
         eigvals, eigvecs = gs.linalg.eigh(x)
         eigvals = gs.exp(eigvals)
-        eigvals = gs.from_vector_to_diagonal_matrix(eigvals)
+        eigvals = algebra_utils.from_vector_to_diagonal_matrix(eigvals)
         transp_eigvecs = gs.transpose(eigvecs, axes=(0, 2, 1))
         exponential = gs.matmul(eigvecs, eigvals)
         exponential = gs.matmul(exponential, transp_eigvecs)

@@ -1,6 +1,7 @@
 """Module exposing `Grassmannian` and `GrassmannianMetric` classes."""
 
 import geomstats.backend as gs
+import geomstats.error
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
@@ -19,8 +20,11 @@ class Grassmannian(EmbeddedManifold):
     """
 
     def __init__(self, n, k):
-        assert isinstance(n, int) and isinstance(k, int)
-        assert k <= n
+        geomstats.error.check_integer(k, 'k')
+        geomstats.error.check_integer(n, 'n')
+        if k > n:
+            raise ValueError(
+                'k <= n is required: k-dimensional subspaces in n dimensions.')
 
         self.n = n
         self.k = k
@@ -58,8 +62,10 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
     """
 
     def __init__(self, n, p):
-        assert isinstance(n, int) and isinstance(p, int)
-        assert p <= n
+        geomstats.error.check_integer(p, 'p')
+        geomstats.error.check_integer(n, 'n')
+        if p > n:
+            raise ValueError('p <= n is required.')
         self.n = n
         self.p = p
 

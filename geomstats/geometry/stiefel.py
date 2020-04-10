@@ -4,6 +4,8 @@ A set of all orthonormal p-frames in n-dimensional space, where p <= n
 """
 
 import geomstats.backend as gs
+import geomstats.error
+from geomstats import algebra_utils
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import Matrices
@@ -28,16 +30,18 @@ class Stiefel(EmbeddedManifold):
     """
 
     def __init__(self, n, p):
-        assert isinstance(n, int) and isinstance(p, int)
-        assert p <= n
-
-        self.n = n
-        self.p = p
-
         dimension = int(p * n - (p * (p + 1) / 2))
         super(Stiefel, self).__init__(
             dimension=dimension,
             embedding_manifold=Matrices(n, p))
+
+        geomstats.error.check_integer(n, 'n')
+        geomstats.error.check_integer(p, 'p')
+        if p > n:
+            raise ValueError('p needs to be smaller than n.')
+
+        self.n = n
+        self.p = p
 
         self.canonical_metric = StiefelCanonicalMetric(n, p)
 
@@ -213,9 +217,10 @@ class StiefelCanonicalMetric(RiemannianMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, p = base_point.shape
 
-        assert (n_tangent_vecs == n_base_points
+        if not (n_tangent_vecs == n_base_points
                 or n_tangent_vecs == 1
-                or n_base_points == 1)
+                or n_base_points == 1):
+            raise NotImplementedError
 
         if n_tangent_vecs == 1:
             tangent_vec = gs.tile(tangent_vec, (n_base_points, 1, 1))
@@ -355,11 +360,12 @@ class StiefelCanonicalMetric(RiemannianMetric):
         n_points, _, _ = point.shape
 
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_base_points, n, p = base_point.shape
+        n_base_points, _, p = base_point.shape
 
-        assert (n_points == n_base_points
+        if not (n_points == n_base_points
                 or n_points == 1
-                or n_base_points == 1)
+                or n_base_points == 1):
+            raise NotImplementedError
 
         if n_base_points == 1:
             base_point = gs.tile(base_point, (n_points, 1, 1))
@@ -400,7 +406,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         return matrix_xv + matrix_qv
 
-    def retraction(self, tangent_vec, base_point):
+    @staticmethod
+    def retraction(tangent_vec, base_point):
         """Compute the retraction of a tangent vector.
 
         This computation is based on the QR-decomposition.
@@ -424,11 +431,12 @@ class StiefelCanonicalMetric(RiemannianMetric):
         n_tangent_vecs, _, _ = tangent_vec.shape
 
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_base_points, _, p = base_point.shape
+        n_base_points, _, _ = base_point.shape
 
-        assert (n_tangent_vecs == n_base_points
+        if not (n_tangent_vecs == n_base_points
                 or n_tangent_vecs == 1
-                or n_base_points == 1)
+                or n_base_points == 1):
+            raise NotImplementedError
 
         if n_base_points == 1:
             base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
@@ -439,12 +447,13 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         diagonal = gs.diagonal(matrix_r, axis1=1, axis2=2)
         sign = gs.sign(gs.sign(diagonal) + 0.5)
-        diag = gs.diag(sign)
+        diag = algebra_utils.from_vector_to_diagonal_matrix(sign)
         result = gs.einsum('nij,njk->nik', matrix_q, diag)
 
         return result
 
-    def lifting(self, point, base_point):
+    @staticmethod
+    def lifting(point, base_point):
         """Compute the lifting of a point.
 
         This computation is based on the QR-decomposion.
@@ -470,9 +479,10 @@ class StiefelCanonicalMetric(RiemannianMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=3)
         n_base_points, _, n = base_point.shape
 
-        assert (n_points == n_base_points
+        if not (n_points == n_base_points
                 or n_points == 1
-                or n_base_points == 1)
+                or n_base_points == 1):
+            raise NotImplementedError
 
         if n_base_points == 1:
             base_point = gs.tile(base_point, (n_points, 1, 1))
@@ -485,14 +495,16 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         def _make_column_r(i, matrix):
             if i == 0:
-                assert matrix[0, 0] > 0, 'M[0,0] <= 0'
+                if matrix[0, 0] <= 0:
+                    raise ValueError('M[0,0] <= 0')
                 return gs.array([1. / matrix[0, 0]])
             matrix_m_i = _make_minor(i, matrix_m_k)
             inv_matrix_m_i = gs.linalg.inv(matrix_m_i)
             b_i = _make_b(i, matrix_m_k, columns_list)
             column_r_i = gs.matmul(inv_matrix_m_i, b_i)
 
-            assert column_r_i[i] > 0, '(r_i)_i <= 0'
+            if column_r_i[i] <= 0:
+                raise ValueError('(r_i)_i <= 0')
             return column_r_i
 
         def _make_b(i, matrix, list_matrices_r):

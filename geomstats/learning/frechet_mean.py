@@ -43,12 +43,10 @@ def variance(points,
         weights = gs.to_ndarray(weights, to_ndim=3, axis=1)
         weights = weights[:, :, 0]
 
-    var = 0.
-
     sq_dists = metric.squared_dist(base_point, points)
-    var += gs.einsum('nk,nj->j', weights, sq_dists)
+    var = gs.einsum('...k,...->...', weights, sq_dists)
 
-    var = gs.array(var)
+    var = gs.sum(var)
     var /= sum_weights
 
     var = gs.to_ndarray(var, to_ndim=1)
@@ -94,38 +92,6 @@ def linear_mean(points, weights=None):
 
 def _default_gradient_descent(points, metric, weights,
                               max_iter, point_type, epsilon, verbose):
-
-    def while_loop_cond(iteration, mean, var, sq_dist):
-        result = ~gs.logical_or(
-            gs.isclose(var, 0.),
-            gs.less_equal(sq_dist, epsilon * var))
-        return result[0, 0] or iteration == 0
-
-    def while_loop_body(iteration, mean, var, sq_dist):
-
-        logs = metric.log(point=points, base_point=mean)
-
-        tangent_mean = gs.einsum(einsum_str, weights, logs)
-        tangent_mean /= sum_weights
-
-        estimate_next = metric.exp(
-            tangent_vec=tangent_mean,
-            base_point=mean)
-
-        sq_dist = metric.squared_dist(estimate_next, mean)
-        sq_dists_between_iterates.append(sq_dist)
-
-        var = variance(
-            points=points,
-            weights=weights,
-            metric=metric,
-            base_point=estimate_next,
-            point_type=point_type)
-
-        mean = estimate_next
-        iteration += 1
-        return [iteration, mean, var, sq_dist]
-
     if point_type == 'vector':
         points = gs.to_ndarray(points, to_ndim=2)
         einsum_str = 'nk,nj->j'
@@ -155,20 +121,40 @@ def _default_gradient_descent(points, metric, weights,
     sq_dist = gs.array([[0.]])
     var = gs.array([[0.]])
 
-    last_iteration, mean, var, sq_dist = gs.while_loop(
-        lambda i, m, v, sq: while_loop_cond(i, m, v, sq),
-        lambda i, m, v, sq: while_loop_body(i, m, v, sq),
-        loop_vars=[iteration, mean, var, sq_dist],
-        maximum_iterations=max_iter)
+    while iteration < max_iter:
+        condition = ~gs.logical_or(
+            gs.isclose(var, 0.),
+            gs.less_equal(sq_dist, epsilon * var))
+        if not (condition[0, 0] or iteration == 0):
+            break
+        logs = metric.log(point=points, base_point=mean)
 
-    if last_iteration == max_iter:
+        tangent_mean = gs.einsum(einsum_str, weights, logs)
+        tangent_mean /= sum_weights
+
+        estimate_next = metric.exp(tangent_vec=tangent_mean, base_point=mean)
+
+        sq_dist = metric.squared_dist(estimate_next, mean)
+        sq_dists_between_iterates.append(sq_dist)
+
+        var = variance(
+            points=points,
+            weights=weights,
+            metric=metric,
+            base_point=estimate_next,
+            point_type=point_type)
+
+        mean = estimate_next
+        iteration += 1
+
+    if iteration == max_iter:
         logging.warning(
             'Maximum number of iterations {} reached. '
             'The mean may be inaccurate'.format(max_iter))
 
     if verbose:
         logging.info('n_iter: {}, final variance: {}, final dist: {}'.format(
-            last_iteration, var, sq_dist))
+            iteration, var, sq_dist))
 
     mean = gs.to_ndarray(mean, to_ndim=2)
     return mean
@@ -176,7 +162,6 @@ def _default_gradient_descent(points, metric, weights,
 
 def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
                            lr=1e-3, tau=5e-3):
-
     if len(points) == 1:
         return points
 

@@ -7,6 +7,7 @@ the hyperboloid representation (embedded in minkowsky space).
 import math
 
 import geomstats.backend as gs
+import geomstats.vectorization
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hyperbolic import HyperbolicMetric
@@ -90,17 +91,17 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
             Array of booleans indicating whether the corresponding points
             belong to the hyperbolic space.
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        _, point_dim = point.shape
+        point_dim = point.shape[-1]
         if point_dim is not self.dimension + 1:
+            belongs = False
             if point_dim is self.dimension and self.coords_type == 'intrinsic':
-                return gs.array([[True]])
-            return gs.array([[False]])
+                belongs = True
+            if gs.ndim(point) == 2:
+                belongs = gs.tile([belongs], (point.shape[0],))
+            return belongs
 
         sq_norm = self.embedding_metric.squared_norm(point)
         euclidean_sq_norm = gs.linalg.norm(point, axis=-1) ** 2
-        euclidean_sq_norm = gs.to_ndarray(euclidean_sq_norm,
-                                          to_ndim=2, axis=1)
         diff = gs.abs(sq_norm + 1)
         belongs = diff < tolerance * euclidean_sq_norm
         return belongs
@@ -135,10 +136,13 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         mask_not_0_float = gs.cast(mask_not_0, gs.float32)
         projected_point = point
 
-        projected_point = mask_not_0_float * (
-            point / real_norm)
+        normalized_point = gs.einsum(
+            '...,...i->...i', 1. / real_norm, point)
+        projected_point = gs.einsum(
+            '...,...i->...i', mask_not_0_float, normalized_point)
         return projected_point
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def projection_to_tangent_space(self, vector, base_point):
         """Project a vector to a tangent space of the hyperbolic space.
 
@@ -161,16 +165,13 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         if self.coords_type == 'intrinsic':
             base_point = self.intrinsic_to_extrinsic_coords(base_point)
 
-        vector = gs.to_ndarray(vector, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-
         sq_norm = self.embedding_metric.squared_norm(base_point)
-        inner_prod = self.embedding_metric.inner_product(base_point,
-                                                         vector)
+        inner_prod = self.embedding_metric.inner_product(
+            base_point, vector)
 
         coef = inner_prod / sq_norm
 
-        tangent_vec = vector - gs.einsum('...i,...j->...j', coef, base_point)
+        tangent_vec = vector - gs.einsum('...,...j->...j', coef, base_point)
         return tangent_vec
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):
@@ -291,6 +292,7 @@ class HyperboloidMetric(HyperbolicMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
@@ -307,9 +309,6 @@ class HyperboloidMetric(HyperbolicMetric):
             Point in hyperbolic space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-
         sq_norm_tangent_vec = self.embedding_metric.squared_norm(
             tangent_vec)
         sq_norm_tangent_vec = gs.clip(sq_norm_tangent_vec, 0, math.inf)
@@ -342,13 +341,14 @@ class HyperboloidMetric(HyperbolicMetric):
             (gs.sinh(norm_tangent_vec) / (norm_tangent_vec)))
 
         exp = (
-            gs.einsum('...i,...j->...j', coef_1, base_point)
-            + gs.einsum('...i,...j->...j', coef_2, tangent_vec))
+            gs.einsum('...,...j->...j', coef_1, base_point)
+            + gs.einsum('...,...j->...j', coef_2, tangent_vec))
 
         hyperbolic_space = Hyperboloid(dimension=self.dimension)
         exp = hyperbolic_space.regularize(exp)
         return exp
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
 
@@ -369,12 +369,8 @@ class HyperboloidMetric(HyperbolicMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-
         angle = self.dist(base_point, point) / self.scale
         angle = gs.to_ndarray(angle, to_ndim=1)
-        angle = gs.to_ndarray(angle, to_ndim=2)
 
         mask_0 = gs.isclose(angle, 0.)
         mask_else = ~mask_0
@@ -402,8 +398,8 @@ class HyperboloidMetric(HyperbolicMetric):
         coef_1 += mask_else_float * (angle / gs.sinh(angle))
         coef_2 += mask_else_float * (angle / gs.tanh(angle))
 
-        log = (gs.einsum('...i,...j->...j', coef_1, point) -
-               gs.einsum('...i,...j->...j', coef_2, base_point))
+        log = (gs.einsum('...,...j->...j', coef_1, point) -
+               gs.einsum('...,...j->...j', coef_2, base_point))
         return log
 
     def dist(self, point_a, point_b):
