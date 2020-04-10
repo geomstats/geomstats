@@ -92,12 +92,12 @@ from . import linalg  # NOQA
 from . import random  # NOQA
 from .common import to_ndarray
 
-integer = _np.integer
-int8 = _np.int8
-int32 = _np.int32
-int64 = _np.int64
-float32 = _np.float32
-float64 = _np.float64
+integer = np.integer
+int8 = np.int8
+int32 = np.int32
+int64 = np.int64
+float32 = np.float32
+float64 = np.float64
 
 
 
@@ -268,9 +268,9 @@ def from_vector_to_diagonal_matrix(x):
 
 
 def erf(x):
-    cst_erf = 8.0 / (3.0 * _np.pi) * (_np.pi - 3.0) / (4.0 - _np.pi)
+    cst_erf = 8.0 / (3.0 * np.pi) * (np.pi - 3.0) / (4.0 - np.pi)
     return \
-        _np.sign(x) * \
-        _np.sqrt(1 - _np.exp(-x * x *
-                 (4 / _np.pi + cst_erf * x * x) /
+        np.sign(x) * \
+        np.sqrt(1 - np.exp(-x * x *
+                 (4 / np.pi + cst_erf * x * x) /
                  (1 + cst_erf * x * x)))

@@ -1,8 +1,9 @@
 """Expectation maximisation algorithm."""
 
 import geomstats.backend as gs
+from geomstats.geometry.poincare_ball \
+    import GaussianDistribution, Normalization_Factor_Storage
 from geomstats.learning.frechet_mean import FrechetMean
-from geomstats.geometry.gaussian_distribution import GaussianDistribution,Normalization_Factor_Storage
 
 
 EM_CONV_RATE = 1e-4
@@ -17,8 +18,9 @@ ZETA_STEP = 0.001
 PDF_TOL = 1e-15
 SUM_CHECK_PDF = 1e-4
 
-class RiemannianEM():
 
+class RiemannianEM():
+    """Class for running Expectation-Maximisation."""
     def __init__(self,
                  riemannian_metric,
                  n_gaussian=8,
@@ -117,7 +119,7 @@ class RiemannianEM():
                                                     gs.repeat(self.means[:,g_index], N, 0)) **2
                         ) * wik[:,g_index].sum()) / wik[:,g_index].sum()
 
-            self.variances[:, g_index] = self.normalization_factor.phi(dtm)
+            self.variances[:, g_index] = self.normalization_factor._variance_update_sub_function(dtm)
         else:
 
 
@@ -130,7 +132,7 @@ class RiemannianEM():
             dtm_gs = ((self.riemannian_metric.dist(z_gs,
                              means_gs) ** 2) * wik_gs).sum(0) / wik_gs.sum(0)
 
-            self.variances = self.normalization_factor.phi(dtm_gs)
+            self.variances = self.normalization_factor._variance_update_sub_function(dtm_gs)
 
     def _expectation(self, data):
         """Updates the posterior probabilities"""
@@ -138,7 +140,7 @@ class RiemannianEM():
         probability_distribution_function = GaussianDistribution.gaussian_pdf(data,
                                                                               self.means,
                                                                               self.variances,
-                                                                              norm_func=self.normalization_factor.normalisation_factor,
+                                                                              norm_func=self.normalization_factor.find_normalisation_factor,
                                                                               metric =self.riemannian_metric)
 
 
@@ -179,12 +181,14 @@ class RiemannianEM():
             quit()
 
 
-        if gs.mean(gs.sum(posterior_probabilities,1)) <= 1-SUM_CHECK_PDF \
-                and gs.mean(gs.sum(posterior_probabilities,1)) >= 1+SUM_CHECK_PDF:
+        if gs.mean(gs.sum(posterior_probabilities,1)) \
+                <= 1-SUM_CHECK_PDF and \
+                gs.mean(gs.sum(posterior_probabilities,1)) \
+                >= 1+SUM_CHECK_PDF:
 
             print('EXPECTATION : posterior probabilities'
                   'don\'t sum to 1')
-            print(gs.sum(posterior_probabilities,1))
+            print(gs.sum(posterior_probabilities, 1))
             quit()
 
         return posterior_probabilities
@@ -194,9 +198,8 @@ class RiemannianEM():
                       posterior_probabilities,
                       lr_means,
                       conv_factor_mean,
-                      max_iter = gs.inf):
+                      max_iter=gs.inf):
         """Update function for the means and variances."""
-
         self.update_posterior_probabilities(posterior_probabilities)
 
         if(gs.mean(self.mixture_coefficients)
@@ -225,7 +228,7 @@ class RiemannianEM():
 
     def fit(self,
             data,
-            max_iter= DEFAULT_MAX_ITER,
+            max_iter=DEFAULT_MAX_ITER,
             lr_mean=DEFAULT_LR,
             conv_factor_mean=DEFAULT_CONV_FACTOR):
         """Fit a Gaussian mixture model (GMM) given the data.
@@ -241,10 +244,10 @@ class RiemannianEM():
 
         max_iter : int
             Maximum number of iterations
-            
+
         lr_mean : float
             Learning rate for the mean
-            
+
         conv_factor_mean : float
             Convergence factor for the mean
 
@@ -257,15 +260,18 @@ class RiemannianEM():
         if(self.initialisation_method == 'random'):
 
             self._dimension = data.shape[-1]
-            self.means = (gs.random.rand(self.n_gaussian, self._dimension) - 0.5) / self._dimension
+            self.means = (gs.random.rand(self.n_gaussian,
+                                         self._dimension) - 0.5) / self._dimension
             self.variances = gs.random.rand(self.n_gaussian) / 10 + 0.8
-            self.mixture_coefficients = gs.ones(self.n_gaussian) / self.n_gaussian
+            self.mixture_coefficients = \
+                gs.ones(self.n_gaussian) / self.n_gaussian
             posterior_probabilities = gs.ones((data.shape[0],
                                                self.means.shape[0]))
-            self.normalization_factor = Normalization_Factor_Storage(gs.arange(ZETA_LOWER_BOUND,
-                                                                               ZETA_UPPER_BOUND,
-                                                                               ZETA_STEP),
-                                                                     self._dimension)
+            self.normalization_factor = Normalization_Factor_Storage(
+                gs.arange(ZETA_LOWER_BOUND,
+                          ZETA_UPPER_BOUND,
+                          ZETA_STEP),
+                self._dimension)
 
         else:
             print('Initialisation method not yet implemented')
@@ -298,7 +304,6 @@ class RiemannianEM():
         return self.means, self.variances, self.mixture_coefficients
 
     def predict(self, data):
-
         """Predict for each data point its Gaussian component.
 
         Given each Gaussin of the computed mixture model,
@@ -316,9 +321,10 @@ class RiemannianEM():
         Returns
         -------
         self : object
-            Return array containing for each point the associated Gaussian community
+            Return array containing for each
+            point the associated Gaussian community
         """
-        #TODO Thomas or Hadi: Write prediction method to
+        # TODO Thomas or Hadi: Write prediction method to
         # label points with the cluster maximising the likelihood
         belongs = None
         return belongs

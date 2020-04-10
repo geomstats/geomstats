@@ -14,8 +14,7 @@ import mpl_toolkits.mplot3d.art3d as art3d
 from matplotlib.patches import Circle
 
 import geomstats.backend as gs
-from geomstats.geometry.hyperbolic import Hyperbolic
-from geomstats.geometry.gaussian_distribution import GaussianDistribution
+from geomstats.geometry.poincare_ball import PoincareBall, GaussianDistribution
 from geomstats.learning.em_expectation_maximization import RiemannianEM
 
 DEFAULT_PLOT_PRECISION = 100
@@ -120,7 +119,7 @@ def expectation_maximisation_poincare_ball():
 
     n_clusters = 3
 
-    manifold = Hyperbolic(dimension=2, coords_type='ball')
+    manifold = PoincareBall(dimension=2)
 
     metric = manifold.metric
 

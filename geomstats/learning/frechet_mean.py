@@ -180,7 +180,7 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
     if len(points) == 1:
         return points
 
-    if weights.all() == None:
+    if weights is None:
 
         iteration = 0
         convergence = math.inf
