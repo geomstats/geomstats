@@ -604,8 +604,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             tait_bryan_angles,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.to_ndarray(gs.eye(n), to_ndim=3)
-
+        expected = gs.eye(n)
         self.assertAllClose(result, expected)
 
         angle = gs.array(gs.pi / 6.)

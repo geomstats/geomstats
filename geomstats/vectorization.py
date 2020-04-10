@@ -144,6 +144,14 @@ def decorator(point_types):
         def wrapper(*args, **kwargs):
             args_point_types = point_types[:len(args)]
             kwargs_point_types = point_types[len(args):]
+            # print('args_point_types')
+            # print(args_point_types)
+            # print('kwargs_point_types')
+            # print(kwargs_point_types)
+            # print('args')
+            # print(args)
+            # print('kwargs')
+            # print(kwargs)
 
             in_shapes = initial_shapes(args_point_types, args)
             kw_in_shapes = initial_shapes(kwargs_point_types, kwargs.values())
