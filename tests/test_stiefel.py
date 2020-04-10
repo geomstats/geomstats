@@ -139,18 +139,20 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         p = self.p
 
         one_base_point = self.point_a
+        one_tangent_vec = self.tangent_vector_1
+
         n_base_points = gs.tile(
             gs.to_ndarray(self.point_a, to_ndim=3),
             (n_samples, 1, 1))
-
-        one_tangent_vec = self.tangent_vector_1
-        result = self.metric.exp(one_tangent_vec, one_base_point)
-        self.assertAllClose(gs.shape(result), (1, n, p))
-
         n_tangent_vecs = gs.tile(
             gs.to_ndarray(self.tangent_vector_2, to_ndim=3),
             (n_samples, 1, 1))
 
+        # With single tangent vec and base point
+        result = self.metric.exp(one_tangent_vec, one_base_point)
+        self.assertAllClose(gs.shape(result), (n, p))
+
+        # With n_samples tangent vecs and base points
         result = self.metric.exp(n_tangent_vecs, one_base_point)
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 
@@ -165,12 +167,15 @@ class TestStiefelMethods(geomstats.tests.TestCase):
 
         one_point = self.space.random_uniform()
         one_base_point = self.space.random_uniform()
+
         n_points = self.space.random_uniform(n_samples=n_samples)
         n_base_points = self.space.random_uniform(n_samples=n_samples)
 
+        # With single point and base point
         result = self.metric.log(one_point, one_base_point)
-        self.assertAllClose(gs.shape(result), (1, n, p))
+        self.assertAllClose(gs.shape(result), (n, p))
 
+        # With multiple points and base points
         result = self.metric.log(n_points, one_base_point)
         self.assertAllClose(gs.shape(result), (n_samples, n, p))
 

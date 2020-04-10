@@ -197,7 +197,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
         return inner_prod
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
@@ -331,7 +331,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             axis=2)
         return matrix_v
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector', 'else'])
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'else'])
     def log(self, point, base_point, max_iter=30):
         """Compute the Riemannian logarithm of a point.
 
