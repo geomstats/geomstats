@@ -204,6 +204,7 @@ class LieGroup(Manifold):
         exp : array-like, shape=[n_samples, {dimension,[n,n]}]
             the computed exponential
         """
+        # TODO(nmiolane): Factorize this type of if in the codebase
         if point_type is None:
             point_type = self.default_point_type
 
