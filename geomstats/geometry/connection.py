@@ -4,6 +4,7 @@ import autograd
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
+import geomstats.error
 from geomstats.integrator import integrate
 
 
@@ -11,7 +12,7 @@ N_STEPS = 10
 EPSILON = 1e-3
 
 
-class Connection(object):
+class Connection:
     """Class for affine connections.
 
     Parameters
@@ -21,6 +22,7 @@ class Connection(object):
     """
 
     def __init__(self, dimension):
+        geomstats.error.check_integer(dimension, 'dimension')
         self.dimension = dimension
 
     def christoffels(self, base_point):
@@ -446,7 +448,10 @@ class Connection(object):
                 point=end_point,
                 base_point=initial_point)
             if initial_tangent_vec is not None:
-                assert gs.allclose(shooting_tangent_vec, initial_tangent_vec)
+                if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
+                    raise RuntimeError(
+                        'The shooting tangent vector is too'
+                        ' far from the initial tangent vector.')
             initial_tangent_vec = shooting_tangent_vec
         initial_tangent_vec = gs.array(initial_tangent_vec)
         initial_tangent_vec = gs.to_ndarray(

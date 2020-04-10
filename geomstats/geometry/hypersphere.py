@@ -47,7 +47,6 @@ class Hypersphere(EmbeddedManifold):
     """
 
     def __init__(self, dimension):
-        assert isinstance(dimension, int) and dimension > 0
         super(Hypersphere, self).__init__(
             dimension=dimension,
             embedding_manifold=Euclidean(dimension + 1))

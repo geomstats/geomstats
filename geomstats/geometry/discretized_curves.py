@@ -316,7 +316,10 @@ class SRVMetric(RiemannianMetric):
             shooting_tangent_vec = self.log(curve=end_curve,
                                             base_curve=initial_curve)
             if initial_tangent_vec is not None:
-                assert gs.allclose(shooting_tangent_vec, initial_tangent_vec)
+                if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
+                    raise RuntimeError(
+                        'The shooting tangent vector is too'
+                        ' far from the initial tangent vector.')
             initial_tangent_vec = shooting_tangent_vec
         initial_tangent_vec = gs.array(initial_tangent_vec)
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
@@ -359,7 +362,8 @@ class SRVMetric(RiemannianMetric):
             raise AssertionError('The distance is only implemented for '
                                  'dicretized curves embedded in a '
                                  'Euclidean space.')
-        assert curve_a.shape == curve_b.shape
+        if curve_a.shape != curve_b.shape:
+            raise ValueError('The curves need to have the same shapes.')
 
         srv_a = self.square_root_velocity(curve_a)
         srv_b = self.square_root_velocity(curve_b)

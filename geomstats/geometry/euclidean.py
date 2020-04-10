@@ -13,8 +13,7 @@ class Euclidean(Manifold):
     """
 
     def __init__(self, dimension):
-        assert isinstance(dimension, int) and dimension > 0
-        self.dimension = dimension
+        super(Euclidean, self).__init__(dimension=dimension)
         self.metric = EuclideanMetric(dimension)
 
     def belongs(self, point):
@@ -66,9 +65,8 @@ class EuclideanMetric(RiemannianMetric):
     """
 
     def __init__(self, dimension):
-        assert isinstance(dimension, int) and dimension > 0
-        super(EuclideanMetric, self).__init__(dimension=dimension,
-                                              signature=(dimension, 0, 0))
+        super(EuclideanMetric, self).__init__(
+            dimension=dimension, signature=(dimension, 0, 0))
 
     def inner_product_matrix(self, base_point=None):
         """Compute inner product matrix, independent of the base point.

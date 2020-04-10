@@ -3,6 +3,7 @@
 import logging
 
 import geomstats.backend as gs
+import geomstats.error
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
@@ -34,10 +35,10 @@ class InvariantMetric(RiemannianMetric):
             inner_product_mat_at_identity = gs.eye(self.group.dimension)
         inner_product_mat_at_identity = gs.to_ndarray(
             inner_product_mat_at_identity, to_ndim=3)
-        mat_shape = inner_product_mat_at_identity.shape
-        assert mat_shape == (1,) + (group.dimension, ) * 2, mat_shape
 
-        assert left_or_right in ('left', 'right')
+        geomstats.error.check_parameter_accepted_values(
+            left_or_right, 'left_or_right', ['left', 'right'])
+
         eigenvalues = gs.linalg.eigvalsh(inner_product_mat_at_identity)
         mask_pos_eigval = gs.greater(eigenvalues, 0.)
         n_pos_eigval = gs.sum(gs.cast(mask_pos_eigval, gs.int32))
@@ -65,7 +66,10 @@ class InvariantMetric(RiemannianMetric):
         inner_prod : array-like, shape=[n_samples, dimension]
             Inner-product of the two tangent vectors.
         """
-        assert self.group.default_point_type in ('vector', 'matrix')
+        geomstats.error.check_parameter_accepted_values(
+            self.group.default_point_type,
+            'default_point_type',
+            ['vector', 'matrix'])
 
         if self.group.default_point_type == 'vector':
             tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
@@ -180,7 +184,7 @@ class InvariantMetric(RiemannianMetric):
         jacobian = self.group.jacobian_translation(
             point=base_point,
             left_or_right=self.left_or_right)
-        assert gs.ndim(jacobian) == 3
+
         inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = gs.transpose(inv_jacobian, axes=(0, 2, 1))
 
@@ -282,7 +286,6 @@ class InvariantMetric(RiemannianMetric):
             return self.exp_from_identity(tangent_vec)
 
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        assert gs.ndim(tangent_vec) == 2
 
         n_tangent_vecs, _ = tangent_vec.shape
         n_base_points, _ = base_point.shape
@@ -295,7 +298,6 @@ class InvariantMetric(RiemannianMetric):
         jacobian = self.group.jacobian_translation(
             point=base_point,
             left_or_right=self.left_or_right)
-        assert gs.ndim(jacobian) == 3
         inv_jacobian = gs.linalg.inv(jacobian)
         inv_jacobian_transposed = gs.transpose(inv_jacobian, axes=(0, 2, 1))
         tangent_vec_at_id = gs.einsum(
@@ -337,8 +339,6 @@ class InvariantMetric(RiemannianMetric):
         inner_prod_mat = self.inner_product_mat_at_identity
         inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
         sqrt_inv_inner_prod_mat = gs.linalg.sqrtm(inv_inner_prod_mat)
-        assert sqrt_inv_inner_prod_mat.shape == ((1,)
-                                                 + (self.group.dimension,) * 2)
         aux = gs.squeeze(sqrt_inv_inner_prod_mat, axis=0)
         log = gs.matmul(point, aux)
         log = self.group.regularize_tangent_vec_at_identity(

@@ -9,8 +9,7 @@ class Minkowski(Manifold):
     """Class for Minkowski Space."""
 
     def __init__(self, dimension):
-        assert isinstance(dimension, int) and dimension > 0
-        self.dimension = dimension
+        super(Minkowski, self).__init__(dimension=dimension)
         self.metric = MinkowskiMetric(dimension)
 
     def belongs(self, point):
