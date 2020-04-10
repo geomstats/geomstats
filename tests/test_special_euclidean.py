@@ -324,19 +324,20 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         old_point_type = self.group.default_point_type
         self.group.default_point_type = 'matrix'
         self.group.n = 3
-        tangent_vec = gs.array([[0.,   -2.,   4.,  12.],
-                                [2.,    0.,   -4.5, 13.],
-                                [-4.,    4.5,   0.,  14.],
-                                [0.,    0.,    0.,    0.]])
+        tangent_vec = gs.array([[0., -2., 4., 12.],
+                                [2., 0., -4.5, 13.],
+                                [-4., 4.5, 0., 14.],
+                                [0., 0., 0., 0.]])
         result = self.group.regularize_tangent_vec_at_identity(tangent_vec)
         expected = tangent_vec
         self.assertAllClose(result, expected)
 
-        tangent_vec = gs.array([[.5,   -2.,   4.,  12.],
-                                [2.,    0.,   -4.5, 13.],
-                                [-4.,    4.5,   0.,  14.],
-                                [0.5,    0.,    0.,    0.]])
-        regularized = self.group.regularize_tangent_vec_at_identity(tangent_vec)
+        tangent_vec = gs.array([[.5, -2., 4., 12.],
+                                [2., 0.,  -4.5, 13.],
+                                [-4., 4.5, 0., 14.],
+                                [0.5, 0., 0., 0.]])
+        regularized = self.group.regularize_tangent_vec_at_identity(
+            tangent_vec)
         result = SkewSymmetricMatrices(3).belongs(regularized[:3, :3])
         expected = True
         self.assertAllClose(result, expected)
@@ -354,6 +355,25 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             tangent_vecs)
         result = SkewSymmetricMatrices(n).belongs(regularized[:, :n, :n])
         expected = gs.array([True] * self.n_samples)
+        self.assertAllClose(result, expected)
+        self.group.default_point_type = old_point_type
+
+    def test_regularize_tangent_vec_vectorization(self):
+        old_point_type = self.group.default_point_type
+        self.group.default_point_type = 'matrix'
+        n = self.group.n
+        tangent_vecs = gs.arange(self.n_samples * (self.group.n + 1) ** 2)
+        tangent_vecs = gs.cast(tangent_vecs, gs.float32)
+        tangent_vecs = gs.reshape(
+            tangent_vecs, (self.n_samples,) + (n + 1,) * 2)
+        point = self.group.random_uniform(self.n_samples)
+        tangent_vecs = self.group.compose(point, tangent_vecs)
+        regularized = self.group.regularize_tangent_vec(tangent_vecs, point)
+        result = self.group.compose(
+            gs.transpose(point, (0, 2, 1)), regularized) + \
+            self.group.compose(gs.transpose(regularized, (0, 2, 1)), point)
+        result = result[:, :n, :n]
+        expected = gs.zeros_like(result)
         self.assertAllClose(result, expected)
         self.group.default_point_type = old_point_type
 
