@@ -408,8 +408,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             vec = gs.reshape(vec, (n_vecs, 2))
 
             id_skew = gs.array([[[0., 1.], [-1., 0.]]] * n_vecs)
-            # print(vec.shape)
-            # print(id_skew.shape)
             skew_mat = gs.einsum(
                 '...ij,...i->...ij', gs.cast(id_skew, gs.float32), vec)
 
@@ -489,7 +487,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         if self.n == 2:  # SO(2)
             vec = skew_mat[:, 0, 1]
             vec = gs.expand_dims(vec, axis=1)
-            vec = gs.to_ndarray(vec, to_ndim=2)
 
         elif self.n == 3:  # SO(3)
             vec_1 = gs.to_ndarray(skew_mat[:, 2, 1], to_ndim=2, axis=1)
@@ -1305,7 +1302,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         if point_type == 'vector':
             point_prod = self.rotation_vector_from_matrix(point_prod)
-            point_prod = gs.to_ndarray(point_prod, to_ndim=2, axis=1)
 
         point_prod = self.regularize(
             point_prod, point_type=point_type)
