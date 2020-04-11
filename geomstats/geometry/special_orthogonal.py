@@ -122,7 +122,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
     @geomstats.vectorization.decorator(
-        ['else', 'vector', 'else', 'no_scalar_result'])
+        ['else', 'point', 'point_type', 'no_scalar_result'])
     def regularize(self, point, point_type=None):
         """Regularize a point to be in accordance with convention.
 
@@ -183,7 +183,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return regularized_point
 
     @geomstats.vectorization.decorator(
-        ['else', 'vector', 'else', 'else', 'no_scalar_result'])
+        ['else', 'point', 'else', 'point_type', 'no_scalar_result'])
     def regularize_tangent_vec_at_identity(
             self, tangent_vec, metric=None, point_type=None):
         """Regularize a tangent vector at the identify.

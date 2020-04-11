@@ -143,15 +143,21 @@ def decorator(point_types):
 
     def aux_decorator(function):
         def wrapper(*args, **kwargs):
+
             len_args = len(args)
             len_kwargs = len(kwargs)
             len_total = len_args + len_kwargs
+
             args_point_types = point_types[:len_args]
             kwargs_point_types = point_types[len_args:len_total]
-            scalar_result = True
+
+            args_point_types, kwargs_point_types = adapt_point_types(
+                args_point_types, kwargs_point_types, args)
+
+            scal_res = True
             if len(point_types) > len_total:
                 if point_types[-1] == 'no_scalar_result':
-                    scalar_result = False
+                    scal_res = False
             # print('args_point_types')
             # print(args_point_types)
             # print('kwargs_point_types')
@@ -172,7 +178,7 @@ def decorator(point_types):
 
             result = function(*vect_args, **vect_kwargs)
 
-            if squeeze_output_dim_1(result, in_shapes, point_types, scalar_result):
+            if squeeze_output_dim_1(result, in_shapes, point_types, scal_res):
                 if result.shape[1] == 1:
                     result = gs.squeeze(result, axis=1)
 
@@ -182,6 +188,31 @@ def decorator(point_types):
             return result
         return wrapper
     return aux_decorator
+
+
+def adapt_point_types(args_point_types, kwargs_point_types, args):
+    """Adapt the list of input point_types."""
+    aux = args_point_types
+    args_point_types.extend(kwargs_point_types)
+    point_types = args_point_types
+    args_point_types = aux
+
+    if 'point_type' in point_types:
+        if 'point_type' in args_point_types:
+            i_point_type = point_types.index('point_type')
+            point_type = args_point_types[i_point_type]
+        elif 'point_type' in kwargs_point_types:
+            i_point_type = kwargs_point_types.index('point_type')
+            point_type = kwargs_point_types[i_point_type]
+
+        if point_type is None:
+            obj = args[0]
+            point_type = obj.default_point_type
+        args_point_types = [
+            pt if pt != 'point' else point_type for pt in args_point_types]
+        kwargs_point_types = [
+            pt if pt != 'point' else point_type for pt in kwargs_point_types]
+    return args_point_types, kwargs_point_types
 
 
 def initial_shapes(point_types, args):
