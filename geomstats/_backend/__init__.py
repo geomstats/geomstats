@@ -71,6 +71,7 @@ BACKEND_ATTRIBUTES = {
         'ones',
         'ones_like',
         'outer',
+        'power',
         'repeat',
         'reshape',
         'searchsorted',
