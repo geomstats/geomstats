@@ -14,7 +14,7 @@ TOLERANCE = 1e-12
 class SymmetricMatrices(EmbeddedManifold):
     """Class for the vector space of symmetric matrices of size n."""
 
-    def __init__(self, n):
+    def __init__(self, n, **kwargs):
         super(SymmetricMatrices, self).__init__(
             dimension=int(n * (n + 1) / 2),
             embedding_manifold=Matrices(n, n))
@@ -100,6 +100,7 @@ class SymmetricMatrices(EmbeddedManifold):
         """
         return cls.apply_func_to_eigvals(x, gs.log, check_positive=True)
 
+    @classmethod
     def powerm(cls, x, power):
         """
         Compute the matrix power.
@@ -138,13 +139,12 @@ class SymmetricMatrices(EmbeddedManifold):
         eigvals, eigvecs = gs.linalg.eigh(x)
         if check_positive:
             if gs.any(eigvals < 0):
-                print(eigvals)
                 logging.warning(
                     'Negative eigenvalue encountered in'
                     ' {}'.format(function.__name__))
         eigvals = function(eigvals)
         eigvals = algebra_utils.from_vector_to_diagonal_matrix(eigvals)
-        transp_eigvecs = gs.transpose(eigvecs, axes=(0, 2, 1))
+        transp_eigvecs = Matrices.transpose(eigvecs)
         reconstuction = gs.matmul(eigvecs, eigvals)
         reconstuction = gs.matmul(reconstuction, transp_eigvecs)
         return reconstuction
