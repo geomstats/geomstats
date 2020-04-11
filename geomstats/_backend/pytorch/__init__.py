@@ -35,9 +35,7 @@ from torch import (  # NOQA
     log,
     lt as less,
     matmul,
-    max as amax,
     meshgrid,
-    min as amin,
     nonzero,
     ones,
     ones_like,
@@ -581,3 +579,11 @@ def array_from_sparse(indices, data, target_shape):
         torch.LongTensor(indices).t(),
         torch.FloatTensor(cast(data, float32)),
         torch.Size(target_shape)).to_dense()
+
+
+def amax(*args, **kwargs):
+    return torch.max(*args, **kwargs).values
+
+
+def amin(*args, **kwargs):
+    return torch.min(*args, **kwargs).values
