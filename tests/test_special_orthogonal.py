@@ -2780,8 +2780,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
     def test_compose_vectorization(self):
         for point_type in ('vector', 'matrix'):
             for n in self.n_seq:
-                print('n=')
-                print(n)
                 group = self.so[n]
                 group.default_point_type = point_type
 
@@ -2791,8 +2789,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 one_point = group.random_uniform(n_samples=1)
 
                 result = group.compose(one_point, n_points_a)
-                print('result')
-                print(result)
                 if point_type == 'vector':
                     self.assertAllClose(
                         gs.shape(result), (n_samples, group.dimension))

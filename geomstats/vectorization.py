@@ -75,7 +75,7 @@ def is_scalar(vect_array):
     return has_singleton_dim_1
 
 
-def squeeze_output_dim_1(result, in_shapes, point_types):
+def squeeze_output_dim_1(result, in_shapes, point_types, scalar_result=True):
     """Determine if the output needs to be squeezed on dim 1.
 
     This happens if the user represents scalars as array of shapes:
@@ -98,16 +98,17 @@ def squeeze_output_dim_1(result, in_shapes, point_types):
     squeeze : bool
         Boolean deciding whether to squeeze dim 1 of the output.
     """
+    if not scalar_result:
+        return False
     if not is_scalar(result):
         return False
 
     for shape, point_type in zip(in_shapes, point_types):
-        if point_type != 'else' and shape is not None:
+        if point_type == 'scalar':
             ndim = len(shape)
-            if point_type == 'scalar':
-                assert ndim <= 2
-                if ndim == 2:
-                    return False
+            assert ndim <= 2
+            if ndim == 2:
+                return False
     return True
 
 
@@ -122,7 +123,7 @@ def decorator(point_types):
     - one scalar has shape [1, 1],
     - n scalars have shape [n, 1],
     - one d-D vector has shape [1, d],
-    - n d-D vectors have shape [n, d],
+    - n d-D vectors have shape [n, d],etc
     etc.
 
     The decorator:
@@ -142,8 +143,15 @@ def decorator(point_types):
 
     def aux_decorator(function):
         def wrapper(*args, **kwargs):
-            args_point_types = point_types[:len(args)]
-            kwargs_point_types = point_types[len(args):]
+            len_args = len(args)
+            len_kwargs = len(kwargs)
+            len_total = len_args + len_kwargs
+            args_point_types = point_types[:len_args]
+            kwargs_point_types = point_types[len_args:len_total]
+            scalar_result = True
+            if len(point_types) > len_total:
+                if point_types[-1] == 'no_scalar_result':
+                    scalar_result = False
             # print('args_point_types')
             # print(args_point_types)
             # print('kwargs_point_types')
@@ -152,6 +160,8 @@ def decorator(point_types):
             # print(args)
             # print('kwargs')
             # print(kwargs)
+            # print(len_total)
+            # print(len(point_types))
 
             in_shapes = initial_shapes(args_point_types, args)
             kw_in_shapes = initial_shapes(kwargs_point_types, kwargs.values())
@@ -162,7 +172,7 @@ def decorator(point_types):
 
             result = function(*vect_args, **vect_kwargs)
 
-            if squeeze_output_dim_1(result, in_shapes, point_types):
+            if squeeze_output_dim_1(result, in_shapes, point_types, scalar_result):
                 if result.shape[1] == 1:
                     result = gs.squeeze(result, axis=1)
 
