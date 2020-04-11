@@ -219,7 +219,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 group = self.so[n]
                 point = group.random_uniform(point_type=point_type)
                 result = group.belongs(point, point_type=point_type)
-                expected = gs.array([[True]])
+                expected = True
                 self.assertAllClose(result, expected)
 
     def test_random_and_belongs_vectorization(self):
@@ -228,7 +228,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             group = self.so[n]
             points = group.random_uniform(n_samples=n_samples)
             result = group.belongs(points)
-            expected = gs.array([[True]] * n_samples)
+            expected = gs.array([True] * n_samples)
             self.assertAllClose(result, expected)
 
     def test_regularize(self):
