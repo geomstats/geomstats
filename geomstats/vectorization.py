@@ -163,32 +163,32 @@ def decorator(point_types):
                     scal_res = False
                     optional_kwargs_point_types = point_types[len_total:-1]
 
-            print('\nbefore')
-            print('args_point_types')
-            print(args_point_types)
-            print('kwargs_point_types')
-            print(kwargs_point_types)
-            print('optional_kwargs_point_types')
-            print(optional_kwargs_point_types)
-            print('args')
-            print(args)
-            print('kwargs')
-            print(kwargs)
+            # print('\nbefore')
+            # print('args_point_types')
+            # print(args_point_types)
+            # print('kwargs_point_types')
+            # print(kwargs_point_types)
+            # print('optional_kwargs_point_types')
+            # print(optional_kwargs_point_types)
+            # print('args')
+            # print(args)
+            # print('kwargs')
+            # print(kwargs)
 
             args_point_types, kwargs_point_types = adapt_point_types(
                 args_point_types, kwargs_point_types,
                 optional_kwargs_point_types,
                 args, kwargs)
 
-            print('\nafter')
-            print('args_point_types')
-            print(args_point_types)
-            print('kwargs_point_types')
-            print(kwargs_point_types)
-            print('args')
-            print(args)
-            print('kwargs')
-            print(kwargs)
+            # print('\nafter')
+            # print('args_point_types')
+            # print(args_point_types)
+            # print('kwargs_point_types')
+            # print(kwargs_point_types)
+            # print('args')
+            # print(args)
+            # print('kwargs')
+            # print(kwargs)
 
             in_shapes = initial_shapes(args_point_types, args)
             kw_in_shapes = initial_shapes(kwargs_point_types, kwargs.values())
@@ -200,9 +200,6 @@ def decorator(point_types):
             result = function(*vect_args, **vect_kwargs)
 
             adapted_point_types = args_point_types + kwargs_point_types
-            print('\nPre-squeeze')
-            print('adapted point_types')
-            print(adapted_point_types)
 
             if squeeze_output_dim_1(result,
                                     in_shapes,
@@ -234,12 +231,8 @@ def adapt_point_types(
             point_type = kwargs['point_type']
 
         elif in_optional:
-            print('Found None point_type')
             obj = args[0]
             point_type = obj.default_point_type
-
-        print('Point type is:')
-        print(point_type)
 
         args_point_types = [
             pt if pt != 'point' else point_type for pt in args_point_types]
