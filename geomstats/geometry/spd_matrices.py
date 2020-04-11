@@ -13,14 +13,14 @@ EPSILON = 1e-6
 TOLERANCE = 1e-12
 
 
-class SPDMatrices(EmbeddedManifold):
+class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
     """Class for the manifold of symmetric positive definite (SPD) matrices."""
 
     def __init__(self, n):
         super(SPDMatrices, self).__init__(
+            n=n,
             dimension=int(n * (n + 1) / 2),
             embedding_manifold=GeneralLinear(n=n))
-        self.n = n
 
     def belongs(self, mat, atol=TOLERANCE):
         """Check if a matrix is symmetric and invertible."""
@@ -28,22 +28,6 @@ class SPDMatrices(EmbeddedManifold):
         eigvalues, _ = gs.linalg.eigh(mat)
         is_positive = gs.all(eigvalues > 0, axis=1)
         return gs.logical_and(is_symmetric, is_positive)
-
-    def vector_from_symmetric_matrix(self, mat):
-        """Convert the symmetric part of a symmetric matrix into a vector."""
-        # TODO(nguigs): this method should be inherited
-        mat = gs.to_ndarray(mat, to_ndim=3)
-        assert gs.all(self.embedding_manifold.is_symmetric(mat))
-        mat = self.embedding_manifold.make_symmetric(mat)
-
-        _, dim, _ = mat.shape
-        i, j = gs.triu_indices(dim)
-        return mat[:, i, j]
-
-    def symmetric_matrix_from_vector(self, vec):
-        """Convert a vector into a symmetric matrix."""
-        # TODO(nguigs): this method should be inherited
-        return SymmetricMatrices(self.n).symmetric_matrix_from_vector(vec)
 
     def random_uniform(self, n_samples=1):
         """Define a log-uniform random sample of SPD matrices."""
@@ -426,7 +410,7 @@ class SPDMetricAffine(RiemannianMetric):
             modified_tangent_vec_b =\
                 spd_space.differential_power(power_affine, tangent_vec_b,
                                              base_point)
-            power_inv_base_point = gs.linalg.powerm(base_point, -power_affine)
+            power_inv_base_point = SymmetricMatrices.powerm(base_point, -power_affine)
             inner_product = self._aux_inner_product(modified_tangent_vec_a,
                                                     modified_tangent_vec_b,
                                                     power_inv_base_point)
@@ -455,7 +439,7 @@ class SPDMetricAffine(RiemannianMetric):
         tangent_vec_at_id = gs.matmul(tangent_vec_at_id,
                                       inv_sqrt_base_point)
         tangent_vec_at_id = GeneralLinear.make_symmetric(tangent_vec_at_id)
-        exp_from_id = gs.linalg.expm(tangent_vec_at_id)
+        exp_from_id = SymmetricMatrices.expm(tangent_vec_at_id)
 
         exp = gs.matmul(exp_from_id, sqrt_base_point)
         exp = gs.matmul(sqrt_base_point, exp)
@@ -495,20 +479,20 @@ class SPDMetricAffine(RiemannianMetric):
             base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
 
         if power_affine == 1:
-            sqrt_base_point = gs.linalg.powerm(base_point, 1. / 2)
-            inv_sqrt_base_point = gs.linalg.powerm(sqrt_base_point, -1)
+            sqrt_base_point = SymmetricMatrices.powerm(base_point, 1. / 2)
+            inv_sqrt_base_point = SymmetricMatrices.powerm(sqrt_base_point, -1)
             exp = self._aux_exp(tangent_vec, sqrt_base_point,
                                 inv_sqrt_base_point)
         else:
             modified_tangent_vec = self.space.differential_power(power_affine,
                                                                  tangent_vec,
                                                                  base_point)
-            power_sqrt_base_point = gs.linalg.powerm(base_point,
+            power_sqrt_base_point = SymmetricMatrices.powerm(base_point,
                                                      power_affine / 2)
             power_inv_sqrt_base_point = gs.linalg.inv(power_sqrt_base_point)
             exp = self._aux_exp(modified_tangent_vec, power_sqrt_base_point,
                                 power_inv_sqrt_base_point)
-            exp = gs.linalg.powerm(exp, 1 / power_affine)
+            exp = SymmetricMatrices.powerm(exp, 1 / power_affine)
 
         if ndim == 2:
             return exp[0]
@@ -530,7 +514,7 @@ class SPDMetricAffine(RiemannianMetric):
         point_near_id = gs.matmul(inv_sqrt_base_point, point)
         point_near_id = gs.matmul(point_near_id, inv_sqrt_base_point)
         point_near_id = GeneralLinear.make_symmetric(point_near_id)
-        log_at_id = gs.linalg.logm(point_near_id)
+        log_at_id = SymmetricMatrices.logm(point_near_id)
 
         log = gs.matmul(sqrt_base_point, log_at_id)
         log = gs.matmul(log, sqrt_base_point)
@@ -570,12 +554,12 @@ class SPDMetricAffine(RiemannianMetric):
             base_point = gs.tile(base_point, (n_points, 1, 1))
 
         if power_affine == 1:
-            sqrt_base_point = gs.linalg.powerm(base_point, 1. / 2)
-            inv_sqrt_base_point = gs.linalg.powerm(sqrt_base_point, -1)
+            sqrt_base_point = SymmetricMatrices.powerm(base_point, 1. / 2)
+            inv_sqrt_base_point = SymmetricMatrices.powerm(sqrt_base_point, -1)
             log = self._aux_log(point, sqrt_base_point, inv_sqrt_base_point)
         else:
-            power_point = gs.linalg.powerm(point, power_affine)
-            power_sqrt_base_point = gs.linalg.powerm(
+            power_point = SymmetricMatrices.powerm(point, power_affine)
+            power_sqrt_base_point = SymmetricMatrices.powerm(
                 base_point, power_affine / 2)
             power_inv_sqrt_base_point = gs.linalg.inv(power_sqrt_base_point)
             log = self._aux_log(
@@ -812,15 +796,17 @@ class SPDMetricEuclidean(RiemannianMetric):
         """
         base_point = gs.to_ndarray(base_point, to_ndim=3)
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
-        invsqrt_base_point = gs.linalg.powerm(base_point, -.5)
+        invsqrt_base_point = SymmetricMatrices.powerm(base_point, -.5)
         reduced_vec = gs.matmul(invsqrt_base_point, tangent_vec)
         reduced_vec = gs.matmul(reduced_vec, invsqrt_base_point)
         eigvals = gs.linalg.eigvalsh(reduced_vec)
         min_eig = gs.amin(eigvals, axis=1)
         max_eig = gs.amax(eigvals, axis=1)
-        inf_value = gs.where(max_eig <= 0, -math.inf, - 1 / max_eig)
+        inf_value = gs.where(
+            max_eig <= 0., gs.array(-math.inf), - 1. / max_eig)
         inf_value = gs.to_ndarray(inf_value, to_ndim=2)
-        sup_value = gs.where(min_eig >= 0, math.inf, - 1 / min_eig)
+        sup_value = gs.where(
+            min_eig >= 0., gs.array(-math.inf), - 1. / min_eig)
         sup_value = gs.to_ndarray(sup_value, to_ndim=2)
         domain = gs.concatenate((inf_value, sup_value), axis=1)
 
@@ -915,9 +901,9 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         exp : array-like, shape=[n_samples, n, n]
         """
         ndim = gs.maximum(gs.ndim(tangent_vec), gs.ndim(base_point))
-        log_base_point = gs.linalg.logm(base_point)
+        log_base_point = SymmetricMatrices.logm(base_point)
         dlog_tangent_vec = self.space.differential_log(tangent_vec, base_point)
-        exp = gs.linalg.expm(log_base_point + dlog_tangent_vec)
+        exp = SymmetricMatrices.expm(log_base_point + dlog_tangent_vec)
 
         if ndim == 2:
             return exp[0]
@@ -940,8 +926,8 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         log : array-like, shape=[n_samples, n, n]
         """
         ndim = gs.maximum(gs.ndim(point), gs.ndim(base_point))
-        log_base_point = gs.linalg.logm(base_point)
-        log_point = gs.linalg.logm(point)
+        log_base_point = SymmetricMatrices.logm(base_point)
+        log_point = SymmetricMatrices.logm(point)
         log = self.space.differential_exp(log_point - log_base_point,
                                           log_base_point)
 
