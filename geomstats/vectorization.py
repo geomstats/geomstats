@@ -168,6 +168,8 @@ def decorator(point_types):
             print(args_point_types)
             print('kwargs_point_types')
             print(kwargs_point_types)
+            print('optional_kwargs_point_types')
+            print(optional_kwargs_point_types)
             print('args')
             print(args)
             print('kwargs')
@@ -220,21 +222,24 @@ def adapt_point_types(
         args_point_types, kwargs_point_types,
         optional_kwargs_point_types, args, kwargs):
     """Adapt the list of input point_types."""
-    in_args_point_types = 'point_type' in args_point_types
-    in_kwargs_point_types = 'point_type' in kwargs_point_types
-    in_optional_kwargs_point_types = 'point_type' in optional_kwargs_point_types
+    in_args = 'point_type' in args_point_types
+    in_kwargs = 'point_type' in kwargs_point_types
+    in_optional = 'point_type' in optional_kwargs_point_types
 
-    if in_args_point_types or in_kwargs_point_types:
-        if in_args_point_types:
+    if in_args or in_kwargs or in_optional:
+        if in_args:
             i_point_type = args_point_types.index('point_type')
             point_type = args[i_point_type]
-        elif in_kwargs_point_types:
+        elif in_kwargs:
             point_type = kwargs['point_type']
 
-    if in_optional_kwargs_point_types:
-        print('Found None point_type')
-        obj = args[0]
-        point_type = obj.default_point_type
+        elif in_optional:
+            print('Found None point_type')
+            obj = args[0]
+            point_type = obj.default_point_type
+
+        print('Point type is:')
+        print(point_type)
 
         args_point_types = [
             pt if pt != 'point' else point_type for pt in args_point_types]
