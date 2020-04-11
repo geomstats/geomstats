@@ -66,8 +66,8 @@ class SymmetricMatrices(EmbeddedManifold):
             gs.array_from_sparse(indices, data, shape) for data in vec])
         return Matrices.make_symmetric(upper_triangular) * mask
 
-    @staticmethod
-    def expm(x):
+    @classmethod
+    def expm(cls, x):
         """
         Compute the matrix exponential.
 
@@ -81,10 +81,70 @@ class SymmetricMatrices(EmbeddedManifold):
         exponential : array_like, shape=[n_samples, n, n]
             Exponential of x.
         """
+        return cls.apply_func_to_eigvals(x, gs.exp)
+
+    @classmethod
+    def logm(cls, x):
+        """
+        Compute the matrix log.
+
+        Parameters
+        ----------
+        x : array_like, shape=[n_samples, n, n]
+            Symmetric matrix.
+
+        Returns
+        -------
+        exponential : array_like, shape=[n_samples, n, n]
+            Exponential of x.
+        """
+        return cls.apply_func_to_eigvals(x, gs.log, check_positive=True)
+
+    def powerm(cls, x, power):
+        """
+        Compute the matrix power.
+
+        Parameters
+        ----------
+        x : array_like, shape=[n_samples, n, n]
+            Symmetric matrix.
+
+        Returns
+        -------
+        exponential : array_like, shape=[n_samples, n, n]
+            Exponential of x.
+        """
+        def pow(x):
+            return gs.power(x, power)
+        return cls.apply_func_to_eigvals(x, pow, check_positive=True)
+
+    @staticmethod
+    def apply_func_to_eigvals(x, function, check_positive=False):
+        """
+        Apply function to eigenvalues and reconstruct the matrix.
+
+        Parameters
+        ----------
+        x : array_like, shape=[n_samples, n, n]
+            Symmetric matrix.
+        function : callable
+            Function to apply to eigenvalues.
+
+        Returns
+        -------
+        x : array_like, shape=[n_samples, n, n]
+            Symmetric matrix.
+        """
         eigvals, eigvecs = gs.linalg.eigh(x)
-        eigvals = gs.exp(eigvals)
+        if check_positive:
+            if gs.any(eigvals < 0):
+                print(eigvals)
+                logging.warning(
+                    'Negative eigenvalue encountered in'
+                    ' {}'.format(function.__name__))
+        eigvals = function(eigvals)
         eigvals = algebra_utils.from_vector_to_diagonal_matrix(eigvals)
         transp_eigvecs = gs.transpose(eigvecs, axes=(0, 2, 1))
-        exponential = gs.matmul(eigvecs, eigvals)
-        exponential = gs.matmul(exponential, transp_eigvecs)
-        return exponential
+        reconstuction = gs.matmul(eigvecs, eigvals)
+        reconstuction = gs.matmul(reconstuction, transp_eigvecs)
+        return reconstuction
