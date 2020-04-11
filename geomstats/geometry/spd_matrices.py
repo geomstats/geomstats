@@ -410,7 +410,8 @@ class SPDMetricAffine(RiemannianMetric):
             modified_tangent_vec_b =\
                 spd_space.differential_power(power_affine, tangent_vec_b,
                                              base_point)
-            power_inv_base_point = SymmetricMatrices.powerm(base_point, -power_affine)
+            power_inv_base_point = SymmetricMatrices.powerm(
+                base_point, - power_affine)
             inner_product = self._aux_inner_product(modified_tangent_vec_a,
                                                     modified_tangent_vec_b,
                                                     power_inv_base_point)
@@ -487,8 +488,8 @@ class SPDMetricAffine(RiemannianMetric):
             modified_tangent_vec = self.space.differential_power(power_affine,
                                                                  tangent_vec,
                                                                  base_point)
-            power_sqrt_base_point = SymmetricMatrices.powerm(base_point,
-                                                     power_affine / 2)
+            power_sqrt_base_point = SymmetricMatrices.powerm(
+                base_point, power_affine / 2)
             power_inv_sqrt_base_point = gs.linalg.inv(power_sqrt_base_point)
             exp = self._aux_exp(modified_tangent_vec, power_sqrt_base_point,
                                 power_inv_sqrt_base_point)
