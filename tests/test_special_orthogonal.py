@@ -167,7 +167,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             delta = 1e-12 * gs.ones((n, n))
             rot_mat_plus_delta = rot_mat + delta
             result = group.projection(rot_mat_plus_delta)
-            expected = helper.to_matrix(rot_mat)
+            expected = rot_mat
             self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only

@@ -332,6 +332,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         return regularized_tangent_vec
 
+    @geomstats.vectorization.decorator(['else', 'matrix'])
     def projection(self, point):
         """Project a matrix on SO(n) using the Frobenius norm.
 
@@ -343,8 +344,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         rot_mat : array-like, shape=[n_samples, n, n]
         """
-        mat = gs.to_ndarray(point, to_ndim=3)
-
+        mat = point
         n_mats, _, _ = mat.shape
 
         if self.n == 3:
