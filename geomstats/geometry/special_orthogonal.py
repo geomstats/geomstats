@@ -1469,6 +1469,9 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         if point_type == 'matrix':
             random_point = self.matrix_from_rotation_vector(random_point)
 
+        if n_samples == 1:
+            random_point = gs.squeeze(random_point, axis=0)
+
         return random_point
 
     def exp_from_identity(self, tangent_vec, point_type=None):

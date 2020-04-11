@@ -213,6 +213,21 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
             self.assertAllClose(gs.shape(result), (n_samples, n, n))
 
+    @geomstats.tests.np_only
+    def test_random_uniform_shape(self):
+        point_type = 'vector'
+        for n in self.n_seq:
+            group = self.so[n]
+            result = group.random_uniform(point_type=point_type)
+            self.assertAllClose(gs.shape(result), (group.dimension,))
+
+        point_type = 'matrix'
+        for n in self.n_seq:
+            group = self.so[n]
+            result = group.random_uniform(point_type=point_type)
+            self.assertAllClose(gs.shape(result), (n, n))
+
+    @geomstats.tests.np_only
     def test_random_and_belongs(self):
         for point_type in ('vector', 'matrix'):
             for n in self.n_seq:
