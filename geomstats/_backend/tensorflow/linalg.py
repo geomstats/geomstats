@@ -19,9 +19,10 @@ def eig(*args, **kwargs):
 
 
 def logm(x):
+    original_type = x.dtype
     x = tf.cast(x, tf.complex64)
     tf_logm = tf.linalg.logm(x)
-    tf_logm = tf.cast(tf_logm, tf.float32)
+    tf_logm = tf.cast(tf_logm, original_type)
     return tf_logm
 
 

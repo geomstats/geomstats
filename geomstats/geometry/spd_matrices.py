@@ -7,6 +7,7 @@ from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 EPSILON = 1e-6
 TOLERANCE = 1e-12
@@ -21,36 +22,28 @@ class SPDMatrices(EmbeddedManifold):
             embedding_manifold=GeneralLinear(n=n))
         self.n = n
 
-    @staticmethod
-    def belongs(mat, atol=TOLERANCE):
+    def belongs(self, mat, atol=TOLERANCE):
         """Check if a matrix is symmetric and invertible."""
-        # TODO (opeltre): check positivity, implying invertibility.
-        #
-        # note : vectorized "and" on numpy works with:
-        #       [bool] * [bool] -> bool
-        # but does not on tf.
-        return Matrices.is_symmetric(mat)
+        is_symmetric = GeneralLinear.is_symmetric(mat)
+        eigvalues, _ = gs.linalg.eigh(mat)
+        is_positive = gs.all(eigvalues > 0, axis=1)
+        return gs.logical_and(is_symmetric, is_positive)
 
     def vector_from_symmetric_matrix(self, mat):
         """Convert the symmetric part of a symmetric matrix into a vector."""
+        # TODO(nguigs): this method should be inherited
         mat = gs.to_ndarray(mat, to_ndim=3)
         assert gs.all(self.embedding_manifold.is_symmetric(mat))
         mat = self.embedding_manifold.make_symmetric(mat)
 
         _, dim, _ = mat.shape
-        i, j = gs.tril_indices(dim)
+        i, j = gs.triu_indices(dim)
         return mat[:, i, j]
 
     def symmetric_matrix_from_vector(self, vec):
         """Convert a vector into a symmetric matrix."""
-        vec = gs.to_ndarray(vec, to_ndim=2)
-        n_samples, vec_dim = vec.shape
-        mat_dim = int((gs.sqrt(8 * vec_dim + 1) - 1) / 2)
-        mask = gs.tril(gs.ones((mat_dim, mat_dim))) != 0
-        sym = gs.zeros((n_samples, mat_dim, mat_dim))
-        sym[..., mask != 0] = vec
-        sym.swapaxes(-1, -2)[..., mask] = vec
-        return self.embedding_manifold.make_symmetric(sym)
+        # TODO(nguigs): this method should be inherited
+        return SymmetricMatrices(self.n).symmetric_matrix_from_vector(vec)
 
     def random_uniform(self, n_samples=1):
         """Define a log-uniform random sample of SPD matrices."""
@@ -591,7 +584,6 @@ class SPDMetricAffine(RiemannianMetric):
                 power_inv_sqrt_base_point)
             log = self.space.inverse_differential_power(power_affine, log,
                                                         base_point)
-
         if ndim == 2:
             return log[0]
         return log
