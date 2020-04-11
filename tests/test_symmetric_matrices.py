@@ -59,6 +59,26 @@ class TestSymmetricMatricesMethods(geomstats.tests.TestCase):
                               [0., 0., e]]])
         self.assertAllClose(result, expected)
 
+    def test_logm(self):
+        """Test of logm method."""
+        sym_n = SymmetricMatrices(self.n)
+        expected = gs.array([[[0., 1., 0.], [1., 0., 0.], [0., 0., 1.]]])
+        c = math.cosh(1)
+        s = math.sinh(1)
+        e = math.exp(1)
+        v = gs.array([[[c, s, 0.], [s, c, 0.], [0., 0., e]]])
+        result = sym_n.logm(v)
+        self.assertAllClose(result, expected)
+
+    def test_powerm(self):
+        """Test of powerm method."""
+        sym_n = SymmetricMatrices(self.n)
+        expected = gs.array(
+            [[[1, 1. / 4., 0.], [1. / 4, 2., 0.], [0., 0., 1.]]])
+        result = sym_n.powerm(expected, 1. / 2)
+        result = gs.matmul(result, gs.transpose(result, (0, 2, 1)))
+        self.assertAllClose(result, expected)
+
     @geomstats.tests.np_and_pytorch_only
     def test_vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(
             self):
