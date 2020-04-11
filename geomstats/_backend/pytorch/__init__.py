@@ -41,6 +41,7 @@ from torch import (  # NOQA
     nonzero,
     ones,
     ones_like,
+    pow as power,
     repeat_interleave as repeat,
     reshape,
     sign,
