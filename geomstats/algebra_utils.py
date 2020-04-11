@@ -18,5 +18,6 @@ def from_vector_to_diagonal_matrix(vector):
     """
     num_columns = gs.shape(vector)[-1]
     identity = gs.eye(num_columns)
-    diagonals = gs.einsum('ki,ij->kij', vector, identity)
+    identity = gs.cast(identity, vector.dtype)
+    diagonals = gs.einsum('...i,ij->...ij', vector, identity)
     return diagonals
