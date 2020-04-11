@@ -121,6 +121,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
+    @geomstats.vectorization.decorator(
+        ['else', 'vector', 'else', 'no_scalar_result'])
     def regularize(self, point, point_type=None):
         """Regularize a point to be in accordance with convention.
 
@@ -146,8 +148,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             point_type = self.default_point_type
 
         if point_type == 'vector':
-            point = gs.to_ndarray(point, to_ndim=2)
-
             regularized_point = point
             if self.n == 3:
                 angle = gs.linalg.norm(regularized_point, axis=1)
@@ -178,11 +178,12 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                     'n,ni->ni', norms_ratio, regularized_point)
 
         elif point_type == 'matrix':
-            point = gs.to_ndarray(point, to_ndim=3)
-            regularized_point = gs.to_ndarray(point, to_ndim=3)
+            regularized_point = point
 
         return regularized_point
 
+    @geomstats.vectorization.decorator(
+        ['else', 'vector', 'else', 'else', 'no_scalar_result'])
     def regularize_tangent_vec_at_identity(
             self, tangent_vec, metric=None, point_type=None):
         """Regularize a tangent vector at the identify.
@@ -206,8 +207,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             point_type = self.default_point_type
 
         if point_type == 'vector':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-
             if self.n == 3:
                 if metric is None:
                     metric = self.left_canonical_metric
@@ -257,6 +256,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         return regularized_vec
 
+    @geomstats.vectorization.decorator(
+        ['else', 'vector', 'vector', 'else', 'else', 'no_scalar_result'])
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None, point_type=None):
         """Regularize tangent vector at a base point.
@@ -284,8 +285,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             point_type = self.default_point_type
 
         if point_type == 'vector':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-
             if self.n == 3:
                 if metric is None:
                     metric = self.left_canonical_metric
@@ -320,6 +319,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             if gs.allclose(base_point, self.identity):
                 return self.regularize_tangent_vec_at_identity(
                     tangent_vec, point_type=point_type)
+
             inv_base_point = self.inverse(base_point)
             tangent_vec_at_id = self.compose(inv_base_point, tangent_vec)
             regularized_tangent_vec = self.regularize_tangent_vec_at_identity(
