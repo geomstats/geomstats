@@ -455,8 +455,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     result = group.rotation_vector_from_matrix(rot_mat)
 
                     expected = group.regularize(point)
-                    # TODO(ninamiolane): remove this when regularize is properly vectorized
-                    expected = gs.squeeze(expected, 0)
 
                     self.assertAllClose(result, expected)
 
@@ -2553,8 +2551,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
                     expected = group.regularize(point)
 
-                    # TODO(ninamiolane): remove this when regularize is properly vectorized
-                    expected = gs.squeeze(expected, 0)
                     self.assertAllClose(result, expected)
 
             else:
