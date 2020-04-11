@@ -9,7 +9,10 @@ import geomstats.vectorization
 
 class TestVectorizationMethods(geomstats.tests.TestCase):
     def setUp(self):
-        self.default_point_type = 'vector'
+
+        class Obj:
+            def __init__(self):
+                self.default_point_type = 'vector'
 
         @geomstats.vectorization.decorator(['vector', 'vector'])
         def foo(tangent_vec_a, tangent_vec_b):
@@ -73,14 +76,14 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
 
         @geomstats.vectorization.decorator(
             ['else', 'point', 'point_type'])
-        def is_point_type_vector(self, point, point_type=None):
+        def is_point_type_vector(obj, point, point_type=None):
             is_vector_vec = gs.ndim(point) == 2
             is_vector_vec = helper.to_scalar(is_vector_vec)
             return is_vector_vec
 
         @geomstats.vectorization.decorator(
             ['else', 'point', 'point_type'])
-        def is_point_type_matrix(self, point, point_type=None):
+        def is_point_type_matrix(obj, point, point_type=None):
             is_matrix_vec = gs.ndim(point) == 3
             is_matrix_vec = helper.to_scalar(is_matrix_vec)
             return is_matrix_vec
@@ -95,6 +98,7 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.is_matrix_vectorized = is_matrix_vectorized
         self.is_point_type_vector = is_point_type_vector
         self.is_point_type_matrix = is_point_type_matrix
+        self.obj = Obj()
 
     def test_decorator_with_squeeze_dim0(self):
         vec_a = gs.array([1, 2, 3])
@@ -311,18 +315,21 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
 
     def test_is_point_type_vector(self):
         point = gs.array([1., 2., 3.])
-        result = self.is_point_type_vector(point, point_type='vector')
+        result = self.is_point_type_vector(
+            self.obj, point, point_type='vector')
         expected = True
         self.assertAllClose(result, expected)
 
-    def test_is_point_type_vector_default(self):
+    def test_is_point_type_vector_optional(self):
         point = gs.array([1., 2., 3.])
-        result = self.is_point_type_vector(point)
+        result = self.is_point_type_vector(
+            self.obj, point)
         expected = True
         self.assertAllClose(result, expected)
 
     def test_is_point_type_matrix(self):
         point = gs.array([[1., 2., 3.], [2., 3., 4.]])
-        result = self.is_point_type_matrix(point, point_type='matrix')
+        result = self.is_point_type_matrix(
+            self.obj, point, point_type='matrix')
         expected = True
         self.assertAllClose(result, expected)

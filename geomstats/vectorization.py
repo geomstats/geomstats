@@ -40,9 +40,11 @@ def squeeze_output_dim_0(result, in_shapes, point_types):
 
     for in_shape, point_type in zip(in_shapes, point_types):
         in_ndim = None
+        if point_type not in ['scalar', 'vector', 'matrix']:
+            continue
         if in_shape is not None:
             in_ndim = len(in_shape)
-        if point_type != 'else' and in_ndim is not None:
+        if in_ndim is not None:
             vect_ndim = POINT_TYPES_TO_NDIMS[point_type]
             assert in_ndim <= vect_ndim
             if in_ndim == vect_ndim:
@@ -144,6 +146,7 @@ def decorator(point_types):
     def aux_decorator(function):
         def wrapper(*args, **kwargs):
 
+            # Get args and kwards point types
             len_args = len(args)
             len_kwargs = len(kwargs)
             len_total = len_args + len_kwargs
@@ -151,23 +154,39 @@ def decorator(point_types):
             args_point_types = point_types[:len_args]
             kwargs_point_types = point_types[len_args:len_total]
 
-            args_point_types, kwargs_point_types = adapt_point_types(
-                args_point_types, kwargs_point_types, args)
-
+            # Get optional kwargs point types and result point type
+            optional_kwargs_point_types = []
             scal_res = True
             if len(point_types) > len_total:
+                optional_kwargs_point_types = point_types[len_total:]
                 if point_types[-1] == 'no_scalar_result':
                     scal_res = False
-            # print('args_point_types')
-            # print(args_point_types)
-            # print('kwargs_point_types')
-            # print(kwargs_point_types)
-            # print('args')
-            # print(args)
-            # print('kwargs')
-            # print(kwargs)
-            # print(len_total)
-            # print(len(point_types))
+                    optional_kwargs_point_types = point_types[len_total:-1]
+
+            print('\nbefore')
+            print('args_point_types')
+            print(args_point_types)
+            print('kwargs_point_types')
+            print(kwargs_point_types)
+            print('args')
+            print(args)
+            print('kwargs')
+            print(kwargs)
+
+            args_point_types, kwargs_point_types = adapt_point_types(
+                args_point_types, kwargs_point_types,
+                optional_kwargs_point_types,
+                args, kwargs)
+
+            print('\nafter')
+            print('args_point_types')
+            print(args_point_types)
+            print('kwargs_point_types')
+            print(kwargs_point_types)
+            print('args')
+            print(args)
+            print('kwargs')
+            print(kwargs)
 
             in_shapes = initial_shapes(args_point_types, args)
             kw_in_shapes = initial_shapes(kwargs_point_types, kwargs.values())
@@ -178,11 +197,18 @@ def decorator(point_types):
 
             result = function(*vect_args, **vect_kwargs)
 
-            if squeeze_output_dim_1(result, in_shapes, point_types, scal_res):
+            adapted_point_types = args_point_types + kwargs_point_types
+            print('\nPre-squeeze')
+            print('adapted point_types')
+            print(adapted_point_types)
+
+            if squeeze_output_dim_1(result,
+                                    in_shapes,
+                                    adapted_point_types, scal_res):
                 if result.shape[1] == 1:
                     result = gs.squeeze(result, axis=1)
 
-            if squeeze_output_dim_0(result, in_shapes, point_types):
+            if squeeze_output_dim_0(result, in_shapes, adapted_point_types):
                 if result.shape[0] == 1:
                     result = gs.squeeze(result, axis=0)
             return result
@@ -190,24 +216,26 @@ def decorator(point_types):
     return aux_decorator
 
 
-def adapt_point_types(args_point_types, kwargs_point_types, args):
+def adapt_point_types(
+        args_point_types, kwargs_point_types,
+        optional_kwargs_point_types, args, kwargs):
     """Adapt the list of input point_types."""
-    aux = args_point_types
-    args_point_types.extend(kwargs_point_types)
-    point_types = args_point_types
-    args_point_types = aux
+    in_args_point_types = 'point_type' in args_point_types
+    in_kwargs_point_types = 'point_type' in kwargs_point_types
+    in_optional_kwargs_point_types = 'point_type' in optional_kwargs_point_types
 
-    if 'point_type' in point_types:
-        if 'point_type' in args_point_types:
-            i_point_type = point_types.index('point_type')
-            point_type = args_point_types[i_point_type]
-        elif 'point_type' in kwargs_point_types:
-            i_point_type = kwargs_point_types.index('point_type')
-            point_type = kwargs_point_types[i_point_type]
+    if in_args_point_types or in_kwargs_point_types:
+        if in_args_point_types:
+            i_point_type = args_point_types.index('point_type')
+            point_type = args[i_point_type]
+        elif in_kwargs_point_types:
+            point_type = kwargs['point_type']
 
-        if point_type is None:
-            obj = args[0]
-            point_type = obj.default_point_type
+    if in_optional_kwargs_point_types:
+        print('Found None point_type')
+        obj = args[0]
+        point_type = obj.default_point_type
+
         args_point_types = [
             pt if pt != 'point' else point_type for pt in args_point_types]
         kwargs_point_types = [
@@ -275,7 +303,7 @@ def vectorize_args(point_types, args):
     vect_args = []
     for i_arg, arg in enumerate(args):
         point_type = point_types[i_arg]
-        if point_type == 'else' or arg is None:
+        if point_type in ['else', 'point_type'] or arg is None:
             vect_arg = arg
         elif point_type == 'scalar':
             vect_arg = gs.to_ndarray(arg, to_ndim=1)
@@ -283,6 +311,8 @@ def vectorize_args(point_types, args):
         elif point_type in ['vector', 'matrix']:
             vect_arg = gs.to_ndarray(
                 arg, to_ndim=POINT_TYPES_TO_NDIMS[point_type])
+        else:
+            raise ValueError('Invalid point type: %s' % point_type)
         vect_args.append(vect_arg)
     return tuple(vect_args)
 
@@ -315,7 +345,7 @@ def vectorize_kwargs(point_types, kwargs):
     for i_arg, key_arg in enumerate(kwargs.keys()):
         point_type = point_types[i_arg]
         arg = kwargs[key_arg]
-        if point_type == 'else' or arg is None:
+        if point_type in ['else', 'point_type'] or arg is None:
             vect_arg = arg
         elif point_type == 'scalar':
             vect_arg = gs.to_ndarray(arg, to_ndim=1)
@@ -323,5 +353,7 @@ def vectorize_kwargs(point_types, kwargs):
         elif point_type in ['vector', 'matrix']:
             vect_arg = gs.to_ndarray(
                 arg, to_ndim=POINT_TYPES_TO_NDIMS[point_type])
+        else:
+            raise ValueError('Invalid point type.')
         vect_kwargs[key_arg] = vect_arg
     return vect_kwargs
