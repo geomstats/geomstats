@@ -570,7 +570,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         else:
             skew_mat = self.embedding_manifold.log(rot_mat)
             rot_vec = self.vector_from_skew_matrix(skew_mat)
-            rot_vec = gs.to_ndarray(rot_vec, to_ndim=2, axis=1)
 
         return self.regularize(rot_vec, point_type='vector')
 
