@@ -352,12 +352,16 @@ class FrechetMean(BaseEstimator):
                  epsilon=EPSILON,
                  point_type='vector',
                  method='default',
+                 lr=1e-3,
+                 tau=5e-3,
                  verbose=False):
         self.metric = metric
         self.max_iter = max_iter
         self.epsilon = epsilon
         self.point_type = point_type
         self.method = method
+        self.lr = lr
+        self.tau = tau
         self.verbose = verbose
 
     def fit(self, X, y=None, weights=None):
@@ -398,7 +402,7 @@ class FrechetMean(BaseEstimator):
         elif self.method == 'frechet-poincare-ball':
             mean = _ball_gradient_descent(
                 points=X, weights=weights, metric=self.metric,
-                max_iter=self.max_iter)
+                lr=self.lr, tau=self.tau, max_iter=self.max_iter)
 
         self.estimate_ = mean
 

@@ -38,12 +38,12 @@ class RiemannianEM():
 
         Parameters
         ----------
-        n_gaussian : int
-        Number of Gaussian components in the mix
-
         riemannian_metric : object of class RiemannianMetric
         The geomstats Riemmanian metric associated with
                             the used manifold
+
+        n_gaussian : int
+        Number of Gaussian components in the mix
 
         initialisation_method : basestring
         Choice between initialization method for variances, means and weights
@@ -58,14 +58,14 @@ class RiemannianEM():
             Convergence factor. If the difference of mean distance
             between two step is lower than tol
 
-        verbose : int
-            If verbose > 0, information will be printed during learning
-
         mean_method: basestring
             Specify the method to compute the mean.
 
         point_type: basestring
             Specify whether to use vector or matrix representation
+
+        verbose : int
+            If verbose > 0, information will be printed during learning
 
         Returns
         -------
@@ -90,25 +90,30 @@ class RiemannianEM():
         else:
             self.mixture_coefficients = gs.mean(posterior_probabilities, 0)
 
-    def update_means(self, data, wik, lr_mu, tau_mu, g_index=-1, max_iter=150):
+    def update_means(self, data, posterior_probabilities,
+                     lr_means, tau_means,
+                     g_index=-1, max_iter=DEFAULT_MAX_ITER):
         """Means update function."""
-        n_data, dim, n_gaussian = data.shape + (wik.shape[-1],)
+        n_data, dim, n_gaussian = data.shape +\
+            (posterior_probabilities.shape[-1],)
 
         mean = FrechetMean(
             metric=self.riemannian_metric,
             method=self.mean_method,
-            max_iter=MEAN_MAX_ITER,
+            lr=lr_means,
+            tau=tau_means,
+            max_iter=max_iter,
             point_type=self.point_type)
 
         data_expand = gs.expand_dims(data, 1)
         data_expand = gs.repeat(data_expand, n_gaussian, axis=1)
 
         if(g_index > 0):
-            mean.fit(data, weights=wik[:, g_index])
+            mean.fit(data, weights=posterior_probabilities[:, g_index])
             self.means[g_index] = gs.squeeze(mean.estimate_)
 
         else:
-            mean.fit(data_expand, weights=wik)
+            mean.fit(data_expand, weights=posterior_probabilities)
             self.means = gs.squeeze(mean.estimate_)
 
     def update_variances(self, data, posterior_probabilities, g_index=-1):
@@ -209,7 +214,7 @@ class RiemannianEM():
                       posterior_probabilities,
                       lr_means,
                       conv_factor_mean,
-                      max_iter=gs.inf):
+                      max_iter=DEFAULT_MAX_ITER):
         """Update function for the means and variances."""
         self.update_posterior_probabilities(posterior_probabilities)
 
@@ -221,8 +226,8 @@ class RiemannianEM():
 
         self.update_means(data,
                           posterior_probabilities,
-                          lr_mu=lr_means,
-                          tau_mu=conv_factor_mean,
+                          lr_means=lr_means,
+                          tau_means=conv_factor_mean,
                           max_iter=max_iter)
 
         if(self.means.mean() != self.means.mean()):

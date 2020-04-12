@@ -57,7 +57,6 @@ BACKEND_ATTRIBUTES = {
         'greater',
         'hsplit',
         'hstack',
-        'inf',
         'isclose',
         'less',
         'less_equal',

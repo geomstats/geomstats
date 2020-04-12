@@ -14,7 +14,7 @@ import mpl_toolkits.mplot3d.art3d as art3d
 from matplotlib.patches import Circle
 
 import geomstats.backend as gs
-from geomstats.geometry.poincare_ball import PoincareBall, GaussianDistribution
+from geomstats.geometry.poincare_ball import GaussianDistribution, PoincareBall
 from geomstats.learning.em_expectation_maximization import RiemannianEM
 
 DEFAULT_PLOT_PRECISION = 100
@@ -42,11 +42,13 @@ def plot_gaussian_mixture_distribution(data,
             gs.expand_dims(y_axis_samples[z_index], -1)),
             axis=-1)
 
-        mesh_probabilities = GaussianDistribution.weighted_gmm_pdf(mixture_coefficients,
-                                              x_y_plane_mesh,
-                                              means,
-                                              variances,
-                                              metric)
+        mesh_probabilities = GaussianDistribution.\
+            weighted_gmm_pdf(
+                mixture_coefficients,
+                x_y_plane_mesh,
+                means,
+                variances,
+                metric)
 
         mesh_probabilities[mesh_probabilities != mesh_probabilities] = 0
 
