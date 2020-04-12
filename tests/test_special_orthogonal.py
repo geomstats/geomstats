@@ -3261,7 +3261,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
             normal_rv = gs.random.normal(size=dim)
             tangent_sample = gs.zeros((n, n))
-            tangent_sample[list(gs.triu_indices(n, k=1))] = normal_rv
+            tangent_sample[tuple(gs.triu_indices(n, k=1))] = normal_rv
             tangent_sample = tangent_sample - gs.transpose(tangent_sample)
 
             result = gs.reshape(
