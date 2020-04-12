@@ -45,6 +45,7 @@ BACKEND_ATTRIBUTES = {
         'empty',
         'empty_like',
         'equal',
+        'erf',
         'exp',
         'expand_dims',
         'eye',

@@ -17,10 +17,12 @@ ZETA_UPPER_BOUND = 2.
 ZETA_STEP = 0.001
 PDF_TOL = 1e-15
 SUM_CHECK_PDF = 1e-4
+MEAN_MAX_ITER = 150
 
 
 class RiemannianEM():
     """Class for running Expectation-Maximisation."""
+
     def __init__(self,
                  riemannian_metric,
                  n_gaussian=8,
@@ -29,10 +31,10 @@ class RiemannianEM():
                  mean_method='default',
                  point_type='vector',
                  verbose=0):
-        """Expectation-maximization algorithm on hyperbolic space.
+        """Expectation-maximization algorithm on Poincaré Ball.
 
-        A class for performing Expectation-Maximization on hyperbolic
-        space to fit data into a Gaussian Mixture Model.
+        A class for performing Expectation-Maximization on the
+        Poincaré Ball to fit data into a Gaussian Mixture Model.
 
         Parameters
         ----------
@@ -78,71 +80,79 @@ class RiemannianEM():
         self.mean_method = mean_method
         self.point_type = point_type
 
-    def update_posterior_probabilities(self, posterior_probabilities, g_index=-1):
-        """ Posterior probabilities update function"""
+    def update_posterior_probabilities(self,
+                                       posterior_probabilities,
+                                       g_index=-1):
+        """Posterior probabilities update function."""
         if (g_index > 0):
-            self.mixture_coefficients[g_index] = gs.mean(posterior_probabilities[:, g_index])
+            self.mixture_coefficients[g_index] = \
+                gs.mean(posterior_probabilities[:, g_index])
         else:
             self.mixture_coefficients = gs.mean(posterior_probabilities, 0)
 
     def update_means(self, data, wik, lr_mu, tau_mu, g_index=-1, max_iter=150):
-        """ Means update functions"""
-
-        N, D, M = data.shape + (wik.shape[-1],)
+        """Means update function."""
+        n_data, dim, n_gaussian = data.shape + (wik.shape[-1],)
 
         mean = FrechetMean(
             metric=self.riemannian_metric,
             method=self.mean_method,
-            max_iter=150,
+            max_iter=MEAN_MAX_ITER,
             point_type=self.point_type)
 
-        data_gs = gs.expand_dims(data,1)
-        data_gs = gs.repeat(data_gs,M,axis = 1)
+        data_expand = gs.expand_dims(data, 1)
+        data_expand = gs.repeat(data_expand, n_gaussian, axis=1)
 
-        if(g_index>0):
-            mean.fit(data, weights=wik[:,g_index])
+        if(g_index > 0):
+            mean.fit(data, weights=wik[:, g_index])
             self.means[g_index] = gs.squeeze(mean.estimate_)
 
         else:
-            mean.fit(data_gs, weights = wik)
+            mean.fit(data_expand, weights=wik)
             self.means = gs.squeeze(mean.estimate_)
 
-
-    def update_variances(self, z, wik, g_index=-1):
-        """Variances update function"""
-
-        N, D, M = z.shape + (self.means.shape[0],)
+    def update_variances(self, data, posterior_probabilities, g_index=-1):
+        """Variances update function."""
+        n_data, dim, n_gaussian = data.shape + (self.means.shape[0],)
 
         if (g_index > 0):
 
-            dtm  = ((self.riemannian_metric.dist(z,
-                                                    gs.repeat(self.means[:,g_index], N, 0)) **2
-                        ) * wik[:,g_index].sum()) / wik[:,g_index].sum()
+            dtm = ((self.riemannian_metric.dist(data,
+                                                gs.repeat(
+                                                    self.means[:, g_index],
+                                                    n_data,
+                                                    0)
+                                                ) ** 2
+                    ) * posterior_probabilities[:, g_index].sum()) \
+                / posterior_probabilities[:, g_index].sum()
 
-            self.variances[:, g_index] = self.normalization_factor._variance_update_sub_function(dtm)
+            self.variances[:, g_index] = self.normalization_factor.\
+                _variance_update_sub_function(dtm)
         else:
 
+            data_expand = gs.expand_dims(data, 1)
+            data_expand = gs.repeat(data_expand, n_gaussian, axis=1)
+            means = gs.expand_dims(self.means, 0)
+            means = gs.repeat(means, n_data, axis=0)
 
-            z_gs = gs.expand_dims(z, 1)
-            z_gs = gs.repeat(z_gs,M,axis = 1)
-            means_gs = gs.expand_dims(self.means,0)
-            means_gs = gs.repeat(means_gs,N,axis = 0)
+            dtm_gs = ((self.riemannian_metric.dist(
+                data_expand, means) ** 2) *
+                posterior_probabilities).sum(0) / \
+                posterior_probabilities.sum(0)
 
-            wik_gs = wik
-            dtm_gs = ((self.riemannian_metric.dist(z_gs,
-                             means_gs) ** 2) * wik_gs).sum(0) / wik_gs.sum(0)
-
-            self.variances = self.normalization_factor._variance_update_sub_function(dtm_gs)
+            self.variances = \
+                self.normalization_factor._variance_update_sub_function(dtm_gs)
 
     def _expectation(self, data):
-        """Updates the posterior probabilities"""
-
-        probability_distribution_function = GaussianDistribution.gaussian_pdf(data,
-                                                                              self.means,
-                                                                              self.variances,
-                                                                              norm_func=self.normalization_factor.find_normalisation_factor,
-                                                                              metric =self.riemannian_metric)
-
+        """Update the posterior probabilities."""
+        probability_distribution_function = \
+            GaussianDistribution.gaussian_pdf(data,
+                                              self.means,
+                                              self.variances,
+                                              norm_func=self.
+                                              normalization_factor.
+                                              find_normalisation_factor,
+                                              metric=self.riemannian_metric)
 
         if (probability_distribution_function.mean() !=
                 probability_distribution_function.mean()):
@@ -150,12 +160,13 @@ class RiemannianEM():
                   'contain elements that are not numbers')
             quit()
 
-        prob_distrib_expand = gs.repeat(gs.expand_dims(self.mixture_coefficients,0),
-                                        len(probability_distribution_function),
-                                        axis = 0)
+        prob_distrib_expand = gs.repeat(
+            gs.expand_dims(self.mixture_coefficients, 0),
+            len(probability_distribution_function),
+            axis=0)
 
-        num_normalized_pdf = probability_distribution_function* \
-                   prob_distrib_expand
+        num_normalized_pdf = probability_distribution_function * \
+            prob_distrib_expand
 
         valid_pdf_condition = gs.amin(gs.sum(num_normalized_pdf, -1))
 
@@ -164,27 +175,27 @@ class RiemannianEM():
             if (self._verbose):
                 print("EXPECTATION : Probability distribution function "
                       "contain zero for ",
-                      gs.sum(gs.sum(num_normalized_pdf,-1) <= PDF_TOL))
+                      gs.sum(gs.sum(num_normalized_pdf, -1) <= PDF_TOL))
 
-            num_normalized_pdf[gs.sum(num_normalized_pdf,-1) <= PDF_TOL] = 1
+            num_normalized_pdf[gs.sum(num_normalized_pdf, -1) <= PDF_TOL] = 1
 
-        denum_normalized_pdf = gs.repeat(gs.sum(num_normalized_pdf,-1, keepdims=True),
+        denum_normalized_pdf = gs.repeat(gs.sum(num_normalized_pdf,
+                                                -1,
+                                                keepdims=True),
                                          num_normalized_pdf.shape[-1],
-                                         axis = 1)
+                                         axis=1)
 
         posterior_probabilities = num_normalized_pdf / denum_normalized_pdf
 
-        if (gs.mean(posterior_probabilities) != gs.mean(posterior_probabilities)):
+        if (gs.mean(posterior_probabilities) !=
+                gs.mean(posterior_probabilities)):
 
             print('EXPECTATION : posterior probabilities'
                   'contain elements that are not numbers')
             quit()
 
-
-        if gs.mean(gs.sum(posterior_probabilities,1)) \
-                <= 1-SUM_CHECK_PDF and \
-                gs.mean(gs.sum(posterior_probabilities,1)) \
-                >= 1+SUM_CHECK_PDF:
+        if 1 - SUM_CHECK_PDF >= gs.mean(gs.sum(
+                posterior_probabilities, 1)) >= 1 + SUM_CHECK_PDF:
 
             print('EXPECTATION : posterior probabilities'
                   'don\'t sum to 1')
@@ -260,8 +271,9 @@ class RiemannianEM():
         if(self.initialisation_method == 'random'):
 
             self._dimension = data.shape[-1]
-            self.means = (gs.random.rand(self.n_gaussian,
-                                         self._dimension) - 0.5) / self._dimension
+            self.means = (gs.random.rand(
+                self.n_gaussian,
+                self._dimension) - 0.5) / self._dimension
             self.variances = gs.random.rand(self.n_gaussian) / 10 + 0.8
             self.mixture_coefficients = \
                 gs.ones(self.n_gaussian) / self.n_gaussian
