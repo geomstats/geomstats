@@ -192,7 +192,7 @@ def assignment_by_sum(x, values, indices, axis=0):
     return x_new
 
 
-def gather(x, indices, axis=0):
+def get_slice(x, indices):
     return x[indices]
 
 
@@ -204,6 +204,11 @@ def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
 
 def cast(x, dtype):
     return x.astype(dtype)
+
+
+def set_diag(x, new_diag):
+    arr_shape = x.shape
+    x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
 
 
 def ndim(x):

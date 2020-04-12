@@ -404,6 +404,9 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         vec_dim = gs.shape(vec)[1]
 
         if self.n == 2:  # SO(2)
+            vec = gs.tile(vec, [1, 2])
+            vec = gs.reshape(vec, (n_vecs, 2))
+
             id_skew = gs.array([[[0., 1.], [-1., 0.]]] * n_vecs)
             skew_mat = gs.einsum(
                 '...ij,...i->...ij', gs.cast(id_skew, gs.float32), vec)
@@ -512,10 +515,9 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         :math:`S_r = \frac{angle}{(2 * \sin(angle) ) (R - R^T)}`
 
         For the edge case where the angle is close to pi,
-        the formulation is derived by going from rotation matrix to unit
-        quaternion to axis-angle:
-        :math:`r = \frac{angle*v}{|v|}`
-        where :math:`(w, v)` is a unit quaternion.
+        the formulation is derived by using the following equality (see the
+        Axis-angle representation on Wikipedia):
+        :math:`outer(r, r) = \frac{1}{2} (R + I_3)`
 
         In nD, the rotation vector stores the :math:`n(n-1)/2` values
         of the skew-symmetric matrix representing the rotation.
@@ -534,126 +536,36 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         if self.n == 3:
             trace = gs.trace(rot_mat, axis1=1, axis2=2)
             trace = gs.to_ndarray(trace, to_ndim=2, axis=1)
-
-            cos_angle = .5 * (trace - 1)
-            cos_angle = gs.clip(cos_angle, -1, 1)
-            angle = gs.arccos(cos_angle)
-
+            trace_num = gs.clip(trace, -1, 3)
+            angle = gs.arccos(0.5 * (trace_num - 1))
             rot_mat_transpose = gs.transpose(rot_mat, axes=(0, 2, 1))
-            rot_vec = self.vector_from_skew_matrix(rot_mat - rot_mat_transpose)
+            rot_vec_not_pi = self.vector_from_skew_matrix(
+                rot_mat - rot_mat_transpose)
+            mask_0 = gs.cast(gs.isclose(angle, 0.), gs.float32)
+            mask_pi = gs.cast(gs.isclose(angle, gs.pi, atol=1e-2), gs.float32)
+            mask_else = (1 - mask_0) * (1 - mask_pi)
 
-            # This avois dividing by 0.
-            mask_0 = gs.isclose(angle, 0.)
-            mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
+            numerator = 0.5 * mask_0 + angle * mask_else
+            denominator = (1 - angle ** 2 / 6) * mask_0 + 2 * gs.sin(
+                angle) * mask_else + mask_pi
 
-            rot_vec *= (1. + mask_0_float * (.5 - (trace - 3.) / 12. - 1.))
+            rot_vec_not_pi = rot_vec_not_pi * numerator / denominator
 
-            # This avois dividing by 0.
-            mask_pi = gs.isclose(angle, gs.pi)
-            mask_pi_float = gs.cast(mask_pi, gs.float32) + self.epsilon
+            vector_outer = 0.5 * (gs.eye(3) + rot_mat)
+            gs.set_diag(
+                vector_outer, gs.maximum(
+                    0., gs.diagonal(vector_outer, axis1=1, axis2=2)))
+            squared_diag_comp = gs.diagonal(vector_outer, axis1=1, axis2=2)
+            diag_comp = gs.sqrt(squared_diag_comp)
+            norm_line = gs.linalg.norm(vector_outer, axis=2)
+            max_line_index = gs.argmax(norm_line, axis=1)
+            selected_line = gs.get_slice(
+                vector_outer, (range(n_rot_mats), max_line_index))
+            signs = gs.sign(selected_line)
+            rot_vec_pi = angle * signs * diag_comp
 
-            # This avois dividing by 0.
-            mask_else = ~mask_0 & ~mask_pi
-            mask_else_float = gs.cast(mask_else, gs.float32) + self.epsilon
+            rot_vec = rot_vec_not_pi + mask_pi * rot_vec_pi
 
-            mask_pi = gs.squeeze(mask_pi, axis=1)
-
-            # choose the largest diagonal element
-            # to avoid a square root of a negative number
-            rot_mat_pi = gs.einsum(
-                'ni,njk->njk', mask_pi_float, rot_mat)
-            a = gs.array(0)
-            rot_mat_pi_00 = gs.to_ndarray(
-                rot_mat_pi[:, 0, 0], to_ndim=2, axis=1)
-            rot_mat_pi_11 = gs.to_ndarray(
-                rot_mat_pi[:, 1, 1], to_ndim=2, axis=1)
-            rot_mat_pi_22 = gs.to_ndarray(
-                rot_mat_pi[:, 2, 2], to_ndim=2, axis=1)
-            rot_mat_pi_diagonal = gs.hstack(
-                [rot_mat_pi_00, rot_mat_pi_11, rot_mat_pi_22])
-            a = gs.argmax(rot_mat_pi_diagonal, axis=1)[0]
-            b = (a + 1) % 3
-            c = (a + 2) % 3
-
-            # compute the axis vector
-            sq_root = gs.zeros((n_rot_mats, 1))
-
-            aux = gs.sqrt(
-                mask_pi_float * (
-                    rot_mat[:, a, a]
-                    - rot_mat[:, b, b]
-                    - rot_mat[:, c, c]) + 1.)
-            sq_root_pi = gs.einsum(
-                'ni,nk->ni', mask_pi_float, aux)
-
-            sq_root += sq_root_pi
-
-            rot_vec_pi = gs.zeros((n_rot_mats, self.dimension))
-
-            # This avois dividing by 0.
-            mask_a_float = gs.get_mask_i_float(a, 3) + self.epsilon
-            mask_b_float = gs.get_mask_i_float(b, 3) + self.epsilon
-            mask_c_float = gs.get_mask_i_float(c, 3) + self.epsilon
-
-            mask_a_float = gs.to_ndarray(mask_a_float, to_ndim=2, axis=1)
-            mask_b_float = gs.to_ndarray(mask_b_float, to_ndim=2, axis=1)
-            mask_c_float = gs.to_ndarray(mask_c_float, to_ndim=2, axis=1)
-
-            mask_a_float = gs.transpose(mask_a_float)
-            mask_b_float = gs.transpose(mask_b_float)
-            mask_c_float = gs.transpose(mask_c_float)
-
-            mask_a_float = gs.tile(mask_a_float, (n_rot_mats, 1))
-            mask_b_float = gs.tile(mask_b_float, (n_rot_mats, 1))
-            mask_c_float = gs.tile(mask_c_float, (n_rot_mats, 1))
-
-            rot_vec_pi += mask_pi_float * mask_a_float * sq_root / 2.
-
-            sq_root += mask_0_float
-            sq_root += mask_else_float
-
-            rot_vec_pi_b = gs.zeros_like(rot_vec_pi)
-            rot_vec_pi_c = gs.zeros_like(rot_vec_pi)
-
-            rot_vec_pi_b += gs.einsum(
-                'nk,ni->nk',
-                mask_b_float,
-                ((rot_mat[:, b, a]
-                  + rot_mat[:, a, b])
-                 / (2. * sq_root)))
-            rot_vec_pi += mask_pi_float * gs.einsum(
-                'ni,nk->nk', mask_pi_float, rot_vec_pi_b)
-
-            rot_vec_pi_c += gs.einsum(
-                'nk,ni->nk',
-                mask_c_float,
-                ((rot_mat[:, c, a]
-                  + rot_mat[:, a, c])
-                 / (2. * sq_root)))
-
-            rot_vec_pi += mask_pi_float * gs.einsum(
-                'ni,nk->nk',
-                mask_pi_float,
-                rot_vec_pi_c)
-
-            norm_rot_vec_pi = gs.linalg.norm(rot_vec_pi, axis=1)
-            norm_rot_vec_pi += gs.squeeze(mask_0_float, axis=1)
-            norm_rot_vec_pi += gs.squeeze(mask_else_float, axis=1)
-
-            rot_vec += mask_pi_float * (
-                gs.einsum(
-                    'nk,n->nk',
-                    angle * rot_vec_pi,
-                    1. / norm_rot_vec_pi))
-
-            angle += mask_0_float
-            angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
-            fact = gs.einsum(
-                'ni,ni->ni',
-                mask_else_float,
-                (angle / (2. * gs.sin(angle)) - 1.))
-
-            rot_vec *= (1. + fact)
         else:
             skew_mat = self.embedding_manifold.log(rot_mat)
             rot_vec = self.vector_from_skew_matrix(skew_mat)

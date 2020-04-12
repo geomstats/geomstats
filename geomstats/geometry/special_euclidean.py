@@ -575,8 +575,8 @@ class SpecialEuclidean(LieGroup):
                 term_2_i = coef_2[i] * gs.dot(translation_i,
                                               gs.transpose(sq_skew_mat[i]))
                 mask_i_float = gs.get_mask_i_float(i, n_tangent_vecs)
-                exp_translation += mask_i_float * (
-                    translation_i + term_1_i + term_2_i)
+                exp_translation += gs.outer(
+                    mask_i_float, translation_i + term_1_i + term_2_i)
 
             group_exp = gs.concatenate(
                 [rot_vec, exp_translation], axis=1)
@@ -669,8 +669,8 @@ class SpecialEuclidean(LieGroup):
                 term_2_i = coef_2[i] * gs.dot(translation_i,
                                               gs.transpose(sq_skew_rot_vec[i]))
                 mask_i_float = gs.get_mask_i_float(i, n_points)
-                log_translation += mask_i_float * (
-                    translation_i + term_1_i + term_2_i)
+                log_translation += gs.outer(
+                    mask_i_float, translation_i + term_1_i + term_2_i)
 
             return gs.concatenate(
                 [rot_vec, log_translation], axis=1)
