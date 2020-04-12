@@ -69,7 +69,7 @@ class SymmetricMatrices(EmbeddedManifold):
     @classmethod
     def expm(cls, x):
         """
-        Compute the matrix exponential.
+        Compute the matrix exponential for a symmetric matrix.
 
         Parameters
         ----------
@@ -86,7 +86,7 @@ class SymmetricMatrices(EmbeddedManifold):
     @classmethod
     def logm(cls, x):
         """
-        Compute the matrix log.
+        Compute the matrix log for a symmetric matrix.
 
         Parameters
         ----------
@@ -95,8 +95,8 @@ class SymmetricMatrices(EmbeddedManifold):
 
         Returns
         -------
-        exponential : array_like, shape=[n_samples, n, n]
-            Exponential of x.
+        log : array_like, shape=[n_samples, n, n]
+            Logarithm of x.
         """
         return cls.apply_func_to_eigvals(x, gs.log, check_positive=True)
 
@@ -108,32 +108,33 @@ class SymmetricMatrices(EmbeddedManifold):
         Parameters
         ----------
         x : array_like, shape=[n_samples, n, n]
-            Symmetric matrix.
+            Symmetric matrix with non-negative eigenvalues.
         power : float
+            The power at which x will be raised.
 
         Returns
         -------
         powerm : array_like, shape=[n_samples, n, n]
-            power of x.
+            Matrix power of x.
         """
-        def _pow(eigvals):
+        def _power(eigvals):
             return gs.power(eigvals, power)
-        return cls.apply_func_to_eigvals(x, _pow, check_positive=True)
+        return cls.apply_func_to_eigvals(x, _power, check_positive=True)
 
     @classmethod
     def inv(cls, x):
         """
-        Compute the inverse.
+        Compute the matrix inverse.
 
         Parameters
         ----------
         x : array_like, shape=[n_samples, n, n]
-            Symmetric matrix.
+            Non-singular symmetric matrix.
 
         Returns
         -------
         inverse : array_like, shape=[n_samples, n, n]
-            inverse of x.
+            Inverse of x.
         """
         def inverse(eigvals):
             return 1. / eigvals
