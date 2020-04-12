@@ -406,11 +406,11 @@ class Normalization_Factor_Storage(object):
 
         cond_1 = self.normalisation_factor_var.sum() != \
             self.normalisation_factor_var.sum()
-        cond_2 = self.normalisation_factor_var.sum() == gs.inf
-        cond_3 = self.normalisation_factor_var.sum() == -gs.inf
+        cond_2 = self.normalisation_factor_var.sum() == float('+inf')
+        cond_3 = self.normalisation_factor_var.sum() == float('-inf')
 
         if (cond_1 or cond_2 or cond_3):
-            print('WARNING : ZetaPhiStorage , '
+            print('WARNING :\n'
                   'untracktable normalisation factor :')
             max_nf = len(variances)
 
@@ -430,7 +430,7 @@ class Normalization_Factor_Storage(object):
                   + str(len(self.variances)) + '/' + str(max_nf))
 
         factor_normalization, log_grad_zeta = \
-            self.zeta_dlogzetat(self.variances, dimension)
+            self.norm_factor_gradient(self.variances, dimension)
 
         self.phi_inv_var = self.variances ** 3 * log_grad_zeta
 
@@ -505,10 +505,10 @@ class Normalization_Factor_Storage(object):
         bs_o_gs = binomial_coefficient * as_o_gs
         r_gs = alternate_neg * bs_o_gs
 
-        zeta = NORMALIZATION_FACTOR_CST * variances * \
+        norm_func = NORMALIZATION_FACTOR_CST * variances * \
             r_gs.sum(0) * (1 / (2 ** (dimension - 1)))
 
-        return zeta
+        return norm_func
 
     def _compute_alpha(self, dim, current_dim):
         """Compute factor used in normalisation factor.
@@ -517,7 +517,7 @@ class Normalization_Factor_Storage(object):
         """
         return (dim - 1 - 2 * current_dim) / SQRT_2
 
-    def zeta_dlogzetat(self, variances, dimension):
+    def norm_factor_gradient(self, variances, dimension):
         """Compute normalisation factor and its gradient.
 
         Compute normalisation factor given current variance
@@ -533,7 +533,11 @@ class Normalization_Factor_Storage(object):
 
         Returns
         -------
-        normalization_factor : array-like, shape=[n]
+        norm_factor : array-like, shape=[n]
+            Normalisation factor
+        norm_factor_gradient : array-like, shape=[n]
+            Gradient of the normalisation factor
+
         """
         variances = gs.transpose(gs.to_ndarray(variances, to_ndim=2))
         dim_range = gs.arange(0, dimension, 1.)
@@ -552,7 +556,7 @@ class Normalization_Factor_Storage(object):
             gs.exp((prod_alpha_sigma) ** 2) * (1 + gs.erf(prod_alpha_sigma))
         term_1 = gs.sqrt(gs.pi / 2.) * (1. / (2 ** (dimension - 1)))
         term_2 = gs.einsum('ij,j->ij', term_2, beta)
-        normalisation_coef = \
+        norm_factor = \
             term_1 * variances * gs.sum(term_2, axis=-1, keepdims=True)
         grad_term_1 = 1 / variances
 
@@ -571,6 +575,6 @@ class Normalization_Factor_Storage(object):
         grad_term_22 = gs.einsum("ij, j->ij", grad_term_22, beta)
         grad_term_22 = gs.sum(grad_term_22, axis=-1, keepdims=True)
 
-        log_grad_zeta = grad_term_1 + (grad_term_21 * grad_term_22)
+        norm_factor_gradient = grad_term_1 + (grad_term_21 * grad_term_22)
 
-        return gs.squeeze(normalisation_coef), gs.squeeze(log_grad_zeta)
+        return gs.squeeze(norm_factor), gs.squeeze(norm_factor_gradient)

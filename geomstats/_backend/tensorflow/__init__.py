@@ -516,6 +516,10 @@ def cumsum(a, axis=None):
         return tf.math.cumsum(flatten(a), axis=0)
     return tf.math.cumsum(a, axis=axis)
 
+def cumprod(a, axis=None):
+    if axis is None:
+        return a.flatten().cumprod(dim=0)
+    return tf.math.cumprod(a, dim=axis)
 
 def tril(m, k=0):
     if k != 0:
