@@ -419,6 +419,20 @@ def mean(x, axis=None):
 
 
 def get_mask_i_float(i, n):
+    """Create a 1D array of zeros with one element at one, with floating type.
+
+    Parameters
+    ----------
+    i: int
+        Index of the non-zero element.
+    n: n
+        Length of the created array.
+
+    Returns
+    -------
+    mask_i_float : array-like, shape=[n,]
+        1D array of zeros except at index i, where it is one
+    """
     range_n = arange(cast(array(n), int32))
     i_float = cast(array(i), int32)
     mask_i = equal(range_n, i_float)
