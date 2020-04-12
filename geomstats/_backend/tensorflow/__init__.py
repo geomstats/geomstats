@@ -394,6 +394,30 @@ def array_from_sparse(indices, data, target_shape):
 
 
 def get_slice(x, indices):
+    """Return a slice of an array, following Numpy's style.
+
+        Parameters
+        ----------
+        x : array-like, shape=[dimension]
+            Initial array, shape=[dimension].
+        indices : {iterable(iterable(int))}
+            Indices which are kept along each axis, starting from 0.
+
+        Returns
+        -------
+        slice : array-like
+            Slice of x given by indices.
+
+        Notes
+        -----
+        This follows Numpy's convention: indices are grouped by axis.
+
+        Examples
+        --------
+        >>> a = tf.reshape(tf.convert_to_tensor(range(30)), (3,10))
+        >>> get_slice(a, ((0, 2), (8, 9)))
+        <tf.Tensor: id=41, shape=(2,), dtype=int32, numpy=array([ 8, 29])>
+        """
     return tf.gather_nd(x, list(zip(*indices)))
 
 

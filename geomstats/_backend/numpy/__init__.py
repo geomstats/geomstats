@@ -151,11 +151,11 @@ def assignment_by_sum(x, values, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x : array-like, shape=[dimension]
         Initial array.
-    values: {float, list(float)}
+    values : {float, list(float)}
         Value or list of values to be assigned.
-    indices: {int, tuple, list(int), list(tuple)}
+    indices : {int, tuple, list(int), list(tuple)}
         Single int or tuple, or list of ints or tuples of indices where value
         is assigned.
         If the length of the tuples is shorter than ndim(x), values are
@@ -191,6 +191,30 @@ def assignment_by_sum(x, values, indices, axis=0):
 
 
 def get_slice(x, indices):
+    """Return a slice of an array, following Numpy's style.
+
+    Parameters
+    ----------
+    x : array-like, shape=[dimension]
+        Initial array, shape=[dimension].
+    indices : {iterable(iterable(int))}
+        Indices which are kept along each axis, starting from 0.
+
+    Returns
+    -------
+    slice : array-like
+        Slice of x given by indices.
+
+    Notes
+    -----
+    This follows Numpy's convention: indices are grouped by axis.
+
+    Examples
+    --------
+    >>> a = np.array(range(30)).reshape(3,10)
+    >>> get_slice(a, ((0, 2), (8, 9)))
+    array([8, 29])
+    """
     return x[indices]
 
 
@@ -205,6 +229,24 @@ def cast(x, dtype):
 
 
 def set_diag(x, new_diag):
+    """Sets the diagonal along the last two axis.
+
+    Parameters
+    ----------
+    x : array-like, shape=[dimension]
+        Initial array, shape=[dimension].
+    new_diag : array-like, shape=[dimension[-2]]
+        Values to set on the diagonal.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    This mimics tensorflow.linalg.set_diag(x, new_diag), when new_diag is a
+    1-D array, but modifies x instead of creating a copy.
+    """
     arr_shape = x.shape
     x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
 
