@@ -211,7 +211,7 @@ def get_slice(x, indices):
     ----------
     x : array-like, shape=[dimension]
         Initial array, shape=[dimension].
-    indices : {iterable(iterable(int))}
+    indices : iterable(iterable(int))
         Indices which are kept along each axis, starting from 0.
 
     Returns
@@ -274,5 +274,23 @@ def copy(x):
 
 
 def array_from_sparse(indices, data, target_shape):
+    """Create an array of given shape, with values at specific indices.
+
+    The rest of the array will be filled with zeros.
+
+    Parameters
+    ----------
+    indices : iterable(tuple(int))
+        Index of each element which will be assigned a specific value.
+    data : iterable(scalar)
+        Value associated at each index.
+    target_shape : tuple(int)
+        Shape of the output array.
+
+    Returns
+    -------
+    a : array, shape=target_shape
+        Array of zeros with specified values assigned to specified indices.
+    """
     return array(
         coo_matrix((data, list(zip(*indices))), target_shape).todense())
