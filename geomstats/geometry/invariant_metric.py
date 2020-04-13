@@ -283,7 +283,6 @@ class InvariantMetric(RiemannianMetric):
         identity = gs.to_ndarray(self.group.identity, to_ndim=2)
         if base_point is None:
             base_point = identity
-
         base_point = self.group.regularize(base_point)
 
         if gs.allclose(base_point, identity):
@@ -372,6 +371,7 @@ class InvariantMetric(RiemannianMetric):
 
         return log
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def log(self, point, base_point=None):
         """Compute Riemannian logarithm of a point from a base point.
 
@@ -389,10 +389,12 @@ class InvariantMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
+        identity = gs.to_ndarray(self.group.identity, to_ndim=2)
         if base_point is None:
-            base_point = self.group.identity
+            base_point = identity
         base_point = self.group.regularize(base_point)
-        if gs.allclose(base_point, self.group.identity):
+
+        if gs.allclose(base_point, identity):
             return self.log_from_identity(point)
 
         point = self.group.regularize(point)
