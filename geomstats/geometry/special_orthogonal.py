@@ -1464,6 +1464,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         return random_point
 
+    @geomstats.vectorization.decorator(['else', 'point', 'point_type'])
     def exp_from_identity(self, tangent_vec, point_type=None):
         """Compute the group exponential of the tangent vector at the identity.
 
@@ -1477,9 +1478,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         point : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
-        if point_type is None:
-            point_type = self.default_point_type
-
         if point_type == 'vector':
             point = gs.to_ndarray(tangent_vec, to_ndim=2)
         elif point_type == 'matrix' and self.n > 3:
