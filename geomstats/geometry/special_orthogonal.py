@@ -202,8 +202,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         regularized_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
-        if point_type is None:
-            point_type = self.default_point_type
+        geomstats.error.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
 
         if point_type == 'vector':
             if self.n == 3:
@@ -250,8 +250,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             axes = (0, 2, 1) if is_vectorized else (1, 0)
             regularized_vec = \
                 1. / 2 * (tangent_vec - gs.transpose(tangent_vec, axes))
-        else:
-            raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
         return regularized_vec
 
@@ -280,8 +278,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         regularized_tangent_vec : array-like,
             shape=[n_samples, {dimension, [n, n]}]
         """
-        if point_type is None:
-            point_type = self.default_point_type
+        geomstats.error.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
 
         if point_type == 'vector':
             if self.n == 3:
@@ -325,9 +323,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                 tangent_vec_at_id, point_type=point_type)
             regularized_tangent_vec = self.compose(
                 base_point, regularized_tangent_vec)
-
-        else:
-            raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
         return regularized_tangent_vec
 
