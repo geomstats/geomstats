@@ -54,34 +54,12 @@ def decorator(point_types):
 
     def aux_decorator(function):
         def wrapper(*args, **kwargs):
-
-            # print('\nbefore')
-            # print('args_types')
-            # print(args_types)
-            # print('kwargs_types')
-            # print(kwargs_types)
-            # print('opt_kwargs_types')
-            # print(opt_kwargs_types)
-            # print('args')
-            # print(args)
-            # print('kwargs')
-            # print(kwargs)
             args_types, kwargs_types, opt_kwargs_types, is_scal = get_types(
                 point_types, args, kwargs)
 
             args_types, kwargs_types = adapt_types(
                 args_types, kwargs_types, opt_kwargs_types, args, kwargs)
             args_kwargs_types = args_types + kwargs_types
-
-            # print('\nafter')
-            # print('args_types')
-            # print(args_types)
-            # print('kwargs_types')
-            # print(kwargs_types)
-            # print('args')
-            # print(args)
-            # print('kwargs')
-            # print(kwargs)
 
             args_shapes = get_initial_shapes(args_types, args)
             kwargs_shapes = get_initial_shapes(kwargs_types, kwargs.values())
