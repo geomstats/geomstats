@@ -1324,6 +1324,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         return inv_point
 
+    @geomstats.vectorization.decorator(['else', 'point', 'else', 'point_type'])
     def jacobian_translation(
             self, point, left_or_right='left', point_type=None):
         """Compute the jacobian matrix corresponding to translation.
@@ -1343,13 +1344,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         jacobian : array-like, shape=[n_samples, dimension, dimension]
         """
-        if left_or_right not in ('left', 'right'):
-            raise ValueError(
-                'Parameter `left_or_right`'
-                ' should be either `left` or `right`.')
-
-        if point_type is None:
-            point_type = self.default_point_type
+        geomstats.error.check_parameter_accepted_values(
+            left_or_right, 'left_or_right', ['left', 'right'])
 
         if point_type == 'vector':
             if self.n == 3:
