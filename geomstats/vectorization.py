@@ -6,7 +6,8 @@ This abstracts the backend type.
 import geomstats.backend as gs
 
 POINT_TYPES = ['scalar', 'vector', 'matrix']
-OTHER_TYPES = ['point', 'point_type', 'else']
+FLEXIBLE_TYPE = 'point'
+OTHER_TYPES = ['point_type', 'else']
 
 POINT_TYPES_TO_NDIMS = {
     'scalar': 2,
@@ -201,10 +202,10 @@ def get_initial_shapes(input_types, args):
         if input_type == 'scalar':
             arg = gs.array(arg)
 
-        if input_type in ['else', 'point_type'] or arg is None:
-            in_shapes.append(None)
-        elif input_type in POINT_TYPES:
+        if input_type in POINT_TYPES:
             in_shapes.append(gs.shape(arg))
+        elif input_type in OTHER_TYPES or arg is None:
+            in_shapes.append(None)
         else:
             raise ValueError('Invalid point type.')
     return in_shapes
