@@ -60,11 +60,19 @@ def decorator(input_types):
 
     def aux_decorator(function):
         def wrapper(*args, **kwargs):
+            print('args')
+            print(args)
+            print('kwargs')
+            print(kwargs)
             args_types, kwargs_types, opt_kwargs_types, is_scal = get_types(
                 input_types, args, kwargs)
 
-            args_types, kwargs_types = adapt_types(
+            args_types, kwargs_types, kwargs = adapt_types(
                 args_types, kwargs_types, opt_kwargs_types, args, kwargs)
+            print('args_types')
+            print(args_types)
+            print('kwargs_types')
+            print(kwargs_types)
             args_kwargs_types = args_types + kwargs_types
 
             args_shapes = get_initial_shapes(args_types, args)
@@ -168,8 +176,13 @@ def adapt_types(
             input_type = kwargs['point_type']
 
         elif in_optional:
+            print('found optional type')
             obj = args[0]
             input_type = obj.default_point_type
+            print('input_type')
+            print(input_type)
+            kwargs['point_type'] = input_type
+            kwargs_types.append('point_type')
 
         args_types = [
             input_type if pt == FLEXIBLE_TYPE else pt
@@ -177,7 +190,7 @@ def adapt_types(
         kwargs_types = [
             input_type if pt == FLEXIBLE_TYPE else pt
             for pt in kwargs_types]
-    return args_types, kwargs_types
+    return args_types, kwargs_types, kwargs
 
 
 def get_initial_shapes(input_types, args):
