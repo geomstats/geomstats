@@ -1,6 +1,7 @@
 """Expectation maximisation algorithm."""
 
 import logging
+
 import geomstats.backend as gs
 from geomstats.geometry.poincare_ball \
     import GaussianDistribution, Normalization_Factor_Storage
@@ -83,8 +84,7 @@ class RiemannianEM():
     def update_means(self, data, posterior_probabilities,
                      lr_means, tau_means, max_iter=DEFAULT_MAX_ITER):
         """Means update function."""
-        n_data, dim, n_gaussian = data.shape +\
-            (posterior_probabilities.shape[-1],)
+        n_gaussian = posterior_probabilities.shape[-1]
 
         mean = FrechetMean(
             metric=self.riemannian_metric,
@@ -102,35 +102,20 @@ class RiemannianEM():
 
     def update_variances(self, data, posterior_probabilities, g_index=-1):
         """Variances update function."""
-        n_data, dim, n_gaussian = data.shape + (self.means.shape[0],)
+        n_data, n_gaussian = data.shape[0], self.means.shape[0]
 
-        if (g_index > 0):
+        data_expand = gs.expand_dims(data, 1)
+        data_expand = gs.repeat(data_expand, n_gaussian, axis=1)
+        means = gs.expand_dims(self.means, 0)
+        means = gs.repeat(means, n_data, axis=0)
 
-            dtm = ((self.riemannian_metric.dist(data,
-                                                gs.repeat(
-                                                    self.means[:, g_index],
-                                                    n_data,
-                                                    0)
-                                                ) ** 2
-                    ) * posterior_probabilities[:, g_index].sum()) \
-                / posterior_probabilities[:, g_index].sum()
+        dtm_gs = ((self.riemannian_metric.dist(
+            data_expand, means) ** 2) *
+            posterior_probabilities).sum(0) / \
+            posterior_probabilities.sum(0)
 
-            self.variances[:, g_index] = self.normalization_factor.\
-                _variance_update_sub_function(dtm)
-        else:
-
-            data_expand = gs.expand_dims(data, 1)
-            data_expand = gs.repeat(data_expand, n_gaussian, axis=1)
-            means = gs.expand_dims(self.means, 0)
-            means = gs.repeat(means, n_data, axis=0)
-
-            dtm_gs = ((self.riemannian_metric.dist(
-                data_expand, means) ** 2) *
-                posterior_probabilities).sum(0) / \
-                posterior_probabilities.sum(0)
-
-            self.variances = \
-                self.normalization_factor._variance_update_sub_function(dtm_gs)
+        self.variances = \
+            self.normalization_factor._variance_update_sub_function(dtm_gs)
 
     def _expectation(self, data):
         """Update the posterior probabilities."""
@@ -181,7 +166,6 @@ class RiemannianEM():
 
             raise NameError('EXPECTATION : posterior probabilities ' +
                             'do not sum to 1')
-
 
         return posterior_probabilities
 
