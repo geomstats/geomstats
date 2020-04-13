@@ -356,9 +356,9 @@ def squeeze_output_dim_0(result, in_shapes, input_types):
         return False
 
     for in_shape, input_type in zip(in_shapes, input_types):
-        in_ndim = None
-        if input_type not in ['scalar', 'vector', 'matrix']:
+        if input_type not in POINT_TYPES:
             continue
+        in_ndim = None
         if in_shape is not None:
             in_ndim = len(in_shape)
         if in_ndim is not None:
