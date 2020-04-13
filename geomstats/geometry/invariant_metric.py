@@ -315,6 +315,7 @@ class InvariantMetric(RiemannianMetric):
 
         return exp
 
+    @geomstats.vectorization.decorator(['else', 'vector'])
     def left_log_from_identity(self, point):
         """Compute Riemannian log of a point wrt. id of left-invar. metric.
 
@@ -340,8 +341,12 @@ class InvariantMetric(RiemannianMetric):
         inner_prod_mat = self.inner_product_mat_at_identity
         inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
         sqrt_inv_inner_prod_mat = gs.linalg.sqrtm(inv_inner_prod_mat)
-        aux = gs.squeeze(sqrt_inv_inner_prod_mat, axis=0)
-        log = gs.matmul(point, aux)
+        # aux = gs.squeeze(sqrt_inv_inner_prod_mat, axis=0)
+        # log = gs.matmul(point, aux)
+        # point = gs.to_ndarray(point, to_ndim=3)
+        #print(point.shape)
+        #print(sqrt_inv_inner_prod_mat.shape)
+        log = gs.einsum('...i,...ij->...j', point, sqrt_inv_inner_prod_mat)
         log = self.group.regularize_tangent_vec_at_identity(
             tangent_vec=log, metric=self)
         return log
