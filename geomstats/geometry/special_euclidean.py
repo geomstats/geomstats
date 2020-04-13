@@ -117,9 +117,6 @@ class SpecialEuclidean(LieGroup):
         belongs : array-like, shape=[n_samples, 1]
             array of booleans indicating whether point belongs to SE(n)
         """
-        if point_type is None:
-            point_type = self.default_point_type
-
         if point_type == 'vector':
             n_points, vec_dim = gs.shape(point)
             belongs = vec_dim == self.dimension
@@ -132,20 +129,23 @@ class SpecialEuclidean(LieGroup):
         if point_type == 'matrix':
             n_points, point_dim1, point_dim2 = point.shape
             belongs = (point_dim1 == point_dim2 == self.n + 1)
+            belongs = gs.tile([belongs], (n_points,))
+
             rotation = point[:, :self.n, :self.n]
             rot_belongs = self.rotations.belongs(
                 rotation, point_type=point_type)
+
             belongs = gs.logical_and(belongs, rot_belongs)
 
             last_line_except_last_term = point[:, self.n:, :-1]
             all_but_last_zeros = ~ gs.any(
                 last_line_except_last_term, axis=(1, 2))
-            all_but_last_zeros = gs.to_ndarray(
-                all_but_last_zeros, to_ndim=2, axis=1)
+
             belongs = gs.logical_and(belongs, all_but_last_zeros)
 
             last_term = point[:, self.n:, self.n:]
-            belongs = gs.logical_and(belongs, gs.all(last_term == 1, axis=1))
+            belongs = gs.logical_and(
+                belongs, gs.all(last_term == 1, axis=(1, 2)))
             return gs.flatten(belongs)
 
         raise ValueError('Invalid point_type, expected \'vector\' or '

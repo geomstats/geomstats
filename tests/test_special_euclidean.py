@@ -193,11 +193,11 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_random_and_belongs_vectorization_matrix_form(self):
-        local_point_type = 'matrix'
+        point_type = 'matrix'
         n_samples = self.n_samples
-        points = self.group.random_uniform(n_samples=n_samples,
-                                           point_type=local_point_type)
-        result = self.group.belongs(points, local_point_type)
+        points = self.group.random_uniform(
+            n_samples=n_samples, point_type=point_type)
+        result = self.group.belongs(points, point_type)
         expected = gs.array([True] * n_samples)
         self.assertAllClose(result, expected)
 
