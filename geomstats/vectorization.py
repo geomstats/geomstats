@@ -12,6 +12,123 @@ POINT_TYPES_TO_NDIMS = {
     'matrix': 3}
 
 
+def decorator(point_types):
+    """Vectorize geomstats functions.
+
+    This decorator assumes that its function:
+    - works with fully-vectorized inputs,
+    - returns fully-vectorized outputs,
+
+    where "fully-vectorized" means that:
+    - one scalar has shape [1, 1],
+    - n scalars have shape [n, 1],
+    - one d-D vector has shape [1, d],
+    - n d-D vectors have shape [n, d],etc
+    etc.
+
+    The decorator:
+    - converts the inputs into fully-vectorized inputs,
+    - calls the function,
+    - adapts the output shapes to match the users' expectations.
+
+    Parameters
+    ----------
+    point_types : list
+        List of inputs' point_types, including for optional inputs.
+        The `point_type`s of optional inputs will not be read
+        by the decorator if the corresponding input is not given.
+    """
+    if not isinstance(point_types, list):
+        point_types = list(point_types)
+
+    def aux_decorator(function):
+        def wrapper(*args, **kwargs):
+
+            # print('\nbefore')
+            # print('args_types')
+            # print(args_types)
+            # print('kwargs_types')
+            # print(kwargs_types)
+            # print('opt_kwargs_types')
+            # print(opt_kwargs_types)
+            # print('args')
+            # print(args)
+            # print('kwargs')
+            # print(kwargs)
+            args_types, kwargs_types, opt_kwargs_types, scal_res = get_types(
+                point_types, args, kwargs)
+
+            args_types, kwargs_types = adapt_point_types(
+                args_types, kwargs_types, opt_kwargs_types, args, kwargs)
+
+            # print('\nafter')
+            # print('args_types')
+            # print(args_types)
+            # print('kwargs_types')
+            # print(kwargs_types)
+            # print('args')
+            # print(args)
+            # print('kwargs')
+            # print(kwargs)
+
+            args_shapes = initial_shapes(args_types, args)
+            kwargs_shapes = initial_shapes(kwargs_types, kwargs.values())
+            in_shapes = args_shapes + kwargs_shapes
+
+            vect_args = vectorize_args(args_types, args)
+            vect_kwargs = vectorize_kwargs(kwargs_types, kwargs)
+
+            result = function(*vect_args, **vect_kwargs)
+
+            adapted_point_types = args_types + kwargs_types
+
+            if squeeze_output_dim_1(result,
+                                    in_shapes,
+                                    adapted_point_types, scal_res):
+                if result.shape[1] == 1:
+                    result = gs.squeeze(result, axis=1)
+
+            if squeeze_output_dim_0(result, in_shapes, adapted_point_types):
+                if result.shape[0] == 1:
+                    result = gs.squeeze(result, axis=0)
+            return result
+        return wrapper
+    return aux_decorator
+
+
+def get_types(point_types, args, kwargs):
+    """Extract the types of args, kwargs, optional kwargs and output.
+
+    Parameters
+    ----------
+    point_types : list
+    args : tuple
+    kwargs : dict
+
+    Returns
+    -------
+    args_types :
+    kwargs_types :
+    opt_kwargs_types :
+    scal_res :
+    """
+    len_args = len(args)
+    len_kwargs = len(kwargs)
+    len_total = len_args + len_kwargs
+
+    args_types = point_types[:len_args]
+    kwargs_types = point_types[len_args:len_total]
+
+    opt_kwargs_types = []
+    scal_res = True
+    if len(point_types) > len_total:
+        opt_kwargs_types = point_types[len_total:]
+        if point_types[-1] == 'no_scalar_result':
+            scal_res = False
+            opt_kwargs_types = point_types[len_total:-1]
+    return (args_types, kwargs_types, opt_kwargs_types, scal_res)
+
+
 def squeeze_output_dim_0(result, in_shapes, point_types):
     """Determine if the output needs to be squeezed on dim 0.
 
@@ -114,118 +231,17 @@ def squeeze_output_dim_1(result, in_shapes, point_types, scalar_result=True):
     return True
 
 
-def decorator(point_types):
-    """Vectorize geomstats functions.
-
-    This decorator assumes that its function:
-    - works with fully-vectorized inputs,
-    - returns fully-vectorized outputs,
-
-    where "fully-vectorized" means that:
-    - one scalar has shape [1, 1],
-    - n scalars have shape [n, 1],
-    - one d-D vector has shape [1, d],
-    - n d-D vectors have shape [n, d],etc
-    etc.
-
-    The decorator:
-    - converts the inputs into fully-vectorized inputs,
-    - calls the function,
-    - adapts the output shapes to match the users' expectations.
-
-    Parameters
-    ----------
-    point_types : list
-        List of inputs' point_types, including for optional inputs.
-        The `point_type`s of optional inputs will not be read
-        by the decorator if the corresponding input is not given.
-    """
-    if not isinstance(point_types, list):
-        point_types = list(point_types)
-
-    def aux_decorator(function):
-        def wrapper(*args, **kwargs):
-
-            # Get args and kwards point types
-            len_args = len(args)
-            len_kwargs = len(kwargs)
-            len_total = len_args + len_kwargs
-
-            args_point_types = point_types[:len_args]
-            kwargs_point_types = point_types[len_args:len_total]
-
-            # Get optional kwargs point types and result point type
-            optional_kwargs_point_types = []
-            scal_res = True
-            if len(point_types) > len_total:
-                optional_kwargs_point_types = point_types[len_total:]
-                if point_types[-1] == 'no_scalar_result':
-                    scal_res = False
-                    optional_kwargs_point_types = point_types[len_total:-1]
-
-            # print('\nbefore')
-            # print('args_point_types')
-            # print(args_point_types)
-            # print('kwargs_point_types')
-            # print(kwargs_point_types)
-            # print('optional_kwargs_point_types')
-            # print(optional_kwargs_point_types)
-            # print('args')
-            # print(args)
-            # print('kwargs')
-            # print(kwargs)
-
-            args_point_types, kwargs_point_types = adapt_point_types(
-                args_point_types, kwargs_point_types,
-                optional_kwargs_point_types,
-                args, kwargs)
-
-            # print('\nafter')
-            # print('args_point_types')
-            # print(args_point_types)
-            # print('kwargs_point_types')
-            # print(kwargs_point_types)
-            # print('args')
-            # print(args)
-            # print('kwargs')
-            # print(kwargs)
-
-            in_shapes = initial_shapes(args_point_types, args)
-            kw_in_shapes = initial_shapes(kwargs_point_types, kwargs.values())
-            in_shapes.extend(kw_in_shapes)
-
-            vect_args = vectorize_args(args_point_types, args)
-            vect_kwargs = vectorize_kwargs(kwargs_point_types, kwargs)
-
-            result = function(*vect_args, **vect_kwargs)
-
-            adapted_point_types = args_point_types + kwargs_point_types
-
-            if squeeze_output_dim_1(result,
-                                    in_shapes,
-                                    adapted_point_types, scal_res):
-                if result.shape[1] == 1:
-                    result = gs.squeeze(result, axis=1)
-
-            if squeeze_output_dim_0(result, in_shapes, adapted_point_types):
-                if result.shape[0] == 1:
-                    result = gs.squeeze(result, axis=0)
-            return result
-        return wrapper
-    return aux_decorator
-
-
 def adapt_point_types(
-        args_point_types, kwargs_point_types,
-        optional_kwargs_point_types, args, kwargs):
+        args_types, kwargs_types,
+        opt_kwargs_types, args, kwargs):
     """Adapt the list of input point_types."""
-    in_args = 'point_type' in args_point_types
-    in_kwargs = 'point_type' in kwargs_point_types
-    in_optional = 'point_type' in optional_kwargs_point_types
+    in_args = 'point_type' in args_types
+    in_kwargs = 'point_type' in kwargs_types
+    in_optional = 'point_type' in opt_kwargs_types
 
     if in_args or in_kwargs or in_optional:
         if in_args:
-            i_point_type = args_point_types.index('point_type')
+            i_point_type = args_types.index('point_type')
             point_type = args[i_point_type]
         elif in_kwargs:
             point_type = kwargs['point_type']
@@ -234,11 +250,11 @@ def adapt_point_types(
             obj = args[0]
             point_type = obj.default_point_type
 
-        args_point_types = [
-            pt if pt != 'point' else point_type for pt in args_point_types]
-        kwargs_point_types = [
-            pt if pt != 'point' else point_type for pt in kwargs_point_types]
-    return args_point_types, kwargs_point_types
+        args_types = [
+            pt if pt != 'point' else point_type for pt in args_types]
+        kwargs_types = [
+            pt if pt != 'point' else point_type for pt in kwargs_types]
+    return args_types, kwargs_types
 
 
 def initial_shapes(point_types, args):
