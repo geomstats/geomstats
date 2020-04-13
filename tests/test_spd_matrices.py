@@ -431,6 +431,38 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=1e-3)
 
+    def test_squared_dist_vectorization(self):
+        """Test of SPDMetricAffine.squared_dist (power=1) and vectorization."""
+        n_samples = self.n_samples
+        point_1 = self.space.random_uniform(n_samples=n_samples)
+        point_2 = self.space.random_uniform(n_samples=n_samples)
+
+        metric = self.metric_affine
+        result = metric.squared_dist(point_1, point_2)
+
+        self.assertAllClose(gs.shape(result), (n_samples, 1))
+
+        point_1 = self.space.random_uniform(n_samples=1)
+        point_2 = self.space.random_uniform(n_samples=n_samples)
+
+        result = metric.squared_dist(point_1, point_2)
+
+        self.assertAllClose(gs.shape(result), (n_samples, 1))
+
+        point_1 = self.space.random_uniform(n_samples=n_samples)
+        point_2 = self.space.random_uniform(n_samples=1)
+
+        result = metric.squared_dist(point_1, point_2)
+
+        self.assertAllClose(gs.shape(result), (n_samples, 1))
+
+        point_1 = self.space.random_uniform(n_samples=1)
+        point_2 = self.space.random_uniform(n_samples=1)
+
+        result = metric.squared_dist(point_1, point_2)
+
+        self.assertAllClose(gs.shape(result), (1, 1))
+
     def test_parallel_transport_affine_invariant(self):
         """Test of SPDMetricAffine.parallel_transport method with power=1."""
         n_samples = self.n_samples
