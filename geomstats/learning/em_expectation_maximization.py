@@ -80,19 +80,12 @@ class RiemannianEM():
         self.mean_method = mean_method
         self.point_type = point_type
 
-    def update_posterior_probabilities(self,
-                                       posterior_probabilities,
-                                       g_index=-1):
+    def update_posterior_probabilities(self, posterior_probabilities):
         """Posterior probabilities update function."""
-        if (g_index > 0):
-            self.mixture_coefficients[g_index] = \
-                gs.mean(posterior_probabilities[:, g_index])
-        else:
-            self.mixture_coefficients = gs.mean(posterior_probabilities, 0)
+        self.mixture_coefficients = gs.mean(posterior_probabilities, 0)
 
     def update_means(self, data, posterior_probabilities,
-                     lr_means, tau_means,
-                     g_index=-1, max_iter=DEFAULT_MAX_ITER):
+                     lr_means, tau_means, max_iter=DEFAULT_MAX_ITER):
         """Means update function."""
         n_data, dim, n_gaussian = data.shape +\
             (posterior_probabilities.shape[-1],)
@@ -108,13 +101,8 @@ class RiemannianEM():
         data_expand = gs.expand_dims(data, 1)
         data_expand = gs.repeat(data_expand, n_gaussian, axis=1)
 
-        if(g_index > 0):
-            mean.fit(data, weights=posterior_probabilities[:, g_index])
-            self.means[g_index] = gs.squeeze(mean.estimate_)
-
-        else:
-            mean.fit(data_expand, weights=posterior_probabilities)
-            self.means = gs.squeeze(mean.estimate_)
+        mean.fit(data_expand, weights=posterior_probabilities)
+        self.means = gs.squeeze(mean.estimate_)
 
     def update_variances(self, data, posterior_probabilities, g_index=-1):
         """Variances update function."""
@@ -161,9 +149,8 @@ class RiemannianEM():
 
         if (probability_distribution_function.mean() !=
                 probability_distribution_function.mean()):
-            print('EXPECTATION : Probability distribution function'
-                  'contain elements that are not numbers')
-            quit()
+            logger.info('EXPECTATION : Probability distribution function'
+                        'contain elements that are not numbers')
 
         prob_distrib_expand = gs.repeat(
             gs.expand_dims(self.mixture_coefficients, 0),
@@ -178,9 +165,9 @@ class RiemannianEM():
         if (valid_pdf_condition <= PDF_TOL):
 
             if (self._verbose):
-                print("EXPECTATION : Probability distribution function "
-                      "contain zero for ",
-                      gs.sum(gs.sum(num_normalized_pdf, -1) <= PDF_TOL))
+                logger.info("EXPECTATION : Probability distribution function "
+                            "contain zero for ",
+                            gs.sum(gs.sum(num_normalized_pdf, -1) <= PDF_TOL))
 
             num_normalized_pdf[gs.sum(num_normalized_pdf, -1) <= PDF_TOL] = 1
 
@@ -195,17 +182,15 @@ class RiemannianEM():
         if (gs.mean(posterior_probabilities) !=
                 gs.mean(posterior_probabilities)):
 
-            print('EXPECTATION : posterior probabilities'
-                  'contain elements that are not numbers')
-            quit()
+            raise NameError('EXPECTATION : posterior probabilities ' +
+                            'contain elements that are not numbers')
 
         if 1 - SUM_CHECK_PDF >= gs.mean(gs.sum(
                 posterior_probabilities, 1)) >= 1 + SUM_CHECK_PDF:
 
-            print('EXPECTATION : posterior probabilities'
-                  'don\'t sum to 1')
-            print(gs.sum(posterior_probabilities, 1))
-            quit()
+            raise NameError('EXPECTATION : posterior probabilities ' +
+                            'do not sum to 1')
+
 
         return posterior_probabilities
 
@@ -220,9 +205,8 @@ class RiemannianEM():
 
         if(gs.mean(self.mixture_coefficients)
                 != gs.mean(self.mixture_coefficients)):
-            print('UPDATE : mixture coefficients '
-                  'contain elements that are not numbers')
-            quit()
+            raise NameError('UPDATE : mixture coefficients ' +
+                            'contain elements that are not numbers')
 
         self.update_means(data,
                           posterior_probabilities,
@@ -231,16 +215,14 @@ class RiemannianEM():
                           max_iter=max_iter)
 
         if(self.means.mean() != self.means.mean()):
-            print('UPDATE : means contain'
-                  'not a number elements')
-            quit()
+            raise NameError('UPDATE : means contain' +
+                            'not a number elements')
 
         self.update_variances(data, posterior_probabilities)
 
         if(self.variances.mean() != self.variances.mean()):
-            print('UPDATE : variances contain'
-                  'not a number elements')
-            quit()
+            raise NameError('UPDATE : variances contain' +
+                            'not a number elements')
 
     def fit(self,
             data,
@@ -273,30 +255,20 @@ class RiemannianEM():
             Return the components of the computed
             Gaussian mixture model: means, variances and mixture_coefficients
         """
-        if(self.initialisation_method == 'random'):
-
-            self._dimension = data.shape[-1]
-            self.means = (gs.random.rand(
-                self.n_gaussian,
-                self._dimension) - 0.5) / self._dimension
-            self.variances = gs.random.rand(self.n_gaussian) / 10 + 0.8
-            self.mixture_coefficients = \
-                gs.ones(self.n_gaussian) / self.n_gaussian
-            posterior_probabilities = gs.ones((data.shape[0],
-                                               self.means.shape[0]))
-            self.normalization_factor = Normalization_Factor_Storage(
-                gs.arange(ZETA_LOWER_BOUND,
-                          ZETA_UPPER_BOUND,
-                          ZETA_STEP),
-                self._dimension)
-
-        else:
-            print('Initialisation method not yet implemented')
-            quit()
-
-        if (self.verbose):
-            print('Number of data samples', data.shape[0])
-            print('Dimensions', self._dimension)
+        self._dimension = data.shape[-1]
+        self.means = (gs.random.rand(
+            self.n_gaussian,
+            self._dimension) - 0.5) / self._dimension
+        self.variances = gs.random.rand(self.n_gaussian) / 10 + 0.8
+        self.mixture_coefficients = \
+            gs.ones(self.n_gaussian) / self.n_gaussian
+        posterior_probabilities = gs.ones((data.shape[0],
+                                           self.means.shape[0]))
+        self.normalization_factor = Normalization_Factor_Storage(
+            gs.arange(ZETA_LOWER_BOUND,
+                      ZETA_UPPER_BOUND,
+                      ZETA_STEP),
+            self._dimension)
 
         for epoch in range(max_iter):
             old_posterior_probabilities = posterior_probabilities
@@ -305,9 +277,9 @@ class RiemannianEM():
 
             condition = gs.mean(gs.abs(old_posterior_probabilities
                                        - posterior_probabilities))
-            if(condition < EM_CONV_RATE and epoch > MINIMUM_EPOCHS):
 
-                print('EM converged in ', epoch, 'iterations')
+            if(condition < EM_CONV_RATE and epoch > MINIMUM_EPOCHS):
+                logger.info('EM converged in ', epoch, 'iterations')
                 return self.means, self.variances, self.mixture_coefficients
 
             self._maximization(data,
@@ -315,33 +287,7 @@ class RiemannianEM():
                                lr_means=lr_mean,
                                conv_factor_mean=conv_factor_mean)
 
-        print('WARNING: EM did not converge'
-              'Please increase MINIMUM_EPOCHS.')
+        logger.info('WARNING: EM did not converge'+
+                    'Please increase MINIMUM_EPOCHS.')
 
         return self.means, self.variances, self.mixture_coefficients
-
-    def predict(self, data):
-        """Predict for each data point its Gaussian component.
-
-        Given each Gaussin of the computed mixture model,
-        this function computes for each data point
-        the probability to belong to the Gaussian then
-        takes the maximum probability taking into account the weight
-         of the Gaussian to label the data point.
-
-        Parameters
-        ----------
-        data : array-like, shape=[n_samples, n_features]
-            data, where n_samples is the number of samples
-            and n_features is the number of features.
-
-        Returns
-        -------
-        self : object
-            Return array containing for each
-            point the associated Gaussian community
-        """
-        # TODO Thomas or Hadi: Write prediction method to
-        # label points with the cluster maximising the likelihood
-        belongs = None
-        return belongs
