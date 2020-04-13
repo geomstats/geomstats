@@ -205,7 +205,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         point = self.elements_all['with_angle_0']
         result = self.group.regularize(point)
         expected = point
-        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
         less_than_pi = ['with_angle_close_0',
@@ -214,7 +213,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             point = self.elements_all[angle_type]
             result = self.group.regularize(point)
             expected = point
-            expected = helper.to_vector(expected)
             self.assertAllClose(result, expected)
 
         if not geomstats.tests.tf_backend():
@@ -225,7 +223,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             result = self.group.regularize(point)
 
             expected = point
-            expected = helper.to_vector(expected)
 
             self.assertAllClose(result, expected)
 
@@ -238,7 +235,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             expected_trans = gs.concatenate(
                 [gs.zeros(3), point[3:6]], axis=0)
             expected = expected_rot + expected_trans
-            expected = helper.to_vector(expected)
             self.assertAllClose(result, expected)
 
             in_pi_2pi = ['with_angle_in_pi_2pi',
@@ -257,7 +253,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                     [gs.zeros(3),
                      point[3:6]], axis=0)
                 expected = expected_rot + expected_trans
-                expected = helper.to_vector(expected)
 
                 self.assertAllClose(result, expected)
 
@@ -265,7 +260,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             point = self.elements_all[angle_type]
             result = self.group.regularize(point)
             expected = gs.concatenate([gs.zeros(3), point[3:6]], axis=0)
-            expected = helper.to_vector(expected)
             self.assertAllClose(result, expected)
 
             angle_type = 'with_angle_close_2pi_high'
@@ -281,7 +275,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             expected_trans = gs.concatenate(
                 [gs.zeros(3), point[3:6]], axis=0)
             expected = expected_rot + expected_trans
-            expected = helper.to_vector(expected)
             self.assertAllClose(result, expected)
 
     def test_regularize_matrix_form(self):
@@ -292,7 +285,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             point = self.group.regularize(point)
             result = self.group.regularize(point)
             expected = point
-            expected = helper.to_matrix(expected)
             self.assertAllClose(result, expected)
 
         self.group.default_point_type = old_point_type
@@ -385,7 +377,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         result = self.group.compose(point,
                                     self.group.identity)
         expected = point
-        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
         if not geomstats.tests.tf_backend():
@@ -394,7 +385,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             result = self.group.compose(self.group.identity,
                                         point)
             expected = point
-            expected = helper.to_vector(expected)
             self.assertAllClose(result, expected)
 
             # Composition of translations (no rotational part)
@@ -403,7 +393,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                                         self.elements_all['translation_large'])
             expected = (self.elements_all['translation_small']
                         + self.elements_all['translation_large'])
-            expected = helper.to_vector(expected)
             self.assertAllClose(result, expected)
 
     def test_compose_matrix_form(self):
@@ -413,7 +402,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         result = self.group.compose(point,
                                     self.group.identity)
         expected = point
-        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
         if not geomstats.tests.tf_backend():
@@ -422,7 +410,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             result = self.group.compose(self.group.identity,
                                         point)
             expected = point
-            expected = helper.to_vector(expected)
             self.assertAllClose(result, expected)
 
             # Composition of translations (no rotational part)
@@ -431,7 +418,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                                         self.elements_all['translation_large'])
             expected = (self.elements_all['translation_small']
                         + self.elements_all['translation_large'])
-            expected = helper.to_vector(expected)
             self.assertAllClose(result, expected)
 
     def test_compose_and_inverse(self):
@@ -441,7 +427,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         # Expect the group identity
         result = self.group.compose(point, inv_point)
         expected = self.group.identity
-        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
         if not geomstats.tests.tf_backend():
@@ -449,7 +434,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             # Expect the group identity
             result = self.group.compose(inv_point, point)
             expected = self.group.identity
-            expected = helper.to_vector(expected)
             self.assertAllClose(result, expected)
 
     def test_compose_and_inverse_matrix_form(self):
@@ -463,7 +447,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         # Expect the group identity
         result = self.group.compose(point, inv_point)
         expected = self.group.identity
-        expected = helper.to_matrix(expected)
         self.assertAllClose(result, expected)
 
         if not geomstats.tests.tf_backend():
@@ -471,7 +454,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             # Expect the group identity
             result = self.group.compose(inv_point, point)
             expected = self.group.identity
-            expected = helper.to_matrix(expected)
             self.assertAllClose(result, expected)
 
         self.group.default_point_type = old_point_type
@@ -711,7 +693,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         result = self.group.exp(
             base_point=self.group.identity, tangent_vec=tangent_vec)
         expected = tangent_vec
-        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
         if not geomstats.tests.tf_backend():
@@ -723,7 +704,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                 base_point=self.group.identity,
                 tangent_vec=tangent_vec)
             expected = tangent_vec
-            expected = helper.to_vector(expected)
             self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -734,7 +714,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         result = self.group.log(
             base_point=self.group.identity, point=point)
         expected = point
-        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
         if not geomstats.tests.tf_backend():
@@ -745,7 +724,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             result = self.group.log(
                 base_point=self.group.identity, point=point)
             expected = point
-            expected = helper.to_vector(expected)
             self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -763,7 +741,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             result = helper.group_log_then_exp_from_identity(
                 group=self.group, point=point)
             expected = self.group.regularize(point)
-            expected = helper.to_vector(expected)
             self.assertAllClose(result, expected, atol=1e-3)
 
             if geomstats.tests.tf_backend():
@@ -783,12 +760,9 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             result = helper.group_log_then_exp_from_identity(
                 group=self.group, point=point)
             expected = self.group.regularize(point)
-            expected = helper.to_vector(expected)
 
             inv_expected = gs.concatenate(
-                [- expected[:, :3], expected[:, 3:6]],
-                axis=1)
-            inv_expected = helper.to_vector(inv_expected)
+                [- expected[:3], expected[3:6]])
 
             self.assertTrue(
                 gs.allclose(result, expected, atol=1e-4)
@@ -810,7 +784,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             tangent_vec=self.elements_all['translation_large'])
         expected = (self.elements_all['translation_small']
                     + self.elements_all['translation_large'])
-        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -827,7 +800,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         expected = (self.elements_all['translation_large']
                     - self.elements_all['translation_small'])
 
-        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -847,7 +819,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                                                    point=point,
                                                    base_point=base_point)
                 expected = self.group.regularize(point)
-                expected = helper.to_vector(expected)
                 self.assertAllClose(result, expected, rtol=1e-4, atol=1e-4)
 
                 if geomstats.tests.tf_backend():
@@ -875,7 +846,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                     tangent_vec=tangent_vec,
                     base_point=base_point,
                     metric=metric)
-                expected = helper.to_vector(expected)
                 self.assertAllClose(result, expected, rtol=1e-4, atol=1e-4)
 
                 if geomstats.tests.tf_backend():
@@ -897,7 +867,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             axis=0)
         result = metric.exp_from_identity(tangent_vec)
         expected = tangent_vec
-        expected = helper.to_vector(expected)
 
         self.assertAllClose(result, expected)
 
@@ -917,7 +886,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             [rot_vec, translation], axis=0)
 
         expected = transfo
-        expected = helper.to_vector(expected)
         result = metric.log_from_identity(transfo)
 
         self.assertAllClose(result, expected)
@@ -930,7 +898,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                 [rot_vec, translation], axis=0)
 
             expected = transfo
-            expected = helper.to_vector(expected)
             result = metric.log_from_identity(transfo)
 
             self.assertAllClose(result, expected)
@@ -955,7 +922,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                     metric=metric, tangent_vec=tangent_vec)
                 expected = self.group.regularize_tangent_vec_at_identity(
                     tangent_vec, metric=metric)
-                expected = helper.to_vector(expected)
                 self.assertAllClose(result, expected)
 
                 if geomstats.tests.tf_backend():
@@ -979,11 +945,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                     metric=metric, tangent_vec=tangent_vec)
                 expected = self.group.regularize_tangent_vec_at_identity(
                     tangent_vec=tangent_vec, metric=metric)
-                expected = helper.to_vector(expected)
                 inv_expected = gs.concatenate(
-                    [- expected[:, :3], expected[:, 3:6]],
-                    axis=1)
-                inv_expected = helper.to_vector(inv_expected)
+                    [- expected[:3], expected[3:6]])
 
                 self.assertTrue(
                     gs.allclose(result, expected)
@@ -1011,7 +974,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                     metric=metric, tangent_vec=tangent_vec)
                 expected = self.group.regularize_tangent_vec_at_identity(
                     tangent_vec=tangent_vec, metric=metric)
-                expected = helper.to_vector(expected)
 
                 self.assertAllClose(result, expected, atol=1e-4)
 
@@ -1040,11 +1002,8 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                     metric=metric, tangent_vec=tangent_vec)
                 expected = self.group.regularize_tangent_vec_at_identity(
                     tangent_vec=tangent_vec, metric=metric)
-                expected = helper.to_vector(expected)
                 inv_expected = gs.concatenate(
-                    [- expected[:, :3], expected[:, 3:6]],
-                    axis=1)
-                inv_expected = helper.to_vector(inv_expected)
+                    [- expected[:3], expected[3:6]])
                 self.assertTrue(
                     gs.allclose(result, expected, atol=atol)
                     or gs.allclose(result, inv_expected, atol=atol))
@@ -1072,7 +1031,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         expected = gs.concatenate(
             [gs.array([0., 0., 0.]), gs.array([5., -1., 9997.])],
             axis=0)
-        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -1097,7 +1055,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         expected = gs.concatenate(
             [gs.array([0., 0., 0.]), gs.array([-5., -1., -1.2])],
             axis=0)
-        expected = helper.to_vector(expected)
 
         result = metric.log(base_point=transfo_base_point,
                             point=point)
@@ -1125,7 +1082,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                         base_point=base_point)
 
                     expected = self.group.regularize(point)
-                    expected = helper.to_vector(expected)
 
                     self.assertAllClose(result, expected, atol=1e-4)
 
@@ -1152,12 +1108,9 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                         base_point=base_point)
 
                     expected = self.group.regularize(point)
-                    expected = helper.to_vector(expected)
 
                     inv_expected = gs.concatenate(
-                        [- expected[:, :3], expected[:, 3:6]],
-                        axis=1)
-                    inv_expected = helper.to_vector(inv_expected)
+                        [- expected[:3], expected[3:6]])
 
                     self.assertTrue(
                         gs.allclose(result, expected, atol=1e-6)
@@ -1189,7 +1142,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                         tangent_vec=tangent_vec,
                         base_point=base_point,
                         metric=metric)
-                    expected = helper.to_vector(expected)
                     norm = gs.linalg.norm(expected)
                     atol = RTOL
                     if norm != 0:
@@ -1222,12 +1174,9 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                         tangent_vec=tangent_vec,
                         base_point=base_point,
                         metric=metric)
-                    expected = helper.to_vector(expected)
 
                     inv_expected = gs.concatenate(
-                        [- expected[:, :3], expected[:, 3:6]],
-                        axis=1)
-                    inv_expected = helper.to_vector(inv_expected)
+                        [- expected[:3], expected[3:6]])
 
                     self.assertTrue(
                         gs.allclose(result, expected, atol=1e-3)
@@ -1256,7 +1205,6 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                         base_point=base_point)
 
                     expected = self.group.regularize(point)
-                    expected = helper.to_vector(expected)
                     norm = gs.linalg.norm(expected)
                     atol = RTOL
                     if norm != 0:
@@ -1286,12 +1234,9 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                         base_point=base_point)
 
                     expected = self.group.regularize(point)
-                    expected = helper.to_vector(expected)
 
                     inv_expected = gs.concatenate(
-                        [- expected[:, :3], expected[:, 3:6]],
-                        axis=1)
-                    inv_expected = helper.to_vector(inv_expected)
+                        [- expected[:3], expected[3:6]])
 
                     norm = gs.linalg.norm(expected)
                     atol = RTOL
@@ -1577,5 +1522,5 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
                 tangent_vec=i * tangent_vec_step,
                 base_point=initial_point)
             result = point_step
-            expected = helper.to_vector(points[i])
+            expected = points[i]
             self.assertAllClose(result, expected)
