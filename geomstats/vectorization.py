@@ -198,7 +198,7 @@ def get_initial_shapes(point_types, args):
         if point_type == 'scalar':
             arg = gs.array(arg)
 
-        if point_type == 'else' or arg is None:
+        if point_type in ['else', 'point_type'] or arg is None:
             in_shapes.append(None)
         else:
             in_shapes.append(gs.shape(arg))
