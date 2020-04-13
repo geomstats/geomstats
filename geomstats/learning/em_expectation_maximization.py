@@ -142,13 +142,9 @@ class RiemannianEM():
 
             num_normalized_pdf[gs.sum(num_normalized_pdf, -1) <= PDF_TOL] = 1
 
-        denum_normalized_pdf = gs.repeat(gs.sum(num_normalized_pdf,
-                                                -1,
-                                                keepdims=True),
-                                         num_normalized_pdf.shape[-1],
-                                         axis=1)
-
-        posterior_probabilities = num_normalized_pdf / denum_normalized_pdf
+        sum_pdf = gs.sum(num_normalized_pdf, -1)
+        posterior_probabilities =\
+            gs.einsum('...i,...->...i', num_normalized_pdf, 1 / sum_pdf)
 
         if (gs.mean(posterior_probabilities) !=
                 gs.mean(posterior_probabilities)):
