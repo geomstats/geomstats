@@ -4,6 +4,7 @@ import logging
 
 import geomstats.backend as gs
 import geomstats.error
+import geomstats.vectorization
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
@@ -238,6 +239,7 @@ class InvariantMetric(RiemannianMetric):
         exp = self.group.regularize(exp)
         return exp
 
+    @geomstats.vectorization.decorator(['else', 'vector'])
     def exp_from_identity(self, tangent_vec):
         """Compute Riemannian exponential of tangent vector from the identity.
 
@@ -251,8 +253,6 @@ class InvariantMetric(RiemannianMetric):
         exp : array-like, shape=[n_samples, dimension]
             Point in the group.
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-
         if self.left_or_right == 'left':
             exp = self.left_exp_from_identity(tangent_vec)
 
@@ -263,6 +263,7 @@ class InvariantMetric(RiemannianMetric):
         exp = self.group.regularize(exp)
         return exp
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def exp(self, tangent_vec, base_point=None):
         """Compute Riemannian exponential of tan. vector wrt to base point.
 
@@ -279,13 +280,14 @@ class InvariantMetric(RiemannianMetric):
             Point in the group equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
+        identity = gs.to_ndarray(self.group.identity, to_ndim=2)
         if base_point is None:
-            base_point = self.group.identity
-        base_point = self.group.regularize(base_point)
-        if gs.allclose(base_point, self.group.identity):
-            return self.exp_from_identity(tangent_vec)
+            base_point = identity
 
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        base_point = self.group.regularize(base_point)
+
+        if gs.allclose(base_point, identity):
+            return self.exp_from_identity(tangent_vec)
 
         n_tangent_vecs, _ = tangent_vec.shape
         n_base_points, _ = base_point.shape
