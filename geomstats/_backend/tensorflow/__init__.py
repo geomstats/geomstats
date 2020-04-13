@@ -139,7 +139,7 @@ def get_mask_i_float(i, n):
 
     Parameters
     ----------
-    i: int
+    i : int
         Index of the non-zero element.
     n: n
         Length of the created array.
@@ -431,7 +431,7 @@ def get_slice(x, indices):
     Parameters
     ----------
     x : array-like, shape=[dimension]
-        Initial array, shape=[dimension].
+        Initial array.
     indices : iterable(iterable(int))
         Indices which are kept along each axis, starting from 0.
 
