@@ -307,6 +307,7 @@ def vectorize_kwargs(point_types, kwargs):
         else:
             raise ValueError('Invalid point type.')
         vect_kwargs[key_arg] = vect_arg
+    return vect_kwargs
 
 
 def adapt_result(result, initial_shapes, args_kwargs_types, is_scal):
