@@ -122,7 +122,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         raise ValueError('point_type should be \'vector\' or \'matrix\'.')
 
     @geomstats.vectorization.decorator(
-        ['else', 'point', 'point_type', 'no_is_scal'])
+        ['else', 'point', 'point_type', 'output_point'])
     def regularize(self, point, point_type=None):
         """Regularize a point to be in accordance with convention.
 
@@ -182,7 +182,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return regularized_point
 
     @geomstats.vectorization.decorator(
-        ['else', 'point', 'else', 'point_type', 'no_is_scal'])
+        ['else', 'point', 'else', 'point_type', 'output_point'])
     def regularize_tangent_vec_at_identity(
             self, tangent_vec, metric=None, point_type=None):
         """Regularize a tangent vector at the identify.
@@ -254,7 +254,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return regularized_vec
 
     @geomstats.vectorization.decorator(
-        ['else', 'point', 'point', 'else', 'point_type', 'no_is_scal'])
+        ['else', 'point', 'point', 'else', 'point_type', 'output_point'])
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None, point_type=None):
         """Regularize tangent vector at a base point.
@@ -450,7 +450,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                 skew_mat[i] = skew_mat[i] - gs.transpose(skew_mat[i])
         return skew_mat
 
-    @geomstats.vectorization.decorator(['else', 'matrix', 'no_is_scal'])
+    @geomstats.vectorization.decorator(['else', 'matrix', 'output_point'])
     def vector_from_skew_matrix(self, skew_mat):
         """Derive a vector from the skew-symmetric matrix.
 
@@ -492,7 +492,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         return vec
 
-    @geomstats.vectorization.decorator(['else', 'matrix', 'no_is_scal'])
+    @geomstats.vectorization.decorator(['else', 'matrix', 'output_point'])
     def rotation_vector_from_matrix(self, rot_mat):
         r"""Convert rotation matrix (in 3D) to rotation vector (axis-angle).
 
