@@ -170,9 +170,11 @@ def adapt_types(
             input_type = obj.default_point_type
 
         args_types = [
-            pt if pt != 'point' else input_type for pt in args_types]
+            input_type if pt == FLEXIBLE_TYPE else pt
+            for pt in args_types]
         kwargs_types = [
-            pt if pt != 'point' else input_type for pt in kwargs_types]
+            input_type if pt == FLEXIBLE_TYPE else pt
+            for pt in kwargs_types]
     return args_types, kwargs_types
 
 
