@@ -239,14 +239,15 @@ def vectorize_args(input_types, args):
     vect_args = []
     for i_arg, arg in enumerate(args):
         input_type = input_types[i_arg]
-        if input_type in ['else', 'point_type'] or arg is None:
-            vect_arg = arg
-        elif input_type == 'scalar':
+        if input_type == 'scalar':
             vect_arg = gs.to_ndarray(arg, to_ndim=1)
             vect_arg = gs.to_ndarray(vect_arg, to_ndim=2, axis=1)
-        elif input_type in ['vector', 'matrix']:
+
+        elif input_type in POINT_TYPES:
             vect_arg = gs.to_ndarray(
                 arg, to_ndim=POINT_TYPES_TO_NDIMS[input_type])
+        elif input_type in OTHER_TYPES or arg is None:
+            vect_arg = arg
         else:
             raise ValueError('Invalid point type: %s' % input_type)
         vect_args.append(vect_arg)
