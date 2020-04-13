@@ -2757,13 +2757,13 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     # Compose transformation by its inverse on the right
                     # Expect the group identity
                     result = group.compose(point, inv_point)
-                    expected = helper.to_vector(group.identity)
+                    expected = group.identity
                     self.assertAllClose(result, expected)
 
                     # Compose transformation by its inverse on the left
                     # Expect the group identity
                     result = group.compose(inv_point, point)
-                    expected = helper.to_vector(group.identity)
+                    expected = group.identity
                     self.assertAllClose(result, expected)
             else:
                 angle = 0.986
@@ -2775,13 +2775,13 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 # Compose transformation by its inverse on the right
                 # Expect the group identity
                 result = group.compose(point, inv_point)
-                expected = helper.to_matrix(group.identity)
+                expected = group.identity
                 self.assertAllClose(result, expected)
 
                 # Compose transformation by its inverse on the left
                 # Expect the group identity
                 result = group.compose(inv_point, point)
-                expected = helper.to_matrix(group.identity)
+                expected = group.identity
                 self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only

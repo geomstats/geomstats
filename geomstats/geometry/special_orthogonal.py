@@ -257,7 +257,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         return regularized_vec
 
     @geomstats.vectorization.decorator(
-        ['else', 'vector', 'vector', 'else', 'else', 'no_is_scal'])
+        ['else', 'point', 'point', 'else', 'point_type', 'no_is_scal'])
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None, point_type=None):
         """Regularize tangent vector at a base point.
