@@ -88,6 +88,13 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
             is_matrix_vec = helper.to_scalar(is_matrix_vec)
             return is_matrix_vec
 
+        @geomstats.vectorization.decorator(
+            ['else', 'point', 'point_type', 'no_is_scal'])
+        def output_1d_vector(obj, point, point_type=None):
+            n_samples = point.shape[0]
+            result = gs.array([[5.]] * n_samples)
+            return result
+
         self.foo = foo
         self.foo_scalar_output = foo_scalar_output
         self.foo_scalar_input_output = foo_scalar_input_output
@@ -98,6 +105,7 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         self.is_matrix_vectorized = is_matrix_vectorized
         self.is_point_type_vector = is_point_type_vector
         self.is_point_type_matrix = is_point_type_matrix
+        self.output_1d_vector = output_1d_vector
         self.obj = Obj()
 
     def test_decorator_with_squeeze_dim0(self):
@@ -332,4 +340,18 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         result = self.is_point_type_matrix(
             self.obj, point, point_type='matrix')
         expected = True
+        self.assertAllClose(result, expected)
+
+    def test_output_single_1d_vector(self):
+        point = gs.array([1., 2., 3.])
+        result = self.output_1d_vector(
+            self.obj, point)
+        expected = gs.array([5.])
+        self.assertAllClose(result, expected)
+
+    def test_output_multiple_1d_vector(self):
+        point = gs.array([[1., 2., 3.], [2., 3., 4.]])
+        result = self.output_1d_vector(
+            self.obj, point)
+        expected = gs.array([[5.], [5.]])
         self.assertAllClose(result, expected)
