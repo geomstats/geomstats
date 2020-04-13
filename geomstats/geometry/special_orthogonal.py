@@ -1486,6 +1486,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         return tangent_vec
 
+    @geomstats.vectorization.decorator(['else', 'point', 'point_type'])
     def log_from_identity(self, point, point_type=None):
         """Compute the group logarithm of the point at the identity.
 
@@ -1499,12 +1500,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         tangent_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
-        if point_type is None:
-            point_type = self.default_point_type
-
         if point_type == 'vector':
-            tangent_vec = self.regularize(
-                point, point_type=point_type)
+            tangent_vec = self.regularize(point, point_type=point_type)
         elif point_type == 'matrix':
             point = self.rotation_vector_from_matrix(point)
             tangent_vec = self.skew_matrix_from_vector(point)
