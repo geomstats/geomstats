@@ -391,7 +391,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         skew_mat : array-like, shape=[n_samples, n, n]
         """
         n_vecs, vec_dim = gs.shape(vec)
-        # n_vecs = gs.cast(n_vecs, gs.float32)
 
         if self.n == 2:  # SO(2)
             vec = gs.tile(vec, [1, 2])
@@ -403,7 +402,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         elif self.n == 3:  # SO(3)
             # This avois dividing by 0.
-            # print(type(n_vecs))
             levi_civita_symbol = gs.tile([[
                 [[0., 0., 0.],
                  [0., 0., 1.],
@@ -420,22 +418,12 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             levi_civita_symbol += self.epsilon
 
             # This avois dividing by 0.
-            basis_vec_1 = gs.array(gs.tile([[1., 0., 0.]], (n_vecs, 1))) + self.epsilon
-            basis_vec_2 = gs.array(gs.tile([[0., 1., 0.]], (n_vecs, 1))) + self.epsilon
-            basis_vec_3 = gs.array(gs.tile([[0., 0., 1.]], (n_vecs, 1))) + self.epsilon
-            # basis_vec_2 = gs.array([[0., 1., 0.]] * n_vecs) + self.epsilon
-            # basis_vec_3 = gs.array([[0., 0., 1.]] * n_vecs) + self.epsilon
-
-            # print('\nfor einsum nijk,ni,nj->nk')
-            # print('levi civita')
-            # print(gs.shape(levi_civita_symbol))
-            # print(levi_civita_symbol)
-            # print('basis 1')
-            # print(gs.shape(basis_vec_1))
-            # print(basis_vec_1)
-            # print('vec')
-            # print(gs.shape(vec))
-            # print(vec)
+            basis_vec_1 = gs.array(
+                gs.tile([[1., 0., 0.]], (n_vecs, 1))) + self.epsilon
+            basis_vec_2 = gs.array(
+                gs.tile([[0., 1., 0.]], (n_vecs, 1))) + self.epsilon
+            basis_vec_3 = gs.array(
+                gs.tile([[0., 0., 1.]], (n_vecs, 1))) + self.epsilon
 
             cross_prod_1 = gs.einsum(
                 'nijk,ni,nj->nk',
