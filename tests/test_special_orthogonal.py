@@ -412,7 +412,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         n = 3
         group = self.so[n]
 
-        angle = gs.array(.12)
+        angle = .12
         rot_mat = gs.array([[1., 0., 0.],
                             [0., gs.cos(angle), -gs.sin(angle)],
                             [0, gs.sin(angle), gs.cos(angle)]])
@@ -468,7 +468,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
@@ -511,7 +511,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
@@ -542,7 +542,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-        angle_bis = gs.array(gs.pi / 7.)
+        angle_bis = gs.pi / 7.
         cos_angle_bis = gs.cos(angle_bis)
         sin_angle_bis = gs.sin(angle_bis)
 
@@ -606,7 +606,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
