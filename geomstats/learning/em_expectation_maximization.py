@@ -133,14 +133,9 @@ class RiemannianEM():
             logging.info('EXPECTATION : Probability distribution function'
                          'contain elements that are not numbers')
 
-        prob_distrib_expand = gs.repeat(
-            gs.expand_dims(self.mixture_coefficients, 0),
-            len(probability_distribution_function),
-            axis=0)
-
-        num_normalized_pdf = probability_distribution_function * \
-            prob_distrib_expand
-
+        num_normalized_pdf = gs.einsum('j,...j->...j',
+                                       self.mixture_coefficients,
+                                       probability_distribution_function)
         valid_pdf_condition = gs.amin(gs.sum(num_normalized_pdf, -1))
 
         if (valid_pdf_condition <= PDF_TOL):
