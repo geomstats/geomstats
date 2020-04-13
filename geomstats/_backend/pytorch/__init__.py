@@ -161,7 +161,7 @@ def get_slice(x, indices):
     Parameters
     ----------
     x : array-like, shape=[dimension]
-        Initial array, shape=[dimension].
+        Initial array.
     indices : iterable(iterable(int))
         Indices which are kept along each axis, starting from 0.
 
@@ -384,12 +384,12 @@ def diagonal(x, offset=0, axis1=0, axis2=1):
 
 
 def set_diag(x, new_diag):
-    """Sets the diagonal along the last two axis.
+    """Set the diagonal along the last two axis.
 
     Parameters
     ----------
     x : array-like, shape=[dimension]
-        Initial array, shape=[dimension].
+        Initial array.
     new_diag : array-like, shape=[dimension[-2]]
         Values to set on the diagonal.
 
@@ -423,7 +423,7 @@ def get_mask_i_float(i, n):
 
     Parameters
     ----------
-    i: int
+    i : int
         Index of the non-zero element.
     n: n
         Length of the created array.
