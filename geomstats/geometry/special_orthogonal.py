@@ -391,6 +391,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         skew_mat : array-like, shape=[n_samples, n, n]
         """
         n_vecs, vec_dim = gs.shape(vec)
+        n_vecs = gs.cast(n_vecs, gs.float32)
 
         if self.n == 2:  # SO(2)
             vec = gs.tile(vec, [1, 2])
@@ -413,6 +414,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                  [-1., 0., 0.],
                  [0., 0., 0.]]
             ]] * n_vecs) + self.epsilon
+            print(gs.shape(levi_civita_symbol))
 
             # This avois dividing by 0.
             basis_vec_1 = gs.array([[1., 0., 0.]] * n_vecs) + self.epsilon
@@ -1410,14 +1412,14 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                         gs.get_mask_i_float(i, n_points_tensor)
                         + self.epsilon)
 
-                    sign = - 1
+                    sign = - 1.
                     if left_or_right == 'left':
-                        sign = + 1
+                        sign = + 1.
 
                     jacobian_i = (
                         coef_1[i] * gs.eye(self.dimension)
                         + coef_2[i] * gs.outer(point[i], point[i])
-                        + sign * self.skew_matrix_from_vector(point[i]) / 2)
+                        + sign * self.skew_matrix_from_vector(point[i]) / 2.)
 
                     jacobian += gs.einsum(
                         'n,ij->nij',
