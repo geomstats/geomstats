@@ -3,6 +3,7 @@
 
 import geomstats.backend as gs
 import geomstats.geometry.riemannian_metric as riemannian_metric
+import geomstats.vectorization
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.manifold import Manifold
 
@@ -189,6 +190,8 @@ class LieGroup(Manifold):
             'The group exponential from the identity is not implemented.'
         )
 
+    @geomstats.vectorization.decorator(
+        ['else', 'point', 'point', 'point_type'])
     def exp_not_from_identity(self, tangent_vec, base_point, point_type=None):
         """Calculate the group exponential at base_point.
 
@@ -204,14 +207,9 @@ class LieGroup(Manifold):
         exp : array-like, shape=[n_samples, {dimension,[n,n]}]
             the computed exponential
         """
-        # TODO(nmiolane): Factorize this type of if in the codebase
-        if point_type is None:
-            point_type = self.default_point_type
-
         if point_type == 'vector':
             jacobian = self.jacobian_translation(
                 point=base_point, left_or_right='left', point_type=point_type)
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
             inv_jacobian = gs.linalg.inv(jacobian)
 
             tangent_vec_at_id = gs.einsum(
@@ -229,15 +227,15 @@ class LieGroup(Manifold):
             return exp
 
         if point_type == 'matrix':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
-            lie_vec = self.compose(
-                self.inverse(base_point), tangent_vec)
+            lie_vec = self.compose(self.inverse(base_point), tangent_vec)
             return self.compose(
                 base_point, self.exp_from_identity(lie_vec, point_type))
 
         raise ValueError('Invalid point_type, expected \'vector\' or '
                          '\'matrix\'')
 
+    @geomstats.vectorization.decorator(
+        ['else', 'point', 'point', 'point_type'])
     def exp(self, tangent_vec, base_point=None, point_type=None):
         """Compute the group exponential at `base_point` of `tangent_vec`.
 
@@ -255,21 +253,13 @@ class LieGroup(Manifold):
         result : array-like, shape=[n_samples, {dimension,[n,n]}]
             The exponentiated tangent vector
         """
-        if point_type is None:
-            point_type = self.default_point_type
-
         identity = self.get_identity(point_type=point_type)
-        identity = self.regularize(identity, point_type=point_type)
+        identity = gs.to_ndarray(
+            identity,
+            to_ndim=geomstats.vectorization.POINT_TYPES_TO_NDIMS[point_type])
         if base_point is None:
             base_point = identity
         base_point = self.regularize(base_point, point_type=point_type)
-
-        if point_type == 'vector':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-            base_point = gs.to_ndarray(base_point, to_ndim=2)
-        if point_type == 'matrix':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
-            base_point = gs.to_ndarray(base_point, to_ndim=3)
 
         n_tangent_vecs = tangent_vec.shape[0]
         n_base_points = base_point.shape[0]
@@ -309,6 +299,8 @@ class LieGroup(Manifold):
             'The group logarithm from the identity is not implemented.'
         )
 
+    @geomstats.vectorization.decorator(
+        ['else', 'point', 'point', 'point_type'])
     def log_not_from_identity(self, point, base_point, point_type=None):
         """Compute the group logarithm of `point` from `base_point`.
 
@@ -323,9 +315,6 @@ class LieGroup(Manifold):
         -------
         tangent_vec : array-like, shape=[n_samples, {dimension,[n,n]}]
         """
-        if point_type is None:
-            point_type = self.default_point_type
-
         if point_type == 'vector':
             jacobian = self.jacobian_translation(
                 point=base_point, left_or_right='left', point_type=point_type)
@@ -349,6 +338,8 @@ class LieGroup(Manifold):
         raise ValueError('Invalid point_type, expected \'vector\' or '
                          '\'matrix\'')
 
+    @geomstats.vectorization.decorator(
+        ['else', 'point', 'point', 'point_type'])
     def log(self, point, base_point=None, point_type=None):
         """Compute the group logarithm of `point` relative to `base_point`.
 
@@ -362,19 +353,12 @@ class LieGroup(Manifold):
         -------
         tangent_vec : array-like, shape=[n_samples, {dimension,[n,n]}]
         """
-        if point_type is None:
-            point_type = self.default_point_type
-
         identity = self.get_identity(point_type=point_type)
+        identity = gs.to_ndarray(
+            identity,
+            to_ndim=geomstats.vectorization.POINT_TYPES_TO_NDIMS[point_type])
         if base_point is None:
             base_point = identity
-
-        if point_type == 'vector':
-            point = gs.to_ndarray(point, to_ndim=2)
-            base_point = gs.to_ndarray(base_point, to_ndim=2)
-        if point_type == 'matrix':
-            point = gs.to_ndarray(point, to_ndim=3)
-            base_point = gs.to_ndarray(base_point, to_ndim=3)
 
         point = self.regularize(point, point_type=point_type)
         base_point = self.regularize(base_point, point_type=point_type)
