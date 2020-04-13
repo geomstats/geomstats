@@ -77,17 +77,16 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         @geomstats.vectorization.decorator(
             ['else', 'point', 'point_type'])
         def is_point_type_vector(obj, point, point_type=None):
-            print(point_type)
-            is_vector_vec = gs.ndim(point) == 2
-            is_vector_vec = helper.to_scalar(is_vector_vec)
-            return is_vector_vec
+            is_point_type_vector = point_type == 'vector'
+            is_point_type_vector = helper.to_scalar(is_point_type_vector)
+            return is_point_type_vector
 
         @geomstats.vectorization.decorator(
             ['else', 'point', 'point_type'])
         def is_point_type_matrix(obj, point, point_type=None):
-            is_matrix_vec = gs.ndim(point) == 3
-            is_matrix_vec = helper.to_scalar(is_matrix_vec)
-            return is_matrix_vec
+            is_point_type_matrix = point_type == 'matrix'
+            is_point_type_matrix = helper.to_scalar(is_point_type_matrix)
+            return is_point_type_matrix
 
         @geomstats.vectorization.decorator(
             ['else', 'point', 'point_type', 'no_is_scal'])
