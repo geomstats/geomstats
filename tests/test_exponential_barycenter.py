@@ -36,7 +36,6 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
 
     def test_estimate_one_sample_se(self):
         point = self.se_mat.random_uniform(1)
-        print(point.shape)
         estimator = ExponentialBarycenter(self.se_mat)
         estimator.fit(point)
         result = estimator.estimate_
@@ -52,21 +51,18 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_estimate_and_reach_max_iter_se(self):
-        point = self.se_mat.random_uniform(self.n_samples)
+        point = self.se_mat.random_uniform(1)
         estimator = ExponentialBarycenter(self.se_mat, max_iter=2)
-        print('in tests')
-        print(point.shape)
-        point = gs.array([point, point])
-        print(point.shape)
-        estimator.fit(point)
+        points = gs.array([point, point])
+        estimator.fit(points)
         result = estimator.estimate_
         expected = point
         self.assertAllClose(result, expected)
 
-        point = self.so_vec.random_uniform(self.n_samples)
+        point = self.so_vec.random_uniform(1)
         estimator = ExponentialBarycenter(self.so_vec, max_iter=2)
-        point = gs.array([point, point])
-        estimator.fit(point)
+        points = gs.array([point, point])
+        estimator.fit(points)
         result = estimator.estimate_
         expected = point
         self.assertAllClose(result, expected)
