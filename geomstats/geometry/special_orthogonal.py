@@ -1478,16 +1478,13 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         point : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
-        if point_type == 'vector':
-            point = gs.to_ndarray(tangent_vec, to_ndim=2)
-        elif point_type == 'matrix' and self.n > 3:
+        if point_type == 'matrix' and self.n > 3:
             return gs.linalg.expm(tangent_vec)
-        elif point_type == 'matrix':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
+        if point_type == 'matrix':
             tangent_vec = self.vector_from_skew_matrix(tangent_vec)
-            point = self.matrix_from_rotation_vector(tangent_vec)
+            return self.matrix_from_rotation_vector(tangent_vec)
 
-        return point
+        return tangent_vec
 
     def log_from_identity(self, point, point_type=None):
         """Compute the group logarithm of the point at the identity.
