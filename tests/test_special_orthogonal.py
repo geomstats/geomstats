@@ -2854,7 +2854,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             else:
                 expected = angle ** 2 / (4 * gs.sin(angle / 2) ** 2)
 
-            expected = gs.to_ndarray(expected, to_ndim=1)
             self.assertAllClose(result, expected)
 
     def test_left_jacobian_vectorization(self):
