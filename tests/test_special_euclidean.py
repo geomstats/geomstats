@@ -160,7 +160,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         """
         base_point = self.group.random_uniform()
         result = self.group.belongs(base_point)
-        expected = gs.array([True])
+        expected = True
         self.assertAllClose(result, expected)
 
     def test_random_and_belongs_matrix_form(self):
