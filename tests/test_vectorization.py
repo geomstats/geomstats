@@ -103,7 +103,7 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
             return is_matrix_vec
 
         @geomstats.vectorization.decorator(
-            ['else', 'point', 'point_type', 'no_is_scal'])
+            ['else', 'point', 'point_type', 'output_point'])
         def output_1d_vector(obj, point, point_type=None):
             n_samples = point.shape[0]
             result = gs.array([[5.]] * n_samples)

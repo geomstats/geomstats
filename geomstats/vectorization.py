@@ -118,9 +118,11 @@ def get_types(input_types, args, kwargs):
     is_scal = True
     if len(input_types) > len_total:
         opt_kwargs_types = input_types[len_total:]
-        if input_types[-1] == 'no_is_scal':
-            is_scal = False
-            opt_kwargs_types = input_types[len_total:-1]
+        last_input_type = input_types[-1]
+        if 'output_' in last_input_type:
+            if last_input_type != 'output_scalar':
+                is_scal = False
+                opt_kwargs_types = input_types[len_total:-1]
     return (args_types, kwargs_types, opt_kwargs_types, is_scal)
 
 
