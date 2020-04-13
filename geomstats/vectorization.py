@@ -206,7 +206,7 @@ def get_initial_shapes(input_types, args):
         if input_type == 'scalar':
             arg = gs.array(arg)
 
-        if input_type in POINT_TYPES:
+        if input_type in POINT_TYPES and arg is not None:
             in_shapes.append(gs.shape(arg))
         elif input_type in OTHER_TYPES or arg is None:
             in_shapes.append(None)
@@ -244,7 +244,7 @@ def vectorize_args(input_types, args):
         if input_type == 'scalar':
             vect_arg = gs.to_ndarray(arg, to_ndim=1)
             vect_arg = gs.to_ndarray(vect_arg, to_ndim=2, axis=1)
-        elif input_type in POINT_TYPES:
+        elif input_type in POINT_TYPES and arg is not None:
             vect_arg = gs.to_ndarray(
                 arg, to_ndim=POINT_TYPES_TO_NDIMS[input_type])
         elif input_type in OTHER_TYPES or arg is None:
@@ -285,7 +285,7 @@ def vectorize_kwargs(input_types, kwargs):
         if input_type == 'scalar':
             vect_arg = gs.to_ndarray(arg, to_ndim=1)
             vect_arg = gs.to_ndarray(vect_arg, to_ndim=2, axis=1)
-        elif input_type in POINT_TYPES:
+        elif input_type in POINT_TYPES and arg is not None:
             vect_arg = gs.to_ndarray(
                 arg, to_ndim=POINT_TYPES_TO_NDIMS[input_type])
         elif input_type in OTHER_TYPES or arg is None:
