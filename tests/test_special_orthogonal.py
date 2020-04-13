@@ -2734,7 +2734,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                             or gs.allclose(result, inv_expected))
 
             else:
-                angle = gs.array(0.986)
+                angle = 0.986
                 point = gs.array([
                     [gs.cos(angle), -gs.sin(angle)],
                     [gs.sin(angle), gs.cos(angle)]])
