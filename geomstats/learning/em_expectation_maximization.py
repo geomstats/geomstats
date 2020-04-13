@@ -1,5 +1,6 @@
 """Expectation maximisation algorithm."""
 
+import logging
 import geomstats.backend as gs
 from geomstats.geometry.poincare_ball \
     import GaussianDistribution, Normalization_Factor_Storage
@@ -29,8 +30,7 @@ class RiemannianEM():
                  initialisation_method='random',
                  tol=DEFAULT_TOL,
                  mean_method='default',
-                 point_type='vector',
-                 verbose=0):
+                 point_type='vector'):
         """Expectation-maximization algorithm on Poincaré Ball.
 
         A class for performing Expectation-Maximization on the
@@ -64,9 +64,6 @@ class RiemannianEM():
         point_type: basestring
             Specify whether to use vector or matrix representation
 
-        verbose : int
-            If verbose > 0, information will be printed during learning
-
         Returns
         -------
         self : object
@@ -76,7 +73,6 @@ class RiemannianEM():
         self.riemannian_metric = riemannian_metric
         self.initialisation_method = initialisation_method
         self.tol = tol
-        self.verbose = verbose
         self.mean_method = mean_method
         self.point_type = point_type
 
@@ -149,8 +145,8 @@ class RiemannianEM():
 
         if (probability_distribution_function.mean() !=
                 probability_distribution_function.mean()):
-            logger.info('EXPECTATION : Probability distribution function'
-                        'contain elements that are not numbers')
+            logging.info('EXPECTATION : Probability distribution function'
+                         'contain elements that are not numbers')
 
         prob_distrib_expand = gs.repeat(
             gs.expand_dims(self.mixture_coefficients, 0),
@@ -163,11 +159,6 @@ class RiemannianEM():
         valid_pdf_condition = gs.amin(gs.sum(num_normalized_pdf, -1))
 
         if (valid_pdf_condition <= PDF_TOL):
-
-            if (self._verbose):
-                logger.info("EXPECTATION : Probability distribution function "
-                            "contain zero for ",
-                            gs.sum(gs.sum(num_normalized_pdf, -1) <= PDF_TOL))
 
             num_normalized_pdf[gs.sum(num_normalized_pdf, -1) <= PDF_TOL] = 1
 
@@ -279,7 +270,7 @@ class RiemannianEM():
                                        - posterior_probabilities))
 
             if(condition < EM_CONV_RATE and epoch > MINIMUM_EPOCHS):
-                logger.info('EM converged in ', epoch, 'iterations')
+                logging.info('EM converged in %s iterations',epoch)
                 return self.means, self.variances, self.mixture_coefficients
 
             self._maximization(data,
@@ -287,7 +278,7 @@ class RiemannianEM():
                                lr_means=lr_mean,
                                conv_factor_mean=conv_factor_mean)
 
-        logger.info('WARNING: EM did not converge'+
-                    'Please increase MINIMUM_EPOCHS.')
+        logging.info('WARNING: EM did not converge'+
+                     'Please increase MINIMUM_EPOCHS.')
 
         return self.means, self.variances, self.mixture_coefficients
