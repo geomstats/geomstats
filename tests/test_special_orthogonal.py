@@ -2952,7 +2952,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         # The Logarithm of a point at itself gives 0.
         rot_vec_1 = rot_vec_base_point
-        expected = gs.array([[0., 0., 0.]])
+        expected = gs.array([0., 0., 0.])
         result = metric.log(base_point=rot_vec_base_point,
                             point=rot_vec_1)
         self.assertAllClose(result, expected)
@@ -2974,7 +2974,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         result = metric.log(base_point=rot_vec_base_point,
                             point=rot_vec_2)
 
-        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
     def test_log_vectorization(self):
@@ -3260,7 +3259,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             result = gs.linalg.expm(tangent_sample)
             expected = group.exp_from_identity(
                 tangent_sample, point_type='matrix')
-            expected = expected[0]
 
             self.assertAllClose(result, expected)
 
