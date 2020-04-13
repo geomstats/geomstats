@@ -77,6 +77,7 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
         @geomstats.vectorization.decorator(
             ['else', 'point', 'point_type'])
         def is_point_type_vector(obj, point, point_type=None):
+            print(point_type)
             is_vector_vec = gs.ndim(point) == 2
             is_vector_vec = helper.to_scalar(is_vector_vec)
             return is_vector_vec

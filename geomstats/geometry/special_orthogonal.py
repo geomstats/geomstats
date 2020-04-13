@@ -144,9 +144,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         regularized_point : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
-        if point_type is None:
-            point_type = self.default_point_type
-
+        geomstats.error.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
         if point_type == 'vector':
             regularized_point = point
             if self.n == 3:
