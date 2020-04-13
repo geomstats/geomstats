@@ -362,13 +362,22 @@ class TestVectorizationMethods(geomstats.tests.TestCase):
 
     def test_is_vector_vectorized_with_point_type(self):
         vector = gs.array([1.3, 3.3])
-        result = self.is_vector_vectorized(vector=vector)
+        result = self.is_vector_vectorized_with_point_type(
+            self.obj, point=vector, point_type='vector')
+        expected = True
+        self.assertAllClose(result, expected)
+
+    def test_is_vector_vectorized_with_optional_point_type(self):
+        vector = gs.array([1.3, 3.3])
+        result = self.is_vector_vectorized_with_point_type(
+            self.obj, point=vector)
         expected = True
         self.assertAllClose(result, expected)
 
     def test_is_matrix_vectorized_with_point_type(self):
         matrix = gs.array([[1.3, 3.3], [1.2, 3.1]])
-        result = self.is_matrix_vectorized(matrix)
+        result = self.is_matrix_vectorized_with_point_type(
+            self.obj, matrix, point_type='matrix')
         expected = True
         self.assertAllClose(result, expected)
 
