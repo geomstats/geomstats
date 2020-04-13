@@ -14,6 +14,8 @@ POINT_TYPES_TO_NDIMS = {
     'vector': 2,
     'matrix': 3}
 
+ERROR_MSG = 'Invalid type: %s.'
+
 
 def decorator(input_types):
     """Vectorize geomstats functions.
@@ -209,7 +211,7 @@ def get_initial_shapes(input_types, args):
         elif input_type in OTHER_TYPES or arg is None:
             in_shapes.append(None)
         else:
-            raise ValueError('Invalid point type.')
+            raise ValueError(ERROR_MSG % input_type)
     return in_shapes
 
 
@@ -248,7 +250,7 @@ def vectorize_args(input_types, args):
         elif input_type in OTHER_TYPES or arg is None:
             vect_arg = arg
         else:
-            raise ValueError('Invalid point type: %s' % input_type)
+            raise ValueError(ERROR_MSG % input_type)
         vect_args.append(vect_arg)
     return tuple(vect_args)
 
@@ -289,7 +291,7 @@ def vectorize_kwargs(input_types, kwargs):
         elif input_type in OTHER_TYPES or arg is None:
             vect_arg = arg
         else:
-            raise ValueError('Invalid point type.')
+            raise ValueError(ERROR_MSG % input_type)
         vect_kwargs[key_arg] = vect_arg
     return vect_kwargs
 
