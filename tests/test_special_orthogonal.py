@@ -2885,7 +2885,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         # 1: Exponential of 0 gives the reference point
         rot_vec_1 = gs.array([0., 0., 0.])
-        expected = helper.to_vector(rot_vec_base_point)
+        expected = rot_vec_base_point
 
         result = metric.exp(base_point=rot_vec_base_point,
                             tangent_vec=rot_vec_1)
