@@ -254,7 +254,7 @@ class RiemannianEM():
                                        - posterior_probabilities))
 
             if(condition < EM_CONV_RATE and epoch > MINIMUM_EPOCHS):
-                logging.info('EM converged in %s iterations',epoch)
+                logging.info('EM converged in %s iterations', epoch)
                 return self.means, self.variances, self.mixture_coefficients
 
             self._maximization(data,
@@ -262,7 +262,7 @@ class RiemannianEM():
                                lr_means=lr_mean,
                                conv_factor_mean=conv_factor_mean)
 
-        logging.info('WARNING: EM did not converge'+
+        logging.info('WARNING: EM did not converge' +
                      'Please increase MINIMUM_EPOCHS.')
 
         return self.means, self.variances, self.mixture_coefficients
