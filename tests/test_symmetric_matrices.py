@@ -76,7 +76,8 @@ class TestSymmetricMatricesMethods(geomstats.tests.TestCase):
         expected = gs.array(
             [[[1, 1. / 4., 0.], [1. / 4, 2., 0.], [0., 0., 1.]]])
         expected = gs.cast(expected, gs.float64)
-        power = gs.cast(1. / 2, gs.float64)
+        power = gs.array(1. / 2)
+        power = gs.cast(power, gs.float64)
         result = sym_n.powerm(expected, power)
         result = gs.matmul(result, gs.transpose(result, (0, 2, 1)))
         self.assertAllClose(result, expected)
