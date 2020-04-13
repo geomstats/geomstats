@@ -424,7 +424,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         n = 3
         group = self.so[n]
 
-        angle = gs.array(.12)
+        angle = .12
         rot_mat = gs.array([[1., 0., 0.],
                             [0., gs.cos(angle), -gs.sin(angle)],
                             [0, gs.sin(angle), gs.cos(angle)]])
@@ -480,7 +480,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
@@ -523,7 +523,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
@@ -554,7 +554,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-        angle_bis = gs.array(gs.pi / 7.)
+        angle_bis = gs.pi / 7.
         cos_angle_bis = gs.cos(angle_bis)
         sin_angle_bis = gs.sin(angle_bis)
 
@@ -617,7 +617,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         expected = gs.eye(n)
         self.assertAllClose(result, expected)
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
@@ -675,7 +675,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
@@ -725,7 +725,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
@@ -769,7 +769,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
@@ -800,7 +800,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-        angle_bis = gs.array(gs.pi / 7.)
+        angle_bis = gs.pi / 7.
         cos_angle_bis = gs.cos(angle_bis)
         sin_angle_bis = gs.sin(angle_bis)
 
@@ -861,7 +861,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
@@ -905,7 +905,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
@@ -988,7 +988,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         order = 'zyx'
         extrinsic_or_intrinsic = 'extrinsic'
 
-        angle = gs.array(gs.pi / 7.)
+        angle = gs.pi / 7.
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
@@ -1050,7 +1050,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                             result,
                             expected))
 
-        angle_bis = gs.array(gs.pi / 8.)
+        angle_bis = gs.pi / 8.
         cos_angle_bis = gs.cos(angle_bis)
         sin_angle_bis = gs.sin(angle_bis)
 
@@ -1133,7 +1133,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                             result,
                             expected))
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
 
         tait_bryan_angles = gs.array([angle, 0., 0.])
         matrix = group.matrix_from_tait_bryan_angles(
@@ -1250,7 +1250,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                             result,
                             expected))
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
 
         tait_bryan_angles = gs.array([angle, 0., 0.])
         matrix = group.matrix_from_tait_bryan_angles(
@@ -1347,7 +1347,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         order = 'xyz'
         extrinsic_or_intrinsic = 'intrinsic'
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
@@ -1512,7 +1512,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                             result,
                             expected))
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
 
         tait_bryan_angles = gs.array([angle, 0., 0.])
         matrix = group.matrix_from_tait_bryan_angles(
@@ -1629,7 +1629,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                             result,
                             expected))
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
 
         tait_bryan_angles = gs.array([angle, 0., 0.])
         matrix = group.matrix_from_tait_bryan_angles(
@@ -1726,7 +1726,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                         ' expected = {}.'.format(
                             result,
                             expected))
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
         cos_half_angle = gs.cos(angle / 2.)
         sin_half_angle = gs.sin(angle / 2.)
 
@@ -1782,7 +1782,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                         ' expected = {}.'.format(
                             result,
                             expected))
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
         cos_half_angle = gs.cos(angle / 2.)
         sin_half_angle = gs.sin(angle / 2.)
 
@@ -1849,7 +1849,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                             result,
                             expected))
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
         cos_half_angle = gs.cos(angle / 2.)
         sin_half_angle = gs.sin(angle / 2.)
 
@@ -1916,7 +1916,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                             result,
                             expected))
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
         cos_half_angle = gs.cos(angle / 2.)
         sin_half_angle = gs.sin(angle / 2.)
 
@@ -2065,7 +2065,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                             result,
                             expected))
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
         cos_half_angle = gs.cos(angle / 2.)
         sin_half_angle = gs.sin(angle / 2.)
 
@@ -2274,7 +2274,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                             result,
                             expected))
 
-        angle = gs.array(gs.pi / 6.)
+        angle = gs.pi / 6.
 
         tait_bryan_angles = gs.array([angle, 0., 0.])
         quaternion = group.quaternion_from_tait_bryan_angles(
@@ -2616,11 +2616,11 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
                     self.assertAllClose(result, expected)
 
-                angle = gs.array(gs.pi / 9.)
+                angle = gs.pi / 9.
                 cos_angle = gs.cos(angle)
                 sin_angle = gs.sin(angle)
 
-                angle_bis = gs.array(gs.pi / 7.)
+                angle_bis = gs.pi / 7.
                 cos_angle_bis = gs.cos(angle_bis)
                 sin_angle_bis = gs.sin(angle_bis)
 
@@ -2766,7 +2766,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     expected = helper.to_vector(group.identity)
                     self.assertAllClose(result, expected)
             else:
-                angle = gs.array(0.986)
+                angle = 0.986
                 point = gs.array([
                     [gs.cos(angle), -gs.sin(angle)],
                     [gs.sin(angle), gs.cos(angle)]])

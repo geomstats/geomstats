@@ -12,7 +12,6 @@ from torch import (  # NOQA
     atan2 as arctan2,
     ceil,
     clamp as clip,
-    cos,
     cosh,
     div as divide,
     empty_like,
@@ -42,7 +41,6 @@ from torch import (  # NOQA
     repeat_interleave as repeat,
     reshape,
     sign,
-    sin,
     sinh,
     stack,
     std,
@@ -64,6 +62,18 @@ def _raise_not_implemented_error(*args, **kwargs):
 
 searchsorted = _raise_not_implemented_error
 vectorize = _raise_not_implemented_error
+
+
+def sin(x):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    return torch.sin(x)
+
+
+def cos(x):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    return torch.cos(x)
 
 
 def empty(shape, dtype=float64):
