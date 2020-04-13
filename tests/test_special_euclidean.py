@@ -172,17 +172,22 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         base_point_1 = self.group.random_uniform(1, local_point_type)
         base_point_2 = gs.copy(base_point_1)
         base_point_3 = gs.copy(base_point_1)
+
+        self.assertAllClose(gs.shape(base_point_1), (4, 4))
+        self.assertAllClose(gs.shape(base_point_2), (4, 4))
+        self.assertAllClose(gs.shape(base_point_3), (4, 4))
+
         # Violates SE(n) structure on the last line
-        base_point_2 = gs.assignment(base_point_2, 1, (0, -1, 0))
-        # base_point_2[0][-1, 0] = 1
+        base_point_2 = gs.assignment(base_point_2, 1, (-1, 0))
+        # base_point_2[-1, 0] = 1
         # Violates SE(n) homogeneous coordinates structure
-        base_point_3 = gs.assignment(base_point_3, 2, (0, -1, -1))
-        # base_point_3[0][-1, -1] = 2
+        base_point_3 = gs.assignment(base_point_3, 2, (-1, -1))
+        # base_point_3[-1, -1] = 2
         result_1 = self.group.belongs(base_point_1, local_point_type)
         result_2 = self.group.belongs(base_point_2, local_point_type)
         result_3 = self.group.belongs(base_point_3, local_point_type)
-        result = gs.concatenate([result_1, result_2, result_3], axis=0)
-        expected = gs.array([True, False, False])
+        result = [result_1, result_2, result_3]
+        expected = [True, False, False]
         self.assertAllClose(result, expected)
 
     def test_random_and_belongs_vectorization(self):

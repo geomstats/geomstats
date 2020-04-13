@@ -36,35 +36,39 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
 
     def test_estimate_one_sample_se(self):
         point = self.se_mat.random_uniform(1)
+        print(point.shape)
         estimator = ExponentialBarycenter(self.se_mat)
         estimator.fit(point)
         result = estimator.estimate_
-        expected = point[0]
+        expected = point
         self.assertAllClose(result, expected)
 
         point = self.so_vec.random_uniform(1)
         estimator = ExponentialBarycenter(self.so_vec)
         estimator.fit(point)
         result = estimator.estimate_
-        expected = point[0]
+        expected = point
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_estimate_and_reach_max_iter_se(self):
         point = self.se_mat.random_uniform(self.n_samples)
         estimator = ExponentialBarycenter(self.se_mat, max_iter=2)
-        point = gs.array([point[0], point[0]])
+        print('in tests')
+        print(point.shape)
+        point = gs.array([point, point])
+        print(point.shape)
         estimator.fit(point)
         result = estimator.estimate_
-        expected = point[0]
+        expected = point
         self.assertAllClose(result, expected)
 
         point = self.so_vec.random_uniform(self.n_samples)
         estimator = ExponentialBarycenter(self.so_vec, max_iter=2)
-        point = gs.array([point[0], point[0]])
+        point = gs.array([point, point])
         estimator.fit(point)
         result = estimator.estimate_
-        expected = point[0]
+        expected = point
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -91,14 +95,14 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         estimator = ExponentialBarycenter(self.so)
         estimator.fit(point)
         result = estimator.estimate_
-        expected = point[0]
+        expected = point
         self.assertAllClose(result, expected)
 
         point = self.so_vec.random_uniform(1)
         estimator = ExponentialBarycenter(self.so_vec)
         estimator.fit(point)
         result = estimator.estimate_
-        expected = point[0]
+        expected = point
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only

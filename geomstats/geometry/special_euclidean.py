@@ -419,6 +419,7 @@ class SpecialEuclidean(LieGroup):
         raise ValueError('Invalid point_type, expected \'vector\' or '
                          '\'matrix\'.')
 
+    @geomstats.vectorization.decorator(['else', 'point', 'else', 'point_type'])
     def jacobian_translation(
             self, point, left_or_right='left', point_type=None):
         """Compute the Jacobian matrix resulting from translation.
@@ -709,7 +710,10 @@ class SpecialEuclidean(LieGroup):
             last_line = gs.zeros((n_samples, 1, self.n + 1))
             random_point = gs.concatenate(
                 (random_point, last_line), axis=1)
-            return gs.assignment(random_point, 1, (-1, -1), axis=0)
+            random_point = gs.assignment(random_point, 1, (-1, -1), axis=0)
+            if gs.shape(random_point)[0] == 1:
+                random_point = gs.squeeze(random_point, axis=0)
+            return random_point
 
         raise ValueError('Invalid point_type, expected \'vector\' or '
                          '\'matrix\'.')
