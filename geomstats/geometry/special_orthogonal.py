@@ -107,7 +107,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         if point_type == 'vector':
             vec_dim = point.shape[-1]
             belongs = vec_dim == self.dimension
-            if point.ndim == 2:
+            if gs.ndim(point) == 2:
                 belongs = gs.tile([belongs], (point.shape[0],))
             return belongs
 
@@ -1262,6 +1262,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         return tait_bryan_angles
 
+    @geomstats.vectorization.decorator(
+        ['else', 'point', 'point', 'point_type', 'output_point'])
     def compose(self, point_a, point_b, point_type=None):
         """Compose two elements of SO(n).
 
@@ -1276,9 +1278,6 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         -------
         point_prod : array-like, shape=[n_samples, {dimension, [n, n]}]
         """
-        if point_type is None:
-            point_type = self.default_point_type
-
         point_a = self.regularize(point_a, point_type=point_type)
         point_b = self.regularize(point_b, point_type=point_type)
 

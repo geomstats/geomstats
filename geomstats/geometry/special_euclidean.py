@@ -4,6 +4,7 @@ i.e. the Lie group of rigid transformations in n dimensions.
 """
 
 import geomstats.backend as gs
+import geomstats.vectorization
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import InvariantMetric
@@ -100,6 +101,7 @@ class SpecialEuclidean(LieGroup):
         """Get the shape of the instance given the default_point_style."""
         return self.get_identity(point_type).shape
 
+    @geomstats.vectorization.decorator(['else', 'point', 'point_type'])
     def belongs(self, point, point_type=None):
         """Evaluate if a point belongs to SE(n).
 
@@ -119,14 +121,15 @@ class SpecialEuclidean(LieGroup):
             point_type = self.default_point_type
 
         if point_type == 'vector':
-            point = gs.to_ndarray(point, to_ndim=2)
-            _, point_dim = point.shape
-            belongs = point_dim == self.dimension
+            n_points, vec_dim = gs.shape(point)
+            belongs = vec_dim == self.dimension
+
+            belongs = gs.tile([belongs], (point.shape[0],))
+
             belongs = gs.logical_and(
                 belongs, self.rotations.belongs(point[:, :self.n]))
             return gs.flatten(belongs)
         if point_type == 'matrix':
-            point = gs.to_ndarray(point, to_ndim=3)
             n_points, point_dim1, point_dim2 = point.shape
             belongs = (point_dim1 == point_dim2 == self.n + 1)
             rotation = point[:, :self.n, :self.n]
