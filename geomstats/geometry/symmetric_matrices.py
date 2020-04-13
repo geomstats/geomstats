@@ -121,29 +121,8 @@ class SymmetricMatrices(EmbeddedManifold):
             return gs.power(eigvals, power)
         return cls.apply_func_to_eigvals(x, _power, check_positive=True)
 
-    @classmethod
-    def inv(cls, x):
-        """
-        Compute the matrix inverse.
-
-        Parameters
-        ----------
-        x : array_like, shape=[n_samples, n, n]
-            Non-singular symmetric matrix.
-
-        Returns
-        -------
-        inverse : array_like, shape=[n_samples, n, n]
-            Inverse of x.
-        """
-        def inverse(eigvals):
-            return 1. / eigvals
-
-        return cls.apply_func_to_eigvals(x, inverse, check_non_zero=True)
-
     @staticmethod
-    def apply_func_to_eigvals(x, function, check_positive=False,
-                              check_non_zero=False):
+    def apply_func_to_eigvals(x, function, check_positive=False):
         """
         Apply function to eigenvalues and reconstruct the matrix.
 
@@ -164,11 +143,6 @@ class SymmetricMatrices(EmbeddedManifold):
             if gs.any(gs.cast(eigvals, gs.float32) < 0.):
                 logging.warning(
                     'Negative eigenvalue encountered in'
-                    ' {}'.format(function.__name__))
-        if check_non_zero:
-            if gs.any(gs.isclose(gs.cast(eigvals, gs.float32), 0.)):
-                logging.warning(
-                    'Zero eigenvalue encountered in'
                     ' {}'.format(function.__name__))
         eigvals = function(eigvals)
         eigvals = algebra_utils.from_vector_to_diagonal_matrix(eigvals)
