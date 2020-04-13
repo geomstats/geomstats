@@ -355,7 +355,9 @@ def squeeze_output_dim_0(result, in_shapes, point_types):
             in_ndim = len(in_shape)
         if in_ndim is not None:
             vect_ndim = POINT_TYPES_TO_NDIMS[point_type]
-            assert in_ndim <= vect_ndim
+            if in_ndim > vect_ndim:
+                raise ValueError(
+                    'Fully-vectorizing an input can only increase its ndim.')
             if in_ndim == vect_ndim:
                 return False
     return True
@@ -392,7 +394,8 @@ def squeeze_output_dim_1(result, in_shapes, point_types, is_scal=True):
     for shape, point_type in zip(in_shapes, point_types):
         if point_type == 'scalar':
             ndim = len(shape)
-            assert ndim <= 2
+            if ndim > 2:
+                raise ValueError('The ndim of a scalar cannot be > 2.')
             if ndim == 2:
                 return False
     return True
