@@ -76,21 +76,9 @@ class TestSymmetricMatricesMethods(geomstats.tests.TestCase):
         expected = gs.array(
             [[[1, 1. / 4., 0.], [1. / 4, 2., 0.], [0., 0., 1.]]])
         expected = gs.cast(expected, gs.float64)
-        power = gs.array(1. / 2)
-        power = gs.cast(power, dtype=gs.float64)
+        power = gs.cast(1. / 2, gs.float64)
         result = sym_n.powerm(expected, power)
         result = gs.matmul(result, gs.transpose(result, (0, 2, 1)))
-        self.assertAllClose(result, expected)
-
-    def test_inv(self):
-        """Test of inv method."""
-        sym_n = SymmetricMatrices(self.n)
-        point = gs.array(
-            [[[1, 1. / 4., 0.], [1. / 4, 2., 0.], [0., 0., 1.]]])
-        point = gs.cast(point, gs.float64)
-        result = sym_n.inv(point)
-        result = gs.matmul(result, point)
-        expected = gs.array([gs.eye(self.n)])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
