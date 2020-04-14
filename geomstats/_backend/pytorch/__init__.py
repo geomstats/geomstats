@@ -1,5 +1,7 @@
 """Pytorch based computation backend."""
 
+from functools import wraps
+
 import numpy as _np
 import torch
 from torch import (  # NOQA
@@ -64,6 +66,23 @@ def _raise_not_implemented_error(*args, **kwargs):
 
 searchsorted = _raise_not_implemented_error
 vectorize = _raise_not_implemented_error
+
+
+def _box_scalar(function):
+    @wraps(function)
+    def wrapper(x):
+        if not torch.is_tensor(x):
+            x = torch.tensor(x)
+        return function(x)
+    return wrapper
+
+
+cos = _box_scalar(cos)
+cosh = _box_scalar(cosh)
+exp = _box_scalar(exp)
+log = _box_scalar(log)
+sin = _box_scalar(sin)
+sinh = _box_scalar(sinh)
 
 
 def empty(shape, dtype=float64):
