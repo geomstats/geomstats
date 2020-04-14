@@ -455,7 +455,6 @@ class SPDMetricAffine(RiemannianMetric):
             '...ij,...jk->...ik', sqrt_base_point, exp)
         return exp
 
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def exp(self, tangent_vec, base_point):
         """Compute the affine-invariant exponential map.
 
@@ -473,32 +472,22 @@ class SPDMetricAffine(RiemannianMetric):
         exp : array-like, shape=[n_samples, n, n]
         """
         power_affine = self.power_affine
-        n_tangent_vecs, _, _ = tangent_vec.shape
-        n_base_points, _, _ = base_point.shape
-
-        assert (n_tangent_vecs == n_base_points
-                or n_tangent_vecs == 1
-                or n_base_points == 1)
-
-        if n_tangent_vecs == 1:
-            tangent_vec = gs.tile(tangent_vec, (n_base_points, 1, 1))
-        if n_base_points == 1:
-            base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
 
         if power_affine == 1:
             sqrt_base_point = gs.linalg.powerm(base_point, 1. / 2)
             inv_sqrt_base_point = gs.linalg.powerm(sqrt_base_point, -1)
-            exp = self._aux_exp(tangent_vec, sqrt_base_point,
-                                inv_sqrt_base_point)
+            exp = self._aux_exp(
+                tangent_vec, sqrt_base_point, inv_sqrt_base_point)
         else:
-            modified_tangent_vec = self.space.differential_power(power_affine,
-                                                                 tangent_vec,
-                                                                 base_point)
-            power_sqrt_base_point = gs.linalg.powerm(base_point,
-                                                     power_affine / 2)
+            modified_tangent_vec = self.space.differential_power(
+                power_affine, tangent_vec, base_point)
+            power_sqrt_base_point = gs.linalg.powerm(
+                base_point, power_affine / 2)
             power_inv_sqrt_base_point = gs.linalg.inv(power_sqrt_base_point)
-            exp = self._aux_exp(modified_tangent_vec, power_sqrt_base_point,
-                                power_inv_sqrt_base_point)
+            exp = self._aux_exp(
+                modified_tangent_vec,
+                power_sqrt_base_point,
+                power_inv_sqrt_base_point)
             exp = gs.linalg.powerm(exp, 1 / power_affine)
 
         return exp
