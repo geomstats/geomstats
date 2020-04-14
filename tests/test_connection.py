@@ -14,10 +14,10 @@ class TestConnectionMethods(geomstats.tests.TestCase):
         warnings.simplefilter('ignore', category=UserWarning)
 
         self.dimension = 4
-        self.euc_metric = EuclideanMetric(dimension=self.dimension)
+        self.euc_metric = EuclideanMetric(dim=self.dimension)
 
-        self.connection = Connection(dimension=2)
-        self.hypersphere = Hypersphere(dimension=2)
+        self.connection = Connection(dim=2)
+        self.hypersphere = Hypersphere(dim=2)
 
     def test_metric_matrix(self):
         base_point = gs.array([0., 1., 0., 0.])

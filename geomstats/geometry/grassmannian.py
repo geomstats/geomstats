@@ -26,10 +26,15 @@ class Grassmannian(EmbeddedManifold):
             raise ValueError(
                 'k <= n is required: k-dimensional subspaces in n dimensions.')
 
-        dimension = int(k * (n - k))
+        self.n = n
+        self.k = k
+        self.metric = GrassmannianCanonicalMetric(3, 2)
+
+        dim = int(k * (n - k))
         super(Grassmannian, self).__init__(
-            dimension=dimension,
-            embedding_manifold=Matrices(n, n))
+            dim=dim,
+            embedding_manifold=Matrices(n, n),
+            default_point_type='matrix')
 
         self.n = n
         self.k = k
@@ -67,10 +72,10 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         if p > n:
             raise ValueError('p <= n is required.')
 
-        dimension = int(p * (n - p))
+        dim = int(p * (n - p))
         super(GrassmannianCanonicalMetric, self).__init__(
-            dimension=dimension,
-            signature=(dimension, 0, 0))
+            dim=dim,
+            signature=(dim, 0, 0))
 
         self.n = n
         self.p = p

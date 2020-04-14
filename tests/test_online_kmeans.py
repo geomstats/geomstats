@@ -14,7 +14,7 @@ class TestOnlineKmeansMethods(geomstats.tests.TestCase):
         gs.random.seed(1234)
 
         self.dimension = 2
-        self.space = Hypersphere(dimension=self.dimension)
+        self.space = Hypersphere(dim=self.dimension)
         self.metric = self.space.metric
         self.data = self.space.random_von_mises_fisher(
             kappa=100, n_samples=50)

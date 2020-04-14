@@ -66,18 +66,18 @@ class LieGroup(Manifold):
     and columns of the matrix.
     """
 
-    def __init__(self, dimension, point_type='vector'):
-        Manifold.__init__(self, dimension=dimension)
+    def __init__(self, dim, point_type='vector'):
+        Manifold.__init__(self, dim=dim)
 
         self.left_canonical_metric = InvariantMetric(
             group=self,
-            inner_product_mat_at_identity=gs.eye(self.dimension),
+            inner_product_mat_at_identity=gs.eye(self.dim),
             left_or_right='left',
         )
 
         self.right_canonical_metric = InvariantMetric(
             group=self,
-            inner_product_mat_at_identity=gs.eye(self.dimension),
+            inner_product_mat_at_identity=gs.eye(self.dim),
             left_or_right='right',
         )
 

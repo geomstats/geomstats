@@ -13,7 +13,7 @@ from geomstats.geometry.hypersphere import Hypersphere
 class TestDiscretizedCurvesMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def setUp(self):
-        s2 = Hypersphere(dimension=2)
+        s2 = Hypersphere(dim=2)
         r3 = s2.embedding_manifold
 
         initial_point = [0., 0., 1.]

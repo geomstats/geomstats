@@ -35,7 +35,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         sig_1 = sum(sig[1] for sig in signatures)
         sig_2 = sum(sig[2] for sig in signatures)
         super(ProductRiemannianMetric, self).__init__(
-            dimension=sum(dimensions),
+            dim=sum(dimensions),
             signature=(sig_0, sig_1, sig_2))
 
     def inner_product_matrix(self, base_point=None, point_type=None):
@@ -66,7 +66,7 @@ class ProductRiemannianMetric(RiemannianMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=3)
 
         matrix = gs.zeros([
-            len(base_point), self.dimension, self.dimension])
+            len(base_point), self.dim, self.dim])
         cum_dim = 0
         for i in range(self.n_metrics):
             cum_dim_next = cum_dim + self.dimensions[i]
@@ -102,7 +102,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             raise ValueError(
                 'Invalid default_point_type: \'vector\' expected.')
 
-        if point.shape[1] == self.dimension:
+        if point.shape[1] == self.dim:
             intrinsic = True
         elif point.shape[1] == sum(dim + 1 for dim in self.dimensions):
             intrinsic = False

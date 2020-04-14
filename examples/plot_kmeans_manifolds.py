@@ -25,7 +25,7 @@ def kmean_poincare_ball():
     n_samples = 20
     dim = 2
     n_clusters = 2
-    manifold = PoincareBall(dimension=dim)
+    manifold = PoincareBall(dim=dim)
     metric = manifold.metric
 
     cluster_1 = gs.random.uniform(low=0.5, high=0.6, size=(n_samples, dim))

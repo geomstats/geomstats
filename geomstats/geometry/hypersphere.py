@@ -43,16 +43,16 @@ class Hypersphere(EmbeddedManifold):
 
     Parameters
     ----------
-    dimension: int
+    dim: int
         Dimension of the hypersphere.
     """
 
-    def __init__(self, dimension):
+    def __init__(self, dim):
         super(Hypersphere, self).__init__(
-            dimension=dimension,
-            embedding_manifold=Euclidean(dimension + 1))
+            dim=dim,
+            embedding_manifold=Euclidean(dim + 1))
         self.embedding_metric = self.embedding_manifold.metric
-        self.metric = HypersphereMetric(dimension)
+        self.metric = HypersphereMetric(dim)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """Test if a point belongs to the hypersphere.
@@ -73,8 +73,8 @@ class Hypersphere(EmbeddedManifold):
             the hypersphere.
         """
         point_dim = gs.shape(point)[-1]
-        if point_dim != self.dimension + 1:
-            if point_dim is self.dimension:
+        if point_dim != self.dim + 1:
+            if point_dim is self.dim:
                 logging.warning(
                     'Use the extrinsic coordinates to '
                     'represent points on the hypersphere.')
@@ -172,7 +172,7 @@ class Hypersphere(EmbeddedManifold):
         point_extrinsic : array_like, shape=[n_samples, dimension + 1]
             Point on the sphere, in extrinsic coordinates in Euclidean space.
         """
-        if self.dimension != 2:
+        if self.dim != 2:
             raise NotImplementedError(
                 'The conversion from spherical coordinates'
                 ' to extrinsic coordinates is implemented'
@@ -181,7 +181,7 @@ class Hypersphere(EmbeddedManifold):
         theta = point_spherical[:, 0]
         phi = point_spherical[:, 1]
         point_extrinsic = gs.zeros(
-            (point_spherical.shape[0], self.dimension + 1))
+            (point_spherical.shape[0], self.dim + 1))
         point_extrinsic[:, 0] = gs.sin(theta) * gs.cos(phi)
         point_extrinsic[:, 1] = gs.sin(theta) * gs.sin(phi)
         point_extrinsic[:, 2] = gs.cos(theta)
@@ -212,7 +212,7 @@ class Hypersphere(EmbeddedManifold):
             Tangent vector to the sphere, at base point,
             in extrinsic coordinates in Euclidean space.
         """
-        if self.dimension != 2:
+        if self.dim != 2:
             raise NotImplementedError(
                 'The conversion from spherical coordinates'
                 ' to extrinsic coordinates is implemented'
@@ -221,7 +221,7 @@ class Hypersphere(EmbeddedManifold):
         n_samples = base_point_spherical.shape[0]
         theta = base_point_spherical[:, 0]
         phi = base_point_spherical[:, 1]
-        jac = gs.zeros((n_samples, self.dimension + 1, self.dimension))
+        jac = gs.zeros((n_samples, self.dim + 1, self.dim))
         jac[:, 0, 0] = gs.cos(theta) * gs.cos(phi)
         jac[:, 0, 1] = - gs.sin(theta) * gs.sin(phi)
         jac[:, 1, 0] = gs.cos(theta) * gs.sin(phi)
@@ -295,7 +295,7 @@ class Hypersphere(EmbeddedManifold):
         samples : array-like, shape=[n_samples, dimension + 1]
             Points sampled on the hypersphere.
         """
-        size = (n_samples, self.dimension + 1)
+        size = (n_samples, self.dim + 1)
 
         samples = gs.random.normal(size=size)
         while True:
@@ -305,7 +305,7 @@ class Hypersphere(EmbeddedManifold):
             if num_bad_samples == 0:
                 break
             samples[indcs, :] = gs.random.normal(
-                size=(num_bad_samples, self.dimension + 1))
+                size=(num_bad_samples, self.dim + 1))
 
         samples = gs.einsum('..., ...i->...i', 1 / norms, samples)
         if n_samples == 1:
@@ -335,7 +335,7 @@ class Hypersphere(EmbeddedManifold):
             Points sampled on the sphere in extrinsic coordinates
             in Euclidean space of dimension 3.
         """
-        if self.dimension != 2:
+        if self.dim != 2:
             raise NotImplementedError(
                 'Sampling from the von Mises Fisher distribution'
                 'is only implemented in dimension 2.')
@@ -362,15 +362,15 @@ class HypersphereMetric(RiemannianMetric):
 
     Parameters
     ----------
-    dimension : int
+    dim : int
         Dimension of the hypersphere.
     """
 
-    def __init__(self, dimension):
+    def __init__(self, dim):
         super(HypersphereMetric, self).__init__(
-            dimension=dimension,
-            signature=(dimension, 0, 0))
-        self.embedding_metric = EuclideanMetric(dimension + 1)
+            dim=dim,
+            signature=(dim, 0, 0))
+        self.embedding_metric = EuclideanMetric(dim + 1)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
@@ -438,7 +438,7 @@ class HypersphereMetric(RiemannianMetric):
         _, extrinsic_dim = base_point.shape
         n_tangent_vecs, _ = tangent_vec.shape
 
-        hypersphere = Hypersphere(dimension=extrinsic_dim - 1)
+        hypersphere = Hypersphere(dim=extrinsic_dim - 1)
         proj_tangent_vec = hypersphere.projection_to_tangent_space(
             tangent_vec, base_point)
         norm_tangent_vec = self.embedding_metric.norm(proj_tangent_vec)
@@ -633,7 +633,7 @@ class HypersphereMetric(RiemannianMetric):
                                          covariant index, 2nd covariant index]
             Christoffel symbols at point.
         """
-        if self.dimension != 2 or point_type != 'spherical':
+        if self.dim != 2 or point_type != 'spherical':
             raise NotImplementedError(
                 'The Christoffel symbols are only implemented'
                 ' for spherical coordinates in the 2-sphere')

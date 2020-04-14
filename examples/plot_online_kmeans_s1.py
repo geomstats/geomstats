@@ -19,7 +19,7 @@ TOLERANCE = 1e-6
 
 
 def main():
-    circle = Hypersphere(dimension=1)
+    circle = Hypersphere(dim=1)
 
     data = circle.random_uniform(n_samples=1000)
 

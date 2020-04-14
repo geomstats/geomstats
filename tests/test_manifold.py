@@ -13,7 +13,7 @@ class TestManifoldMethods(geomstats.tests.TestCase):
         self.manifold = Manifold(self.dimension)
 
     def test_dimension(self):
-        result = self.manifold.dimension
+        result = self.manifold.dim
         expected = self.dimension
         self.assertAllClose(result, expected)
 

@@ -36,9 +36,9 @@ class Stiefel(EmbeddedManifold):
         if p > n:
             raise ValueError('p needs to be smaller than n.')
 
-        dimension = int(p * n - (p * (p + 1) / 2))
+        dim = int(p * n - (p * (p + 1) / 2))
         super(Stiefel, self).__init__(
-            dimension=dimension,
+            dim=dim,
             embedding_manifold=Matrices(n, p))
 
         self.n = n
@@ -143,10 +143,10 @@ class StiefelCanonicalMetric(RiemannianMetric):
     """
 
     def __init__(self, n, p):
-        dimension = int(p * n - (p * (p + 1) / 2))
+        dim = int(p * n - (p * (p + 1) / 2))
         super(StiefelCanonicalMetric, self).__init__(
-            dimension=dimension,
-            signature=(dimension, 0, 0))
+            dim=dim,
+            signature=(dim, 0, 0))
         self.embedding_metric = EuclideanMetric(n * p)
         self.n = n
         self.p = p

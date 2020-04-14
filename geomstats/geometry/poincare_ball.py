@@ -19,7 +19,7 @@ class PoincareBall(Hyperbolic):
 
     Parameters
     ----------
-    dimension : int
+    dim : int
         Dimension of the hyperbolic space.
     scale : int, optional
         Scale of the hyperbolic space, defined as the set of points
@@ -29,14 +29,14 @@ class PoincareBall(Hyperbolic):
     default_coords_type = 'ball'
     default_point_type = 'vector'
 
-    def __init__(self, dimension, scale=1):
+    def __init__(self, dim, scale=1):
         super(PoincareBall, self).__init__(
-            dimension=dimension,
+            dim=dim,
             scale=scale)
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
         self.metric =\
-            PoincareBallMetric(self.dimension, self.scale)
+            PoincareBallMetric(self.dim, self.scale)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """Test if a point belongs to the hyperbolic space.
@@ -66,7 +66,7 @@ class PoincareBallMetric(RiemannianMetric):
 
     Parameters
     ----------
-    dimension : int
+    dim : int
         Dimension of the hyperbolic space.
     scale : int, optional
         Scale of the hyperbolic space, defined as the set of points
@@ -76,10 +76,10 @@ class PoincareBallMetric(RiemannianMetric):
     default_point_type = 'vector'
     default_coords_type = 'ball'
 
-    def __init__(self, dimension, scale=1):
+    def __init__(self, dim, scale=1):
         super(PoincareBallMetric, self).__init__(
-            dimension=dimension,
-            signature=(dimension, 0, 0))
+            dim=dim,
+            signature=(dim, 0, 0))
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
         self.scale = scale
@@ -204,7 +204,7 @@ class PoincareBallMetric(RiemannianMetric):
         point_a = gs.to_ndarray(point_a, to_ndim=2)
         point_b = gs.to_ndarray(point_b, to_ndim=2)
 
-        ball_manifold = PoincareBall(self.dimension, scale=self.scale)
+        ball_manifold = PoincareBall(self.dim, scale=self.scale)
         point_a_belong = ball_manifold.belongs(point_a)
         point_b_belong = ball_manifold.belongs(point_b)
 
@@ -283,7 +283,7 @@ class PoincareBallMetric(RiemannianMetric):
         point : array-like, shape=[n_samples, dimension]
             Retraction point.
         """
-        ball_manifold = PoincareBall(self.dimension, scale=self.scale)
+        ball_manifold = PoincareBall(self.dim, scale=self.scale)
         base_point_belong = ball_manifold.belongs(base_point)
 
         if not gs.all(base_point_belong):
@@ -310,10 +310,10 @@ class PoincareBallMetric(RiemannianMetric):
         inner_prod_mat: array-like, shape=[n_samples, dimension, dimension]
         """
         if base_point is None:
-            base_point = gs.zeros((1, self.dimension))
+            base_point = gs.zeros((1, self.dim))
 
         lambda_base =\
             (2 / (1 - gs.sum(base_point * base_point, axis=-1)))**2
-        identity = gs.eye(self.dimension, self.dimension)
+        identity = gs.eye(self.dim, self.dim)
 
         return gs.einsum('i,jk->ijk', lambda_base, identity)

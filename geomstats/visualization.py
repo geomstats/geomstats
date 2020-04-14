@@ -11,9 +11,9 @@ from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
 SE3_GROUP = SpecialEuclidean(n=3)
 SO3_GROUP = SpecialOrthogonal(n=3)
-S1 = Hypersphere(dimension=1)
-S2 = Hypersphere(dimension=2)
-H2 = Hyperboloid(dimension=2)
+S1 = Hypersphere(dim=1)
+S2 = Hypersphere(dim=2)
+H2 = Hyperboloid(dim=2)
 
 AX_SCALE = 1.2
 
@@ -410,7 +410,7 @@ def convert_to_trihedron(point, space=None):
     point = gs.to_ndarray(point, to_ndim=2)
     n_points, _ = point.shape
 
-    dim_rotations = SO3_GROUP.dimension
+    dim_rotations = SO3_GROUP.dim
 
     if space == 'SE3_GROUP':
         rot_vec = point[:, :dim_rotations]

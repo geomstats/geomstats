@@ -19,9 +19,9 @@ class TestVisualizationMethods(geomstats.tests.TestCase):
         self.n_samples = 10
         self.SO3_GROUP = SpecialOrthogonal(n=3)
         self.SE3_GROUP = SpecialEuclidean(n=3)
-        self.S1 = Hypersphere(dimension=1)
-        self.S2 = Hypersphere(dimension=2)
-        self.H2 = Hyperbolic(dimension=2)
+        self.S1 = Hypersphere(dim=1)
+        self.S2 = Hypersphere(dim=2)
+        self.H2 = Hyperbolic(dim=2)
 
         plt.figure()
 

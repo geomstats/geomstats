@@ -16,7 +16,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         gs.random.seed(1234)
 
         self.dimension = 4
-        self.space = Hypersphere(dimension=self.dimension)
+        self.space = Hypersphere(dim=self.dimension)
         self.metric = self.space.metric
         self.n_samples = 10
 

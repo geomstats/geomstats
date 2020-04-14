@@ -20,7 +20,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
     def __init__(self, n):
         super(SPDMatrices, self).__init__(
             n=n,
-            dimension=int(n * (n + 1) / 2),
+            dim=int(n * (n + 1) / 2),
             embedding_manifold=GeneralLinear(n=n))
 
     @staticmethod

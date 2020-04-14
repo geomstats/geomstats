@@ -51,14 +51,14 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             raise ValueError('Parameter `n` is required to be an integer > 1.')
 
         self.n = n
-        self.dimension = int((n * (n - 1)) / 2)
+        self.dim = int((n * (n - 1)) / 2)
 
         self.epsilon = epsilon
 
         LieGroup.__init__(self,
-                          dimension=self.dimension, point_type=point_type)
+                          dim=self.dim, point_type=point_type)
         EmbeddedManifold.__init__(self,
-                                  dimension=self.dimension,
+                                  dim=self.dim,
                                   embedding_manifold=GeneralLinear(n=n))
         self.bi_invariant_metric = self.left_canonical_metric
         if point_type is None:
@@ -79,7 +79,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         if point_type is None:
             point_type = self.default_point_type
 
-        identity = gs.zeros(self.dimension)
+        identity = gs.zeros(self.dim)
         if point_type == 'matrix':
             identity = gs.eye(self.n)
         return identity
@@ -106,8 +106,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         if point_type == 'vector':
             vec_dim = point.shape[-1]
-            belongs = vec_dim == self.dimension
-            if gs.ndim(point) == 2:
+            belongs = vec_dim == self.dim
+            if point.ndim == 2:
                 belongs = gs.tile([belongs], (point.shape[0],))
             return belongs
 

@@ -14,7 +14,7 @@ class TestBetaMethods(geomstats.tests.TestCase):
         self.beta = BetaDistributions()
         self.metric = BetaMetric()
         self.n_samples = 10
-        self.dimension = self.beta.dimension
+        self.dimension = self.beta.dim
 
     @geomstats.tests.np_and_pytorch_only
     def test_random_uniform_and_belongs(self):

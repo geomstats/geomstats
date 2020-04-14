@@ -67,13 +67,13 @@ class SpecialEuclidean(LieGroup):
         self.epsilon = epsilon
 
         super(SpecialEuclidean, self).__init__(
-            dimension=self.dimension, point_type=point_type)
+            dim=self.dimension, point_type=point_type)
         if point_type is None:
             self.default_point_type = 'vector' if n == 3 else 'matrix'
 
         self.rotations = SpecialOrthogonal(
             n=n, epsilon=epsilon, point_type=point_type)
-        self.translations = Euclidean(dimension=n)
+        self.translations = Euclidean(dim=n)
 
     def get_identity(self, point_type=None):
         """Get the identity of the group.
@@ -168,7 +168,7 @@ class SpecialEuclidean(LieGroup):
         """
         if point_type == 'vector':
             rotations = self.rotations
-            dim_rotations = rotations.dimension
+            dim_rotations = rotations.dim
 
             rot_vec = point[:, :dim_rotations]
             regularized_rot_vec = rotations.regularize(
@@ -244,7 +244,7 @@ class SpecialEuclidean(LieGroup):
 
         if point_type == 'vector':
             rotations = self.rotations
-            dim_rotations = rotations.dimension
+            dim_rotations = rotations.dim
 
             rot_tangent_vec = tangent_vec[:, :dim_rotations]
             rot_base_point = base_point[:, :dim_rotations]
@@ -290,8 +290,8 @@ class SpecialEuclidean(LieGroup):
         vec = self.regularize(vec, point_type='vector')
         n_vecs, _ = vec.shape
 
-        rot_vec = vec[:, :self.rotations.dimension]
-        trans_vec = vec[:, self.rotations.dimension:]
+        rot_vec = vec[:, :self.rotations.dim]
+        trans_vec = vec[:, self.rotations.dim:]
 
         rot_mat = self.rotations.matrix_from_rotation_vector(rot_vec)
         trans_vec = gs.reshape(trans_vec, (n_vecs, self.n, 1))
@@ -325,7 +325,7 @@ class SpecialEuclidean(LieGroup):
 
         """
         rotations = self.rotations
-        dim_rotations = rotations.dimension
+        dim_rotations = rotations.dim
 
         point_a = self.regularize(point_a, point_type=point_type)
         point_b = self.regularize(point_b, point_type=point_type)
@@ -386,7 +386,7 @@ class SpecialEuclidean(LieGroup):
         :math:`(R, t)^{-1} = (R^{-1}, R^{-1}.(-t))`
         """
         rotations = self.rotations
-        dim_rotations = rotations.dimension
+        dim_rotations = rotations.dim
 
         point = self.regularize(point)
 
@@ -450,8 +450,8 @@ class SpecialEuclidean(LieGroup):
 
         rotations = self.rotations
         translations = self.translations
-        dim_rotations = rotations.dimension
-        dim_translations = translations.dimension
+        dim_rotations = rotations.dim
+        dim_translations = translations.dim
 
         point = self.regularize(point, point_type=point_type)
 
@@ -513,7 +513,7 @@ class SpecialEuclidean(LieGroup):
         """
         if point_type == 'vector':
             rotations = self.rotations
-            dim_rotations = rotations.dimension
+            dim_rotations = rotations.dim
 
             rot_vec = tangent_vec[:, :dim_rotations]
             rot_vec = self.rotations.regularize(rot_vec, point_type=point_type)
@@ -597,7 +597,7 @@ class SpecialEuclidean(LieGroup):
         point = self.regularize(point, point_type=point_type)
 
         rotations = self.rotations
-        dim_rotations = rotations.dimension
+        dim_rotations = rotations.dim
 
         if point_type == 'vector':
             rot_vec = point[:, :dim_rotations]

@@ -10,16 +10,23 @@ import geomstats.error
 class Manifold:
     """Class for manifolds."""
 
-    def __init__(self, dimension):
-        geomstats.error.check_integer(dimension, 'dimension')
-        self.dimension = dimension
+    def __init__(
+            self, dim, default_point_type='vector',
+            default_coords_type='intrinsic'):
+        geomstats.error.check_integer(dim, 'dimension')
+        geomstats.error.check_parameter_accepted_values(
+            default_point_type, 'default_point_type', ['vector', 'matrix'])
+
+        self.dim = dim
+        self.default_point_type = default_point_type
+        self.default_coords_type = default_coords_type
 
     def belongs(self, point, point_type=None):
         """Evaluate if a point belongs to the manifold.
 
         Parameters
         ----------
-        points : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dimension]
                  Input points.
 
         Returns
@@ -33,7 +40,7 @@ class Manifold:
 
         Parameters
         ----------
-        points : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dimension]
                  Input points.
 
         Returns

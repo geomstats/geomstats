@@ -14,7 +14,7 @@ from geomstats.learning.online_kmeans import OnlineKMeans
 
 
 def main():
-    sphere = Hypersphere(dimension=2)
+    sphere = Hypersphere(dim=2)
 
     data = sphere.random_von_mises_fisher(kappa=10, n_samples=1000)
 

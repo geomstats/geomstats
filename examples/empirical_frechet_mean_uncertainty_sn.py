@@ -44,8 +44,8 @@ def empirical_frechet_var_bubble(n_samples, theta, dim,
     """
     assert dim > 1, 'Dim > 1 needed to draw a uniform sample on sub-sphere'
     var = []
-    sphere = Hypersphere(dimension=dim)
-    bubble = Hypersphere(dimension=dim - 1)
+    sphere = Hypersphere(dim=dim)
+    bubble = Hypersphere(dim=dim - 1)
 
     north_pole = gs.zeros(dim + 1)
     north_pole[dim] = 1.0
