@@ -359,16 +359,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
         n_points, _, _ = point.shape
         n_base_points, _, p = base_point.shape
 
-        if not (n_points == n_base_points
-                or n_points == 1
-                or n_base_points == 1):
-            raise NotImplementedError
-
-        if n_base_points == 1:
-            base_point = gs.tile(base_point, (n_points, 1, 1))
-        if n_points == 1:
-            point = gs.tile(point, (n_base_points, 1, 1))
-
         matrix_m = gs.matmul(gs.transpose(base_point, (0, 2, 1)), point)
 
         matrix_q, matrix_n = StiefelCanonicalMetric._normal_component_qr(
