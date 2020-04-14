@@ -402,7 +402,7 @@ class SPDMetricAffine(RiemannianMetric):
         spd_space = self.space
 
         if power_affine == 1:
-            inv_base_point = gs.linalg.inv(base_point)
+            inv_base_point = GeneralLinear.inv(base_point)
             inner_product = self._aux_inner_product(
                 tangent_vec_a, tangent_vec_b, inv_base_point)
         else:
@@ -410,7 +410,8 @@ class SPDMetricAffine(RiemannianMetric):
                 power_affine, tangent_vec_a, base_point)
             modified_tangent_vec_b = spd_space.differential_power(
                 power_affine, tangent_vec_b, base_point)
-            power_inv_base_point = gs.linalg.powerm(base_point, -power_affine)
+            power_inv_base_point = SymmetricMatrices.powerm(
+                base_point, -power_affine)
             inner_product = self._aux_inner_product(
                 modified_tangent_vec_a,
                 modified_tangent_vec_b,
@@ -466,21 +467,22 @@ class SPDMetricAffine(RiemannianMetric):
         power_affine = self.power_affine
 
         if power_affine == 1:
-            sqrt_base_point = gs.linalg.powerm(base_point, 1. / 2)
-            inv_sqrt_base_point = gs.linalg.powerm(sqrt_base_point, -1)
+            sqrt_base_point = SymmetricMatrices.powerm(base_point, 1. / 2)
+            inv_sqrt_base_point = SymmetricMatrices.powerm(sqrt_base_point, -1)
             exp = self._aux_exp(
                 tangent_vec, sqrt_base_point, inv_sqrt_base_point)
         else:
             modified_tangent_vec = self.space.differential_power(
                 power_affine, tangent_vec, base_point)
-            power_sqrt_base_point = gs.linalg.powerm(
+            power_sqrt_base_point = SymmetricMatrices.powerm(
                 base_point, power_affine / 2)
-            power_inv_sqrt_base_point = gs.linalg.inv(power_sqrt_base_point)
+            power_inv_sqrt_base_point = GeneralLinear.inv(
+                power_sqrt_base_point)
             exp = self._aux_exp(
                 modified_tangent_vec,
                 power_sqrt_base_point,
                 power_inv_sqrt_base_point)
-            exp = gs.linalg.powerm(exp, 1 / power_affine)
+            exp = SymmetricMatrices.powerm(exp, 1 / power_affine)
 
         return exp
 
