@@ -113,10 +113,6 @@ class SPDMatrices(EmbeddedManifold):
         n_tangent_vecs, _, _ = tangent_vec.shape
         n_base_points, _, _ = base_point.shape
 
-        assert (n_tangent_vecs == n_base_points
-                or n_base_points == 1
-                or n_tangent_vecs == 1)
-
         eigvalues, eigvectors = gs.linalg.eigh(base_point)
         eigvalues = gs.to_ndarray(eigvalues, to_ndim=3, axis=1)
         transp_eigvalues = gs.transpose(eigvalues, (0, 2, 1))
@@ -487,7 +483,8 @@ class SPDMetricAffine(RiemannianMetric):
 
         return exp
 
-    def _aux_log(self, point, sqrt_base_point, inv_sqrt_base_point):
+    @staticmethod
+    def _aux_log(point, sqrt_base_point, inv_sqrt_base_point):
         """Compute the log (auxiliary function).
 
         Parameters
@@ -695,6 +692,7 @@ class SPDMetricEuclidean(RiemannianMetric):
 
         return inner_product
 
+    @staticmethod
     @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def exp_domain(self, tangent_vec, base_point):
         """Compute the domain of the Euclidean exponential map.
