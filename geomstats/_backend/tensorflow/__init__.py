@@ -466,7 +466,8 @@ def hsplit(x, n_splits):
 def flatten(x):
     """Collapses the tensor into 1-D.
 
-    Following https://www.tensorflow.org/api_docs/python/tf/reshape"""
+    Following https://www.tensorflow.org/api_docs/python/tf/reshape
+    """
     return tf.reshape(x, [-1])
 
 
@@ -572,10 +573,12 @@ def cumsum(a, axis=None):
         return tf.math.cumsum(flatten(a), axis=0)
     return tf.math.cumsum(a, axis=axis)
 
+
 def cumprod(a, axis=None):
     if axis is None:
         return a.flatten().cumprod(dim=0)
     return tf.math.cumprod(a, dim=axis)
+
 
 def tril(m, k=0):
     if k != 0:

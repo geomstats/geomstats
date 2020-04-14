@@ -302,5 +302,5 @@ def erf(x):
     return \
         np.sign(x) * \
         np.sqrt(1 - np.exp(-x * x *
-                 (4 / np.pi + cst_erf * x * x) /
-                 (1 + cst_erf * x * x)))
+                           (4 / np.pi + cst_erf * x * x) /
+                           (1 + cst_erf * x * x)))
