@@ -358,7 +358,7 @@ def transpose(x, axes=None):
 
 
 def swapaxes(x, axis1, axis2):
-    return x.permute(axis1, axis2)
+    return x.transpose(axis1, axis2)
 
 
 def squeeze(x, axis=None):

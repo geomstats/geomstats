@@ -187,7 +187,7 @@ class InvariantMetric(RiemannianMetric):
             left_or_right=self.left_or_right)
 
         inv_jacobian = gs.linalg.inv(jacobian)
-        inv_jacobian_transposed = gs.transpose(inv_jacobian, axes=(0, 2, 1))
+        inv_jacobian_transposed = gs.swapaxes(inv_jacobian, axis1=-1, axis2=-2)
 
         n_base_points = base_point.shape[0]
         inner_product_mat_at_id = gs.array(
