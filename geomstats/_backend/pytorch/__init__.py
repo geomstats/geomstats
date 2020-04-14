@@ -297,9 +297,11 @@ def einsum(*args, **kwargs):
             raise NotImplementedError(
                 'Ellipsis support not implemented for >2 input tensors')
         ndims = [len(input_str[3:]) for input_str in input_str_list]
+
         tensor_a = input_tensors_list[0]
         tensor_b = input_tensors_list[1]
-
+        initial_ndim_a = tensor_a.ndim
+        initial_ndim_b = tensor_b.ndim
         tensor_a = to_ndarray(tensor_a, to_ndim=ndims[0] + 1)
         tensor_b = to_ndarray(tensor_b, to_ndim=ndims[1] + 1)
 
@@ -331,7 +333,12 @@ def einsum(*args, **kwargs):
 
         result = torch.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
 
-        if n_tensor_a == n_tensor_b == 1:
+        cond = (
+            n_tensor_a == n_tensor_b == 1
+            and initial_ndim_a != tensor_a.ndim
+            and initial_ndim_b != tensor_b.ndim)
+
+        if cond:
             result = squeeze(result, axis=0)
         return result
 
