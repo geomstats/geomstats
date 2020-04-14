@@ -433,11 +433,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
                 or n_base_points == 1):
             raise NotImplementedError
 
-        if n_base_points == 1:
-            base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
-        if n_tangent_vecs == 1:
-            tangent_vec = gs.tile(tangent_vec, (n_base_points, 1, 1))
-
         matrix_q, matrix_r = gs.linalg.qr(base_point + tangent_vec)
 
         diagonal = gs.diagonal(matrix_r, axis1=1, axis2=2)
@@ -477,10 +472,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
                 or n_base_points == 1):
             raise NotImplementedError
 
-        if n_base_points == 1:
-            base_point = gs.tile(base_point, (n_points, 1, 1))
-        if n_points == 1:
-            point = gs.tile(point, (n_base_points, 1, 1))
         n_liftings = gs.maximum(n_base_points, n_points)
 
         def _make_minor(i, matrix):
