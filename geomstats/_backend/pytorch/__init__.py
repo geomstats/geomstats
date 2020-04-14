@@ -279,6 +279,8 @@ def sum(x, axis=None, keepdims=None, **kwargs):
 
 
 def einsum(*args, **kwargs):
+    # TODO(ninamiolane): Allow this to work when '->' is not provided
+    # TODO(ninamiolane): Allow this to work for cases like n...k
     einsum_str = args[0]
     input_tensors_list = args[1:]
 
@@ -307,7 +309,17 @@ def einsum(*args, **kwargs):
         n_tensor_a = tensor_a.shape[0]
         n_tensor_b = tensor_b.shape[0]
 
-        if n_tensor_a != n_tensor_b:
+        cond = (
+            n_tensor_a == n_tensor_b == 1
+            and initial_ndim_a != tensor_a.ndim
+            and initial_ndim_b != tensor_b.ndim)
+
+        if cond:
+            tensor_a = squeeze(tensor_a, axis=0)
+            tensor_b = squeeze(tensor_b, axis=0)
+            input_prefix_list = ['', '']
+            output_prefix = ''
+        elif n_tensor_a != n_tensor_b:
             if n_tensor_a == 1:
                 tensor_a = squeeze(tensor_a, axis=0)
                 input_prefix_list = ['', 'r']
@@ -332,13 +344,6 @@ def einsum(*args, **kwargs):
 
         result = torch.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
 
-        cond = (
-            n_tensor_a == n_tensor_b == 1
-            and initial_ndim_a != tensor_a.ndim
-            and initial_ndim_b != tensor_b.ndim)
-
-        if cond:
-            result = squeeze(result, axis=0)
         return result
 
     return torch.einsum(*args, **kwargs)
