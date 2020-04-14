@@ -662,7 +662,6 @@ class SPDMetricEuclidean(RiemannianMetric):
         self.space = SPDMatrices(n)
         self.power_euclidean = power_euclidean
 
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'matrix'])
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the Euclidean inner product.
 
@@ -680,42 +679,13 @@ class SPDMetricEuclidean(RiemannianMetric):
         inner_product : float
         """
         power_euclidean = self.power_euclidean
-        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
-        n_tangent_vecs_a, _, _ = tangent_vec_a.shape
-        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
-        n_tangent_vecs_b, _, _ = tangent_vec_b.shape
-
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_base_points, _, _ = base_point.shape
 
         spd_space = self.space
 
-        assert (n_tangent_vecs_a == n_tangent_vecs_b == n_base_points
-                or n_tangent_vecs_a == n_tangent_vecs_b and n_base_points == 1
-                or n_base_points == n_tangent_vecs_a and n_tangent_vecs_b == 1
-                or n_base_points == n_tangent_vecs_b and n_tangent_vecs_a == 1
-                or n_tangent_vecs_a == 1 and n_tangent_vecs_b == 1
-                or n_base_points == 1 and n_tangent_vecs_a == 1
-                or n_base_points == 1 and n_tangent_vecs_b == 1)
-
-        if n_tangent_vecs_a == 1:
-            tangent_vec_a = gs.tile(
-                tangent_vec_a,
-                (gs.maximum(n_base_points, n_tangent_vecs_b), 1, 1))
-
-        if n_tangent_vecs_b == 1:
-            tangent_vec_b = gs.tile(
-                tangent_vec_b,
-                (gs.maximum(n_base_points, n_tangent_vecs_a), 1, 1))
-
-        if n_base_points == 1:
-            base_point = gs.tile(
-                base_point,
-                (gs.maximum(n_tangent_vecs_a, n_tangent_vecs_b), 1, 1))
-
         if power_euclidean == 1:
-            product = gs.matmul(tangent_vec_a, tangent_vec_b)
-            inner_product = gs.trace(product, axis1=1, axis2=2)
+            product = gs.einsum(
+                '...ij,...jk->...ik', tangent_vec_a, tangent_vec_b)
+            inner_product = gs.trace(product, axis1=-2, axis2=-1)
         else:
             modified_tangent_vec_a = \
                 spd_space.differential_power(power_euclidean, tangent_vec_a,
@@ -723,12 +693,10 @@ class SPDMetricEuclidean(RiemannianMetric):
             modified_tangent_vec_b = \
                 spd_space.differential_power(power_euclidean, tangent_vec_b,
                                              base_point)
-            product = gs.matmul(modified_tangent_vec_a, modified_tangent_vec_b)
-            product = gs.to_ndarray(product, to_ndim=3)
-            inner_product = gs.trace(product, axis1=1, axis2=2) \
+            product = gs.einsum(
+                '...ij,...jk->...ik', modified_tangent_vec_a, modified_tangent_vec_b)
+            inner_product = gs.trace(product, axis1=-2, axis2=-1) \
                 / (power_euclidean ** 2)
-
-        inner_product = gs.to_ndarray(inner_product, to_ndim=2, axis=1)
 
         return inner_product
 
