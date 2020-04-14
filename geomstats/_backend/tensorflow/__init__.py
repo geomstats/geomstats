@@ -135,8 +135,9 @@ def swapaxes(x, axis1, axis2):
     # So far, it can only swap the last two axes.
     rank_x = tf.rank(x)
     axes = tf.concat(
-        [tf.constant(range(rank_x - 2)), [rank_x - 1], [rank_x - 2]],
+        [tf.constant(range(rank_x - 2)), [rank_x + axis1], [rank_x + axis2]],
         axis=0)
+    axes = cast(axes, int32)
     return tf.transpose(x, axes)
 
 
@@ -572,7 +573,7 @@ def einsum(equation, *inputs, **kwargs):
         result = tf.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
         if n_tensor_a == n_tensor_b == 1:
             result = squeeze(result, axis=0)
-            return result
+        return result
 
     return tf.einsum(equation, *inputs, **kwargs)
 
