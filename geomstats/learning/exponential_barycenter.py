@@ -61,8 +61,6 @@ def _default_gradient_descent(
         if not (grad_norm > epsilon or iteration == 0):
             break
         inv_mean = group.inverse(mean)
-        print(inv_mean.shape)
-        print(points.shape)
         centered_points = group.compose(inv_mean, points)
         logs = group.log_from_identity(point=centered_points)
         tangent_mean = step * gs.einsum(
@@ -85,8 +83,6 @@ def _default_gradient_descent(
     if verbose:
         logging.info(
             'n_iter: {}, final gradient norm: {}'.format(iteration, grad_norm))
-    print('mean')
-    print(mean.shape)
     return mean[0]
 
 
