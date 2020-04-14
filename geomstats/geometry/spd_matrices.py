@@ -738,7 +738,6 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         self.n = n
         self.space = SPDMatrices(n)
 
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'matrix'])
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the Log-Euclidean inner product.
 
@@ -755,48 +754,19 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         -------
         inner_product : float
         """
-        n_tangent_vecs_a, _, _ = tangent_vec_a.shape
-        n_tangent_vecs_b, _, _ = tangent_vec_b.shape
-        n_base_points, _, _ = base_point.shape
-
         spd_space = self.space
 
-        assert (n_tangent_vecs_a == n_tangent_vecs_b == n_base_points
-                or n_tangent_vecs_a == n_tangent_vecs_b and n_base_points == 1
-                or n_base_points == n_tangent_vecs_a and n_tangent_vecs_b == 1
-                or n_base_points == n_tangent_vecs_b and n_tangent_vecs_a == 1
-                or n_tangent_vecs_a == 1 and n_tangent_vecs_b == 1
-                or n_base_points == 1 and n_tangent_vecs_a == 1
-                or n_base_points == 1 and n_tangent_vecs_b == 1)
-
-        if n_tangent_vecs_a == 1:
-            tangent_vec_a = gs.tile(
-                tangent_vec_a,
-                (gs.maximum(n_base_points, n_tangent_vecs_b), 1, 1))
-
-        if n_tangent_vecs_b == 1:
-            tangent_vec_b = gs.tile(
-                tangent_vec_b,
-                (gs.maximum(n_base_points, n_tangent_vecs_a), 1, 1))
-
-        if n_base_points == 1:
-            base_point = gs.tile(
-                base_point,
-                (gs.maximum(n_tangent_vecs_a, n_tangent_vecs_b), 1, 1))
-
-        modified_tangent_vec_a = spd_space.differential_log(tangent_vec_a,
-                                                            base_point)
-        modified_tangent_vec_b = spd_space.differential_log(tangent_vec_b,
-                                                            base_point)
-        product = gs.matmul(modified_tangent_vec_a, modified_tangent_vec_b)
-        product = gs.to_ndarray(product, to_ndim=3)
-        inner_product = gs.trace(product, axis1=1, axis2=2)
-
-        inner_product = gs.to_ndarray(inner_product, to_ndim=2, axis=1)
+        modified_tangent_vec_a = spd_space.differential_log(
+            tangent_vec_a, base_point)
+        modified_tangent_vec_b = spd_space.differential_log(
+            tangent_vec_b, base_point)
+        product = gs.einsum(
+            '...ij,...jk->...ik',
+            modified_tangent_vec_a, modified_tangent_vec_b)
+        inner_product = gs.trace(product, axis1=-2, axis2=-1)
 
         return inner_product
 
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def exp(self, tangent_vec, base_point):
         """Compute the Log-Euclidean exponential map.
 
@@ -818,7 +788,6 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         exp = gs.linalg.expm(log_base_point + dlog_tangent_vec)
         return exp
 
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def log(self, point, base_point):
         """Compute the Log-Euclidean logarithm map.
 
