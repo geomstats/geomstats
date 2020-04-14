@@ -518,7 +518,6 @@ class SPDMetricAffine(RiemannianMetric):
             '...ij,...jk->...ik', log, sqrt_base_point)
         return log
 
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def log(self, point, base_point):
         """Compute the affine-invariant logarithm map.
 
@@ -536,17 +535,6 @@ class SPDMetricAffine(RiemannianMetric):
         log : array-like, shape=[n_samples, n, n]
         """
         power_affine = self.power_affine
-        n_points, _, _ = point.shape
-        n_base_points, _, _ = base_point.shape
-
-        assert (n_points == n_base_points
-                or n_points == 1
-                or n_base_points == 1)
-
-        if n_points == 1:
-            point = gs.tile(point, (n_base_points, 1, 1))
-        if n_base_points == 1:
-            base_point = gs.tile(base_point, (n_points, 1, 1))
 
         if power_affine == 1:
             sqrt_base_point = gs.linalg.powerm(base_point, 1. / 2)
