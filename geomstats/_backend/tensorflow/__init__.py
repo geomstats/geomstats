@@ -521,6 +521,8 @@ def eye(n, m=None):
 
 
 def einsum(equation, *inputs, **kwargs):
+    # TODO(ninamiolane): Allow this to work when '->' is not provided
+    # TODO(ninamiolane): Allow this to work for cases like n...k
     einsum_str = equation
     input_tensors_list = inputs
 
