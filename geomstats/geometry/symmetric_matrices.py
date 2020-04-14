@@ -84,23 +84,6 @@ class SymmetricMatrices(EmbeddedManifold):
         return cls.apply_func_to_eigvals(x, gs.exp)
 
     @classmethod
-    def logm(cls, x):
-        """
-        Compute the matrix log for a symmetric matrix.
-
-        Parameters
-        ----------
-        x : array_like, shape=[n_samples, n, n]
-            Symmetric matrix.
-
-        Returns
-        -------
-        log : array_like, shape=[n_samples, n, n]
-            Logarithm of x.
-        """
-        return cls.apply_func_to_eigvals(x, gs.log, check_positive=True)
-
-    @classmethod
     def powerm(cls, x, power):
         """
         Compute the matrix power.
