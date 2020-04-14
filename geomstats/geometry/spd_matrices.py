@@ -77,8 +77,7 @@ class SPDMatrices(EmbeddedManifold):
         sqrt_base_point = gs.linalg.sqrtm(base_point)
 
         tangent_vec_at_id = 2 * gs.random.rand(*size) - 1
-        tangent_vec_at_id += gs.swapaxes(
-            tangent_vec_at_id, axis1=-1, axis2=-2)
+        tangent_vec_at_id += Matrices.transpose(tangent_vec_at_id)
 
         tangent_vec = gs.einsum(
             '...ij,...jk->...ik', sqrt_base_point, tangent_vec_at_id)

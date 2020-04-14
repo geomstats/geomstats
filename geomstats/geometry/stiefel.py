@@ -70,7 +70,7 @@ class Stiefel(EmbeddedManifold):
         if (n, p) != (self.n, self.p):
             return gs.array([False] * n_points)
 
-        point_transpose = gs.swapaxes(point, axis1=-1, axis2=-2)
+        point_transpose = Matrices.transpose(point)
         identity = gs.eye(p)
         diff = gs.einsum(
             '...ij,...jk->...ik', point_transpose, point) - identity
@@ -120,7 +120,7 @@ class Stiefel(EmbeddedManifold):
         size = (n_samples, n, p) if n_samples != 1 else (n, p)
 
         std_normal = gs.random.normal(size=size)
-        std_normal_transpose = gs.swapaxes(std_normal, axis1=-1, axis2=-2)
+        std_normal_transpose = Matrices.transpose(std_normal)
         aux = gs.einsum(
             '...ij,...jk->...ik', std_normal_transpose, std_normal)
         sqrt_aux = gs.linalg.sqrtm(aux)
@@ -356,9 +356,10 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        _, _, p = base_point.shape
+        p = base_point.shape[-1]
 
-        matrix_m = gs.matmul(gs.transpose(base_point, (0, 2, 1)), point)
+        transpose_base_point = Matrices.transpose(base_point)
+        matrix_m = gs.matmul(transpose_base_point, point)
 
         matrix_q, matrix_n = StiefelCanonicalMetric._normal_component_qr(
             point, base_point, matrix_m)
