@@ -1,5 +1,6 @@
 """Unit tests for the manifold of symmetric positive definite matrices."""
 
+import math
 import warnings
 
 import geomstats.backend as gs
@@ -84,6 +85,16 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         expected = sym_mat
 
         self.assertTrue(gs.allclose(result, expected))
+
+    def test_logm(self):
+        """Test of logm method."""
+        expected = gs.array([[[0., 1., 0.], [1., 0., 0.], [0., 0., 1.]]])
+        c = math.cosh(1)
+        s = math.sinh(1)
+        e = math.exp(1)
+        v = gs.array([[[c, s, 0.], [s, c, 0.], [0., 0., e]]])
+        result = self.space.logm(v)
+        self.assertAllClose(result, expected)
 
     def test_differential_power(self):
         """Test of differential_power method."""

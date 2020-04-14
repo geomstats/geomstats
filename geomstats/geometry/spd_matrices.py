@@ -65,7 +65,8 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
 
         return tangent_vec
 
-    def aux_differential_power(self, power, tangent_vec, base_point):
+    @staticmethod
+    def aux_differential_power(power, tangent_vec, base_point):
         """Compute the differential of the matrix power.
 
         Auxiliary function to the functions differential_power and
@@ -91,7 +92,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
         n_tangent_vecs, _, _ = tangent_vec.shape
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_base_points, _, _ = base_point.shape
+        n_base_points, _, n = base_point.shape
 
         assert (n_tangent_vecs == n_base_points
                 or n_base_points == 1
@@ -108,7 +109,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         else:
             powered_eigvalues = eigvalues**power
         transp_powered_eigvalues = gs.transpose(powered_eigvalues, (0, 2, 1))
-        ones = gs.ones((n_base_points, 1, self.n))
+        ones = gs.ones((n_base_points, 1, n))
         transp_ones = gs.transpose(ones, (0, 2, 1))
 
         vertical_index = gs.matmul(transp_eigvalues, ones)
@@ -143,7 +144,8 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         return (eigvectors, transp_eigvectors, numerator, denominator,
                 temp_result)
 
-    def differential_power(self, power, tangent_vec, base_point):
+    @classmethod
+    def differential_power(cls, power, tangent_vec, base_point):
         """Compute the differential of the matrix power function.
 
         Computes the differential of the power function on SPD
@@ -163,14 +165,15 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         differential_power : array-like, shape=[n_samples, n, n]
         """
         eigvectors, transp_eigvectors, numerator, denominator, temp_result =\
-            self.aux_differential_power(power, tangent_vec, base_point)
+            cls.aux_differential_power(power, tangent_vec, base_point)
         power_operator = numerator / denominator
         result = power_operator * temp_result
         result = gs.matmul(result, transp_eigvectors)
         result = gs.matmul(eigvectors, result)
         return result
 
-    def inverse_differential_power(self, power, tangent_vec, base_point):
+    @classmethod
+    def inverse_differential_power(cls, power, tangent_vec, base_point):
         """Compute the inverse of the differential of the matrix power.
 
         Computes the inverse of the differential of the power
@@ -190,14 +193,15 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         inverse_differential_power : array-like, shape=[n_samples, n, n]
         """
         eigvectors, transp_eigvectors, numerator, denominator, temp_result =\
-            self.aux_differential_power(power, tangent_vec, base_point)
+            cls.aux_differential_power(power, tangent_vec, base_point)
         power_operator = denominator / numerator
         result = power_operator * temp_result
         result = gs.matmul(result, transp_eigvectors)
         result = gs.matmul(eigvectors, result)
         return result
 
-    def differential_log(self, tangent_vec, base_point):
+    @classmethod
+    def differential_log(cls, tangent_vec, base_point):
         """Compute the differential of the matrix logarithm.
 
         Computes the differential of the matrix logarithm on SPD
@@ -215,14 +219,15 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         differential_log : array-like, shape=[n_samples, n, n]
         """
         eigvectors, transp_eigvectors, numerator, denominator, temp_result =\
-            self.aux_differential_power(0, tangent_vec, base_point)
+            cls.aux_differential_power(0, tangent_vec, base_point)
         power_operator = numerator / denominator
         result = power_operator * temp_result
         result = gs.matmul(result, transp_eigvectors)
         result = gs.matmul(eigvectors, result)
         return result
 
-    def inverse_differential_log(self, tangent_vec, base_point):
+    @classmethod
+    def inverse_differential_log(cls, tangent_vec, base_point):
         """Compute the inverse of the differential of the matrix logarithm.
 
         Computes the inverse of the differential of the matrix
@@ -241,14 +246,15 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         inverse_differential_log : array-like, shape=[n_samples, n, n]
         """
         eigvectors, transp_eigvectors, numerator, denominator, temp_result =\
-            self.aux_differential_power(0, tangent_vec, base_point)
+            cls.aux_differential_power(0, tangent_vec, base_point)
         power_operator = denominator / numerator
         result = power_operator * temp_result
         result = gs.matmul(result, transp_eigvectors)
         result = gs.matmul(eigvectors, result)
         return result
 
-    def differential_exp(self, tangent_vec, base_point):
+    @classmethod
+    def differential_exp(cls, tangent_vec, base_point):
         """Compute the differential of the matrix exponential.
 
         Computes the differential of the matrix exponential on SPD
@@ -266,14 +272,15 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         differential_exp : array-like, shape=[n_samples, n, n]
         """
         eigvectors, transp_eigvectors, numerator, denominator, temp_result = \
-            self.aux_differential_power(math.inf, tangent_vec, base_point)
+            cls.aux_differential_power(math.inf, tangent_vec, base_point)
         power_operator = numerator / denominator
         result = power_operator * temp_result
         result = gs.matmul(result, transp_eigvectors)
         result = gs.matmul(eigvectors, result)
         return result
 
-    def inverse_differential_exp(self, tangent_vec, base_point):
+    @classmethod
+    def inverse_differential_exp(cls, tangent_vec, base_point):
         """Compute the inverse of the differential of the matrix exponential.
 
         Computes the inverse of the differential of the matrix
@@ -292,12 +299,29 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         inverse_differential_exp : array-like, shape=[n_samples, n, n]
         """
         eigvectors, transp_eigvectors, numerator, denominator, temp_result = \
-            self.aux_differential_power(math.inf, tangent_vec, base_point)
+            cls.aux_differential_power(math.inf, tangent_vec, base_point)
         power_operator = denominator / numerator
         result = power_operator * temp_result
         result = gs.matmul(result, transp_eigvectors)
         result = gs.matmul(eigvectors, result)
         return result
+
+    @classmethod
+    def logm(cls, x):
+        """
+        Compute the matrix log for a symmetric matrix.
+
+        Parameters
+        ----------
+        x : array_like, shape=[n_samples, n, n]
+            Symmetric matrix.
+
+        Returns
+        -------
+        log : array_like, shape=[n_samples, n, n]
+            Logarithm of x.
+        """
+        return cls.apply_func_to_eigvals(x, gs.log, check_positive=True)
 
 
 class SPDMetricAffine(RiemannianMetric):
@@ -499,7 +523,8 @@ class SPDMetricAffine(RiemannianMetric):
             return exp[0]
         return exp
 
-    def _aux_log(self, point, sqrt_base_point, inv_sqrt_base_point):
+    @staticmethod
+    def _aux_log(point, sqrt_base_point, inv_sqrt_base_point):
         """Compute the log (auxiliary function).
 
         Parameters
@@ -515,7 +540,7 @@ class SPDMetricAffine(RiemannianMetric):
         point_near_id = gs.matmul(inv_sqrt_base_point, point)
         point_near_id = gs.matmul(point_near_id, inv_sqrt_base_point)
         point_near_id = GeneralLinear.make_symmetric(point_near_id)
-        log_at_id = SymmetricMatrices.logm(point_near_id)
+        log_at_id = SPDMatrices.logm(point_near_id)
 
         log = gs.matmul(sqrt_base_point, log_at_id)
         log = gs.matmul(log, sqrt_base_point)
@@ -780,7 +805,8 @@ class SPDMetricEuclidean(RiemannianMetric):
 
         return inner_product
 
-    def exp_domain(self, tangent_vec, base_point):
+    @staticmethod
+    def exp_domain(tangent_vec, base_point):
         """Compute the domain of the Euclidean exponential map.
 
         Compute the real interval of time where the Euclidean geodesic starting
@@ -902,7 +928,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         exp : array-like, shape=[n_samples, n, n]
         """
         ndim = gs.maximum(gs.ndim(tangent_vec), gs.ndim(base_point))
-        log_base_point = SymmetricMatrices.logm(base_point)
+        log_base_point = self.space.logm(base_point)
         dlog_tangent_vec = self.space.differential_log(tangent_vec, base_point)
         exp = SymmetricMatrices.expm(log_base_point + dlog_tangent_vec)
 
@@ -927,8 +953,8 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         log : array-like, shape=[n_samples, n, n]
         """
         ndim = gs.maximum(gs.ndim(point), gs.ndim(base_point))
-        log_base_point = SymmetricMatrices.logm(base_point)
-        log_point = SymmetricMatrices.logm(point)
+        log_base_point = SPDMatrices.logm(base_point)
+        log_point = SPDMatrices.logm(point)
         log = self.space.differential_exp(log_point - log_base_point,
                                           log_base_point)
 
