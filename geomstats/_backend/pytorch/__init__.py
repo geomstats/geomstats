@@ -340,6 +340,10 @@ def transpose(x, axes=None):
     return x.t()
 
 
+def swapaxes(x, axis1, axis2):
+    return x.permute(axis1, axis2)
+
+
 def squeeze(x, axis=None):
     if axis is None:
         return torch.squeeze(x)

@@ -382,6 +382,8 @@ class SPDMetricAffine(RiemannianMetric):
         -------
         inner_product : array-like, shape=[n_samples, n, n]
         """
+        print(inv_base_point.shape)
+        print(tangent_vec_a.shape)
         aux_a = gs.einsum(
             '...ij,...jk->...ik', inv_base_point, tangent_vec_a)
         aux_b = gs.einsum(

@@ -130,6 +130,16 @@ def flip(m, axis=None):
     return tf.reverse(m, axis=axis)
 
 
+def swapaxes(x, axis1, axis2):
+    # TODO(ninamiolane): Make this function more general.
+    # So far, it can only swap the last two axes.
+    rank_x = tf.rank(x)
+    axes = tf.concat(
+        [tf.constant(range(rank_x - 2)), [rank_x - 1], [rank_x - 2]],
+        axis=0)
+    return tf.transpose(x, axes)
+
+
 def any(x, axis=None):
     return tf.math.reduce_any(tf.cast(x, bool), axis=axis)
 
@@ -526,8 +536,14 @@ def einsum(equation, *inputs, **kwargs):
         if len(input_str_list) > 2:
             raise NotImplementedError(
                 'Ellipsis support not implemented for >2 input tensors')
+        ndims = [len(input_str[3:]) for input_str in input_str_list]
+
         tensor_a = input_tensors_list[0]
         tensor_b = input_tensors_list[1]
+
+        tensor_a = to_ndarray(tensor_a, to_ndim=ndims[0] + 1)
+        tensor_b = to_ndarray(tensor_b, to_ndim=ndims[1] + 1)
+
         n_tensor_a = tensor_a.shape[0]
         n_tensor_b = tensor_b.shape[0]
 
@@ -553,8 +569,10 @@ def einsum(equation, *inputs, **kwargs):
 
         input_str = input_str_list[0] + ',' + input_str_list[1]
         einsum_str = input_str + '->' + output_str
-
-        return tf.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
+        result = tf.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
+        if n_tensor_a == n_tensor_b == 1:
+            result = squeeze(result, axis=0)
+            return result
 
     return tf.einsum(equation, *inputs, **kwargs)
 
