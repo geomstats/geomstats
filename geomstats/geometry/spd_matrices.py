@@ -59,9 +59,7 @@ class SPDMatrices(EmbeddedManifold):
     def random_uniform(self, n_samples=1):
         """Define a log-uniform random sample of SPD matrices."""
         n = self.n
-        size = (n_samples, n, n)
-        if n_samples == 1:
-            size = (n, n)
+        size = (n_samples, n, n) if n_samples != 1 else (n, n)
 
         mat = 2 * gs.random.rand(*size) - 1
         spd_mat = GeneralLinear.exp(mat + Matrices.transpose(mat))
@@ -71,9 +69,7 @@ class SPDMatrices(EmbeddedManifold):
     def random_tangent_vec_uniform(self, n_samples=1, base_point=None):
         """Define a uniform random sample of tangent vectors."""
         n = self.n
-        size = (n_samples, n, n)
-        if n_samples == 1:
-            size = (n, n)
+        size = (n_samples, n, n) if n_samples != 1 else (n, n)
 
         if base_point is None:
             base_point = gs.eye(n)
