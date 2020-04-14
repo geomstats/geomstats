@@ -68,6 +68,7 @@ from autograd.numpy import (  # NOQA
     squeeze,
     stack,
     std,
+    swapaxes,
     sum,
     tan,
     tanh,

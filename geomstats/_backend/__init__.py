@@ -85,6 +85,7 @@ BACKEND_ATTRIBUTES = {
         'stack',
         'std',
         'sum',
+        'swapaxes',
         'tan',
         'tanh',
         'tile',

@@ -70,30 +70,24 @@ class SPDMatrices(EmbeddedManifold):
 
     def random_tangent_vec_uniform(self, n_samples=1, base_point=None):
         """Define a uniform random sample of tangent vectors."""
+        n = self.n
+        size = (n_samples, n, n)
+        if n_samples == 1:
+            size = (n, n)
+
         if base_point is None:
-            base_point = gs.eye(self.n)
-
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
-        n_base_points, _, _ = base_point.shape
-
-        if n_base_points not in [n_samples, 1]:
-            raise NotImplementedError
-
-        if n_base_points == 1:
-            base_point = gs.tile(base_point, (n_samples, 1, 1))
+            base_point = gs.eye(n)
 
         sqrt_base_point = gs.linalg.sqrtm(base_point)
 
-        tangent_vec_at_id = (2 * gs.random.rand(n_samples,
-                                                self.n,
-                                                self.n)
-                             - 1)
-        tangent_vec_at_id = (tangent_vec_at_id
-                             + gs.transpose(tangent_vec_at_id,
-                                            axes=(0, 2, 1)))
+        tangent_vec_at_id = 2 * gs.random.rand(*size) - 1
+        tangent_vec_at_id += gs.swapaxes(
+                tangent_vec_at_id, axis1= -1, axis2=-2)
 
-        tangent_vec = gs.matmul(sqrt_base_point, tangent_vec_at_id)
-        tangent_vec = gs.matmul(tangent_vec, sqrt_base_point)
+        tangent_vec = gs.einsum(
+            '...ij,...jk->...ik', sqrt_base_point, tangent_vec_at_id)
+        tangent_vec = gs.einsum(
+            '...ij,...jk->...ik', tangent_vec, sqrt_base_point)
 
         return tangent_vec
 
