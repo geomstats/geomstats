@@ -135,6 +135,20 @@ def any(x, axis=None):
 
 
 def get_mask_i_float(i, n):
+    """Create a 1D array of zeros with one element at one, with floating type.
+
+    Parameters
+    ----------
+    i : int
+        Index of the non-zero element.
+    n: n
+        Length of the created array.
+
+    Returns
+    -------
+    mask_i_float : array-like, shape=[n,]
+        1D array of zeros except at index i, where it is one
+    """
     range_n = arange(n)
     i_float = cast(array([i]), int32)[0]
     mask_i = equal(range_n, i_float)
@@ -389,11 +403,53 @@ def assignment(x, values, indices, axis=0):
 
 
 def array_from_sparse(indices, data, target_shape):
+    """Create an array of given shape, with values at specific indices.
+
+    The rest of the array will be filled with zeros.
+
+    Parameters
+    ----------
+    indices : iterable(tuple(int))
+        Index of each element which will be assigned a specific value.
+    data : iterable(scalar)
+        Value associated at each index.
+    target_shape : tuple(int)
+        Shape of the output array.
+
+    Returns
+    -------
+    a : array, shape=target_shape
+        Array of zeros with specified values assigned to specified indices.
+    """
     return tf.sparse.to_dense(tf.sparse.reorder(
         tf.SparseTensor(indices, data, target_shape)))
 
 
 def get_slice(x, indices):
+    """Return a slice of an array, following Numpy's style.
+
+    Parameters
+    ----------
+    x : array-like, shape=[dimension]
+        Initial array.
+    indices : iterable(iterable(int))
+        Indices which are kept along each axis, starting from 0.
+
+    Returns
+    -------
+    slice : array-like
+        Slice of x given by indices.
+
+    Notes
+    -----
+    This follows Numpy's convention: indices are grouped by axis.
+
+    Examples
+    --------
+    >>> a = tf.reshape(tf.convert_to_tensor(range(30)), (3,10))
+    >>> get_slice(a, ((0, 2), (8, 9)))
+    <tf.Tensor: id=41, shape=(2,), dtype=int32, numpy=array([ 8, 29])>
+    """
     return tf.gather_nd(x, list(zip(*indices)))
 
 

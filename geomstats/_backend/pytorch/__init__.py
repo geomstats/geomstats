@@ -156,6 +156,30 @@ def all(x, axis=None):
 
 
 def get_slice(x, indices):
+    """Return a slice of an array, following Numpy's style.
+
+    Parameters
+    ----------
+    x : array-like, shape=[dimension]
+        Initial array.
+    indices : iterable(iterable(int))
+        Indices which are kept along each axis, starting from 0.
+
+    Returns
+    -------
+    slice : array-like
+        Slice of x given by indices.
+
+    Notes
+    -----
+    This follows Numpy's convention: indices are grouped by axis.
+
+    Examples
+    --------
+    >>> a = torch.tensor(range(30)).reshape(3,10)
+    >>> get_slice(a, ((0, 2), (8, 9)))
+    tensor([8, 29])
+    """
     return x[indices]
 
 
@@ -360,6 +384,24 @@ def diagonal(x, offset=0, axis1=0, axis2=1):
 
 
 def set_diag(x, new_diag):
+    """Set the diagonal along the last two axis.
+
+    Parameters
+    ----------
+    x : array-like, shape=[dimension]
+        Initial array.
+    new_diag : array-like, shape=[dimension[-2]]
+        Values to set on the diagonal.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    This mimics tensorflow.linalg.set_diag(x, new_diag), when new_diag is a
+    1-D array, but modifies x instead of creating a copy.
+    """
     arr_shape = x.shape
     x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
 
@@ -377,6 +419,20 @@ def mean(x, axis=None):
 
 
 def get_mask_i_float(i, n):
+    """Create a 1D array of zeros with one element at one, with floating type.
+
+    Parameters
+    ----------
+    i : int
+        Index of the non-zero element.
+    n: n
+        Length of the created array.
+
+    Returns
+    -------
+    mask_i_float : array-like, shape=[n,]
+        1D array of zeros except at index i, where it is one
+    """
     range_n = arange(cast(array(n), int32))
     i_float = cast(array(i), int32)
     mask_i = equal(range_n, i_float)
@@ -491,6 +547,24 @@ def cumprod(x, axis=None):
 
 
 def array_from_sparse(indices, data, target_shape):
+    """Create an array of given shape, with values at specific indices.
+
+    The rest of the array will be filled with zeros.
+
+    Parameters
+    ----------
+    indices : iterable(tuple(int))
+        Index of each element which will be assigned a specific value.
+    data : iterable(scalar)
+        Value associated at each index.
+    target_shape : tuple(int)
+        Shape of the output array.
+
+    Returns
+    -------
+    a : array, shape=target_shape
+        Array of zeros with specified values assigned to specified indices.
+    """
     return torch.sparse.FloatTensor(
         torch.LongTensor(indices).t(),
         torch.FloatTensor(cast(data, float32)),
