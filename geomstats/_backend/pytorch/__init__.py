@@ -1,5 +1,7 @@
 """Pytorch based computation backend."""
 
+from functools import wraps
+
 import numpy as _np
 import torch
 from torch import (  # NOQA
@@ -12,6 +14,7 @@ from torch import (  # NOQA
     atan2 as arctan2,
     ceil,
     clamp as clip,
+    cos,
     cosh,
     div as divide,
     empty_like,
@@ -41,6 +44,7 @@ from torch import (  # NOQA
     repeat_interleave as repeat,
     reshape,
     sign,
+    sin,
     sinh,
     stack,
     std,
@@ -64,16 +68,21 @@ searchsorted = _raise_not_implemented_error
 vectorize = _raise_not_implemented_error
 
 
-def sin(x):
-    if not torch.is_tensor(x):
-        x = torch.tensor(x)
-    return torch.sin(x)
+def _box_scalar(function):
+    @wraps(function)
+    def wrapper(x):
+        if not torch.is_tensor(x):
+            x = torch.tensor(x)
+        return function(x)
+    return wrapper
 
 
-def cos(x):
-    if not torch.is_tensor(x):
-        x = torch.tensor(x)
-    return torch.cos(x)
+cos = _box_scalar(cos)
+cosh = _box_scalar(cosh)
+exp = _box_scalar(exp)
+log = _box_scalar(log)
+sin = _box_scalar(sin)
+sinh = _box_scalar(sinh)
 
 
 def empty(shape, dtype=float64):
@@ -287,8 +296,13 @@ def einsum(*args, **kwargs):
         if len(input_str_list) > 2:
             raise NotImplementedError(
                 'Ellipsis support not implemented for >2 input tensors')
+        ndims = [len(input_str[3:]) for input_str in input_str_list]
         tensor_a = input_tensors_list[0]
         tensor_b = input_tensors_list[1]
+
+        tensor_a = to_ndarray(tensor_a, to_ndim=ndims[0] + 1)
+        tensor_b = to_ndarray(tensor_b, to_ndim=ndims[1] + 1)
+
         n_tensor_a = tensor_a.shape[0]
         n_tensor_b = tensor_b.shape[0]
 
@@ -315,7 +329,12 @@ def einsum(*args, **kwargs):
         input_str = input_str_list[0] + ',' + input_str_list[1]
         einsum_str = input_str + '->' + output_str
 
-        return torch.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
+        result = torch.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
+
+        if n_tensor_a == n_tensor_b == 1:
+            result = squeeze(result, axis=0)
+            return result
+
     return torch.einsum(*args, **kwargs)
 
 
@@ -329,6 +348,10 @@ def transpose(x, axes=None):
     if x.dim() == 1:
         return x
     return x.t()
+
+
+def swapaxes(x, axis1, axis2):
+    return x.permute(axis1, axis2)
 
 
 def squeeze(x, axis=None):

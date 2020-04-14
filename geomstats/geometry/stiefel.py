@@ -45,6 +45,7 @@ class Stiefel(EmbeddedManifold):
         self.p = p
         self.canonical_metric = StiefelCanonicalMetric(n, p)
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'else'])
     def belongs(self, point, tolerance=TOLERANCE):
         """Test if a point belongs to St(n,p).
 
@@ -64,21 +65,19 @@ class Stiefel(EmbeddedManifold):
             Array of booleans evaluating if the corresponding points
             belong to the Stiefel manifold.
         """
-        point = gs.to_ndarray(point, to_ndim=3)
         n_points, n, p = point.shape
 
         if (n, p) != (self.n, self.p):
             return gs.array([False] * n_points)
 
-        point_transpose = gs.transpose(point, axes=(0, 2, 1))
-        identity = gs.to_ndarray(gs.eye(p), to_ndim=3)
-        # identity = gs.tile(identity, (n_points, 1, 1))
-        diff = gs.einsum('nij,njk->nik', point_transpose, point) - identity
+        point_transpose = gs.swapaxes(point, axis1=-1, axis2=-2)
+        identity = gs.eye(p)
+        diff = gs.einsum(
+            '...ij,...jk->...ik', point_transpose, point) - identity
 
-        diff_norm = gs.linalg.norm(diff, axis=(1, 2))
+        diff_norm = gs.linalg.norm(diff, axis=(-2, -1))
         belongs = gs.less_equal(diff_norm, tolerance)
-        if n_points == 1:
-            belongs = gs.squeeze(belongs, axis=0)
+        belongs = gs.to_ndarray(belongs, to_ndim=1)
         return belongs
 
     @staticmethod
@@ -117,15 +116,17 @@ class Stiefel(EmbeddedManifold):
         samples : array-like, shape=[n_samples, n, p]
             Samples on the Stiefel manifold.
         """
-        std_normal = gs.random.normal(size=(n_samples, self.n, self.p))
-        std_normal_transpose = gs.transpose(std_normal, axes=(0, 2, 1))
-        aux = gs.einsum('nij,njk->nik', std_normal_transpose, std_normal)
+        n, p = self.n, self.p
+        size = (n_samples, n, p) if n_samples != 1 else (n, p)
+
+        std_normal = gs.random.normal(size=size)
+        std_normal_transpose = gs.swapaxes(std_normal, axis1=-1, axis2=-2)
+        aux = gs.einsum(
+            '...ij,...jk->...ik', std_normal_transpose, std_normal)
         sqrt_aux = gs.linalg.sqrtm(aux)
         inv_sqrt_aux = gs.linalg.inv(sqrt_aux)
-        samples = gs.einsum('nij,njk->nik', std_normal, inv_sqrt_aux)
-
-        if n_samples == 1:
-            samples = gs.squeeze(samples, axis=0)
+        samples = gs.einsum(
+            '...ij,...jk->...ik', std_normal, inv_sqrt_aux)
 
         return samples
 
@@ -358,16 +359,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
         n_points, _, _ = point.shape
         n_base_points, _, p = base_point.shape
 
-        if not (n_points == n_base_points
-                or n_points == 1
-                or n_base_points == 1):
-            raise NotImplementedError
-
-        if n_base_points == 1:
-            base_point = gs.tile(base_point, (n_points, 1, 1))
-        if n_points == 1:
-            point = gs.tile(point, (n_base_points, 1, 1))
-
         matrix_m = gs.matmul(gs.transpose(base_point, (0, 2, 1)), point)
 
         matrix_q, matrix_n = StiefelCanonicalMetric._normal_component_qr(
@@ -432,11 +423,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
                 or n_base_points == 1):
             raise NotImplementedError
 
-        if n_base_points == 1:
-            base_point = gs.tile(base_point, (n_tangent_vecs, 1, 1))
-        if n_tangent_vecs == 1:
-            tangent_vec = gs.tile(tangent_vec, (n_base_points, 1, 1))
-
         matrix_q, matrix_r = gs.linalg.qr(base_point + tangent_vec)
 
         diagonal = gs.diagonal(matrix_r, axis1=1, axis2=2)
@@ -476,10 +462,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
                 or n_base_points == 1):
             raise NotImplementedError
 
-        if n_base_points == 1:
-            base_point = gs.tile(base_point, (n_points, 1, 1))
-        if n_points == 1:
-            point = gs.tile(point, (n_base_points, 1, 1))
         n_liftings = gs.maximum(n_base_points, n_points)
 
         def _make_minor(i, matrix):
