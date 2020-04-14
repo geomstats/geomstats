@@ -626,7 +626,6 @@ class SPDMetricProcrustes(RiemannianMetric):
         self.n = n
         self.space = SPDMatrices(n)
 
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'matrix'])
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
         """Compute the Procrustes inner product.
 
@@ -647,7 +646,7 @@ class SPDMetricProcrustes(RiemannianMetric):
         modified_tangent_vec_a =\
             spd_space.inverse_differential_power(2, tangent_vec_a, base_point)
         product = gs.matmul(modified_tangent_vec_a, tangent_vec_b)
-        result = gs.trace(product, axis1=1, axis2=2) / 2
+        result = gs.trace(product, axis1=-2, axis2=-1) / 2
         return result
 
 
