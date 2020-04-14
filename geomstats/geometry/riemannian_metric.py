@@ -142,6 +142,7 @@ class RiemannianMetric(Connection):
         aux = gs.einsum('...j,...jk->...k', tangent_vec_a, inner_prod_mat)
 
         inner_prod = gs.einsum('...k,...k->...', aux, tangent_vec_b)
+        inner_prod = gs.to_ndarray(inner_prod, to_ndim=1)
         inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
         return inner_prod

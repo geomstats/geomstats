@@ -397,9 +397,9 @@ class HyperboloidMetric(HyperbolicMetric):
 
         coef_1 += mask_else_float * (angle / gs.sinh(angle))
         coef_2 += mask_else_float * (angle / gs.tanh(angle))
-
-        log = (gs.einsum('...,...j->...j', coef_1, point) -
-               gs.einsum('...,...j->...j', coef_2, base_point))
+        log_term_1 = gs.einsum('...,...j->...j', coef_1, point)
+        log_term_2 = - gs.einsum('...,...j->...j', coef_2, base_point)
+        log = log_term_1 + log_term_2
         return log
 
     def dist(self, point_a, point_b):
