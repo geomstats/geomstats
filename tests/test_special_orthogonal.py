@@ -3234,17 +3234,14 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                         gs.allclose(result, expected, atol=5e-3)
                         or gs.allclose(result, inv_expected, atol=5e-3))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_group_exp_from_identity_coincides_with_expm(self):
         """Test exponentials."""
         # FIXME: Problem in shapes
         for n in self.n_seq:
             group = self.so[n]
-            dim = int(n * (n - 1) / 2)
 
-            normal_rv = gs.random.normal(size=dim)
-            tangent_sample = gs.zeros((n, n))
-            tangent_sample[gs.triu_indices(n, k=1)] = normal_rv
+            normal_rv = gs.random.rand(gs.array(n ** 2))
+            tangent_sample = gs.reshape(normal_rv, (n, n))
             tangent_sample = tangent_sample - gs.transpose(tangent_sample)
             result = gs.linalg.expm(tangent_sample)
             expected = group.exp_from_identity(
@@ -3253,15 +3250,12 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
             self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_group_exp_from_identity_coincides_with_expm_for_high_dims(self):
         for n in [4, 5, 6, 7, 8, 9, 10]:
             group = SpecialOrthogonal(n=n)
-            dim = int(n * (n - 1) / 2)
 
-            normal_rv = gs.random.normal(size=dim)
-            tangent_sample = gs.zeros((n, n))
-            tangent_sample[tuple(gs.triu_indices(n, k=1))] = normal_rv
+            normal_rv = gs.random.rand(gs.array(n ** 2))
+            tangent_sample = gs.reshape(normal_rv, (n, n))
             tangent_sample = tangent_sample - gs.transpose(tangent_sample)
 
             result = gs.reshape(

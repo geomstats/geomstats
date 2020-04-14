@@ -41,6 +41,7 @@ from torch import (  # NOQA
     nonzero,
     ones,
     ones_like,
+    pow as power,
     repeat_interleave as repeat,
     reshape,
     sign,
@@ -99,9 +100,7 @@ def logical_or(x, y):
 
 def logical_and(x, y):
     if torch.is_tensor(x):
-        return x.eq(y)
-    if torch.is_tensor(y):
-        return y.eq(x)
+        return x & y
     return x and y
 
 

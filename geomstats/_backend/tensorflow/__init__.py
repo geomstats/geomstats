@@ -68,6 +68,7 @@ cross = tf.linalg.cross
 log = tf.math.log
 matmul = tf.linalg.matmul
 mod = tf.math.mod
+power = tf.math.pow
 real = tf.math.real
 set_diag = tf.linalg.set_diag
 std = tf.math.reduce_std
@@ -543,7 +544,6 @@ def einsum(equation, *inputs, **kwargs):
 
         tensor_a = input_tensors_list[0]
         tensor_b = input_tensors_list[1]
-
         initial_ndim_a = tensor_a.ndim
         initial_ndim_b = tensor_b.ndim
         tensor_a = to_ndarray(tensor_a, to_ndim=ndims[0] + 1)
