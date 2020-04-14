@@ -356,8 +356,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        n_points, _, _ = point.shape
-        n_base_points, _, p = base_point.shape
+        _, _, p = base_point.shape
 
         matrix_m = gs.matmul(gs.transpose(base_point, (0, 2, 1)), point)
 
