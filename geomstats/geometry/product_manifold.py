@@ -49,7 +49,7 @@ class ProductManifold(Manifold):
 
         self.dimensions = [manifold.dimension for manifold in manifolds]
         super(ProductManifold, self).__init__(
-            dimension=sum(self.dimensions))
+            dim=sum(self.dimensions))
         self.n_jobs = n_jobs
 
     @staticmethod

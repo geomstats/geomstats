@@ -18,10 +18,10 @@ class TestFrechetMean(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
-        self.sphere = Hypersphere(dimension=4)
-        self.hyperbolic = Hyperboloid(dimension=3)
-        self.euclidean = Euclidean(dimension=2)
-        self.minkowski = Minkowski(dimension=2)
+        self.sphere = Hypersphere(dim=4)
+        self.hyperbolic = Hyperboloid(dim=3)
+        self.euclidean = Euclidean(dim=2)
+        self.minkowski = Minkowski(dim=2)
 
     @geomstats.tests.np_only
     def test_adaptive_gradient_descent_sphere(self):

@@ -9,7 +9,7 @@ import numpy as np
 import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere
 
-SPHERE2 = Hypersphere(dimension=2)
+SPHERE2 = Hypersphere(dim=2)
 METRIC = SPHERE2.metric
 
 

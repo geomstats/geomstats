@@ -15,7 +15,7 @@ def main():
     """Perform tangent PCA at the mean."""
     fig = plt.figure(figsize=(15, 5))
 
-    sphere = Hypersphere(dimension=2)
+    sphere = Hypersphere(dim=2)
 
     data = sphere.random_von_mises_fisher(kappa=15, n_samples=140)
 

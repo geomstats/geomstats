@@ -25,7 +25,7 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.spd_matrices import SPDMatrices
 
 
-SPHERE2 = Hypersphere(dimension=2)
+SPHERE2 = Hypersphere(dim=2)
 METRIC = SPHERE2.metric
 
 

@@ -49,7 +49,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
 
     Parameters
     ----------
-    dimension : int
+    dim : int
         Dimension of the hyperbolic space.
     point_type : str, {'extrinsic', 'intrinsic'}, optional
         Default coordinates to represent points in hyperbolic space.
@@ -61,12 +61,12 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
     default_coords_type = 'extrinsic'
     default_point_type = 'vector'
 
-    def __init__(self, dimension, coords_type='extrinsic', scale=1):
+    def __init__(self, dim, coords_type='extrinsic', scale=1):
         self.scale = scale
-        self.dimension = dimension
+        self.dimension = dim
         self.coords_type = coords_type
         self.point_type = Hyperboloid.default_point_type
-        self.embedding_manifold = Minkowski(dimension + 1)
+        self.embedding_manifold = Minkowski(dim + 1)
         self.embedding_metric = self.embedding_manifold.metric
         self.metric =\
             HyperboloidMetric(self.dimension, self.coords_type, self.scale)
@@ -214,7 +214,7 @@ class HyperboloidMetric(HyperbolicMetric):
 
     Parameters
     ----------
-    dimension : int
+    dim : int
         Dimension of the hyperbolic space.
     point_type : str, {'extrinsic', 'intrinsic', etc}, optional
         Default coordinates to represent points in hyperbolic space.
@@ -226,11 +226,11 @@ class HyperboloidMetric(HyperbolicMetric):
     default_point_type = 'vector'
     default_coords_type = 'extrinsic'
 
-    def __init__(self, dimension, coords_type='extrinsic', scale=1):
+    def __init__(self, dim, coords_type='extrinsic', scale=1):
         super(HyperboloidMetric, self).__init__(
-            dimension=dimension,
+            dim=dim,
             scale=scale)
-        self.embedding_metric = MinkowskiMetric(dimension + 1)
+        self.embedding_metric = MinkowskiMetric(dim + 1)
 
         self.coords_type = coords_type
         self.point_type = HyperbolicMetric.default_point_type
@@ -344,7 +344,7 @@ class HyperboloidMetric(HyperbolicMetric):
             gs.einsum('...,...j->...j', coef_1, base_point)
             + gs.einsum('...,...j->...j', coef_2, tangent_vec))
 
-        hyperbolic_space = Hyperboloid(dimension=self.dimension)
+        hyperbolic_space = Hyperboloid(dim=self.dim)
         exp = hyperbolic_space.regularize(exp)
         return exp
 

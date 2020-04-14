@@ -17,13 +17,20 @@ class Connection:
 
     Parameters
     ----------
-    dimension: int
+    dim: int
         Dimension of the underlying manifold.
     """
 
-    def __init__(self, dimension):
-        geomstats.error.check_integer(dimension, 'dimension')
-        self.dimension = dimension
+    def __init__(
+            self, dim, default_point_type='vector',
+            default_coords_type='intrinsic'):
+        geomstats.error.check_integer(dim, 'dimension')
+        geomstats.error.check_parameter_accepted_values(
+            default_point_type, 'default_point_type', ['vector', 'matrix'])
+
+        self.dim = dim
+        self.default_point_type = default_point_type
+        self.default_coords_type = default_coords_type
 
     def christoffels(self, base_point):
         """Christoffel symbols associated with the connection.
@@ -143,7 +150,7 @@ class Connection:
             """Define the objective function."""
             velocity = velocity.reshape(base_point.shape)
             delta = self.exp(velocity, base_point, n_steps, step) - point
-            loss = 1. / self.dimension * gs.sum(delta ** 2, axis=1)
+            loss = 1. / self.dim * gs.sum(delta ** 2, axis=1)
             return 1. / n_samples * gs.sum(loss)
 
         objective_grad = autograd.elementwise_grad(objective)

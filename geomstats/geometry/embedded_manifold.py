@@ -8,14 +8,17 @@ class EmbeddedManifold(Manifold):
 
     Parameters
     ----------
-    dimension : int
+    dim : int
         Dimension of the embedded manifold.
     embedding_manifold : Manifold
         Embedding manifold.
     """
 
-    def __init__(self, dimension, embedding_manifold):
-        super(EmbeddedManifold, self).__init__(dimension=dimension)
+    def __init__(self, dim, embedding_manifold, default_point_type='vector',
+                 default_coords_type='intrinsic'):
+        super(EmbeddedManifold, self).__init__(
+            dim=dim, default_point_type=default_point_type,
+            default_coords_type=default_coords_type)
         self.embedding_manifold = embedding_manifold
 
     def intrinsic_to_extrinsic_coords(self, point_intrinsic):

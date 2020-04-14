@@ -22,7 +22,7 @@ class Landmarks(Manifold):
         dimension = None
         if n_landmarks:
             self.dimension = n_landmarks * ambient_manifold.dimension
-        super(Landmarks, self).__init__(dimension=dimension)
+        super(Landmarks, self).__init__(dim=dimension)
         self.ambient_manifold = ambient_manifold
         self.l2_metric = L2Metric(self.ambient_manifold)
         self.n_landmarks = n_landmarks
@@ -49,7 +49,7 @@ class L2Metric(RiemannianMetric):
 
     def __init__(self, ambient_manifold):
         super(L2Metric, self).__init__(
-            dimension=math.inf,
+            dim=math.inf,
             signature=(math.inf, 0, 0))
         self.ambient_manifold = ambient_manifold
         self.ambient_metric = ambient_manifold.metric

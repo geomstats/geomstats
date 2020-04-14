@@ -21,9 +21,9 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
         self.dimension = 3
-        self.space = Hyperboloid(dimension=self.dimension)
+        self.space = Hyperboloid(dim=self.dimension)
         self.metric = self.space.metric
-        self.ball_manifold = PoincareBall(dimension=2)
+        self.ball_manifold = PoincareBall(dim=2)
         self.n_samples = 10
 
     def test_random_uniform_and_belongs(self):
@@ -139,7 +139,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         dim = 5
         n_samples = self.n_samples
 
-        h5 = Hyperboloid(dimension=dim)
+        h5 = Hyperboloid(dim=dim)
         h5_metric = h5.metric
 
         base_point = h5.random_uniform()
@@ -178,7 +178,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_exp_and_belongs(self):
-        H2 = Hyperboloid(dimension=2)
+        H2 = Hyperboloid(dim=2)
         METRIC = H2.metric
 
         base_point = gs.array([1., 0., 0.])
@@ -445,8 +445,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
             tangent_vec_b,
             base_point)
         scale = 2
-        default_space = Hyperboloid(dimension=self.dimension)
-        scaled_space = Hyperboloid(dimension=self.dimension, scale=2)
+        default_space = Hyperboloid(dim=self.dimension)
+        scaled_space = Hyperboloid(dim=self.dimension, scale=2)
         inner_product_default_metric = \
             default_space.metric.inner_product(
                 tangent_vec_a,
@@ -470,8 +470,8 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         tangent_vec = self.space.projection_to_tangent_space(
             tangent_vec, base_point)
         scale = 2
-        default_space = Hyperboloid(dimension=self.dimension)
-        scaled_space = Hyperboloid(dimension=self.dimension, scale=2)
+        default_space = Hyperboloid(dim=self.dimension)
+        scaled_space = Hyperboloid(dim=self.dimension, scale=2)
         squared_norm_default_metric = default_space.metric.squared_norm(
             tangent_vec, base_point)
         squared_norm_scaled_metric = scaled_space.metric.squared_norm(
@@ -487,7 +487,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         point_a = self.space.from_coordinates(point_a_intrinsic, 'intrinsic')
         point_b = self.space.from_coordinates(point_b_intrinsic, 'intrinsic')
         scale = 2
-        scaled_space = Hyperboloid(dimension=self.dimension, scale=2)
+        scaled_space = Hyperboloid(dim=self.dimension, scale=2)
         distance_default_metric = self.space.metric.dist(point_a, point_b)
         distance_scaled_metric = scaled_space.metric.dist(point_a, point_b)
         result = distance_scaled_metric

@@ -25,7 +25,7 @@ class Hyperbolic(Manifold):
 
     Parameters
     ----------
-    dimension : int
+    dim : int
         Dimension of the hyperbolic space.
     point_type : str, {'extrinsic', 'intrinsic', etc}, optional
         Default coordinates to represent points in hyperbolic space.
@@ -37,12 +37,12 @@ class Hyperbolic(Manifold):
     default_coords_type = 'extrinsic'
     default_point_type = 'vector'
 
-    def __init__(self, dimension, scale=1):
-        super(Hyperbolic, self).__init__(dimension=dimension)
+    def __init__(self, dim, scale=1):
+        super(Hyperbolic, self).__init__(dim=dim)
         self.point_type = Hyperbolic.default_point_type
         self.coords_type = Hyperbolic.default_coords_type
         self.scale = scale
-        self.metric = HyperbolicMetric(self.dimension, self.scale)
+        self.metric = HyperbolicMetric(self.dim, self.scale)
 
     @staticmethod
     def _extrinsic_to_extrinsic_coordinates(point):
@@ -378,7 +378,7 @@ class Hyperbolic(Manifold):
         samples : array-like, shape=[n_samples, dimension + 1]
             Samples in hyperbolic space.
         """
-        size = (n_samples, self.dimension)
+        size = (n_samples, self.dim)
         samples = bound * 2. * (gs.random.rand(*size) - 0.5)
 
         samples = Hyperbolic.change_coordinates_system(
@@ -394,7 +394,7 @@ class HyperbolicMetric(RiemannianMetric):
 
     Parameters
     ----------
-    dimension : int
+    dim : int
         Dimension of the hyperbolic space.
     point_type : str, {'extrinsic', 'intrinsic', etc}, optional
         Default coordinates to represent points in hyperbolic space.
@@ -406,10 +406,10 @@ class HyperbolicMetric(RiemannianMetric):
     default_point_type = 'vector'
     default_coords_type = 'extrinsic'
 
-    def __init__(self, dimension, scale=1):
+    def __init__(self, dim, scale=1):
         super(HyperbolicMetric, self).__init__(
-            dimension=dimension,
-            signature=(dimension, 0, 0))
+            dim=dim,
+            signature=(dim, 0, 0))
         self.point_type = HyperbolicMetric.default_point_type
 
         self.scale = scale

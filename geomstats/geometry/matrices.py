@@ -15,7 +15,7 @@ class Matrices(Euclidean):
     """Class for the space of matrices (m, n)."""
 
     def __init__(self, m, n):
-        super(Matrices, self).__init__(dimension=m * n)
+        super(Matrices, self).__init__(dim=m * n)
         geomstats.error.check_integer(n, 'n')
         geomstats.error.check_integer(m, 'm')
         self.m = m
@@ -174,7 +174,7 @@ class MatricesMetric(RiemannianMetric):
     def __init__(self, m, n):
         dimension = m * n
         super(MatricesMetric, self).__init__(
-            dimension=dimension,
+            dim=dimension,
             signature=(dimension, 0, 0))
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):

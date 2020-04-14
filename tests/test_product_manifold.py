@@ -17,15 +17,15 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
         gs.random.seed(1234)
 
         self.space_matrix = ProductManifold(
-            manifolds=[Hypersphere(dimension=2), Hyperboloid(dimension=2)],
+            manifolds=[Hypersphere(dim=2), Hyperboloid(dim=2)],
             default_point_type='matrix')
         self.space_vector = ProductManifold(
-            manifolds=[Hypersphere(dimension=2), Hyperboloid(dimension=5)],
+            manifolds=[Hypersphere(dim=2), Hyperboloid(dim=5)],
             default_point_type='vector')
 
     def test_dimension(self):
         expected = 7
-        result = self.space_vector.dimension
+        result = self.space_vector.dim
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only

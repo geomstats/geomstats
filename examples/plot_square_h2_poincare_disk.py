@@ -9,7 +9,7 @@ import numpy as np
 import geomstats.visualization as visualization
 from geomstats.geometry.hyperboloid import Hyperboloid
 
-H2 = Hyperboloid(dimension=2)
+H2 = Hyperboloid(dim=2)
 METRIC = H2.metric
 
 SQUARE_SIZE = 50
