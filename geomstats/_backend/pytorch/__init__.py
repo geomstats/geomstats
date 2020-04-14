@@ -139,7 +139,7 @@ def vstack(seq):
 
 
 def array(val, dtype=None):
-    if hasattr(val, '__iter__'):
+    if isinstance(val, (list, tuple)):
         if not any([isinstance(t, torch.Tensor) for t in val]):
             val = _np.copy(_np.array(val))
         elif any([not isinstance(t, torch.Tensor) for t in val]):
