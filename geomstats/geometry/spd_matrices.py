@@ -82,7 +82,7 @@ class SPDMatrices(EmbeddedManifold):
 
         tangent_vec_at_id = 2 * gs.random.rand(*size) - 1
         tangent_vec_at_id += gs.swapaxes(
-                tangent_vec_at_id, axis1= -1, axis2=-2)
+            tangent_vec_at_id, axis1=-1, axis2=-2)
 
         tangent_vec = gs.einsum(
             '...ij,...jk->...ik', sqrt_base_point, tangent_vec_at_id)
@@ -369,7 +369,6 @@ class SPDMetricAffine(RiemannianMetric):
         self.power_affine = power_affine
 
     @staticmethod
-    @geomstats.vectorization.decorator(['matrix', 'matrix', 'matrix'])
     def _aux_inner_product(tangent_vec_a, tangent_vec_b, inv_base_point):
         """Compute the inner product (auxiliary).
 
@@ -383,9 +382,13 @@ class SPDMetricAffine(RiemannianMetric):
         -------
         inner_product : array-like, shape=[n_samples, n, n]
         """
-        aux_a = gs.matmul(inv_base_point, tangent_vec_a)
-        aux_b = gs.matmul(inv_base_point, tangent_vec_b)
-        inner_product = gs.trace(gs.matmul(aux_a, aux_b), axis1=1, axis2=2)
+        aux_a = gs.einsum(
+            '...ij,...jk->...ik', inv_base_point, tangent_vec_a)
+        aux_b = gs.einsum(
+            '...ij,...jk->...ik', inv_base_point, tangent_vec_b)
+        prod = gs.einsum(
+            '...ij,...jk->...ik', aux_a, aux_b)
+        inner_product = gs.trace(prod, axis1=-2, axis2=-1)
         return inner_product
 
     @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'matrix'])
