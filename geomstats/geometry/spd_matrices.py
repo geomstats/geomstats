@@ -492,7 +492,6 @@ class SPDMetricAffine(RiemannianMetric):
 
         return exp
 
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'matrix'])
     def _aux_log(self, point, sqrt_base_point, inv_sqrt_base_point):
         """Compute the log (auxiliary function).
 
@@ -506,13 +505,17 @@ class SPDMetricAffine(RiemannianMetric):
         -------
         log
         """
-        point_near_id = gs.matmul(inv_sqrt_base_point, point)
-        point_near_id = gs.matmul(point_near_id, inv_sqrt_base_point)
+        point_near_id = gs.einsum(
+            '...ij,...jk->...ik', inv_sqrt_base_point, point)
+        point_near_id = gs.einsum(
+            '...ij,...jk->...ik', point_near_id, inv_sqrt_base_point)
         point_near_id = GeneralLinear.make_symmetric(point_near_id)
         log_at_id = gs.linalg.logm(point_near_id)
 
-        log = gs.matmul(sqrt_base_point, log_at_id)
-        log = gs.matmul(log, sqrt_base_point)
+        log = gs.einsum(
+            '...ij,...jk->...ik', sqrt_base_point, log_at_id)
+        log = gs.einsum(
+            '...ij,...jk->...ik', log, sqrt_base_point)
         return log
 
     @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
