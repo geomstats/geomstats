@@ -712,9 +712,6 @@ class SPDMetricEuclidean(RiemannianMetric):
         -------
         exp_domain : array-like, shape=[n_samples, 2]
         """
-        n_tangent_vecs, _, _ = gs.shape(tangent_vec)
-        n_base_points, _, _ = gs.shape(base_point)
-
         invsqrt_base_point = gs.linalg.powerm(base_point, -.5)
         reduced_vec = gs.matmul(invsqrt_base_point, tangent_vec)
         reduced_vec = gs.matmul(reduced_vec, invsqrt_base_point)
