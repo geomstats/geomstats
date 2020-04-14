@@ -23,12 +23,14 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             dimension=int(n * (n + 1) / 2),
             embedding_manifold=GeneralLinear(n=n))
 
-    def belongs(self, mat, atol=TOLERANCE):
+    @staticmethod
+    def belongs(mat, atol=TOLERANCE):
         """Check if a matrix is symmetric and invertible."""
         is_symmetric = GeneralLinear.is_symmetric(mat)
         eigvalues, _ = gs.linalg.eigh(mat)
-        is_positive = gs.all(eigvalues > 0, axis=1)
-        return gs.logical_and(is_symmetric, is_positive)
+        is_positive = gs.all(eigvalues > 0, axis=-1)
+        belongs = gs.logical_and(is_symmetric, is_positive)
+        return belongs
 
     def random_uniform(self, n_samples=1):
         """Define a log-uniform random sample of SPD matrices."""

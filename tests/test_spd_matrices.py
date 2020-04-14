@@ -36,7 +36,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         mats = gs.array(
             [[1., 1.], [1., 1.]])
         result = SPDMatrices.belongs(mats)
-        expected = True
+        expected = False
         self.assertAllClose(result, expected)
 
     def test_belongs_vectorization(self):
@@ -156,7 +156,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
                                 [1., 1., 3.],
                                 [3., 3., 4.]])
         result = self.space.differential_log(tangent_vec, base_point)
-        x = 2 * gs.log(2)
+        x = 2 * gs.log(2.)
         expected = gs.array([[1., 1., x],
                              [1., 1., x],
                              [x, x, 1]])
@@ -168,7 +168,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         base_point = gs.array([[1., 0., 0.],
                                [0., 1., 0.],
                                [0., 0., 4.]])
-        x = 2 * gs.log(gs.array(2.))
+        x = 2 * gs.log(2.)
         tangent_vec = gs.array([[1., 1., x],
                                 [1., 1., x],
                                 [x, x, 1]])
@@ -187,8 +187,8 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
                                 [1., 1., 1.],
                                 [1., 1., 1.]])
         result = self.space.differential_exp(tangent_vec, base_point)
-        x = gs.exp(1)
-        y = gs.sinh(1)
+        x = gs.exp(1.)
+        y = gs.sinh(1.)
         expected = gs.array([[x, x, y],
                              [x, x, y],
                              [y, y, 1 / x]])
@@ -224,7 +224,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
                                   [4., 8., 5.]])
         metric = SPDMetricProcrustes(3)
         result = metric.inner_product(tangent_vec_a, tangent_vec_b, base_point)
-        expected = gs.array([4.])
+        expected = gs.array(4.)
 
         self.assertAllClose(result, expected)
 
@@ -281,7 +281,6 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
                                 [3., 3., 4.]])
         metric = self.metric_logeuclidean
         result = metric.inner_product(tangent_vec, tangent_vec, base_point)
-        result = result[0, 0]
         x = 2 * gs.log(gs.array(2.))
         expected = 5. + 4. * x ** 2
 
