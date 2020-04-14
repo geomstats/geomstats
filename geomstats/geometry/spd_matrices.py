@@ -32,21 +32,24 @@ class SPDMatrices(EmbeddedManifold):
         # but does not on tf.
         return Matrices.is_symmetric(mat)
 
+    @geomstats.vectorization.decorator(['else', 'matrix'])
     def vector_from_symmetric_matrix(self, mat):
         """Convert the symmetric part of a symmetric matrix into a vector."""
-        mat = gs.to_ndarray(mat, to_ndim=3)
-        assert gs.all(self.embedding_manifold.is_symmetric(mat))
+        if not gs.all(self.embedding_manifold.is_symmetric(mat)):
+            raise ValueError('Matrix is not symmetric.')
+
         mat = self.embedding_manifold.make_symmetric(mat)
 
         _, dim, _ = mat.shape
         i, j = gs.tril_indices(dim)
         return mat[:, i, j]
 
+    @geomstats.vectorization.decorator(['else', 'vector'])
     def symmetric_matrix_from_vector(self, vec):
         """Convert a vector into a symmetric matrix."""
-        vec = gs.to_ndarray(vec, to_ndim=2)
         n_samples, vec_dim = vec.shape
         mat_dim = int((gs.sqrt(8 * vec_dim + 1) - 1) / 2)
+
         mask = gs.tril(gs.ones((mat_dim, mat_dim))) != 0
         sym = gs.zeros((n_samples, mat_dim, mat_dim))
         sym[..., mask != 0] = vec
@@ -55,11 +58,13 @@ class SPDMatrices(EmbeddedManifold):
 
     def random_uniform(self, n_samples=1):
         """Define a log-uniform random sample of SPD matrices."""
-        mat = 2 * gs.random.rand(n_samples, self.n, self.n) - 1
-        spd_mat = GeneralLinear.exp(mat + Matrices.transpose(mat))
-
+        n = self.n
+        size = (n_samples, n, n)
         if n_samples == 1:
-            spd_mat = gs.squeeze(spd_mat, axis=0)
+            size = (n, n)
+
+        mat = 2 * gs.random.rand(*size) - 1
+        spd_mat = GeneralLinear.exp(mat + Matrices.transpose(mat))
 
         return spd_mat
 
