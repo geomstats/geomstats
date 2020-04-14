@@ -645,7 +645,8 @@ class SPDMetricProcrustes(RiemannianMetric):
         spd_space = self.space
         modified_tangent_vec_a =\
             spd_space.inverse_differential_power(2, tangent_vec_a, base_point)
-        product = gs.matmul(modified_tangent_vec_a, tangent_vec_b)
+        product = gs.einsum(
+            '...ij,...jk->...ik', modified_tangent_vec_a, tangent_vec_b)
         result = gs.trace(product, axis1=-2, axis2=-1) / 2
         return result
 
@@ -687,14 +688,13 @@ class SPDMetricEuclidean(RiemannianMetric):
                 '...ij,...jk->...ik', tangent_vec_a, tangent_vec_b)
             inner_product = gs.trace(product, axis1=-2, axis2=-1)
         else:
-            modified_tangent_vec_a = \
-                spd_space.differential_power(power_euclidean, tangent_vec_a,
-                                             base_point)
-            modified_tangent_vec_b = \
-                spd_space.differential_power(power_euclidean, tangent_vec_b,
-                                             base_point)
+            modified_tangent_vec_a = spd_space.differential_power(
+                power_euclidean, tangent_vec_a, base_point)
+            modified_tangent_vec_b = spd_space.differential_power(
+                power_euclidean, tangent_vec_b, base_point)
             product = gs.einsum(
-                '...ij,...jk->...ik', modified_tangent_vec_a, modified_tangent_vec_b)
+                '...ij,...jk->...ik',
+                modified_tangent_vec_a, modified_tangent_vec_b)
             inner_product = gs.trace(product, axis1=-2, axis2=-1) \
                 / (power_euclidean ** 2)
 
@@ -730,9 +730,6 @@ class SPDMetricEuclidean(RiemannianMetric):
         sup_value = gs.where(min_eig >= 0, math.inf, - 1 / min_eig)
         sup_value = gs.to_ndarray(sup_value, to_ndim=2)
         domain = gs.concatenate((inf_value, sup_value), axis=1)
-
-        if n_tangent_vecs == n_base_points == 1:
-            domain = gs.squeeze(domain, axis=0)
 
         return domain
 
