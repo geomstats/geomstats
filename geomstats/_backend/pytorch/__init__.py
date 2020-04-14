@@ -138,8 +138,8 @@ def vstack(seq):
     return concatenate(seq)
 
 
-def array(val):
-    if isinstance(val, list):
+def array(val, dtype=None):
+    if hasattr(val, '__iter__'):
         if not any([isinstance(t, torch.Tensor) for t in val]):
             val = _np.copy(_np.array(val))
         elif any([not isinstance(t, torch.Tensor) for t in val]):
@@ -152,18 +152,18 @@ def array(val):
 
     if isinstance(val, (bool, int, float)):
         val = _np.array(val)
+
     if isinstance(val, _np.ndarray):
         if val.dtype == bool:
             val = torch.from_numpy(_np.array(val, dtype=_np.uint8))
-        elif val.dtype == _np.float32 or val.dtype == _np.float64:
-            val = torch.from_numpy(_np.array(val, dtype=_np.float64))
         else:
             val = torch.from_numpy(val)
 
     if not isinstance(val, torch.Tensor):
         val = torch.Tensor([val])
-    if val.dtype == torch.float64:
-        val = val.float()
+
+    if dtype is not None and val.dtype != dtype:
+        cast(val, dtype)
     return val
 
 
