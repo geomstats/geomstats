@@ -429,7 +429,6 @@ class SPDMetricAffine(RiemannianMetric):
         return inner_product
 
     @staticmethod
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def _aux_exp(tangent_vec, sqrt_base_point, inv_sqrt_base_point):
         """Compute the exponential map (auxiliary function).
 
@@ -443,15 +442,17 @@ class SPDMetricAffine(RiemannianMetric):
         -------
         exp
         """
-        tangent_vec_at_id = gs.matmul(inv_sqrt_base_point,
-                                      tangent_vec)
-        tangent_vec_at_id = gs.matmul(tangent_vec_at_id,
-                                      inv_sqrt_base_point)
+        tangent_vec_at_id = gs.einsum(
+            '...ij,...jk->...ik', inv_sqrt_base_point, tangent_vec)
+        tangent_vec_at_id = gs.einsum(
+            '...ij,...jk->...ik', tangent_vec_at_id, inv_sqrt_base_point)
         tangent_vec_at_id = GeneralLinear.make_symmetric(tangent_vec_at_id)
         exp_from_id = gs.linalg.expm(tangent_vec_at_id)
 
-        exp = gs.matmul(exp_from_id, sqrt_base_point)
-        exp = gs.matmul(sqrt_base_point, exp)
+        exp = gs.einsum(
+            '...ij,...jk->...ik', exp_from_id, sqrt_base_point)
+        exp = gs.einsum(
+            '...ij,...jk->...ik', sqrt_base_point, exp)
         return exp
 
     @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
