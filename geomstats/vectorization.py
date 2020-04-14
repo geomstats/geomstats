@@ -204,9 +204,7 @@ def get_initial_shapes(input_types, args):
     """
     in_shapes = []
 
-    for i_arg, arg in enumerate(args):
-        input_type = input_types[i_arg]
-
+    for arg, input_type in zip(args, input_types):
         if input_type == 'scalar':
             arg = gs.array(arg)
 
@@ -243,8 +241,7 @@ def vectorize_args(input_types, args):
         Args of the function in their fully-vectorized form.
     """
     vect_args = []
-    for i_arg, arg in enumerate(args):
-        input_type = input_types[i_arg]
+    for arg, input_type in zip(args, input_types):
         if input_type == 'scalar':
             vect_arg = gs.to_ndarray(arg, to_ndim=1)
             vect_arg = gs.to_ndarray(vect_arg, to_ndim=2, axis=1)
@@ -283,8 +280,7 @@ def vectorize_kwargs(input_types, kwargs):
         Kwargs of the function in their fully-vectorized form.
     """
     vect_kwargs = {}
-    for i_arg, key_arg in enumerate(kwargs.keys()):
-        input_type = input_types[i_arg]
+    for key_arg, input_type in zip(kwargs.keys(), input_types):
         arg = kwargs[key_arg]
         if input_type == 'scalar':
             vect_arg = gs.to_ndarray(arg, to_ndim=1)
