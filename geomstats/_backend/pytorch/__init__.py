@@ -333,7 +333,7 @@ def einsum(*args, **kwargs):
 
         if n_tensor_a == n_tensor_b == 1:
             result = squeeze(result, axis=0)
-            return result
+        return result
 
     return torch.einsum(*args, **kwargs)
 
