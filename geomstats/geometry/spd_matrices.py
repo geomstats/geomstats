@@ -643,33 +643,6 @@ class SPDMetricProcrustes(RiemannianMetric):
         -------
         inner_product : float
         """
-        n_tangent_vecs_a, _, _ = tangent_vec_a.shape
-        n_tangent_vecs_b, _, _ = tangent_vec_b.shape
-        n_base_points, _, _ = base_point.shape
-
-        assert (n_tangent_vecs_a == n_tangent_vecs_b == n_base_points
-                or n_tangent_vecs_a == n_tangent_vecs_b and n_base_points == 1
-                or n_base_points == n_tangent_vecs_a and n_tangent_vecs_b == 1
-                or n_base_points == n_tangent_vecs_b and n_tangent_vecs_a == 1
-                or n_tangent_vecs_a == 1 and n_tangent_vecs_b == 1
-                or n_base_points == 1 and n_tangent_vecs_a == 1
-                or n_base_points == 1 and n_tangent_vecs_b == 1)
-
-        if n_tangent_vecs_a == 1:
-            tangent_vec_a = gs.tile(
-                tangent_vec_a,
-                (gs.maximum(n_base_points, n_tangent_vecs_b), 1, 1))
-
-        if n_tangent_vecs_b == 1:
-            tangent_vec_b = gs.tile(
-                tangent_vec_b,
-                (gs.maximum(n_base_points, n_tangent_vecs_a), 1, 1))
-
-        if n_base_points == 1:
-            base_point = gs.tile(
-                base_point,
-                (gs.maximum(n_tangent_vecs_a, n_tangent_vecs_b), 1, 1))
-
         spd_space = self.space
         modified_tangent_vec_a =\
             spd_space.inverse_differential_power(2, tangent_vec_a, base_point)
