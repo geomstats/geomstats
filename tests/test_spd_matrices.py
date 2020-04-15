@@ -505,4 +505,4 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         transported = metric.parallel_transport(tan_a, tan_b, point)
         result = metric.norm(transported, end_point)
 
-        self.assertAllClose(expected, result, atol=1e-5)
+        self.assertAllClose(expected, result, atol=1e-4)
