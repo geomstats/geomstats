@@ -1329,16 +1329,16 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             n_vector_b = self.group.random_uniform(n_samples=n_samples)
 
             result = metric.inner_product(one_vector_a, n_vector_b)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             if geomstats.tests.tf_backend():
                 break
 
             result = metric.inner_product(n_vector_a, one_vector_b)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             result = metric.inner_product(n_vector_a, n_vector_b)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
     def test_inner_product_one_base_point_vectorization(self):
         n_samples = self.n_samples

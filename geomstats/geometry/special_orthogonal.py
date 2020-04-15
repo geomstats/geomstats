@@ -211,12 +211,10 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                     metric = self.left_canonical_metric
                 tangent_vec_metric_norm = metric.norm(tangent_vec)
                 tangent_vec_canonical_norm = gs.linalg.norm(
-                    tangent_vec, axis=1)
-                if gs.ndim(tangent_vec_canonical_norm) == 1:
-                    tangent_vec_canonical_norm = gs.expand_dims(
-                        tangent_vec_canonical_norm, axis=1)
+                    tangent_vec, axis=-1)
 
-                mask_norm_0 = gs.isclose(tangent_vec_metric_norm, 0.)
+                mask_norm_0 = gs.isclose(
+                    tangent_vec_metric_norm, 0.)
                 mask_canonical_norm_0 = gs.isclose(
                     tangent_vec_canonical_norm, 0.)
 
@@ -228,7 +226,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                 mask_else_float = gs.cast(mask_else, gs.float32) + self.epsilon
 
                 regularized_vec = gs.zeros_like(tangent_vec)
-                regularized_vec += mask_0_float * tangent_vec
+                regularized_vec += gs.einsum(
+                    '...,...i->...i', mask_0_float, tangent_vec)
 
                 tangent_vec_canonical_norm += mask_0_float
 
@@ -236,11 +235,19 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                 coef += mask_else_float * (
                     tangent_vec_metric_norm
                     / tangent_vec_canonical_norm)
-                regularized_vec += mask_else_float * self.regularize(
-                    coef * tangent_vec)
+
+                coef_tangent_vec = gs.einsum(
+                    '...,...i->...i', coef, tangent_vec)
+                regularized_vec += gs.einsum(
+                    '...,...i->...i',
+                    mask_else_float,
+                    self.regularize(coef_tangent_vec))
+
                 coef += mask_0_float
-                regularized_vec = mask_else_float * (
-                    regularized_vec / coef)
+                regularized_vec = gs.einsum(
+                    '...,...i->...i', 1. / coef, regularized_vec)
+                regularized_vec = gs.einsum(
+                    '...,...i->...i', mask_else_float, regularized_vec)
             else:
                 # TODO(nina): Check if/how regularization is needed in nD?
                 regularized_vec = tangent_vec
