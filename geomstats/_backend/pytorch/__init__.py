@@ -192,7 +192,6 @@ def array(val, dtype=None):
     return val
 
 
-
 def all(x, axis=None):
     if axis is None and torch.is_tensor(x):
         return x.bool().all()
