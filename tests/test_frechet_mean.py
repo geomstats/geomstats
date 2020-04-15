@@ -174,7 +174,6 @@ class TestFrechetMean(geomstats.tests.TestCase):
     def test_fit_transform_hyperbolic(self):
         point = gs.array([2., 1., 1., 1.])
         points = gs.array([point, point])
-
         mean = FrechetMean(metric=self.hyperbolic.metric)
         result = mean.fit_transform(X=points)
         expected = gs.zeros_like(points)

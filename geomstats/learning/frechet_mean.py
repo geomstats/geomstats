@@ -78,6 +78,7 @@ def linear_mean(points, weights=None, point_type='vector'):
     if isinstance(weights, list):
         weights = gs.stack(weights, axis=0)
 
+<<<<<<< HEAD
     n_points = geomstats.vectorization.get_n_points(
         points, point_type)
 
@@ -92,6 +93,10 @@ def linear_mean(points, weights=None, point_type='vector'):
     weighted_points = gs.einsum(einsum_str, weights, points)
 
     mean = gs.sum(weighted_points, axis=0) / sum_weights
+=======
+    weighted_points = gs.einsum('...,...j->...j', weights, points)
+    mean = (gs.sum(weighted_points, axis=0) / gs.sum(weights))
+>>>>>>> Pass frechet mean in np
     return mean
 
 
@@ -99,16 +104,37 @@ def _default_gradient_descent(points, metric, weights,
                               max_iter, point_type, epsilon, verbose):
     if point_type == 'vector':
         points = gs.to_ndarray(points, to_ndim=2)
+<<<<<<< HEAD
         einsum_str = 'n,nj->j'
     if point_type == 'matrix':
+=======
+        #einsum_str = 'nk,nj->j'
+        einsum_str = 'n,nj->j'
+    if point_type == 'matrix':
+        einsum_str = 'n,nij->ij'
+        # einsum_str = 'nkl,nij->ij'
+>>>>>>> Pass frechet mean in np
         points = gs.to_ndarray(points, to_ndim=3)
         einsum_str = 'n,nij->ij'
     n_points = gs.shape(points)[0]
 
     if weights is None:
         weights = gs.ones((n_points,))
+<<<<<<< HEAD
 
     mean = points[0]
+=======
+        #weights = gs.ones((n_points, 1))
+    # weights = gs.array(weights)
+
+    mean = points[0]
+    #if point_type == 'vector':
+        # weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
+        # mean = gs.to_ndarray(mean, to_ndim=2)
+    #if point_type == 'matrix':
+        # weights = gs.to_ndarray(weights, to_ndim=3, axis=1)
+        # mean = gs.to_ndarray(mean, to_ndim=3)
+>>>>>>> Pass frechet mean in np
 
     if n_points == 1:
         return mean
@@ -116,6 +142,11 @@ def _default_gradient_descent(points, metric, weights,
     sum_weights = gs.sum(weights)
     sq_dists_between_iterates = []
     iteration = 0
+<<<<<<< HEAD
+=======
+    #sq_dist = gs.array([[0.]])
+    #var = gs.array([[0.]])
+>>>>>>> Pass frechet mean in np
     sq_dist = 0.
     var = 0.
 
@@ -156,6 +187,11 @@ def _default_gradient_descent(points, metric, weights,
         logging.info('n_iter: {}, final variance: {}, final dist: {}'.format(
             iteration, var, sq_dist))
 
+<<<<<<< HEAD
+=======
+    # mean = gs.to_ndarray(mean, to_ndim=2)
+    # mean = gs.squeeze(mean, axis=0)
+>>>>>>> Pass frechet mean in np
     return mean
 
 
@@ -282,6 +318,10 @@ def _adaptive_gradient_descent(points,
         logging.warning(
             'Maximum number of iterations {} reached. '
             'The mean may be inaccurate'.format(max_iter))
+<<<<<<< HEAD
+=======
+    #
+>>>>>>> Pass frechet mean in np
     return current_mean
 
 
