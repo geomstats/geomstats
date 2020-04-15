@@ -73,39 +73,14 @@ class InvariantMetric(RiemannianMetric):
             ['vector', 'matrix'])
 
         if self.group.default_point_type == 'vector':
-            #tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
-            #tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
-
-            #n_tangent_vec_a = tangent_vec_a.shape[0]
-            #n_tangent_vec_b = tangent_vec_b.shape[0]
-
-            #assert (tangent_vec_a.shape == tangent_vec_b.shape
-            #        or n_tangent_vec_a == 1
-            #        or n_tangent_vec_b == 1)
-
-            #if n_tangent_vec_a == 1:
-            #    tangent_vec_a = gs.array([tangent_vec_a[0]] * n_tangent_vec_b)
-
-            #if n_tangent_vec_b == 1:
-            #    tangent_vec_b = gs.array([tangent_vec_b[0]] * n_tangent_vec_a)
-
-            # inner_product_mat_at_identity = gs.array(
-            #     [self.inner_product_mat_at_identity[0]] *
-            #     max(n_tangent_vec_a, n_tangent_vec_b))
             inner_product_mat_at_identity = self.inner_product_mat_at_identity
 
-            #tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
-            #tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
-            #inner_product_mat_at_identity = gs.to_ndarray(
-            #    inner_product_mat_at_identity, to_ndim=3)
             inner_prod = gs.einsum(
                 '...i,...ij->...j',
                 tangent_vec_a,
                 inner_product_mat_at_identity)
             inner_prod = gs.einsum(
                 '...j,...j->...', inner_prod, tangent_vec_b)
-
-            #inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
         else:
             # TODO(nguigs): allow for diagonal metric_matrices
