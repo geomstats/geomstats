@@ -200,8 +200,8 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
         base_point = gs.array([[1., 0., 0.],
                                [0., 1., 0.],
                                [0., 0., -1.]])
-        x = gs.exp(gs.array(1.))
-        y = gs.sinh(gs.array(1.))
+        x = gs.exp(1.)
+        y = gs.sinh(1.)
         tangent_vec = gs.array([[x, x, y],
                                 [x, x, y],
                                 [y, y, 1. / x]])
@@ -281,7 +281,7 @@ class TestSPDMatricesMethods(geomstats.tests.TestCase):
                                 [3., 3., 4.]])
         metric = self.metric_logeuclidean
         result = metric.inner_product(tangent_vec, tangent_vec, base_point)
-        x = 2 * gs.log(gs.array(2.))
+        x = 2 * gs.log(2.)
         expected = 5. + 4. * x ** 2
 
         self.assertAllClose(result, expected)
