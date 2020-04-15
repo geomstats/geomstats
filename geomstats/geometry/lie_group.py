@@ -6,6 +6,7 @@ import geomstats.geometry.riemannian_metric as riemannian_metric
 import geomstats.vectorization
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.matrices import Matrices
 
 
 def loss(y_pred, y_true, group, metric=None):
@@ -190,8 +191,6 @@ class LieGroup(Manifold):
             'The group exponential from the identity is not implemented.'
         )
 
-    @geomstats.vectorization.decorator(
-        ['else', 'point', 'point', 'point_type'])
     def exp_not_from_identity(self, tangent_vec, base_point, point_type=None):
         """Calculate the group exponential at base_point.
 
@@ -213,16 +212,11 @@ class LieGroup(Manifold):
             inv_jacobian = gs.linalg.inv(jacobian)
 
             tangent_vec_at_id = gs.einsum(
-                'ni,nij->nj',
-                tangent_vec,
-                gs.transpose(inv_jacobian, axes=(0, 2, 1)),
-            )
+                '...i,...ij->...j', tangent_vec, Matrices.transpose(inv_jacobian))
             exp_from_identity = self.exp_from_identity(
-                tangent_vec=tangent_vec_at_id, point_type=point_type
-            )
+                tangent_vec=tangent_vec_at_id, point_type=point_type)
             exp = self.compose(
-                base_point, exp_from_identity, point_type=point_type
-            )
+                base_point, exp_from_identity, point_type=point_type)
             exp = self.regularize(exp, point_type=point_type)
             return exp
 
@@ -254,26 +248,26 @@ class LieGroup(Manifold):
             The exponentiated tangent vector
         """
         identity = self.get_identity(point_type=point_type)
-        identity = gs.to_ndarray(
-            identity,
-            to_ndim=geomstats.vectorization.POINT_TYPES_TO_NDIMS[point_type])
+        #identity = gs.to_ndarray(
+        #    identity,
+        #    to_ndim=geomstats.vectorization.POINT_TYPES_TO_NDIMS[point_type])
         if base_point is None:
             base_point = identity
         base_point = self.regularize(base_point, point_type=point_type)
 
-        n_tangent_vecs = tangent_vec.shape[0]
-        n_base_points = base_point.shape[0]
+        # n_tangent_vecs = tangent_vec.shape[0]
+        # n_base_points = base_point.shape[0]
 
-        if not (tangent_vec.shape == base_point.shape
-                or n_tangent_vecs == 1
-                or n_base_points == 1):
-            raise NotImplementedError
+        # if not (tangent_vec.shape == base_point.shape
+        #         or n_tangent_vecs == 1
+        #         or n_base_points == 1):
+        #     raise NotImplementedError
 
-        if n_tangent_vecs == 1:
-            tangent_vec = gs.array([tangent_vec[0]] * n_base_points)
+        # if n_tangent_vecs == 1:
+        #     tangent_vec = gs.array([tangent_vec[0]] * n_base_points)
 
-        if n_base_points == 1:
-            base_point = gs.array([base_point[0]] * n_tangent_vecs)
+        # if n_base_points == 1:
+        #     base_point = gs.array([base_point[0]] * n_tangent_vecs)
 
         if gs.allclose(base_point, identity):
             result = self.exp_from_identity(tangent_vec, point_type=point_type)
