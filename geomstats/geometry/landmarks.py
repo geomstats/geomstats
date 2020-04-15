@@ -3,6 +3,7 @@
 import math
 
 import geomstats.backend as gs
+import geomstats.vectorization
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -37,7 +38,9 @@ class Landmarks(Manifold):
         -------
         belongs : bool
         """
-        belongs = gs.all(self.ambient_manifold.belongs(point))
+        # TODO(ninamiolane): vectorize this method
+        belongs = self.ambient_manifold.belongs(point)
+        belongs = gs.all(belongs)
         return belongs
 
 
@@ -51,6 +54,7 @@ class L2Metric(RiemannianMetric):
         self.ambient_manifold = ambient_manifold
         self.ambient_metric = ambient_manifold.metric
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'matrix'])
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_landmarks):
         """Compute inner product between tangent vectors at base landmark set.
 
@@ -67,10 +71,6 @@ class L2Metric(RiemannianMetric):
         if not (tangent_vec_a.shape == tangent_vec_b.shape
                 and tangent_vec_a.shape == base_landmarks.shape):
             raise NotImplementedError
-
-        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
-        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
-        base_landmarks = gs.to_ndarray(base_landmarks, to_ndim=3)
 
         n_landmark_sets, n_landmarks_per_set, n_coords = tangent_vec_a.shape
 
@@ -94,6 +94,7 @@ class L2Metric(RiemannianMetric):
 
         return inner_prod
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def dist(self, landmarks_a, landmarks_b):
         """Compute geodesic distance between two landmark sets.
 
@@ -108,9 +109,6 @@ class L2Metric(RiemannianMetric):
         """
         if landmarks_a.shape != landmarks_b.shape:
             raise NotImplementedError
-
-        landmarks_a = gs.to_ndarray(landmarks_a, to_ndim=3)
-        landmarks_b = gs.to_ndarray(landmarks_b, to_ndim=3)
 
         n_landmark_sets, n_landmarks_per_set, n_coords = landmarks_a.shape
 
@@ -130,6 +128,7 @@ class L2Metric(RiemannianMetric):
 
         return dist
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def exp(self, tangent_vec, base_landmarks):
         """Compute Riemannian exponential of tan vector wrt base landmark set.
 
@@ -142,9 +141,6 @@ class L2Metric(RiemannianMetric):
         -------
         exp
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
-        base_landmarks = gs.to_ndarray(base_landmarks, to_ndim=3)
-
         n_landmark_sets, n_landmarks_per_set, n_coords = base_landmarks.shape
         n_tangent_vecs = tangent_vec.shape[0]
 
@@ -158,6 +154,7 @@ class L2Metric(RiemannianMetric):
 
         return exp
 
+    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
     def log(self, landmarks, base_landmarks):
         """Compute Riemannian log of a set of landmarks wrt base landmark set.
 
@@ -172,9 +169,6 @@ class L2Metric(RiemannianMetric):
         """
         if landmarks.shape != base_landmarks.shape:
             raise NotImplementedError
-
-        landmarks = gs.to_ndarray(landmarks, to_ndim=3)
-        base_landmarks = gs.to_ndarray(base_landmarks, to_ndim=3)
 
         n_landmark_sets, n_landmarks_per_set, n_coords = landmarks.shape
 
