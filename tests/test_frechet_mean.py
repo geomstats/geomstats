@@ -2,8 +2,6 @@
 
 import math
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
@@ -72,8 +70,9 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_estimate_sphere(self):
+        dim = 5
         point = gs.array([0., 0., 0., 0., 1.])
-        points = gs.zeros((2, point.shape[0]))
+        points = gs.zeros((2, dim))
         points[0, :] = point
         points[1, :] = point
 
@@ -81,7 +80,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         mean.fit(X=points)
 
         result = mean.estimate_
-        expected = helper.to_vector(point)
+        expected = point
 
         self.assertAllClose(expected, result)
 
@@ -102,9 +101,9 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         mean = FrechetMean(metric=self.hyperbolic.metric)
         mean.fit(X=points)
+        expected = point
 
         result = mean.estimate_
-        expected = helper.to_vector(point)
 
         self.assertAllClose(result, expected)
 
@@ -124,7 +123,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_mean_euclidean(self):
-        point = gs.array([[1., 4.]])
+        point = gs.array([1., 4.])
 
         mean = FrechetMean(metric=self.euclidean.metric)
         points = [point, point, point]
@@ -132,7 +131,6 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         result = mean.estimate_
         expected = point
-        expected = helper.to_vector(expected)
 
         self.assertAllClose(result, expected)
 
@@ -148,7 +146,6 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         result = mean.estimate_
         expected = gs.array([16. / 6., 22. / 6.])
-        expected = helper.to_vector(expected)
 
         self.assertAllClose(result, expected)
 
@@ -169,7 +166,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_mean_minkowski(self):
-        point = gs.array([[2., -math.sqrt(3)]])
+        point = gs.array([2., -math.sqrt(3)])
         points = [point, point, point]
 
         mean = FrechetMean(metric=self.minkowski.metric)
@@ -177,7 +174,6 @@ class TestFrechetMean(geomstats.tests.TestCase):
         result = mean.estimate_
 
         expected = point
-        expected = helper.to_vector(expected)
 
         self.assertAllClose(result, expected)
 
@@ -192,7 +188,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         mean.fit(points, weights=weights)
         result = mean.estimate_
         result = self.minkowski.belongs(result)
-        expected = gs.array([True])
+        expected = gs.array(True)
 
         self.assertAllClose(result, expected)
 
