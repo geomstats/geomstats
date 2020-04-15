@@ -12,6 +12,7 @@ from torch import (  # NOQA
     argmin,
     asin as arcsin,
     atan2 as arctan2,
+    bool as t_bool,
     ceil,
     clamp as clip,
     cos,
@@ -52,6 +53,7 @@ from torch import (  # NOQA
     tan,
     tanh,
     tril,
+    uint8,
     where,
     zeros,
     zeros_like
@@ -137,33 +139,58 @@ def vstack(seq):
     return concatenate(seq)
 
 
-def array(val):
-    if isinstance(val, list):
+def _get_largest_dtype(seq):
+    dtype_dict = {0: t_bool,
+                  1: uint8,
+                  2: int32,
+                  3: int64,
+                  4: float32,
+                  5: float64}
+    reverse_dict = {dtype_dict[key]: key for key in dtype_dict}
+    dtype_code_set = {reverse_dict[t.dtype] for t in seq}
+    return dtype_dict[max(dtype_code_set)]
+
+
+def array(val, dtype=None):
+    if isinstance(val, (list, tuple)):
+        if isinstance(val[0], (list, tuple)):
+            aux_list = [array(t, dtype) for t in val]
+            if dtype is None:
+                local_dtype = _get_largest_dtype(aux_list)
+                aux_list = [cast(t, local_dtype) for t in aux_list]
+            return stack(aux_list)
         if not any([isinstance(t, torch.Tensor) for t in val]):
             val = _np.copy(_np.array(val))
         elif any([not isinstance(t, torch.Tensor) for t in val]):
+            tensor_members = [t for t in val if torch.is_tensor(t)]
+            local_dtype = _get_largest_dtype(tensor_members)
             for index, t in enumerate(val):
-                if not isinstance(t, torch.Tensor):
-                    val[index] = torch.tensor(t)
+                if torch.is_tensor(t) and t.dtype != local_dtype:
+                    cast(t, local_dtype)
+                else:
+                    val[index] = torch.tensor(t, dtype=local_dtype)
             val = stack(val)
         else:
             val = stack(val)
 
     if isinstance(val, (bool, int, float)):
         val = _np.array(val)
+
     if isinstance(val, _np.ndarray):
         if val.dtype == bool:
             val = torch.from_numpy(_np.array(val, dtype=_np.uint8))
-        elif val.dtype == _np.float32 or val.dtype == _np.float64:
-            val = torch.from_numpy(_np.array(val, dtype=_np.float64))
         else:
             val = torch.from_numpy(val)
 
     if not isinstance(val, torch.Tensor):
         val = torch.Tensor([val])
-    if val.dtype == torch.float64:
+
+    if dtype is not None and val.dtype != dtype:
+        cast(val, dtype)
+    elif val.dtype == torch.float64:
         val = val.float()
     return val
+
 
 
 def all(x, axis=None):
