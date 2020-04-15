@@ -36,8 +36,6 @@ class InvariantMetric(RiemannianMetric):
         self.group = group
         if inner_product_mat_at_identity is None:
             inner_product_mat_at_identity = gs.eye(self.group.dimension)
-        inner_product_mat_at_identity = gs.to_ndarray(
-            inner_product_mat_at_identity, to_ndim=3)
 
         geomstats.error.check_parameter_accepted_values(
             left_or_right, 'left_or_right', ['left', 'right'])

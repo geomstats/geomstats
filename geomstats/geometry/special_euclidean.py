@@ -250,7 +250,7 @@ class SpecialEuclidean(LieGroup):
             rot_base_point = base_point[:, :dim_rotations]
 
             metric_mat = metric.inner_product_mat_at_identity
-            rot_metric_mat = metric_mat[:, :dim_rotations, :dim_rotations]
+            rot_metric_mat = metric_mat[:dim_rotations, :dim_rotations]
             rot_metric = InvariantMetric(
                 group=rotations,
                 inner_product_mat_at_identity=rot_metric_mat,
