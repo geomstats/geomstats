@@ -38,7 +38,7 @@ class Grassmannian(EmbeddedManifold):
 
         self.n = n
         self.k = k
-        self.metric = GrassmannianCanonicalMetric(3, 2)
+        self.metric = GrassmannianCanonicalMetric(n, k)
 
         dim = int(k * (n - k))
         super(Grassmannian, self).__init__(
@@ -68,9 +68,29 @@ class Grassmannian(EmbeddedManifold):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the Grassmannian.
         """
-        raise NotImplementedError(
-            'The Grassmann `belongs` is not implemented.'
-            'It shall test whether p*=p, p^2 = p and rank(p) = k.')
+        
+        point = gs.to_ndarray(point, to_ndim=3)
+        n_points, n, p = point.shape
+
+        # check square
+        if (n, p) != (self.n, self.n):
+            return gs.array([[False]] * n_points)
+
+        point_transpose = gs.transpose(point, axes=(0, 2, 1))
+
+        # check symmetry
+        sym_diff = gs.einsum('nij, njk->nik', point, point_transpose) - point
+        sym = gs.linalg.norm(sym_diff, axis=(1, 2))
+
+        # check idempotency
+        idem_diff = gs.einsum('nij, njk->nik', point, point) - point
+        idem = gs.linalg.norm(idem_diff, axis=(1, 2))
+
+        # check rank
+        trace = gs.einsum('nii', point) - self.k
+        belongs = gs.all(gs.stack([sym, idem, trace], axis=0), axis=0)
+
+        return belongs
 
 
 class GrassmannianCanonicalMetric(RiemannianMetric):
