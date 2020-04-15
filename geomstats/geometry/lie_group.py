@@ -3,7 +3,6 @@
 
 import geomstats.backend as gs
 import geomstats.geometry.riemannian_metric as riemannian_metric
-import geomstats.vectorization
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
@@ -326,6 +325,8 @@ class LieGroup(Manifold):
         -------
         tangent_vec : array-like, shape=[n_samples, {dimension,[n,n]}]
         """
+        # TODO(ninamiolane): Build a standalone decorator that *only*
+        # deals with point_type None and base_point None
         if point_type is None:
             point_type = self.default_point_type
         identity = self.get_identity(point_type=point_type)
@@ -345,7 +346,9 @@ class LieGroup(Manifold):
         """Add a metric to the instance's list of metrics."""
         self.metrics.append(metric)
 
-    def lie_bracket(self, tangent_vector_a, tangent_vector_b, base_point=None):
+    def lie_bracket(
+            self, tangent_vector_a, tangent_vector_b,
+            base_point=None, point_type=None):
         """Compute the lie bracket of two tangent vectors.
 
         For matrix Lie groups with tangent vectors A,B at the same base point P
@@ -362,21 +365,22 @@ class LieGroup(Manifold):
         -------
         bracket : array-like, shape=[n_samples, n, n]
         """
+        if point_type is None:
+            point_type = self.default_point_type
         if base_point is None:
             base_point = self.identity
+        inverse_base_point = self.inverse(base_point, point_type=point_type)
 
-        base_point = gs.to_ndarray(base_point, to_ndim=3)
-        tangent_vector_a = gs.to_ndarray(tangent_vector_a, to_ndim=3)
-        tangent_vector_b = gs.to_ndarray(tangent_vector_b, to_ndim=3)
+        first_term = gs.einsum(
+            '...ij,...jk->...ik',
+            inverse_base_point, tangent_vector_b)
+        first_term = gs.einsum(
+            '...ij,...jk->...ik', tangent_vector_a, first_term)
 
-        inverse_base = gs.to_ndarray(
-            self.inverse(base_point, point_type='matrix'), to_ndim=3
-        )
+        second_term = gs.einsum(
+            '...ij,...jk->...ik',
+            inverse_base_point, tangent_vector_a)
+        second_term = gs.einsum(
+            '...ij,...jk->...ik', tangent_vector_b, second_term)
 
-        first_term = gs.matmul(
-            tangent_vector_a, gs.matmul(inverse_base, tangent_vector_b)
-        )
-        second_term = gs.matmul(
-            tangent_vector_b, gs.matmul(inverse_base, tangent_vector_a)
-        )
         return first_term - second_term

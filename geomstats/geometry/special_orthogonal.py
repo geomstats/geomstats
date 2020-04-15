@@ -174,7 +174,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                     - (1. - 2. * gs.pi * k / angle))
 
                 regularized_point = gs.einsum(
-                    'n,ni->ni', norms_ratio, regularized_point)
+                    '...,...i->...i', norms_ratio, regularized_point)
 
         elif point_type == 'matrix':
             regularized_point = point

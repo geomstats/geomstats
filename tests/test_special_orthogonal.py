@@ -3717,8 +3717,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             [0., 0., 0.]])
         second_tan = first_tan
 
-        result = space.lie_bracket(first_tan, second_tan, base_point)
-        expected = gs.zeros((1, dim, dim))
+        result = space.lie_bracket(
+            first_tan, second_tan, base_point, point_type='matrix')
+        expected = gs.zeros((dim, dim))
 
         self.assertAllClose(result, expected)
 
@@ -3731,11 +3732,12 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             [0., 0., 0.],
             [1., 0., 0.]])
 
-        result = space.lie_bracket(first_tan, second_tan, base_point)
-        expected = gs.array([[
+        result = space.lie_bracket(
+            first_tan, second_tan, base_point, point_type='matrix')
+        expected = gs.array([
             [0., 0., 0.],
             [0., 0., -1.],
-            [0., 1., 0.]]])
+            [0., 1., 0.]])
 
         self.assertAllClose(result, expected)
 
@@ -3753,10 +3755,14 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             [[0., 0., -1.], [0., 0., 0.], [1., 0., 0.]]
         ])
 
-        result = space.lie_bracket(first_tan, second_tan, base_point)
+        result = space.lie_bracket(
+            first_tan, second_tan, base_point, point_type='matrix')
         expected = gs.array([
             gs.zeros((dim, dim)),
-            gs.array([[0., 0., 0.], [0., 0., -1.], [0., 1., 0.]])
+            gs.array([
+                [0., 0., 0.],
+                [0., 0., -1.],
+                [0., 1., 0.]])
         ])
 
         self.assertAllClose(result, expected)
@@ -3766,19 +3772,31 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         space = self.so[dim]
 
         base_point = gs.array([
-            [[-1., 0., 0.], [0., -1., 0.], [0., 0., 1.]]])
+            [-1., 0., 0.],
+            [0., -1., 0.],
+            [0., 0., 1.]])
         first_tan = gs.matmul(
             base_point,
-            gs.array([[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]])
+            gs.array([
+                [0., -1., 0.],
+                [1., 0., 0.],
+                [0., 0., 0.]])
         )
         second_tan = gs.matmul(
             base_point,
-            gs.array([[0., 0., -1.], [0., 0., 0.], [1., 0., 0.]])
+            gs.array([
+                [0., 0., -1.],
+                [0., 0., 0.],
+                [1., 0., 0.]])
         )
 
-        result = space.lie_bracket(first_tan, second_tan, base_point)
+        result = space.lie_bracket(
+            first_tan, second_tan, base_point, point_type='matrix')
         expected = gs.matmul(
             base_point,
-            gs.array([[[0., 0., 0.], [0., 0., -1.], [0., 1., 0.]]]))
+            gs.array([
+                [0., 0., 0.],
+                [0., 0., -1.],
+                [0., 1., 0.]]))
 
         self.assertAllClose(result, expected)
