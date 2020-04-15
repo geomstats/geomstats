@@ -5,6 +5,8 @@ import logging
 import geomstats.backend as gs
 import geomstats.error
 import geomstats.vectorization
+from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
@@ -186,8 +188,8 @@ class InvariantMetric(RiemannianMetric):
             point=base_point,
             left_or_right=self.left_or_right)
 
-        inv_jacobian = gs.linalg.inv(jacobian)
-        inv_jacobian_transposed = gs.swapaxes(inv_jacobian, axis1=-1, axis2=-2)
+        inv_jacobian = GeneralLinear.inv(jacobian)
+        inv_jacobian_transposed = Matrices.transpose(inv_jacobian)
 
         n_base_points = base_point.shape[0]
         inner_product_mat_at_id = gs.array(
@@ -341,11 +343,6 @@ class InvariantMetric(RiemannianMetric):
         inner_prod_mat = self.inner_product_mat_at_identity
         inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
         sqrt_inv_inner_prod_mat = gs.linalg.sqrtm(inv_inner_prod_mat)
-        # aux = gs.squeeze(sqrt_inv_inner_prod_mat, axis=0)
-        # log = gs.matmul(point, aux)
-        # point = gs.to_ndarray(point, to_ndim=3)
-        #print(point.shape)
-        #print(sqrt_inv_inner_prod_mat.shape)
         log = gs.einsum('...i,...ij->...j', point, sqrt_inv_inner_prod_mat)
         log = self.group.regularize_tangent_vec_at_identity(
             tangent_vec=log, metric=self)
