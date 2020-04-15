@@ -212,7 +212,8 @@ class LieGroup(Manifold):
             inv_jacobian = gs.linalg.inv(jacobian)
 
             tangent_vec_at_id = gs.einsum(
-                '...i,...ij->...j', tangent_vec, Matrices.transpose(inv_jacobian))
+                '...i,...ij->...j',
+                tangent_vec, Matrices.transpose(inv_jacobian))
             exp_from_identity = self.exp_from_identity(
                 tangent_vec=tangent_vec_at_id, point_type=point_type)
             exp = self.compose(
@@ -228,8 +229,6 @@ class LieGroup(Manifold):
         raise ValueError('Invalid point_type, expected \'vector\' or '
                          '\'matrix\'')
 
-    @geomstats.vectorization.decorator(
-        ['else', 'point', 'point', 'point_type'])
     def exp(self, tangent_vec, base_point=None, point_type=None):
         """Compute the group exponential at `base_point` of `tangent_vec`.
 
@@ -247,27 +246,13 @@ class LieGroup(Manifold):
         result : array-like, shape=[n_samples, {dimension,[n,n]}]
             The exponentiated tangent vector
         """
+        if point_type is None:
+            point_type = self.default_point_type
         identity = self.get_identity(point_type=point_type)
-        #identity = gs.to_ndarray(
-        #    identity,
-        #    to_ndim=geomstats.vectorization.POINT_TYPES_TO_NDIMS[point_type])
+
         if base_point is None:
             base_point = identity
         base_point = self.regularize(base_point, point_type=point_type)
-
-        # n_tangent_vecs = tangent_vec.shape[0]
-        # n_base_points = base_point.shape[0]
-
-        # if not (tangent_vec.shape == base_point.shape
-        #         or n_tangent_vecs == 1
-        #         or n_base_points == 1):
-        #     raise NotImplementedError
-
-        # if n_tangent_vecs == 1:
-        #     tangent_vec = gs.array([tangent_vec[0]] * n_base_points)
-
-        # if n_base_points == 1:
-        #     base_point = gs.array([base_point[0]] * n_tangent_vecs)
 
         if gs.allclose(base_point, identity):
             result = self.exp_from_identity(tangent_vec, point_type=point_type)
@@ -293,8 +278,6 @@ class LieGroup(Manifold):
             'The group logarithm from the identity is not implemented.'
         )
 
-    @geomstats.vectorization.decorator(
-        ['else', 'point', 'point', 'point_type'])
     def log_not_from_identity(self, point, base_point, point_type=None):
         """Compute the group logarithm of `point` from `base_point`.
 
@@ -318,9 +301,7 @@ class LieGroup(Manifold):
                 point=point_near_id, point_type=point_type)
 
             log = gs.einsum(
-                'ni,nij->nj',
-                log_from_id,
-                gs.transpose(jacobian, axes=(0, 2, 1)))
+                '...i,...ij->...j', log_from_id, Matrices.transpose(jacobian))
 
             return log
 
@@ -332,8 +313,6 @@ class LieGroup(Manifold):
         raise ValueError('Invalid point_type, expected \'vector\' or '
                          '\'matrix\'')
 
-    @geomstats.vectorization.decorator(
-        ['else', 'point', 'point', 'point_type'])
     def log(self, point, base_point=None, point_type=None):
         """Compute the group logarithm of `point` relative to `base_point`.
 
@@ -347,31 +326,14 @@ class LieGroup(Manifold):
         -------
         tangent_vec : array-like, shape=[n_samples, {dimension,[n,n]}]
         """
+        if point_type is None:
+            point_type = self.default_point_type
         identity = self.get_identity(point_type=point_type)
-        identity = gs.to_ndarray(
-            identity,
-            to_ndim=geomstats.vectorization.POINT_TYPES_TO_NDIMS[point_type])
         if base_point is None:
             base_point = identity
 
         point = self.regularize(point, point_type=point_type)
         base_point = self.regularize(base_point, point_type=point_type)
-
-        n_points = point.shape[0]
-        n_base_points = base_point.shape[0]
-
-        if not (
-            point.shape == base_point.shape
-            or n_points == 1
-            or n_base_points == 1
-        ):
-            raise ValueError('Inputs shapes do not match')
-
-        if n_points == 1:
-            point = gs.array([point[0]] * n_base_points)
-
-        if n_base_points == 1:
-            base_point = gs.array([base_point[0]] * n_points)
 
         if gs.allclose(base_point, identity):
             result = self.log_from_identity(point, point_type=point_type)
