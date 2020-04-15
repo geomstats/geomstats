@@ -73,36 +73,39 @@ class InvariantMetric(RiemannianMetric):
             ['vector', 'matrix'])
 
         if self.group.default_point_type == 'vector':
-            tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
-            tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
+            #tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
+            #tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
 
-            n_tangent_vec_a = tangent_vec_a.shape[0]
-            n_tangent_vec_b = tangent_vec_b.shape[0]
+            #n_tangent_vec_a = tangent_vec_a.shape[0]
+            #n_tangent_vec_b = tangent_vec_b.shape[0]
 
-            assert (tangent_vec_a.shape == tangent_vec_b.shape
-                    or n_tangent_vec_a == 1
-                    or n_tangent_vec_b == 1)
+            #assert (tangent_vec_a.shape == tangent_vec_b.shape
+            #        or n_tangent_vec_a == 1
+            #        or n_tangent_vec_b == 1)
 
-            if n_tangent_vec_a == 1:
-                tangent_vec_a = gs.array([tangent_vec_a[0]] * n_tangent_vec_b)
+            #if n_tangent_vec_a == 1:
+            #    tangent_vec_a = gs.array([tangent_vec_a[0]] * n_tangent_vec_b)
 
-            if n_tangent_vec_b == 1:
-                tangent_vec_b = gs.array([tangent_vec_b[0]] * n_tangent_vec_a)
+            #if n_tangent_vec_b == 1:
+            #    tangent_vec_b = gs.array([tangent_vec_b[0]] * n_tangent_vec_a)
 
-            inner_product_mat_at_identity = gs.array(
-                [self.inner_product_mat_at_identity[0]] *
-                max(n_tangent_vec_a, n_tangent_vec_b))
+            # inner_product_mat_at_identity = gs.array(
+            #     [self.inner_product_mat_at_identity[0]] *
+            #     max(n_tangent_vec_a, n_tangent_vec_b))
+            inner_product_mat_at_identity = self.inner_product_mat_at_identity
 
-            tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
-            tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
-            inner_product_mat_at_identity = gs.to_ndarray(
-                inner_product_mat_at_identity, to_ndim=3)
-            inner_prod = gs.einsum('nj,njk,nk->n',
-                                   tangent_vec_a,
-                                   inner_product_mat_at_identity,
-                                   tangent_vec_b)
+            #tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
+            #tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
+            #inner_product_mat_at_identity = gs.to_ndarray(
+            #    inner_product_mat_at_identity, to_ndim=3)
+            inner_prod = gs.einsum(
+                '...i,...ij->...j',
+                tangent_vec_a,
+                inner_product_mat_at_identity)
+            inner_prod = gs.einsum(
+                '...j,...j->...', inner_prod, tangent_vec_b)
 
-            inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
+            #inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
 
         else:
             # TODO(nguigs): allow for diagonal metric_matrices
@@ -216,8 +219,6 @@ class InvariantMetric(RiemannianMetric):
         exp : array-like, shape=[n_samples, dimension]
             Point in the group.
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-
         tangent_vec = self.group.regularize_tangent_vec_at_identity(
             tangent_vec=tangent_vec,
             metric=self)
@@ -225,14 +226,7 @@ class InvariantMetric(RiemannianMetric):
             self.inner_product_mat_at_identity)
         mat = Matrices.transpose(sqrt_inner_product_mat)
 
-        n_tangent_vecs, _ = tangent_vec.shape
-        n_mats, _, _ = mat.shape
-
-        if n_mats == 1:
-            mat = gs.tile(mat, (n_tangent_vecs, 1, 1))
-        if n_tangent_vecs == 1:
-            tangent_vec = gs.tile(tangent_vec, (n_mats, 1))
-        exp = gs.einsum('ni,nij->nj', tangent_vec, mat)
+        exp = gs.einsum('...i,...ij->...j', tangent_vec, mat)
 
         exp = self.group.regularize(exp)
         return exp
@@ -291,21 +285,13 @@ class InvariantMetric(RiemannianMetric):
         if gs.allclose(base_point, identity):
             return self.exp_from_identity(tangent_vec)
 
-        n_tangent_vecs, _ = tangent_vec.shape
-        n_base_points, _ = base_point.shape
-
-        if n_tangent_vecs == 1:
-            tangent_vec = gs.tile(tangent_vec, (n_base_points, 1))
-        if n_base_points == 1:
-            base_point = gs.tile(base_point, (n_tangent_vecs, 1))
-
         jacobian = self.group.jacobian_translation(
             point=base_point,
             left_or_right=self.left_or_right)
         inv_jacobian = gs.linalg.inv(jacobian)
-        inv_jacobian_transposed = gs.transpose(inv_jacobian, axes=(0, 2, 1))
+        inv_jacobian_transposed = Matrices.transpose(inv_jacobian)
         tangent_vec_at_id = gs.einsum(
-            'ni,nij->nj', tangent_vec, inv_jacobian_transposed)
+            '...i,...ij->...j', tangent_vec, inv_jacobian_transposed)
         exp_from_id = self.exp_from_identity(tangent_vec_at_id)
 
         if self.left_or_right == 'left':
@@ -342,7 +328,7 @@ class InvariantMetric(RiemannianMetric):
         """
         point = self.group.regularize(point)
         inner_prod_mat = self.inner_product_mat_at_identity
-        inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
+        inv_inner_prod_mat = GeneralLinear.inv(inner_prod_mat)
         sqrt_inv_inner_prod_mat = gs.linalg.sqrtm(inv_inner_prod_mat)
         log = gs.einsum('...i,...ij->...j', point, sqrt_inv_inner_prod_mat)
         log = self.group.regularize_tangent_vec_at_identity(
@@ -420,15 +406,8 @@ class InvariantMetric(RiemannianMetric):
         jacobian = self.group.jacobian_translation(
             base_point, left_or_right=self.left_or_right)
 
-        n_logs = log_from_id.shape[0]
-        n_jacobians, _, _ = jacobian.shape
-
-        if n_logs == 1:
-            log_from_id = gs.tile(log_from_id, (n_jacobians, 1))
-        if n_jacobians == 1:
-            jacobian = gs.tile(jacobian, (n_logs, 1, 1))
         log = gs.einsum(
-            'ij,ijk->ik',
+            '...j,...jk->...k',
             log_from_id,
-            gs.transpose(jacobian, axes=(0, 2, 1)))
+            Matrices.transpose(jacobian))
         return log
