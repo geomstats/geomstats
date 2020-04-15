@@ -4,6 +4,7 @@ import joblib
 
 import geomstats.backend as gs
 import geomstats.error
+import geomstats.vectorization
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.product_riemannian_metric import \
     ProductRiemannianMetric
@@ -71,6 +72,7 @@ class ProductManifold(Manifold):
                 len(self.manifolds)))
         return out
 
+    @geomstats.vectorization.decorator(['else', 'point', 'point_type'])
     def belongs(self, point, point_type=None):
         """Test if a point belongs to the manifold.
 
@@ -91,14 +93,12 @@ class ProductManifold(Manifold):
         if point_type is None:
             point_type = self.default_point_type
         if point_type == 'vector':
-            point = gs.to_ndarray(point, to_ndim=2)
             intrinsic = self.metric.is_intrinsic(point)
             belongs = self._iterate_over_manifolds(
                 'belongs', {'point': point}, intrinsic)
             belongs = gs.stack(belongs, axis=1)
 
         elif point_type == 'matrix':
-            point = gs.to_ndarray(point, to_ndim=3)
             belongs = gs.stack([
                 space.belongs(point[:, i]) for i, space in enumerate(
                     self.manifolds)],
@@ -108,6 +108,7 @@ class ProductManifold(Manifold):
         belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
         return belongs
 
+    @geomstats.vectorization.decorator(['else', 'point', 'point_type'])
     def regularize(self, point, point_type=None):
         """Regularize the point into the manifold's canonical representation.
 
@@ -131,7 +132,6 @@ class ProductManifold(Manifold):
             point_type, 'point_type', ['vector', 'matrix'])
 
         if point_type == 'vector':
-            point = gs.to_ndarray(point, to_ndim=2)
             intrinsic = self.metric.is_intrinsic(point)
             regularized_point = self._iterate_over_manifolds(
                 'regularize', {'point': point}, intrinsic)
@@ -172,4 +172,7 @@ class ProductManifold(Manifold):
         point = [
             space.random_uniform(n_samples)
             for space in self.manifolds]
-        return gs.stack(point, axis=1)
+        samples = gs.stack(point, axis=1)
+        if n_samples == 1 and samples.shape[0] == 1:
+            samples = gs.squeeze(samples, axis=0)
+        return samples
