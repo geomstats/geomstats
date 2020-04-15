@@ -36,8 +36,10 @@ def gradient_descent(start,
                      lr=0.01,
                      max_iter=256,
                      precision=1e-5):
-    """Operate a gradient descent on a given manifold until either max_iter or
-    a given precision is reached."""
+    """Operate a gradient descent on a given manifold.
+
+    Until either max_iter or a given precision is reached.
+    """
     x = start
     for i in range(max_iter):
         x_prev = x
@@ -80,7 +82,7 @@ def plot_and_save_video(geodesics,
 
 def generate_well_behaved_matrix():
     """Generate a matrix with real eigenvalues."""
-    matrix = 2 * SPDMatrices(n=3).random_uniform()[0]
+    matrix = 2 * SPDMatrices(n=3).random_uniform()
     assert np.linalg.det(matrix) > 0
     return matrix
 

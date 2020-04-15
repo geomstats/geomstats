@@ -137,7 +137,8 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         self : array-like, shape=[n_samples,]
             Array of predicted cluster indices for each sample
         """
-        assert self.centroids is not None, 'fit needs to be called first'
+        if self.centroids is None:
+            raise RuntimeError('fit needs to be called first.')
         dists = gs.stack(
             [self.riemannian_metric.dist(centroid, X)
              for centroid in self.centroids],
