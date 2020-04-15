@@ -189,11 +189,9 @@ class InvariantMetric(RiemannianMetric):
         inv_jacobian = GeneralLinear.inv(jacobian)
         inv_jacobian_transposed = Matrices.transpose(inv_jacobian)
 
-        inner_product_mat_at_id = self.inner_product_mat_at_identity[0]
-
         metric_mat = gs.einsum(
             '...ij,...jk->...ik',
-            inv_jacobian_transposed, inner_product_mat_at_id)
+            inv_jacobian_transposed, self.inner_product_mat_at_identity)
         metric_mat = gs.einsum(
             '...ij,...jk->...ik', metric_mat, inv_jacobian)
         return metric_mat
@@ -225,7 +223,7 @@ class InvariantMetric(RiemannianMetric):
             metric=self)
         sqrt_inner_product_mat = gs.linalg.sqrtm(
             self.inner_product_mat_at_identity)
-        mat = gs.transpose(sqrt_inner_product_mat, axes=(0, 2, 1))
+        mat = Matrices.transpose(sqrt_inner_product_mat)
 
         n_tangent_vecs, _ = tangent_vec.shape
         n_mats, _, _ = mat.shape
