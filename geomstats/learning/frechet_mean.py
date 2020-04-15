@@ -88,7 +88,6 @@ def linear_mean(points, weights=None):
 
     weighted_points = gs.einsum('...,...j->...j', weights, points)
     mean = (gs.sum(weighted_points, axis=0) / gs.sum(weights))
-    mean = gs.to_ndarray(mean, to_ndim=2)
     return mean
 
 
@@ -96,23 +95,26 @@ def _default_gradient_descent(points, metric, weights,
                               max_iter, point_type, epsilon, verbose):
     if point_type == 'vector':
         points = gs.to_ndarray(points, to_ndim=2)
-        einsum_str = 'nk,nj->j'
+        #einsum_str = 'nk,nj->j'
+        einsum_str = 'n,nj->j'
     if point_type == 'matrix':
-        einsum_str = 'nkl,nij->ij'
+        einsum_str = 'n,nij->ij'
+        # einsum_str = 'nkl,nij->ij'
         points = gs.to_ndarray(points, to_ndim=3)
     n_points = gs.shape(points)[0]
 
     if weights is None:
-        weights = gs.ones((n_points, 1))
-    weights = gs.array(weights)
+        weights = gs.ones((n_points,))
+        #weights = gs.ones((n_points, 1))
+    # weights = gs.array(weights)
 
     mean = points[0]
-    if point_type == 'vector':
-        weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
-        mean = gs.to_ndarray(mean, to_ndim=2)
-    if point_type == 'matrix':
-        weights = gs.to_ndarray(weights, to_ndim=3, axis=1)
-        mean = gs.to_ndarray(mean, to_ndim=3)
+    #if point_type == 'vector':
+        # weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
+        # mean = gs.to_ndarray(mean, to_ndim=2)
+    #if point_type == 'matrix':
+        # weights = gs.to_ndarray(weights, to_ndim=3, axis=1)
+        # mean = gs.to_ndarray(mean, to_ndim=3)
 
     if n_points == 1:
         return mean
@@ -120,8 +122,10 @@ def _default_gradient_descent(points, metric, weights,
     sum_weights = gs.sum(weights)
     sq_dists_between_iterates = []
     iteration = 0
-    sq_dist = gs.array([[0.]])
-    var = gs.array([[0.]])
+    #sq_dist = gs.array([[0.]])
+    #var = gs.array([[0.]])
+    sq_dist = 0.
+    var = 0.
 
     while iteration < max_iter:
         condition = ~gs.logical_or(
@@ -158,7 +162,8 @@ def _default_gradient_descent(points, metric, weights,
         logging.info('n_iter: {}, final variance: {}, final dist: {}'.format(
             iteration, var, sq_dist))
 
-    mean = gs.to_ndarray(mean, to_ndim=2)
+    # mean = gs.to_ndarray(mean, to_ndim=2)
+    # mean = gs.squeeze(mean, axis=0)
     return mean
 
 
@@ -291,8 +296,8 @@ def _adaptive_gradient_descent(points,
         logging.warning(
             'Maximum number of iterations {} reached. '
             'The mean may be inaccurate'.format(max_iter))
-
-    return gs.to_ndarray(current_mean, to_ndim=2)
+    #
+    return current_mean
 
 
 class FrechetMean(BaseEstimator, TransformerMixin):
