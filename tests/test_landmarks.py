@@ -2,8 +2,6 @@
 Unit tests for landmarks space.
 """
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
@@ -77,7 +75,6 @@ class TestLandmarksMethods(geomstats.tests.TestCase):
             vector=log_ab, base_point=self.landmarks_a)
         expected = self.l2_metric_s2.dist(
             self.landmarks_a, self.landmarks_b) ** 2
-        expected = helper.to_scalar(expected)
 
         self.assertAllClose(result, expected)
 
