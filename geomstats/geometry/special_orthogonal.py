@@ -402,7 +402,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                 '...ij,...i->...ij', gs.cast(id_skew, gs.float32), vec)
 
         elif self.n == 3:  # SO(3)
-            # This avois dividing by 0.
+            # This avoids dividing by 0.
             levi_civita_symbol = gs.tile([[
                 [[0., 0., 0.],
                  [0., 0., 1.],
@@ -418,7 +418,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             levi_civita_symbol = gs.array(levi_civita_symbol)
             levi_civita_symbol += self.epsilon
 
-            # This avois dividing by 0.
+            # This avoids dividing by 0.
             basis_vec_1 = gs.array(
                 gs.tile([[1., 0., 0.]], (n_vecs, 1))) + self.epsilon
             basis_vec_2 = gs.array(
@@ -1367,7 +1367,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                 coef_1 = gs.zeros([n_points, 1])
                 coef_2 = gs.zeros([n_points, 1])
 
-                # This avois dividing by 0.
+                # This avoids dividing by 0.
                 mask_0 = gs.isclose(angle, 0.)
                 mask_0_float = gs.cast(mask_0, gs.float32) + self.epsilon
 
@@ -1383,7 +1383,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                     + TAYLOR_COEFFS_2_AT_0[4] * angle ** 4
                     + TAYLOR_COEFFS_2_AT_0[6] * angle ** 6)
 
-                # This avois dividing by 0.
+                # This avoids dividing by 0.
                 mask_pi = gs.isclose(angle, gs.pi)
                 mask_pi_float = gs.cast(mask_pi, gs.float32) + self.epsilon
 
@@ -1400,7 +1400,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                 coef_2 += mask_pi_float * (
                     (1 - coef_1) / angle ** 2)
 
-                # This avois dividing by 0.
+                # This avoids dividing by 0.
                 mask_else = ~mask_0 & ~mask_pi
                 mask_else_float = gs.cast(mask_else, gs.float32) + self.epsilon
 
@@ -1413,7 +1413,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                 jacobian = gs.zeros((n_points, self.dimension, self.dimension))
                 n_points_tensor = gs.array(n_points)
                 for i in range(n_points):
-                    # This avois dividing by 0.
+                    # This avoids dividing by 0.
                     mask_i_float = (
                         gs.get_mask_i_float(i, n_points_tensor)
                         + self.epsilon)

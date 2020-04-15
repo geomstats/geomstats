@@ -282,7 +282,12 @@ class InvariantMetric(RiemannianMetric):
             Point in the group equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        identity = gs.to_ndarray(self.group.identity, to_ndim=2)
+        point_type = self.group.default_point_type
+
+        identity = gs.to_ndarray(
+            self.group.identity,
+            to_ndim=geomstats.vectorization.POINT_TYPES_TO_NDIMS[point_type])
+
         if base_point is None:
             base_point = identity
         base_point = self.group.regularize(base_point)
@@ -391,7 +396,12 @@ class InvariantMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        identity = gs.to_ndarray(self.group.identity, to_ndim=2)
+        point_type = self.group.default_point_type
+
+        identity = gs.to_ndarray(
+            self.group.identity,
+            to_ndim=geomstats.vectorization.POINT_TYPES_TO_NDIMS[point_type])
+
         if base_point is None:
             base_point = identity
         base_point = self.group.regularize(base_point)
