@@ -23,20 +23,27 @@ class TestBackends(geomstats.tests.TestCase):
         self.n_samples = 2
 
     def test_array(self):
+        gs_mat = gs.array(1.5)
+        np_mat = _np.array(1.5)
+        self.assertAllCloseToNp(gs_mat, np_mat)
+
         gs_mat = gs.array([gs.ones(3), gs.ones(3)])
         np_mat = _np.array([_np.ones(3), _np.ones(3)])
         self.assertAllCloseToNp(gs_mat, np_mat)
 
         gs_mat = gs.array([gs.ones(3), gs.ones(3)], dtype=gs.float64)
         np_mat = _np.array([_np.ones(3), _np.ones(3)], dtype=_np.float64)
+        assert gs_mat.dtype == gs.float64
         self.assertAllCloseToNp(gs_mat, np_mat)
 
         gs_mat = gs.array([[gs.ones(3)], [gs.ones(3)]], dtype=gs.uint8)
         np_mat = _np.array([[_np.ones(3)], [_np.ones(3)]], dtype=_np.uint8)
+        assert gs_mat.dtype == gs.uint8
         self.assertAllCloseToNp(gs_mat, np_mat)
 
         gs_mat = gs.array([gs.ones(3), [0, 0, 0]], dtype=gs.int32)
         np_mat = _np.array([_np.ones(3), [0, 0, 0]], dtype=_np.int32)
+        assert gs_mat.dtype == gs.int32
         self.assertAllCloseToNp(gs_mat, np_mat)
 
     def test_matmul(self):

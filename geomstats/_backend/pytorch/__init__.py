@@ -114,6 +114,8 @@ def any(x, axis=None):
 
 
 def cast(x, dtype):
+    if torch.is_tensor(x):
+        return x.to(dtype)
     return array(x).to(dtype)
 
 
@@ -185,8 +187,9 @@ def array(val, dtype=None):
     if not isinstance(val, torch.Tensor):
         val = torch.Tensor([val])
 
-    if dtype is not None and val.dtype != dtype:
-        cast(val, dtype)
+    if dtype is not None:
+        if val.dtype != dtype:
+            val = cast(val, dtype)
     elif val.dtype == torch.float64:
         val = val.float()
     return val
