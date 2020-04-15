@@ -131,17 +131,6 @@ def flip(m, axis=None):
     return tf.reverse(m, axis=axis)
 
 
-def swapaxes(x, axis1, axis2):
-    # TODO(ninamiolane): Make this function more general.
-    # So far, it can only swap the last two axes.
-    rank_x = tf.rank(x)
-    axes = tf.concat(
-        [tf.constant(range(rank_x - 2)), [rank_x + axis1], [rank_x + axis2]],
-        axis=0)
-    axes = cast(axes, int32)
-    return tf.transpose(x, axes)
-
-
 def any(x, axis=None):
     return tf.math.reduce_any(tf.cast(x, bool), axis=axis)
 
