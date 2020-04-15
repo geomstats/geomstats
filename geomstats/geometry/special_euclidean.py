@@ -129,7 +129,7 @@ class SpecialEuclidean(LieGroup):
         if point_type == 'matrix':
             n_points, point_dim1, point_dim2 = point.shape
             belongs = (point_dim1 == point_dim2 == self.n + 1)
-            belongs = gs.tile([belongs], (n_points,))
+            belongs = [belongs] * n_points
 
             rotation = point[:, :self.n, :self.n]
             rot_belongs = self.rotations.belongs(

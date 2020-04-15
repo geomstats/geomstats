@@ -396,7 +396,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             vec = gs.tile(vec, [1, 2])
             vec = gs.reshape(vec, (n_vecs, 2))
 
-            id_skew = gs.array(gs.tile([[[0., 1.], [-1., 0.]]], (n_vecs, 1, 1)))
+            id_skew = gs.array(
+                gs.tile([[[0., 1.], [-1., 0.]]], (n_vecs, 1, 1)))
             skew_mat = gs.einsum(
                 '...ij,...i->...ij', gs.cast(id_skew, gs.float32), vec)
 

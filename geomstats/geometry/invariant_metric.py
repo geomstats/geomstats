@@ -191,13 +191,13 @@ class InvariantMetric(RiemannianMetric):
         inv_jacobian = GeneralLinear.inv(jacobian)
         inv_jacobian_transposed = Matrices.transpose(inv_jacobian)
 
-        n_base_points = base_point.shape[0]
-        inner_product_mat_at_id = gs.array(
-            [self.inner_product_mat_at_identity[0]] * n_base_points)
+        inner_product_mat_at_id = self.inner_product_mat_at_identity[0]
 
-        metric_mat = gs.matmul(
+        metric_mat = gs.einsum(
+            '...ij,...jk->...ik',
             inv_jacobian_transposed, inner_product_mat_at_id)
-        metric_mat = gs.matmul(metric_mat, inv_jacobian)
+        metric_mat = gs.einsum(
+            '...ij,...jk->...ik', metric_mat, inv_jacobian)
         return metric_mat
 
     def left_exp_from_identity(self, tangent_vec):
