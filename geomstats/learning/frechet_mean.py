@@ -31,22 +31,22 @@ def variance(points,
     """
     n_points = gs.shape(points)[0]
     if weights is None:
-        weights = gs.ones((n_points, 1))
+        weights = gs.ones((n_points,))
     weights = gs.array(weights)
 
     sum_weights = gs.sum(weights)
     if point_type == 'vector':
         points = gs.to_ndarray(points, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
-        weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
+        # weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
     if point_type == 'matrix':
         points = gs.to_ndarray(points, to_ndim=3)
         base_point = gs.to_ndarray(base_point, to_ndim=3)
-        weights = gs.to_ndarray(weights, to_ndim=3, axis=1)
-        weights = weights[:, :, 0]
+        # weights = gs.to_ndarray(weights, to_ndim=3, axis=1)
+        # weights = weights[:, :, 0]
 
     sq_dists = metric.squared_dist(base_point, points)
-    var = gs.einsum('...k,...->...', weights, sq_dists)
+    var = gs.einsum('...,...->...', weights, sq_dists)
 
     var = gs.sum(var)
     var /= sum_weights
