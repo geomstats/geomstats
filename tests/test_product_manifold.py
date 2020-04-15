@@ -33,7 +33,7 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
         n_samples = 5
         data = self.space_matrix.random_uniform(n_samples)
         result = self.space_matrix.belongs(data)
-        expected = gs.array([[True] * n_samples]).transpose(1, 0)
+        expected = gs.array([True] * n_samples)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -41,7 +41,7 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
         n_samples = 5
         data = self.space_vector.random_uniform(n_samples)
         result = self.space_vector.belongs(data)
-        expected = gs.array([[True] * n_samples]).transpose(1, 0)
+        expected = gs.array([True] * n_samples)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
