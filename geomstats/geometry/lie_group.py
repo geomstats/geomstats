@@ -27,8 +27,8 @@ def loss(y_pred, y_true, group, metric=None):
     """
     if metric is None:
         metric = group.left_invariant_metric
-    loss = riemannian_metric.loss(y_pred, y_true, metric)
-    return loss
+    metric_loss = riemannian_metric.loss(y_pred, y_true, metric)
+    return metric_loss
 
 
 def grad(y_pred, y_true, group, metric=None):
@@ -50,8 +50,8 @@ def grad(y_pred, y_true, group, metric=None):
     """
     if metric is None:
         metric = group.left_invariant_metric
-    grad = riemannian_metric.grad(y_pred, y_true, metric)
-    return grad
+    metric_grad = riemannian_metric.grad(y_pred, y_true, metric)
+    return metric_grad
 
 
 class LieGroup(Manifold):
