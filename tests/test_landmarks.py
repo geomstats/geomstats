@@ -54,8 +54,7 @@ class TestLandmarksMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_belongs(self):
         result = self.space_landmarks_in_sphere_2d.belongs(self.landmarks_a)
-        expected = gs.array([[True]])
-
+        expected = True
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only

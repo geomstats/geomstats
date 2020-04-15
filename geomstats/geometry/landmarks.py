@@ -38,8 +38,6 @@ class Landmarks(Manifold):
         belongs : bool
         """
         belongs = gs.all(self.ambient_manifold.belongs(point))
-        belongs = gs.to_ndarray(belongs, to_ndim=1)
-        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
         return belongs
 
 
