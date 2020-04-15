@@ -50,7 +50,6 @@ class Grassmannian(EmbeddedManifold):
         -------
         belongs : bool
         """
-        
         point = gs.to_ndarray(point, to_ndim=3)
         n_points, n, p = point.shape
 
@@ -62,14 +61,19 @@ class Grassmannian(EmbeddedManifold):
 
         # check symmetry
         sym_diff = gs.einsum('nij, njk->nik', point, point_transpose) - point
-        sym = gs.linalg.norm(sym_diff, axis=(1, 2))
+        sym_norm = gs.linalg.norm(sym_diff, axis=(1, 2))
+        sym = gs.less_equal(sym_norm, tolerance)
 
         # check idempotency
         idem_diff = gs.einsum('nij, njk->nik', point, point) - point
-        idem = gs.linalg.norm(idem_diff, axis=(1, 2))
+        idem_norm = gs.linalg.norm(idem_diff, axis=(1, 2))
+        idem = gs.less_equal(idem_norm, tolerance)
 
         # check rank
-        trace = gs.einsum('nii', point) - self.k
+        trace_diff = gs.einsum('nii', point) - self.k
+        trace_norm = gs.linalg.norm(trace_diff, axis=(1, 2))
+        trace = gs.less_equal(trace_norm, tolerance)
+
         belongs = gs.all(gs.stack([sym, idem, trace], axis=0), axis=0)
 
         return belongs
