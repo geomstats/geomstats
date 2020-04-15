@@ -204,8 +204,8 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
 
             # TODO Hadi/Thomas: change exp/log to handle arrays
 
-            for j in range(len(points)):
-                for i in range(len(barycenter_gs)):
+            for j, _ in enumerate(points):
+                for i, _ in enumerate(barycenter_gs):
                     grad_tangent[j][i] = 2 * metric.log(points_gs[j][0],
                                                         barycenter_gs[i])
 
@@ -216,7 +216,7 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
             lr_grad_tangent_s = lr_grad_tangent.squeeze()
             cc_barycenter = gs.zeros(lr_grad_tangent_s.shape)
 
-            for i in range(len(cc_barycenter)):
+            for i, _ in enumerate(cc_barycenter):
                 cc_barycenter[i] = metric.exp(barycenter_gs[i],
                                               lr_grad_tangent_s[i])
 

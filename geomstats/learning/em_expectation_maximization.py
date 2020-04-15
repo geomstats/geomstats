@@ -76,6 +76,11 @@ class RiemannianEM():
         self.tol = tol
         self.mean_method = mean_method
         self.point_type = point_type
+        self._dimension = None
+        self.mixture_coefficients = None
+        self.variances = None
+        self.means = None
+        self.normalization_factor = None
 
     def update_posterior_probabilities(self, posterior_probabilities):
         """Posterior probabilities update function."""
@@ -100,7 +105,7 @@ class RiemannianEM():
         mean.fit(data_expand, weights=posterior_probabilities)
         self.means = gs.squeeze(mean.estimate_)
 
-    def update_variances(self, data, posterior_probabilities, g_index=-1):
+    def update_variances(self, data, posterior_probabilities):
         """Variances update function."""
         n_data, n_gaussian = data.shape[0], self.means.shape[0]
 
@@ -109,13 +114,14 @@ class RiemannianEM():
         means = gs.expand_dims(self.means, 0)
         means = gs.repeat(means, n_data, axis=0)
 
-        dtm_gs = ((self.riemannian_metric.dist(
+        weighted_dist_means_data = ((self.riemannian_metric.dist(
             data_expand, means) ** 2) *
             posterior_probabilities).sum(0) / \
             posterior_probabilities.sum(0)
 
         self.variances = \
-            self.normalization_factor._variance_update_sub_function(dtm_gs)
+            self.normalization_factor.find_variance_from_index(
+                weighted_dist_means_data)
 
     def _expectation(self, data):
         """Update the posterior probabilities."""
@@ -138,7 +144,7 @@ class RiemannianEM():
                                        probability_distribution_function)
         valid_pdf_condition = gs.amin(gs.sum(num_normalized_pdf, -1))
 
-        if (valid_pdf_condition <= PDF_TOL):
+        if valid_pdf_condition <= PDF_TOL:
 
             num_normalized_pdf[gs.sum(num_normalized_pdf, -1) <= PDF_TOL] = 1
 
@@ -180,13 +186,13 @@ class RiemannianEM():
                           tau_means=conv_factor_mean,
                           max_iter=max_iter)
 
-        if(self.means.mean() != self.means.mean()):
+        if self.means.mean() != self.means.mean():
             raise NameError('UPDATE : means contain' +
                             'not a number elements')
 
         self.update_variances(data, posterior_probabilities)
 
-        if(self.variances.mean() != self.variances.mean()):
+        if self.variances.mean() != self.variances.mean():
             raise NameError('UPDATE : variances contain' +
                             'not a number elements')
 
@@ -253,7 +259,7 @@ class RiemannianEM():
                                lr_means=lr_mean,
                                conv_factor_mean=conv_factor_mean)
 
-        logging.info('WARNING: EM did not converge' +
+        logging.info('WARNING: EM did not converge \n'
                      'Please increase MINIMUM_EPOCHS.')
 
         return self.means, self.variances, self.mixture_coefficients

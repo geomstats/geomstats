@@ -35,7 +35,7 @@ def plot_gaussian_mixture_distribution(data,
 
     z_axis_samples = gs.zeros((plot_precision, plot_precision))
 
-    for z_index in range(len(z_axis_samples)):
+    for z_index, _ in enumerate(z_axis_samples):
 
         x_y_plane_mesh = gs.concatenate((
             gs.expand_dims(x_axis_samples[z_index], -1),
@@ -49,8 +49,6 @@ def plot_gaussian_mixture_distribution(data,
                 means,
                 variances,
                 metric)
-
-        mesh_probabilities[mesh_probabilities != mesh_probabilities] = 0
 
         z_axis_samples[z_index] = mesh_probabilities.sum(-1)
 
@@ -78,14 +76,14 @@ def plot_gaussian_mixture_distribution(data,
                              z=z_circle,
                              zdir="z")
 
-    for data_index in range(len(data)):
+    for data_index, _ in enumerate(data):
         ax.scatter(data[data_index][0],
                    data[data_index][1],
                    z_circle,
                    c='b',
                    marker='.')
 
-    for means_index in range(len(means)):
+    for means_index, _ in enumerate(means):
         ax.scatter(means[means_index][0],
                    means[means_index][1],
                    z_circle,

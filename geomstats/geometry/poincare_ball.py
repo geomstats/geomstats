@@ -330,7 +330,7 @@ class GaussianDistribution():
     @staticmethod
     def gaussian_pdf(data, means, variances, norm_func, metric):
         """Return the probability density function."""
-        data_length, dimension, n_gaussian = data.shape + (means.shape[0],)
+        data_length, _, n_gaussian = data.shape + (means.shape[0],)
 
         data_expanded = gs.expand_dims(data, 1)
         data_expanded = gs.repeat(data_expanded, n_gaussian, axis=1)
@@ -393,7 +393,7 @@ class GaussianDistribution():
         return result
 
 
-class Normalization_Factor_Storage(object):
+class Normalization_Factor_Storage():
     """A class for computing the normalization factor."""
 
     def __init__(self, variances, dimension):
@@ -409,7 +409,7 @@ class Normalization_Factor_Storage(object):
         cond_2 = self.normalisation_factor_var.sum() == float('+inf')
         cond_3 = self.normalisation_factor_var.sum() == float('-inf')
 
-        if (cond_1 or cond_2 or cond_3):
+        if cond_1 or cond_2 or cond_3:
             print('WARNING :\n'
                   'untracktable normalisation factor :')
             max_nf = len(variances)
@@ -420,16 +420,16 @@ class Normalization_Factor_Storage(object):
             self.variances = self.variances[0:limit_nf]
             self.normalisation_factor_var = \
                 self.normalisation_factor_var[0:limit_nf]
-            if (cond_1):
+            if cond_1:
                 print('\t Nan value in processing normalisation factor')
-            if (cond_2 or cond_3):
+            if cond_2 or cond_3:
                 print('\t +-inf value in processing normalisation factor')
 
             print('\t Max variance is now : ', self.variances[-1])
             print('\t Number of possible variance is now: '
                   + str(len(self.variances)) + '/' + str(max_nf))
 
-        factor_normalization, log_grad_zeta = \
+        _, log_grad_zeta = \
             self.norm_factor_gradient(self.variances, dimension)
 
         self.phi_inv_var = self.variances ** 3 * log_grad_zeta
@@ -449,14 +449,16 @@ class Normalization_Factor_Storage(object):
 
         return self.normalisation_factor_var[index]
 
-    def _variance_update_sub_function(self, phi_val):
-        N, P = phi_val.shape[0], self.variances.shape[0]
+    def find_variance_from_index(self, weighted_distances):
+        """Return the variance given weighted distances."""
+        n_gaussian, precision = \
+            weighted_distances.shape[0], self.variances.shape[0]
 
         ref = gs.expand_dims(self.phi_inv_var, 0)
-        ref = gs.repeat(ref, N, axis=0)
+        ref = gs.repeat(ref, n_gaussian, axis=0)
 
-        val = gs.expand_dims(phi_val, 1)
-        val = gs.repeat(val, P, axis=1)
+        val = gs.expand_dims(weighted_distances, 1)
+        val = gs.repeat(val, precision, axis=1)
 
         abs_difference = gs.abs(ref - val)
 
@@ -464,7 +466,8 @@ class Normalization_Factor_Storage(object):
 
         return self.variances[index]
 
-    def normalization_factor(self, variances, dimension):
+    @classmethod
+    def normalization_factor(cls, variances, dimension):
         """Return normalization factor."""
         binomial_coefficient = None
         n_samples = variances.shape[0]
@@ -472,7 +475,7 @@ class Normalization_Factor_Storage(object):
         expand_variances = gs.expand_dims(variances, axis=0)
         expand_variances = gs.repeat(expand_variances, dimension, axis=0)
 
-        if (binomial_coefficient is None):
+        if binomial_coefficient is None:
 
             v = gs.arange(dimension)
             v[0] = 1
@@ -510,7 +513,8 @@ class Normalization_Factor_Storage(object):
 
         return norm_func
 
-    def _compute_alpha(self, dim, current_dim):
+    @classmethod
+    def _compute_alpha(cls, dim, current_dim):
         """Compute factor used in normalisation factor.
 
         Compute alpha factor given the two arguments.
