@@ -68,6 +68,7 @@ cross = tf.linalg.cross
 log = tf.math.log
 matmul = tf.linalg.matmul
 mod = tf.math.mod
+power = tf.math.pow
 real = tf.math.real
 set_diag = tf.linalg.set_diag
 std = tf.math.reduce_std
@@ -128,17 +129,6 @@ def flip(m, axis=None):
     elif not hasattr(axis, '__iter__'):
         axis = (axis,)
     return tf.reverse(m, axis=axis)
-
-
-def swapaxes(x, axis1, axis2):
-    # TODO(ninamiolane): Make this function more general.
-    # So far, it can only swap the last two axes.
-    rank_x = tf.rank(x)
-    axes = tf.concat(
-        [tf.constant(range(rank_x - 2)), [rank_x + axis1], [rank_x + axis2]],
-        axis=0)
-    axes = cast(axes, int32)
-    return tf.transpose(x, axes)
 
 
 def any(x, axis=None):
@@ -521,6 +511,8 @@ def eye(n, m=None):
 
 
 def einsum(equation, *inputs, **kwargs):
+    # TODO(ninamiolane): Allow this to work when '->' is not provided
+    # TODO(ninamiolane): Allow this to work for cases like n...k
     einsum_str = equation
     input_tensors_list = inputs
 
@@ -541,7 +533,6 @@ def einsum(equation, *inputs, **kwargs):
 
         tensor_a = input_tensors_list[0]
         tensor_b = input_tensors_list[1]
-
         initial_ndim_a = tensor_a.ndim
         initial_ndim_b = tensor_b.ndim
         tensor_a = to_ndarray(tensor_a, to_ndim=ndims[0] + 1)

@@ -63,6 +63,18 @@ class TestSymmetricMatricesMethods(geomstats.tests.TestCase):
                              [0., 0., e]])
         self.assertAllClose(result, expected)
 
+    def test_powerm(self):
+        """Test of powerm method."""
+        sym_n = SymmetricMatrices(self.n)
+        expected = gs.array(
+            [[[1, 1. / 4., 0.], [1. / 4, 2., 0.], [0., 0., 1.]]])
+        expected = gs.cast(expected, gs.float64)
+        power = gs.array(1. / 2)
+        power = gs.cast(power, gs.float64)
+        result = sym_n.powerm(expected, power)
+        result = gs.matmul(result, gs.transpose(result, (0, 2, 1)))
+        self.assertAllClose(result, expected)
+
     @geomstats.tests.np_and_pytorch_only
     def test_vector_from_symmetric_matrix_and_symmetric_matrix_from_vector(
             self):
