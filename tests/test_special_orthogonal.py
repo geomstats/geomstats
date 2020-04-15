@@ -167,7 +167,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             delta = 1e-12 * gs.ones((n, n))
             rot_mat_plus_delta = rot_mat + delta
             result = group.projection(rot_mat_plus_delta)
-            expected = helper.to_matrix(rot_mat)
+            expected = rot_mat
             self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -185,7 +185,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         group = self.so[n]
         rot_vec = gs.array([0.9, -0.5, 1.1])
         skew_matrix = group.skew_matrix_from_vector(rot_vec)
-        result = gs.dot(skew_matrix[0], rot_vec)
+        result = gs.dot(skew_matrix, rot_vec)
         expected = gs.zeros(n)
 
         self.assertAllClose(result, expected)
@@ -198,7 +198,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         skew_mat = group.skew_matrix_from_vector(rot_vec)
         result = group.vector_from_skew_matrix(skew_mat)
-        expected = helper.to_vector(rot_vec)
+        expected = rot_vec
 
         self.assertAllClose(result, expected)
 
@@ -213,13 +213,28 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
             self.assertAllClose(gs.shape(result), (n_samples, n, n))
 
+    @geomstats.tests.np_only
+    def test_random_uniform_shape(self):
+        point_type = 'vector'
+        for n in self.n_seq:
+            group = self.so[n]
+            result = group.random_uniform(point_type=point_type)
+            self.assertAllClose(gs.shape(result), (group.dimension,))
+
+        point_type = 'matrix'
+        for n in self.n_seq:
+            group = self.so[n]
+            result = group.random_uniform(point_type=point_type)
+            self.assertAllClose(gs.shape(result), (n, n))
+
+    @geomstats.tests.np_only
     def test_random_and_belongs(self):
         for point_type in ('vector', 'matrix'):
             for n in self.n_seq:
                 group = self.so[n]
                 point = group.random_uniform(point_type=point_type)
                 result = group.belongs(point, point_type=point_type)
-                expected = gs.array([[True]])
+                expected = True
                 self.assertAllClose(result, expected)
 
     def test_random_and_belongs_vectorization(self):
@@ -228,7 +243,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             group = self.so[n]
             points = group.random_uniform(n_samples=n_samples)
             result = group.belongs(points)
-            expected = gs.array([[True]] * n_samples)
+            expected = gs.array([True] * n_samples)
             self.assertAllClose(result, expected)
 
     def test_regularize(self):
@@ -240,7 +255,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 point = self.elements_all[3]['with_angle_0']
                 self.assertAllClose(gs.linalg.norm(point), 0.)
                 result = group.regularize(point)
-                expected = helper.to_vector(point)
+                expected = point
                 self.assertAllClose(result, expected)
 
                 less_than_pi = ['with_angle_close_0',
@@ -248,7 +263,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 for angle_type in less_than_pi:
                     point = self.elements_all[3][angle_type]
                     result = group.regularize(point)
-                    expected = helper.to_vector(point)
+                    expected = point
                     self.assertAllClose(result, expected)
 
                 # Note: by default, the rotation vector is inverted by
@@ -256,14 +271,13 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 angle_type = 'with_angle_pi'
                 point = self.elements_all[3][angle_type]
                 result = group.regularize(point)
-                expected = helper.to_vector(point)
+                expected = point
                 self.assertAllClose(result, expected)
 
                 angle_type = 'with_angle_close_pi_high'
                 point = self.elements_all[3][angle_type]
                 result = group.regularize(point)
-                expected = helper.to_vector(
-                    point / gs.linalg.norm(point) * gs.pi)
+                expected = point / gs.linalg.norm(point) * gs.pi
                 self.assertAllClose(result, expected)
 
                 in_pi_2pi = ['with_angle_in_pi_2pi',
@@ -278,14 +292,13 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     point_initial = point
                     result = group.regularize(point)
 
-                    expected = helper.to_vector(
-                        - (new_angle / angle) * point_initial)
+                    expected = - (new_angle / angle) * point_initial
                     self.assertAllClose(result, expected)
 
                 angle_type = 'with_angle_2pi'
                 point = self.elements_all[3][angle_type]
                 result = group.regularize(point)
-                expected = gs.array([[0., 0., 0.]])
+                expected = gs.array([0., 0., 0.])
                 self.assertAllClose(result, expected)
 
                 angle_type = 'with_angle_close_2pi_high'
@@ -294,15 +307,14 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 new_angle = angle - 2 * gs.pi
 
                 result = group.regularize(point)
-                expected = helper.to_vector(
-                    new_angle * point / angle)
+                expected = new_angle * point / angle
                 self.assertAllClose(result, expected)
 
             else:
                 angle = 0.345
-                point = gs.array([[
+                point = gs.array([
                     [gs.cos(angle), -gs.sin(angle)],
-                    [gs.sin(angle), gs.cos(angle)]]])
+                    [gs.sin(angle), gs.cos(angle)]])
                 result = group.regularize(point)
                 expected = point
                 self.assertAllClose(result, expected)
@@ -353,15 +365,15 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         rot_vec_0 = group.identity
         result = group.matrix_from_rotation_vector(rot_vec_0)
-        expected = helper.to_matrix(gs.eye(3))
+        expected = gs.eye(3)
         self.assertAllClose(result, expected)
 
         rot_vec_1 = gs.array([gs.pi / 3., 0., 0.])
         result = group.matrix_from_rotation_vector(rot_vec_1)
-        expected = gs.array([[
+        expected = gs.array([
             [1., 0., 0.],
             [0., 0.5, -gs.sqrt(3.) / 2],
-            [0., gs.sqrt(3.) / 2, 0.5]]])
+            [0., gs.sqrt(3.) / 2, 0.5]])
         self.assertAllClose(result, expected)
 
         rot_vec_3 = 1e-11 * gs.array([12., 1., -81.])
@@ -371,7 +383,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                                            [-1., 12., 0.]])
         coef_1 = gs.sin(angle) / angle
         coef_2 = (1. - gs.cos(angle)) / (angle ** 2)
-        expected = helper.to_matrix(
+        expected = (
             gs.eye(3)
             + coef_1 * skew_rot_vec_3
             + coef_2 * gs.dot(skew_rot_vec_3,
@@ -388,7 +400,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         coef_1 = gs.sin(angle) / angle
         coef_2 = (1 - gs.cos(angle)) / (angle ** 2)
         result = group.matrix_from_rotation_vector(rot_vec_6)
-        expected = helper.to_matrix(
+        expected = (
             gs.eye(3)
             + coef_1 * skew_rot_vec_6
             + coef_2 * gs.dot(skew_rot_vec_6,
@@ -417,7 +429,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                             [0., gs.cos(angle), -gs.sin(angle)],
                             [0, gs.sin(angle), gs.cos(angle)]])
         result = group.rotation_vector_from_matrix(rot_mat)
-        expected = .12 * gs.array([[1., 0., 0.]])
+        expected = .12 * gs.array([1., 0., 0.])
 
         self.assertAllClose(result, expected)
 
@@ -447,7 +459,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     self.assertAllClose(result, expected)
 
             else:  # n == 2
-                point = gs.array([[0.78]])
+                point = gs.array([0.78])
 
                 rot_mat = group.matrix_from_rotation_vector(point)
                 result = group.rotation_vector_from_matrix(rot_mat)
@@ -464,7 +476,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         tait_bryan_angles = gs.array([0., 0., 0.])
         result = group.matrix_from_tait_bryan_angles_extrinsic_xyz(
             tait_bryan_angles)
-        expected = helper.to_matrix(gs.eye(n))
+        expected = gs.eye(n)
 
         self.assertAllClose(result, expected)
 
@@ -475,27 +487,27 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         tait_bryan_angles = gs.array([angle, 0., 0.])
         result = group.matrix_from_tait_bryan_angles_extrinsic_xyz(
             tait_bryan_angles)
-        expected = gs.array([[[cos_angle, - sin_angle, 0.],
-                              [sin_angle, cos_angle, 0.],
-                              [0., 0., 1.]]])
+        expected = gs.array([[cos_angle, - sin_angle, 0.],
+                             [sin_angle, cos_angle, 0.],
+                             [0., 0., 1.]])
 
         self.assertAllClose(result, expected)
 
         tait_bryan_angles = gs.array([0., angle, 0.])
         result = group.matrix_from_tait_bryan_angles_extrinsic_xyz(
             tait_bryan_angles)
-        expected = gs.array([[[cos_angle, 0., sin_angle],
-                              [0., 1., 0.],
-                              [- sin_angle, 0., cos_angle]]])
+        expected = gs.array([[cos_angle, 0., sin_angle],
+                             [0., 1., 0.],
+                             [- sin_angle, 0., cos_angle]])
 
         self.assertAllClose(result, expected)
 
         tait_bryan_angles = gs.array([0., 0., angle])
         result = group.matrix_from_tait_bryan_angles_extrinsic_xyz(
             tait_bryan_angles)
-        expected = gs.array([[[1., 0., 0.],
-                              [0., cos_angle, - sin_angle],
-                              [0., sin_angle, cos_angle]]])
+        expected = gs.array([[1., 0., 0.],
+                             [0., cos_angle, - sin_angle],
+                             [0., sin_angle, cos_angle]])
 
         self.assertAllClose(result, expected)
 
@@ -507,7 +519,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         tait_bryan_angles = gs.array([0., 0., 0.])
         result = group.matrix_from_tait_bryan_angles_extrinsic_zyx(
             tait_bryan_angles)
-        expected = helper.to_matrix(gs.eye(n))
+        expected = gs.eye(n)
 
         self.assertAllClose(result, expected)
 
@@ -518,27 +530,27 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         tait_bryan_angles = gs.array([angle, 0., 0.])
         result = group.matrix_from_tait_bryan_angles_extrinsic_zyx(
             tait_bryan_angles)
-        expected = gs.array([[[1., 0., 0.],
-                              [0., cos_angle, - sin_angle],
-                              [0., sin_angle, cos_angle]]])
+        expected = gs.array([[1., 0., 0.],
+                             [0., cos_angle, - sin_angle],
+                             [0., sin_angle, cos_angle]])
 
         self.assertAllClose(result, expected)
 
         tait_bryan_angles = gs.array([0., angle, 0.])
         result = group.matrix_from_tait_bryan_angles_extrinsic_zyx(
             tait_bryan_angles)
-        expected = gs.array([[[cos_angle, 0., sin_angle],
-                              [0., 1., 0.],
-                              [- sin_angle, 0., cos_angle]]])
+        expected = gs.array([[cos_angle, 0., sin_angle],
+                             [0., 1., 0.],
+                             [- sin_angle, 0., cos_angle]])
 
         self.assertAllClose(result, expected)
 
         tait_bryan_angles = gs.array([0., 0., angle])
         result = group.matrix_from_tait_bryan_angles_extrinsic_zyx(
             tait_bryan_angles)
-        expected = gs.array([[[cos_angle, - sin_angle, 0.],
-                              [sin_angle, cos_angle, 0.],
-                              [0., 0., 1.]]])
+        expected = gs.array([[cos_angle, - sin_angle, 0.],
+                             [sin_angle, cos_angle, 0.],
+                             [0., 0., 1.]])
 
         self.assertAllClose(result, expected)
 
@@ -549,39 +561,39 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         tait_bryan_angles = gs.array([angle, angle_bis, 0.])
         result = group.matrix_from_tait_bryan_angles_extrinsic_zyx(
             tait_bryan_angles)
-        expected = gs.array([[[cos_angle_bis, 0., sin_angle_bis],
-                              [sin_angle * sin_angle_bis,
-                               cos_angle,
-                               - sin_angle * cos_angle_bis],
-                              [- cos_angle * sin_angle_bis,
-                               sin_angle,
-                               cos_angle * cos_angle_bis]]])
+        expected = gs.array([[cos_angle_bis, 0., sin_angle_bis],
+                             [sin_angle * sin_angle_bis,
+                              cos_angle,
+                              - sin_angle * cos_angle_bis],
+                             [- cos_angle * sin_angle_bis,
+                              sin_angle,
+                              cos_angle * cos_angle_bis]])
 
         self.assertAllClose(result, expected)
 
         tait_bryan_angles = gs.array([angle, 0., angle_bis])
         result = group.matrix_from_tait_bryan_angles_extrinsic_zyx(
             tait_bryan_angles)
-        expected = gs.array([[[cos_angle_bis, - sin_angle_bis, 0.],
-                              [cos_angle * sin_angle_bis,
-                               cos_angle * cos_angle_bis,
-                               - sin_angle],
-                              [sin_angle * sin_angle_bis,
-                               sin_angle * cos_angle_bis,
-                               cos_angle]]])
+        expected = gs.array([[cos_angle_bis, - sin_angle_bis, 0.],
+                             [cos_angle * sin_angle_bis,
+                              cos_angle * cos_angle_bis,
+                              - sin_angle],
+                             [sin_angle * sin_angle_bis,
+                              sin_angle * cos_angle_bis,
+                              cos_angle]])
 
         self.assertAllClose(result, expected)
 
         tait_bryan_angles = gs.array([0., angle, angle_bis])
         result = group.matrix_from_tait_bryan_angles_extrinsic_zyx(
             tait_bryan_angles)
-        expected = gs.array([[[cos_angle * cos_angle_bis,
-                               - cos_angle * sin_angle_bis,
-                               sin_angle],
-                              [sin_angle_bis, cos_angle_bis, 0.],
-                              [- sin_angle * cos_angle_bis,
-                               sin_angle * sin_angle_bis,
-                               cos_angle]]])
+        expected = gs.array([[cos_angle * cos_angle_bis,
+                              - cos_angle * sin_angle_bis,
+                              sin_angle],
+                             [sin_angle_bis, cos_angle_bis, 0.],
+                             [- sin_angle * cos_angle_bis,
+                              sin_angle * sin_angle_bis,
+                              cos_angle]])
 
         self.assertAllClose(result, expected)
 
@@ -602,8 +614,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             tait_bryan_angles,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.to_ndarray(gs.eye(n), to_ndim=3)
-
+        expected = gs.eye(n)
         self.assertAllClose(result, expected)
 
         angle = gs.pi / 6.
@@ -615,9 +626,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             tait_bryan_angles,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[[cos_angle, - sin_angle, 0.],
-                              [sin_angle, cos_angle, 0.],
-                              [0., 0., 1.]]])
+        expected = gs.array([[cos_angle, - sin_angle, 0.],
+                             [sin_angle, cos_angle, 0.],
+                             [0., 0., 1.]])
 
         self.assertAllClose(result, expected)
 
@@ -626,9 +637,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             tait_bryan_angles,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[[cos_angle, 0., sin_angle],
-                              [0., 1., 0.],
-                              [- sin_angle, 0., cos_angle]]])
+        expected = gs.array([[cos_angle, 0., sin_angle],
+                             [0., 1., 0.],
+                             [- sin_angle, 0., cos_angle]])
 
         self.assertAllClose(result, expected)
 
@@ -637,9 +648,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             tait_bryan_angles,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[[1., 0., 0.],
-                              [0., cos_angle, - sin_angle],
-                              [0., sin_angle, cos_angle]]])
+        expected = gs.array([[1., 0., 0.],
+                             [0., cos_angle, - sin_angle],
+                             [0., sin_angle, cos_angle]])
 
         self.assertAllClose(result, expected)
 
@@ -660,7 +671,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             tait_bryan_angles,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = helper.to_matrix(gs.eye(n))
+        expected = gs.eye(n)
 
         self.assertAllClose(result, expected)
 
@@ -673,9 +684,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             tait_bryan_angles,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[[1., 0., 0.],
-                              [0., cos_angle, - sin_angle],
-                              [0., sin_angle, cos_angle]]])
+        expected = gs.array([[1., 0., 0.],
+                             [0., cos_angle, - sin_angle],
+                             [0., sin_angle, cos_angle]])
 
         self.assertAllClose(result, expected)
 
@@ -684,9 +695,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             tait_bryan_angles,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[[cos_angle, 0., sin_angle],
-                              [0., 1., 0.],
-                              [- sin_angle, 0., cos_angle]]])
+        expected = gs.array([[cos_angle, 0., sin_angle],
+                             [0., 1., 0.],
+                             [- sin_angle, 0., cos_angle]])
 
         self.assertAllClose(result, expected)
 
@@ -695,9 +706,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             tait_bryan_angles,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[[cos_angle, - sin_angle, 0.],
-                              [sin_angle, cos_angle, 0.],
-                              [0., 0., 1.]]])
+        expected = gs.array([[cos_angle, - sin_angle, 0.],
+                             [sin_angle, cos_angle, 0.],
+                             [0., 0., 1.]])
 
         self.assertAllClose(result, expected)
 
@@ -710,7 +721,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         matrix = gs.eye(n)
         result = group.tait_bryan_angles_from_matrix(
             matrix, extrinsic_or_intrinsic, order)
-        expected = gs.array([[0., 0., 0.]])
+        expected = gs.array([0., 0., 0.])
 
         self.assertAllClose(result, expected)
 
@@ -718,30 +729,30 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
-        rot_mat = gs.array([[[1., 0., 0.],
-                             [0., cos_angle, - sin_angle],
-                             [0., sin_angle, cos_angle]]])
+        rot_mat = gs.array([[1., 0., 0.],
+                            [0., cos_angle, - sin_angle],
+                            [0., sin_angle, cos_angle]])
         result = group.tait_bryan_angles_from_matrix(
             rot_mat, extrinsic_or_intrinsic, order)
-        expected = gs.array([[0., 0., angle]])
+        expected = gs.array([0., 0., angle])
 
         self.assertAllClose(result, expected)
 
-        rot_mat = gs.array([[[cos_angle, 0., sin_angle],
-                             [0., 1., 0.],
-                             [- sin_angle, 0., cos_angle]]])
+        rot_mat = gs.array([[cos_angle, 0., sin_angle],
+                            [0., 1., 0.],
+                            [- sin_angle, 0., cos_angle]])
         result = group.tait_bryan_angles_from_matrix(
             rot_mat, extrinsic_or_intrinsic, order)
-        expected = gs.array([[0., angle, 0.]])
+        expected = gs.array([0., angle, 0.])
 
         self.assertAllClose(result, expected)
 
-        rot_mat = gs.array([[[cos_angle, - sin_angle, 0.],
-                             [sin_angle, cos_angle, 0.],
-                             [0., 0., 1.]]])
+        rot_mat = gs.array([[cos_angle, - sin_angle, 0.],
+                            [sin_angle, cos_angle, 0.],
+                            [0., 0., 1.]])
         result = group.tait_bryan_angles_from_matrix(
             rot_mat, extrinsic_or_intrinsic, order)
-        expected = gs.array([[angle, 0., 0.]])
+        expected = gs.array([angle, 0., 0.])
 
         self.assertAllClose(result, expected)
 
@@ -754,7 +765,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         rot_mat = gs.eye(n)
         result = group.tait_bryan_angles_from_matrix(
             rot_mat, extrinsic_or_intrinsic, order)
-        expected = gs.array([[0., 0., 0.]])
+        expected = gs.array([0., 0., 0.])
 
         self.assertAllClose(result, expected)
 
@@ -762,30 +773,30 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
-        rot_mat = gs.array([[[1., 0., 0.],
-                             [0., cos_angle, - sin_angle],
-                             [0., sin_angle, cos_angle]]])
+        rot_mat = gs.array([[1., 0., 0.],
+                            [0., cos_angle, - sin_angle],
+                            [0., sin_angle, cos_angle]])
         result = group.tait_bryan_angles_from_matrix(
             rot_mat, extrinsic_or_intrinsic, order)
-        expected = gs.array([[angle, 0., 0.]])
+        expected = gs.array([angle, 0., 0.])
 
         self.assertAllClose(result, expected)
 
-        rot_mat = gs.array([[[cos_angle, 0., sin_angle],
-                             [0., 1., 0.],
-                             [- sin_angle, 0., cos_angle]]])
+        rot_mat = gs.array([[cos_angle, 0., sin_angle],
+                            [0., 1., 0.],
+                            [- sin_angle, 0., cos_angle]])
         result = group.tait_bryan_angles_from_matrix(
             rot_mat, extrinsic_or_intrinsic, order)
-        expected = gs.array([[0., angle, 0.]])
+        expected = gs.array([0., angle, 0.])
 
         self.assertAllClose(result, expected)
 
-        rot_mat = gs.array([[[cos_angle, - sin_angle, 0.],
-                             [sin_angle, cos_angle, 0.],
-                             [0., 0., 1.]]])
+        rot_mat = gs.array([[cos_angle, - sin_angle, 0.],
+                            [sin_angle, cos_angle, 0.],
+                            [0., 0., 1.]])
         result = group.tait_bryan_angles_from_matrix(
             rot_mat, extrinsic_or_intrinsic, order)
-        expected = gs.array([[0., 0., angle]])
+        expected = gs.array([0., 0., angle])
 
         self.assertAllClose(result, expected)
 
@@ -793,47 +804,47 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         cos_angle_bis = gs.cos(angle_bis)
         sin_angle_bis = gs.sin(angle_bis)
 
-        matrix = gs.array([[[cos_angle_bis, 0., sin_angle_bis],
-                            [sin_angle * sin_angle_bis,
-                             cos_angle,
-                             - sin_angle * cos_angle_bis],
-                            [- cos_angle * sin_angle_bis,
-                             sin_angle,
-                             cos_angle * cos_angle_bis]]])
+        matrix = gs.array([[cos_angle_bis, 0., sin_angle_bis],
+                           [sin_angle * sin_angle_bis,
+                            cos_angle,
+                            - sin_angle * cos_angle_bis],
+                           [- cos_angle * sin_angle_bis,
+                            sin_angle,
+                            cos_angle * cos_angle_bis]])
 
         result = group.tait_bryan_angles_from_matrix(
             matrix,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[angle, angle_bis, 0.]])
+        expected = gs.array([angle, angle_bis, 0.])
 
-        matrix = gs.array([[[cos_angle_bis, - sin_angle_bis, 0.],
-                            [cos_angle * sin_angle_bis,
-                             cos_angle * cos_angle_bis,
-                             - sin_angle],
-                            [sin_angle * sin_angle_bis,
-                             sin_angle * cos_angle_bis,
-                             cos_angle]]])
-
-        result = group.tait_bryan_angles_from_matrix(
-            matrix,
-            extrinsic_or_intrinsic=extrinsic_or_intrinsic,
-            order=order)
-        expected = gs.array([[angle, 0., angle_bis]])
-
-        matrix = gs.array([[[cos_angle * cos_angle_bis,
-                             - cos_angle * sin_angle_bis,
-                             sin_angle],
-                            [sin_angle_bis, cos_angle_bis, 0.],
-                            [- sin_angle * cos_angle_bis,
-                             sin_angle * sin_angle_bis,
-                             cos_angle]]])
+        matrix = gs.array([[cos_angle_bis, - sin_angle_bis, 0.],
+                           [cos_angle * sin_angle_bis,
+                            cos_angle * cos_angle_bis,
+                            - sin_angle],
+                           [sin_angle * sin_angle_bis,
+                            sin_angle * cos_angle_bis,
+                            cos_angle]])
 
         result = group.tait_bryan_angles_from_matrix(
             matrix,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[0., angle, angle_bis]])
+        expected = gs.array([angle, 0., angle_bis])
+
+        matrix = gs.array([[cos_angle * cos_angle_bis,
+                            - cos_angle * sin_angle_bis,
+                            sin_angle],
+                           [sin_angle_bis, cos_angle_bis, 0.],
+                           [- sin_angle * cos_angle_bis,
+                            sin_angle * sin_angle_bis,
+                            cos_angle]])
+
+        result = group.tait_bryan_angles_from_matrix(
+            matrix,
+            extrinsic_or_intrinsic=extrinsic_or_intrinsic,
+            order=order)
+        expected = gs.array([0., angle, angle_bis])
 
         self.assertAllClose(result, expected)
 
@@ -846,7 +857,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         matrix = gs.eye(n)
         result = group.tait_bryan_angles_from_matrix(
             matrix, extrinsic_or_intrinsic, order)
-        expected = gs.array([[0., 0., 0.]])
+        expected = gs.array([0., 0., 0.])
 
         self.assertAllClose(result, expected)
 
@@ -854,30 +865,30 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
-        rot_mat = gs.array([[[1., 0., 0.],
-                             [0., cos_angle, - sin_angle],
-                             [0., sin_angle, cos_angle]]])
+        rot_mat = gs.array([[1., 0., 0.],
+                            [0., cos_angle, - sin_angle],
+                            [0., sin_angle, cos_angle]])
         result = group.tait_bryan_angles_from_matrix(
             rot_mat, extrinsic_or_intrinsic, order)
-        expected = gs.array([[0., 0., angle]])
+        expected = gs.array([0., 0., angle])
 
         self.assertAllClose(result, expected)
 
-        rot_mat = gs.array([[[cos_angle, 0., sin_angle],
-                             [0., 1., 0.],
-                             [- sin_angle, 0., cos_angle]]])
+        rot_mat = gs.array([[cos_angle, 0., sin_angle],
+                            [0., 1., 0.],
+                            [- sin_angle, 0., cos_angle]])
         result = group.tait_bryan_angles_from_matrix(
             rot_mat, extrinsic_or_intrinsic, order)
-        expected = gs.array([[0., angle, 0.]])
+        expected = gs.array([0., angle, 0.])
 
         self.assertAllClose(result, expected)
 
-        rot_mat = gs.array([[[cos_angle, - sin_angle, 0.],
-                             [sin_angle, cos_angle, 0.],
-                             [0., 0., 1.]]])
+        rot_mat = gs.array([[cos_angle, - sin_angle, 0.],
+                            [sin_angle, cos_angle, 0.],
+                            [0., 0., 1.]])
         result = group.tait_bryan_angles_from_matrix(
             rot_mat, extrinsic_or_intrinsic, order)
-        expected = gs.array([[angle, 0., 0.]])
+        expected = gs.array([angle, 0., 0.])
 
         self.assertAllClose(result, expected)
 
@@ -890,7 +901,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         rot_mat = gs.eye(n)
         result = group.tait_bryan_angles_from_matrix(
             rot_mat, extrinsic_or_intrinsic, order)
-        expected = gs.array([[0., 0., 0.]])
+        expected = gs.array([0., 0., 0.])
 
         self.assertAllClose(result, expected)
 
@@ -898,30 +909,30 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
-        rot_mat = gs.array([[[1., 0., 0.],
-                             [0., cos_angle, - sin_angle],
-                             [0., sin_angle, cos_angle]]])
+        rot_mat = gs.array([[1., 0., 0.],
+                            [0., cos_angle, - sin_angle],
+                            [0., sin_angle, cos_angle]])
         result = group.tait_bryan_angles_from_matrix(
             rot_mat, extrinsic_or_intrinsic, order)
-        expected = gs.array([[angle, 0., 0.]])
+        expected = gs.array([angle, 0., 0.])
 
         self.assertAllClose(result, expected)
 
-        rot_mat = gs.array([[[cos_angle, 0., sin_angle],
-                             [0., 1., 0.],
-                             [- sin_angle, 0., cos_angle]]])
+        rot_mat = gs.array([[cos_angle, 0., sin_angle],
+                            [0., 1., 0.],
+                            [- sin_angle, 0., cos_angle]])
         result = group.tait_bryan_angles_from_matrix(
             rot_mat, extrinsic_or_intrinsic, order)
-        expected = gs.array([[0., angle, 0.]])
+        expected = gs.array([0., angle, 0.])
 
         self.assertAllClose(result, expected)
 
-        rot_mat = gs.array([[[cos_angle, - sin_angle, 0.],
-                             [sin_angle, cos_angle, 0.],
-                             [0., 0., 1.]]])
+        rot_mat = gs.array([[cos_angle, - sin_angle, 0.],
+                            [sin_angle, cos_angle, 0.],
+                            [0., 0., 1.]])
         result = group.tait_bryan_angles_from_matrix(
             rot_mat, extrinsic_or_intrinsic, order)
-        expected = gs.array([[0., 0., angle]])
+        expected = gs.array([0., 0., angle])
 
         self.assertAllClose(result, expected)
 
@@ -981,9 +992,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
-        rot_mat = gs.array([[[1., 0., 0.],
-                             [0., cos_angle, - sin_angle],
-                             [0., sin_angle, cos_angle]]])
+        rot_mat = gs.array([[1., 0., 0.],
+                            [0., cos_angle, - sin_angle],
+                            [0., sin_angle, cos_angle]])
         tait_bryan_angles = group.tait_bryan_angles_from_matrix(
             rot_mat,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
@@ -1000,9 +1011,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                             result,
                             expected))
 
-        rot_mat = gs.array([[[cos_angle, 0., sin_angle],
-                             [0., 1., 0.],
-                             [- sin_angle, 0., cos_angle]]])
+        rot_mat = gs.array([[cos_angle, 0., sin_angle],
+                            [0., 1., 0.],
+                            [- sin_angle, 0., cos_angle]])
         tait_bryan_angles = group.tait_bryan_angles_from_matrix(
             rot_mat,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
@@ -1020,9 +1031,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                             result,
                             expected))
 
-        rot_mat = gs.array([[[cos_angle, - sin_angle, 0.],
-                             [sin_angle, cos_angle, 0.],
-                             [0., 0., 1.]]])
+        rot_mat = gs.array([[cos_angle, - sin_angle, 0.],
+                            [sin_angle, cos_angle, 0.],
+                            [0., 0., 1.]])
         tait_bryan_angles = group.tait_bryan_angles_from_matrix(
             rot_mat,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
@@ -1043,13 +1054,13 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         cos_angle_bis = gs.cos(angle_bis)
         sin_angle_bis = gs.sin(angle_bis)
 
-        rot_mat = gs.array([[[cos_angle_bis, 0., sin_angle_bis],
-                             [sin_angle * sin_angle_bis,
-                              cos_angle,
-                              - sin_angle * cos_angle_bis],
-                             [- cos_angle * sin_angle_bis,
-                              sin_angle,
-                              cos_angle * cos_angle_bis]]])
+        rot_mat = gs.array([[cos_angle_bis, 0., sin_angle_bis],
+                            [sin_angle * sin_angle_bis,
+                             cos_angle,
+                             - sin_angle * cos_angle_bis],
+                            [- cos_angle * sin_angle_bis,
+                             sin_angle,
+                             cos_angle * cos_angle_bis]])
         # This matrix corresponds to tait-bryan angles (angle, angle_bis, 0.)
 
         tait_bryan_angles = group.tait_bryan_angles_from_matrix(
@@ -1340,9 +1351,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         cos_angle = gs.cos(angle)
         sin_angle = gs.sin(angle)
 
-        matrix = gs.array([[[1., 0., 0.],
-                            [0., cos_angle, - sin_angle],
-                            [0., sin_angle, cos_angle]]])
+        matrix = gs.array([[1., 0., 0.],
+                           [0., cos_angle, - sin_angle],
+                           [0., sin_angle, cos_angle]])
         tait_bryan_angles = group.tait_bryan_angles_from_matrix(
             matrix,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
@@ -1352,9 +1363,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
 
-        matrix = gs.array([[[cos_angle, 0., sin_angle],
-                            [0., 1., 0.],
-                            [- sin_angle, 0., cos_angle]]])
+        matrix = gs.array([[cos_angle, 0., sin_angle],
+                           [0., 1., 0.],
+                           [- sin_angle, 0., cos_angle]])
         tait_bryan_angles = group.tait_bryan_angles_from_matrix(
             matrix,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
@@ -1384,9 +1395,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                             result,
                             expected))
 
-        matrix = gs.array([[[cos_angle, - sin_angle, 0.],
-                            [sin_angle, cos_angle, 0.],
-                            [0., 0., 1.]]])
+        matrix = gs.array([[cos_angle, - sin_angle, 0.],
+                           [sin_angle, cos_angle, 0.],
+                           [0., 0., 1.]])
         tait_bryan_angles = group.tait_bryan_angles_from_matrix(
             matrix,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
@@ -1708,7 +1719,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         tait_bryan_angles = gs.array([0., 0., 0.])
         result = group.quaternion_from_tait_bryan_angles_intrinsic_xyz(
             tait_bryan_angles)
-        expected = gs.array([[1., 0., 0., 0.]])
+        expected = gs.array([1., 0., 0., 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = {};'
@@ -1722,7 +1733,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         tait_bryan_angles = gs.array([angle, 0., 0.])
         result = group.quaternion_from_tait_bryan_angles_intrinsic_xyz(
             tait_bryan_angles)
-        expected = gs.array([[cos_half_angle, 0., 0., sin_half_angle]])
+        expected = gs.array([cos_half_angle, 0., 0., sin_half_angle])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = \n{};'
@@ -1733,7 +1744,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         tait_bryan_angles = gs.array([0., angle, 0.])
         result = group.quaternion_from_tait_bryan_angles_intrinsic_xyz(
             tait_bryan_angles)
-        expected = gs.array([[cos_half_angle, 0., sin_half_angle, 0.]])
+        expected = gs.array([cos_half_angle, 0., sin_half_angle, 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = \n{};'
@@ -1744,7 +1755,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         tait_bryan_angles = gs.array([0., 0., angle])
         result = group.quaternion_from_tait_bryan_angles_intrinsic_xyz(
             tait_bryan_angles)
-        expected = gs.array([[cos_half_angle, sin_half_angle, 0., 0.]])
+        expected = gs.array([cos_half_angle, sin_half_angle, 0., 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = \n{};'
@@ -1764,7 +1775,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             tait_bryan_angles,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[1., 0., 0., 0.]])
+        expected = gs.array([1., 0., 0., 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = {};'
@@ -1780,7 +1791,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             tait_bryan_angles,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[cos_half_angle, sin_half_angle, 0., 0.]])
+        expected = gs.array([cos_half_angle, sin_half_angle, 0., 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = \n{};'
@@ -1793,7 +1804,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             tait_bryan_angles,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[cos_half_angle, 0., sin_half_angle, 0.]])
+        expected = gs.array([cos_half_angle, 0., sin_half_angle, 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = \n{};'
@@ -1806,7 +1817,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             tait_bryan_angles,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[cos_half_angle, 0., 0., sin_half_angle]])
+        expected = gs.array([cos_half_angle, 0., 0., sin_half_angle])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = \n{};'
@@ -1830,7 +1841,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             quaternion,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[0., 0., 0.]])
+        expected = gs.array([0., 0., 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = {};'
@@ -1847,7 +1858,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             quaternion,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[0., 0., angle]])
+        expected = gs.array([0., 0., angle])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = {};'
@@ -1860,7 +1871,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             quaternion,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[0., angle, 0.]])
+        expected = gs.array([0., angle, 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = {};'
@@ -1873,7 +1884,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             quaternion,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[angle, 0., 0.]])
+        expected = gs.array([angle, 0., 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = {};'
@@ -1897,7 +1908,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             quaternion,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[0., 0., 0.]])
+        expected = gs.array([0., 0., 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = {};'
@@ -1914,7 +1925,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             quaternion,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[angle, 0., 0.]])
+        expected = gs.array([angle, 0., 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = {};'
@@ -1927,7 +1938,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             quaternion,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[0., angle, 0.]])
+        expected = gs.array([0., angle, 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = {};'
@@ -1940,7 +1951,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             quaternion,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[0., 0., angle]])
+        expected = gs.array([0., 0., angle])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = {};'
@@ -1965,7 +1976,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             tait_bryan_angles,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[1., 0., 0., 0.]])
+        expected = gs.array([1., 0., 0., 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' for {} Tait-Bryan angles with order {}\n'
@@ -1993,7 +2004,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             tait_bryan_angles,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[1., 0., 0., 0.]])
+        expected = gs.array([1., 0., 0., 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' for {} Tait-Bryan angles with order {}\n'
@@ -2018,7 +2029,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         quaternion = gs.array([1., 0., 0., 0.])
         result = group.tait_bryan_angles_from_quaternion(
             quaternion, extrinsic_or_intrinsic='intrinsic', order='zyx')
-        expected = gs.array([[0., 0., 0.]])
+        expected = gs.array([0., 0., 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' for {} Tait-Bryan angles with order {}\n'
@@ -2043,7 +2054,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         quaternion = gs.array([1., 0., 0., 0.])
         result = group.tait_bryan_angles_from_quaternion(
             quaternion, extrinsic_or_intrinsic='intrinsic', order='zyx')
-        expected = gs.array([[0., 0., 0.]])
+        expected = gs.array([0., 0., 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' for {} Tait-Bryan angles with order {}\n'
@@ -2063,7 +2074,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             quaternion,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[angle, 0., 0.]])
+        expected = gs.array([angle, 0., 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = {};'
@@ -2076,7 +2087,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             quaternion,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[0., angle, 0.]])
+        expected = gs.array([0., angle, 0.])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = {};'
@@ -2089,7 +2100,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             quaternion,
             extrinsic_or_intrinsic=extrinsic_or_intrinsic,
             order=order)
-        expected = gs.array([[0., 0., angle]])
+        expected = gs.array([0., 0., angle])
 
         self.assertTrue(gs.allclose(result, expected),
                         ' result = {};'
@@ -2613,13 +2624,13 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 cos_angle_bis = gs.cos(angle_bis)
                 sin_angle_bis = gs.sin(angle_bis)
 
-                rot_mat = gs.array([[[cos_angle_bis, 0., sin_angle_bis],
-                                     [sin_angle * sin_angle_bis,
-                                      cos_angle,
-                                      - sin_angle * cos_angle_bis],
-                                     [- cos_angle * sin_angle_bis,
-                                      sin_angle,
-                                      cos_angle * cos_angle_bis]]])
+                rot_mat = gs.array([[cos_angle_bis, 0., sin_angle_bis],
+                                    [sin_angle * sin_angle_bis,
+                                     cos_angle,
+                                     - sin_angle * cos_angle_bis],
+                                    [- cos_angle * sin_angle_bis,
+                                     sin_angle,
+                                     cos_angle * cos_angle_bis]])
 
                 quaternion = group.quaternion_from_matrix(
                     rot_mat)
@@ -2746,13 +2757,13 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     # Compose transformation by its inverse on the right
                     # Expect the group identity
                     result = group.compose(point, inv_point)
-                    expected = helper.to_vector(group.identity)
+                    expected = group.identity
                     self.assertAllClose(result, expected)
 
                     # Compose transformation by its inverse on the left
                     # Expect the group identity
                     result = group.compose(inv_point, point)
-                    expected = helper.to_vector(group.identity)
+                    expected = group.identity
                     self.assertAllClose(result, expected)
             else:
                 angle = 0.986
@@ -2764,13 +2775,13 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 # Compose transformation by its inverse on the right
                 # Expect the group identity
                 result = group.compose(point, inv_point)
-                expected = helper.to_matrix(group.identity)
+                expected = group.identity
                 self.assertAllClose(result, expected)
 
                 # Compose transformation by its inverse on the left
                 # Expect the group identity
                 result = group.compose(inv_point, point)
-                expected = helper.to_matrix(group.identity)
+                expected = group.identity
                 self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_tf_only
@@ -2843,7 +2854,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             else:
                 expected = angle ** 2 / (4 * gs.sin(angle / 2) ** 2)
 
-            expected = gs.to_ndarray(expected, to_ndim=1)
             self.assertAllClose(result, expected)
 
     def test_left_jacobian_vectorization(self):
@@ -2874,7 +2884,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         # 1: Exponential of 0 gives the reference point
         rot_vec_1 = gs.array([0., 0., 0.])
-        expected = helper.to_vector(rot_vec_base_point)
+        expected = rot_vec_base_point
 
         result = metric.exp(base_point=rot_vec_base_point,
                             tangent_vec=rot_vec_1)
@@ -2941,7 +2951,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         # The Logarithm of a point at itself gives 0.
         rot_vec_1 = rot_vec_base_point
-        expected = gs.array([[0., 0., 0.]])
+        expected = gs.array([0., 0., 0.])
         result = metric.log(base_point=rot_vec_base_point,
                             point=rot_vec_1)
         self.assertAllClose(result, expected)
@@ -2963,7 +2973,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         result = metric.log(base_point=rot_vec_base_point,
                             point=rot_vec_2)
 
-        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
     def test_log_vectorization(self):
@@ -3246,7 +3255,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             result = gs.linalg.expm(tangent_sample)
             expected = group.exp_from_identity(
                 tangent_sample, point_type='matrix')
-            expected = expected[0]
 
             self.assertAllClose(result, expected)
 

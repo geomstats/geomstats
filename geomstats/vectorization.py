@@ -62,7 +62,6 @@ def decorator(input_types):
         def wrapper(*args, **kwargs):
             args_types, kwargs_types, opt_kwargs_types, is_scal = get_types(
                 input_types, args, kwargs)
-
             args_types, kwargs_types, kwargs = adapt_types(
                 args_types, kwargs_types, opt_kwargs_types, args, kwargs)
             args_kwargs_types = args_types + kwargs_types
@@ -156,7 +155,7 @@ def adapt_types(
     args_types : list
         Adapted types of args.
     kwargs_types : list
-        Adapted types of kwargs
+        Adapted types of kwargs.
     """
     in_args = 'point_type' in args_types
     in_kwargs = 'point_type' in kwargs_types
