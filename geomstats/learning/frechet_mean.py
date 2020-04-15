@@ -51,8 +51,8 @@ def variance(points,
     var = gs.sum(var)
     var /= sum_weights
 
-    var = gs.to_ndarray(var, to_ndim=1)
-    var = gs.to_ndarray(var, to_ndim=2, axis=1)
+    if n_points == 1 and gs.ndim(var) > 0:
+        var = gs.squeeze(var, axis=0)
     return var
 
 
@@ -127,7 +127,7 @@ def _default_gradient_descent(points, metric, weights,
         condition = ~gs.logical_or(
             gs.isclose(var, 0.),
             gs.less_equal(sq_dist, epsilon * var))
-        if not (condition[0, 0] or iteration == 0):
+        if not (condition or iteration == 0):
             break
         logs = metric.log(point=points, base_point=mean)
 
