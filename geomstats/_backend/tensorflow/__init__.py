@@ -52,6 +52,7 @@ from tensorflow import (  # NOQA
     tan,
     tanh,
     tile,
+    uint8,
     where,
     zeros,
     zeros_like

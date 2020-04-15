@@ -79,6 +79,7 @@ from autograd.numpy import (  # NOQA
     tril_indices,
     searchsorted,
     tril,
+    uint8,
     vstack,
     where,
     zeros,
