@@ -25,18 +25,19 @@ class ProductRiemannianMetric(RiemannianMetric):
         dimensions = [metric.dim for metric in metrics]
         signatures = [metric.signature for metric in metrics]
 
-        self.metrics = metrics
-        self.dimensions = dimensions
-        self.signatures = signatures
-        self.default_point_type = default_point_type
-        self.n_jobs = n_jobs
-
         sig_0 = sum(sig[0] for sig in signatures)
         sig_1 = sum(sig[1] for sig in signatures)
         sig_2 = sum(sig[2] for sig in signatures)
         super(ProductRiemannianMetric, self).__init__(
             dim=sum(dimensions),
-            signature=(sig_0, sig_1, sig_2))
+            signature=(sig_0, sig_1, sig_2),
+            default_point_type=default_point_type)
+
+        self.metrics = metrics
+        self.dimensions = dimensions
+        self.signatures = signatures
+        self.n_jobs = n_jobs
+
 
     def inner_product_matrix(self, base_point=None, point_type=None):
         """Compute the matrix of the inner-product.

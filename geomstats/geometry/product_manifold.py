@@ -40,16 +40,15 @@ class ProductManifold(Manifold):
         geomstats.error.check_parameter_accepted_values(
             default_point_type, 'default_point_type', ['vector', 'matrix'])
 
-        self.default_point_type = default_point_type
-
+        self.dimensions = [manifold.dim for manifold in manifolds]
+        super(ProductManifold, self).__init__(
+            dim=sum(self.dimensions),
+            default_point_type=default_point_type)
         self.manifolds = manifolds
         self.metric = ProductRiemannianMetric(
             [manifold.metric for manifold in manifolds],
             default_point_type=default_point_type)
-
-        self.dimensions = [manifold.dim for manifold in manifolds]
-        super(ProductManifold, self).__init__(
-            dim=sum(self.dimensions))
+        self.default_point_type = default_point_type
         self.n_jobs = n_jobs
 
     @staticmethod
