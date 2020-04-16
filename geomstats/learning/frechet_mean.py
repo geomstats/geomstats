@@ -22,9 +22,15 @@ def variance(points,
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, dim]
-
+    points : array-like, shape=[n_samples, dimension]
+        Points.
     weights : array-like, shape=[n_samples, 1], optional
+        Weights associated to the points.
+
+    Returns
+    -------
+    var : float
+       Weighted variance of the points.
     """
     n_points = geomstats.vectorization.get_n_points(
         points, point_type)
@@ -53,7 +59,6 @@ def linear_mean(points, weights=None, point_type='vector'):
     ----------
     points : array-like, shape=[n_samples, dim]
         Points to be averaged.
-
     weights : array-like, shape=[n_samples, 1], optional
         Weights associated to the points.
 
