@@ -32,7 +32,6 @@ from torch import (  # NOQA
     int32,
     int64,
     isnan,
-    le as less_equal,
     log,
     lt as less,
     matmul,
@@ -86,6 +85,12 @@ exp = _box_scalar(exp)
 log = _box_scalar(log)
 sin = _box_scalar(sin)
 sinh = _box_scalar(sinh)
+
+
+def less_equal(x, y, **kwargs):
+    x = torch.tensor(x)
+    y = torch.tensor(y)
+    return torch.le(x, y, **kwargs)
 
 
 def empty(shape, dtype=float64):
