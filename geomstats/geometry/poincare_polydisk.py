@@ -116,4 +116,3 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
             list_metrics.append(metric_i)
         super(PoincarePolydiskMetric, self).__init__(
             metrics=list_metrics, default_point_type='matrix')
-        self.default_point_type = 'matrix'
