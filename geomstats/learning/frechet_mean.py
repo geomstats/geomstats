@@ -66,13 +66,14 @@ def linear_mean(points, weights=None):
     """
     if isinstance(points, list):
         points = gs.vstack(points)
+    if isinstance(weights, list):
+        weights = gs.vstack(weights)
+
     points = gs.to_ndarray(points, to_ndim=2)
     n_points = gs.shape(points)[0]
 
-    if isinstance(weights, list):
-        weights = gs.vstack(weights)
-    elif weights is None:
-        weights = gs.ones((n_points, ))
+    if weights is None:
+        weights = gs.ones((n_points,))
 
     weighted_points = gs.einsum('...,...j->...j', weights, points)
     mean = (gs.sum(weighted_points, axis=0) / gs.sum(weights))
@@ -83,26 +84,16 @@ def _default_gradient_descent(points, metric, weights,
                               max_iter, point_type, epsilon, verbose):
     if point_type == 'vector':
         points = gs.to_ndarray(points, to_ndim=2)
-        #einsum_str = 'nk,nj->j'
         einsum_str = 'n,nj->j'
     if point_type == 'matrix':
         einsum_str = 'n,nij->ij'
-        # einsum_str = 'nkl,nij->ij'
         points = gs.to_ndarray(points, to_ndim=3)
     n_points = gs.shape(points)[0]
 
     if weights is None:
         weights = gs.ones((n_points,))
-        #weights = gs.ones((n_points, 1))
-    # weights = gs.array(weights)
 
     mean = points[0]
-    #if point_type == 'vector':
-        # weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
-        # mean = gs.to_ndarray(mean, to_ndim=2)
-    #if point_type == 'matrix':
-        # weights = gs.to_ndarray(weights, to_ndim=3, axis=1)
-        # mean = gs.to_ndarray(mean, to_ndim=3)
 
     if n_points == 1:
         return mean
@@ -110,8 +101,6 @@ def _default_gradient_descent(points, metric, weights,
     sum_weights = gs.sum(weights)
     sq_dists_between_iterates = []
     iteration = 0
-    #sq_dist = gs.array([[0.]])
-    #var = gs.array([[0.]])
     sq_dist = 0.
     var = 0.
 
@@ -231,16 +220,19 @@ def _adaptive_gradient_descent(points,
         raise NotImplementedError(
             'The Frechet mean with adaptive gradient descent is only'
             ' implemented for lists of vectors, and not matrices.')
-    n_points = gs.shape(points)[0]
+
+    n_points = 1
+    if gs.ndim(points) == 2:
+        n_points = gs.shape(points)[0]
 
     if n_points == 1:
         return points
 
     if weights is None:
-        weights = gs.ones((n_points, 1))
+        weights = gs.ones((n_points,))
 
-    weights = gs.array(weights)
-    weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
+    #weights = gs.array(weights)
+    #weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
 
     sum_weights = gs.sum(weights)
 
@@ -253,10 +245,10 @@ def _adaptive_gradient_descent(points,
     iteration = 0
 
     logs = metric.log(point=points, base_point=current_mean)
-    current_tangent_mean = gs.einsum('nk,nj->j', weights, logs)
+    current_tangent_mean = gs.einsum('...,...j->j', weights, logs)
     current_tangent_mean /= sum_weights
-    sq_norm_current_tangent_mean = metric.squared_norm(current_tangent_mean,
-                                                       base_point=current_mean)
+    sq_norm_current_tangent_mean = metric.squared_norm(
+        current_tangent_mean, base_point=current_mean)
 
     while (sq_norm_current_tangent_mean > epsilon ** 2
            and iteration < max_iter):
@@ -268,7 +260,7 @@ def _adaptive_gradient_descent(points,
             tangent_vec=shooting_vector,
             base_point=current_mean)
         logs = metric.log(point=points, base_point=next_mean)
-        next_tangent_mean = gs.einsum('nk,nj->j', weights, logs)
+        next_tangent_mean = gs.einsum('...,...j->j', weights, logs)
         next_tangent_mean /= sum_weights
         sq_norm_next_tangent_mean = metric.squared_norm(next_tangent_mean,
                                                         base_point=next_mean)
