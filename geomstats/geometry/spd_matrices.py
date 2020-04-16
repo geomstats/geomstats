@@ -351,10 +351,10 @@ class SPDMetricAffine(RiemannianMetric):
           SPD matrices? A principled continuum of metrics" Proc. of GSI, 2019.
           https://arxiv.org/abs/1906.01349
         """
-        dimension = int(n * (n + 1) / 2)
+        dim = int(n * (n + 1) / 2)
         super(SPDMetricAffine, self).__init__(
-            dimension=dimension,
-            signature=(dimension, 0, 0))
+            dim=dim,
+            signature=(dim, 0, 0))
         self.n = n
         self.space = SPDMatrices(n)
         self.power_affine = power_affine

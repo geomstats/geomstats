@@ -251,7 +251,6 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         if point_type is None:
             point_type = self.default_point_type
-
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)

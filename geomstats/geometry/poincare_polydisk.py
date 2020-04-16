@@ -105,12 +105,10 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
     """
 
     default_coords_type = 'extrinsic'
-    default_point_type = 'vector'
 
     def __init__(self, n_disks, coords_type='extrinsic'):
         self.n_disks = n_disks
         self.coords_type = coords_type
-        self.default_point_type = 'matrix'
         list_metrics = []
         for i_disk in range(n_disks):
             scale_i = (n_disks - i_disk) ** 0.5
@@ -118,3 +116,4 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
             list_metrics.append(metric_i)
         super(PoincarePolydiskMetric, self).__init__(
             metrics=list_metrics, default_point_type='matrix')
+        self.default_point_type = 'matrix'
