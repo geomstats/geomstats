@@ -237,7 +237,7 @@ def _adaptive_gradient_descent(points,
     iteration = 0
 
     logs = metric.log(point=points, base_point=current_mean)
-    current_tangent_mean = gs.einsum('...,...j->j', weights, logs)
+    current_tangent_mean = gs.einsum('n,nj->j', weights, logs)
     current_tangent_mean /= sum_weights
     sq_norm_current_tangent_mean = metric.squared_norm(
         current_tangent_mean, base_point=current_mean)
@@ -251,7 +251,7 @@ def _adaptive_gradient_descent(points,
             tangent_vec=shooting_vector, base_point=current_mean)
 
         logs = metric.log(point=points, base_point=next_mean)
-        next_tangent_mean = gs.einsum('...,...j->j', weights, logs)
+        next_tangent_mean = gs.einsum('n,nj->j', weights, logs)
         next_tangent_mean /= sum_weights
         sq_norm_next_tangent_mean = metric.squared_norm(
             next_tangent_mean, base_point=next_mean)
