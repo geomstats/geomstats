@@ -113,12 +113,17 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                     logging.info('Convergence reached after {} '
                                  'iterations'.format(index))
 
+                if self.n_clusters == 1:
+                    self.centroids = gs.squeeze(self.centroids, axis=0)
+
                 return gs.copy(self.centroids)
 
         if index == max_iter:
             logging.warning('K-means maximum number of iterations {} reached. '
                             'The mean may be inaccurate'.format(max_iter))
 
+        if self.n_clusters == 1:
+            self.centroids = gs.squeeze(self.centroids, axis=0)
         return gs.copy(self.centroids)
 
     def predict(self, X):

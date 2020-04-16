@@ -34,14 +34,16 @@ class TestRiemannianKMeansMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_spd_kmeans_fit(self):
         gs.random.seed(0)
-        n_points = 100
-        space = spd_matrices.SPDMatrices(10)
+        dim = 3
+        n_points = 2
+        space = spd_matrices.SPDMatrices(dim)
         data = space.random_uniform(n_samples=n_points)
-        metric = spd_matrices.SPDMetricAffine(10)
+        metric = spd_matrices.SPDMetricAffine(dim)
 
-        kmeans = RiemannianKMeans(metric, 1, point_type='matrix')
+        kmeans = RiemannianKMeans(metric, n_clusters=1, point_type='matrix')
         kmeans.fit(data)
         result = kmeans.centroids
+
         mean = FrechetMean(metric=metric, point_type='matrix', max_iter=100)
         mean.fit(data)
         expected = mean.estimate_
@@ -50,9 +52,10 @@ class TestRiemannianKMeansMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_hypersphere_kmeans_predict(self):
         gs.random.seed(1234)
+        dim = 2
 
-        manifold = hypersphere.Hypersphere(2)
-        metric = hypersphere.HypersphereMetric(2)
+        manifold = hypersphere.Hypersphere(dim)
+        metric = hypersphere.HypersphereMetric(dim)
 
         x = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
@@ -61,6 +64,7 @@ class TestRiemannianKMeansMethods(geomstats.tests.TestCase):
         result = kmeans.predict(x)
 
         centroids = kmeans.centroids
-        expected = gs.array([int(metric.closest_neighbor_index(x_i, centroids))
-                             for x_i in x])
+        expected = gs.array(
+            [int(metric.closest_neighbor_index(x_i, centroids))
+             for x_i in x])
         self.assertAllClose(expected, result)
