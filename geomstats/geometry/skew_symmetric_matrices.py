@@ -63,7 +63,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
 
         Returns
         -------
-        basis_representation: array-like, shape=[n_samples, dimension]
+        basis_representation: array-like, shape=[n_samples, dim]
         """
         old_shape = gs.shape(matrix_representation)
         as_vector = gs.reshape(matrix_representation, (old_shape[0], -1))

@@ -195,7 +195,7 @@ def _duplicate_array(x, n_samples, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array which will be copied.
     n_samples: int
         Number of copies of the array to create.
@@ -204,8 +204,8 @@ def _duplicate_array(x, n_samples, axis=0):
 
     Returns
     -------
-    tiled_array: array, shape=[dimension[:axis], n_samples, dimension[axis:]]
-        Copies of x stacked along dimension axis
+    tiled_array: array, shape=[dim[:axis], n_samples, dim[axis:]]
+        Copies of x stacked along dim axis
     """
     multiples = _np.ones(ndim(x) + 1, dtype=_np.int32)
     multiples[axis] = n_samples
@@ -219,7 +219,7 @@ def _vectorized_mask_from_indices(
     Parameters
     ----------
     n_samples: int
-        Number of copies of the mask along the additional dimension.
+        Number of copies of the mask along the additional dim.
     indices : {tuple, list(tuple)}
         Single tuple, or list of tuples of indices where ones will be.
     mask_shape : tuple
@@ -242,7 +242,7 @@ def _assignment_single_value_by_sum(x, value, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     value: float
         Value to be added.
@@ -256,7 +256,7 @@ def _assignment_single_value_by_sum(x, value, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x where value was added at all indices (and possibly along
         an axis).
     """
@@ -283,7 +283,7 @@ def assignment_by_sum(x, values, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     values: {float, list(float)}
         Value or list of values to be assigned.
@@ -297,7 +297,7 @@ def assignment_by_sum(x, values, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x as the sum of x and the values at the given indices.
 
     Notes
@@ -325,7 +325,7 @@ def _assignment_single_value(x, value, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     value: float
         Value to be added.
@@ -339,7 +339,7 @@ def _assignment_single_value(x, value, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x where value was assigned at all indices (and possibly
         along an axis).
     """
@@ -368,7 +368,7 @@ def assignment(x, values, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     values: {float, list(float)}
         Value or list of values to be assigned.
@@ -382,7 +382,7 @@ def assignment(x, values, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x with the values assigned at the given indices.
 
     Notes
@@ -432,7 +432,7 @@ def get_slice(x, indices):
 
     Parameters
     ----------
-    x : array-like, shape=[dimension]
+    x : array-like, shape=[dim]
         Initial array.
     indices : iterable(iterable(int))
         Indices which are kept along each axis, starting from 0.

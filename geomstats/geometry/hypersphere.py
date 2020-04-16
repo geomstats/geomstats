@@ -61,7 +61,7 @@ class Hypersphere(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension + 1]
+        point : array-like, shape=[n_samples, dim + 1]
             Points in Euclidean space.
         tolerance : float, optional
             Tolerance at which to evaluate norm == 1 (default: TOLERANCE).
@@ -94,12 +94,12 @@ class Hypersphere(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension + 1]
+        point : array-like, shape=[n_samples, dim + 1]
             Points on the hypersphere.
 
         Returns
         -------
-        projected_point : array-like, shape=[n_samples, dimension + 1]
+        projected_point : array-like, shape=[n_samples, dim + 1]
             Points in canonical representation chosen for the hypersphere.
         """
         if not gs.all(self.belongs(point)):
@@ -113,12 +113,12 @@ class Hypersphere(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension + 1]
+        point : array-like, shape=[n_samples, dim + 1]
             Point in embedding Euclidean space.
 
         Returns
         -------
-        projected_point : array-like, shape=[n_samples, dimension + 1]
+        projected_point : array-like, shape=[n_samples, dim + 1]
             Point projected on the hypersphere.
         """
         norm = self.embedding_metric.norm(point)
@@ -135,15 +135,15 @@ class Hypersphere(EmbeddedManifold):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, dimension + 1]
+        vector : array-like, shape=[n_samples, dim + 1]
             Vector in Euclidean space.
-        base_point : array-like, shape=[n_samples, dimension + 1]
+        base_point : array-like, shape=[n_samples, dim + 1]
             Point on the hypersphere defining the tangent space,
             where the vector will be projected.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, dimension + 1]
+        tangent_vec : array-like, shape=[n_samples, dim + 1]
             Tangent vector in the tangent space of the hypersphere
             at the base point.
         """
@@ -164,12 +164,12 @@ class Hypersphere(EmbeddedManifold):
 
         Parameters
         ----------
-        point_spherical : array-like, shape=[n_samples, dimension]
+        point_spherical : array-like, shape=[n_samples, dim]
             Point on the sphere, in spherical coordinates.
 
         Returns
         -------
-        point_extrinsic : array_like, shape=[n_samples, dimension + 1]
+        point_extrinsic : array_like, shape=[n_samples, dim + 1]
             Point on the sphere, in extrinsic coordinates in Euclidean space.
         """
         if self.dim != 2:
@@ -201,14 +201,14 @@ class Hypersphere(EmbeddedManifold):
 
         Parameters
         ----------
-        tangent_vec_spherical : array-like, shape=[n_samples, dimension]
+        tangent_vec_spherical : array-like, shape=[n_samples, dim]
             Tangent vector to the sphere, in spherical coordinates.
-        base_point_spherical : array-like, shape=[n_samples, dimension]
+        base_point_spherical : array-like, shape=[n_samples, dim]
             Point on the sphere, in spherical coordinates.
 
         Returns
         -------
-        tangent_vec_extrinsic : array-like, shape=[n_samples, dimension + 1]
+        tangent_vec_extrinsic : array-like, shape=[n_samples, dim + 1]
             Tangent vector to the sphere, at base point,
             in extrinsic coordinates in Euclidean space.
         """
@@ -241,12 +241,12 @@ class Hypersphere(EmbeddedManifold):
 
         Parameters
         ----------
-        point_intrinsic : array-like, shape=[n_samples, dimension]
+        point_intrinsic : array-like, shape=[n_samples, dim]
             Point on the hypersphere, in intrinsic coordinates.
 
         Returns
         -------
-        point_extrinsic : array-like, shape=[n_samples, dimension + 1]
+        point_extrinsic : array-like, shape=[n_samples, dim + 1]
             Point on the hypersphere, in extrinsic coordinates in
             Euclidean space.
         """
@@ -269,13 +269,13 @@ class Hypersphere(EmbeddedManifold):
 
         Parameters
         ----------
-        point_extrinsic : array-like, shape=[n_samples, dimension + 1]
+        point_extrinsic : array-like, shape=[n_samples, dim + 1]
             Point on the hypersphere, in extrinsic coordinates in
             Euclidean space.
 
         Returns
         -------
-        point_intrinsic : array-like, shape=[n_samples, dimension]
+        point_intrinsic : array-like, shape=[n_samples, dim]
             Point on the hypersphere, in intrinsic coordinates.
         """
         point_intrinsic = point_extrinsic[:, 1:]
@@ -292,7 +292,7 @@ class Hypersphere(EmbeddedManifold):
 
         Returns
         -------
-        samples : array-like, shape=[n_samples, dimension + 1]
+        samples : array-like, shape=[n_samples, dim + 1]
             Points sampled on the hypersphere.
         """
         size = (n_samples, self.dim + 1)
@@ -377,11 +377,11 @@ class HypersphereMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, dimension + 1]
+        tangent_vec_a : array-like, shape=[n_samples, dim + 1]
             First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[n_samples, dimension + 1]
+        tangent_vec_b : array-like, shape=[n_samples, dim + 1]
             Second tangent vector at base point.
-        base_point : array-like, shape=[n_samples, dimension + 1], optional
+        base_point : array-like, shape=[n_samples, dim + 1], optional
             Point on the hypersphere.
 
         Returns
@@ -402,9 +402,9 @@ class HypersphereMetric(RiemannianMetric):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, dimension + 1]
+        vector : array-like, shape=[n_samples, dim + 1]
             Vector on the tangent space of the hypersphere at base point.
-        base_point : array-like, shape=[n_samples, dimension + 1], optional
+        base_point : array-like, shape=[n_samples, dim + 1], optional
             Point on the hypersphere.
 
         Returns
@@ -421,14 +421,14 @@ class HypersphereMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dimension + 1]
+        tangent_vec : array-like, shape=[n_samples, dim + 1]
             Tangent vector at a base point.
-        base_point : array-like, shape=[n_samples, dimension + 1]
+        base_point : array-like, shape=[n_samples, dim + 1]
             Point on the hypersphere.
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dimension + 1]
+        exp : array-like, shape=[n_samples, dim + 1]
             Point on the hypersphere equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
@@ -470,14 +470,14 @@ class HypersphereMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension + 1]
+        point : array-like, shape=[n_samples, dim + 1]
             Point on the hypersphere.
-        base_point : array-like, shape=[n_samples, dimension + 1]
+        base_point : array-like, shape=[n_samples, dim + 1]
             Point on the hypersphere.
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dimension + 1]
+        log : array-like, shape=[n_samples, dim + 1]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
@@ -542,9 +542,9 @@ class HypersphereMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, dimension + 1]
+        point_a : array-like, shape=[n_samples, dim + 1]
             First point on the hypersphere.
-        point_b : array-like, shape=[n_samples, dimension + 1]
+        point_b : array-like, shape=[n_samples, dim + 1]
             Second point on the hypersphere.
 
         Returns
@@ -568,9 +568,9 @@ class HypersphereMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, dimension]
+        point_a : array-like, shape=[n_samples, dim]
             Point on the hypersphere.
-        point_b : array-like, shape=[n_samples, dimension]
+        point_b : array-like, shape=[n_samples, dim]
             Point on the hypersphere.
 
         Returns
@@ -587,17 +587,17 @@ class HypersphereMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, dimension + 1]
+        tangent_vec_a : array-like, shape=[n_samples, dim + 1]
             Tangent vector at base point to be transported.
-        tangent_vec_b : array-like, shape=[n_samples, dimension + 1]
+        tangent_vec_b : array-like, shape=[n_samples, dim + 1]
             Tangent vector at base point, along which the parallel transport
             is computed.
-        base_point : array-like, shape=[n_samples, dimension + 1]
+        base_point : array-like, shape=[n_samples, dim + 1]
             Point on the hypersphere.
 
         Returns
         -------
-        transported_tangent_vec: array-like, shape=[n_samples, dimension + 1]
+        transported_tangent_vec: array-like, shape=[n_samples, dim + 1]
             Transported tangent vector at exp_(base_point)(tangent_vec_b).
         """
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
@@ -621,7 +621,7 @@ class HypersphereMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
             Point on hypersphere where the Christoffel symbols are computed.
 
         point_type: str, {'spherical', 'intrinsic', 'extrinsic'}

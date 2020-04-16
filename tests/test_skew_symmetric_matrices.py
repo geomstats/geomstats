@@ -23,7 +23,7 @@ class TestSkewSymmetricMatrices(geomstats.tests.TestCase):
     def test_basis_has_the_right_dimension(self):
         for n in self.n_seq:
             skew = self.skew[n]
-            self.assertEqual(int(n * (n - 1) / 2), skew.dimension)
+            self.assertEqual(int(n * (n - 1) / 2), skew.dim)
 
     def test_bch_up_to_fourth_order_works(self):
         for n in self.n_seq:

@@ -12,7 +12,7 @@ def _symplectic_euler_step(state, force, dt):
 
     Parameters
     ----------
-    state : array-like, shape=[2, dimension]
+    state : array-like, shape=[2, dim]
         variables a time t
     force : callable
     dt : float
@@ -20,9 +20,9 @@ def _symplectic_euler_step(state, force, dt):
 
     Returns
     -------
-    point_new : array-like, shape=[dimension]
+    point_new : array-like, shape=[dim]
         first variable at time t + dt
-    vector_new : array-like, shape=[dimension]
+    vector_new : array-like, shape=[dim]
         second variable at time t + dt
     """
     point, vector = state
@@ -36,19 +36,19 @@ def rk4_step(state, force, dt, k1=None):
 
     Parameters
     ----------
-    state : array-like, shape=[2, dimension]
+    state : array-like, shape=[2, dim]
         variables a time t
     force : callable
     dt : float
         time-step
-    k1 : array-like, shape=[dimension]
+    k1 : array-like, shape=[dim]
         initial guess for the slope at time t
 
     Returns
     -------
-    point_new : array-like, shape=[dimension]
+    point_new : array-like, shape=[dim]
         first variable at time t + dt
-    vector_new : array-like, shape=[dimension]
+    vector_new : array-like, shape=[dim]
         second variable at time t + dt
 
     See Also

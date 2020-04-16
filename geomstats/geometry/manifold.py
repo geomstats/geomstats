@@ -13,7 +13,7 @@ class Manifold:
     def __init__(
             self, dim, default_point_type='vector',
             default_coords_type='intrinsic'):
-        geomstats.error.check_integer(dim, 'dimension')
+        geomstats.error.check_integer(dim, 'dim')
         geomstats.error.check_parameter_accepted_values(
             default_point_type, 'default_point_type', ['vector', 'matrix'])
 
@@ -26,7 +26,7 @@ class Manifold:
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
                  Input points.
 
         Returns
@@ -40,12 +40,12 @@ class Manifold:
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
                  Input points.
 
         Returns
         -------
-        regularized_point : array-like, shape=[n_samples, dimension]
+        regularized_point : array-like, shape=[n_samples, dim]
         """
         regularized_point = point
         return regularized_point

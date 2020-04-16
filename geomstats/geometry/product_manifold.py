@@ -23,7 +23,7 @@ class ProductManifold(Manifold):
     This type of representation is called 'vector'.
 
     Alternatively, a point can be represented by an array of shape:
-    [n_samples, n_manifolds, dim] if the n_manifolds have same dimension dim.
+    [n_samples, n_manifolds, dim] if the n_manifolds have same dim dim.
     This type of representation is called `matrix`.
 
     Parameters
@@ -47,7 +47,7 @@ class ProductManifold(Manifold):
             [manifold.metric for manifold in manifolds],
             default_point_type=default_point_type)
 
-        self.dimensions = [manifold.dimension for manifold in manifolds]
+        self.dimensions = [manifold.dim for manifold in manifolds]
         super(ProductManifold, self).__init__(
             dim=sum(self.dimensions))
         self.n_jobs = n_jobs
@@ -155,7 +155,7 @@ class ProductManifold(Manifold):
 
         Returns
         -------
-        samples : array-like, shape=[n_samples, dimension + 1]
+        samples : array-like, shape=[n_samples, dim + 1]
             Points sampled on the hypersphere.
         """
         if point_type is None:

@@ -225,13 +225,13 @@ class BetaMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dimension]
-        base_point : array-like, shape=[n_samples, dimension]
+        tangent_vec : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[n_samples, dim]
         n_steps : int
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dimension]
+        exp : array-like, shape=[n_samples, dim]
         """
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
@@ -259,13 +259,13 @@ class BetaMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
-        base_point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[n_samples, dim]
         n_steps : int
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, dimension]
+        tangent_vec : array-like, shape=[n_samples, dim]
             the initial velocity of the geodesic starting at base_point and
             reaching point at time 1
         """

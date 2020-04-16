@@ -112,7 +112,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             inner_product_mat_at_identity=diag_mat_at_identity,
             left_or_right='right')
 
-        # mat_at_identity = 7 * gs.eye(group.dimension)
+        # mat_at_identity = 7 * gs.eye(group.dim)
 
         # left_metric = InvariantMetric(
         #            group=group,

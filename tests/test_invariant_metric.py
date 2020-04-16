@@ -83,7 +83,7 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_tf_only
     def test_inner_product_mat_at_identity_shape(self):
-        dim = self.left_metric.group.dimension
+        dim = self.left_metric.group.dim
 
         result = self.left_metric.inner_product_mat_at_identity
         self.assertAllClose(gs.shape(result), (dim, dim))
@@ -91,12 +91,12 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_inner_product_matrix_shape(self):
         base_point = None
-        dim = self.left_metric.group.dimension
+        dim = self.left_metric.group.dim
         result = self.left_metric.inner_product_matrix(base_point=base_point)
         self.assertAllClose(gs.shape(result), (dim, dim))
 
         base_point = self.group.identity
-        dim = self.left_metric.group.dimension
+        dim = self.left_metric.group.dim
         result = self.left_metric.inner_product_matrix(base_point=base_point)
         self.assertAllClose(gs.shape(result), (dim, dim))
 

@@ -207,7 +207,7 @@ def get_slice(x, indices):
 
     Parameters
     ----------
-    x : array-like, shape=[dimension]
+    x : array-like, shape=[dim]
         Initial array.
     indices : iterable(iterable(int))
         Indices which are kept along each axis, starting from 0.
@@ -457,9 +457,9 @@ def set_diag(x, new_diag):
 
     Parameters
     ----------
-    x : array-like, shape=[dimension]
+    x : array-like, shape=[dim]
         Initial array.
-    new_diag : array-like, shape=[dimension[-2]]
+    new_diag : array-like, shape=[dim[-2]]
         Values to set on the diagonal.
 
     Returns
@@ -514,7 +514,7 @@ def assignment(x, values, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     values: {float, list(float)}
         Value or list of values to be assigned.
@@ -528,7 +528,7 @@ def assignment(x, values, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x with the values assigned at the given indices.
 
     Notes
@@ -559,7 +559,7 @@ def assignment_by_sum(x, values, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     values: {float, list(float)}
         Value or list of values to be assigned.
@@ -573,7 +573,7 @@ def assignment_by_sum(x, values, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x with the values assigned at the given indices.
 
     Notes

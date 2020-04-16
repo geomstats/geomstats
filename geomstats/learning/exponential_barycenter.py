@@ -105,7 +105,7 @@ class ExponentialBarycenter(BaseEstimator):
 
     Attributes
     ----------
-    estimate_ : array-like, shape=[dimension, dimension]
+    estimate_ : array-like, shape=[dim, dim]
     """
 
     def __init__(self, group,
