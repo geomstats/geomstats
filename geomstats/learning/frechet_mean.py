@@ -196,16 +196,12 @@ def _adaptive_gradient_descent(points,
     ----------
     points : array-like, shape=[n_samples, dim]
         Points to be averaged.
-
     weights : array-like, shape=[n_samples, 1], optional
         Weights associated to the points.
-
     max_iter : int, optional
         Maximum number of iterations for the gradient descent.
-
-    init_point : array-like, shape=[n_init, dim], optional
-        Initial points.
-
+    init_point : array-like, shape=[n_init, dimension], optional
+        Initial point.
     epsilon : float, optional
         Tolerance for stopping the gradient descent.
 
@@ -234,7 +230,6 @@ def _adaptive_gradient_descent(points,
 
     if weights is None:
         weights = gs.ones((n_points,))
-
     sum_weights = gs.sum(weights)
 
     current_mean = points[0] if init_point is None else init_point
@@ -248,8 +243,6 @@ def _adaptive_gradient_descent(points,
     sq_norm_current_tangent_mean = metric.squared_norm(
         current_tangent_mean, base_point=current_mean)
 
-    print('init')
-    print(current_tangent_mean.shape)
     while (sq_norm_current_tangent_mean > epsilon ** 2
            and iteration < max_iter):
         iteration += 1
@@ -271,13 +264,11 @@ def _adaptive_gradient_descent(points,
             tau = min(tau_max, tau_mul_up * tau)
         else:
             tau = max(tau_min, tau_mul_down * tau)
-        print(current_tangent_mean.shape)
 
     if iteration == max_iter:
         logging.warning(
             'Maximum number of iterations {} reached. '
             'The mean may be inaccurate'.format(max_iter))
-    #
     return current_mean
 
 
