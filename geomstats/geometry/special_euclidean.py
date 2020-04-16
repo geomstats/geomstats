@@ -42,7 +42,7 @@ class SpecialEuclidean(LieGroup):
     representation corresponds to homogeneous coordinates.
     """
 
-    def __init__(self, n, point_type=None, epsilon=0.):
+    def __init__(self, n, default_point_type=None, epsilon=0.):
         """Initiate an object of class SpecialEuclidean.
 
         Parameter
@@ -67,12 +67,12 @@ class SpecialEuclidean(LieGroup):
         self.epsilon = epsilon
 
         super(SpecialEuclidean, self).__init__(
-            dim=self.dimension, point_type=point_type)
-        if point_type is None:
+            dim=self.dimension, default_point_type=default_point_type)
+        if default_point_type is None:
             self.default_point_type = 'vector' if n == 3 else 'matrix'
 
         self.rotations = SpecialOrthogonal(
-            n=n, epsilon=epsilon, point_type=point_type)
+            n=n, epsilon=epsilon, default_point_type=default_point_type)
         self.translations = Euclidean(dim=n)
 
     def get_identity(self, point_type=None):

@@ -32,14 +32,14 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
     i.e. the Lie group of rotations.
     """
 
-    def __init__(self, n, point_type=None, epsilon=0.):
+    def __init__(self, n, default_point_type=None, epsilon=0.):
         """Initialize an instance of SO(n).
 
         Parameters
         ----------
         n : int
             the dimension of the euclidean space that SO(n) acts upon
-        point_type : str, {'vector', 'matrix'}, optional
+        default_point_type : str, {'vector', 'matrix'}, optional
             if None is given, point_type is set to 'vector for dimension 3
             and matrix otherwise
         epsilon : float, optional
@@ -54,15 +54,16 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         self.dim = int((n * (n - 1)) / 2)
 
         self.epsilon = epsilon
+        if default_point_type is None:
+            default_point_type = 'vector' if n == 3 else 'matrix'
 
         LieGroup.__init__(self,
-                          dim=self.dim, point_type=point_type)
+                          dim=self.dim, default_point_type=default_point_type)
         EmbeddedManifold.__init__(self,
                                   dim=self.dim,
-                                  embedding_manifold=GeneralLinear(n=n))
+                                  embedding_manifold=GeneralLinear(n=n),
+                                  default_point_type=default_point_type)
         self.bi_invariant_metric = self.left_canonical_metric
-        if point_type is None:
-            self.default_point_type = 'vector' if n == 3 else 'matrix'
 
     def get_identity(self, point_type=None):
         """Get the identity of the group.
