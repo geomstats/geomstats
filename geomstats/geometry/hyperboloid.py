@@ -63,13 +63,13 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
 
     def __init__(self, dim, coords_type='extrinsic', scale=1):
         self.scale = scale
-        self.dimension = dim
+        self.dim = dim
         self.coords_type = coords_type
         self.point_type = Hyperboloid.default_point_type
         self.embedding_manifold = Minkowski(dim + 1)
         self.embedding_metric = self.embedding_manifold.metric
         self.metric =\
-            HyperboloidMetric(self.dimension, self.coords_type, self.scale)
+            HyperboloidMetric(self.dim, self.coords_type, self.scale)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """Test if a point belongs to the hyperbolic space.
@@ -92,9 +92,9 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
             belong to the hyperbolic space.
         """
         point_dim = point.shape[-1]
-        if point_dim is not self.dimension + 1:
+        if point_dim is not self.dim + 1:
             belongs = False
-            if point_dim is self.dimension and self.coords_type == 'intrinsic':
+            if point_dim is self.dim and self.coords_type == 'intrinsic':
                 belongs = True
             if gs.ndim(point) == 2:
                 belongs = gs.tile([belongs], (point.shape[0],))
@@ -182,10 +182,10 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         point_intrinsic : array-like, shape=[n_samples, dim]
             Point in the embedded manifold in intrinsic coordinates.
         """
-        if self.dimension != point_intrinsic.shape[-1]:
+        if self.dim != point_intrinsic.shape[-1]:
             raise NameError("Wrong intrinsic dimension: "
                             + str(point_intrinsic.shape[-1]) + " instead of "
-                            + str(self.dimension))
+                            + str(self.dim))
         return\
             Hyperbolic.change_coordinates_system(point_intrinsic,
                                                  'intrinsic',
