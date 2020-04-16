@@ -414,7 +414,8 @@ class FrechetMean(BaseEstimator, TransformerMixin):
         Parameters
         ----------
         X : array-like, shape=[n_samples, dim]
-            New data, where dim is the dimension of the manifold they belong to.
+            New data, where dim is the dimension of the manifold data belong
+            to.
         base_point : array-like, shape={dim, [n,n]}, optional (mean)
             Point on the manifold, where the input samples are tangent
             vectors.
