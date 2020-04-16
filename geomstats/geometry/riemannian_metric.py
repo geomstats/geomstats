@@ -55,8 +55,9 @@ def grad(y_pred, y_true, metric):
 class RiemannianMetric(Connection):
     """Class for Riemannian and pseudo-Riemannian metrics."""
 
-    def __init__(self, dim, signature=None):
-        super(RiemannianMetric, self).__init__(dim=dim)
+    def __init__(self, dim, signature=None, default_point_type='vector'):
+        super(RiemannianMetric, self).__init__(
+            dim=dim, default_point_type=default_point_type)
         self.signature = signature
 
     def inner_product_matrix(self, base_point=None):
