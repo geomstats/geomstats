@@ -47,7 +47,7 @@ def svd(*args, **kwargs):
 
 
 def det(*args, **kwargs):
-    return torch.from_numpy(np.linalg.det(*args, **kwargs))
+    return torch.from_numpy(np.array(np.linalg.det(*args, **kwargs)))
 
 
 def norm(x, ord=2, axis=None, keepdims=False):

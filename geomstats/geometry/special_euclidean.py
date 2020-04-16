@@ -4,6 +4,7 @@ i.e. the Lie group of rigid transformations in n dimensions.
 """
 
 import geomstats.backend as gs
+import geomstats.vectorization
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import InvariantMetric
@@ -100,6 +101,7 @@ class SpecialEuclidean(LieGroup):
         """Get the shape of the instance given the default_point_style."""
         return self.get_identity(point_type).shape
 
+    @geomstats.vectorization.decorator(['else', 'point', 'point_type'])
     def belongs(self, point, point_type=None):
         """Evaluate if a point belongs to SE(n).
 
@@ -115,39 +117,41 @@ class SpecialEuclidean(LieGroup):
         belongs : array-like, shape=[n_samples, 1]
             array of booleans indicating whether point belongs to SE(n)
         """
-        if point_type is None:
-            point_type = self.default_point_type
-
         if point_type == 'vector':
-            point = gs.to_ndarray(point, to_ndim=2)
-            _, point_dim = point.shape
-            belongs = point_dim == self.dimension
+            n_points, vec_dim = gs.shape(point)
+            belongs = vec_dim == self.dimension
+
+            belongs = gs.tile([belongs], (point.shape[0],))
+
             belongs = gs.logical_and(
                 belongs, self.rotations.belongs(point[:, :self.n]))
             return gs.flatten(belongs)
         if point_type == 'matrix':
-            point = gs.to_ndarray(point, to_ndim=3)
             n_points, point_dim1, point_dim2 = point.shape
             belongs = (point_dim1 == point_dim2 == self.n + 1)
+            belongs = [belongs] * n_points
+
             rotation = point[:, :self.n, :self.n]
             rot_belongs = self.rotations.belongs(
                 rotation, point_type=point_type)
+
             belongs = gs.logical_and(belongs, rot_belongs)
 
             last_line_except_last_term = point[:, self.n:, :-1]
             all_but_last_zeros = ~ gs.any(
                 last_line_except_last_term, axis=(1, 2))
-            all_but_last_zeros = gs.to_ndarray(
-                all_but_last_zeros, to_ndim=2, axis=1)
+
             belongs = gs.logical_and(belongs, all_but_last_zeros)
 
             last_term = point[:, self.n:, self.n:]
-            belongs = gs.logical_and(belongs, gs.all(last_term == 1, axis=1))
+            belongs = gs.logical_and(
+                belongs, gs.all(last_term == 1, axis=(1, 2)))
             return gs.flatten(belongs)
 
         raise ValueError('Invalid point_type, expected \'vector\' or '
                          '\'matrix\'.')
 
+    @geomstats.vectorization.decorator(['else', 'point', 'point_type'])
     def regularize(self, point, point_type=None):
         """Regularize a point to the default representation for SE(n).
 
@@ -162,12 +166,7 @@ class SpecialEuclidean(LieGroup):
         -------
         point : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
         """
-        if point_type is None:
-            point_type = self.default_point_type
-
         if point_type == 'vector':
-            point = gs.to_ndarray(point, to_ndim=2)
-
             rotations = self.rotations
             dim_rotations = rotations.dimension
 
@@ -186,6 +185,8 @@ class SpecialEuclidean(LieGroup):
         raise ValueError('Invalid point_type, expected \'vector\' or '
                          '\'matrix\'.')
 
+    @geomstats.vectorization.decorator([
+        'else', 'point', 'else', 'point_type'])
     def regularize_tangent_vec_at_identity(
             self, tangent_vec, metric=None, point_type=None):
         """Regularize a tangent vector at the identity.
@@ -201,9 +202,6 @@ class SpecialEuclidean(LieGroup):
         -------
         regularized_vec : the regularized tangent vector
         """
-        if point_type is None:
-            point_type = self.default_point_type
-
         if point_type == 'vector':
             return self.regularize_tangent_vec(
                 tangent_vec, self.identity, metric, point_type=point_type)
@@ -222,6 +220,8 @@ class SpecialEuclidean(LieGroup):
         raise ValueError('Invalid point_type, expected \'vector\' or '
                          '\'matrix\'.')
 
+    @geomstats.vectorization.decorator([
+        'else', 'point', 'point', 'else', 'point_type'])
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None, point_type=None):
         """Regularize a tangent vector at a base point.
@@ -239,16 +239,10 @@ class SpecialEuclidean(LieGroup):
         -------
         regularized_vec : the regularized tangent vector
         """
-        if point_type is None:
-            point_type = self.default_point_type
-
         if metric is None:
             metric = self.left_canonical_metric
 
         if point_type == 'vector':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-            base_point = gs.to_ndarray(base_point, to_ndim=2)
-
             rotations = self.rotations
             dim_rotations = rotations.dimension
 
@@ -281,6 +275,7 @@ class SpecialEuclidean(LieGroup):
         raise ValueError('Invalid point_type, expected \'vector\' or '
                          '\'matrix\'.')
 
+    @geomstats.vectorization.decorator(['else', 'vector'])
     def matrix_from_vector(self, vec):
         """Convert point in vector point-type to matrix.
 
@@ -308,6 +303,8 @@ class SpecialEuclidean(LieGroup):
 
         return mat
 
+    @geomstats.vectorization.decorator(
+        ['else', 'point', 'point', 'point_type'])
     def compose(self, point_a, point_b, point_type=None):
         r"""Compose two elements of SE(n).
 
@@ -327,9 +324,6 @@ class SpecialEuclidean(LieGroup):
         composition : the composition of point_1 and point_2
 
         """
-        if point_type is None:
-            point_type = self.default_point_type
-
         rotations = self.rotations
         dim_rotations = rotations.dimension
 
@@ -362,7 +356,7 @@ class SpecialEuclidean(LieGroup):
                 '...j,...kj->...k', translation_b, rot_mat_a) + translation_a
 
             composition = gs.concatenate((composition_rot_vec,
-                                          composition_translation), axis=1)
+                                          composition_translation), axis=-1)
             return self.regularize(composition, point_type=point_type)
 
         if point_type == 'matrix':
@@ -371,6 +365,7 @@ class SpecialEuclidean(LieGroup):
         raise ValueError('Invalid point_type, expected \'vector\' or '
                          '\'matrix\'.')
 
+    @geomstats.vectorization.decorator(['else', 'point', 'point_type'])
     def inverse(self, point, point_type=None):
         r"""Compute the group inverse in SE(n).
 
@@ -390,9 +385,6 @@ class SpecialEuclidean(LieGroup):
         -----
         :math:`(R, t)^{-1} = (R^{-1}, R^{-1}.(-t))`
         """
-        if point_type is None:
-            point_type = self.default_point_type
-
         rotations = self.rotations
         dim_rotations = rotations.dimension
 
@@ -413,7 +405,7 @@ class SpecialEuclidean(LieGroup):
                 gs.transpose(inv_rot_mat, axes=(0, 2, 1)))
 
             inverse_point = gs.concatenate(
-                [inverse_rotation, inverse_translation], axis=1)
+                [inverse_rotation, inverse_translation], axis=-1)
             return self.regularize(inverse_point, point_type=point_type)
 
         if point_type == 'matrix':
@@ -427,6 +419,7 @@ class SpecialEuclidean(LieGroup):
         raise ValueError('Invalid point_type, expected \'vector\' or '
                          '\'matrix\'.')
 
+    @geomstats.vectorization.decorator(['else', 'point', 'else', 'point_type'])
     def jacobian_translation(
             self, point, left_or_right='left', point_type=None):
         """Compute the Jacobian matrix resulting from translation.
@@ -502,6 +495,7 @@ class SpecialEuclidean(LieGroup):
         raise ValueError('Invalid point_type, expected \'vector\' or '
                          '\'matrix\'.')
 
+    @geomstats.vectorization.decorator(['else', 'point', 'point_type'])
     def exp_from_identity(self, tangent_vec, point_type=None):
         """Compute group exponential of the tangent vector at the identity.
 
@@ -517,12 +511,7 @@ class SpecialEuclidean(LieGroup):
             the group exponential of the tangent vectors calculated
             at the identity
         """
-        if point_type is None:
-            point_type = self.default_point_type
-
         if point_type == 'vector':
-            tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-
             rotations = self.rotations
             dim_rotations = rotations.dimension
 
@@ -590,6 +579,7 @@ class SpecialEuclidean(LieGroup):
         raise ValueError('Invalid point_type, expected \'vector\' or '
                          '\'matrix\'.')
 
+    @geomstats.vectorization.decorator(['else', 'point', 'point_type'])
     def log_from_identity(self, point, point_type=None):
         """Compute the group logarithm of the point at the identity.
 
@@ -604,9 +594,6 @@ class SpecialEuclidean(LieGroup):
         group_log: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
             the group logarithm in the Lie algbra
         """
-        if point_type is None:
-            point_type = self.default_point_type
-
         point = self.regularize(point, point_type=point_type)
 
         rotations = self.rotations
@@ -701,26 +688,32 @@ class SpecialEuclidean(LieGroup):
             point_type = self.default_point_type
 
         random_translation = self.translations.random_uniform(n_samples)
-        random_translation = gs.to_ndarray(random_translation, to_ndim=2)
 
         if point_type == 'vector':
             random_rot_vec = self.rotations.random_uniform(
                 n_samples, point_type=point_type)
             return gs.concatenate(
                 [random_rot_vec, random_translation],
-                axis=1)
+                axis=-1)
 
         if point_type == 'matrix':
             random_rotation = self.rotations.random_uniform(
                 n_samples, point_type=point_type)
+            random_rotation = gs.to_ndarray(random_rotation, to_ndim=3)
+
+            random_translation = gs.to_ndarray(random_translation, to_ndim=2)
             random_translation = gs.transpose(gs.to_ndarray(
                 random_translation, to_ndim=3, axis=1), (0, 2, 1))
+
             random_point = gs.concatenate(
                 (random_rotation, random_translation), axis=2)
             last_line = gs.zeros((n_samples, 1, self.n + 1))
             random_point = gs.concatenate(
                 (random_point, last_line), axis=1)
-            return gs.assignment(random_point, 1, (-1, -1), axis=0)
+            random_point = gs.assignment(random_point, 1, (-1, -1), axis=0)
+            if gs.shape(random_point)[0] == 1:
+                random_point = gs.squeeze(random_point, axis=0)
+            return random_point
 
         raise ValueError('Invalid point_type, expected \'vector\' or '
                          '\'matrix\'.')

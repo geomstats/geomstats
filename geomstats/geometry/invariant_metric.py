@@ -4,6 +4,9 @@ import logging
 
 import geomstats.backend as gs
 import geomstats.error
+import geomstats.vectorization
+from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
@@ -185,16 +188,16 @@ class InvariantMetric(RiemannianMetric):
             point=base_point,
             left_or_right=self.left_or_right)
 
-        inv_jacobian = gs.linalg.inv(jacobian)
-        inv_jacobian_transposed = gs.transpose(inv_jacobian, axes=(0, 2, 1))
+        inv_jacobian = GeneralLinear.inv(jacobian)
+        inv_jacobian_transposed = Matrices.transpose(inv_jacobian)
 
-        n_base_points = base_point.shape[0]
-        inner_product_mat_at_id = gs.array(
-            [self.inner_product_mat_at_identity[0]] * n_base_points)
+        inner_product_mat_at_id = self.inner_product_mat_at_identity[0]
 
-        metric_mat = gs.matmul(
+        metric_mat = gs.einsum(
+            '...ij,...jk->...ik',
             inv_jacobian_transposed, inner_product_mat_at_id)
-        metric_mat = gs.matmul(metric_mat, inv_jacobian)
+        metric_mat = gs.einsum(
+            '...ij,...jk->...ik', metric_mat, inv_jacobian)
         return metric_mat
 
     def left_exp_from_identity(self, tangent_vec):
@@ -238,6 +241,7 @@ class InvariantMetric(RiemannianMetric):
         exp = self.group.regularize(exp)
         return exp
 
+    @geomstats.vectorization.decorator(['else', 'vector'])
     def exp_from_identity(self, tangent_vec):
         """Compute Riemannian exponential of tangent vector from the identity.
 
@@ -251,8 +255,6 @@ class InvariantMetric(RiemannianMetric):
         exp : array-like, shape=[n_samples, dimension]
             Point in the group.
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-
         if self.left_or_right == 'left':
             exp = self.left_exp_from_identity(tangent_vec)
 
@@ -263,6 +265,7 @@ class InvariantMetric(RiemannianMetric):
         exp = self.group.regularize(exp)
         return exp
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def exp(self, tangent_vec, base_point=None):
         """Compute Riemannian exponential of tan. vector wrt to base point.
 
@@ -279,13 +282,18 @@ class InvariantMetric(RiemannianMetric):
             Point in the group equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        if base_point is None:
-            base_point = self.group.identity
-        base_point = self.group.regularize(base_point)
-        if gs.allclose(base_point, self.group.identity):
-            return self.exp_from_identity(tangent_vec)
+        point_type = self.group.default_point_type
 
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
+        identity = gs.to_ndarray(
+            self.group.identity,
+            to_ndim=geomstats.vectorization.POINT_TYPES_TO_NDIMS[point_type])
+
+        if base_point is None:
+            base_point = identity
+        base_point = self.group.regularize(base_point)
+
+        if gs.allclose(base_point, identity):
+            return self.exp_from_identity(tangent_vec)
 
         n_tangent_vecs, _ = tangent_vec.shape
         n_base_points, _ = base_point.shape
@@ -314,6 +322,7 @@ class InvariantMetric(RiemannianMetric):
 
         return exp
 
+    @geomstats.vectorization.decorator(['else', 'vector'])
     def left_log_from_identity(self, point):
         """Compute Riemannian log of a point wrt. id of left-invar. metric.
 
@@ -339,8 +348,7 @@ class InvariantMetric(RiemannianMetric):
         inner_prod_mat = self.inner_product_mat_at_identity
         inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
         sqrt_inv_inner_prod_mat = gs.linalg.sqrtm(inv_inner_prod_mat)
-        aux = gs.squeeze(sqrt_inv_inner_prod_mat, axis=0)
-        log = gs.matmul(point, aux)
+        log = gs.einsum('...i,...ij->...j', point, sqrt_inv_inner_prod_mat)
         log = self.group.regularize_tangent_vec_at_identity(
             tangent_vec=log, metric=self)
         return log
@@ -370,6 +378,7 @@ class InvariantMetric(RiemannianMetric):
 
         return log
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def log(self, point, base_point=None):
         """Compute Riemannian logarithm of a point from a base point.
 
@@ -387,10 +396,17 @@ class InvariantMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
+        point_type = self.group.default_point_type
+
+        identity = gs.to_ndarray(
+            self.group.identity,
+            to_ndim=geomstats.vectorization.POINT_TYPES_TO_NDIMS[point_type])
+
         if base_point is None:
-            base_point = self.group.identity
+            base_point = identity
         base_point = self.group.regularize(base_point)
-        if gs.allclose(base_point, self.group.identity):
+
+        if gs.allclose(base_point, identity):
             return self.log_from_identity(point)
 
         point = self.group.regularize(point)

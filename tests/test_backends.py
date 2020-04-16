@@ -22,6 +22,19 @@ class TestBackends(geomstats.tests.TestCase):
         self.so3_group = SpecialOrthogonal(n=3)
         self.n_samples = 2
 
+    def test_array(self):
+        gs_mat = gs.array([gs.ones(3), gs.ones(3)])
+        np_mat = _np.array([_np.ones(3), _np.ones(3)])
+        self.assertAllCloseToNp(gs_mat, np_mat)
+
+        gs_mat = gs.array([[gs.ones(3)], [gs.ones(3)]])
+        np_mat = _np.array([[_np.ones(3)], [_np.ones(3)]])
+        self.assertAllCloseToNp(gs_mat, np_mat)
+
+        gs_mat = gs.array([gs.ones(3), [0, 0, 0]])
+        np_mat = _np.array([_np.ones(3), [0, 0, 0]])
+        self.assertAllCloseToNp(gs_mat, np_mat)
+
     def test_matmul(self):
         mat_a = [[2., 0., 0.],
                  [0., 3., 0.],
@@ -265,6 +278,42 @@ class TestBackends(geomstats.tests.TestCase):
         np_result = _np.einsum('...i,...i->...', np_array_1, np_array_2)
         gs_result = gs.einsum('...i,...i->...', array_1, array_2)
 
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_array_1 = _np.array([5])
+        np_array_2 = _np.array([[1, 2, 3]])
+        array_1 = gs.array([5])
+        array_2 = gs.array([[1, 2, 3]])
+
+        np_result = _np.einsum('...,...i->...i', np_array_1, np_array_2)
+        gs_result = gs.einsum('...,...i->...i', array_1, array_2)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_array_1 = _np.array(5)
+        np_array_2 = _np.array([[1, 2, 3]])
+        array_1 = gs.array(5)
+        array_2 = gs.array([[1, 2, 3]])
+
+        np_result = _np.einsum('...,...i->...i', np_array_1, np_array_2)
+        gs_result = gs.einsum('...,...i->...i', array_1, array_2)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_array_1 = _np.array([5])
+        np_array_2 = _np.array([1, 2, 3])
+        array_1 = gs.array([5])
+        array_2 = gs.array([1, 2, 3])
+
+        np_result = _np.einsum('...,...i->...i', np_array_1, np_array_2)
+        gs_result = gs.einsum('...,...i->...i', array_1, array_2)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_array_1 = _np.array(5)
+        np_array_2 = _np.array([1, 2, 3])
+        array_1 = gs.array(5)
+        array_2 = gs.array([1, 2, 3])
+
+        np_result = _np.einsum('...,...i->...i', np_array_1, np_array_2)
+        gs_result = gs.einsum('...,...i->...i', array_1, array_2)
         self.assertAllCloseToNp(gs_result, np_result)
 
     def test_assignment(self):
