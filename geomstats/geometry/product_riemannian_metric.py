@@ -22,22 +22,21 @@ class ProductRiemannianMetric(RiemannianMetric):
 
     def __init__(self, metrics, default_point_type='vector', n_jobs=1):
         self.n_metrics = len(metrics)
-        dimensions = [metric.dim for metric in metrics]
+        dims = [metric.dim for metric in metrics]
         signatures = [metric.signature for metric in metrics]
 
         sig_0 = sum(sig[0] for sig in signatures)
         sig_1 = sum(sig[1] for sig in signatures)
         sig_2 = sum(sig[2] for sig in signatures)
         super(ProductRiemannianMetric, self).__init__(
-            dim=sum(dimensions),
+            dim=sum(dims),
             signature=(sig_0, sig_1, sig_2),
             default_point_type=default_point_type)
 
         self.metrics = metrics
-        self.dimensions = dimensions
+        self.dims = dims
         self.signatures = signatures
         self.n_jobs = n_jobs
-
 
     def inner_product_matrix(self, base_point=None, point_type=None):
         """Compute the matrix of the inner-product.
@@ -70,7 +69,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             len(base_point), self.dim, self.dim])
         cum_dim = 0
         for i in range(self.n_metrics):
-            cum_dim_next = cum_dim + self.dimensions[i]
+            cum_dim_next = cum_dim + self.dims[i]
             if point_type == 'matrix':
                 matrix_next = self.metrics[i].inner_product_matrix(
                     base_point[:, i])
@@ -105,7 +104,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         if point.shape[1] == self.dim:
             intrinsic = True
-        elif point.shape[1] == sum(dim + 1 for dim in self.dimensions):
+        elif point.shape[1] == sum(dim + 1 for dim in self.dims):
             intrinsic = False
         else:
             raise ValueError(
@@ -119,8 +118,8 @@ class ProductRiemannianMetric(RiemannianMetric):
     def _iterate_over_metrics(
             self, func, args, intrinsic=False):
 
-        cum_index = gs.cumsum(self.dimensions, axis=0)[:-1] if intrinsic else \
-            gs.cumsum(gs.array([k + 1 for k in self.dimensions]), axis=0)
+        cum_index = gs.cumsum(self.dims, axis=0)[:-1] if intrinsic else \
+            gs.cumsum(gs.array([k + 1 for k in self.dims]), axis=0)
         arguments = {
             key: gs.split(args[key], cum_index, axis=1) for key in args.keys()}
         args_list = [{key: arguments[key][j] for key in args.keys()} for j in
