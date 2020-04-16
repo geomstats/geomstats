@@ -12,7 +12,7 @@ class TestLieAlgebraMethods(geomstats.tests.TestCase):
         self.algebra = SkewSymmetricMatrices(n=self.n)
 
     def test_dimension(self):
-        result = self.algebra.dimension
+        result = self.algebra.dim
         expected = self.dim
         self.assertAllClose(result, expected)
 
