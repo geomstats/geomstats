@@ -28,15 +28,18 @@ def empirical_frechet_var_bubble(n_samples, theta, dim,
 
     The bubble distribution is an isotropic distributions on a Riemannian
     hyper sub-sphere of radius 0 < theta < Pi around the north pole of the
-    sphere of dim dim.
+    sphere of dimension dim.
 
     Parameters
     ----------
     n_samples : int
         Number of samples to draw.
-    theta: radius of the bubble distribution
-    dim: dim of the sphere (embedded in R^{dim+1})
-    n_expectation: number of computations for approximating the expectation
+    theta: float
+        Radius of the bubble distribution.
+    dim : int
+        Dimension of the sphere (embedded in R^{dim+1}).
+    n_expectation: int, optional (defaults to 1000)
+        Number of computations for approximating the expectation.
 
     Returns
     -------
@@ -77,14 +80,18 @@ def modulation_factor(n_samples, theta, dim, n_expectation=1000):
     Fréchet mean on the manifold to the variance in a Euclidean space,
     for n_sampless drawn from an isotropic distributions on a Riemannian
     hyper sub-sphere of radius 0 < theta < Pi around the north pole of the
-    sphere of dim dim.
+    sphere of dimension dim.
 
     Parameters
     ----------
-    n_samples: number of samples to draw
-    theta: radius of the bubble distribution
-    dim: dim of the sphere (embedded in R^{dim+1})
-    n_expectation: number of computations for approximating the expectation
+    n_samples : int
+        Number of samples to draw.
+    theta : float
+        Radius of the bubble distribution.
+    dim : int
+        Dimension of the sphere (embedded in R^{dim+1}).
+    n_expectation: int, optional (defaults to 1000)
+        Number of computations for approximating the expectation.
 
     Returns
     -------
@@ -100,8 +107,10 @@ def asymptotic_modulation(dim, theta):
 
     Parameters
     ----------
-    dim: dim of the sphere (embedded in R^{dim+1})
-    theta: radius of the bubble distribution
+    dim : int
+        Dimension of the sphere (embedded in R^{dim+1}).
+    theta : float
+        Radius of the bubble distribution.
 
     Returns
     -------
@@ -121,10 +130,14 @@ def plot_modulation_factor(n_samples, dim, n_expectation=1000, n_theta=20):
 
     Parameters
     ----------
-    n_samples: number of samples to draw
-    dim: dim of the sphere (embedded in R^{dim+1})
-    n_expectation: number of computations for approximating the expectation
-    n_theta: number of sampled radii for the bubble distribution
+    n_samples : int
+        Number of samples to draw
+    dim : int
+        Dimension of the sphere (embedded in R^{dim+1}).
+    n_expectation: int, optional (defaults to 1000)
+        Number of computations for approximating the expectation.
+    n_theta: int, optional (defaults to 20)
+        Number of sampled radii for the bubble distribution.
 
     Returns
     -------
@@ -173,12 +186,6 @@ def main():
          alpha = Var( FM_n) / ( n * Var)
     for isotropic distributions on hyper-spheres of radius 0 < theta < Pi in
     the sphere S_dim (called here a bubble).
-
-    Parameters
-    ----------
-    test : bool
-        Wether the method is called from a unit test.
-        Use `True` to run only one plot and `False` to run the full example.
     """
     n_expectation = 10
 
