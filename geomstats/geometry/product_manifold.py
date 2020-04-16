@@ -23,7 +23,7 @@ class ProductManifold(Manifold):
     This type of representation is called 'vector'.
 
     Alternatively, a point can be represented by an array of shape:
-    [n_samples, n_manifolds, dim] if the n_manifolds have same dim dim.
+    [n_samples, n_manifolds, dim] if the n_manifolds have same dimension dim.
     This type of representation is called `matrix`.
 
     Parameters
@@ -48,7 +48,6 @@ class ProductManifold(Manifold):
         self.metric = ProductRiemannianMetric(
             [manifold.metric for manifold in manifolds],
             default_point_type=default_point_type)
-        self.default_point_type = default_point_type
         self.n_jobs = n_jobs
 
     @staticmethod
