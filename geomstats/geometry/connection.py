@@ -5,6 +5,7 @@ from scipy.optimize import minimize
 
 import geomstats.backend as gs
 import geomstats.error
+import geomstats.vectorization
 from geomstats.integrator import integrate
 
 
@@ -84,8 +85,15 @@ class Connection:
             Value of the vector field to be integrated at position.
         """
         gamma = self.christoffels(position)
-        return - gs.einsum('...kij,...i,...j->...k', gamma, velocity,
-                           velocity)
+        # TODO(ninamiolane): Use einsum with 3 tensors when it is
+        # enabled in the backend
+        equation = gs.einsum(
+            '...kij,...i->...kj', gamma, velocity)
+        equation = - gs.einsum(
+            '...kj,...j->...k', equation, velocity)
+        return equation
+        #return - gs.einsum(
+        #    '...kij,...i,...j->...k', gamma, velocity, velocity)
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS, step='euler',
             point_type=None):
@@ -113,12 +121,14 @@ class Connection:
         exp : array-like, shape=[n_samples, dim]
             Point on the manifold.
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
         initial_state = (base_point, tangent_vec)
         flow, _ = integrate(
             self.geodesic_equation, initial_state, n_steps=n_steps, step=step)
-        return flow[-1]
+
+        exp = flow[-1]
+        #if gs.ndim(exp) == 2 and gs.shape(exp)[0] == 1:
+        #    exp = exp[0]
+        return exp
 
     def log(self, point, base_point, n_steps=N_STEPS, step='euler'):
         """Compute logarithm map associated to the affine connection.
@@ -142,15 +152,14 @@ class Connection:
         tangent_vec : array-like, shape=[n_samples, dim]
             Tangent vector at the base point.
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        n_samples = len(base_point)
+        n_samples = geomstats.vectorization.get_n_points(
+            base_point, point_type='vector')
 
         def objective(velocity):
             """Define the objective function."""
             velocity = velocity.reshape(base_point.shape)
             delta = self.exp(velocity, base_point, n_steps, step) - point
-            loss = 1. / self.dim * gs.sum(delta ** 2, axis=1)
+            loss = 1. / self.dimension * gs.sum(delta ** 2, axis=-1)
             return 1. / n_samples * gs.sum(loss)
 
         objective_grad = autograd.elementwise_grad(objective)
@@ -379,10 +388,10 @@ class Connection:
         methods = {'pole': self._pole_ladder_step,
                    'schild': self._schild_ladder_step}
         single_step = methods[step]
-        base_shoot = self.exp(base_point=current_point,
-                              tangent_vec=next_tangent_vec)
+        base_shoot = self.exp(
+            base_point=current_point, tangent_vec=next_tangent_vec)
         trajectory = []
-        for i_point in range(0, n_steps):
+        for i_point in range(n_steps):
             frac_tangent_vector_b = (i_point + 1) / n_steps * tangent_vec_b
             next_point = self.exp(
                 base_point=base_point,
