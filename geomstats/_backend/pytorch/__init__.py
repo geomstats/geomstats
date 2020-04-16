@@ -88,8 +88,10 @@ sinh = _box_scalar(sinh)
 
 
 def less_equal(x, y, **kwargs):
-    x = torch.tensor(x)
-    y = torch.tensor(y)
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    if not torch.is_tensor(y):
+        y = torch.tensor(y)
     return torch.le(x, y, **kwargs)
 
 
