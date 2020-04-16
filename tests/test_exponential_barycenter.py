@@ -11,9 +11,9 @@ from geomstats.learning.frechet_mean import FrechetMean
 class TestExponentialBarycenter(geomstats.tests.TestCase):
 
     def setUp(self):
-        self.se_mat = SpecialEuclidean(n=3, point_type='matrix')
-        self.so_vec = SpecialOrthogonal(n=3, point_type='vector')
-        self.so = SpecialOrthogonal(n=3, point_type='matrix')
+        self.se_mat = SpecialEuclidean(n=3, default_point_type='matrix')
+        self.so_vec = SpecialOrthogonal(n=3, default_point_type='vector')
+        self.so = SpecialOrthogonal(n=3, default_point_type='matrix')
         self.n_samples = 3
 
     @geomstats.tests.np_only
@@ -124,7 +124,9 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         point = self.so.random_uniform(self.n_samples)
         estimator = ExponentialBarycenter(self.so, max_iter=32, epsilon=1e-12)
         estimator.fit(point)
-        so_vector = SpecialOrthogonal(3, point_type='vector')
+        result = estimator.estimate_
+        print(self.so.default_point_type)
+        so_vector = SpecialOrthogonal(3, default_point_type='vector')
         frechet_estimator = FrechetMean(
             so_vector.bi_invariant_metric, max_iter=32, epsilon=1e-10,
             point_type='vector')
@@ -132,7 +134,6 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         frechet_estimator.fit(vector_point)
         mean = frechet_estimator.estimate_
         expected = so_vector.matrix_from_rotation_vector(mean)[0]
-        result = estimator.estimate_
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -155,7 +156,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_linear_mean(self):
-        se_vec = SpecialEuclidean(n=3, point_type='vector')
+        se_vec = SpecialEuclidean(n=3, default_point_type='vector')
         translations = se_vec.translations
         point = translations.random_uniform(self.n_samples)
         estimator = ExponentialBarycenter(translations)

@@ -66,7 +66,7 @@ class LieGroup(Manifold):
     and columns of the matrix.
     """
 
-    def __init__(self, dim, point_type='vector'):
+    def __init__(self, dim, default_point_type='vector'):
         Manifold.__init__(self, dim=dim)
 
         self.left_canonical_metric = InvariantMetric(
@@ -82,7 +82,7 @@ class LieGroup(Manifold):
         )
 
         self.metrics = []
-        self.default_point_type = point_type
+        self.default_point_type = default_point_type
 
     def get_identity(self, point_type=None):
         """Get the identity of the group.

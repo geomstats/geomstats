@@ -22,7 +22,7 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
 
         n = 3
         group = SpecialEuclidean(n=n)
-        matrix_group = SpecialOrthogonal(n=n, point_type='matrix')
+        matrix_group = SpecialOrthogonal(n=n, default_point_type='matrix')
 
         # Diagonal left and right invariant metrics
         diag_mat_at_identity = gs.eye(group.dimension)
