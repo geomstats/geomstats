@@ -6,6 +6,7 @@ import math
 from sklearn.base import BaseEstimator, TransformerMixin
 
 import geomstats.backend as gs
+import geomstats.error as error
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.minkowski import MinkowskiMetric
@@ -308,6 +309,9 @@ class FrechetMean(BaseEstimator, TransformerMixin):
                  point_type='vector',
                  method='default',
                  verbose=False):
+        error.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
+
         self.metric = metric
         self.max_iter = max_iter
         self.epsilon = epsilon
@@ -400,7 +404,8 @@ class FrechetMean(BaseEstimator, TransformerMixin):
             X = SymmetricMatrices.vector_from_symmetric_matrix(
                 tangent_vecs)
         elif gs.all(Matrices.is_skew_symmetric(tangent_vecs)):
-            X = SkewSymmetricMatrices.basis_representation(tangent_vecs)
+            X = SkewSymmetricMatrices(
+                tangent_vecs.shape[-1]).basis_representation(tangent_vecs)
         else:
             X = gs.reshape(tangent_vecs, (len(X), - 1))
 
@@ -437,7 +442,8 @@ class FrechetMean(BaseEstimator, TransformerMixin):
                 tangent_vecs = SymmetricMatrices(
                     base_point.shape[-1]).symmetric_matrix_from_vector(X)
             elif gs.all(Matrices.is_skew_symmetric(base_point)):
-                tangent_vecs = SkewSymmetricMatrices.matrix_representation(X)
+                tangent_vecs = SkewSymmetricMatrices(
+                    base_point.shape[-1]).matrix_representation(X)
             else:
                 dim = base_point.shape[-1]
                 tangent_vecs = gs.reshape(X, (len(X), dim, dim))
