@@ -69,9 +69,9 @@ def linear_mean(points, weights=None, point_type='vector'):
     # TODO(ninamiolane): Factorize this code to handle lists
     # in the whole codebase
     if isinstance(points, list):
-        points = gs.vstack(points)
+        points = gs.stack(points, axis=0)
     if isinstance(weights, list):
-        weights = gs.vstack(weights)
+        weights = gs.stack(weights, axis=0)
 
     n_points = geomstats.vectorization.get_n_points(
         points, point_type)

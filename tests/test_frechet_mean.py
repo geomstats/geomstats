@@ -294,6 +294,17 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    def test_mean_minkowski_shape(self):
+        dim = 2
+        point = gs.array([2., -math.sqrt(3)])
+        points = [point, point, point]
+
+        mean = FrechetMean(metric=self.minkowski.metric)
+        mean.fit(points)
+        result = mean.estimate_
+
+        self.assertAllClose(gs.shape(result), (dim,))
+
     def test_mean_minkowski(self):
         point = gs.array([2., -math.sqrt(3)])
         points = [point, point, point]
