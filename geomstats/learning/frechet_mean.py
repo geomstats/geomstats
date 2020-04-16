@@ -109,13 +109,12 @@ def _default_gradient_descent(points, metric, weights,
     var = 0.
 
     while iteration < max_iter:
-        print(var)
-        print(sq_dist)
         var_is_0 = gs.isclose(var, 0.)
         sq_dist_is_small = gs.less_equal(sq_dist, epsilon * var)
         condition = ~gs.logical_or(var_is_0, sq_dist_is_small)
         if not (condition or iteration == 0):
             break
+
         logs = metric.log(point=points, base_point=mean)
 
         tangent_mean = gs.einsum(einsum_str, weights, logs)
