@@ -305,7 +305,7 @@ class FrechetMean(BaseEstimator, TransformerMixin):
     def __init__(self, metric,
                  max_iter=32,
                  epsilon=EPSILON,
-                 point_type=None,
+                 point_type='vector',
                  method='default',
                  verbose=False):
         self.metric = metric
@@ -314,6 +314,7 @@ class FrechetMean(BaseEstimator, TransformerMixin):
         self.point_type = point_type
         self.method = method
         self.verbose = verbose
+        self.estimate_ = None
 
         if point_type is None:
             self.point_type = metric.default_point_type
@@ -386,9 +387,9 @@ class FrechetMean(BaseEstimator, TransformerMixin):
         if base_point is None:
             base_point = self.estimate_
 
-        if self.estimate_ is None:
-            raise RuntimeError('fit needs to be called first or a base_point '
-                               'passed.')
+            if self.estimate_ is None:
+                raise RuntimeError('fit needs to be called first or a '
+                                   'base_point passed.')
 
         tangent_vecs = self.metric.log(X, base_point=base_point)
 
@@ -426,9 +427,9 @@ class FrechetMean(BaseEstimator, TransformerMixin):
         if base_point is None:
             base_point = self.estimate_
 
-        if self.estimate_ is None:
-            raise RuntimeError('fit needs to be called first or a base_point '
-                               'passed.')
+            if self.estimate_ is None:
+                raise RuntimeError('fit needs to be called first or a '
+                                   'base_point passed.')
 
         if self.point_type == 'matrix':
             if gs.all(Matrices.is_symmetric(base_point)):
