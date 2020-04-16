@@ -7,7 +7,7 @@ We solve the following optimization problem:
     such than: x^{T}x = 1
 
 Using by operating a gradient descent of the quadratic form
-on the sphere. We solve this in 3 dim on the 2-sphere
+on the sphere. We solve this in dimension 3 on the 2-sphere
 manifold so that we can visualize and render the path as a video.
 """
 

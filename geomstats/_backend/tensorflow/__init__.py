@@ -219,7 +219,7 @@ def _vectorized_mask_from_indices(
     Parameters
     ----------
     n_samples: int
-        Number of copies of the mask along the additional dim.
+        Number of copies of the mask along the additional dimension.
     indices : {tuple, list(tuple)}
         Single tuple, or list of tuples of indices where ones will be.
     mask_shape : tuple
