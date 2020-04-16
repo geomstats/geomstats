@@ -98,7 +98,7 @@ class Grassmannian(EmbeddedManifold):
 
         [n_points, n, p] = point.shape
 
-        return [n==p]*n_points
+        return [n == p] * n_points
 
     @staticmethod
     def _check_symmetric(point):
@@ -118,7 +118,7 @@ class Grassmannian(EmbeddedManifold):
     @staticmethod
     def _check_idempotent(point, tolerance):
         """Check that a point is idempotent.
-        
+
         Parameters
         ----------
         point
@@ -129,8 +129,6 @@ class Grassmannian(EmbeddedManifold):
         belongs : bool
         """
 
-        point_transpose = Matrices.transpose(point)
-        
         diff = gs.einsum('...ij,...jk->...ik', point, point) - point
         diff_norm = gs.linalg.norm(diff, axis=(1, 2))
 
@@ -138,7 +136,7 @@ class Grassmannian(EmbeddedManifold):
 
     @staticmethod
     def _check_rank(point, rank, tolerance):
-        """Check that the rank of the point is equal to the 
+        """Check that the rank of the point is equal to the
         subspace dimension.  Matrix rank is equal to number of
         singular values greater than 0.
 
@@ -153,12 +151,9 @@ class Grassmannian(EmbeddedManifold):
         belongs : bool
         """
 
-        [_,s,_] = gs.linalg.svd(point)
-        
-        return gs.sum(s>tolerance, axis=1) == rank
+        [_, s, _] = gs.linalg.svd(point)
 
-
-
+        return gs.sum(s > tolerance, axis=1) == rank
 
 
 class GrassmannianCanonicalMetric(RiemannianMetric):
