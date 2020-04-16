@@ -42,7 +42,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(expected, result, rtol=1e-10, atol=1e-10)
 
     @geomstats.tests.np_only
-    def test_log_at_mean_adaptive_gradient_descent_sphere(self):
+    def test_logs_at_mean_adaptive_gradient_descent_sphere(self):
         n_tests = 100
         estimator = FrechetMean(metric=self.sphere.metric, method='adaptive')
 
@@ -250,6 +250,18 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = True
 
         self.assertAllClose(result, expected)
+
+    def test_mean_euclidean_shape(self):
+        dim = 2
+        point = gs.array([1., 4.])
+
+        mean = FrechetMean(metric=self.euclidean.metric)
+        points = [point, point, point]
+        mean.fit(points)
+
+        result = mean.estimate_
+
+        self.assertAllClose(gs.shape(result), (dim,))
 
     def test_mean_euclidean(self):
         point = gs.array([1., 4.])
