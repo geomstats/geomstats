@@ -162,6 +162,7 @@ class ProductManifold(Manifold):
             point_type = self.default_point_type
         geomstats.error.check_parameter_accepted_values(
             point_type, 'point_type', ['vector', 'matrix'])
+
         if point_type == 'vector':
             data = self.manifolds[0].random_uniform(n_samples)
             if len(self.manifolds) > 1:
@@ -169,10 +170,9 @@ class ProductManifold(Manifold):
                     samples = space.random_uniform(n_samples)
                     data = gs.concatenate([data, samples], axis=-1)
             return data
+
         point = [
             space.random_uniform(n_samples)
             for space in self.manifolds]
         samples = gs.stack(point, axis=1)
-        if n_samples == 1 and samples.shape[0] == 1:
-            samples = gs.squeeze(samples, axis=0)
         return samples
