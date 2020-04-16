@@ -294,7 +294,8 @@ def sqrt(x):
 #                https://github.com/pytorch/pytorch/issues/35471
 #              In the future, we may simply use that function instead.
 def isclose(*args, **kwargs):
-    return torch.from_numpy(_np.isclose(*args, **kwargs))
+    # TODO(ninamiolane): Use native torch.isclose
+    return torch.from_numpy(_np.array(_np.isclose(*args, **kwargs)))
 
 
 def sum(x, axis=None, keepdims=None, **kwargs):

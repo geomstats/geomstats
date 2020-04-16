@@ -6,6 +6,7 @@ import math
 from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
+import geomstats.vectorization
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.minkowski import MinkowskiMetric
 
@@ -25,11 +26,8 @@ def variance(points,
 
     weights : array-like, shape=[n_samples, 1], optional
     """
-    n_points = 1
-    if point_type == 'vector' and gs.ndim(points) == 2:
-        n_points = gs.shape(points)[0]
-    if point_type == 'matrix' and gs.ndim(points) == 3:
-        n_points = gs.shape(points)[0]
+    n_points = geomstats.vectorization.get_n_points(
+        points, point_type)
 
     if weights is None:
         weights = gs.ones((n_points,))
@@ -44,7 +42,7 @@ def variance(points,
     return var
 
 
-def linear_mean(points, weights=None):
+def linear_mean(points, weights=None, point_type='vector'):
     """Compute the weighted linear mean.
 
     The linear mean is the Frechet mean when points:
@@ -69,14 +67,14 @@ def linear_mean(points, weights=None):
     if isinstance(weights, list):
         weights = gs.vstack(weights)
 
-    points = gs.to_ndarray(points, to_ndim=2)
-    n_points = gs.shape(points)[0]
+    n_points = geomstats.vectorization.get_n_points(
+        points, point_type)
 
     if weights is None:
         weights = gs.ones((n_points,))
 
     weighted_points = gs.einsum('...,...j->...j', weights, points)
-    mean = (gs.sum(weighted_points, axis=0) / gs.sum(weights))
+    mean = gs.sum(weighted_points, axis=0) / gs.sum(weights)
     return mean
 
 
@@ -212,21 +210,23 @@ def _adaptive_gradient_descent(points,
     current_mean: array-like, shape=[n_samples, dim]
         Weighted Frechet mean of the points.
     """
-    tau_max = 1e6
-    tau_mul_up = 1.6511111
-    tau_min = 1e-6
-    tau_mul_down = 0.1
     if point_type == 'matrix':
         raise NotImplementedError(
             'The Frechet mean with adaptive gradient descent is only'
             ' implemented for lists of vectors, and not matrices.')
 
-    n_points = 1
-    if gs.ndim(points) == 2:
-        n_points = gs.shape(points)[0]
+    tau_max = 1e6
+    tau_mul_up = 1.6511111
+    tau_min = 1e-6
+    tau_mul_down = 0.1
+
+    n_points = geomstats.vectorization.get_n_points(
+        points, point_type)
+
+    points = gs.to_ndarray(points, to_ndim=2)
 
     if n_points == 1:
-        return points
+        return points[0]
 
     if weights is None:
         weights = gs.ones((n_points,))
@@ -236,10 +236,7 @@ def _adaptive_gradient_descent(points,
 
     sum_weights = gs.sum(weights)
 
-    if init_point is None:
-        current_mean = points[0]
-    else:
-        current_mean = init_point
+    current_mean = points[0] if init_point is None else init_point
 
     tau = 1.0
     iteration = 0
@@ -250,20 +247,22 @@ def _adaptive_gradient_descent(points,
     sq_norm_current_tangent_mean = metric.squared_norm(
         current_tangent_mean, base_point=current_mean)
 
+    print('init')
+    print(current_tangent_mean.shape)
     while (sq_norm_current_tangent_mean > epsilon ** 2
            and iteration < max_iter):
-        iteration = iteration + 1
-        shooting_vector = gs.to_ndarray(
-            tau * current_tangent_mean,
-            to_ndim=2)
+        iteration += 1
+
+        shooting_vector = tau * current_tangent_mean
         next_mean = metric.exp(
-            tangent_vec=shooting_vector,
-            base_point=current_mean)
+            tangent_vec=shooting_vector, base_point=current_mean)
+
         logs = metric.log(point=points, base_point=next_mean)
         next_tangent_mean = gs.einsum('...,...j->j', weights, logs)
         next_tangent_mean /= sum_weights
-        sq_norm_next_tangent_mean = metric.squared_norm(next_tangent_mean,
-                                                        base_point=next_mean)
+        sq_norm_next_tangent_mean = metric.squared_norm(
+            next_tangent_mean, base_point=next_mean)
+
         if sq_norm_next_tangent_mean < sq_norm_current_tangent_mean:
             current_mean = next_mean
             current_tangent_mean = next_tangent_mean
@@ -271,6 +270,7 @@ def _adaptive_gradient_descent(points,
             tau = min(tau_max, tau_mul_up * tau)
         else:
             tau = max(tau_min, tau_mul_down * tau)
+        print(current_tangent_mean.shape)
 
     if iteration == max_iter:
         logging.warning(
