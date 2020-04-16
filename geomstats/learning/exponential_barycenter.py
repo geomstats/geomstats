@@ -51,7 +51,6 @@ def _default_gradient_descent(
     sum_weights = gs.sum(weights)
 
     mean = points[0]
-    mean = gs.to_ndarray(mean, to_ndim=ndim)
 
     sq_dists_between_iterates = []
     iteration = 0
@@ -83,7 +82,7 @@ def _default_gradient_descent(
     if verbose:
         logging.info(
             'n_iter: {}, final gradient norm: {}'.format(iteration, grad_norm))
-    return mean[0]
+    return mean
 
 
 class ExponentialBarycenter(BaseEstimator):
@@ -141,7 +140,7 @@ class ExponentialBarycenter(BaseEstimator):
             Returns self.
         """
         if isinstance(self.group, Euclidean):
-            mean = linear_mean(points=X, weights=weights)[0]
+            mean = linear_mean(points=X, weights=weights)
 
         # TODO(nguigs): use closed form expression for special euclidean
         #  group as before PR #537
