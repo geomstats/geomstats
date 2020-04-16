@@ -14,20 +14,20 @@ from ._bch_coefficients import BCH_COEFFICIENTS
 class MatrixLieAlgebra:
     """Class implementing matrix Lie algebra related functions."""
 
-    def __init__(self, dimension, n):
+    def __init__(self, dim, n):
         """Construct the MatrixLieAlgebra object.
 
         Parameters
         ----------
-        dimension: int
+        dim: int
             The dimension of the Lie algebra as a real vector space
         n: int
             The amount of rows and columns in the matrix representation of the
             Lie algebra
         """
-        geomstats.error.check_integer(dimension, 'dim')
+        geomstats.error.check_integer(dim, 'dim')
         geomstats.error.check_integer(n, 'n')
-        self.dimension = dimension
+        self.dim = dim
         self.n = n
         self.basis = None
 

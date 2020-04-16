@@ -613,10 +613,10 @@ class SPDMetricProcrustes(RiemannianMetric):
     """
 
     def __init__(self, n):
-        dimension = int(n * (n + 1) / 2)
+        dim = int(n * (n + 1) / 2)
         super(SPDMetricProcrustes, self).__init__(
-            dimension=dimension,
-            signature=(dimension, 0, 0))
+            dim=dim,
+            signature=(dim, 0, 0))
         self.n = n
         self.space = SPDMatrices(n)
 
@@ -649,10 +649,10 @@ class SPDMetricEuclidean(RiemannianMetric):
     """Class for the Euclidean metric on the SPD manifold."""
 
     def __init__(self, n, power_euclidean=1):
-        dimension = int(n * (n + 1) / 2)
+        dim = int(n * (n + 1) / 2)
         super(SPDMetricEuclidean, self).__init__(
-            dimension=dimension,
-            signature=(dimension, 0, 0))
+            dim=dim,
+            signature=(dim, 0, 0))
         self.n = n
         self.space = SPDMatrices(n)
         self.power_euclidean = power_euclidean
@@ -733,10 +733,10 @@ class SPDMetricLogEuclidean(RiemannianMetric):
     """Class for the Log-Euclidean metric on the SPD manifold."""
 
     def __init__(self, n):
-        dimension = int(n * (n + 1) / 2)
+        dim = int(n * (n + 1) / 2)
         super(SPDMetricLogEuclidean, self).__init__(
-            dimension=dimension,
-            signature=(dimension, 0, 0))
+            dim=dim,
+            signature=(dim, 0, 0))
         self.n = n
         self.space = SPDMatrices(n)
 
