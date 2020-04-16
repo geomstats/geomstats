@@ -62,6 +62,8 @@ def linear_mean(points, weights=None, point_type='vector'):
     mean : array-like, shape=[1, dim]
         Weighted linear mean of the points.
     """
+    # TODO(ninamiolane): Factorize this code to handle lists
+    # in the whole codebase
     if isinstance(points, list):
         points = gs.vstack(points)
     if isinstance(weights, list):
@@ -84,8 +86,8 @@ def _default_gradient_descent(points, metric, weights,
         points = gs.to_ndarray(points, to_ndim=2)
         einsum_str = 'n,nj->j'
     if point_type == 'matrix':
-        einsum_str = 'n,nij->ij'
         points = gs.to_ndarray(points, to_ndim=3)
+        einsum_str = 'n,nij->ij'
     n_points = gs.shape(points)[0]
 
     if weights is None:
@@ -103,9 +105,11 @@ def _default_gradient_descent(points, metric, weights,
     var = 0.
 
     while iteration < max_iter:
-        condition = ~gs.logical_or(
-            gs.isclose(var, 0.),
-            gs.less_equal(sq_dist, epsilon * var))
+        print(var)
+        print(sq_dist)
+        var_is_0 = gs.isclose(var, 0.)
+        sq_dist_is_small = gs.less_equal(sq_dist, epsilon * var)
+        condition = ~gs.logical_or(var_is_0, sq_dist_is_small)
         if not (condition or iteration == 0):
             break
         logs = metric.log(point=points, base_point=mean)
@@ -221,14 +225,14 @@ def _adaptive_gradient_descent(points,
 
     points = gs.to_ndarray(points, to_ndim=2)
 
+    current_mean = points[0] if init_point is None else init_point
+
     if n_points == 1:
-        return points[0]
+        return current_mean
 
     if weights is None:
         weights = gs.ones((n_points,))
     sum_weights = gs.sum(weights)
-
-    current_mean = points[0] if init_point is None else init_point
 
     tau = 1.0
     iteration = 0
