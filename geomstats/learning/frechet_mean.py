@@ -74,7 +74,6 @@ def linear_mean(points, weights=None, point_type='vector'):
     # TODO(ninamiolane): Factorize this code to handle lists
     # in the whole codebase
     if isinstance(points, list):
-<<<<<<< HEAD
         points = gs.stack(points, axis=0)
     if isinstance(weights, list):
         weights = gs.stack(weights, axis=0)
@@ -93,17 +92,6 @@ def linear_mean(points, weights=None, point_type='vector'):
     weighted_points = gs.einsum(einsum_str, weights, points)
 
     mean = gs.sum(weighted_points, axis=0) / sum_weights
-=======
-        points = gs.vstack(points)
-    if isinstance(weights, list):
-        weights = gs.vstack(weights)
-
-    points = gs.to_ndarray(points, to_ndim=2)
-    n_points = gs.shape(points)[0]
-
-    if weights is None:
-        weights = gs.ones((n_points,))
->>>>>>> Add tests to frechet mean
 
     return mean
 
@@ -114,10 +102,6 @@ def _default_gradient_descent(points, metric, weights,
         points = gs.to_ndarray(points, to_ndim=2)
         einsum_str = 'n,nj->j'
     if point_type == 'matrix':
-<<<<<<< HEAD
-=======
-        einsum_str = 'n,nij->ij'
->>>>>>> Add tests to frechet mean
         points = gs.to_ndarray(points, to_ndim=3)
         einsum_str = 'n,nij->ij'
     n_points = gs.shape(points)[0]
@@ -133,10 +117,7 @@ def _default_gradient_descent(points, metric, weights,
     sum_weights = gs.sum(weights)
     sq_dists_between_iterates = []
     iteration = 0
-<<<<<<< HEAD
 
-=======
->>>>>>> Add tests to frechet mean
     sq_dist = 0.
     var = 0.
 
@@ -248,31 +229,20 @@ def _adaptive_gradient_descent(points,
         raise NotImplementedError(
             'The Frechet mean with adaptive gradient descent is only'
             ' implemented for lists of vectors, and not matrices.')
-<<<<<<< HEAD
-=======
 
     n_points = 1
     if gs.ndim(points) == 2:
         n_points = gs.shape(points)[0]
->>>>>>> Add tests to frechet mean
 
     tau_max = 1e6
     tau_mul_up = 1.6511111
     tau_min = 1e-6
     tau_mul_down = 0.1
 
-<<<<<<< HEAD
     n_points = geomstats.vectorization.get_n_points(
         points, point_type)
 
     points = gs.to_ndarray(points, to_ndim=2)
-=======
-    if weights is None:
-        weights = gs.ones((n_points,))
-
-    #weights = gs.array(weights)
-    #weights = gs.to_ndarray(weights, to_ndim=2, axis=1)
->>>>>>> Add tests to frechet mean
 
     current_mean = points[0] if init_point is None else init_point
 
@@ -287,14 +257,12 @@ def _adaptive_gradient_descent(points,
     iteration = 0
 
     logs = metric.log(point=points, base_point=current_mean)
-<<<<<<< HEAD
     current_tangent_mean = gs.einsum('n,nj->j', weights, logs)
-=======
-    current_tangent_mean = gs.einsum('...,...j->j', weights, logs)
->>>>>>> Add tests to frechet mean
+
     current_tangent_mean /= sum_weights
     sq_norm_current_tangent_mean = metric.squared_norm(
         current_tangent_mean, base_point=current_mean)
+
 
     while (sq_norm_current_tangent_mean > epsilon ** 2
            and iteration < max_iter):
@@ -305,11 +273,8 @@ def _adaptive_gradient_descent(points,
             tangent_vec=shooting_vector, base_point=current_mean)
 
         logs = metric.log(point=points, base_point=next_mean)
-<<<<<<< HEAD
         next_tangent_mean = gs.einsum('n,nj->j', weights, logs)
-=======
-        next_tangent_mean = gs.einsum('...,...j->j', weights, logs)
->>>>>>> Add tests to frechet mean
+
         next_tangent_mean /= sum_weights
         sq_norm_next_tangent_mean = metric.squared_norm(
             next_tangent_mean, base_point=next_mean)
@@ -321,6 +286,7 @@ def _adaptive_gradient_descent(points,
             tau = min(tau_max, tau_mul_up * tau)
         else:
             tau = max(tau_min, tau_mul_down * tau)
+        print(current_tangent_mean.shape)
 
     if iteration == max_iter:
         logging.warning(
