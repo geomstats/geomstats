@@ -145,8 +145,6 @@ def _default_gradient_descent(points, metric, weights,
         logging.info('n_iter: {}, final variance: {}, final dist: {}'.format(
             iteration, var, sq_dist))
 
-    # mean = gs.to_ndarray(mean, to_ndim=2)
-    # mean = gs.squeeze(mean, axis=0)
     return mean
 
 
