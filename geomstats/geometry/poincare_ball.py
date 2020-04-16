@@ -46,7 +46,7 @@ class PoincareBall(Hyperbolic):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
             Point to be tested.
         tolerance : float, optional
             Tolerance at which to evaluate how close the squared norm
@@ -89,14 +89,14 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dimension]
+        tangent_vec : array-like, shape=[n_samples, dim]
             Tangent vector at a base point.
-        base_point : array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dim]
             Point in hyperbolic space.
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dimension]
+        exp : array-like, shape=[n_samples, dim]
             Point in hyperbolic space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
@@ -146,14 +146,14 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
             Point in hyperbolic space.
-        base_point : array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dim]
             Point in hyperbolic space.
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dimension]
+        log : array-like, shape=[n_samples, dim]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
@@ -191,9 +191,9 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, dimension]
+        point_a : array-like, shape=[n_samples, dim]
             Point in hyperbolic space.
-        point_b : array-like, shape=[n_samples, dimension]
+        point_b : array-like, shape=[n_samples, dim]
             Point in hyperbolic space.
 
         Returns
@@ -237,9 +237,9 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, dimension]
+        point_a : array-like, shape=[n_samples, dim]
             First point in hyperbolic space.
-        point_b : array-like, shape=[n_samples, dimension]
+        point_b : array-like, shape=[n_samples, dim]
             Second point in hyperbolic space.
 
         Returns
@@ -273,14 +273,14 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dimension]
+        tangent_vec : array-like, shape=[n_samples, dim]
             vector in tangent space.
-        base_point : array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dim]
             Second point in hyperbolic space.
 
         Returns
         -------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
             Retraction point.
         """
         ball_manifold = PoincareBall(self.dim, scale=self.scale)
@@ -303,11 +303,11 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point: array-like, shape=[n_samples, dimension]
+        base_point: array-like, shape=[n_samples, dim]
 
         Returns
         -------
-        inner_prod_mat: array-like, shape=[n_samples, dimension, dimension]
+        inner_prod_mat: array-like, shape=[n_samples, dim, dim]
         """
         if base_point is None:
             base_point = gs.zeros((1, self.dim))

@@ -22,7 +22,7 @@ class InvariantMetric(RiemannianMetric):
     ----------
     group : LieGroup
         The group to equip with the invariant metric
-    inner_product_mat_at_identity : array-like, shape=[dimension, dimension]
+    inner_product_mat_at_identity : array-like, shape=[dim, dim]
         The matrix that defines the metric at identity.
     left_or_right : str, {'left', 'right'}
         Wether to use a left or right invariant metric.
@@ -56,14 +56,14 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, dimension]
+        tangent_vec_a : array-like, shape=[n_samples, dim]
             First tangent vector at identity.
-        tangent_vec_b : array-like, shape=[n_samples, dimension]
+        tangent_vec_b : array-like, shape=[n_samples, dim]
             Second tangent vector at identity.
 
         Returns
         -------
-        inner_prod : array-like, shape=[n_samples, dimension]
+        inner_prod : array-like, shape=[n_samples, dim]
             Inner-product of the two tangent vectors.
         """
         geomstats.error.check_parameter_accepted_values(
@@ -100,16 +100,16 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, dimension]
+        tangent_vec_a : array-like, shape=[n_samples, dim]
             First tangent vector at base_point.
-        tangent_vec_b : array-like, shape=[n_samples, dimension]
+        tangent_vec_b : array-like, shape=[n_samples, dim]
             Second tangent vector at base_point.
-        base_point : array-like, shape=[n_samples, dimension], optional
+        base_point : array-like, shape=[n_samples, dim], optional
             Point in the group (the default is identity).
 
         Returns
         -------
-        inner_prod : array-like, shape=[n_samples, dimension]
+        inner_prod : array-like, shape=[n_samples, dim]
             Inner-product of the two tangent vectors.
         """
         if base_point is None:
@@ -142,12 +142,12 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, dimension], optional
+        base_point : array-like, shape=[n_samples, dim], optional
             Point in the group (the default is identity).
 
         Returns
         -------
-        metric_mat : array-like, shape=[n_samples, dimension, dimension]
+        metric_mat : array-like, shape=[n_samples, dim, dim]
             The metric matrix at base_point.
         """
         if self.group.default_point_type == 'matrix':
@@ -185,12 +185,12 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dimension]
+        tangent_vec : array-like, shape=[n_samples, dim]
             Tangent vector at identity.
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dimension]
+        exp : array-like, shape=[n_samples, dim]
             Point in the group.
         """
         tangent_vec = self.group.regularize_tangent_vec_at_identity(
@@ -210,12 +210,12 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dimension]
+        tangent_vec : array-like, shape=[n_samples, dim]
             Tangent vector at identity.
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dimension]
+        exp : array-like, shape=[n_samples, dim]
             Point in the group.
         """
         if self.left_or_right == 'left':
@@ -233,14 +233,14 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dimension]
+        tangent_vec : array-like, shape=[n_samples, dim]
             Tangent vector at a base point.
-        base_point : array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dim]
             Point in the group.
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dimension]
+        exp : array-like, shape=[n_samples, dim]
             Point in the group equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
@@ -283,12 +283,12 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
             Point in the group.
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dimension]
+        log : array-like, shape=[n_samples, dim]
             Tangent vector at the identity equal to the Riemannian logarithm
             of point at the identity.
         """
@@ -306,12 +306,12 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
             Point in the group.
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dimension]
+        log : array-like, shape=[n_samples, dim]
             Tangent vector at the identity equal to the Riemannian logarithm
             of point at the identity.
         """
@@ -331,15 +331,15 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
             Point in the group.
-        base_point : array-like, shape=[n_samples, dimension], optional
+        base_point : array-like, shape=[n_samples, dim], optional
             Point in the group, from which to compute the log,
             (the default is identity).
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dimension]
+        log : array-like, shape=[n_samples, dim]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """

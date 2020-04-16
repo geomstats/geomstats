@@ -352,7 +352,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dimension + 1]
+        log : array-like, shape=[n_samples, dim + 1]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
@@ -450,7 +450,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dimension + 1]
+        log : array-like, shape=[n_samples, dim + 1]
             Tangent vector at the base point equal to the lifting
             of point at the base point.
         """

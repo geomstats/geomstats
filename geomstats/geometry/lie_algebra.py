@@ -25,7 +25,7 @@ class MatrixLieAlgebra:
             The amount of rows and columns in the matrix representation of the
             Lie algebra
         """
-        geomstats.error.check_integer(dimension, 'dimension')
+        geomstats.error.check_integer(dimension, 'dim')
         geomstats.error.check_integer(n, 'n')
         self.dimension = dimension
         self.n = n
@@ -103,7 +103,7 @@ class MatrixLieAlgebra:
 
         Returns
         -------
-        basis_representation: array-like, shape=[n_sample, dimension]
+        basis_representation: array-like, shape=[n_sample, dim]
         """
         raise NotImplementedError("basis_representation not implemented.")
 
@@ -115,7 +115,7 @@ class MatrixLieAlgebra:
 
         Parameters
         ----------
-        basis_representation: array-like, shape=[n_sample, dimension]
+        basis_representation: array-like, shape=[n_sample, dim]
 
         Returns
         -------

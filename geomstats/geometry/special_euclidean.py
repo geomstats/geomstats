@@ -86,7 +86,7 @@ class SpecialEuclidean(LieGroup):
 
         Returns
         -------
-        identity : array-like, shape={[dimension], [n + 1, n + 1]}
+        identity : array-like, shape={[dim], [n + 1, n + 1]}
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -107,7 +107,7 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
             the point of which to check whether it belongs to SE(n)
         point_type : str, {'vector', 'matrix'}, optional
             default: self.default_point_type
@@ -157,14 +157,14 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
             the point which should be regularized
         point_type : str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
         Returns
         -------
-        point : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
         """
         if point_type == 'vector':
             rotations = self.rotations
@@ -193,7 +193,7 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        tangent_vec: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
         metric : RiemannianMetric, optional
         point_type : str, {'vector', 'matrix'}, optional
             default: self.default_point_type
@@ -228,8 +228,8 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
-        base_point : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        tangent_vec: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
+        base_point : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
         metric : RiemannianMetric, optional
             default: self.left_canonical_metric
         point_type: str, {'vector', 'matrix'}, optional
@@ -281,11 +281,11 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        vec: array-like, shape=[n_samples, dimension]
+        vec: array-like, shape=[n_samples, dim]
 
         Returns
         -------
-        mat: array-like, shape=[n_samples, {dimension, [n+1, n+1]}]
+        mat: array-like, shape=[n_samples, {dim, [n+1, n+1]}]
         """
         vec = self.regularize(vec, point_type='vector')
         n_vecs, _ = vec.shape
@@ -310,8 +310,8 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        point_1 : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
-        point_2 : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point_1 : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
+        point_2 : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
         point_type: str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
@@ -371,14 +371,14 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
         point_type: str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
         Returns
         -------
         inverse_point : array-like,
-            shape=[n_samples, {dimension, [n + 1, n + 1]}]
+            shape=[n_samples, {dim, [n + 1, n + 1]}]
             the inverted point
 
         Notes
@@ -429,7 +429,7 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
 
         left_or_right: str, {'left', 'right'}, optional
             default: 'left'
@@ -439,7 +439,7 @@ class SpecialEuclidean(LieGroup):
 
         Returns
         -------
-        jacobian : array-like, shape=[n_samples, dimension]
+        jacobian : array-like, shape=[n_samples, dim]
             The jacobian of the left / right translation
         """
         if point_type is None:
@@ -501,13 +501,13 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        tangent_vec: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
         point_type: str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
         Returns
         -------
-        group_exp: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        group_exp: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
             the group exponential of the tangent vectors calculated
             at the identity
         """
@@ -585,13 +585,13 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
         point_type: str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
         Returns
         -------
-        group_log: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        group_log: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
             the group logarithm in the Lie algbra
         """
         point = self.regularize(point, point_type=point_type)
@@ -681,7 +681,7 @@ class SpecialEuclidean(LieGroup):
         Returns
         -------
         random_point: array-like,
-            shape=[n_samples, {dimension, [n + 1, n + 1]}]
+            shape=[n_samples, {dim, [n + 1, n + 1]}]
             An array of random elements in SE(n) having the given point_type.
         """
         if point_type is None:
@@ -723,7 +723,7 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        rot_vec : array-like, shape=[n_samples, dimension]
+        rot_vec : array-like, shape=[n_samples, dim]
 
         Returns
         -------

@@ -21,7 +21,7 @@ class Landmarks(Manifold):
         """
         dimension = None
         if n_landmarks:
-            self.dimension = n_landmarks * ambient_manifold.dimension
+            self.dimension = n_landmarks * ambient_manifold.dim
         super(Landmarks, self).__init__(dim=dimension)
         self.ambient_manifold = ambient_manifold
         self.l2_metric = L2Metric(self.ambient_manifold)

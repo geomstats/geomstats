@@ -21,7 +21,7 @@ def variance(points,
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, dimension]
+    points : array-like, shape=[n_samples, dim]
 
     weights : array-like, shape=[n_samples, 1], optional
     """
@@ -61,7 +61,7 @@ def linear_mean(points, weights=None):
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, dimension]
+    points : array-like, shape=[n_samples, dim]
         Points to be averaged.
 
     weights : array-like, shape=[n_samples, 1], optional
@@ -69,7 +69,7 @@ def linear_mean(points, weights=None):
 
     Returns
     -------
-    mean : array-like, shape=[1, dimension]
+    mean : array-like, shape=[1, dim]
         Weighted linear mean of the points.
     """
     if isinstance(points, list):
@@ -206,7 +206,7 @@ def _adaptive_gradient_descent(points,
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, dimension]
+    points : array-like, shape=[n_samples, dim]
         Points to be averaged.
 
     weights : array-like, shape=[n_samples, 1], optional
@@ -215,7 +215,7 @@ def _adaptive_gradient_descent(points,
     max_iter : int, optional
         Maximum number of iterations for the gradient descent.
 
-    init_point : array-like, shape=[n_init, dimension], optional
+    init_point : array-like, shape=[n_init, dim], optional
         Initial points.
 
     epsilon : float, optional
@@ -223,7 +223,7 @@ def _adaptive_gradient_descent(points,
 
     Returns
     -------
-    current_mean: array-like, shape=[n_samples, dimension]
+    current_mean: array-like, shape=[n_samples, dim]
         Weighted Frechet mean of the points.
     """
     tau_max = 1e6

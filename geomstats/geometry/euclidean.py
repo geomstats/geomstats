@@ -21,7 +21,7 @@ class Euclidean(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
                 Input points.
 
         Returns
@@ -45,7 +45,7 @@ class Euclidean(Manifold):
 
         Returns
         -------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
         """
         size = (self.dim,)
         if n_samples != 1:
@@ -73,11 +73,11 @@ class EuclideanMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point: array-like, shape=[n_samples, dimension]
+        base_point: array-like, shape=[n_samples, dim]
 
         Returns
         -------
-        inner_prod_mat: array-like, shape=[n_samples, dimension, dimension]
+        inner_prod_mat: array-like, shape=[n_samples, dim, dim]
         """
         mat = gs.eye(self.dim)
         return mat
@@ -89,16 +89,16 @@ class EuclideanMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, dimension]
-                                 or shape=[1, dimension]
+        tangent_vec: array-like, shape=[n_samples, dim]
+                                 or shape=[1, dim]
 
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
+        base_point: array-like, shape=[n_samples, dim]
+                                or shape=[1, dim]
 
         Returns
         -------
-        exp: array-like, shape=[n_samples, dimension]
-                          or shape-[n_samples, dimension]
+        exp: array-like, shape=[n_samples, dim]
+                          or shape-[n_samples, dim]
         """
         exp = base_point + tangent_vec
         return exp
@@ -110,16 +110,16 @@ class EuclideanMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, dimension]
-                           or shape=[1, dimension]
+        point: array-like, shape=[n_samples, dim]
+                           or shape=[1, dim]
 
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
+        base_point: array-like, shape=[n_samples, dim]
+                                or shape=[1, dim]
 
         Returns
         -------
-        log: array-like, shape=[n_samples, dimension]
-                          or shape-[n_samples, dimension]
+        log: array-like, shape=[n_samples, dim]
+                          or shape-[n_samples, dim]
         """
         log = point - base_point
         return log
