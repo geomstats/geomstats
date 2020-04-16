@@ -87,7 +87,6 @@ class TestFrechetMean(geomstats.tests.TestCase):
         mean.fit(points)
         result = mean.estimate_
 
-        print(gs.shape(result))
         self.assertAllClose(gs.shape(result), (dim,))
 
     @geomstats.tests.np_and_pytorch_only
