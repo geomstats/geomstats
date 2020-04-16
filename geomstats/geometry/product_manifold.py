@@ -40,9 +40,9 @@ class ProductManifold(Manifold):
         geomstats.error.check_parameter_accepted_values(
             default_point_type, 'default_point_type', ['vector', 'matrix'])
 
-        self.dimensions = [manifold.dim for manifold in manifolds]
+        self.dims = [manifold.dim for manifold in manifolds]
         super(ProductManifold, self).__init__(
-            dim=sum(self.dimensions),
+            dim=sum(self.dims),
             default_point_type=default_point_type)
         self.manifolds = manifolds
         self.metric = ProductRiemannianMetric(
@@ -58,8 +58,8 @@ class ProductManifold(Manifold):
     def _iterate_over_manifolds(
             self, func, args, intrinsic=False):
 
-        cum_index = gs.cumsum(self.dimensions)[:-1] if intrinsic else \
-            gs.cumsum([k + 1 for k in self.dimensions])
+        cum_index = gs.cumsum(self.dims)[:-1] if intrinsic else \
+            gs.cumsum([k + 1 for k in self.dims])
         arguments = {key: gs.split(
             args[key], cum_index, axis=1) for key in args.keys()}
         args_list = [{key: arguments[key][j] for key in args.keys()} for j in
