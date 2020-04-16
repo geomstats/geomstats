@@ -92,8 +92,6 @@ class Connection:
         equation = - gs.einsum(
             '...kj,...j->...k', equation, velocity)
         return equation
-        #return - gs.einsum(
-        #    '...kij,...i,...j->...k', gamma, velocity, velocity)
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS, step='euler',
             point_type=None):
@@ -126,8 +124,6 @@ class Connection:
             self.geodesic_equation, initial_state, n_steps=n_steps, step=step)
 
         exp = flow[-1]
-        #if gs.ndim(exp) == 2 and gs.shape(exp)[0] == 1:
-        #    exp = exp[0]
         return exp
 
     def log(self, point, base_point, n_steps=N_STEPS, step='euler'):
