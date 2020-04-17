@@ -136,6 +136,7 @@ class Hyperbolic(Manifold):
         return point[..., 1:] / (1 + point[..., :1])
 
     @staticmethod
+    @geomstats.vectorization.decorator(['vector'])
     def _ball_to_extrinsic_coordinates(point):
         """Convert ball to extrinsic coordinates.
 

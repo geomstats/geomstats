@@ -35,7 +35,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_extrinsic_ball_extrinsic(self):
-        x_in = gs.array([[0.5, 7]])
+        x_in = gs.array([0.5, 7])
         x = self.intrinsic_manifold.to_coordinates(
             x_in, to_coords_type='extrinsic')
         x_b = self.extrinsic_manifold.to_coordinates(x, to_coords_type='ball')
