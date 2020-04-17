@@ -9,6 +9,7 @@ from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.minkowski import Minkowski
+from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.frechet_mean import variance
 
@@ -147,6 +148,53 @@ class TestFrechetMean(geomstats.tests.TestCase):
         result = mean.estimate_
         expected = point
 
+        self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_estimate_transform_sphere(self):
+        point = gs.array([0., 0., 0., 0., 1.])
+        points = gs.array([point, point])
+
+        mean = FrechetMean(metric=self.sphere.metric)
+        mean.fit(X=points)
+        result = mean.transform(points)
+        expected = gs.zeros_like(points)
+        self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_estimate_transform_spd(self):
+        point = SPDMatrices(3).random_uniform()
+        points = gs.array([point, point])
+        mean = FrechetMean(metric=SPDMetricAffine(3), point_type='matrix')
+        mean.fit(X=points)
+        result = mean.transform(points)
+        expected = gs.zeros((2, 6))
+        self.assertAllClose(expected, result)
+
+    def test_fit_transform_hyperbolic(self):
+        point = gs.array([2., 1., 1., 1.])
+        points = gs.array([point, point])
+
+        mean = FrechetMean(metric=self.hyperbolic.metric)
+        result = mean.fit_transform(X=points)
+        expected = gs.zeros_like(points)
+        self.assertAllClose(expected, result)
+
+    def test_inverse_transform_hyperbolic(self):
+        points = self.hyperbolic.random_uniform(10)
+        mean = FrechetMean(metric=self.hyperbolic.metric)
+        X = mean.fit_transform(X=points)
+        result = mean.inverse_transform(X)
+        expected = points
+        self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_inverse_transform_spd(self):
+        point = SPDMatrices(3).random_uniform(10)
+        mean = FrechetMean(metric=SPDMetricAffine(3), point_type='matrix')
+        X = mean.fit_transform(X=point)
+        result = mean.inverse_transform(X)
+        expected = point
         self.assertAllClose(expected, result)
 
     @geomstats.tests.np_and_tf_only
