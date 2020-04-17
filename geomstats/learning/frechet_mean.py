@@ -84,7 +84,11 @@ def linear_mean(points, weights=None, point_type='vector'):
     if weights is None:
         weights = gs.ones((n_points,))
 
-    weighted_points = gs.einsum('...,...j->...j', weights, points)
+    einsum_str = '...,...j->...j'
+    if point_type == 'matrix':
+        einsum_str = '...,...jk->...jk'
+
+    weighted_points = gs.einsum(einsum_str, weights, points)
     mean = gs.sum(weighted_points, axis=0) / gs.sum(weights)
     return mean
 
