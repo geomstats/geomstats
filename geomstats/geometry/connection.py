@@ -152,7 +152,8 @@ class Connection:
             """Create helpful objective func wrapper for autograd comp."""
             return objective(velocity), objective_grad(velocity)
 
-        tangent_vec = gs.random.rand(base_point.size)
+        #tangent_vec = gs.random.rand(base_point.size)
+        tangent_vec = gs.random.rand(gs.sum(gs.shape(base_point)))
         res = minimize(
             objective_with_grad, tangent_vec, method='L-BFGS-B', jac=True,
             options={'disp': False, 'maxiter': 25})

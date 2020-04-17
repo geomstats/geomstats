@@ -7,6 +7,7 @@ import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.frechet_mean import variance
@@ -257,6 +258,37 @@ class TestFrechetMean(geomstats.tests.TestCase):
             metric=self.euclidean.metric)
         # we expect the average of the points' sq norms.
         expected = gs.array((1 * 5. + 2 * 13. + 1 * 25. + 2 * 41.) / 6.)
+
+        self.assertAllClose(result, expected)
+
+    def test_mean_matrices_shape(self):
+        m, n = (2, 2)
+        point = gs.array([
+            [1., 4.],
+            [2., 3.]])
+
+        metric = MatricesMetric(m, n)
+        mean = FrechetMean(metric=metric)
+        points = [point, point, point]
+        mean.fit(points)
+
+        result = mean.estimate_
+
+        self.assertAllClose(gs.shape(result), (m, n))
+
+    def test_mean_matrices(self):
+        m, n = (2, 2)
+        point = gs.array([
+            [1., 4.],
+            [2., 3.]])
+
+        metric = MatricesMetric(m, n)
+        mean = FrechetMean(metric=metric)
+        points = [point, point, point]
+        mean.fit(points)
+
+        result = mean.estimate_
+        expected = point
 
         self.assertAllClose(result, expected)
 
