@@ -33,11 +33,14 @@ def get_n_points(points, point_type):
         Number of points.
     """
     n_points = 1
-    if point_type == 'scalar' and gs.ndim(points) == 1:
-        n_points = gs.shape(points)[0]
-    if point_type == 'vector' and gs.ndim(points) == 2:
-        n_points = gs.shape(points)[0]
-    if point_type == 'matrix' and gs.ndim(points) == 3:
+
+    points_ndim = gs.ndim(points)
+
+    is_vect_scalar = (point_type == 'scalar' and points_ndim == 1)
+    is_vect_vector = (point_type == 'vector' and points_ndim == 2)
+    is_vect_matrix = (point_type == 'matrix' and points_ndim == 3)
+
+    if is_vect_scalar or is_vect_vector or is_vect_matrix:
         n_points = gs.shape(points)[0]
     return n_points
 
