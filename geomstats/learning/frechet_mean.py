@@ -92,7 +92,6 @@ def linear_mean(points, weights=None, point_type='vector'):
     weighted_points = gs.einsum(einsum_str, weights, points)
 
     mean = gs.sum(weighted_points, axis=0) / sum_weights
-
     return mean
 
 
