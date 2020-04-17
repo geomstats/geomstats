@@ -164,6 +164,7 @@ class Hyperbolic(Manifold):
         return gs.concatenate([t, intrinsic], -1)
 
     @staticmethod
+    @geomstats.vectorization.decorator(['vector'])
     def _half_plane_to_extrinsic_coordinates(point):
         """Convert half plane to extrinsic coordinates.
 
@@ -192,6 +193,7 @@ class Hyperbolic(Manifold):
         return Hyperbolic._ball_to_extrinsic_coordinates(ball_point)
 
     @staticmethod
+    @geomstats.vectorization.decorator(['vector'])
     def _extrinsic_to_half_plane_coordinates(point):
         """Convert extrinsic to half plane coordinates.
 
