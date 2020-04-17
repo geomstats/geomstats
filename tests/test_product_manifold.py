@@ -28,7 +28,6 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
         result = self.space_vector.dim
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_random_and_belongs_matrix(self):
         n_samples = 5
         data = self.space_matrix.random_uniform(n_samples)
@@ -36,7 +35,6 @@ class TestProductManifoldMethods(geomstats.tests.TestCase):
         expected = gs.array([True] * n_samples)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_random_and_belongs_vector(self):
         n_samples = 5
         data = self.space_vector.random_uniform(n_samples)
