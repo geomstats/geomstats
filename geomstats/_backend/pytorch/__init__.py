@@ -32,7 +32,6 @@ from torch import (  # NOQA
     int32,
     int64,
     isnan,
-    le as less_equal,
     log,
     lt as less,
     matmul,
@@ -86,6 +85,14 @@ exp = _box_scalar(exp)
 log = _box_scalar(log)
 sin = _box_scalar(sin)
 sinh = _box_scalar(sinh)
+
+
+def less_equal(x, y, **kwargs):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    if not torch.is_tensor(y):
+        y = torch.tensor(y)
+    return torch.le(x, y, **kwargs)
 
 
 def empty(shape, dtype=float64):
@@ -294,7 +301,8 @@ def sqrt(x):
 #                https://github.com/pytorch/pytorch/issues/35471
 #              In the future, we may simply use that function instead.
 def isclose(*args, **kwargs):
-    return torch.from_numpy(_np.isclose(*args, **kwargs))
+    # TODO(ninamiolane): Use native torch.isclose
+    return torch.from_numpy(_np.array(_np.isclose(*args, **kwargs)))
 
 
 def sum(x, axis=None, keepdims=None, **kwargs):

@@ -45,7 +45,9 @@ def empirical_frechet_var_bubble(n_samples, theta, dim,
     -------
     tuple (variance, std-dev on the computed variance)
     """
-    assert dim > 1, 'Dim > 1 needed to draw a uniform sample on sub-sphere'
+    if dim <= 1:
+        raise ValueError(
+            'Dim > 1 needed to draw a uniform sample on sub-sphere.')
     var = []
     sphere = Hypersphere(dim=dim)
     bubble = Hypersphere(dim=dim - 1)

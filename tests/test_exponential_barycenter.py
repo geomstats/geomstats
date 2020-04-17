@@ -2,6 +2,7 @@
 
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.exponential_barycenter import ExponentialBarycenter
@@ -133,7 +134,8 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         vector_point = so_vector.rotation_vector_from_matrix(point)
         frechet_estimator.fit(vector_point)
         mean = frechet_estimator.estimate_
-        expected = so_vector.matrix_from_rotation_vector(mean)[0]
+        expected = so_vector.matrix_from_rotation_vector(mean)
+        result = estimator.estimate_
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
@@ -156,11 +158,14 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_linear_mean(self):
-        se_vec = SpecialEuclidean(n=3, default_point_type='vector')
-        translations = se_vec.translations
-        point = translations.random_uniform(self.n_samples)
-        estimator = ExponentialBarycenter(translations)
+        euclidean = Euclidean(3)
+        point = euclidean.random_uniform(self.n_samples)
+
+        estimator = ExponentialBarycenter(euclidean)
+
         estimator.fit(point)
         result = estimator.estimate_
+
         expected = gs.mean(point, axis=0)
+
         self.assertAllClose(result, expected)

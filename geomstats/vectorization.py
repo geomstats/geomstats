@@ -17,6 +17,34 @@ POINT_TYPES_TO_NDIMS = {
 ERROR_MSG = 'Invalid type: %s.'
 
 
+def get_n_points(points, point_type):
+    """Compute the number of points.
+
+    Parameters
+    ----------
+    points : array-like
+        Input points.
+    point_type : str, {'scalar', ''vector', 'matrix'}
+        Type of input points.
+
+    Returns
+    -------
+    n_points : int
+        Number of points.
+    """
+    n_points = 1
+
+    points_ndim = gs.ndim(points)
+
+    is_vect_scalar = (point_type == 'scalar' and points_ndim == 1)
+    is_vect_vector = (point_type == 'vector' and points_ndim == 2)
+    is_vect_matrix = (point_type == 'matrix' and points_ndim == 3)
+
+    if is_vect_scalar or is_vect_vector or is_vect_matrix:
+        n_points = gs.shape(points)[0]
+    return n_points
+
+
 def decorator(input_types):
     """Vectorize geomstats functions.
 
