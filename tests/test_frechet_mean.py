@@ -18,6 +18,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
+        gs.random.seed(123)
         self.sphere = Hypersphere(dim=4)
         self.hyperbolic = Hyperboloid(dim=3)
         self.euclidean = Euclidean(dim=2)
