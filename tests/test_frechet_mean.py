@@ -65,9 +65,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         dim = 5
         point_a = gs.array([1., 0., 0., 0., 0.])
         point_b = gs.array([0., 1., 0., 0., 0.])
-        points = gs.zeros((2, dim))
-        points[0, :] = point_a
-        points[1, :] = point_b
+        points = gs.array([point_a, point_b])
 
         mean = FrechetMean(metric=self.sphere.metric, method='default')
         mean.fit(points)
@@ -80,9 +78,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         dim = 5
         point_a = gs.array([1., 0., 0., 0., 0.])
         point_b = gs.array([0., 1., 0., 0., 0.])
-        points = gs.zeros((2, dim))
-        points[0, :] = point_a
-        points[1, :] = point_b
+        points = gs.array([point_a, point_b])
 
         mean = FrechetMean(metric=self.sphere.metric, method='adaptive')
         mean.fit(points)
@@ -92,12 +88,9 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_estimate_and_belongs_default_gradient_descent_sphere(self):
-        dim = 5
         point_a = gs.array([1., 0., 0., 0., 0.])
         point_b = gs.array([0., 1., 0., 0., 0.])
-        points = gs.zeros((2, dim))
-        points[0, :] = point_a
-        points[1, :] = point_b
+        points = gs.array([point_a, point_b])
 
         mean = FrechetMean(metric=self.sphere.metric, method='default')
         mean.fit(points)
@@ -108,12 +101,9 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_estimate_and_belongs_adaptive_gradient_descent_sphere(self):
-        dim = 5
         point_a = gs.array([1., 0., 0., 0., 0.])
         point_b = gs.array([0., 1., 0., 0., 0.])
-        points = gs.zeros((2, dim))
-        points[0, :] = point_a
-        points[1, :] = point_b
+        points = gs.array([point_a, point_b])
 
         mean = FrechetMean(metric=self.sphere.metric, method='adaptive')
         mean.fit(points)
@@ -124,11 +114,8 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_variance_sphere(self):
-        dim = 5
         point = gs.array([0., 0., 0., 0., 1.])
-        points = gs.zeros((2, dim))
-        points[0, :] = point
-        points[1, :] = point
+        points = gs.array([point, point])
 
         result = variance(
             points, base_point=point, metric=self.sphere.metric)
@@ -138,11 +125,8 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_estimate_default_gradient_descent_sphere(self):
-        dim = 5
         point = gs.array([0., 0., 0., 0., 1.])
-        points = gs.zeros((2, dim))
-        points[0, :] = point
-        points[1, :] = point
+        points = gs.array([point, point])
 
         mean = FrechetMean(metric=self.sphere.metric, method='default')
         mean.fit(X=points)
@@ -154,11 +138,8 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_estimate_adaptive_gradient_descent_sphere(self):
-        dim = 5
         point = gs.array([0., 0., 0., 0., 1.])
-        points = gs.zeros((2, dim))
-        points[0, :] = point
-        points[1, :] = point
+        points = gs.array([point, point])
 
         mean = FrechetMean(metric=self.sphere.metric, method='adaptive')
         mean.fit(X=points)
