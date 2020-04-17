@@ -4,6 +4,7 @@ The n-dimensional hyperbolic space embedded with
 the hyperboloid representation (embedded in minkowsky space).
 """
 import geomstats.backend as gs
+import geomstats.vectorization
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -35,8 +36,7 @@ class PoincareBall(Hyperbolic):
             scale=scale)
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
-        self.metric =\
-            PoincareBallMetric(self.dim, self.scale)
+        self.metric = PoincareBallMetric(self.dim, self.scale)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """Test if a point belongs to the hyperbolic space.
@@ -84,6 +84,7 @@ class PoincareBallMetric(RiemannianMetric):
         self.point_type = PoincareBall.default_point_type
         self.scale = scale
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
@@ -100,9 +101,6 @@ class PoincareBallMetric(RiemannianMetric):
             Point in hyperbolic space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-
         norm_base_point =\
             gs.expand_dims(gs.linalg.norm(base_point, axis=-1),
                            axis=-1)
@@ -137,6 +135,7 @@ class PoincareBallMetric(RiemannianMetric):
 
         return exp
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
 
@@ -157,9 +156,6 @@ class PoincareBallMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        point = gs.to_ndarray(point, to_ndim=2)
-
         add_base_point = self.mobius_add(-base_point, point)
         norm_add =\
             gs.expand_dims(gs.linalg.norm(
@@ -178,6 +174,7 @@ class PoincareBallMetric(RiemannianMetric):
 
         return log
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def mobius_add(self, point_a, point_b):
         r"""Compute the Mobius addition of two points.
 
@@ -201,9 +198,6 @@ class PoincareBallMetric(RiemannianMetric):
         mobius_add : array-like, shape=[n_samples, 1]
             Result of the Mobius addition.
         """
-        point_a = gs.to_ndarray(point_a, to_ndim=2)
-        point_b = gs.to_ndarray(point_b, to_ndim=2)
-
         ball_manifold = PoincareBall(self.dim, scale=self.scale)
         point_a_belong = ball_manifold.belongs(point_a)
         point_b_belong = ball_manifold.belongs(point_b)
@@ -232,6 +226,7 @@ class PoincareBallMetric(RiemannianMetric):
 
         return mobius_add
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def dist(self, point_a, point_b):
         """Compute the geodesic distance between two points.
 
@@ -247,9 +242,6 @@ class PoincareBallMetric(RiemannianMetric):
         dist : array-like, shape=[n_samples, 1]
             Geodesic distance between the two points.
         """
-        point_a = gs.to_ndarray(point_a, to_ndim=2)
-        point_b = gs.to_ndarray(point_b, to_ndim=2)
-
         point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0., 1 - EPSILON)
         point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0., 1 - EPSILON)
 
@@ -263,6 +255,7 @@ class PoincareBallMetric(RiemannianMetric):
         dist *= self.scale
         return dist
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def retraction(self, tangent_vec, base_point):
         """Poincaré ball model retraction.
 
@@ -289,15 +282,13 @@ class PoincareBallMetric(RiemannianMetric):
         if not gs.all(base_point_belong):
             raise NameError("Points do not belong to the Poincare ball")
 
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-
         retraction_factor =\
             ((1 - gs.sum(base_point**2, axis=-1, keepdims=True))**2) / 4
 
         return base_point\
             - gs.einsum('...i,...j->...j', retraction_factor, tangent_vec)
 
+    @geomstats.vectorization.decorator(['else', 'vector'])
     def inner_product_matrix(self, base_point=None):
         """Compute the inner product matrix.
 
