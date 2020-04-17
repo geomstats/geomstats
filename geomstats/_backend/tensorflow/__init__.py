@@ -45,7 +45,6 @@ from tensorflow import (  # NOQA
     sign,
     sin,
     sinh,
-    split,
     sqrt,
     squeeze,
     stack,
