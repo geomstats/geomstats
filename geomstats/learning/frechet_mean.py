@@ -116,7 +116,6 @@ def _default_gradient_descent(points, metric, weights,
     sum_weights = gs.sum(weights)
     sq_dists_between_iterates = []
     iteration = 0
-
     sq_dist = 0.
     var = 0.
 
@@ -124,7 +123,6 @@ def _default_gradient_descent(points, metric, weights,
         var_is_0 = gs.isclose(var, 0.)
         sq_dist_is_small = gs.less_equal(sq_dist, epsilon * var)
         condition = ~gs.logical_or(var_is_0, sq_dist_is_small)
-
         if not (condition or iteration == 0):
             break
 
@@ -229,10 +227,6 @@ def _adaptive_gradient_descent(points,
             'The Frechet mean with adaptive gradient descent is only'
             ' implemented for lists of vectors, and not matrices.')
 
-    n_points = 1
-    if gs.ndim(points) == 2:
-        n_points = gs.shape(points)[0]
-
     tau_max = 1e6
     tau_mul_up = 1.6511111
     tau_min = 1e-6
@@ -287,7 +281,6 @@ def _adaptive_gradient_descent(points,
         logging.warning(
             'Maximum number of iterations {} reached. '
             'The mean may be inaccurate'.format(max_iter))
-
     return current_mean
 
 
