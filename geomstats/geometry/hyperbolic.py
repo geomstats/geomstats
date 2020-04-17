@@ -66,6 +66,7 @@ class Hyperbolic(Manifold):
         return point
 
     @staticmethod
+    @geomstats.vectorization.decorator(['vector'])
     def _intrinsic_to_extrinsic_coordinates(point_intrinsic):
         """Convert intrinsic to extrinsic coordinates.
 
@@ -83,12 +84,11 @@ class Hyperbolic(Manifold):
         point_extrinsic : array-like, shape=[n_samples, dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
         """
-        # point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
-
         coord_0 = gs.sqrt(1. + gs.linalg.norm(point_intrinsic, axis=-1) ** 2)
-        # coord_0 = gs.to_ndarray(coord_0, to_ndim=2, axis=1)
+        coord_0 = gs.to_ndarray(coord_0, to_ndim=1)
+        coord_0 = gs.to_ndarray(coord_0, to_ndim=2, axis=1)
 
-        point_extrinsic = gs.stack([coord_0, point_intrinsic], axis=-1)
+        point_extrinsic = gs.hstack([coord_0, point_intrinsic])
 
         return point_extrinsic
 
@@ -276,7 +276,7 @@ class Hyperbolic(Manifold):
                 Hyperbolic._extrinsic_to_extrinsic_coordinates
         }
 
-        point = gs.to_ndarray(point, to_ndim=2, axis=0)
+        # point = gs.to_ndarray(point, to_ndim=2, axis=0)
 
         if from_coordinates_system == to_coordinates_system:
             return point
@@ -354,9 +354,8 @@ class Hyperbolic(Manifold):
                                     or shape=[n_sample, dim + 1]
             Point in hyperbolic space.
         """
-        return Hyperbolic.change_coordinates_system(point,
-                                                    from_coords_type,
-                                                    self.coords_type)
+        return Hyperbolic.change_coordinates_system(
+            point, from_coords_type, self.coords_type)
 
     def random_uniform(self, n_samples=1, bound=1.):
         """Sample over the hyperbolic space using uniform distribution.
