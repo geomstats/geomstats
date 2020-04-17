@@ -5,6 +5,7 @@ The n-dimensional hyperbolic space embedded and its different representations.
 
 
 import geomstats.backend as gs
+import geomstats.vectorization
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -62,7 +63,7 @@ class Hyperbolic(Manifold):
         point_intrinsic : array-like, shape=[n_samples, dim]
             Point in hyperbolic space in intrinsic coordinates.
         """
-        return gs.to_ndarray(point, to_ndim=2)
+        return point
 
     @staticmethod
     def _intrinsic_to_extrinsic_coordinates(point_intrinsic):
@@ -82,12 +83,12 @@ class Hyperbolic(Manifold):
         point_extrinsic : array-like, shape=[n_samples, dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
         """
-        point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
+        # point_intrinsic = gs.to_ndarray(point_intrinsic, to_ndim=2)
 
         coord_0 = gs.sqrt(1. + gs.linalg.norm(point_intrinsic, axis=-1) ** 2)
-        coord_0 = gs.to_ndarray(coord_0, to_ndim=2, axis=1)
+        # coord_0 = gs.to_ndarray(coord_0, to_ndim=2, axis=1)
 
-        point_extrinsic = gs.concatenate([coord_0, point_intrinsic], axis=-1)
+        point_extrinsic = gs.stack([coord_0, point_intrinsic], axis=-1)
 
         return point_extrinsic
 
@@ -108,9 +109,9 @@ class Hyperbolic(Manifold):
         -------
         point_intrinsic : array-like, shape=[n_samples, dim]
         """
-        point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=2)
+        # point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=2)
 
-        point_intrinsic = point_extrinsic[:, 1:]
+        point_intrinsic = point_extrinsic[..., 1:]
 
         return point_intrinsic
 
@@ -132,7 +133,7 @@ class Hyperbolic(Manifold):
         point_ball : array-like, shape=[n_samples, dim]
             Point in hyperbolic space in Poincare ball coordinates.
         """
-        return point[:, 1:] / (1 + point[:, :1])
+        return point[..., 1:] / (1 + point[..., :1])
 
     @staticmethod
     def _ball_to_extrinsic_coordinates(point):
