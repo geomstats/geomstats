@@ -388,6 +388,7 @@ class FrechetMean(BaseEstimator, TransformerMixin):
         -------
         X_new : array-like, shape=[n_samples, dim]
         """
+        # TODO(nguis): put this in a dedicated class
         if base_point is None:
             base_point = self.estimate_
 
