@@ -94,7 +94,7 @@ def empty(shape, dtype=float64):
 
 def split(x, indices_or_sections, axis=0):
     if isinstance(indices_or_sections, int):
-        indices_or_sections = indices_or_sections // x.shape[axis]
+        indices_or_sections = x.shape[axis] // indices_or_sections
         return torch.split(x, indices_or_sections, dim=axis)
     indices_or_sections = _np.array(indices_or_sections)
     intervals_length = indices_or_sections[1:] - indices_or_sections[:-1]
@@ -453,7 +453,7 @@ def ndim(x):
 
 def hsplit(x, indices_or_section):
     if isinstance(indices_or_section, int):
-        indices_or_section = indices_or_section // x.shape[1]
+        indices_or_section = x.shape[1] // indices_or_section
     return torch.split(x, indices_or_section, dim=1)
 
 
