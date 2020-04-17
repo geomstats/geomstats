@@ -314,7 +314,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
             [2., 3.]])
 
         metric = MatricesMetric(m, n)
-        mean = FrechetMean(metric=metric)
+        mean = FrechetMean(metric=metric, point_type='matrix')
         points = [point, point, point]
         mean.fit(points)
 
@@ -329,7 +329,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
             [2., 3.]])
 
         metric = MatricesMetric(m, n)
-        mean = FrechetMean(metric=metric)
+        mean = FrechetMean(metric=metric, point_type='matrix')
         points = [point, point, point]
         mean.fit(points)
 

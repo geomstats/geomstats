@@ -9,7 +9,7 @@ import geomstats.backend as gs
 import geomstats.error as error
 import geomstats.vectorization
 from geomstats.geometry.euclidean import EuclideanMetric
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.minkowski import MinkowskiMetric
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
@@ -83,13 +83,15 @@ def linear_mean(points, weights=None, point_type='vector'):
 
     if weights is None:
         weights = gs.ones((n_points,))
+    sum_weights = gs.sum(weights)
 
     einsum_str = '...,...j->...j'
     if point_type == 'matrix':
         einsum_str = '...,...jk->...jk'
 
     weighted_points = gs.einsum(einsum_str, weights, points)
-    mean = gs.sum(weighted_points, axis=0) / gs.sum(weights)
+
+    mean = gs.sum(weighted_points, axis=0) / sum_weights
     return mean
 
 
@@ -331,8 +333,12 @@ class FrechetMean(BaseEstimator, TransformerMixin):
         # TODO(nina): Profile this code to study performance,
         # i.e. what to do with sq_dists_between_iterates.
 
-        if isinstance(self.metric, (EuclideanMetric, MinkowskiMetric)):
-            mean = linear_mean(points=X, weights=weights)
+        is_linear_metric = isinstance(
+            self.metric, (EuclideanMetric, MatricesMetric, MinkowskiMetric))
+
+        if is_linear_metric:
+            mean = linear_mean(
+                points=X, weights=weights, point_type=self.point_type)
 
         elif self.method == 'default':
             mean = _default_gradient_descent(
