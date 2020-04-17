@@ -38,7 +38,6 @@ from tensorflow import (  # NOQA
     reduce_max as amax,
     reduce_mean as mean,
     reduce_min as amin,
-    reduce_sum as sum,
     reshape,
     searchsorted,
     shape,
@@ -520,6 +519,12 @@ def eye(n, m=None):
     if m is None:
         m = n
     return tf.eye(num_rows=n, num_columns=m)
+
+
+def sum(x, axis=None, keepdims=False, name=None):
+    if x.dtype == bool:
+        x = cast(x, int32)
+    return tf.reduce_sum(x, axis, keepdims, name)
 
 
 def einsum(equation, *inputs, **kwargs):
