@@ -301,6 +301,7 @@ class Hypersphere(EmbeddedManifold):
         while True:
             norms = gs.linalg.norm(samples, axis=1)
             indcs = gs.isclose(norms, 0.0)
+            indcs = gs.cast(indcs, gs.int32)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break

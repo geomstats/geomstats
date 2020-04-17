@@ -92,8 +92,17 @@ def empty(shape, dtype=float64):
     return torch.empty(*shape, dtype=dtype)
 
 
-def split(ary, indices_or_sections, axis=0):
-    return torch.split(ary, indices_or_sections, dim=axis)
+def split(x, indices_or_sections, axis=0):
+    if isinstance(indices_or_sections, int):
+        indices_or_sections = indices_or_sections // x.shape[axis]
+        return torch.split(x, indices_or_sections, dim=axis)
+    indices_or_sections = _np.array(indices_or_sections)
+    intervals_length = indices_or_sections[1:] - indices_or_sections[:-1]
+    last_interval_length = x.shape[axis] - indices_or_sections[-1]
+    if last_interval_length > 0:
+        intervals_length = _np.append(intervals_length, last_interval_length)
+    intervals_length = _np.insert(intervals_length, 0, indices_or_sections[0])
+    return torch.split(x, tuple(intervals_length), dim=axis)
 
 
 def logical_or(x, y):
@@ -604,6 +613,8 @@ def copy(x):
 
 
 def cumsum(x, axis=None):
+    if not torch.is_tensor(x):
+        x = array(x)
     if axis is None:
         return x.flatten().cumsum(dim=0)
     return torch.cumsum(x, dim=axis)
