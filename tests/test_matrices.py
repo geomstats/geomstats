@@ -2,8 +2,6 @@
 Unit tests for the manifold of matrices.
 """
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.matrices import Matrices
@@ -179,7 +177,6 @@ class TestMatricesMethods(geomstats.tests.TestCase):
             gs.matmul(
                 gs.transpose(tangent_vector_1),
                 tangent_vector_2))
-        expected = helper.to_scalar(expected)
 
         self.assertAllClose(result, expected)
 
