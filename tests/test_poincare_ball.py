@@ -30,10 +30,6 @@ class TestPoincareBallMethods(geomstats.tests.TestCase):
         distance_a_b = self.metric.dist(point_a, point_b)
         squared_distance = self.metric.squared_dist(point_a, point_b)
 
-        # TODO(nmiolane):
-        # Remove this line when poincare ball is properly vectorized
-        # squared_distance = gs.to_ndarray(squared_distance, to_ndim=2, axis=1)
-
         self.assertAllClose(distance_a_b**2, squared_distance, atol=1e-8)
 
     @geomstats.tests.np_and_pytorch_only
@@ -50,10 +46,6 @@ class TestPoincareBallMethods(geomstats.tests.TestCase):
             self.metric.dist(point_a, point_b)
         dist_in_hype =\
             self.hyperboloid_metric.dist(point_a_h, point_b_h)
-
-        # TODO(ninamiolane): Remove this to_ndarray when poincare_ball
-        # is properly vectorized
-        # dist_in_hype = gs.to_ndarray(dist_in_hype, to_ndim=2, axis=1)
 
         self.assertAllClose(dist_in_ball, dist_in_hype, atol=1e-8)
 
