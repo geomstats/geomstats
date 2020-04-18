@@ -30,7 +30,7 @@ def loss(y_pred, y_true,
 
     Returns
     -------
-    loss : array-like
+    lie_loss : array-like
         Loss using the Riemannian metric.
     """
     if gs.ndim(y_pred) == 1:
@@ -44,13 +44,13 @@ def loss(y_pred, y_true,
         y_true_rot_vec = SO3.rotation_vector_from_quaternion(y_true[:, :4])
         y_true = gs.hstack([y_true_rot_vec, y_true[:, 4:]])
 
-    loss = lie_group.loss(y_pred, y_true, SE3, metric)
-    if gs.ndim(loss) == 2:
-        loss = gs.squeeze(loss, axis=1)
-    if gs.ndim(loss) == 1 and gs.shape(loss)[0] == 1:
-        loss = gs.squeeze(loss, axis=0)
+    lie_loss = lie_group.loss(y_pred, y_true, SE3, metric)
+    if gs.ndim(lie_loss) == 2:
+        lie_loss = gs.squeeze(lie_loss, axis=1)
+    if gs.ndim(lie_loss) == 1 and gs.shape(lie_loss)[0] == 1:
+        lie_loss = gs.squeeze(lie_loss, axis=0)
 
-    return loss
+    return lie_loss
 
 
 def grad(y_pred, y_true,

@@ -28,15 +28,15 @@ def loss(y_pred, y_true,
 
     Returns
     -------
-    loss : array-like
+    lie_loss : array-like
         Loss using the Riemannian metric.
     """
     if representation == 'quaternion':
         y_pred = SO3.rotation_vector_from_quaternion(y_pred)
         y_true = SO3.rotation_vector_from_quaternion(y_true)
 
-    loss = lie_group.loss(y_pred, y_true, SO3, metric)
-    return loss
+    lie_loss = lie_group.loss(y_pred, y_true, SO3, metric)
+    return lie_loss
 
 
 def grad(y_pred, y_true,
@@ -64,7 +64,7 @@ def grad(y_pred, y_true,
     y_true = gs.expand_dims(y_true, axis=0)
 
     if representation == 'vector':
-        grad = lie_group.grad(y_pred, y_true, SO3, metric)
+        lie_grad = lie_group.grad(y_pred, y_true, SO3, metric)
 
     if representation == 'quaternion':
         quat_scalar = y_pred[:, :1]
@@ -92,12 +92,12 @@ def grad(y_pred, y_true,
         y_pred = SO3.rotation_vector_from_quaternion(y_pred)
         y_true = SO3.rotation_vector_from_quaternion(y_true)
 
-        grad = lie_group.grad(y_pred, y_true, SO3, metric)
+        lie_grad = lie_group.grad(y_pred, y_true, SO3, metric)
 
-        grad = gs.matmul(grad, differential)
+        lie_grad = gs.matmul(lie_grad, differential)
 
-    grad = gs.squeeze(grad, axis=0)
-    return grad
+    lie_grad = gs.squeeze(lie_grad, axis=0)
+    return lie_grad
 
 
 def main():
