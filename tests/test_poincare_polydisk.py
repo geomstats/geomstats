@@ -40,9 +40,14 @@ class TestPoincarePolydiskMethods(geomstats.tests.TestCase):
             point_a_intrinsic, 'intrinsic')
         point_b = hyperbolic_space.from_coordinates(
             point_b_intrinsic, 'intrinsic')
+        print('in test')
+        print(point_a.shape)
+        print(point_b.shape)
+        print('end test')
 
-        duplicate_point_a = gs.vstack([point_a, point_a])
-        duplicate_point_b = gs.vstack([point_b, point_b])
+        duplicate_point_a = gs.stack([point_a, point_a], axis=0)
+        #print(duplicate_point_a.shape)
+        duplicate_point_b = gs.stack([point_b, point_b], axis=0)
 
         single_disk = PoincarePolydisk(n_disks=1, coords_type=coords_type)
         two_disks = PoincarePolydisk(n_disks=2, coords_type=coords_type)

@@ -174,9 +174,16 @@ class ProductRiemannianMetric(RiemannianMetric):
             return gs.sum(gs.stack(inner_prod, axis=1), axis=1)
 
         if point_type == 'matrix':
-            tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
-            tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
-            base_point = gs.to_ndarray(base_point, to_ndim=3)
+            print(tangent_vec_a.shape)
+            tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2, axis=0)
+            print(tangent_vec_a.shape)
+            tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3, axis=0)
+            print(tangent_vec_a.shape)
+            print('e')
+            tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2, axis=0)
+            tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3, axis=0)
+            base_point = gs.to_ndarray(base_point, to_ndim=2, axis=0)
+            base_point = gs.to_ndarray(base_point, to_ndim=3, axis=0)
             inner_products = [metric.inner_product(tangent_vec_a[:, i],
                                                    tangent_vec_b[:, i],
                                                    base_point[:, i])
@@ -247,7 +254,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             of point at the base point.
         """
         if base_point is None:
-            base_point = [None, ] * self.n_metrics
+            base_point = [None] * self.n_metrics
 
         if point_type is None:
             point_type = self.default_point_type
@@ -261,11 +268,22 @@ class ProductRiemannianMetric(RiemannianMetric):
             return logs
 
         if point_type == 'matrix':
-            point = gs.to_ndarray(point, to_ndim=3)
-            base_point = gs.to_ndarray(base_point, to_ndim=3)
-            return gs.stack(
+            print('in log product')
+            print(point.shape)
+            print(base_point.shape)
+            point = gs.to_ndarray(point, to_ndim=2, axis=0)
+            print(point.shape)
+            point = gs.to_ndarray(point, to_ndim=3, axis=0)
+            base_point = gs.to_ndarray(base_point, to_ndim=2, axis=0)
+            print(base_point.shape)
+            base_point = gs.to_ndarray(base_point, to_ndim=3, axis=0)
+            print(point.shape)
+            print(base_point.shape)
+            print('end log product bef comp')
+            logs = gs.stack(
                 [self.metrics[i].log(point[:, i], base_point[:, i])
                  for i in range(self.n_metrics)], axis=1)
+            return logs
 
         raise ValueError('invalid point_type argument: {}, expected '
                          'either matrix of vector'.format(point_type))
