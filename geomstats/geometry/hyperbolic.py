@@ -109,8 +109,6 @@ class Hyperbolic(Manifold):
         -------
         point_intrinsic : array-like, shape=[n_samples, dim]
         """
-        # point_extrinsic = gs.to_ndarray(point_extrinsic, to_ndim=2)
-
         point_intrinsic = point_extrinsic[..., 1:]
 
         return point_intrinsic
@@ -278,8 +276,6 @@ class Hyperbolic(Manifold):
             'extrinsic-extrinsic':
                 Hyperbolic._extrinsic_to_extrinsic_coordinates
         }
-
-        # point = gs.to_ndarray(point, to_ndim=2, axis=0)
 
         if from_coordinates_system == to_coordinates_system:
             return point
