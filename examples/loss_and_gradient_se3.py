@@ -88,7 +88,7 @@ def grad(y_pred, y_true,
         y_pred_pose = gs.hstack([y_pred_rot_vec, y_pred[:, 4:]])
         y_true_rot_vec = SO3.rotation_vector_from_quaternion(y_true[:, :4])
         y_true_pose = gs.hstack([y_true_rot_vec, y_true[:, 4:]])
-        grad = lie_group.grad(y_pred_pose, y_true_pose, SE3, metric)
+        lie_grad = lie_group.grad(y_pred_pose, y_true_pose, SE3, metric)
 
         quat_scalar = y_pred[:, :1]
         quat_vec = y_pred[:, 1:4]
@@ -118,7 +118,7 @@ def grad(y_pred, y_true,
         differential = gs.vstack((top, bottom))
         differential = gs.expand_dims(differential, axis=0)
 
-        lie_grad = gs.einsum('ni,nij->ni', grad, differential)
+        lie_grad = gs.einsum('ni,nij->ni', lie_grad, differential)
 
     lie_grad = gs.squeeze(lie_grad, axis=0)
     return lie_grad
