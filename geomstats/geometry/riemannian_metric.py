@@ -163,10 +163,6 @@ class RiemannianMetric(Connection):
         -------
         sq_norm : array-like, shape=[n_samples,]
         """
-        print('in sq norm')
-        print(vector.shape)
-        #print(base_point.shape)
-        print('\n')
         sq_norm = self.inner_product(vector, vector, base_point)
         return sq_norm
 
@@ -204,11 +200,7 @@ class RiemannianMetric(Connection):
         -------
         sq_dist : array-like, shape=[n_samples,]
         """
-        print('bel')
-        print(point_a.shape, point_b.shape)
         log = self.log(point=point_b, base_point=point_a)
-        print(' log:')
-        print(log.shape)
 
         sq_dist = self.squared_norm(vector=log, base_point=point_a)
         return sq_dist
@@ -228,8 +220,6 @@ class RiemannianMetric(Connection):
         -------
         dist : array-like, shape=[n_samples,]
         """
-        print('in riem')
-        print(point_a.shape)
         sq_dist = self.squared_dist(point_a, point_b)
         dist = gs.sqrt(sq_dist)
         return dist
