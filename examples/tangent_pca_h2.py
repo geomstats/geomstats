@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
-from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.pca import TangentPCA
 
@@ -15,7 +15,7 @@ def main():
     """Perform tangent PCA at the mean on H2."""
     fig = plt.figure(figsize=(15, 5))
 
-    hyperbolic_plane = Hyperbolic(dim=2)
+    hyperbolic_plane = Hyperboloid(dim=2)
 
     data = hyperbolic_plane.random_uniform(n_samples=140)
 
