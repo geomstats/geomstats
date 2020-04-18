@@ -78,6 +78,7 @@ class TestConnectionMethods(geomstats.tests.TestCase):
         for step in ['pole', 'schild']:
             n_steps = 1 if step == 'pole' else 100
             rtol = 1e-6 if step == 'pole' else 1e-1
+            atol = 1e-6 if step == 'pole' else 1e-2
             base_point = self.hypersphere.random_uniform(n_samples)
             tan_vec_a = self.hypersphere.projection_to_tangent_space(
                 gs.random.rand(n_samples, 3), base_point)
@@ -90,7 +91,7 @@ class TestConnectionMethods(geomstats.tests.TestCase):
                 step=step, n_steps=n_steps)
             result = ladder['transported_tangent_vec']
 
-            self.assertAllClose(result, expected, rtol=rtol)
+            self.assertAllClose(result, expected, rtol=rtol, atol=atol)
 
     @geomstats.tests.np_only
     def test_exp_connection_metric(self):
