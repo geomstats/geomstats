@@ -264,18 +264,10 @@ class ProductRiemannianMetric(RiemannianMetric):
             return logs
 
         if point_type == 'matrix':
-            print('in log product')
-            print(point.shape)
-            print(base_point.shape)
             point = gs.to_ndarray(point, to_ndim=2, axis=0)
-            print(point.shape)
             point = gs.to_ndarray(point, to_ndim=3, axis=0)
             base_point = gs.to_ndarray(base_point, to_ndim=2, axis=0)
-            print(base_point.shape)
             base_point = gs.to_ndarray(base_point, to_ndim=3, axis=0)
-            print(point.shape)
-            print(base_point.shape)
-            print('end log product bef comp')
             logs = gs.stack(
                 [self.metrics[i].log(point[:, i], base_point[:, i])
                  for i in range(self.n_metrics)], axis=1)
