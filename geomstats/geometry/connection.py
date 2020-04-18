@@ -155,7 +155,7 @@ class Connection:
             """Define the objective function."""
             velocity = velocity.reshape(base_point.shape)
             delta = self.exp(velocity, base_point, n_steps, step) - point
-            loss = 1. / self.dimension * gs.sum(delta ** 2, axis=-1)
+            loss = 1. / self.dim * gs.sum(delta ** 2, axis=-1)
             return 1. / n_samples * gs.sum(loss)
 
         objective_grad = autograd.elementwise_grad(objective)
