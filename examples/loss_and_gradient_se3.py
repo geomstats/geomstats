@@ -33,6 +33,11 @@ def loss(y_pred, y_true,
         y_true = gs.hstack([y_true_rot_vec, y_true[:, 4:]])
 
     loss = lie_group.loss(y_pred, y_true, SE3, metric)
+    if gs.ndim(loss) == 2:
+        loss = gs.squeeze(loss, axis=1)
+    if gs.ndim(loss) == 1 and gs.shape(loss)[0] == 1:
+        loss = gs.squeeze(loss, axis=0)
+
     return loss
 
 
