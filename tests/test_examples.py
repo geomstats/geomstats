@@ -23,6 +23,7 @@ import examples.plot_pole_ladder_s2 as plot_pole_ladder_s2
 import examples.plot_square_h2_klein_disk as plot_square_h2_klein_disk
 import examples.plot_square_h2_poincare_disk as plot_square_h2_poincare_disk
 import examples.plot_square_h2_poincare_half_plane as plot_square_h2_poincare_half_plane  # NOQA
+import examples.tangent_pca_h2 as tangent_pca_h2
 import examples.tangent_pca_s2 as tangent_pca_s2
 import examples.tangent_pca_so3 as tangent_pca_so3
 import matplotlib
@@ -99,6 +100,10 @@ class TestExamples(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_tangent_pca_s2(self):
+        tangent_pca_h2.main()
+
+    @geomstats.tests.np_only
+    def test_tangent_pca_h2(self):
         tangent_pca_s2.main()
 
     @geomstats.tests.np_only
