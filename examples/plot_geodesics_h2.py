@@ -23,8 +23,10 @@ def plot_geodesic_between_two_points(initial_point,
                                      n_steps=10,
                                      ax=None):
     """Plot the geodesic between two points."""
-    assert H2.belongs(initial_point)
-    assert H2.belongs(end_point)
+    if not H2.belongs(initial_point):
+        raise ValueError('The initial point of the geodesic is not in H2.')
+    if not H2.belongs(end_point):
+        raise ValueError('The end point of the geodesic is not in H2.')
 
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                end_point=end_point)
@@ -39,7 +41,8 @@ def plot_geodesic_with_initial_tangent_vector(initial_point,
                                               n_steps=10,
                                               ax=None):
     """Plot the geodesic with initial speed the tangent vector."""
-    assert H2.belongs(initial_point)
+    if not H2.belongs(initial_point):
+        raise ValueError('The initial point of the geodesic is not in H2.')
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                initial_tangent_vec=initial_tangent_vec)
 

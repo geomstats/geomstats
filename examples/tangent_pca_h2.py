@@ -1,4 +1,4 @@
-"""Perform tangent PCA at the mean."""
+"""Perform tangent PCA at the mean on H2."""
 
 import logging
 
@@ -12,7 +12,7 @@ from geomstats.learning.pca import TangentPCA
 
 
 def main():
-    """Perform tangent PCA at the mean."""
+    """Perform tangent PCA at the mean on H2."""
     fig = plt.figure(figsize=(15, 5))
 
     hyperbolic_plane = Hyperbolic(dim=2)

@@ -1,7 +1,4 @@
-"""
-Plot a grid on H2
-with Poincare Disk visualization.
-"""
+"""Plot a grid on H2 with Poincare Disk visualization."""
 
 import logging
 import os
@@ -22,6 +19,17 @@ def main(left=-128,
          top=128,
          grid_size=32,
          n_steps=512):
+    """Plot a grid on H2 with Poincare Disk visualization.
+
+    Parameters
+    ----------
+    left, right, bottom, top : ints
+        Grid's coordinates
+    grid_size : int
+        Grid's size.
+    n_steps : int
+        Number of steps along the geodesics defining the grid.
+    """
     starts = []
     ends = []
     for p in np.linspace(left, right, grid_size):

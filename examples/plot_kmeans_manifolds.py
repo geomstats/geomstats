@@ -1,5 +1,4 @@
-"""
-Applies K-means on manifolds for K=2 and plots the results.
+"""Run K-means on manifolds for K=2 and Plot the results.
 
 Two random clusters are generated in separate regions of the
 manifold. Then K-means is applied using the metric of the manifold.
@@ -21,7 +20,7 @@ from geomstats.learning.kmeans import RiemannianKMeans
 
 
 def kmean_poincare_ball():
-
+    """Run K-means on the Poincare ball."""
     n_samples = 20
     dim = 2
     n_clusters = 2
@@ -75,7 +74,7 @@ def kmean_poincare_ball():
 
 
 def kmean_hypersphere():
-
+    """Run K-means on the sphere."""
     n_samples = 50
     dim = 2
     n_clusters = 2
@@ -129,7 +128,7 @@ def kmean_hypersphere():
 
 
 def main():
-
+    """Run K-means on the Poincare ball and the sphere."""
     kmean_poincare_ball()
 
     plots = kmean_hypersphere()
