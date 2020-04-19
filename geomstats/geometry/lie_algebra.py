@@ -31,7 +31,8 @@ class MatrixLieAlgebra:
         self.n = n
         self.basis = None
 
-    def lie_bracket(self, matrix_a, matrix_b):
+    @staticmethod
+    def lie_bracket(matrix_a, matrix_b):
         """Compute the Lie_bracket (commutator) of two matrices.
 
         Notice that inputs have to be given in matrix form, no conversion

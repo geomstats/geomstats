@@ -9,7 +9,7 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
-from geomstats.geometry.so3 import SpecialOrthogonal
+from geomstats.geometry.so3 import SpecialOrthogonal3
 
 
 EPSILON = 1e-5
@@ -26,8 +26,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         gs.random.seed(1234)
 
-        n_seq = [2, 3]
-        so = {n: SpecialOrthogonal(n=n) for n in n_seq}
+        n_seq = [3]
+        so = {n: SpecialOrthogonal3() for n in n_seq}
 
         # -- Rotation vectors with angles
         # 0, close to 0, closely lower than pi, pi,
@@ -97,18 +97,18 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
         left_metrics = {
             n: InvariantMetric(
-                group=group,
-                inner_product_mat_at_identity=mat,
+                group=so[n],
+                inner_product_mat_at_identity=mats[n],
                 left_or_right='left')
-            for n, group, mat in zip(n_seq, so.values(), mats.values())
+            for n in n_seq
         }
 
         right_metrics = {
             n: InvariantMetric(
-                group=group,
-                inner_product_mat_at_identity=mat,
+                group=so[n],
+                inner_product_mat_at_identity=mats[n],
                 left_or_right='right')
-            for n, group, mat in zip(n_seq, so.values(), mats.values())
+            for n in n_seq
         }
         all_metrics = zip(n_seq,
                           canonical_metrics.values(),
@@ -203,39 +203,35 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_skew_matrix_from_vector_vectorization(self):
-        point_type = 'vector'
         n_samples = self.n_samples
         for n in self.n_seq:
             group = self.so[n]
-            rot_vecs = group.random_uniform(
-                n_samples=n_samples, point_type=point_type)
+            rot_vecs = group.random_uniform(n_samples=n_samples)
             result = group.skew_matrix_from_vector(rot_vecs)
 
             self.assertAllClose(gs.shape(result), (n_samples, n, n))
 
     @geomstats.tests.np_only
     def test_random_uniform_shape(self):
-        point_type = 'vector'
         for n in self.n_seq:
             group = self.so[n]
-            result = group.random_uniform(point_type=point_type)
+            result = group.random_uniform()
             self.assertAllClose(gs.shape(result), (group.dim,))
 
-        point_type = 'matrix'
-        for n in self.n_seq:
-            group = self.so[n]
-            result = group.random_uniform(point_type=point_type)
-            self.assertAllClose(gs.shape(result), (n, n))
+        # point_type = 'matrix'
+        # for n in self.n_seq:
+        #     group = self.so[n]
+        #     result = group.random_uniform(point_type=point_type)
+        #     self.assertAllClose(gs.shape(result), (n, n))
 
     @geomstats.tests.np_only
     def test_random_and_belongs(self):
-        for point_type in ('vector', 'matrix'):
-            for n in self.n_seq:
-                group = self.so[n]
-                point = group.random_uniform(point_type=point_type)
-                result = group.belongs(point, point_type=point_type)
-                expected = True
-                self.assertAllClose(result, expected)
+        for n in self.n_seq:
+            group = self.so[n]
+            point = group.random_uniform()
+            result = group.belongs(point)
+            expected = True
+            self.assertAllClose(result, expected)
 
     def test_random_and_belongs_vectorization(self):
         n_samples = self.n_samples
@@ -320,44 +316,40 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 self.assertAllClose(result, expected)
 
     def test_regularize_vectorization(self):
-        for point_type in ('vector', 'matrix'):
-            for n in self.n_seq:
-                group = self.so[n]
-                group.default_point_type = point_type
-
-                n_samples = self.n_samples
-                rot_vecs = group.random_uniform(n_samples=n_samples)
-                result = group.regularize(rot_vecs)
-
-                if point_type == 'vector':
-                    self.assertAllClose(
-                        gs.shape(result), (n_samples, group.dim))
-                if point_type == 'matrix':
-                    self.assertAllClose(
-                        gs.shape(result), (n_samples, n, n))
-
-    @geomstats.tests.np_only
-    def test_regularize_tangent_vec_matrix(self):
-        point_type = 'matrix'
         for n in self.n_seq:
             group = self.so[n]
-            group.default_point_type = point_type
 
             n_samples = self.n_samples
             rot_vecs = group.random_uniform(n_samples=n_samples)
-            tangent_vecs = group.log_from_identity(rot_vecs)
-            result = group.regularize_tangent_vec_at_identity(
-                tangent_vecs)
-            expected = tangent_vecs
-            self.assertAllClose(result, expected)
+            result = group.regularize(rot_vecs)
 
-            n_samples = self.n_samples
-            base_points = group.random_uniform(n_samples=n_samples)
-            tangent_vecs = group.compose(base_points, tangent_vecs)
-            result = group.regularize_tangent_vec(
-                tangent_vecs, base_points)
-            expected = tangent_vecs
-            self.assertAllClose(result, expected)
+            self.assertAllClose(gs.shape(result), (n_samples, group.dim))
+                # if point_type == 'matrix':
+                #     self.assertAllClose(
+                #         gs.shape(result), (n_samples, n, n))
+
+    @geomstats.tests.np_only
+    # def test_regularize_tangent_vec_matrix(self):
+    #     point_type = 'matrix'
+    #     for n in self.n_seq:
+    #         group = self.so[n]
+    #         group.default_point_type = point_type
+    #
+    #         n_samples = self.n_samples
+    #         rot_vecs = group.random_uniform(n_samples=n_samples)
+    #         tangent_vecs = group.log_from_identity(rot_vecs)
+    #         result = group.regularize_tangent_vec_at_identity(
+    #             tangent_vecs)
+    #         expected = tangent_vecs
+    #         self.assertAllClose(result, expected)
+    #
+    #         n_samples = self.n_samples
+    #         base_points = group.random_uniform(n_samples=n_samples)
+    #         tangent_vecs = group.compose(base_points, tangent_vecs)
+    #         result = group.regularize_tangent_vec(
+    #             tangent_vecs, base_points)
+    #         expected = tangent_vecs
+    #         self.assertAllClose(result, expected)
 
     def test_matrix_from_rotation_vector(self):
         n = 3
@@ -412,8 +404,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             group = self.so[n]
 
             n_samples = self.n_samples
-            rot_vecs = group.random_uniform(
-                n_samples=n_samples, point_type='vector')
+            rot_vecs = group.random_uniform(n_samples=n_samples)
 
             rot_mats = group.matrix_from_rotation_vector(rot_vecs)
 
@@ -2507,8 +2498,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             rot_mats = group.matrix_from_rotation_vector(rot_vecs)
             result = group.rotation_vector_from_matrix(rot_mats)
 
-            expected = group.regularize(
-                rot_vecs, point_type='vector')
+            expected = group.regularize(rot_vecs)
 
             self.assertAllClose(result, expected)
 
@@ -2733,19 +2723,19 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                             gs.allclose(result, expected)
                             or gs.allclose(result, inv_expected))
 
-            else:
-                angle = 0.986
-                point = gs.array([
-                    [gs.cos(angle), -gs.sin(angle)],
-                    [gs.sin(angle), gs.cos(angle)]])
-
-                result = group.compose(point, group.identity)
-                expected = group.regularize(point)
-                self.assertAllClose(result, expected)
-
-                result = group.compose(group.identity, point)
-                expected = group.regularize(point)
-                self.assertAllClose(result, expected)
+            # else:
+            #     angle = 0.986
+            #     point = gs.array([
+            #         [gs.cos(angle), -gs.sin(angle)],
+            #         [gs.sin(angle), gs.cos(angle)]])
+            #
+            #     result = group.compose(point, group.identity)
+            #     expected = group.regularize(point)
+            #     self.assertAllClose(result, expected)
+            #
+            #     result = group.compose(group.identity, point)
+            #     expected = group.regularize(point)
+            #     self.assertAllClose(result, expected)
 
     def test_compose_and_inverse(self):
         for n in self.n_seq:
@@ -2786,39 +2776,39 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_tf_only
     def test_compose_vectorization(self):
-        for point_type in ('vector', 'matrix'):
-            for n in self.n_seq:
-                group = self.so[n]
-                group.default_point_type = point_type
+        point_type= 'vector'
+        for n in self.n_seq:
+            group = self.so[n]
+            group.default_point_type = point_type
 
-                n_samples = self.n_samples
-                n_points_a = group.random_uniform(n_samples=n_samples)
-                n_points_b = group.random_uniform(n_samples=n_samples)
-                one_point = group.random_uniform(n_samples=1)
+            n_samples = self.n_samples
+            n_points_a = group.random_uniform(n_samples=n_samples)
+            n_points_b = group.random_uniform(n_samples=n_samples)
+            one_point = group.random_uniform(n_samples=1)
 
-                result = group.compose(one_point, n_points_a)
-                if point_type == 'vector':
-                    self.assertAllClose(
-                        gs.shape(result), (n_samples, group.dim))
-                if point_type == 'matrix':
-                    self.assertAllClose(
-                        gs.shape(result), (n_samples, n, n))
+            result = group.compose(one_point, n_points_a)
+            if point_type == 'vector':
+                self.assertAllClose(
+                    gs.shape(result), (n_samples, group.dim))
+            if point_type == 'matrix':
+                self.assertAllClose(
+                    gs.shape(result), (n_samples, n, n))
 
-                result = group.compose(n_points_a, one_point)
-                if point_type == 'vector':
-                    self.assertAllClose(
-                        gs.shape(result), (n_samples, group.dim))
-                if point_type == 'matrix':
-                    self.assertAllClose(
-                        gs.shape(result), (n_samples, n, n))
+            result = group.compose(n_points_a, one_point)
+            if point_type == 'vector':
+                self.assertAllClose(
+                    gs.shape(result), (n_samples, group.dim))
+            if point_type == 'matrix':
+                self.assertAllClose(
+                    gs.shape(result), (n_samples, n, n))
 
-                result = group.compose(n_points_a, n_points_b)
-                if point_type == 'vector':
-                    self.assertAllClose(
-                        gs.shape(result), (n_samples, group.dim))
-                if point_type == 'matrix':
-                    self.assertAllClose(
-                        gs.shape(result), (n_samples, n, n))
+            result = group.compose(n_points_a, n_points_b)
+            if point_type == 'vector':
+                self.assertAllClose(
+                    gs.shape(result), (n_samples, group.dim))
+            if point_type == 'matrix':
+                self.assertAllClose(
+                    gs.shape(result), (n_samples, n, n))
 
     def test_inverse_vectorization(self):
         for n in self.n_seq:
@@ -3141,7 +3131,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                     metric = self.metrics[3][metric_type]
                     tangent_vec = self.elements[3][angle_type]
                     base_point = self.elements[3][angle_type_base]
-
                     result = helper.exp_then_log(metric=metric,
                                                  tangent_vec=tangent_vec,
                                                  base_point=base_point)
@@ -3151,7 +3140,8 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                         base_point=base_point,
                         metric=metric)
                     expected = reg_tangent_vec
-
+                    if result.shape == (1,):
+                        print(metric_type, angle_type, angle_type_base)
                     self.assertAllClose(result, expected, atol=1e-4)
 
     def test_exp_then_log_with_angles_close_to_pi(self):
@@ -3252,27 +3242,27 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             normal_rv = gs.random.rand(gs.array(n ** 2))
             tangent_sample = gs.reshape(normal_rv, (n, n))
             tangent_sample = tangent_sample - gs.transpose(tangent_sample)
-            result = gs.linalg.expm(tangent_sample)
-            expected = group.exp_from_identity(
-                tangent_sample, point_type='matrix')
-
-            self.assertAllClose(result, expected)
-
-    def test_group_exp_from_identity_coincides_with_expm_for_high_dims(self):
-        for n in [4, 5, 6, 7, 8, 9, 10]:
-            group = SpecialOrthogonal(n=n)
-
-            normal_rv = gs.random.rand(gs.array(n ** 2))
-            tangent_sample = gs.reshape(normal_rv, (n, n))
-            tangent_sample = tangent_sample - gs.transpose(tangent_sample)
-
-            result = gs.reshape(
-                group.exp_from_identity(
-                    tangent_sample, point_type='matrix'), (n, n))
-
             expected = gs.linalg.expm(tangent_sample)
-
+            tangent_vec = group.vector_from_skew_matrix(tangent_sample)
+            exp = group.exp_from_identity(tangent_vec)
+            result = group.matrix_from_rotation_vector(exp)
             self.assertAllClose(result, expected)
+
+    # def test_group_exp_from_identity_coincides_with_expm_for_high_dims(self):
+    #     for n in [4, 5, 6, 7, 8, 9, 10]:
+    #         group = SpecialOrthogonal(n=n)
+    #
+    #         normal_rv = gs.random.rand(gs.array(n ** 2))
+    #         tangent_sample = gs.reshape(normal_rv, (n, n))
+    #         tangent_sample = tangent_sample - gs.transpose(tangent_sample)
+    #
+    #         result = gs.reshape(
+    #             group.exp_from_identity(
+    #                 tangent_sample, point_type='matrix'), (n, n))
+    #
+    #         expected = gs.linalg.expm(tangent_sample)
+    #
+    #         self.assertAllClose(result, expected)
 
     def test_group_exp_from_identity_vectorization(self):
         n = 3
@@ -3710,34 +3700,22 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
     def test_lie_bracket_at_identity(self):
         dim = 3
         space = self.so[dim]
-        base_point = gs.eye(dim)
-        first_tan = gs.array([
-            [0., -1., 0.],
-            [1., 0., 0.],
-            [0., 0., 0.]])
+        base_point = space.identity
+        first_tan = gs.array([0., 0., -1.])
         second_tan = first_tan
 
         result = space.lie_bracket(
-            first_tan, second_tan, base_point, point_type='matrix')
-        expected = gs.zeros((dim, dim))
+            first_tan, second_tan, base_point, point_type='vector')
+        expected = gs.zeros(dim)
 
         self.assertAllClose(result, expected)
 
-        first_tan = gs.array([
-            [0., -1., 0.],
-            [1., 0., 0.],
-            [0., 0., 0.]])
-        second_tan = gs.array([
-            [0., 0., -1.],
-            [0., 0., 0.],
-            [1., 0., 0.]])
+        first_tan = gs.array([0., 0., 1.])
+        second_tan = gs.array([0., 1., 0.])
 
         result = space.lie_bracket(
-            first_tan, second_tan, base_point, point_type='matrix')
-        expected = gs.array([
-            [0., 0., 0.],
-            [0., 0., -1.],
-            [0., 1., 0.]])
+            first_tan, second_tan, base_point)
+        expected = gs.array([-1., 0., 0.])
 
         self.assertAllClose(result, expected)
 
@@ -3745,58 +3723,47 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         dim = 3
         space = self.so[dim]
 
-        base_point = gs.array([gs.eye(dim), gs.eye(dim)])
-        first_tan = gs.array([
-            [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
-            [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
-        ])
-        second_tan = gs.array([
-            [[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]],
-            [[0., 0., -1.], [0., 0., 0.], [1., 0., 0.]]
-        ])
+        base_point = gs.array([space.identity, space.identity])
+        first_tan = gs.array([[0., 0., 1.], [0., 0., 1.]])
+        second_tan = gs.array([[0., 0., 1.], [0., 1., 0.]])
 
         result = space.lie_bracket(
-            first_tan, second_tan, base_point, point_type='matrix')
-        expected = gs.array([
-            gs.zeros((dim, dim)),
-            gs.array([
-                [0., 0., 0.],
-                [0., 0., -1.],
-                [0., 1., 0.]])
-        ])
+            first_tan, second_tan, base_point)
+        expected = gs.array([gs.zeros(3), gs.array([-1., 0., 0.])])
 
         self.assertAllClose(result, expected)
 
-    def test_lie_bracket_at_non_identity(self):
-        dim = 3
-        space = self.so[dim]
-
-        base_point = gs.array([
-            [-1., 0., 0.],
-            [0., -1., 0.],
-            [0., 0., 1.]])
-        first_tan = gs.matmul(
-            base_point,
-            gs.array([
-                [0., -1., 0.],
-                [1., 0., 0.],
-                [0., 0., 0.]])
-        )
-        second_tan = gs.matmul(
-            base_point,
-            gs.array([
-                [0., 0., -1.],
-                [0., 0., 0.],
-                [1., 0., 0.]])
-        )
-
-        result = space.lie_bracket(
-            first_tan, second_tan, base_point, point_type='matrix')
-        expected = gs.matmul(
-            base_point,
-            gs.array([
-                [0., 0., 0.],
-                [0., 0., -1.],
-                [0., 1., 0.]]))
-
-        self.assertAllClose(result, expected)
+    # def test_lie_bracket_at_non_identity(self):
+    #     dim = 3
+    #     space = self.so[dim]
+    #
+    #     base_point = gs.array([
+    #         [-1., 0., 0.],
+    #         [0., -1., 0.],
+    #         [0., 0., 1.]])
+    #     rotation = space.jacobian_translation(base_point)
+    #     first_tan = space.compose(
+    #         base_point,
+    #         gs.array([
+    #             [0., -1., 0.],
+    #             [1., 0., 0.],
+    #             [0., 0., 0.]])
+    #     )
+    #     second_tan = gs.matmul(
+    #         base_point,
+    #         gs.array([
+    #             [0., 0., -1.],
+    #             [0., 0., 0.],
+    #             [1., 0., 0.]])
+    #     )
+    #
+    #     result = space.lie_bracket(
+    #         first_tan, second_tan, base_point, point_type='matrix')
+    #     expected = gs.matmul(
+    #         base_point,
+    #         gs.array([
+    #             [0., 0., 0.],
+    #             [0., 0., -1.],
+    #             [0., 1., 0.]]))
+    #
+    #     self.assertAllClose(result, expected)

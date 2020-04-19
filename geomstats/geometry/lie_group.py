@@ -368,7 +368,7 @@ class LieGroup(Manifold):
         if point_type is None:
             point_type = self.default_point_type
         if base_point is None:
-            base_point = self.identity
+            base_point = self.get_identity(point_type=point_type)
         inverse_base_point = self.inverse(base_point, point_type=point_type)
 
         first_term = gs.einsum(
