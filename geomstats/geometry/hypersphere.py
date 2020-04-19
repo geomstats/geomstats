@@ -283,7 +283,13 @@ class Hypersphere(EmbeddedManifold):
 
         return point_intrinsic
 
-    def random_uniform(self, n_samples=1):
+    def _replace_values(self, samples, new_samples, indcs, num_bad_samples):
+        replaced_indices = [
+            i for i, is_replaced in enumerate(indcs) if is_replaced]
+        value_indices = list(product(replaced_indices, range(self.dim + 1)))
+        return gs.assignment(samples, gs.flatten(new_samples), value_indices)
+
+    def random_uniform(self, n_samples=1, tol=1e-6):
         """Sample in the hypersphere from the uniform distribution.
 
         Parameters
@@ -299,22 +305,16 @@ class Hypersphere(EmbeddedManifold):
         size = (n_samples, self.dim + 1)
 
         samples = gs.random.normal(size=size)
-        try_where = 1
         while True:
             norms = gs.linalg.norm(samples, axis=1)
-            if try_where:
-                norms = norms - norms[0]
-                try_where = 0
-            indcs = gs.isclose(norms, 0.0)
+            indcs = gs.isclose(norms, 0.0, atol=tol)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break
             new_samples = gs.random.normal(
                 size=(num_bad_samples, self.dim + 1))
-            replaced_indices = [i for i in range(num_bad_samples) if indcs[i]]
-            value_indices = list(product(replaced_indices, range(self.dim + 1)))
-            samples = gs.assignment(
-                samples, gs.flatten(new_samples), value_indices)
+            samples = self._replace_values(
+                samples, new_samples, indcs, num_bad_samples)
 
         samples = gs.einsum('..., ...i->...i', 1 / norms, samples)
         if n_samples == 1:

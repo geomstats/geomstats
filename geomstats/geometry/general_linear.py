@@ -36,6 +36,13 @@ class GeneralLinear(Matrices):
         """Return the inverse of a matrix."""
         return gs.linalg.inv(point)
 
+    def _replace_values(self, samples, new_samples, indcs, num_bad_samples):
+        replaced_indices = [
+            i for i, is_replaced in enumerate(indcs) if is_replaced]
+        value_indices = list(
+            product(replaced_indices, range(self.n), range(self.n)))
+        return gs.assignment(samples, gs.flatten(new_samples), value_indices)
+
     def random_uniform(self, n_samples=1, tol=1e-6):
         """Sample in GL(n) from the uniform distribution.
 
@@ -53,22 +60,15 @@ class GeneralLinear(Matrices):
             Points sampled on GL(n).
         """
         samples = gs.random.rand(n_samples, self.n, self.n)
-        try_where = 1
         while True:
             dets = gs.linalg.det(samples)
-            if try_where:
-                dets = dets - dets[0]
-                try_where = 0
             indcs = gs.isclose(dets, 0.0, atol=tol)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break
             new_samples = gs.random.rand(num_bad_samples, self.n, self.n)
-            replaced_indices = [i for i in range(num_bad_samples) if indcs[i]]
-            value_indices = list(
-                product(replaced_indices, range(self.n), range(self.n)))
-            samples = gs.assignment(
-                samples, gs.flatten(new_samples), value_indices)
+            samples = self._replace_values(
+                samples, new_samples, indcs, num_bad_samples)
         if n_samples == 1:
             samples = gs.squeeze(samples, axis=0)
         return samples

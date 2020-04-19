@@ -37,6 +37,14 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
         expected = gs.array([True] * n_samples)
         self.assertAllClose(result, expected)
 
+    def test_replace_values(self):
+        points = gs.ones((3, 3, 3))
+        new_points = gs.zeros((2, 3, 3))
+        indcs = [True, False, True]
+        update = self.group._replace_values(points, new_points, indcs, 2)
+        self.assertAllClose(update, gs.stack(
+            [gs.zeros((3, 3)), gs.ones((3, 3)), gs.zeros((3, 3))]))
+
     def test_compose(self):
         mat1 = gs.array([
             [1., 0.],
