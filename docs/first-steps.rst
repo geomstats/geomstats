@@ -19,7 +19,7 @@ You can choose your backend by setting the environment variable ``GEOMSTATS_BACK
 
 .. code-block:: bash
 
-    export GEOMSTATS_BACKEND=numpy
+    export GEOMSTATS_BACKEND=pytorch
 
 **FIRST EXAMPLES**
 
@@ -60,8 +60,12 @@ implemented in the package.
 
 **NEXT STEPS**
 
-You can find more examples in the repository "examples" of geomstats. You can run them from the command line as follows.
+You can find more examples in the repository
+`examples <https://github.com/geomstats/geomstats/tree/master/examples>`_ of geomstats.
+You can run them from the command line as follows.
 
 .. code-block:: bash
 
     python3 examples/plot_grid_h2.py
+
+Some of these examples are presented on the pages :ref:`geometric_examples` and :ref:`learning_examples`.

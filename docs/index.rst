@@ -37,11 +37,11 @@ such as manifolds and Riemannian metrics, with associated exponential
 and logarithmic maps, geodesics, and parallel transport.
 
 The module `learning` implements statistics and learning algorithms for data
-on manifolds, such as estimation procedures, clustering and dimension reduction.
+on manifolds, such as estimation, clustering and dimension reduction.
 The code is object-oriented and classes inherit from
 scikit-learn's base classes and mixins.
 
-All associated operations are vectorized for batch computation and provide
+In both modules, the operations are vectorized for batch computation and provide
 support for different execution backends---namely NumPy, PyTorch, and TensorFlow---
 enabling GPU acceleration.
 
