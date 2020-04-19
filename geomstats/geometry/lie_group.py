@@ -371,16 +371,10 @@ class LieGroup(Manifold):
             base_point = self.get_identity(point_type=point_type)
         inverse_base_point = self.inverse(base_point, point_type=point_type)
 
-        first_term = gs.einsum(
-            '...ij,...jk->...ik',
-            inverse_base_point, tangent_vector_b)
-        first_term = gs.einsum(
-            '...ij,...jk->...ik', tangent_vector_a, first_term)
+        first_term = Matrices.mul(inverse_base_point, tangent_vector_b)
+        first_term = Matrices.mul(tangent_vector_a, first_term)
 
-        second_term = gs.einsum(
-            '...ij,...jk->...ik',
-            inverse_base_point, tangent_vector_a)
-        second_term = gs.einsum(
-            '...ij,...jk->...ik', tangent_vector_b, second_term)
+        second_term = Matrices.mul(inverse_base_point, tangent_vector_a)
+        second_term = Matrices.mul(tangent_vector_b, second_term)
 
         return first_term - second_term
