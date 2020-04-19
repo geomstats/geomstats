@@ -1,8 +1,9 @@
 """Module exposing the GeneralLinear group class."""
 
+from itertools import product
+
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
-from itertools import product
 
 
 class GeneralLinear(Matrices):

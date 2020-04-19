@@ -4,9 +4,9 @@ The n-dimensional hypersphere embedded in (n+1)-dimensional
 Euclidean space.
 """
 
-from itertools import product
 import logging
 import math
+from itertools import product
 
 import geomstats.backend as gs
 import geomstats.vectorization
