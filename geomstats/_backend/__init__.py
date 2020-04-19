@@ -37,6 +37,7 @@ BACKEND_ATTRIBUTES = {
         'copy',
         'cos',
         'cosh',
+        'cross',
         'cumsum',
         'diagonal',
         'divide',
