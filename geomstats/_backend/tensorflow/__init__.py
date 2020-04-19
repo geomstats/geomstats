@@ -303,7 +303,7 @@ def assignment_by_sum(x, values, indices, axis=0):
     If a single value is provided, it is assigned at all the indices.
     If a list is given, it must have the same length as indices.
     """
-    if not isinstance(values, list):
+    if tf.rank(values) == 0:
         return _assignment_single_value_by_sum(x, values, indices, axis)
 
     if not isinstance(indices, list):
@@ -388,7 +388,7 @@ def assignment(x, values, indices, axis=0):
     If a single value is provided, it is assigned at all the indices.
     If a list is given, it must have the same length as indices.
     """
-    if not isinstance(values, list):
+    if tf.rank(values) == 0:
         return _assignment_single_value(x, values, indices, axis)
 
     if not isinstance(indices, list):
@@ -513,6 +513,12 @@ def isclose(x, y, rtol=1e-05, atol=1e-08):
 
 def allclose(x, y, rtol=1e-05, atol=1e-08):
     return tf.reduce_all(isclose(x, y, rtol=rtol, atol=atol))
+
+
+def sum(x, axis=None, keepdims=False, name=None):
+    if x.dtype == bool:
+        x = cast(x, int32)
+    return tf.reduce_sum(x, axis, keepdims, name)
 
 
 def eye(n, m=None):

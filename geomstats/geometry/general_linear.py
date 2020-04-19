@@ -2,6 +2,7 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
+from itertools import product
 
 
 class GeneralLinear(Matrices):
@@ -52,13 +53,22 @@ class GeneralLinear(Matrices):
             Points sampled on GL(n).
         """
         samples = gs.random.rand(n_samples, self.n, self.n)
+        try_where = 1
         while True:
             dets = gs.linalg.det(samples)
+            if try_where:
+                dets = dets - dets[0]
+                try_where = 0
             indcs = gs.isclose(dets, 0.0, atol=tol)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break
-            samples[indcs, :] = gs.random.rand(num_bad_samples, self.n, self.n)
+            new_samples = gs.random.rand(num_bad_samples, self.n, self.n)
+            replaced_indices = [i for i in range(num_bad_samples) if indcs[i]]
+            value_indices = list(
+                product(replaced_indices, range(self.n), range(self.n)))
+            samples = gs.assignment(
+                samples, gs.flatten(new_samples), value_indices)
         if n_samples == 1:
             samples = gs.squeeze(samples, axis=0)
         return samples

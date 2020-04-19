@@ -4,6 +4,7 @@ The n-dimensional hypersphere embedded in (n+1)-dimensional
 Euclidean space.
 """
 
+from itertools import product
 import logging
 import math
 
@@ -298,14 +299,22 @@ class Hypersphere(EmbeddedManifold):
         size = (n_samples, self.dim + 1)
 
         samples = gs.random.normal(size=size)
+        try_where = 1
         while True:
             norms = gs.linalg.norm(samples, axis=1)
+            if try_where:
+                norms = norms - norms[0]
+                try_where = 0
             indcs = gs.isclose(norms, 0.0)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break
-            samples[indcs, :] = gs.random.normal(
+            new_samples = gs.random.normal(
                 size=(num_bad_samples, self.dim + 1))
+            replaced_indices = [i for i in range(num_bad_samples) if indcs[i]]
+            value_indices = list(product(replaced_indices, range(self.dim + 1)))
+            samples = gs.assignment(
+                samples, gs.flatten(new_samples), value_indices)
 
         samples = gs.einsum('..., ...i->...i', 1 / norms, samples)
         if n_samples == 1:

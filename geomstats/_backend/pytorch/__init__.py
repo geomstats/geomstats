@@ -557,7 +557,8 @@ def assignment(x, values, indices, axis=0):
     single_index = not isinstance(indices, list)
     if single_index:
         indices = [indices]
-    if not isinstance(values, list):
+    values = array(values)
+    if values.dim() == 0:
         values = [values] * len(indices)
     for (nb_index, index) in enumerate(indices):
         if not isinstance(index, tuple):
