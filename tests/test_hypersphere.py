@@ -20,7 +20,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         self.metric = self.space.metric
         self.n_samples = 10
 
-    # @geomstats.tests.np_and_pytorch_only
     def test_random_uniform_and_belongs(self):
         """
         Test that the random uniform method samples
@@ -33,7 +32,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
-    # @geomstats.tests.np_and_pytorch_only
     def test_random_uniform(self):
         point = self.space.random_uniform()
 
