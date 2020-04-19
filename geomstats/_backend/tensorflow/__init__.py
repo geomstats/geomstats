@@ -515,12 +515,6 @@ def allclose(x, y, rtol=1e-05, atol=1e-08):
     return tf.reduce_all(isclose(x, y, rtol=rtol, atol=atol))
 
 
-def sum(x, axis=None, keepdims=False, name=None):
-    if x.dtype == bool:
-        x = cast(x, int32)
-    return tf.reduce_sum(x, axis, keepdims, name)
-
-
 def eye(n, m=None):
     if m is None:
         m = n

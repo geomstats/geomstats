@@ -36,7 +36,7 @@ class GeneralLinear(Matrices):
         """Return the inverse of a matrix."""
         return gs.linalg.inv(point)
 
-    def _replace_values(self, samples, new_samples, indcs, num_bad_samples):
+    def _replace_values(self, samples, new_samples, indcs):
         replaced_indices = [
             i for i, is_replaced in enumerate(indcs) if is_replaced]
         value_indices = list(
