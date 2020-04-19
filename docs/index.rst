@@ -33,11 +33,17 @@ The package is organized into two main modules:
 `geometry` and `learning`.
 
 The module `geometry` implements concepts in differential geometry,
-such as manifolds and Riemannian metrics, with an object-oriented approach.
+such as manifolds and Riemannian metrics, with associated exponential
+and logarithmic maps, geodesics, and parallel transport.
 
 The module `learning` implements statistics and learning algorithms for data
-on manifolds. The code is object-oriented and classes inherit from
+on manifolds, such as estimation procedures, clustering and dimension reduction.
+The code is object-oriented and classes inherit from
 scikit-learn's base classes and mixins.
+
+All associated operations are vectorized for batch computation and provide
+support for different execution backends---namely NumPy, PyTorch, and TensorFlow---
+enabling GPU acceleration.
 
 To learn how to use `geomstats`, visit the page :ref:`first_steps`.
 To contribute to `geomstats` visit the page :ref:`contributing`.
