@@ -163,7 +163,7 @@ class InvariantMetric(RiemannianMetric):
             point=base_point,
             left_or_right=self.left_or_right)
 
-        inv_jacobian = GeneralLinear.inv(jacobian)
+        inv_jacobian = GeneralLinear.inverse(jacobian)
         inv_jacobian_transposed = Matrices.transpose(inv_jacobian)
 
         metric_mat = gs.einsum(
@@ -294,7 +294,7 @@ class InvariantMetric(RiemannianMetric):
         """
         point = self.group.regularize(point)
         inner_prod_mat = self.inner_product_mat_at_identity
-        inv_inner_prod_mat = GeneralLinear.inv(inner_prod_mat)
+        inv_inner_prod_mat = GeneralLinear.inverse(inner_prod_mat)
         sqrt_inv_inner_prod_mat = gs.linalg.sqrtm(inv_inner_prod_mat)
         log = gs.einsum('...i,...ij->...j', point, sqrt_inv_inner_prod_mat)
         log = self.group.regularize_tangent_vec_at_identity(

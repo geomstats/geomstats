@@ -66,8 +66,8 @@ class LieGroup(Manifold):
     and columns of the matrix.
     """
 
-    def __init__(self, dim, default_point_type='vector'):
-        Manifold.__init__(self, dim=dim)
+    def __init__(self, dim, default_point_type='vector', **kwargs):
+        super(LieGroup, self).__init__(dim=dim, **kwargs)
 
         self.left_canonical_metric = InvariantMetric(
             group=self,

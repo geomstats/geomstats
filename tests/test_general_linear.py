@@ -59,7 +59,7 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
             [-2., 11., -6.],
             [3., -6., 3.]])
         expected = imat_a
-        result = self.group.inv(mat_a)
+        result = self.group.inverse(mat_a)
         self.assertAllClose(result, expected)
 
     def test_inv_vectorized(self):
@@ -68,7 +68,7 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
             [1., 0., 0.],
             [0., 0., 1.]])
         mat_b = - gs.eye(3, 3)
-        result = self.group.inv(gs.array([mat_a, mat_b]))
+        result = self.group.inverse(gs.array([mat_a, mat_b]))
         expected = gs.array([mat_a, mat_b])
         self.assertAllClose(result, expected)
 

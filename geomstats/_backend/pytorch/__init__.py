@@ -435,10 +435,6 @@ def equal(a, b, **kwargs):
     return torch.eq(a, b, **kwargs)
 
 
-def cross(x, y):
-    return torch.from_numpy(_np.cross(x, y))
-
-
 def tril_indices(*args, **kwargs):
     return tuple(map(torch.from_numpy, _np.tril_indices(*args, **kwargs)))
 

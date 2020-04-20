@@ -328,7 +328,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 #     self.assertAllClose(
                 #         gs.shape(result), (n_samples, n, n))
 
-    @geomstats.tests.np_only
+    # @geomstats.tests.np_only
     # def test_regularize_tangent_vec_matrix(self):
     #     point_type = 'matrix'
     #     for n in self.n_seq:
@@ -2776,7 +2776,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_tf_only
     def test_compose_vectorization(self):
-        point_type= 'vector'
+        point_type = 'vector'
         for n in self.n_seq:
             group = self.so[n]
             group.default_point_type = point_type

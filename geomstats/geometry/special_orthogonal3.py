@@ -8,7 +8,6 @@ import geomstats.vectorization
 from geomstats import algebra_utils
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.lie_algebra import MatrixLieAlgebra
 from geomstats.geometry.lie_group import LieGroup
 
 ATOL = 1e-5
@@ -27,7 +26,7 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
-class SpecialOrthogonal3(LieGroup, EmbeddedManifold):
+class SpecialOrthogonal3(LieGroup):
     """Class for the special orthogonal group SO(3).
 
     i.e. the Lie group of rotations. This class is specific to the vector
@@ -46,7 +45,7 @@ class SpecialOrthogonal3(LieGroup, EmbeddedManifold):
             default: 0
         """
         super(SpecialOrthogonal3, self).__init__(
-                          dim=3, default_point_type='vector')
+            dim=3, default_point_type='vector')
 
         self.n = 3
         self.epsilon = epsilon
@@ -310,13 +309,14 @@ class SpecialOrthogonal3(LieGroup, EmbeddedManifold):
         Parameters
         ----------
         vec : array-like, shape=[n_samples, dim]
+
         Returns
         -------
         skew_mat : array-like, shape=[n_samples, n, n]
         """
         n_vecs, vec_dim = gs.shape(vec)
 
-        if self.n == 2:  # SO(2)
+        if self.n == 2:
             vec = gs.tile(vec, [1, 2])
             vec = gs.reshape(vec, (n_vecs, 2))
 
@@ -325,8 +325,7 @@ class SpecialOrthogonal3(LieGroup, EmbeddedManifold):
             skew_mat = gs.einsum(
                 '...ij,...i->...ij', gs.cast(id_skew, gs.float32), vec)
 
-        elif self.n == 3:  # SO(3)
-            # This avoids dividing by 0.
+        elif self.n == 3:
             levi_civita_symbol = gs.tile([[
                 [[0., 0., 0.],
                  [0., 0., 1.],
@@ -485,6 +484,7 @@ class SpecialOrthogonal3(LieGroup, EmbeddedManifold):
         Parameters
         ----------
         rot_vec: array-like, shape=[n_samples, 3]
+
         Returns
         -------
         rot_mat: array-like, shape=[n_samples, 3]
@@ -1146,7 +1146,8 @@ class SpecialOrthogonal3(LieGroup, EmbeddedManifold):
         """
         return -self.regularize(point)
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'else', 'point_type'])
+    @geomstats.vectorization.decorator(
+        ['else', 'vector', 'else', 'point_type'])
     def jacobian_translation(
             self, point, left_or_right='left', point_type=None):
         """Compute the jacobian matrix corresponding to translation.
@@ -1303,4 +1304,20 @@ class SpecialOrthogonal3(LieGroup, EmbeddedManifold):
     def lie_bracket(
             self, tangent_vector_a, tangent_vector_b,
             base_point=None, point_type=None):
+        """Compute the lie bracket of two tangent vectors.
+
+        For matrix Lie groups with tangent vectors A,B at the same base point P
+        this is given by (translate to identity, compute commutator, go back)
+        :math:`[A,B] = A_P^{-1}B - B_P^{-1}A`
+
+        Parameters
+        ----------
+        tangent_vector_a : shape=[n_samples, n, n]
+        tangent_vector_b : shape=[n_samples, n, n]
+        base_point : array-like, shape=[n_samples, n, n]
+
+        Returns
+        -------
+        bracket : array-like, shape=[n_samples, n, n]
+        """
         return gs.cross(tangent_vector_a, tangent_vector_b)

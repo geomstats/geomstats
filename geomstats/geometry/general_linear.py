@@ -7,7 +7,7 @@ from geomstats.geometry.matrices import Matrices
 class GeneralLinear(Matrices):
     """Class for the general linear group GL(n)."""
 
-    def __init__(self, n):
+    def __init__(self, n, **kwargs):
         Matrices.__init__(self, n, n)
 
         self.n = n
@@ -21,9 +21,10 @@ class GeneralLinear(Matrices):
             mat_dim_1 == self.n and mat_dim_2 == self.n, gs.where(
                 det != 0., gs.array(True), gs.array(False)))
 
-    def identity(self):
+    def get_identity(self):
         """Return the identity matrix."""
         return gs.eye(self.n, self.n)
+    identity = property(get_identity)
 
     @classmethod
     def compose(cls, *args):
@@ -31,7 +32,7 @@ class GeneralLinear(Matrices):
         return cls.mul(*args)
 
     @staticmethod
-    def inv(point):
+    def inverse(point):
         """Return the inverse of a matrix."""
         return gs.linalg.inv(point)
 
@@ -95,7 +96,7 @@ class GeneralLinear(Matrices):
         expm = gs.linalg.expm
         if base_point is None:
             return expm(tangent_vec)
-        lie_algebra_vec = cls.mul(cls.inv(base_point), tangent_vec)
+        lie_algebra_vec = cls.mul(cls.inverse(base_point), tangent_vec)
         return cls.mul(base_point, cls.exp(lie_algebra_vec))
 
     @classmethod
@@ -129,7 +130,7 @@ class GeneralLinear(Matrices):
         logm = gs.linalg.logm
         if base_point is None:
             return logm(point)
-        lie_algebra_vec = logm(cls.mul(cls.inv(base_point), point))
+        lie_algebra_vec = logm(cls.mul(cls.inverse(base_point), point))
         return cls.mul(base_point, lie_algebra_vec)
 
     @classmethod
