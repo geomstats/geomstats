@@ -122,6 +122,7 @@ def main():
     Learns Poincaré Ball embedding by using Riemannian
     gradient descent algorithm.
     """
+    gs.random.seed(1234)
     dim = 2
     max_epochs = 100
     lr = .05
