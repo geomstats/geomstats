@@ -181,10 +181,12 @@ class ProductRiemannianMetric(RiemannianMetric):
             tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=3)
-            inner_products = [metric.inner_product(tangent_vec_a[:, i],
-                                                   tangent_vec_b[:, i],
-                                                   base_point[:, i])
-                              for i, metric in enumerate(self.metrics)]
+            inner_products = [
+                metric.inner_product(
+                    tangent_vec_a[..., i, :],
+                    tangent_vec_b[..., i, :],
+                    base_point[..., i, :])
+                for i, metric in enumerate(self.metrics)]
             return sum(inner_products)
 
         raise ValueError('invalid point_type argument: {}, expected '
