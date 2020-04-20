@@ -88,3 +88,17 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         expected = gs.array([True, False])
         result = self.group.is_tangent(vec, point)
         self.assertAllClose(result, expected)
+
+    def test_to_tangent(self):
+        rot_vecs = self.group.random_uniform(n_samples=self.n_samples)
+        tangent_vecs = self.group.log(rot_vecs)
+        result = self.group._to_lie_algebra(tangent_vecs)
+        expected = tangent_vecs
+        self.assertAllClose(result, expected)
+
+        n_samples = self.n_samples
+        base_points = self.group.random_uniform(n_samples=n_samples)
+        tangent_vecs = self.group.compose(base_points, tangent_vecs)
+        result = self.group.to_tangent(tangent_vecs, base_points)
+        expected = tangent_vecs
+        self.assertAllClose(result, expected)

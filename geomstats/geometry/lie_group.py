@@ -127,22 +127,22 @@ class LieGroup(Manifold):
 
     @classmethod
     def inverse(cls, point):
-            """Compute the inverse law of the Lie group.
+        """Compute the inverse law of the Lie group.
 
-            Parameters
-            ----------
-            point : array-like, shape=[n_samples, {dim, [n,n]}]
-                the points to be inverted
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, {dim, [n,n]}]
+            the points to be inverted
 
-            point_type : str, {'vector', 'matrix'}, optional
-                the point type of the passed point
+        point_type : str, {'vector', 'matrix'}, optional
+            the point type of the passed point
 
-            Returns
-            -------
-            inverse : array-like, shape=[n_samples, {dim, [n,n]}]
-                the inverted point
-            """
-            raise NotImplementedError('The Lie group inverse is not implemented.')
+        Returns
+        -------
+        inverse : array-like, shape=[n_samples, {dim, [n,n]}]
+            the inverted point
+        """
+        raise NotImplementedError('The Lie group inverse is not implemented.')
 
     def jacobian_translation(
             self, point, left_or_right='left', point_type=None):

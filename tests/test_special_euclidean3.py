@@ -14,7 +14,6 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
-from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean3
 
 # Tolerance for errors on predicted vectors, relative to the *norm*

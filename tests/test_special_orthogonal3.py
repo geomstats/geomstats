@@ -324,32 +324,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             result = group.regularize(rot_vecs)
 
             self.assertAllClose(gs.shape(result), (n_samples, group.dim))
-                # if point_type == 'matrix':
-                #     self.assertAllClose(
-                #         gs.shape(result), (n_samples, n, n))
-
-    # @geomstats.tests.np_only
-    # def test_regularize_tangent_vec_matrix(self):
-    #     point_type = 'matrix'
-    #     for n in self.n_seq:
-    #         group = self.so[n]
-    #         group.default_point_type = point_type
-    #
-    #         n_samples = self.n_samples
-    #         rot_vecs = group.random_uniform(n_samples=n_samples)
-    #         tangent_vecs = group.log_from_identity(rot_vecs)
-    #         result = group.regularize_tangent_vec_at_identity(
-    #             tangent_vecs)
-    #         expected = tangent_vecs
-    #         self.assertAllClose(result, expected)
-    #
-    #         n_samples = self.n_samples
-    #         base_points = group.random_uniform(n_samples=n_samples)
-    #         tangent_vecs = group.compose(base_points, tangent_vecs)
-    #         result = group.regularize_tangent_vec(
-    #             tangent_vecs, base_points)
-    #         expected = tangent_vecs
-    #         self.assertAllClose(result, expected)
 
     def test_matrix_from_rotation_vector(self):
         n = 3

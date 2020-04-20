@@ -6,9 +6,8 @@ i.e. the Lie group of 3d-rotations, represented by the 3d rotation vectors.
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats import algebra_utils
-from geomstats.geometry.embedded_manifold import EmbeddedManifold
-from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.lie_group import LieGroup
+from geomstats.geometry.matrices import Matrices
 
 ATOL = 1e-5
 

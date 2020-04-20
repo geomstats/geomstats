@@ -539,7 +539,7 @@ class SPDMetricAffine(RiemannianMetric):
             power_point = SymmetricMatrices.powerm(point, power_affine)
             power_sqrt_base_point = SymmetricMatrices.powerm(
                 base_point, power_affine / 2)
-            power_inv_sqrt_base_point = gs.linalg.inverse(power_sqrt_base_point)
+            power_inv_sqrt_base_point = gs.linalg.inv(power_sqrt_base_point)
             log = self._aux_log(
                 power_point,
                 power_sqrt_base_point,

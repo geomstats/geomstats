@@ -3,7 +3,6 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.special_euclidean import SpecialEuclidean
-from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 
 
 class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
@@ -14,16 +13,18 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
     def test_belongs(self):
         theta = gs.pi / 3
-        point_1 = gs.array([[gs.cos(theta), - gs.sin(theta), 2.],
-                          [gs.sin(theta), gs.cos(theta), 3.],
-                          [0., 0., 1.]])
+        point_1 = gs.array([
+            [gs.cos(theta), - gs.sin(theta), 2.],
+            [gs.sin(theta), gs.cos(theta), 3.],
+            [0., 0., 1.]])
         result = self.group.belongs(point_1)
         expected = True
         self.assertAllClose(result, expected)
 
-        point_2 = gs.array([[gs.cos(theta), - gs.sin(theta), 2.],
-                          [gs.sin(theta), gs.cos(theta), 3.],
-                          [0., 0., 0.]])
+        point_2 = gs.array([
+            [gs.cos(theta), - gs.sin(theta), 2.],
+            [gs.sin(theta), gs.cos(theta), 3.],
+            [0., 0., 0.]])
         result = self.group.belongs(point_2)
         expected = False
         self.assertAllClose(result, expected)
@@ -51,16 +52,18 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
 
     def test_is_in_lie_algebra(self):
         theta = gs.pi / 3
-        vec_1 = gs.array([[0., - theta, 2.],
-                           [theta, 0., 3.],
-                           [0., 0., 0.]])
+        vec_1 = gs.array([
+            [0., - theta, 2.],
+            [theta, 0., 3.],
+            [0., 0., 0.]])
         result = self.group._is_in_lie_algebra(vec_1)
         expected = True
         self.assertAllClose(result, expected)
 
-        vec_2 = gs.array([[0., - theta, 2.],
-                           [theta, 0., 3.],
-                           [0., 0., 1.]])
+        vec_2 = gs.array([
+            [0., - theta, 2.],
+            [theta, 0., 3.],
+            [0., 0., 1.]])
         result = self.group._is_in_lie_algebra(vec_2)
         expected = False
         self.assertAllClose(result, expected)
