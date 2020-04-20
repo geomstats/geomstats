@@ -148,7 +148,7 @@ def assignment(x, values, indices, axis=0):
     x_new = copy(x)
     if not isinstance(indices, list):
         indices = [indices]
-    if np.ndim(values) == 0:
+    if not isinstance(values, list):
         values = [values] * len(indices)
     for nb_index, index in enumerate(indices):
         if not isinstance(index, tuple):
