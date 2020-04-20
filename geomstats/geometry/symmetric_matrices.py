@@ -46,8 +46,12 @@ class SymmetricMatrices(EmbeddedManifold):
             logging.warning('non-symmetric matrix encountered.')
         mat = Matrices.make_symmetric(mat)
         _, dim, _ = mat.shape
-        i, j = gs.triu_indices(dim)
-        vec = mat[:, i, j]
+        indices_i, indices_j = gs.triu_indices(dim)
+        vec = []
+        for i, j in zip(indices_i, indices_j):
+            vec.append(mat[:, i, j])
+        vec = gs.stack(vec, axis=1)
+
         return vec
 
     @staticmethod
