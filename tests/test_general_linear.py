@@ -24,19 +24,26 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
         expected = gs.array([True, False])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_random_and_belongs(self):
         point = self.group.random_uniform()
         result = self.group.belongs(point)
         expected = gs.array([True])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_random_and_belongs_vectorization(self):
-        point = self.group.random_uniform(n_samples=3)
+        n_samples = 4
+        point = self.group.random_uniform(n_samples)
         result = self.group.belongs(point)
-        expected = gs.array([True, True, True])
+        expected = gs.array([True] * n_samples)
         self.assertAllClose(result, expected)
+
+    def test_replace_values(self):
+        points = gs.ones((3, 3, 3))
+        new_points = gs.zeros((2, 3, 3))
+        indcs = [True, False, True]
+        update = self.group._replace_values(points, new_points, indcs)
+        self.assertAllClose(update, gs.stack(
+            [gs.zeros((3, 3)), gs.ones((3, 3)), gs.zeros((3, 3))]))
 
     def test_compose(self):
         mat1 = gs.array([

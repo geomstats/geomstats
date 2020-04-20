@@ -303,7 +303,7 @@ def assignment_by_sum(x, values, indices, axis=0):
     If a single value is provided, it is assigned at all the indices.
     If a list is given, it must have the same length as indices.
     """
-    if not isinstance(values, list):
+    if tf.rank(values) == 0:
         return _assignment_single_value_by_sum(x, values, indices, axis)
 
     if not isinstance(indices, list):
@@ -388,7 +388,7 @@ def assignment(x, values, indices, axis=0):
     If a single value is provided, it is assigned at all the indices.
     If a list is given, it must have the same length as indices.
     """
-    if not isinstance(values, list):
+    if tf.rank(values) == 0:
         return _assignment_single_value(x, values, indices, axis)
 
     if not isinstance(indices, list):
