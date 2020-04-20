@@ -1,7 +1,5 @@
 """Module exposing the GeneralLinear group class."""
 
-from itertools import product
-
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 
@@ -37,13 +35,6 @@ class GeneralLinear(Matrices):
         """Return the inverse of a matrix."""
         return gs.linalg.inv(point)
 
-    def _replace_values(self, samples, new_samples, indcs):
-        replaced_indices = [
-            i for i, is_replaced in enumerate(indcs) if is_replaced]
-        value_indices = list(
-            product(replaced_indices, range(self.n), range(self.n)))
-        return gs.assignment(samples, gs.flatten(new_samples), value_indices)
-
     def random_uniform(self, n_samples=1, tol=1e-6):
         """Sample in GL(n) from the uniform distribution.
 
@@ -67,8 +58,7 @@ class GeneralLinear(Matrices):
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break
-            new_samples = gs.random.rand(num_bad_samples, self.n, self.n)
-            samples = self._replace_values(samples, new_samples, indcs)
+            samples[indcs, :] = gs.random.rand(num_bad_samples, self.n, self.n)
         if n_samples == 1:
             samples = gs.squeeze(samples, axis=0)
         return samples

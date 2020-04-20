@@ -6,7 +6,6 @@ Euclidean space.
 
 import logging
 import math
-from itertools import product
 
 import geomstats.backend as gs
 import geomstats.vectorization
@@ -283,13 +282,7 @@ class Hypersphere(EmbeddedManifold):
 
         return point_intrinsic
 
-    def _replace_values(self, samples, new_samples, indcs):
-        replaced_indices = [
-            i for i, is_replaced in enumerate(indcs) if is_replaced]
-        value_indices = list(product(replaced_indices, range(self.dim + 1)))
-        return gs.assignment(samples, gs.flatten(new_samples), value_indices)
-
-    def random_uniform(self, n_samples=1, tol=1e-6):
+    def random_uniform(self, n_samples=1):
         """Sample in the hypersphere from the uniform distribution.
 
         Parameters
@@ -307,13 +300,12 @@ class Hypersphere(EmbeddedManifold):
         samples = gs.random.normal(size=size)
         while True:
             norms = gs.linalg.norm(samples, axis=1)
-            indcs = gs.isclose(norms, 0.0, atol=tol)
+            indcs = gs.isclose(norms, 0.0)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break
-            new_samples = gs.random.normal(
+            samples[indcs, :] = gs.random.normal(
                 size=(num_bad_samples, self.dim + 1))
-            samples = self._replace_values(samples, new_samples, indcs)
 
         samples = gs.einsum('..., ...i->...i', 1 / norms, samples)
         if n_samples == 1:
