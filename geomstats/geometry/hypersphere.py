@@ -452,12 +452,28 @@ class HypersphereMetric(RiemannianMetric):
         norm2 = norm_tangent_vec[mask_0]**2
         norm4 = norm2**2
         norm6 = norm2**3
-        coef_1[mask_0] = 1. - norm2 / 2. + norm4 / 24. - norm6 / 720.
-        coef_2[mask_0] = 1. - norm2 / 6. + norm4 / 120. - norm6 / 5040.
 
-        coef_1[mask_non0] = gs.cos(norm_tangent_vec[mask_non0])
-        coef_2[mask_non0] = gs.sin(norm_tangent_vec[mask_non0]) / \
-            norm_tangent_vec[mask_non0]
+        if gs.sum(mask_0) > 0:
+            coef_1 = gs.assignment(
+                coef_1,
+                1. - norm2 / 2. + norm4 / 24. - norm6 / 720.,
+                mask_0)
+            coef_2 = gs.assignment(
+                coef_2,
+                1. - norm2 / 6. + norm4 / 120. - norm6 / 5040.,
+                mask_0)
+
+        if gs.sum(mask_non0) > 0:
+            coef_1 = gs.assignment(
+                coef_1,
+                gs.cos(norm_tangent_vec[mask_non0]),
+                mask_non0)
+            coef_2 = gs.assignment(
+                coef_2,
+                gs.sin(
+                    norm_tangent_vec[mask_non0]) /
+                norm_tangent_vec[mask_non0],
+                mask_non0)
 
         exp = (gs.einsum('...,...j->...j', coef_1, base_point)
                + gs.einsum('n,nj->nj', coef_2, proj_tangent_vec))

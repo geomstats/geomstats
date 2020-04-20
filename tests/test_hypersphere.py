@@ -20,7 +20,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         self.metric = self.space.metric
         self.n_samples = 10
 
-    @geomstats.tests.np_and_pytorch_only
     def test_random_uniform_and_belongs(self):
         """
         Test that the random uniform method samples
@@ -33,7 +32,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_random_uniform(self):
         point = self.space.random_uniform()
 
@@ -95,7 +93,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_log_and_exp_general_case(self):
         """
         Test that the Riemannian exponential
@@ -119,7 +116,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=1e-6)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_log_and_exp_edge_case(self):
         """
         Test that the Riemannian exponential
@@ -145,7 +141,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_exp_vectorization_single_samples(self):
         dim = self.dimension + 1
 
@@ -169,7 +164,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         result = self.metric.exp(one_tangent_vec, one_base_point)
         self.assertAllClose(gs.shape(result), (1, dim))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_exp_vectorization_n_samples(self):
         n_samples = self.n_samples
         dim = self.dimension + 1
@@ -197,7 +191,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_log_vectorization_single_samples(self):
         dim = self.dimension + 1
 
@@ -219,7 +212,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         result = self.metric.log(one_point, one_base_point)
         self.assertAllClose(gs.shape(result), (1, dim))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_log_vectorization_n_samples(self):
         n_samples = self.n_samples
         dim = self.dimension + 1
@@ -241,7 +233,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         result = self.metric.log(n_points, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
         """
         Test that the Riemannian exponential
@@ -271,7 +262,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         regularized_norm_expected = gs.mod(norm_expected, 2 * gs.pi)
         expected = expected / norm_expected * regularized_norm_expected
 
-    @geomstats.tests.np_and_pytorch_only
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """
         Test that the Riemannian exponential
@@ -312,7 +302,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_squared_dist_vectorization_single_sample(self):
         one_point_a = self.space.random_uniform()
         one_point_b = self.space.random_uniform()
@@ -332,7 +321,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         result = self.metric.squared_dist(one_point_a, one_point_b)
         self.assertAllClose(gs.shape(result), (1,))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_squared_dist_vectorization_n_samples(self):
         n_samples = self.n_samples
 
@@ -411,7 +399,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         base_point = gs.array([16., -2., -2.5, 84., 3.])
         base_point = base_point / gs.linalg.norm(base_point)
@@ -425,7 +412,6 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         expected = gs.linalg.norm(tangent_vec) % (2 * gs.pi)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_exp_and_dist_and_projection_to_tangent_space_vec(self):
         base_point = gs.array([
             [16., -2., -2.5, 84., 3.],
