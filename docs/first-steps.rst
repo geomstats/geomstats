@@ -39,7 +39,7 @@ algorithms on Riemannian manifolds, you need to follow three steps:
 - instantiate the manifold of interest,
 - instantiate the learning algorithm of interest,
 - run the algorithm.
-The data should be represented by the structure gs.array.
+The data should be represented by the structure ``gs.array``, which represents numpy arrays, tensorflow or pytorch tensors, depending on the choice of backend.
 
 As an example, the following code snippet illustrates the use of K-means
 on the 5-dimensional hypersphere, assuming ``data`` belongs to this space.
@@ -54,7 +54,7 @@ on the 5-dimensional hypersphere, assuming ``data`` belongs to this space.
     clustering = clustering.fit(data)
 
 The following code snippet shows the use of tangent Principal Component Analysis on the
-3D rotations, assuming ``data`` belongs to this space.
+space of 3D rotations, assuming ``data`` belongs to this space.
 
 .. code-block:: python
 
@@ -72,3 +72,5 @@ All geometric computations are performed behind the scenes.
 The user only needs a high-level understanding of Riemannian geometry.
 Each algorithm can be used with any of the manifolds and metric
 implemented in the package.
+
+To see additional examples, visit the page :ref:`examples`.

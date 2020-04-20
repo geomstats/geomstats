@@ -48,13 +48,6 @@ enabling GPU acceleration.
 To learn how to use `geomstats`, visit the page :ref:`first_steps`.
 To contribute to `geomstats` visit the page :ref:`contributing`.
 
-**QUICK INSTALL**
-
-.. code-block:: bash
-
-    pip3 install -r requirements.txt
-    pip3 install geomstats
-
 .. toctree::
    :maxdepth: 2
    :caption: Getting Started
