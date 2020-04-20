@@ -4,8 +4,9 @@
 Examples
 ========
 
-You can find examples in the repository
-`examples <https://github.com/geomstats/geomstats/tree/master/examples>`_ of geomstats.
+To learn how to use geomstats, you can look at the many examples in the repository
+`examples <https://github.com/geomstats/geomstats/tree/master/examples>`_.
+
 If you have installed geomstats via Git, you can run them from the command line as follows.
 
 .. code-block:: bash
