@@ -37,6 +37,14 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.shape(point), (self.dimension + 1,))
 
+    def test_replace_values(self):
+        points = gs.ones((3, 5))
+        new_points = gs.zeros((2, 5))
+        indcs = [True, False, True]
+        update = self.space._replace_values(points, new_points, indcs)
+        self.assertAllClose(update, gs.stack(
+            [gs.zeros(5), gs.ones(5), gs.zeros(5)]))
+
     def test_projection_and_belongs(self):
         point = gs.array([1., 2., 3., 4., 5.])
         proj = self.space.projection(point)
