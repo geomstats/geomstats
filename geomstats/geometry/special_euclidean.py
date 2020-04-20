@@ -90,19 +90,6 @@ class SpecialEuclidean(GeneralLinear, LieGroup):
         belongs = gs.logical_and(belongs, all_zeros)
         return gs.flatten(belongs)
 
-    def is_tangent(self, tangent_vec, base_point=None):
-        """Check whether the vector is tangent at base_point."""
-        if base_point is None:
-            base_point = self.identity
-
-        if gs.allclose(base_point, self.identity):
-            tangent_vec_at_id = tangent_vec
-        else:
-            tangent_vec_at_id = self.compose(
-                self.inverse(base_point), tangent_vec)
-        is_tangent = self._is_in_lie_algebra(tangent_vec_at_id)
-        return is_tangent
-
     def _to_lie_algebra(self, tangent_vec):
         """Project vector rotation part onto skew-symmetric matrices."""
         translation_mask = gs.hstack([
@@ -113,14 +100,6 @@ class SpecialEuclidean(GeneralLinear, LieGroup):
             translation_mask != 0., gs.array(1.), gs.array(0.))
         tangent_vec = (tangent_vec - GeneralLinear.transpose(tangent_vec)) / 2.
         return tangent_vec * translation_mask
-
-    def to_tangent(self, tangent_vec, base_point=None):
-        if base_point is None:
-            return self._to_lie_algebra(tangent_vec)
-        tangent_vec_at_id = self.compose(
-            self.inverse(base_point), tangent_vec)
-        regularized = self._to_lie_algebra(tangent_vec_at_id)
-        return self.compose(base_point, regularized)
 
     def random_uniform(self, n_samples=1, tol=1e-6):
         random_translation = self.translations.random_uniform(n_samples)
@@ -190,7 +169,7 @@ class SpecialEuclidean3(LieGroup):
         if point_type is None:
             point_type = self.default_point_type
 
-        identity = gs.zeros(self.dimension)
+        identity = gs.zeros(self.dim)
         if point_type == 'matrix':
             identity = gs.eye(self.n + 1)
         return identity
@@ -218,7 +197,7 @@ class SpecialEuclidean3(LieGroup):
         """
         if point_type == 'vector':
             n_points, vec_dim = gs.shape(point)
-            belongs = vec_dim == self.dimension
+            belongs = vec_dim == self.dim
 
             belongs = gs.tile([belongs], (point.shape[0],))
 

@@ -96,6 +96,7 @@ class Matrices(Euclidean):
         """
         is_vectorized = (gs.ndim(gs.array(mat)) == 3)
         axes = (0, 2, 1) if is_vectorized else (1, 0)
+        print(mat, is_vectorized, axes)
         return gs.transpose(mat, axes)
 
     @classmethod
@@ -144,6 +145,21 @@ class Matrices(Euclidean):
         sym : array-like, shape=[n_samples, n, n]
         """
         return 1 / 2 * (mat + cls.transpose(mat))
+
+    @classmethod
+    def make_skew_symmetric(cls, mat):
+        """
+        Make a matrix skew-symmetric, by averaging with minus its transpose.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[n_samples, n, n]
+
+        Returns
+        -------
+        skew_sym : array-like, shape=[n_samples, n, n]
+        """
+        return 1 / 2 * (mat - cls.transpose(mat))
 
     def random_uniform(self, n_samples=1, bound=1.):
         """Generate n samples from a uniform distribution."""

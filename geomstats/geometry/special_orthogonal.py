@@ -2,14 +2,17 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.lie_group import LieGroup
+from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 
 
-class SpecialOrthogonal(GeneralLinear):
+class SpecialOrthogonal(GeneralLinear, LieGroup):
     """Class for special orthogonal groups."""
 
     def __init__(self, n):
-        self.n = n
-        self.dim = int((n * (n - 1)) / 2)
+        super(SpecialOrthogonal, self).__init__(
+            dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n)
+        self.lie_algebra = SkewSymmetricMatrices(n=n)
 
     def belongs(self, point):
         """Check whether point is an orthogonal matrix."""
@@ -21,17 +24,18 @@ class SpecialOrthogonal(GeneralLinear):
         """Return the transpose matrix of point."""
         return cls.transpose(point)
 
-    @classmethod
-    def is_tangent(cls, vector):
-        """Check whether vector is a skew-symmetric matrix."""
-        return cls.equal(cls.transpose(vector), - vector)
+    def _is_in_lie_algebra(self, tangent_vec):
+        return self.lie_algebra.belongs(tangent_vec)
 
     @classmethod
-    def to_tangent(cls, vector):
+    def _to_lie_algebra(cls, tangent_vec):
         """Project vector onto skew-symmetric matrices."""
-        return (cls.transpose(vector) - vector) / 2
+        return cls.make_skew_symmetric(tangent_vec)
 
     def random_uniform(self, n_samples=1, tol=1e-6):
-        random_mat = gs.random.rand(n_samples, self.n, self.n)
+        if n_samples == 1:
+            random_mat = gs.random.rand(self.n, self.n)
+        else:
+            random_mat = gs.random.rand(n_samples, self.n, self.n)
         skew = self.to_tangent(random_mat)
         return self.exp(skew)
