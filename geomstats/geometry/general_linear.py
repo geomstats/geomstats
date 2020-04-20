@@ -68,8 +68,7 @@ class GeneralLinear(Matrices):
             if num_bad_samples == 0:
                 break
             new_samples = gs.random.rand(num_bad_samples, self.n, self.n)
-            samples = self._replace_values(
-                samples, new_samples, indcs, num_bad_samples)
+            samples = self._replace_values(samples, new_samples, indcs)
         if n_samples == 1:
             samples = gs.squeeze(samples, axis=0)
         return samples

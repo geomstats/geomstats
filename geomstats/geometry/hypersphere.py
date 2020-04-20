@@ -313,8 +313,7 @@ class Hypersphere(EmbeddedManifold):
                 break
             new_samples = gs.random.normal(
                 size=(num_bad_samples, self.dim + 1))
-            samples = self._replace_values(
-                samples, new_samples, indcs, num_bad_samples)
+            samples = self._replace_values(samples, new_samples, indcs)
 
         samples = gs.einsum('..., ...i->...i', 1 / norms, samples)
         if n_samples == 1:
