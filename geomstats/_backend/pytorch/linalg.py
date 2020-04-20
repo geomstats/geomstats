@@ -57,4 +57,10 @@ def norm(x, ord=2, axis=None, keepdims=False):
 
 
 def qr(*args, **kwargs):
-    return torch.from_numpy(np.linalg.qr(*args, **kwargs))
+    matrix_q, matrix_r = np.vectorize(
+        np.linalg.qr,
+        signature='(n,m)->(n,k),(k,m)',
+        excluded=['mode'])(*args, **kwargs)
+    tensor_q = torch.from_numpy(matrix_q)
+    tensor_r = torch.from_numpy(matrix_r)
+    return tensor_q, tensor_r
