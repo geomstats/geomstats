@@ -10,8 +10,8 @@ from geomstats.geometry.landmarks import L2Metric
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-R2 = Euclidean(dimension=2)
-R3 = Euclidean(dimension=3)
+R2 = Euclidean(dim=2)
+R3 = Euclidean(dim=3)
 
 
 class DiscretizedCurves(Manifold):
@@ -19,7 +19,7 @@ class DiscretizedCurves(Manifold):
 
     def __init__(self, ambient_manifold):
         """Initialize DiscretizedCurves object."""
-        super(DiscretizedCurves, self).__init__(dimension=math.inf)
+        super(DiscretizedCurves, self).__init__(dim=math.inf)
         self.ambient_manifold = ambient_manifold
         self.l2_metric = L2Metric(self.ambient_manifold)
         self.square_root_velocity_metric = SRVMetric(self.ambient_manifold)
@@ -36,8 +36,6 @@ class DiscretizedCurves(Manifold):
         belongs : bool
         """
         belongs = gs.all(self.ambient_manifold.belongs(point))
-        belongs = gs.to_ndarray(belongs, to_ndim=1)
-        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
         return belongs
 
 
@@ -52,7 +50,7 @@ class SRVMetric(RiemannianMetric):
     """
 
     def __init__(self, ambient_manifold):
-        super(SRVMetric, self).__init__(dimension=math.inf,
+        super(SRVMetric, self).__init__(dim=math.inf,
                                         signature=(math.inf, 0, 0))
         self.ambient_metric = ambient_manifold.metric
         self.l2_metric = L2Metric(ambient_manifold=ambient_manifold)

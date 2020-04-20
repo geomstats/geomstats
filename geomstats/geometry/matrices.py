@@ -15,7 +15,7 @@ class Matrices(Euclidean):
     """Class for the space of matrices (m, n)."""
 
     def __init__(self, m, n):
-        super(Matrices, self).__init__(dimension=m * n)
+        super(Matrices, self).__init__(dim=m * n)
         geomstats.error.check_integer(n, 'n')
         geomstats.error.check_integer(m, 'm')
         self.m = m
@@ -147,7 +147,9 @@ class Matrices(Euclidean):
 
     def random_uniform(self, n_samples=1, bound=1.):
         """Generate n samples from a uniform distribution."""
-        point = bound * (gs.random.rand(n_samples, self.m, self.n) - 0.5)
+        m, n = self.m, self.n
+        size = (n_samples, m, n) if n_samples != 1 else (m, n)
+        point = bound * (gs.random.rand(*size) - 0.5)
         return point
 
     @classmethod
@@ -174,16 +176,11 @@ class MatricesMetric(RiemannianMetric):
     def __init__(self, m, n):
         dimension = m * n
         super(MatricesMetric, self).__init__(
-            dimension=dimension,
+            dim=dimension,
             signature=(dimension, 0, 0))
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner product of two tan vecs at `base_point`."""
-        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
-        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
-
         inner_prod = gs.einsum(
             '...ij,...ij->...', tangent_vec_a, tangent_vec_b)
-        inner_prod = gs.to_ndarray(inner_prod, to_ndim=1)
-        inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
         return inner_prod

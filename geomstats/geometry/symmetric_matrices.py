@@ -17,7 +17,7 @@ class SymmetricMatrices(EmbeddedManifold):
 
     def __init__(self, n, **kwargs):
         super(SymmetricMatrices, self).__init__(
-            dimension=int(n * (n + 1) / 2),
+            dim=int(n * (n + 1) / 2),
             embedding_manifold=Matrices(n, n))
         self.n = n
 

@@ -112,7 +112,7 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             inner_product_mat_at_identity=diag_mat_at_identity,
             left_or_right='right')
 
-        # mat_at_identity = 7 * gs.eye(group.dimension)
+        # mat_at_identity = 7 * gs.eye(group.dim)
 
         # left_metric = InvariantMetric(
         #            group=group,
@@ -1329,16 +1329,16 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             n_vector_b = self.group.random_uniform(n_samples=n_samples)
 
             result = metric.inner_product(one_vector_a, n_vector_b)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             if geomstats.tests.tf_backend():
                 break
 
             result = metric.inner_product(n_vector_a, one_vector_b)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
             result = metric.inner_product(n_vector_a, n_vector_b)
-            self.assertAllClose(gs.shape(result), (n_samples, 1))
+            self.assertAllClose(gs.shape(result), (n_samples,))
 
     def test_inner_product_one_base_point_vectorization(self):
         n_samples = self.n_samples

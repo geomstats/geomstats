@@ -17,11 +17,11 @@ def log_sigmoid(vector):
 
     Parameters
     ----------
-    vector : array-like, shape=[n_samples, dimension]
+    vector : array-like, shape=[n_samples, dim]
 
     Returns
     -------
-    result : array-like, shape=[n_samples, dimension]
+    result : array-like, shape=[n_samples, dim]
     """
     return gs.log((1 / (1 + gs.exp(-vector))))
 
@@ -31,11 +31,11 @@ def grad_log_sigmoid(vector):
 
     Parameters
     ----------
-    vector : array-like, shape=[n_samples, dimension]
+    vector : array-like, shape=[n_samples, dim]
 
     Returns
     -------
-    gradient : array-like, shape=[n_samples, dimension]
+    gradient : array-like, shape=[n_samples, dim]
     """
     return (1 / (1 + gs.exp(vector)))
 
@@ -48,9 +48,9 @@ def grad_squared_distance(point_a, point_b):
 
     Parameters
     ----------
-    point_a : array-like, shape=[n_samples, dimension]
+    point_a : array-like, shape=[n_samples, dim]
         First point in hyperbolic space.
-    point_b : array-like, shape=[n_samples, dimension]
+    point_b : array-like, shape=[n_samples, dim]
         Second point in hyperbolic space.
 
     Returns

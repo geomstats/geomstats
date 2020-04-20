@@ -20,7 +20,7 @@ class TestPoincarePolydiskMethods(geomstats.tests.TestCase):
     def test_dimension(self):
         """Test the dimension."""
         expected = self.n_disks * 2
-        result = self.space.dimension
+        result = self.space.dim
         self.assertAllClose(result, expected)
 
     def test_metric_signature(self):
@@ -35,7 +35,7 @@ class TestPoincarePolydiskMethods(geomstats.tests.TestCase):
         coords_type = 'extrinsic'
         point_a_intrinsic = gs.array([0.01, 0.0])
         point_b_intrinsic = gs.array([0.0, 0.0])
-        hyperbolic_space = Hyperboloid(dimension=2)
+        hyperbolic_space = Hyperboloid(dim=2)
         point_a = hyperbolic_space.from_coordinates(
             point_a_intrinsic, 'intrinsic')
         point_b = hyperbolic_space.from_coordinates(

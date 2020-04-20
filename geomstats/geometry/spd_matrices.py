@@ -20,7 +20,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
     def __init__(self, n):
         super(SPDMatrices, self).__init__(
             n=n,
-            dimension=int(n * (n + 1) / 2),
+            dim=int(n * (n + 1) / 2),
             embedding_manifold=GeneralLinear(n=n))
 
     @staticmethod
@@ -351,10 +351,10 @@ class SPDMetricAffine(RiemannianMetric):
           SPD matrices? A principled continuum of metrics" Proc. of GSI, 2019.
           https://arxiv.org/abs/1906.01349
         """
-        dimension = int(n * (n + 1) / 2)
+        dim = int(n * (n + 1) / 2)
         super(SPDMetricAffine, self).__init__(
-            dimension=dimension,
-            signature=(dimension, 0, 0))
+            dim=dim,
+            signature=(dim, 0, 0))
         self.n = n
         self.space = SPDMatrices(n)
         self.power_affine = power_affine
@@ -580,17 +580,17 @@ class SPDMetricAffine(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, dimension + 1]
+        tangent_vec_a : array-like, shape=[n_samples, dim + 1]
             Tangent vector at base point to be transported.
-        tangent_vec_b : array-like, shape=[n_samples, dimension + 1]
+        tangent_vec_b : array-like, shape=[n_samples, dim + 1]
             Tangent vector at base point, initial speed of the geodesic along
             which the parallel transport is computed.
-        base_point : array-like, shape=[n_samples, dimension + 1]
+        base_point : array-like, shape=[n_samples, dim + 1]
             point on the manifold of SPD matrices
 
         Returns
         -------
-        transported_tangent_vec: array-like, shape=[n_samples, dimension + 1]
+        transported_tangent_vec: array-like, shape=[n_samples, dim + 1]
             Transported tangent vector at exp_(base_point)(tangent_vec_b).
         """
         end_point = self.exp(tangent_vec_b, base_point)
@@ -613,10 +613,10 @@ class SPDMetricProcrustes(RiemannianMetric):
     """
 
     def __init__(self, n):
-        dimension = int(n * (n + 1) / 2)
+        dim = int(n * (n + 1) / 2)
         super(SPDMetricProcrustes, self).__init__(
-            dimension=dimension,
-            signature=(dimension, 0, 0))
+            dim=dim,
+            signature=(dim, 0, 0))
         self.n = n
         self.space = SPDMatrices(n)
 
@@ -649,10 +649,10 @@ class SPDMetricEuclidean(RiemannianMetric):
     """Class for the Euclidean metric on the SPD manifold."""
 
     def __init__(self, n, power_euclidean=1):
-        dimension = int(n * (n + 1) / 2)
+        dim = int(n * (n + 1) / 2)
         super(SPDMetricEuclidean, self).__init__(
-            dimension=dimension,
-            signature=(dimension, 0, 0))
+            dim=dim,
+            signature=(dim, 0, 0))
         self.n = n
         self.space = SPDMatrices(n)
         self.power_euclidean = power_euclidean
@@ -733,10 +733,10 @@ class SPDMetricLogEuclidean(RiemannianMetric):
     """Class for the Log-Euclidean metric on the SPD manifold."""
 
     def __init__(self, n):
-        dimension = int(n * (n + 1) / 2)
+        dim = int(n * (n + 1) / 2)
         super(SPDMetricLogEuclidean, self).__init__(
-            dimension=dimension,
-            signature=(dimension, 0, 0))
+            dim=dim,
+            signature=(dim, 0, 0))
         self.n = n
         self.space = SPDMatrices(n)
 

@@ -2,8 +2,6 @@
 Unit tests for landmarks space.
 """
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
@@ -13,7 +11,7 @@ from geomstats.geometry.landmarks import Landmarks
 class TestLandmarksMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def setUp(self):
-        s2 = Hypersphere(dimension=2)
+        s2 = Hypersphere(dim=2)
         r3 = s2.embedding_manifold
 
         initial_point = [0., 0., 1.]
@@ -54,9 +52,16 @@ class TestLandmarksMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_belongs(self):
         result = self.space_landmarks_in_sphere_2d.belongs(self.landmarks_a)
-        expected = gs.array([[True]])
-
+        expected = True
         self.assertAllClose(result, expected)
+
+    # TODO(ninamiolane): Uncomment when belongs is vectorized
+    # @geomstats.tests.np_and_pytorch_only
+    # def test_belongs_vectorization(self):
+    #     landmark_sets = gs.array([self.landmarks_a, self.landmarks_b])
+    #     result = self.space_landmarks_in_sphere_2d.belongs(landmark_sets)
+    #     expected = gs.array([True, True])
+    #     self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_l2_metric_log_and_squared_norm_and_dist(self):
@@ -70,7 +75,6 @@ class TestLandmarksMethods(geomstats.tests.TestCase):
             vector=log_ab, base_point=self.landmarks_a)
         expected = self.l2_metric_s2.dist(
             self.landmarks_a, self.landmarks_b) ** 2
-        expected = helper.to_scalar(expected)
 
         self.assertAllClose(result, expected)
 
@@ -107,7 +111,7 @@ class TestLandmarksMethods(geomstats.tests.TestCase):
         result = self.l2_metric_s2.inner_product(
             tangent_vecs, tangent_vecs, landmarks_ab)
 
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        self.assertAllClose(gs.shape(result), (n_samples,))
 
     @geomstats.tests.np_only
     def test_l2_metric_dist_vectorization(self):
@@ -124,7 +128,7 @@ class TestLandmarksMethods(geomstats.tests.TestCase):
 
         result = self.l2_metric_s2.dist(
             landmarks_ab, landmarks_bc)
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        self.assertAllClose(gs.shape(result), (n_samples,))
 
     @geomstats.tests.np_and_tf_only
     def test_l2_metric_exp_vectorization(self):

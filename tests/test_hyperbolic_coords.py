@@ -20,15 +20,15 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         self.dimension = 2
 
         self.extrinsic_manifold = Hyperboloid(
-            dimension=self.dimension)
+            dim=self.dimension)
         self.extrinsic_metric = self.extrinsic_manifold.metric
 
         self.ball_manifold = PoincareBall(
-            dimension=self.dimension)
+            dim=self.dimension)
         self.ball_metric = self.ball_manifold.metric
 
         self.intrinsic_manifold = Hyperboloid(
-            dimension=self.dimension, coords_type='intrinsic')
+            dim=self.dimension, coords_type='intrinsic')
         self.intrinsic_metric = self.intrinsic_manifold.metric
 
         self.n_samples = 10

@@ -14,7 +14,7 @@ class TestOnlineKmeansMethods(geomstats.tests.TestCase):
         gs.random.seed(1234)
 
         self.dimension = 2
-        self.space = Hypersphere(dimension=self.dimension)
+        self.space = Hypersphere(dim=self.dimension)
         self.metric = self.space.metric
         self.data = self.space.random_von_mises_fisher(
             kappa=100, n_samples=50)
@@ -22,8 +22,8 @@ class TestOnlineKmeansMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_fit(self):
         X = self.data
-        clustering = OnlineKMeans(metric=self.metric, n_clusters=1,
-                                  n_repetitions=10)
+        clustering = OnlineKMeans(
+            metric=self.metric, n_clusters=1, n_repetitions=10)
         clustering.fit(X)
 
         center = clustering.cluster_centers_
@@ -37,8 +37,8 @@ class TestOnlineKmeansMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_predict(self):
         X = self.data
-        clustering = OnlineKMeans(metric=self.metric, n_clusters=3,
-                                  n_repetitions=1)
+        clustering = OnlineKMeans(
+            metric=self.metric, n_clusters=3, n_repetitions=1)
         clustering.fit(X)
 
         point = self.data[0, :]

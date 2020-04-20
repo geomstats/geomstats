@@ -14,7 +14,7 @@ class TestBetaMethods(geomstats.tests.TestCase):
         self.beta = BetaDistributions()
         self.metric = BetaMetric()
         self.n_samples = 10
-        self.dimension = self.beta.dimension
+        self.dim = self.beta.dim
 
     @geomstats.tests.np_and_pytorch_only
     def test_random_uniform_and_belongs(self):
@@ -35,7 +35,7 @@ class TestBetaMethods(geomstats.tests.TestCase):
         Test that the random uniform method samples points of the right shape
         """
         point = self.beta.random_uniform(self.n_samples)
-        self.assertAllClose(gs.shape(point), (self.n_samples, self.dimension))
+        self.assertAllClose(gs.shape(point), (self.n_samples, self.dim))
 
     @geomstats.tests.np_only
     def test_sample(self):
@@ -107,5 +107,5 @@ class TestBetaMethods(geomstats.tests.TestCase):
         christoffel = self.metric.christoffels(points)
         result = christoffel.shape
         expected = gs.array(
-            [self.n_samples, self.dimension, self.dimension, self.dimension])
+            [self.n_samples, self.dim, self.dim, self.dim])
         self.assertAllClose(result, expected)

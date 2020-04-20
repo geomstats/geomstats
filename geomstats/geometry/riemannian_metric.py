@@ -55,8 +55,9 @@ def grad(y_pred, y_true, metric):
 class RiemannianMetric(Connection):
     """Class for Riemannian and pseudo-Riemannian metrics."""
 
-    def __init__(self, dimension, signature=None):
-        super(RiemannianMetric, self).__init__(dimension=dimension)
+    def __init__(self, dim, signature=None, default_point_type='vector'):
+        super(RiemannianMetric, self).__init__(
+            dim=dim, default_point_type=default_point_type)
         self.signature = signature
 
     def inner_product_matrix(self, base_point=None):
@@ -64,7 +65,7 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, dimension], optional
+        base_point : array-like, shape=[n_samples, dim], optional
         """
         raise NotImplementedError(
             'The computation of the inner product matrix'
@@ -75,7 +76,7 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, dimension], optional
+        base_point : array-like, shape=[n_samples, dim], optional
         """
         metric_matrix = self.inner_product_matrix(base_point)
         cometric_matrix = gs.linalg.inv(metric_matrix)
@@ -86,7 +87,7 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, dimension], optional
+        base_point : array-like, shape=[n_samples, dim], optional
         """
         metric_derivative = autograd.jacobian(self.inner_product_matrix)
         return metric_derivative(base_point)
@@ -96,12 +97,12 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        base_point: array-like, shape=[n_samples, dimension]
+        base_point: array-like, shape=[n_samples, dim]
 
         Returns
         -------
         christoffels: array-like,
-                             shape=[n_samples, dimension, dimension, dimension]
+                             shape=[n_samples, dim, dim, dim]
         """
         cometric_mat_at_point = self.inner_product_inverse_matrix(base_point)
         metric_derivative_at_point = self.inner_product_derivative_matrix(
@@ -125,12 +126,12 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        tangent_vec_a: array-like, shape=[n_samples, dimension]
-                                   or shape=[1, dimension]
-        tangent_vec_b: array-like, shape=[n_samples, dimension]
-                                   or shape=[1, dimension]
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
+        tangent_vec_a: array-like, shape=[n_samples, dim]
+                                   or shape=[1, dim]
+        tangent_vec_b: array-like, shape=[n_samples, dim]
+                                   or shape=[1, dim]
+        base_point: array-like, shape=[n_samples, dim]
+                                or shape=[1, dim]
 
         Returns
         -------
@@ -155,8 +156,8 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, dimension]
-        base_point : array-like, shape=[n_samples, dimension]
+        vector : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[n_samples, dim]
 
         Returns
         -------
@@ -176,8 +177,8 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, dimension]
-        base_point : array-like, shape=[n_samples, dimension]
+        vector : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[n_samples, dim]
 
         Returns
         -------
@@ -192,8 +193,8 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, dimension]
-        point_b : array-like, shape=[n_samples, dimension]
+        point_a : array-like, shape=[n_samples, dim]
+        point_b : array-like, shape=[n_samples, dim]
 
         Returns
         -------
@@ -211,8 +212,8 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, dimension]
-        point_b : array-like, shape=[n_samples, dimension]
+        point_a : array-like, shape=[n_samples, dim]
+        point_b : array-like, shape=[n_samples, dim]
 
         Returns
         -------

@@ -42,7 +42,7 @@ class SpecialEuclidean(LieGroup):
     representation corresponds to homogeneous coordinates.
     """
 
-    def __init__(self, n, point_type=None, epsilon=0.):
+    def __init__(self, n, default_point_type=None, epsilon=0.):
         """Initiate an object of class SpecialEuclidean.
 
         Parameter
@@ -67,13 +67,13 @@ class SpecialEuclidean(LieGroup):
         self.epsilon = epsilon
 
         super(SpecialEuclidean, self).__init__(
-            dimension=self.dimension, point_type=point_type)
-        if point_type is None:
+            dim=self.dimension, default_point_type=default_point_type)
+        if default_point_type is None:
             self.default_point_type = 'vector' if n == 3 else 'matrix'
 
         self.rotations = SpecialOrthogonal(
-            n=n, epsilon=epsilon, point_type=point_type)
-        self.translations = Euclidean(dimension=n)
+            n=n, epsilon=epsilon, default_point_type=default_point_type)
+        self.translations = Euclidean(dim=n)
 
     def get_identity(self, point_type=None):
         """Get the identity of the group.
@@ -86,7 +86,7 @@ class SpecialEuclidean(LieGroup):
 
         Returns
         -------
-        identity : array-like, shape={[dimension], [n + 1, n + 1]}
+        identity : array-like, shape={[dim], [n + 1, n + 1]}
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -107,7 +107,7 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
             the point of which to check whether it belongs to SE(n)
         point_type : str, {'vector', 'matrix'}, optional
             default: self.default_point_type
@@ -157,18 +157,18 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
             the point which should be regularized
         point_type : str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
         Returns
         -------
-        point : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
         """
         if point_type == 'vector':
             rotations = self.rotations
-            dim_rotations = rotations.dimension
+            dim_rotations = rotations.dim
 
             rot_vec = point[:, :dim_rotations]
             regularized_rot_vec = rotations.regularize(
@@ -193,7 +193,7 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        tangent_vec: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
         metric : RiemannianMetric, optional
         point_type : str, {'vector', 'matrix'}, optional
             default: self.default_point_type
@@ -228,8 +228,8 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
-        base_point : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        tangent_vec: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
+        base_point : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
         metric : RiemannianMetric, optional
             default: self.left_canonical_metric
         point_type: str, {'vector', 'matrix'}, optional
@@ -244,13 +244,13 @@ class SpecialEuclidean(LieGroup):
 
         if point_type == 'vector':
             rotations = self.rotations
-            dim_rotations = rotations.dimension
+            dim_rotations = rotations.dim
 
             rot_tangent_vec = tangent_vec[:, :dim_rotations]
             rot_base_point = base_point[:, :dim_rotations]
 
             metric_mat = metric.inner_product_mat_at_identity
-            rot_metric_mat = metric_mat[:, :dim_rotations, :dim_rotations]
+            rot_metric_mat = metric_mat[:dim_rotations, :dim_rotations]
             rot_metric = InvariantMetric(
                 group=rotations,
                 inner_product_mat_at_identity=rot_metric_mat,
@@ -281,17 +281,17 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        vec: array-like, shape=[n_samples, dimension]
+        vec: array-like, shape=[n_samples, dim]
 
         Returns
         -------
-        mat: array-like, shape=[n_samples, {dimension, [n+1, n+1]}]
+        mat: array-like, shape=[n_samples, {dim, [n+1, n+1]}]
         """
         vec = self.regularize(vec, point_type='vector')
         n_vecs, _ = vec.shape
 
-        rot_vec = vec[:, :self.rotations.dimension]
-        trans_vec = vec[:, self.rotations.dimension:]
+        rot_vec = vec[:, :self.rotations.dim]
+        trans_vec = vec[:, self.rotations.dim:]
 
         rot_mat = self.rotations.matrix_from_rotation_vector(rot_vec)
         trans_vec = gs.reshape(trans_vec, (n_vecs, self.n, 1))
@@ -310,8 +310,8 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        point_1 : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
-        point_2 : array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point_1 : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
+        point_2 : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
         point_type: str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
@@ -325,7 +325,7 @@ class SpecialEuclidean(LieGroup):
 
         """
         rotations = self.rotations
-        dim_rotations = rotations.dimension
+        dim_rotations = rotations.dim
 
         point_a = self.regularize(point_a, point_type=point_type)
         point_b = self.regularize(point_b, point_type=point_type)
@@ -371,14 +371,14 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
         point_type: str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
         Returns
         -------
         inverse_point : array-like,
-            shape=[n_samples, {dimension, [n + 1, n + 1]}]
+            shape=[n_samples, {dim, [n + 1, n + 1]}]
             the inverted point
 
         Notes
@@ -386,7 +386,7 @@ class SpecialEuclidean(LieGroup):
         :math:`(R, t)^{-1} = (R^{-1}, R^{-1}.(-t))`
         """
         rotations = self.rotations
-        dim_rotations = rotations.dimension
+        dim_rotations = rotations.dim
 
         point = self.regularize(point)
 
@@ -429,7 +429,7 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
 
         left_or_right: str, {'left', 'right'}, optional
             default: 'left'
@@ -439,7 +439,7 @@ class SpecialEuclidean(LieGroup):
 
         Returns
         -------
-        jacobian : array-like, shape=[n_samples, dimension]
+        jacobian : array-like, shape=[n_samples, dim]
             The jacobian of the left / right translation
         """
         if point_type is None:
@@ -450,8 +450,8 @@ class SpecialEuclidean(LieGroup):
 
         rotations = self.rotations
         translations = self.translations
-        dim_rotations = rotations.dimension
-        dim_translations = translations.dimension
+        dim_rotations = rotations.dim
+        dim_translations = translations.dim
 
         point = self.regularize(point, point_type=point_type)
 
@@ -501,19 +501,19 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        tangent_vec: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
         point_type: str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
         Returns
         -------
-        group_exp: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        group_exp: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
             the group exponential of the tangent vectors calculated
             at the identity
         """
         if point_type == 'vector':
             rotations = self.rotations
-            dim_rotations = rotations.dimension
+            dim_rotations = rotations.dim
 
             rot_vec = tangent_vec[:, :dim_rotations]
             rot_vec = self.rotations.regularize(rot_vec, point_type=point_type)
@@ -585,19 +585,19 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        point: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
         point_type: str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
         Returns
         -------
-        group_log: array-like, shape=[n_samples, {dimension, [n + 1, n + 1]}]
+        group_log: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
             the group logarithm in the Lie algbra
         """
         point = self.regularize(point, point_type=point_type)
 
         rotations = self.rotations
-        dim_rotations = rotations.dimension
+        dim_rotations = rotations.dim
 
         if point_type == 'vector':
             rot_vec = point[:, :dim_rotations]
@@ -681,7 +681,7 @@ class SpecialEuclidean(LieGroup):
         Returns
         -------
         random_point: array-like,
-            shape=[n_samples, {dimension, [n + 1, n + 1]}]
+            shape=[n_samples, {dim, [n + 1, n + 1]}]
             An array of random elements in SE(n) having the given point_type.
         """
         if point_type is None:
@@ -723,7 +723,7 @@ class SpecialEuclidean(LieGroup):
 
         Parameters
         ----------
-        rot_vec : array-like, shape=[n_samples, dimension]
+        rot_vec : array-like, shape=[n_samples, dim]
 
         Returns
         -------

@@ -15,7 +15,7 @@ def main():
     """Perform tangent PCA at the mean."""
     fig = plt.figure(figsize=(15, 5))
 
-    hyperbolic_plane = Hyperbolic(dimension=2)
+    hyperbolic_plane = Hyperbolic(dim=2)
 
     data = hyperbolic_plane.random_uniform(n_samples=140)
 

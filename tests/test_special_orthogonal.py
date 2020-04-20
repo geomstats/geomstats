@@ -70,7 +70,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         canonical_metrics = {n: group.bi_invariant_metric
                              for n, group in so.items()}
 
-        diag_mats = {n: 9 * gs.eye(group.dimension)
+        diag_mats = {n: 9 * gs.eye(group.dim)
                      for n, group in so.items()}
         left_diag_metrics = {
             n: InvariantMetric(
@@ -219,7 +219,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         for n in self.n_seq:
             group = self.so[n]
             result = group.random_uniform(point_type=point_type)
-            self.assertAllClose(gs.shape(result), (group.dimension,))
+            self.assertAllClose(gs.shape(result), (group.dim,))
 
         point_type = 'matrix'
         for n in self.n_seq:
@@ -331,7 +331,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
                 if point_type == 'vector':
                     self.assertAllClose(
-                        gs.shape(result), (n_samples, group.dimension))
+                        gs.shape(result), (n_samples, group.dim))
                 if point_type == 'matrix':
                     self.assertAllClose(
                         gs.shape(result), (n_samples, n, n))
@@ -2799,7 +2799,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 result = group.compose(one_point, n_points_a)
                 if point_type == 'vector':
                     self.assertAllClose(
-                        gs.shape(result), (n_samples, group.dimension))
+                        gs.shape(result), (n_samples, group.dim))
                 if point_type == 'matrix':
                     self.assertAllClose(
                         gs.shape(result), (n_samples, n, n))
@@ -2807,7 +2807,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 result = group.compose(n_points_a, one_point)
                 if point_type == 'vector':
                     self.assertAllClose(
-                        gs.shape(result), (n_samples, group.dimension))
+                        gs.shape(result), (n_samples, group.dim))
                 if point_type == 'matrix':
                     self.assertAllClose(
                         gs.shape(result), (n_samples, n, n))
@@ -2815,7 +2815,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                 result = group.compose(n_points_a, n_points_b)
                 if point_type == 'vector':
                     self.assertAllClose(
-                        gs.shape(result), (n_samples, group.dimension))
+                        gs.shape(result), (n_samples, group.dim))
                 if point_type == 'matrix':
                     self.assertAllClose(
                         gs.shape(result), (n_samples, n, n))
@@ -2830,7 +2830,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
             if n == 3:
                 self.assertAllClose(
-                    gs.shape(result), (n_samples, group.dimension))
+                    gs.shape(result), (n_samples, group.dim))
             else:
                 self.assertAllClose(
                     gs.shape(result), (n_samples, n, n))
@@ -2866,7 +2866,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                                                left_or_right='left')
         self.assertAllClose(
             gs.shape(jacobians),
-            (n_samples, group.dimension, group.dimension))
+            (n_samples, group.dim, group.dim))
 
     def test_exp(self):
         """
@@ -2923,17 +2923,17 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             # Test with the 1 base point, and n tangent vecs
             result = metric.exp(n_tangent_vec, one_base_point)
             self.assertAllClose(
-                gs.shape(result), (n_samples, group.dimension))
+                gs.shape(result), (n_samples, group.dim))
 
             # Test with the several base point, and one tangent vec
             result = metric.exp(one_tangent_vec, n_base_point)
             self.assertAllClose(
-                gs.shape(result), (n_samples, group.dimension))
+                gs.shape(result), (n_samples, group.dim))
 
             # Test with the same number n of base point and n tangent vec
             result = metric.exp(n_tangent_vec, n_base_point)
             self.assertAllClose(
-                gs.shape(result), (n_samples, group.dimension))
+                gs.shape(result), (n_samples, group.dim))
 
     def test_log(self):
         """
@@ -2991,17 +2991,17 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             # Test with the 1 base point, and several different points
             result = metric.log(n_point, one_base_point)
             self.assertAllClose(
-                gs.shape(result), (n_samples, group.dimension))
+                gs.shape(result), (n_samples, group.dim))
 
             # Test with the several base point, and 1 point
             result = metric.log(one_point, n_base_point)
             self.assertAllClose(
-                gs.shape(result), (n_samples, group.dimension))
+                gs.shape(result), (n_samples, group.dim))
 
             # Test with the same number n of base point and point
             result = metric.log(n_point, n_base_point)
             self.assertAllClose(
-                gs.shape(result), (n_samples, group.dimension))
+                gs.shape(result), (n_samples, group.dim))
 
     def test_exp_from_identity_vectorization(self):
         n = 3
@@ -3014,7 +3014,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         result = metric.exp_from_identity(tangent_vecs)
 
         self.assertAllClose(
-            gs.shape(result), (n_samples, group.dimension))
+            gs.shape(result), (n_samples, group.dim))
 
     def test_log_from_identity_vectorization(self):
         n = 3
@@ -3027,7 +3027,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         result = metric.log_from_identity(points)
 
         self.assertAllClose(
-            gs.shape(result), (n_samples, group.dimension))
+            gs.shape(result), (n_samples, group.dim))
 
     def test_exp_then_log_from_identity(self):
         """
@@ -3283,7 +3283,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         result = group.exp_from_identity(tangent_vecs)
 
         self.assertAllClose(
-            gs.shape(result), (n_samples, group.dimension))
+            gs.shape(result), (n_samples, group.dim))
 
     def test_group_log_from_identity_vectorization(self):
         n = 3
@@ -3294,7 +3294,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         result = group.log_from_identity(points)
 
         self.assertAllClose(
-            gs.shape(result), (n_samples, group.dimension))
+            gs.shape(result), (n_samples, group.dim))
 
     def test_group_exp_vectorization(self):
         n = 3
@@ -3307,7 +3307,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         result = group.exp(tangent_vecs, base_point)
 
         self.assertAllClose(
-            gs.shape(result), (n_samples, group.dimension))
+            gs.shape(result), (n_samples, group.dim))
 
         # Test with the same number of base_points and tangent_vecs
         tangent_vecs = group.random_uniform(n_samples=n_samples)
@@ -3315,7 +3315,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         result = group.exp(tangent_vecs, base_points)
 
         self.assertAllClose(
-            gs.shape(result), (n_samples, group.dimension))
+            gs.shape(result), (n_samples, group.dim))
 
         # Test with the several base_points, and 1 tangent_vec
         tangent_vec = group.random_uniform(n_samples=1)
@@ -3323,7 +3323,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         result = group.exp(tangent_vec, base_points)
 
         self.assertAllClose(
-            gs.shape(result), (n_samples, group.dimension))
+            gs.shape(result), (n_samples, group.dim))
 
     def test_group_log_vectorization(self):
         n = 3
@@ -3336,7 +3336,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         result = group.log(points, base_point)
 
         self.assertAllClose(
-            gs.shape(result), (n_samples, group.dimension))
+            gs.shape(result), (n_samples, group.dim))
 
         # Test with the same number of base points and points
         points = group.random_uniform(n_samples=n_samples)
@@ -3344,7 +3344,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         result = group.log(points, base_points)
 
         self.assertAllClose(
-            gs.shape(result), (n_samples, group.dimension))
+            gs.shape(result), (n_samples, group.dim))
 
         # Test with the several base points, and 1 point
         point = group.random_uniform(n_samples=1)
@@ -3352,7 +3352,7 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         result = group.log(point, base_points)
 
         self.assertAllClose(
-            gs.shape(result), (n_samples, group.dimension))
+            gs.shape(result), (n_samples, group.dim))
 
     def test_group_exp_then_log_from_identity(self):
         """
@@ -3717,8 +3717,9 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             [0., 0., 0.]])
         second_tan = first_tan
 
-        result = space.lie_bracket(first_tan, second_tan, base_point)
-        expected = gs.zeros((1, dim, dim))
+        result = space.lie_bracket(
+            first_tan, second_tan, base_point, point_type='matrix')
+        expected = gs.zeros((dim, dim))
 
         self.assertAllClose(result, expected)
 
@@ -3731,11 +3732,12 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             [0., 0., 0.],
             [1., 0., 0.]])
 
-        result = space.lie_bracket(first_tan, second_tan, base_point)
-        expected = gs.array([[
+        result = space.lie_bracket(
+            first_tan, second_tan, base_point, point_type='matrix')
+        expected = gs.array([
             [0., 0., 0.],
             [0., 0., -1.],
-            [0., 1., 0.]]])
+            [0., 1., 0.]])
 
         self.assertAllClose(result, expected)
 
@@ -3753,10 +3755,14 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
             [[0., 0., -1.], [0., 0., 0.], [1., 0., 0.]]
         ])
 
-        result = space.lie_bracket(first_tan, second_tan, base_point)
+        result = space.lie_bracket(
+            first_tan, second_tan, base_point, point_type='matrix')
         expected = gs.array([
             gs.zeros((dim, dim)),
-            gs.array([[0., 0., 0.], [0., 0., -1.], [0., 1., 0.]])
+            gs.array([
+                [0., 0., 0.],
+                [0., 0., -1.],
+                [0., 1., 0.]])
         ])
 
         self.assertAllClose(result, expected)
@@ -3766,19 +3772,31 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         space = self.so[dim]
 
         base_point = gs.array([
-            [[-1., 0., 0.], [0., -1., 0.], [0., 0., 1.]]])
+            [-1., 0., 0.],
+            [0., -1., 0.],
+            [0., 0., 1.]])
         first_tan = gs.matmul(
             base_point,
-            gs.array([[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]])
+            gs.array([
+                [0., -1., 0.],
+                [1., 0., 0.],
+                [0., 0., 0.]])
         )
         second_tan = gs.matmul(
             base_point,
-            gs.array([[0., 0., -1.], [0., 0., 0.], [1., 0., 0.]])
+            gs.array([
+                [0., 0., -1.],
+                [0., 0., 0.],
+                [1., 0., 0.]])
         )
 
-        result = space.lie_bracket(first_tan, second_tan, base_point)
+        result = space.lie_bracket(
+            first_tan, second_tan, base_point, point_type='matrix')
         expected = gs.matmul(
             base_point,
-            gs.array([[[0., 0., 0.], [0., 0., -1.], [0., 1., 0.]]]))
+            gs.array([
+                [0., 0., 0.],
+                [0., 0., -1.],
+                [0., 1., 0.]]))
 
         self.assertAllClose(result, expected)

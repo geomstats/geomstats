@@ -10,6 +10,7 @@ BACKEND_ATTRIBUTES = {
         'int64',
         'float32',
         'float64',
+        'uint8',
         # Functions
         'abs',
         'all',

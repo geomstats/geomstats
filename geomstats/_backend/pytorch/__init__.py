@@ -33,7 +33,6 @@ from torch import (  # NOQA
     int32,
     int64,
     isnan,
-    le as less_equal,
     log,
     lt as less,
     matmul,
@@ -89,12 +88,29 @@ sin = _box_scalar(sin)
 sinh = _box_scalar(sinh)
 
 
+def less_equal(x, y, **kwargs):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    if not torch.is_tensor(y):
+        y = torch.tensor(y)
+    return torch.le(x, y, **kwargs)
+
+
 def empty(shape, dtype=float64):
     return torch.empty(*shape, dtype=dtype)
 
 
-def split(ary, indices_or_sections, axis=0):
-    return torch.split(ary, indices_or_sections, dim=axis)
+def split(x, indices_or_sections, axis=0):
+    if isinstance(indices_or_sections, int):
+        indices_or_sections = x.shape[axis] // indices_or_sections
+        return torch.split(x, indices_or_sections, dim=axis)
+    indices_or_sections = _np.array(indices_or_sections)
+    intervals_length = indices_or_sections[1:] - indices_or_sections[:-1]
+    last_interval_length = x.shape[axis] - indices_or_sections[-1]
+    if last_interval_length > 0:
+        intervals_length = _np.append(intervals_length, last_interval_length)
+    intervals_length = _np.insert(intervals_length, 0, indices_or_sections[0])
+    return torch.split(x, tuple(intervals_length), dim=axis)
 
 
 def logical_or(x, y):
@@ -115,6 +131,8 @@ def any(x, axis=None):
 
 
 def cast(x, dtype):
+    if torch.is_tensor(x):
+        return x.to(dtype)
     return array(x).to(dtype)
 
 
@@ -186,8 +204,9 @@ def array(val, dtype=None):
     if not isinstance(val, torch.Tensor):
         val = torch.Tensor([val])
 
-    if dtype is not None and val.dtype != dtype:
-        cast(val, dtype)
+    if dtype is not None:
+        if val.dtype != dtype:
+            val = cast(val, dtype)
     elif val.dtype == torch.float64:
         val = val.float()
     return val
@@ -205,7 +224,7 @@ def get_slice(x, indices):
 
     Parameters
     ----------
-    x : array-like, shape=[dimension]
+    x : array-like, shape=[dim]
         Initial array.
     indices : iterable(iterable(int))
         Indices which are kept along each axis, starting from 0.
@@ -292,7 +311,8 @@ def sqrt(x):
 #                https://github.com/pytorch/pytorch/issues/35471
 #              In the future, we may simply use that function instead.
 def isclose(*args, **kwargs):
-    return torch.from_numpy(_np.isclose(*args, **kwargs))
+    # TODO(ninamiolane): Use native torch.isclose
+    return torch.from_numpy(_np.array(_np.isclose(*args, **kwargs)))
 
 
 def sum(x, axis=None, keepdims=None, **kwargs):
@@ -442,7 +462,7 @@ def ndim(x):
 
 def hsplit(x, indices_or_section):
     if isinstance(indices_or_section, int):
-        indices_or_section = indices_or_section // x.shape[1]
+        indices_or_section = x.shape[1] // indices_or_section
     return torch.split(x, indices_or_section, dim=1)
 
 
@@ -455,9 +475,9 @@ def set_diag(x, new_diag):
 
     Parameters
     ----------
-    x : array-like, shape=[dimension]
+    x : array-like, shape=[dim]
         Initial array.
-    new_diag : array-like, shape=[dimension[-2]]
+    new_diag : array-like, shape=[dim[-2]]
         Values to set on the diagonal.
 
     Returns
@@ -512,7 +532,7 @@ def assignment(x, values, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     values: {float, list(float)}
         Value or list of values to be assigned.
@@ -526,7 +546,7 @@ def assignment(x, values, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x with the values assigned at the given indices.
 
     Notes
@@ -557,7 +577,7 @@ def assignment_by_sum(x, values, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     values: {float, list(float)}
         Value or list of values to be assigned.
@@ -571,7 +591,7 @@ def assignment_by_sum(x, values, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x with the values assigned at the given indices.
 
     Notes
@@ -602,6 +622,8 @@ def copy(x):
 
 
 def cumsum(x, axis=None):
+    if not torch.is_tensor(x):
+        x = array(x)
     if axis is None:
         return x.flatten().cumsum(dim=0)
     return torch.cumsum(x, dim=axis)

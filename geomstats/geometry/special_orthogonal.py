@@ -32,14 +32,14 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
     i.e. the Lie group of rotations.
     """
 
-    def __init__(self, n, point_type=None, epsilon=0.):
+    def __init__(self, n, default_point_type=None, epsilon=0.):
         """Initialize an instance of SO(n).
 
         Parameters
         ----------
         n : int
             the dimension of the euclidean space that SO(n) acts upon
-        point_type : str, {'vector', 'matrix'}, optional
+        default_point_type : str, {'vector', 'matrix'}, optional
             if None is given, point_type is set to 'vector for dimension 3
             and matrix otherwise
         epsilon : float, optional
@@ -51,18 +51,19 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             raise ValueError('Parameter `n` is required to be an integer > 1.')
 
         self.n = n
-        self.dimension = int((n * (n - 1)) / 2)
+        self.dim = int((n * (n - 1)) / 2)
 
         self.epsilon = epsilon
+        if default_point_type is None:
+            default_point_type = 'vector' if n == 3 else 'matrix'
 
         LieGroup.__init__(self,
-                          dimension=self.dimension, point_type=point_type)
+                          dim=self.dim, default_point_type=default_point_type)
         EmbeddedManifold.__init__(self,
-                                  dimension=self.dimension,
-                                  embedding_manifold=GeneralLinear(n=n))
+                                  dim=self.dim,
+                                  embedding_manifold=GeneralLinear(n=n),
+                                  default_point_type=default_point_type)
         self.bi_invariant_metric = self.left_canonical_metric
-        if point_type is None:
-            self.default_point_type = 'vector' if n == 3 else 'matrix'
 
     def get_identity(self, point_type=None):
         """Get the identity of the group.
@@ -74,12 +75,12 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Returns
         -------
-        identity : array-like, shape={[dimension], [n, n]}
+        identity : array-like, shape={[dim], [n, n]}
         """
         if point_type is None:
             point_type = self.default_point_type
 
-        identity = gs.zeros(self.dimension)
+        identity = gs.zeros(self.dim)
         if point_type == 'matrix':
             identity = gs.eye(self.n)
         return identity
@@ -91,7 +92,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dimension, [n, n]}]
+        point : array-like, shape=[n_samples, {dim, [n, n]}]
             the point of which to check whether it belongs to SO(n)
         point_type : str, {'vector', 'matrix'}, optional
             default: default_point_type
@@ -106,8 +107,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         if point_type == 'vector':
             vec_dim = point.shape[-1]
-            belongs = vec_dim == self.dimension
-            if gs.ndim(point) == 2:
+            belongs = vec_dim == self.dim
+            if point.ndim == 2:
                 belongs = gs.tile([belongs], (point.shape[0],))
             return belongs
 
@@ -136,13 +137,13 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dimension, [n, n]}]
+        point : array-like, shape=[n_samples, {dim, [n, n]}]
         point_type : str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
         Returns
         -------
-        regularized_point : array-like, shape=[n_samples, {dimension, [n, n]}]
+        regularized_point : array-like, shape=[n_samples, {dim, [n, n]}]
         """
         geomstats.error.check_parameter_accepted_values(
             point_type, 'point_type', ['vector', 'matrix'])
@@ -174,7 +175,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                     - (1. - 2. * gs.pi * k / angle))
 
                 regularized_point = gs.einsum(
-                    'n,ni->ni', norms_ratio, regularized_point)
+                    '...,...i->...i', norms_ratio, regularized_point)
 
         elif point_type == 'matrix':
             regularized_point = point
@@ -192,7 +193,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
+        tangent_vec : array-like, shape=[n_samples, {dim, [n, n]}]
         metric : RiemannianMetric, optional
             default: self.left_canonical_metric
         point_type : str, {'vector', 'matrix'}, optional
@@ -200,7 +201,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Returns
         -------
-        regularized_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
+        regularized_vec : array-like, shape=[n_samples, {dim, [n, n]}]
         """
         geomstats.error.check_parameter_accepted_values(
             point_type, 'point_type', ['vector', 'matrix'])
@@ -211,12 +212,10 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                     metric = self.left_canonical_metric
                 tangent_vec_metric_norm = metric.norm(tangent_vec)
                 tangent_vec_canonical_norm = gs.linalg.norm(
-                    tangent_vec, axis=1)
-                if gs.ndim(tangent_vec_canonical_norm) == 1:
-                    tangent_vec_canonical_norm = gs.expand_dims(
-                        tangent_vec_canonical_norm, axis=1)
+                    tangent_vec, axis=-1)
 
-                mask_norm_0 = gs.isclose(tangent_vec_metric_norm, 0.)
+                mask_norm_0 = gs.isclose(
+                    tangent_vec_metric_norm, 0.)
                 mask_canonical_norm_0 = gs.isclose(
                     tangent_vec_canonical_norm, 0.)
 
@@ -228,7 +227,8 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                 mask_else_float = gs.cast(mask_else, gs.float32) + self.epsilon
 
                 regularized_vec = gs.zeros_like(tangent_vec)
-                regularized_vec += mask_0_float * tangent_vec
+                regularized_vec += gs.einsum(
+                    '...,...i->...i', mask_0_float, tangent_vec)
 
                 tangent_vec_canonical_norm += mask_0_float
 
@@ -236,11 +236,19 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                 coef += mask_else_float * (
                     tangent_vec_metric_norm
                     / tangent_vec_canonical_norm)
-                regularized_vec += mask_else_float * self.regularize(
-                    coef * tangent_vec)
+
+                coef_tangent_vec = gs.einsum(
+                    '...,...i->...i', coef, tangent_vec)
+                regularized_vec += gs.einsum(
+                    '...,...i->...i',
+                    mask_else_float,
+                    self.regularize(coef_tangent_vec))
+
                 coef += mask_0_float
-                regularized_vec = mask_else_float * (
-                    regularized_vec / coef)
+                regularized_vec = gs.einsum(
+                    '...,...i->...i', 1. / coef, regularized_vec)
+                regularized_vec = gs.einsum(
+                    '...,...i->...i', mask_else_float, regularized_vec)
             else:
                 # TODO(nina): Check if/how regularization is needed in nD?
                 regularized_vec = tangent_vec
@@ -264,9 +272,9 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
+        tangent_vec : array-like, shape=[n_samples, {dim, [n, n]}]
             Tangent vector at base point.
-        base_point : array-like, shape=[n_samples, {dimension, [n, n]}]
+        base_point : array-like, shape=[n_samples, {dim, [n, n]}]
             Point on the manifold.
         metric : RiemannianMetric, optional
             default: self.left_canonical_metric
@@ -276,7 +284,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
         Returns
         -------
         regularized_tangent_vec : array-like,
-            shape=[n_samples, {dimension, [n, n]}]
+            shape=[n_samples, {dim, [n, n]}]
         """
         geomstats.error.check_parameter_accepted_values(
             point_type, 'point_type', ['vector', 'matrix'])
@@ -384,7 +392,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        vec : array-like, shape=[n_samples, dimension]
+        vec : array-like, shape=[n_samples, dim]
 
         Returns
         -------
@@ -474,11 +482,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Returns
         -------
-        vec : array-like, shape=[n_samples, dimension]
+        vec : array-like, shape=[n_samples, dim]
         """
         n_skew_mats, mat_dim_1, _ = skew_mat.shape
 
-        vec_dim = self.dimension
+        vec_dim = self.dim
         vec = gs.zeros((n_skew_mats, vec_dim))
 
         if self.n == 2:  # SO(2)
@@ -527,7 +535,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Returns
         -------
-        regularized_rot_vec : array-like, shape=[n_samples, dimension]
+        regularized_rot_vec : array-like, shape=[n_samples, dim]
         """
         n_rot_mats, _, _ = rot_mat.shape
 
@@ -576,11 +584,11 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        rot_vec: array-like, shape=[n_samples, dimension]
+        rot_vec: array-like, shape=[n_samples, dim]
 
         Returns
         -------
-        rot_mat: array-like, shape=[n_samples, {dimension, [n, n]}]
+        rot_mat: array-like, shape=[n_samples, {dim, [n, n]}]
         """
         rot_vec = self.regularize(rot_vec, point_type='vector')
 
@@ -612,7 +620,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
             coef_1 = gs.squeeze(coef_1, axis=1)
             coef_2 = gs.squeeze(coef_2, axis=1)
-            term_1 = (gs.eye(self.dimension)
+            term_1 = (gs.eye(self.dim)
                       + gs.einsum('n,njk->njk', coef_1, skew_rot_vec))
 
             squared_skew_rot_vec = gs.einsum(
@@ -655,7 +663,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        rot_vec : array-like, shape=[n_samples, dimension]
+        rot_vec : array-like, shape=[n_samples, dim]
 
         Returns
         -------
@@ -696,7 +704,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Returns
         -------
-        rot_vec : array-like, shape=[n_samples, dimension]
+        rot_vec : array-like, shape=[n_samples, dim]
         """
         if self.n != 3:
             raise ValueError(
@@ -735,7 +743,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Returns
         -------
-        rot_mat : array-like, shape=[n_samples, dimension]
+        rot_mat : array-like, shape=[n_samples, dim]
         """
         if self.n != 3:
             raise ValueError(
@@ -1108,7 +1116,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Returns
         -------
-        rot_vec : array-like, shape=[n_samples, dimension]
+        rot_vec : array-like, shape=[n_samples, dim]
         """
         if self.n != 3:
             raise ValueError(
@@ -1247,7 +1255,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        rot_vec : array-like, shape=[n_samples, dimension]
+        rot_vec : array-like, shape=[n_samples, dim]
         extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
             default: 'extrinsic'
         order : str, {'xyz', 'zyx'}, optional
@@ -1277,14 +1285,14 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        point_1 : array-like, shape=[n_samples, {dimension, [n, n]}]
-        point_2 : array-like, shape=[n_samples, {dimension, [n, n]}]
+        point_1 : array-like, shape=[n_samples, {dim, [n, n]}]
+        point_2 : array-like, shape=[n_samples, {dim, [n, n]}]
         point_type : str, {'vector', 'matrix'}, optional
             default: default_point_type
 
         Returns
         -------
-        point_prod : array-like, shape=[n_samples, {dimension, [n, n]}]
+        point_prod : array-like, shape=[n_samples, {dim, [n, n]}]
         """
         point_a = self.regularize(point_a, point_type=point_type)
         point_b = self.regularize(point_b, point_type=point_type)
@@ -1307,13 +1315,13 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dimension, [n, n]}]
+        point : array-like, shape=[n_samples, {dim, [n, n]}]
         point_type : str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
         Returns
         -------
-        inv_point : array-like, shape=[n_samples, {dimension, [n, n]}]
+        inv_point : array-like, shape=[n_samples, {dim, [n, n]}]
         """
         if point_type is None:
             point_type = self.default_point_type
@@ -1341,7 +1349,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dimension, [n, n]}]
+        point : array-like, shape=[n_samples, {dim, [n, n]}]
         left_or_right : str, {'left', 'right'}, optional
             default: 'left'
         point_type : str, {'vector', 'matrix'}, optional
@@ -1349,7 +1357,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Returns
         -------
-        jacobian : array-like, shape=[n_samples, dimension, dimension]
+        jacobian : array-like, shape=[n_samples, dim, dim]
         """
         geomstats.error.check_parameter_accepted_values(
             left_or_right, 'left_or_right', ['left', 'right'])
@@ -1410,7 +1418,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                     (angle / 2) / gs.tan(angle / 2))
                 coef_2 += mask_else_float * (
                     (1 - coef_1) / angle ** 2)
-                jacobian = gs.zeros((n_points, self.dimension, self.dimension))
+                jacobian = gs.zeros((n_points, self.dim, self.dim))
                 n_points_tensor = gs.array(n_points)
                 for i in range(n_points):
                     # This avoids dividing by 0.
@@ -1423,7 +1431,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
                         sign = + 1.
 
                     jacobian_i = (
-                        coef_1[i] * gs.eye(self.dimension)
+                        coef_1[i] * gs.eye(self.dim)
                         + coef_2[i] * gs.outer(point[i], point[i])
                         + sign * self.skew_matrix_from_vector(point[i]) / 2.)
 
@@ -1456,12 +1464,12 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Returns
         -------
-        point : array-like, shape=[n_samples, {dimension, [n, n]}]
+        point : array-like, shape=[n_samples, {dim, [n, n]}]
         """
         if point_type is None:
             point_type = self.default_point_type
 
-        random_point = gs.random.rand(n_samples, self.dimension) * 2 - 1
+        random_point = gs.random.rand(n_samples, self.dim) * 2 - 1
         random_point = self.regularize(random_point, point_type='vector')
         if point_type == 'matrix':
             random_point = self.matrix_from_rotation_vector(random_point)
@@ -1477,13 +1485,13 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
+        tangent_vec : array-like, shape=[n_samples, {dim, [n, n]}]
         point_type : str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
         Returns
         -------
-        point : array-like, shape=[n_samples, {dimension, [n, n]}]
+        point : array-like, shape=[n_samples, {dim, [n, n]}]
         """
         if point_type == 'matrix' and self.n > 3:
             return gs.linalg.expm(tangent_vec)
@@ -1499,13 +1507,13 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dimension, [n, n]}]
+        point : array-like, shape=[n_samples, {dim, [n, n]}]
         point_type : str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
+        tangent_vec : array-like, shape=[n_samples, {dim, [n, n]}]
         """
         if point_type == 'vector':
             tangent_vec = self.regularize(point, point_type=point_type)

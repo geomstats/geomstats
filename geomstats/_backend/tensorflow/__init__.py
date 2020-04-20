@@ -38,20 +38,19 @@ from tensorflow import (  # NOQA
     reduce_max as amax,
     reduce_mean as mean,
     reduce_min as amin,
-    reduce_sum as sum,
     reshape,
     searchsorted,
     shape,
     sign,
     sin,
     sinh,
-    split,
     sqrt,
     squeeze,
     stack,
     tan,
     tanh,
     tile,
+    uint8,
     where,
     zeros,
     zeros_like
@@ -195,7 +194,7 @@ def _duplicate_array(x, n_samples, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array which will be copied.
     n_samples: int
         Number of copies of the array to create.
@@ -204,8 +203,8 @@ def _duplicate_array(x, n_samples, axis=0):
 
     Returns
     -------
-    tiled_array: array, shape=[dimension[:axis], n_samples, dimension[axis:]]
-        Copies of x stacked along dimension axis
+    tiled_array: array, shape=[dim[:axis], n_samples, dim[axis:]]
+        Copies of x stacked along dim axis
     """
     multiples = _np.ones(ndim(x) + 1, dtype=_np.int32)
     multiples[axis] = n_samples
@@ -242,7 +241,7 @@ def _assignment_single_value_by_sum(x, value, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     value: float
         Value to be added.
@@ -256,7 +255,7 @@ def _assignment_single_value_by_sum(x, value, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x where value was added at all indices (and possibly along
         an axis).
     """
@@ -283,7 +282,7 @@ def assignment_by_sum(x, values, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     values: {float, list(float)}
         Value or list of values to be assigned.
@@ -297,7 +296,7 @@ def assignment_by_sum(x, values, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x as the sum of x and the values at the given indices.
 
     Notes
@@ -325,7 +324,7 @@ def _assignment_single_value(x, value, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     value: float
         Value to be added.
@@ -339,7 +338,7 @@ def _assignment_single_value(x, value, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x where value was assigned at all indices (and possibly
         along an axis).
     """
@@ -368,7 +367,7 @@ def assignment(x, values, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     values: {float, list(float)}
         Value or list of values to be assigned.
@@ -382,7 +381,7 @@ def assignment(x, values, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x with the values assigned at the given indices.
 
     Notes
@@ -432,7 +431,7 @@ def get_slice(x, indices):
 
     Parameters
     ----------
-    x : array-like, shape=[dimension]
+    x : array-like, shape=[dim]
         Initial array.
     indices : iterable(iterable(int))
         Indices which are kept along each axis, starting from 0.
@@ -459,6 +458,18 @@ def vectorize(x, pyfunc, multiple_args=False, dtype=None, **kwargs):
     if multiple_args:
         return tf.map_fn(lambda x: pyfunc(*x), elems=x, dtype=dtype)
     return tf.map_fn(pyfunc, elems=x, dtype=dtype)
+
+
+def split(x, indices_or_sections, axis=0):
+    if isinstance(indices_or_sections, int):
+        return tf.split(x, indices_or_sections, dim=axis)
+    indices_or_sections = _np.array(indices_or_sections)
+    intervals_length = indices_or_sections[1:] - indices_or_sections[:-1]
+    last_interval_length = x.shape[axis] - indices_or_sections[-1]
+    if last_interval_length > 0:
+        intervals_length = _np.append(intervals_length, last_interval_length)
+    intervals_length = _np.insert(intervals_length, 0, indices_or_sections[0])
+    return tf.split(x, num_or_size_splits=tuple(intervals_length), axis=axis)
 
 
 def hsplit(x, n_splits):
@@ -510,6 +521,12 @@ def eye(n, m=None):
     if m is None:
         m = n
     return tf.eye(num_rows=n, num_columns=m)
+
+
+def sum(x, axis=None, keepdims=False, name=None):
+    if x.dtype == bool:
+        x = cast(x, int32)
+    return tf.reduce_sum(x, axis, keepdims, name)
 
 
 def einsum(equation, *inputs, **kwargs):

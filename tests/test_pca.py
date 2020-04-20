@@ -114,7 +114,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_fit_matrix_se(self):
-        se_mat = SpecialEuclidean(n=3, point_type='matrix')
+        se_mat = SpecialEuclidean(n=3, default_point_type='matrix')
         X = se_mat.random_uniform(self.n_samples)
         estimator = ExponentialBarycenter(se_mat)
         estimator.fit(X)

@@ -143,7 +143,7 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
     -------
     >>> from geomstats.geometry.hypersphere import Hypersphere
     >>> from geomstats.learning.onlinekmeans import OnlineKmeans
-    >>> sphere = Hypersphere(dimension=2)
+    >>> sphere = Hypersphere(dim=2)
     >>> metric = sphere.metric
     >>> X = sphere.random_von_mises_fisher(kappa=10, n_samples=50)
     >>> clustering = OnlineKmeans(metric=metric,n_clusters=4).fit(X)

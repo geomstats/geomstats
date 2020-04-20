@@ -22,7 +22,7 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
 
         n = 3
         group = SpecialEuclidean(n=n)
-        matrix_group = SpecialOrthogonal(n=n, point_type='matrix')
+        matrix_group = SpecialOrthogonal(n=n, default_point_type='matrix')
 
         # Diagonal left and right invariant metrics
         diag_mat_at_identity = gs.eye(group.dimension)
@@ -82,29 +82,41 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
         self.point_small = point_small
 
     @geomstats.tests.np_and_tf_only
-    def test_inner_product_matrix(self):
-        # TODO(ninamiolane): Fix this test when invariant metric
-        # is properly vectorized
-        # base_point = self.group.identity
-        dim = self.left_metric.group.dimension
-        result = self.left_metric.inner_product_matrix(base_point=None)
+    def test_inner_product_mat_at_identity_shape(self):
+        dim = self.left_metric.group.dim
+
+        result = self.left_metric.inner_product_mat_at_identity
         self.assertAllClose(gs.shape(result), (dim, dim))
 
-        # expected = self.left_metric.inner_product_mat_at_identity
-        # self.assertAllClose(result, expected)
+    @geomstats.tests.np_and_tf_only
+    def test_inner_product_matrix_shape(self):
+        base_point = None
+        dim = self.left_metric.group.dim
+        result = self.left_metric.inner_product_matrix(base_point=base_point)
+        self.assertAllClose(gs.shape(result), (dim, dim))
 
-        # result = self.right_metric.inner_product_matrix(
-        #     base_point=base_point)
+        base_point = self.group.identity
+        dim = self.left_metric.group.dim
+        result = self.left_metric.inner_product_matrix(base_point=base_point)
+        self.assertAllClose(gs.shape(result), (dim, dim))
 
-        # expected = self.right_metric.inner_product_mat_at_identity
-        # self.assertAllClose(result, expected)
+    @geomstats.tests.np_and_tf_only
+    def test_inner_product_matrix_and_inner_product_mat_at_identity(self):
+        base_point = None
+        result = self.left_metric.inner_product_matrix(base_point=base_point)
+        expected = self.left_metric.inner_product_mat_at_identity
+        self.assertAllClose(result, expected)
+
+        base_point = self.group.identity
+        result = self.right_metric.inner_product_matrix(base_point=base_point)
+        expected = self.right_metric.inner_product_mat_at_identity
+        self.assertAllClose(result, expected)
 
     def test_inner_product_matrix_and_its_inverse(self):
         inner_prod_mat = self.left_diag_metric.inner_product_mat_at_identity
         inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
         result = gs.matmul(inv_inner_prod_mat, inner_prod_mat)
         expected = gs.eye(self.group.dimension)
-        expected = gs.to_ndarray(expected, to_ndim=3, axis=0)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
