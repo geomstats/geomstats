@@ -82,13 +82,16 @@ class GeneralLinear(Matrices):
 
         Parameters
         ----------
-        tangent_vec :   array-like, shape=[..., n, n]
-        base_point :    array-like, shape=[..., n, n]
+        tangent_vec :   array-like, shape=[n_samples, n, n]
+                                    or shape=[n, n]
+        base_point :    array-like, shape=[n_samples, n, n]
+                                    or shape=[n, n]
             Defaults to identity.
 
         Returns
         -------
         point :         array-like, shape=[..., n, n]
+                                    or shape=[n, n]
             The left multiplication of `exp(algebra_mat)` with
             `base_point`.
         """
@@ -108,13 +111,16 @@ class GeneralLinear(Matrices):
 
         Parameters
         ----------
-        point : array-like, shape=[..., n, n]
-        base_point : array-like, shape=[..., n, n]
+        point : array-like, shape=[n_samples, n, n]
+                            or shape=[n, n]
+        base_point : array-like, shape=[n_samples, n, n]
+                                 or shape=[n, n]
             Defaults to identity.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[..., n, n]
+        tangent_vec : array-like, shape=[n_samples, n, n]
+                                  or shape=[n, n]
             A matrix such that `exp(tangent_vec, base_point) = point`.
 
         Notes
