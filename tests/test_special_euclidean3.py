@@ -162,48 +162,12 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    # def test_random_and_belongs_matrix_form(self):
-    #     """
-    #     Test that the random uniform method samples
-    #     on the special euclidean group.
-    #     """
-    #     local_point_type = 'matrix'
-    #     base_point_1 = self.group.random_uniform(1, local_point_type)
-    #     base_point_2 = gs.copy(base_point_1)
-    #     base_point_3 = gs.copy(base_point_1)
-    #
-    #     self.assertAllClose(gs.shape(base_point_1), (4, 4))
-    #     self.assertAllClose(gs.shape(base_point_2), (4, 4))
-    #     self.assertAllClose(gs.shape(base_point_3), (4, 4))
-    #
-    #     # Violates SE(n) structure on the last line
-    #     base_point_2 = gs.assignment(base_point_2, 1, (-1, 0))
-    #     # base_point_2[-1, 0] = 1
-    #     # Violates SE(n) homogeneous coordinates structure
-    #     base_point_3 = gs.assignment(base_point_3, 2, (-1, -1))
-    #     # base_point_3[-1, -1] = 2
-    #     result_1 = self.group.belongs(base_point_1, local_point_type)
-    #     result_2 = self.group.belongs(base_point_2, local_point_type)
-    #     result_3 = self.group.belongs(base_point_3, local_point_type)
-    #     result = [result_1, result_2, result_3]
-    #     expected = [True, False, False]
-    #     self.assertAllClose(result, expected)
-
     def test_random_and_belongs_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
         result = self.group.belongs(points)
         expected = gs.array([True] * n_samples)
         self.assertAllClose(result, expected)
-
-    # def test_random_and_belongs_vectorization_matrix_form(self):
-    #     point_type = 'matrix'
-    #     n_samples = self.n_samples
-    #     points = self.group.random_uniform(
-    #         n_samples=n_samples, point_type=point_type)
-    #     result = self.group.belongs(points, point_type)
-    #     expected = gs.array([True] * n_samples)
-    #     self.assertAllClose(result, expected)
 
     def test_regularize(self):
         point = self.elements_all['with_angle_0']
@@ -281,18 +245,6 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
             expected = expected_rot + expected_trans
             self.assertAllClose(result, expected)
 
-    def test_regularize_matrix_form(self):
-        old_point_type = self.group.default_point_type
-        self.group.default_point_type = 'matrix'
-
-        for point in self.elements_matrices.values():
-            point = self.group.regularize(point)
-            result = self.group.regularize(point)
-            expected = point
-            self.assertAllClose(result, expected)
-
-        self.group.default_point_type = old_point_type
-
     def test_regularize_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
@@ -302,46 +254,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
             gs.shape(regularized_points),
             (n_samples, *self.group.get_point_type_shape()))
 
-    # def test_regularize_vectorization_matrix_form(self):
-    #     old_point_type = self.group.default_point_type
-    #     self.group.default_point_type = 'matrix'
-    #
-    #     n_samples = self.n_samples
-    #     points = self.group.random_uniform(n_samples=n_samples)
-    #     regularized_points = self.group.regularize(points)
-    #
-    #     self.assertAllClose(
-    #         gs.shape(regularized_points),
-    #         (n_samples, *self.group.get_point_type_shape()))
-    #
-    #     self.group.default_point_type = old_point_type
-
     def test_compose(self):
-        # Composition by identity, on the right
-        # Expect the original transformation
-        point = self.elements_all['point_1']
-        result = self.group.compose(point,
-                                    self.group.identity)
-        expected = point
-        self.assertAllClose(result, expected)
-
-        if not geomstats.tests.tf_backend():
-            # Composition by identity, on the left
-            # Expect the original transformation
-            result = self.group.compose(self.group.identity,
-                                        point)
-            expected = point
-            self.assertAllClose(result, expected)
-
-            # Composition of translations (no rotational part)
-            # Expect the sum of the translations
-            result = self.group.compose(self.elements_all['translation_small'],
-                                        self.elements_all['translation_large'])
-            expected = (self.elements_all['translation_small']
-                        + self.elements_all['translation_large'])
-            self.assertAllClose(result, expected)
-
-    def test_compose_matrix_form(self):
         # Composition by identity, on the right
         # Expect the original transformation
         point = self.elements_all['point_1']
@@ -407,28 +320,12 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                 gs.shape(result),
                 (n_samples, *self.group.get_point_type_shape()))
 
-    # def test_compose_vectorization_matrix_form(self):
-    #     old_point_type = self.group.default_point_type
-    #     self.group.default_point_type = 'matrix'
-    #
-    #     self.test_compose_vectorization()
-    #
-    #     self.group.default_point_type = old_point_type
-
     def test_inverse_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
         result = self.group.inverse(points)
         self.assertAllClose(
             gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
-
-    # def test_inverse_vectorization_matrix_form(self):
-    #     old_point_type = self.group.default_point_type
-    #     self.group.default_point_type = 'matrix'
-    #
-    #     self.test_inverse_vectorization()
-    #
-    #     self.group.default_point_type = old_point_type
 
     def test_left_jacobian_vectorization(self):
         n_samples = self.n_samples

@@ -97,3 +97,58 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
             result = self.group.compose(inv_point, point)
             expected = self.group.identity
             self.assertAllClose(result, expected)
+
+    def test_compose_vectorization(self):
+        n_samples = self.n_samples
+        n_points_a = self.group.random_uniform(n_samples=n_samples)
+        n_points_b = self.group.random_uniform(n_samples=n_samples)
+        one_point = self.group.random_uniform(n_samples=1)
+
+        result = self.group.compose(one_point, n_points_a)
+        self.assertAllClose(
+            gs.shape(result), (n_samples,) + (self.group.n + 1,) * 2)
+
+        result = self.group.compose(n_points_a, one_point)
+
+        if not geomstats.tests.tf_backend():
+            self.assertAllClose(
+                gs.shape(result), (n_samples,) + (self.group.n + 1,) * 2)
+
+            result = self.group.compose(n_points_a, n_points_b)
+            self.assertAllClose(
+                gs.shape(result), (n_samples,) + (self.group.n + 1,) * 2)
+
+    def test_inverse_vectorization(self):
+        n_samples = self.n_samples
+        points = self.group.random_uniform(n_samples=n_samples)
+        result = self.group.inverse(points)
+        self.assertAllClose(
+            gs.shape(result), (n_samples,) + (self.group.n + 1,) * 2)
+
+    def test_compose_matrix_form(self):
+        point = self.group.random_uniform()
+        result = self.group.compose(point, self.group.identity)
+        expected = point
+        self.assertAllClose(result, expected)
+
+        if not geomstats.tests.tf_backend():
+            # Composition by identity, on the left
+            # Expect the original transformation
+            result = self.group.compose(self.group.identity, point)
+            expected = point
+            self.assertAllClose(result, expected)
+
+            # Composition of translations (no rotational part)
+            # Expect the sum of the translations
+            point_a = gs.array([[1., 0., 1.],
+                                [0., 1., 1.5],
+                                [0., 0., 1.]])
+            point_b = gs.array([[1., 0., 2.],
+                                [0., 1., 2.5],
+                                [0., 0., 1.]])
+
+            result = self.group.compose(point_a, point_b)
+            last_line_0 = gs.array_from_sparse(
+                [(0, 2), (1, 2)], [1., 1.], (3, 3))
+            expected = point_a + point_b * last_line_0
+            self.assertAllClose(result, expected)
