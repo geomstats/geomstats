@@ -38,14 +38,12 @@ from tensorflow import (  # NOQA
     reduce_max as amax,
     reduce_mean as mean,
     reduce_min as amin,
-    reduce_sum as sum,
     reshape,
     searchsorted,
     shape,
     sign,
     sin,
     sinh,
-    split,
     sqrt,
     squeeze,
     stack,
@@ -461,6 +459,18 @@ def vectorize(x, pyfunc, multiple_args=False, dtype=None, **kwargs):
     return tf.map_fn(pyfunc, elems=x, dtype=dtype)
 
 
+def split(x, indices_or_sections, axis=0):
+    if isinstance(indices_or_sections, int):
+        return tf.split(x, indices_or_sections, dim=axis)
+    indices_or_sections = _np.array(indices_or_sections)
+    intervals_length = indices_or_sections[1:] - indices_or_sections[:-1]
+    last_interval_length = x.shape[axis] - indices_or_sections[-1]
+    if last_interval_length > 0:
+        intervals_length = _np.append(intervals_length, last_interval_length)
+    intervals_length = _np.insert(intervals_length, 0, indices_or_sections[0])
+    return tf.split(x, num_or_size_splits=tuple(intervals_length), axis=axis)
+
+
 def hsplit(x, n_splits):
     return tf.split(x, num_or_size_splits=n_splits, axis=1)
 
@@ -509,6 +519,12 @@ def eye(n, m=None):
     if m is None:
         m = n
     return tf.eye(num_rows=n, num_columns=m)
+
+
+def sum(x, axis=None, keepdims=False, name=None):
+    if x.dtype == bool:
+        x = cast(x, int32)
+    return tf.reduce_sum(x, axis, keepdims, name)
 
 
 def einsum(equation, *inputs, **kwargs):

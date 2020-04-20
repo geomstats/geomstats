@@ -189,7 +189,6 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
                          base_point=base_point)
         self.assertTrue(H2.belongs(exp))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_exp_vectorization(self):
         n_samples = 3
         dim = self.dimension + 1
@@ -214,10 +213,11 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         result = self.metric.exp(n_tangent_vecs, one_base_point)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-        expected = gs.zeros((n_samples, dim))
+        expected = []
 
         for i in range(n_samples):
-            expected[i] = self.metric.exp(n_tangent_vecs[i], one_base_point)
+            expected.append(self.metric.exp(n_tangent_vecs[i], one_base_point))
+        expected = gs.stack(expected, axis=0)
         expected = helper.to_vector(gs.array(expected))
         self.assertAllClose(result, expected)
 
@@ -226,9 +226,11 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         result = self.metric.exp(one_tangent_vec, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-        expected = gs.zeros((n_samples, dim))
+        expected = []
         for i in range(n_samples):
-            expected[i] = self.metric.exp(one_tangent_vec[i], n_base_points[i])
+            expected.append(
+                self.metric.exp(one_tangent_vec[i], n_base_points[i]))
+        expected = gs.stack(expected, axis=0)
         expected = helper.to_vector(gs.array(expected))
         self.assertAllClose(result, expected)
 
@@ -237,9 +239,11 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         result = self.metric.exp(n_tangent_vecs, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-        expected = gs.zeros((n_samples, dim))
+        expected = []
         for i in range(n_samples):
-            expected[i] = self.metric.exp(n_tangent_vecs[i], n_base_points[i])
+            expected.append(
+                self.metric.exp(n_tangent_vecs[i], n_base_points[i]))
+        expected = gs.stack(expected, axis=0)
         expected = helper.to_vector(gs.array(expected))
         self.assertAllClose(result, expected)
 
@@ -344,7 +348,6 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
         """
         Test that the Riemannian exponential
@@ -429,13 +432,12 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=1e-8)
 
-    @geomstats.tests.np_only
     def test_scaled_inner_product(self):
-        base_point_intrinsic = gs.array([1, 1, 1])
+        base_point_intrinsic = gs.array([1., 1., 1.])
         base_point = self.space.from_coordinates(
-            base_point_intrinsic, "intrinsic")
-        tangent_vec_a = gs.array([1, 2, 3, 4])
-        tangent_vec_b = gs.array([5, 6, 7, 8])
+            base_point_intrinsic, 'intrinsic')
+        tangent_vec_a = gs.array([1., 2., 3., 4.])
+        tangent_vec_b = gs.array([5., 6., 7., 8.])
         tangent_vec_a = self.space.projection_to_tangent_space(
             tangent_vec_a,
             base_point)
@@ -459,12 +461,11 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         expected = scale ** 2 * inner_product_default_metric
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_scaled_squared_norm(self):
-        base_point_intrinsic = gs.array([1, 1, 1])
-        base_point = self.space.from_coordinates(base_point_intrinsic,
-                                                 'intrinsic')
-        tangent_vec = gs.array([1, 2, 3, 4])
+        base_point_intrinsic = gs.array([1., 1., 1.])
+        base_point = self.space.from_coordinates(
+            base_point_intrinsic, 'intrinsic')
+        tangent_vec = gs.array([1., 2., 3., 4.])
         tangent_vec = self.space.projection_to_tangent_space(
             tangent_vec, base_point)
         scale = 2
@@ -478,10 +479,9 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         expected = scale ** 2 * squared_norm_default_metric
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_scaled_distance(self):
-        point_a_intrinsic = gs.array([1, 2, 3])
-        point_b_intrinsic = gs.array([4, 5, 6])
+        point_a_intrinsic = gs.array([1., 2., 3.])
+        point_b_intrinsic = gs.array([4., 5., 6.])
         point_a = self.space.from_coordinates(point_a_intrinsic, 'intrinsic')
         point_b = self.space.from_coordinates(point_b_intrinsic, 'intrinsic')
         scale = 2
