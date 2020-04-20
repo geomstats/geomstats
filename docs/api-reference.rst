@@ -4,8 +4,8 @@ API Reference
 
 The API reference gives an overview of Geomstats implementation.
 
-The module `geometry` implements concepts in differential geometry,
-such as manifolds and Riemannian metrics, with associated exponential
+The module `geometry` implements concepts in differential geometry, to
+perform computations on manifolds and Riemannian metrics, with associated exponential
 and logarithmic maps, geodesics, and parallel transport.
 
 The module `learning` implements statistics and learning algorithms for data

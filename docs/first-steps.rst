@@ -6,12 +6,23 @@ First steps
 
 The purpose of this guide is to illustrate the possible uses of geomstats.
 
-**INSTALL GEOMSTATS**
+**INSTALL GEOMSTATS WITH PIP3**
 
 From a terminal (OS X & Linux), you can install geomstats and its requirements with ``pip3`` as follows::
 
     pip3 install -r requirements.txt
     pip3 install geomstats
+
+This installs the latest version uploaded on PyPi.
+
+**INSTALL GEOMSTATS FROM GITHUB**
+
+From a terminal (OS X & Linux), you can install geomstats and its requirements via Git as follows::
+
+    pip3 install -r requirements
+    git clone https://github.com/geomstats/geomstats.git
+
+This installs the latest GitHub version, useful for developers.
 
 **CHOOSE THE BACKEND**
 
@@ -24,12 +35,14 @@ You can choose your backend by setting the environment variable ``GEOMSTATS_BACK
 **FIRST EXAMPLES**
 
 To use `geomstats` for learning
-algorithms to Riemannian manifolds, you need to follow three steps:
+algorithms on Riemannian manifolds, you need to follow three steps:
 - instantiate the manifold of interest,
 - instantiate the learning algorithm of interest,
 - run the algorithm.
+The data should be represented by the structure gs.array.
 
-As an example, the following code snippet illustrates the use of K-means on the hypersphere.
+As an example, the following code snippet illustrates the use of K-means
+on the 5-dimensional hypersphere, assuming ``data`` belongs to this space.
 
 .. code-block:: python
 
@@ -41,7 +54,7 @@ As an example, the following code snippet illustrates the use of K-means on the 
     clustering = clustering.fit(data)
 
 The following code snippet shows the use of tangent Principal Component Analysis on the
-3D rotations.
+3D rotations, assuming ``data`` belongs to this space.
 
 .. code-block:: python
 
