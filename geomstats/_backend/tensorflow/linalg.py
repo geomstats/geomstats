@@ -9,9 +9,14 @@ eigh = tf.linalg.eigh
 eigvalsh = tf.linalg.eigvalsh
 expm = tf.linalg.expm
 inv = tf.linalg.inv
-norm = tf.linalg.norm
 sqrtm = tf.linalg.sqrtm
 diagonal = tf.linalg.diag_part
+
+
+def norm(x, **kwargs):
+    if x.dtype != tf.float32 or x.dtype != tf.float64:
+        x = tf.cast(x, tf.float32)
+    return tf.linalg.norm(x, **kwargs)
 
 
 def eig(*args, **kwargs):
