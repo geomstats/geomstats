@@ -4,14 +4,14 @@ from functools import reduce
 
 import geomstats.backend as gs
 import geomstats.error
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 TOLERANCE = 1e-5
 
 
-class Matrices(Euclidean):
+class Matrices(Manifold):
     """Class for the space of matrices (m, n)."""
 
     def __init__(self, m, n):
