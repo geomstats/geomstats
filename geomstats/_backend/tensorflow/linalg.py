@@ -13,9 +13,8 @@ sqrtm = tf.linalg.sqrtm
 diagonal = tf.linalg.diag_part
 
 
-def norm(x, **kwargs):
-    if x.dtype != tf.float32 or x.dtype != tf.float64:
-        x = tf.cast(x, tf.float32)
+def norm(x, dtype=tf.float32, **kwargs):
+    x = tf.cast(x, dtype)
     return tf.linalg.norm(x, **kwargs)
 
 
