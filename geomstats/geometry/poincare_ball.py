@@ -202,14 +202,11 @@ class PoincareBallMetric(RiemannianMetric):
         point_a_belong = ball_manifold.belongs(point_a)
         point_b_belong = ball_manifold.belongs(point_b)
 
-        if(not gs.all(point_a_belong) or not gs.all(point_b_belong)):
-            raise NameError("Points do not belong to the Poincare ball")
+        if (not gs.all(point_a_belong) or not gs.all(point_b_belong)):
+            raise ValueError("Points do not belong to the Poincare ball")
 
-        norm_point_a = gs.sum(point_a ** 2, axis=-1,
-                              keepdims=True)
-
-        norm_point_b = gs.sum(point_b ** 2, axis=-1,
-                              keepdims=True)
+        norm_point_a = gs.sum(point_a ** 2, axis=-1, keepdims=True)
+        norm_point_b = gs.sum(point_b ** 2, axis=-1, keepdims=True)
 
         sum_prod_a_b = gs.einsum('...i,...i->...', point_a, point_b)
         sum_prod_a_b = gs.expand_dims(sum_prod_a_b, axis=-1)
@@ -221,8 +218,8 @@ class PoincareBallMetric(RiemannianMetric):
 
         add_denominator = (1 + 2 * sum_prod_a_b + norm_point_a * norm_point_b)
 
-        mobius_add =\
-            gs.einsum('...i,...k->...i', add_nominator, 1 / add_denominator)
+        mobius_add = gs.einsum(
+            '...i,...k->...i', add_nominator, 1 / add_denominator)
 
         return mobius_add
 
