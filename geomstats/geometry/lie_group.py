@@ -125,23 +125,24 @@ class LieGroup(Manifold):
             'The Lie group composition is not implemented.'
         )
 
-    def inverse(self, point, point_type=None):
-        """Compute the inverse law of the Lie group.
+    @classmethod
+    def inverse(cls, point):
+            """Compute the inverse law of the Lie group.
 
-        Parameters
-        ----------
-        point : array-like, shape=[n_samples, {dim, [n,n]}]
-            the points to be inverted
+            Parameters
+            ----------
+            point : array-like, shape=[n_samples, {dim, [n,n]}]
+                the points to be inverted
 
-        point_type : str, {'vector', 'matrix'}, optional
-            the point type of the passed point
+            point_type : str, {'vector', 'matrix'}, optional
+                the point type of the passed point
 
-        Returns
-        -------
-        inverse : array-like, shape=[n_samples, {dim, [n,n]}]
-            the inverted point
-        """
-        raise NotImplementedError('The Lie group inverse is not implemented.')
+            Returns
+            -------
+            inverse : array-like, shape=[n_samples, {dim, [n,n]}]
+                the inverted point
+            """
+            raise NotImplementedError('The Lie group inverse is not implemented.')
 
     def jacobian_translation(
             self, point, left_or_right='left', point_type=None):
@@ -378,3 +379,38 @@ class LieGroup(Manifold):
         second_term = Matrices.mul(tangent_vector_b, second_term)
 
         return first_term - second_term
+
+    def _is_in_lie_algebra(self, tangent_vec):
+        """Check wether a tangent vector belongs to the lie algebra.
+
+        This method could also be in a separate class for the Lie algebra"""
+        raise NotImplementedError(
+            'The Lie Algebra belongs method is not implemented'
+        )
+
+    def is_tangent(self, tangent_vec, base_point=None):
+        """Check whether the vector is tangent at base_point."""
+        if base_point is None:
+            base_point = self.identity
+
+        if gs.allclose(base_point, self.identity):
+            tangent_vec_at_id = tangent_vec
+        else:
+            tangent_vec_at_id = self.compose(
+                self.inverse(base_point), tangent_vec)
+        is_tangent = self._is_in_lie_algebra(tangent_vec_at_id)
+        return is_tangent
+
+    def _to_lie_algebra(self, tangent_vec):
+        """Project a vector onto the lie algebra."""
+        raise NotImplementedError(
+            'The Lie Algebra belongs method is not implemented'
+        )
+
+    def to_tangent(self, tangent_vec, base_point=None):
+        if base_point is None:
+            return self._to_lie_algebra(tangent_vec)
+        tangent_vec_at_id = self.compose(
+            self.inverse(base_point), tangent_vec)
+        regularized = self._to_lie_algebra(tangent_vec_at_id)
+        return self.compose(base_point, regularized)
