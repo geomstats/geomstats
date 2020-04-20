@@ -31,7 +31,6 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
         warnings.simplefilter('ignore', category=ImportWarning)
         gs.random.seed(1234)
 
-        n = 3
         group = SpecialEuclidean3()
 
         # Points
@@ -163,32 +162,32 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    def test_random_and_belongs_matrix_form(self):
-        """
-        Test that the random uniform method samples
-        on the special euclidean group.
-        """
-        local_point_type = 'matrix'
-        base_point_1 = self.group.random_uniform(1, local_point_type)
-        base_point_2 = gs.copy(base_point_1)
-        base_point_3 = gs.copy(base_point_1)
-
-        self.assertAllClose(gs.shape(base_point_1), (4, 4))
-        self.assertAllClose(gs.shape(base_point_2), (4, 4))
-        self.assertAllClose(gs.shape(base_point_3), (4, 4))
-
-        # Violates SE(n) structure on the last line
-        base_point_2 = gs.assignment(base_point_2, 1, (-1, 0))
-        # base_point_2[-1, 0] = 1
-        # Violates SE(n) homogeneous coordinates structure
-        base_point_3 = gs.assignment(base_point_3, 2, (-1, -1))
-        # base_point_3[-1, -1] = 2
-        result_1 = self.group.belongs(base_point_1, local_point_type)
-        result_2 = self.group.belongs(base_point_2, local_point_type)
-        result_3 = self.group.belongs(base_point_3, local_point_type)
-        result = [result_1, result_2, result_3]
-        expected = [True, False, False]
-        self.assertAllClose(result, expected)
+    # def test_random_and_belongs_matrix_form(self):
+    #     """
+    #     Test that the random uniform method samples
+    #     on the special euclidean group.
+    #     """
+    #     local_point_type = 'matrix'
+    #     base_point_1 = self.group.random_uniform(1, local_point_type)
+    #     base_point_2 = gs.copy(base_point_1)
+    #     base_point_3 = gs.copy(base_point_1)
+    #
+    #     self.assertAllClose(gs.shape(base_point_1), (4, 4))
+    #     self.assertAllClose(gs.shape(base_point_2), (4, 4))
+    #     self.assertAllClose(gs.shape(base_point_3), (4, 4))
+    #
+    #     # Violates SE(n) structure on the last line
+    #     base_point_2 = gs.assignment(base_point_2, 1, (-1, 0))
+    #     # base_point_2[-1, 0] = 1
+    #     # Violates SE(n) homogeneous coordinates structure
+    #     base_point_3 = gs.assignment(base_point_3, 2, (-1, -1))
+    #     # base_point_3[-1, -1] = 2
+    #     result_1 = self.group.belongs(base_point_1, local_point_type)
+    #     result_2 = self.group.belongs(base_point_2, local_point_type)
+    #     result_3 = self.group.belongs(base_point_3, local_point_type)
+    #     result = [result_1, result_2, result_3]
+    #     expected = [True, False, False]
+    #     self.assertAllClose(result, expected)
 
     def test_random_and_belongs_vectorization(self):
         n_samples = self.n_samples
@@ -197,14 +196,14 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
         expected = gs.array([True] * n_samples)
         self.assertAllClose(result, expected)
 
-    def test_random_and_belongs_vectorization_matrix_form(self):
-        point_type = 'matrix'
-        n_samples = self.n_samples
-        points = self.group.random_uniform(
-            n_samples=n_samples, point_type=point_type)
-        result = self.group.belongs(points, point_type)
-        expected = gs.array([True] * n_samples)
-        self.assertAllClose(result, expected)
+    # def test_random_and_belongs_vectorization_matrix_form(self):
+    #     point_type = 'matrix'
+    #     n_samples = self.n_samples
+    #     points = self.group.random_uniform(
+    #         n_samples=n_samples, point_type=point_type)
+    #     result = self.group.belongs(points, point_type)
+    #     expected = gs.array([True] * n_samples)
+    #     self.assertAllClose(result, expected)
 
     def test_regularize(self):
         point = self.elements_all['with_angle_0']
@@ -303,77 +302,19 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
             gs.shape(regularized_points),
             (n_samples, *self.group.get_point_type_shape()))
 
-    def test_regularize_vectorization_matrix_form(self):
-        old_point_type = self.group.default_point_type
-        self.group.default_point_type = 'matrix'
-
-        n_samples = self.n_samples
-        points = self.group.random_uniform(n_samples=n_samples)
-        regularized_points = self.group.regularize(points)
-
-        self.assertAllClose(
-            gs.shape(regularized_points),
-            (n_samples, *self.group.get_point_type_shape()))
-
-        self.group.default_point_type = old_point_type
-
-    def test_regularize_tangent_vec_at_identity(self):
-        old_point_type = self.group.default_point_type
-        self.group.default_point_type = 'matrix'
-        self.group.n = 3
-        tangent_vec = gs.array([[0., -2., 4., 12.],
-                                [2., 0., -4.5, 13.],
-                                [-4., 4.5, 0., 14.],
-                                [0., 0., 0., 0.]])
-        result = self.group.regularize_tangent_vec_at_identity(tangent_vec)
-        expected = tangent_vec
-        self.assertAllClose(result, expected)
-
-        tangent_vec = gs.array([[.5, -2., 4., 12.],
-                                [2., 0., -4.5, 13.],
-                                [-4., 4.5, 0., 14.],
-                                [0.5, 0., 0., 0.]])
-        regularized = self.group.regularize_tangent_vec_at_identity(
-            tangent_vec)
-        result = SkewSymmetricMatrices(3).belongs(regularized[:3, :3])
-        expected = True
-        self.assertAllClose(result, expected)
-
-        self.group.default_point_type = old_point_type
-
-    def test_regularize_tangent_vec_at_identity_vectorization(self):
-        old_point_type = self.group.default_point_type
-        self.group.default_point_type = 'matrix'
-        n = self.group.n
-        tangent_vecs = gs.arange(self.n_samples * (self.group.n + 1) ** 2)
-        tangent_vecs = gs.cast(tangent_vecs, gs.float32)
-        tangent_vecs = gs.reshape(
-            tangent_vecs, (self.n_samples,) + (n + 1,) * 2)
-        regularized = self.group.regularize_tangent_vec_at_identity(
-            tangent_vecs)
-        result = SkewSymmetricMatrices(n).belongs(regularized[:, :n, :n])
-        expected = gs.array([True] * self.n_samples)
-        self.assertAllClose(result, expected)
-        self.group.default_point_type = old_point_type
-
-    def test_regularize_tangent_vec_vectorization(self):
-        old_point_type = self.group.default_point_type
-        self.group.default_point_type = 'matrix'
-        n = self.group.n
-        tangent_vecs = gs.arange(self.n_samples * (self.group.n + 1) ** 2)
-        tangent_vecs = gs.cast(tangent_vecs, gs.float32)
-        tangent_vecs = gs.reshape(
-            tangent_vecs, (self.n_samples,) + (n + 1,) * 2)
-        point = self.group.random_uniform(self.n_samples)
-        tangent_vecs = self.group.compose(point, tangent_vecs)
-        regularized = self.group.regularize_tangent_vec(tangent_vecs, point)
-        result = self.group.compose(
-            gs.transpose(point, (0, 2, 1)), regularized) + \
-            self.group.compose(gs.transpose(regularized, (0, 2, 1)), point)
-        result = result[:, :n, :n]
-        expected = gs.zeros_like(result)
-        self.assertAllClose(result, expected)
-        self.group.default_point_type = old_point_type
+    # def test_regularize_vectorization_matrix_form(self):
+    #     old_point_type = self.group.default_point_type
+    #     self.group.default_point_type = 'matrix'
+    #
+    #     n_samples = self.n_samples
+    #     points = self.group.random_uniform(n_samples=n_samples)
+    #     regularized_points = self.group.regularize(points)
+    #
+    #     self.assertAllClose(
+    #         gs.shape(regularized_points),
+    #         (n_samples, *self.group.get_point_type_shape()))
+    #
+    #     self.group.default_point_type = old_point_type
 
     def test_compose(self):
         # Composition by identity, on the right
@@ -441,28 +382,6 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
             expected = self.group.identity
             self.assertAllClose(result, expected)
 
-    def test_compose_and_inverse_matrix_form(self):
-        old_point_type = self.group.default_point_type
-        self.group.default_point_type = 'matrix'
-
-        point = self.elements_all['point_1']
-        point = self.group.matrix_from_vector(point)
-        inv_point = self.group.inverse(point)
-        # Compose transformation by its inverse on the right
-        # Expect the group identity
-        result = self.group.compose(point, inv_point)
-        expected = self.group.identity
-        self.assertAllClose(result, expected)
-
-        if not geomstats.tests.tf_backend():
-            # Compose transformation by its inverse on the left
-            # Expect the group identity
-            result = self.group.compose(inv_point, point)
-            expected = self.group.identity
-            self.assertAllClose(result, expected)
-
-        self.group.default_point_type = old_point_type
-
     def test_compose_vectorization(self):
         n_samples = self.n_samples
         n_points_a = self.group.random_uniform(n_samples=n_samples)
@@ -488,13 +407,13 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                 gs.shape(result),
                 (n_samples, *self.group.get_point_type_shape()))
 
-    def test_compose_vectorization_matrix_form(self):
-        old_point_type = self.group.default_point_type
-        self.group.default_point_type = 'matrix'
-
-        self.test_compose_vectorization()
-
-        self.group.default_point_type = old_point_type
+    # def test_compose_vectorization_matrix_form(self):
+    #     old_point_type = self.group.default_point_type
+    #     self.group.default_point_type = 'matrix'
+    #
+    #     self.test_compose_vectorization()
+    #
+    #     self.group.default_point_type = old_point_type
 
     def test_inverse_vectorization(self):
         n_samples = self.n_samples
@@ -503,13 +422,13 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
         self.assertAllClose(
             gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
 
-    def test_inverse_vectorization_matrix_form(self):
-        old_point_type = self.group.default_point_type
-        self.group.default_point_type = 'matrix'
-
-        self.test_inverse_vectorization()
-
-        self.group.default_point_type = old_point_type
+    # def test_inverse_vectorization_matrix_form(self):
+    #     old_point_type = self.group.default_point_type
+    #     self.group.default_point_type = 'matrix'
+    #
+    #     self.test_inverse_vectorization()
+    #
+    #     self.group.default_point_type = old_point_type
 
     def test_left_jacobian_vectorization(self):
         n_samples = self.n_samples
@@ -842,10 +761,10 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
                 if element_type in self.angles_close_to_pi:
                     continue
                 tangent_vec = self.elements[element_type]
-
-                result = helper.group_exp_then_log(group=self.group,
-                                                   tangent_vec=tangent_vec,
-                                                   base_point=base_point)
+                result = helper.group_exp_then_log(
+                    group=self.group,
+                    tangent_vec=tangent_vec,
+                    base_point=base_point)
                 metric = self.metrics_all['left_canonical']
                 expected = self.group.regularize_tangent_vec(
                     tangent_vec=tangent_vec,

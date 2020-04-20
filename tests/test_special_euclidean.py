@@ -3,6 +3,7 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.special_euclidean import SpecialEuclidean
+from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 
 
 class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
@@ -69,27 +70,30 @@ class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
         result = self.group._is_in_lie_algebra(vec)
         self.assertAllClose(result, expected)
 
-    def test_is_tangent(self):
+    def test_to_tangent_vec_vectorization(self):
+        n = self.group.n
+        tangent_vecs = gs.arange(self.n_samples * (n + 1) ** 2)
+        tangent_vecs = gs.cast(tangent_vecs, gs.float32)
+        tangent_vecs = gs.reshape(
+            tangent_vecs, (self.n_samples,) + (n + 1,) * 2)
+        point = self.group.random_uniform(self.n_samples)
+        tangent_vecs = self.group.compose(point, tangent_vecs)
+        regularized = self.group.to_tangent(tangent_vecs, point)
+        result = self.group.compose(
+            self.group.transpose(point), regularized) + \
+            self.group.compose(self.group.transpose(regularized), point)
+        result = result[:, :n, :n]
+        expected = gs.zeros_like(result)
+        self.assertAllClose(result, expected)
+
+    def test_compose_and_inverse_matrix_form(self):
         point = self.group.random_uniform()
-        theta = gs.pi / 3
-        vec_1 = gs.array([[0., - theta, 2.],
-                           [theta, 0., 3.],
-                           [0., 0., 0.]])
-        vec_1 = self.group.compose(point, vec_1)
-        result = self.group.is_tangent(vec_1, point)
-        expected = True
+        inv_point = self.group.inverse(point)
+        result = self.group.compose(point, inv_point)
+        expected = self.group.identity
         self.assertAllClose(result, expected)
 
-        vec_2 = gs.array([[0., - theta, 2.],
-                           [theta, 0., 3.],
-                           [0., 0., 1.]])
-        vec_2 = self.group.compose(point, vec_2)
-        result = self.group.is_tangent(vec_2, point)
-        expected = False
-        self.assertAllClose(result, expected)
-
-        vec = gs.array([vec_1, vec_2])
-        point = gs.array([point, point])
-        expected = gs.array([True, False])
-        result = self.group.is_tangent(vec, point)
-        self.assertAllClose(result, expected)
+        if not geomstats.tests.tf_backend():
+            result = self.group.compose(inv_point, point)
+            expected = self.group.identity
+            self.assertAllClose(result, expected)

@@ -146,7 +146,7 @@ class SpecialEuclidean3(LieGroup):
             default: 0
         """
         super(SpecialEuclidean3, self).__init__(
-            dim=3, default_point_type='vector')
+            dim=6, default_point_type='vector')
 
         self.n = 3
         self.epsilon = epsilon
@@ -168,7 +168,6 @@ class SpecialEuclidean3(LieGroup):
         """
         if point_type is None:
             point_type = self.default_point_type
-
         identity = gs.zeros(self.dim)
         if point_type == 'matrix':
             identity = gs.eye(self.n + 1)
@@ -255,8 +254,8 @@ class SpecialEuclidean3(LieGroup):
         return self.regularize_tangent_vec(
             tangent_vec, self.identity, metric, point_type=point_type)
 
-    @geomstats.vectorization.decorator([
-        'else', 'point', 'point', 'else', 'point_type'])
+    # @geomstats.vectorization.decorator([
+    #     'else', 'vector', 'vector', 'else', 'point_type'])
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None, point_type=None):
         """Regularize a tangent vector at a base point.
@@ -280,8 +279,8 @@ class SpecialEuclidean3(LieGroup):
         rotations = self.rotations
         dim_rotations = rotations.dim
 
-        rot_tangent_vec = tangent_vec[:, :dim_rotations]
-        rot_base_point = base_point[:, :dim_rotations]
+        rot_tangent_vec = tangent_vec[..., :dim_rotations]
+        rot_base_point = base_point[..., :dim_rotations]
 
         metric_mat = metric.inner_product_mat_at_identity
         rot_metric_mat = metric_mat[:dim_rotations, :dim_rotations]
@@ -293,11 +292,10 @@ class SpecialEuclidean3(LieGroup):
         rotations_vec = rotations.regularize_tangent_vec(
             tangent_vec=rot_tangent_vec,
             base_point=rot_base_point,
-            metric=rot_metric,
-            point_type=point_type)
+            metric=rot_metric)
 
         return gs.concatenate(
-            [rotations_vec, tangent_vec[:, dim_rotations:]], axis=1)
+            [rotations_vec, tangent_vec[..., dim_rotations:]], axis=-1)
 
     @geomstats.vectorization.decorator(['else', 'vector'])
     def matrix_from_vector(self, vec):
@@ -516,73 +514,66 @@ class SpecialEuclidean3(LieGroup):
             the group exponential of the tangent vectors calculated
             at the identity
         """
-        if point_type == 'vector':
-            rotations = self.rotations
-            dim_rotations = rotations.dim
+        rotations = self.rotations
+        dim_rotations = rotations.dim
 
-            rot_vec = tangent_vec[:, :dim_rotations]
-            rot_vec = self.rotations.regularize(rot_vec, point_type=point_type)
-            translation = tangent_vec[:, dim_rotations:]
+        rot_vec = tangent_vec[..., :dim_rotations]
+        rot_vec = self.rotations.regularize(rot_vec)
+        translation = tangent_vec[..., dim_rotations:]
 
-            angle = gs.linalg.norm(rot_vec, axis=1)
-            angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
+        angle = gs.linalg.norm(rot_vec, axis=-1)
+        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
-            skew_mat = self.rotations.skew_matrix_from_vector(rot_vec)
-            sq_skew_mat = gs.matmul(skew_mat, skew_mat)
+        skew_mat = self.rotations.skew_matrix_from_vector(rot_vec)
+        sq_skew_mat = gs.matmul(skew_mat, skew_mat)
 
-            mask_0 = gs.equal(angle, 0.)
-            mask_close_0 = gs.isclose(angle, 0.) & ~mask_0
-            mask_else = ~mask_0 & ~mask_close_0
+        mask_0 = gs.equal(angle, 0.)
+        mask_close_0 = gs.isclose(angle, 0.) & ~mask_0
+        mask_else = ~mask_0 & ~mask_close_0
 
-            mask_0_float = gs.cast(mask_0, gs.float32)
-            mask_close_0_float = gs.cast(mask_close_0, gs.float32)
-            mask_else_float = gs.cast(mask_else, gs.float32)
+        mask_0_float = gs.cast(mask_0, gs.float32)
+        mask_close_0_float = gs.cast(mask_close_0, gs.float32)
+        mask_else_float = gs.cast(mask_else, gs.float32)
 
-            angle += mask_0_float * gs.ones_like(angle)
+        angle += mask_0_float * gs.ones_like(angle)
 
-            coef_1 = gs.zeros_like(angle)
-            coef_2 = gs.zeros_like(angle)
+        coef_1 = gs.zeros_like(angle)
+        coef_2 = gs.zeros_like(angle)
 
-            coef_1 += mask_0_float * 1. / 2. * gs.ones_like(angle)
-            coef_2 += mask_0_float * 1. / 6. * gs.ones_like(angle)
+        coef_1 += mask_0_float * 1. / 2. * gs.ones_like(angle)
+        coef_2 += mask_0_float * 1. / 6. * gs.ones_like(angle)
 
-            coef_1 += mask_close_0_float * (
-                TAYLOR_COEFFS_1_AT_0[0]
-                + TAYLOR_COEFFS_1_AT_0[2] * angle ** 2
-                + TAYLOR_COEFFS_1_AT_0[4] * angle ** 4
-                + TAYLOR_COEFFS_1_AT_0[6] * angle ** 6)
-            coef_2 += mask_close_0_float * (
-                TAYLOR_COEFFS_2_AT_0[0]
-                + TAYLOR_COEFFS_2_AT_0[2] * angle ** 2
-                + TAYLOR_COEFFS_2_AT_0[4] * angle ** 4
-                + TAYLOR_COEFFS_2_AT_0[6] * angle ** 6)
+        coef_1 += mask_close_0_float * (
+            TAYLOR_COEFFS_1_AT_0[0]
+            + TAYLOR_COEFFS_1_AT_0[2] * angle ** 2
+            + TAYLOR_COEFFS_1_AT_0[4] * angle ** 4
+            + TAYLOR_COEFFS_1_AT_0[6] * angle ** 6)
+        coef_2 += mask_close_0_float * (
+            TAYLOR_COEFFS_2_AT_0[0]
+            + TAYLOR_COEFFS_2_AT_0[2] * angle ** 2
+            + TAYLOR_COEFFS_2_AT_0[4] * angle ** 4
+            + TAYLOR_COEFFS_2_AT_0[6] * angle ** 6)
 
-            coef_1 += mask_else_float * ((1. - gs.cos(angle)) / angle ** 2)
-            coef_2 += mask_else_float * ((angle - gs.sin(angle)) / angle ** 3)
+        coef_1 += mask_else_float * ((1. - gs.cos(angle)) / angle ** 2)
+        coef_2 += mask_else_float * ((angle - gs.sin(angle)) / angle ** 3)
 
-            n_tangent_vecs, _ = tangent_vec.shape
-            exp_translation = gs.zeros((n_tangent_vecs, self.n))
-            for i in range(n_tangent_vecs):
-                translation_i = translation[i]
-                term_1_i = coef_1[i] * gs.dot(translation_i,
-                                              gs.transpose(skew_mat[i]))
-                term_2_i = coef_2[i] * gs.dot(translation_i,
-                                              gs.transpose(sq_skew_mat[i]))
-                mask_i_float = gs.get_mask_i_float(i, n_tangent_vecs)
-                exp_translation += gs.outer(
-                    mask_i_float, translation_i + term_1_i + term_2_i)
+        n_tangent_vecs, _ = tangent_vec.shape
+        exp_translation = gs.zeros((n_tangent_vecs, self.n))
+        for i in range(n_tangent_vecs):
+            translation_i = translation[i]
+            term_1_i = coef_1[i] * gs.dot(translation_i,
+                                          gs.transpose(skew_mat[i]))
+            term_2_i = coef_2[i] * gs.dot(translation_i,
+                                          gs.transpose(sq_skew_mat[i]))
+            mask_i_float = gs.get_mask_i_float(i, n_tangent_vecs)
+            exp_translation += gs.outer(
+                mask_i_float, translation_i + term_1_i + term_2_i)
 
-            group_exp = gs.concatenate(
-                [rot_vec, exp_translation], axis=1)
+        group_exp = gs.concatenate(
+            [rot_vec, exp_translation], axis=1)
 
-            group_exp = self.regularize(group_exp, point_type=point_type)
-            return group_exp
-
-        if point_type == 'matrix':
-            return GeneralLinear.exp(tangent_vec)
-
-        raise ValueError('Invalid point_type, expected \'vector\' or '
-                         '\'matrix\'.')
+        group_exp = self.regularize(group_exp, point_type=point_type)
+        return group_exp
 
     @geomstats.vectorization.decorator(['else', 'point', 'point_type'])
     def log_from_identity(self, point, point_type=None):
