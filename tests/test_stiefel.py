@@ -126,7 +126,6 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_exp_vectorization_shape(self):
         n_samples = self.n_samples
         n = self.n
