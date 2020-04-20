@@ -6,7 +6,7 @@ Examples
 
 You can find examples in the repository
 `examples <https://github.com/geomstats/geomstats/tree/master/examples>`_ of geomstats.
-You can run them from the command line as follows.
+If you have installed geomstats via Git, you can run them from the command line as follows.
 
 .. code-block:: bash
 
@@ -22,7 +22,7 @@ Assume that your data naturally belongs to the
 and you want to get intuition on the geometry of this space.
 The space H2 has a negative curvature. The geodesics - i.e.
 the curves of shortest length - on H2 are not straight lines.
-How do they look like? To answer this question, you can run
+How do they look? To answer this question, you can run
 the example that
 `plots geodesics on H2 <https://github.com/geomstats/geomstats/blob/master/examples/plot_geodesics_h2.py>`_.
 
