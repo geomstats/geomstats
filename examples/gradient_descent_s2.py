@@ -83,11 +83,11 @@ def plot_and_save_video(geodesics,
 def generate_well_behaved_matrix():
     """Generate a matrix with real eigenvalues."""
     matrix = 2 * SPDMatrices(n=3).random_uniform()
-    assert np.linalg.det(matrix) > 0
     return matrix
 
 
 def main(output_file='out.mp4', max_iter=128):
+    """Run gradient descent on a sphere."""
     gs.random.seed(1985)
     A = generate_well_behaved_matrix()
 

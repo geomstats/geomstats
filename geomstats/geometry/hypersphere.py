@@ -663,4 +663,7 @@ class HypersphereMetric(RiemannianMetric):
                                 [gs.cos(sample[0]) / gs.sin(sample[0]), 0]])
             christoffel.append(gs.stack([gamma_0, gamma_1]))
 
-        return gs.stack(christoffel)
+        christoffel = gs.stack(christoffel)
+        if gs.ndim(christoffel) == 4 and gs.shape(christoffel)[0] == 1:
+            christoffel = gs.squeeze(christoffel, axis=0)
+        return christoffel

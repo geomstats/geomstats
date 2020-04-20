@@ -69,14 +69,12 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         point_ext = self.space.from_coordinates(point_int, 'intrinsic')
         result = self.space.to_coordinates(point_ext, 'intrinsic')
         expected = point_int
-        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
         point_ext = gs.array([2.0, 1.0, 1.0, 1.0])
         point_int = self.space.to_coordinates(point_ext, 'intrinsic')
         result = self.space.from_coordinates(point_int, 'intrinsic')
         expected = point_ext
-        expected = helper.to_vector(expected)
 
         self.assertAllClose(result, expected)
 
