@@ -191,7 +191,7 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
                          base_point=base_point)
         self.assertTrue(H2.belongs(exp))
 
-    @geomstats.tests.np_and_pytorch_only
+    #@geomstats.tests.np_and_pytorch_only
     def test_exp_vectorization(self):
         n_samples = 3
         dim = self.dimension + 1
@@ -216,10 +216,11 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         result = self.metric.exp(n_tangent_vecs, one_base_point)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-        expected = gs.zeros((n_samples, dim))
+        expected = []
 
         for i in range(n_samples):
-            expected[i] = self.metric.exp(n_tangent_vecs[i], one_base_point)
+            expected.append(self.metric.exp(n_tangent_vecs[i], one_base_point))
+        expected = gs.stack(expected, axis=0)
         expected = helper.to_vector(gs.array(expected))
         self.assertAllClose(result, expected)
 
@@ -228,9 +229,11 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         result = self.metric.exp(one_tangent_vec, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-        expected = gs.zeros((n_samples, dim))
+        expected = []
         for i in range(n_samples):
-            expected[i] = self.metric.exp(one_tangent_vec[i], n_base_points[i])
+            expected.append(
+                self.metric.exp(one_tangent_vec[i], n_base_points[i]))
+        expected = gs.stack(expected, axis=0)
         expected = helper.to_vector(gs.array(expected))
         self.assertAllClose(result, expected)
 
@@ -239,9 +242,11 @@ class TestHyperbolicMethods(geomstats.tests.TestCase):
         result = self.metric.exp(n_tangent_vecs, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-        expected = gs.zeros((n_samples, dim))
+        expected = []
         for i in range(n_samples):
-            expected[i] = self.metric.exp(n_tangent_vecs[i], n_base_points[i])
+            expected.append(
+                self.metric.exp(n_tangent_vecs[i], n_base_points[i]))
+        expected = gs.stack(expected, axis=0)
         expected = helper.to_vector(gs.array(expected))
         self.assertAllClose(result, expected)
 
