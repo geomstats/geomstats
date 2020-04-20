@@ -41,7 +41,7 @@ class TestHypersphereMethods(geomstats.tests.TestCase):
         points = gs.ones((3, 5))
         new_points = gs.zeros((2, 5))
         indcs = [True, False, True]
-        update = self.space._replace_values(points, new_points, indcs, 2)
+        update = self.space._replace_values(points, new_points, indcs)
         self.assertAllClose(update, gs.stack(
             [gs.zeros(5), gs.ones(5), gs.zeros(5)]))
 
