@@ -467,13 +467,13 @@ class HypersphereMetric(RiemannianMetric):
             coef_1 = gs.assignment(
                 coef_1,
                 gs.cos(norm_tangent_vec[mask_non0]),
-                gs.where(mask_non0))
+                mask_non0)
             coef_2 = gs.assignment(
                 coef_2,
                 gs.sin(
                     norm_tangent_vec[mask_non0]) /
                 norm_tangent_vec[mask_non0],
-                gs.where(mask_non0))
+                mask_non0)
 
         exp = (gs.einsum('...,...j->...j', coef_1, base_point)
                + gs.einsum('n,nj->nj', coef_2, proj_tangent_vec))
