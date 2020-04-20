@@ -320,15 +320,15 @@ class PoincareBallMetric(RiemannianMetric):
 
 
 NORMALIZATION_FACTOR_CST = gs.sqrt(gs.pi / 2)
-PI_2_3 = pow((2 * gs.pi), 2 / 3)
+PI_2_3 = gs.power((2 * gs.pi), 2 / 3)
 SQRT_2 = gs.sqrt(2.)
 
 
-class GaussianDistribution():
+class GaussianDistribution:
     """A class for Gaussian distributions."""
 
     @staticmethod
-    def gaussian_pdf(data, means, variances, norm_func, metric):
+    def pdf(data, means, variances, norm_func, metric):
         """Return the probability density function."""
         data_length, _, n_gaussian = data.shape + (means.shape[0],)
 

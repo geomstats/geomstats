@@ -65,6 +65,7 @@ from . import random  # NOQA
 arctanh = tf.math.atanh
 ceil = tf.math.ceil
 cross = tf.linalg.cross
+erf = tf.math.erf
 log = tf.math.log
 matmul = tf.linalg.matmul
 mod = tf.math.mod
@@ -465,7 +466,7 @@ def hsplit(x, n_splits):
 
 
 def flatten(x):
-    """Collapses the tensor into 1-D.
+    """Collapse the tensor into 1-D.
 
     Following https://www.tensorflow.org/api_docs/python/tf/reshape
     """
@@ -612,6 +613,3 @@ def tril_indices(*args, **kwargs):
 def triu_indices(*args, **kwargs):
     return tuple(map(tf.convert_to_tensor, _np.triu_indices(*args, **kwargs)))
 
-
-def erf(x):
-    tf.math.erf(x)

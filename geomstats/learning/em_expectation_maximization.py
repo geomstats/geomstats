@@ -12,7 +12,7 @@ EM_CONV_RATE = 1e-4
 MINIMUM_EPOCHS = 10
 DEFAULT_MAX_ITER = 100
 DEFAULT_LR = 5e-2
-DEFAULT_CONV_FACTOR = 1e-4
+DEFAULT_CONV_FACTOR = 5e-3
 DEFAULT_TOL = 1e-2
 ZETA_LOWER_BOUND = 5e-2
 ZETA_UPPER_BOUND = 2.
@@ -126,13 +126,13 @@ class RiemannianEM():
     def _expectation(self, data):
         """Update the posterior probabilities."""
         probability_distribution_function = \
-            GaussianDistribution.gaussian_pdf(data,
-                                              self.means,
-                                              self.variances,
-                                              norm_func=self.
-                                              normalization_factor.
-                                              find_normalisation_factor,
-                                              metric=self.riemannian_metric)
+            GaussianDistribution.pdf(data,
+                                     self.means,
+                                     self.variances,
+                                     norm_func=self.
+                                     normalization_factor.
+                                     find_normalisation_factor,
+                                     metric=self.riemannian_metric)
 
         if (probability_distribution_function.mean() !=
                 probability_distribution_function.mean()):

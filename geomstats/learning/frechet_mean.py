@@ -182,8 +182,6 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
 
             barycenter = cc_barycenter
     else:
-        lr = 5e-2
-        tau = 5e-3
 
         weights = gs.expand_dims(weights, -1)
         weights = gs.repeat(weights, points.shape[-1], axis=2)
@@ -199,26 +197,15 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
 
             iteration += 1
 
-            grad_tangent = gs.zeros((len(points),
-                                     len(barycenter_gs), len(points[0][0])))
-
-            # TODO Hadi/Thomas: change exp/log to handle arrays
-
-            for j, _ in enumerate(points):
-                for i, _ in enumerate(barycenter_gs):
-                    grad_tangent[j][i] = 2 * metric.log(points_gs[j][0],
-                                                        barycenter_gs[i])
+            grad_tangent = 2 * metric.log(points_gs, barycenter_gs)
 
             grad_tangent = grad_tangent * weights
 
             lr_grad_tangent = lr * grad_tangent.sum(0, keepdims=True)
 
             lr_grad_tangent_s = lr_grad_tangent.squeeze()
-            cc_barycenter = gs.zeros(lr_grad_tangent_s.shape)
 
-            for i, _ in enumerate(cc_barycenter):
-                cc_barycenter[i] = metric.exp(barycenter_gs[i],
-                                              lr_grad_tangent_s[i])
+            cc_barycenter = metric.exp(barycenter_gs, lr_grad_tangent_s)
 
             cc_barycenter = gs.expand_dims(cc_barycenter, 0)
 

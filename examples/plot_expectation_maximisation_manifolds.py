@@ -1,5 +1,4 @@
-"""
-Applies Expectation Maximization on manifolds and plots the results.
+"""Apply Expectation Maximization on manifolds and plots the results.
 
 Random data is generated in seperate regions of the
 manifold. Then Expectation Maximization deduces a Gaussian Mixture Model
@@ -25,7 +24,7 @@ def plot_gaussian_mixture_distribution(data,
                                        means,
                                        variances,
                                        plot_precision=DEFAULT_PLOT_PRECISION,
-                                       save_path="",
+                                       save_path='',
                                        metric=None):
     """Plot Gaussian Mixture Model."""
     x_axis_samples = gs.linspace(-1, 1, plot_precision)
@@ -52,8 +51,8 @@ def plot_gaussian_mixture_distribution(data,
 
         z_axis_samples[z_index] = mesh_probabilities.sum(-1)
 
-    fig = plt.figure("Learned Gaussian Mixture Model "
-                     "via Expectation Maximisation on Poincaré Disc")
+    fig = plt.figure('Learned Gaussian Mixture Model '
+                     'via Expectation Maximisation on Poincaré Disc')
 
     ax = fig.gca(projection='3d')
     ax.plot_surface(x_axis_samples,
@@ -114,8 +113,6 @@ def expectation_maximisation_poincare_ball():
     cluster_3[:, 0] = -cluster_3[:, 0]
 
     data = gs.concatenate((cluster_1, cluster_2, cluster_3), axis=0)
-
-    # Set up hyperbolic space
 
     n_clusters = 3
 

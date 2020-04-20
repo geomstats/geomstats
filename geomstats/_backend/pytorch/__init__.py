@@ -20,6 +20,7 @@ from torch import (  # NOQA
     div as divide,
     empty_like,
     eq,
+    erf,
     exp,
     eye,
     flatten,
@@ -635,7 +636,3 @@ def array_from_sparse(indices, data, target_shape):
         torch.LongTensor(indices).t(),
         torch.FloatTensor(cast(data, float32)),
         torch.Size(target_shape)).to_dense()
-
-
-def erf(x):
-    return torch.erf(x)
