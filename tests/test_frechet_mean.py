@@ -117,7 +117,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_only
     def test_estimate_and_belongs_default_gradient_descent_so_matrix(self):
         point = self.so_matrix.random_uniform(10)
 
@@ -129,7 +129,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    @geomstats.tests.np_only
     def test_estimate_and_coincide_default_so_vec_and_mat(self):
         point = self.so_matrix.random_uniform(10)
 
