@@ -2,7 +2,10 @@
 [![PyPI version](https://badge.fury.io/py/geomstats.svg)](https://badge.fury.io/py/geomstats)[![Build Status](https://travis-ci.org/geomstats/geomstats.svg?branch=master)](https://travis-ci.org/geomstats/geomstats)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=numpy)](https://codecov.io/gh/geomstats/geomstats)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=tensorflow)](https://codecov.io/gh/geomstats/geomstats)[![Coverage Status](https://codecov.io/gh/geomstats/geomstats/branch/master/graph/badge.svg?flag=pytorch)](https://codecov.io/gh/geomstats/geomstats) (Coverages for: numpy, tensorflow, pytorch)
 
 
-Geomstats provides code for computations and statistics on manifolds with geometric structures.
+Geomstats is an open-source Python package for computations and statistics on manifolds. The package is organized into two main modules:
+``geometry`` and ``learning``.
+
+The module `geometry` implements concepts in differential geometry,and the module `learning` implements statistics and learning algorithms for data on manifolds.
 
 <img align="left" src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=110 height=110>
 
@@ -11,43 +14,66 @@ Geomstats provides code for computations and statistics on manifolds with geomet
 - The documentation of ```geomstats``` can be found on the [documentation website](https://geomstats.github.io/).
 - If you find ``geomstats`` useful, please kindly cite our [paper](https://arxiv.org/abs/1805.08308).
 
+## Install geomstats via pip3
 
-## Installation
-
-OS X & Linux:
+From a terminal (OS X & Linux), you can install geomstats and its requirements with ``pip3`` as follows::
 
 ```
 pip3 install -r requirements.txt
 pip3 install geomstats
 ```
 
-Pytorch and tensorflow requirements are optional, as geomstats can be used with numpy only.
+This installs the latest version uploaded on PyPi.
 
-To change backend:
+## Install geomstats via Git
+
+From a terminal (OS X & Linux), you can install geomstats and its requirements via Git as follows::
+```
+pip3 install -r requirements
+git clone https://github.com/geomstats/geomstats.git
+
+This installs the latest GitHub version, useful for developers.
+
+## Choose the backend
+
+You can choose your backend by setting the environment variable ``GEOMSTATS_BACKEND`` to ``numpy``, ``tensorflow`` or ``pytorch``. By default, the numpy backend is used. You should only use the numpy backend for examples with visualizations.
+
 ```
 export GEOMSTATS_BACKEND=pytorch
 ```
 
+Pytorch and tensorflow requirements are optional, as geomstats can be used with numpy only.
+
 ## Getting started
 
-Run example scripts, for example:
+To use `geomstats` for learning
+algorithms on Riemannian manifolds, you need to follow three steps:
+- instantiate the manifold of interest,
+- instantiate the learning algorithm of interest,
+- run the algorithm.
+The data should be represented by the structure ``gs.array``, which represents numpy arrays, tensorflow or pytorch tensors, depending on the choice of backend.
+
+The following code snippet shows the use of tangent Principal Component Analysis on the
+space of 3D rotations, assuming ``data`` belongs to this space.
 
 ```
-python3 examples/plot_grid_h2.py
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.learning.pca import TangentPCA
+
+so3 = SpecialOrthogonal(n=3)
+metric = so3.bi_invariant_metric
+
+tpca = TangentPCA(metric=metric, n_components=2)
+tpca = tpca.fit(data, base_point=metric.mean(data))
+tangent_projected_data = tpca.transform(data)
 ```
+
+All geometric computations are performed behind the scenes.
+The user only needs a high-level understanding of Riemannian geometry.
+Each algorithm can be used with any of the manifolds and metric
+implemented in the package.
 
 ## Contributing
-
-Developers can install the dev-requirements:
-
-```
-pip3 install -r dev-requirements.txt
-```
-
-And run unit tests from this folder:
-```
-nose2 tests
-```
 
 See our [contributing](https://github.com/geomstats/geomstats/blob/master/docs/contributing.rst) guidelines!
 
