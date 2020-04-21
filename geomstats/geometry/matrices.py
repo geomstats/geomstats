@@ -152,7 +152,7 @@ class Matrices(Euclidean):
 
     def random_uniform(self, n_samples=1, bound=1.):
         """Generate n samples from a uniform distribution.
-        
+
         Parameters
         ----------
         n_samples : int
