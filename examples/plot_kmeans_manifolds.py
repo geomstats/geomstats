@@ -1,29 +1,30 @@
-"""
-Applies K-means on manifolds and plots the results.
+"""Run K-means on manifolds for K=2 and Plot the results.
 
-Two random clusters are generated in seperate regions of the
-manifold. Then apply K-means is applied using the metric of the manifold
-algorithm and plot the points labels as two distinct colors. For the moment
+Two random clusters are generated in separate regions of the
+manifold. Then K-means is applied using the metric of the manifold.
+The points are represented with two distinct colors. For the moment
 the example works on the Poincaré Ball and the Hypersphere.
 Computed means are marked as green stars.
 """
+
+import logging
 import os
 
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
-from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.learning.kmeans import RiemannianKMeans
 
 
 def kmean_poincare_ball():
-
+    """Run K-means on the Poincare ball."""
     n_samples = 20
     dim = 2
     n_clusters = 2
-    manifold = Hyperbolic(dimension=dim, point_type='ball')
+    manifold = PoincareBall(dim=dim)
     metric = manifold.metric
 
     cluster_1 = gs.random.uniform(low=0.5, high=0.6, size=(n_samples, dim))
@@ -73,7 +74,7 @@ def kmean_poincare_ball():
 
 
 def kmean_hypersphere():
-
+    """Run K-means on the sphere."""
     n_samples = 50
     dim = 2
     n_clusters = 2
@@ -105,12 +106,13 @@ def kmean_hypersphere():
         color='black')
 
     for i in range(n_clusters):
-        ax = visualization.plot(
-            data[labels == i],
-            ax=ax,
-            space='S2',
-            marker='.',
-            color=colors[i])
+        if len(data[labels == i]) > 0:
+            ax = visualization.plot(
+                points=data[labels == i],
+                ax=ax,
+                space='S2',
+                marker='.',
+                color=colors[i])
 
     ax = visualization.plot(
         centroids,
@@ -126,7 +128,7 @@ def kmean_hypersphere():
 
 
 def main():
-
+    """Run K-means on the Poincare ball and the sphere."""
     kmean_poincare_ball()
 
     plots = kmean_hypersphere()
@@ -134,11 +136,11 @@ def main():
     plots.show()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     if os.environ['GEOMSTATS_BACKEND'] != 'numpy':
-        print('Examples with visualizations are only implemented '
-              'with numpy backend.\n'
-              'To change backend, write: '
-              'export GEOMSTATS_BACKEND = \'numpy\'.')
+        logging.info('Examples with visualizations are only implemented '
+                     'with numpy backend.\n'
+                     'To change backend, write: '
+                     'export GEOMSTATS_BACKEND = \'numpy\'.')
     else:
         main()

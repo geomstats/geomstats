@@ -4,26 +4,29 @@ In other words, a topological space that locally resembles
 Euclidean space near each point.
 """
 
-import math
+import geomstats.error
 
 
-class Manifold(object):
+class Manifold:
     """Class for manifolds."""
 
-    def __init__(self, dimension):
+    def __init__(
+            self, dim, default_point_type='vector',
+            default_coords_type='intrinsic'):
+        geomstats.error.check_integer(dim, 'dim')
+        geomstats.error.check_parameter_accepted_values(
+            default_point_type, 'default_point_type', ['vector', 'matrix'])
 
-        if dimension:
-            assert isinstance(dimension, int) or dimension == math.inf
-            assert dimension > 0
-
-        self.dimension = dimension
+        self.dim = dim
+        self.default_point_type = default_point_type
+        self.default_coords_type = default_coords_type
 
     def belongs(self, point, point_type=None):
         """Evaluate if a point belongs to the manifold.
 
         Parameters
         ----------
-        points : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
                  Input points.
 
         Returns
@@ -37,12 +40,12 @@ class Manifold(object):
 
         Parameters
         ----------
-        points : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
                  Input points.
 
         Returns
         -------
-        regularized_point : array-like, shape=[n_samples, dimension]
+        regularized_point : array-like, shape=[n_samples, dim]
         """
         regularized_point = point
         return regularized_point

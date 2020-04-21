@@ -1,8 +1,9 @@
-"""
-Plot a geodesic of SO(3) equipped
-with its left-invariant canonical METRIC.
+"""Plot a geodesic of SO(3).
+
+SO(3) is equipped with its left-invariant canonical METRIC.
 """
 
+import logging
 import os
 
 import matplotlib.pyplot as plt
@@ -16,6 +17,7 @@ METRIC = SO3_GROUP.bi_invariant_metric
 
 
 def main():
+    """Plot a geodesic on SO(3)."""
     initial_point = SO3_GROUP.identity
     initial_tangent_vec = [0.5, 0.5, 0.8]
     geodesic = METRIC.geodesic(initial_point=initial_point,
@@ -29,11 +31,11 @@ def main():
     plt.show()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        print('Examples with visualizations are only implemented '
-              'with numpy backend.\n'
-              'To change backend, write: '
-              'export GEOMSTATS_BACKEND = \'numpy\'.')
+        logging.info('Examples with visualizations are only implemented '
+                     'with numpy backend.\n'
+                     'To change backend, write: '
+                     'export GEOMSTATS_BACKEND = \'numpy\'.')
     else:
         main()

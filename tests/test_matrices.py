@@ -2,8 +2,6 @@
 Unit tests for the manifold of matrices.
 """
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.matrices import Matrices
@@ -81,6 +79,21 @@ class TestMatricesMethods(geomstats.tests.TestCase):
                                   [6., -7., 0.],
                                   [0., 7., 8.]])
         result = self.space.is_symmetric(not_a_sym_mat)
+        expected = gs.array(False)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_is_skew_symmetric(self):
+        skew_mat = gs.array([[0, - 2.],
+                            [2., 0]])
+        result = self.space.is_skew_symmetric(skew_mat)
+        expected = gs.array(True)
+        self.assertAllClose(result, expected)
+
+        not_a_sym_mat = gs.array([[1., 0.6, -3.],
+                                  [6., -7., 0.],
+                                  [0., 7., 8.]])
+        result = self.space.is_skew_symmetric(not_a_sym_mat)
         expected = gs.array(False)
         self.assertAllClose(result, expected)
 
@@ -164,6 +177,32 @@ class TestMatricesMethods(geomstats.tests.TestCase):
             gs.matmul(
                 gs.transpose(tangent_vector_1),
                 tangent_vector_2))
-        expected = helper.to_scalar(expected)
 
+        self.assertAllClose(result, expected)
+
+    def test_cong(self):
+        base_point = gs.array([
+            [1., 2., 3.],
+            [0., 0., 0.],
+            [3., 1., 1.]])
+
+        tangent_vector = gs.array([
+            [1., 2., 3.],
+            [0., -10., 0.],
+            [30., 1., 1.]])
+
+        result = self.space.congruent(tangent_vector, base_point)
+        expected = gs.matmul(
+            tangent_vector, gs.transpose(base_point))
+        expected = gs.matmul(base_point, expected)
+
+        self.assertAllClose(result, expected)
+
+    def test_belongs(self):
+        base_point = gs.array([
+            [1., 2., 3.],
+            [0., 0., 0.],
+            [3., 1., 1.]])
+        result = self.space.belongs(base_point)
+        expected = True
         self.assertAllClose(result, expected)

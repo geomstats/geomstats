@@ -1,17 +1,15 @@
-"""
-Plot a grid on H2
-with Poincare Disk visualization.
-"""
+"""Plot a grid on H2 with Poincare Disk visualization."""
 
+import logging
 import os
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
-from geomstats.geometry.hyperbolic import Hyperbolic
+from geomstats.geometry.hyperboloid import Hyperboloid
 
-H2 = Hyperbolic(dimension=2)
+H2 = Hyperboloid(dim=2)
 METRIC = H2.metric
 
 
@@ -21,6 +19,17 @@ def main(left=-128,
          top=128,
          grid_size=32,
          n_steps=512):
+    """Plot a grid on H2 with Poincare Disk visualization.
+
+    Parameters
+    ----------
+    left, right, bottom, top : ints
+        Grid's coordinates
+    grid_size : int
+        Grid's size.
+    n_steps : int
+        Number of steps along the geodesics defining the grid.
+    """
     starts = []
     ends = []
     for p in np.linspace(left, right, grid_size):
@@ -29,8 +38,8 @@ def main(left=-128,
     for p in np.linspace(top, bottom, grid_size):
         starts.append(np.array([p, left]))
         ends.append(np.array([p, right]))
-    starts = [H2.intrinsic_to_extrinsic_coords(s) for s in starts]
-    ends = [H2.intrinsic_to_extrinsic_coords(e) for e in ends]
+    starts = [H2.from_coordinates(s, 'intrinsic') for s in starts]
+    ends = [H2.from_coordinates(e, 'intrinsic') for e in ends]
     ax = plt.gca()
     for start, end in zip(starts, ends):
         geodesic = METRIC.geodesic(initial_point=start,
@@ -43,11 +52,11 @@ def main(left=-128,
     plt.show()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        print('Examples with visualizations are only implemented '
-              'with numpy backend.\n'
-              'To change backend, write: '
-              'export GEOMSTATS_BACKEND = \'numpy\'.')
+        logging.info('Examples with visualizations are only implemented '
+                     'with numpy backend.\n'
+                     'To change backend, write: '
+                     'export GEOMSTATS_BACKEND = \'numpy\'.')
     else:
         main()

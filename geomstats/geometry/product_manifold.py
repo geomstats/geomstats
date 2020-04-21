@@ -1,10 +1,13 @@
 """Product of manifolds."""
 
-import geomstats.backend as gs
-from geomstats.geometry.manifold import Manifold
+import joblib
 
-# TODO(nina): get rid of for loops
-# TODO(nina): unit tests
+import geomstats.backend as gs
+import geomstats.error
+import geomstats.vectorization
+from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.product_riemannian_metric import \
+    ProductRiemannianMetric
 
 
 class ProductManifold(Manifold):
@@ -13,130 +16,161 @@ class ProductManifold(Manifold):
     In contrast to the class Landmarks or DiscretizedCruves,
     the manifolds M_1, ..., M_n need not be the same, nor of
     same dimension, but the list of manifolds needs to be provided.
+
+    By default, a point is represented by an array of shape:
+    [n_samples, dim_1 + ... + dim_n_manifolds]
+    where n_manifolds is the number of manifolds in the product.
+    This type of representation is called 'vector'.
+
+    Alternatively, a point can be represented by an array of shape:
+    [n_samples, n_manifolds, dim] if the n_manifolds have same dimension dim.
+    This type of representation is called `matrix`.
+
+    Parameters
+    ----------
+    manifolds : list
+        List of manifolds in the product.
+    default_point_type : str, {'vector', 'matrix'}
+        Default representation of points.
     """
 
-    def __init__(self, manifolds, default_point_type='vector'):
-        """Instantiate an object of the class ProductManifold.
+    # FIXME(nguigs): This only works for 1d points
 
-        By default, a point is represented by an array of shape:
-            [n_samples, dim_1 + ... + dim_n_manifolds]
-        where n_manifolds is the number of manifolds in the product.
-        This type of representation is called 'vector'.
+    def __init__(self, manifolds, default_point_type='vector', n_jobs=1):
+        geomstats.error.check_parameter_accepted_values(
+            default_point_type, 'default_point_type', ['vector', 'matrix'])
 
-        Alternatively, a point can be represented by an array of shape:
-            [n_samples, n_manifolds, dim]
-        if the n_manifolds have same dimension dim.
-        This type of representation is called `matrix`.
-
-        Parameters
-        ----------
-        manifolds : list
-            list of manifolds in the product
-        default_point_type : str, {'vector', 'matrix'}
-            default representation of points
-        """
-        assert default_point_type in ['vector', 'matrix']
-        self.default_point_type = default_point_type
-
-        self.manifolds = manifolds
-        self.n_manifolds = len(manifolds)
-
-        dimensions = [manifold.dimension for manifold in manifolds]
+        self.dims = [manifold.dim for manifold in manifolds]
         super(ProductManifold, self).__init__(
-            dimension=sum(dimensions))
+            dim=sum(self.dims),
+            default_point_type=default_point_type)
+        self.manifolds = manifolds
+        self.metric = ProductRiemannianMetric(
+            [manifold.metric for manifold in manifolds],
+            default_point_type=default_point_type)
+        self.n_jobs = n_jobs
 
+    @staticmethod
+    def _get_method(manifold, method_name, metric_args):
+        return getattr(manifold, method_name)(**metric_args)
+
+    def _iterate_over_manifolds(
+            self, func, args, intrinsic=False):
+
+        cum_index = gs.cumsum(self.dims)[:-1] if intrinsic else \
+            gs.cumsum([k + 1 for k in self.dims])
+        arguments = {key: gs.split(
+            args[key], cum_index, axis=1) for key in args.keys()}
+        args_list = [{key: arguments[key][j] for key in args.keys()} for j in
+                     range(len(self.manifolds))]
+        pool = joblib.Parallel(n_jobs=self.n_jobs)
+        out = pool(
+            joblib.delayed(self._get_method)(
+                self.manifolds[i], func, args_list[i]) for i in range(
+                len(self.manifolds)))
+        return out
+
+    @geomstats.vectorization.decorator(['else', 'point', 'point_type'])
     def belongs(self, point, point_type=None):
-        """Check if the point belongs to the manifold.
+        """Test if a point belongs to the manifold.
 
         Parameters
         ----------
-        point
+        point : array-like, shape=[n_samples, dim]
+                           or shape=[n_samples, dim_2, dim_2]
+            Point.
         point_type : str, {'vector', 'matrix'}
+            Representation of point.
 
         Returns
         -------
-        belongs: array-like, shape=[n_samples, 1]
+        belongs : array-like, shape=[n_samples, 1]
+            Array of booleans evaluating if the corresponding points
+            belong to the manifold.
         """
         if point_type is None:
             point_type = self.default_point_type
-        assert point_type in ['vector', 'matrix']
-
         if point_type == 'vector':
-            point = gs.to_ndarray(point, to_ndim=2)
-        else:
-            point = gs.to_ndarray(point, to_ndim=3)
+            intrinsic = self.metric.is_intrinsic(point)
+            belongs = self._iterate_over_manifolds(
+                'belongs', {'point': point}, intrinsic)
+            belongs = gs.stack(belongs, axis=1)
 
-        n_manifolds = self.n_manifolds
-        belongs = gs.empty((point.shape[0], n_manifolds))
-        cum_dim = 0
-        # FIXME: this only works if the points are in intrinsic representation
-        for i in range(n_manifolds):
-            manifold_i = self.manifolds[i]
-            cum_dim_next = cum_dim + manifold_i.dimension
-            point_i = point[:, cum_dim:cum_dim_next]
-            belongs_i = manifold_i.belongs(point_i)
-            belongs[:, i] = belongs_i
-            cum_dim = cum_dim_next
+        elif point_type == 'matrix':
+            belongs = gs.stack([
+                space.belongs(point[:, i]) for i, space in enumerate(
+                    self.manifolds)],
+                axis=1)
 
         belongs = gs.all(belongs, axis=1)
-        belongs = gs.to_ndarray(belongs, to_ndim=2)
+        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
         return belongs
 
+    @geomstats.vectorization.decorator(['else', 'point', 'point_type'])
     def regularize(self, point, point_type=None):
         """Regularize the point into the manifold's canonical representation.
 
         Parameters
         ----------
-        point
+        point : array-like, shape=[n_samples, dim]
+                           or shape=[n_samples, dim_2, dim_2]
+            Point to be regularized.
         point_type : str, {'vector', 'matrix'}
+            Representation of point.
 
         Returns
         -------
-        regularize_points
+        regularized_point : array-like, shape=[n_samples, dim]
+                            or shape=[n_samples, dim_2, dim_2]
+            Point in the manifold's canonical representation.
         """
-        # TODO(nina): Vectorize.
         if point_type is None:
             point_type = self.default_point_type
-        assert point_type in ['vector', 'matrix']
+        geomstats.error.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
 
-        regularize_points = [self.manifold[i].regularize(point[i])
-                             for i in range(self.n_manifolds)]
-
-        # TODO(nina): Put this in a decorator
         if point_type == 'vector':
-            regularize_points = gs.hstack(regularize_points)
+            intrinsic = self.metric.is_intrinsic(point)
+            regularized_point = self._iterate_over_manifolds(
+                'regularize', {'point': point}, intrinsic)
+            regularized_point = gs.hstack(regularized_point)
         elif point_type == 'matrix':
-            regularize_points = gs.vstack(regularize_points)
-        return gs.all(regularize_points)
+            regularized_point = [
+                manifold_i.regularize(point[:, i])
+                for i, manifold_i in enumerate(self.manifolds)]
+            regularized_point = gs.stack(regularized_point, axis=1)
+        return regularized_point
 
-        return regularize_points
-
-    def geodesic(self, initial_point,
-                 end_point=None, initial_tangent_vec=None,
-                 point_type=None):
-        """Compute geodesic curve for a product metric.
-
-        This geodesic is seen as the product of the geodesic on each space.
+    def random_uniform(self, n_samples, point_type=None):
+        """Sample in the product space from the uniform distribution.
 
         Parameters
         ----------
-        initial_point
-        end_point
-        initial_tangent_vec
-        point_type
+        n_samples : int, optional
+            Number of samples.
+        point_type : str, {'vector', 'matrix'}
+            Representation of point.
 
         Returns
         -------
-        geodesics : array-like
+        samples : array-like, shape=[n_samples, dim + 1]
+            Points sampled on the hypersphere.
         """
         if point_type is None:
             point_type = self.default_point_type
-        assert point_type in ['vector', 'matrix']
+        geomstats.error.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
 
-        geodesics = gs.asarray([[self.manifold[i].metric.geodesic(
-            initial_point,
-            end_point=end_point,
-            initial_tangent_vec=initial_tangent_vec,
-            point_type=point_type)
-            for i in range(self.n_manifolds)]])
-        return geodesics
+        if point_type == 'vector':
+            data = self.manifolds[0].random_uniform(n_samples)
+            if len(self.manifolds) > 1:
+                for space in self.manifolds[1:]:
+                    samples = space.random_uniform(n_samples)
+                    data = gs.concatenate([data, samples], axis=-1)
+            return data
+
+        point = [
+            space.random_uniform(n_samples)
+            for space in self.manifolds]
+        samples = gs.stack(point, axis=1)
+        return samples

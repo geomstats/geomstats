@@ -3,6 +3,7 @@
 from functools import reduce
 
 import geomstats.backend as gs
+import geomstats.error
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -14,8 +15,9 @@ class Matrices(Euclidean):
     """Class for the space of matrices (m, n)."""
 
     def __init__(self, m, n):
-        assert isinstance(m, int) and isinstance(n, int) and m > 0 and n > 0
-        super(Matrices, self).__init__(dimension=m * n)
+        super(Matrices, self).__init__(dim=m * n)
+        geomstats.error.check_integer(n, 'n')
+        geomstats.error.check_integer(m, 'm')
         self.m = m
         self.n = n
         self.default_point_type = 'matrix'
@@ -119,6 +121,22 @@ class Matrices(Euclidean):
         return cls.equal(mat, cls.transpose(mat), atol)
 
     @classmethod
+    def is_skew_symmetric(cls, mat, atol=TOLERANCE):
+        """
+        Check if a matrix is skew symmetric.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[n_samples, n, n]
+        atol : float, absolute tolerance. defaults to TOLERANCE
+
+        Returns
+        -------
+        is_skew_sym : array-like boolean, shape=[n_samples]
+        """
+        return cls.equal(mat, - cls.transpose(mat), atol)
+
+    @classmethod
     def make_symmetric(cls, mat):
         """Make a matrix symmetric, by averaging with its transpose.
 
@@ -132,23 +150,40 @@ class Matrices(Euclidean):
         """
         return 1 / 2 * (mat + cls.transpose(mat))
 
-    def random_uniform(self, n_samples=1):
+    def random_uniform(self, n_samples=1, bound=1.):
         """Generate n samples from a uniform distribution.
-
-        Each entry in the matrix is drawn from a uniform distribution with
-        support [0,1]
-
+        
         Parameters
         ----------
         n_samples : int
-            amount of samples to generate
+            Number of samples to generate.
 
         Returns
         -------
-        point : random points
+        point : array-like
+            Point sampled.
         """
-        point = gs.random.rand(n_samples, self.m, self.n)
+        m, n = self.m, self.n
+        size = (n_samples, m, n) if n_samples != 1 else (m, n)
+        point = bound * (gs.random.rand(*size) - 0.5)
         return point
+
+    @classmethod
+    def congruent(cls, mat_1, mat_2):
+        """Compute the congruent action of mat_2 on mat_1.
+
+        This is :math: `mat_2 mat_1 mat_2^T`.
+
+        Parameters
+        ----------
+        mat_1 : array-like, shape=[n_samples, n, n]
+        mat_2 : array-like, shape=[n_samples, n, n]
+
+        Returns
+        -------
+        cong : array-like, shape=[n_samples, n, n]
+        """
+        return cls.mul(mat_2, mat_1, cls.transpose(mat_2))
 
 
 class MatricesMetric(RiemannianMetric):
@@ -157,7 +192,7 @@ class MatricesMetric(RiemannianMetric):
     def __init__(self, m, n):
         dimension = m * n
         super(MatricesMetric, self).__init__(
-            dimension=dimension,
+            dim=dimension,
             signature=(dimension, 0, 0))
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
@@ -174,15 +209,6 @@ class MatricesMetric(RiemannianMetric):
         -------
         inner_prod : the Frobenius inner product of a and b
         """
-        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
-        n_tangent_vecs_a, _, _ = tangent_vec_a.shape
-
-        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
-        n_tangent_vecs_b, _, _ = tangent_vec_b.shape
-
-        assert n_tangent_vecs_a == n_tangent_vecs_b
-
-        inner_prod = gs.einsum("nij,nij->n", tangent_vec_a, tangent_vec_b)
-        inner_prod = gs.to_ndarray(inner_prod, to_ndim=1)
-        inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
+        inner_prod = gs.einsum(
+            '...ij,...ij->...', tangent_vec_a, tangent_vec_b)
         return inner_prod

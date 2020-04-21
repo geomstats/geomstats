@@ -2,8 +2,6 @@
 Unit tests for the Euclidean space.
 """
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
@@ -33,7 +31,7 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
-        expected = gs.array([[True]])
+        expected = True
 
         self.assertAllClose(result, expected)
 
@@ -45,12 +43,27 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
             [-5., 1.]])
         result = self.metric.squared_norm(n_points)
 
-        expected = gs.array([[5.], [20.], [26.]])
+        expected = gs.array([5., 20., 26.])
 
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        self.assertAllClose(gs.shape(result), (n_samples,))
         self.assertAllClose(result, expected)
 
-    def test_norm_vectorization(self):
+    def test_norm_vectorization_single_sample(self):
+        one_point = gs.array([[0., 1.]])
+
+        result = self.metric.norm(one_point)
+        expected = gs.array([1.])
+        self.assertAllClose(gs.shape(result), (1,))
+        self.assertAllClose(result, expected)
+
+        one_point = gs.array([0., 1.])
+
+        result = self.metric.norm(one_point)
+        expected = 1.
+        self.assertAllClose(gs.shape(result), ())
+        self.assertAllClose(result, expected)
+
+    def test_norm_vectorization_n_samples(self):
         n_samples = self.n_samples
         n_points = gs.array([
             [2., 1.],
@@ -59,9 +72,9 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
 
         result = self.metric.norm(n_points)
 
-        expected = gs.array([[2.2360679775], [4.472135955], [5.09901951359]])
+        expected = gs.array([2.2360679775, 4.472135955, 5.09901951359])
 
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        self.assertAllClose(gs.shape(result), (n_samples,))
         self.assertAllClose(result, expected)
 
     def test_exp_vectorization(self):
@@ -81,7 +94,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
 
         result = self.metric.exp(one_tangent_vec, one_base_point)
         expected = one_tangent_vec + one_base_point
-        expected = helper.to_vector(expected)
 
         self.assertAllClose(result, expected)
 
@@ -111,7 +123,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
 
         result = self.metric.log(one_point, one_base_point)
         expected = one_point - one_base_point
-        expected = helper.to_vector(expected)
         self.assertAllClose(result, expected)
 
         result = self.metric.log(n_points, one_base_point)
@@ -140,18 +151,17 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
         result = self.metric.squared_dist(one_point_a, one_point_b)
         vec = one_point_a - one_point_b
         expected = gs.dot(vec, gs.transpose(vec))
-        expected = helper.to_scalar(expected)
         self.assertAllClose(result, expected)
 
         result = self.metric.squared_dist(n_points_a, one_point_b)
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        self.assertAllClose(gs.shape(result), (n_samples,))
 
         result = self.metric.squared_dist(one_point_a, n_points_b)
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        self.assertAllClose(gs.shape(result), (n_samples,))
 
         result = self.metric.squared_dist(n_points_a, n_points_b)
-        expected = gs.array([[81.], [109.], [29.]])
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        expected = gs.array([81., 109., 29.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
         self.assertAllClose(result, expected)
 
     def test_dist_vectorization(self):
@@ -171,39 +181,37 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
         result = self.metric.dist(one_point_a, one_point_b)
         vec = one_point_a - one_point_b
         expected = gs.sqrt(gs.dot(vec, gs.transpose(vec)))
-        expected = helper.to_scalar(expected)
         self.assertAllClose(result, expected)
 
         result = self.metric.dist(n_points_a, one_point_b)
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        self.assertAllClose(gs.shape(result), (n_samples,))
 
         result = self.metric.dist(one_point_a, n_points_b)
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        self.assertAllClose(gs.shape(result), (n_samples,))
 
         result = self.metric.dist(n_points_a, n_points_b)
-        expected = gs.array([[9.], [gs.sqrt(109.)], [gs.sqrt(29.)]])
+        expected = gs.array([9., gs.sqrt(109.), gs.sqrt(29.)])
 
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        self.assertAllClose(gs.shape(result), (n_samples,))
         self.assertAllClose(result, expected)
 
     def test_belongs(self):
         point = gs.array([0., 1.])
 
         result = self.space.belongs(point)
-        expected = gs.array([[True]])
+        expected = True
 
         self.assertAllClose(result, expected)
 
     def test_random_uniform(self):
         result = self.space.random_uniform()
 
-        self.assertAllClose(gs.shape(result), (1, self.dimension))
+        self.assertAllClose(gs.shape(result), (self.dimension,))
 
     def test_inner_product_matrix(self):
         result = self.metric.inner_product_matrix()
 
         expected = gs.eye(self.dimension)
-        expected = helper.to_matrix(expected)
 
         self.assertAllClose(result, expected)
 
@@ -212,15 +220,45 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
         point_b = gs.array([2., 10.])
 
         result = self.metric.inner_product(point_a, point_b)
-        expected = gs.array([[10.]])
+        expected = 10.
 
         self.assertAllClose(result, expected)
 
-    def test_inner_product_vectorization(self):
-        n_samples = 3
+    def test_inner_product_vectorization_single_sample(self):
+        one_point_a = gs.array([[0., 1.]])
+        one_point_b = gs.array([[2., 10.]])
+
+        result = self.metric.inner_product(one_point_a, one_point_b)
+        expected = gs.array([10.])
+        self.assertAllClose(gs.shape(result), (1,))
+        self.assertAllClose(result, expected)
+
+        one_point_a = gs.array([[0., 1.]])
+        one_point_b = gs.array([2., 10.])
+
+        result = self.metric.inner_product(one_point_a, one_point_b)
+        expected = gs.array([10.])
+        self.assertAllClose(gs.shape(result), (1,))
+        self.assertAllClose(result, expected)
+
+        one_point_a = gs.array([0., 1.])
+        one_point_b = gs.array([[2., 10.]])
+
+        result = self.metric.inner_product(one_point_a, one_point_b)
+        expected = gs.array([10.])
+        self.assertAllClose(gs.shape(result), (1,))
+        self.assertAllClose(result, expected)
 
         one_point_a = gs.array([0., 1.])
         one_point_b = gs.array([2., 10.])
+
+        result = self.metric.inner_product(one_point_a, one_point_b)
+        expected = 10.
+        self.assertAllClose(gs.shape(result), ())
+        self.assertAllClose(result, expected)
+
+    def test_inner_product_vectorization_n_samples(self):
+        n_samples = 3
         n_points_a = gs.array([
             [2., 1.],
             [-2., -4.],
@@ -230,38 +268,90 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
             [8., -1.],
             [-3., 6.]])
 
-        result = self.metric.inner_product(one_point_a, one_point_b)
-        expected = gs.array([[10.]])
-        self.assertAllClose(gs.shape(result), (1, 1))
-        self.assertAllClose(result, expected)
+        one_point_a = gs.array([0., 1.])
+        one_point_b = gs.array([2., 10.])
 
         result = self.metric.inner_product(n_points_a, one_point_b)
-        expected = gs.array([[14.], [-44.], [0.]])
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        expected = gs.array([14., -44., 0.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
         self.assertAllClose(result, expected)
 
         result = self.metric.inner_product(one_point_a, n_points_b)
-        expected = gs.array([[10.], [-1.], [6.]])
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        expected = gs.array([10., -1., 6.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
         self.assertAllClose(result, expected)
 
         result = self.metric.inner_product(n_points_a, n_points_b)
-        expected = gs.array([[14.], [-12.], [21.]])
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        expected = gs.array([14., -12., 21.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        one_point_a = gs.array([[0., 1.]])
+        one_point_b = gs.array([[2., 10]])
+
+        result = self.metric.inner_product(n_points_a, one_point_b)
+        expected = gs.array([14., -44., 0.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        result = self.metric.inner_product(one_point_a, n_points_b)
+        expected = gs.array([10., -1., 6.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        result = self.metric.inner_product(n_points_a, n_points_b)
+        expected = gs.array([14., -12., 21.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        one_point_a = gs.array([[0., 1.]])
+        one_point_b = gs.array([2., 10.])
+
+        result = self.metric.inner_product(n_points_a, one_point_b)
+        expected = gs.array([14., -44., 0.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        result = self.metric.inner_product(one_point_a, n_points_b)
+        expected = gs.array([10., -1., 6.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        result = self.metric.inner_product(n_points_a, n_points_b)
+        expected = gs.array([14., -12., 21.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        one_point_a = gs.array([0., 1.])
+        one_point_b = gs.array([[2., 10.]])
+
+        result = self.metric.inner_product(n_points_a, one_point_b)
+        expected = gs.array([14., -44., 0.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        result = self.metric.inner_product(one_point_a, n_points_b)
+        expected = gs.array([10., -1., 6.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
+        self.assertAllClose(result, expected)
+
+        result = self.metric.inner_product(n_points_a, n_points_b)
+        expected = gs.array([14., -12., 21.])
+        self.assertAllClose(gs.shape(result), (n_samples,))
         self.assertAllClose(result, expected)
 
     def test_squared_norm(self):
         point = gs.array([-2., 4.])
 
         result = self.metric.squared_norm(point)
-        expected = gs.array([[20.]])
+        expected = 20.
 
         self.assertAllClose(result, expected)
 
     def test_norm(self):
         point = gs.array([-2., 4.])
         result = self.metric.norm(point)
-        expected = gs.array([[4.472135955]])
+        expected = 4.472135955
 
         self.assertAllClose(result, expected)
 
@@ -272,7 +362,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
         result = self.metric.exp(tangent_vec=vector,
                                  base_point=base_point)
         expected = base_point + vector
-        expected = helper.to_vector(expected)
 
         self.assertAllClose(result, expected)
 
@@ -282,7 +371,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
 
         result = self.metric.log(point=point, base_point=base_point)
         expected = point - base_point
-        expected = helper.to_vector(expected)
 
         self.assertAllClose(result, expected)
 
@@ -293,7 +381,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
         result = self.metric.squared_dist(point_a, point_b)
         vec = point_b - point_a
         expected = gs.dot(vec, vec)
-        expected = helper.to_scalar(expected)
 
         self.assertAllClose(result, expected)
 
@@ -303,7 +390,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
 
         result = self.metric.dist(point_a, point_b)
         expected = gs.linalg.norm(point_b - point_a)
-        expected = helper.to_scalar(expected)
 
         self.assertAllClose(result, expected)
 
@@ -319,42 +405,6 @@ class TestEuclideanMethods(geomstats.tests.TestCase):
         points = geodesic(t)
 
         result = self.space.belongs(points)
-        expected = gs.array(n_geodesic_points * [[True]])
+        expected = gs.array(n_geodesic_points * [True])
 
         self.assertAllClose(expected, result)
-
-    def test_mean(self):
-        point = gs.array([[1., 4.]])
-        result = self.metric.mean(points=[point, point, point])
-        expected = point
-        expected = helper.to_vector(expected)
-
-        self.assertAllClose(result, expected)
-
-        points = gs.array([
-            [1., 2.],
-            [2., 3.],
-            [3., 4.],
-            [4., 5.]])
-        weights = gs.array([1., 2., 1., 2.])
-
-        result = self.metric.mean(points, weights)
-        expected = gs.array([16. / 6., 22. / 6.])
-        expected = helper.to_vector(expected)
-
-        self.assertAllClose(result, expected)
-
-    def test_variance(self):
-        points = gs.array([
-            [1., 2.],
-            [2., 3.],
-            [3., 4.],
-            [4., 5.]])
-        weights = gs.array([1., 2., 1., 2.])
-        base_point = gs.zeros(2)
-        result = self.metric.variance(points, weights, base_point)
-        # we expect the average of the points' sq norms.
-        expected = (1 * 5. + 2 * 13. + 1 * 25. + 2 * 41.) / 6.
-        expected = helper.to_scalar(expected)
-
-        self.assertAllClose(result, expected)
