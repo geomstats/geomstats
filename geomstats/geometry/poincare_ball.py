@@ -171,12 +171,14 @@ class PoincareBallMetric(RiemannianMetric):
 
         mask_0 = gs.isclose(gs.squeeze(norm_add, axis=-1), 0.)
         mask_non0 = ~mask_0
+        # TODO(ninamiolane): Correct this when assignement
+        # works with booleans
         if gs.any(mask_0):
             mask_0_float = gs.cast(mask_0, gs.float32)
             log += mask_0_float * (-log)
+            mask_0_float = gs.to_ndarray(mask_0_float, to_ndim=2, axis=1)
+            norm_add += mask_0_float
         if gs.any(mask_non0):
-            # TODO(ninamiolane): Correct this when assignement
-            # works with booleans
             mask_non0_float = gs.cast(mask_non0, gs.float32)
             log += gs.einsum(
                 '...,...i->...i',

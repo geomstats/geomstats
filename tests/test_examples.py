@@ -42,8 +42,6 @@ class TestExamples(geomstats.tests.TestCase):
 
     @staticmethod
     def setUp():
-        # TODO(ninamiolane): Fix learning_poincare_graph
-        # that fails with some seeds.
         gs.random.seed(1234)
         logger = logging.getLogger()
         logger.disabled = True
