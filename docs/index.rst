@@ -48,7 +48,6 @@ To contribute to `geomstats` visit the page :ref:`contributing`.
    :maxdepth: 1
    :caption: Getting Started
 
-   index.rst
    first-steps.rst
    examples.rst
    api-reference.rst
