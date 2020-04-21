@@ -774,7 +774,7 @@ class SpecialOrthogonal(LieGroup, EmbeddedManifold):
             rot_mat_i = gs.transpose(
                 gs.hstack([column_1, column_2, column_3]))
             rot_mat_i = gs.to_ndarray(rot_mat_i, to_ndim=3)
-            rot_mat += gs.einsum('n,nij->nij', mask_i, rot_mat_i)
+            rot_mat += gs.einsum('...,...ij->...ij', mask_i, rot_mat_i)
 
         return rot_mat
 
