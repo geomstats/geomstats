@@ -19,6 +19,17 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
         warnings.simplefilter('ignore', category=ImportWarning)
 
     def test_belongs(self):
+        mat = gs.eye(3)
+        result = self.group.belongs(mat)
+        expected = True
+        self.assertAllClose(result, expected)
+
+        mat = gs.ones((3, 3))
+        result = self.group.belongs(mat)
+        expected = False
+        self.assertAllClose(result, expected)
+
+    def test_belongs_vectorization(self):
         mats = gs.array([gs.eye(3), gs.ones((3, 3))])
         result = self.group.belongs(mats)
         expected = gs.array([True, False])
