@@ -148,8 +148,7 @@ class LieGroup(Manifold):
             self, point, left_or_right='left', point_type=None):
         """Compute the Jacobian of left/right translation by a point.
 
-        Compute the Jacobian matrix of the differential of the left
-        translation by the point.
+        Compute the Jacobian matrix of the left translation by the point.
 
         Parameters
         ----------
@@ -169,6 +168,12 @@ class LieGroup(Manifold):
         jacobian :
             the jacobian of the left/right translation by point
         """
+        if point_type is None:
+           point_type = self.default_point_type
+
+        if point_type == 'matrix':
+            return point
+
         raise NotImplementedError(
             'The jacobian of the Lie group translation is not implemented.'
         )
