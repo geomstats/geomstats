@@ -138,7 +138,8 @@ class TestFrechetMean(geomstats.tests.TestCase):
             metric=self.so_matrix.bi_invariant_metric, method='default')
         mean_vec.fit(points)
 
-        logs = self.so_matrix.bi_invariant_metric.log(points, mean_vec.estimate_)
+        logs = self.so_matrix.bi_invariant_metric.log(
+            points, mean_vec.estimate_)
         result = gs.sum(logs, axis=0)
         expected = gs.zeros_like(points[0])
         self.assertAllClose(result, expected)

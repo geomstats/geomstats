@@ -183,7 +183,7 @@ class SpecialEuclidean3(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
+        point : array-like, shape=[n_samples, 3]
             the point of which to check whether it belongs to SE(n)
 
         Returns
@@ -204,14 +204,14 @@ class SpecialEuclidean3(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
+        point : array-like, shape=[n_samples, 3]
             the point which should be regularized
         point_type : str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
         Returns
         -------
-        point : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
+        point : array-like, shape=[n_samples, 3]
         """
         rotations = self.rotations
         dim_rotations = rotations.dim
@@ -233,7 +233,7 @@ class SpecialEuclidean3(LieGroup):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
+        tangent_vec: array-like, shape=[n_samples, 3]
         metric : RiemannianMetric, optional
         point_type : str, {'vector', 'matrix'}, optional
             default: self.default_point_type
@@ -245,20 +245,16 @@ class SpecialEuclidean3(LieGroup):
         return self.regularize_tangent_vec(
             tangent_vec, self.identity, metric)
 
-    # @geomstats.vectorization.decorator([
-    #     'else', 'vector', 'vector', 'else'])
     def regularize_tangent_vec(
             self, tangent_vec, base_point, metric=None):
         """Regularize a tangent vector at a base point.
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
-        base_point : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
+        tangent_vec: array-like, shape=[n_samples, 3]
+        base_point : array-like, shape=[n_samples, 3]
         metric : RiemannianMetric, optional
             default: self.left_canonical_metric
-        point_type: str, {'vector', 'matrix'}, optional
-            default: self.default_point_type
 
         Returns
         -------
@@ -294,7 +290,7 @@ class SpecialEuclidean3(LieGroup):
 
         Parameters
         ----------
-        vec: array-like, shape=[n_samples, dim]
+        vec: array-like, shape=[n_samples, 3]
 
         Returns
         -------
@@ -319,14 +315,12 @@ class SpecialEuclidean3(LieGroup):
     @geomstats.vectorization.decorator(
         ['else', 'vector', 'vector'])
     def compose(self, point_a, point_b):
-        r"""Compose two elements of SE(n).
+        r"""Compose two elements of SE(3).
 
         Parameters
         ----------
-        point_1 : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
-        point_2 : array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
-        point_type: str, {'vector', 'matrix'}, optional
-            default: self.default_point_type
+        point_a : array-like, shape=[n_samples, 3]
+        point_b : array-like, shape=[n_samples, 3]
 
         Equation
         ---------
@@ -369,14 +363,14 @@ class SpecialEuclidean3(LieGroup):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
+        point: array-like, shape=[n_samples, 3]
         point_type: str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
         Returns
         -------
         inverse_point : array-like,
-            shape=[n_samples, {dim, [n + 1, n + 1]}]
+            shape=[n_samples, 3]
             the inverted point
 
         Notes
@@ -415,7 +409,7 @@ class SpecialEuclidean3(LieGroup):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
+        point: array-like, shape=[n_samples, 3]
 
         left_or_right: str, {'left', 'right'}, optional
             default: 'left'
@@ -425,7 +419,7 @@ class SpecialEuclidean3(LieGroup):
 
         Returns
         -------
-        jacobian : array-like, shape=[n_samples, dim]
+        jacobian : array-like, shape=[n_samples, 3]
             The jacobian of the left / right translation
         """
         if left_or_right not in ('left', 'right'):
@@ -477,13 +471,13 @@ class SpecialEuclidean3(LieGroup):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
+        tangent_vec: array-like, shape=[n_samples, 3]
         point_type: str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
         Returns
         -------
-        group_exp: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
+        group_exp: array-like, shape=[n_samples, 3]
             the group exponential of the tangent vectors calculated
             at the identity
         """
@@ -554,13 +548,13 @@ class SpecialEuclidean3(LieGroup):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
+        point: array-like, shape=[n_samples, 3]
         point_type: str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
         Returns
         -------
-        group_log: array-like, shape=[n_samples, {dim, [n + 1, n + 1]}]
+        group_log: array-like, shape=[n_samples, 3]
             the group logarithm in the Lie algbra
         """
         point = self.regularize(point)
@@ -568,90 +562,81 @@ class SpecialEuclidean3(LieGroup):
         rotations = self.rotations
         dim_rotations = rotations.dim
 
-        if point_type == 'vector':
-            rot_vec = point[:, :dim_rotations]
-            angle = gs.linalg.norm(rot_vec, axis=1)
-            angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
+        rot_vec = point[:, :dim_rotations]
+        angle = gs.linalg.norm(rot_vec, axis=1)
+        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
-            translation = point[:, dim_rotations:]
+        translation = point[:, dim_rotations:]
 
-            skew_rot_vec = rotations.skew_matrix_from_vector(rot_vec)
-            sq_skew_rot_vec = gs.matmul(skew_rot_vec, skew_rot_vec)
+        skew_rot_vec = rotations.skew_matrix_from_vector(rot_vec)
+        sq_skew_rot_vec = gs.matmul(skew_rot_vec, skew_rot_vec)
 
-            mask_close_0 = gs.isclose(angle, 0.)
-            mask_close_pi = gs.isclose(angle, gs.pi)
-            mask_else = ~mask_close_0 & ~mask_close_pi
+        mask_close_0 = gs.isclose(angle, 0.)
+        mask_close_pi = gs.isclose(angle, gs.pi)
+        mask_else = ~mask_close_0 & ~mask_close_pi
 
-            mask_close_0_float = gs.cast(mask_close_0, gs.float32)
-            mask_close_pi_float = gs.cast(mask_close_pi, gs.float32)
-            mask_else_float = gs.cast(mask_else, gs.float32)
+        mask_close_0_float = gs.cast(mask_close_0, gs.float32)
+        mask_close_pi_float = gs.cast(mask_close_pi, gs.float32)
+        mask_else_float = gs.cast(mask_else, gs.float32)
 
-            mask_0 = gs.isclose(angle, 0., atol=1e-6)
-            mask_0_float = gs.cast(mask_0, gs.float32)
-            angle += mask_0_float * gs.ones_like(angle)
+        mask_0 = gs.isclose(angle, 0., atol=1e-6)
+        mask_0_float = gs.cast(mask_0, gs.float32)
+        angle += mask_0_float * gs.ones_like(angle)
 
-            coef_1 = - 0.5 * gs.ones_like(angle)
-            coef_2 = gs.zeros_like(angle)
+        coef_1 = - 0.5 * gs.ones_like(angle)
+        coef_2 = gs.zeros_like(angle)
 
-            coef_2 += mask_close_0_float * (
-                1. / 12. + angle ** 2 / 720.
-                + angle ** 4 / 30240.
-                + angle ** 6 / 1209600.)
+        coef_2 += mask_close_0_float * (
+            1. / 12. + angle ** 2 / 720.
+            + angle ** 4 / 30240.
+            + angle ** 6 / 1209600.)
 
-            delta_angle = angle - gs.pi
-            coef_2 += mask_close_pi_float * (
-                1. / PI2
-                + (PI2 - 8.) * delta_angle / (4. * PI3)
-                - ((PI2 - 12.)
-                   * delta_angle ** 2 / (4. * PI4))
-                + ((-192. + 12. * PI2 + PI4)
-                   * delta_angle ** 3 / (48. * PI5))
-                - ((-240. + 12. * PI2 + PI4)
-                   * delta_angle ** 4 / (48. * PI6))
-                + ((-2880. + 120. * PI2 + 10. * PI4 + PI6)
-                   * delta_angle ** 5 / (480. * PI7))
-                - ((-3360 + 120. * PI2 + 10. * PI4 + PI6)
-                   * delta_angle ** 6 / (480. * PI8)))
+        delta_angle = angle - gs.pi
+        coef_2 += mask_close_pi_float * (
+            1. / PI2
+            + (PI2 - 8.) * delta_angle / (4. * PI3)
+            - ((PI2 - 12.)
+               * delta_angle ** 2 / (4. * PI4))
+            + ((-192. + 12. * PI2 + PI4)
+               * delta_angle ** 3 / (48. * PI5))
+            - ((-240. + 12. * PI2 + PI4)
+               * delta_angle ** 4 / (48. * PI6))
+            + ((-2880. + 120. * PI2 + 10. * PI4 + PI6)
+               * delta_angle ** 5 / (480. * PI7))
+            - ((-3360 + 120. * PI2 + 10. * PI4 + PI6)
+               * delta_angle ** 6 / (480. * PI8)))
 
-            psi = 0.5 * angle * gs.sin(angle) / (1 - gs.cos(angle))
-            coef_2 += mask_else_float * (1 - psi) / (angle ** 2)
+        psi = 0.5 * angle * gs.sin(angle) / (1 - gs.cos(angle))
+        coef_2 += mask_else_float * (1 - psi) / (angle ** 2)
 
-            n_points, _ = point.shape
-            log_translation = gs.zeros((n_points, self.n))
-            for i in range(n_points):
-                translation_i = translation[i]
-                term_1_i = coef_1[i] * gs.dot(translation_i,
-                                              gs.transpose(skew_rot_vec[i]))
-                term_2_i = coef_2[i] * gs.dot(translation_i,
-                                              gs.transpose(sq_skew_rot_vec[i]))
-                mask_i_float = gs.get_mask_i_float(i, n_points)
-                log_translation += gs.outer(
-                    mask_i_float, translation_i + term_1_i + term_2_i)
+        n_points, _ = point.shape
+        log_translation = gs.zeros((n_points, self.n))
+        for i in range(n_points):
+            translation_i = translation[i]
+            term_1_i = coef_1[i] * gs.dot(translation_i,
+                                          gs.transpose(skew_rot_vec[i]))
+            term_2_i = coef_2[i] * gs.dot(translation_i,
+                                          gs.transpose(sq_skew_rot_vec[i]))
+            mask_i_float = gs.get_mask_i_float(i, n_points)
+            log_translation += gs.outer(
+                mask_i_float, translation_i + term_1_i + term_2_i)
 
-            return gs.concatenate(
-                [rot_vec, log_translation], axis=1)
-
-        if point_type == 'matrix':
-            return GeneralLinear.log(point)
-
-        raise ValueError('Invalid point_type, expected \'vector\' or '
-                         '\'matrix\'.')
+        return gs.concatenate(
+            [rot_vec, log_translation], axis=1)
 
     def random_uniform(self, n_samples=1):
-        """Sample in SE(n) with the uniform distribution.
+        """Sample in SE(3) with the uniform distribution.
 
         Parameters
         ----------
         n_samples: int, optional
             default: 1
-        point_type: str, {'vector', 'matrix'}, optional
-            default: self.default_point_type
 
         Returns
         -------
         random_point: array-like,
-            shape=[n_samples, {dim, [n + 1, n + 1]}]
-            An array of random elements in SE(n) having the given point_type.
+            shape=[n_samples, 3]
+            An array of random elements in SE(3) having the given.
         """
         random_translation = self.translations.random_uniform(n_samples)
         random_rot_vec = self.rotations.random_uniform(n_samples)
@@ -662,7 +647,7 @@ class SpecialEuclidean3(LieGroup):
 
         Parameters
         ----------
-        rot_vec : array-like, shape=[n_samples, dim]
+        rot_vec : array-like, shape=[n_samples, 3]
 
         Returns
         -------

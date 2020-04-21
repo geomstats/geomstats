@@ -422,7 +422,6 @@ class TestInvariantMetricMethods(geomstats.tests.TestCase):
         # FIXME: lower numerical accuracy with tensorflow
         # General case for the reference point
         base_point = self.point_2
-        print(base_point.shape)
         # General point
         result = helper.log_then_exp(
             self.left_diag_metric, self.point_1, base_point)
