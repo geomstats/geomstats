@@ -21,12 +21,9 @@ generally give a rotation matrix. Statistics for data on manifolds need to be ex
 
 In this context, Geomstats provides code to fulfill four objectives:
 
-- provide educational support to learn "hands-on" differential
-geometry and geometric statistics, through its examples and visualizations.
-- foster research in differential geometry and geometric statistics by
-    providing operations on manifolds to gain intuition on results of a research paper;
-- democratize the use of geometric statistics by implementing
-    user-friendly geometric learning algorithms using Scikit-Learn API; and
+- provide educational support to learn "hands-on" differential geometry and geometric statistics, through its examples and visualizations.
+- foster research in differential geometry and geometric statistics by providing operations on manifolds to gain intuition on results of a research paper;
+- democratize the use of geometric statistics by implementing user-friendly geometric learning algorithms using Scikit-Learn API; and
 - provide a platform to share learning algorithms on manifolds.
 
 The package is organized into two main modules:
