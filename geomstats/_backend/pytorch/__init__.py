@@ -574,21 +574,18 @@ def assignment(x, values, indices, axis=0):
     x_new = copy(x)
 
     use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
-    print(use_vectorization)
     if _is_boolean(x):
         x_new[indices] = values
         return x_new
     zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
-    print(zip_indices)
     if zip_indices:
         indices = tuple(zip(*indices))
-        print(indices)
     if not use_vectorization:
-        x_new[indices] += values
+        x_new[indices] = values
     else:
         indices = tuple(
             list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
-        x_new[indices] += values
+        x_new[indices] = values
     return x_new
 
 

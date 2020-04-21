@@ -172,7 +172,6 @@ def assignment(x, values, indices, axis=0):
     zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
     if zip_indices:
         indices = tuple(zip(*indices))
-        print(indices)
     if not use_vectorization:
         x_new[indices] = values
     else:
