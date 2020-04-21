@@ -1,6 +1,7 @@
 """Exposes the `SpecialOrthogonal` group class."""
 
 import geomstats.backend as gs
+import geomstats.error
 import geomstats.vectorization
 from geomstats import algebra_utils
 from geomstats.geometry.general_linear import GeneralLinear
@@ -430,7 +431,7 @@ class SpecialOrthogonal3(LieGroup):
         -------
         vec : array-like, shape=[n_samples, dim]
         """
-        n_skew_mats, mat_dim_1, _ = skew_mat.shape
+        n_skew_mats, _, _ = skew_mat.shape
 
         vec_dim = self.dim
         vec = gs.zeros((n_skew_mats, vec_dim))
@@ -828,12 +829,14 @@ class SpecialOrthogonal3(LieGroup):
         -------
         rot_mat : array-like, shape=[n_samples, n, n]
         """
-        assert self.n == 3, ('The Tait-Bryan angles representation'
-                             ' does not exist'
-                             ' for rotations in %d dimensions.' % self.n)
-
-        assert extrinsic_or_intrinsic in ('extrinsic', 'intrinsic')
-        assert order in ('xyz', 'zyx')
+        geomstats.error.check_parameter_accepted_values(
+            extrinsic_or_intrinsic,
+            'extrinsic_or_intrinsic',
+            ['extrinsic', 'intrinsic'])
+        geomstats.error.check_parameter_accepted_values(
+            order,
+            'order',
+            ['xyz', 'zyx'])
 
         tait_bryan_angles = gs.to_ndarray(tait_bryan_angles, to_ndim=2)
 
@@ -921,8 +924,6 @@ class SpecialOrthogonal3(LieGroup):
         -------
         quaternion : array-like, shape=[n_samples, 4]
         """
-        n_tait_bryan_angles, _ = tait_bryan_angles.shape
-
         matrix = self.matrix_from_tait_bryan_angles(
             tait_bryan_angles,
             extrinsic_or_intrinsic='intrinsic',
