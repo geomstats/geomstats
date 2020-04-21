@@ -395,7 +395,9 @@ class LieGroup(Manifold):
     def _is_in_lie_algebra(self, tangent_vec, atol=TOLERANCE):
         """Check wether a tangent vector belongs to the lie algebra.
 
-        This method could also be in a separate class for the Lie algebra"""
+        This method could also be in a separate class for the Lie algebra.
+
+        """
         raise NotImplementedError(
             'The Lie Algebra belongs method is not implemented'
         )
@@ -419,10 +421,23 @@ class LieGroup(Manifold):
             'The Lie Algebra belongs method is not implemented'
         )
 
-    def to_tangent(self, tangent_vec, base_point=None):
+    def to_tangent(self, vector, base_point=None):
+        """Project a vector onto the tangent space at a base point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[n_samples, {dim, [n, n]}]
+            Vector to project. Its shape must match the shape of base_point.
+        base_point : array-like, shape=[n_samples, {dim, [n, n]}], optional
+            Point of the group.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[n_samples, n, n]
+        """
         if base_point is None:
-            return self._to_lie_algebra(tangent_vec)
+            return self._to_lie_algebra(vector)
         tangent_vec_at_id = self.compose(
-            self.inverse(base_point), tangent_vec)
+            self.inverse(base_point), vector)
         regularized = self._to_lie_algebra(tangent_vec_at_id)
         return self.compose(base_point, regularized)

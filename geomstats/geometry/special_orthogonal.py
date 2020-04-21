@@ -55,6 +55,20 @@ class SpecialOrthogonal(GeneralLinear, LieGroup):
         return cls.make_skew_symmetric(tangent_vec)
 
     def random_uniform(self, n_samples=1, tol=1e-6):
+        """Sample in SO(n) from the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int, optional (1)
+            Number of samples.
+        tol :  unused
+
+        Returns
+        -------
+        samples : array-like, shape=[n_samples, n, n]
+            Points sampled on the SO(n).
+        """
+
         if n_samples == 1:
             random_mat = gs.random.rand(self.n, self.n)
         else:

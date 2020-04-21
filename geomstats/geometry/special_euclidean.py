@@ -52,7 +52,18 @@ class SpecialEuclidean(GeneralLinear, LieGroup):
     identity = property(get_identity)
 
     def belongs(self, point):
-        """Check whether point is of the form rotation, translation."""
+        """Check whether point is of the form rotation, translation.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, n, n],
+            The point for which to check whether it belongs to the group.
+
+        Returns
+        -------
+        belongs : array-like, shape=[n_samples,]
+            Boolean array
+        """
         point_dim1, point_dim2 = point.shape[-2:]
         belongs = (point_dim1 == point_dim2 == self.n + 1)
 
@@ -103,6 +114,20 @@ class SpecialEuclidean(GeneralLinear, LieGroup):
         return tangent_vec * translation_mask
 
     def random_uniform(self, n_samples=1, tol=1e-6):
+        """Sample in SE(n) from the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int, optional (1)
+            Number of samples.
+        tol :  unused
+
+        Returns
+        -------
+        samples : array-like, shape=[n_samples, n + 1, n + 1]
+            Points sampled on the SE(n).
+        """
+
         random_translation = self.translations.random_uniform(n_samples)
         random_rotation = self.rotations.random_uniform(n_samples)
         random_rotation = gs.to_ndarray(random_rotation, to_ndim=3)
