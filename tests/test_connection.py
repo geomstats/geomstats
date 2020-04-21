@@ -9,7 +9,7 @@ from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.hypersphere import Hypersphere
 
 
-class TestConnectionMethods(geomstats.tests.TestCase):
+class TestConnection(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=UserWarning)
 

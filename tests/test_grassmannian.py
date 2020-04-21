@@ -32,7 +32,7 @@ pi_2 = gs.pi / 2
 pi_4 = gs.pi / 4
 
 
-class TestGrassmannianMethods(geomstats.tests.TestCase):
+class TestGrassmannian(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
 

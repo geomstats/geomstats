@@ -17,7 +17,7 @@ from geomstats.geometry.poincare_ball import PoincareBall
 RTOL = 1e-6
 
 
-class TestHyperbolicMethods(geomstats.tests.TestCase):
+class TestHyperbolic(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
         self.dimension = 3

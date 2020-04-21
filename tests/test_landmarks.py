@@ -8,7 +8,7 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.landmarks import Landmarks
 
 
-class TestLandmarksMethods(geomstats.tests.TestCase):
+class TestLandmarks(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def setUp(self):
         s2 = Hypersphere(dim=2)

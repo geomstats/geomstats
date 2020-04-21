@@ -8,7 +8,7 @@ import geomstats.tests
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
-class TestSymmetricMatricesMethods(geomstats.tests.TestCase):
+class TestSymmetricMatrices(geomstats.tests.TestCase):
     """Test of SymmetricMatrices methods."""
 
     def setUp(self):

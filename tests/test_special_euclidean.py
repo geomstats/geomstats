@@ -26,7 +26,7 @@ RTOL = 1e-5
 # TODO(nina): Speed up tf tests
 
 
-class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
+class TestSpecialEuclidean(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
         gs.random.seed(1234)
