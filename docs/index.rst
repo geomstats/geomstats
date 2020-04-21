@@ -39,8 +39,7 @@ The code is object-oriented and classes inherit from
 scikit-learn's base classes and mixins.
 
 In both modules, the operations are vectorized for batch computation and provide
-support for different execution backends---namely NumPy, PyTorch, and TensorFlow---
-enabling GPU acceleration.
+support for different execution backends---namely NumPy, PyTorch, and TensorFlow.
 
 To learn how to use `geomstats`, visit the page :ref:`first_steps`.
 To contribute to `geomstats` visit the page :ref:`contributing`.
