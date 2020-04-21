@@ -4,7 +4,7 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
 from geomstats.geometry.special_euclidean import SpecialEuclidean
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal3
 from geomstats.learning.exponential_barycenter import ExponentialBarycenter
 from geomstats.learning.pca import TangentPCA
 
@@ -13,7 +13,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     def setUp(self):
-        self.so3 = SpecialOrthogonal(n=3)
+        self.so3 = SpecialOrthogonal3()
         self.spd = SPDMatrices(3)
         self.spd_metric = SPDMetricAffine(3)
 
@@ -114,7 +114,7 @@ class TestTangentPCA(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_fit_matrix_se(self):
-        se_mat = SpecialEuclidean(n=3, default_point_type='matrix')
+        se_mat = SpecialEuclidean(n=3)
         X = se_mat.random_uniform(self.n_samples)
         estimator = ExponentialBarycenter(se_mat)
         estimator.fit(X)
