@@ -1,5 +1,6 @@
 """Unit tests for the examples."""
 
+import logging
 import os
 import sys
 import warnings
@@ -40,6 +41,8 @@ class TestExamples(geomstats.tests.TestCase):
 
     @staticmethod
     def setUp():
+        logger = logging.getLogger()
+        logger.disabled = True
         warnings.simplefilter('ignore', category=ImportWarning)
         warnings.simplefilter('ignore', category=UserWarning)
         plt.rcParams.update({'figure.max_open_warning': 0})
