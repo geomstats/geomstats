@@ -27,7 +27,7 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
     def test_random_and_belongs(self):
         point = self.group.random_uniform()
         result = self.group.belongs(point)
-        expected = True
+        expected = [True]
         self.assertAllClose(result, expected)
 
     def test_random_and_belongs_vectorization(self):
