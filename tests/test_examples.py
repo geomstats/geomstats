@@ -31,6 +31,7 @@ import matplotlib
 matplotlib.use('Agg')  # NOQA
 import matplotlib.pyplot as plt
 
+import geomstats.backend as gs
 import geomstats.tests
 
 
