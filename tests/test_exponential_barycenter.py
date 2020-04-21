@@ -1,5 +1,7 @@
 """Unit tests for Exponential Barycenter mean."""
 
+import logging
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
@@ -13,6 +15,8 @@ from geomstats.learning.frechet_mean import FrechetMean
 class TestExponentialBarycenter(geomstats.tests.TestCase):
 
     def setUp(self):
+        logger = logging.getLogger()
+        logger.disabled = True
         self.se_mat = SpecialEuclidean(n=3)
         self.so_vec = SpecialOrthogonal3()
         self.so = SpecialOrthogonal(n=3)
