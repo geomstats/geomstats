@@ -50,6 +50,6 @@ To contribute to `geomstats` visit the page :ref:`contributing`.
 
    index.rst
    first-steps.rst
-   api-reference.rst
    examples.rst
+   api-reference.rst
    contributing.rst
