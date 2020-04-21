@@ -19,40 +19,42 @@ The module `geometry` implements concepts in differential geometry, and the modu
 From a terminal (OS X & Linux), you can install geomstats and its requirements with ``pip3`` as follows::
 
 ```
-pip3 install -r requirements.txt
 pip3 install geomstats
 ```
 
-This installs the latest version uploaded on PyPi.
+This method installs the latest version of geomstats that is uploaded on PyPi. Note that geomstats is only available with Python3.
 
 ## Install geomstats via Git
 
-From a terminal (OS X & Linux), you can install geomstats and its requirements via Git as follows::
+From a terminal (OS X & Linux), you can install geomstats and its requirements via ``git`` as follows::
 
 ```
-pip3 install -r requirements
 git clone https://github.com/geomstats/geomstats.git
+pip3 install -r requirements.txt
 ```
 
-This installs the latest GitHub version, useful for developers.
+This method installs the latest GitHub version of geomstats. Developers should install this version, together with the development requirements::
+
+```
+pip3 install -r dev-requirements.txt
+```
 
 ## Choose the backend
 
-You can choose your backend by setting the environment variable ``GEOMSTATS_BACKEND`` to ``numpy``, ``tensorflow`` or ``pytorch``. By default, the numpy backend is used. You should only use the numpy backend for examples with visualizations.
+Geomstats can run seemlessly with ``numpy``, ``tensorflow`` or ``pytorch``. Note that ``pytorch`` and ``tensorflow`` requirements are optional, as geomstats can be used with ``numpy`` only. By default, the ``numpy`` backend is used. The visualizations are only available with this backend.
 
-From the command line:
+You can choose your backend by setting the environment variable ``GEOMSTATS_BACKEND`` to ``numpy``, ``tensorflow`` or ``pytorch``, and importing the ``backend`` module. From the command line:
 
 ```
 export GEOMSTATS_BACKEND=pytorch
 ```
 
-and in the code:
+and in the Python3 code:
 
 ```
 import geomstats.backend as gs
 ```
 
-Note that pytorch and tensorflow requirements are optional, as geomstats can be used with numpy only.
 
 ## Getting started
 
@@ -64,8 +66,8 @@ algorithms on Riemannian manifolds, you need to follow three steps:
 
 The data should be represented by a ``gs.array``. This structure represents numpy arrays, or tensorflow/pytorch tensors, depending on the choice of backend.
 
-The following code snippet shows the use of tangent Principal Component Analysis on the
-space of 3D rotations, assuming ``data`` belongs to this space.
+The following code snippet shows the use of tangent Principal Component Analysis on simulated ``data`` on the
+space of 3D rotations.
 
 ```
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
@@ -74,8 +76,10 @@ from geomstats.learning.pca import TangentPCA
 so3 = SpecialOrthogonal(n=3)
 metric = so3.bi_invariant_metric
 
+data = so3.random_uniform(n_samples=10)
+
 tpca = TangentPCA(metric=metric, n_components=2)
-tpca = tpca.fit(data, base_point=metric.mean(data))
+tpca = tpca.fit(data)
 tangent_projected_data = tpca.transform(data)
 ```
 
@@ -83,6 +87,8 @@ All geometric computations are performed behind the scenes.
 The user only needs a high-level understanding of Riemannian geometry.
 Each algorithm can be used with any of the manifolds and metric
 implemented in the package.
+
+To see additional examples, go to the [examples directory](https://github.com/geomstats/geomstats/tree/master/examples).
 
 ## Contributing
 
