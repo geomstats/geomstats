@@ -44,3 +44,13 @@ enabling GPU acceleration.
 
 To learn how to use `geomstats`, visit the page :ref:`first_steps`.
 To contribute to `geomstats` visit the page :ref:`contributing`.
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Getting Started
+
+   index.rst
+   first-steps.rst
+   api-reference.rst
+   examples.rst
+   contributing.rst
