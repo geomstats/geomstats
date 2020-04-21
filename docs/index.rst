@@ -22,7 +22,7 @@ generally give a rotation matrix. Statistics for data on manifolds need to be ex
 In this context, Geomstats provides code to fulfill four objectives:
 
 - provide educational support to learn "hands-on" differential
-    geometry and geometric statistics, through its examples and visualizations.
+geometry and geometric statistics, through its examples and visualizations.
 - foster research in differential geometry and geometric statistics by
     providing operations on manifolds to gain intuition on results of a research paper;
 - democratize the use of geometric statistics by implementing
@@ -47,13 +47,3 @@ enabling GPU acceleration.
 
 To learn how to use `geomstats`, visit the page :ref:`first_steps`.
 To contribute to `geomstats` visit the page :ref:`contributing`.
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Getting Started
-
-   index.rst
-   first-steps.rst
-   examples.rst
-   api-reference.rst
-   contributing.rst
