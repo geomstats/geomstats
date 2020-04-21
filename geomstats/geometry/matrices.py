@@ -26,7 +26,6 @@ class Matrices(Euclidean):
     def belongs(self, point):
         """Check if point belongs to the Matrix space.
 
-
         Parameters
         ----------
         point : array-like, shape=[n_samples, (m,n)]
@@ -41,7 +40,7 @@ class Matrices(Euclidean):
 
     @staticmethod
     def equal(mat_a, mat_b, atol=TOLERANCE):
-        """ Test if matrices a and b are close.
+        """Test if matrices a and b are close.
 
         Parameters
         ----------
