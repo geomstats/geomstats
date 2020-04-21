@@ -1,6 +1,4 @@
-"""
-Unit tests for special orthogonal group SO(n).
-"""
+"""Unit tests for special orthogonal group SO(3)."""
 
 import warnings
 
@@ -19,7 +17,7 @@ ATOL = 1e-5
 # TODO(nina): Speed up tf tests
 
 
-class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
+class TestSpecialOrthogonal3Methods(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
         warnings.simplefilter('ignore', category=UserWarning)
