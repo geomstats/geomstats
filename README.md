@@ -40,11 +40,19 @@ This installs the latest GitHub version, useful for developers.
 
 You can choose your backend by setting the environment variable ``GEOMSTATS_BACKEND`` to ``numpy``, ``tensorflow`` or ``pytorch``. By default, the numpy backend is used. You should only use the numpy backend for examples with visualizations.
 
+From the command line:
+
 ```
 export GEOMSTATS_BACKEND=pytorch
 ```
 
-Pytorch and tensorflow requirements are optional, as geomstats can be used with numpy only.
+and in the code:
+
+```
+import geomstats.backend as gs
+```
+
+Note that pytorch and tensorflow requirements are optional, as geomstats can be used with numpy only.
 
 ## Getting started
 
@@ -53,7 +61,8 @@ algorithms on Riemannian manifolds, you need to follow three steps:
 - instantiate the manifold of interest,
 - instantiate the learning algorithm of interest,
 - run the algorithm.
-The data should be represented by the structure ``gs.array``, which represents numpy arrays, tensorflow or pytorch tensors, depending on the choice of backend.
+
+The data should be represented by a ``gs.array``. This structure represents numpy arrays, or tensorflow/pytorch tensors, depending on the choice of backend.
 
 The following code snippet shows the use of tangent Principal Component Analysis on the
 space of 3D rotations, assuming ``data`` belongs to this space.
