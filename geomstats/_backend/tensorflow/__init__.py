@@ -138,7 +138,7 @@ def _is_boolean(x):
     if isinstance(x, bool):
         return True
     if isinstance(x, (tuple, list)):
-        return isinstance(x[0], bool)
+        return _is_boolean(x[0])
     if tf.is_tensor(x):
         return x.dtype == bool
     return False
