@@ -67,38 +67,38 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
 
     def test_is_tangent(self):
         point = self.group.random_uniform()
-        theta = gs.pi / 3
+        theta = 1.
         vec_1 = gs.array([[0., - theta],
                          [theta, 0.]])
         vec_1 = self.group.compose(point, vec_1)
-        result = self.group.is_tangent(vec_1, point)
+        result = self.group.is_tangent(vec_1, point, atol=1e-6)
         expected = True
         self.assertAllClose(result, expected)
 
         vec_2 = gs.array([[0., - theta],
                          [theta, 1.]])
         vec_2 = self.group.compose(point, vec_2)
-        print(vec_2.shape)
-        result = self.group.is_tangent(vec_2, point)
+        result = self.group.is_tangent(vec_2, point, atol=1e-6)
         expected = False
         self.assertAllClose(result, expected)
 
         vec = gs.array([vec_1, vec_2])
         point = gs.array([point, point])
         expected = gs.array([True, False])
-        result = self.group.is_tangent(vec, point)
+        result = self.group.is_tangent(vec, point, atol=1e-6)
         self.assertAllClose(result, expected)
 
     def test_to_tangent(self):
-        rot_vecs = self.group.random_uniform(n_samples=self.n_samples)
-        tangent_vecs = self.group.log(rot_vecs)
-        result = self.group._to_lie_algebra(tangent_vecs)
-        expected = tangent_vecs
+        theta = 1.
+        vec_1 = gs.array([[0., - theta],
+                         [theta, 0.]])
+        result = self.group._to_lie_algebra(vec_1)
+        expected = vec_1
         self.assertAllClose(result, expected)
 
         n_samples = self.n_samples
         base_points = self.group.random_uniform(n_samples=n_samples)
-        tangent_vecs = self.group.compose(base_points, tangent_vecs)
+        tangent_vecs = self.group.compose(base_points, vec_1)
         result = self.group.to_tangent(tangent_vecs, base_points)
         expected = tangent_vecs
         self.assertAllClose(result, expected)

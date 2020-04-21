@@ -9,6 +9,9 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.matrices import Matrices
 
 
+TOLERANCE = 1e-8
+
+
 def loss(y_pred, y_true, group, metric=None):
     """Compute loss given by Riemannian metric.
 
@@ -389,7 +392,7 @@ class LieGroup(Manifold):
 
         return first_term - second_term
 
-    def _is_in_lie_algebra(self, tangent_vec):
+    def _is_in_lie_algebra(self, tangent_vec, tol=TOLERANCE):
         """Check wether a tangent vector belongs to the lie algebra.
 
         This method could also be in a separate class for the Lie algebra"""
@@ -397,7 +400,7 @@ class LieGroup(Manifold):
             'The Lie Algebra belongs method is not implemented'
         )
 
-    def is_tangent(self, tangent_vec, base_point=None):
+    def is_tangent(self, tangent_vec, base_point=None, atol=TOLERANCE):
         """Check whether the vector is tangent at base_point."""
         if base_point is None:
             base_point = self.identity
@@ -407,7 +410,7 @@ class LieGroup(Manifold):
         else:
             tangent_vec_at_id = self.compose(
                 self.inverse(base_point), tangent_vec)
-        is_tangent = self._is_in_lie_algebra(tangent_vec_at_id)
+        is_tangent = self._is_in_lie_algebra(tangent_vec_at_id, atol)
         return is_tangent
 
     def _to_lie_algebra(self, tangent_vec):

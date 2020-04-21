@@ -38,6 +38,7 @@ class Matrices(Manifold):
         ----------
         mat_a : array-like, shape=[n_samples, dim1, dim2]
         mat_b : array-like, shape=[n_samples, dim2, dim3]
+        atol
 
         Returns
         -------

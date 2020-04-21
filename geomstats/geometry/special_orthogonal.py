@@ -45,8 +45,8 @@ class SpecialOrthogonal(GeneralLinear, LieGroup):
         """Return the transpose matrix of point."""
         return cls.transpose(point)
 
-    def _is_in_lie_algebra(self, tangent_vec):
-        return self.lie_algebra.belongs(tangent_vec)
+    def _is_in_lie_algebra(self, tangent_vec, atol=ATOL):
+        return self.lie_algebra.belongs(tangent_vec, atol=atol)
 
     @classmethod
     def _to_lie_algebra(cls, tangent_vec):
