@@ -9,6 +9,9 @@ We solve the following optimization problem:
 Using by operating a gradient descent of the quadratic form
 on the sphere. We solve this in dimension 3 on the 2-sphere
 manifold so that we can visualize and render the path as a video.
+
+To run this example, you need to install ffmpeg:
+    pip3 install ffmpeg
 """
 
 import logging
@@ -67,7 +70,7 @@ def plot_and_save_video(geodesics,
     FFMpegWriter = animation.writers['ffmpeg']
     writer = FFMpegWriter(fps=fps)
     fig = plt.figure(figsize=(size, size))
-    ax = fig.add_subplot(111, projection='3d', aspect='equal')
+    ax = fig.add_subplot(111, projection='3d')
     sphere = visualization.Sphere()
     sphere.plot_heatmap(ax, loss)
     points = gs.to_ndarray(geodesics[0], to_ndim=2)
