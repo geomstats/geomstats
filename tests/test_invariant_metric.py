@@ -2,6 +2,7 @@
 Unit tests for the invariant metrics on Lie groups.
 """
 
+import logging
 import warnings
 
 import tests.helper as helper
@@ -16,6 +17,8 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 class TestInvariantMetricMethods(geomstats.tests.TestCase):
     def setUp(self):
+        logger = logging.getLogger()
+        logger.disabled = True
         warnings.simplefilter('ignore', category=ImportWarning)
 
         gs.random.seed(1234)
