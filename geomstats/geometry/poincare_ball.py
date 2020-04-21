@@ -167,9 +167,7 @@ class PoincareBallMetric(RiemannianMetric):
 
         log = (1 - norm_base_point**2) * gs.arctanh(norm_add)
         log = gs.einsum(
-                '...i,...j->...j',
-                log,
-                add_base_point)
+            '...i,...j->...j', log, add_base_point)
 
         mask_0 = gs.isclose(gs.squeeze(norm_add, axis=-1), 0.)
         mask_non0 = ~mask_0
