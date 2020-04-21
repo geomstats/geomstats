@@ -23,6 +23,7 @@ PI8 = PI * PI7
 
 
 ATOL = 1e-5
+TOLERANCE = 1e-8
 
 TAYLOR_COEFFS_1_AT_0 = [+ 1. / 2., 0.,
                         - 1. / 24., 0.,
@@ -74,7 +75,7 @@ class SpecialEuclidean(GeneralLinear, LieGroup):
             return gs.squeeze(belongs)
         return gs.flatten(belongs)
 
-    def _is_in_lie_algebra(self, tangent_vec):
+    def _is_in_lie_algebra(self, tangent_vec, atol=TOLERANCE):
         """Project vector rotation part onto skew-symmetric matrices."""
         point_dim1, point_dim2 = tangent_vec.shape[-2:]
         belongs = (point_dim1 == point_dim2 == self.n + 1)
@@ -88,7 +89,7 @@ class SpecialEuclidean(GeneralLinear, LieGroup):
         all_zeros = ~ gs.any(last_line, axis=-1)
 
         belongs = gs.logical_and(belongs, all_zeros)
-        return gs.flatten(belongs)
+        return belongs
 
     def _to_lie_algebra(self, tangent_vec):
         """Project vector rotation part onto skew-symmetric matrices."""

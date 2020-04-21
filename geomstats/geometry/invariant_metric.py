@@ -74,7 +74,6 @@ class InvariantMetric(RiemannianMetric):
 
         if self.group.default_point_type == 'vector':
             inner_product_mat_at_identity = self.inner_product_mat_at_identity
-
             inner_prod = gs.einsum(
                 '...i,...ij->...j',
                 tangent_vec_a,
@@ -366,7 +365,7 @@ class InvariantMetric(RiemannianMetric):
         log_from_id = self.log_from_identity(point_near_id)
         jacobian = self.group.jacobian_translation(
             base_point, left_or_right=self.left_or_right)
-        log = gs.einsum('...ij,...j', jacobian, log_from_id)
+        log = gs.einsum('...ij,...j->...i', jacobian, log_from_id)
         return log
 
 

@@ -220,17 +220,17 @@ class LieGroup(Manifold):
         """
         if point_type == 'vector':
             jacobian = self.jacobian_translation(
-                point=base_point, left_or_right='left', point_type=point_type)
+                point=base_point, left_or_right='left')
             inv_jacobian = gs.linalg.inv(jacobian)
 
             tangent_vec_at_id = gs.einsum(
                 '...i,...ij->...j',
                 tangent_vec, Matrices.transpose(inv_jacobian))
             exp_from_identity = self.exp_from_identity(
-                tangent_vec=tangent_vec_at_id, point_type=point_type)
+                tangent_vec=tangent_vec_at_id)
             exp = self.compose(
-                base_point, exp_from_identity, point_type=point_type)
-            exp = self.regularize(exp, point_type=point_type)
+                base_point, exp_from_identity)
+            exp = self.regularize(exp)
             return exp
 
         if point_type == 'matrix':
@@ -260,14 +260,14 @@ class LieGroup(Manifold):
         """
         if point_type is None:
             point_type = self.default_point_type
-        identity = self.get_identity(point_type=point_type)
+        identity = self.get_identity()
 
         if base_point is None:
             base_point = identity
-        base_point = self.regularize(base_point, point_type=point_type)
+        base_point = self.regularize(base_point)
 
         if gs.allclose(base_point, identity):
-            result = self.exp_from_identity(tangent_vec, point_type=point_type)
+            result = self.exp_from_identity(tangent_vec)
         else:
             result = self.exp_not_from_identity(
                 tangent_vec, base_point, point_type)
@@ -306,11 +306,11 @@ class LieGroup(Manifold):
         """
         if point_type == 'vector':
             jacobian = self.jacobian_translation(
-                point=base_point, left_or_right='left', point_type=point_type)
+                point=base_point, left_or_right='left')
             point_near_id = self.compose(
-                self.inverse(base_point), point, point_type=point_type)
+                self.inverse(base_point), point)
             log_from_id = self.log_from_identity(
-                point=point_near_id, point_type=point_type)
+                point=point_near_id)
 
             log = gs.einsum(
                 '...i,...ij->...j', log_from_id, Matrices.transpose(jacobian))
@@ -346,11 +346,11 @@ class LieGroup(Manifold):
         if base_point is None:
             base_point = identity
 
-        point = self.regularize(point, point_type=point_type)
-        base_point = self.regularize(base_point, point_type=point_type)
+        point = self.regularize(point)
+        base_point = self.regularize(base_point)
 
         if gs.allclose(base_point, identity):
-            result = self.log_from_identity(point, point_type=point_type)
+            result = self.log_from_identity(point)
         else:
             result = self.log_not_from_identity(point, base_point, point_type)
         return result
@@ -382,7 +382,7 @@ class LieGroup(Manifold):
             point_type = self.default_point_type
         if base_point is None:
             base_point = self.get_identity(point_type=point_type)
-        inverse_base_point = self.inverse(base_point, point_type=point_type)
+        inverse_base_point = self.inverse(base_point)
 
         first_term = Matrices.mul(inverse_base_point, tangent_vector_b)
         first_term = Matrices.mul(tangent_vector_a, first_term)

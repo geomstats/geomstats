@@ -70,26 +70,21 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         canonical_metrics = {n: group.bi_invariant_metric
                              for n, group in so.items()}
 
-        diag_mats = {n: 9 * gs.eye(group.dim)
-                     for n, group in so.items()}
+        diag_mats = {n: 9 * gs.eye(group.dim) for n, group in so.items()}
         left_diag_metrics = {
             n: InvariantMetric(
-                group=group,
-                inner_product_mat_at_identity=diag_mat,
+                group=so[n],
+                inner_product_mat_at_identity=diag_mats[n],
                 left_or_right='left')
-            for n, group, diag_mat in zip(n_seq,
-                                          so.values(),
-                                          diag_mats.values())
+            for n in n_seq
         }
 
         right_diag_metrics = {
             n: InvariantMetric(
-                group=group,
-                inner_product_mat_at_identity=diag_mat,
+                group=so[n],
+                inner_product_mat_at_identity=diag_mats[n],
                 left_or_right='right')
-            for n, group, diag_mat in zip(n_seq,
-                                          so.values(),
-                                          diag_mats.values())
+            for n in n_seq
         }
 
         mats = {2: 4 * gs.eye(1),
@@ -129,11 +124,10 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
         if geomstats.tests.tf_backend():
             metrics = {
                 n: {'right': InvariantMetric(
-                    group=group,
-                    inner_product_mat_at_identity=mat,
+                    group=so[n],
+                    inner_product_mat_at_identity=mats[n],
                     left_or_right='right')}
-                for n, group, mat in zip(n_seq, so.values(), mats.values())
-            }
+                for n in n_seq}
 
         angles_close_to_pi_all = {
             3: ['with_angle_close_pi_low',
@@ -3114,8 +3108,6 @@ class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
                         base_point=base_point,
                         metric=metric)
                     expected = reg_tangent_vec
-                    if result.shape == (1,):
-                        print(metric_type, angle_type, angle_type_base)
                     self.assertAllClose(result, expected, atol=1e-4)
 
     def test_exp_then_log_with_angles_close_to_pi(self):
