@@ -1,5 +1,6 @@
 """Unit tests for the examples."""
 
+import logging
 import os
 import sys
 import warnings
@@ -30,6 +31,7 @@ import matplotlib
 matplotlib.use('Agg')  # NOQA
 import matplotlib.pyplot as plt
 
+import geomstats.backend as gs
 import geomstats.tests
 
 
@@ -40,6 +42,9 @@ class TestExamples(geomstats.tests.TestCase):
 
     @staticmethod
     def setUp():
+        gs.random.seed(1234)
+        logger = logging.getLogger()
+        logger.disabled = True
         warnings.simplefilter('ignore', category=ImportWarning)
         warnings.simplefilter('ignore', category=UserWarning)
         plt.rcParams.update({'figure.max_open_warning': 0})
