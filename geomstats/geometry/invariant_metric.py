@@ -364,14 +364,9 @@ class InvariantMetric(RiemannianMetric):
                 point, self.group.inverse(base_point))
 
         log_from_id = self.log_from_identity(point_near_id)
-
         jacobian = self.group.jacobian_translation(
             base_point, left_or_right=self.left_or_right)
-
-        log = gs.einsum(
-            '...j,...jk->...k',
-            log_from_id,
-            Matrices.transpose(jacobian))
+        log = gs.einsum('...ij,...j', jacobian, log_from_id)
         return log
 
 

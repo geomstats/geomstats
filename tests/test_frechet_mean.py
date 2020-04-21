@@ -106,6 +106,19 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
+    def test_estimate_default_gradient_descent_so3(self):
+        points = self.so3.random_uniform(2)
+
+        mean_vec = FrechetMean(
+            metric=self.so3.bi_invariant_metric, method='default')
+        mean_vec.fit(points)
+
+        logs = self.so3.bi_invariant_metric.log(points, mean_vec.estimate_)
+        result = gs.sum(logs, axis=0)
+        expected = gs.zeros_like(points[0])
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
     def test_estimate_and_belongs_default_gradient_descent_so3(self):
         point = self.so3.random_uniform(10)
 
@@ -115,6 +128,19 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         result = self.so3.belongs(mean_vec.estimate_)
         expected = True
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_estimate_default_gradient_descent_so_matrix(self):
+        points = self.so_matrix.random_uniform(2)
+
+        mean_vec = FrechetMean(
+            metric=self.so_matrix.bi_invariant_metric, method='default')
+        mean_vec.fit(points)
+
+        logs = self.so_matrix.bi_invariant_metric.log(points, mean_vec.estimate_)
+        result = gs.sum(logs, axis=0)
+        expected = gs.zeros_like(points[0])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only

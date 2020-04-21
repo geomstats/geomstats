@@ -252,8 +252,6 @@ class SpecialOrthogonal3(LieGroup):
             Point on the manifold.
         metric : RiemannianMetric, optional
             default: self.left_canonical_metric
-        point_type : str, {'vector', 'matrix'}, optional
-            default: self.default_point_type
 
         Returns
         -------
@@ -1159,8 +1157,7 @@ class SpecialOrthogonal3(LieGroup):
 
         point_a = self.matrix_from_rotation_vector(point_a)
         point_b = self.matrix_from_rotation_vector(point_b)
-
-        point_prod = gs.einsum('...jk,...kl->...jl', point_a, point_b)
+        point_prod = gs.matmul(point_a, point_b)
 
         point_prod = self.rotation_vector_from_matrix(point_prod)
         point_prod = self.regularize(point_prod)

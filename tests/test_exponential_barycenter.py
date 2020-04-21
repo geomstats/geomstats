@@ -70,6 +70,18 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
+    def test_estimate_so_matrix(self):
+        points = self.so.random_uniform(2)
+
+        mean_vec = ExponentialBarycenter(group=self.so)
+        mean_vec.fit(points)
+
+        logs = self.so.log(points, mean_vec.estimate_)
+        result = gs.sum(logs, axis=0)
+        expected = gs.zeros_like(points[0])
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
     def test_estimate_and_belongs_so(self):
         point = self.so.random_uniform(self.n_samples)
         estimator = ExponentialBarycenter(self.so)
@@ -125,12 +137,11 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
     def test_coincides_with_frechet_so(self):
         gs.random.seed(0)
         point = self.so.random_uniform(self.n_samples)
-        estimator = ExponentialBarycenter(self.so, max_iter=40, epsilon=1e-12)
+        estimator = ExponentialBarycenter(self.so, max_iter=40, epsilon=1e-10)
         estimator.fit(point)
         result = estimator.estimate_
         frechet_estimator = FrechetMean(
-            self.so.bi_invariant_metric, max_iter=40, epsilon=1e-10,
-            point_type='matrix')
+            self.so.bi_invariant_metric, max_iter=40, epsilon=1e-10)
         frechet_estimator.fit(point)
         expected = frechet_estimator.estimate_
         self.assertAllClose(result, expected)
