@@ -19,7 +19,7 @@ ATOL = 1e-5
 # TODO(nina): Speed up tf tests
 
 
-class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
+class TestSpecialOrthogonal(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
         warnings.simplefilter('ignore', category=UserWarning)

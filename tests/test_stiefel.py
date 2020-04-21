@@ -17,7 +17,7 @@ r_z = gs.array([[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]])
 point1 = gs.array([[1., 0.], [0., 1.], [0., 0.]])
 
 
-class TestStiefelMethods(geomstats.tests.TestCase):
+class TestStiefel(geomstats.tests.TestCase):
     def setUp(self):
         """
         Tangent vectors constructed following:

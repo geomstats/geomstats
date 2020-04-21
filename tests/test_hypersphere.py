@@ -11,7 +11,7 @@ KAPPA_ESTIMATION_TOL = 1e-2
 ONLINE_KMEANS_TOL = 2e-2
 
 
-class TestHypersphereMethods(geomstats.tests.TestCase):
+class TestHypersphere(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
 

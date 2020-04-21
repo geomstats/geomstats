@@ -10,7 +10,7 @@ from geomstats.geometry.discretized_curves import DiscretizedCurves
 from geomstats.geometry.hypersphere import Hypersphere
 
 
-class TestDiscretizedCurvesMethods(geomstats.tests.TestCase):
+class TestDiscretizedCurves(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def setUp(self):
         s2 = Hypersphere(dim=2)

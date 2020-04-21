@@ -9,7 +9,7 @@ from geomstats.geometry.general_linear import GeneralLinear
 RTOL = 1e-5
 
 
-class TestGeneralLinearMethods(geomstats.tests.TestCase):
+class TestGeneralLinear(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
         self.n = 3

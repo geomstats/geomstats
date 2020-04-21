@@ -5,7 +5,7 @@ import geomstats.tests
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 
 
-class TestLieAlgebraMethods(geomstats.tests.TestCase):
+class TestLieAlgebra(geomstats.tests.TestCase):
     def setUp(self):
         self.n = 4
         self.dim = int(self.n * (self.n - 1) / 2)

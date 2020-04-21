@@ -10,7 +10,7 @@ import geomstats.tests
 from geomstats.geometry.minkowski import Minkowski
 
 
-class TestMinkowskiMethods(geomstats.tests.TestCase):
+class TestMinkowski(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
 

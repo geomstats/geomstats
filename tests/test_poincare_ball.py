@@ -15,7 +15,7 @@ from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.poincare_ball import PoincareBall
 
 
-class TestPoincareBallMethods(geomstats.tests.TestCase):
+class TestPoincareBall(geomstats.tests.TestCase):
     def setUp(self):
         self.manifold = PoincareBall(2)
         self.metric = self.manifold.metric
