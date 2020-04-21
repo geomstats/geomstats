@@ -4,6 +4,7 @@ import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats import algebra_utils
 from geomstats.geometry.general_linear import GeneralLinear
+from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
@@ -32,6 +33,7 @@ class SpecialOrthogonal(GeneralLinear, LieGroup):
         super(SpecialOrthogonal, self).__init__(
             dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n)
         self.lie_algebra = SkewSymmetricMatrices(n=n)
+        self.bi_invariant_metric = BiInvariantMetric(group=self)
 
     def belongs(self, point):
         """Check whether point is an orthogonal matrix."""
@@ -83,7 +85,7 @@ class SpecialOrthogonal3(LieGroup):
 
         self.n = 3
         self.epsilon = epsilon
-        self.bi_invariant_metric = self.left_canonical_metric
+        self.bi_invariant_metric = BiInvariantMetric(group=self)
 
     def get_identity(self, point_type='vector'):
         """Get the identity of the group.

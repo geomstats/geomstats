@@ -6,7 +6,7 @@ import geomstats.backend as gs
 import geomstats.error
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.riemannian_metric import RiemannianMetric, Connection
 
 
 class InvariantMetric(RiemannianMetric):
@@ -30,7 +30,8 @@ class InvariantMetric(RiemannianMetric):
 
     def __init__(self, group,
                  inner_product_mat_at_identity=None,
-                 left_or_right='left'):
+                 left_or_right='left', **kwargs):
+        super(InvariantMetric, self).__init__(dim=group.dim, **kwargs)
 
         self.group = group
         if inner_product_mat_at_identity is None:
@@ -372,3 +373,45 @@ class InvariantMetric(RiemannianMetric):
             log_from_id,
             Matrices.transpose(jacobian))
         return log
+
+
+class BiInvariantMetric(InvariantMetric):
+    def __init__(self, group):
+        super(BiInvariantMetric, self).__init__(
+            group=group, inner_product_mat_at_identity=gs.eye(group.dim),
+            default_point_type=group.default_point_type)
+
+    def exp_from_identity(self, tangent_vec):
+        """Compute Riemannian exponential of tangent vector from the identity.
+
+        For a bi-invariant metric, this corresponds to the group exponential.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[n_samples, {dim, [n, n]}]
+            Tangent vector at identity.
+
+        Returns
+        -------
+        exp : array-like, shape=[n_samples, {dim, [n, n]}]
+            Point in the group.
+        """
+        return self.group.exp(tangent_vec)
+
+    def log_from_identity(self, point):
+        """Compute Riemannian logarithm of a point wrt the identity.
+
+        For a bi-invariant metric this corresponds to the group logarithm.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, {dim, [n, n]}]
+            Point in the group.
+
+        Returns
+        -------
+        log : array-like, shape=[n_samples, {dim, [n, n]}]
+            Tangent vector at the identity equal to the Riemannian logarithm
+            of point at the identity.
+        """
+        return self.group.log(point)

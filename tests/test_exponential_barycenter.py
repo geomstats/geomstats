@@ -121,23 +121,19 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    # @geomstats.tests.np_only
-    # def test_coincides_with_frechet_so(self):
-    #     gs.random.seed(0)
-    #     point = self.so.random_uniform(self.n_samples)
-    #     estimator = ExponentialBarycenter(
-    #         self.so, max_iter=40, epsilon=1e-12)
-    #     estimator.fit(point)
-    #     result = estimator.estimate_
-    #     frechet_estimator = FrechetMean(
-    #         self.so_vec.bi_invariant_metric, max_iter=40, epsilon=1e-10,
-    #         point_type='vector')
-    #     vector_point = self.so_vec.rotation_vector_from_matrix(point)
-    #     frechet_estimator.fit(vector_point)
-    #     mean = frechet_estimator.estimate_
-    #     expected = self.so_vec.matrix_from_rotation_vector(mean)
-    #     result = estimator.estimate_
-    #     self.assertAllClose(result, expected)
+    @geomstats.tests.np_only
+    def test_coincides_with_frechet_so(self):
+        gs.random.seed(0)
+        point = self.so.random_uniform(self.n_samples)
+        estimator = ExponentialBarycenter(self.so, max_iter=40, epsilon=1e-12)
+        estimator.fit(point)
+        result = estimator.estimate_
+        frechet_estimator = FrechetMean(
+            self.so.bi_invariant_metric, max_iter=40, epsilon=1e-10,
+            point_type='matrix')
+        frechet_estimator.fit(point)
+        expected = frechet_estimator.estimate_
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_estimate_weights(self):

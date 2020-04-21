@@ -6,7 +6,7 @@ import logging
 
 import geomstats.backend as gs
 import geomstats.geometry.lie_group as lie_group
-from geomstats.geometry.special_orthogonal3 import SpecialOrthogonal3
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal3
 
 
 SO3 = SpecialOrthogonal3()

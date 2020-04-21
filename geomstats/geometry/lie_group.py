@@ -170,7 +170,7 @@ class LieGroup(Manifold):
             the jacobian of the left/right translation by point
         """
         if point_type is None:
-           point_type = self.default_point_type
+            point_type = self.default_point_type
 
         geomstats.error.check_parameter_accepted_values(
             point_type, 'point_type', ['vector', 'matrix'])
