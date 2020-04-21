@@ -5,7 +5,7 @@
 Geomstats is an open-source Python package for computations and statistics on manifolds. The package is organized into two main modules:
 ``geometry`` and ``learning``.
 
-The module `geometry` implements concepts in differential geometry,and the module `learning` implements statistics and learning algorithms for data on manifolds.
+The module `geometry` implements concepts in differential geometry, and the module `learning` implements statistics and learning algorithms for data on manifolds.
 
 <img align="left" src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=110 height=110>
 
@@ -28,9 +28,11 @@ This installs the latest version uploaded on PyPi.
 ## Install geomstats via Git
 
 From a terminal (OS X & Linux), you can install geomstats and its requirements via Git as follows::
+
 ```
 pip3 install -r requirements
 git clone https://github.com/geomstats/geomstats.git
+```
 
 This installs the latest GitHub version, useful for developers.
 
@@ -46,7 +48,7 @@ Pytorch and tensorflow requirements are optional, as geomstats can be used with 
 
 ## Getting started
 
-To use `geomstats` for learning
+To use ``geomstats`` for learning
 algorithms on Riemannian manifolds, you need to follow three steps:
 - instantiate the manifold of interest,
 - instantiate the learning algorithm of interest,
