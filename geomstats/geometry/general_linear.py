@@ -18,8 +18,8 @@ class GeneralLinear(Matrices):
         _, mat_dim_1, mat_dim_2 = point.shape
         det = gs.linalg.det(point)
         return gs.logical_and(
-            mat_dim_1 == self.n and mat_dim_2 == self.n, gs.where(
-                det != 0., gs.array(True), gs.array(False)))
+            mat_dim_1 == self.n and mat_dim_2 == self.n,
+            det != 0.)
 
     def identity(self):
         """Return the identity matrix."""
