@@ -41,7 +41,6 @@ class TestGrassmannianMethods(geomstats.tests.TestCase):
         self.space = Grassmannian(self.n, self.k)
         self.metric = GrassmannianCanonicalMetric(self.n, self.k)
 
-    @geomstats.tests.np_only
     def test_exp_np(self):
         result = self.metric.exp(
             pi_2 * r_y,

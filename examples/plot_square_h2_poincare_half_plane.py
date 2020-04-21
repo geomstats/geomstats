@@ -16,6 +16,7 @@ SQUARE_SIZE = 50
 
 
 def main():
+    """Plot a square on H2 with Poincare half-plane visualization."""
     top = SQUARE_SIZE / 2.0
     bot = - SQUARE_SIZE / 2.0
     left = - SQUARE_SIZE / 2.0

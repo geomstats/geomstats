@@ -25,7 +25,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_estimate_and_belongs_se(self):
         point = self.se_mat.random_uniform(self.n_samples)
-        estimator = ExponentialBarycenter(self.se_mat, verbose=True)
+        estimator = ExponentialBarycenter(self.se_mat)
         estimator.fit(point)
         barexp = estimator.estimate_
         result = self.se_mat.belongs(barexp)

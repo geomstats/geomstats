@@ -1,6 +1,4 @@
-"""
-Predict on SE3: losses.
-"""
+"""Predict on SE3: losses."""
 
 import logging
 
@@ -17,9 +15,23 @@ SO3 = SpecialOrthogonal3()
 def loss(y_pred, y_true,
          metric=SE3.left_canonical_metric,
          representation='vector'):
-    """
-    Loss function given by a Riemannian metric on a Lie group,
-    by default the left-invariant canonical metric.
+    """Loss function given by a Riemannian metric on a Lie group.
+
+    Parameters
+    ----------
+    y_pred : array-like
+        Prediction on SE(3).
+    y_true : array-like
+        Ground-truth on SE(3).
+    metric : RiemannianMetric
+        Metric used to compute the loss and gradient.
+    representation : str, {'vector', 'matrix'}
+        Representation chosen for points in SE(3).
+
+    Returns
+    -------
+    lie_loss : array-like
+        Loss using the Riemannian metric.
     """
     if gs.ndim(y_pred) == 1:
         y_pred = gs.expand_dims(y_pred, axis=0)
@@ -32,17 +44,35 @@ def loss(y_pred, y_true,
         y_true_rot_vec = SO3.rotation_vector_from_quaternion(y_true[:, :4])
         y_true = gs.hstack([y_true_rot_vec, y_true[:, 4:]])
 
-    loss = lie_group.loss(y_pred, y_true, SE3, metric)
-    return loss
+    lie_loss = lie_group.loss(y_pred, y_true, SE3, metric)
+    if gs.ndim(lie_loss) == 2:
+        lie_loss = gs.squeeze(lie_loss, axis=1)
+    if gs.ndim(lie_loss) == 1 and gs.shape(lie_loss)[0] == 1:
+        lie_loss = gs.squeeze(lie_loss, axis=0)
+
+    return lie_loss
 
 
 def grad(y_pred, y_true,
          metric=SE3.left_canonical_metric,
          representation='vector'):
-    """
-    Closed-form for the gradient of pose_loss.
+    """Closed-form for the gradient of pose_loss.
 
-    :return: tangent vector at point y_pred.
+    Parameters
+    ----------
+    y_pred : array-like
+        Prediction on SE(3).
+    y_true : array-like
+        Ground-truth on SE(3).
+    metric : RiemannianMetric
+        Metric used to compute the loss and gradient.
+    representation : str, {'vector', 'matrix'}
+        Representation chosen for points in SE(3).
+
+    Returns
+    -------
+    lie_grad : array-like
+        Tangent vector at point y_pred.
     """
     if gs.ndim(y_pred) == 1:
         y_pred = gs.expand_dims(y_pred, axis=0)
@@ -50,7 +80,7 @@ def grad(y_pred, y_true,
         y_true = gs.expand_dims(y_true, axis=0)
 
     if representation == 'vector':
-        grad = lie_group.grad(y_pred, y_true, SE3, metric)
+        lie_grad = lie_group.grad(y_pred, y_true, SE3, metric)
 
     if representation == 'quaternion':
 
@@ -58,7 +88,7 @@ def grad(y_pred, y_true,
         y_pred_pose = gs.hstack([y_pred_rot_vec, y_pred[:, 4:]])
         y_true_rot_vec = SO3.rotation_vector_from_quaternion(y_true[:, :4])
         y_true_pose = gs.hstack([y_true_rot_vec, y_true[:, 4:]])
-        grad = lie_group.grad(y_pred_pose, y_true_pose, SE3, metric)
+        lie_grad = lie_group.grad(y_pred_pose, y_true_pose, SE3, metric)
 
         quat_scalar = y_pred[:, :1]
         quat_vec = y_pred[:, 1:4]
@@ -88,13 +118,14 @@ def grad(y_pred, y_true,
         differential = gs.vstack((top, bottom))
         differential = gs.expand_dims(differential, axis=0)
 
-        grad = gs.einsum('ni,nij->ni', grad, differential)
+        lie_grad = gs.einsum('ni,nij->ni', lie_grad, differential)
 
-    grad = gs.squeeze(grad, axis=0)
-    return grad
+    lie_grad = gs.squeeze(lie_grad, axis=0)
+    return lie_grad
 
 
 def main():
+    """Print loss and gradient on SE(3)."""
     y_pred = gs.array([1., 1.5, -0.3, 5., 6., 7.])
     y_true = gs.array([0.1, 1.8, -0.1, 4., 5., 6.])
 

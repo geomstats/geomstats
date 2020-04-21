@@ -1,4 +1,4 @@
-"""Perform tangent PCA at the mean."""
+"""Perform tangent PCA at the mean on SO(3)."""
 
 import logging
 
@@ -18,7 +18,7 @@ N_COMPONENTS = 2
 
 
 def main():
-    """Perform tangent PCA at the mean."""
+    """Perform tangent PCA at the mean on SO(3)."""
     fig = plt.figure(figsize=(15, 5))
 
     data = SO3_GROUP.random_uniform(n_samples=N_SAMPLES)

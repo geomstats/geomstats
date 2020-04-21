@@ -59,8 +59,7 @@ def grad_squared_distance(point_a, point_b):
         Geodesic squared distance between the two points.
     """
     hyperbolic_metric = PoincareBall(2).metric
-    log_map =\
-        hyperbolic_metric.log(point_b, point_a)
+    log_map = hyperbolic_metric.log(point_b, point_a)
 
     return -2 * log_map
 
@@ -123,6 +122,7 @@ def main():
     Learns Poincaré Ball embedding by using Riemannian
     gradient descent algorithm.
     """
+    gs.random.seed(1234)
     dim = 2
     max_epochs = 100
     lr = .05
