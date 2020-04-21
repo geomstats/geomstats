@@ -6,11 +6,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
-from geomstats.geometry.special_orthogonal3 import SpecialOrthogonal
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal3
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.pca import TangentPCA
 
-SO3_GROUP = SpecialOrthogonal(n=3)
+SO3_GROUP = SpecialOrthogonal3()
 METRIC = SO3_GROUP.bi_invariant_metric
 
 N_SAMPLES = 10

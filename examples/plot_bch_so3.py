@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
-from geomstats.geometry.special_orthogonal3 import SpecialOrthogonal
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 N = 3

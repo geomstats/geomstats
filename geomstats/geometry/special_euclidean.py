@@ -10,7 +10,7 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.geometry.special_orthogonal3 import SpecialOrthogonal3
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal3
 
 PI = gs.pi
 PI2 = PI * PI

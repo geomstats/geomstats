@@ -5,7 +5,7 @@ import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.geometry.special_orthogonal3 import SpecialOrthogonal3
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal3
 from geomstats.learning.exponential_barycenter import ExponentialBarycenter
 from geomstats.learning.frechet_mean import FrechetMean
 
@@ -24,7 +24,6 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         estimator = ExponentialBarycenter(self.se_mat, verbose=True)
         estimator.fit(point)
         barexp = estimator.estimate_
-        print(barexp)
         result = self.se_mat.belongs(barexp)
         expected = True
         self.assertAllClose(result, expected)
@@ -126,7 +125,8 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
     # def test_coincides_with_frechet_so(self):
     #     gs.random.seed(0)
     #     point = self.so.random_uniform(self.n_samples)
-    #     estimator = ExponentialBarycenter(self.so, max_iter=40, epsilon=1e-12)
+    #     estimator = ExponentialBarycenter(
+    #         self.so, max_iter=40, epsilon=1e-12)
     #     estimator.fit(point)
     #     result = estimator.estimate_
     #     frechet_estimator = FrechetMean(
