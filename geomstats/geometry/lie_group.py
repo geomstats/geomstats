@@ -106,7 +106,7 @@ class LieGroup(Manifold):
 
     identity = property(get_identity)
 
-    def compose(self, point_a, point_b, point_type=None):
+    def compose(self, point_a, point_b):
         """Perform function composition corresponding to the Lie group.
 
         Multiply the elements `point_a` and `point_b`.
@@ -392,7 +392,7 @@ class LieGroup(Manifold):
 
         return first_term - second_term
 
-    def _is_in_lie_algebra(self, tangent_vec, tol=TOLERANCE):
+    def _is_in_lie_algebra(self, tangent_vec, atol=TOLERANCE):
         """Check wether a tangent vector belongs to the lie algebra.
 
         This method could also be in a separate class for the Lie algebra"""

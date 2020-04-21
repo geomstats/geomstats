@@ -21,7 +21,7 @@ class Manifold:
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
 
-    def belongs(self, point, point_type=None):
+    def belongs(self, point):
         """Evaluate if a point belongs to the manifold.
 
         Parameters
@@ -35,7 +35,7 @@ class Manifold:
         """
         raise NotImplementedError('belongs is not implemented.')
 
-    def regularize(self, point, point_type=None):
+    def regularize(self, point):
         """Regularize a point to the canonical representation for the manifold.
 
         Parameters

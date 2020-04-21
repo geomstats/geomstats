@@ -126,7 +126,7 @@ class SpecialOrthogonal3(LieGroup):
             belongs = gs.tile([belongs], (point.shape[0],))
         return belongs
 
-    def regularize(self, point, point_type=None):
+    def regularize(self, point):
         """Regularize a point to be in accordance with convention.
 
         In 3D, regularize the norm of the rotation vector,
@@ -139,13 +139,11 @@ class SpecialOrthogonal3(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dim, [n, n]}]
-        point_type : str, {'vector', 'matrix'}, optional
-            default: self.default_point_type
+        point : array-like, shape=[n_samples,3]
 
         Returns
         -------
-        regularized_point : array-like, shape=[n_samples, {dim, [n, n]}]
+        regularized_point : array-like, shape=[n_samples, 3]
         """
         regularized_point = point
         angle = gs.linalg.norm(regularized_point, axis=-1)
@@ -1016,8 +1014,9 @@ class SpecialOrthogonal3(LieGroup):
         rot_vec = self.regularize(rot_vec)
         return rot_vec
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
-    def tait_bryan_angles_from_quaternion_intrinsic_zyx(self, quaternion):
+    @staticmethod
+    @geomstats.vectorization.decorator(['vector'])
+    def tait_bryan_angles_from_quaternion_intrinsic_zyx(quaternion):
         """Convert quaternion to tait bryan representation of order zyx.
 
         Parameters
@@ -1038,8 +1037,9 @@ class SpecialOrthogonal3(LieGroup):
             [angle_1, angle_2, angle_3], axis=1)
         return tait_bryan_angles
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
-    def tait_bryan_angles_from_quaternion_intrinsic_xyz(self, quaternion):
+    @staticmethod
+    @geomstats.vectorization.decorator(['vector'])
+    def tait_bryan_angles_from_quaternion_intrinsic_xyz(quaternion):
         """Convert quaternion to tait bryan representation of order xyz.
 
         Parameters
@@ -1165,14 +1165,12 @@ class SpecialOrthogonal3(LieGroup):
 
         return point_prod
 
-    def inverse(self, point, point_type=None):
+    def inverse(self, point):
         """Compute the group inverse in SO(3).
 
         Parameters
         ----------
         point : array-like, shape=[n_samples, 3]
-        point_type : str, {'vector', 'matrix'}, optional
-            default: self.default_point_type
 
         Returns
         -------

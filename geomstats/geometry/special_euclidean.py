@@ -81,7 +81,7 @@ class SpecialEuclidean(GeneralLinear, LieGroup):
         belongs = (point_dim1 == point_dim2 == self.n + 1)
 
         rotation = tangent_vec[..., :self.n, :self.n]
-        rot_belongs = self.is_skew_symmetric(rotation)
+        rot_belongs = self.is_skew_symmetric(rotation, atol=atol)
 
         belongs = gs.logical_and(belongs, rot_belongs)
 
@@ -184,13 +184,16 @@ class SpecialEuclidean3(LieGroup):
 
         Parameters
         ----------
+
         point : array-like, shape=[n_samples, 3]
-            the point of which to check whether it belongs to SE(n)
+            The point of which to check whether it belongs to SE(3).
+        atol : float
+            The tolerance to evaluate equality.
 
         Returns
         -------
         belongs : array-like, shape=[n_samples, 1]
-            array of booleans indicating whether point belongs to SE(n)
+            Boolean indicating whether point belongs to SE(3).
         """
         point_dim = point.shape[-1]
         point_ndim = point.ndim
@@ -402,7 +405,7 @@ class SpecialEuclidean3(LieGroup):
 
     @geomstats.vectorization.decorator(['else', 'vector', 'else'])
     def jacobian_translation(
-            self, point, left_or_right='left'):
+            self, point, left_or_right='left', point_type='vector'):
         """Compute the Jacobian matrix resulting from translation.
 
         Compute the matrix of the differential
@@ -440,7 +443,7 @@ class SpecialEuclidean3(LieGroup):
         jacobian_rot = self.rotations.jacobian_translation(
             point=rot_vec,
             left_or_right=left_or_right,
-            point_type=self.default_point_type)
+            point_type=point_type)
         block_zeros_1 = gs.zeros(
             (n_points, dim_rotations, dim_translations))
         jacobian_block_line_1 = gs.concatenate(
