@@ -14,7 +14,7 @@ from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.poincare_ball import PoincareBall
 
 
-class TestHyperbolicMethods(geomstats.tests.TestCase):
+class TestHyperbolicCoords(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
         self.dimension = 2

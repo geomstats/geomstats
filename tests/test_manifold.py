@@ -7,7 +7,7 @@ import geomstats.tests
 from geomstats.geometry.manifold import Manifold
 
 
-class TestManifoldMethods(geomstats.tests.TestCase):
+class TestManifold(geomstats.tests.TestCase):
     def setUp(self):
         self.dimension = 4
         self.manifold = Manifold(self.dimension)

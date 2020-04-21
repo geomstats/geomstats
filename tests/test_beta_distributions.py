@@ -8,7 +8,7 @@ from geomstats.geometry.beta_distributions import BetaDistributions
 from geomstats.geometry.beta_distributions import BetaMetric
 
 
-class TestBetaMethods(geomstats.tests.TestCase):
+class TestBetaDistributions(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=UserWarning)
         self.beta = BetaDistributions()

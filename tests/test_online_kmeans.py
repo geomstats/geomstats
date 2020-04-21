@@ -9,7 +9,7 @@ from geomstats.learning.online_kmeans import OnlineKMeans
 TOLERANCE = 1e-3
 
 
-class TestOnlineKmeansMethods(geomstats.tests.TestCase):
+class TestOnlineKmeans(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
 
