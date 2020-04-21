@@ -42,7 +42,6 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
         new_points = gs.zeros((2, 3, 3))
         indcs = [True, False, True]
         update = self.group._replace_values(points, new_points, indcs)
-        print(update)
         self.assertAllClose(update, gs.stack(
             [gs.zeros((3, 3)), gs.ones((3, 3)), gs.zeros((3, 3))]))
 
