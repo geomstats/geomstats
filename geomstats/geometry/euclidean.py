@@ -41,7 +41,9 @@ class Euclidean(Manifold):
         Parameters
         ----------
         n_samples: int, optional
+            default: 1
         bound: float, optional
+            default: 1.0
 
         Returns
         -------

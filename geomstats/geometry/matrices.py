@@ -24,15 +24,23 @@ class Matrices(Euclidean):
         self.metric = MatricesMetric(m, n)
 
     def belongs(self, point):
-        """Check if point belongs to the Matrix space."""
+        """Check if point belongs to the Matrix space.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, (m,n)]
+
+        Returns
+        -------
+        belongs : boolean
+        """
         point = gs.to_ndarray(point, to_ndim=3)
         _, mat_dim_1, mat_dim_2 = point.shape
         return mat_dim_1 == self.m & mat_dim_2 == self.n
 
     @staticmethod
     def equal(mat_a, mat_b, atol=TOLERANCE):
-        """
-        Test if matrices a and b are close.
+        """Test if matrices a and b are close.
 
         Parameters
         ----------
@@ -50,8 +58,7 @@ class Matrices(Euclidean):
 
     @staticmethod
     def mul(*args):
-        """
-        Return the product of matrices a1, ..., an.
+        """Calculate the product of matrices a1, ..., an.
 
         Parameters
         ----------
@@ -68,8 +75,7 @@ class Matrices(Euclidean):
 
     @classmethod
     def bracket(cls, mat_a, mat_b):
-        """
-        Return the commutator of a and b, i.e. `[a, b] = ab - ba`.
+        """Calculate the commutator of a and b, i.e. `[a, b] = ab - ba`.
 
         Parameters
         ----------
@@ -100,8 +106,7 @@ class Matrices(Euclidean):
 
     @classmethod
     def is_symmetric(cls, mat, atol=TOLERANCE):
-        """
-        Check if a matrix is symmetric.
+        """Check if a matrix is symmetric.
 
         Parameters
         ----------
@@ -132,8 +137,7 @@ class Matrices(Euclidean):
 
     @classmethod
     def make_symmetric(cls, mat):
-        """
-        Make a matrix symmetric, by averaging with its transpose.
+        """Make a matrix symmetric, by averaging with its transpose.
 
         Parameters
         ----------
@@ -146,7 +150,18 @@ class Matrices(Euclidean):
         return 1 / 2 * (mat + cls.transpose(mat))
 
     def random_uniform(self, n_samples=1, bound=1.):
-        """Generate n samples from a uniform distribution."""
+        """Generate n samples from a uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            Number of samples to generate.
+
+        Returns
+        -------
+        point : array-like
+            Point sampled.
+        """
         m, n = self.m, self.n
         size = (n_samples, m, n) if n_samples != 1 else (m, n)
         point = bound * (gs.random.rand(*size) - 0.5)
@@ -180,7 +195,19 @@ class MatricesMetric(RiemannianMetric):
             signature=(dimension, 0, 0))
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute Frobenius inner product of two tan vecs at `base_point`."""
+        """Compute Frobenius inner product of two tan vecs at `base_point`.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[n_samples, m, n]
+        tangent_vec_b : array-like, shape=[n_samples, m, n]
+        base_point : array-like, shape=[n_samples, m, n], optional
+
+
+        Returns
+        -------
+        inner_prod : the Frobenius inner product of a and b
+        """
         inner_prod = gs.einsum(
             '...ij,...ij->...', tangent_vec_a, tangent_vec_b)
         return inner_prod
