@@ -1,5 +1,4 @@
-"""
-Unit tests for backends.
+"""Unit tests for backends.
 
 The functions are tested in order to match numpy's results and API.
 In exceptional cases, numpy's results or API may not be followed.
@@ -237,13 +236,6 @@ class TestBackends(geomstats.tests.TestCase):
             [4., 5., 6.],
             [7., 8., 9.]])
         self.assertAllClose(result, expected)
-
-    @geomstats.tests.tf_only
-    def test_tensor_addition(self):
-        tensor_1 = gs.ones((1, 1))
-        tensor_2 = gs.ones((0, 1))
-
-        tensor_1 + tensor_2
 
     @geomstats.tests.pytorch_only
     def test_cumsum(self):
