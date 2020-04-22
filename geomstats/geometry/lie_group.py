@@ -2,7 +2,6 @@
 
 
 import geomstats.backend as gs
-import geomstats.error
 import geomstats.geometry.riemannian_metric as riemannian_metric
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.manifold import Manifold
@@ -117,8 +116,6 @@ class LieGroup(Manifold):
             the left factor in the product
         point_b : array-like, shape=[n_samples, {dim, [n, n]}]
             the right factor in the product
-        point_type : str, {'vector', 'matrix'}
-            the point_type of the passed point_a and point_b
 
         Returns
         -------
@@ -138,9 +135,6 @@ class LieGroup(Manifold):
         point : array-like, shape=[n_samples, {dim, [n,n]}]
             the points to be inverted
 
-        point_type : str, {'vector', 'matrix'}, optional
-            the point type of the passed point
-
         Returns
         -------
         inverse : array-like, shape=[n_samples, {dim, [n,n]}]
@@ -158,23 +152,15 @@ class LieGroup(Manifold):
         ----------
         point : array-like, shape=[n_samples, {dim, [n,n]]
             the points to be inverted
-
         left_or_right : str, {'left', 'right'}
             indicate whether to calculate the differential of left or right
             translations
-
-        point_type : str, {'vector', 'matrix'}, optional
-            default: the default point type
-            the point type of the passed point
 
         Returns
         -------
         jacobian :
             the jacobian of the left/right translation by point
         """
-        geomstats.error.check_parameter_accepted_values(
-            point_type, 'point_type', ['vector', 'matrix'])
-
         if self.default_point_type == 'matrix':
             return point
 
@@ -189,8 +175,6 @@ class LieGroup(Manifold):
         ----------
         tangent_vec : array-like, shape=[n_samples, {dim,[n,n]}]
             the tangent vector to exponentiate
-        point_type : str, {'vector', 'matrix'}
-            default: the default point type
 
         Returns
         -------
@@ -207,8 +191,6 @@ class LieGroup(Manifold):
         ----------
         tangent_vec : array-like, shape=[n_samples, {dim,[n,n]}]
         base_point : array-like, shape=[n_samples, {dim,[n,n]}]
-        point_type : str, {'vector', 'matrix'}
-            default: the default point type
 
         Returns
         -------
@@ -230,13 +212,8 @@ class LieGroup(Manifold):
             exp = self.regularize(exp)
             return exp
 
-        if self.default_point_type == 'matrix':
-            lie_vec = self.compose(self.inverse(base_point), tangent_vec)
-            return self.compose(
-                base_point, self.exp_from_identity(lie_vec))
-
-        raise ValueError('Invalid point_type, expected \'vector\' or '
-                         '\'matrix\'')
+        lie_vec = self.compose(self.inverse(base_point), tangent_vec)
+        return self.compose(base_point, self.exp_from_identity(lie_vec))
 
     def exp(self, tangent_vec, base_point=None):
         """Compute the group exponential at `base_point` of `tangent_vec`.
@@ -246,9 +223,6 @@ class LieGroup(Manifold):
         tangent_vec : array-like, shape=[n_samples, {dim,[n,n]}]
         base_point : array-like, shape=[n_samples, {dim,[n,n]}]
             default: self.identity
-        point_type : str, {'vector', 'matrix'}
-            default: the default point type
-            the type of the point
 
         Returns
         -------
@@ -274,8 +248,6 @@ class LieGroup(Manifold):
         Parameters
         ----------
         point : array-like, shape=[n_samples, {dim,[n,n]}]
-        point_type : str, {'vector', 'matrix'}, optional
-            defaults to the default point type
 
         Returns
         -------
@@ -310,13 +282,8 @@ class LieGroup(Manifold):
 
             return log
 
-        if self.default_point_type == 'matrix':
-            lie_point = self.compose(self.inverse(base_point), point)
-            return self.compose(
-                base_point, self.log_from_identity(lie_point))
-
-        raise ValueError('Invalid point_type, expected \'vector\' or '
-                         '\'matrix\'')
+        lie_point = self.compose(self.inverse(base_point), point)
+        return self.compose(base_point, self.log_from_identity(lie_point))
 
     def log(self, point, base_point=None):
         """Compute the group logarithm of `point` relative to `base_point`.
@@ -369,7 +336,7 @@ class LieGroup(Manifold):
         bracket : array-like, shape=[n_samples, n, n]
         """
         if base_point is None:
-            base_point = self.get_identity(point_type=self.default_point_typ)
+            base_point = self.get_identity(point_type=self.default_point_type)
         inverse_base_point = self.inverse(base_point)
 
         first_term = Matrices.mul(inverse_base_point, tangent_vector_b)
