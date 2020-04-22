@@ -3669,7 +3669,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         second_tan = first_tan
 
         result = space.lie_bracket(
-            first_tan, second_tan, base_point, point_type='vector')
+            first_tan, second_tan, base_point)
         expected = gs.zeros(dim)
 
         self.assertAllClose(result, expected)
