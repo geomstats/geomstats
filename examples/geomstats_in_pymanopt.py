@@ -7,7 +7,6 @@ The example currently requires installing the pymanopt HEAD from git:
     pip install git+ssh://git@github.com/pymanopt/pymanopt.git
 """
 
-import functools
 import logging
 import os
 
@@ -17,16 +16,6 @@ from pymanopt.solvers import SteepestDescent
 
 import geomstats.backend as gs
 from geomstats.geometry.hypersphere import Hypersphere
-
-
-def squeeze_output(function):
-    """Decorator to remove singleton dimensions from a numpy.ndarray returned
-    by the decorated function.
-    """
-    @functools.wraps(function)
-    def inner(*args, **kwargs):
-        return gs.squeeze(function(*args, **kwargs))
-    return inner
 
 
 class GeomstatsSphere(Manifold):
@@ -44,12 +33,10 @@ class GeomstatsSphere(Manifold):
         return self._sphere.metric.inner_product(
             tangent_vector_a, tangent_vector_b, base_point=base_vector)
 
-    @squeeze_output
     def proj(self, base_vector, tangent_vector):
         return self._sphere.projection_to_tangent_space(
             tangent_vector, base_point=base_vector)
 
-    @squeeze_output
     def retr(self, base_vector, tangent_vector):
         """The retraction operator, which maps a tangent vector in the tangent
         space at a specific point back to the manifold by approximating moving
@@ -59,7 +46,6 @@ class GeomstatsSphere(Manifold):
         """
         return self._sphere.metric.exp(tangent_vector, base_point=base_vector)
 
-    @squeeze_output
     def rand(self):
         return self._sphere.random_uniform()
 
