@@ -52,19 +52,19 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         theta = gs.pi / 3
         vec_1 = gs.array([[0., - theta],
                          [theta, 0.]])
-        result = self.group._is_in_lie_algebra(vec_1)
+        result = self.group.is_tangent(vec_1)
         expected = True
         self.assertAllClose(result, expected)
 
         vec_2 = gs.array([[0., - theta],
                          [theta, 1.]])
-        result = self.group._is_in_lie_algebra(vec_2)
+        result = self.group.is_tangent(vec_2)
         expected = False
         self.assertAllClose(result, expected)
 
         vec = gs.array([vec_1, vec_2])
         expected = gs.array([True, False])
-        result = self.group._is_in_lie_algebra(vec)
+        result = self.group.is_tangent(vec)
         self.assertAllClose(result, expected)
 
     def test_is_tangent(self):

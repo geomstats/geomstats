@@ -56,7 +56,7 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             [0., - theta, 2.],
             [theta, 0., 3.],
             [0., 0., 0.]])
-        result = self.group._is_in_lie_algebra(vec_1)
+        result = self.group.is_tangent(vec_1)
         expected = True
         self.assertAllClose(result, expected)
 
@@ -64,13 +64,13 @@ class TestSpecialEuclidean(geomstats.tests.TestCase):
             [0., - theta, 2.],
             [theta, 0., 3.],
             [0., 0., 1.]])
-        result = self.group._is_in_lie_algebra(vec_2)
+        result = self.group.is_tangent(vec_2)
         expected = False
         self.assertAllClose(result, expected)
 
         vec = gs.array([vec_1, vec_2])
         expected = gs.array([True, False])
-        result = self.group._is_in_lie_algebra(vec)
+        result = self.group.is_tangent(vec)
         self.assertAllClose(result, expected)
 
     def test_to_tangent_vec_vectorization(self):
