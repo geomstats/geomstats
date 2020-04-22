@@ -111,7 +111,7 @@ class SpecialOrthogonal3(LieGroup):
 
         Returns
         -------
-        identity : array-like, shape={3,}
+        identity : array-like, shape=[3,]
         """
         identity = gs.zeros(self.dim)
         if point_type == 'matrix':

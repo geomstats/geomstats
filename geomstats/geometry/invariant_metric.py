@@ -253,6 +253,8 @@ class InvariantMetric(RiemannianMetric):
         if gs.allclose(base_point, identity):
             return self.exp_from_identity(tangent_vec)
 
+        # TODO(nguigs): factorize this code to pushforward tangent vec to
+        #  identity by left/right translation
         jacobian = self.group.jacobian_translation(
             point=base_point, left_or_right=self.left_or_right)
         inv_jacobian = gs.linalg.inv(jacobian)
@@ -374,7 +376,7 @@ class BiInvariantMetric(InvariantMetric):
 
     Compact Lie groups and direct products of compact Lie groups with vector
     spaces admit bi-invariant metrics. Products Lie groups are not
-    implemented.
+    implemented. Other groups such as SE(3) admit bi-invariant pseudo-metrics.
 
     Parameters
     ----------
@@ -387,7 +389,8 @@ class BiInvariantMetric(InvariantMetric):
             group=group, inner_product_mat_at_identity=gs.eye(group.dim),
             default_point_type=group.default_point_type)
         if 'SpecialOrthogonal' not in group.__str__():
-            raise ValueError('The bi-invariant metric is only valid for SO(n)')
+            raise ValueError('The bi-invariant metric is only implemented for '
+                             'SO(n)')
 
     def exp_from_identity(self, tangent_vec):
         """Compute Riemannian exponential of tangent vector from the identity.

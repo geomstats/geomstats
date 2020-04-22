@@ -46,7 +46,7 @@ class SpecialEuclidean(GeneralLinear, LieGroup):
         self.translations = Euclidean(dim=n)
         self.n = n
 
-    def get_identity(self):
+    def get_identity(self, point_type=None):
         """Return the identity matrix."""
         return gs.eye(self.n + 1, self.n + 1)
     identity = property(get_identity)
@@ -223,7 +223,7 @@ class SpecialEuclidean3(LieGroup):
         belongs = gs.logical_and(point_dim == self.dim, point_ndim < 3)
 
         belongs = gs.logical_and(
-            belongs, self.rotations.belongs(point[..., :self.n]))
+            belongs, self.rotations.belongs(point[..., :self.n]), atol=atol)
         return belongs
 
     def regularize(self, point):
