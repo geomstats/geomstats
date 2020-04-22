@@ -196,10 +196,10 @@ def array(val, dtype=None):
         val = _np.array(val)
 
     if isinstance(val, _np.ndarray):
-        if val.dtype == bool:
-            val = torch.from_numpy(_np.array(val, dtype=_np.uint8))
-        else:
-            val = torch.from_numpy(val)
+        #if val.dtype == bool:
+        #    val = torch.from_numpy(_np.array(val, dtype=_np.uint8))
+        #else:
+        val = torch.from_numpy(val)
 
     if not isinstance(val, torch.Tensor):
         val = torch.Tensor([val])

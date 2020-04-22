@@ -184,16 +184,16 @@ def _mask_from_indices(indices, mask_shape, dtype=float32):
     """
     np_mask = _np.zeros(mask_shape)
 
-    for (nb_index, index) in enumerate(indices):
+    for i_index, index in enumerate(indices):
         if not isinstance(index, tuple):
-            indices[nb_index] = (index,)
+            indices[i_index] = (index,)
 
     for index in indices:
         if len(index) != len(mask_shape):
             raise ValueError('Indices must have the same size as shape')
 
-    for index in indices:
-        np_mask[index] = 1
+    for i_index, index in enumerate(indices):
+        np_mask[i_index] = 1
     tf_mask = array(np_mask, dtype=dtype)
     return tf_mask
 
@@ -435,8 +435,8 @@ def assignment(x, values, indices, axis=0):
     if len(values) != len(indices):
         raise ValueError('Either one value or as many values as indices')
 
-    for (nb_index, index) in enumerate(indices):
-        x = _assignment_single_value(x, values[nb_index], index, axis)
+    for i_index, index in enumerate(indices):
+        x = _assignment_single_value(x, values[i_index], index, axis)
     return x
 
 

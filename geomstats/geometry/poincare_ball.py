@@ -173,17 +173,11 @@ class PoincareBallMetric(RiemannianMetric):
         mask_non0 = ~mask_0
         # TODO(ninamiolane): Correct this when assignement
         # works with booleans
-        if gs.any(mask_0):
-            mask_0_float = gs.cast(mask_0, gs.float32)
-            log += mask_0_float * (-log)
-            mask_0_float = gs.to_ndarray(mask_0_float, to_ndim=2, axis=1)
-            norm_add += mask_0_float
-        if gs.any(mask_non0):
-            mask_non0_float = gs.cast(mask_non0, gs.float32)
-            log += gs.einsum(
-                '...,...i->...i',
-                mask_non0_float,
-                - log + log / norm_add)
+        log = gs.assignment(
+            log,
+            gs.zeros_like(log[mask_0]), mask_0)
+        log = gs.assignment(
+            log, log[mask_non0] / norm_add[mask_non0], mask_non0)
 
         return log
 
