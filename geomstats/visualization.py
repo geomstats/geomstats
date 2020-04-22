@@ -74,7 +74,8 @@ class Circle():
         if points is not None:
             self.add_points(points)
 
-    def set_ax(self, ax=None):
+    @staticmethod
+    def set_ax(ax=None):
         if ax is None:
             ax = plt.subplot()
         ax_s = AX_SCALE
@@ -130,7 +131,8 @@ class Sphere():
         if points is not None:
             self.add_points(points)
 
-    def set_ax(self, ax=None):
+    @staticmethod
+    def set_ax(ax=None):
         if ax is None:
             ax = plt.subplot(111, projection='3d')
 
@@ -217,7 +219,8 @@ class PoincareDisk():
         if points is not None:
             self.add_points(points)
 
-    def set_ax(self, ax=None):
+    @staticmethod
+    def set_ax(ax=None):
         if ax is None:
             ax = plt.subplot()
         ax_s = AX_SCALE
@@ -241,7 +244,8 @@ class PoincareDisk():
         else:
             raise ValueError('Points do not have dimension 2.')
 
-    def convert_to_poincare_coordinates(self, points):
+    @staticmethod
+    def convert_to_poincare_coordinates(points):
         poincare_coords = points[:, 1:] / (1 + points[:, :1])
         return poincare_coords
 
@@ -270,7 +274,8 @@ class PoincarePolyDisk():
         if points is not None:
             self.add_points(points)
 
-    def set_ax(self, ax=None):
+    @staticmethod
+    def set_ax(ax=None):
         """Define the ax parameters."""
         if ax is None:
             ax = plt.subplot()
@@ -293,7 +298,8 @@ class PoincarePolyDisk():
         """Clear the points to draw."""
         self.points = []
 
-    def convert_to_poincare_coordinates(self, points):
+    @staticmethod
+    def convert_to_poincare_coordinates(points):
         """Convert points to poincare coordinates."""
         poincare_coords = points[:, 1:] / (1 + points[:, :1])
         return poincare_coords
@@ -322,7 +328,8 @@ class PoincareHalfPlane():
             points = points.tolist()
         self.points.extend(points)
 
-    def set_ax(self, ax=None):
+    @staticmethod
+    def set_ax(ax=None):
         if ax is None:
             ax = plt.subplot()
         ax_s = AX_SCALE
@@ -332,7 +339,8 @@ class PoincareHalfPlane():
                  xlabel='X', ylabel='Y')
         return ax
 
-    def convert_to_half_plane_coordinates(self, points):
+    @staticmethod
+    def convert_to_half_plane_coordinates(points):
         disk_coords = points[:, 1:] / (1 + points[:, :1])
         disk_x = disk_coords[:, 0]
         disk_y = disk_coords[:, 1]
@@ -357,7 +365,8 @@ class KleinDisk():
         if points is not None:
             self.add_points(points)
 
-    def set_ax(self, ax=None):
+    @staticmethod
+    def set_ax(ax=None):
         if ax is None:
             ax = plt.subplot()
         ax_s = AX_SCALE
@@ -374,7 +383,8 @@ class KleinDisk():
             points = points.tolist()
         self.points.extend(points)
 
-    def convert_to_klein_coordinates(self, points):
+    @staticmethod
+    def convert_to_klein_coordinates(points):
         poincare_coords = points[:, 1:] / (1 + points[:, :1])
         poincare_radius = gs.linalg.norm(
             poincare_coords, axis=1)
