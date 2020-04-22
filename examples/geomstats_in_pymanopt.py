@@ -55,9 +55,10 @@ def estimate_dominant_eigenvector(matrix):
     the Rayleigh quotient -x' * A * x / (x' * x).
     """
     num_rows, num_columns = gs.shape(matrix)
-    assert num_rows == num_columns, 'matrix must be square'
-    assert gs.allclose(gs.sum(matrix - gs.transpose(matrix)), 0.0), \
-        'matrix must be symmetric'
+    if num_rows != num_columns:
+        raise ValueError('Matrix must be square.')
+    if not gs.allclose(gs.sum(matrix - gs.transpose(matrix)), 0.0):
+        raise ValueError('Matrix must be symmetric.')
 
     def cost(vector):
         return -gs.dot(vector, gs.dot(matrix, vector))
