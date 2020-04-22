@@ -134,9 +134,10 @@ def main():
 
     nb_vertices_by_edges =\
         [len(e_2) for _, e_2 in karate_graph.edges.items()]
-    logging.info('Number of edges: %s' % len(karate_graph.edges))
-    logging.info('Mean vertices by edges: %s' % (sum(nb_vertices_by_edges, 0) /
-                 len(karate_graph.edges)))
+    logging.info('Number of edges: %s', len(karate_graph.edges))
+    logging.info(
+        'Mean vertices by edges: %s',
+        (sum(nb_vertices_by_edges, 0) / len(karate_graph.edges)))
 
     negative_table_parameter = 5
     negative_sampling_table = []
@@ -182,8 +183,9 @@ def main():
                         hyperbolic_manifold.metric.exp(-lr * g_ex,
                                                        example_to_update)
 
-        logging.info('iteration %d loss_value %f' % (epoch,
-                     sum(total_loss, 0) / len(total_loss)))
+        logging.info(
+            'iteration %d loss_value %f',
+            epoch, sum(total_loss, 0) / len(total_loss))
 
     circle = visualization.PoincareDisk(point_type='ball')
     plt.figure()
