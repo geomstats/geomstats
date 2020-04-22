@@ -574,7 +574,7 @@ def assignment(x, values, indices, axis=0):
     x_new = copy(x)
 
     use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
-    if _is_boolean(x):
+    if _is_boolean(indices):
         x_new[indices] = values
         return x_new
     zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
@@ -619,7 +619,7 @@ def assignment_by_sum(x, values, indices, axis=0):
     x_new = copy(x)
 
     use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
-    if _is_boolean(x):
+    if _is_boolean(indices):
         x_new[indices] = values
         return x_new
     zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
