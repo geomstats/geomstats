@@ -11,7 +11,7 @@ import geomstats.tests
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
-class TestSpecialOrthogonal3(geomstats.tests.TestCase):
+class TestSpecialOrthogonal(geomstats.tests.TestCase):
     def setUp(self):
         self.n = 2
         self.group = SpecialOrthogonal(n=self.n)
