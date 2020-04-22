@@ -3549,9 +3549,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
     def test_squared_dist_vectorization(self):
         n = 3
         group = self.so[n]
-        print('group.n', group.n)
-        print('group.dim', group.dim)
-        print('group.metric.default_point_type', group.bi_invariant_metric.default_point_type)
 
         n_samples = self.n_samples
         for metric_type in self.metrics[3]:

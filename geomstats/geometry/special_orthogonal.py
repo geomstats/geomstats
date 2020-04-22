@@ -1380,3 +1380,8 @@ class SO(SpecialOrthogonal3, SpecialOrthogonal):
         else:
             SpecialOrthogonal.__init__(self, n)
 
+    def regularize(self, point):
+        if self.n == 3 and self.default_point_type == 'vector':
+            return SpecialOrthogonal3.regularize(self, point)
+        return SpecialOrthogonal.regularize(self, point)
+
