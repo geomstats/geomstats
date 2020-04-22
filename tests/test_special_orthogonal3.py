@@ -7,7 +7,7 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal3
+from geomstats.geometry.special_orthogonal import SO
 
 
 EPSILON = 1e-5
@@ -25,7 +25,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         gs.random.seed(1234)
 
         n_seq = [3]
-        so = {n: SpecialOrthogonal3() for n in n_seq}
+        so = {n: SO(n=n, point_type='vector') for n in n_seq}
 
         # -- Rotation vectors with angles
         # 0, close to 0, closely lower than pi, pi,
@@ -3549,6 +3549,9 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
     def test_squared_dist_vectorization(self):
         n = 3
         group = self.so[n]
+        print('group.n', group.n)
+        print('group.dim', group.dim)
+        print('group.metric.default_point_type', group.bi_invariant_metric.default_point_type)
 
         n_samples = self.n_samples
         for metric_type in self.metrics[3]:

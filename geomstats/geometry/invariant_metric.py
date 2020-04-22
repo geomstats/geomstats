@@ -388,10 +388,14 @@ class BiInvariantMetric(InvariantMetric):
         super(BiInvariantMetric, self).__init__(
             group=group, inner_product_mat_at_identity=gs.eye(group.dim),
             default_point_type=group.default_point_type)
-        if 'SpecialOrthogonal' not in group.__str__():
-            # TODO(nguigs): implement it for SE(3)
-            raise ValueError('The bi-invariant metric is only implemented for '
-                             'SO(n)')
+        cond = (
+            'SpecialOrthogonal' not in group.__str__()
+            and 'SO' not in group.__str__()
+            and 'SpecialOrthogonal3' not in group.__str__())
+        # TODO(nguigs): implement it for SE(3)
+        if cond:
+            raise ValueError(
+                'The bi-invariant metric is only implemented for SO(n)')
 
     def exp_from_identity(self, tangent_vec):
         """Compute Riemannian exponential of tangent vector from the identity.

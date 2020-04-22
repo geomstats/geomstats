@@ -26,9 +26,6 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 48., - gs.pi / 480.,
                          - 1. / 480.]
 
-class SO(SpecialOrthogonal3, SpecialOrthogonal):
-    def __init__(self, n):
-        if
 
 
 class SpecialOrthogonal(GeneralLinear, LieGroup):
@@ -98,8 +95,8 @@ class SpecialOrthogonal3(LieGroup):
             rotations
             default: 0
         """
-        super(SpecialOrthogonal3, self).__init__(
-            dim=3, default_point_type='vector')
+        LieGroup.__init__(
+            self, dim=3, default_point_type='vector')
 
         self.n = 3
         self.epsilon = epsilon
@@ -1367,3 +1364,19 @@ class SpecialOrthogonal3(LieGroup):
         bracket : array-like, shape=[n_samples, n, n]
         """
         return gs.cross(tangent_vector_a, tangent_vector_b)
+
+    def exp(self, tangent_vec, base_point=None):
+        return LieGroup.exp(self, tangent_vec, base_point)
+
+    def log(self, point, base_point=None):
+        return LieGroup.log(self, point, base_point)
+
+
+
+class SO(SpecialOrthogonal3, SpecialOrthogonal):
+    def __init__(self, n, point_type='matrix'):
+        if n == 3 and point_type == 'vector':
+            SpecialOrthogonal3.__init__(self)
+        else:
+            SpecialOrthogonal.__init__(self, n)
+
