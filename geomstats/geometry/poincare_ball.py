@@ -171,9 +171,6 @@ class PoincareBallMetric(RiemannianMetric):
 
         mask_0 = gs.isclose(gs.squeeze(norm_add, axis=-1), 0.)
         mask_non0 = ~mask_0
-        # TODO(ninamiolane): Correct this when assignement
-        # works with booleans
-        print(mask_0)
         log = gs.assignment(
             log,
             gs.zeros_like(log[mask_0]), mask_0)
