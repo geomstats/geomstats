@@ -76,14 +76,14 @@ if __name__ == '__main__':
         raise SystemExit(
             'This example currently only supports the numpy backend')
 
-    ambient_dimension = 128
-    matrix = gs.random.normal(size=(ambient_dimension, ambient_dimension))
-    matrix = 0.5 * (matrix + matrix.T)
+    ambient_dim = 128
+    mat = gs.random.normal(size=(ambient_dim, ambient_dim))
+    mat = 0.5 * (mat + mat.T)
 
-    eigenvalues, eigenvectors = gs.linalg.eig(matrix)
+    eigenvalues, eigenvectors = gs.linalg.eig(mat)
     dominant_eigenvector = eigenvectors[:, gs.argmax(eigenvalues)]
 
-    dominant_eigenvector_estimate = estimate_dominant_eigenvector(matrix)
+    dominant_eigenvector_estimate = estimate_dominant_eigenvector(mat)
     if (gs.sign(dominant_eigenvector[0]) !=
             gs.sign(dominant_eigenvector_estimate[0])):
         dominant_eigenvector_estimate = -dominant_eigenvector_estimate
