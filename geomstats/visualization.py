@@ -515,8 +515,8 @@ def plot(points, ax=None, space=None,
         for i_disk in range(n_disks):
             axis_list.append(ax.add_subplot(n_rows, n_columns, i_disk + 1))
 
-        for i_disk, ax in enumerate(axis_list):
-            ax = poincare_poly_disk.set_ax(ax=ax)
+        for i_disk, one_ax in enumerate(axis_list):
+            ax = poincare_poly_disk.set_ax(ax=one_ax)
             poincare_poly_disk.clear_points()
             poincare_poly_disk.add_points(points[:, i_disk, ...])
             poincare_poly_disk.draw(ax, **point_draw_kwargs)
