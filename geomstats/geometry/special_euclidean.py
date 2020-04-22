@@ -147,29 +147,22 @@ class SpecialEuclidean(GeneralLinear, LieGroup):
 
 
 class SpecialEuclidean3(LieGroup):
-    """Class for the special euclidean group SE(n).
+    """Class for the special euclidean group in 3d, SE(3).
 
-    i.e. the Lie group of rigid transformations. Elements of SE(n) can either
+    i.e. the Lie group of rigid transformations. Elements of SE(3) can either
     be represented as vectors (in 3d) or as matrices in general. The matrix
-    representation corresponds to homogeneous coordinates.
+    representation corresponds to homogeneous coordinates.This class is
+    specific to the vector representation of rotations. For the matrix
+    representation use the SpecialEuclidean class and set `n=3`.
+
+    Parameter
+    ---------
+    epsilon : float, optional (defaults to 0)
+        precision to use for calculations involving potential division by
+        rotations
     """
 
     def __init__(self, epsilon=0.):
-        """Initiate an object of class SpecialEuclidean.
-
-        Parameter
-        ---------
-        n : int
-            the dimension of the euclidean space that SE(n) acts upon
-        point_type : str, {'vector', 'matrix'}, optional
-            whether to represent elmenents of SE(n) by vectors or matrices
-            if None is given, point_type is set to 'vector' for dimension 3
-            and 'matrix' otherwise
-        epsilon : float, optional
-            precision to use for calculations involving potential division by
-            rotations
-            default: 0
-        """
         super(SpecialEuclidean3, self).__init__(
             dim=6, default_point_type='vector')
 
@@ -184,7 +177,7 @@ class SpecialEuclidean3(LieGroup):
         Parameters
         ----------
         point_type : str, {'vector', 'matrix'}, optional
-            the point_type of the returned value
+            The point_type of the returned value.
             default: self.default_point_type
 
         Returns
@@ -203,15 +196,13 @@ class SpecialEuclidean3(LieGroup):
         """Get the shape of the instance given the default_point_style."""
         return self.get_identity(point_type).shape
 
-    def belongs(self, point, atol=ATOL):
+    def belongs(self, point):
         """Evaluate if a point belongs to SE(3).
 
         Parameters
         ----------
         point : array-like, shape=[n_samples, 3]
             The point of which to check whether it belongs to SE(3).
-        atol : float
-            The tolerance to evaluate equality.
 
         Returns
         -------
@@ -223,7 +214,7 @@ class SpecialEuclidean3(LieGroup):
         belongs = gs.logical_and(point_dim == self.dim, point_ndim < 3)
 
         belongs = gs.logical_and(
-            belongs, self.rotations.belongs(point[..., :self.n]), atol=atol)
+            belongs, self.rotations.belongs(point[..., :self.n]))
         return belongs
 
     def regularize(self, point):
@@ -232,9 +223,7 @@ class SpecialEuclidean3(LieGroup):
         Parameters
         ----------
         point : array-like, shape=[n_samples, 3]
-            the point which should be regularized
-        point_type : str, {'vector', 'matrix'}, optional
-            default: self.default_point_type
+            The point to regularize.
 
         Returns
         -------
@@ -262,8 +251,6 @@ class SpecialEuclidean3(LieGroup):
         ----------
         tangent_vec: array-like, shape=[n_samples, 3]
         metric : RiemannianMetric, optional
-        point_type : str, {'vector', 'matrix'}, optional
-            default: self.default_point_type
 
         Returns
         -------
@@ -321,7 +308,7 @@ class SpecialEuclidean3(LieGroup):
 
         Returns
         -------
-        mat: array-like, shape=[n_samples, {dim, [n+1, n+1]}]
+        mat: array-like, shape=[n_samples, n+1, n+1]
         """
         vec = self.regularize(vec)
         n_vecs, _ = vec.shape
@@ -347,7 +334,9 @@ class SpecialEuclidean3(LieGroup):
         Parameters
         ----------
         point_a : array-like, shape=[n_samples, 3]
+            Point of the group.
         point_b : array-like, shape=[n_samples, 3]
+            Point of the group.
 
         Equation
         ---------
@@ -355,7 +344,8 @@ class SpecialEuclidean3(LieGroup):
 
         Returns
         -------
-        composition : the composition of point_1 and point_2
+        composition :
+            The composition of point_a and point_b.
 
         """
         rotations = self.rotations
@@ -391,14 +381,11 @@ class SpecialEuclidean3(LieGroup):
         Parameters
         ----------
         point: array-like, shape=[n_samples, 3]
-        point_type: str, {'vector', 'matrix'}, optional
-            default: self.default_point_type
 
         Returns
         -------
-        inverse_point : array-like,
-            shape=[n_samples, 3]
-            the inverted point
+        inverse_point : array-like, shape=[n_samples, 3]
+            The inverted point.
 
         Notes
         -----
@@ -427,27 +414,22 @@ class SpecialEuclidean3(LieGroup):
         return self.regularize(inverse_point)
 
     @geomstats.vectorization.decorator(['else', 'vector', 'else'])
-    def jacobian_translation(
-            self, point, left_or_right='left', point_type='vector'):
+    def jacobian_translation(self, point, left_or_right='left'):
         """Compute the Jacobian matrix resulting from translation.
 
-        Compute the matrix of the differential
-        of the left/right translations from the identity to point in SE(n).
+        Compute the matrix of the differential of the left/right translations
+        from the identity to point in SE(3).
 
         Parameters
         ----------
         point: array-like, shape=[n_samples, 3]
-
         left_or_right: str, {'left', 'right'}, optional
-            default: 'left'
-            whether to compute the jacobian of the left or right translation
-        point_type : str, {'vector', 'matrix'}, optional
-            default: self.default_point_type
+            Whether to compute the jacobian of the left or right translation.
 
         Returns
         -------
         jacobian : array-like, shape=[n_samples, 3]
-            The jacobian of the left / right translation
+            The jacobian of the left / right translation.
         """
         if left_or_right not in ('left', 'right'):
             raise ValueError('`left_or_right` must be `left` or `right`.')
@@ -465,8 +447,7 @@ class SpecialEuclidean3(LieGroup):
 
         jacobian_rot = self.rotations.jacobian_translation(
             point=rot_vec,
-            left_or_right=left_or_right,
-            point_type=point_type)
+            left_or_right=left_or_right)
         block_zeros_1 = gs.zeros(
             (n_points, dim_rotations, dim_translations))
         jacobian_block_line_1 = gs.concatenate(
@@ -499,14 +480,12 @@ class SpecialEuclidean3(LieGroup):
         Parameters
         ----------
         tangent_vec: array-like, shape=[n_samples, 3]
-        point_type: str, {'vector', 'matrix'}, optional
-            default: self.default_point_type
 
         Returns
         -------
         group_exp: array-like, shape=[n_samples, 3]
-            the group exponential of the tangent vectors calculated
-            at the identity
+            The group exponential of the tangent vectors calculated
+            at the identity.
         """
         rotations = self.rotations
         dim_rotations = rotations.dim
@@ -576,8 +555,6 @@ class SpecialEuclidean3(LieGroup):
         Parameters
         ----------
         point: array-like, shape=[n_samples, 3]
-        point_type: str, {'vector', 'matrix'}, optional
-            default: self.default_point_type
 
         Returns
         -------
@@ -661,8 +638,7 @@ class SpecialEuclidean3(LieGroup):
 
         Returns
         -------
-        random_point: array-like,
-            shape=[n_samples, 3]
+        random_point: array-like, shape=[n_samples, 3]
             An array of random elements in SE(3) having the given.
         """
         random_translation = self.translations.random_uniform(n_samples)

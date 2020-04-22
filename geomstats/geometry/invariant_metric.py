@@ -389,6 +389,7 @@ class BiInvariantMetric(InvariantMetric):
             group=group, inner_product_mat_at_identity=gs.eye(group.dim),
             default_point_type=group.default_point_type)
         if 'SpecialOrthogonal' not in group.__str__():
+            # TODO(nguigs): implement it for SE(3)
             raise ValueError('The bi-invariant metric is only implemented for '
                              'SO(n)')
 

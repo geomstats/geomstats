@@ -1152,15 +1152,13 @@ class SpecialOrthogonal3(LieGroup):
 
         return tait_bryan_angles
 
-    def compose(self, point_a, point_b, point_type=None):
-        """Compose two elements of SO(n).
+    def compose(self, point_a, point_b):
+        """Compose two elements of SO(3).
 
         Parameters
         ----------
         point_a : array-like, shape=[n_samples, 3]
         point_b : array-like, shape=[n_samples, 3]
-        point_type : str, {'vector', 'matrix'}, optional
-            default: default_point_type
 
         Returns
         -------
@@ -1347,8 +1345,7 @@ class SpecialOrthogonal3(LieGroup):
         return self.regularize(point)
 
     def lie_bracket(
-            self, tangent_vector_a, tangent_vector_b,
-            base_point=None, point_type=None):
+            self, tangent_vector_a, tangent_vector_b, base_point=None):
         """Compute the lie bracket of two tangent vectors.
 
         For matrix Lie groups with tangent vectors A,B at the same base point P

@@ -94,7 +94,7 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         theta = 1.
         vec_1 = gs.array([[0., - theta],
                          [theta, 0.]])
-        result = self.group._to_lie_algebra(vec_1)
+        result = self.group.to_tangent(vec_1)
         expected = vec_1
         self.assertAllClose(result, expected)
 
