@@ -1190,9 +1190,9 @@ class SpecialOrthogonal3(LieGroup):
         return -self.regularize(point)
 
     @geomstats.vectorization.decorator(
-        ['else', 'vector', 'else', 'point_type'])
+        ['else', 'vector', 'else'])
     def jacobian_translation(
-            self, point, left_or_right='left', point_type=None):
+            self, point, left_or_right='left'):
         """Compute the jacobian matrix corresponding to translation.
 
         Compute the jacobian matrix of the differential
@@ -1305,8 +1305,8 @@ class SpecialOrthogonal3(LieGroup):
 
         return random_point
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'point_type'])
-    def exp_from_identity(self, tangent_vec, point_type=None):
+    @geomstats.vectorization.decorator(['else', 'vector'])
+    def exp_from_identity(self, tangent_vec):
         """Compute the group exponential of the tangent vector at the identity.
 
         As rotations are represented by their rotation vector,
@@ -1325,8 +1325,8 @@ class SpecialOrthogonal3(LieGroup):
         """
         return tangent_vec
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'point_type'])
-    def log_from_identity(self, point, point_type=None):
+    @geomstats.vectorization.decorator(['else', 'vector'])
+    def log_from_identity(self, point):
         """Compute the group logarithm of the point at the identity.
 
         As rotations are represented by their rotation vector,
