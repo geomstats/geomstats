@@ -336,6 +336,22 @@ class TestBackends(geomstats.tests.TestCase):
             gs_result, 4 * gs.ones_like(gs_array[~gs_mask]), ~gs_mask)
         self.assertAllCloseToNp(gs_result, np_result)
 
+        np_array = _np.ones((3, 2))
+        gs_array = gs.ones((3, 2))
+        np_mask = _np.array([True, True, True])
+        gs_mask = gs.array([True, True, True])
+
+        np_array[np_mask] = _np.zeros_like(np_array[np_mask])
+        np_array[~np_mask] = 4 * _np.ones_like(np_array[~np_mask])
+        np_result = np_array
+
+        values_mask = gs.zeros_like(gs_array[gs_mask])
+        gs_result = gs.assignment(
+            gs_array, values_mask, gs_mask)
+        gs_result = gs.assignment(
+            gs_result, 4 * gs.ones_like(gs_array[~gs_mask]), ~gs_mask)
+        self.assertAllCloseToNp(gs_result, np_result)
+
     def test_assignment(self):
         np_array_1 = _np.ones(3)
         gs_array_1 = gs.ones_like(gs.array(np_array_1))
