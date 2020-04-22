@@ -192,8 +192,8 @@ def _mask_from_indices(indices, mask_shape, dtype=float32):
         if len(index) != len(mask_shape):
             raise ValueError('Indices must have the same size as shape')
 
-    for i_index, index in enumerate(indices):
-        np_mask[i_index] = 1
+    for index in indices:
+        np_mask[index] = 1
     tf_mask = array(np_mask, dtype=dtype)
     return tf_mask
 

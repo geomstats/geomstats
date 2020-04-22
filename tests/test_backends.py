@@ -501,8 +501,6 @@ class TestBackends(geomstats.tests.TestCase):
         indices = [1, 2]
         np_array_1_list[indices] = 1.5
         gs_result = gs.assignment(gs_array_1_list, 1.5, indices)
-        print(gs_result)
-        print(np_array_1)
         self.assertAllCloseToNp(gs_result, np_array_1_list)
 
         np_array_2 = _np.zeros((3, 2))
@@ -510,6 +508,7 @@ class TestBackends(geomstats.tests.TestCase):
 
         np_array_2[0, :] = 1
         gs_result = gs.assignment(gs_array_2, 1, 0, axis=0)
+        print(gs_result, np_array_2)
         self.assertAllCloseToNp(gs_result, np_array_2)
 
         np_array_3 = _np.zeros((3, 3))
