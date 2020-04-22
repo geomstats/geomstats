@@ -26,6 +26,10 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 48., - gs.pi / 480.,
                          - 1. / 480.]
 
+class SO(SpecialOrthogonal3, SpecialOrthogonal):
+    def __init__(self, n):
+        if
+
 
 class SpecialOrthogonal(GeneralLinear, LieGroup):
     """Class for special orthogonal groups."""
