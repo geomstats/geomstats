@@ -320,6 +320,38 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllCloseToNp(gs_result, np_result)
 
     def test_assignment_with_booleans(self):
+        np_array = _np.ones((1, 2))
+        gs_array = gs.ones((1, 2))
+        np_mask = _np.array([True])
+        gs_mask = gs.array([True])
+
+        np_array[np_mask] = _np.zeros_like(np_array[np_mask])
+        np_array[~np_mask] = 4 * _np.ones_like(np_array[~np_mask])
+        np_result = np_array
+
+        values_mask = gs.zeros_like(gs_array[gs_mask])
+        gs_result = gs.assignment(
+            gs_array, values_mask, gs_mask)
+        gs_result = gs.assignment(
+            gs_result, 4 * gs.ones_like(gs_array[~gs_mask]), ~gs_mask)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_array = _np.ones((1, 2))
+        gs_array = gs.ones((1, 2))
+        np_mask = _np.array([False])
+        gs_mask = gs.array([False])
+
+        np_array[np_mask] = _np.zeros_like(np_array[np_mask])
+        np_array[~np_mask] = 4 * _np.ones_like(np_array[~np_mask])
+        np_result = np_array
+
+        values_mask = gs.zeros_like(gs_array[gs_mask])
+        gs_result = gs.assignment(
+            gs_array, values_mask, gs_mask)
+        gs_result = gs.assignment(
+            gs_result, 4 * gs.ones_like(gs_array[~gs_mask]), ~gs_mask)
+        self.assertAllCloseToNp(gs_result, np_result)
+
         np_array = _np.ones((3, 2))
         gs_array = gs.ones((3, 2))
         np_mask = _np.array([True, False, True])
