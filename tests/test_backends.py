@@ -164,7 +164,6 @@ class TestBackends(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_expm_and_logm_vectorization_random_rotation(self):
         point = self.so3_group.random_uniform(self.n_samples)
-        point = self.so3_group.matrix_from_rotation_vector(point)
 
         result = gs.linalg.expm(gs.linalg.logm(point))
         expected = point

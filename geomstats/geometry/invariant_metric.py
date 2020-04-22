@@ -30,7 +30,8 @@ class InvariantMetric(RiemannianMetric):
 
     def __init__(self, group,
                  inner_product_mat_at_identity=None,
-                 left_or_right='left'):
+                 left_or_right='left', **kwargs):
+        super(InvariantMetric, self).__init__(dim=group.dim, **kwargs)
 
         self.group = group
         if inner_product_mat_at_identity is None:
@@ -73,7 +74,6 @@ class InvariantMetric(RiemannianMetric):
 
         if self.group.default_point_type == 'vector':
             inner_product_mat_at_identity = self.inner_product_mat_at_identity
-
             inner_prod = gs.einsum(
                 '...i,...ij->...j',
                 tangent_vec_a,
@@ -163,7 +163,7 @@ class InvariantMetric(RiemannianMetric):
             point=base_point,
             left_or_right=self.left_or_right)
 
-        inv_jacobian = GeneralLinear.inv(jacobian)
+        inv_jacobian = GeneralLinear.inverse(jacobian)
         inv_jacobian_transposed = Matrices.transpose(inv_jacobian)
 
         metric_mat = gs.einsum(
@@ -253,6 +253,8 @@ class InvariantMetric(RiemannianMetric):
         if gs.allclose(base_point, identity):
             return self.exp_from_identity(tangent_vec)
 
+        # TODO(nguigs): factorize this code to pushforward tangent vec to
+        #  identity by left/right translation
         jacobian = self.group.jacobian_translation(
             point=base_point, left_or_right=self.left_or_right)
         inv_jacobian = gs.linalg.inv(jacobian)
@@ -294,7 +296,7 @@ class InvariantMetric(RiemannianMetric):
         """
         point = self.group.regularize(point)
         inner_prod_mat = self.inner_product_mat_at_identity
-        inv_inner_prod_mat = GeneralLinear.inv(inner_prod_mat)
+        inv_inner_prod_mat = GeneralLinear.inverse(inner_prod_mat)
         sqrt_inv_inner_prod_mat = gs.linalg.sqrtm(inv_inner_prod_mat)
         log = gs.einsum('...i,...ij->...j', point, sqrt_inv_inner_prod_mat)
         log = self.group.regularize_tangent_vec_at_identity(
@@ -363,12 +365,65 @@ class InvariantMetric(RiemannianMetric):
                 point, self.group.inverse(base_point))
 
         log_from_id = self.log_from_identity(point_near_id)
-
         jacobian = self.group.jacobian_translation(
             base_point, left_or_right=self.left_or_right)
-
-        log = gs.einsum(
-            '...j,...jk->...k',
-            log_from_id,
-            Matrices.transpose(jacobian))
+        log = gs.einsum('...ij,...j->...i', jacobian, log_from_id)
         return log
+
+
+class BiInvariantMetric(InvariantMetric):
+    """Class for bi-invariant metrics which exist on Lie groups.
+
+    Compact Lie groups and direct products of compact Lie groups with vector
+    spaces admit bi-invariant metrics. Products Lie groups are not
+    implemented. Other groups such as SE(3) admit bi-invariant pseudo-metrics.
+
+    Parameters
+    ----------
+    group : LieGroup
+        The group to equip with the bi-invariant metric
+    """
+
+    def __init__(self, group):
+        super(BiInvariantMetric, self).__init__(
+            group=group, inner_product_mat_at_identity=gs.eye(group.dim),
+            default_point_type=group.default_point_type)
+        if 'SpecialOrthogonal' not in group.__str__():
+            # TODO(nguigs): implement it for SE(3)
+            raise ValueError('The bi-invariant metric is only implemented for '
+                             'SO(n)')
+
+    def exp_from_identity(self, tangent_vec):
+        """Compute Riemannian exponential of tangent vector from the identity.
+
+        For a bi-invariant metric, this corresponds to the group exponential.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[n_samples, {dim, [n, n]}]
+            Tangent vector at identity.
+
+        Returns
+        -------
+        exp : array-like, shape=[n_samples, {dim, [n, n]}]
+            Point in the group.
+        """
+        return self.group.exp(tangent_vec)
+
+    def log_from_identity(self, point):
+        """Compute Riemannian logarithm of a point wrt the identity.
+
+        For a bi-invariant metric this corresponds to the group logarithm.
+
+        Parameters
+        ----------
+        point : array-like, shape=[n_samples, {dim, [n, n]}]
+            Point in the group.
+
+        Returns
+        -------
+        log : array-like, shape=[n_samples, {dim, [n, n]}]
+            Tangent vector at the identity equal to the Riemannian logarithm
+            of point at the identity.
+        """
+        return self.group.log(point)

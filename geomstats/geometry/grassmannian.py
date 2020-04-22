@@ -132,7 +132,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
             Linear Algebra and its Applications, 466, 83-101, 2015.
         """
         GLn = GeneralLinear(self.n)
-        id_n = GLn.identity()
+        id_n = GLn.identity
         sym2 = 2 * point - id_n
         sym1 = 2 * base_point - id_n
         rot = GLn.mul(sym2, sym1)

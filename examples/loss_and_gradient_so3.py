@@ -4,10 +4,10 @@ import logging
 
 import geomstats.backend as gs
 import geomstats.geometry.lie_group as lie_group
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal3
 
 
-SO3 = SpecialOrthogonal(n=3)
+SO3 = SpecialOrthogonal3()
 
 
 def loss(y_pred, y_true,

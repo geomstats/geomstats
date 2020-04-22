@@ -4,12 +4,12 @@ import logging
 
 import geomstats.backend as gs
 import geomstats.geometry.lie_group as lie_group
-from geomstats.geometry.special_euclidean import SpecialEuclidean
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+from geomstats.geometry.special_euclidean import SpecialEuclidean3
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal3
 
 
-SE3 = SpecialEuclidean(n=3)
-SO3 = SpecialOrthogonal(n=3)
+SE3 = SpecialEuclidean3()
+SO3 = SpecialOrthogonal3()
 
 
 def loss(y_pred, y_true,
