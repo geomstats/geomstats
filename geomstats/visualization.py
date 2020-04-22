@@ -86,7 +86,8 @@ class Circle():
         return ax
 
     def add_points(self, points):
-        assert gs.all(S1.belongs(points))
+        if not gs.all(S1.belongs(points)):
+            raise ValueError('Points do  not belong to the circle.')
         if not isinstance(points, list):
             points = points.tolist()
         self.points.extend(points)
@@ -145,7 +146,8 @@ class Sphere():
         return ax
 
     def add_points(self, points):
-        assert gs.all(S2.belongs(points))
+        if not gs.all(S2.belongs(points)):
+            raise ValueError('Points do not belong to the sphere.')
         if not isinstance(points, list):
             points = points.tolist()
         self.points.extend(points)
@@ -233,7 +235,9 @@ class PoincareDisk():
     def add_points(self, points):
 
         if self.point_type == 'extrinsic':
-            assert gs.all(H2.belongs(points))
+            if not gs.all(H2.belongs(points)):
+                raise ValueError(
+                    'Points do not belong to the hyperbolic space.')
             points = self.convert_to_poincare_coordinates(points)
 
         if not isinstance(points, list):
@@ -322,7 +326,9 @@ class PoincareHalfPlane():
             self.add_points(points)
 
     def add_points(self, points):
-        assert gs.all(H2.belongs(points))
+        if not gs.all(H2.belongs(points)):
+            raise ValueError(
+                'Points do not belong to the hyperbolic space.')
         points = self.convert_to_half_plane_coordinates(points)
         if not isinstance(points, list):
             points = points.tolist()
@@ -377,7 +383,9 @@ class KleinDisk():
         return ax
 
     def add_points(self, points):
-        assert gs.all(H2.belongs(points))
+        if not gs.all(H2.belongs(points)):
+            raise ValueError(
+                'Points do not belong to the hyperbolic space.')
         points = self.convert_to_klein_coordinates(points)
         if not isinstance(points, list):
             points = points.tolist()
