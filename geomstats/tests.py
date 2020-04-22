@@ -1,5 +1,4 @@
-"""
-Testing class for geomstats.
+"""Testing class for geomstats.
 
 This class abstracts the backend type.
 """
@@ -78,14 +77,12 @@ class TestCase(_TestBaseClass):
             return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
         return self.assertTrue(gs.allclose(a, b, rtol=rtol, atol=atol))
 
-    @staticmethod
-    def assertAllCloseToNp(a, np_a, rtol=1e-6, atol=1e-6):
+    def assertAllCloseToNp(self, a, np_a, rtol=1e-6, atol=1e-6):
         are_same_shape = np.all(a.shape == np_a.shape)
-        if pytorch_backend():
-            are_same = np.all(np.array(a) == np_a)
-        else:
-            are_same = np.all(a == np_a)
-        return are_same_shape and are_same
+        are_same = np.allclose(a, np_a)
+        if tf_backend():
+            return super().assertTrue(are_same_shape and are_same)
+        super().assertTrue(are_same_shape and are_same)
 
     def assertShapeEqual(self, a, b):
         if tf_backend():
