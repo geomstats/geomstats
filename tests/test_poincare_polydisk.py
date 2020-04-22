@@ -7,7 +7,7 @@ from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.poincare_polydisk import PoincarePolydisk
 
 
-class TestPoincarePolydiskMethods(geomstats.tests.TestCase):
+class TestPoincarePolydisk(geomstats.tests.TestCase):
     """Class defining the Poincare polydisk tests."""
 
     def setUp(self):

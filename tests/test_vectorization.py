@@ -7,7 +7,7 @@ import geomstats.tests
 import geomstats.vectorization
 
 
-class TestVectorizationMethods(geomstats.tests.TestCase):
+class TestVectorization(geomstats.tests.TestCase):
     def setUp(self):
 
         class Obj:

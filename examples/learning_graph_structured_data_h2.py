@@ -134,9 +134,10 @@ def main():
 
     nb_vertices_by_edges =\
         [len(e_2) for _, e_2 in karate_graph.edges.items()]
-    logging.info('Number of edges: %s' % len(karate_graph.edges))
-    logging.info('Mean vertices by edges: %s' % (sum(nb_vertices_by_edges, 0) /
-                 len(karate_graph.edges)))
+    logging.info('Number of edges: %s', len(karate_graph.edges))
+    logging.info(
+        'Mean vertices by edges: %s',
+        (sum(nb_vertices_by_edges, 0) / len(karate_graph.edges)))
 
     negative_table_parameter = 5
     negative_sampling_table = []
@@ -157,7 +158,7 @@ def main():
         total_loss = []
         for path in random_walks:
 
-            for example_index in range(len(path)):
+            for example_index, one_path in enumerate(path):
                 context_index = path[max(0, example_index - context_size):
                                      min(example_index + context_size,
                                      len(path))]
@@ -167,23 +168,26 @@ def main():
                                       n_negative))
                 negative_index = negative_sampling_table[negative_index]
 
-                example_embedding = embeddings[path[example_index]]
+                example_embedding = embeddings[one_path]
 
-                for k in range(len(negative_index)):
-                    context_embedding = embeddings[context_index[k]]
-                    negative_embedding = embeddings[negative_index[k]]
-                    l, g_ex =\
-                        loss(example_embedding, context_embedding,
-                             negative_embedding, hyperbolic_manifold)
+                for one_context_i, one_negative_i in zip(context_index,
+                                                         negative_index):
+                    context_embedding = embeddings[one_context_i]
+                    negative_embedding = embeddings[one_negative_i]
+                    l, g_ex = loss(
+                        example_embedding,
+                        context_embedding,
+                        negative_embedding,
+                        hyperbolic_manifold)
                     total_loss.append(l)
 
-                    example_to_update = embeddings[path[example_index]]
-                    embeddings[path[example_index]] =\
-                        hyperbolic_manifold.metric.exp(-lr * g_ex,
-                                                       example_to_update)
+                    example_to_update = embeddings[one_path]
+                    embeddings[one_path] = hyperbolic_manifold.metric.exp(
+                        -lr * g_ex, example_to_update)
 
-        logging.info('iteration %d loss_value %f' % (epoch,
-                     sum(total_loss, 0) / len(total_loss)))
+        logging.info(
+            'iteration %d loss_value %f',
+            epoch, sum(total_loss, 0) / len(total_loss))
 
     circle = visualization.PoincareDisk(point_type='ball')
     plt.figure()
@@ -191,9 +195,10 @@ def main():
     circle.add_points(gs.array([[0, 0]]))
     circle.set_ax(ax)
     circle.draw(ax=ax)
-    for i in range(len(embeddings)):
-        plt.scatter(embeddings[i][0], embeddings[i][1],
-                    c=colors[karate_graph.labels[i][0]])
+    for i_embedding, embedding in enumerate(embeddings):
+        plt.scatter(
+            embedding[0], embedding[1],
+            c=colors[karate_graph.labels[i_embedding][0]])
     plt.show()
 
 

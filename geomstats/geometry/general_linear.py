@@ -14,12 +14,12 @@ class GeneralLinear(Matrices):
 
     def belongs(self, point):
         """Test if a matrix is invertible and of the right size."""
-        point = gs.to_ndarray(point, to_ndim=3)
-        _, mat_dim_1, mat_dim_2 = point.shape
+        point_shape = point.shape
+        mat_dim_1, mat_dim_2 = point_shape[-2], point_shape[-1]
         det = gs.linalg.det(point)
         return gs.logical_and(
-            mat_dim_1 == self.n and mat_dim_2 == self.n, gs.where(
-                det != 0., gs.array(True), gs.array(False)))
+            mat_dim_1 == self.n and mat_dim_2 == self.n,
+            det != 0.)
 
     def get_identity(self):
         """Return the identity matrix."""

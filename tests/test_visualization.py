@@ -14,7 +14,7 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean3
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal3
 
 
-class TestVisualizationMethods(geomstats.tests.TestCase):
+class TestVisualization(geomstats.tests.TestCase):
     def setUp(self):
         self.n_samples = 10
         self.SO3_GROUP = SpecialOrthogonal3()

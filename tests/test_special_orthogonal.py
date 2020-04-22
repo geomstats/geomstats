@@ -1,11 +1,17 @@
-"""Unit tests for special euclidean group in matrix representation."""
+"""
+Unit tests for special orthogonal group SO(n).
+"""
+
+import warnings
+
+import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
-class TestSpecialOrthogonalMethods(geomstats.tests.TestCase):
+class TestSpecialOrthogonal3(geomstats.tests.TestCase):
     def setUp(self):
         self.n = 2
         self.group = SpecialOrthogonal(n=self.n)

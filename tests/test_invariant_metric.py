@@ -16,7 +16,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal3
 
 
-class TestInvariantMetricMethods(geomstats.tests.TestCase):
+class TestInvariantMetric(geomstats.tests.TestCase):
     def setUp(self):
         logger = logging.getLogger()
         logger.disabled = True

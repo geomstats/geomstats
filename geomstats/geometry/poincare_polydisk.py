@@ -41,7 +41,8 @@ class PoincarePolydisk(ProductManifold):
         self.metric = PoincarePolydiskMetric(n_disks=n_disks,
                                              coords_type=coords_type)
 
-    def intrinsic_to_extrinsic_coords(self, point_intrinsic):
+    @staticmethod
+    def intrinsic_to_extrinsic_coords(point_intrinsic):
         """Convert point from intrinsic to extrensic coordinates.
 
         Convert the parameterization of a point in the hyperbolic space

@@ -4,7 +4,7 @@ import geomstats.tests
 from geomstats.datasets.graph_data_preparation import Graph
 
 
-class TestLoadDefaultGraph(geomstats.tests.TestCase):
+class TestLoadGraph(geomstats.tests.TestCase):
     """Test for loading graph-structured data."""
 
     @geomstats.tests.np_only

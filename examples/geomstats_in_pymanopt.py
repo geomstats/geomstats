@@ -7,7 +7,6 @@ The example currently requires installing the pymanopt HEAD from git:
     pip install git+ssh://git@github.com/pymanopt/pymanopt.git
 """
 
-import functools
 import logging
 import os
 
@@ -17,16 +16,6 @@ from pymanopt.solvers import SteepestDescent
 
 import geomstats.backend as gs
 from geomstats.geometry.hypersphere import Hypersphere
-
-
-def squeeze_output(function):
-    """Decorator to remove singleton dimensions from a numpy.ndarray returned
-    by the decorated function.
-    """
-    @functools.wraps(function)
-    def inner(*args, **kwargs):
-        return gs.squeeze(function(*args, **kwargs))
-    return inner
 
 
 class GeomstatsSphere(Manifold):
@@ -44,12 +33,10 @@ class GeomstatsSphere(Manifold):
         return self._sphere.metric.inner_product(
             tangent_vector_a, tangent_vector_b, base_point=base_vector)
 
-    @squeeze_output
     def proj(self, base_vector, tangent_vector):
         return self._sphere.projection_to_tangent_space(
             tangent_vector, base_point=base_vector)
 
-    @squeeze_output
     def retr(self, base_vector, tangent_vector):
         """The retraction operator, which maps a tangent vector in the tangent
         space at a specific point back to the manifold by approximating moving
@@ -59,7 +46,6 @@ class GeomstatsSphere(Manifold):
         """
         return self._sphere.metric.exp(tangent_vector, base_point=base_vector)
 
-    @squeeze_output
     def rand(self):
         return self._sphere.random_uniform()
 
@@ -69,9 +55,10 @@ def estimate_dominant_eigenvector(matrix):
     the Rayleigh quotient -x' * A * x / (x' * x).
     """
     num_rows, num_columns = gs.shape(matrix)
-    assert num_rows == num_columns, 'matrix must be square'
-    assert gs.allclose(gs.sum(matrix - gs.transpose(matrix)), 0.0), \
-        'matrix must be symmetric'
+    if num_rows != num_columns:
+        raise ValueError('Matrix must be square.')
+    if not gs.allclose(gs.sum(matrix - gs.transpose(matrix)), 0.0):
+        raise ValueError('Matrix must be symmetric.')
 
     def cost(vector):
         return -gs.dot(vector, gs.dot(matrix, vector))
@@ -90,14 +77,14 @@ if __name__ == '__main__':
         raise SystemExit(
             'This example currently only supports the numpy backend')
 
-    ambient_dimension = 128
-    matrix = gs.random.normal(size=(ambient_dimension, ambient_dimension))
-    matrix = 0.5 * (matrix + matrix.T)
+    ambient_dim = 128
+    mat = gs.random.normal(size=(ambient_dim, ambient_dim))
+    mat = 0.5 * (mat + mat.T)
 
-    eigenvalues, eigenvectors = gs.linalg.eig(matrix)
+    eigenvalues, eigenvectors = gs.linalg.eig(mat)
     dominant_eigenvector = eigenvectors[:, gs.argmax(eigenvalues)]
 
-    dominant_eigenvector_estimate = estimate_dominant_eigenvector(matrix)
+    dominant_eigenvector_estimate = estimate_dominant_eigenvector(mat)
     if (gs.sign(dominant_eigenvector[0]) !=
             gs.sign(dominant_eigenvector_estimate[0])):
         dominant_eigenvector_estimate = -dominant_eigenvector_estimate

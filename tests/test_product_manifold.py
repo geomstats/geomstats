@@ -12,7 +12,7 @@ from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.product_manifold import ProductManifold
 
 
-class TestProductManifoldMethods(geomstats.tests.TestCase):
+class TestProductManifold(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
 

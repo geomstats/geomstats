@@ -5,7 +5,7 @@ import geomstats.tests
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 
-class TestSpecialEuclideanMethods(geomstats.tests.TestCase):
+class TestSpecialEuclidean(geomstats.tests.TestCase):
     def setUp(self):
         self.n = 2
         self.group = SpecialEuclidean(n=self.n)

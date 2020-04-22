@@ -1,5 +1,4 @@
-"""
-Unit tests for backends.
+"""Unit tests for backends.
 
 The functions are tested in order to match numpy's results and API.
 In exceptional cases, numpy's results or API may not be followed.
@@ -33,17 +32,17 @@ class TestBackends(geomstats.tests.TestCase):
 
         gs_mat = gs.array([gs.ones(3), gs.ones(3)], dtype=gs.float64)
         np_mat = _np.array([_np.ones(3), _np.ones(3)], dtype=_np.float64)
-        assert gs_mat.dtype == gs.float64
+        self.assertTrue(gs_mat.dtype == gs.float64)
         self.assertAllCloseToNp(gs_mat, np_mat)
 
         gs_mat = gs.array([[gs.ones(3)], [gs.ones(3)]], dtype=gs.uint8)
         np_mat = _np.array([[_np.ones(3)], [_np.ones(3)]], dtype=_np.uint8)
-        assert gs_mat.dtype == gs.uint8
+        self.assertTrue(gs_mat.dtype == gs.uint8)
         self.assertAllCloseToNp(gs_mat, np_mat)
 
         gs_mat = gs.array([gs.ones(3), [0, 0, 0]], dtype=gs.int32)
         np_mat = _np.array([_np.ones(3), [0, 0, 0]], dtype=_np.int32)
-        assert gs_mat.dtype == gs.int32
+        self.assertTrue(gs_mat.dtype == gs.int32)
         self.assertAllCloseToNp(gs_mat, np_mat)
 
     def test_matmul(self):
@@ -236,13 +235,6 @@ class TestBackends(geomstats.tests.TestCase):
             [4., 5., 6.],
             [7., 8., 9.]])
         self.assertAllClose(result, expected)
-
-    @geomstats.tests.tf_only
-    def test_tensor_addition(self):
-        tensor_1 = gs.ones((1, 1))
-        tensor_2 = gs.ones((0, 1))
-
-        tensor_1 + tensor_2
 
     @geomstats.tests.pytorch_only
     def test_cumsum(self):

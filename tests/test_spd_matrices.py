@@ -14,7 +14,7 @@ from geomstats.geometry.spd_matrices import (
 )
 
 
-class TestSPDMatricesMethods(geomstats.tests.TestCase):
+class TestSPDMatrices(geomstats.tests.TestCase):
     """Test of SPDMatrices methods."""
 
     def setUp(self):
