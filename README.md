@@ -12,7 +12,7 @@ The module `geometry` implements concepts in differential geometry, and the modu
 - To get started with ```geomstats```, see the [examples directory](https://github.com/geomstats/geomstats/tree/master/examples).
 - For more in-depth applications of ``geomstats``, see the [applications repository](https://github.com/geomstats/applications/).
 - The documentation of ```geomstats``` can be found on the [documentation website](https://geomstats.github.io/).
-- If you find ``geomstats`` useful, please kindly cite our [paper](https://arxiv.org/abs/1805.08308).
+- If you find ``geomstats`` useful, please kindly cite our [paper](https://arxiv.org/abs/2004.04667).
 
 ## Install geomstats via pip3
 
@@ -33,7 +33,7 @@ git clone https://github.com/geomstats/geomstats.git
 pip3 install -r requirements.txt
 ```
 
-This method installs the latest GitHub version of geomstats. Developers should install this version, together with the development requirements::
+This method installs the latest GitHub version of geomstats. Developers should install this version, together with the development requirements:
 
 ```
 pip3 install -r dev-requirements.txt
@@ -69,7 +69,7 @@ The data should be represented by a ``gs.array``. This structure represents nump
 The following code snippet shows the use of tangent Principal Component Analysis on simulated ``data`` on the
 space of 3D rotations.
 
-```
+```python
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.pca import TangentPCA
 
