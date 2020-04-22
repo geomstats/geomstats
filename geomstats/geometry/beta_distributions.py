@@ -91,7 +91,8 @@ class BetaDistributions(EmbeddedManifold):
             samples.append(beta.rvs(param_a, param_b, size=n_samples))
         return samples[0] if len(point) == 1 else gs.stack(samples)
 
-    def maximum_likelihood_fit(self, data, loc=0, scale=1):
+    @staticmethod
+    def maximum_likelihood_fit(data, loc=0, scale=1):
         """Estimate parameters from samples.
 
         This a wrapper around scipy's maximum likelihood estimator to
