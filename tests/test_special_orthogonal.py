@@ -2,10 +2,6 @@
 Unit tests for special orthogonal group SO(n).
 """
 
-import warnings
-
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
