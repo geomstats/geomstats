@@ -7,7 +7,6 @@ import geomstats.error
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class InvariantMetric(RiemannianMetric):
@@ -387,7 +386,7 @@ class BiInvariantMetric(InvariantMetric):
         super(BiInvariantMetric, self).__init__(
             group=group, inner_product_mat_at_identity=gs.eye(group.dim),
             default_point_type=group.default_point_type)
-        if not isinstance(group, SpecialOrthogonal):
+        if 'SpecialOrthogonal' not in group.__str__():
             raise ValueError('The bi-invariant metric is only valid for SO(n)')
 
     def exp_from_identity(self, tangent_vec):
