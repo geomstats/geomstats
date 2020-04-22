@@ -68,7 +68,6 @@ class SpecialOrthogonal(GeneralLinear, LieGroup):
         samples : array-like, shape=[n_samples, n, n]
             Points sampled on the SO(n).
         """
-
         if n_samples == 1:
             random_mat = gs.random.rand(self.n, self.n)
         else:
@@ -310,9 +309,9 @@ class SpecialOrthogonal3(LieGroup):
         rot_mat : array-like, shape=[n_samples, n, n]
         """
         mat = point
-        n_mats, _, _ = mat.shape
+        n_mats, n, _ = mat.shape
 
-        if self.n == 3:
+        if n == 3:
             mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
             rot_mat = gs.einsum('nij,njk->nik', mat_unitary_u, mat_unitary_v)
             mask = gs.less(gs.linalg.det(rot_mat), 0.)

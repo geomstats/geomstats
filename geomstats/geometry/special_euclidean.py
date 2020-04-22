@@ -127,7 +127,6 @@ class SpecialEuclidean(GeneralLinear, LieGroup):
         samples : array-like, shape=[n_samples, n + 1, n + 1]
             Points sampled on the SE(n).
         """
-
         random_translation = self.translations.random_uniform(n_samples)
         random_rotation = self.rotations.random_uniform(n_samples)
         random_rotation = gs.to_ndarray(random_rotation, to_ndim=3)
@@ -209,7 +208,6 @@ class SpecialEuclidean3(LieGroup):
 
         Parameters
         ----------
-
         point : array-like, shape=[n_samples, 3]
             The point of which to check whether it belongs to SE(3).
         atol : float

@@ -7,6 +7,7 @@ import geomstats.error
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class InvariantMetric(RiemannianMetric):
@@ -370,10 +371,24 @@ class InvariantMetric(RiemannianMetric):
 
 
 class BiInvariantMetric(InvariantMetric):
+    """Class for bi-invariant metrics which exist on Lie groups.
+
+    Compact Lie groups and direct products of compact Lie groups with vector
+    spaces admit bi-invariant metrics. Products Lie groups are not
+    implemented.
+
+    Parameters
+    ----------
+    group : LieGroup
+        The group to equip with the bi-invariant metric
+    """
+
     def __init__(self, group):
         super(BiInvariantMetric, self).__init__(
             group=group, inner_product_mat_at_identity=gs.eye(group.dim),
             default_point_type=group.default_point_type)
+        if not isinstance(group, SpecialOrthogonal):
+            raise ValueError('The bi-invariant metric is only valid for SO(n)')
 
     def exp_from_identity(self, tangent_vec):
         """Compute Riemannian exponential of tangent vector from the identity.
