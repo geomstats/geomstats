@@ -11,7 +11,6 @@ from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal3
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.frechet_mean import variance
 
@@ -25,7 +24,7 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.hyperbolic = Hyperboloid(dim=3)
         self.euclidean = Euclidean(dim=2)
         self.minkowski = Minkowski(dim=2)
-        self.so3 = SpecialOrthogonal3()
+        self.so3 = SpecialOrthogonal(n=3, point_type='vector')
         self.so_matrix = SpecialOrthogonal(n=3)
 
     @geomstats.tests.np_only

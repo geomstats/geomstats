@@ -11,9 +11,8 @@ import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
-from geomstats.geometry.special_euclidean import SpecialEuclidean3
+from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal3
 
 
 class TestInvariantMetric(geomstats.tests.TestCase):
@@ -25,9 +24,9 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         gs.random.seed(1234)
 
         n = 3
-        group = SpecialEuclidean3()
+        group = SpecialEuclidean(n=n, point_type='vector')
         matrix_so3 = SpecialOrthogonal(n=n)
-        vector_so3 = SpecialOrthogonal3()
+        vector_so3 = SpecialOrthogonal(n=n, point_type='vector')
 
         # Diagonal left and right invariant metrics
         diag_mat_at_identity = gs.eye(group.dim)

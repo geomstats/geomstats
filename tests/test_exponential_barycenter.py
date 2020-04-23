@@ -7,7 +7,6 @@ import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal3
 from geomstats.learning.exponential_barycenter import ExponentialBarycenter
 from geomstats.learning.frechet_mean import FrechetMean
 
@@ -18,7 +17,7 @@ class TestExponentialBarycenter(geomstats.tests.TestCase):
         logger = logging.getLogger()
         logger.disabled = True
         self.se_mat = SpecialEuclidean(n=3)
-        self.so_vec = SpecialOrthogonal3()
+        self.so_vec = SpecialOrthogonal(n=3, point_type='vector')
         self.so = SpecialOrthogonal(n=3)
         self.n_samples = 4
 
