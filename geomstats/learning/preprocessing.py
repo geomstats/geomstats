@@ -14,14 +14,14 @@ from geomstats.learning.frechet_mean import FrechetMean
 EPSILON = 1e-4
 
 
-class VectorTransformer(BaseEstimator, TransformerMixin):
+class ToTangentSpace(BaseEstimator, TransformerMixin):
     """Lift data to a tangent space.
 
     Compute the logs of all data points and reshape them to
     1d vectors if necessary. This means that all the data points, that belong
     to a possibly non-linear manifold are lifted to one of the tangent space of
     the manifold, which is a vector space. By default, the mean of the data
-    is computed (with the FrechetMean or the ExponentialBarycenter estimator
+    is computed (with the FrechetMean or the ExponentialBarycenter estimator,
     as appropriate) and the tangent space at the mean is used. Any other base
     point can be passed. The data points are then represented by the initial
     velocities of the geodesics that lead from base_point to each data point.
