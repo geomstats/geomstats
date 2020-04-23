@@ -248,7 +248,7 @@ class BetaMetric(RiemannianMetric):
         for point, vec in zip(base_point, tangent_vec):
             initial_state = gs.hstack([point, vec])
             geodesic = odeint(
-                ivp, initial_state, times, tuple(), rtol=1e-6)
+                ivp, initial_state, times, (), rtol=1e-6)
             exp.append(geodesic[-1, :2])
         return exp[0] if len(base_point) == 1 else gs.stack(exp)
 
