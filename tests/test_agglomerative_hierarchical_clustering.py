@@ -36,7 +36,7 @@ class TestAgglomerativeHierarchicalClustering(geomstats.tests.TestCase):
         """Test the 'fit' class method using the Euclidean distance."""
         n_clusters = 2
         dimension = 2
-        space = Euclidean(dimension=dimension)
+        space = Euclidean(dim=dimension)
         distance = space.metric.dist
         dataset = gs.array([[1, 2], [1, 4], [1, 0], [4, 2], [4, 4], [4, 0]])
         clustering = AgglomerativeHierarchicalClustering(
@@ -54,7 +54,7 @@ class TestAgglomerativeHierarchicalClustering(geomstats.tests.TestCase):
         """Test the 'fit' class method using the hypersphere distance."""
         n_clusters = 2
         dimension = 2
-        space = Hypersphere(dimension=dimension)
+        space = Hypersphere(dim=dimension)
         distance = space.metric.dist
         dataset = gs.array(
             [[1, 0, 0],

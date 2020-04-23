@@ -9,11 +9,11 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
-SE3_GROUP = SpecialEuclidean(n=3)
-SO3_GROUP = SpecialOrthogonal(n=3)
-S1 = Hypersphere(dimension=1)
-S2 = Hypersphere(dimension=2)
-H2 = Hyperboloid(dimension=2)
+SE3_GROUP = SpecialEuclidean(n=3, point_type='vector')
+SO3_GROUP = SpecialOrthogonal(n=3, point_type='vector')
+S1 = Hypersphere(dim=1)
+S2 = Hypersphere(dim=2)
+H2 = Hyperboloid(dim=2)
 
 AX_SCALE = 1.2
 
@@ -74,7 +74,8 @@ class Circle():
         if points is not None:
             self.add_points(points)
 
-    def set_ax(self, ax=None):
+    @staticmethod
+    def set_ax(ax=None):
         if ax is None:
             ax = plt.subplot()
         ax_s = AX_SCALE
@@ -85,7 +86,8 @@ class Circle():
         return ax
 
     def add_points(self, points):
-        assert gs.all(S1.belongs(points))
+        if not gs.all(S1.belongs(points)):
+            raise ValueError('Points do  not belong to the circle.')
         if not isinstance(points, list):
             points = points.tolist()
         self.points.extend(points)
@@ -130,7 +132,8 @@ class Sphere():
         if points is not None:
             self.add_points(points)
 
-    def set_ax(self, ax=None):
+    @staticmethod
+    def set_ax(ax=None):
         if ax is None:
             ax = plt.subplot(111, projection='3d')
 
@@ -143,7 +146,8 @@ class Sphere():
         return ax
 
     def add_points(self, points):
-        assert gs.all(S2.belongs(points))
+        if not gs.all(S2.belongs(points)):
+            raise ValueError('Points do not belong to the sphere.')
         if not isinstance(points, list):
             points = points.tolist()
         self.points.extend(points)
@@ -217,7 +221,8 @@ class PoincareDisk():
         if points is not None:
             self.add_points(points)
 
-    def set_ax(self, ax=None):
+    @staticmethod
+    def set_ax(ax=None):
         if ax is None:
             ax = plt.subplot()
         ax_s = AX_SCALE
@@ -230,23 +235,36 @@ class PoincareDisk():
     def add_points(self, points):
 
         if self.point_type == 'extrinsic':
-            assert gs.all(H2.belongs(points))
+            if not gs.all(H2.belongs(points)):
+                raise ValueError(
+                    'Points do not belong to the hyperbolic space.')
             points = self.convert_to_poincare_coordinates(points)
 
         if not isinstance(points, list):
             points = points.tolist()
-        self.points.extend(points)
 
-    def convert_to_poincare_coordinates(self, points):
+        if gs.all([len(point) == 2 for point in self.points]):
+            self.points.extend(points)
+        else:
+            raise ValueError('Points do not have dimension 2.')
+
+    @staticmethod
+    def convert_to_poincare_coordinates(points):
         poincare_coords = points[:, 1:] / (1 + points[:, :1])
         return poincare_coords
 
     def draw(self, ax, **kwargs):
         circle = plt.Circle((0, 0), radius=1., color='black', fill=False)
         ax.add_artist(circle)
-        points_x = gs.vstack([point[0] for point in self.points])
-        points_y = gs.vstack([point[1] for point in self.points])
-        ax.scatter(points_x, points_y, **kwargs)
+        if len(self.points) > 0:
+            if gs.all([len(point) == 2 for point in self.points]):
+                points_x = gs.stack(
+                    [point[0] for point in self.points], axis=0)
+                points_y = gs.stack(
+                    [point[1] for point in self.points], axis=0)
+                ax.scatter(points_x, points_y, **kwargs)
+            else:
+                raise ValueError('Points do not have dimension 2.')
 
 
 class PoincarePolyDisk():
@@ -260,7 +278,8 @@ class PoincarePolyDisk():
         if points is not None:
             self.add_points(points)
 
-    def set_ax(self, ax=None):
+    @staticmethod
+    def set_ax(ax=None):
         """Define the ax parameters."""
         if ax is None:
             ax = plt.subplot()
@@ -283,7 +302,8 @@ class PoincarePolyDisk():
         """Clear the points to draw."""
         self.points = []
 
-    def convert_to_poincare_coordinates(self, points):
+    @staticmethod
+    def convert_to_poincare_coordinates(points):
         """Convert points to poincare coordinates."""
         poincare_coords = points[:, 1:] / (1 + points[:, :1])
         return poincare_coords
@@ -306,13 +326,16 @@ class PoincareHalfPlane():
             self.add_points(points)
 
     def add_points(self, points):
-        assert gs.all(H2.belongs(points))
+        if not gs.all(H2.belongs(points)):
+            raise ValueError(
+                'Points do not belong to the hyperbolic space.')
         points = self.convert_to_half_plane_coordinates(points)
         if not isinstance(points, list):
             points = points.tolist()
         self.points.extend(points)
 
-    def set_ax(self, ax=None):
+    @staticmethod
+    def set_ax(ax=None):
         if ax is None:
             ax = plt.subplot()
         ax_s = AX_SCALE
@@ -322,7 +345,8 @@ class PoincareHalfPlane():
                  xlabel='X', ylabel='Y')
         return ax
 
-    def convert_to_half_plane_coordinates(self, points):
+    @staticmethod
+    def convert_to_half_plane_coordinates(points):
         disk_coords = points[:, 1:] / (1 + points[:, :1])
         disk_x = disk_coords[:, 0]
         disk_y = disk_coords[:, 1]
@@ -347,7 +371,8 @@ class KleinDisk():
         if points is not None:
             self.add_points(points)
 
-    def set_ax(self, ax=None):
+    @staticmethod
+    def set_ax(ax=None):
         if ax is None:
             ax = plt.subplot()
         ax_s = AX_SCALE
@@ -358,13 +383,16 @@ class KleinDisk():
         return ax
 
     def add_points(self, points):
-        assert gs.all(H2.belongs(points))
+        if not gs.all(H2.belongs(points)):
+            raise ValueError(
+                'Points do not belong to the hyperbolic space.')
         points = self.convert_to_klein_coordinates(points)
         if not isinstance(points, list):
             points = points.tolist()
         self.points.extend(points)
 
-    def convert_to_klein_coordinates(self, points):
+    @staticmethod
+    def convert_to_klein_coordinates(points):
         poincare_coords = points[:, 1:] / (1 + points[:, :1])
         poincare_radius = gs.linalg.norm(
             poincare_coords, axis=1)
@@ -400,7 +428,7 @@ def convert_to_trihedron(point, space=None):
     point = gs.to_ndarray(point, to_ndim=2)
     n_points, _ = point.shape
 
-    dim_rotations = SO3_GROUP.dimension
+    dim_rotations = SO3_GROUP.dim
 
     if space == 'SE3_GROUP':
         rot_vec = point[:, :dim_rotations]
@@ -495,8 +523,8 @@ def plot(points, ax=None, space=None,
         for i_disk in range(n_disks):
             axis_list.append(ax.add_subplot(n_rows, n_columns, i_disk + 1))
 
-        for i_disk, ax in enumerate(axis_list):
-            ax = poincare_poly_disk.set_ax(ax=ax)
+        for i_disk, one_ax in enumerate(axis_list):
+            ax = poincare_poly_disk.set_ax(ax=one_ax)
             poincare_poly_disk.clear_points()
             poincare_poly_disk.add_points(points[:, i_disk, ...])
             poincare_poly_disk.draw(ax, **point_draw_kwargs)

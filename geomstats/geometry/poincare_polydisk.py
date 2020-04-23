@@ -41,7 +41,8 @@ class PoincarePolydisk(ProductManifold):
         self.metric = PoincarePolydiskMetric(n_disks=n_disks,
                                              coords_type=coords_type)
 
-    def intrinsic_to_extrinsic_coords(self, point_intrinsic):
+    @staticmethod
+    def intrinsic_to_extrinsic_coords(point_intrinsic):
         """Convert point from intrinsic to extrensic coordinates.
 
         Convert the parameterization of a point in the hyperbolic space
@@ -50,11 +51,11 @@ class PoincarePolydisk(ProductManifold):
 
         Parameters
         ----------
-        point_intrinsic : array-like, shape=[n_samples, n_disk, dimension]
+        point_intrinsic : array-like, shape=[n_samples, n_disk, dim]
 
         Returns
         -------
-        point_extrinsic : array-like, shape=[n_samples, n_disks, dimension + 1]
+        point_extrinsic : array-like, shape=[n_samples, n_disks, dim + 1]
         """
         n_disks = point_intrinsic.shape[1]
         point_extrinsic = gs.stack(
@@ -71,12 +72,12 @@ class PoincarePolydisk(ProductManifold):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, n_disks, dimension + 1]
-        base_point : array-like, shape=[n_samples, n_disks, dimension + 1]
+        vector : array-like, shape=[n_samples, n_disks, dim + 1]
+        base_point : array-like, shape=[n_samples, n_disks, dim + 1]
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, n_disks, dimension + 1]
+        tangent_vec : array-like, shape=[n_samples, n_disks, dim + 1]
         """
         n_disks = base_point.shape[1]
         hyperbolic_space = Hyperboloid(2, self.coords_type)
@@ -105,12 +106,10 @@ class PoincarePolydiskMetric(ProductRiemannianMetric):
     """
 
     default_coords_type = 'extrinsic'
-    default_point_type = 'vector'
 
     def __init__(self, n_disks, coords_type='extrinsic'):
         self.n_disks = n_disks
         self.coords_type = coords_type
-        self.default_point_type = 'matrix'
         list_metrics = []
         for i_disk in range(n_disks):
             scale_i = (n_disks - i_disk) ** 0.5

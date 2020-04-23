@@ -10,10 +10,11 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
+import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hyperboloid import Hyperboloid
 
-H2 = Hyperboloid(dimension=2, coords_type='extrinsic')
+H2 = Hyperboloid(dim=2, coords_type='extrinsic')
 METRIC = H2.metric
 
 
@@ -22,8 +23,10 @@ def plot_geodesic_between_two_points(initial_point,
                                      n_steps=10,
                                      ax=None):
     """Plot the geodesic between two points."""
-    assert H2.belongs(initial_point)
-    assert H2.belongs(end_point)
+    if not H2.belongs(initial_point):
+        raise ValueError('The initial point of the geodesic is not in H2.')
+    if not H2.belongs(end_point):
+        raise ValueError('The end point of the geodesic is not in H2.')
 
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                end_point=end_point)
@@ -38,7 +41,8 @@ def plot_geodesic_with_initial_tangent_vector(initial_point,
                                               n_steps=10,
                                               ax=None):
     """Plot the geodesic with initial speed the tangent vector."""
-    assert H2.belongs(initial_point)
+    if not H2.belongs(initial_point):
+        raise ValueError('The initial point of the geodesic is not in H2.')
     geodesic = METRIC.geodesic(initial_point=initial_point,
                                initial_tangent_vec=initial_tangent_vec)
 
@@ -49,10 +53,11 @@ def plot_geodesic_with_initial_tangent_vector(initial_point,
 
 def main():
     """Plot the geodesics."""
-    initial_point = [np.sqrt(2), 1., 0.]
+    initial_point = gs.array([np.sqrt(2), 1., 0.])
     end_point = H2.from_coordinates([1.5, 1.5], 'intrinsic')
     initial_tangent_vec = H2.projection_to_tangent_space(
-        vector=[3.5, 0.6, 0.8], base_point=initial_point)
+        vector=gs.array([3.5, 0.6, 0.8]),
+        base_point=initial_point)
 
     ax = plt.gca()
     plot_geodesic_between_two_points(initial_point,

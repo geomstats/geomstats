@@ -1,5 +1,4 @@
-"""
-Unit tests for backends.
+"""Unit tests for backends.
 
 The functions are tested in order to match numpy's results and API.
 In exceptional cases, numpy's results or API may not be followed.
@@ -21,6 +20,30 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.so3_group = SpecialOrthogonal(n=3)
         self.n_samples = 2
+
+    def test_array(self):
+        gs_mat = gs.array(1.5)
+        np_mat = _np.array(1.5)
+        self.assertAllCloseToNp(gs_mat, np_mat)
+
+        gs_mat = gs.array([gs.ones(3), gs.ones(3)])
+        np_mat = _np.array([_np.ones(3), _np.ones(3)])
+        self.assertAllCloseToNp(gs_mat, np_mat)
+
+        gs_mat = gs.array([gs.ones(3), gs.ones(3)], dtype=gs.float64)
+        np_mat = _np.array([_np.ones(3), _np.ones(3)], dtype=_np.float64)
+        self.assertTrue(gs_mat.dtype == gs.float64)
+        self.assertAllCloseToNp(gs_mat, np_mat)
+
+        gs_mat = gs.array([[gs.ones(3)], [gs.ones(3)]], dtype=gs.uint8)
+        np_mat = _np.array([[_np.ones(3)], [_np.ones(3)]], dtype=_np.uint8)
+        self.assertTrue(gs_mat.dtype == gs.uint8)
+        self.assertAllCloseToNp(gs_mat, np_mat)
+
+        gs_mat = gs.array([gs.ones(3), [0, 0, 0]], dtype=gs.int32)
+        np_mat = _np.array([_np.ones(3), [0, 0, 0]], dtype=_np.int32)
+        self.assertTrue(gs_mat.dtype == gs.int32)
+        self.assertAllCloseToNp(gs_mat, np_mat)
 
     def test_matmul(self):
         mat_a = [[2., 0., 0.],
@@ -141,7 +164,6 @@ class TestBackends(geomstats.tests.TestCase):
     @geomstats.tests.np_and_tf_only
     def test_expm_and_logm_vectorization_random_rotation(self):
         point = self.so3_group.random_uniform(self.n_samples)
-        point = self.so3_group.matrix_from_rotation_vector(point)
 
         result = gs.linalg.expm(gs.linalg.logm(point))
         expected = point
@@ -214,13 +236,6 @@ class TestBackends(geomstats.tests.TestCase):
             [7., 8., 9.]])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.tf_only
-    def test_tensor_addition(self):
-        tensor_1 = gs.ones((1, 1))
-        tensor_2 = gs.ones((0, 1))
-
-        tensor_1 + tensor_2
-
     @geomstats.tests.pytorch_only
     def test_cumsum(self):
         result = gs.cumsum(gs.arange(10))
@@ -265,6 +280,42 @@ class TestBackends(geomstats.tests.TestCase):
         np_result = _np.einsum('...i,...i->...', np_array_1, np_array_2)
         gs_result = gs.einsum('...i,...i->...', array_1, array_2)
 
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_array_1 = _np.array([5])
+        np_array_2 = _np.array([[1, 2, 3]])
+        array_1 = gs.array([5])
+        array_2 = gs.array([[1, 2, 3]])
+
+        np_result = _np.einsum('...,...i->...i', np_array_1, np_array_2)
+        gs_result = gs.einsum('...,...i->...i', array_1, array_2)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_array_1 = _np.array(5)
+        np_array_2 = _np.array([[1, 2, 3]])
+        array_1 = gs.array(5)
+        array_2 = gs.array([[1, 2, 3]])
+
+        np_result = _np.einsum('...,...i->...i', np_array_1, np_array_2)
+        gs_result = gs.einsum('...,...i->...i', array_1, array_2)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_array_1 = _np.array([5])
+        np_array_2 = _np.array([1, 2, 3])
+        array_1 = gs.array([5])
+        array_2 = gs.array([1, 2, 3])
+
+        np_result = _np.einsum('...,...i->...i', np_array_1, np_array_2)
+        gs_result = gs.einsum('...,...i->...i', array_1, array_2)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_array_1 = _np.array(5)
+        np_array_2 = _np.array([1, 2, 3])
+        array_1 = gs.array(5)
+        array_2 = gs.array([1, 2, 3])
+
+        np_result = _np.einsum('...,...i->...i', np_array_1, np_array_2)
+        gs_result = gs.einsum('...,...i->...i', array_1, array_2)
         self.assertAllCloseToNp(gs_result, np_result)
 
     def test_assignment(self):

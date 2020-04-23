@@ -1,5 +1,7 @@
 """Module exposing the GeneralLinear group class."""
 
+from itertools import product
+
 import geomstats.backend as gs
 from geomstats.geometry.matrices import Matrices
 
@@ -7,18 +9,24 @@ from geomstats.geometry.matrices import Matrices
 class GeneralLinear(Matrices):
     """Class for the general linear group GL(n)."""
 
-    def __init__(self, n):
+    def __init__(self, n, **kwargs):
         Matrices.__init__(self, n, n)
 
-    @staticmethod
-    def belongs(point):
-        """Test if a matrix is invertible."""
-        det = gs.linalg.det(point)
-        return gs.where(det != 0., True, False)
+        self.n = n
 
-    def identity(self):
+    def belongs(self, point):
+        """Test if a matrix is invertible and of the right size."""
+        point_shape = point.shape
+        mat_dim_1, mat_dim_2 = point_shape[-2], point_shape[-1]
+        det = gs.linalg.det(point)
+        return gs.logical_and(
+            mat_dim_1 == self.n and mat_dim_2 == self.n,
+            det != 0.)
+
+    def get_identity(self):
         """Return the identity matrix."""
         return gs.eye(self.n, self.n)
+    identity = property(get_identity)
 
     @classmethod
     def compose(cls, *args):
@@ -26,9 +34,45 @@ class GeneralLinear(Matrices):
         return cls.mul(*args)
 
     @staticmethod
-    def inv(point):
+    def inverse(point):
         """Return the inverse of a matrix."""
         return gs.linalg.inv(point)
+
+    def _replace_values(self, samples, new_samples, indcs):
+        replaced_indices = [
+            i for i, is_replaced in enumerate(indcs) if is_replaced]
+        value_indices = list(
+            product(replaced_indices, range(self.n), range(self.n)))
+        return gs.assignment(samples, gs.flatten(new_samples), value_indices)
+
+    def random_uniform(self, n_samples=1, tol=1e-6):
+        """Sample in GL(n) from the uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int, optional
+            Number of samples.
+        tol: float, optional
+            Threshold for the absolute value of the determinant of the
+            returned matrix.
+
+        Returns
+        -------
+        samples : array-like, shape=[n_samples, n, n]
+            Points sampled on GL(n).
+        """
+        samples = gs.random.rand(n_samples, self.n, self.n)
+        while True:
+            dets = gs.linalg.det(samples)
+            indcs = gs.isclose(dets, 0.0, atol=tol)
+            num_bad_samples = gs.sum(indcs)
+            if num_bad_samples == 0:
+                break
+            new_samples = gs.random.rand(num_bad_samples, self.n, self.n)
+            samples = self._replace_values(samples, new_samples, indcs)
+        if n_samples == 1:
+            samples = gs.squeeze(samples, axis=0)
+        return samples
 
     @classmethod
     def exp(cls, tangent_vec, base_point=None):
@@ -49,20 +93,23 @@ class GeneralLinear(Matrices):
 
         Parameters
         ----------
-        tangent_vec :   array-like, shape=[..., n, n]
-        base_point :    array-like, shape=[..., n, n]
+        tangent_vec :   array-like, shape=[n_samples, n, n]
+                                    or shape=[n, n]
+        base_point :    array-like, shape=[n_samples, n, n]
+                                    or shape=[n, n]
             Defaults to identity.
 
         Returns
         -------
         point :         array-like, shape=[..., n, n]
+                                    or shape=[n, n]
             The left multiplication of `exp(algebra_mat)` with
             `base_point`.
         """
         expm = gs.linalg.expm
         if base_point is None:
             return expm(tangent_vec)
-        lie_algebra_vec = cls.mul(cls.inv(base_point), tangent_vec)
+        lie_algebra_vec = cls.mul(cls.inverse(base_point), tangent_vec)
         return cls.mul(base_point, cls.exp(lie_algebra_vec))
 
     @classmethod
@@ -75,13 +122,16 @@ class GeneralLinear(Matrices):
 
         Parameters
         ----------
-        point :         array-like, shape=[..., n, n]
-        base_point :    array-like, shape=[..., n, n]
+        point : array-like, shape=[n_samples, n, n]
+                            or shape=[n, n]
+        base_point : array-like, shape=[n_samples, n, n]
+                                 or shape=[n, n]
             Defaults to identity.
 
         Returns
         -------
-        tangent_vec :   array-like, shape=[..., n, n]
+        tangent_vec : array-like, shape=[n_samples, n, n]
+                                  or shape=[n, n]
             A matrix such that `exp(tangent_vec, base_point) = point`.
 
         Notes
@@ -96,7 +146,7 @@ class GeneralLinear(Matrices):
         logm = gs.linalg.logm
         if base_point is None:
             return logm(point)
-        lie_algebra_vec = logm(cls.mul(cls.inv(base_point), point))
+        lie_algebra_vec = logm(cls.mul(cls.inverse(base_point), point))
         return cls.mul(base_point, lie_algebra_vec)
 
     @classmethod
@@ -135,9 +185,8 @@ class GeneralLinear(Matrices):
         -------------
         Return a collection of trajectories (4-D array)
         from a collection of input matrices (3-D array).
-
-        # TODO(nina): Will work when expm gets properly 4-D vectorized.
         """
+        # TODO(nina): Will work when expm gets properly 4-D vectorized.
         tangent_vec = cls.log(point, base_point)
 
         def path(time):

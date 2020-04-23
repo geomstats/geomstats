@@ -4,12 +4,12 @@ import geomstats.tests
 from geomstats.geometry.lie_group import LieGroup
 
 
-class TestLieGroupMethods(geomstats.tests.TestCase):
+class TestLieGroup(geomstats.tests.TestCase):
     dimension = 4
-    group = LieGroup(dimension=dimension)
+    group = LieGroup(dim=dimension)
 
     def test_dimension(self):
-        result = self.group.dimension
+        result = self.group.dim
         expected = self.dimension
 
         self.assertAllClose(result, expected)

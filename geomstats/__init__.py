@@ -1,4 +1,4 @@
-__version__ = '1.17'
+__version__ = '1.22'
 
 import geomstats._backend
 import geomstats._logging

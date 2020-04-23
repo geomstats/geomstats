@@ -10,10 +10,10 @@ from geomstats.geometry.discretized_curves import DiscretizedCurves
 from geomstats.geometry.hypersphere import Hypersphere
 
 
-class TestDiscretizedCurvesMethods(geomstats.tests.TestCase):
+class TestDiscretizedCurves(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def setUp(self):
-        s2 = Hypersphere(dimension=2)
+        s2 = Hypersphere(dim=2)
         r3 = s2.embedding_manifold
 
         initial_point = [0., 0., 1.]
@@ -53,7 +53,7 @@ class TestDiscretizedCurvesMethods(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_belongs(self):
         result = self.space_curves_in_sphere_2d.belongs(self.curve_a)
-        expected = gs.array([[True]])
+        expected = True
 
         self.assertAllClose(result, expected)
 
@@ -102,7 +102,7 @@ class TestDiscretizedCurvesMethods(geomstats.tests.TestCase):
         result = self.l2_metric_s2.inner_product(
             tangent_vecs, tangent_vecs, curves_ab)
 
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        self.assertAllClose(gs.shape(result), (n_samples,))
 
     @geomstats.tests.np_only
     def test_l2_metric_dist_vectorization(self):
@@ -117,7 +117,7 @@ class TestDiscretizedCurvesMethods(geomstats.tests.TestCase):
 
         result = self.l2_metric_s2.dist(
             curves_ab, curves_bc)
-        self.assertAllClose(gs.shape(result), (n_samples, 1))
+        self.assertAllClose(gs.shape(result), (n_samples,))
 
     @geomstats.tests.np_only
     def test_l2_metric_exp_vectorization(self):
@@ -274,11 +274,7 @@ class TestDiscretizedCurvesMethods(geomstats.tests.TestCase):
         srv_derivative = self.n_discretized_curves * (srv[1:, :] - srv[:-1, :])
         norms = self.l2_metric_r3.norm(srv_derivative, geod[:-1, :-1, :])
         result = gs.sum(norms, 0) / self.n_discretized_curves
-        result = gs.to_ndarray(result, to_ndim=1)
-        result = gs.to_ndarray(result, to_ndim=2, axis=1)
 
         expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)
-        expected = gs.to_ndarray(expected, to_ndim=1)
-        expected = gs.to_ndarray(expected, to_ndim=2, axis=1)
 
         self.assertAllClose(result, expected)

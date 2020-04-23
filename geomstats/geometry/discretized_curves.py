@@ -10,8 +10,8 @@ from geomstats.geometry.landmarks import L2Metric
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
-R2 = Euclidean(dimension=2)
-R3 = Euclidean(dimension=3)
+R2 = Euclidean(dim=2)
+R3 = Euclidean(dim=3)
 
 
 class DiscretizedCurves(Manifold):
@@ -19,7 +19,7 @@ class DiscretizedCurves(Manifold):
 
     def __init__(self, ambient_manifold):
         """Initialize DiscretizedCurves object."""
-        super(DiscretizedCurves, self).__init__(dimension=math.inf)
+        super(DiscretizedCurves, self).__init__(dim=math.inf)
         self.ambient_manifold = ambient_manifold
         self.l2_metric = L2Metric(self.ambient_manifold)
         self.square_root_velocity_metric = SRVMetric(self.ambient_manifold)
@@ -36,8 +36,6 @@ class DiscretizedCurves(Manifold):
         belongs : bool
         """
         belongs = gs.all(self.ambient_manifold.belongs(point))
-        belongs = gs.to_ndarray(belongs, to_ndim=1)
-        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
         return belongs
 
 
@@ -52,7 +50,7 @@ class SRVMetric(RiemannianMetric):
     """
 
     def __init__(self, ambient_manifold):
-        super(SRVMetric, self).__init__(dimension=math.inf,
+        super(SRVMetric, self).__init__(dim=math.inf,
                                         signature=(math.inf, 0, 0))
         self.ambient_metric = ambient_manifold.metric
         self.l2_metric = L2Metric(ambient_manifold=ambient_manifold)
@@ -140,12 +138,13 @@ class SRVMetric(RiemannianMetric):
         velocity = coef * self.ambient_metric.log(point=curve[1:, :],
                                                   base_point=curve[:-1, :])
         velocity_norm = self.ambient_metric.norm(velocity, curve[:-1, :])
-        srv = velocity / gs.sqrt(velocity_norm)
+        srv = gs.einsum(
+            '...i,...->...i', velocity, 1. / gs.sqrt(velocity_norm))
 
         index = gs.arange(n_curves * n_sampling_points - 1)
         mask = ~gs.equal((index + 1) % n_sampling_points, 0)
-        index_select = gs.gather(index, gs.squeeze(gs.where(mask)))
-        srv = gs.reshape(gs.gather(srv, index_select), srv_shape)
+        index_select = gs.get_slice(index, gs.squeeze(gs.where(mask)))
+        srv = gs.reshape(gs.get_slice(srv, index_select), srv_shape)
 
         return srv
 
@@ -176,7 +175,8 @@ class SRVMetric(RiemannianMetric):
         srv = gs.reshape(srv,
                          (n_curves * n_sampling_points_minus_one, n_coords))
         srv_norm = self.ambient_metric.norm(srv)
-        delta_points = 1 / n_sampling_points_minus_one * srv_norm * srv
+        delta_points = gs.einsum(
+            '...,...i->...i', 1 / n_sampling_points_minus_one * srv_norm, srv)
         delta_points = gs.reshape(delta_points, srv_shape)
         curve = gs.concatenate((starting_point, delta_points), -2)
         curve = gs.cumsum(curve, -2)
@@ -316,7 +316,10 @@ class SRVMetric(RiemannianMetric):
             shooting_tangent_vec = self.log(curve=end_curve,
                                             base_curve=initial_curve)
             if initial_tangent_vec is not None:
-                assert gs.allclose(shooting_tangent_vec, initial_tangent_vec)
+                if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
+                    raise RuntimeError(
+                        'The shooting tangent vector is too'
+                        ' far from the initial tangent vector.')
             initial_tangent_vec = shooting_tangent_vec
         initial_tangent_vec = gs.array(initial_tangent_vec)
         initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
@@ -359,7 +362,8 @@ class SRVMetric(RiemannianMetric):
             raise AssertionError('The distance is only implemented for '
                                  'dicretized curves embedded in a '
                                  'Euclidean space.')
-        assert curve_a.shape == curve_b.shape
+        if curve_a.shape != curve_b.shape:
+            raise ValueError('The curves need to have the same shapes.')
 
         srv_a = self.square_root_velocity(curve_a)
         srv_b = self.square_root_velocity(curve_b)

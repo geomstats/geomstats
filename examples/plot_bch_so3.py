@@ -26,7 +26,6 @@ N = 3
 MAX_ORDER = 10
 
 GROUP = SpecialOrthogonal(n=N)
-GROUP.default_point_type = 'matrix'
 
 DIM = int(N * (N - 1) / 2)
 ALGEBRA = SkewSymmetricMatrices(n=N)

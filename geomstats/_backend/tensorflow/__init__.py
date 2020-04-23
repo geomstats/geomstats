@@ -4,13 +4,20 @@ import numpy as _np
 import tensorflow as tf
 from tensorflow import (  # NOQA
     abs,
+    acos as arccos,
+    acosh as arccosh,
     argmax,
     argmin,
-    cond,
+    asin as arcsin,
+    atan2 as arctan2,
+    clip_by_value as clip,
+    concat as concatenate,
     cos,
     cosh,
+    divide,
     equal,
     exp,
+    expand_dims,
     float32,
     float64,
     floor,
@@ -20,6 +27,7 @@ from tensorflow import (  # NOQA
     int64,
     less,
     less_equal,
+    linspace,
     logical_and,
     logical_or,
     maximum,
@@ -30,33 +38,38 @@ from tensorflow import (  # NOQA
     reduce_max as amax,
     reduce_mean as mean,
     reduce_min as amin,
-    reduce_sum as sum,
     reshape,
     searchsorted,
     shape,
     sign,
     sin,
     sinh,
-    split,
     sqrt,
     squeeze,
     stack,
     tan,
     tanh,
+    tile,
+    uint8,
     where,
-    while_loop,
     zeros,
     zeros_like
 )
 
-from .common import array, ndim, to_ndarray  # NOQA
+
+
 from . import linalg  # NOQA
 from . import random  # NOQA
 
+arctanh = tf.math.atanh
 ceil = tf.math.ceil
 cross = tf.linalg.cross
+log = tf.math.log
 matmul = tf.linalg.matmul
 mod = tf.math.mod
+power = tf.math.pow
+real = tf.math.real
+set_diag = tf.linalg.set_diag
 std = tf.math.reduce_std
 
 
@@ -69,21 +82,47 @@ def _raise_not_implemented_error(*args, **kwargs):
 repeat = _raise_not_implemented_error
 
 
+def array(x, dtype=None):
+    return tf.convert_to_tensor(x, dtype=dtype)
+
+
+# TODO(nkoep): Handle the optional axis arguments.
+def trace(a, axis1=0, axis2=1):
+    return tf.linalg.trace(a)
+
+
+# TODO(nkoep): Handle the optional axis arguments.
+def diagonal(a, axis1=0, axis2=1):
+    return tf.linalg.diag_part(a)
+
+
+def ndim(x):
+    return tf.convert_to_tensor(x).ndim
+
+
+def to_ndarray(x, to_ndim, axis=0):
+    if ndim(x) == to_ndim - 1:
+        x = tf.expand_dims(x, axis=axis)
+    return x
+
+
 def empty(shape, dtype=float64):
-    assert isinstance(dtype, tf.DType)
+    if not isinstance(dtype, tf.DType):
+        raise ValueError('dtype must be one of Tensorflow\'s types')
     np_dtype = dtype.as_numpy_dtype
     return tf.convert_to_tensor(_np.empty(shape, dtype=np_dtype))
 
 
 def empty_like(prototype, dtype=None):
-    shape = tf.shape(prototype)
+    initial_shape = tf.shape(prototype)
     if dtype is None:
         dtype = prototype.dtype
-    return empty(shape, dtype=dtype)
+    return empty(initial_shape, dtype=dtype)
 
 
 def flip(m, axis=None):
-    assert isinstance(m, tf.Tensor)
+    if not isinstance(m, tf.Tensor):
+        raise ValueError('m must be a Tensorflow tensor')
     if axis is None:
         axis = range(m.ndim)
     elif not hasattr(axis, '__iter__'):
@@ -91,11 +130,35 @@ def flip(m, axis=None):
     return tf.reverse(m, axis=axis)
 
 
-def any(x, axis=0):
+def any(x, axis=None):
     return tf.math.reduce_any(tf.cast(x, bool), axis=axis)
 
 
+def _is_boolean(x):
+    if isinstance(x, bool):
+        return True
+    if isinstance(x, (tuple, list)):
+        return isinstance(x[0], bool)
+    if tf.is_tensor(x):
+        return x.dtype == bool
+    return False
+
+
 def get_mask_i_float(i, n):
+    """Create a 1D array of zeros with one element at one, with floating type.
+
+    Parameters
+    ----------
+    i : int
+        Index of the non-zero element.
+    n: n
+        Length of the created array.
+
+    Returns
+    -------
+    mask_i_float : array-like, shape=[n,]
+        1D array of zeros except at index i, where it is one
+    """
     range_n = arange(n)
     i_float = cast(array([i]), int32)[0]
     mask_i = equal(range_n, i_float)
@@ -140,7 +203,7 @@ def _duplicate_array(x, n_samples, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array which will be copied.
     n_samples: int
         Number of copies of the array to create.
@@ -149,8 +212,8 @@ def _duplicate_array(x, n_samples, axis=0):
 
     Returns
     -------
-    tiled_array: array, shape=[dimension[:axis], n_samples, dimension[axis:]]
-        Copies of x stacked along dimension axis
+    tiled_array: array, shape=[dim[:axis], n_samples, dim[axis:]]
+        Copies of x stacked along dim axis
     """
     multiples = _np.ones(ndim(x) + 1, dtype=_np.int32)
     multiples[axis] = n_samples
@@ -187,7 +250,7 @@ def _assignment_single_value_by_sum(x, value, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     value: float
         Value to be added.
@@ -201,14 +264,22 @@ def _assignment_single_value_by_sum(x, value, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x where value was added at all indices (and possibly along
         an axis).
     """
+    if _is_boolean(indices):
+        indices = [index for index, val in enumerate(indices) if val]
+
     single_index = not isinstance(indices, list)
+    if tf.is_tensor(indices):
+        single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
     if single_index:
         indices = [indices]
+
     if isinstance(indices[0], tuple):
+        use_vectorization = (len(indices[0]) < ndim(x))
+    elif tf.is_tensor(indices[0]) and ndim(indices[0]) >= 1:
         use_vectorization = (len(indices[0]) < ndim(x))
     else:
         use_vectorization = ndim(x) > 1
@@ -228,7 +299,7 @@ def assignment_by_sum(x, values, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     values: {float, list(float)}
         Value or list of values to be assigned.
@@ -242,7 +313,7 @@ def assignment_by_sum(x, values, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x as the sum of x and the values at the given indices.
 
     Notes
@@ -250,10 +321,16 @@ def assignment_by_sum(x, values, indices, axis=0):
     If a single value is provided, it is assigned at all the indices.
     If a list is given, it must have the same length as indices.
     """
-    if not isinstance(values, list):
+    if _is_boolean(indices):
+        indices = [index for index, val in enumerate(indices) if val]
+
+    if tf.rank(values) == 0:
         return _assignment_single_value_by_sum(x, values, indices, axis)
 
-    if not isinstance(indices, list):
+    single_index = not isinstance(indices, list)
+    if tf.is_tensor(indices):
+        single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
+    if single_index:
         indices = [indices]
 
     if len(values) != len(indices):
@@ -270,7 +347,7 @@ def _assignment_single_value(x, value, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     value: float
         Value to be added.
@@ -284,14 +361,22 @@ def _assignment_single_value(x, value, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x where value was assigned at all indices (and possibly
         along an axis).
     """
+    if _is_boolean(indices):
+        indices = [index for index, val in enumerate(indices) if val]
+
     single_index = not isinstance(indices, list)
+    if tf.is_tensor(indices):
+        single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
     if single_index:
         indices = [indices]
+
     if isinstance(indices[0], tuple):
+        use_vectorization = (len(indices[0]) < ndim(x))
+    elif tf.is_tensor(indices[0]) and ndim(indices[0]) >= 1:
         use_vectorization = (len(indices[0]) < ndim(x))
     else:
         use_vectorization = ndim(x) > 1
@@ -313,7 +398,7 @@ def assignment(x, values, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     values: {float, list(float)}
         Value or list of values to be assigned.
@@ -327,7 +412,7 @@ def assignment(x, values, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x with the values assigned at the given indices.
 
     Notes
@@ -335,10 +420,16 @@ def assignment(x, values, indices, axis=0):
     If a single value is provided, it is assigned at all the indices.
     If a list is given, it must have the same length as indices.
     """
-    if not isinstance(values, list):
+    if _is_boolean(indices):
+        indices = [index for index, val in enumerate(indices) if val]
+
+    if tf.rank(values) == 0:
         return _assignment_single_value(x, values, indices, axis)
 
-    if not isinstance(indices, list):
+    single_index = not isinstance(indices, list)
+    if tf.is_tensor(indices):
+        single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
+    if single_index:
         indices = [indices]
 
     if len(values) != len(indices):
@@ -350,8 +441,54 @@ def assignment(x, values, indices, axis=0):
 
 
 def array_from_sparse(indices, data, target_shape):
+    """Create an array of given shape, with values at specific indices.
+
+    The rest of the array will be filled with zeros.
+
+    Parameters
+    ----------
+    indices : iterable(tuple(int))
+        Index of each element which will be assigned a specific value.
+    data : iterable(scalar)
+        Value associated at each index.
+    target_shape : tuple(int)
+        Shape of the output array.
+
+    Returns
+    -------
+    a : array, shape=target_shape
+        Array of zeros with specified values assigned to specified indices.
+    """
     return tf.sparse.to_dense(tf.sparse.reorder(
         tf.SparseTensor(indices, data, target_shape)))
+
+
+def get_slice(x, indices):
+    """Return a slice of an array, following Numpy's style.
+
+    Parameters
+    ----------
+    x : array-like, shape=[dim]
+        Initial array.
+    indices : iterable(iterable(int))
+        Indices which are kept along each axis, starting from 0.
+
+    Returns
+    -------
+    slice : array-like
+        Slice of x given by indices.
+
+    Notes
+    -----
+    This follows Numpy's convention: indices are grouped by axis.
+
+    Examples
+    --------
+    >>> a = tf.reshape(tf.convert_to_tensor(range(30)), (3,10))
+    >>> get_slice(a, ((0, 2), (8, 9)))
+    <tf.Tensor: id=41, shape=(2,), dtype=int32, numpy=array([ 8, 29])>
+    """
+    return tf.gather_nd(x, list(zip(*indices)))
 
 
 def vectorize(x, pyfunc, multiple_args=False, dtype=None, **kwargs):
@@ -360,12 +497,20 @@ def vectorize(x, pyfunc, multiple_args=False, dtype=None, **kwargs):
     return tf.map_fn(pyfunc, elems=x, dtype=dtype)
 
 
+def split(x, indices_or_sections, axis=0):
+    if isinstance(indices_or_sections, int):
+        return tf.split(x, indices_or_sections, dim=axis)
+    indices_or_sections = _np.array(indices_or_sections)
+    intervals_length = indices_or_sections[1:] - indices_or_sections[:-1]
+    last_interval_length = x.shape[axis] - indices_or_sections[-1]
+    if last_interval_length > 0:
+        intervals_length = _np.append(intervals_length, last_interval_length)
+    intervals_length = _np.insert(intervals_length, 0, indices_or_sections[0])
+    return tf.split(x, num_or_size_splits=tuple(intervals_length), axis=axis)
+
+
 def hsplit(x, n_splits):
     return tf.split(x, num_or_size_splits=n_splits, axis=1)
-
-
-def real(x):
-    return tf.math.real(x)
 
 
 def flatten(x):
@@ -383,18 +528,6 @@ def copy(x):
     return tf.Variable(x)
 
 
-def linspace(start, stop, num):
-    return tf.linspace(start, stop, num)
-
-
-def boolean_mask(x, mask, name='boolean_mask', axis=None):
-    return tf.boolean_mask(x, mask, name, axis)
-
-
-def log(x):
-    return tf.math.log(x)
-
-
 def hstack(x):
     return tf.concat(x, axis=1)
 
@@ -405,32 +538,6 @@ def vstack(x):
 
 def cast(x, dtype):
     return tf.cast(x, dtype)
-
-
-def divide(x1, x2):
-    return tf.divide(x1, x2)
-
-
-def tile(x, reps):
-    return tf.tile(x, reps)
-
-
-def eval(x):
-    if tf.executing_eagerly():
-        return x
-    return x.eval()
-
-
-def arccosh(x):
-    return tf.acosh(x)
-
-
-def arcsin(x):
-    return tf.asin(x)
-
-
-def arccos(x):
-    return tf.acos(x)
 
 
 def dot(x, y):
@@ -449,12 +556,18 @@ def allclose(x, y, rtol=1e-05, atol=1e-08):
 def eye(n, m=None):
     if m is None:
         m = n
-    n = cast(n, dtype=int32)
-    m = cast(m, dtype=int32)
     return tf.eye(num_rows=n, num_columns=m)
 
 
+def sum(x, axis=None, keepdims=False, name=None):
+    if x.dtype == bool:
+        x = cast(x, int32)
+    return tf.reduce_sum(x, axis, keepdims, name)
+
+
 def einsum(equation, *inputs, **kwargs):
+    # TODO(ninamiolane): Allow this to work when '->' is not provided
+    # TODO(ninamiolane): Allow this to work for cases like n...k
     einsum_str = equation
     input_tensors_list = inputs
 
@@ -471,8 +584,15 @@ def einsum(equation, *inputs, **kwargs):
         if len(input_str_list) > 2:
             raise NotImplementedError(
                 'Ellipsis support not implemented for >2 input tensors')
+        ndims = [len(input_str[3:]) for input_str in input_str_list]
+
         tensor_a = input_tensors_list[0]
         tensor_b = input_tensors_list[1]
+        initial_ndim_a = tensor_a.ndim
+        initial_ndim_b = tensor_b.ndim
+        tensor_a = to_ndarray(tensor_a, to_ndim=ndims[0] + 1)
+        tensor_b = to_ndarray(tensor_b, to_ndim=ndims[1] + 1)
+
         n_tensor_a = tensor_a.shape[0]
         n_tensor_b = tensor_b.shape[0]
 
@@ -499,7 +619,16 @@ def einsum(equation, *inputs, **kwargs):
         input_str = input_str_list[0] + ',' + input_str_list[1]
         einsum_str = input_str + '->' + output_str
 
-        return tf.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
+        result = tf.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
+
+        cond = (
+            n_tensor_a == n_tensor_b == 1
+            and initial_ndim_a != tensor_a.ndim
+            and initial_ndim_b != tensor_b.ndim)
+
+        if cond:
+            result = squeeze(result, axis=0)
+        return result
 
     return tf.einsum(equation, *inputs, **kwargs)
 
@@ -508,59 +637,14 @@ def transpose(x, axes=None):
     return tf.transpose(x, perm=axes)
 
 
-def trace(x, **kwargs):
-    return tf.linalg.trace(x)
-
-
-def all(bool_tensor, axis=None, keepdims=False):
-    bool_tensor = tf.cast(bool_tensor, tf.bool)
-    all_true = tf.reduce_all(bool_tensor, axis, keepdims)
-    return all_true
-
-
-def concatenate(*args, **kwargs):
-    return tf.concat(*args, **kwargs)
-
-
-def asarray(x):
-    return x
-
-
-def expand_dims(x, axis=None):
-    return tf.expand_dims(x, axis)
-
-
-def clip(x, min_value, max_value):
-    return tf.clip_by_value(x, min_value, max_value)
-
-
-def diag(a):
-    return tf.map_fn(tf.linalg.tensor_diag, a)
-
-
-def arctanh(x):
-    return tf.math.atanh(x)
-
-
-def arctan2(*args, **kwargs):
-    return tf.atan2(*args, **kwargs)
-
-
-def diagonal(*args, **kwargs):
-    return tf.linalg.diag_part(*args)
+def all(x, axis=None):
+    return tf.math.reduce_all(tf.cast(x, bool), axis=axis)
 
 
 def cumsum(a, axis=None):
     if axis is None:
         return tf.math.cumsum(flatten(a), axis=0)
     return tf.math.cumsum(a, axis=axis)
-
-
-def from_vector_to_diagonal_matrix(x):
-    n = shape(x)[-1]
-    identity = eye(n)
-    diagonals = einsum('ki,ij->kij', x, identity)
-    return diagonals
 
 
 def tril(m, k=0):

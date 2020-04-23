@@ -9,8 +9,13 @@ eigh = tf.linalg.eigh
 eigvalsh = tf.linalg.eigvalsh
 expm = tf.linalg.expm
 inv = tf.linalg.inv
-norm = tf.linalg.norm
 sqrtm = tf.linalg.sqrtm
+diagonal = tf.linalg.diag_part
+
+
+def norm(x, dtype=tf.float32, **kwargs):
+    x = tf.cast(x, dtype)
+    return tf.linalg.norm(x, **kwargs)
 
 
 def eig(*args, **kwargs):
@@ -18,10 +23,11 @@ def eig(*args, **kwargs):
 
 
 def logm(x):
+    original_type = x.dtype
     x = tf.cast(x, tf.complex64)
-    logm = tf.linalg.logm(x)
-    logm = tf.cast(logm, tf.float32)
-    return logm
+    tf_logm = tf.linalg.logm(x)
+    tf_logm = tf.cast(tf_logm, original_type)
+    return tf_logm
 
 
 def svd(x):
@@ -36,14 +42,14 @@ def qr(*args, mode='reduced'):
         else:
             aux = tf.linalg.qr(x)
 
-        return (aux.q, aux.r)
+        return aux.q, aux.r
 
-    qr = tf.map_fn(
+    result = tf.map_fn(
         lambda x: qr_aux(x, mode),
         *args,
         dtype=(tf.float32, tf.float32))
 
-    return qr
+    return result
 
 
 def powerm(x, power):

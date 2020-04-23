@@ -78,7 +78,8 @@ class TestCase(_TestBaseClass):
             return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
         return self.assertTrue(gs.allclose(a, b, rtol=rtol, atol=atol))
 
-    def assertAllCloseToNp(self, a, np_a, rtol=1e-6, atol=1e-6):
+    @staticmethod
+    def assertAllCloseToNp(a, np_a, rtol=1e-6, atol=1e-6):
         are_same_shape = np.all(a.shape == np_a.shape)
         if pytorch_backend():
             are_same = np.all(np.array(a) == np_a)

@@ -1,6 +1,6 @@
 """Numpy based computation backend."""
 
-import autograd.numpy as _np
+import autograd.numpy as np
 from autograd.numpy import (  # NOQA
     abs,
     all,
@@ -17,12 +17,12 @@ from autograd.numpy import (  # NOQA
     argmax,
     argmin,
     array,
-    asarray,
     ceil,
     clip,
     concatenate,
     cos,
     cosh,
+    cross,
     cumsum,
     diagonal,
     divide,
@@ -58,6 +58,7 @@ from autograd.numpy import (  # NOQA
     ones,
     ones_like,
     outer,
+    power,
     repeat,
     reshape,
     shape,
@@ -79,6 +80,7 @@ from autograd.numpy import (  # NOQA
     tril_indices,
     searchsorted,
     tril,
+    uint8,
     vstack,
     where,
     zeros,
@@ -88,17 +90,7 @@ from scipy.sparse import coo_matrix
 
 from . import linalg  # NOQA
 from . import random  # NOQA
-
-
-# XXX(nkoep): Can we get rid of this now?
-def while_loop(cond, body, loop_vars, maximum_iterations):
-    iteration = 0
-    while cond(*loop_vars):
-        loop_vars = body(*loop_vars)
-        iteration += 1
-        if iteration >= maximum_iterations:
-            break
-    return loop_vars
+from .common import to_ndarray  # NOQA
 
 
 def flatten(x):
@@ -106,6 +98,20 @@ def flatten(x):
 
 
 def get_mask_i_float(i, n):
+    """Create a 1D array of zeros with one element at one, with floating type.
+
+    Parameters
+    ----------
+    i : int
+        Index of the non-zero element.
+    n: n
+        Length of the created array.
+
+    Returns
+    -------
+    mask_i_float : array-like, shape=[n,]
+        1D array of zeros except at index i, where it is one
+    """
     range_n = arange(n)
     i_float = cast(array([i]), int32)[0]
     mask_i = equal(range_n, i_float)
@@ -113,12 +119,30 @@ def get_mask_i_float(i, n):
     return mask_i_float
 
 
+def _is_boolean(x):
+    if isinstance(x, bool):
+        return True
+    if isinstance(x, (tuple, list)):
+        return _is_boolean(x[0])
+    if isinstance(x, np.ndarray):
+        return x.dtype == bool
+    return False
+
+
+def _is_iterable(x):
+    if isinstance(x, (list, tuple)):
+        return True
+    if isinstance(x, np.ndarray):
+        return ndim(x) > 0
+    return False
+
+
 def assignment(x, values, indices, axis=0):
     """Assign values at given indices of an array.
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x: array-like, shape=[dim]
         Initial array.
     values: {float, list(float)}
         Value or list of values to be assigned.
@@ -132,7 +156,7 @@ def assignment(x, values, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x with the values assigned at the given indices.
 
     Notes
@@ -141,19 +165,20 @@ def assignment(x, values, indices, axis=0):
     If a list is given, it must have the same length as indices.
     """
     x_new = copy(x)
-    if not isinstance(indices, list):
-        indices = [indices]
-    if not isinstance(values, list):
-        values = [values] * len(indices)
-    for nb_index, index in enumerate(indices):
-        if not isinstance(index, tuple):
-            index = (index,)
-        if len(index) < len(shape(x)):
-            for n_axis in range(shape(x)[axis]):
-                extended_index = index[:axis] + (n_axis,) + index[axis:]
-                x_new[extended_index] = values[nb_index]
-        else:
-            x_new[index] = values[nb_index]
+
+    use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
+    if _is_boolean(indices):
+        x_new[indices] = values
+        return x_new
+    zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
+    if zip_indices:
+        indices = tuple(zip(*indices))
+    if not use_vectorization:
+        x_new[indices] = values
+    else:
+        indices = tuple(
+            list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
+        x_new[indices] = values
     return x_new
 
 
@@ -162,11 +187,11 @@ def assignment_by_sum(x, values, indices, axis=0):
 
     Parameters
     ----------
-    x: array-like, shape=[dimension]
+    x : array-like, shape=[dim]
         Initial array.
-    values: {float, list(float)}
+    values : {float, list(float)}
         Value or list of values to be assigned.
-    indices: {int, tuple, list(int), list(tuple)}
+    indices : {int, tuple, list(int), list(tuple)}
         Single int or tuple, or list of ints or tuples of indices where value
         is assigned.
         If the length of the tuples is shorter than ndim(x), values are
@@ -176,7 +201,7 @@ def assignment_by_sum(x, values, indices, axis=0):
 
     Returns
     -------
-    x_new : array-like, shape=[dimension]
+    x_new : array-like, shape=[dim]
         Copy of x with the values assigned at the given indices.
 
     Notes
@@ -185,69 +210,82 @@ def assignment_by_sum(x, values, indices, axis=0):
     If a list is given, it must have the same length as indices.
     """
     x_new = copy(x)
-    if not isinstance(indices, list):
-        indices = [indices]
-    if not isinstance(values, list):
-        values = [values] * len(indices)
-    for nb_index, index in enumerate(indices):
-        if not isinstance(index, tuple):
-            index = (index,)
-        if len(index) < len(shape(x)):
-            for n_axis in range(shape(x)[axis]):
-                extended_index = index[:axis] + (n_axis,) + index[axis:]
-                x_new[extended_index] += values[nb_index]
-        else:
-            x_new[index] += values[nb_index]
+
+    use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
+    if _is_boolean(indices):
+        x_new[indices] = values
+        return x_new
+    zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
+    if zip_indices:
+        indices = tuple(zip(*indices))
+    if not use_vectorization:
+        x_new[indices] += values
+    else:
+        indices = tuple(
+            list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
+        x_new[indices] += values
     return x_new
 
 
-def gather(x, indices, axis=0):
+def get_slice(x, indices):
+    """Return a slice of an array, following Numpy's style.
+
+    Parameters
+    ----------
+    x : array-like, shape=[dim]
+        Initial array.
+    indices : iterable(iterable(int))
+        Indices which are kept along each axis, starting from 0.
+
+    Returns
+    -------
+    slice : array-like
+        Slice of x given by indices.
+
+    Notes
+    -----
+    This follows Numpy's convention: indices are grouped by axis.
+
+    Examples
+    --------
+    >>> a = np.array(range(30)).reshape(3,10)
+    >>> get_slice(a, ((0, 2), (8, 9)))
+    array([8, 29])
+    """
     return x[indices]
 
 
 def vectorize(x, pyfunc, multiple_args=False, signature=None, **kwargs):
     if multiple_args:
-        return _np.vectorize(pyfunc, signature=signature)(*x)
-    return _np.vectorize(pyfunc, signature=signature)(x)
-
-
-# XXX(nkoep): Can we get rid of this now?
-def cond(pred, true_fn, false_fn):
-    if pred:
-        return true_fn()
-    return false_fn()
+        return np.vectorize(pyfunc, signature=signature)(*x)
+    return np.vectorize(pyfunc, signature=signature)(x)
 
 
 def cast(x, dtype):
     return x.astype(dtype)
 
 
-def to_ndarray(x, to_ndim, axis=0):
-    x = _np.array(x)
-    if x.ndim == to_ndim - 1:
-        x = _np.expand_dims(x, axis=axis)
+def set_diag(x, new_diag):
+    """Set the diagonal along the last two axis.
 
-    if x.ndim != 0:
-        assert x.ndim >= to_ndim
-    return x
+    Parameters
+    ----------
+    x : array-like, shape=[dim]
+        Initial array.
+    new_diag : array-like, shape=[dim[-2]]
+        Values to set on the diagonal.
 
+    Returns
+    -------
+    None
 
-def diag(x):
-    x = to_ndarray(x, to_ndim=2)
-    _, n = shape(x)
-    aux = _np.vectorize(
-        _np.diagflat,
-        signature='(m,n)->(k,k)')(x)
-    k, _ = shape(aux)
-    m = int(k / n)
-    result = zeros((m, n, n))
-    for i in range(m):
-        result[i] = aux[i * n:(i + 1) * n, i * n:(i + 1) * n]
-    return result
-
-
-def eval(x):
-    return x
+    Notes
+    -----
+    This mimics tensorflow.linalg.set_diag(x, new_diag), when new_diag is a
+    1-D array, but modifies x instead of creating a copy.
+    """
+    arr_shape = x.shape
+    x[..., range(arr_shape[-2]), range(arr_shape[-1])] = new_diag
 
 
 def ndim(x):
@@ -259,12 +297,23 @@ def copy(x):
 
 
 def array_from_sparse(indices, data, target_shape):
+    """Create an array of given shape, with values at specific indices.
+
+    The rest of the array will be filled with zeros.
+
+    Parameters
+    ----------
+    indices : iterable(tuple(int))
+        Index of each element which will be assigned a specific value.
+    data : iterable(scalar)
+        Value associated at each index.
+    target_shape : tuple(int)
+        Shape of the output array.
+
+    Returns
+    -------
+    a : array, shape=target_shape
+        Array of zeros with specified values assigned to specified indices.
+    """
     return array(
         coo_matrix((data, list(zip(*indices))), target_shape).todense())
-
-
-def from_vector_to_diagonal_matrix(x):
-    n = shape(x)[-1]
-    identity_n = eye(n)
-    diagonals = einsum('ki,ij->kij', x, identity_n)
-    return diagonals

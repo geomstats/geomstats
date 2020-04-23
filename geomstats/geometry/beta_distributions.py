@@ -6,6 +6,7 @@ from scipy.integrate import solve_bvp
 from scipy.stats import beta
 
 import geomstats.backend as gs
+import geomstats.error
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -22,8 +23,7 @@ class BetaDistributions(EmbeddedManifold):
 
     def __init__(self):
         super(BetaDistributions, self).__init__(
-            dimension=2,
-            embedding_manifold=Euclidean(dimension=2))
+            dim=2, embedding_manifold=Euclidean(dim=2))
 
     def belongs(self, point, point_type=None):
         """Evaluate if a point belongs to the manifold of beta distributions.
@@ -43,7 +43,7 @@ class BetaDistributions(EmbeddedManifold):
         """
         point = gs.to_ndarray(point, to_ndim=2)
         n_points, point_dim = point.shape
-        belongs = point_dim == self.dimension
+        belongs = point_dim == self.dim
         belongs = gs.to_ndarray(belongs, to_ndim=1)
         belongs = gs.tile(belongs, n_points)
         belongs = belongs * gs.greater(point, 0).all(axis=1)
@@ -84,13 +84,15 @@ class BetaDistributions(EmbeddedManifold):
         samples : array-like, shape=[n_points, n_samples]
         """
         point = gs.to_ndarray(point, to_ndim=2)
-        assert self.belongs(point).all()
+        geomstats.error.check_belongs(
+            point, self, 'beta_distributions')
         samples = []
         for param_a, param_b in point:
             samples.append(beta.rvs(param_a, param_b, size=n_samples))
         return samples[0] if len(point) == 1 else gs.stack(samples)
 
-    def maximum_likelihood_fit(self, data, loc=0, scale=1):
+    @staticmethod
+    def maximum_likelihood_fit(data, loc=0, scale=1):
         """Estimate parameters from samples.
 
         This a wrapper around scipy's maximum likelihood estimator to
@@ -126,7 +128,7 @@ class BetaMetric(RiemannianMetric):
     """Class for the Fisher information metric on beta distributions."""
 
     def __init__(self):
-        super(RiemannianMetric, self).__init__(dimension=2)
+        super(RiemannianMetric, self).__init__(dim=2)
 
     @staticmethod
     def metric_det(param_a, param_b):
@@ -157,7 +159,8 @@ class BetaMetric(RiemannianMetric):
         -------
         base_point : array-like, shape=[n_samples, 2, 2]
         """
-        assert base_point is not None, 'The metric depends on the base point'
+        if base_point is not None:
+            raise ValueError('The metric depends on the base point.')
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         matrices = []
         for point in base_point:
@@ -199,7 +202,8 @@ class BetaMetric(RiemannianMetric):
                 2 * metric_det)
             return c1, c2, c3
 
-        assert base_point is not None, 'The Christoffels require a base point'
+        if base_point is None:
+            raise ValueError('Christoffels require a base point.')
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         param_a, param_b = base_point[:, 0], base_point[:, 1]
         c1, c2, c3 = coefficients(param_a, param_b)
@@ -222,13 +226,13 @@ class BetaMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dimension]
-        base_point : array-like, shape=[n_samples, dimension]
+        tangent_vec : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[n_samples, dim]
         n_steps : int
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dimension]
+        exp : array-like, shape=[n_samples, dim]
         """
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
@@ -256,13 +260,13 @@ class BetaMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
-        base_point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[n_samples, dim]
         n_steps : int
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, dimension]
+        tangent_vec : array-like, shape=[n_samples, dim]
             the initial velocity of the geodesic starting at base_point and
             reaching point at time 1
         """
@@ -274,7 +278,7 @@ class BetaMetric(RiemannianMetric):
         def initialize(end_point, start_point):
             a0, b0 = start_point
             a1, b1 = end_point
-            lin_init = gs.zeros([2 * self.dimension, n_steps])
+            lin_init = gs.zeros([2 * self.dim, n_steps])
             lin_init[0, :] = gs.linspace(a0, a1, n_steps)
             lin_init[1, :] = gs.linspace(b0, b1, n_steps)
             lin_init[2, :-1] = (lin_init[0, 1:] - lin_init[0, :-1]) * n_steps

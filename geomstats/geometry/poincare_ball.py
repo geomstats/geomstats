@@ -4,6 +4,7 @@ The n-dimensional hyperbolic space embedded with
 the hyperboloid representation (embedded in minkowsky space).
 """
 import geomstats.backend as gs
+import geomstats.vectorization
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -19,7 +20,7 @@ class PoincareBall(Hyperbolic):
 
     Parameters
     ----------
-    dimension : int
+    dim : int
         Dimension of the hyperbolic space.
     scale : int, optional
         Scale of the hyperbolic space, defined as the set of points
@@ -29,14 +30,13 @@ class PoincareBall(Hyperbolic):
     default_coords_type = 'ball'
     default_point_type = 'vector'
 
-    def __init__(self, dimension, scale=1):
+    def __init__(self, dim, scale=1):
         super(PoincareBall, self).__init__(
-            dimension=dimension,
+            dim=dim,
             scale=scale)
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
-        self.metric =\
-            PoincareBallMetric(self.dimension, self.scale)
+        self.metric = PoincareBallMetric(self.dim, self.scale)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """Test if a point belongs to the hyperbolic space.
@@ -46,7 +46,7 @@ class PoincareBall(Hyperbolic):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
             Point to be tested.
         tolerance : float, optional
             Tolerance at which to evaluate how close the squared norm
@@ -66,7 +66,7 @@ class PoincareBallMetric(RiemannianMetric):
 
     Parameters
     ----------
-    dimension : int
+    dim : int
         Dimension of the hyperbolic space.
     scale : int, optional
         Scale of the hyperbolic space, defined as the set of points
@@ -76,33 +76,31 @@ class PoincareBallMetric(RiemannianMetric):
     default_point_type = 'vector'
     default_coords_type = 'ball'
 
-    def __init__(self, dimension, scale=1):
+    def __init__(self, dim, scale=1):
         super(PoincareBallMetric, self).__init__(
-            dimension=dimension,
-            signature=(dimension, 0, 0))
+            dim=dim,
+            signature=(dim, 0, 0))
         self.coords_type = PoincareBall.default_coords_type
         self.point_type = PoincareBall.default_point_type
         self.scale = scale
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dimension]
+        tangent_vec : array-like, shape=[n_samples, dim]
             Tangent vector at a base point.
-        base_point : array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dim]
             Point in hyperbolic space.
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dimension]
+        exp : array-like, shape=[n_samples, dim]
             Point in hyperbolic space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-
         norm_base_point =\
             gs.expand_dims(gs.linalg.norm(base_point, axis=-1),
                            axis=-1)
@@ -137,6 +135,7 @@ class PoincareBallMetric(RiemannianMetric):
 
         return exp
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def log(self, point, base_point):
         """Compute Riemannian logarithm of a point wrt a base point.
 
@@ -146,14 +145,14 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
             Point in hyperbolic space.
-        base_point : array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dim]
             Point in hyperbolic space.
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dimension]
+        log : array-like, shape=[n_samples, dim]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
@@ -170,14 +169,28 @@ class PoincareBallMetric(RiemannianMetric):
                            base_point, axis=-1), axis=-1)
 
         log = (1 - norm_base_point**2) * gs.arctanh(norm_add)
-        log = gs.einsum('...i,...j->...j', log, (add_base_point / norm_add))
+        log = gs.einsum(
+            '...i,...j->...j', log, add_base_point)
 
         mask_0 = gs.isclose(gs.squeeze(norm_add, axis=-1), 0.)
+        mask_non0 = ~mask_0
+        # TODO(ninamiolane): Correct this when assignement
+        # works with booleans
         if gs.any(mask_0):
-            log[mask_0] = 0
+            mask_0_float = gs.cast(mask_0, gs.float32)
+            log += mask_0_float * (-log)
+            mask_0_float = gs.to_ndarray(mask_0_float, to_ndim=2, axis=1)
+            norm_add += mask_0_float
+        if gs.any(mask_non0):
+            mask_non0_float = gs.cast(mask_non0, gs.float32)
+            log += gs.einsum(
+                '...,...i->...i',
+                mask_non0_float,
+                - log + log / norm_add)
 
         return log
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def mobius_add(self, point_a, point_b):
         r"""Compute the Mobius addition of two points.
 
@@ -191,9 +204,9 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, dimension]
+        point_a : array-like, shape=[n_samples, dim]
             Point in hyperbolic space.
-        point_b : array-like, shape=[n_samples, dimension]
+        point_b : array-like, shape=[n_samples, dim]
             Point in hyperbolic space.
 
         Returns
@@ -201,21 +214,15 @@ class PoincareBallMetric(RiemannianMetric):
         mobius_add : array-like, shape=[n_samples, 1]
             Result of the Mobius addition.
         """
-        point_a = gs.to_ndarray(point_a, to_ndim=2)
-        point_b = gs.to_ndarray(point_b, to_ndim=2)
-
-        ball_manifold = PoincareBall(self.dimension, scale=self.scale)
+        ball_manifold = PoincareBall(self.dim, scale=self.scale)
         point_a_belong = ball_manifold.belongs(point_a)
         point_b_belong = ball_manifold.belongs(point_b)
 
-        if(not gs.all(point_a_belong) or not gs.all(point_b_belong)):
-            raise NameError("Points do not belong to the Poincare ball")
+        if (not gs.all(point_a_belong) or not gs.all(point_b_belong)):
+            raise ValueError("Points do not belong to the Poincare ball")
 
-        norm_point_a = gs.sum(point_a ** 2, axis=-1,
-                              keepdims=True)
-
-        norm_point_b = gs.sum(point_b ** 2, axis=-1,
-                              keepdims=True)
+        norm_point_a = gs.sum(point_a ** 2, axis=-1, keepdims=True)
+        norm_point_b = gs.sum(point_b ** 2, axis=-1, keepdims=True)
 
         sum_prod_a_b = gs.einsum('...i,...i->...', point_a, point_b)
         sum_prod_a_b = gs.expand_dims(sum_prod_a_b, axis=-1)
@@ -227,19 +234,20 @@ class PoincareBallMetric(RiemannianMetric):
 
         add_denominator = (1 + 2 * sum_prod_a_b + norm_point_a * norm_point_b)
 
-        mobius_add =\
-            gs.einsum('...i,...k->...i', add_nominator, 1 / add_denominator)
+        mobius_add = gs.einsum(
+            '...i,...k->...i', add_nominator, 1 / add_denominator)
 
         return mobius_add
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def dist(self, point_a, point_b):
         """Compute the geodesic distance between two points.
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, dimension]
+        point_a : array-like, shape=[n_samples, dim]
             First point in hyperbolic space.
-        point_b : array-like, shape=[n_samples, dimension]
+        point_b : array-like, shape=[n_samples, dim]
             Second point in hyperbolic space.
 
         Returns
@@ -263,6 +271,7 @@ class PoincareBallMetric(RiemannianMetric):
         dist *= self.scale
         return dist
 
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def retraction(self, tangent_vec, base_point):
         """Poincaré ball model retraction.
 
@@ -273,24 +282,21 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dimension]
+        tangent_vec : array-like, shape=[n_samples, dim]
             vector in tangent space.
-        base_point : array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[n_samples, dim]
             Second point in hyperbolic space.
 
         Returns
         -------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[n_samples, dim]
             Retraction point.
         """
-        ball_manifold = PoincareBall(self.dimension, scale=self.scale)
+        ball_manifold = PoincareBall(self.dim, scale=self.scale)
         base_point_belong = ball_manifold.belongs(base_point)
 
         if not gs.all(base_point_belong):
             raise NameError("Points do not belong to the Poincare ball")
-
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
 
         retraction_factor =\
             ((1 - gs.sum(base_point**2, axis=-1, keepdims=True))**2) / 4
@@ -298,22 +304,23 @@ class PoincareBallMetric(RiemannianMetric):
         return base_point\
             - gs.einsum('...i,...j->...j', retraction_factor, tangent_vec)
 
+    @geomstats.vectorization.decorator(['else', 'vector'])
     def inner_product_matrix(self, base_point=None):
         """Compute the inner product matrix.
 
         Parameters
         ----------
-        base_point: array-like, shape=[n_samples, dimension]
+        base_point: array-like, shape=[n_samples, dim]
 
         Returns
         -------
-        inner_prod_mat: array-like, shape=[n_samples, dimension, dimension]
+        inner_prod_mat: array-like, shape=[n_samples, dim, dim]
         """
         if base_point is None:
-            base_point = gs.zeros((1, self.dimension))
+            base_point = gs.zeros((1, self.dim))
 
         lambda_base =\
             (2 / (1 - gs.sum(base_point * base_point, axis=-1)))**2
-        identity = gs.eye(self.dimension, self.dimension)
+        identity = gs.eye(self.dim, self.dim)
 
         return gs.einsum('i,jk->ijk', lambda_base, identity)

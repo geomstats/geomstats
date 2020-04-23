@@ -1,6 +1,7 @@
 """Module exposing `Grassmannian` and `GrassmannianMetric` classes."""
 
 import geomstats.backend as gs
+import geomstats.error
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
@@ -16,20 +17,31 @@ class Grassmannian(EmbeddedManifold):
 
     Class for Grassmann manifolds Gr(n, k) of k-dimensional
     subspaces in the n-dimensional euclidean space.
+
+    The subspaces are represented by their (unique) orthogonal projection
+    matrix onto themselves.
     """
 
     def __init__(self, n, k):
-        assert isinstance(n, int) and isinstance(k, int)
-        assert k <= n
+        geomstats.error.check_integer(k, 'k')
+        geomstats.error.check_integer(n, 'n')
+        if k > n:
+            raise ValueError(
+                'k <= n is required: k-dimensional subspaces in n dimensions.')
 
         self.n = n
         self.k = k
         self.metric = GrassmannianCanonicalMetric(3, 2)
 
-        dimension = int(k * (n - k))
+        dim = int(k * (n - k))
         super(Grassmannian, self).__init__(
-            dimension=dimension,
-            embedding_manifold=Matrices(n, n))
+            dim=dim,
+            embedding_manifold=Matrices(n, n),
+            default_point_type='matrix')
+
+        self.n = n
+        self.k = k
+        self.metric = GrassmannianCanonicalMetric(3, 2)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """Check if the point belongs to the manifold.
@@ -39,8 +51,9 @@ class Grassmannian(EmbeddedManifold):
 
         Parameters
         ----------
-        point
-        tolerance
+        point : array-like, shape=[n_samples, n, n]
+        tolerance : int
+            default: TOLERANCE
 
         Returns
         -------
@@ -58,15 +71,18 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
     """
 
     def __init__(self, n, p):
-        assert isinstance(n, int) and isinstance(p, int)
-        assert p <= n
+        geomstats.error.check_integer(p, 'p')
+        geomstats.error.check_integer(n, 'n')
+        if p > n:
+            raise ValueError('p <= n is required.')
+
+        dim = int(p * (n - p))
+        super(GrassmannianCanonicalMetric, self).__init__(
+            dim=dim,
+            signature=(dim, 0, 0))
+
         self.n = n
         self.p = p
-
-        dimension = int(p * (n - p))
-        super(GrassmannianCanonicalMetric, self).__init__(
-            dimension=dimension,
-            signature=(dimension, 0, 0))
         self.embedding_metric = EuclideanMetric(n * p)
 
     def exp(self, tangent_vec, base_point):
@@ -116,7 +132,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
             Linear Algebra and its Applications, 466, 83-101, 2015.
         """
         GLn = GeneralLinear(self.n)
-        id_n = GLn.identity()
+        id_n = GLn.identity
         sym2 = 2 * point - id_n
         sym1 = 2 * base_point - id_n
         rot = GLn.mul(sym2, sym1)

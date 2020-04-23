@@ -17,11 +17,11 @@ def log_sigmoid(vector):
 
     Parameters
     ----------
-    vector : array-like, shape=[n_samples, dimension]
+    vector : array-like, shape=[n_samples, dim]
 
     Returns
     -------
-    result : array-like, shape=[n_samples, dimension]
+    result : array-like, shape=[n_samples, dim]
     """
     return gs.log((1 / (1 + gs.exp(-vector))))
 
@@ -31,11 +31,11 @@ def grad_log_sigmoid(vector):
 
     Parameters
     ----------
-    vector : array-like, shape=[n_samples, dimension]
+    vector : array-like, shape=[n_samples, dim]
 
     Returns
     -------
-    gradient : array-like, shape=[n_samples, dimension]
+    gradient : array-like, shape=[n_samples, dim]
     """
     return (1 / (1 + gs.exp(vector)))
 
@@ -48,9 +48,9 @@ def grad_squared_distance(point_a, point_b):
 
     Parameters
     ----------
-    point_a : array-like, shape=[n_samples, dimension]
+    point_a : array-like, shape=[n_samples, dim]
         First point in hyperbolic space.
-    point_b : array-like, shape=[n_samples, dimension]
+    point_b : array-like, shape=[n_samples, dim]
         Second point in hyperbolic space.
 
     Returns
@@ -59,8 +59,7 @@ def grad_squared_distance(point_a, point_b):
         Geodesic squared distance between the two points.
     """
     hyperbolic_metric = PoincareBall(2).metric
-    log_map =\
-        hyperbolic_metric.log(point_b, point_a)
+    log_map = hyperbolic_metric.log(point_b, point_a)
 
     return -2 * log_map
 
@@ -78,8 +77,8 @@ def loss(example_embedding, context_embedding, negative_embedding,
     context_embedding = gs.expand_dims(context_embedding, 0)
 
     positive_distance =\
-        manifold.metric.squared_dist(example_embedding, context_embedding)
-
+        manifold.metric.squared_dist(
+            example_embedding, context_embedding)
     positive_loss =\
         log_sigmoid(-positive_distance)
 
@@ -87,8 +86,10 @@ def loss(example_embedding, context_embedding, negative_embedding,
         gs.repeat(example_embedding, n_edges, axis=0)
 
     negative_distance =\
-        manifold.metric.squared_dist(reshaped_example_embedding,
-                                     negative_embedding)
+        manifold.metric.squared_dist(
+            reshaped_example_embedding, negative_embedding)
+    negative_distance =\
+        gs.to_ndarray(negative_distance, to_ndim=2, axis=-1)
     negative_loss = log_sigmoid(negative_distance)
 
     total_loss = -(positive_loss + negative_loss.sum())
@@ -109,7 +110,7 @@ def loss(example_embedding, context_embedding, negative_embedding,
     negative_log_sigmoid_grad =\
         grad_log_sigmoid(negative_distance)
 
-    negative_grad = gs.repeat(negative_log_sigmoid_grad, dim, axis=-1)\
+    negative_grad = negative_log_sigmoid_grad\
         * negative_distance_grad
 
     example_grad = -(positive_grad + negative_grad.sum(axis=0))
@@ -123,6 +124,7 @@ def main():
     Learns Poincaré Ball embedding by using Riemannian
     gradient descent algorithm.
     """
+    gs.random.seed(1234)
     dim = 2
     max_epochs = 100
     lr = .05
@@ -134,9 +136,10 @@ def main():
 
     nb_vertices_by_edges =\
         [len(e_2) for _, e_2 in karate_graph.edges.items()]
-    logging.info('Number of edges: %s' % len(karate_graph.edges))
-    logging.info('Mean vertices by edges: %s' % (sum(nb_vertices_by_edges, 0) /
-                 len(karate_graph.edges)))
+    logging.info('Number of edges: %s', len(karate_graph.edges))
+    logging.info(
+        'Mean vertices by edges: %s',
+        (sum(nb_vertices_by_edges, 0) / len(karate_graph.edges)))
 
     negative_table_parameter = 5
     negative_sampling_table = []
@@ -157,7 +160,7 @@ def main():
         total_loss = []
         for path in random_walks:
 
-            for example_index in range(len(path)):
+            for example_index, one_path in enumerate(path):
                 context_index = path[max(0, example_index - context_size):
                                      min(example_index + context_size,
                                      len(path))]
@@ -167,23 +170,26 @@ def main():
                                       n_negative))
                 negative_index = negative_sampling_table[negative_index]
 
-                example_embedding = embeddings[path[example_index]]
+                example_embedding = embeddings[one_path]
 
-                for k in range(len(negative_index)):
-                    context_embedding = embeddings[context_index[k]]
-                    negative_embedding = embeddings[negative_index[k]]
-                    l, g_ex =\
-                        loss(example_embedding, context_embedding,
-                             negative_embedding, hyperbolic_manifold)
+                for one_context_i, one_negative_i in zip(context_index,
+                                                         negative_index):
+                    context_embedding = embeddings[one_context_i]
+                    negative_embedding = embeddings[one_negative_i]
+                    l, g_ex = loss(
+                        example_embedding,
+                        context_embedding,
+                        negative_embedding,
+                        hyperbolic_manifold)
                     total_loss.append(l)
 
-                    example_to_update = embeddings[path[example_index]]
-                    embeddings[path[example_index]] =\
-                        hyperbolic_manifold.metric.exp(-lr * g_ex,
-                                                       example_to_update)
+                    example_to_update = embeddings[one_path]
+                    embeddings[one_path] = hyperbolic_manifold.metric.exp(
+                        -lr * g_ex, example_to_update)
 
-        logging.info('iteration %d loss_value %f' % (epoch,
-                     sum(total_loss, 0) / len(total_loss)))
+        logging.info(
+            'iteration %d loss_value %f',
+            epoch, sum(total_loss, 0) / len(total_loss))
 
     circle = visualization.PoincareDisk(point_type='ball')
     plt.figure()
@@ -191,9 +197,10 @@ def main():
     circle.add_points(gs.array([[0, 0]]))
     circle.set_ax(ax)
     circle.draw(ax=ax)
-    for i in range(len(embeddings)):
-        plt.scatter(embeddings[i][0], embeddings[i][1],
-                    c=colors[karate_graph.labels[i][0]])
+    for i_embedding, embedding in enumerate(embeddings):
+        plt.scatter(
+            embedding[0], embedding[1],
+            c=colors[karate_graph.labels[i_embedding][0]])
     plt.show()
 
 

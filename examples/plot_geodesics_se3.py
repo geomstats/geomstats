@@ -1,6 +1,6 @@
-"""
-Plot a geodesic of SE(3) equipped
-with its left-invariant canonical METRIC.
+"""Plot a geodesic of SE(3).
+
+SE3 is equipped with its left-invariant canonical METRIC.
 """
 
 import logging
@@ -12,11 +12,12 @@ import numpy as np
 import geomstats.visualization as visualization
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
-SE3_GROUP = SpecialEuclidean(n=3)
+SE3_GROUP = SpecialEuclidean(n=3, point_type='vector')
 METRIC = SE3_GROUP.left_canonical_metric
 
 
 def main():
+    """Plot a geodesic on SE3."""
     initial_point = SE3_GROUP.identity
     initial_tangent_vec = [1.8, 0.2, 0.3, 3., 3., 1.]
     geodesic = METRIC.geodesic(initial_point=initial_point,
