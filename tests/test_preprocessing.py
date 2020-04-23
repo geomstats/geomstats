@@ -47,8 +47,7 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         point = self.so_matrix.random_uniform()
         points = gs.array([point, point])
 
-        transformer = ToTangentSpace(
-            geometry=self.so_matrix)
+        transformer = ToTangentSpace(geometry=self.so_matrix)
         transformer.fit(X=points)
         result = transformer.transform(points)
         expected = gs.zeros((2, 6))
@@ -93,7 +92,8 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         point = self.so_matrix.random_uniform(10)
         transformer = ToTangentSpace(
             geometry=self.so_matrix.bi_invariant_metric)
-        X = transformer.fit_transform(X=point)
-        result = transformer.inverse_transform(X)
+        X = transformer.transform(X=point, base_point=self.so_matrix.identity)
+        result = transformer.inverse_transform(
+            X, base_point=self.so_matrix.identity)
         expected = point
         self.assertAllClose(expected, result)

@@ -154,12 +154,17 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
                                    'base_point passed.')
 
         if self.point_type == 'matrix':
-            if gs.all(Matrices.is_symmetric(base_point)):
+            n_base_point = base_point.shape[-1]
+            n_vecs = X.shape[-1]
+            dim_sym = int(n_base_point * (n_base_point + 1) / 2)
+            dim_skew = int(n_base_point * (n_base_point - 1) / 2)
+
+            if gs.all(Matrices.is_symmetric(base_point)) and dim_sym == n_vecs:
                 tangent_vecs = SymmetricMatrices(
                     base_point.shape[-1]).symmetric_matrix_from_vector(X)
-            elif gs.all(Matrices.is_skew_symmetric(base_point)):
+            elif dim_skew == n_vecs:
                 tangent_vecs = SkewSymmetricMatrices(
-                    base_point.shape[-1]).matrix_representation(X)
+                    dim_skew).matrix_representation(X)
             else:
                 dim = base_point.shape[-1]
                 tangent_vecs = gs.reshape(X, (len(X), dim, dim))
