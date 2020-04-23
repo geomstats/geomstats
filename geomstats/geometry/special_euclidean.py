@@ -51,7 +51,7 @@ class _SpecialEuclideanMatrix(GeneralLinear, LieGroup):
         self.translations = Euclidean(dim=n)
         self.n = n
 
-    def get_identity(self, point_type=None):
+    def get_identity(self):
         """Return the identity matrix."""
         return gs.eye(self.n + 1, self.n + 1)
     identity = property(get_identity)

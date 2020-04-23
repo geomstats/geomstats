@@ -142,8 +142,7 @@ class LieGroup(Manifold):
         """
         raise NotImplementedError('The Lie group inverse is not implemented.')
 
-    def jacobian_translation(
-            self, point, left_or_right='left'):
+    def jacobian_translation(self, point):
         """Compute the Jacobian of left/right translation by a point.
 
         Compute the Jacobian matrix of the left translation by the point.
