@@ -327,24 +327,6 @@ class TestBackends(geomstats.tests.TestCase):
         gs_array = gs.assignment(
             gs_array, 44., (0, 1), axis=0)
 
-        print(np_array)
-        print(gs_array)
-        self.assertAllCloseToNp(gs_array, np_array)
-
-        np_array = _np.zeros((2, 3, 3))
-        gs_array = gs.zeros((2, 3, 3))
-
-        indices =
-
-        np_array[:, 0, 1] = _np.array([44., 22.])
-
-        gs_array = gs.assignment(
-            gs_array,
-            gs.array([44., 22.]),
-            (0, 1), axis=0)
-
-        print(np_array)
-        print(gs_array)
         self.assertAllCloseToNp(gs_array, np_array)
 
     def test_assignment_with_booleans_single_index(self):
