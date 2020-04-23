@@ -99,18 +99,19 @@ def loss(example_embedding, context_embedding, negative_embedding,
         grad_squared_distance(example_embedding, context_embedding)
 
     positive_grad =\
-        gs.einsum('i, i...->i...', positive_log_sigmoid_grad,
-                  positive_distance_grad)
+        gs.repeat(positive_log_sigmoid_grad, dim, axis=-1)\
+        * positive_distance_grad
 
     negative_distance_grad =\
         grad_squared_distance(reshaped_example_embedding, negative_embedding)
 
+    negative_distance = gs.to_ndarray(negative_distance,
+                                      to_ndim=2, axis=-1)
     negative_log_sigmoid_grad =\
         grad_log_sigmoid(negative_distance)
 
-    negative_grad =\
-        gs.einsum('i, i...->i...', negative_log_sigmoid_grad,
-                  negative_distance_grad)
+    negative_grad = negative_log_sigmoid_grad\
+        * negative_distance_grad
 
     example_grad = -(positive_grad + negative_grad.sum(axis=0))
 
