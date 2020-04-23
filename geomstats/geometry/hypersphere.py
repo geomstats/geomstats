@@ -225,13 +225,16 @@ class Hypersphere(EmbeddedManifold):
         phi = base_point_spherical[:, 1]
         jac = gs.zeros((n_samples, self.dim + 1, self.dim))
 
-        jac = gs.assignment(
-            jac, gs.cos(theta) * gs.cos(phi), (0, 0), axis=0)
-        jac[:, 0, 0] = gs.cos(theta) * gs.cos(phi)
-        jac[:, 0, 1] = - gs.sin(theta) * gs.sin(phi)
-        jac[:, 1, 0] = gs.cos(theta) * gs.sin(phi)
-        jac[:, 1, 1] = gs.sin(theta) * gs.cos(phi)
-        jac[:, 2, 0] = - gs.sin(theta)
+        zeros = gs.zeros(n_samples)
+
+        jac = gs.concatenate([gs.array([[
+            [gs.cos(theta[i]) * gs.cos(phi[i]),
+             - gs.sin(theta[i]) * gs.sin(phi[i])],
+            [gs.cos(theta[i]) * gs.sin(phi[i]),
+             gs.sin(theta[i]) * gs.cos(phi[i])],
+            [- gs.sin(theta[i]),
+             zeros[i]]]]) for i in range(n_samples)], axis=0)
+
         tangent_vec_extrinsic = gs.einsum(
             '...ij,...j->...i', jac, tangent_vec_spherical)
 
