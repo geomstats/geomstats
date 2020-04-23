@@ -1,6 +1,4 @@
-"""
-Unit tests for the invariant metrics on Lie groups.
-"""
+"""Unit tests for the invariant metrics on Lie groups."""
 
 import logging
 import warnings

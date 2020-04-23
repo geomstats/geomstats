@@ -1,6 +1,4 @@
-"""
-Unit tests for visualization.
-"""
+"""Unit tests for visualization."""
 
 import matplotlib
 matplotlib.use('Agg')  # NOQA

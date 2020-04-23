@@ -1,6 +1,4 @@
-"""
-Unit tests for the Euclidean space.
-"""
+"""Unit tests for the Euclidean space."""
 
 import geomstats.backend as gs
 import geomstats.tests

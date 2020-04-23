@@ -1,6 +1,4 @@
-"""
-Unit tests for special orthogonal group SO(n).
-"""
+"""Unit tests for special orthogonal group SO(n)."""
 
 import geomstats.backend as gs
 import geomstats.tests

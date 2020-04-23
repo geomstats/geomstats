@@ -1,6 +1,5 @@
-"""
-Unit tests for the skew symmetric matrices
-"""
+"""Unit tests for the skew symmetric matrices."""
+
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
