@@ -1,6 +1,6 @@
 """Transformer for manifold-valued data."""
 
-from sklearn.base import TransformerMixin
+from sklearn.base import BaseEstimator, TransformerMixin
 
 import geomstats.backend as gs
 from geomstats.geometry.lie_group import LieGroup
@@ -14,7 +14,7 @@ from geomstats.learning.frechet_mean import FrechetMean
 EPSILON = 1e-4
 
 
-class VectorTransformer(TransformerMixin):
+class VectorTransformer(BaseEstimator, TransformerMixin):
     """Lift data to a tangent space.
 
     Compute the logs of all data points and reshape them to
@@ -83,7 +83,7 @@ class VectorTransformer(TransformerMixin):
             self.estimator.fit(X, y, weights)
         return self
 
-    def transform(self, X, y=None, base_point=None):
+    def transform(self, X, base_point=None):
         """Lift data to a tangent space.
 
         Compute the logs of all data point and reshapes them to
