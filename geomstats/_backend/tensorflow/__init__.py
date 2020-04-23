@@ -271,6 +271,7 @@ def _assignment_single_value_by_sum(x, value, indices, axis=0):
         an axis).
     """
     if _is_boolean(indices):
+        indices = [indices]
         indices = [index for index, val in enumerate(indices) if val]
 
     single_index = not isinstance(indices, list)
@@ -380,6 +381,7 @@ def _assignment_single_value(x, value, indices, axis=0):
         along an axis).
     """
     if _is_boolean(indices):
+        indices = [indices]
         indices = [index for index, val in enumerate(indices) if val]
 
     single_index = not isinstance(indices, list)
@@ -583,6 +585,8 @@ def eye(n, m=None):
 
 
 def sum(x, axis=None, keepdims=False, name=None):
+    if not tf.is_tensor(x):
+        x = tf.convert_to_tensor(x)
     if x.dtype == bool:
         x = cast(x, int32)
     return tf.reduce_sum(x, axis, keepdims, name)

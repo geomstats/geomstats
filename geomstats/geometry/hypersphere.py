@@ -461,7 +461,7 @@ class HypersphereMetric(RiemannianMetric):
         norm4 = norm2**2
         norm6 = norm2**3
 
-        if gs.sum(mask_0) > 0:
+        if gs.any(mask_0):
             coef_1 = gs.assignment(
                 coef_1,
                 1. - norm2 / 2. + norm4 / 24. - norm6 / 720.,
@@ -471,7 +471,7 @@ class HypersphereMetric(RiemannianMetric):
                 1. - norm2 / 6. + norm4 / 120. - norm6 / 5040.,
                 mask_0)
 
-        if gs.sum(mask_non0) > 0:
+        if gs.any(mask_non0):
             coef_1 = gs.assignment(
                 coef_1,
                 gs.cos(norm_tangent_vec[mask_non0]),
@@ -580,7 +580,8 @@ class HypersphereMetric(RiemannianMetric):
         norm_b = self.embedding_metric.norm(point_b)
         inner_prod = self.embedding_metric.inner_product(point_a, point_b)
 
-        cos_angle = inner_prod / (norm_a * norm_b)
+        cos_angle = gs.einsum(
+            '...,...->...', inner_prod, 1. / (norm_a * norm_b))
         cos_angle = gs.clip(cos_angle, -1, 1)
 
         dist = gs.arccos(cos_angle)
