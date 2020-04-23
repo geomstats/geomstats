@@ -331,12 +331,11 @@ def assignment_by_sum(x, values, indices, axis=0):
         if ndim(array(indices)) > 1:
             indices = tf.where(indices)
         else:
-            if ndim(x) > 1:
-                indices_from_booleans = [
-                    index for index, val in enumerate(indices) if val]
-                indices_along_dims = [range(dim) for dim in shape(x)]
-                indices_along_dims[axis] = indices_from_booleans
-                indices = list(product(*indices_along_dims))
+            indices_from_booleans = [
+                index for index, val in enumerate(indices) if val]
+            indices_along_dims = [range(dim) for dim in shape(x)]
+            indices_along_dims[axis] = indices_from_booleans
+            indices = list(product(*indices_along_dims))
     if tf.rank(values) == 0:
         return _assignment_single_value_by_sum(x, values, indices, axis)
     else:
@@ -440,12 +439,11 @@ def assignment(x, values, indices, axis=0):
         if ndim(array(indices)) > 1:
             indices = tf.where(indices)
         else:
-            if ndim(x) > 1:
-                indices_from_booleans = [
-                    index for index, val in enumerate(indices) if val]
-                indices_along_dims = [range(dim) for dim in shape(x)]
-                indices_along_dims[axis] = indices_from_booleans
-                indices = list(product(*indices_along_dims))
+            indices_from_booleans = [
+                index for index, val in enumerate(indices) if val]
+            indices_along_dims = [range(dim) for dim in shape(x)]
+            indices_along_dims[axis] = indices_from_booleans
+            indices = list(product(*indices_along_dims))
     if tf.rank(values) == 0:
         return _assignment_single_value(x, values, indices, axis)
     else:
