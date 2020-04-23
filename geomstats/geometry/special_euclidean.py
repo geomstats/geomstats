@@ -722,14 +722,14 @@ class SpecialEuclidean(_SpecialEuclidean3Vector, _SpecialEuclideanMatrix):
         default: 0
     """
 
-    def __new__(self, n, point_type='matrix', epsilon=0.):
+    def __new__(cls, n, point_type='matrix', epsilon=0.):
         """Instantiate a special euclidean group.
 
         Select the object to instantiate depending on the point_type.
         """
         if n == 3 and point_type == 'vector':
             return _SpecialEuclidean3Vector(epsilon)
-        elif n != 3 and point_type == 'vector':
+        if n != 3 and point_type == 'vector':
             raise NotImplementedError(
                 'SE(n) is only implemented in matrix representation'
                 ' when n != 3.')

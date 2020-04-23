@@ -1390,14 +1390,14 @@ class SpecialOrthogonal(_SpecialOrthogonal3Vector, _SpecialOrthogonalMatrix):
         default: 0
     """
 
-    def __new__(self, n, point_type='matrix', epsilon=0.):
+    def __new__(cls, n, point_type='matrix', epsilon=0.):
         """Instantiate a special orthogonal group.
 
         Select the object to instantiate depending on the point_type.
         """
         if n == 3 and point_type == 'vector':
             return _SpecialOrthogonal3Vector(epsilon)
-        elif n != 3 and point_type == 'vector':
+        if n != 3 and point_type == 'vector':
             raise NotImplementedError(
                 'SO(n) is only implemented in matrix representation'
                 ' when n != 3.')
