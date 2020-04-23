@@ -1,6 +1,4 @@
-"""
-Predict on manifolds: losses.
-"""
+"""Predict on SO(3): losses."""
 
 import logging
 
@@ -9,30 +7,64 @@ import geomstats.geometry.lie_group as lie_group
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
-SO3 = SpecialOrthogonal(n=3)
+SO3 = SpecialOrthogonal(n=3, point_type='vector')
 
 
 def loss(y_pred, y_true,
          metric=SO3.bi_invariant_metric,
          representation='vector'):
+    """Loss function given by a Riemannian metric on a Lie group.
 
+    Parameters
+    ----------
+    y_pred : array-like
+        Prediction on SO(3).
+    y_true : array-like
+        Ground-truth on SO(3).
+    metric : RiemannianMetric
+        Metric used to compute the loss and gradient.
+    representation : str, {'vector', 'matrix'}
+        Representation chosen for points in SO(3).
+
+    Returns
+    -------
+    lie_loss : array-like
+        Loss using the Riemannian metric.
+    """
     if representation == 'quaternion':
         y_pred = SO3.rotation_vector_from_quaternion(y_pred)
         y_true = SO3.rotation_vector_from_quaternion(y_true)
 
-    loss = lie_group.loss(y_pred, y_true, SO3, metric)
-    return loss
+    lie_loss = lie_group.loss(y_pred, y_true, SO3, metric)
+    return lie_loss
 
 
 def grad(y_pred, y_true,
          metric=SO3.bi_invariant_metric,
          representation='vector'):
+    """Closed-form for the gradient of pose_loss.
 
+    Parameters
+    ----------
+    y_pred : array-like
+        Prediction on SO(3).
+    y_true : array-like
+        Ground-truth on SO(3).
+    metric : RiemannianMetric
+        Metric used to compute the loss and gradient.
+    representation : str, {'vector', 'matrix'}
+        Representation chosen for points in SE(3).
+
+    Returns
+    -------
+    lie_grad : array-like
+        Tangent vector at point y_pred.
+    """
     y_pred = gs.expand_dims(y_pred, axis=0)
     y_true = gs.expand_dims(y_true, axis=0)
 
     if representation == 'vector':
-        grad = lie_group.grad(y_pred, y_true, SO3, metric)
+        lie_grad = lie_group.grad(y_pred, y_true, SO3, metric)
 
     if representation == 'quaternion':
         quat_scalar = y_pred[:, :1]
@@ -60,15 +92,16 @@ def grad(y_pred, y_true,
         y_pred = SO3.rotation_vector_from_quaternion(y_pred)
         y_true = SO3.rotation_vector_from_quaternion(y_true)
 
-        grad = lie_group.grad(y_pred, y_true, SO3, metric)
+        lie_grad = lie_group.grad(y_pred, y_true, SO3, metric)
 
-        grad = gs.matmul(grad, differential)
+        lie_grad = gs.matmul(lie_grad, differential)
 
-    grad = gs.squeeze(grad, axis=0)
-    return grad
+    lie_grad = gs.squeeze(lie_grad, axis=0)
+    return lie_grad
 
 
 def main():
+    """Print loss and gradient on SO(3)."""
     y_pred = gs.array([1., 1.5, -0.3])
     y_true = gs.array([0.1, 1.8, -0.1])
 

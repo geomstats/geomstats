@@ -402,7 +402,7 @@ class SPDMetricAffine(RiemannianMetric):
         spd_space = self.space
 
         if power_affine == 1:
-            inv_base_point = GeneralLinear.inv(base_point)
+            inv_base_point = GeneralLinear.inverse(base_point)
             inner_product = self._aux_inner_product(
                 tangent_vec_a, tangent_vec_b, inv_base_point)
         else:
@@ -476,7 +476,7 @@ class SPDMetricAffine(RiemannianMetric):
                 power_affine, tangent_vec, base_point)
             power_sqrt_base_point = SymmetricMatrices.powerm(
                 base_point, power_affine / 2)
-            power_inv_sqrt_base_point = GeneralLinear.inv(
+            power_inv_sqrt_base_point = GeneralLinear.inverse(
                 power_sqrt_base_point)
             exp = self._aux_exp(
                 modified_tangent_vec,
@@ -594,7 +594,7 @@ class SPDMetricAffine(RiemannianMetric):
             Transported tangent vector at exp_(base_point)(tangent_vec_b).
         """
         end_point = self.exp(tangent_vec_b, base_point)
-        inverse_base_point = GeneralLinear.inv(base_point)
+        inverse_base_point = GeneralLinear.inverse(base_point)
         congruence_mat = GeneralLinear.mul(end_point, inverse_base_point)
         congruence_mat = gs.linalg.sqrtm(congruence_mat)
         return GeneralLinear.congruent(tangent_vec_a, congruence_mat)

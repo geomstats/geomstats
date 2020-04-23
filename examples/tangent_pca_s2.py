@@ -1,4 +1,4 @@
-"""Perform tangent PCA at the mean."""
+"""Perform tangent PCA at the mean on the sphere."""
 
 import logging
 
@@ -12,7 +12,7 @@ from geomstats.learning.pca import TangentPCA
 
 
 def main():
-    """Perform tangent PCA at the mean."""
+    """Perform tangent PCA at the mean on the sphere."""
     fig = plt.figure(figsize=(15, 5))
 
     sphere = Hypersphere(dim=2)

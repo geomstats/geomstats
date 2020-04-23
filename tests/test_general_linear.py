@@ -9,7 +9,7 @@ from geomstats.geometry.general_linear import GeneralLinear
 RTOL = 1e-5
 
 
-class TestGeneralLinearMethods(geomstats.tests.TestCase):
+class TestGeneralLinear(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
         self.n = 3
@@ -18,25 +18,57 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
 
         warnings.simplefilter('ignore', category=ImportWarning)
 
+    def test_belongs_shape(self):
+        mat = gs.eye(3)
+        result = self.group.belongs(mat)
+        self.assertAllClose(gs.shape(result), ())
+
+        mat = gs.ones((3, 3))
+        result = self.group.belongs(mat)
+        self.assertAllClose(gs.shape(result), ())
+
     def test_belongs(self):
+        mat = gs.eye(3)
+        result = self.group.belongs(mat)
+        expected = True
+        self.assertAllClose(result, expected)
+
+        mat = gs.ones((3, 3))
+        result = self.group.belongs(mat)
+        expected = False
+        self.assertAllClose(result, expected)
+
+    def test_belongs_vectorization_shape(self):
+        mats = gs.array([gs.eye(3), gs.ones((3, 3))])
+        result = self.group.belongs(mats)
+        self.assertAllClose(gs.shape(result), (2,))
+
+    def test_belongs_vectorization(self):
         mats = gs.array([gs.eye(3), gs.ones((3, 3))])
         result = self.group.belongs(mats)
         expected = gs.array([True, False])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_random_and_belongs(self):
         point = self.group.random_uniform()
         result = self.group.belongs(point)
-        expected = gs.array([True])
+        expected = True
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_random_and_belongs_vectorization(self):
-        point = self.group.random_uniform(n_samples=3)
+        n_samples = 4
+        point = self.group.random_uniform(n_samples)
         result = self.group.belongs(point)
-        expected = gs.array([True, True, True])
+        expected = gs.array([True] * n_samples)
         self.assertAllClose(result, expected)
+
+    def test_replace_values(self):
+        points = gs.ones((3, 3, 3))
+        new_points = gs.zeros((2, 3, 3))
+        indcs = [True, False, True]
+        update = self.group._replace_values(points, new_points, indcs)
+        self.assertAllClose(update, gs.stack(
+            [gs.zeros((3, 3)), gs.ones((3, 3)), gs.zeros((3, 3))]))
 
     def test_compose(self):
         mat1 = gs.array([
@@ -46,7 +78,7 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
             [2., 0.],
             [0., 1.]])
         result = self.group.compose(mat1, mat2)
-        expected = 2. * GeneralLinear(2).identity()
+        expected = 2. * GeneralLinear(2).identity
         self.assertAllClose(result, expected)
 
     def test_inv(self):
@@ -59,7 +91,7 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
             [-2., 11., -6.],
             [3., -6., 3.]])
         expected = imat_a
-        result = self.group.inv(mat_a)
+        result = self.group.inverse(mat_a)
         self.assertAllClose(result, expected)
 
     def test_inv_vectorized(self):
@@ -68,7 +100,7 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
             [1., 0., 0.],
             [0., 0., 1.]])
         mat_b = - gs.eye(3, 3)
-        result = self.group.inv(gs.array([mat_a, mat_b]))
+        result = self.group.inverse(gs.array([mat_a, mat_b]))
         expected = gs.array([mat_a, mat_b])
         self.assertAllClose(result, expected)
 
@@ -123,7 +155,7 @@ class TestGeneralLinearMethods(geomstats.tests.TestCase):
         sqrt = gs.array([
             [gs.exp(2.), 0.],
             [0., gs.exp(1.)]])
-        idty = GeneralLinear(2).identity()
+        idty = GeneralLinear(2).identity
 
         path = GeneralLinear(2).orbit(point)
         time = gs.linspace(0., 1., 3)

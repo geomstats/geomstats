@@ -8,7 +8,7 @@ from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.kmeans import RiemannianKMeans
 
 
-class TestRiemannianKMeansMethods(geomstats.tests.TestCase):
+class TestRiemannianKMeans(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     @geomstats.tests.np_and_pytorch_only

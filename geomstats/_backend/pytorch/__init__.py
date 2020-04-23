@@ -17,6 +17,7 @@ from torch import (  # NOQA
     clamp as clip,
     cos,
     cosh,
+    cross,
     div as divide,
     empty_like,
     eq,
@@ -435,10 +436,6 @@ def equal(a, b, **kwargs):
     return torch.eq(a, b, **kwargs)
 
 
-def cross(x, y):
-    return torch.from_numpy(_np.cross(x, y))
-
-
 def tril_indices(*args, **kwargs):
     return tuple(map(torch.from_numpy, _np.tril_indices(*args, **kwargs)))
 
@@ -527,6 +524,24 @@ def get_mask_i_float(i, n):
     return mask_i_float
 
 
+def _is_boolean(x):
+    if isinstance(x, bool):
+        return True
+    if isinstance(x, (tuple, list)):
+        return _is_boolean(x[0])
+    if torch.is_tensor(x):
+        return x.dtype in [torch.bool, torch.uint8]
+    return False
+
+
+def _is_iterable(x):
+    if isinstance(x, (list, tuple)):
+        return True
+    if torch.is_tensor(x):
+        return ndim(x) > 0
+    return False
+
+
 def assignment(x, values, indices, axis=0):
     """Assign values at given indices of an array.
 
@@ -555,20 +570,20 @@ def assignment(x, values, indices, axis=0):
     If a list is given, it must have the same length as indices.
     """
     x_new = copy(x)
-    single_index = not isinstance(indices, list)
-    if single_index:
-        indices = [indices]
-    if not isinstance(values, list):
-        values = [values] * len(indices)
-    for (nb_index, index) in enumerate(indices):
-        if not isinstance(index, tuple):
-            index = (index,)
-        if len(index) < len(shape(x)):
-            for n_axis in range(shape(x)[axis]):
-                extended_index = index[:axis] + (n_axis,) + index[axis:]
-                x_new[extended_index] = values[nb_index]
-        else:
-            x_new[index] = values[nb_index]
+
+    use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
+    if _is_boolean(indices):
+        x_new[indices] = values
+        return x_new
+    zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
+    if zip_indices:
+        indices = tuple(zip(*indices))
+    if not use_vectorization:
+        x_new[indices] = values
+    else:
+        indices = tuple(
+            list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
+        x_new[indices] = values
     return x_new
 
 
@@ -600,20 +615,20 @@ def assignment_by_sum(x, values, indices, axis=0):
     If a list is given, it must have the same length as indices.
     """
     x_new = copy(x)
-    single_index = not isinstance(indices, list)
-    if single_index:
-        indices = [indices]
-    if not isinstance(values, list):
-        values = [values] * len(indices)
-    for (nb_index, index) in enumerate(indices):
-        if not isinstance(index, tuple):
-            index = (index,)
-        if len(index) < len(shape(x)):
-            for n_axis in range(shape(x)[axis]):
-                extended_index = index[:axis] + (n_axis,) + index[axis:]
-                x_new[extended_index] += values[nb_index]
-        else:
-            x_new[index] += values[nb_index]
+
+    use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
+    if _is_boolean(indices):
+        x_new[indices] = values
+        return x_new
+    zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
+    if zip_indices:
+        indices = list(zip(*indices))
+    if not use_vectorization:
+        x_new[indices] += values
+    else:
+        indices = tuple(
+            list(indices[:axis]) + [slice(None)] + list(indices[axis:]))
+        x_new[indices] += values
     return x_new
 
 

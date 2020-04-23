@@ -330,13 +330,11 @@ class FrechetMean(BaseEstimator, TransformerMixin):
     def __init__(self, metric,
                  max_iter=32,
                  epsilon=EPSILON,
-                 point_type='vector',
+                 point_type=None,
                  method='default',
                  lr=1e-3,
                  tau=5e-3,
                  verbose=False):
-        error.check_parameter_accepted_values(
-            point_type, 'point_type', ['vector', 'matrix'])
 
         self.metric = metric
         self.max_iter = max_iter
@@ -350,6 +348,8 @@ class FrechetMean(BaseEstimator, TransformerMixin):
 
         if point_type is None:
             self.point_type = metric.default_point_type
+        error.check_parameter_accepted_values(
+            self.point_type, 'point_type', ['vector', 'matrix'])
 
     def fit(self, X, y=None, weights=None):
         """Compute the empirical Frechet mean.

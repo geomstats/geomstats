@@ -1,6 +1,6 @@
-"""
-Plot a geodesic of SO(3) equipped
-with its left-invariant canonical METRIC.
+"""Plot a geodesic of SO(3).
+
+SO(3) is equipped with its left-invariant canonical METRIC.
 """
 
 import logging
@@ -12,11 +12,12 @@ import numpy as np
 import geomstats.visualization as visualization
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
-SO3_GROUP = SpecialOrthogonal(n=3)
+SO3_GROUP = SpecialOrthogonal(n=3, point_type='vector')
 METRIC = SO3_GROUP.bi_invariant_metric
 
 
 def main():
+    """Plot a geodesic on SO(3)."""
     initial_point = SO3_GROUP.identity
     initial_tangent_vec = [0.5, 0.5, 0.8]
     geodesic = METRIC.geodesic(initial_point=initial_point,

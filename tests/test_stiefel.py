@@ -17,7 +17,7 @@ r_z = gs.array([[0., -1., 0.], [1., 0., 0.], [0., 0., 0.]])
 point1 = gs.array([[1., 0.], [0., 1.], [0., 0.]])
 
 
-class TestStiefelMethods(geomstats.tests.TestCase):
+class TestStiefel(geomstats.tests.TestCase):
     def setUp(self):
         """
         Tangent vectors constructed following:
@@ -78,14 +78,12 @@ class TestStiefelMethods(geomstats.tests.TestCase):
 
         self.metric = self.space.canonical_metric
 
-    @geomstats.tests.np_and_tf_only
     def test_belongs_shape(self):
         point = self.space.random_uniform()
         belongs = self.space.belongs(point)
 
         self.assertAllClose(gs.shape(belongs), ())
 
-    @geomstats.tests.np_and_tf_only
     def test_random_uniform_and_belongs(self):
         point = self.space.random_uniform()
         result = self.space.belongs(point, tolerance=1e-4)
@@ -93,7 +91,6 @@ class TestStiefelMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_random_uniform_shape(self):
         result = self.space.random_uniform()
 
@@ -118,7 +115,6 @@ class TestStiefelMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, atol=ATOL)
 
-    @geomstats.tests.np_and_tf_only
     def test_exp_and_belongs(self):
         base_point = self.point_a
         tangent_vec = self.tangent_vector_1
@@ -130,7 +126,6 @@ class TestStiefelMethods(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_exp_vectorization_shape(self):
         n_samples = self.n_samples
         n = self.n
@@ -276,14 +271,12 @@ class TestStiefelMethods(geomstats.tests.TestCase):
             base_point=base_point)
         self.assertAllClose(gs.shape(result), ())
 
-    @geomstats.tests.np_and_pytorch_only
     def test_to_grassmannian(self):
-        point2 = gs.array([[1., -1.], [1., 1.], [0., 0.]]) / gs.sqrt(2)
+        point2 = gs.array([[1., -1.], [1., 1.], [0., 0.]]) / gs.sqrt(2.)
         result = self.space.to_grassmannian(point2)
         expected = p_xy
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_to_grassmanniann_vectorized(self):
         inf_rots = gs.array([gs.pi * r_z / n for n in [2, 3, 4]])
         rots = GeneralLinear.exp(inf_rots)

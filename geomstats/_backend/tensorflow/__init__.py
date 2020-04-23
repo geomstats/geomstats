@@ -135,6 +135,16 @@ def any(x, axis=None):
     return tf.math.reduce_any(tf.cast(x, bool), axis=axis)
 
 
+def _is_boolean(x):
+    if isinstance(x, bool):
+        return True
+    if isinstance(x, (tuple, list)):
+        return isinstance(x[0], bool)
+    if tf.is_tensor(x):
+        return x.dtype == bool
+    return False
+
+
 def get_mask_i_float(i, n):
     """Create a 1D array of zeros with one element at one, with floating type.
 
@@ -259,10 +269,18 @@ def _assignment_single_value_by_sum(x, value, indices, axis=0):
         Copy of x where value was added at all indices (and possibly along
         an axis).
     """
+    if _is_boolean(indices):
+        indices = [index for index, val in enumerate(indices) if val]
+
     single_index = not isinstance(indices, list)
+    if tf.is_tensor(indices):
+        single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
     if single_index:
         indices = [indices]
+
     if isinstance(indices[0], tuple):
+        use_vectorization = (len(indices[0]) < ndim(x))
+    elif tf.is_tensor(indices[0]) and ndim(indices[0]) >= 1:
         use_vectorization = (len(indices[0]) < ndim(x))
     else:
         use_vectorization = ndim(x) > 1
@@ -304,10 +322,16 @@ def assignment_by_sum(x, values, indices, axis=0):
     If a single value is provided, it is assigned at all the indices.
     If a list is given, it must have the same length as indices.
     """
-    if not isinstance(values, list):
+    if _is_boolean(indices):
+        indices = [index for index, val in enumerate(indices) if val]
+
+    if tf.rank(values) == 0:
         return _assignment_single_value_by_sum(x, values, indices, axis)
 
-    if not isinstance(indices, list):
+    single_index = not isinstance(indices, list)
+    if tf.is_tensor(indices):
+        single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
+    if single_index:
         indices = [indices]
 
     if len(values) != len(indices):
@@ -342,10 +366,18 @@ def _assignment_single_value(x, value, indices, axis=0):
         Copy of x where value was assigned at all indices (and possibly
         along an axis).
     """
+    if _is_boolean(indices):
+        indices = [index for index, val in enumerate(indices) if val]
+
     single_index = not isinstance(indices, list)
+    if tf.is_tensor(indices):
+        single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
     if single_index:
         indices = [indices]
+
     if isinstance(indices[0], tuple):
+        use_vectorization = (len(indices[0]) < ndim(x))
+    elif tf.is_tensor(indices[0]) and ndim(indices[0]) >= 1:
         use_vectorization = (len(indices[0]) < ndim(x))
     else:
         use_vectorization = ndim(x) > 1
@@ -389,10 +421,16 @@ def assignment(x, values, indices, axis=0):
     If a single value is provided, it is assigned at all the indices.
     If a list is given, it must have the same length as indices.
     """
-    if not isinstance(values, list):
+    if _is_boolean(indices):
+        indices = [index for index, val in enumerate(indices) if val]
+
+    if tf.rank(values) == 0:
         return _assignment_single_value(x, values, indices, axis)
 
-    if not isinstance(indices, list):
+    single_index = not isinstance(indices, list)
+    if tf.is_tensor(indices):
+        single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
+    if single_index:
         indices = [indices]
 
     if len(values) != len(indices):

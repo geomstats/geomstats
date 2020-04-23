@@ -7,7 +7,7 @@ import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
 
 
-class TestEuclideanMethods(geomstats.tests.TestCase):
+class TestEuclidean(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
 

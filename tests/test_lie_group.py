@@ -4,7 +4,7 @@ import geomstats.tests
 from geomstats.geometry.lie_group import LieGroup
 
 
-class TestLieGroupMethods(geomstats.tests.TestCase):
+class TestLieGroup(geomstats.tests.TestCase):
     dimension = 4
     group = LieGroup(dim=dimension)
 

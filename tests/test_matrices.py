@@ -7,7 +7,7 @@ import geomstats.tests
 from geomstats.geometry.matrices import Matrices
 
 
-class TestMatricesMethods(geomstats.tests.TestCase):
+class TestMatrices(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
 

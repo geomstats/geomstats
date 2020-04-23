@@ -6,6 +6,7 @@ Euclidean space.
 
 import logging
 import math
+from itertools import product
 
 import geomstats.backend as gs
 import geomstats.vectorization
@@ -282,7 +283,13 @@ class Hypersphere(EmbeddedManifold):
 
         return point_intrinsic
 
-    def random_uniform(self, n_samples=1):
+    def _replace_values(self, samples, new_samples, indcs):
+        replaced_indices = [
+            i for i, is_replaced in enumerate(indcs) if is_replaced]
+        value_indices = list(product(replaced_indices, range(self.dim + 1)))
+        return gs.assignment(samples, gs.flatten(new_samples), value_indices)
+
+    def random_uniform(self, n_samples=1, tol=1e-6):
         """Sample in the hypersphere from the uniform distribution.
 
         Parameters
@@ -300,12 +307,13 @@ class Hypersphere(EmbeddedManifold):
         samples = gs.random.normal(size=size)
         while True:
             norms = gs.linalg.norm(samples, axis=1)
-            indcs = gs.isclose(norms, 0.0)
+            indcs = gs.isclose(norms, 0.0, atol=tol)
             num_bad_samples = gs.sum(indcs)
             if num_bad_samples == 0:
                 break
-            samples[indcs, :] = gs.random.normal(
+            new_samples = gs.random.normal(
                 size=(num_bad_samples, self.dim + 1))
+            samples = self._replace_values(samples, new_samples, indcs)
 
         samples = gs.einsum('..., ...i->...i', 1 / norms, samples)
         if n_samples == 1:
@@ -452,12 +460,28 @@ class HypersphereMetric(RiemannianMetric):
         norm2 = norm_tangent_vec[mask_0]**2
         norm4 = norm2**2
         norm6 = norm2**3
-        coef_1[mask_0] = 1. - norm2 / 2. + norm4 / 24. - norm6 / 720.
-        coef_2[mask_0] = 1. - norm2 / 6. + norm4 / 120. - norm6 / 5040.
 
-        coef_1[mask_non0] = gs.cos(norm_tangent_vec[mask_non0])
-        coef_2[mask_non0] = gs.sin(norm_tangent_vec[mask_non0]) / \
-            norm_tangent_vec[mask_non0]
+        if gs.sum(mask_0) > 0:
+            coef_1 = gs.assignment(
+                coef_1,
+                1. - norm2 / 2. + norm4 / 24. - norm6 / 720.,
+                mask_0)
+            coef_2 = gs.assignment(
+                coef_2,
+                1. - norm2 / 6. + norm4 / 120. - norm6 / 5040.,
+                mask_0)
+
+        if gs.sum(mask_non0) > 0:
+            coef_1 = gs.assignment(
+                coef_1,
+                gs.cos(norm_tangent_vec[mask_non0]),
+                mask_non0)
+            coef_2 = gs.assignment(
+                coef_2,
+                gs.sin(
+                    norm_tangent_vec[mask_non0]) /
+                norm_tangent_vec[mask_non0],
+                mask_non0)
 
         exp = (gs.einsum('...,...j->...j', coef_1, base_point)
                + gs.einsum('n,nj->nj', coef_2, proj_tangent_vec))
@@ -579,7 +603,8 @@ class HypersphereMetric(RiemannianMetric):
         """
         return self.dist(point_a, point_b) ** 2
 
-    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+    @staticmethod
+    def parallel_transport(tangent_vec_a, tangent_vec_b, base_point):
         """Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
@@ -647,4 +672,7 @@ class HypersphereMetric(RiemannianMetric):
                                 [gs.cos(sample[0]) / gs.sin(sample[0]), 0]])
             christoffel.append(gs.stack([gamma_0, gamma_1]))
 
-        return gs.stack(christoffel)
+        christoffel = gs.stack(christoffel)
+        if gs.ndim(christoffel) == 4 and gs.shape(christoffel)[0] == 1:
+            christoffel = gs.squeeze(christoffel, axis=0)
+        return christoffel

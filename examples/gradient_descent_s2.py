@@ -9,6 +9,9 @@ We solve the following optimization problem:
 Using by operating a gradient descent of the quadratic form
 on the sphere. We solve this in dimension 3 on the 2-sphere
 manifold so that we can visualize and render the path as a video.
+
+To run this example, you need to install ffmpeg:
+    pip3 install ffmpeg
 """
 
 import logging
@@ -49,9 +52,9 @@ def gradient_descent(start,
         x = manifold.metric.exp(base_point=x, tangent_vec=tangent_vec)
         if (gs.abs(loss(x, use_gs=True) - loss(x_prev, use_gs=True))
                 <= precision):
-            logging.info('x: %s' % x)
-            logging.info('reached precision %s' % precision)
-            logging.info('iterations: %d' % i)
+            logging.info('x: %s', x)
+            logging.info('reached precision %s', precision)
+            logging.info('iterations: %d', i)
             break
         yield x, loss(x)
 
@@ -67,7 +70,7 @@ def plot_and_save_video(geodesics,
     FFMpegWriter = animation.writers['ffmpeg']
     writer = FFMpegWriter(fps=fps)
     fig = plt.figure(figsize=(size, size))
-    ax = fig.add_subplot(111, projection='3d', aspect='equal')
+    ax = fig.add_subplot(111, projection='3d')
     sphere = visualization.Sphere()
     sphere.plot_heatmap(ax, loss)
     points = gs.to_ndarray(geodesics[0], to_ndim=2)
@@ -83,11 +86,11 @@ def plot_and_save_video(geodesics,
 def generate_well_behaved_matrix():
     """Generate a matrix with real eigenvalues."""
     matrix = 2 * SPDMatrices(n=3).random_uniform()
-    assert np.linalg.det(matrix) > 0
     return matrix
 
 
 def main(output_file='out.mp4', max_iter=128):
+    """Run gradient descent on a sphere."""
     gs.random.seed(1985)
     A = generate_well_behaved_matrix()
 
