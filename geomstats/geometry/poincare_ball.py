@@ -156,9 +156,6 @@ class PoincareBallMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        point = gs.to_ndarray(point, to_ndim=2)
-
         add_base_point = self.mobius_add(-base_point, point)
         norm_add =\
             gs.expand_dims(gs.linalg.norm(
@@ -255,9 +252,6 @@ class PoincareBallMetric(RiemannianMetric):
         dist : array-like, shape=[n_samples, 1]
             Geodesic distance between the two points.
         """
-        point_a = gs.to_ndarray(point_a, to_ndim=2)
-        point_b = gs.to_ndarray(point_b, to_ndim=2)
-
         point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0., 1 - EPSILON)
         point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0., 1 - EPSILON)
 
