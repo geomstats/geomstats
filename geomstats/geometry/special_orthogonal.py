@@ -1372,16 +1372,9 @@ class SpecialOrthogonal3(LieGroup):
         return LieGroup.log(self, point, base_point)
 
 
-
 class SO(SpecialOrthogonal3, SpecialOrthogonal):
-    def __init__(self, n, point_type='matrix'):
+    def __new__(self, n, point_type='matrix'):
         if n == 3 and point_type == 'vector':
-            SpecialOrthogonal3.__init__(self)
-        else:
-            SpecialOrthogonal.__init__(self, n)
-
-    def regularize(self, point):
-        if self.n == 3 and self.default_point_type == 'vector':
-            return SpecialOrthogonal3.regularize(self, point)
-        return SpecialOrthogonal.regularize(self, point)
+            return SpecialOrthogonal3()
+        return SpecialOrthogonal(n)
 
