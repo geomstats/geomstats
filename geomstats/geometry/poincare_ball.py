@@ -9,6 +9,9 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-6
 EPSILON = 1e-6
+NORMALIZATION_FACTOR_CST = gs.sqrt(gs.pi / 2)
+PI_2_3 = gs.power((2 * gs.pi), 2 / 3)
+SQRT_2 = gs.sqrt(2.)
 
 
 class PoincareBall(Hyperbolic):
@@ -60,6 +63,71 @@ class PoincareBall(Hyperbolic):
         """
         return gs.sum(point**2, axis=-1) < (1 - tolerance)
 
+
+    @staticmethod
+    def pdf(data, means, variances, norm_func, metric):
+        """Return the probability density function."""
+        data_length, _, n_gaussian = data.shape + (means.shape[0],)
+
+        data_expanded = gs.expand_dims(data, 1)
+        data_expanded = gs.repeat(data_expanded, n_gaussian, axis=1)
+
+        means_expanded = gs.expand_dims(means, 0)
+        means_expanded = gs.repeat(means_expanded, data_length, axis=0)
+
+        variances_expanded = gs.expand_dims(variances, 0)
+        variances_expanded = gs.repeat(variances_expanded, data_length, 0)
+
+        num = gs.exp(-(metric.dist(data_expanded, means_expanded) ** 2)
+                     / (2 * variances_expanded ** 2))
+
+        den = norm_func(variances)
+
+        den = gs.expand_dims(den, 0)
+        den = gs.repeat(den, data_length, axis=0)
+
+        result = num / den
+
+        return result
+
+    @staticmethod
+    def weighted_gmm_pdf(mixture_coefficients,
+                             mesh_data,
+                             means,
+                             variances,
+                             metric):
+        """Return the probability density function of a GMM."""
+        mesh_data_units = gs.expand_dims(mesh_data, 1)
+
+        mesh_data_units = gs.repeat(mesh_data_units, len(means), axis=1)
+
+        means_units = gs.expand_dims(means, 0)
+
+        means_units = gs.repeat(means_units, mesh_data_units.shape[0], axis=0)
+
+        distance_to_mean = metric(mesh_data_units, means_units)
+        variances_units = gs.expand_dims(variances, 0)
+        variances_units = gs.repeat(variances_units,
+                                    distance_to_mean.shape[0], axis=0)
+
+        distribution_normal = gs.exp(-(distance_to_mean ** 2)
+                                     / (2 * variances_units ** 2))
+
+        zeta_sigma = PI_2_3 * variances
+        zeta_sigma = zeta_sigma * gs.exp((variances ** 2 / 2)
+                                         * gs.erf(variances / gs.sqrt(2)))
+
+        result_num = gs.expand_dims(mixture_coefficients, 0)
+        result_num = gs.repeat(result_num,
+                               len(distribution_normal), axis=0)
+        result_num = result_num * distribution_normal
+        result_denum = gs.expand_dims(zeta_sigma, 0)
+        result_denum = gs.repeat(result_denum,
+                                 len(distribution_normal), axis=0)
+
+        result = result_num / result_denum
+
+        return result
 
 class PoincareBallMetric(RiemannianMetric):
     """Class that defines operations using a Poincare ball.
@@ -319,90 +387,36 @@ class PoincareBallMetric(RiemannianMetric):
         return gs.einsum('i,jk->ijk', lambda_base, identity)
 
 
-NORMALIZATION_FACTOR_CST = gs.sqrt(gs.pi / 2)
-PI_2_3 = gs.power((2 * gs.pi), 2 / 3)
-SQRT_2 = gs.sqrt(2.)
-
-
-class GaussianDistribution:
-    """A class for Gaussian distributions."""
-
-    @staticmethod
-    def pdf(data, means, variances, norm_func, metric):
-        """Return the probability density function."""
-        data_length, _, n_gaussian = data.shape + (means.shape[0],)
-
-        data_expanded = gs.expand_dims(data, 1)
-        data_expanded = gs.repeat(data_expanded, n_gaussian, axis=1)
-
-        means_expanded = gs.expand_dims(means, 0)
-        means_expanded = gs.repeat(means_expanded, data_length, axis=0)
-
-        variances_expanded = gs.expand_dims(variances, 0)
-        variances_expanded = gs.repeat(variances_expanded, data_length, 0)
-
-        num = gs.exp(-(metric.dist(data_expanded, means_expanded) ** 2)
-                     / (2 * variances_expanded ** 2))
-
-        den = norm_func(variances)
-
-        den = gs.expand_dims(den, 0)
-        den = gs.repeat(den, data_length, axis=0)
-
-        result = num / den
-
-        return result
-
-    @staticmethod
-    def weighted_gmm_pdf(mixture_coefficients,
-                         mesh_data,
-                         means,
-                         variances,
-                         metric):
-        """Return the probability density function of a GMM."""
-        mesh_data_units = gs.expand_dims(mesh_data, 1)
-
-        mesh_data_units = gs.repeat(mesh_data_units, len(means), axis=1)
-
-        means_units = gs.expand_dims(means, 0)
-
-        means_units = gs.repeat(means_units, mesh_data_units.shape[0], axis=0)
-
-        distance_to_mean = metric(mesh_data_units, means_units)
-        variances_units = gs.expand_dims(variances, 0)
-        variances_units = gs.repeat(variances_units,
-                                    distance_to_mean.shape[0], axis=0)
-
-        distribution_normal = gs.exp(-(distance_to_mean ** 2)
-                                     / (2 * variances_units ** 2))
-
-        zeta_sigma = PI_2_3 * variances
-        zeta_sigma = zeta_sigma * gs.exp((variances ** 2 / 2)
-                                         * gs.erf(variances / gs.sqrt(2)))
-
-        result_num = gs.expand_dims(mixture_coefficients, 0)
-        result_num = gs.repeat(result_num,
-                               len(distribution_normal), axis=0)
-        result_num = result_num * distribution_normal
-        result_denum = gs.expand_dims(zeta_sigma, 0)
-        result_denum = gs.repeat(result_denum,
-                                 len(distribution_normal), axis=0)
-
-        result = result_num / result_denum
-
-        return result
-
 
 class Normalization_Factor_Storage():
-    """A class for computing the normalization factor."""
+    """A class for computing the normalization factor.
 
-    def __init__(self, variances, dimension):
+    Parameters
+    ----------
+    dim : int
+        Number of dimensions of the Poincaré Ball.
 
-        self.dimension = dimension
+    variances : array-like, shape=[n_variances,]
+        An array of standard deviations.
+
+    normalizastion_factor_var : array-like, shape=[n_variances,]
+        An array of computed normalization factor.
+
+    phi_inv_var : array-like, shape=[n_variances,]
+        An array of the computed inverse of a function phi
+        whose expression is closed-form
+        :math:`\sigma\mapsto \sigma^3 \times \frac{d  }{\mathstrut d\sigma}\log \zeta_m(\sigma)'
+        where :math:'\sigma' denotes the variance and :math:'\zeta' the normalisation coefficient
+        and :math:'m' the dimension
+    """
+
+    def __init__(self, variances, dim):
+
+        self.dim = dim
 
         self.variances = variances
         self.normalisation_factor_var = \
-            self.normalization_factor(variances, dimension)
+            self.normalization_factor(variances, dim)
 
         cond_1 = self.normalisation_factor_var.sum() != \
             self.normalisation_factor_var.sum()
@@ -430,7 +444,7 @@ class Normalization_Factor_Storage():
                   + str(len(self.variances)) + '/' + str(max_nf))
 
         _, log_grad_zeta = \
-            self.norm_factor_gradient(self.variances, dimension)
+            self.norm_factor_gradient(self.variances, dim)
 
         self.phi_inv_var = self.variances ** 3 * log_grad_zeta
 

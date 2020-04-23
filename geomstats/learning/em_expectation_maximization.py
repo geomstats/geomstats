@@ -4,7 +4,7 @@ import logging
 
 import geomstats.backend as gs
 from geomstats.geometry.poincare_ball \
-    import GaussianDistribution, Normalization_Factor_Storage
+    import PoincareBall, Normalization_Factor_Storage
 from geomstats.learning.frechet_mean import FrechetMean
 
 
@@ -126,7 +126,7 @@ class RiemannianEM():
     def _expectation(self, data):
         """Update the posterior probabilities."""
         probability_distribution_function = \
-            GaussianDistribution.pdf(data,
+            PoincareBall.pdf(data,
                                      self.means,
                                      self.variances,
                                      norm_func=self.
