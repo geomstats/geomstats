@@ -35,6 +35,25 @@ class Manifold:
         """
         raise NotImplementedError('belongs is not implemented.')
 
+
+    def is_tangent(self, vector, base_point=None):
+        """Check whether the vector is tangent at base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[n_samples, dim_embedding]
+            Vector.
+        base_point : array-like, shape=[n_samples, dim_embedding]
+            Point on the manifold.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        raise NotImplementedError(
+            'is_tangent is not implemented.')
+
     def regularize(self, point):
         """Regularize a point to the canonical representation for the manifold.
 
