@@ -128,7 +128,7 @@ class BetaMetric(RiemannianMetric):
     """Class for the Fisher information metric on beta distributions."""
 
     def __init__(self):
-        super(RiemannianMetric, self).__init__(dim=2)
+        super(BetaMetric, self).__init__(dim=2)
 
     @staticmethod
     def metric_det(param_a, param_b):
