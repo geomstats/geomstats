@@ -225,8 +225,8 @@ class Hypersphere(EmbeddedManifold):
         phi = base_point_spherical[:, 1]
         jac = gs.zeros((n_samples, self.dim + 1, self.dim))
 
-        #jac = gs.assignment(
-        #    jac, gs.cos(theta) * gs.cos(phi), (0, 0), axis=0)
+        jac = gs.assignment(
+            jac, gs.cos(theta) * gs.cos(phi), (0, 0), axis=0)
         jac[:, 0, 0] = gs.cos(theta) * gs.cos(phi)
         jac[:, 0, 1] = - gs.sin(theta) * gs.sin(phi)
         jac[:, 1, 0] = gs.cos(theta) * gs.sin(phi)
