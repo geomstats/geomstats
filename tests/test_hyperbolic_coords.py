@@ -33,7 +33,6 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
 
         self.n_samples = 10
 
-    @geomstats.tests.np_and_pytorch_only
     def test_extrinsic_ball_extrinsic(self):
         x_in = gs.array([0.5, 7])
         x = self.intrinsic_manifold.to_coordinates(
@@ -42,13 +41,11 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
         x2 = self.ball_manifold.to_coordinates(x_b, to_coords_type='extrinsic')
         self.assertAllClose(x, x2, atol=1e-8)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_belongs_intrinsic(self):
         x_in = gs.array([0.5, 7])
         is_in = self.intrinsic_manifold.belongs(x_in)
         self.assertTrue(is_in)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_belongs_extrinsic(self):
         x_true = self.intrinsic_manifold.to_coordinates(
             gs.array([0.5, 7]), 'extrinsic')
@@ -58,7 +55,6 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
         is_out = self.extrinsic_manifold.belongs(x_false)
         self.assertFalse(is_out)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_belongs_ball(self):
         x_true = gs.array([0.5, 0.5])
         x_false = gs.array([0.8, 0.8])
@@ -67,7 +63,6 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
         is_out = self.ball_manifold.belongs(x_false)
         self.assertFalse(is_out)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_extrinsic_half_plane_extrinsic(self):
         x_in = gs.array([0.5, 7])
         x = self.intrinsic_manifold.to_coordinates(
@@ -79,7 +74,6 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
             x_up, 'half-plane', 'extrinsic')
         self.assertAllClose(x, x2, atol=1e-8)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_intrinsic_extrinsic_intrinsic(self):
         x_intr = gs.array([0.5, 7])
         x_extr = self.intrinsic_manifold.to_coordinates(
@@ -88,14 +82,12 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
             x_extr, to_coords_type='intrinsic')
         self.assertAllClose(x_intr, x_intr2, atol=1e-8)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_ball_extrinsic_ball(self):
         x = gs.array([0.5, 0.2])
         x_e = self.ball_manifold.to_coordinates(x, to_coords_type='extrinsic')
         x2 = self.extrinsic_manifold.to_coordinates(x_e, to_coords_type='ball')
         self.assertAllClose(x, x2, atol=1e-10)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_distance_ball_extrinsic_from_ball(self):
         x_ball = gs.array([0.7, 0.2])
         y_ball = gs.array([0.2, 0.2])
@@ -108,7 +100,6 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
 
         self.assertAllClose(dst_ball, dst_extr)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_distance_ball_extrinsic_from_extr(self):
         x_int = gs.array([10, 0.2])
         y_int = gs.array([1, 6.])
@@ -125,7 +116,6 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
 
         self.assertAllClose(dst_ball, dst_extr)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_distance_ball_extrinsic_from_extr_4_dim(self):
         x_int = gs.array([10, 0.2, 3, 4])
         y_int = gs.array([1, 6, 2., 1])
@@ -173,7 +163,6 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
         #     x_ball_log_exp, from_point_type='ball')
         # self.assertAllClose(x_extr_a, x_extr_b, atol=1e-4)
 
-    @geomstats.tests.np_only
     def test_log_exp_ball(self):
         x = gs.array([0.1, 0.2])
         y = gs.array([0.2, 0.5])
@@ -182,7 +171,6 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
         exp = self.ball_metric.exp(tangent_vec=log, base_point=x)
         self.assertAllClose(exp, y, atol=1e-1)
 
-    @geomstats.tests.np_only
     def test_log_exp_ball_vectorization(self):
         x = gs.array([0.1, 0.2])
         y = gs.array([[0.2, 0.5], [0.1, 0.7]])
@@ -191,7 +179,6 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
         exp = self.ball_metric.exp(log, x)
         self.assertAllClose(exp, y, atol=1e-1)
 
-    @geomstats.tests.np_only
     def test_log_exp_ball_null_tangent(self):
         x = gs.array([[0.1, 0.2], [0.1, 0.2]])
         tangent_vec = gs.array([[0.0, 0.0], [0.0, 0.0]])
