@@ -440,7 +440,7 @@ class SPDMetricAffine(RiemannianMetric):
             '...ij,...jk->...ik', inv_sqrt_base_point, tangent_vec)
         tangent_vec_at_id = gs.einsum(
             '...ij,...jk->...ik', tangent_vec_at_id, inv_sqrt_base_point)
-        tangent_vec_at_id = GeneralLinear.make_symmetric(tangent_vec_at_id)
+        tangent_vec_at_id = GeneralLinear.to_symmetric(tangent_vec_at_id)
         exp_from_id = SymmetricMatrices.expm(tangent_vec_at_id)
 
         exp = gs.einsum(
@@ -505,7 +505,7 @@ class SPDMetricAffine(RiemannianMetric):
             '...ij,...jk->...ik', inv_sqrt_base_point, point)
         point_near_id = gs.einsum(
             '...ij,...jk->...ik', point_near_id, inv_sqrt_base_point)
-        point_near_id = GeneralLinear.make_symmetric(point_near_id)
+        point_near_id = GeneralLinear.to_symmetric(point_near_id)
         log_at_id = SPDMatrices.logm(point_near_id)
 
         log = gs.einsum(

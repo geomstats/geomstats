@@ -44,7 +44,7 @@ class SymmetricMatrices(EmbeddedManifold):
         """Convert the symmetric part of a symmetric matrix into a vector."""
         if not gs.all(Matrices.is_symmetric(mat)):
             logging.warning('non-symmetric matrix encountered.')
-        mat = Matrices.make_symmetric(mat)
+        mat = Matrices.to_symmetric(mat)
         _, dim, _ = mat.shape
         indices_i, indices_j = gs.triu_indices(dim)
         vec = []
@@ -70,7 +70,7 @@ class SymmetricMatrices(EmbeddedManifold):
         vec = gs.cast(vec, dtype)
         upper_triangular = gs.stack([
             gs.array_from_sparse(indices, data, shape) for data in vec])
-        mat = Matrices.make_symmetric(upper_triangular) * mask
+        mat = Matrices.to_symmetric(upper_triangular) * mask
         return mat
 
     @classmethod

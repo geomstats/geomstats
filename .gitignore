@@ -123,6 +123,9 @@ dmypy.json
 # Idea folder
 .idea/
 
+# VSCode
+.vscode/
+
 # End of https://www.gitignore.io/api/python,jupyternotebooks
 
 # Miscellaneous
