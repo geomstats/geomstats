@@ -139,10 +139,8 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
 
         self.assertAllClose(dst_ball, dst_extr)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_log_exp_ball_extrinsic_from_extr(self):
         """Compare log exp in different parameterizations."""
-        # TODO(Hazaatiti): Fix this test
         x_int = gs.array([4., 0.2])
         y_int = gs.array([3., 3])
         x_extr = self.intrinsic_manifold.to_coordinates(
