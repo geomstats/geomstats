@@ -444,7 +444,6 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_geodesic_and_belongs(self):
         n_geodesic_points = 100
         initial_point = self.space.random_uniform()
@@ -556,7 +555,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = gs.pi
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_closest_neighbor_index(self):
         """
         Check that the closest neighbor is one of neighbors.
@@ -572,7 +570,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         result = test > 0
         self.assertTrue(result)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_sample_von_mises_fisher(self):
         """
         Check that the maximum likelihood estimates of the mean and
@@ -596,7 +593,7 @@ class TestHypersphere(geomstats.tests.TestCase):
             gs.allclose(result, expected, atol=MEAN_ESTIMATION_TOL)
         )
         # check concentration parameter for dispersed distribution
-        kappa = 1
+        kappa = 1.
         points = sphere.random_von_mises_fisher(kappa, n_points)
         sum_points = gs.sum(points, axis=0)
         mean_norm = gs.linalg.norm(sum_points) / n_points
@@ -612,10 +609,9 @@ class TestHypersphere(geomstats.tests.TestCase):
             denominator = 1. - ratio**2 - (p - 1.) * ratio / kappa_estimate
             mean_norm = gs.cast(mean_norm, gs.float64)
             kappa_estimate = kappa_estimate - (ratio - mean_norm) / denominator
-        expected = kappa
         result = kappa_estimate
-        self.assertTrue(
-            gs.allclose(result, expected, atol=KAPPA_ESTIMATION_TOL))
+        expected = kappa
+        self.assertAllClose(result, expected, atol=KAPPA_ESTIMATION_TOL)
 
     @geomstats.tests.np_and_pytorch_only
     def test_spherical_to_extrinsic(self):
