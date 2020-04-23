@@ -10,15 +10,15 @@ import geomstats.tests
 import geomstats.visualization as visualization
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.special_euclidean import SpecialEuclidean3
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal3
+from geomstats.geometry.special_euclidean import SpecialEuclidean
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestVisualization(geomstats.tests.TestCase):
     def setUp(self):
         self.n_samples = 10
-        self.SO3_GROUP = SpecialOrthogonal3()
-        self.SE3_GROUP = SpecialEuclidean3()
+        self.SO3_GROUP = SpecialOrthogonal(n=3, point_type='vector')
+        self.SE3_GROUP = SpecialEuclidean(n=3, point_type='vector')
         self.S1 = Hypersphere(dim=1)
         self.S2 = Hypersphere(dim=2)
         self.H2 = Hyperbolic(dim=2)
