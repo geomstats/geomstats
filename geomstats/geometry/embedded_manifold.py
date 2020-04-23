@@ -55,7 +55,7 @@ class EmbeddedManifold(Manifold):
         raise NotImplementedError(
             'projection is not implemented.')
 
-    def is_tangent(self, vector, base_point=None, atol=ATOL):
+    def is_tangent(self, vector, base_point=None):
         """Check whether the vector is tangent at base_point.
 
         Parameters
