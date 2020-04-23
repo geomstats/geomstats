@@ -338,8 +338,7 @@ def assignment_by_sum(x, values, indices, axis=0):
             indices = list(product(*indices_along_dims))
     if tf.rank(values) == 0:
         return _assignment_single_value_by_sum(x, values, indices, axis)
-    else:
-        values = flatten(array(values))
+    values = flatten(array(values))
 
     single_index = not isinstance(indices, list)
     if tf.is_tensor(indices):
@@ -446,8 +445,7 @@ def assignment(x, values, indices, axis=0):
             indices = list(product(*indices_along_dims))
     if tf.rank(values) == 0:
         return _assignment_single_value(x, values, indices, axis)
-    else:
-        values = flatten(array(values))
+    values = flatten(array(values))
 
     single_index = not isinstance(indices, list)
     if tf.is_tensor(indices):
