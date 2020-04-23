@@ -420,7 +420,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = gs.linalg.norm(tangent_vec) % (2 * gs.pi)
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
+    #@geomstats.tests.np_and_pytorch_only
     def test_exp_and_dist_and_projection_to_tangent_space_vec(self):
         # TODO(ninamiolane): Fix hypersphere's exp with assignment
         base_point = gs.array([
