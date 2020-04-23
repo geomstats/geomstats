@@ -167,29 +167,19 @@ class PoincareBallMetric(RiemannianMetric):
 
         log = (1 - norm_base_point**2) * gs.arctanh(norm_add)
 
-        print('add_base_point', add_base_point)
-        print('norm_add', norm_add)
         mask_0 = gs.isclose(gs.squeeze(norm_add, axis=-1), 0.)
         mask_non0 = ~mask_0
-        #print('log', log)
-        #print('mask_0', mask_0)
-        #print('add_base_point[mask_non0]', add_base_point[mask_non0])
-        #print('norm_add[mask_non0]', norm_add[mask_non0])
-        #print('add / norm_add[mask_non0]', add_base_point[mask_non0] / norm_add[mask_non0])
         add_base_point = gs.assignment(
             add_base_point,
             gs.zeros_like(add_base_point[mask_0]),
             mask_0)
-        print('add_base_point', add_base_point)
         add_base_point = gs.assignment(
             add_base_point,
             add_base_point[mask_non0] / norm_add[mask_non0],
             mask_non0)
 
-        print('add_base_point', add_base_point)
         log = gs.einsum(
             '...i,...j->...j', log, add_base_point)
-        print('log', log)
         return log
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])

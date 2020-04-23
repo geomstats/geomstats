@@ -185,6 +185,8 @@ def array(val, dtype=None):
             for index, t in enumerate(val):
                 if torch.is_tensor(t) and t.dtype != local_dtype:
                     cast(t, local_dtype)
+                elif torch.is_tensor(t):
+                    val[index] = cast(t, dtype=local_dtype)
                 else:
                     val[index] = torch.tensor(t, dtype=local_dtype)
             val = stack(val)
