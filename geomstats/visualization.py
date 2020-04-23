@@ -5,12 +5,12 @@ import matplotlib.pyplot as plt
 import geomstats.backend as gs
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
-from geomstats.geometry.special_euclidean import SpecialEuclidean3
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal3
+from geomstats.geometry.special_euclidean import SpecialEuclidean
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
 
-SE3_GROUP = SpecialEuclidean3()
-SO3_GROUP = SpecialOrthogonal3()
+SE3_GROUP = SpecialEuclidean(n=3, point_type='vector')
+SO3_GROUP = SpecialOrthogonal(n=3, point_type='vector')
 S1 = Hypersphere(dim=1)
 S2 = Hypersphere(dim=2)
 H2 = Hyperboloid(dim=2)

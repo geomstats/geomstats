@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import geomstats.visualization as visualization
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal3
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
-SO3_GROUP = SpecialOrthogonal3()
+SO3_GROUP = SpecialOrthogonal(n=3, point_type='vector')
 METRIC = SO3_GROUP.bi_invariant_metric
 
 
