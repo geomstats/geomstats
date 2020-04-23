@@ -354,7 +354,8 @@ class SPDMetricAffine(RiemannianMetric):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricAffine, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0))
+            signature=(dim, 0, 0),
+            default_point_type='matrix')
         self.n = n
         self.space = SPDMatrices(n)
         self.power_affine = power_affine
