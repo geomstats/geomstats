@@ -36,7 +36,13 @@ TAYLOR_COEFFS_2_AT_0 = [+ 1. / 6., 0.,
 
 
 class _SpecialEuclideanMatrix(GeneralLinear, LieGroup):
-    """Class for special orthogonal groups."""
+    """Class for special orthogonal groups.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shape of the matrices: n x n.
+    """
 
     def __init__(self, n):
         super(_SpecialEuclideanMatrix, self).__init__(
@@ -157,8 +163,8 @@ class _SpecialEuclidean3Vector(LieGroup):
     Parameter
     ---------
     epsilon : float, optional (defaults to 0)
-        precision to use for calculations involving potential division by
-        rotations
+        Precision to use for calculations involving potential
+        division by 0 in rotations.
     """
 
     def __init__(self, epsilon=0.):
@@ -702,7 +708,29 @@ class _SpecialEuclidean3Vector(LieGroup):
 
 
 class SpecialEuclidean(_SpecialEuclidean3Vector, _SpecialEuclideanMatrix):
+    r"""Class for the special euclidean groups.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shapes of the matrices : n x n.
+    point_type : str, {\'vector\', \'matrix\'}
+        Representation of the elements of the group.
+    epsilon : float, optional
+        precision to use for calculations involving potential divison by 0 in
+        rotations
+        default: 0
+    """
+
     def __new__(self, n, point_type='matrix', epsilon=0.):
+        """Instantiate a special euclidean group.
+
+        Select the object to instantiate depending on the point_type.
+        """
         if n == 3 and point_type == 'vector':
             return _SpecialEuclidean3Vector(epsilon)
+        elif n != 3 and point_type == 'vector':
+            raise NotImplementedError(
+                'SE(n) is only implemented in matrix representation'
+                ' when n != 3.')
         return _SpecialEuclideanMatrix(n)

@@ -27,9 +27,14 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
-
 class _SpecialOrthogonalMatrix(GeneralLinear, LieGroup):
-    """Class for special orthogonal groups."""
+    """Class for special orthogonal groups in matrix representation.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shape of the matrices: n x n.
+    """
 
     def __init__(self, n):
         super(_SpecialOrthogonalMatrix, self).__init__(
@@ -78,23 +83,21 @@ class _SpecialOrthogonalMatrix(GeneralLinear, LieGroup):
 
 
 class _SpecialOrthogonal3Vector(LieGroup):
-    """Class for the special orthogonal group SO(3).
+    """Class for the special orthogonal group SO(3) in vector representation.
 
     i.e. the Lie group of rotations. This class is specific to the vector
     representation of rotations. For the matrix representation use the
     SpecialOrthogonal class and set `n=3`.
+
+    Parameters
+    ----------
+    epsilon : float, optional
+        precision to use for calculations involving potential divison by 0 in
+        rotations
+        default: 0
     """
 
     def __init__(self, epsilon=0.):
-        """Initialize an instance of SO(3).
-
-        Parameters
-        ----------
-        epsilon : float, optional
-            precision to use for calculations involving potential divison by in
-            rotations
-            default: 0
-        """
         LieGroup.__init__(
             self, dim=3, default_point_type='vector')
 
@@ -1373,8 +1376,29 @@ class _SpecialOrthogonal3Vector(LieGroup):
 
 
 class SpecialOrthogonal(_SpecialOrthogonal3Vector, _SpecialOrthogonalMatrix):
+    r"""Class for the special orthogonal groups.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shapes of the matrices : n x n.
+    point_type : str, {\'vector\', \'matrix\'}
+        Representation of the elements of the group.
+    epsilon : float, optional
+        precision to use for calculations involving potential divison by 0 in
+        rotations
+        default: 0
+    """
+
     def __new__(self, n, point_type='matrix', epsilon=0.):
+        """Instantiate a special orthogonal group.
+
+        Select the object to instantiate depending on the point_type.
+        """
         if n == 3 and point_type == 'vector':
             return _SpecialOrthogonal3Vector(epsilon)
+        elif n != 3 and point_type == 'vector':
+            raise NotImplementedError(
+                'SO(n) is only implemented in matrix representation'
+                ' when n != 3.')
         return _SpecialOrthogonalMatrix(n)
-
