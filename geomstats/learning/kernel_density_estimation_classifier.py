@@ -54,7 +54,7 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
 
     Attributes
     ----------
-    classes_ : array, shape=[n_classes,]
+    classes_ : array-like, shape=[n_classes,]
         Class labels known to the classifier.
     effective_metric_ : string or callable
         The distance metric used. It will be same as the `distance` parameter

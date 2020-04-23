@@ -1,4 +1,4 @@
-"""Unit tests for the KNN classifier."""
+"""Unit tests for the radial kernel functions."""
 
 import geomstats.backend as gs
 import geomstats.tests

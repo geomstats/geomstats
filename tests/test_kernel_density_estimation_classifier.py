@@ -1,4 +1,4 @@
-"""Unit tests for the KNN classifier."""
+"""Unit tests for the KDE classifier."""
 
 import math
 
