@@ -1,6 +1,4 @@
-"""
-Unit tests for ProductManifold.
-"""
+"""Unit tests for ProductManifold."""
 
 
 import geomstats.backend as gs

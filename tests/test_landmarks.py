@@ -1,6 +1,4 @@
-"""
-Unit tests for landmarks space.
-"""
+"""Unit tests for landmarks space."""
 
 import geomstats.backend as gs
 import geomstats.tests

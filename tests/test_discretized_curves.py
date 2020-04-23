@@ -1,6 +1,4 @@
-"""
-Unit tests for parameterized manifolds.
-"""
+"""Unit tests for parameterized manifolds."""
 
 import tests.helper as helper
 
