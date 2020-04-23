@@ -613,7 +613,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = kappa
         self.assertAllClose(result, expected, atol=KAPPA_ESTIMATION_TOL)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_spherical_to_extrinsic(self):
         """
         Check vectorization of conversion from spherical
@@ -627,7 +626,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = gs.array([1., 0., 0.])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_spherical_to_extrinsic_vectorization(self):
         dim = 2
         sphere = Hypersphere(dim)
@@ -636,7 +634,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         result = sphere.spherical_to_extrinsic(points_spherical)
         expected = gs.array(
             [[1., 0., 0.],
-             [gs.sqrt(2) / 4, gs.sqrt(2) / 4, gs.sqrt(3) / 2]])
+             [gs.sqrt(2.) / 4., gs.sqrt(2.) / 4., gs.sqrt(3.) / 2.]])
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
