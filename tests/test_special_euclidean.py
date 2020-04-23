@@ -2,13 +2,13 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.special_euclidean import SE
+from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 
 class TestSpecialEuclidean(geomstats.tests.TestCase):
     def setUp(self):
         self.n = 2
-        self.group = SE(n=self.n)
+        self.group = SpecialEuclidean(n=self.n)
         self.n_samples = 4
 
     def test_belongs(self):

@@ -28,11 +28,11 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
 
 
 
-class SpecialOrthogonal(GeneralLinear, LieGroup):
+class _SpecialOrthogonalMatrix(GeneralLinear, LieGroup):
     """Class for special orthogonal groups."""
 
     def __init__(self, n):
-        super(SpecialOrthogonal, self).__init__(
+        super(_SpecialOrthogonalMatrix, self).__init__(
             dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n)
         self.lie_algebra = SkewSymmetricMatrices(n=n)
         self.bi_invariant_metric = BiInvariantMetric(group=self)
@@ -77,7 +77,7 @@ class SpecialOrthogonal(GeneralLinear, LieGroup):
         return self.exp(skew)
 
 
-class SpecialOrthogonal3(LieGroup):
+class _SpecialOrthogonal3Vector(LieGroup):
     """Class for the special orthogonal group SO(3).
 
     i.e. the Lie group of rotations. This class is specific to the vector
@@ -1372,9 +1372,9 @@ class SpecialOrthogonal3(LieGroup):
         return LieGroup.log(self, point, base_point)
 
 
-class SO(SpecialOrthogonal3, SpecialOrthogonal):
+class SpecialOrthogonal(_SpecialOrthogonal3Vector, _SpecialOrthogonalMatrix):
     def __new__(self, n, point_type='matrix', epsilon=0.):
         if n == 3 and point_type == 'vector':
-            return SpecialOrthogonal3(epsilon)
-        return SpecialOrthogonal(n)
+            return _SpecialOrthogonal3Vector(epsilon)
+        return _SpecialOrthogonalMatrix(n)
 

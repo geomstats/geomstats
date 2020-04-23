@@ -7,7 +7,7 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
-from geomstats.geometry.special_orthogonal import SO
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 EPSILON = 1e-5
@@ -25,7 +25,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         gs.random.seed(1234)
 
         n_seq = [3]
-        so = {n: SO(n=n, point_type='vector') for n in n_seq}
+        so = {n: SpecialOrthogonal(n=n, point_type='vector') for n in n_seq}
 
         # -- Rotation vectors with angles
         # 0, close to 0, closely lower than pi, pi,

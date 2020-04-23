@@ -4,13 +4,13 @@ Unit tests for special orthogonal group SO(n).
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.special_orthogonal import SO
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestSpecialOrthogonal(geomstats.tests.TestCase):
     def setUp(self):
         self.n = 2
-        self.group = SO(n=self.n)
+        self.group = SpecialOrthogonal(n=self.n)
         self.n_samples = 4
 
     def test_belongs(self):

@@ -9,7 +9,7 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_group import LieGroup
-from geomstats.geometry.special_orthogonal import SO
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 PI = gs.pi
 PI2 = PI * PI
@@ -35,13 +35,13 @@ TAYLOR_COEFFS_2_AT_0 = [+ 1. / 6., 0.,
                         - 1. / 362880.]
 
 
-class SpecialEuclidean(GeneralLinear, LieGroup):
+class _SpecialEuclideanMatrix(GeneralLinear, LieGroup):
     """Class for special orthogonal groups."""
 
     def __init__(self, n):
-        super(SpecialEuclidean, self).__init__(
+        super(_SpecialEuclideanMatrix, self).__init__(
             dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n + 1)
-        self.rotations = SO(n=n)
+        self.rotations = SpecialOrthogonal(n=n)
         self.translations = Euclidean(dim=n)
         self.n = n
 
@@ -145,7 +145,7 @@ class SpecialEuclidean(GeneralLinear, LieGroup):
         return random_point
 
 
-class SpecialEuclidean3(LieGroup):
+class _SpecialEuclidean3Vector(LieGroup):
     """Class for the special euclidean group in 3d, SE(3).
 
     i.e. the Lie group of rigid transformations. Elements of SE(3) can either
@@ -162,12 +162,12 @@ class SpecialEuclidean3(LieGroup):
     """
 
     def __init__(self, epsilon=0.):
-        super(SpecialEuclidean3, self).__init__(
+        super(_SpecialEuclidean3Vector, self).__init__(
             dim=6, default_point_type='vector')
 
         self.n = 3
         self.epsilon = epsilon
-        self.rotations = SO(
+        self.rotations = SpecialOrthogonal(
             n=3, point_type='vector', epsilon=epsilon)
         self.translations = Euclidean(dim=3)
 
@@ -701,8 +701,8 @@ class SpecialEuclidean3(LieGroup):
         return exponential_mat
 
 
-class SE(SpecialEuclidean3, SpecialEuclidean):
+class SpecialEuclidean(_SpecialEuclidean3Vector, _SpecialEuclideanMatrix):
     def __new__(self, n, point_type='matrix', epsilon=0.):
         if n == 3 and point_type == 'vector':
-            return SpecialEuclidean3(epsilon)
-        return SpecialEuclidean(n)
+            return _SpecialEuclidean3Vector(epsilon)
+        return _SpecialEuclideanMatrix(n)

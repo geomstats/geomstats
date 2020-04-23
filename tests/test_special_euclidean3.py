@@ -14,7 +14,7 @@ import tests.helper as helper
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.invariant_metric import InvariantMetric
-from geomstats.geometry.special_euclidean import SE
+from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
 # of the vector, as opposed to the standard behavior of gs.allclose
@@ -30,7 +30,7 @@ class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
         warnings.simplefilter('ignore', category=ImportWarning)
         gs.random.seed(1234)
 
-        group = SE(n=3, point_type='vector')
+        group = SpecialEuclidean(n=3, point_type='vector')
 
         # Points
 
