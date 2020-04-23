@@ -82,15 +82,15 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         sym_mat_1 = gs.array([[1., 0.6, -3.],
                               [0.6, 7., 0.],
                               [-3., 0., 8.]])
-        vector_1 = self.space.vector_from_symmetric_matrix(sym_mat_1)
-        result_1 = self.space.symmetric_matrix_from_vector(vector_1)
+        vector_1 = self.space.to_vector(sym_mat_1)
+        result_1 = self.space.from_vector(vector_1)
         expected_1 = sym_mat_1
 
         self.assertTrue(gs.allclose(result_1, expected_1))
 
         vector_2 = gs.array([1, 2, 3, 4, 5, 6])
-        sym_mat_2 = self.space.symmetric_matrix_from_vector(vector_2)
-        result_2 = self.space.vector_from_symmetric_matrix(sym_mat_2)
+        sym_mat_2 = self.space.from_vector(vector_2)
+        result_2 = self.space.to_vector(sym_mat_2)
         expected_2 = vector_2
 
         self.assertTrue(gs.allclose(result_2, expected_2))
@@ -100,20 +100,20 @@ class TestSymmetricMatrices(geomstats.tests.TestCase):
         """Test of vectorization."""
         n_samples = 5
         vector = gs.random.rand(n_samples, 6)
-        sym_mat = self.space.symmetric_matrix_from_vector(vector)
-        result = self.space.vector_from_symmetric_matrix(sym_mat)
+        sym_mat = self.space.from_vector(vector)
+        result = self.space.to_vector(sym_mat)
         expected = vector
 
         self.assertTrue(gs.allclose(result, expected))
 
-        vector = self.space.vector_from_symmetric_matrix(sym_mat)
-        result = self.space.symmetric_matrix_from_vector(vector)
+        vector = self.space.to_vector(sym_mat)
+        result = self.space.from_vector(vector)
         expected = sym_mat
 
         self.assertTrue(gs.allclose(result, expected))
 
     def test_symmetric_matrix_from_vector(self):
         vector_2 = gs.array([1, 2, 3, 4, 5, 6])
-        result = self.space.symmetric_matrix_from_vector(vector_2)
+        result = self.space.from_vector(vector_2)
         expected = gs.array([[1., 2., 3.], [2., 4., 5.], [3., 5., 6.]])
         self.assertAllClose(result, expected)

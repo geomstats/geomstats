@@ -158,7 +158,7 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         one_vec = self.space.random_uniform()
         one_base_point = self.space.random_uniform()
-        one_tangent_vec = self.space.projection_to_tangent_space(
+        one_tangent_vec = self.space.to_tangent(
             one_vec, base_point=one_base_point)
 
         result = self.metric.exp(one_tangent_vec, one_base_point)
@@ -185,19 +185,19 @@ class TestHypersphere(geomstats.tests.TestCase):
         n_vecs = self.space.random_uniform(n_samples=n_samples)
         n_base_points = self.space.random_uniform(n_samples=n_samples)
 
-        n_tangent_vecs = self.space.projection_to_tangent_space(
+        n_tangent_vecs = self.space.to_tangent(
             n_vecs, base_point=one_base_point)
         result = self.metric.exp(n_tangent_vecs, one_base_point)
 
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-        one_tangent_vec = self.space.projection_to_tangent_space(
+        one_tangent_vec = self.space.to_tangent(
             one_vec, base_point=n_base_points)
         result = self.metric.exp(one_tangent_vec, n_base_points)
 
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-        n_tangent_vecs = self.space.projection_to_tangent_space(
+        n_tangent_vecs = self.space.to_tangent(
             n_vecs, base_point=n_base_points)
         result = self.metric.exp(n_tangent_vecs, n_base_points)
 
@@ -264,7 +264,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         base_point = gs.array([0., -3., 0., 3., 4.])
         base_point = base_point / gs.linalg.norm(base_point)
         vector = gs.array([9., 5., 0., 0., -1.])
-        vector = self.space.projection_to_tangent_space(
+        vector = self.space.to_tangent(
             vector=vector, base_point=base_point)
 
         # exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
@@ -291,12 +291,12 @@ class TestHypersphere(geomstats.tests.TestCase):
         base_point = gs.array([10., -2., -.5, 34., 3.])
         base_point = base_point / gs.linalg.norm(base_point)
         vector = 1e-10 * gs.array([.06, -51., 6., 5., 3.])
-        vector = self.space.projection_to_tangent_space(
+        vector = self.space.to_tangent(
             vector=vector, base_point=base_point)
 
         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
         result = self.metric.log(point=exp, base_point=base_point)
-        expected = self.space.projection_to_tangent_space(
+        expected = self.space.to_tangent(
             vector=vector, base_point=base_point)
 
         self.assertAllClose(result, expected, atol=1e-8)
@@ -417,7 +417,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         base_point = gs.array([16., -2., -2.5, 84., 3.])
         base_point = base_point / gs.linalg.norm(base_point)
         vector = gs.array([9., 0., -1., -2., 1.])
-        tangent_vec = self.space.projection_to_tangent_space(
+        tangent_vec = self.space.to_tangent(
             vector=vector, base_point=base_point)
 
         exp = self.metric.exp(
@@ -439,7 +439,7 @@ class TestHypersphere(geomstats.tests.TestCase):
             [[9., 0., -1., -2., 1.],
              [9., 0., -1., -2., 1]])
 
-        tangent_vec = self.space.projection_to_tangent_space(
+        tangent_vec = self.space.to_tangent(
             vector=vector, base_point=base_point)
 
         exp = self.metric.exp(
@@ -454,7 +454,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         n_geodesic_points = 100
         initial_point = self.space.random_uniform()
         vector = gs.array([2., 0., -1., -2., 1.])
-        initial_tangent_vec = self.space.projection_to_tangent_space(
+        initial_tangent_vec = self.space.to_tangent(
             vector=vector, base_point=initial_point)
         geodesic = self.metric.geodesic(
             initial_point=initial_point,

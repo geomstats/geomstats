@@ -35,7 +35,7 @@ TAYLOR_COEFFS_2_AT_0 = [+ 1. / 6., 0.,
                         - 1. / 362880.]
 
 
-class _SpecialEuclideanMatrix(GeneralLinear, LieGroup):
+class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
     """Class for special orthogonal groups.
 
     Parameters
@@ -45,7 +45,7 @@ class _SpecialEuclideanMatrix(GeneralLinear, LieGroup):
     """
 
     def __init__(self, n):
-        super(_SpecialEuclideanMatrix, self).__init__(
+        super(_SpecialEuclideanMatrices, self).__init__(
             dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n + 1)
         self.rotations = SpecialOrthogonal(n=n)
         self.translations = Euclidean(dim=n)
@@ -151,7 +151,7 @@ class _SpecialEuclideanMatrix(GeneralLinear, LieGroup):
         return random_point
 
 
-class _SpecialEuclidean3Vector(LieGroup):
+class _SpecialEuclidean3Vectors(LieGroup):
     """Class for the special euclidean group in 3d, SE(3).
 
     i.e. the Lie group of rigid transformations. Elements of SE(3) can either
@@ -168,7 +168,7 @@ class _SpecialEuclidean3Vector(LieGroup):
     """
 
     def __init__(self, epsilon=0.):
-        super(_SpecialEuclidean3Vector, self).__init__(
+        super(_SpecialEuclidean3Vectors, self).__init__(
             dim=6, default_point_type='vector')
 
         self.n = 3
@@ -707,7 +707,7 @@ class _SpecialEuclidean3Vector(LieGroup):
         return exponential_mat
 
 
-class SpecialEuclidean(_SpecialEuclidean3Vector, _SpecialEuclideanMatrix):
+class SpecialEuclidean(_SpecialEuclidean3Vectors, _SpecialEuclideanMatrices):
     r"""Class for the special euclidean groups.
 
     Parameters
@@ -728,9 +728,9 @@ class SpecialEuclidean(_SpecialEuclidean3Vector, _SpecialEuclideanMatrix):
         Select the object to instantiate depending on the point_type.
         """
         if n == 3 and point_type == 'vector':
-            return _SpecialEuclidean3Vector(epsilon)
+            return _SpecialEuclidean3Vectors(epsilon)
         if n != 3 and point_type == 'vector':
             raise NotImplementedError(
                 'SE(n) is only implemented in matrix representation'
                 ' when n != 3.')
-        return _SpecialEuclideanMatrix(n)
+        return _SpecialEuclideanMatrices(n)

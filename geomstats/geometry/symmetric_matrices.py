@@ -40,7 +40,7 @@ class SymmetricMatrices(EmbeddedManifold):
 
     @staticmethod
     @geomstats.vectorization.decorator(['matrix'])
-    def vector_from_symmetric_matrix(mat):
+    def to_vector(mat):
         """Convert the symmetric part of a symmetric matrix into a vector."""
         if not gs.all(Matrices.is_symmetric(mat)):
             logging.warning('non-symmetric matrix encountered.')
@@ -56,7 +56,7 @@ class SymmetricMatrices(EmbeddedManifold):
 
     @staticmethod
     @geomstats.vectorization.decorator(['vector', 'else'])
-    def symmetric_matrix_from_vector(vec, dtype=gs.float32):
+    def from_vector(vec, dtype=gs.float32):
         """Convert a vector into a symmetric matrix."""
         vec_dim = vec.shape[-1]
         mat_dim = (gs.sqrt(8. * vec_dim + 1) - 1) / 2
