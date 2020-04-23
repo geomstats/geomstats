@@ -3,7 +3,13 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
-from geomstats.learning.radial_kernel_functions import *
+from geomstats.learning.radial_kernel_functions import \
+    biweight_radial_kernel, bump_radial_kernel, cosine_radial_kernel, \
+    gaussian_radial_kernel, inverse_multiquadric_radial_kernel, \
+    inverse_quadratic_radial_kernel, laplacian_radial_kernel, \
+    logistic_radial_kernel, parabolic_radial_kernel, sigmoid_radial_kernel, \
+    triangular_radial_kernel, tricube_radial_kernel, triweight_radial_kernel, \
+    uniform_radial_kernel
 
 
 TOLERANCE = 1e-4
@@ -190,4 +196,3 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
         result = weight
         expected = gs.exp(- 1 / 2)
         self.assertAllClose(expected, result, atol=TOLERANCE)
-
