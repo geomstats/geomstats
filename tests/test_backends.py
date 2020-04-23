@@ -391,7 +391,8 @@ class TestBackends(geomstats.tests.TestCase):
         mask_non0 = ~mask_0
         add_base_point[mask_0] = _np.zeros_like(add_base_point[mask_0])
         #print('add_base_point', add_base_point)
-        add_base_point[mask_non0] = add_base_point[mask_non0] / norm_add[mask_non0]
+        add_base_point[mask_non0] = \
+            add_base_point[mask_non0] / norm_add[mask_non0]
         #print('add_base_point', add_base_point)
         np_result = add_base_point
 
@@ -507,8 +508,7 @@ class TestBackends(geomstats.tests.TestCase):
         gs_array_2 = gs.zeros_like(gs.array(np_array_2))
 
         np_array_2[0, :] = 1
-        gs_result = gs.assignment(gs_array_2, 1, 0, axis=0)
-        print(gs_result, np_array_2)
+        gs_result = gs.assignment(gs_array_2, 1, 0, axis=1)
         self.assertAllCloseToNp(gs_result, np_array_2)
 
         np_array_3 = _np.zeros((3, 3))
@@ -552,7 +552,7 @@ class TestBackends(geomstats.tests.TestCase):
         gs_array_2 = gs.zeros_like(gs.array(np_array_2))
 
         np_array_2[0, :] += 1
-        gs_result = gs.assignment_by_sum(gs_array_2, 1, 0, axis=0)
+        gs_result = gs.assignment_by_sum(gs_array_2, 1, 0, axis=1)
         self.assertAllCloseToNp(gs_result, np_array_2)
 
         np_array_3 = _np.zeros((3, 3))
