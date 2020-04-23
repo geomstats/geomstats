@@ -9,8 +9,7 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.lie_group import LieGroup
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal3
+from geomstats.geometry.special_orthogonal import SO
 
 PI = gs.pi
 PI2 = PI * PI
@@ -42,7 +41,7 @@ class SpecialEuclidean(GeneralLinear, LieGroup):
     def __init__(self, n):
         super(SpecialEuclidean, self).__init__(
             dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n + 1)
-        self.rotations = SpecialOrthogonal(n=n)
+        self.rotations = SO(n=n)
         self.translations = Euclidean(dim=n)
         self.n = n
 
@@ -168,7 +167,8 @@ class SpecialEuclidean3(LieGroup):
 
         self.n = 3
         self.epsilon = epsilon
-        self.rotations = SpecialOrthogonal3(epsilon=epsilon)
+        self.rotations = SO(
+            n=3, point_type='vector', epsilon=epsilon)
         self.translations = Euclidean(dim=3)
 
     def get_identity(self, point_type=None):
@@ -699,3 +699,10 @@ class SpecialEuclidean3(LieGroup):
         exponential_mat = term_1 + term_2
 
         return exponential_mat
+
+
+class SE(SpecialEuclidean3, SpecialEuclidean):
+    def __new__(self, n, point_type='matrix', epsilon=0.):
+        if n == 3 and point_type == 'vector':
+            return SpecialEuclidean3(epsilon)
+        return SpecialEuclidean(n)
