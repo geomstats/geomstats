@@ -637,7 +637,6 @@ class TestHypersphere(geomstats.tests.TestCase):
              [gs.sqrt(2.) / 4., gs.sqrt(2.) / 4., gs.sqrt(3.) / 2.]])
         self.assertAllClose(result, expected)
 
-    #@geomstats.tests.np_and_pytorch_only
     def test_tangent_spherical_to_extrinsic(self):
         """
         Check vectorization of conversion from spherical
