@@ -14,14 +14,14 @@ def uniform_radial_kernel(distance, bandwidth=1.0):
 
     Parameters
     ----------
-    distance : array
+    distance : array-like
         Array of non-negative real values.
     bandwidth : float, optional (default=1.0)
         Positive scale parameter of the kernel.
 
     Returns
     -------
-    weight : array
+    weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
@@ -42,14 +42,14 @@ def triangular_radial_kernel(distance, bandwidth=1.0):
 
     Parameters
     ----------
-    distance : array
+    distance : array-like
         Array of non-negative real values.
     bandwidth : float, optional (default=1.0)
         Positive scale parameter of the kernel.
 
     Returns
     -------
-    weight : array
+    weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
@@ -70,14 +70,14 @@ def parabolic_radial_kernel(distance, bandwidth=1.0):
 
     Parameters
     ----------
-    distance : array
+    distance : array-like
         Array of non-negative real values.
     bandwidth : float, optional (default=1.0)
         Positive scale parameter of the kernel.
 
     Returns
     -------
-    weight : array
+    weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
@@ -98,14 +98,14 @@ def biweight_radial_kernel(distance, bandwidth=1.0):
 
     Parameters
     ----------
-    distance : array
+    distance : array-like
         Array of non-negative real values.
     bandwidth : float, optional (default=1.0)
         Positive scale parameter of the kernel.
 
     Returns
     -------
-    weight : array
+    weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
@@ -126,14 +126,14 @@ def triweight_radial_kernel(distance, bandwidth=1.0):
 
     Parameters
     ----------
-    distance : array
+    distance : array-like
         Array of non-negative real values.
     bandwidth : float, optional (default=1.0)
         Positive scale parameter of the kernel.
 
     Returns
     -------
-    weight : array
+    weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
@@ -154,14 +154,14 @@ def tricube_radial_kernel(distance, bandwidth=1.0):
 
     Parameters
     ----------
-    distance : array
+    distance : array-like
         Array of non-negative real values.
     bandwidth : float, optional (default=1.0)
         Positive scale parameter of the kernel.
 
     Returns
     -------
-    weight : array
+    weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
@@ -182,14 +182,14 @@ def gaussian_radial_kernel(distance, bandwidth=1.0):
 
     Parameters
     ----------
-    distance : array
+    distance : array-like
         Array of non-negative real values.
     bandwidth : float, optional (default=1.0)
         Positive scale parameter of the kernel.
 
     Returns
     -------
-    weight : array
+    weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
@@ -208,14 +208,14 @@ def cosine_radial_kernel(distance, bandwidth=1.0):
 
     Parameters
     ----------
-    distance : array
+    distance : array-like
         Array of non-negative real values.
     bandwidth : float, optional (default=1.0)
         Positive scale parameter of the kernel.
 
     Returns
     -------
-    weight : array
+    weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
@@ -236,14 +236,14 @@ def logistic_radial_kernel(distance, bandwidth=1.0):
 
     Parameters
     ----------
-    distance : array
+    distance : array-like
         Array of non-negative real values.
     bandwidth : float, optional (default=1.0)
         Positive scale parameter of the kernel.
 
     Returns
     -------
-    weight : array
+    weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
@@ -261,14 +261,14 @@ def sigmoid_radial_kernel(distance, bandwidth=1.0):
 
     Parameters
     ----------
-    distance : array
+    distance : array-like
         Array of non-negative real values.
     bandwidth : float, optional (default=1.0)
         Positive scale parameter of the kernel.
 
     Returns
     -------
-    weight : array
+    weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
@@ -287,14 +287,14 @@ def bump_radial_kernel(distance, bandwidth=1.0):
 
     Parameters
     ----------
-    distance : array
+    distance : array-like
         Array of non-negative real values.
     bandwidth : float, optional (default=1.0)
         Positive scale parameter of the kernel.
 
     Returns
     -------
-    weight : array
+    weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
@@ -315,14 +315,14 @@ def inverse_quadratic_radial_kernel(distance, bandwidth=1.0):
 
     Parameters
     ----------
-    distance : array
+    distance : array-like
         Array of non-negative real values.
     bandwidth : float, optional (default=1.0)
         Positive scale parameter of the kernel.
 
     Returns
     -------
-    weight : array
+    weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
@@ -340,14 +340,14 @@ def inverse_multiquadric_radial_kernel(distance, bandwidth=1.0):
 
     Parameters
     ----------
-    distance : array
+    distance : array-like
         Array of non-negative real values.
     bandwidth : float, optional (default=1.0)
         Positive scale parameter of the kernel.
 
     Returns
     -------
-    weight : array
+    weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
@@ -365,14 +365,14 @@ def laplacian_radial_kernel(distance, bandwidth=1.0):
 
     Parameters
     ----------
-    distance : array
+    distance : array-like
         Array of non-negative real values.
     bandwidth : float, optional (default=1.0)
         Positive scale parameter of the kernel.
 
     Returns
     -------
-    weight : array
+    weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
