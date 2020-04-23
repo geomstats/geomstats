@@ -52,8 +52,8 @@ class VectorTransformer(TransformerMixin):
             else:
                 raise ValueError('The input geometry must be either a '
                                  'Manifold equipped with a '
-                                 'RiemannianMetric, or a RiemannianMetric or a '
-                                 'LieGroup')
+                                 'RiemannianMetric, or a RiemannianMetric or a'
+                                 ' LieGroup')
             self.estimator = FrechetMean(metric=self._used_geometry, **kwargs)
         self.point_type = geometry.default_point_type
         self.geometry = geometry
