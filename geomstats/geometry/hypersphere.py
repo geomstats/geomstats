@@ -181,11 +181,12 @@ class Hypersphere(EmbeddedManifold):
 
         theta = point_spherical[:, 0]
         phi = point_spherical[:, 1]
-        point_extrinsic = gs.zeros(
-            (point_spherical.shape[0], self.dim + 1))
-        point_extrinsic[:, 0] = gs.sin(theta) * gs.cos(phi)
-        point_extrinsic[:, 1] = gs.sin(theta) * gs.sin(phi)
-        point_extrinsic[:, 2] = gs.cos(theta)
+
+        point_extrinsic = gs.stack(
+            [gs.sin(theta) * gs.cos(phi),
+             gs.sin(theta) * gs.sin(phi),
+             gs.cos(theta)],
+            axis=1)
         if not gs.all(self.belongs(point_extrinsic)):
             raise ValueError('Points do not belong to the manifold.')
 
@@ -223,13 +224,16 @@ class Hypersphere(EmbeddedManifold):
         theta = base_point_spherical[:, 0]
         phi = base_point_spherical[:, 1]
         jac = gs.zeros((n_samples, self.dim + 1, self.dim))
+
+        #jac = gs.assignment(
+        #    jac, gs.cos(theta) * gs.cos(phi), (0, 0), axis=0)
         jac[:, 0, 0] = gs.cos(theta) * gs.cos(phi)
         jac[:, 0, 1] = - gs.sin(theta) * gs.sin(phi)
         jac[:, 1, 0] = gs.cos(theta) * gs.sin(phi)
         jac[:, 1, 1] = gs.sin(theta) * gs.cos(phi)
         jac[:, 2, 0] = - gs.sin(theta)
         tangent_vec_extrinsic = gs.einsum(
-            'nij,nj->ni', jac, tangent_vec_spherical)
+            '...ij,...j->...i', jac, tangent_vec_spherical)
 
         return tangent_vec_extrinsic
 
