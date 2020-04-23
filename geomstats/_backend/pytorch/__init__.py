@@ -17,6 +17,7 @@ from torch import (  # NOQA
     clamp as clip,
     cos,
     cosh,
+    cross,
     div as divide,
     empty_like,
     eq,
@@ -432,10 +433,6 @@ def equal(a, b, **kwargs):
     if b.dtype == torch.ByteTensor:
         b = cast(b, torch.uint8).float()
     return torch.eq(a, b, **kwargs)
-
-
-def cross(x, y):
-    return torch.from_numpy(_np.cross(x, y))
 
 
 def tril_indices(*args, **kwargs):

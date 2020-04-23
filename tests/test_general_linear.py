@@ -78,7 +78,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
             [2., 0.],
             [0., 1.]])
         result = self.group.compose(mat1, mat2)
-        expected = 2. * GeneralLinear(2).identity()
+        expected = 2. * GeneralLinear(2).identity
         self.assertAllClose(result, expected)
 
     def test_inv(self):
@@ -91,7 +91,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
             [-2., 11., -6.],
             [3., -6., 3.]])
         expected = imat_a
-        result = self.group.inv(mat_a)
+        result = self.group.inverse(mat_a)
         self.assertAllClose(result, expected)
 
     def test_inv_vectorized(self):
@@ -100,7 +100,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
             [1., 0., 0.],
             [0., 0., 1.]])
         mat_b = - gs.eye(3, 3)
-        result = self.group.inv(gs.array([mat_a, mat_b]))
+        result = self.group.inverse(gs.array([mat_a, mat_b]))
         expected = gs.array([mat_a, mat_b])
         self.assertAllClose(result, expected)
 
@@ -155,7 +155,7 @@ class TestGeneralLinear(geomstats.tests.TestCase):
         sqrt = gs.array([
             [gs.exp(2.), 0.],
             [0., gs.exp(1.)]])
-        idty = GeneralLinear(2).identity()
+        idty = GeneralLinear(2).identity
 
         path = GeneralLinear(2).orbit(point)
         time = gs.linspace(0., 1., 3)

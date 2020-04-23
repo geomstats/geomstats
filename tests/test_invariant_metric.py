@@ -24,11 +24,12 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         gs.random.seed(1234)
 
         n = 3
-        group = SpecialEuclidean(n=n)
-        matrix_group = SpecialOrthogonal(n=n, default_point_type='matrix')
+        group = SpecialEuclidean(n=n, point_type='vector')
+        matrix_so3 = SpecialOrthogonal(n=n)
+        vector_so3 = SpecialOrthogonal(n=n, point_type='vector')
 
         # Diagonal left and right invariant metrics
-        diag_mat_at_identity = gs.eye(group.dimension)
+        diag_mat_at_identity = gs.eye(group.dim)
 
         left_diag_metric = InvariantMetric(
             group=group,
@@ -41,7 +42,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
         # General left and right invariant metrics
         # FIXME(nina): This is valid only for bi-invariant metrics
-        sym_mat_at_identity = gs.eye(group.dimension)
+        sym_mat_at_identity = gs.eye(group.dim)
 
         left_metric = InvariantMetric(
             group=group,
@@ -53,24 +54,24 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             inner_product_mat_at_identity=sym_mat_at_identity,
             left_or_right='right')
 
-        matrix_left_metric = InvariantMetric(group=matrix_group)
+        matrix_left_metric = InvariantMetric(group=matrix_so3)
 
         matrix_right_metric = InvariantMetric(
-            group=matrix_group,
+            group=matrix_so3,
             left_or_right='right')
 
         # General case for the point
         point_1 = gs.array([[-0.2, 0.9, 0.5, 5., 5., 5.]])
         point_2 = gs.array([[0., 2., -0.1, 30., 400., 2.]])
-        point_1_matrix = matrix_group.matrix_from_rotation_vector(
+        point_1_matrix = vector_so3.matrix_from_rotation_vector(
             point_1[:, :3])
-        point_2_matrix = matrix_group.matrix_from_rotation_vector(
+        point_2_matrix = vector_so3.matrix_from_rotation_vector(
             point_2[:, :3])
         # Edge case for the point, angle < epsilon,
         point_small = gs.array([[-1e-7, 0., -7 * 1e-8, 6., 5., 9.]])
 
         self.group = group
-        self.matrix_group = matrix_group
+        self.matrix_so3 = matrix_so3
 
         self.left_diag_metric = left_diag_metric
         self.right_diag_metric = right_diag_metric
@@ -119,7 +120,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         inner_prod_mat = self.left_diag_metric.inner_product_mat_at_identity
         inv_inner_prod_mat = gs.linalg.inv(inner_prod_mat)
         result = gs.matmul(inv_inner_prod_mat, inner_prod_mat)
-        expected = gs.eye(self.group.dimension)
+        expected = gs.eye(self.group.dim)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
@@ -143,10 +144,10 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     def test_inner_product_left(self):
         lie_algebra = SkewSymmetricMatrices(3)
         tangent_vec_a = lie_algebra.matrix_representation([1., 0, 2.])[0]
-        tangent_vec_a = self.matrix_group.compose(
+        tangent_vec_a = self.matrix_so3.compose(
             self.point_1_matrix, tangent_vec_a)
         tangent_vec_b = lie_algebra.matrix_representation([1., 0, 0.5])[0]
-        tangent_vec_b = self.matrix_group.compose(
+        tangent_vec_b = self.matrix_so3.compose(
             self.point_1_matrix, tangent_vec_b)
         result = self.matrix_left_metric.inner_product(
             tangent_vec_a, tangent_vec_b, self.point_1_matrix)
@@ -155,7 +156,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
         tangent_vec_a = lie_algebra.matrix_representation(
             [[1., 0, 2.], [0, 3., 5.]])
-        tangent_vec_a = self.matrix_group.compose(
+        tangent_vec_a = self.matrix_so3.compose(
             self.point_1_matrix, tangent_vec_a)
         result = self.matrix_left_metric.inner_product(
             tangent_vec_a, tangent_vec_b, self.point_1_matrix)
@@ -166,10 +167,10 @@ class TestInvariantMetric(geomstats.tests.TestCase):
     def test_inner_product_right(self):
         lie_algebra = SkewSymmetricMatrices(3)
         tangent_vec_a = lie_algebra.matrix_representation([1., 0, 2.])[0]
-        tangent_vec_a = self.matrix_group.compose(
+        tangent_vec_a = self.matrix_so3.compose(
             tangent_vec_a, self.point_1_matrix)
         tangent_vec_b = lie_algebra.matrix_representation([1., 0, 0.5])[0]
-        tangent_vec_b = self.matrix_group.compose(
+        tangent_vec_b = self.matrix_so3.compose(
             tangent_vec_b, self.point_1_matrix)
         result = self.matrix_right_metric.inner_product(
             tangent_vec_a, tangent_vec_b, self.point_1_matrix)
@@ -178,7 +179,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
 
         tangent_vec_a = lie_algebra.matrix_representation(
             [[1., 0, 2.], [0, 3., 5.]])
-        tangent_vec_a = self.matrix_group.compose(
+        tangent_vec_a = self.matrix_so3.compose(
             tangent_vec_a, self.point_1_matrix)
         result = self.matrix_right_metric.inner_product(
             tangent_vec_a, tangent_vec_b, self.point_1_matrix)
@@ -423,7 +424,6 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         # FIXME: lower numerical accuracy with tensorflow
         # General case for the reference point
         base_point = self.point_2
-
         # General point
         result = helper.log_then_exp(
             self.left_diag_metric, self.point_1, base_point)

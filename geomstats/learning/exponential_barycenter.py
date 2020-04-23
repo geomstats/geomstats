@@ -61,12 +61,12 @@ def _default_gradient_descent(
             break
         inv_mean = group.inverse(mean)
         centered_points = group.compose(inv_mean, points)
-        logs = group.log_from_identity(point=centered_points)
+        logs = group.log(point=centered_points)
         tangent_mean = step * gs.einsum(
             'n, nk...->k...', weights / sum_weights, logs)
         mean_next = group.compose(
             mean,
-            group.exp_from_identity(tangent_vec=tangent_mean))
+            group.exp(tangent_vec=tangent_mean))
 
         grad_norm = gs.linalg.norm(tangent_mean)
         sq_dists_between_iterates.append(grad_norm)

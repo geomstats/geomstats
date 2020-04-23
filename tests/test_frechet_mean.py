@@ -10,6 +10,7 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.minkowski import Minkowski
 from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.frechet_mean import variance
 
@@ -23,6 +24,8 @@ class TestFrechetMean(geomstats.tests.TestCase):
         self.hyperbolic = Hyperboloid(dim=3)
         self.euclidean = Euclidean(dim=2)
         self.minkowski = Minkowski(dim=2)
+        self.so3 = SpecialOrthogonal(n=3, point_type='vector')
+        self.so_matrix = SpecialOrthogonal(n=3)
 
     @geomstats.tests.np_only
     def test_logs_at_mean_default_gradient_descent_sphere(self):
@@ -99,6 +102,75 @@ class TestFrechetMean(geomstats.tests.TestCase):
 
         result = self.sphere.belongs(mean.estimate_)
         expected = True
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_estimate_default_gradient_descent_so3(self):
+        points = self.so3.random_uniform(2)
+
+        mean_vec = FrechetMean(
+            metric=self.so3.bi_invariant_metric, method='default')
+        mean_vec.fit(points)
+
+        logs = self.so3.bi_invariant_metric.log(points, mean_vec.estimate_)
+        result = gs.sum(logs, axis=0)
+        expected = gs.zeros_like(points[0])
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_estimate_and_belongs_default_gradient_descent_so3(self):
+        point = self.so3.random_uniform(10)
+
+        mean_vec = FrechetMean(
+            metric=self.so3.bi_invariant_metric, method='default')
+        mean_vec.fit(point)
+
+        result = self.so3.belongs(mean_vec.estimate_)
+        expected = True
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_estimate_default_gradient_descent_so_matrix(self):
+        points = self.so_matrix.random_uniform(2)
+
+        mean_vec = FrechetMean(
+            metric=self.so_matrix.bi_invariant_metric, method='default')
+        mean_vec.fit(points)
+
+        logs = self.so_matrix.bi_invariant_metric.log(
+            points, mean_vec.estimate_)
+        result = gs.sum(logs, axis=0)
+        expected = gs.zeros_like(points[0])
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_estimate_and_belongs_default_gradient_descent_so_matrix(self):
+        point = self.so_matrix.random_uniform(10)
+
+        mean = FrechetMean(
+            metric=self.so_matrix.bi_invariant_metric, method='default')
+        mean.fit(point)
+
+        result = self.so_matrix.belongs(mean.estimate_)
+        expected = True
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_estimate_and_coincide_default_so_vec_and_mat(self):
+        point = self.so_matrix.random_uniform(10)
+
+        mean = FrechetMean(
+            metric=self.so_matrix.bi_invariant_metric, method='default')
+        mean.fit(point)
+        expected = mean.estimate_
+
+        mean_vec = FrechetMean(
+            metric=self.so3.bi_invariant_metric, method='default')
+        point_vec = self.so3.rotation_vector_from_matrix(point)
+        mean_vec.fit(point_vec)
+        result_vec = mean_vec.estimate_
+        result = self.so3.matrix_from_rotation_vector(result_vec)
+
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only

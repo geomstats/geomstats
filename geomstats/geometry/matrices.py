@@ -4,14 +4,14 @@ from functools import reduce
 
 import geomstats.backend as gs
 import geomstats.error
-from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 TOLERANCE = 1e-5
 
 
-class Matrices(Euclidean):
+class Matrices(Manifold):
     """Class for the space of matrices (m, n)."""
 
     def __init__(self, m, n):
@@ -46,6 +46,7 @@ class Matrices(Euclidean):
         ----------
         mat_a : array-like, shape=[n_samples, dim1, dim2]
         mat_b : array-like, shape=[n_samples, dim2, dim3]
+        atol
 
         Returns
         -------
@@ -148,6 +149,21 @@ class Matrices(Euclidean):
         sym : array-like, shape=[n_samples, n, n]
         """
         return 1 / 2 * (mat + cls.transpose(mat))
+
+    @classmethod
+    def make_skew_symmetric(cls, mat):
+        """
+        Make a matrix skew-symmetric, by averaging with minus its transpose.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[n_samples, n, n]
+
+        Returns
+        -------
+        skew_sym : array-like, shape=[n_samples, n, n]
+        """
+        return 1 / 2 * (mat - cls.transpose(mat))
 
     def random_uniform(self, n_samples=1, bound=1.):
         """Generate n samples from a uniform distribution.

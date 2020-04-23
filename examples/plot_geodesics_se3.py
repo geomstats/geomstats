@@ -12,7 +12,7 @@ import numpy as np
 import geomstats.visualization as visualization
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
-SE3_GROUP = SpecialEuclidean(n=3)
+SE3_GROUP = SpecialEuclidean(n=3, point_type='vector')
 METRIC = SE3_GROUP.left_canonical_metric
 
 

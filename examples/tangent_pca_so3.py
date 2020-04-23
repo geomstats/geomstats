@@ -10,7 +10,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.pca import TangentPCA
 
-SO3_GROUP = SpecialOrthogonal(n=3)
+SO3_GROUP = SpecialOrthogonal(n=3, point_type='vector')
 METRIC = SO3_GROUP.bi_invariant_metric
 
 N_SAMPLES = 10
