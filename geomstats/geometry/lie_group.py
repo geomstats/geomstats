@@ -357,16 +357,29 @@ class LieGroup(Manifold):
             'The Lie Algebra belongs method is not implemented'
         )
 
-    def is_tangent(self, tangent_vec, base_point=None, atol=ATOL):
-        """Check whether the vector is tangent at base_point."""
+    def is_tangent(self, vector, base_point=None, atol=ATOL):
+        """Check whether the vector is tangent at base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[n_samples, dim_embedding]
+            Vector.
+        base_point : array-like, shape=[n_samples, dim_embedding]
+            Point in the Lie group.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
         if base_point is None:
             base_point = self.identity
 
         if gs.allclose(base_point, self.identity):
-            tangent_vec_at_id = tangent_vec
+            tangent_vec_at_id = vector
         else:
             tangent_vec_at_id = self.compose(
-                self.inverse(base_point), tangent_vec)
+                self.inverse(base_point), vector)
         is_tangent = self._is_in_lie_algebra(tangent_vec_at_id, atol)
         return is_tangent
 

@@ -128,7 +128,7 @@ class Hypersphere(EmbeddedManifold):
         return projected_point
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
-    def projection_to_tangent_space(self, vector, base_point):
+    def to_tangent(self, vector, base_point):
         """Project a vector to the tangent space.
 
         Project a vector in Euclidean space
@@ -447,7 +447,7 @@ class HypersphereMetric(RiemannianMetric):
         n_tangent_vecs, _ = tangent_vec.shape
 
         hypersphere = Hypersphere(dim=extrinsic_dim - 1)
-        proj_tangent_vec = hypersphere.projection_to_tangent_space(
+        proj_tangent_vec = hypersphere.to_tangent(
             tangent_vec, base_point)
         norm_tangent_vec = self.embedding_metric.norm(proj_tangent_vec)
         norm_tangent_vec = gs.to_ndarray(norm_tangent_vec, to_ndim=1)

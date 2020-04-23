@@ -16,7 +16,7 @@ METRIC = SPHERE2.metric
 def main():
     """Plot a geodesic on the sphere."""
     initial_point = np.array([1., 0., 0.])
-    initial_tangent_vec = SPHERE2.projection_to_tangent_space(
+    initial_tangent_vec = SPHERE2.to_tangent(
         vector=np.array([1., 2., 0.8]), base_point=initial_point)
     geodesic = METRIC.geodesic(
         initial_point=initial_point,

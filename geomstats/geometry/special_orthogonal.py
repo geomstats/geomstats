@@ -27,7 +27,7 @@ TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 480.]
 
 
-class _SpecialOrthogonalMatrix(GeneralLinear, LieGroup):
+class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
     """Class for special orthogonal groups in matrix representation.
 
     Parameters
@@ -37,7 +37,7 @@ class _SpecialOrthogonalMatrix(GeneralLinear, LieGroup):
     """
 
     def __init__(self, n):
-        super(_SpecialOrthogonalMatrix, self).__init__(
+        super(_SpecialOrthogonalMatrices, self).__init__(
             dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n)
         self.lie_algebra = SkewSymmetricMatrices(n=n)
         self.bi_invariant_metric = BiInvariantMetric(group=self)
@@ -58,7 +58,7 @@ class _SpecialOrthogonalMatrix(GeneralLinear, LieGroup):
     @classmethod
     def _to_lie_algebra(cls, tangent_vec):
         """Project vector onto skew-symmetric matrices."""
-        return cls.make_skew_symmetric(tangent_vec)
+        return cls.to_skew_symmetric(tangent_vec)
 
     def random_uniform(self, n_samples=1, tol=1e-6):
         """Sample in SO(n) from the uniform distribution.
@@ -82,7 +82,7 @@ class _SpecialOrthogonalMatrix(GeneralLinear, LieGroup):
         return self.exp(skew)
 
 
-class _SpecialOrthogonal3Vector(LieGroup):
+class _SpecialOrthogonal3Vectors(LieGroup):
     """Class for the special orthogonal group SO(3) in vector representation.
 
     i.e. the Lie group of rotations. This class is specific to the vector
@@ -1375,7 +1375,7 @@ class _SpecialOrthogonal3Vector(LieGroup):
         return LieGroup.log(self, point, base_point)
 
 
-class SpecialOrthogonal(_SpecialOrthogonal3Vector, _SpecialOrthogonalMatrix):
+class SpecialOrthogonal(_SpecialOrthogonal3Vectors, _SpecialOrthogonalMatrices):
     r"""Class for the special orthogonal groups.
 
     Parameters
@@ -1396,9 +1396,9 @@ class SpecialOrthogonal(_SpecialOrthogonal3Vector, _SpecialOrthogonalMatrix):
         Select the object to instantiate depending on the point_type.
         """
         if n == 3 and point_type == 'vector':
-            return _SpecialOrthogonal3Vector(epsilon)
+            return _SpecialOrthogonal3Vectors(epsilon)
         if n != 3 and point_type == 'vector':
             raise NotImplementedError(
                 'SO(n) is only implemented in matrix representation'
                 ' when n != 3.')
-        return _SpecialOrthogonalMatrix(n)
+        return _SpecialOrthogonalMatrices(n)

@@ -81,7 +81,7 @@ class PoincarePolydisk(ProductManifold):
         """
         n_disks = base_point.shape[1]
         hyperbolic_space = Hyperboloid(2, self.coords_type)
-        tangent_vec = gs.stack([hyperbolic_space.projection_to_tangent_space(
+        tangent_vec = gs.stack([hyperbolic_space.to_tangent(
             vector=vector[:, i_disk, :],
             base_point=base_point[:, i_disk, :])
             for i_disk in range(n_disks)], axis=1)
