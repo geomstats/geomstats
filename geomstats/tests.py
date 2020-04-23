@@ -79,15 +79,15 @@ class TestCase(_TestBaseClass):
 
     def assertAllCloseToNp(self, a, np_a, rtol=1e-6, atol=1e-6):
         are_same_shape = np.all(a.shape == np_a.shape)
-        are_same = np.allclose(a, np_a)
+        are_same = np.allclose(a, np_a, rtol=rtol, atol=atol)
         if tf_backend():
             return super().assertTrue(are_same_shape and are_same)
-        super().assertTrue(are_same_shape and are_same)
+        return super().assertTrue(are_same_shape and are_same)
 
     def assertShapeEqual(self, a, b):
         if tf_backend():
             return super().assertShapeEqual(a, b)
-        super().assertEqual(a.shape, b.shape)
+        return super().assertEqual(a.shape, b.shape)
 
     @classmethod
     def setUpClass(cls):
