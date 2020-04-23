@@ -383,42 +383,6 @@ class TestBackends(geomstats.tests.TestCase):
             gs_result, 4 * gs_array[~gs_mask], ~gs_mask)
         self.assertAllCloseToNp(gs_result, np_result)
 
-        #print('numpy')
-        add_base_point = _np.array([[-0.02064695, 0.26152784]])
-        norm_add = _np.array([[0.2623416]])
-
-        mask_0 = _np.isclose(_np.squeeze(norm_add, axis=-1), 0.)
-        mask_non0 = ~mask_0
-        add_base_point[mask_0] = _np.zeros_like(add_base_point[mask_0])
-        #print('add_base_point', add_base_point)
-        add_base_point[mask_non0] = \
-            add_base_point[mask_non0] / norm_add[mask_non0]
-        #print('add_base_point', add_base_point)
-        np_result = add_base_point
-
-        #print('backend')
-        add_base_point = gs.array([[-0.02064695, 0.26152784]])
-        norm_add = gs.array([[0.2623416]])
-
-        mask_0 = gs.isclose(gs.squeeze(norm_add, axis=-1), 0.)
-        mask_non0 = ~mask_0
-        add_base_point = gs.assignment(
-            add_base_point,
-            gs.zeros_like(add_base_point[mask_0]),
-            mask_0)
-        #print('add_base_point', add_base_point)
-        add_base_point = gs.assignment(
-            add_base_point,
-            add_base_point[mask_non0] / norm_add[mask_non0],
-            mask_non0)
-        #print('add_base_point', add_base_point)
-        gs_result = add_base_point
-        #print('gs_result', gs_result)
-        #print('np_result', np_result)
-        #print(gs_result == np_result)
-        #print(_np.all(gs_result == np_result))
-        self.assertAllCloseToNp(gs_result, np_result)
-
     def test_assignment_with_booleans_many_indices(self):
         np_array = _np.array([
             [22., 55.],
