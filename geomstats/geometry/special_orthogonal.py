@@ -1373,8 +1373,8 @@ class SpecialOrthogonal3(LieGroup):
 
 
 class SO(SpecialOrthogonal3, SpecialOrthogonal):
-    def __new__(self, n, point_type='matrix'):
+    def __new__(self, n, point_type='matrix', epsilon=0.):
         if n == 3 and point_type == 'vector':
-            return SpecialOrthogonal3()
+            return SpecialOrthogonal3(epsilon)
         return SpecialOrthogonal(n)
 
