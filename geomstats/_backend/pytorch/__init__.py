@@ -128,7 +128,18 @@ def any(x, axis=None):
         x = torch.tensor(x)
     if axis is None:
         return x.bool().any()
-    return torch.any(x.bool(), axis)
+    if isinstance(axis, int):
+        return torch.any(x.bool(), axis)
+    if len(axis) == 2:
+        axis = list(axis)
+        for i_axis, one_axis in enumerate(axis):
+            if one_axis < 0:
+                axis[i_axis] = ndim(x) + one_axis
+        return torch.any(
+            torch.any(x.bool(), axis[1]), axis[0])
+    else:
+        raise NotImplementedError(
+            'any not implemented for more than two axes.')
     #numpy_result = _np.array(_np.any(_np.array(x), axis=axis))
     #return torch.from_numpy(numpy_result)
 
