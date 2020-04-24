@@ -60,7 +60,7 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         transformer.fit(X=points)
         result = transformer.transform(points)
         expected = gs.zeros((2, 6))
-        self.assertAllClose(expected, result)
+        self.assertAllClose(expected, result, atol=1e-5)
 
     def test_fit_transform_hyperbolic(self):
         point = gs.array([2., 1., 1., 1.])
