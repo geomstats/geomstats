@@ -16,7 +16,6 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         self.n_samples = 10
         self.dim = self.beta.dim
 
-    @geomstats.tests.np_and_pytorch_only
     def test_random_uniform_and_belongs(self):
         """Test random_uniform and belongs.
 
@@ -29,7 +28,6 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         expected = gs.array([True] * n_samples)
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_random_uniform_and_belongs_vectorization(self):
         """Test random_uniform and belongs.
 
@@ -41,7 +39,6 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_random_uniform(self):
         """Test random_uniform.
 
@@ -50,7 +47,6 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         point = self.beta.random_uniform(self.n_samples)
         self.assertAllClose(gs.shape(point), (self.n_samples, self.dim))
 
-    @geomstats.tests.np_only
     def test_sample(self):
         """Test samples.
 
@@ -66,7 +62,6 @@ class TestBetaDistributions(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, rtol=tol, atol=tol)
 
-    @geomstats.tests.np_only
     def test_maximum_likelihood_fit(self):
         """Test maximum likelihood.
 
@@ -114,6 +109,7 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         self.assertAllClose(result, expected, rtol=1e-2)
 
+    @geomstats.tests.np_and_tf_only
     def test_christoffels_vectorization(self):
         """Test Christoffel synbols.
 

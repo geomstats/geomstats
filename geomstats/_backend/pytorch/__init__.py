@@ -43,6 +43,7 @@ from torch import (  # NOQA
     ones,
     ones_like,
     pow as power,
+    polygamma,
     repeat_interleave as repeat,
     reshape,
     sign,

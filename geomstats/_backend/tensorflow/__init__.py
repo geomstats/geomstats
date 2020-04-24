@@ -70,6 +70,7 @@ log = tf.math.log
 matmul = tf.linalg.matmul
 mod = tf.math.mod
 power = tf.math.pow
+polygamma = tf.math.polygamma
 real = tf.math.real
 set_diag = tf.linalg.set_diag
 std = tf.math.reduce_std

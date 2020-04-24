@@ -1,6 +1,5 @@
 """Statistical Manifold of beta distributions with the Fisher metric."""
 
-from autograd.scipy.special import polygamma
 from scipy.integrate import odeint
 from scipy.integrate import solve_bvp
 from scipy.stats import beta
@@ -90,7 +89,8 @@ class BetaDistributions(EmbeddedManifold):
             point, self, 'beta_distributions')
         samples = []
         for param_a, param_b in point:
-            samples.append(beta.rvs(param_a, param_b, size=n_samples))
+            samples.append(gs.array(
+                beta.rvs(param_a, param_b, size=n_samples)))
         return samples[0] if len(point) == 1 else gs.stack(samples)
 
     @staticmethod
@@ -118,7 +118,7 @@ class BetaDistributions(EmbeddedManifold):
         parameter : array-like, shape=[n_samples, 2]
         """
         data = gs.to_ndarray(
-            gs.where(data == 1., 1 - EPSILON, data), to_ndim=2)
+            gs.where(data == 1., gs.array(1. - EPSILON), data), to_ndim=2)
         parameters = []
         for sample in data:
             param_a, param_b, _, _ = beta.fit(sample, floc=loc, fscale=scale)
@@ -145,9 +145,9 @@ class BetaMetric(RiemannianMetric):
         -------
         metric_det : array-like, shape=[n_samples,]
         """
-        metric_det = polygamma(1, param_a) * polygamma(1, param_b) - \
-            polygamma(1, param_a + param_b) * (polygamma(1, param_a) +
-                                               polygamma(1, param_b))
+        metric_det = gs.polygamma(1, param_a) * gs.polygamma(1, param_b) - \
+            gs.polygamma(1, param_a + param_b) * (gs.polygamma(1, param_a) +
+                                                  gs.polygamma(1, param_b))
         return metric_det
 
     def inner_product_matrix(self, base_point=None):
@@ -165,9 +165,9 @@ class BetaMetric(RiemannianMetric):
             raise ValueError('The metric depends on the base point.')
         param_a = base_point[..., 0]
         param_b = base_point[..., 1]
-        polygamma_ab = polygamma(1, param_a + param_b)
-        polygamma_a = polygamma(1, param_a)
-        polygamma_b = polygamma(1, param_b)
+        polygamma_ab = gs.polygamma(1, param_a + param_b)
+        polygamma_a = gs.polygamma(1, param_a)
+        polygamma_b = gs.polygamma(1, param_b)
         vector = gs.stack(
             [polygamma_a - polygamma_ab,
              - polygamma_ab,
@@ -190,14 +190,14 @@ class BetaMetric(RiemannianMetric):
         """
         def coefficients(param_a, param_b):
             metric_det = self.metric_det(param_a, param_b)
-            poly_2_ab = polygamma(2, param_a + param_b)
-            poly_1_ab = polygamma(1, param_a + param_b)
-            poly_1_b = polygamma(1, param_b)
-            c1 = (polygamma(2, param_a) * (
+            poly_2_ab = gs.polygamma(2, param_a + param_b)
+            poly_1_ab = gs.polygamma(1, param_a + param_b)
+            poly_1_b = gs.polygamma(1, param_b)
+            c1 = (gs.polygamma(2, param_a) * (
                         poly_1_b - poly_1_ab) - poly_1_b * poly_2_ab) / (
                          2 * metric_det)
             c2 = - poly_1_b * poly_2_ab / (2 * metric_det)
-            c3 = (polygamma(2, param_b) * poly_1_ab - poly_1_b * poly_2_ab) / (
+            c3 = (gs.polygamma(2, param_b) * poly_1_ab - poly_1_b * poly_2_ab) / (
                 2 * metric_det)
             return c1, c2, c3
 
