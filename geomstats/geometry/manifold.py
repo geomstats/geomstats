@@ -56,7 +56,7 @@ class Manifold:
         raise NotImplementedError(
             'is_tangent is not implemented.')
 
-    def to_tangent(self, vector, base_point):
+    def to_tangent(self, vector, base_point=None):
         """Project a vector to a tangent space of the manifold.
 
         Parameters
