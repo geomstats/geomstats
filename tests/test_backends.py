@@ -723,3 +723,35 @@ class TestBackends(geomstats.tests.TestCase):
         np_result = _np.any(np_array > 30., axis=(-2, -1))
         gs_result = gs.any(gs_array > 30., axis=(-2, -1))
         self.assertAllCloseToNp(gs_result, np_result)
+
+    def test_all(self):
+        np_array = _np.array([
+            [[22., 55.],
+             [33., 88.],
+             [77., 99.]],
+            [[34., 12.],
+             [2., -3.],
+             [67., 35.]]])
+        gs_array = gs.array([
+            [[22., 55.],
+             [33., 88.],
+             [77., 99.]],
+            [[34., 12.],
+             [2., -3.],
+             [67., 35.]]])
+
+        np_result = _np.all(np_array > 30.)
+        gs_result = gs.all(gs_array > 30.)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.all(np_array > 30., axis=0)
+        gs_result = gs.all(gs_array > 30., axis=0)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.all(np_array > 30., axis=-2)
+        gs_result = gs.all(gs_array > 30., axis=-2)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.all(np_array > 30., axis=(-2, -1))
+        gs_result = gs.all(gs_array > 30., axis=(-2, -1))
+        self.assertAllCloseToNp(gs_result, np_result)

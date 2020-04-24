@@ -141,8 +141,6 @@ def any(x, axis=None):
     else:
         raise NotImplementedError(
             'any not implemented for more than two axes.')
-    #numpy_result = _np.array(_np.any(_np.array(x), axis=axis))
-    #return torch.from_numpy(numpy_result)
 
 
 def cast(x, dtype):
@@ -227,10 +225,22 @@ def array(val, dtype=None):
 
 
 def all(x, axis=None):
-    if axis is None and torch.is_tensor(x):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    if axis is None:
         return x.bool().all()
-    numpy_result = _np.array(_np.all(_np.array(x), axis=axis))
-    return torch.from_numpy(numpy_result)
+    if isinstance(axis, int):
+        return torch.all(x.bool(), axis)
+    if len(axis) == 2:
+        axis = list(axis)
+        for i_axis, one_axis in enumerate(axis):
+            if one_axis < 0:
+                axis[i_axis] = ndim(x) + one_axis
+        return torch.all(
+            torch.all(x.bool(), axis[1]), axis[0])
+    else:
+        raise NotImplementedError(
+            'any not implemented for more than two axes.')
 
 
 def get_slice(x, indices):
