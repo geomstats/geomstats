@@ -21,7 +21,8 @@ class TestHypersphere(geomstats.tests.TestCase):
         self.n_samples = 10
 
     def test_random_uniform_and_belongs(self):
-        """
+        """Test random uniform and belongs.
+
         Test that the random uniform method samples
         on the hypersphere space.
         """
@@ -76,7 +77,8 @@ class TestHypersphere(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_intrinsic_and_extrinsic_coords_vectorization(self):
-        """
+        """Test change of coordinates.
+
         Test that the composition of
         intrinsic_to_extrinsic_coords and
         extrinsic_to_intrinsic_coords
@@ -102,7 +104,8 @@ class TestHypersphere(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_log_and_exp_general_case(self):
-        """
+        """Test Log and Exp.
+
         Test that the Riemannian exponential
         and the Riemannian logarithm are inverse.
 
@@ -125,7 +128,8 @@ class TestHypersphere(geomstats.tests.TestCase):
         self.assertAllClose(result, expected, atol=1e-6)
 
     def test_log_and_exp_edge_case(self):
-        """
+        """Test Log and Exp.
+
         Test that the Riemannian exponential
         and the Riemannian logarithm are inverse.
 
@@ -242,7 +246,8 @@ class TestHypersphere(geomstats.tests.TestCase):
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
-        """
+        """Test Log and Exp.
+
         Test that the Riemannian exponential
         and the Riemannian logarithm are inverse.
 
@@ -271,7 +276,8 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = expected / norm_expected * regularized_norm_expected
 
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
-        """
+        """Test Log and Exp.
+
         Test that the Riemannian exponential
         and the Riemannian logarithm are inverse.
 
