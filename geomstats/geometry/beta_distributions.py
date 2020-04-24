@@ -188,34 +188,28 @@ class BetaMetric(RiemannianMetric):
         -------
         christoffels : array-like, shape=[n_samples, 2, 2, 2]
         """
-
         def coefficients(param_a, param_b):
             metric_det = self.metric_det(param_a, param_b)
-            c1 = (polygamma(2, param_a) * polygamma(1, param_b) -
-                  polygamma(2, param_a) * polygamma(1, param_a + param_b) -
-                  polygamma(1, param_b) * polygamma(2, param_a + param_b)) / (
-                2 * metric_det)
-            c2 = - polygamma(1, param_b) * polygamma(2, param_a + param_b) / (
-                2 * metric_det)
-            c3 = (polygamma(2, param_b) * polygamma(1, param_a + param_b) -
-                  polygamma(1, param_b) * polygamma(2, param_a + param_b)) / (
+            poly_2_ab = polygamma(2, param_a + param_b)
+            poly_1_ab = polygamma(1, param_a + param_b)
+            poly_1_b = polygamma(1, param_b)
+            c1 = (polygamma(2, param_a) * (
+                        poly_1_b - poly_1_ab) - poly_1_b * poly_2_ab) / (
+                         2 * metric_det)
+            c2 = - poly_1_b * poly_2_ab / (2 * metric_det)
+            c3 = (polygamma(2, param_b) * poly_1_ab - poly_1_b * poly_2_ab) / (
                 2 * metric_det)
             return c1, c2, c3
 
         if base_point is None:
             raise ValueError('Christoffels require a base point.')
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        param_a, param_b = base_point[:, 0], base_point[:, 1]
-        c1, c2, c3 = coefficients(param_a, param_b)
-        c4, c5, c6 = coefficients(param_b, param_a)
-        christoffel = []
-        for d1, d2, d3, d4, d5, d6 in zip(c1, c2, c3, c4, c5, c6):
-            gamma_0 = gs.array([[d1, d2], [d2, d3]])
-            gamma_1 = gs.array([[d6, d5], [d5, d4]])
-            christoffel.append(gs.stack([gamma_0, gamma_1]))
-        if len(base_point) == 1:
-            return christoffel[0]
-        return gs.stack(christoffel)
+        point_a, point_b = base_point[..., 0], base_point[..., 1]
+        c4, c5, c6 = coefficients(point_b, point_a)
+        vector_0 = gs.stack(coefficients(point_a, point_b), axis=-1)
+        vector_1 = gs.stack([c6, c5, c4], axis=-1)
+        gamma_0 = SymmetricMatrices.symmetric_matrix_from_vector(vector_0)
+        gamma_1 = SymmetricMatrices.symmetric_matrix_from_vector(vector_1)
+        return gs.stack([gamma_0, gamma_1], axis=-3)
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS):
         """Exponential map associated to the Fisher information metric.
