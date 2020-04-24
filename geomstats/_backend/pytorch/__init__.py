@@ -125,10 +125,13 @@ def logical_and(x, y):
 
 
 def any(x, axis=None):
-    if axis is None and torch.is_tensor(x):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    if axis is None:
         return x.bool().any()
-    numpy_result = _np.array(_np.any(_np.array(x), axis=axis))
-    return torch.from_numpy(numpy_result)
+    return torch.any(x.bool(), axis=axis)
+    #numpy_result = _np.array(_np.any(_np.array(x), axis=axis))
+    #return torch.from_numpy(numpy_result)
 
 
 def cast(x, dtype):
