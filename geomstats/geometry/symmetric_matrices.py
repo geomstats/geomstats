@@ -62,11 +62,11 @@ class SymmetricMatrices(EmbeddedManifold):
         mat_dim = (gs.sqrt(8. * vec_dim + 1) - 1) / 2
         if mat_dim != int(mat_dim):
             raise ValueError('Invalid input dimension, it must be of the form'
-                             '(n_samples, n * (n - 1) / 2)')
+                             '(n_samples, n * (n + 1) / 2)')
         mat_dim = int(mat_dim)
-        mask = 2 * gs.ones((mat_dim, mat_dim)) - gs.eye(mat_dim)
-        indices = list(zip(*gs.triu_indices(3)))
         shape = (mat_dim, mat_dim)
+        mask = 2 * gs.ones(shape) - gs.eye(mat_dim)
+        indices = list(zip(*gs.triu_indices(mat_dim)))
         vec = gs.cast(vec, dtype)
         upper_triangular = gs.stack([
             gs.array_from_sparse(indices, data, shape) for data in vec])
