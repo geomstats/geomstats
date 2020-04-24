@@ -18,7 +18,8 @@ class TestBetaDistributions(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_random_uniform_and_belongs(self):
-        """
+        """Test random_uniform and belongs.
+
         Test that the random uniform method samples
         on the beta distribution space.
         """
@@ -31,7 +32,8 @@ class TestBetaDistributions(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_random_uniform(self):
-        """
+        """Test random_uniform.
+
         Test that the random uniform method samples points of the right shape
         """
         point = self.beta.random_uniform(self.n_samples)
@@ -39,7 +41,8 @@ class TestBetaDistributions(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_sample(self):
-        """
+        """Test samples.
+
         Test that the sample method samples variates from beta distributions
         with the specified parameters, using the law of large numbers
         """
@@ -54,7 +57,8 @@ class TestBetaDistributions(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_maximum_likelihood_fit(self):
-        """
+        """Test maximum likelihood.
+
         Test that the maximum likelihood fit method recovers
         parameters of beta distribution.
         """
@@ -83,7 +87,8 @@ class TestBetaDistributions(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_log_and_exp(self):
-        """
+        """Test Log and Exp.
+
         Test that the Riemannian exponential
         and the Riemannian logarithm are inverse.
 
@@ -99,7 +104,8 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         self.assertAllClose(result, expected, rtol=1e-2)
 
     def test_christoffels_vectorization(self):
-        """
+        """Test Christoffel synbols.
+
         Check vectorization of Christoffel symbols in
         spherical coordinates on the 2-sphere.
         """

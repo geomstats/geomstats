@@ -63,9 +63,7 @@ class TestLandmarks(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_l2_metric_log_and_squared_norm_and_dist(self):
-        """
-        Test that squared norm of logarithm is squared dist.
-        """
+        """Test that squared norm of logarithm is squared dist."""
         tangent_vec = self.l2_metric_s2.log(
             landmarks=self.landmarks_b, base_landmarks=self.landmarks_a)
         log_ab = tangent_vec
@@ -78,9 +76,7 @@ class TestLandmarks(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_l2_metric_log_and_exp(self):
-        """
-        Test that exp and log are inverse maps.
-        """
+        """Test that exp and log are inverse maps."""
         tangent_vec = self.l2_metric_s2.log(
             landmarks=self.landmarks_b, base_landmarks=self.landmarks_a)
         result = self.l2_metric_s2.exp(
@@ -92,9 +88,7 @@ class TestLandmarks(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_l2_metric_inner_product_vectorization(self):
-        """
-        Test the vectorization inner_product.
-        """
+        """Test the vectorization inner_product."""
         n_samples = self.n_landmark_sets
         landmarks_ab = self.l2_metric_s2.geodesic(
             self.landmarks_a, self.landmarks_b)
@@ -113,9 +107,7 @@ class TestLandmarks(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_l2_metric_dist_vectorization(self):
-        """
-        Test the vectorization of dist.
-        """
+        """Test the vectorization of dist."""
         n_samples = self.n_landmark_sets
         landmarks_ab = self.l2_metric_s2.geodesic(
             self.landmarks_a, self.landmarks_b)
@@ -130,9 +122,7 @@ class TestLandmarks(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_tf_only
     def test_l2_metric_exp_vectorization(self):
-        """
-        Test the vectorization of exp.
-        """
+        """Test the vectorization of exp."""
         landmarks_ab = self.l2_metric_s2.geodesic(
             self.landmarks_a, self.landmarks_b)
         landmarks_bc = self.l2_metric_s2.geodesic(
@@ -149,9 +139,7 @@ class TestLandmarks(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_l2_metric_log_vectorization(self):
-        """
-        Test the vectorization of log.
-        """
+        """Test the vectorization of log."""
         landmarks_ab = self.l2_metric_s2.geodesic(
             self.landmarks_a, self.landmarks_b)
         landmarks_bc = self.l2_metric_s2.geodesic(
@@ -167,9 +155,7 @@ class TestLandmarks(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_l2_metric_geodesic(self):
-        """
-        Test the geodesic method of L2Metric.
-        """
+        """Test the geodesic method of L2Metric."""
         landmarks_ab = self.l2_metric_s2.geodesic(
             self.landmarks_a, self.landmarks_b)
         landmarks_bc = self.l2_metric_s2.geodesic(
