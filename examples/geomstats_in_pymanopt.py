@@ -1,4 +1,4 @@
-"""This very simple example demonstrates how geometries from geomstats can be
+"""Simple example that demonstrates how geometries from geomstats can be
 used in pymanopt to perform optimization on manifolds. It uses the Riemannian
 steepest descent solver.
 
@@ -90,12 +90,12 @@ if __name__ == '__main__':
         dominant_eigenvector_estimate = -dominant_eigenvector_estimate
 
     logging.info(
-        'l2-norm of dominant eigenvector: {}',
+        'l2-norm of dominant eigenvector: %s',
         gs.linalg.norm(dominant_eigenvector))
     logging.info(
-        'l2-norm of dominant eigenvector estimate: {}',
+        'l2-norm of dominant eigenvector estimate: %s',
         gs.linalg.norm(dominant_eigenvector_estimate))
     error_norm = gs.linalg.norm(
         dominant_eigenvector - dominant_eigenvector_estimate)
-    logging.info('l2-norm of difference vector: {}', error_norm)
+    logging.info('l2-norm of difference vector: %s', error_norm)
     logging.info('solution found: %s', gs.isclose(error_norm, 0.0, atol=1e-3))
