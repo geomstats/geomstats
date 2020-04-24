@@ -25,7 +25,7 @@ class BetaDistributions(EmbeddedManifold):
         super(BetaDistributions, self).__init__(
             dim=2, embedding_manifold=Euclidean(dim=2))
 
-    def belongs(self, point, point_type=None):
+    def belongs(self, point):
         """Evaluate if a point belongs to the manifold of beta distributions.
 
         The statistical manifold of beta distributions is the upper right
