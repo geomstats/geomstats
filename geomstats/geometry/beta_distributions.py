@@ -64,9 +64,8 @@ class BetaDistributions(EmbeddedManifold):
         -------
         samples : array-like, shape=[n_samples, 2]
         """
-        if n_samples == 1:
-            return bound * gs.random.rand(2)
-        return bound * gs.random.rand(n_samples, 2)
+        size = (2,) if n_samples == 1 else (n_samples, 2)
+        return bound * gs.random.rand(*size)
 
     def sample(self, point, n_samples=1):
         """Sample from the beta distribution.
@@ -201,8 +200,6 @@ class BetaMetric(RiemannianMetric):
                   poly_2_ab) / metric_det
             return c1, c2, c3
 
-        if base_point is None:
-            raise ValueError('Christoffels require a base point.')
         point_a, point_b = base_point[..., 0], base_point[..., 1]
         c4, c5, c6 = coefficients(point_b, point_a)
         vector_0 = gs.stack(coefficients(point_a, point_b), axis=-1)
