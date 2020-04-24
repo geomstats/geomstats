@@ -34,7 +34,7 @@ class GeomstatsSphere(Manifold):
             tangent_vector_a, tangent_vector_b, base_point=base_vector)
 
     def proj(self, base_vector, tangent_vector):
-        return self._sphere.projection_to_tangent_space(
+        return self._sphere.to_tangent(
             tangent_vector, base_point=base_vector)
 
     def retr(self, base_vector, tangent_vector):

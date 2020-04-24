@@ -174,7 +174,7 @@ class TangentPCA(_BasePCA):
         tangent_vecs = self.metric.log(X, base_point=self.base_point_fit)
         if self.point_type == 'matrix':
             if Matrices.is_symmetric(tangent_vecs).all():
-                X = SymmetricMatrices.vector_from_symmetric_matrix(
+                X = SymmetricMatrices.to_vector(
                     tangent_vecs)
             else:
                 X = gs.reshape(tangent_vecs, (len(X), - 1))
@@ -205,7 +205,7 @@ class TangentPCA(_BasePCA):
             if Matrices.is_symmetric(self.base_point_fit).all():
                 scores = SymmetricMatrices(
                     self.base_point_fit.shape[-1]
-                ).symmetric_matrix_from_vector(scores)
+                ).from_vector(scores)
             else:
                 dim = self.base_point_fit.shape[-1]
                 scores = gs.reshape(scores, (len(scores), dim, dim))
@@ -239,7 +239,7 @@ class TangentPCA(_BasePCA):
 
         if self.point_type == 'matrix':
             if Matrices.is_symmetric(tangent_vecs).all():
-                X = SymmetricMatrices.vector_from_symmetric_matrix(
+                X = SymmetricMatrices.to_vector(
                     tangent_vecs)
             else:
                 X = gs.reshape(tangent_vecs, (len(X), - 1))

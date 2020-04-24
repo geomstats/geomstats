@@ -26,11 +26,11 @@ def main():
     """Compute pole ladder and plot the construction."""
     base_point = SPACE.random_uniform(1)
     tangent_vec_b = SPACE.random_uniform(1)
-    tangent_vec_b = SPACE.projection_to_tangent_space(
+    tangent_vec_b = SPACE.to_tangent(
         tangent_vec_b, base_point)
     tangent_vec_b *= N_STEPS / 2
     tangent_vec_a = SPACE.random_uniform(1)
-    tangent_vec_a = SPACE.projection_to_tangent_space(
+    tangent_vec_a = SPACE.to_tangent(
         tangent_vec_a, base_point) * N_STEPS / 4
 
     ladder = METRIC.ladder_parallel_transport(

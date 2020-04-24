@@ -14,7 +14,7 @@ class TestIntegrator(geomstats.tests.TestCase):
         self.euclidean = Euclidean(self.dimension)
         self.matrices = Matrices(self.dimension, self.dimension)
         self.intercept = self.euclidean.random_uniform(1)
-        self.slope = Matrices.make_symmetric(self.matrices.random_uniform(1))
+        self.slope = Matrices.to_symmetric(self.matrices.random_uniform(1))
 
     def function_linear(self, point, vector):
         return - gs.dot(self.slope, vector)

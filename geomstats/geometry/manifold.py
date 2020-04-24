@@ -7,6 +7,9 @@ Euclidean space near each point.
 import geomstats.error
 
 
+ATOL = 1e-6
+
+
 class Manifold:
     """Class for manifolds."""
 
@@ -34,6 +37,42 @@ class Manifold:
         belongs : array-like, shape=[n_samples, 1]
         """
         raise NotImplementedError('belongs is not implemented.')
+
+    def is_tangent(self, vector, base_point=None, atol=ATOL):
+        """Check whether the vector is tangent at base_point.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[n_samples, dim]
+            Vector.
+        base_point : array-like, shape=[n_samples, dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        raise NotImplementedError(
+            'is_tangent is not implemented.')
+
+    def to_tangent(self, vector, base_point=None):
+        """Project a vector to a tangent space of the manifold.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[n_samples, dim]
+            Vector.
+        base_point : array-like, shape=[n_samples, dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[n_samples, dim]
+            Tangent vector at base point.
+        """
+        raise NotImplementedError(
+            'to_tangent is not implemented.')
 
     def regularize(self, point):
         """Regularize a point to the canonical representation for the manifold.
