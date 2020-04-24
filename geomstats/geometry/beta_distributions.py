@@ -117,6 +117,7 @@ class BetaDistributions(EmbeddedManifold):
         -------
         parameter : array-like, shape=[n_samples, 2]
         """
+        data = gs.cast(data, gs.float32)
         data = gs.to_ndarray(
             gs.where(data == 1., gs.array(1. - EPSILON), data), to_ndim=2)
         parameters = []
@@ -189,16 +190,15 @@ class BetaMetric(RiemannianMetric):
         christoffels : array-like, shape=[n_samples, 2, 2, 2]
         """
         def coefficients(param_a, param_b):
-            metric_det = self.metric_det(param_a, param_b)
+            metric_det = 2 * self.metric_det(param_a, param_b)
             poly_2_ab = gs.polygamma(2, param_a + param_b)
             poly_1_ab = gs.polygamma(1, param_a + param_b)
             poly_1_b = gs.polygamma(1, param_b)
-            c1 = (gs.polygamma(2, param_a) * (
-                        poly_1_b - poly_1_ab) - poly_1_b * poly_2_ab) / (
-                         2 * metric_det)
-            c2 = - poly_1_b * poly_2_ab / (2 * metric_det)
-            c3 = (gs.polygamma(2, param_b) * poly_1_ab - poly_1_b * poly_2_ab) / (
-                2 * metric_det)
+            c1 = (gs.polygamma(2, param_a) *
+                  (poly_1_b - poly_1_ab) - poly_1_b * poly_2_ab) / metric_det
+            c2 = - poly_1_b * poly_2_ab / metric_det
+            c3 = (gs.polygamma(2, param_b) * poly_1_ab - poly_1_b *
+                  poly_2_ab) / metric_det
             return c1, c2, c3
 
         if base_point is None:
