@@ -285,8 +285,6 @@ def shape(val):
 
 def dot(a, b):
     return einsum('...i,...i->...', a, b)
-    #np_dot = _np.dot(a, b)
-    #return torch.from_numpy(_np.array(np_dot)).float()
 
 
 def maximum(a, b):
