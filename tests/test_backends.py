@@ -329,6 +329,20 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllCloseToNp(gs_array, np_array)
 
+        n_samples = 3
+        theta = _np.random.rand(5)
+        phi = _np.random.rand(5)
+        np_array = _np.zeros((n_samples, 5, 4))
+        gs_array = gs.array(np_array)
+        np_array[0, :, 0] = gs.cos(theta) * gs.cos(phi)
+        np_array[0, :, 1] = - gs.sin(theta) * gs.sin(phi)
+        gs_array = gs.assignment(
+            gs_array, gs.cos(theta) * gs.cos(phi), (0, 0), axis=1)
+        gs_array = gs.assignment(
+            gs_array, - gs.sin(theta) * gs.sin(phi), (0, 1), axis=1)
+
+        self.assertAllCloseToNp(gs_array, np_array)
+
     def test_assignment_with_booleans_single_index(self):
         np_array = _np.array([[2., 5.]])
         gs_array = gs.array([[2., 5.]])
@@ -595,3 +609,18 @@ class TestBackends(geomstats.tests.TestCase):
         gs_result = gs.assignment_by_sum(
             gs_array_4_list, 1, [(0, 1), (1, 1)], axis=1)
         self.assertAllCloseToNp(gs_result, np_array_4_list)
+
+        n_samples = 3
+        theta = _np.random.rand(5)
+        phi = _np.random.rand(5)
+        np_array = _np.ones((n_samples, 5, 4))
+        gs_array = gs.array(np_array)
+        np_array[0, :, 0] += _np.cos(theta) * _np.cos(phi)
+        np_array[0, :, 1] -= _np.sin(theta) * _np.sin(phi)
+        gs_array = gs.assignment_by_sum(
+            gs_array, gs.cos(theta) * gs.cos(phi), (0, 0), axis=1)
+        gs_array = gs.assignment_by_sum(
+            gs_array, - gs.sin(theta) * gs.sin(phi), (0, 1), axis=1)
+        print(np_array)
+        print(gs_array)
+        self.assertAllCloseToNp(gs_array, np_array)
