@@ -563,7 +563,8 @@ def hsplit(x, n_splits):
 def flatten(x):
     """Collapses the tensor into 1-D.
 
-    Following https://www.tensorflow.org/api_docs/python/tf/reshape"""
+    Following https://www.tensorflow.org/api_docs/python/tf/reshape
+    """
     return tf.reshape(x, [-1])
 
 
