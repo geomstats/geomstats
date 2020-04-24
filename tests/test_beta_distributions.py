@@ -130,4 +130,4 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
         self.assertRaises(
-            ValueError, lambda: self.metric.inner_product_matrix())
+            ValueError, self.metric.inner_product_matrix)
