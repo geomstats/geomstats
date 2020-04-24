@@ -621,6 +621,4 @@ class TestBackends(geomstats.tests.TestCase):
             gs_array, gs.cos(theta) * gs.cos(phi), (0, 0), axis=1)
         gs_array = gs.assignment_by_sum(
             gs_array, - gs.sin(theta) * gs.sin(phi), (0, 1), axis=1)
-        print(np_array)
-        print(gs_array)
         self.assertAllCloseToNp(gs_array, np_array)
