@@ -32,8 +32,8 @@ def uniform_radial_kernel(distance, bandwidth=1.0):
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
-        1 / 2,
-        0)
+        gs.array([1]),
+        gs.array([0]))
     return weight
 
 
@@ -88,7 +88,7 @@ def parabolic_radial_kernel(distance, bandwidth=1.0):
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
-        3 / 4 * (1 - scaled_distance ** 2),
+        1 - scaled_distance ** 2,
         0)
     return weight
 
@@ -116,7 +116,7 @@ def biweight_radial_kernel(distance, bandwidth=1.0):
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
-        15 / 16 * (1 - scaled_distance ** 2) ** 2,
+        (1 - scaled_distance ** 2) ** 2,
         0)
     return weight
 
@@ -144,7 +144,7 @@ def triweight_radial_kernel(distance, bandwidth=1.0):
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
-        35 / 32 * (1 - scaled_distance ** 2) ** 3,
+        (1 - scaled_distance ** 2) ** 3,
         0)
     return weight
 
@@ -172,7 +172,7 @@ def tricube_radial_kernel(distance, bandwidth=1.0):
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
-        70 / 81 * (1 - scaled_distance ** 3) ** 3,
+        (1 - scaled_distance ** 3) ** 3,
         0)
     return weight
 
@@ -199,7 +199,6 @@ def gaussian_radial_kernel(distance, bandwidth=1.0):
         raise ValueError('The bandwidth should be a positive real number.')
     scaled_distance = distance / bandwidth
     weight = gs.exp(- scaled_distance ** 2 / 2)
-    weight /= (2 * gs.pi) ** (1 / 2)
     return weight
 
 
@@ -226,7 +225,7 @@ def cosine_radial_kernel(distance, bandwidth=1.0):
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
-        gs.pi / 4 * gs.cos((gs.pi / 2) * scaled_distance),
+        gs.cos((gs.pi / 2) * scaled_distance),
         0)
     return weight
 
@@ -278,7 +277,6 @@ def sigmoid_radial_kernel(distance, bandwidth=1.0):
         raise ValueError('The bandwidth should be a positive real number.')
     scaled_distance = distance / bandwidth
     weight = 1 / (gs.exp(scaled_distance) + gs.exp(- scaled_distance))
-    weight *= 2 / gs.pi
     return weight
 
 

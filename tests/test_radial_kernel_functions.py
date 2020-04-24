@@ -26,15 +26,14 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
         self.space = Euclidean(dim=self.dim)
         self.distance = self.space.metric.dist
 
-    @geomstats.tests.np_only
     def test_uniform_radial_kernel(self):
         """Test the uniform radial kernel."""
-        distance = 0.5
+        distance = gs.array([[0.5], [2]])
         weight = uniform_radial_kernel(
             distance=distance,
             bandwidth=self.bandwidth)
         result = weight
-        expected = 1 / 2
+        expected = gs.array([[1], [0]])
         self.assertAllClose(expected, result)
 
     @geomstats.tests.np_only
@@ -69,7 +68,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             distance=distance,
             bandwidth=bandwidth)
         result = weight
-        expected = 9 / 16
+        expected = 3 / 4
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
     @geomstats.tests.np_only
@@ -81,7 +80,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             distance=distance,
             bandwidth=bandwidth)
         result = weight
-        expected = 15 / 16 * (3 / 4) ** 2
+        expected = 9 / 16
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
     @geomstats.tests.np_only
@@ -93,7 +92,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             distance=distance,
             bandwidth=bandwidth)
         result = weight
-        expected = 35 / 32 * (3 / 4) ** 3
+        expected = (3 / 4) ** 3
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
     @geomstats.tests.np_only
@@ -105,7 +104,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             distance=distance,
             bandwidth=bandwidth)
         result = weight
-        expected = 70 / 81 * (7 / 8) ** 3
+        expected = (7 / 8) ** 3
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
     @geomstats.tests.np_only
@@ -117,7 +116,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             distance=distance,
             bandwidth=bandwidth)
         result = weight
-        expected = gs.exp(- 1 / 8) / (2 * gs.pi) ** (1 / 2)
+        expected = gs.exp(- 1 / 8)
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
     @geomstats.tests.np_only
@@ -128,7 +127,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             distance=distance,
             bandwidth=self.bandwidth)
         result = weight
-        expected = gs.pi / 4 * 2 ** (1 / 2) / 2
+        expected = 2 ** (1 / 2) / 2
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
     @geomstats.tests.np_only
@@ -150,7 +149,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
             distance=distance,
             bandwidth=self.bandwidth)
         result = weight
-        expected = 2 / gs.pi / (gs.exp(1 / 2) + gs.exp(- 1 / 2))
+        expected = 1 / (gs.exp(1 / 2) + gs.exp(- 1 / 2))
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
     @geomstats.tests.np_only
