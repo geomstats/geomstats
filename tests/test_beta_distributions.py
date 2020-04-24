@@ -128,3 +128,6 @@ class TestBetaDistributions(geomstats.tests.TestCase):
         result = self.beta.metric.inner_product_matrix(point)
         expected = gs.array([[1., -0.644934066], [-0.644934066, 1.]])
         self.assertAllClose(result, expected)
+
+        self.assertRaises(
+            ValueError, lambda: self.metric.inner_product_matrix())
