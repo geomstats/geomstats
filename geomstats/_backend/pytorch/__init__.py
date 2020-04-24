@@ -129,7 +129,7 @@ def any(x, axis=None):
         x = torch.tensor(x)
     if axis is None:
         return x.bool().any()
-    return torch.any(x.bool(), axis=axis)
+    return torch.any(x.bool(), axis)
     #numpy_result = _np.array(_np.any(_np.array(x), axis=axis))
     #return torch.from_numpy(numpy_result)
 
