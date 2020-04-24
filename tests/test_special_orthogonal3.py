@@ -3519,7 +3519,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     sq_dist_2_1 = gs.mod(
                         metric.squared_dist(point_2, point_1) + 1e-4,
                         gs.pi**2)
-
                     self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=1e-4)
 
     def test_squared_dist_is_less_than_squared_pi(self):
