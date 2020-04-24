@@ -595,3 +595,35 @@ class TestBackends(geomstats.tests.TestCase):
         gs_result = gs.assignment_by_sum(
             gs_array_4_list, 1, [(0, 1), (1, 1)], axis=1)
         self.assertAllCloseToNp(gs_result, np_array_4_list)
+
+    def test_any(self):
+        np_array = _np.array([
+            [[22., 55.],
+             [33., 88.],
+             [77., 99.]],
+            [[34., 12.],
+             [2., -3.],
+             [67., 35.]]])
+        gs_array = gs.array([
+            [[22., 55.],
+             [33., 88.],
+             [77., 99.]],
+            [[34., 12.],
+             [2., -3.],
+             [67., 35.]]])
+
+        np_result = _np.any(np_array > 30.)
+        gs_result = gs.any(gs_array > 30.)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.any(np_array > 30., axis=0)
+        gs_result = gs.any(gs_array > 30., axis=0)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.any(np_array > 30., axis=-2)
+        gs_result = gs.any(gs_array > 30., axis=-2)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.any(np_array > 30., axis=(-2, -1))
+        gs_result = gs.any(gs_array > 30., axis=(-2, -1))
+        self.assertAllCloseToNp(gs_result, np_result)
