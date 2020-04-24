@@ -23,10 +23,9 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             dim=int(n * (n + 1) / 2),
             embedding_manifold=GeneralLinear(n=n))
 
-    @staticmethod
-    def belongs(mat, atol=TOLERANCE):
+    def belongs(self, mat, atol=TOLERANCE):
         """Check if a matrix is symmetric and invertible."""
-        is_symmetric = GeneralLinear.is_symmetric(mat)
+        is_symmetric = super(SPDMatrices, self).belongs(mat, atol)
         eigvalues, _ = gs.linalg.eigh(mat)
         is_positive = gs.all(eigvalues > 0, axis=-1)
         belongs = gs.logical_and(is_symmetric, is_positive)
