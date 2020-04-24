@@ -40,9 +40,9 @@ class Manifold:
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, dim_embedding]
+        vector : array-like, shape=[n_samples, dim]
             Vector.
-        base_point : array-like, shape=[n_samples, dim_embedding]
+        base_point : array-like, shape=[n_samples, dim]
             Point on the manifold.
 
         Returns
@@ -52,6 +52,24 @@ class Manifold:
         """
         raise NotImplementedError(
             'is_tangent is not implemented.')
+
+    def to_tangent(self, vector, base_point):
+        """Project a vector to a tangent space of the manifold.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[n_samples, dim]
+            Vector.
+        base_point : array-like, shape=[n_samples, dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[n_samples, dim]
+            Tangent vector at base point.
+        """
+        raise NotImplementedError(
+            'to_tangent is not implemented.')
 
     def regularize(self, point):
         """Regularize a point to the canonical representation for the manifold.
