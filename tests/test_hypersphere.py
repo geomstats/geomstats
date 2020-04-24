@@ -562,9 +562,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         self.assertAllClose(expected, result)
 
     def test_closest_neighbor_index(self):
-        """
-        Check that the closest neighbor is one of neighbors.
-        """
+        """Check that the closest neighbor is one of neighbors."""
         n_samples = 10
         points = self.space.random_uniform(n_samples=n_samples)
         point = points[0, :]
