@@ -34,8 +34,14 @@ class TestSPDMatrices(geomstats.tests.TestCase):
     def test_belongs(self):
         """Test of belongs method."""
         mats = gs.array(
-            [[1., 1.], [1., 1.]])
-        result = SPDMatrices.belongs(mats)
+            [[3., -1.], [-1., 3.]])
+        result = SPDMatrices(2).belongs(mats)
+        expected = True
+        self.assertAllClose(result, expected)
+
+        mats = gs.array(
+            [[-1., -1.], [-1., 3.]])
+        result = SPDMatrices(2).belongs(mats)
         expected = False
         self.assertAllClose(result, expected)
 

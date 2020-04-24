@@ -10,6 +10,7 @@ import geomstats.error
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 N_STEPS = 100
 EPSILON = 1e-6
@@ -24,6 +25,7 @@ class BetaDistributions(EmbeddedManifold):
     def __init__(self):
         super(BetaDistributions, self).__init__(
             dim=2, embedding_manifold=Euclidean(dim=2))
+        self.metric = BetaMetric()
 
     def belongs(self, point):
         """Evaluate if a point belongs to the manifold of beta distributions.
@@ -41,16 +43,14 @@ class BetaDistributions(EmbeddedManifold):
         belongs : array-like, shape=[n_samples, 1]
             array of booleans indicating whether point belongs the Beta
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        n_points, point_dim = point.shape
+        point_dim = point.shape[-1]
         belongs = point_dim == self.dim
-        belongs = gs.to_ndarray(belongs, to_ndim=1)
-        belongs = gs.tile(belongs, n_points)
-        belongs = belongs * gs.greater(point, 0).all(axis=1)
-        return belongs[0] if n_points == 1 else belongs
+        belongs = gs.logical_and(
+            belongs, gs.all(gs.greater(point, 0.), axis=-1))
+        return belongs
 
     @staticmethod
-    def random_uniform(n_samples=1, bound=10.0):
+    def random_uniform(n_samples=1, bound=5.):
         """Sample parameters of beta distributions.
 
         The uniform distribution on [0, bound]^2 is used.
@@ -65,6 +65,8 @@ class BetaDistributions(EmbeddedManifold):
         -------
         samples : array-like, shape=[n_samples, 2]
         """
+        if n_samples == 1:
+            return bound * gs.random.rand(2)
         return bound * gs.random.rand(n_samples, 2)
 
     def sample(self, point, n_samples=1):
@@ -159,20 +161,18 @@ class BetaMetric(RiemannianMetric):
         -------
         base_point : array-like, shape=[n_samples, 2, 2]
         """
-        if base_point is not None:
+        if base_point is None:
             raise ValueError('The metric depends on the base point.')
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        matrices = []
-        for point in base_point:
-            param_a, param_b = point
-            g0 = gs.array(
-                [polygamma(1, param_a) - polygamma(1, param_a + param_b),
-                 - polygamma(1, param_a + param_b)])
-            g1 = gs.array(
-                [- polygamma(1, param_a + param_b), polygamma(1, param_b)
-                 - polygamma(1, param_a + param_b)])
-            matrices.append(gs.stack([g0, g1]))
-        return gs.stack(matrices)
+        param_a = base_point[..., 0]
+        param_b = base_point[..., 1]
+        polygamma_ab = polygamma(1, param_a + param_b)
+        polygamma_a = polygamma(1, param_a)
+        polygamma_b = polygamma(1, param_b)
+        vector = gs.stack(
+            [polygamma_a - polygamma_ab,
+             - polygamma_ab,
+             polygamma_b - polygamma_ab], axis=-1)
+        return SymmetricMatrices.symmetric_matrix_from_vector(vector)
 
     def christoffels(self, base_point):
         """Compute the Christoffel symbols.
@@ -237,7 +237,7 @@ class BetaMetric(RiemannianMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
 
-        def ivp(state, time):
+        def ivp(state, _):
             """Reformat the initial value problem geodesic ODE."""
             position, velocity = state[:2], state[2:]
             eq = self.geodesic_equation(velocity=velocity, position=position)
@@ -287,13 +287,15 @@ class BetaMetric(RiemannianMetric):
             lin_init[3, -1] = lin_init[3, -2]
             return lin_init
 
-        def bvp(time, state):
+        def bvp(_, state):
             """Reformat the boundary value problem geodesic ODE.
 
             Parameters
             ----------
-                state :  vector of the state variables: y = [a,b,u,v]
-                time :  time
+            state :  array-like, shape[4,]
+                Vector of the state variables: y = [a,b,u,v]
+            _ :  unused
+                Any (time).
             """
             position, velocity = state[:2].T, state[2:].T
             eq = self.geodesic_equation(
