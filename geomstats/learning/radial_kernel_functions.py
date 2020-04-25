@@ -4,6 +4,12 @@ References
 ----------
 https://en.wikipedia.org/wiki/Kernel_(statistics)
 https://en.wikipedia.org/wiki/Radial_basis_function
+
+Notes
+-----
+We chose not to apply the normalization coefficients used in some references.
+These normalization coefficients are used in order that the kernel functions
+integrate to 1 on the Euclidean space of dimension 1.
 """
 
 import geomstats.backend as gs
@@ -40,6 +46,10 @@ def uniform_radial_kernel(distance, bandwidth=1.0):
     weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Kernel_(statistics)
     """
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)
@@ -66,6 +76,10 @@ def triangular_radial_kernel(distance, bandwidth=1.0):
     weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Kernel_(statistics)
     """
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)
@@ -92,6 +106,10 @@ def parabolic_radial_kernel(distance, bandwidth=1.0):
     weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Kernel_(statistics)
     """
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)
@@ -118,6 +136,10 @@ def biweight_radial_kernel(distance, bandwidth=1.0):
     weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Kernel_(statistics)
     """
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)
@@ -144,6 +166,10 @@ def triweight_radial_kernel(distance, bandwidth=1.0):
     weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Kernel_(statistics)
     """
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)
@@ -170,6 +196,10 @@ def tricube_radial_kernel(distance, bandwidth=1.0):
     weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Kernel_(statistics)
     """
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)
@@ -196,6 +226,11 @@ def gaussian_radial_kernel(distance, bandwidth=1.0):
     weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Kernel_(statistics)
+    https://en.wikipedia.org/wiki/Radial_basis_function
     """
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)
@@ -219,6 +254,10 @@ def cosine_radial_kernel(distance, bandwidth=1.0):
     weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Kernel_(statistics)
     """
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)
@@ -245,6 +284,10 @@ def logistic_radial_kernel(distance, bandwidth=1.0):
     weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Kernel_(statistics)
     """
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)
@@ -291,6 +334,10 @@ def bump_radial_kernel(distance, bandwidth=1.0):
     weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Radial_basis_function
     """
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)
@@ -317,6 +364,10 @@ def inverse_quadratic_radial_kernel(distance, bandwidth=1.0):
     weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Radial_basis_function
     """
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)
@@ -340,6 +391,10 @@ def inverse_multiquadric_radial_kernel(distance, bandwidth=1.0):
     weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Radial_basis_function
     """
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)
@@ -363,6 +418,12 @@ def laplacian_radial_kernel(distance, bandwidth=1.0):
     weight : array-like
         Array of non-negative real values of the same shape than
         parameter 'distance'.
+
+    Returns
+    -------
+    http://crsouza.com/2010/03/17/
+    kernel-functions-for-machine-learning-applications/
+    https://data-flair.training/blogs/svm-kernel-functions/
     """
     distance = _check_distance(distance)
     bandwidth = _check_bandwidth(bandwidth)

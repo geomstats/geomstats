@@ -92,7 +92,12 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
         else:
             def weights(distance_matrix):
                 n_samples = distance_matrix.shape[0]
+                # print('\n \n')
+                # print(distance_matrix)
+                # print('\n \n')
+                # print(gs.empty(distance_matrix.shape, dtype=None))
                 weights_matrix = gs.empty_like(distance_matrix)
+                # weights_matrix = gs.empty(distance_matrix.shape, dtype=None)
                 for i_sample in range(n_samples):
                     weights_matrix[i_sample] = kernel(
                         distance=distance_matrix[i_sample],
