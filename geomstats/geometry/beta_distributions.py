@@ -172,7 +172,7 @@ class BetaMetric(RiemannianMetric):
             [polygamma_a - polygamma_ab,
              - polygamma_ab,
              polygamma_b - polygamma_ab], axis=-1)
-        return SymmetricMatrices.symmetric_matrix_from_vector(vector)
+        return SymmetricMatrices.from_vector(vector)
 
     def christoffels(self, base_point):
         """Compute the Christoffel symbols.
@@ -204,8 +204,8 @@ class BetaMetric(RiemannianMetric):
         c4, c5, c6 = coefficients(point_b, point_a)
         vector_0 = gs.stack(coefficients(point_a, point_b), axis=-1)
         vector_1 = gs.stack([c6, c5, c4], axis=-1)
-        gamma_0 = SymmetricMatrices.symmetric_matrix_from_vector(vector_0)
-        gamma_1 = SymmetricMatrices.symmetric_matrix_from_vector(vector_1)
+        gamma_0 = SymmetricMatrices.from_vector(vector_0)
+        gamma_1 = SymmetricMatrices.from_vector(vector_1)
         return gs.stack([gamma_0, gamma_1], axis=-3)
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS):
