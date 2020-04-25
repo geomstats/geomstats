@@ -191,7 +191,7 @@ def _mask_from_indices(indices, mask_shape, dtype=float32):
             if hasattr(index, '__iter__'):
                 indices[i_index] = tuple(index)
             else:
-                indices[i_index] = index,
+                indices[i_index] = (index,)
     for index in indices:
         if len(index) != len(mask_shape):
             raise ValueError('Indices must have the same size as shape')
