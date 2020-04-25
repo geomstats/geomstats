@@ -534,7 +534,7 @@ class TestBackends(geomstats.tests.TestCase):
                             [True, True]])
         gs_mask = gs.array([[False, False],
                             [False, True],
-                            [True, True,]])
+                            [True, True]])
 
         np_array[np_mask] = _np.zeros_like(np_array[np_mask])
         np_array[~np_mask] = 4 * np_array[~np_mask]
