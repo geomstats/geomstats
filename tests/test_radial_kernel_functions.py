@@ -28,14 +28,14 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
 
     def test_check_distance(self):
         """Test the function checking the distance parameter."""
-        distance = gs.array([[1 / 2], [- 2]])
+        distance = gs.array([[1 / 2], [- 2]], dtype=float)
         self.assertRaises(
             ValueError,
             lambda: uniform_radial_kernel(distance=distance))
 
     def test_check_bandwidth(self):
         """Test the function checking the bandwidth parameter."""
-        distance = gs.array([[1 / 2], [2]])
+        distance = gs.array([[1 / 2], [2]], dtype=float)
         bandwidth = 0
         self.assertRaises(
             ValueError,
@@ -45,7 +45,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
 
     def test_uniform_radial_kernel(self):
         """Test the uniform radial kernel."""
-        distance = gs.array([[1 / 2], [2]])
+        distance = gs.array([[1 / 2], [2]], dtype=float)
         weight = uniform_radial_kernel(
             distance=distance,
             bandwidth=self.bandwidth)
@@ -55,7 +55,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
 
     def test_uniform_radial_kernel_bandwidth(self):
         """Test the bandwidth using the uniform radial kernel ."""
-        distance = gs.array([[1 / 2], [2]])
+        distance = gs.array([[1 / 2], [2]], dtype=float)
         weight = uniform_radial_kernel(
             distance=distance,
             bandwidth=1 / 4)
@@ -145,7 +145,7 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
 
     def test_logistic_radial_kernel(self):
         """Test the logistic radial kernel."""
-        distance = gs.array([[1], [2]])
+        distance = gs.array([[1], [2]], dtype=float)
         bandwidth = 2
         weight = logistic_radial_kernel(
             distance=distance,
