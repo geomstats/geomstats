@@ -188,8 +188,10 @@ def _mask_from_indices(indices, mask_shape, dtype=float32):
 
     for i_index, index in enumerate(indices):
         if not isinstance(index, tuple):
-            indices[i_index] = (index,)
-
+            if hasattr(index, '__iter__'):
+                indices[i_index] = tuple(index)
+            else:
+                indices[i_index] = index,
     for index in indices:
         if len(index) != len(mask_shape):
             raise ValueError('Indices must have the same size as shape')
@@ -291,7 +293,6 @@ def _assignment_single_value_by_sum(x, value, indices, axis=0):
             n_samples, indices, tile_shape, axis, x.dtype)
     else:
         mask = _mask_from_indices(indices, shape(x), x.dtype)
-
     x_new = x + value * mask
     return x_new
 
@@ -338,7 +339,8 @@ def assignment_by_sum(x, values, indices, axis=0):
     """
     if _is_boolean(indices):
         if ndim(array(indices)) > 1:
-            indices = tf.where(indices)
+            indices_tensor = tf.where(indices)
+            indices = [tuple(ind) for ind in indices_tensor]
         else:
             indices_from_booleans = [
                 index for index, val in enumerate(indices) if val]
@@ -347,7 +349,7 @@ def assignment_by_sum(x, values, indices, axis=0):
             indices = list(product(*indices_along_dims))
     if tf.rank(values) == 0:
         return _assignment_single_value_by_sum(x, values, indices, axis)
-    values = flatten(array(values))
+    values = cast(flatten(array(values)), x.dtype)
 
     single_index = not isinstance(indices, list)
     if tf.is_tensor(indices):
@@ -362,9 +364,8 @@ def assignment_by_sum(x, values, indices, axis=0):
     if len(values) != len(indices):
         raise ValueError('Either one value or as many values as indices')
 
-    for (nb_index, index) in enumerate(indices):
-        x = _assignment_single_value_by_sum(
-            x, values[nb_index], index, axis)
+    for i_index, index in enumerate(indices):
+        x = _assignment_single_value_by_sum(x, values[i_index], index, axis)
     return x
 
 
@@ -458,7 +459,8 @@ def assignment(x, values, indices, axis=0):
     """
     if _is_boolean(indices):
         if ndim(array(indices)) > 1:
-            indices = tf.where(indices)
+            indices_tensor = tf.where(indices)
+            indices = [tuple(ind) for ind in indices_tensor]
         else:
             indices_from_booleans = [
                 index for index, val in enumerate(indices) if val]
