@@ -22,13 +22,30 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
         """Define the parameters to test."""
         gs.random.seed(1234)
         self.bandwidth = 1
-        self.dim = 1
+        self.dim = 2
         self.space = Euclidean(dim=self.dim)
         self.distance = self.space.metric.dist
 
+    def test_check_distance(self):
+        """Test the function checking the distance parameter."""
+        distance = gs.array([[1 / 2], [- 2]])
+        self.assertRaises(
+            ValueError,
+            lambda: uniform_radial_kernel(distance=distance))
+
+    def test_check_bandwidth(self):
+        """Test the function checking the bandwidth parameter."""
+        distance = gs.array([[1 / 2], [2]])
+        bandwidth = 0
+        self.assertRaises(
+            ValueError,
+            lambda: uniform_radial_kernel(
+                distance=distance,
+                bandwidth=bandwidth))
+
     def test_uniform_radial_kernel(self):
         """Test the uniform radial kernel."""
-        distance = gs.array([[0.5], [2]])
+        distance = gs.array([[1 / 2], [2]])
         weight = uniform_radial_kernel(
             distance=distance,
             bandwidth=self.bandwidth)
@@ -36,162 +53,169 @@ class TestRadialKernelFunctions(geomstats.tests.TestCase):
         expected = gs.array([[1], [0]])
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
     def test_uniform_radial_kernel_bandwidth(self):
         """Test the bandwidth using the uniform radial kernel ."""
-        distance = 0.5
+        distance = gs.array([[1 / 2], [2]])
         weight = uniform_radial_kernel(
             distance=distance,
-            bandwidth=0.25)
+            bandwidth=1 / 4)
         result = weight
-        expected = 0
+        expected = gs.array([[0], [0]])
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_only
     def test_triangular_radial_kernel(self):
         """Test the triangular radial kernel."""
-        distance = 1
+        distance = gs.array([[1], [2]], dtype=float)
         bandwidth = 2
         weight = triangular_radial_kernel(
             distance=distance,
             bandwidth=bandwidth)
         result = weight
-        expected = 1 / 2
+        expected = gs.array([[1 / 2], [0]], dtype=float)
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
-    @geomstats.tests.np_only
     def test_parabolic_radial_kernel(self):
         """Test the parabolic radial kernel."""
-        distance = 1
+        distance = gs.array([[1], [2]], dtype=float)
         bandwidth = 2
         weight = parabolic_radial_kernel(
             distance=distance,
             bandwidth=bandwidth)
         result = weight
-        expected = 3 / 4
+        expected = gs.array([[3 / 4], [0]], dtype=float)
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
-    @geomstats.tests.np_only
     def test_biweight_radial_kernel(self):
         """Test the biweight radial kernel."""
-        distance = 1
+        distance = gs.array([[1], [2]], dtype=float)
         bandwidth = 2
         weight = biweight_radial_kernel(
             distance=distance,
             bandwidth=bandwidth)
         result = weight
-        expected = 9 / 16
+        expected = gs.array([[9 / 16], [0]], dtype=float)
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
-    @geomstats.tests.np_only
     def test_triweight_radial_kernel(self):
         """Test the triweight radial kernel."""
-        distance = 1
+        distance = gs.array([[1], [2]], dtype=float)
         bandwidth = 2
         weight = triweight_radial_kernel(
             distance=distance,
             bandwidth=bandwidth)
         result = weight
-        expected = (3 / 4) ** 3
+        expected = gs.array([[(3 / 4) ** 3], [0]], dtype=float)
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
-    @geomstats.tests.np_only
     def test_tricube_radial_kernel(self):
         """Test the tricube radial kernel."""
-        distance = 1
+        distance = gs.array([[1], [2]], dtype=float)
         bandwidth = 2
         weight = tricube_radial_kernel(
             distance=distance,
             bandwidth=bandwidth)
         result = weight
-        expected = (7 / 8) ** 3
+        expected = gs.array([[(7 / 8) ** 3], [0]], dtype=float)
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
-    @geomstats.tests.np_only
     def test_gaussian_radial_kernel(self):
         """Test the gaussian radial kernel."""
-        distance = 1
+        distance = gs.array([[1], [2]], dtype=float)
         bandwidth = 2
         weight = gaussian_radial_kernel(
             distance=distance,
             bandwidth=bandwidth)
         result = weight
-        expected = gs.exp(- 1 / 8)
+        expected = gs.array(
+            [[gs.exp(- 1 / 8)],
+             [gs.exp(- 1 / 2)]],
+            dtype=float)
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
-    @geomstats.tests.np_only
     def test_cosine_radial_kernel(self):
         """Test the cosine radial kernel."""
-        distance = 0.5
+        distance = gs.array([[1], [2]], dtype=float)
+        bandwidth = 2
         weight = cosine_radial_kernel(
             distance=distance,
-            bandwidth=self.bandwidth)
+            bandwidth=bandwidth)
         result = weight
-        expected = 2 ** (1 / 2) / 2
+        expected = gs.array([[2 ** (1 / 2) / 2], [0]], dtype=float)
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
-    @geomstats.tests.np_only
     def test_logistic_radial_kernel(self):
         """Test the logistic radial kernel."""
-        distance = 0.5
+        distance = gs.array([[1], [2]])
+        bandwidth = 2
         weight = logistic_radial_kernel(
             distance=distance,
-            bandwidth=self.bandwidth)
+            bandwidth=bandwidth)
         result = weight
-        expected = 1 / (gs.exp(1 / 2) + 2 + gs.exp(- 1 / 2))
+        expected = gs.array(
+            [[1 / (gs.exp(1 / 2) + 2 + gs.exp(- 1 / 2))],
+             [1 / (gs.exp(1.0) + 2 + gs.exp(- 1.0))]])
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
-    @geomstats.tests.np_only
     def test_sigmoid_radial_kernel(self):
         """Test the sigmoid radial kernel."""
-        distance = 0.5
+        distance = gs.array([[1], [2]], dtype=float)
+        bandwidth = 2
         weight = sigmoid_radial_kernel(
             distance=distance,
-            bandwidth=self.bandwidth)
+            bandwidth=bandwidth)
         result = weight
-        expected = 1 / (gs.exp(1 / 2) + gs.exp(- 1 / 2))
+        expected = gs.array(
+            [[1 / (gs.exp(1 / 2) + gs.exp(- 1 / 2))],
+             [1 / (gs.exp(1.0) + gs.exp(- 1.0))]],
+            dtype=float)
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
-    @geomstats.tests.np_only
     def test_bump_radial_kernel(self):
         """Test the bump radial kernel."""
-        distance = 0.5
+        distance = gs.array([[1 / 2], [2]], dtype=float)
+        bandwidth = 1
         weight = bump_radial_kernel(
             distance=distance,
-            bandwidth=self.bandwidth)
+            bandwidth=bandwidth)
         result = weight
-        expected = gs.exp(- 1 / (3 / 4))
+        expected = gs.array([[gs.exp(- 1 / (3 / 4))], [0]], dtype=float)
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
-    @geomstats.tests.np_only
     def test_inverse_quadratic_radial_kernel(self):
         """Test the inverse quadratic radial kernel."""
-        distance = 0.5
+        distance = gs.array([[1], [2]], dtype=float)
+        bandwidth = 2
         weight = inverse_quadratic_radial_kernel(
             distance=distance,
-            bandwidth=self.bandwidth)
+            bandwidth=bandwidth)
         result = weight
-        expected = 4 / 5
+        expected = gs.array([[4 / 5], [1 / 2]], dtype=float)
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
-    @geomstats.tests.np_only
     def test_inverse_multiquadric_radial_kernel(self):
         """Test the inverse multiquadric radial kernel."""
-        distance = 0.5
+        distance = gs.array([[1], [2]], dtype=float)
+        bandwidth = 2
         weight = inverse_multiquadric_radial_kernel(
             distance=distance,
-            bandwidth=self.bandwidth)
+            bandwidth=bandwidth)
         result = weight
-        expected = 2 / 5 ** (1 / 2)
+        expected = gs.array(
+            [[2 / 5 ** (1 / 2)],
+             [1 / 2 ** (1 / 2)]],
+            dtype=float)
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
-    @geomstats.tests.np_only
     def test_laplacian_radial_kernel(self):
         """Test the Laplacian radial kernel."""
-        distance = 0.5
+        distance = gs.array([[1], [2]], dtype=float)
+        bandwidth = 2
         weight = laplacian_radial_kernel(
             distance=distance,
-            bandwidth=self.bandwidth)
+            bandwidth=bandwidth)
         result = weight
-        expected = gs.exp(- 1 / 2)
+        expected = gs.array(
+            [[gs.exp(- 1 / 2)],
+             [gs.exp(- 1.0)]],
+            dtype=float)
         self.assertAllClose(expected, result, atol=TOLERANCE)

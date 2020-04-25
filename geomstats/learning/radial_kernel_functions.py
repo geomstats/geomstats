@@ -9,6 +9,22 @@ https://en.wikipedia.org/wiki/Radial_basis_function
 import geomstats.backend as gs
 
 
+def _check_distance(distance):
+    """Check if the distance if a non-negative real number."""
+    if gs.any(distance < 0):
+        raise ValueError('The distance should be a non-negative real number.')
+    distance = gs.array(distance, dtype=float)
+    return distance
+
+
+def _check_bandwidth(bandwidth):
+    """Check if the bandwidth is a positive real number."""
+    if gs.any(bandwidth <= 0):
+        raise ValueError('The bandwidth should be a positive real number.')
+    bandwidth = gs.array(bandwidth, dtype=float)
+    return bandwidth
+
+
 def uniform_radial_kernel(distance, bandwidth=1.0):
     """Uniform radial kernel.
 
@@ -25,10 +41,8 @@ def uniform_radial_kernel(distance, bandwidth=1.0):
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
-    if gs.any(distance < 0):
-        raise ValueError('The distance should be a non-negative real number.')
-    if gs.any(bandwidth <= 0):
-        raise ValueError('The bandwidth should be a positive real number.')
+    distance = _check_distance(distance)
+    bandwidth = _check_bandwidth(bandwidth)
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
@@ -53,15 +67,13 @@ def triangular_radial_kernel(distance, bandwidth=1.0):
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
-    if gs.any(distance < 0):
-        raise ValueError('The distance should be a non-negative real number.')
-    if gs.any(bandwidth <= 0):
-        raise ValueError('The bandwidth should be a positive real number.')
+    distance = _check_distance(distance)
+    bandwidth = _check_bandwidth(bandwidth)
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
         1 - scaled_distance,
-        0)
+        gs.array([0], dtype=float))
     return weight
 
 
@@ -81,15 +93,13 @@ def parabolic_radial_kernel(distance, bandwidth=1.0):
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
-    if gs.any(distance < 0):
-        raise ValueError('The distance should be a non-negative real number.')
-    if gs.any(bandwidth <= 0):
-        raise ValueError('The bandwidth should be a positive real number.')
+    distance = _check_distance(distance)
+    bandwidth = _check_bandwidth(bandwidth)
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
         1 - scaled_distance ** 2,
-        0)
+        gs.array([0], dtype=float))
     return weight
 
 
@@ -109,15 +119,13 @@ def biweight_radial_kernel(distance, bandwidth=1.0):
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
-    if gs.any(distance < 0):
-        raise ValueError('The distance should be a non-negative real number.')
-    if gs.any(bandwidth <= 0):
-        raise ValueError('The bandwidth should be a positive real number.')
+    distance = _check_distance(distance)
+    bandwidth = _check_bandwidth(bandwidth)
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
         (1 - scaled_distance ** 2) ** 2,
-        0)
+        gs.array([0], dtype=float))
     return weight
 
 
@@ -137,15 +145,13 @@ def triweight_radial_kernel(distance, bandwidth=1.0):
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
-    if gs.any(distance < 0):
-        raise ValueError('The distance should be a non-negative real number.')
-    if gs.any(bandwidth <= 0):
-        raise ValueError('The bandwidth should be a positive real number.')
+    distance = _check_distance(distance)
+    bandwidth = _check_bandwidth(bandwidth)
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
         (1 - scaled_distance ** 2) ** 3,
-        0)
+        gs.array([0], dtype=float))
     return weight
 
 
@@ -165,15 +171,13 @@ def tricube_radial_kernel(distance, bandwidth=1.0):
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
-    if gs.any(distance < 0):
-        raise ValueError('The distance should be a non-negative real number.')
-    if gs.any(bandwidth <= 0):
-        raise ValueError('The bandwidth should be a positive real number.')
+    distance = _check_distance(distance)
+    bandwidth = _check_bandwidth(bandwidth)
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
         (1 - scaled_distance ** 3) ** 3,
-        0)
+        gs.array([0], dtype=float))
     return weight
 
 
@@ -193,10 +197,8 @@ def gaussian_radial_kernel(distance, bandwidth=1.0):
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
-    if gs.any(distance < 0):
-        raise ValueError('The distance should be a non-negative real number.')
-    if gs.any(bandwidth <= 0):
-        raise ValueError('The bandwidth should be a positive real number.')
+    distance = _check_distance(distance)
+    bandwidth = _check_bandwidth(bandwidth)
     scaled_distance = distance / bandwidth
     weight = gs.exp(- scaled_distance ** 2 / 2)
     return weight
@@ -218,15 +220,13 @@ def cosine_radial_kernel(distance, bandwidth=1.0):
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
-    if gs.any(distance < 0):
-        raise ValueError('The distance should be a non-negative real number.')
-    if gs.any(bandwidth <= 0):
-        raise ValueError('The bandwidth should be a positive real number.')
+    distance = _check_distance(distance)
+    bandwidth = _check_bandwidth(bandwidth)
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
         gs.cos((gs.pi / 2) * scaled_distance),
-        0)
+        gs.array([0], dtype=float))
     return weight
 
 
@@ -246,10 +246,8 @@ def logistic_radial_kernel(distance, bandwidth=1.0):
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
-    if gs.any(distance < 0):
-        raise ValueError('The distance should be a non-negative real number.')
-    if gs.any(bandwidth <= 0):
-        raise ValueError('The bandwidth should be a positive real number.')
+    distance = _check_distance(distance)
+    bandwidth = _check_bandwidth(bandwidth)
     scaled_distance = distance / bandwidth
     weight = 1 / (gs.exp(scaled_distance) + 2 + gs.exp(- scaled_distance))
     return weight
@@ -271,10 +269,8 @@ def sigmoid_radial_kernel(distance, bandwidth=1.0):
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
-    if gs.any(distance < 0):
-        raise ValueError('The distance should be a non-negative real number.')
-    if gs.any(bandwidth <= 0):
-        raise ValueError('The bandwidth should be a positive real number.')
+    distance = _check_distance(distance)
+    bandwidth = _check_bandwidth(bandwidth)
     scaled_distance = distance / bandwidth
     weight = 1 / (gs.exp(scaled_distance) + gs.exp(- scaled_distance))
     return weight
@@ -296,15 +292,13 @@ def bump_radial_kernel(distance, bandwidth=1.0):
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
-    if gs.any(distance < 0):
-        raise ValueError('The distance should be a non-negative real number.')
-    if gs.any(bandwidth <= 0):
-        raise ValueError('The bandwidth should be a positive real number.')
+    distance = _check_distance(distance)
+    bandwidth = _check_bandwidth(bandwidth)
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
         gs.exp(- 1 / (1 - scaled_distance ** 2)),
-        0)
+        gs.array([0], dtype=float))
     return weight
 
 
@@ -324,10 +318,8 @@ def inverse_quadratic_radial_kernel(distance, bandwidth=1.0):
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
-    if gs.any(distance < 0):
-        raise ValueError('The distance should be a non-negative real number.')
-    if gs.any(bandwidth <= 0):
-        raise ValueError('The bandwidth should be a positive real number.')
+    distance = _check_distance(distance)
+    bandwidth = _check_bandwidth(bandwidth)
     scaled_distance = distance / bandwidth
     weight = 1 / (1 + scaled_distance ** 2)
     return weight
@@ -349,10 +341,8 @@ def inverse_multiquadric_radial_kernel(distance, bandwidth=1.0):
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
-    if gs.any(distance < 0):
-        raise ValueError('The distance should be a non-negative real number.')
-    if gs.any(bandwidth <= 0):
-        raise ValueError('The bandwidth should be a positive real number.')
+    distance = _check_distance(distance)
+    bandwidth = _check_bandwidth(bandwidth)
     scaled_distance = distance / bandwidth
     weight = 1 / (1 + scaled_distance ** 2) ** (1 / 2)
     return weight
@@ -374,10 +364,8 @@ def laplacian_radial_kernel(distance, bandwidth=1.0):
         Array of non-negative real values of the same shape than
         parameter 'distance'.
     """
-    if gs.any(distance < 0):
-        raise ValueError('The distance should be a non-negative real number.')
-    if gs.any(bandwidth <= 0):
-        raise ValueError('The bandwidth should be a positive real number.')
+    distance = _check_distance(distance)
+    bandwidth = _check_bandwidth(bandwidth)
     scaled_distance = distance / bandwidth
     weight = gs.exp(- scaled_distance)
     return weight
