@@ -23,7 +23,8 @@ class SymmetricMatrices(EmbeddedManifold):
 
     def belongs(self, mat, atol=TOLERANCE):
         """Check if mat belongs to the vector space of symmetric matrices."""
-        return self.embedding_manifold.is_symmetric(mat=mat, atol=atol)
+        check_shape = self.embedding_manifold.belongs(mat)
+        return gs.logical_and(check_shape, Matrices.is_symmetric(mat, atol))
 
     def get_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""

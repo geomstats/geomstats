@@ -45,6 +45,11 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         expected = False
         self.assertAllClose(result, expected)
 
+        mats = gs.eye(3)
+        result = SPDMatrices(2).belongs(mats)
+        expected = False
+        self.assertAllClose(result, expected)
+
     def test_belongs_vectorization(self):
         """Test of belongs method."""
         mats = gs.array([
