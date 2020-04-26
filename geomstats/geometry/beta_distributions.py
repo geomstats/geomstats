@@ -118,7 +118,7 @@ class BetaDistributions(EmbeddedManifold):
         """
         data = gs.cast(data, gs.float32)
         data = gs.to_ndarray(
-            gs.where(data == 1., gs.array(1. - EPSILON), data), to_ndim=2)
+            gs.where(data == 1., 1. - EPSILON, data), to_ndim=2)
         parameters = []
         for sample in data:
             param_a, param_b, _, _ = beta.fit(sample, floc=loc, fscale=scale)

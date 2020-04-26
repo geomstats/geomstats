@@ -55,7 +55,6 @@ from torch import (  # NOQA
     tanh,
     tril,
     uint8,
-    where,
     zeros,
     zeros_like
 )
@@ -535,6 +534,14 @@ def mean(x, axis=None):
     if axis is None:
         return torch.mean(x)
     return torch.mean(x, dim=axis)
+
+
+def where(condition, x, y):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    if not torch.is_tensor(y):
+        y = torch.tensor(y)
+    return torch.where(condition, x, y)
 
 
 def get_mask_i_float(i, n):
