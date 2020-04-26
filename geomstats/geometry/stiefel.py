@@ -4,7 +4,7 @@ A set of all orthonormal p-frames in n-dimensional space, where p <= n
 """
 
 import geomstats.backend as gs
-import geomstats.error
+import geomstats.errors
 import geomstats.vectorization
 from geomstats import algebra_utils
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
@@ -31,8 +31,8 @@ class Stiefel(EmbeddedManifold):
     """
 
     def __init__(self, n, p):
-        geomstats.error.check_integer(n, 'n')
-        geomstats.error.check_integer(p, 'p')
+        geomstats.errors.check_integer(n, 'n')
+        geomstats.errors.check_integer(p, 'p')
         if p > n:
             raise ValueError('p needs to be smaller than n.')
 

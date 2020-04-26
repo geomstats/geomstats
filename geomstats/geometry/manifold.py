@@ -4,7 +4,7 @@ In other words, a topological space that locally resembles
 Euclidean space near each point.
 """
 
-import geomstats.error
+import geomstats.errors
 
 
 ATOL = 1e-6
@@ -16,8 +16,8 @@ class Manifold:
     def __init__(
             self, dim, default_point_type='vector',
             default_coords_type='intrinsic'):
-        geomstats.error.check_integer(dim, 'dim')
-        geomstats.error.check_parameter_accepted_values(
+        geomstats.errors.check_integer(dim, 'dim')
+        geomstats.errors.check_parameter_accepted_values(
             default_point_type, 'default_point_type', ['vector', 'matrix'])
 
         self.dim = dim

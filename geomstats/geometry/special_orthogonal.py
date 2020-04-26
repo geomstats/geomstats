@@ -1,7 +1,7 @@
 """Exposes the `SpecialOrthogonal` group class."""
 
 import geomstats.backend as gs
-import geomstats.error
+import geomstats.errors
 import geomstats.vectorization
 from geomstats import algebra_utils
 from geomstats.geometry.general_linear import GeneralLinear
@@ -844,11 +844,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         -------
         rot_mat : array-like, shape=[n_samples, n, n]
         """
-        geomstats.error.check_parameter_accepted_values(
+        geomstats.errors.check_parameter_accepted_values(
             extrinsic_or_intrinsic,
             'extrinsic_or_intrinsic',
             ['extrinsic', 'intrinsic'])
-        geomstats.error.check_parameter_accepted_values(
+        geomstats.errors.check_parameter_accepted_values(
             order,
             'order',
             ['xyz', 'zyx'])
@@ -1214,7 +1214,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         -------
         jacobian : array-like, shape=[n_samples, 3, 3]
         """
-        geomstats.error.check_parameter_accepted_values(
+        geomstats.errors.check_parameter_accepted_values(
             left_or_right, 'left_or_right', ['left', 'right'])
 
         point = self.regularize(point)

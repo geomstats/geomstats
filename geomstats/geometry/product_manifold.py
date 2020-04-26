@@ -3,7 +3,7 @@
 import joblib
 
 import geomstats.backend as gs
-import geomstats.error
+import geomstats.errors
 import geomstats.vectorization
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.product_riemannian_metric import \
@@ -37,7 +37,7 @@ class ProductManifold(Manifold):
     # FIXME(nguigs): This only works for 1d points
 
     def __init__(self, manifolds, default_point_type='vector', n_jobs=1):
-        geomstats.error.check_parameter_accepted_values(
+        geomstats.errors.check_parameter_accepted_values(
             default_point_type, 'default_point_type', ['vector', 'matrix'])
 
         self.dims = [manifold.dim for manifold in manifolds]
@@ -126,7 +126,7 @@ class ProductManifold(Manifold):
         """
         if point_type is None:
             point_type = self.default_point_type
-        geomstats.error.check_parameter_accepted_values(
+        geomstats.errors.check_parameter_accepted_values(
             point_type, 'point_type', ['vector', 'matrix'])
 
         if point_type == 'vector':
@@ -158,7 +158,7 @@ class ProductManifold(Manifold):
         """
         if point_type is None:
             point_type = self.default_point_type
-        geomstats.error.check_parameter_accepted_values(
+        geomstats.errors.check_parameter_accepted_values(
             point_type, 'point_type', ['vector', 'matrix'])
 
         if point_type == 'vector':
