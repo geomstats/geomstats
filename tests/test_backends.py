@@ -786,3 +786,19 @@ class TestBackends(geomstats.tests.TestCase):
         gs_result = gs.isclose(gs_array, 22., rtol=1e-8, atol=1e-7)
         self.assertAllCloseToNp(gs_result, np_result)
 
+    def test_where(self):
+        base_list = [
+            [[22., 55.],
+             [33., 88.]],
+            [[34., 12.],
+             [67., 35.]]]
+        np_array = _np.array(base_list)
+        gs_array = gs.array(base_list)
+
+        np_result = _np.where(np_array > 20., 0., np_array)
+        gs_result = gs.where(gs_array > 20., 0., gs_array)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.where(np_array > 20, np_array**2, 4.)
+        gs_result = gs.where(gs_array > 20, gs_array**2, 4.)
+        self.assertAllCloseToNp(gs_result, np_result)
