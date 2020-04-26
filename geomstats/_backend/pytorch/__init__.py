@@ -481,7 +481,9 @@ def triu_indices(*args, **kwargs):
 
 def tile(x, y):
     # TODO(johmathe): Native tile implementation
-    return array(_np.tile(x, y))
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    return x.repeat(y)
 
 
 def expand_dims(x, axis=0):
