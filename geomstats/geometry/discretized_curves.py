@@ -18,7 +18,6 @@ class DiscretizedCurves(Manifold):
     """Space of discretized curves sampled at points in ambient_manifold."""
 
     def __init__(self, ambient_manifold):
-        """Initialize DiscretizedCurves object."""
         super(DiscretizedCurves, self).__init__(dim=math.inf)
         self.ambient_manifold = ambient_manifold
         self.l2_metric = L2Metric(self.ambient_manifold)
@@ -29,7 +28,8 @@ class DiscretizedCurves(Manifold):
 
         Parameters
         ----------
-        point :
+        point : array-like
+            Point representing a discretized curve.
 
         Returns
         -------
@@ -95,7 +95,6 @@ class SRVMetric(RiemannianMetric):
     def pointwise_norm(self, tangent_vec, base_curve):
         """Compute the norm of tangent vector components at base curve.
 
-        TODO: (revise this to refer to action on single elements)
         Compute the norms of the components of a (series of) tangent
         vector(s) at (a) base curve(s).
 
@@ -108,6 +107,7 @@ class SRVMetric(RiemannianMetric):
         -------
         norm :
         """
+        # TODO: Revise this to refer to action on single elements
         sq_norm = self.pointwise_inner_product(tangent_vec_a=tangent_vec,
                                                tangent_vec_b=tangent_vec,
                                                base_curve=base_curve)
