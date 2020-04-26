@@ -329,13 +329,12 @@ def sqrt(x):
     return torch.sqrt(x)
 
 
-# TODO(nkoep): PyTorch exposes its own 'isclose' function, which is currently
-#              undocumented for some reason, see
-#                https://github.com/pytorch/pytorch/issues/35471
-#              In the future, we may simply use that function instead.
-def isclose(*args, **kwargs):
-    # TODO(ninamiolane): Use native torch.isclose
-    return torch.from_numpy(_np.array(_np.isclose(*args, **kwargs)))
+def isclose(x, y, rtol=1e-5, atol=1e-8):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    if not torch.is_tensor(y):
+        y = torch.tensor(y)
+    return torch.isclose(x, y, atol=atol, rtol=rtol)
 
 
 def sum(x, axis=None, keepdims=None, **kwargs):
@@ -480,7 +479,6 @@ def triu_indices(*args, **kwargs):
 
 
 def tile(x, y):
-    # TODO(johmathe): Native tile implementation
     if not torch.is_tensor(x):
         x = torch.tensor(x)
     return x.repeat(y)
