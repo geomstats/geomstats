@@ -37,8 +37,8 @@ def check_belongs(point, manifold):
     """
     if not gs.all(manifold.belongs(point)):
         raise RuntimeError(
-            'Some points do not belong to manifold \'%s\'.'
-            % type(manifold).__name__)
+            'Some points do not belong to manifold \'%s\' of dimension %d.'
+            % (type(manifold).__name__, manifold.dim))
 
 
 def check_parameter_accepted_values(param, param_name, accepted_values):
