@@ -137,9 +137,8 @@ def any(x, axis=None):
                 axis[i_axis] = ndim(x) + one_axis
         return torch.any(
             torch.any(x.bool(), axis[1]), axis[0])
-    else:
-        raise NotImplementedError(
-            'any not implemented for more than two axes.')
+    raise NotImplementedError(
+        'any not implemented for more than two axes.')
 
 
 def cast(x, dtype):
@@ -237,9 +236,8 @@ def all(x, axis=None):
                 axis[i_axis] = ndim(x) + one_axis
         return torch.all(
             torch.all(x.bool(), axis[1]), axis[0])
-    else:
-        raise NotImplementedError(
-            'any not implemented for more than two axes.')
+    raise NotImplementedError(
+        'any not implemented for more than two axes.')
 
 
 def get_slice(x, indices):
