@@ -607,7 +607,8 @@ class HypersphereMetric(RiemannianMetric):
         """
         return self.dist(point_a, point_b) ** 2
 
-    def parallel_transport(self, tangent_vec_a, tangent_vec_b, base_point):
+    @staticmethod
+    def parallel_transport(tangent_vec_a, tangent_vec_b, base_point):
         """Compute the parallel transport of a tangent vector.
 
         Closed-form solution for the parallel transport of a tangent vector a
