@@ -62,6 +62,8 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
     default_point_type = 'vector'
 
     def __init__(self, dim, coords_type='extrinsic', scale=1):
+        # TODO(ninamiolane): Call __init__ from parent classes
+        # and remove ignore rule of corresponding DeepSource issue
         self.scale = scale
         self.dim = dim
         self.coords_type = coords_type
