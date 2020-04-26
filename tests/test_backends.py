@@ -693,20 +693,15 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllCloseToNp(gs_result, np_result)
 
     def test_any(self):
-        np_array = _np.array([
+        base_list = [
             [[22., 55.],
              [33., 88.],
              [77., 99.]],
             [[34., 12.],
              [2., -3.],
-             [67., 35.]]])
-        gs_array = gs.array([
-            [[22., 55.],
-             [33., 88.],
-             [77., 99.]],
-            [[34., 12.],
-             [2., -3.],
-             [67., 35.]]])
+             [67., 35.]]]
+        np_array = _np.array(base_list)
+        gs_array = gs.array(base_list)
 
         np_result = _np.any(np_array > 30.)
         gs_result = gs.any(gs_array > 30.)
@@ -725,20 +720,15 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllCloseToNp(gs_result, np_result)
 
     def test_all(self):
-        np_array = _np.array([
+        base_list = [
             [[22., 55.],
              [33., 88.],
              [77., 99.]],
             [[34., 12.],
              [2., -3.],
-             [67., 35.]]])
-        gs_array = gs.array([
-            [[22., 55.],
-             [33., 88.],
-             [77., 99.]],
-            [[34., 12.],
-             [2., -3.],
-             [67., 35.]]])
+             [67., 35.]]]
+        np_array = _np.array(base_list)
+        gs_array = gs.array(base_list)
 
         np_result = _np.all(np_array > 30.)
         gs_result = gs.all(gs_array > 30.)
@@ -757,16 +747,13 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllCloseToNp(gs_result, np_result)
 
     def test_trace(self):
-        np_array = _np.array([
+        base_list = [
             [[22., 55.],
              [33., 88.]],
             [[34., 12.],
-             [67., 35.]]])
-        gs_array = gs.array([
-            [[22., 55.],
-             [33., 88.]],
-            [[34., 12.],
-             [67., 35.]]])
+             [67., 35.]]]
+        np_array = _np.array(base_list)
+        gs_array = gs.array(base_list)
 
         np_result = _np.trace(np_array)
         gs_result = gs.trace(gs_array)
@@ -779,3 +766,23 @@ class TestBackends(geomstats.tests.TestCase):
         np_result = _np.trace(np_array, axis1=-1, axis2=-2)
         gs_result = gs.trace(gs_array, axis1=-1, axis2=-2)
         self.assertAllCloseToNp(gs_result, np_result)
+
+    def test_isclose(self):
+        base_list = [
+            [[22. + 1e-5, 22. + 1e-7],
+             [22. + 1e-6, 88. + 1e-4]]]
+        np_array = _np.array(base_list)
+        gs_array = gs.array(base_list)
+
+        np_result = _np.isclose(np_array, 22.)
+        gs_result = gs.isclose(gs_array, 22.)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.isclose(np_array, 22., atol=1e-8)
+        gs_result = gs.isclose(gs_array, 22., atol=1e-8)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.isclose(np_array, 22., rtol=1e-8, atol=1e-7)
+        gs_result = gs.isclose(gs_array, 22., rtol=1e-8, atol=1e-7)
+        self.assertAllCloseToNp(gs_result, np_result)
+
