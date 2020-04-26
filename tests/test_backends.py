@@ -654,8 +654,8 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllCloseToNp(gs_result, np_array_4_list)
 
         n_samples = 3
-        theta = _np.random.rand(5)
-        phi = _np.random.rand(5)
+        theta = _np.array([0.1, 0.2, 0.3, 0.4, 5.5])
+        phi = _np.array([0.11, 0.22, 0.33, 0.44, -.55])
         np_array = _np.ones((n_samples, 5, 4))
         gs_array = gs.array(np_array)
         np_array[0, :, 0] += _np.cos(theta) * _np.cos(phi)
