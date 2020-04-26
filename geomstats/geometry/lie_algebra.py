@@ -7,7 +7,7 @@ in that base. This base will be provided in child classes
 (e.g. SkewSymmetricMatrices).
 """
 import geomstats.backend as gs
-import geomstats.error
+import geomstats.errors
 from ._bch_coefficients import BCH_COEFFICIENTS
 
 
@@ -25,8 +25,8 @@ class MatrixLieAlgebra:
             The amount of rows and columns in the matrix representation of the
             Lie algebra
         """
-        geomstats.error.check_integer(dim, 'dim')
-        geomstats.error.check_integer(n, 'n')
+        geomstats.errors.check_integer(dim, 'dim')
+        geomstats.errors.check_integer(n, 'n')
         self.dim = dim
         self.n = n
         self.basis = None

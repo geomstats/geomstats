@@ -5,7 +5,7 @@ from scipy.integrate import solve_bvp
 from scipy.stats import beta
 
 import geomstats.backend as gs
-import geomstats.error
+import geomstats.errors
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -83,9 +83,8 @@ class BetaDistributions(EmbeddedManifold):
         -------
         samples : array-like, shape=[n_points, n_samples]
         """
+        geomstats.errors.check_belongs(point, self)
         point = gs.to_ndarray(point, to_ndim=2)
-        geomstats.error.check_belongs(
-            point, self, 'beta_distributions')
         samples = []
         for param_a, param_b in point:
             samples.append(gs.array(
