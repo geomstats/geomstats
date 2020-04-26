@@ -7,6 +7,7 @@ import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+import logging
 
 TOLERANCE = 1e-6
 EPSILON = 1e-6
@@ -104,7 +105,16 @@ class PoincareBall(Hyperbolic):
                          means,
                          variances,
                          metric):
-        """Return the probability density function of a GMM."""
+        """Return the probability density function of a GMM.
+
+        Parameters
+        ----------
+        weighted_distances : array-like, shape=[n_gaussian,]
+            Mean of the weighted distances between training data
+            and current barycentres. The weights of each data sample
+            corresponds to the probability of belonging to a component
+            of the Gaussian mixture model.
+        """
         mesh_data_units = gs.expand_dims(mesh_data, 1)
 
         mesh_data_units = gs.repeat(mesh_data_units, len(means), axis=1)
@@ -402,13 +412,10 @@ class Normalization_Factor_Storage():
     ----------
     dim : int
         Number of dimensions of the Poincaré Ball.
-
     variances : array-like, shape=[n_variances,]
         An array of standard deviations.
-
     normalizastion_factor_var : array-like, shape=[n_variances,]
         An array of computed normalization factor.
-
     phi_inv_var : array-like, shape=[n_variances,]
         An array of the computed inverse of a function phi
         whose expression is closed-form
@@ -416,7 +423,7 @@ class Normalization_Factor_Storage():
         {\mathstrut d\sigma}\log \zeta_m(\sigma)'
         where :math:'\sigma' denotes the variance
         and :math:'\zeta' the normalisation coefficient
-        and :math:'m' the dimension
+        and :math:'m' the dimension.
     """
 
     def __init__(self, variances, dim):
@@ -433,23 +440,23 @@ class Normalization_Factor_Storage():
         cond_3 = self.normalisation_factor_var.sum() == float('-inf')
 
         if cond_1 or cond_2 or cond_3:
-            print('WARNING :\n'
-                  'untracktable normalisation factor :')
-            max_nf = len(variances)
+            logging.warning('WARNING :\n'
+                             'untracktable normalisation factor :')
 
             limit_nf = ((self.normalisation_factor_var /
                          self.normalisation_factor_var)
                         * 0).nonzero()[0].item()
+            max_nf = len(variances)
             self.variances = self.variances[0:limit_nf]
             self.normalisation_factor_var = \
                 self.normalisation_factor_var[0:limit_nf]
             if cond_1:
-                print('\t Nan value in processing normalisation factor')
+                logging.warning('\t Nan value in processing normalisation factor')
             if cond_2 or cond_3:
-                print('\t +-inf value in processing normalisation factor')
+                raise ValueError('\t +-inf value in processing normalisation factor')
 
-            print('\t Max variance is now : ', self.variances[-1])
-            print('\t Number of possible variance is now: '
+            logging.warning('\t Max variance is now : ', self.variances[-1])
+            logging.warning('\t Number of possible variance is now: '
                   + str(len(self.variances)) + '/' + str(max_nf))
 
         _, log_grad_zeta = \
@@ -459,12 +466,12 @@ class Normalization_Factor_Storage():
 
     def find_normalisation_factor(self, variance):
         """Given a variance, finds the normalisation factor."""
-        N, P = variance.shape[0], self.variances.shape[0]
+        n_gaussian, precision = variance.shape[0], self.variances.shape[0]
 
         ref = gs.expand_dims(self.variances, 0)
-        ref = gs.repeat(ref, N, axis=0)
+        ref = gs.repeat(ref, n_gaussian, axis=0)
         val = gs.expand_dims(variance, 1)
-        val = gs.repeat(val, P, axis=1)
+        val = gs.repeat(val, precision, axis=1)
 
         difference = gs.abs(ref - val)
 
@@ -473,7 +480,16 @@ class Normalization_Factor_Storage():
         return self.normalisation_factor_var[index]
 
     def find_variance_from_index(self, weighted_distances):
-        """Return the variance given weighted distances."""
+        """Return the variance given weighted distances.
+
+        Parameters
+        ----------
+        weighted_distances : array-like, shape=[n_gaussian,]
+            Mean of the weighted distances between training data
+            and current barycentres. The weights of each data sample
+            corresponds to the probability of belonging to a component
+            of the Gaussian mixture model.
+        """
         n_gaussian, precision = \
             weighted_distances.shape[0], self.variances.shape[0]
 
