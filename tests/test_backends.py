@@ -653,20 +653,24 @@ class TestBackends(geomstats.tests.TestCase):
             gs_array_4_list, 1, [(0, 1), (1, 1)], axis=1)
         self.assertAllCloseToNp(gs_result, np_array_4_list)
 
-        # TODO(pchauchat): Fix this test
-        # n_samples = 3
-        # theta = _np.array([0.1, 0.2, 0.3, 0.4, 5.5])
-        # phi = _np.array([0.11, 0.22, 0.33, 0.44, -.55])
-        # np_array = _np.ones((n_samples, 5, 4))
-        # gs_array = gs.array(np_array)
-        # np_array[0, :, 0] += _np.cos(theta) * _np.cos(phi)
-        # np_array[0, :, 1] -= _np.sin(theta) * _np.sin(phi)
-        # gs_array = gs.assignment_by_sum(
-        #     gs_array, gs.cos(theta) * gs.cos(phi), (0, 0), axis=1)
-        # gs_array = gs.assignment_by_sum(
-        #     gs_array, - gs.sin(theta) * gs.sin(phi), (0, 1), axis=1)
-        # print(gs_array, np_array)
-        # self.assertAllCloseToNp(gs_array, np_array)
+        n_samples = 3
+        theta = _np.array([0.1, 0.2, 0.3, 0.4, 5.5])
+        phi = _np.array([0.11, 0.22, 0.33, 0.44, -.55])
+        np_array = _np.ones((n_samples, 5, 4))
+        gs_array = gs.array(np_array)
+
+        gs_array = gs.assignment_by_sum(
+            gs_array, gs.cos(theta) * gs.cos(phi), (0, 0), axis=1)
+        gs_array = gs.assignment_by_sum(
+            gs_array, - gs.sin(theta) * gs.sin(phi), (0, 1), axis=1)
+
+        np_array[0, :, 0] += _np.cos(theta) * _np.cos(phi)
+        np_array[0, :, 1] -= _np.sin(theta) * _np.sin(phi)
+
+        # TODO(ninamiolane): This test fails 15% of the time,
+        # when gs and _np computations are in the reverse order.
+        # We should investigate this.
+        self.assertAllCloseToNp(gs_array, np_array)
 
         np_array = _np.array([
             [22., 55.],
