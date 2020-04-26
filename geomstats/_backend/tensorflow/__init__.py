@@ -89,9 +89,18 @@ def array(x, dtype=None):
     return tf.convert_to_tensor(x, dtype=dtype)
 
 
-# TODO(nkoep): Handle the optional axis arguments.
-def trace(a, axis1=0, axis2=1):
-    return tf.linalg.trace(a)
+def trace(x, axis1=0, axis2=1):
+    min_axis = min(axis1, axis2)
+    max_axis = max(axis1, axis2)
+    if min_axis == 1 and max_axis == 2:
+        return tf.einsum('...ii', x)
+    if min_axis == -2 and max_axis == -1:
+        return tf.einsum('...ii', x)
+    if min_axis == 0 and max_axis == 1:
+        return tf.einsum('ii...', x)
+    if min_axis == 0 and max_axis == 2:
+        return tf.einsum('i...i', x)
+    raise NotImplementedError()
 
 
 # TODO(nkoep): Handle the optional axis arguments.

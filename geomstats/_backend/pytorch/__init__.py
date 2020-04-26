@@ -354,10 +354,12 @@ def einsum(*args, **kwargs):
     einsum_str = args[0]
     input_tensors_list = args[1:]
 
+    if len(input_tensors_list) == 1:
+        return torch.einsum(einsum_str, input_tensors_list)
+
     einsum_list = einsum_str.split('->')
     input_str = einsum_list[0]
-    if len(einsum_list) > 1:
-        output_str = einsum_list[1]
+    output_str = einsum_list[1]
 
     input_str_list = input_str.split(',')
 
@@ -366,11 +368,6 @@ def einsum(*args, **kwargs):
 
     if all_ellipsis:
         ndims = [len(input_str[3:]) for input_str in input_str_list]
-
-        if len(input_str_list) == 1:
-        tensor_a = input_tensors_list[0]
-        initial_ndim_a = tensor_a.ndim
-        tensor_a = to_ndarray(tensor_a, to_ndim=ndims[0] + 1)
 
         if len(input_str_list) > 2:
             raise NotImplementedError(
@@ -444,18 +441,18 @@ def squeeze(x, axis=None):
     return torch.squeeze(x, dim=axis)
 
 
-def trace(x, axis1=None, axis2=None):
-    if axis1 is None and axis2 is None:
-        return einsum('...ii', x)
-    if axis1 == 1 and axis2 == 2:
-        return einsum('ii...', x)
-    if axis1 == -1 and axis2 == -2:
-        return einsum('...ii', x)
-    if axis1 == 0 and axis2 == 1:
-        return einsum('ii...', x)
+def trace(x, axis1=0, axis2=1):
+    min_axis = min(axis1, axis2)
+    max_axis = max(axis1, axis2)
+    if min_axis == 1 and max_axis == 2:
+        return torch.einsum('...ii', x)
+    if min_axis == -2 and max_axis == -1:
+        return torch.einsum('...ii', x)
+    if min_axis == 0 and max_axis == 1:
+        return torch.einsum('ii...', x)
+    if min_axis == 0 and max_axis == 2:
+        return torch.einsum('i...i', x)
     raise NotImplementedError()
-    #np_trace = _np.trace(*args, **kwargs)
-    #return torch.from_numpy(_np.array(np_trace)).float()
 
 
 def arctanh(x):

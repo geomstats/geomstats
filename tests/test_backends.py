@@ -759,19 +759,23 @@ class TestBackends(geomstats.tests.TestCase):
     def test_trace(self):
         np_array = _np.array([
             [[22., 55.],
-             [33., 88.],
-             [77., 99.]],
+             [33., 88.]],
             [[34., 12.],
-             [2., -3.],
              [67., 35.]]])
         gs_array = gs.array([
             [[22., 55.],
-             [33., 88.],
-             [77., 99.]],
+             [33., 88.]],
             [[34., 12.],
-             [2., -3.],
              [67., 35.]]])
 
         np_result = _np.trace(np_array)
         gs_result = gs.trace(gs_array)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.trace(np_array, axis1=1, axis2=2)
+        gs_result = gs.trace(gs_array, axis1=1, axis2=2)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.trace(np_array, axis1=-1, axis2=-2)
+        gs_result = gs.trace(gs_array, axis1=-1, axis2=-2)
         self.assertAllCloseToNp(gs_result, np_result)
