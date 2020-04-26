@@ -54,16 +54,3 @@ class EmbeddedManifold(Manifold):
         """
         raise NotImplementedError(
             'projection is not implemented.')
-
-    def projection_to_tangent_space(self, vector, base_point):
-        """Project a vector to a tangent space of the embedded manifold.
-
-        Parameters
-        ----------
-        vector : array-like, shape=[n_samples, dim_embedding]
-            Vector at the tangent space of the embedding manifold.
-        base_point : array-like, shape=[n_samples, dim_embedding]
-            Point on the embedded manifold, in extrinsic coordinates.
-        """
-        raise NotImplementedError(
-            'projection_to_tangent_space is not implemented.')

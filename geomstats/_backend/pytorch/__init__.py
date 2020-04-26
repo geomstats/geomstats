@@ -43,6 +43,7 @@ from torch import (  # NOQA
     nonzero,
     ones,
     ones_like,
+    polygamma,
     pow as power,
     repeat_interleave as repeat,
     reshape,
@@ -187,6 +188,8 @@ def array(val, dtype=None):
             for index, t in enumerate(val):
                 if torch.is_tensor(t) and t.dtype != local_dtype:
                     cast(t, local_dtype)
+                elif torch.is_tensor(t):
+                    val[index] = cast(t, dtype=local_dtype)
                 else:
                     val[index] = torch.tensor(t, dtype=local_dtype)
             val = stack(val)
@@ -197,10 +200,7 @@ def array(val, dtype=None):
         val = _np.array(val)
 
     if isinstance(val, _np.ndarray):
-        if val.dtype == bool:
-            val = torch.from_numpy(_np.array(val, dtype=_np.uint8))
-        else:
-            val = torch.from_numpy(val)
+        val = torch.from_numpy(val)
 
     if not isinstance(val, torch.Tensor):
         val = torch.Tensor([val])

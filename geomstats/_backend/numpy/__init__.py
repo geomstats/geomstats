@@ -87,6 +87,7 @@ from autograd.numpy import (  # NOQA
     zeros,
     zeros_like
 )
+from autograd.scipy.special import polygamma # NOQA
 from scipy.sparse import coo_matrix
 
 from . import linalg  # NOQA

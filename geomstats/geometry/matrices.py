@@ -137,7 +137,7 @@ class Matrices(Manifold):
         return cls.equal(mat, - cls.transpose(mat), atol)
 
     @classmethod
-    def make_symmetric(cls, mat):
+    def to_symmetric(cls, mat):
         """Make a matrix symmetric, by averaging with its transpose.
 
         Parameters
@@ -151,7 +151,7 @@ class Matrices(Manifold):
         return 1 / 2 * (mat + cls.transpose(mat))
 
     @classmethod
-    def make_skew_symmetric(cls, mat):
+    def to_skew_symmetric(cls, mat):
         """
         Make a matrix skew-symmetric, by averaging with minus its transpose.
 

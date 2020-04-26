@@ -75,6 +75,7 @@ BACKEND_ATTRIBUTES = {
         'ones',
         'ones_like',
         'outer',
+        'polygamma',
         'power',
         'repeat',
         'reshape',

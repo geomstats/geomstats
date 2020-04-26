@@ -1,6 +1,5 @@
 """Statistical Manifold of beta distributions with the Fisher metric."""
 
-from autograd.scipy.special import polygamma
 from scipy.integrate import odeint
 from scipy.integrate import solve_bvp
 from scipy.stats import beta
@@ -10,6 +9,7 @@ import geomstats.error
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 N_STEPS = 100
 EPSILON = 1e-6
@@ -24,8 +24,9 @@ class BetaDistributions(EmbeddedManifold):
     def __init__(self):
         super(BetaDistributions, self).__init__(
             dim=2, embedding_manifold=Euclidean(dim=2))
+        self.metric = BetaMetric()
 
-    def belongs(self, point, point_type=None):
+    def belongs(self, point):
         """Evaluate if a point belongs to the manifold of beta distributions.
 
         The statistical manifold of beta distributions is the upper right
@@ -41,16 +42,14 @@ class BetaDistributions(EmbeddedManifold):
         belongs : array-like, shape=[n_samples, 1]
             array of booleans indicating whether point belongs the Beta
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        n_points, point_dim = point.shape
+        point_dim = point.shape[-1]
         belongs = point_dim == self.dim
-        belongs = gs.to_ndarray(belongs, to_ndim=1)
-        belongs = gs.tile(belongs, n_points)
-        belongs = belongs * gs.greater(point, 0).all(axis=1)
-        return belongs[0] if n_points == 1 else belongs
+        belongs = gs.logical_and(
+            belongs, gs.all(gs.greater(point, 0.), axis=-1))
+        return belongs
 
     @staticmethod
-    def random_uniform(n_samples=1, bound=10.0):
+    def random_uniform(n_samples=1, bound=5.):
         """Sample parameters of beta distributions.
 
         The uniform distribution on [0, bound]^2 is used.
@@ -65,7 +64,8 @@ class BetaDistributions(EmbeddedManifold):
         -------
         samples : array-like, shape=[n_samples, 2]
         """
-        return bound * gs.random.rand(n_samples, 2)
+        size = (2,) if n_samples == 1 else (n_samples, 2)
+        return bound * gs.random.rand(*size)
 
     def sample(self, point, n_samples=1):
         """Sample from the beta distribution.
@@ -88,7 +88,8 @@ class BetaDistributions(EmbeddedManifold):
             point, self, 'beta_distributions')
         samples = []
         for param_a, param_b in point:
-            samples.append(beta.rvs(param_a, param_b, size=n_samples))
+            samples.append(gs.array(
+                beta.rvs(param_a, param_b, size=n_samples)))
         return samples[0] if len(point) == 1 else gs.stack(samples)
 
     @staticmethod
@@ -115,8 +116,9 @@ class BetaDistributions(EmbeddedManifold):
         -------
         parameter : array-like, shape=[n_samples, 2]
         """
+        data = gs.cast(data, gs.float32)
         data = gs.to_ndarray(
-            gs.where(data == 1., 1 - EPSILON, data), to_ndim=2)
+            gs.where(data == 1., gs.array(1. - EPSILON), data), to_ndim=2)
         parameters = []
         for sample in data:
             param_a, param_b, _, _ = beta.fit(sample, floc=loc, fscale=scale)
@@ -128,7 +130,7 @@ class BetaMetric(RiemannianMetric):
     """Class for the Fisher information metric on beta distributions."""
 
     def __init__(self):
-        super(RiemannianMetric, self).__init__(dim=2)
+        super(BetaMetric, self).__init__(dim=2)
 
     @staticmethod
     def metric_det(param_a, param_b):
@@ -143,9 +145,9 @@ class BetaMetric(RiemannianMetric):
         -------
         metric_det : array-like, shape=[n_samples,]
         """
-        metric_det = polygamma(1, param_a) * polygamma(1, param_b) - \
-            polygamma(1, param_a + param_b) * (polygamma(1, param_a) +
-                                               polygamma(1, param_b))
+        metric_det = gs.polygamma(1, param_a) * gs.polygamma(1, param_b) - \
+            gs.polygamma(1, param_a + param_b) * (gs.polygamma(1, param_a) +
+                                                  gs.polygamma(1, param_b))
         return metric_det
 
     def inner_product_matrix(self, base_point=None):
@@ -159,20 +161,18 @@ class BetaMetric(RiemannianMetric):
         -------
         base_point : array-like, shape=[n_samples, 2, 2]
         """
-        if base_point is not None:
+        if base_point is None:
             raise ValueError('The metric depends on the base point.')
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        matrices = []
-        for point in base_point:
-            param_a, param_b = point
-            g0 = gs.array(
-                [polygamma(1, param_a) - polygamma(1, param_a + param_b),
-                 - polygamma(1, param_a + param_b)])
-            g1 = gs.array(
-                [- polygamma(1, param_a + param_b), polygamma(1, param_b)
-                 - polygamma(1, param_a + param_b)])
-            matrices.append(gs.stack([g0, g1]))
-        return gs.stack(matrices)
+        param_a = base_point[..., 0]
+        param_b = base_point[..., 1]
+        polygamma_ab = gs.polygamma(1, param_a + param_b)
+        polygamma_a = gs.polygamma(1, param_a)
+        polygamma_b = gs.polygamma(1, param_b)
+        vector = gs.stack(
+            [polygamma_a - polygamma_ab,
+             - polygamma_ab,
+             polygamma_b - polygamma_ab], axis=-1)
+        return SymmetricMatrices.from_vector(vector)
 
     def christoffels(self, base_point):
         """Compute the Christoffel symbols.
@@ -188,34 +188,25 @@ class BetaMetric(RiemannianMetric):
         -------
         christoffels : array-like, shape=[n_samples, 2, 2, 2]
         """
-
         def coefficients(param_a, param_b):
-            metric_det = self.metric_det(param_a, param_b)
-            c1 = (polygamma(2, param_a) * polygamma(1, param_b) -
-                  polygamma(2, param_a) * polygamma(1, param_a + param_b) -
-                  polygamma(1, param_b) * polygamma(2, param_a + param_b)) / (
-                2 * metric_det)
-            c2 = - polygamma(1, param_b) * polygamma(2, param_a + param_b) / (
-                2 * metric_det)
-            c3 = (polygamma(2, param_b) * polygamma(1, param_a + param_b) -
-                  polygamma(1, param_b) * polygamma(2, param_a + param_b)) / (
-                2 * metric_det)
+            metric_det = 2 * self.metric_det(param_a, param_b)
+            poly_2_ab = gs.polygamma(2, param_a + param_b)
+            poly_1_ab = gs.polygamma(1, param_a + param_b)
+            poly_1_b = gs.polygamma(1, param_b)
+            c1 = (gs.polygamma(2, param_a) *
+                  (poly_1_b - poly_1_ab) - poly_1_b * poly_2_ab) / metric_det
+            c2 = - poly_1_b * poly_2_ab / metric_det
+            c3 = (gs.polygamma(2, param_b) * poly_1_ab - poly_1_b *
+                  poly_2_ab) / metric_det
             return c1, c2, c3
 
-        if base_point is None:
-            raise ValueError('Christoffels require a base point.')
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        param_a, param_b = base_point[:, 0], base_point[:, 1]
-        c1, c2, c3 = coefficients(param_a, param_b)
-        c4, c5, c6 = coefficients(param_b, param_a)
-        christoffel = []
-        for d1, d2, d3, d4, d5, d6 in zip(c1, c2, c3, c4, c5, c6):
-            gamma_0 = gs.array([[d1, d2], [d2, d3]])
-            gamma_1 = gs.array([[d6, d5], [d5, d4]])
-            christoffel.append(gs.stack([gamma_0, gamma_1]))
-        if len(base_point) == 1:
-            return christoffel[0]
-        return gs.stack(christoffel)
+        point_a, point_b = base_point[..., 0], base_point[..., 1]
+        c4, c5, c6 = coefficients(point_b, point_a)
+        vector_0 = gs.stack(coefficients(point_a, point_b), axis=-1)
+        vector_1 = gs.stack([c6, c5, c4], axis=-1)
+        gamma_0 = SymmetricMatrices.from_vector(vector_0)
+        gamma_1 = SymmetricMatrices.from_vector(vector_1)
+        return gs.stack([gamma_0, gamma_1], axis=-3)
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS):
         """Exponential map associated to the Fisher information metric.
@@ -237,7 +228,7 @@ class BetaMetric(RiemannianMetric):
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
 
-        def ivp(state, time):
+        def ivp(state, _):
             """Reformat the initial value problem geodesic ODE."""
             position, velocity = state[:2], state[2:]
             eq = self.geodesic_equation(velocity=velocity, position=position)
@@ -248,7 +239,7 @@ class BetaMetric(RiemannianMetric):
         for point, vec in zip(base_point, tangent_vec):
             initial_state = gs.hstack([point, vec])
             geodesic = odeint(
-                ivp, initial_state, times, tuple(), rtol=1e-6)
+                ivp, initial_state, times, (), rtol=1e-6)
             exp.append(geodesic[-1, :2])
         return exp[0] if len(base_point) == 1 else gs.stack(exp)
 
@@ -287,13 +278,15 @@ class BetaMetric(RiemannianMetric):
             lin_init[3, -1] = lin_init[3, -2]
             return lin_init
 
-        def bvp(time, state):
+        def bvp(_, state):
             """Reformat the boundary value problem geodesic ODE.
 
             Parameters
             ----------
-                state :  vector of the state variables: y = [a,b,u,v]
-                time :  time
+            state :  array-like, shape[4,]
+                Vector of the state variables: y = [a,b,u,v]
+            _ :  unused
+                Any (time).
             """
             position, velocity = state[:2].T, state[2:].T
             eq = self.geodesic_equation(

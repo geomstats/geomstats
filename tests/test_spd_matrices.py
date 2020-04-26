@@ -34,8 +34,19 @@ class TestSPDMatrices(geomstats.tests.TestCase):
     def test_belongs(self):
         """Test of belongs method."""
         mats = gs.array(
-            [[1., 1.], [1., 1.]])
-        result = SPDMatrices.belongs(mats)
+            [[3., -1.], [-1., 3.]])
+        result = SPDMatrices(2).belongs(mats)
+        expected = True
+        self.assertAllClose(result, expected)
+
+        mats = gs.array(
+            [[-1., -1.], [-1., 3.]])
+        result = SPDMatrices(2).belongs(mats)
+        expected = False
+        self.assertAllClose(result, expected)
+
+        mats = gs.eye(3)
+        result = SPDMatrices(2).belongs(mats)
         expected = False
         self.assertAllClose(result, expected)
 
@@ -69,15 +80,15 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         sym_mat_1 = gs.array([[1., 0.6, -3.],
                               [0.6, 7., 0.],
                               [-3., 0., 8.]])
-        vector_1 = self.space.vector_from_symmetric_matrix(sym_mat_1)
-        result_1 = self.space.symmetric_matrix_from_vector(vector_1)
+        vector_1 = self.space.to_vector(sym_mat_1)
+        result_1 = self.space.from_vector(vector_1)
         expected_1 = sym_mat_1
 
         self.assertTrue(gs.allclose(result_1, expected_1))
 
         vector_2 = gs.array([1., 2., 3., 4., 5., 6.])
-        sym_mat_2 = self.space.symmetric_matrix_from_vector(vector_2)
-        result_2 = self.space.vector_from_symmetric_matrix(sym_mat_2)
+        sym_mat_2 = self.space.from_vector(vector_2)
+        result_2 = self.space.to_vector(sym_mat_2)
         expected_2 = vector_2
 
         self.assertTrue(gs.allclose(result_2, expected_2))
@@ -86,15 +97,15 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         """Test of vectorization."""
         n_samples = self.n_samples
         vector = gs.random.rand(n_samples, 6)
-        sym_mat = self.space.symmetric_matrix_from_vector(vector)
-        result = self.space.vector_from_symmetric_matrix(sym_mat)
+        sym_mat = self.space.from_vector(vector)
+        result = self.space.to_vector(sym_mat)
         expected = vector
 
         self.assertTrue(gs.allclose(result, expected))
 
         sym_mat = self.space.random_uniform(n_samples)
-        vector = self.space.vector_from_symmetric_matrix(sym_mat)
-        result = self.space.symmetric_matrix_from_vector(vector)
+        vector = self.space.to_vector(sym_mat)
+        result = self.space.from_vector(vector)
         expected = sym_mat
 
         self.assertTrue(gs.allclose(result, expected))

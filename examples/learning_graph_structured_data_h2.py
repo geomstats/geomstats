@@ -105,6 +105,8 @@ def loss(example_embedding, context_embedding, negative_embedding,
     negative_distance_grad =\
         grad_squared_distance(reshaped_example_embedding, negative_embedding)
 
+    negative_distance = gs.to_ndarray(negative_distance,
+                                      to_ndim=2, axis=-1)
     negative_log_sigmoid_grad =\
         grad_log_sigmoid(negative_distance)
 

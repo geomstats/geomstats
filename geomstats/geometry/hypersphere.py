@@ -128,7 +128,7 @@ class Hypersphere(EmbeddedManifold):
         return projected_point
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
-    def projection_to_tangent_space(self, vector, base_point):
+    def to_tangent(self, vector, base_point):
         """Project a vector to the tangent space.
 
         Project a vector in Euclidean space
@@ -181,11 +181,12 @@ class Hypersphere(EmbeddedManifold):
 
         theta = point_spherical[:, 0]
         phi = point_spherical[:, 1]
-        point_extrinsic = gs.zeros(
-            (point_spherical.shape[0], self.dim + 1))
-        point_extrinsic[:, 0] = gs.sin(theta) * gs.cos(phi)
-        point_extrinsic[:, 1] = gs.sin(theta) * gs.sin(phi)
-        point_extrinsic[:, 2] = gs.cos(theta)
+
+        point_extrinsic = gs.stack(
+            [gs.sin(theta) * gs.cos(phi),
+             gs.sin(theta) * gs.sin(phi),
+             gs.cos(theta)],
+            axis=1)
         if not gs.all(self.belongs(point_extrinsic)):
             raise ValueError('Points do not belong to the manifold.')
 
@@ -223,13 +224,19 @@ class Hypersphere(EmbeddedManifold):
         theta = base_point_spherical[:, 0]
         phi = base_point_spherical[:, 1]
         jac = gs.zeros((n_samples, self.dim + 1, self.dim))
-        jac[:, 0, 0] = gs.cos(theta) * gs.cos(phi)
-        jac[:, 0, 1] = - gs.sin(theta) * gs.sin(phi)
-        jac[:, 1, 0] = gs.cos(theta) * gs.sin(phi)
-        jac[:, 1, 1] = gs.sin(theta) * gs.cos(phi)
-        jac[:, 2, 0] = - gs.sin(theta)
+
+        zeros = gs.zeros(n_samples)
+
+        jac = gs.concatenate([gs.array([[
+            [gs.cos(theta[i]) * gs.cos(phi[i]),
+             - gs.sin(theta[i]) * gs.sin(phi[i])],
+            [gs.cos(theta[i]) * gs.sin(phi[i]),
+             gs.sin(theta[i]) * gs.cos(phi[i])],
+            [- gs.sin(theta[i]),
+             zeros[i]]]]) for i in range(n_samples)], axis=0)
+
         tangent_vec_extrinsic = gs.einsum(
-            'nij,nj->ni', jac, tangent_vec_spherical)
+            '...ij,...j->...i', jac, tangent_vec_spherical)
 
         return tangent_vec_extrinsic
 
@@ -447,7 +454,7 @@ class HypersphereMetric(RiemannianMetric):
         n_tangent_vecs, _ = tangent_vec.shape
 
         hypersphere = Hypersphere(dim=extrinsic_dim - 1)
-        proj_tangent_vec = hypersphere.projection_to_tangent_space(
+        proj_tangent_vec = hypersphere.to_tangent(
             tangent_vec, base_point)
         norm_tangent_vec = self.embedding_metric.norm(proj_tangent_vec)
         norm_tangent_vec = gs.to_ndarray(norm_tangent_vec, to_ndim=1)
@@ -461,30 +468,28 @@ class HypersphereMetric(RiemannianMetric):
         norm4 = norm2**2
         norm6 = norm2**3
 
-        if gs.sum(mask_0) > 0:
-            coef_1 = gs.assignment(
-                coef_1,
-                1. - norm2 / 2. + norm4 / 24. - norm6 / 720.,
-                mask_0)
-            coef_2 = gs.assignment(
-                coef_2,
-                1. - norm2 / 6. + norm4 / 120. - norm6 / 5040.,
-                mask_0)
+        coef_1 = gs.assignment(
+            coef_1,
+            1. - norm2 / 2. + norm4 / 24. - norm6 / 720.,
+            mask_0)
+        coef_2 = gs.assignment(
+            coef_2,
+            1. - norm2 / 6. + norm4 / 120. - norm6 / 5040.,
+            mask_0)
 
-        if gs.sum(mask_non0) > 0:
-            coef_1 = gs.assignment(
-                coef_1,
-                gs.cos(norm_tangent_vec[mask_non0]),
-                mask_non0)
-            coef_2 = gs.assignment(
-                coef_2,
-                gs.sin(
-                    norm_tangent_vec[mask_non0]) /
-                norm_tangent_vec[mask_non0],
-                mask_non0)
+        coef_1 = gs.assignment(
+            coef_1,
+            gs.cos(norm_tangent_vec[mask_non0]),
+            mask_non0)
+        coef_2 = gs.assignment(
+            coef_2,
+            gs.sin(
+                norm_tangent_vec[mask_non0]) /
+            norm_tangent_vec[mask_non0],
+            mask_non0)
 
         exp = (gs.einsum('...,...j->...j', coef_1, base_point)
-               + gs.einsum('n,nj->nj', coef_2, proj_tangent_vec))
+               + gs.einsum('...,...j->...j', coef_2, proj_tangent_vec))
 
         return exp
 
@@ -580,7 +585,8 @@ class HypersphereMetric(RiemannianMetric):
         norm_b = self.embedding_metric.norm(point_b)
         inner_prod = self.embedding_metric.inner_product(point_a, point_b)
 
-        cos_angle = inner_prod / (norm_a * norm_b)
+        cos_angle = gs.einsum(
+            '...,...->...', inner_prod, 1. / (norm_a * norm_b))
         cos_angle = gs.clip(cos_angle, -1, 1)
 
         dist = gs.arccos(cos_angle)

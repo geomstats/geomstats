@@ -143,7 +143,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         return projected_point
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
-    def projection_to_tangent_space(self, vector, base_point):
+    def to_tangent(self, vector, base_point):
         """Project a vector to a tangent space of the hyperbolic space.
 
         Project a vector in Minkowski space on the tangent space

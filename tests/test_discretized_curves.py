@@ -1,6 +1,4 @@
-"""
-Unit tests for parameterized manifolds.
-"""
+"""Unit tests for parameterized manifolds."""
 
 import tests.helper as helper
 
@@ -59,9 +57,7 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_l2_metric_log_and_squared_norm_and_dist(self):
-        """
-        Test that squared norm of logarithm is squared dist.
-        """
+        """Test that squared norm of logarithm is squared dist."""
         tangent_vec = self.l2_metric_s2.log(
             landmarks=self.curve_b, base_landmarks=self.curve_a)
         log_ab = tangent_vec
@@ -74,9 +70,7 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_l2_metric_log_and_exp(self):
-        """
-        Test that exp and log are inverse maps.
-        """
+        """Test that exp and log are inverse maps."""
         tangent_vec = self.l2_metric_s2.log(
             landmarks=self.curve_b, base_landmarks=self.curve_a)
         result = self.l2_metric_s2.exp(tangent_vec=tangent_vec,
@@ -87,9 +81,7 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_l2_metric_inner_product_vectorization(self):
-        """
-        Test the vectorization inner_product.
-        """
+        """Test the vectorization inner_product."""
         n_samples = self.n_discretized_curves
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
@@ -106,9 +98,7 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_l2_metric_dist_vectorization(self):
-        """
-        Test the vectorization of dist.
-        """
+        """Test the vectorization of dist."""
         n_samples = self.n_discretized_curves
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
@@ -121,9 +111,7 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_l2_metric_exp_vectorization(self):
-        """
-        Test the vectorization of exp.
-        """
+        """Test the vectorization of exp."""
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
         curves_ab = curves_ab(self.times)
@@ -139,9 +127,7 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_l2_metric_log_vectorization(self):
-        """
-        Test the vectorization of log.
-        """
+        """Test the vectorization of log."""
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
         curves_ab = curves_ab(self.times)
@@ -155,9 +141,7 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_l2_metric_geodesic(self):
-        """
-        Test the geodesic method of L2Metric.
-        """
+        """Test the geodesic method of L2Metric."""
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
         curves_ab = curves_ab(self.times)
@@ -196,8 +180,8 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_square_root_velocity_and_inverse(self):
-        """
-        Test of square_root_velocity and its inverse.
+        """Test of square_root_velocity and its inverse.
+
         N.B: Here curves_ab are seen as curves in R3 and not S2.
         """
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
@@ -214,8 +198,8 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_srv_metric_exp_and_log(self):
-        """
-        Test that exp and log are inverse maps and vectorized.
+        """Test that exp and log are inverse maps and vectorized.
+
         N.B: Here curves_ab and curves_bc are seen as curves in R3 and not S2.
         """
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
@@ -233,8 +217,8 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_srv_metric_geodesic(self):
-        """
-        Test that the geodesic between two curves in a Euclidean space
+        """Test that the geodesic between two curves in a Euclidean space.
+
         for the srv metric is the L2 geodesic betweeen the curves srvs.
         N.B: Here curve_a and curve_b are seen as curves in R3 and not S2.
         """
@@ -261,8 +245,8 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_srv_metric_dist_and_geod(self):
-        """
-        Test that the length of the geodesic gives the distance.
+        """Test that the length of the geodesic gives the distance.
+
         N.B: Here curve_a and curve_b are seen as curves in R3 and not S2.
         """
         geod = self.srv_metric_r3.geodesic(initial_curve=self.curve_a,

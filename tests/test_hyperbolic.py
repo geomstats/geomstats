@@ -42,7 +42,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
         base_point = gs.array([1., 0., 0., 0.])
         self.assertTrue(self.space.belongs(base_point))
 
-        tangent_vec = self.space.projection_to_tangent_space(
+        tangent_vec = self.space.to_tangent(
             vector=gs.array([1., 2., 1., 3.]),
             base_point=base_point)
 
@@ -51,7 +51,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-        result = self.space.projection_to_tangent_space(
+        result = self.space.to_tangent(
             vector=gs.array([1., 2., 1., 3.]),
             base_point=base_point)
         expected = tangent_vec
@@ -182,7 +182,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
         base_point = gs.array([1., 0., 0.])
         self.assertTrue(H2.belongs(base_point))
 
-        tangent_vec = H2.projection_to_tangent_space(
+        tangent_vec = H2.to_tangent(
             vector=gs.array([1., 2., 1.]),
             base_point=base_point)
         exp = METRIC.exp(tangent_vec=tangent_vec,
@@ -203,12 +203,12 @@ class TestHyperbolic(geomstats.tests.TestCase):
             [5.0, math.sqrt(8), math.sqrt(8), math.sqrt(8)],
             [1.0, 0.0, 0.0, 0.0]])
 
-        one_tangent_vec = self.space.projection_to_tangent_space(
+        one_tangent_vec = self.space.to_tangent(
             one_vec, base_point=one_base_point)
         result = self.metric.exp(one_tangent_vec, one_base_point)
         self.assertAllClose(gs.shape(result), (dim,))
 
-        n_tangent_vecs = self.space.projection_to_tangent_space(
+        n_tangent_vecs = self.space.to_tangent(
             n_vecs, base_point=one_base_point)
         result = self.metric.exp(n_tangent_vecs, one_base_point)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
@@ -221,7 +221,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
         expected = helper.to_vector(gs.array(expected))
         self.assertAllClose(result, expected)
 
-        one_tangent_vec = self.space.projection_to_tangent_space(
+        one_tangent_vec = self.space.to_tangent(
             one_vec, base_point=n_base_points)
         result = self.metric.exp(one_tangent_vec, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
@@ -234,7 +234,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
         expected = helper.to_vector(gs.array(expected))
         self.assertAllClose(result, expected)
 
-        n_tangent_vecs = self.space.projection_to_tangent_space(
+        n_tangent_vecs = self.space.to_tangent(
             n_vecs, base_point=n_base_points)
         result = self.metric.exp(n_tangent_vecs, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
@@ -282,11 +282,11 @@ class TestHyperbolic(geomstats.tests.TestCase):
         base_point = gs.array(
             [1.16563816, 0.36381045, -0.47000603, 0.07381469])
 
-        tangent_vec_a = self.space.projection_to_tangent_space(
+        tangent_vec_a = self.space.to_tangent(
             vector=gs.array([10., 200., 1., 1.]),
             base_point=base_point)
 
-        tangent_vec_b = self.space.projection_to_tangent_space(
+        tangent_vec_b = self.space.to_tangent(
             vector=gs.array([11., 20., -21., 0.]),
             base_point=base_point)
 
@@ -359,7 +359,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
         # General case
         base_point = gs.array([4.0, 1., 3.0, math.sqrt(5)])
         vector = gs.array([2.0, 1.0, 1.0, 1.0])
-        vector = self.space.projection_to_tangent_space(
+        vector = self.space.to_tangent(
             vector=vector,
             base_point=base_point)
         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
@@ -379,7 +379,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
     def test_exp_and_dist_and_projection_to_tangent_space(self):
         base_point = gs.array([4.0, 1., 3.0, math.sqrt(5)])
         vector = gs.array([0.001, 0., -.00001, -.00003])
-        tangent_vec = self.space.projection_to_tangent_space(
+        tangent_vec = self.space.to_tangent(
             vector=vector,
             base_point=base_point)
         exp = self.metric.exp(
@@ -398,7 +398,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
         n_geodesic_points = 100
         vector = gs.array([1., 0., 0., 0.])
 
-        initial_tangent_vec = self.space.projection_to_tangent_space(
+        initial_tangent_vec = self.space.to_tangent(
             vector=vector,
             base_point=initial_point)
         geodesic = self.metric.geodesic(
@@ -426,7 +426,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
 
         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
         result = self.metric.log(point=exp, base_point=base_point)
-        expected = self.space.projection_to_tangent_space(
+        expected = self.space.to_tangent(
             vector=vector,
             base_point=base_point)
 
@@ -438,10 +438,10 @@ class TestHyperbolic(geomstats.tests.TestCase):
             base_point_intrinsic, 'intrinsic')
         tangent_vec_a = gs.array([1., 2., 3., 4.])
         tangent_vec_b = gs.array([5., 6., 7., 8.])
-        tangent_vec_a = self.space.projection_to_tangent_space(
+        tangent_vec_a = self.space.to_tangent(
             tangent_vec_a,
             base_point)
-        tangent_vec_b = self.space.projection_to_tangent_space(
+        tangent_vec_b = self.space.to_tangent(
             tangent_vec_b,
             base_point)
         scale = 2
@@ -466,7 +466,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
         base_point = self.space.from_coordinates(
             base_point_intrinsic, 'intrinsic')
         tangent_vec = gs.array([1., 2., 3., 4.])
-        tangent_vec = self.space.projection_to_tangent_space(
+        tangent_vec = self.space.to_tangent(
             tangent_vec, base_point)
         scale = 2
         default_space = Hyperboloid(dim=self.dimension)

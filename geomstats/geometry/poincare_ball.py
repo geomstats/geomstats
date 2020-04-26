@@ -189,37 +189,29 @@ class PoincareBallMetric(RiemannianMetric):
             Point in hyperbolic space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        norm_base_point =\
-            gs.expand_dims(gs.linalg.norm(base_point, axis=-1),
-                           axis=-1)
+        norm_base_point = gs.linalg.norm(base_point, axis=-1)
+        norm_tan = gs.linalg.norm(tangent_vec, axis=-1)
 
-        den = 1 - norm_base_point**2
-
-        norm_tan =\
-            gs.expand_dims(gs.linalg.norm(tangent_vec, axis=-1),
-                           axis=-1)
-
+        den = 1 - norm_base_point ** 2
         lambda_base_point = 1 / den
 
-        zero_tan =\
-            gs.isclose(gs.sum(tangent_vec * tangent_vec, axis=-1), 0.)
+        zero_tan = gs.isclose(gs.sum(tangent_vec ** 2, axis=-1), 0.)
 
         if gs.any(zero_tan):
-            if norm_tan[zero_tan].shape[0] != 0:
-                norm_tan[zero_tan] = EPSILON
+            norm_tan = gs.assignment(norm_tan, EPSILON, zero_tan)
 
-        direction = gs.einsum('...i,...k->...i', tangent_vec, 1 / norm_tan)
+        direction = gs.einsum('...i,...->...i', tangent_vec, 1 / norm_tan)
 
-        factor = gs.tanh(lambda_base_point * norm_tan)
+        factor = gs.tanh(
+            gs.einsum('...,...->...', lambda_base_point, norm_tan))
 
-        exp = self.mobius_add(base_point, direction * factor)
-
-        zero_tan =\
-            gs.isclose(gs.sum(tangent_vec * tangent_vec, axis=-1), 0.)
+        exp = self.mobius_add(
+            base_point,
+            gs.einsum('...i,...->...i', direction, factor))
 
         if gs.any(zero_tan):
-            if exp[zero_tan].shape[0] != 0:
-                exp[zero_tan] = base_point[zero_tan]
+            exp = gs.assignment(
+                exp, base_point[zero_tan], zero_tan)
 
         return exp
 
@@ -254,25 +246,20 @@ class PoincareBallMetric(RiemannianMetric):
                            base_point, axis=-1), axis=-1)
 
         log = (1 - norm_base_point**2) * gs.arctanh(norm_add)
-        log = gs.einsum(
-            '...i,...j->...j', log, add_base_point)
 
         mask_0 = gs.isclose(gs.squeeze(norm_add, axis=-1), 0.)
         mask_non0 = ~mask_0
-        # TODO(ninamiolane): Correct this when assignement
-        # works with booleans
-        if gs.any(mask_0):
-            mask_0_float = gs.cast(mask_0, gs.float32)
-            log += mask_0_float * (-log)
-            mask_0_float = gs.to_ndarray(mask_0_float, to_ndim=2, axis=1)
-            norm_add += mask_0_float
-        if gs.any(mask_non0):
-            mask_non0_float = gs.cast(mask_non0, gs.float32)
-            log += gs.einsum(
-                '...,...i->...i',
-                mask_non0_float,
-                - log + log / norm_add)
+        add_base_point = gs.assignment(
+            add_base_point,
+            gs.zeros_like(add_base_point[mask_0]),
+            mask_0)
+        add_base_point = gs.assignment(
+            add_base_point,
+            add_base_point[mask_non0] / norm_add[mask_non0],
+            mask_non0)
 
+        log = gs.einsum(
+            '...i,...j->...j', log, add_base_point)
         return log
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])

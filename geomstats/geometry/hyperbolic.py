@@ -156,8 +156,8 @@ class Hyperbolic(Manifold):
         denominator = 1 - squared_norm
         t = gs.to_ndarray((1 + squared_norm) / denominator, to_ndim=2, axis=1)
         expanded_denominator = gs.expand_dims(denominator, -1)
-        expanded_denominator = gs.repeat(
-            expanded_denominator, point.shape[-1], -1)
+        expanded_denominator = gs.tile(
+            expanded_denominator, (1, point.shape[-1]))
         intrinsic = (2 * point) / expanded_denominator
         return gs.concatenate([t, intrinsic], -1)
 

@@ -23,7 +23,8 @@ class SymmetricMatrices(EmbeddedManifold):
 
     def belongs(self, mat, atol=TOLERANCE):
         """Check if mat belongs to the vector space of symmetric matrices."""
-        return self.embedding_manifold.is_symmetric(mat=mat, atol=atol)
+        check_shape = self.embedding_manifold.belongs(mat)
+        return gs.logical_and(check_shape, Matrices.is_symmetric(mat, atol))
 
     def get_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
@@ -40,11 +41,11 @@ class SymmetricMatrices(EmbeddedManifold):
 
     @staticmethod
     @geomstats.vectorization.decorator(['matrix'])
-    def vector_from_symmetric_matrix(mat):
+    def to_vector(mat):
         """Convert the symmetric part of a symmetric matrix into a vector."""
         if not gs.all(Matrices.is_symmetric(mat)):
             logging.warning('non-symmetric matrix encountered.')
-        mat = Matrices.make_symmetric(mat)
+        mat = Matrices.to_symmetric(mat)
         _, dim, _ = mat.shape
         indices_i, indices_j = gs.triu_indices(dim)
         vec = []
@@ -56,21 +57,21 @@ class SymmetricMatrices(EmbeddedManifold):
 
     @staticmethod
     @geomstats.vectorization.decorator(['vector', 'else'])
-    def symmetric_matrix_from_vector(vec, dtype=gs.float32):
+    def from_vector(vec, dtype=gs.float32):
         """Convert a vector into a symmetric matrix."""
         vec_dim = vec.shape[-1]
         mat_dim = (gs.sqrt(8. * vec_dim + 1) - 1) / 2
         if mat_dim != int(mat_dim):
             raise ValueError('Invalid input dimension, it must be of the form'
-                             '(n_samples, n * (n - 1) / 2)')
+                             '(n_samples, n * (n + 1) / 2)')
         mat_dim = int(mat_dim)
-        mask = 2 * gs.ones((mat_dim, mat_dim)) - gs.eye(mat_dim)
-        indices = list(zip(*gs.triu_indices(3)))
         shape = (mat_dim, mat_dim)
+        mask = 2 * gs.ones(shape) - gs.eye(mat_dim)
+        indices = list(zip(*gs.triu_indices(mat_dim)))
         vec = gs.cast(vec, dtype)
         upper_triangular = gs.stack([
             gs.array_from_sparse(indices, data, shape) for data in vec])
-        mat = Matrices.make_symmetric(upper_triangular) * mask
+        mat = Matrices.to_symmetric(upper_triangular) * mask
         return mat
 
     @classmethod

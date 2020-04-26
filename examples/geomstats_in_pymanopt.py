@@ -1,4 +1,4 @@
-"""This very simple example demonstrates how geometries from geomstats can be
+"""Simple example that demonstrates how geometries from geomstats can be
 used in pymanopt to perform optimization on manifolds. It uses the Riemannian
 steepest descent solver.
 
@@ -34,7 +34,7 @@ class GeomstatsSphere(Manifold):
             tangent_vector_a, tangent_vector_b, base_point=base_vector)
 
     def proj(self, base_vector, tangent_vector):
-        return self._sphere.projection_to_tangent_space(
+        return self._sphere.to_tangent(
             tangent_vector, base_point=base_vector)
 
     def retr(self, base_vector, tangent_vector):
@@ -89,11 +89,13 @@ if __name__ == '__main__':
             gs.sign(dominant_eigenvector_estimate[0])):
         dominant_eigenvector_estimate = -dominant_eigenvector_estimate
 
-    logging.info('l2-norm of dominant eigenvector: {}'.format(
-        gs.linalg.norm(dominant_eigenvector)))
-    logging.info('l2-norm of dominant eigenvector estimate: {}'.format(
-        gs.linalg.norm(dominant_eigenvector_estimate)))
+    logging.info(
+        'l2-norm of dominant eigenvector: %s',
+        gs.linalg.norm(dominant_eigenvector))
+    logging.info(
+        'l2-norm of dominant eigenvector estimate: %s',
+        gs.linalg.norm(dominant_eigenvector_estimate))
     error_norm = gs.linalg.norm(
         dominant_eigenvector - dominant_eigenvector_estimate)
-    logging.info('l2-norm of difference vector: {}'.format(error_norm))
-    logging.info('solution found: %s' % gs.isclose(error_norm, 0.0, atol=1e-3))
+    logging.info('l2-norm of difference vector: %s', error_norm)
+    logging.info('solution found: %s', gs.isclose(error_norm, 0.0, atol=1e-3))

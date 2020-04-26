@@ -117,7 +117,7 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
             return tangent_vecs
 
         if gs.all(Matrices.is_symmetric(tangent_vecs)):
-            X = SymmetricMatrices.vector_from_symmetric_matrix(
+            X = SymmetricMatrices.to_vector(
                 tangent_vecs)
         elif gs.all(Matrices.is_skew_symmetric(tangent_vecs)):
             X = SkewSymmetricMatrices(
@@ -161,7 +161,7 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
 
             if gs.all(Matrices.is_symmetric(base_point)) and dim_sym == n_vecs:
                 tangent_vecs = SymmetricMatrices(
-                    base_point.shape[-1]).symmetric_matrix_from_vector(X)
+                    base_point.shape[-1]).from_vector(X)
             elif dim_skew == n_vecs:
                 tangent_vecs = SkewSymmetricMatrices(
                     dim_skew).matrix_representation(X)

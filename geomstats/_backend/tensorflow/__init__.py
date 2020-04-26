@@ -1,5 +1,7 @@
 """Tensorflow based computation backend."""
 
+from itertools import product
+
 import numpy as _np
 import tensorflow as tf
 from tensorflow import (  # NOQA
@@ -68,6 +70,7 @@ erf = tf.math.erf
 log = tf.math.log
 matmul = tf.linalg.matmul
 mod = tf.math.mod
+polygamma = tf.math.polygamma
 power = tf.math.pow
 real = tf.math.real
 set_diag = tf.linalg.set_diag
@@ -185,9 +188,9 @@ def _mask_from_indices(indices, mask_shape, dtype=float32):
     """
     np_mask = _np.zeros(mask_shape)
 
-    for (nb_index, index) in enumerate(indices):
+    for i_index, index in enumerate(indices):
         if not isinstance(index, tuple):
-            indices[nb_index] = (index,)
+            indices[i_index] = (index,)
 
     for index in indices:
         if len(index) != len(mask_shape):
@@ -270,6 +273,7 @@ def _assignment_single_value_by_sum(x, value, indices, axis=0):
         an axis).
     """
     if _is_boolean(indices):
+        indices = [indices]
         indices = [index for index, val in enumerate(indices) if val]
 
     single_index = not isinstance(indices, list)
@@ -286,11 +290,14 @@ def _assignment_single_value_by_sum(x, value, indices, axis=0):
         use_vectorization = ndim(x) > 1
 
     if use_vectorization:
-        n_samples = shape(x).numpy()[0]
+        full_shape = shape(x).numpy()
+        n_samples = full_shape[axis]
+        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1:])
         mask = _vectorized_mask_from_indices(
-            n_samples, indices, shape(x).numpy()[1:], axis, x.dtype)
+            n_samples, indices, tile_shape, axis, x.dtype)
     else:
         mask = _mask_from_indices(indices, shape(x), x.dtype)
+
     x_new = x + value * mask
     return x_new
 
@@ -323,10 +330,17 @@ def assignment_by_sum(x, values, indices, axis=0):
     If a list is given, it must have the same length as indices.
     """
     if _is_boolean(indices):
-        indices = [index for index, val in enumerate(indices) if val]
-
+        if ndim(array(indices)) > 1:
+            indices = tf.where(indices)
+        else:
+            indices_from_booleans = [
+                index for index, val in enumerate(indices) if val]
+            indices_along_dims = [range(dim) for dim in shape(x)]
+            indices_along_dims[axis] = indices_from_booleans
+            indices = list(product(*indices_along_dims))
     if tf.rank(values) == 0:
         return _assignment_single_value_by_sum(x, values, indices, axis)
+    values = flatten(array(values))
 
     single_index = not isinstance(indices, list)
     if tf.is_tensor(indices):
@@ -367,6 +381,7 @@ def _assignment_single_value(x, value, indices, axis=0):
         along an axis).
     """
     if _is_boolean(indices):
+        indices = [indices]
         indices = [index for index, val in enumerate(indices) if val]
 
     single_index = not isinstance(indices, list)
@@ -422,10 +437,17 @@ def assignment(x, values, indices, axis=0):
     If a list is given, it must have the same length as indices.
     """
     if _is_boolean(indices):
-        indices = [index for index, val in enumerate(indices) if val]
-
+        if ndim(array(indices)) > 1:
+            indices = tf.where(indices)
+        else:
+            indices_from_booleans = [
+                index for index, val in enumerate(indices) if val]
+            indices_along_dims = [range(dim) for dim in shape(x)]
+            indices_along_dims[axis] = indices_from_booleans
+            indices = list(product(*indices_along_dims))
     if tf.rank(values) == 0:
         return _assignment_single_value(x, values, indices, axis)
+    values = flatten(array(values))
 
     single_index = not isinstance(indices, list)
     if tf.is_tensor(indices):
@@ -436,8 +458,8 @@ def assignment(x, values, indices, axis=0):
     if len(values) != len(indices):
         raise ValueError('Either one value or as many values as indices')
 
-    for (nb_index, index) in enumerate(indices):
-        x = _assignment_single_value(x, values[nb_index], index, axis)
+    for i_index, index in enumerate(indices):
+        x = _assignment_single_value(x, values[i_index], index, axis)
     return x
 
 
@@ -562,6 +584,8 @@ def eye(n, m=None):
 
 
 def sum(x, axis=None, keepdims=False, name=None):
+    if not tf.is_tensor(x):
+        x = tf.convert_to_tensor(x)
     if x.dtype == bool:
         x = cast(x, int32)
     return tf.reduce_sum(x, axis, keepdims, name)
@@ -666,4 +690,5 @@ def tril_indices(*args, **kwargs):
 
 
 def triu_indices(*args, **kwargs):
-    return tuple(map(tf.convert_to_tensor, _np.triu_indices(*args, **kwargs)))
+    return tuple(
+        map(tf.convert_to_tensor, _np.triu_indices(*args, **kwargs)))
