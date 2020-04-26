@@ -9,7 +9,6 @@ import math
 from itertools import product
 
 import geomstats.backend as gs
-import geomstats.errors
 import geomstats.vectorization
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
@@ -449,8 +448,6 @@ class HypersphereMetric(RiemannianMetric):
             of tangent_vec at the base point.
         """
         # TODO(ninamiolane): Raise error when vector is not tangent
-        geomstats.errors.check_belongs(base_point, self._space)
-
         _, extrinsic_dim = base_point.shape
         n_tangent_vecs, _ = tangent_vec.shape
 
@@ -511,9 +508,6 @@ class HypersphereMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        geomstats.errors.check_belongs(point, self._space)
-        geomstats.errors.check_belongs(base_point, self._space)
-
         norm_base_point = self.embedding_metric.norm(base_point)
         norm_point = self.embedding_metric.norm(point)
         inner_prod = self.embedding_metric.inner_product(base_point, point)
@@ -585,9 +579,6 @@ class HypersphereMetric(RiemannianMetric):
         dist : array-like, shape=[..., 1]
             Geodesic distance between the two points.
         """
-        geomstats.errors.check_belongs(point_a, self._space)
-        geomstats.errors.check_belongs(point_b, self._space)
-
         norm_a = self.embedding_metric.norm(point_a)
         norm_b = self.embedding_metric.norm(point_b)
         inner_prod = self.embedding_metric.inner_product(point_a, point_b)
@@ -637,8 +628,6 @@ class HypersphereMetric(RiemannianMetric):
         transported_tangent_vec: array-like, shape=[..., dim + 1]
             Transported tangent vector at exp_(base_point)(tangent_vec_b).
         """
-        geomstats.errors.check_belongs(base_point, self._space)
-
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -676,8 +665,6 @@ class HypersphereMetric(RiemannianMetric):
             raise NotImplementedError(
                 'The Christoffel symbols are only implemented'
                 ' for spherical coordinates in the 2-sphere')
-
-        geomstats.errors.check_belongs(point, self._space)
 
         point = gs.to_ndarray(point, to_ndim=2)
         christoffel = []
