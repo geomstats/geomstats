@@ -141,7 +141,7 @@ class TestExamples(geomstats.tests.TestCase):
 
     @staticmethod
     @geomstats.tests.np_only
-    def test_plot_em_manifolds(cls):
+    def test_plot_em_manifolds():
         plot_em_manifolds.main()
 
     @staticmethod
