@@ -222,7 +222,6 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
 
         barycenter = gs.squeeze(barycenter)
 
-
     if iteration == max_iter:
         logging.warning(
             'Maximum number of iterations {} reached. The '
