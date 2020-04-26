@@ -37,7 +37,7 @@ def grad_log_sigmoid(vector):
     -------
     gradient : array-like, shape=[n_samples, dim]
     """
-    return (1 / (1 + gs.exp(vector)))
+    return 1 / (1 + gs.exp(vector))
 
 
 def grad_squared_distance(point_a, point_b):

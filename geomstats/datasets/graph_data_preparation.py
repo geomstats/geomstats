@@ -45,7 +45,7 @@ class Graph:
             for i, line in enumerate(edges_file):
                 lsp = line.split()
                 self.edges[i] = [k for k, value in
-                                 enumerate(lsp) if (int(value) == 1)]
+                                 enumerate(lsp) if int(value) == 1]
 
         self.n_nodes = len(self.edges)
 

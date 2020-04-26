@@ -85,7 +85,7 @@ class SRVMetric(RiemannianMetric):
             return gs.squeeze(inner_prod)
 
         inner_prod = gs.vectorize((tangent_vec_a, tangent_vec_b, base_curve),
-                                  lambda x, y, z: inner_prod_aux(x, y, z),
+                                  inner_prod_aux,
                                   dtype=gs.float32,
                                   multiple_args=True,
                                   signature='(i,j),(i,j),(i,j)->(i)')
