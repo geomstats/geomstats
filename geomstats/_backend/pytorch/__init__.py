@@ -357,7 +357,8 @@ def einsum(*args, **kwargs):
 
     einsum_list = einsum_str.split('->')
     input_str = einsum_list[0]
-    output_str = einsum_list[1]
+    if len(einsum_list) > 1:
+        output_str = einsum_list[1]
 
     input_str_list = input_str.split(',')
 
