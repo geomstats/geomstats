@@ -139,8 +139,8 @@ class TestExamples(geomstats.tests.TestCase):
     def test_plot_kmeans_manifolds():
         plot_kmeans_manifolds.main()
 
+    @staticmethod
     @geomstats.tests.np_only
-    @classmethod
     def test_plot_em_manifolds(cls):
         plot_em_manifolds.main()
 

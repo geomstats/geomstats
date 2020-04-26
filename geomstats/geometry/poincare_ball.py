@@ -63,7 +63,6 @@ class PoincareBall(Hyperbolic):
         """
         return gs.sum(point**2, axis=-1) < (1 - tolerance)
 
-
     @staticmethod
     def pdf(data, means, variances, norm_func, metric):
         """Return the probability density function."""
@@ -78,24 +77,33 @@ class PoincareBall(Hyperbolic):
         variances_expanded = gs.expand_dims(variances, 0)
         variances_expanded = gs.repeat(variances_expanded, data_length, 0)
 
-        num = gs.exp(-(metric.dist(data_expanded, means_expanded) ** 2)
-                     / (2 * variances_expanded ** 2))
+        variances_flatten = variances_expanded.flatten()
+        data_flatten = gs.reshape(data_expanded,
+                                  (-1, data_expanded.shape[-1]))
+        means_flatten = gs.reshape(means_expanded,
+                                   (-1, means_expanded.shape[-1]))
+        distances = -(metric.dist(data_flatten, means_flatten) ** 2)
+
+        num = gs.exp(distances
+                     / (2 * variances_flatten ** 2))
 
         den = norm_func(variances)
 
         den = gs.expand_dims(den, 0)
-        den = gs.repeat(den, data_length, axis=0)
+        den = gs.repeat(den, data_length, axis=0).flatten()
 
         result = num / den
-
-        return result
+        result_reshape = gs.reshape(result,
+                                    (data_expanded.shape[0],
+                                     data_expanded.shape[1]))
+        return result_reshape
 
     @staticmethod
     def weighted_gmm_pdf(mixture_coefficients,
-                             mesh_data,
-                             means,
-                             variances,
-                             metric):
+                         mesh_data,
+                         means,
+                         variances,
+                         metric):
         """Return the probability density function of a GMM."""
         mesh_data_units = gs.expand_dims(mesh_data, 1)
 
@@ -105,7 +113,18 @@ class PoincareBall(Hyperbolic):
 
         means_units = gs.repeat(means_units, mesh_data_units.shape[0], axis=0)
 
-        distance_to_mean = metric(mesh_data_units, means_units)
+        mesh_data_flattened = gs.reshape(mesh_data_units,
+                                         (-1, mesh_data_units.shape[-1]))
+
+        means_units_flattened = gs.reshape(means_units,
+                                           (-1, means_units.shape[-1]))
+
+        distance_to_mean = metric(mesh_data_flattened, means_units_flattened)
+
+        distance_to_mean = gs.reshape(distance_to_mean,
+                                      (mesh_data_units.shape[0],
+                                       mesh_data_units.shape[1]))
+
         variances_units = gs.expand_dims(variances, 0)
         variances_units = gs.repeat(variances_units,
                                     distance_to_mean.shape[0], axis=0)
@@ -128,6 +147,7 @@ class PoincareBall(Hyperbolic):
         result = result_num / result_denum
 
         return result
+
 
 class PoincareBallMetric(RiemannianMetric):
     """Class that defines operations using a Poincare ball.
@@ -388,9 +408,8 @@ class PoincareBallMetric(RiemannianMetric):
         return gs.einsum('i,jk->ijk', lambda_base, identity)
 
 
-
 class Normalization_Factor_Storage():
-    """A class for computing the normalization factor.
+    r"""A class for computing the normalization factor.
 
     Parameters
     ----------
@@ -406,8 +425,10 @@ class Normalization_Factor_Storage():
     phi_inv_var : array-like, shape=[n_variances,]
         An array of the computed inverse of a function phi
         whose expression is closed-form
-        :math:`\sigma\mapsto \sigma^3 \times \frac{d  }{\mathstrut d\sigma}\log \zeta_m(\sigma)'
-        where :math:'\sigma' denotes the variance and :math:'\zeta' the normalisation coefficient
+        :math:`\sigma\mapsto \sigma^3 \times \frac{d  }
+        {\mathstrut d\sigma}\log \zeta_m(\sigma)'
+        where :math:'\sigma' denotes the variance
+        and :math:'\zeta' the normalisation coefficient
         and :math:'m' the dimension
     """
 

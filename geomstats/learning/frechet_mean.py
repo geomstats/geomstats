@@ -12,7 +12,6 @@ from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.minkowski import MinkowskiMetric
 
-
 EPSILON = 1e-4
 
 
@@ -185,40 +184,47 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
         weights = gs.repeat(weights, points.shape[-1], axis=2)
 
         barycenter = (points * weights).sum(0, keepdims=True) / weights.sum(0)
-        iteration = 0
-        convergence = math.inf
-        points_gs = gs.squeeze(points)
-
         barycenter_gs = gs.squeeze(barycenter)
 
-        while convergence > tau and max_iter > iteration:
+        points_gs = gs.squeeze(points)
+        points_flattened = gs.reshape(points_gs, (-1, points_gs.shape[-1]))
 
+        convergence = math.inf
+        iteration = 0
+
+        while convergence > tau and max_iter > iteration:
             iteration += 1
 
-            grad_tangent = 2 * metric.log(points_gs, barycenter_gs)
+            barycenter_flattened = gs.repeat(barycenter,
+                                             len(points_gs), axis=0)
+            barycenter_flattened = gs.reshape(
+                barycenter_flattened,
+                (-1, barycenter_flattened.shape[-1]))
 
+            grad_tangent = 2 * metric.log(points_flattened,
+                                          barycenter_flattened)
+            grad_tangent = gs.reshape(grad_tangent,
+                                      points.shape)
             grad_tangent = grad_tangent * weights
 
             lr_grad_tangent = lr * grad_tangent.sum(0, keepdims=True)
-
             lr_grad_tangent_s = lr_grad_tangent.squeeze()
 
-            cc_barycenter = metric.exp(barycenter_gs, lr_grad_tangent_s)
+            cc_barycenter = metric.exp(barycenter_gs,
+                                       lr_grad_tangent_s)
 
-            cc_barycenter = gs.expand_dims(cc_barycenter, 0)
+            convergence = metric.dist(cc_barycenter,
+                                      barycenter_gs).max().item()
 
-            convergence = metric.dist(cc_barycenter, barycenter).max().item()
-
-            barycenter = cc_barycenter
-
-            barycenter_gs = gs.squeeze(barycenter)
+            barycenter_gs = cc_barycenter
+            barycenter = gs.expand_dims(cc_barycenter, 0)
 
     if iteration == max_iter:
         logging.warning(
             'Maximum number of iterations {} reached. The '
             'mean may be inaccurate'.format(max_iter))
 
-    return barycenter
+    return barycenter_gs
 
 
 def _adaptive_gradient_descent(points,
