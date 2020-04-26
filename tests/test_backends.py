@@ -329,6 +329,20 @@ class TestBackends(geomstats.tests.TestCase):
 
         self.assertAllCloseToNp(gs_array, np_array)
 
+        n_samples = 3
+        theta = _np.random.rand(5)
+        phi = _np.random.rand(5)
+        np_array = _np.zeros((n_samples, 5, 4))
+        gs_array = gs.array(np_array)
+        np_array[0, :, 0] = gs.cos(theta) * gs.cos(phi)
+        np_array[0, :, 1] = - gs.sin(theta) * gs.sin(phi)
+        gs_array = gs.assignment(
+            gs_array, gs.cos(theta) * gs.cos(phi), (0, 0), axis=1)
+        gs_array = gs.assignment(
+            gs_array, - gs.sin(theta) * gs.sin(phi), (0, 1), axis=1)
+
+        self.assertAllCloseToNp(gs_array, np_array)
+
     def test_assignment_with_booleans_single_index(self):
         np_array = _np.array([[2., 5.]])
         gs_array = gs.array([[2., 5.]])
@@ -507,7 +521,37 @@ class TestBackends(geomstats.tests.TestCase):
             gs_result, 4 * gs_array[~gs_mask], ~gs_mask)
         self.assertAllCloseToNp(gs_result, np_result)
 
+        np_array = _np.array([
+            [22., 55.],
+            [33., 88.],
+            [77., 99.]])
+        gs_array = gs.array([
+            [22., 55.],
+            [33., 88.],
+            [77., 99.]])
+        np_mask = _np.array([[False, False],
+                            [False, True],
+                            [True, True]])
+        gs_mask = gs.array([[False, False],
+                            [False, True],
+                            [True, True]])
+
+        np_array[np_mask] = _np.zeros_like(np_array[np_mask])
+        np_array[~np_mask] = 4 * np_array[~np_mask]
+        np_result = np_array
+
+        values_mask = gs.zeros_like(gs_array[gs_mask])
+        gs_result = gs.assignment(
+            gs_array, values_mask, gs_mask)
+        gs_result = gs.assignment(
+            gs_result, 4 * gs_array[~gs_mask], ~gs_mask)
+        self.assertAllCloseToNp(gs_result, np_result)
+
     def test_assignment(self):
+        gs_array_1 = gs.ones(3)
+        self.assertRaises(
+            ValueError, gs.assignment, gs_array_1, [.1, 2., 1.], [0, 1])
+
         np_array_1 = _np.ones(3)
         gs_array_1 = gs.ones_like(gs.array(np_array_1))
 
@@ -544,6 +588,11 @@ class TestBackends(geomstats.tests.TestCase):
         gs_result = gs.assignment(gs_array_4, 1, (0, 1), axis=1)
         self.assertAllCloseToNp(gs_result, np_array_4)
 
+        gs_array_4_arr = gs.zeros_like(gs.array(np_array_4))
+
+        gs_result = gs.assignment(gs_array_4_arr, 1, gs.array((0, 1)), axis=1)
+        self.assertAllCloseToNp(gs_result, np_array_4)
+
         np_array_4_list = _np.zeros((3, 3, 2))
         gs_array_4_list = gs.zeros_like(gs.array(np_array_4_list))
 
@@ -552,12 +601,20 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllCloseToNp(gs_result, np_array_4_list)
 
     def test_assignment_by_sum(self):
+        gs_array_1 = gs.ones(3)
+        self.assertRaises(
+            ValueError, gs.assignment_by_sum, gs_array_1, [.1, 2., 1.], [0, 1])
+
         np_array_1 = _np.ones(3)
         gs_array_1 = gs.ones_like(gs.array(np_array_1))
 
         np_array_1[2] += 1.5
         gs_result = gs.assignment_by_sum(gs_array_1, 1.5, 2)
         self.assertAllCloseToNp(gs_result, np_array_1)
+
+        gs_result_list = gs.assignment_by_sum(gs_array_1, [2., 1.5], [0, 2])
+        np_array_1[0] += 2.
+        self.assertAllCloseToNp(gs_result_list, np_array_1)
 
         np_array_1_list = _np.ones(3)
         gs_array_1_list = gs.ones_like(gs.array(np_array_1_list))
@@ -595,3 +652,42 @@ class TestBackends(geomstats.tests.TestCase):
         gs_result = gs.assignment_by_sum(
             gs_array_4_list, 1, [(0, 1), (1, 1)], axis=1)
         self.assertAllCloseToNp(gs_result, np_array_4_list)
+
+        n_samples = 3
+        theta = _np.random.rand(5)
+        phi = _np.random.rand(5)
+        np_array = _np.ones((n_samples, 5, 4))
+        gs_array = gs.array(np_array)
+        np_array[0, :, 0] += _np.cos(theta) * _np.cos(phi)
+        np_array[0, :, 1] -= _np.sin(theta) * _np.sin(phi)
+        gs_array = gs.assignment_by_sum(
+            gs_array, gs.cos(theta) * gs.cos(phi), (0, 0), axis=1)
+        gs_array = gs.assignment_by_sum(
+            gs_array, - gs.sin(theta) * gs.sin(phi), (0, 1), axis=1)
+        self.assertAllCloseToNp(gs_array, np_array)
+
+        np_array = _np.array([
+            [22., 55.],
+            [33., 88.],
+            [77., 99.]])
+        gs_array = gs.array([
+            [22., 55.],
+            [33., 88.],
+            [77., 99.]])
+        np_mask = _np.array([[False, False],
+                             [False, True],
+                             [True, True]])
+        gs_mask = gs.array([[False, False],
+                            [False, True],
+                            [True, True]])
+
+        np_array[np_mask] += _np.zeros_like(np_array[np_mask])
+        np_array[~np_mask] += 4 * np_array[~np_mask]
+        np_result = np_array
+
+        values_mask = gs.zeros_like(gs_array[gs_mask])
+        gs_result = gs.assignment_by_sum(
+            gs_array, values_mask, gs_mask)
+        gs_result = gs.assignment_by_sum(
+            gs_result, 4 * gs_array[~gs_mask], ~gs_mask)
+        self.assertAllCloseToNp(gs_result, np_result)
