@@ -12,19 +12,18 @@ from ._bch_coefficients import BCH_COEFFICIENTS
 
 
 class MatrixLieAlgebra:
-    """Class implementing matrix Lie algebra related functions."""
+    """Class implementing matrix Lie algebra related functions.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the Lie algebra as a real vector space.
+    n : int
+        Amount of rows and columns in the matrix representation of the
+        Lie algebra.
+    """
 
     def __init__(self, dim, n):
-        """Construct the MatrixLieAlgebra object.
-
-        Parameters
-        ----------
-        dim: int
-            The dimension of the Lie algebra as a real vector space
-        n: int
-            The amount of rows and columns in the matrix representation of the
-            Lie algebra
-        """
         geomstats.error.check_integer(dim, 'dim')
         geomstats.error.check_integer(n, 'n')
         self.dim = dim
@@ -40,12 +39,12 @@ class MatrixLieAlgebra:
 
         Parameters
         ----------
-        matrix_a: array-like, shape=[n_sample, n, n]
-        matrix_b: array-like, shape=[n_sample, n, n]
+        matrix_a : array-like, shape=[..., n, n]
+        matrix_b : array-like, shape=[..., n, n]
 
         Returns
         -------
-        bracket: shape=[n_sample, n, n]
+        bracket : shape=[..., n, n]
         """
         return gs.matmul(matrix_a, matrix_b) - gs.matmul(matrix_b, matrix_a)
 
@@ -63,7 +62,7 @@ class MatrixLieAlgebra:
 
         Parameters
         ----------
-        matrix_a, matrix_b : array-like, shape=[n_sample, n, n]
+        matrix_a, matrix_b : array-like, shape=[..., n, n]
         order : int
             The order to which the approximation is calculated. Note that this
             is NOT the same as using only e_i with i < order.
@@ -100,11 +99,11 @@ class MatrixLieAlgebra:
 
         Parameters
         ----------
-        matrix_representation: array-like, shape=[n_sample, n, n]
+        matrix_representation : array-like, shape=[..., n, n]
 
         Returns
         -------
-        basis_representation: array-like, shape=[n_sample, dim]
+        basis_representation : array-like, shape=[..., dim]
         """
         raise NotImplementedError("basis_representation not implemented.")
 
@@ -116,11 +115,11 @@ class MatrixLieAlgebra:
 
         Parameters
         ----------
-        basis_representation: array-like, shape=[n_sample, dim]
+        basis_representation : array-like, shape=[..., dim]
 
         Returns
         -------
-        matrix_representation: array-like, shape=[n_sample, n, n]
+        matrix_representation : array-like, shape=[..., n, n]
         """
         basis_representation = gs.to_ndarray(basis_representation, to_ndim=2)
 

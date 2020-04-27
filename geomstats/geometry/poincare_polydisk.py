@@ -51,11 +51,11 @@ class PoincarePolydisk(ProductManifold):
 
         Parameters
         ----------
-        point_intrinsic : array-like, shape=[n_samples, n_disk, dim]
+        point_intrinsic : array-like, shape=[..., n_disk, dim]
 
         Returns
         -------
-        point_extrinsic : array-like, shape=[n_samples, n_disks, dim + 1]
+        point_extrinsic : array-like, shape=[..., n_disks, dim + 1]
         """
         n_disks = point_intrinsic.shape[1]
         point_extrinsic = gs.stack(
@@ -72,12 +72,12 @@ class PoincarePolydisk(ProductManifold):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, n_disks, dim + 1]
-        base_point : array-like, shape=[n_samples, n_disks, dim + 1]
+        vector : array-like, shape=[..., n_disks, dim + 1]
+        base_point : array-like, shape=[..., n_disks, dim + 1]
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, n_disks, dim + 1]
+        tangent_vec : array-like, shape=[..., n_disks, dim + 1]
         """
         n_disks = base_point.shape[1]
         hyperbolic_space = Hyperboloid(2, self.coords_type)

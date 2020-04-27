@@ -46,16 +46,16 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, n_metrics, dim] or
-            [n_samples, dim], optional
+        base_point : array-like, shape=[..., n_metrics, dim] or
+            [..., dim], optional
             Point on the manifold at which to compute the inner-product matrix.
         point_type : str, {'vector', 'matrix'}, optional
             Type of representation used for points.
 
         Returns
         -------
-        matrix : array-like, shape=[n_samples, dim, dim] or
-        [n_samples, dim + n_metrics, dim + n_metrics]
+        matrix : array-like, shape=[..., dim, dim] or
+        [..., dim + n_metrics, dim + n_metrics]
             Matrix of the inner-product at the base point.
 
         """
@@ -90,7 +90,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
+        point : array-like, shape=[..., dim]
             Point on the product manifold.
 
         Returns
@@ -141,18 +141,18 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, dim + 1]
+        tangent_vec_a : array-like, shape=[..., dim + 1]
             First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[n_samples, dim + 1]
+        tangent_vec_b : array-like, shape=[..., dim + 1]
             Second tangent vector at base point.
-        base_point : array-like, shape=[n_samples, dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1], optional
             Point on the manifold.
         point_type : str, {'vector', 'matrix'}, optional
             Type of representation used for points.
 
         Returns
         -------
-        inner_prod : array-like, shape=[n_samples, 1]
+        inner_prod : array-like, shape=[..., 1]
             Inner-product of the two tangent vectors.
         """
         if base_point is None:
@@ -197,16 +197,16 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dim]
+        tangent_vec : array-like, shape=[..., dim]
             Tangent vector at a base point.
-        base_point : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[..., dim]
             Point on the manifold.
         point_type : str, {'vector', 'matrix'}, optional
             Type of representation used for points.
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dim]
+        exp : array-like, shape=[..., dim]
             Point on the manifold equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
@@ -239,16 +239,16 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
+        point : array-like, shape=[..., dim]
             Point on the manifold.
-        base_point : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[..., dim]
             Point on the manifold.
         point_type : str, {'vector', 'matrix'}, optional
             Type of representation used for points.
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dim]
+        log : array-like, shape=[..., dim]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
