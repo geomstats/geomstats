@@ -2,9 +2,12 @@
 
 import logging
 
+from sklearn.base import BaseEstimator, ClusterMixin
+
 import geomstats.backend as gs
 from geomstats.geometry.poincare_ball \
-    import Normalization_Factor_Storage, PoincareBall
+    import NormalizationFactor, PoincareBall
+from geomstats.learning._template import TransformerMixin
 from geomstats.learning.frechet_mean import FrechetMean
 
 
@@ -22,7 +25,7 @@ SUM_CHECK_PDF = 1e-4
 MEAN_MAX_ITER = 150
 
 
-class RiemannianEM():
+class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
     """Expectation-maximization class on Poincaré Ball.
 
     A class for performing Expectation-Maximization on the
@@ -153,18 +156,15 @@ class RiemannianEM():
             n_features is the number of features.
         """
         probability_distribution_function = \
-            PoincareBall.pdf(data,
-                             self.means,
-                             self.variances,
-                             norm_func=self.
-                             normalization_factor.
-                             find_normalisation_factor,
-                             metric=self.riemannian_metric)
+            PoincareBall.pdf(
+                data, self.means, self.variances,
+                norm_func=self.normalization_factor.find_normalisation_factor,
+                metric=self.riemannian_metric)
 
         if (probability_distribution_function.mean() !=
                 probability_distribution_function.mean()):
-            logging.info('EXPECTATION : Probability distribution function'
-                         'contain elements that are not numbers')
+            logging.warning('EXPECTATION : Probability distribution function'
+                            'contain elements that are not numbers')
 
         num_normalized_pdf = gs.einsum('j,...j->...j',
                                        self.mixture_coefficients,
@@ -181,14 +181,14 @@ class RiemannianEM():
 
         if gs.any(gs.mean(posterior_probabilities)) is None:
 
-            raise ValueError('EXPECTATION : posterior probabilities ' +
-                             'contain elements that are not numbers.')
+            logging.warning('EXPECTATION : posterior probabilities '
+                            'contain elements that are not numbers.')
 
         if 1 - SUM_CHECK_PDF >= gs.mean(gs.sum(
                 posterior_probabilities, 1)) >= 1 + SUM_CHECK_PDF:
 
-            raise ValueError('EXPECTATION : posterior probabilities ' +
-                             'do not sum to 1.')
+            logging.warning('EXPECTATION : posterior probabilities '
+                            'do not sum to 1.')
 
         return posterior_probabilities
 
@@ -219,7 +219,7 @@ class RiemannianEM():
 
         if(gs.mean(self.mixture_coefficients)
                 != gs.mean(self.mixture_coefficients)):
-            raise NameError('UPDATE : mixture coefficients ' +
+            logging.warning('UPDATE : mixture coefficients '
                             'contain elements that are not numbers')
 
         self.update_means(data,
@@ -229,13 +229,13 @@ class RiemannianEM():
                           max_iter=max_iter)
 
         if self.means.mean() != self.means.mean():
-            raise NameError('UPDATE : means contain' +
+            logging.warning('UPDATE : means contain'
                             'not a number elements')
 
         self.update_variances(data, posterior_probabilities)
 
         if self.variances.mean() != self.variances.mean():
-            raise NameError('UPDATE : variances contain' +
+            logging.warning('UPDATE : variances contain'
                             'not a number elements')
 
     def fit(self,
@@ -275,7 +275,7 @@ class RiemannianEM():
             gs.ones(self.n_gaussian) / self.n_gaussian
         posterior_probabilities = gs.ones((data.shape[0],
                                            self.means.shape[0]))
-        self.normalization_factor = Normalization_Factor_Storage(
+        self.normalization_factor = NormalizationFactor(
             gs.arange(ZETA_LOWER_BOUND,
                       ZETA_UPPER_BOUND,
                       ZETA_STEP),

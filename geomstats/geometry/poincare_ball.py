@@ -3,16 +3,18 @@
 The n-dimensional hyperbolic space embedded with
 the hyperboloid representation (embedded in minkowsky space).
 """
+import logging
+
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-import logging
+
 
 TOLERANCE = 1e-6
 EPSILON = 1e-6
 NORMALIZATION_FACTOR_CST = gs.sqrt(gs.pi / 2)
-PI_2_3 = gs.power((2 * gs.pi), 2 / 3)
+PI_2_3 = gs.power(gs.array([2. * gs.pi]), gs.array([2 / 3]))
 SQRT_2 = gs.sqrt(2.)
 
 
@@ -66,7 +68,21 @@ class PoincareBall(Hyperbolic):
 
     @staticmethod
     def pdf(data, means, variances, norm_func, metric):
-        """Return the probability density function."""
+        """Return the probability density function.
+
+        Parameters
+        ----------
+        data : array-like, shape=[n_samples, dim]
+            Points for which the GMM probability density is computed.
+        means : array-like, shape=[n_gaussian, dim]
+            Means of each component of the GMM.
+        variances : array-like, shape=[n_gaussian]
+            Variances of each component of the GMM.
+        norm_func: : function
+            Normalisation factor function.
+        metric : function
+            Distance function associated with the used metric.
+        """
         data_length, _, n_gaussian = data.shape + (means.shape[0],)
 
         data_expanded = gs.expand_dims(data, 1)
@@ -109,11 +125,16 @@ class PoincareBall(Hyperbolic):
 
         Parameters
         ----------
-        weighted_distances : array-like, shape=[n_gaussian,]
-            Mean of the weighted distances between training data
-            and current barycentres. The weights of each data sample
-            corresponds to the probability of belonging to a component
-            of the Gaussian mixture model.
+        mixture_coefficients : array-like, shape=[n_gaussian,]
+            Coefficients of the Gaussian mixture model.
+        mesh_data : array-like, shape=[n_precision, dim]
+            Points for which the GMM probability density is computed.
+        means : array-like, shape=[n_gaussian, dim]
+            Means of each component of the GMM.
+        variances : array-like, shape=[n_gaussian]
+            Variances of each component of the GMM.
+        metric : function
+            Distance function associated with the used metric.
         """
         mesh_data_units = gs.expand_dims(mesh_data, 1)
 
@@ -405,7 +426,7 @@ class PoincareBallMetric(RiemannianMetric):
         return gs.einsum('i,jk->ijk', lambda_base, identity)
 
 
-class Normalization_Factor_Storage():
+class NormalizationFactor:
     r"""A class for computing the normalization factor.
 
     Parameters
@@ -441,7 +462,7 @@ class Normalization_Factor_Storage():
 
         if cond_1 or cond_2 or cond_3:
             logging.warning('WARNING :\n'
-                             'untracktable normalisation factor :')
+                            'untracktable normalisation factor :')
 
             limit_nf = ((self.normalisation_factor_var /
                          self.normalisation_factor_var)
@@ -451,13 +472,16 @@ class Normalization_Factor_Storage():
             self.normalisation_factor_var = \
                 self.normalisation_factor_var[0:limit_nf]
             if cond_1:
-                logging.warning('\t Nan value in processing normalisation factor')
+                logging.warning('\t Nan value '
+                                'in processing normalisation factor')
             if cond_2 or cond_3:
-                raise ValueError('\t +-inf value in processing normalisation factor')
+                raise ValueError('\t +-inf value in '
+                                 'processing normalisation factor')
 
-            logging.warning('\t Max variance is now : ', self.variances[-1])
-            logging.warning('\t Number of possible variance is now: '
-                  + str(len(self.variances)) + '/' + str(max_nf))
+            logging.warning('\t Max variance is now : %s',
+                            str(self.variances[-1]))
+            logging.warning('\t Number of possible variance is now: %s / %s ',
+                            str(len(self.variances)), str(max_nf))
 
         _, log_grad_zeta = \
             self.norm_factor_gradient(self.variances, dim)
@@ -465,7 +489,14 @@ class Normalization_Factor_Storage():
         self.phi_inv_var = self.variances ** 3 * log_grad_zeta
 
     def find_normalisation_factor(self, variance):
-        """Given a variance, finds the normalisation factor."""
+        """Find the normalisation factor given some variances.
+
+        Parameters
+        ----------
+        variance : array-like, shape=[n_gaussian,]
+        An array of standard deviations for each component
+        of some GMM.
+        """
         n_gaussian, precision = variance.shape[0], self.variances.shape[0]
 
         ref = gs.expand_dims(self.variances, 0)
@@ -505,23 +536,33 @@ class Normalization_Factor_Storage():
 
         return self.variances[index]
 
-    @classmethod
-    def normalization_factor(cls, variances, dimension):
-        """Return normalization factor."""
+    @staticmethod
+    def normalization_factor(variances, dim):
+        """Return normalization factor.
+
+        Parameters
+        ----------
+        variances : array-like, shape=[precision,]
+            An array of equally distant values of the
+            variance precision time.
+        dim : integer
+            Dimension of the manifold.
+        """
         binomial_coefficient = None
         n_samples = variances.shape[0]
 
         expand_variances = gs.expand_dims(variances, axis=0)
-        expand_variances = gs.repeat(expand_variances, dimension, axis=0)
+        expand_variances = gs.repeat(expand_variances, dim, axis=0)
 
         if binomial_coefficient is None:
 
-            v = gs.arange(dimension)
-            v[0] = 1
-            n_fact = v.prod()
+            dim_range = gs.arange(dim)
+            dim_range[0] = 1
+            n_fact = dim_range.prod()
 
-            k_fact = gs.concatenate([gs.expand_dims(v[:i].prod(), 0)
-                                     for i in range(1, v.shape[0] + 1)], 0)
+            k_fact = gs.concatenate(
+                [gs.expand_dims(dim_range[:i].prod(), 0)
+                 for i in range(1, dim_range.shape[0] + 1)], 0)
 
             nmk_fact = gs.flip(k_fact, 0)
 
@@ -531,36 +572,43 @@ class Normalization_Factor_Storage():
         binomial_coefficient = gs.repeat(binomial_coefficient,
                                          n_samples, axis=1)
 
-        range_ = gs.expand_dims(gs.arange(dimension), -1)
+        range_ = gs.expand_dims(gs.arange(dim), -1)
         range_ = gs.repeat(range_, n_samples, axis=1)
 
-        ones_ = gs.expand_dims(gs.ones(dimension), -1)
+        ones_ = gs.expand_dims(gs.ones(dim), -1)
         ones_ = gs.repeat(ones_, n_samples, axis=1)
 
         alternate_neg = (-ones_) ** (range_)
 
-        ins_gs = (((dimension - 1) - 2 * range_) *
+        ins_gs = (((dim - 1) - 2 * range_) *
                   expand_variances) / gs.sqrt(2)
-        ins_squared_gs = ((((dimension - 1) - 2 * range_) *
+        ins_squared_gs = ((((dim - 1) - 2 * range_) *
                            expand_variances) / gs.sqrt(2)) ** 2
         as_o_gs = (1 + gs.erf(ins_gs)) * gs.exp(ins_squared_gs)
         bs_o_gs = binomial_coefficient * as_o_gs
         r_gs = alternate_neg * bs_o_gs
 
         norm_func = NORMALIZATION_FACTOR_CST * variances * \
-            r_gs.sum(0) * (1 / (2 ** (dimension - 1)))
+            r_gs.sum(0) * (1 / (2 ** (dim - 1)))
 
         return norm_func
 
-    @classmethod
-    def _compute_alpha(cls, dim, current_dim):
+    @staticmethod
+    def _compute_alpha(dim, current_dim):
         """Compute factor used in normalisation factor.
 
         Compute alpha factor given the two arguments.
+
+        Parameters
+        ----------
+        dim : integer
+            Dimension of the manifold.
+        current_dim : array-like, shape=[dim,]
+            Array initialized at 0 with max range dim and step 1.
         """
         return (dim - 1 - 2 * current_dim) / SQRT_2
 
-    def norm_factor_gradient(self, variances, dimension):
+    def norm_factor_gradient(self, variances, dim):
         """Compute normalisation factor and its gradient.
 
         Compute normalisation factor given current variance
@@ -570,34 +618,32 @@ class Normalization_Factor_Storage():
         ----------
         variances : array-like, shape=[n]
             Value of variance.
-
-        dimension : int
-            Dimension of the space
+        dim : int
+            Dimension of the space.
 
         Returns
         -------
         norm_factor : array-like, shape=[n]
-            Normalisation factor
+            Normalisation factor.
         norm_factor_gradient : array-like, shape=[n]
-            Gradient of the normalisation factor
-
+            Gradient of the normalisation factor.
         """
         variances = gs.transpose(gs.to_ndarray(variances, to_ndim=2))
-        dim_range = gs.arange(0, dimension, 1.)
-        alpha = self._compute_alpha(dimension, dim_range)
+        dim_range = gs.arange(0, dim, 1.)
+        alpha = self._compute_alpha(dim, dim_range)
 
-        binomial_coefficient = gs.ones(dimension)
+        binomial_coefficient = gs.ones(dim)
         binomial_coefficient[1:] = \
-            (dimension - 1 + 1 - dim_range[1:]) / dim_range[1:]
+            (dim - 1 + 1 - dim_range[1:]) / dim_range[1:]
         binomial_coefficient = gs.cumprod(binomial_coefficient)
 
-        beta = ((-gs.ones(dimension)) ** dim_range) * binomial_coefficient
+        beta = ((-gs.ones(dim)) ** dim_range) * binomial_coefficient
 
-        sigma_repeated = gs.repeat(variances, dimension, -1)
+        sigma_repeated = gs.repeat(variances, dim, -1)
         prod_alpha_sigma = gs.einsum('ij,j->ij', sigma_repeated, alpha)
         term_2 = \
             gs.exp((prod_alpha_sigma) ** 2) * (1 + gs.erf(prod_alpha_sigma))
-        term_1 = gs.sqrt(gs.pi / 2.) * (1. / (2 ** (dimension - 1)))
+        term_1 = gs.sqrt(gs.pi / 2.) * (1. / (2 ** (dim - 1)))
         term_2 = gs.einsum('ij,j->ij', term_2, beta)
         norm_factor = \
             term_1 * variances * gs.sum(term_2, axis=-1, keepdims=True)
@@ -615,7 +661,7 @@ class Normalization_Factor_Storage():
                                   variances.shape[0], axis=0)
 
         grad_term_22 = grad_term_211 + grad_term_212
-        grad_term_22 = gs.einsum("ij, j->ij", grad_term_22, beta)
+        grad_term_22 = gs.einsum('ij, j->ij', grad_term_22, beta)
         grad_term_22 = gs.sum(grad_term_22, axis=-1, keepdims=True)
 
         norm_factor_gradient = grad_term_1 + (grad_term_21 * grad_term_22)
