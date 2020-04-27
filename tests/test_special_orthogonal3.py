@@ -344,8 +344,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         expected = (
             gs.eye(3)
             + coef_1 * skew_rot_vec_3
-            + coef_2 * gs.dot(skew_rot_vec_3,
-                              skew_rot_vec_3))
+            + coef_2 * gs.matmul(skew_rot_vec_3, skew_rot_vec_3))
         result = group.matrix_from_rotation_vector(rot_vec_3)
         self.assertAllClose(result, expected)
 
@@ -361,8 +360,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         expected = (
             gs.eye(3)
             + coef_1 * skew_rot_vec_6
-            + coef_2 * gs.dot(skew_rot_vec_6,
-                              skew_rot_vec_6))
+            + coef_2 * gs.matmul(skew_rot_vec_6, skew_rot_vec_6))
         self.assertAllClose(result, expected)
 
     def test_matrix_from_rotation_vector_vectorization(self):
@@ -3521,7 +3519,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     sq_dist_2_1 = gs.mod(
                         metric.squared_dist(point_2, point_1) + 1e-4,
                         gs.pi**2)
-
                     self.assertAllClose(sq_dist_1_2, sq_dist_2_1, atol=1e-4)
 
     def test_squared_dist_is_less_than_squared_pi(self):
