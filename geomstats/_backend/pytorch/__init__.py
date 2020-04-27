@@ -127,19 +127,31 @@ def any(x, axis=None):
     if not torch.is_tensor(x):
         x = torch.tensor(x)
     if axis is None:
-        return x.bool().any()
+        return torch.any(x)
     if isinstance(axis, int):
         return torch.any(x.bool(), axis)
-    if len(axis) == 2:
+    if len(axis) == 1:
+        return torch.any(x, *axis)
         axis = list(axis)
         for i_axis, one_axis in enumerate(axis):
             if one_axis < 0:
                 axis[i_axis] = ndim(x) + one_axis
-        return torch.any(
-            torch.any(x.bool(), axis[1]), axis[0])
-    raise NotImplementedError(
-        'any not implemented for more than two axes.')
-
+    new_axis = tuple(k - 1 if k >= 0 else k for k in axis[1:])
+    return any(torch.any(x.bool(), axis[0]), new_axis)
+#     if axis is None:
+#         return x.bool().any()
+#     if isinstance(axis, int):
+#         return torch.any(x.bool(), axis)
+#     if len(axis) == 2:
+#         axis = list(axis)
+#         for i_axis, one_axis in enumerate(axis):
+#             if one_axis < 0:
+#                 axis[i_axis] = ndim(x) + one_axis
+#         return torch.any(
+#             torch.any(x.bool(), axis[1]), axis[0])
+#     raise NotImplementedError(
+#         'any not implemented for more than two axes.')
+#
 
 def cast(x, dtype):
     if torch.is_tensor(x):
@@ -237,7 +249,7 @@ def all(x, axis=None):
         return torch.all(
             torch.all(x.bool(), axis[1]), axis[0])
     raise NotImplementedError(
-        'any not implemented for more than two axes.')
+        'all not implemented for more than two axes.')
 
 
 def get_slice(x, indices):
