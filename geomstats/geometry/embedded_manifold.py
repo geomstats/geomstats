@@ -26,7 +26,7 @@ class EmbeddedManifold(Manifold):
 
         Parameters
         ----------
-        point_intrinsic : array-like, shape=[n_samples, dim]
+        point_intrinsic : array-like, shape=[..., dim]
             Point in the embedded manifold in intrinsic coordinates.
         """
         raise NotImplementedError(
@@ -37,7 +37,7 @@ class EmbeddedManifold(Manifold):
 
         Parameters
         ----------
-        point_extrinsic : array-like, shape=[n_samples, dim_embedding]
+        point_extrinsic : array-like, shape=[..., dim_embedding]
             Point in the embedded manifold in extrinsic coordinates,
             i. e. in the coordinates of the embedding manifold.
         """
@@ -49,7 +49,7 @@ class EmbeddedManifold(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim_embedding]
+        point : array-like, shape=[..., dim_embedding]
             Point in embedding manifold
         """
         raise NotImplementedError(

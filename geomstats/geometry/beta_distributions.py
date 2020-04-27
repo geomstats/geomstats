@@ -34,13 +34,13 @@ class BetaDistributions(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, 2]
-            the point of which to check whether it belongs to Beta
+        point : array-like, shape=[..., 2]
+            Point to be checked.
 
         Returns
         -------
-        belongs : array-like, shape=[n_samples, 1]
-            array of booleans indicating whether point belongs the Beta
+        belongs : array-like, shape=[...,]
+            Boolean indicating whether point represents a beta distribution.
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
@@ -57,12 +57,14 @@ class BetaDistributions(EmbeddedManifold):
         Parameters
         ----------
         n_samples : int, optional
+            Number of samples.
         bound : float, optional
-            scalar to scale samples
+            Side of the square where the beta parameters are sampled.
 
         Returns
         -------
-        samples : array-like, shape=[n_samples, 2]
+        samples : array-like, shape=[..., 2]
+            Sample of points representing beta distributions.
         """
         size = (2,) if n_samples == 1 else (n_samples, 2)
         return bound * gs.random.rand(*size)
@@ -74,14 +76,15 @@ class BetaDistributions(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape [n_points, 2]
+        point : array-like, shape=[..., 2]
+            Point representing a beta distribution.
         n_samples : int
-            the number of points to sample with each pair of parameter in
-            point
+            Number of points to sample with each pair of parameters in point.
 
         Returns
         -------
-        samples : array-like, shape=[n_points, n_samples]
+        samples : array-like, shape=[..., n_samples]
+            Sample from beta distributions.
         """
         point = gs.to_ndarray(point, to_ndim=2)
         geomstats.error.check_belongs(
@@ -101,20 +104,21 @@ class BetaDistributions(EmbeddedManifold):
 
         Parameters
         ----------
-        data : array-like, shape=[n_distributions, n_samples]
-            the data to estimate parameters from. Arrays of
+        data : array-like, shape=[..., n_samples]
+            Data to estimate parameters from. Arrays of
             different length may be passed.
         loc : float, optional
-            the location parameter of the distribution to estimate parameters
-            from. It is kept fixed during optimization
+            Location parameter of the distribution to estimate parameters
+            from. It is kept fixed during optimization.
             default: 0
         scale : float, optional
-            the scale parameter of the distribution to estimate parameters
-            from. It is kept fixed during optimization
+            Scale parameter of the distribution to estimate parameters
+            from. It is kept fixed during optimization.
             default: 1
+
         Returns
         -------
-        parameter : array-like, shape=[n_samples, 2]
+        parameter : array-like, shape=[..., 2]
         """
         data = gs.cast(data, gs.float32)
         data = gs.to_ndarray(
@@ -138,12 +142,12 @@ class BetaMetric(RiemannianMetric):
 
         Parameters
         ----------
-        param_a : array-like, shape=[n_samples,]
-        param_b : array-like, shape=[n_samples,]
+        param_a : array-like, shape=[...,]
+        param_b : array-like, shape=[...,]
 
         Returns
         -------
-        metric_det : array-like, shape=[n_samples,]
+        metric_det : array-like, shape=[...,]
         """
         metric_det = gs.polygamma(1, param_a) * gs.polygamma(1, param_b) - \
             gs.polygamma(1, param_a + param_b) * (gs.polygamma(1, param_a) +
@@ -155,11 +159,11 @@ class BetaMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, 2]
+        base_point : array-like, shape=[..., 2]
 
         Returns
         -------
-        base_point : array-like, shape=[n_samples, 2, 2]
+        base_point : array-like, shape=[..., 2, 2]
         """
         if base_point is None:
             raise ValueError('The metric depends on the base point.')
@@ -182,11 +186,11 @@ class BetaMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, 2]
+        base_point : array-like, shape=[..., 2]
 
         Returns
         -------
-        christoffels : array-like, shape=[n_samples, 2, 2, 2]
+        christoffels : array-like, shape=[..., 2, 2, 2]
         """
         def coefficients(param_a, param_b):
             metric_det = 2 * self.metric_det(param_a, param_b)
@@ -217,13 +221,13 @@ class BetaMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dim]
-        base_point : array-like, shape=[n_samples, dim]
+        tangent_vec : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., dim]
         n_steps : int
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dim]
+        exp : array-like, shape=[..., dim]
         """
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
@@ -251,15 +255,15 @@ class BetaMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
-        base_point : array-like, shape=[n_samples, dim]
+        point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., dim]
         n_steps : int
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, dim]
-            the initial velocity of the geodesic starting at base_point and
-            reaching point at time 1
+        tangent_vec : array-like, shape=[..., dim]
+            Initial velocity of the geodesic starting at base_point and
+            reaching point at time 1.
         """
         stop_time = 1.
         t = gs.linspace(0, stop_time, n_steps)

@@ -32,6 +32,7 @@ ALGEBRA = SkewSymmetricMatrices(n=N)
 
 
 def main():
+    """Visualize convergence of the BCH formula approximation on so(n)."""
     norm_rv_1 = gs.random.normal(size=DIM)
     tan_rv_1 = ALGEBRA.matrix_representation(
         norm_rv_1 / gs.linalg.norm(norm_rv_1, axis=0) / 2
