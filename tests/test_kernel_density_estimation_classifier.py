@@ -25,42 +25,58 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
 
     def test_predict(self):
         """Test the 'predict' class method."""
-        training_dataset = gs.array([[0, 0], [1, 0], [2, 0], [3, 0]])
+        training_dataset = gs.array(
+            [[0.0, 0.0],
+             [1.0, 0.0],
+             [2.0, 0.0],
+             [3.0, 0.0]])
         labels = [0, 0, 1, 1]
         kde = KernelDensityEstimationClassifier(
             distance=self.distance)
         kde.fit(training_dataset, labels)
-        result = kde.predict([[1.1, 0]])
+        result = kde.predict(gs.array([[1.1, 0.0]]))
         expected = gs.array([0])
         self.assertAllClose(expected, result)
 
     def test_predict_proba_uniform_kernel(self):
         """Test the 'predict_proba' class method using the 'uniform' kernel."""
-        training_dataset = gs.array([[0, 0], [1, 0], [2, 0], [3, 0]])
+        training_dataset = gs.array(
+            [[0.0, 0.0],
+             [1.0, 0.0],
+             [2.0, 0.0],
+             [3.0, 0.0]])
         labels = [0, 0, 1, 1]
         kde = KernelDensityEstimationClassifier(
             kernel='uniform',
             distance=self.distance)
         kde.fit(training_dataset, labels)
-        result = kde.predict_proba([[0.9, 0]])
+        result = kde.predict_proba(gs.array([[0.9, 0.0]]))
         expected = gs.array([[1 / 2, 1 / 2]])
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
     def test_predict_proba_distance_kernel(self):
         """Test the 'predict_proba' class method using 'distance' kernel."""
-        training_dataset = gs.array([[0, 0], [1, 0], [2, 0], [3, 0]])
+        training_dataset = gs.array(
+            [[0.0, 0.0],
+             [1.0, 0.0],
+             [2.0, 0.0],
+             [3.0, 0.0]])
         labels = [0, 0, 1, 1]
         kde = KernelDensityEstimationClassifier(
             kernel='distance',
             distance=self.distance)
         kde.fit(training_dataset, labels)
-        result = kde.predict_proba([[1, 0]])
+        result = kde.predict_proba(gs.array([[1.0, 0.0]]))
         expected = gs.array([[1, 0]])
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
     def test_predict_proba_triangular_kernel(self):
         """Test the 'predict_proba' class method using a triangular kernel."""
-        training_dataset = gs.array([[0, 0], [1, 0], [2, 0], [3, 0]])
+        training_dataset = gs.array(
+            [[0.0, 0.0],
+             [1.0, 0.0],
+             [2.0, 0.0],
+             [3.0, 0.0]])
         labels = [0, 0, 1, 1]
         kde = KernelDensityEstimationClassifier(
             kernel=triangular_radial_kernel,
@@ -68,20 +84,24 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
             p=2,
             distance='minkowski')
         kde.fit(training_dataset, labels)
-        result = kde.predict_proba([[1, 0]])
+        result = kde.predict_proba(gs.array([[1.0, 0.0]]))
         expected = gs.array([[3 / 4, 1 / 4]])
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
     def test_predict_proba_triangular_kernel_callable_distance(self):
         """Test the 'predict_proba' class method using a triangular kernel."""
-        training_dataset = gs.array([[0, 0], [1, 0], [2, 0], [3, 0]])
+        training_dataset = gs.array(
+            [[0.0, 0.0],
+             [1.0, 0.0],
+             [2.0, 0.0],
+             [3.0, 0.0]])
         labels = [0, 0, 1, 1]
         kde = KernelDensityEstimationClassifier(
             kernel=triangular_radial_kernel,
             bandwidth=2.0,
             distance=self.distance)
         kde.fit(training_dataset, labels)
-        result = kde.predict_proba([[1, 0]])
+        result = kde.predict_proba(gs.array([[1.0, 0.0]]))
         expected = gs.array([[3 / 4, 1 / 4]])
         self.assertAllClose(expected, result, atol=TOLERANCE)
 

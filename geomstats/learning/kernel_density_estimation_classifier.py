@@ -10,6 +10,31 @@ import geomstats.backend as gs
 class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
     """Classifier implementing the kernel density estimation on manifolds.
 
+    The kernel density estimation classifier classifies the data according to
+    a kernel density estimation of each dataset on the manifold. The density
+    estimation is performed using radial kernel functions: the distance
+    is the only geometrical tool used to estimate the density on the manifold.
+    This classifier inherits from the radius neighbors classifier of the
+    scikit-learn library, we expect the classifier presented here to be easier
+    to use on manifolds.
+    Compared with the radius neighbors classifier, we force the
+    parameter 'algorithm' to be equal to 'brute' in order to
+    be compatible with any metric.
+    We also changed some default values of the scikit-learn algorithm in order
+    to take into account every point of the dataset during the kernel density
+    estimation, i.e. the default value of the parameter 'radius' is set to
+    infinity instead of 1 and the default value of the parameter 'weight' is
+    set to 'distance' instead of 'uniform'.
+    Our main contribution is a greater choice of kernel functions,
+    see the radial_kernel_functions.py file in the learning directory.
+    The radial kernel functions are now easier to define by a user:
+    the input data should be an array of distances instead of an array of
+    arrays. Moreover the new parameter 'bandwidth' of our classifier can be
+    used to adapt the kernel function to the size of the dataset.
+    The scikit-learn library also provides a kernel density estimation tool
+    (see sklearn.neighbors.KernelDensity), however this algorithm is not built
+    as a classifier and is not available with all metrics.
+
     Parameters
     ----------
     radius : float, optional (default = inf)
@@ -72,8 +97,8 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
     References
     ----------
     This algorithm uses the scikit-learn library:
-    https://github.com/scikit-learn/scikit-learn/blob/95d4f0841/sklearn/
-    neighbors/_classification.py#L254
+    https://scikit-learn.org/stable/modules/generated/
+    sklearn.neighbors.RadiusNeighborsClassifier.html
     """
 
     def __init__(self, radius=math.inf,
