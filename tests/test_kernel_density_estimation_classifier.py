@@ -105,6 +105,23 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
         expected = gs.array([[3 / 4, 1 / 4]])
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
+    def test_predict_triangular_kernel_callable_distance(self):
+        """Test the 'predict' class method using a triangular kernel."""
+        training_dataset = gs.array(
+            [[0.0, 0.0],
+             [1.0, 0.0],
+             [2.0, 0.0],
+             [3.0, 0.0]])
+        labels = [0, 0, 1, 1]
+        kde = KernelDensityEstimationClassifier(
+            kernel=triangular_radial_kernel,
+            bandwidth=2.0,
+            distance=self.distance)
+        kde.fit(training_dataset, labels)
+        result = kde.predict(gs.array([[1.0, 0.0]]))
+        expected = gs.array([0])
+        self.assertAllClose(expected, result, atol=TOLERANCE)
+
     def test_predict_hypersphere_distance(self):
         """Test the 'predict' class method using the hypersphere distance."""
         dim = 2
