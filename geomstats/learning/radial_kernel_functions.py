@@ -56,8 +56,8 @@ def uniform_radial_kernel(distance, bandwidth=1.0):
     scaled_distance = distance / bandwidth
     weight = gs.where(
         scaled_distance < 1,
-        gs.array([1]),
-        gs.array([0]))
+        gs.ones(distance.shape, dtype=float),
+        gs.zeros(distance.shape, dtype=float))
     return weight
 
 
@@ -87,7 +87,7 @@ def triangular_radial_kernel(distance, bandwidth=1.0):
     weight = gs.where(
         scaled_distance < 1,
         1 - scaled_distance,
-        gs.array([0], dtype=float))
+        gs.zeros(distance.shape, dtype=float))
     return weight
 
 
@@ -117,7 +117,7 @@ def parabolic_radial_kernel(distance, bandwidth=1.0):
     weight = gs.where(
         scaled_distance < 1,
         1 - scaled_distance ** 2,
-        gs.array([0], dtype=float))
+        gs.zeros(distance.shape, dtype=float))
     return weight
 
 
@@ -147,7 +147,7 @@ def biweight_radial_kernel(distance, bandwidth=1.0):
     weight = gs.where(
         scaled_distance < 1,
         (1 - scaled_distance ** 2) ** 2,
-        gs.array([0], dtype=float))
+        gs.zeros(distance.shape, dtype=float))
     return weight
 
 
@@ -177,7 +177,7 @@ def triweight_radial_kernel(distance, bandwidth=1.0):
     weight = gs.where(
         scaled_distance < 1,
         (1 - scaled_distance ** 2) ** 3,
-        gs.array([0], dtype=float))
+        gs.zeros(distance.shape, dtype=float))
     return weight
 
 
@@ -207,7 +207,7 @@ def tricube_radial_kernel(distance, bandwidth=1.0):
     weight = gs.where(
         scaled_distance < 1,
         (1 - scaled_distance ** 3) ** 3,
-        gs.array([0], dtype=float))
+        gs.zeros(distance.shape, dtype=float))
     return weight
 
 
@@ -265,7 +265,7 @@ def cosine_radial_kernel(distance, bandwidth=1.0):
     weight = gs.where(
         scaled_distance < 1,
         gs.cos((gs.pi / 2) * scaled_distance),
-        gs.array([0], dtype=float))
+        gs.zeros(distance.shape, dtype=float))
     return weight
 
 
@@ -345,7 +345,7 @@ def bump_radial_kernel(distance, bandwidth=1.0):
     weight = gs.where(
         scaled_distance < 1,
         gs.exp(- 1 / (1 - scaled_distance ** 2)),
-        gs.array([0], dtype=float))
+        gs.zeros(distance.shape, dtype=float))
     return weight
 
 
