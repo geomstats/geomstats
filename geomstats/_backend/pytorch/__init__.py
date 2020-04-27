@@ -138,20 +138,7 @@ def any(x, axis=None):
                 axis[i_axis] = ndim(x) + one_axis
     new_axis = tuple(k - 1 if k >= 0 else k for k in axis[1:])
     return any(torch.any(x.bool(), axis[0]), new_axis)
-#     if axis is None:
-#         return x.bool().any()
-#     if isinstance(axis, int):
-#         return torch.any(x.bool(), axis)
-#     if len(axis) == 2:
-#         axis = list(axis)
-#         for i_axis, one_axis in enumerate(axis):
-#             if one_axis < 0:
-#                 axis[i_axis] = ndim(x) + one_axis
-#         return torch.any(
-#             torch.any(x.bool(), axis[1]), axis[0])
-#     raise NotImplementedError(
-#         'any not implemented for more than two axes.')
-#
+
 
 def cast(x, dtype):
     if torch.is_tensor(x):
@@ -241,15 +228,14 @@ def all(x, axis=None):
         return x.bool().all()
     if isinstance(axis, int):
         return torch.all(x.bool(), axis)
-    if len(axis) == 2:
+    if len(axis) == 1:
+        return torch.all(x, *axis)
         axis = list(axis)
         for i_axis, one_axis in enumerate(axis):
             if one_axis < 0:
                 axis[i_axis] = ndim(x) + one_axis
-        return torch.all(
-            torch.all(x.bool(), axis[1]), axis[0])
-    raise NotImplementedError(
-        'all not implemented for more than two axes.')
+    new_axis = tuple(k - 1 if k >= 0 else k for k in axis[1:])
+    return all(torch.all(x.bool(), axis[0]), new_axis)
 
 
 def get_slice(x, indices):
@@ -420,10 +406,13 @@ def einsum(*args, **kwargs):
         input_str_list = [
             input_str.replace('...', prefix) for input_str, prefix in zip(
                 input_str_list, input_prefix_list)]
-        output_str = output_str.replace('...', output_prefix)
 
         input_str = input_str_list[0] + ',' + input_str_list[1]
-        einsum_str = input_str + '->' + output_str
+
+        einsum_str = input_str
+        if len(einsum_list) > 1:
+            output_str = output_str.replace('...', output_prefix)
+            einsum_str = input_str + '->' + output_str
 
         result = torch.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
 
