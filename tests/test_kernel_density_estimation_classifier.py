@@ -58,10 +58,9 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
         expected = gs.array([[1, 0]])
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
-    @geomstats.tests.np_only
     def test_predict_proba_triangular_kernel(self):
         """Test the 'predict_proba' class method using a triangular kernel."""
-        training_dataset = gs.array([[0], [1], [2], [3]])
+        training_dataset = gs.array([[0, 0], [1, 0], [2, 0], [3, 0]])
         labels = [0, 0, 1, 1]
         kde = KernelDensityEstimationClassifier(
             kernel=triangular_radial_kernel,
@@ -69,11 +68,10 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
             p=2,
             distance='minkowski')
         kde.fit(training_dataset, labels)
-        result = kde.predict_proba([[1]])
+        result = kde.predict_proba([[1, 0]])
         expected = gs.array([[3 / 4, 1 / 4]])
         self.assertAllClose(expected, result, atol=TOLERANCE)
 
-    @geomstats.tests.np_only
     def test_predict_proba_triangular_kernel_callable_distance(self):
         """Test the 'predict_proba' class method using a triangular kernel."""
         training_dataset = gs.array([[0, 0], [1, 0], [2, 0], [3, 0]])
