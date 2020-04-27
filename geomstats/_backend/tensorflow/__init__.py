@@ -301,8 +301,7 @@ def _assignment_single_value(x, value, indices, mode='replace', axis=0):
         return x + -x * mask + value * mask
     if mode == 'sum':
         return x + value * mask
-    else:
-        raise ValueError('mode must be one of \'replace\' or \'sum\'')
+    raise ValueError('mode must be one of \'replace\' or \'sum\'')
 
 
 def _assignment(x, values, indices, mode, axis):
