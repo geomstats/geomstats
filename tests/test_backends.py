@@ -808,3 +808,18 @@ class TestBackends(geomstats.tests.TestCase):
         np_result = _np.where(np_array > 20, np_array**2, 4.)
         gs_result = gs.where(gs_array > 20, gs_array**2, 4.)
         self.assertAllCloseToNp(gs_result, np_result)
+
+        base_list = [[0, 1, 0, 1, 0, 1, 0, 1, 0, 1]]
+        np_array = _np.array(base_list)
+        gs_array = gs.array(base_list)
+        result = gs.where(gs_array == 0)
+        expected = _np.where(np_array == 0)
+        self.assertAllCloseToNp(*result, *expected)
+
+        result = gs.where(gs_array == 0, - 1, gs_array)
+        expected = _np.where(np_array == 0, - 1, np_array)
+        self.assertAllCloseToNp(result, expected)
+
+        expected = _np.where(np_array == 1, _np.ones(10), np_array)
+        result = gs.where(gs_array == 1, gs.ones(10), gs_array)
+        self.assertAllCloseToNp(result, expected)

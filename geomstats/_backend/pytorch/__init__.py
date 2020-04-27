@@ -536,11 +536,14 @@ def mean(x, axis=None):
     return torch.mean(x, dim=axis)
 
 
-def where(condition, x, y):
+def where(condition, x=None, y=None):
+    if x is None and y is None:
+        return torch.where(condition)
     if not torch.is_tensor(x):
         x = torch.tensor(x)
     if not torch.is_tensor(y):
         y = torch.tensor(y)
+    y = cast(y, x.dtype)
     return torch.where(condition, x, y)
 
 
