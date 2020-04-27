@@ -792,7 +792,10 @@ class TestBackends(geomstats.tests.TestCase):
         gs_result = gs.isclose(gs_array, 22., rtol=1e-8, atol=1e-7)
         self.assertAllCloseToNp(gs_result, np_result)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_where(self):
+        # TODO(ninamiolane): Make tf behavior consistent with np
+        # Currently, tf returns array, while np returns tuple
         base_list = [
             [[22., 55.],
              [33., 88.]],

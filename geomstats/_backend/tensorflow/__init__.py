@@ -53,7 +53,6 @@ from tensorflow import (  # NOQA
     tanh,
     tile,
     uint8,
-    where,
     zeros,
     zeros_like
 )
@@ -655,3 +654,14 @@ def tril_indices(*args, **kwargs):
 def triu_indices(*args, **kwargs):
     return tuple(
         map(tf.convert_to_tensor, _np.triu_indices(*args, **kwargs)))
+
+
+def where(condition, x=None, y=None):
+    if x is None and y is None:
+        return tf.where(condition)
+    if not tf.is_tensor(x):
+        x = tf.constant(x)
+    if not tf.is_tensor(y):
+        y = tf.constant(y)
+    y = cast(y, x.dtype)
+    return tf.where(condition, x, y)
