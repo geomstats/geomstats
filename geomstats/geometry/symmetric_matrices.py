@@ -82,12 +82,12 @@ class SymmetricMatrices(EmbeddedManifold):
 
         Parameters
         ----------
-        x : array_like, shape=[n_samples, n, n]
+        x : array_like, shape=[..., n, n]
             Symmetric matrix.
 
         Returns
         -------
-        exponential : array_like, shape=[n_samples, n, n]
+        exponential : array_like, shape=[..., n, n]
             Exponential of x.
         """
         return cls.apply_func_to_eigvals(x, gs.exp)
@@ -99,14 +99,14 @@ class SymmetricMatrices(EmbeddedManifold):
 
         Parameters
         ----------
-        x : array_like, shape=[n_samples, n, n]
+        x : array_like, shape=[..., n, n]
             Symmetric matrix with non-negative eigenvalues.
         power : float
             The power at which x will be raised.
 
         Returns
         -------
-        powerm : array_like, shape=[n_samples, n, n]
+        powerm : array_like, shape=[..., n, n]
             Matrix power of x.
         """
         def _power(eigvals):
@@ -120,14 +120,14 @@ class SymmetricMatrices(EmbeddedManifold):
 
         Parameters
         ----------
-        x : array_like, shape=[n_samples, n, n]
+        x : array_like, shape=[..., n, n]
             Symmetric matrix.
         function : callable
             Function to apply to eigenvalues.
 
         Returns
         -------
-        x : array_like, shape=[n_samples, n, n]
+        x : array_like, shape=[..., n, n]
             Symmetric matrix.
         """
         eigvals, eigvecs = gs.linalg.eigh(x)
