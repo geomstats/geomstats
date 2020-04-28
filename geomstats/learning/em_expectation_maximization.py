@@ -158,7 +158,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         probability_distribution_function = \
             PoincareBall.pdf(
                 data, self.means, self.variances,
-                norm_func=self.normalization_factor.find_normalisation_factor,
+                norm_func=self.normalization_factor.find_normalization_factor,
                 metric=self.riemannian_metric)
 
         if (probability_distribution_function.mean() !=

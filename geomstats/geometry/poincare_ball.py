@@ -82,6 +82,12 @@ class PoincareBall(Hyperbolic):
             Normalisation factor function.
         metric : function
             Distance function associated with the used metric.
+
+        Returns
+        -------
+        result : array-like, shape=[n_samples, n_gaussian]
+            Probability density function computed at each data
+            sample and for each component of the GMM.
         """
         data_length, _, n_gaussian = data.shape + (means.shape[0],)
 
@@ -110,10 +116,10 @@ class PoincareBall(Hyperbolic):
         den = gs.repeat(den, data_length, axis=0).flatten()
 
         result = num / den
-        result_reshape = gs.reshape(result,
-                                    (data_expanded.shape[0],
-                                     data_expanded.shape[1]))
-        return result_reshape
+        result = gs.reshape(
+            result, (data_expanded.shape[0], data_expanded.shape[1]))
+
+        return result
 
     @staticmethod
     def weighted_gmm_pdf(mixture_coefficients,
@@ -135,6 +141,12 @@ class PoincareBall(Hyperbolic):
             Variances of each component of the GMM.
         metric : function
             Distance function associated with the used metric.
+
+        Returns
+        -------
+        result : array-like, shape=[n_precision,n_gaussian]
+            Probability density function computed for each point of
+            the mesh data, for each component of the GMM.
         """
         mesh_data_units = gs.expand_dims(mesh_data, 1)
 
@@ -171,6 +183,7 @@ class PoincareBall(Hyperbolic):
         result_num = gs.repeat(result_num,
                                len(distribution_normal), axis=0)
         result_num = result_num * distribution_normal
+
         result_denum = gs.expand_dims(zeta_sigma, 0)
         result_denum = gs.repeat(result_denum,
                                  len(distribution_normal), axis=0)
@@ -443,7 +456,7 @@ class NormalizationFactor:
         :math:`\sigma\mapsto \sigma^3 \times \frac{d  }
         {\mathstrut d\sigma}\log \zeta_m(\sigma)'
         where :math:'\sigma' denotes the variance
-        and :math:'\zeta' the normalisation coefficient
+        and :math:'\zeta' the normalization coefficient
         and :math:'m' the dimension.
     """
 
@@ -452,31 +465,31 @@ class NormalizationFactor:
         self.dim = dim
 
         self.variances = variances
-        self.normalisation_factor_var = \
+        self.normalization_factor_var = \
             self.normalization_factor(variances, dim)
 
-        cond_1 = self.normalisation_factor_var.sum() != \
-            self.normalisation_factor_var.sum()
-        cond_2 = self.normalisation_factor_var.sum() == float('+inf')
-        cond_3 = self.normalisation_factor_var.sum() == float('-inf')
+        cond_1 = self.normalization_factor_var.sum() != \
+            self.normalization_factor_var.sum()
+        cond_2 = self.normalization_factor_var.sum() == float('+inf')
+        cond_3 = self.normalization_factor_var.sum() == float('-inf')
 
         if cond_1 or cond_2 or cond_3:
             logging.warning('WARNING :\n'
-                            'untracktable normalisation factor :')
+                            'untracktable normalization factor :')
 
-            limit_nf = ((self.normalisation_factor_var /
-                         self.normalisation_factor_var)
+            limit_nf = ((self.normalization_factor_var /
+                         self.normalization_factor_var)
                         * 0).nonzero()[0].item()
             max_nf = len(variances)
             self.variances = self.variances[0:limit_nf]
-            self.normalisation_factor_var = \
-                self.normalisation_factor_var[0:limit_nf]
+            self.normalization_factor_var = \
+                self.normalization_factor_var[0:limit_nf]
             if cond_1:
                 logging.warning('\t Nan value '
-                                'in processing normalisation factor')
+                                'in processing normalization factor')
             if cond_2 or cond_3:
                 raise ValueError('\t +-inf value in '
-                                 'processing normalisation factor')
+                                 'processing normalization factor')
 
             logging.warning('\t Max variance is now : %s',
                             str(self.variances[-1]))
@@ -488,14 +501,20 @@ class NormalizationFactor:
 
         self.phi_inv_var = self.variances ** 3 * log_grad_zeta
 
-    def find_normalisation_factor(self, variance):
-        """Find the normalisation factor given some variances.
+    def find_normalization_factor(self, variance):
+        """Find the normalization factor given some variances.
 
         Parameters
         ----------
         variance : array-like, shape=[n_gaussian,]
         An array of standard deviations for each component
         of some GMM.
+
+        Returns
+        -------
+        result : array-like, shape=[n_gaussian,]
+            Array of normalization factors for the given
+            variances.
         """
         n_gaussian, precision = variance.shape[0], self.variances.shape[0]
 
@@ -507,8 +526,9 @@ class NormalizationFactor:
         difference = gs.abs(ref - val)
 
         index = gs.argmin(difference, axis=-1)
+        result = self.normalization_factor_var[index]
 
-        return self.normalisation_factor_var[index]
+        return result
 
     def find_variance_from_index(self, weighted_distances):
         """Return the variance given weighted distances.
@@ -520,6 +540,11 @@ class NormalizationFactor:
             and current barycentres. The weights of each data sample
             corresponds to the probability of belonging to a component
             of the Gaussian mixture model.
+
+        Returns
+        -------
+        result : array-like, shape=[n_gaussian]
+            Estimated variances for each component of the GMM.
         """
         n_gaussian, precision = \
             weighted_distances.shape[0], self.variances.shape[0]
@@ -534,7 +559,9 @@ class NormalizationFactor:
 
         index = gs.argmin(abs_difference, -1)
 
-        return self.variances[index]
+        result = self.variances[index]
+
+        return result
 
     @staticmethod
     def normalization_factor(variances, dim):
@@ -542,11 +569,16 @@ class NormalizationFactor:
 
         Parameters
         ----------
-        variances : array-like, shape=[precision,]
+        variances : array-like, shape=[n,]
             An array of equally distant values of the
             variance precision time.
         dim : integer
             Dimension of the manifold.
+
+        Returns
+        -------
+        norm_func : array-like, shape=[n,]
+            Normalisation factor for all given variances.
         """
         binomial_coefficient = None
         n_samples = variances.shape[0]
@@ -595,7 +627,7 @@ class NormalizationFactor:
 
     @staticmethod
     def _compute_alpha(dim, current_dim):
-        """Compute factor used in normalisation factor.
+        """Compute factor used in normalization factor.
 
         Compute alpha factor given the two arguments.
 
@@ -609,9 +641,9 @@ class NormalizationFactor:
         return (dim - 1 - 2 * current_dim) / SQRT_2
 
     def norm_factor_gradient(self, variances, dim):
-        """Compute normalisation factor and its gradient.
+        """Compute normalization factor and its gradient.
 
-        Compute normalisation factor given current variance
+        Compute normalization factor given current variance
         and dimensionality.
 
         Parameters
@@ -626,7 +658,7 @@ class NormalizationFactor:
         norm_factor : array-like, shape=[n]
             Normalisation factor.
         norm_factor_gradient : array-like, shape=[n]
-            Gradient of the normalisation factor.
+            Gradient of the normalization factor.
         """
         variances = gs.transpose(gs.to_ndarray(variances, to_ndim=2))
         dim_range = gs.arange(0, dim, 1.)
