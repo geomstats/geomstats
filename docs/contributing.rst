@@ -457,14 +457,14 @@ Here's a generic docstring template::
 
       Parameters
       ----------
-      my_param_1 : array-like, shape=[n_samples, dimension]
+      my_param_1 : array-like, shape=[..., dim]
          Write a short description of parameter my_param_1.
       my_param_2 : str, {'vector', 'matrix'}
          Write a short description of parameter my_param_2.
 
       Returns
       -------
-      my_result : array-like, shape=[n_samples, dimension, dimension]
+      my_result : array-like, shape=[..., dim, dim]
          Write a short description of the result returned by the method.
 
       Notes
@@ -493,17 +493,17 @@ And here's a filled-in example from the Scikit-Learn project, modified to our sy
 
       Parameters
       ----------
-      X : {array-like, sparse_matrix} of shape=[n_samples, n_features]
+      X : {array-like, sparse_matrix} of shape=[..., n_features]
          New data to transform.
       y : Ignored
          Not used, present here for API consistency by convention.
-      sample_weight : array-like, shape [n_samples,], optional
+      sample_weight : array-like, shape [...,], optional
          The weights for each observation in X. If None, all observations
          are assigned equal weight (default: None).
 
       Returns
       -------
-      labels : array, shape=[n_samples,]
+      labels : array, shape=[...,]
          Index of the cluster each sample belongs to.
       """
       return self.fit(X, sample_weight=sample_weight).labels_
@@ -512,7 +512,7 @@ In general, have the following in mind:
 
    1. Use built-in Python types. (``bool`` instead of ``boolean``)
 
-   2. Use ``[`` for defining shapes: ``array-like, shape=[n_samples,]``
+   2. Use ``[`` for defining shapes: ``array-like, shape=[..., dim]``
 
    3. If a shape can vary, use a list-like notation:
       ``array-like, shape=[dimension[:axis], n, dimension[axis:]]``

@@ -52,7 +52,7 @@ class PoincareBall(Hyperbolic):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
+        point : array-like, shape=[..., dim]
             Point to be tested.
         tolerance : float, optional
             Tolerance at which to evaluate how close the squared norm
@@ -60,7 +60,7 @@ class PoincareBall(Hyperbolic):
 
         Returns
         -------
-        belongs : array-like, shape=[n_samples, 1]
+        belongs : array-like, shape=[...,]
             Array of booleans indicating whether the corresponding points
             belong to the hyperbolic space.
         """
@@ -209,14 +209,14 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dim]
+        tangent_vec : array-like, shape=[..., dim]
             Tangent vector at a base point.
-        base_point : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[..., dim]
             Point in hyperbolic space.
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dim]
+        exp : array-like, shape=[..., dim]
             Point in hyperbolic space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
@@ -256,14 +256,14 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
+        point : array-like, shape=[..., dim]
             Point in hyperbolic space.
-        base_point : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[..., dim]
             Point in hyperbolic space.
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dim]
+        log : array-like, shape=[..., dim]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
@@ -307,14 +307,14 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, dim]
+        point_a : array-like, shape=[..., dim]
             Point in hyperbolic space.
-        point_b : array-like, shape=[n_samples, dim]
+        point_b : array-like, shape=[..., dim]
             Point in hyperbolic space.
 
         Returns
         -------
-        mobius_add : array-like, shape=[n_samples, 1]
+        mobius_add : array-like, shape=[...,]
             Result of the Mobius addition.
         """
         ball_manifold = PoincareBall(self.dim, scale=self.scale)
@@ -348,14 +348,14 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, dim]
+        point_a : array-like, shape=[..., dim]
             First point in hyperbolic space.
-        point_b : array-like, shape=[n_samples, dim]
+        point_b : array-like, shape=[..., dim]
             Second point in hyperbolic space.
 
         Returns
         -------
-        dist : array-like, shape=[n_samples, 1]
+        dist : array-like, shape=[...,]
             Geodesic distance between the two points.
         """
         point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0., 1 - EPSILON)
@@ -382,14 +382,14 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dim]
+        tangent_vec : array-like, shape=[..., dim]
             vector in tangent space.
-        base_point : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[..., dim]
             Second point in hyperbolic space.
 
         Returns
         -------
-        point : array-like, shape=[n_samples, dim]
+        point : array-like, shape=[..., dim]
             Retraction point.
         """
         ball_manifold = PoincareBall(self.dim, scale=self.scale)
@@ -410,11 +410,11 @@ class PoincareBallMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point: array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[..., dim]
 
         Returns
         -------
-        inner_prod_mat: array-like, shape=[n_samples, dim, dim]
+        inner_prod_mat : array-like, shape=[..., dim, dim]
         """
         if base_point is None:
             base_point = gs.zeros((1, self.dim))

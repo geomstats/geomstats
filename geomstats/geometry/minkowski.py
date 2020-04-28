@@ -17,12 +17,12 @@ class Minkowski(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
-                Input points.
+        point : array-like, shape=[..., dim]
+            Input points.
 
         Returns
         -------
-        belongs : array-like, shape=[n_samples,]
+        belongs : array-like, shape=[...,]
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
@@ -41,8 +41,8 @@ class Minkowski(Manifold):
 
         Returns
         -------
-        points : array-like, shape=[n_samples, dim]
-                 Sampled points.
+        points : array-like, shape=[..., dim]
+            Sampled points.
         """
         size = (self.dim,)
         if n_samples != 1:
@@ -68,11 +68,11 @@ class MinkowskiMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point: array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[..., dim]
 
         Returns
         -------
-        inner_prod_mat: array-like, shape=[n_samples, dim, dim]
+        inner_prod_mat : array-like, shape=[..., dim, dim]
         """
         inner_prod_mat = gs.eye(self.dim - 1, self.dim - 1)
         first_row = gs.array([0.] * (self.dim - 1))
@@ -93,15 +93,12 @@ class MinkowskiMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, dim]
-                                 or shape=[1, dim]
-        base_point: array-like, shape=[n_samples, dim]
-                                or shape=[1, dim]
+        tangent_vec : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., dim]
 
         Returns
         -------
-        exp: array-like, shape=[n_samples, dim]
-                          or shape-[n_samples, dim]
+        exp : array-like, shape=[..., dim]
         """
         exp = base_point + tangent_vec
         return exp
@@ -113,15 +110,12 @@ class MinkowskiMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, dim]
-                           or shape=[1, dim]
-        base_point: array-like, shape=[n_samples, dim]
-                                or shape=[1, dim]
+        point : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., dim]
 
         Returns
         -------
-        log: array-like, shape=[n_samples, dim]
-                          or shape-[n_samples, dim]
+        log : array-like, shape=[..., dim]
         """
         log = point - base_point
         return log

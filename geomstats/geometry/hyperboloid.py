@@ -81,7 +81,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
+        point : array-like, shape=[..., dim]
             Point to be tested.
         tolerance : float, optional
             Tolerance at which to evaluate how close the squared norm
@@ -89,7 +89,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
 
         Returns
         -------
-        belongs : array-like, shape=[n_samples, 1]
+        belongs : array-like, shape=[..., 1]
             Array of booleans indicating whether the corresponding points
             belong to the hyperbolic space.
         """
@@ -116,12 +116,12 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim + 1]
+        point : array-like, shape=[..., dim + 1]
             Point.
 
         Returns
         -------
-        projected_point : array-like, shape=[n_samples, dim + 1]
+        projected_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in canonical representation
             in extrinsic coordinates.
         """
@@ -153,14 +153,14 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, dim + 1]
+        vector : array-like, shape=[..., dim + 1]
             Vector in Minkowski space to be projected.
-        base_point : array-like, shape=[n_samples, dim + 1]
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, dim + 1]
+        tangent_vec : array-like, shape=[..., dim + 1]
             Tangent vector at the base point, equal to the projection of
             the vector in Minkowski space.
         """
@@ -181,7 +181,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
 
         Parameters
         ----------
-        point_intrinsic : array-like, shape=[n_samples, dim]
+        point_intrinsic : array-like, shape=[..., dim]
             Point in the embedded manifold in intrinsic coordinates.
         """
         if self.dim != point_intrinsic.shape[-1]:
@@ -198,7 +198,7 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
 
         Parameters
         ----------
-        point_extrinsic : array-like, shape=[n_samples, dim_embedding]
+        point_extrinsic : array-like, shape=[..., dim_embedding]
             Point in the embedded manifold in extrinsic coordinates,
             i. e. in the coordinates of the embedding manifold.
         """
@@ -244,11 +244,11 @@ class HyperboloidMetric(HyperbolicMetric):
 
         Parameters
         ----------
-        base_point: array-like, shape=[n_samples, dim+1]
+        base_point: array-like, shape=[..., dim+1]
 
         Returns
         -------
-        inner_prod_mat: array-like, shape=[n_samples, dim+1, dim+1]
+        inner_prod_mat: array-like, shape=[..., dim+1, dim+1]
         """
         self.embedding_metric.inner_product_matrix(base_point)
 
@@ -257,16 +257,16 @@ class HyperboloidMetric(HyperbolicMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, dim + 1]
+        tangent_vec_a : array-like, shape=[..., dim + 1]
             First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[n_samples, dim + 1]
+        tangent_vec_b : array-like, shape=[..., dim + 1]
             Second tangent vector at base point.
-        base_point : array-like, shape=[n_samples, dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1], optional
             Point in hyperbolic space.
 
         Returns
         -------
-        inner_prod : array-like, shape=[n_samples, 1]
+        inner_prod : array-like, shape=[..., 1]
             Inner-product of the two tangent vectors.
         """
         inner_prod = self.embedding_metric.inner_product(
@@ -281,14 +281,14 @@ class HyperboloidMetric(HyperbolicMetric):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, dim + 1]
+        vector : array-like, shape=[..., dim + 1]
             Vector on the tangent space of the hyperbolic space at base point.
-        base_point : array-like, shape=[n_samples, dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1], optional
             Point in hyperbolic space in extrinsic coordinates.
 
         Returns
         -------
-        sq_norm : array-like, shape=[n_samples, 1]
+        sq_norm : array-like, shape=[..., 1]
             Squared norm of the vector.
         """
         sq_norm = self.embedding_metric.squared_norm(vector)
@@ -300,14 +300,14 @@ class HyperboloidMetric(HyperbolicMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dim + 1]
+        tangent_vec : array-like, shape=[..., dim + 1]
             Tangent vector at a base point.
-        base_point : array-like, shape=[n_samples, dim + 1]
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space.
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dim + 1]
+        exp : array-like, shape=[..., dim + 1]
             Point in hyperbolic space equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
@@ -360,14 +360,14 @@ class HyperboloidMetric(HyperbolicMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim + 1]
+        point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space.
-        base_point : array-like, shape=[n_samples, dim + 1]
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space.
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dim + 1]
+        log : array-like, shape=[..., dim + 1]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
@@ -409,14 +409,14 @@ class HyperboloidMetric(HyperbolicMetric):
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, dim + 1]
+        point_a : array-like, shape=[..., dim + 1]
             First point in hyperbolic space.
-        point_b : array-like, shape=[n_samples, dim + 1]
+        point_b : array-like, shape=[..., dim + 1]
             Second point in hyperbolic space.
 
         Returns
         -------
-        dist : array-like, shape=[n_samples, 1]
+        dist : array-like, shape=[..., 1]
             Geodesic distance between the two points.
         """
         sq_norm_a = self.embedding_metric.squared_norm(point_a)

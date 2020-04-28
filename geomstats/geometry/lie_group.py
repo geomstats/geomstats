@@ -16,8 +16,8 @@ def loss(y_pred, y_true, group, metric=None):
 
     Parameters
     ----------
-    y_pred : array-like, shape=[n_samples, {dim, [n, n]}]
-    y_true : array-like, shape=[n_samples, {dim, [n, n]}]
+    y_pred : array-like, shape=[..., {dim, [n, n]}]
+    y_true : array-like, shape=[..., {dim, [n, n]}]
         shape has to match y_pred
     group : LieGroup
     metric : RiemannianMetric, optional
@@ -25,7 +25,7 @@ def loss(y_pred, y_true, group, metric=None):
 
     Returns
     -------
-    loss : array-like, shape=[n_samples, {dim, [n, n]}]
+    loss : array-like, shape=[..., {dim, [n, n]}]
         the squared (geodesic) distance between y_pred and y_true
     """
     if metric is None:
@@ -39,8 +39,8 @@ def grad(y_pred, y_true, group, metric=None):
 
     Parameters
     ----------
-    y_pred : array-like, shape=[n_samples, {dim, [n, n]}]
-    y_true : array-like, shape=[n_samples, {dim, [n, n]}]
+    y_pred : array-like, shape=[..., {dim, [n, n]}]
+    y_true : array-like, shape=[..., {dim, [n, n]}]
         shape has to match y_pred
     group : LieGroup
     metric : RiemannianMetric, optional
@@ -48,7 +48,7 @@ def grad(y_pred, y_true, group, metric=None):
 
     Returns
     -------
-    grad : array-like, shape=[n_samples, {dim, [n, n]}]
+    grad : array-like, shape=[..., {dim, [n, n]}]
         tangent vector at point `y_pred`
     """
     if metric is None:
@@ -63,9 +63,9 @@ class LieGroup(Manifold):
     In this class, point_type ('vector' or 'matrix') will be used to describe
     the format of the points on the Lie group.
     If point_type is 'vector', the format of the inputs is
-    [n_samples, dimension], where dimension is the dimension of the Lie group.
+    [..., dimension], where dimension is the dimension of the Lie group.
     If point_type is 'matrix' the format of the inputs is
-    [n_samples, n, n] where n is the parameter of GL(n) e.g. the amount of rows
+    [..., n, n] where n is the parameter of GL(n) e.g. the amount of rows
     and columns of the matrix.
     """
 
@@ -112,14 +112,14 @@ class LieGroup(Manifold):
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, {dim, [n, n]}]
+        point_a : array-like, shape=[..., {dim, [n, n]}]
             the left factor in the product
-        point_b : array-like, shape=[n_samples, {dim, [n, n]}]
+        point_b : array-like, shape=[..., {dim, [n, n]}]
             the right factor in the product
 
         Returns
         -------
-        composed : array-like, shape=[n_samples, {dim, [n,n]}]
+        composed : array-like, shape=[..., {dim, [n, n]}]
             the product of point_a and point_b along the first dim
         """
         raise NotImplementedError(
@@ -132,12 +132,12 @@ class LieGroup(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dim, [n,n]}]
+        point : array-like, shape=[..., {dim, [n, n]}]
             the points to be inverted
 
         Returns
         -------
-        inverse : array-like, shape=[n_samples, {dim, [n,n]}]
+        inverse : array-like, shape=[..., {dim, [n, n]}]
             the inverted point
         """
         raise NotImplementedError('The Lie group inverse is not implemented.')
@@ -150,7 +150,7 @@ class LieGroup(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dim, [n,n]]
+        point : array-like, shape=[..., {dim, [n, n]]
             the points to be inverted
         left_or_right : str, {'left', 'right'}
             indicate whether to calculate the differential of left or right
@@ -173,12 +173,12 @@ class LieGroup(Manifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, {dim,[n,n]}]
+        tangent_vec : array-like, shape=[..., {dim, [n, n]}]
             the tangent vector to exponentiate
 
         Returns
         -------
-        point : array-like, shape=[n_samples, {dim,[n,n]}]
+        point : array-like, shape=[..., {dim, [n, n]}]
         """
         raise NotImplementedError(
             'The group exponential from the identity is not implemented.'
@@ -189,12 +189,12 @@ class LieGroup(Manifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, {dim,[n,n]}]
-        base_point : array-like, shape=[n_samples, {dim,[n,n]}]
+        tangent_vec : array-like, shape=[..., {dim, [n, n]}]
+        base_point : array-like, shape=[..., {dim, [n, n]}]
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, {dim,[n,n]}]
+        exp : array-like, shape=[..., {dim, [n, n]}]
             the computed exponential
         """
         if self.default_point_type == 'vector':
@@ -220,13 +220,13 @@ class LieGroup(Manifold):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, {dim,[n,n]}]
-        base_point : array-like, shape=[n_samples, {dim,[n,n]}]
+        tangent_vec : array-like, shape=[..., {dim, [n, n]}]
+        base_point : array-like, shape=[..., {dim, [n, n]}]
             default: self.identity
 
         Returns
         -------
-        result : array-like, shape=[n_samples, {dim,[n,n]}]
+        result : array-like, shape=[..., {dim, [n, n]}]
             The exponentiated tangent vector
         """
         identity = self.get_identity()
@@ -247,11 +247,11 @@ class LieGroup(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dim,[n,n]}]
+        point : array-like, shape=[..., {dim, [n, n]}]
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, {dim,[n,n]}]
+        tangent_vec : array-like, shape=[..., {dim, [n, n]}]
         """
         raise NotImplementedError(
             'The group logarithm from the identity is not implemented.'
@@ -262,12 +262,12 @@ class LieGroup(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dim,[n,n]}]
-        base_point : array-like, shape=[n_samples, {dim,[n,n]}]
+        point : array-like, shape=[..., {dim, [n, n]}]
+        base_point : array-like, shape=[..., {dim, [n, n]}]
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, {dim,[n,n]}]
+        tangent_vec : array-like, shape=[..., {dim, [n, n]}]
         """
         if self.default_point_type == 'vector':
             jacobian = self.jacobian_translation(
@@ -290,12 +290,12 @@ class LieGroup(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dim,[n,n]}]
-        base_point : array-like, shape=[n_samples, {dim,[n,n]}]
+        point : array-like, shape=[..., {dim, [n, n]}]
+        base_point : array-like, shape=[..., {dim, [n, n]}]
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, {dim,[n,n]}]
+        tangent_vec : array-like, shape=[..., {dim, [n, n]}]
         """
         # TODO(ninamiolane): Build a standalone decorator that *only*
         # deals with point_type None and base_point None
@@ -327,13 +327,13 @@ class LieGroup(Manifold):
 
         Parameters
         ----------
-        tangent_vector_a : shape=[n_samples, n, n]
-        tangent_vector_b : shape=[n_samples, n, n]
-        base_point : array-like, shape=[n_samples, n, n]
+        tangent_vector_a : shape=[..., n, n]
+        tangent_vector_b : shape=[..., n, n]
+        base_point : array-like, shape=[..., n, n]
 
         Returns
         -------
-        bracket : array-like, shape=[n_samples, n, n]
+        bracket : array-like, shape=[..., n, n]
         """
         if base_point is None:
             base_point = self.get_identity(point_type=self.default_point_type)
@@ -362,9 +362,9 @@ class LieGroup(Manifold):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, dim_embedding]
+        vector : array-like, shape=[..., dim_embedding]
             Vector.
-        base_point : array-like, shape=[n_samples, dim_embedding]
+        base_point : array-like, shape=[..., dim_embedding]
             Point in the Lie group.
 
         Returns
@@ -394,14 +394,14 @@ class LieGroup(Manifold):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, {dim, [n, n]}]
+        vector : array-like, shape=[..., {dim, [n, n]}]
             Vector to project. Its shape must match the shape of base_point.
-        base_point : array-like, shape=[n_samples, {dim, [n, n]}], optional
+        base_point : array-like, shape=[..., {dim, [n, n]}], optional
             Point of the group.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, n, n]
+        tangent_vec : array-like, shape=[..., n, n]
         """
         if base_point is None:
             return self._to_lie_algebra(vector)

@@ -51,7 +51,7 @@ class Grassmannian(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, n, n]
+        point : array-like, shape=[..., n, n]
         tolerance : int
             default: TOLERANCE
 
@@ -90,14 +90,14 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, n, n]
+        vector : array-like, shape=[..., n, n]
             `vector` is skew-symmetric, in so(n).
-        point : array-like, shape=[n_samples, n, n]
+        point : array-like, shape=[..., n, n]
             `point` is a rank p projector of Gr(n, k).
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, n, n]
+        exp : array-like, shape=[..., n, n]
         """
         expm = gs.linalg.expm
         mul = Matrices.mul
@@ -115,14 +115,14 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, n, n]
+        point : array-like, shape=[..., n, n]
             Point in the Grassmannian.
-        base_point : array-like, shape=[n_samples, n, n]
+        base_point : array-like, shape=[..., n, n]
             Point in the Grassmannian.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, n, n]
+        tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at `base_point`.
 
         References

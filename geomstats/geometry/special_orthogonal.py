@@ -67,11 +67,11 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         ----------
         n_samples : int, optional (1)
             Number of samples.
-        tol :  unused
+        tol : unused
 
         Returns
         -------
-        samples : array-like, shape=[n_samples, n, n]
+        samples : array-like, shape=[..., n, n]
             Points sampled on the SO(n).
         """
         if n_samples == 1:
@@ -111,7 +111,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         point_type : str,
-            The point_type of the returned value. Unused here.
+            Point_type of the returned value. Unused here.
 
         Returns
         -------
@@ -129,13 +129,13 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, 3]
-            The point to check whether it belongs to SO(3).
+        point : array-like, shape=[..., 3]
+            Point to check whether it belongs to SO(3).
 
         Returns
         -------
-        belongs : array-like, shape=[n_samples,]
-            Array of booleans indicating whether point belongs to SO(3).
+        belongs : array-like, shape=[...,]
+            Boolean indicating whether point belongs to SO(3).
         """
         vec_dim = point.shape[-1]
         belongs = vec_dim == self.dim
@@ -156,11 +156,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples,3]
+        point : array-like, shape=[...,3]
 
         Returns
         -------
-        regularized_point : array-like, shape=[n_samples, 3]
+        regularized_point : array-like, shape=[..., 3]
         """
         regularized_point = point
         angle = gs.linalg.norm(regularized_point, axis=-1)
@@ -203,13 +203,13 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, 3]]
+        tangent_vec : array-like, shape=[..., 3]]
         metric : RiemannianMetric, optional
             default: self.left_canonical_metric
 
         Returns
         -------
-        regularized_vec : array-like, shape=[n_samples, 3]]
+        regularized_vec : array-like, shape=[..., 3]]
         """
         if metric is None:
             metric = self.left_canonical_metric
@@ -262,9 +262,9 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples,3]
+        tangent_vec : array-like, shape=[...,3]
             Tangent vector at base point.
-        base_point : array-like, shape=[n_samples, 3]
+        base_point : array-like, shape=[..., 3]
             Point on the manifold.
         metric : RiemannianMetric, optional
             default: self.left_canonical_metric
@@ -272,7 +272,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Returns
         -------
         regularized_tangent_vec : array-like,
-            shape=[n_samples, 3]
+            shape=[..., 3]
         """
         if metric is None:
             metric = self.left_canonical_metric
@@ -306,11 +306,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        mat : array-like, shape=[n_samples, n, n]
+        mat : array-like, shape=[..., n, n]
 
         Returns
         -------
-        rot_mat : array-like, shape=[n_samples, n, n]
+        rot_mat : array-like, shape=[..., n, n]
         """
         mat = point
         n_mats, n, _ = mat.shape
@@ -358,11 +358,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        vec : array-like, shape=[n_samples, dim]
+        vec : array-like, shape=[..., dim]
 
         Returns
         -------
-        skew_mat : array-like, shape=[n_samples, n, n]
+        skew_mat : array-like, shape=[..., n, n]
         """
         n_vecs, vec_dim = gs.shape(vec)
 
@@ -440,11 +440,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        skew_mat : array-like, shape=[n_samples, n, n]
+        skew_mat : array-like, shape=[..., n, n]
 
         Returns
         -------
-        vec : array-like, shape=[n_samples, dim]
+        vec : array-like, shape=[..., dim]
         """
         n_skew_mats, _, _ = skew_mat.shape
 
@@ -485,11 +485,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        rot_mat : array-like, shape=[n_samples, n, n]
+        rot_mat : array-like, shape=[..., n, n]
 
         Returns
         -------
-        regularized_rot_vec : array-like, shape=[n_samples, 3]
+        regularized_rot_vec : array-like, shape=[..., 3]
         """
         n_rot_mats, _, _ = rot_mat.shape
 
@@ -533,11 +533,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        rot_vec: array-like, shape=[n_samples, 3]
+        rot_vec: array-like, shape=[..., 3]
 
         Returns
         -------
-        rot_mat: array-like, shape=[n_samples, 3]
+        rot_mat: array-like, shape=[..., 3]
         """
         rot_vec = self.regularize(rot_vec)
 
@@ -584,11 +584,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        rot_mat : array-like, shape=[n_samples, 3, 3]
+        rot_mat : array-like, shape=[..., 3, 3]
 
         Returns
         -------
-        quaternion : array-like, shape=[n_samples, 4]
+        quaternion : array-like, shape=[..., 4]
         """
         rot_vec = self.rotation_vector_from_matrix(rot_mat)
         quaternion = self.quaternion_from_rotation_vector(rot_vec)
@@ -601,11 +601,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        rot_vec : array-like, shape=[n_samples, 3]
+        rot_vec : array-like, shape=[..., 3]
 
         Returns
         -------
-        quaternion : array-like, shape=[n_samples, 4]
+        quaternion : array-like, shape=[..., 4]
         """
         rot_vec = self.regularize(rot_vec)
 
@@ -634,11 +634,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        quaternion : array-like, shape=[n_samples, 4]
+        quaternion : array-like, shape=[..., 4]
 
         Returns
         -------
-        rot_vec : array-like, shape=[n_samples, 3]
+        rot_vec : array-like, shape=[..., 3]
         """
         cos_half_angle = quaternion[:, 0]
         cos_half_angle = gs.clip(cos_half_angle, -1, 1)
@@ -668,11 +668,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        quaternion : array-like, shape=[n_samples, 4]
+        quaternion : array-like, shape=[..., 4]
 
         Returns
         -------
-        rot_mat : array-like, shape=[n_samples, 3]
+        rot_mat : array-like, shape=[..., 3]
         """
         n_quaternions, _ = quaternion.shape
 
@@ -719,11 +719,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        tait_bryan_angles : array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[..., 3]
 
         Returns
         -------
-        rot_mat : array-like, shape=[n_samples, 3, 3]
+        rot_mat : array-like, shape=[..., 3, 3]
         """
         n_tait_bryan_angles, _ = tait_bryan_angles.shape
 
@@ -773,11 +773,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        tait_bryan_angles : array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[..., 3]
 
         Returns
         -------
-        rot_mat : array-like, shape=[n_samples, n, n]
+        rot_mat : array-like, shape=[..., n, n]
         """
         n_tait_bryan_angles, _ = tait_bryan_angles.shape
 
@@ -834,7 +834,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        tait_bryan_angles : array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[..., 3]
         extrinsic_or_intrinsic : str, {'extrensic', 'intrinsic'} optional
             default: 'extrinsic'
         order : str, {'xyz', 'zyx'}, optional
@@ -842,7 +842,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Returns
         -------
-        rot_mat : array-like, shape=[n_samples, n, n]
+        rot_mat : array-like, shape=[..., n, n]
         """
         geomstats.error.check_parameter_accepted_values(
             extrinsic_or_intrinsic,
@@ -905,7 +905,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        rot_mat : array-like, shape=[n_samples, n, n]
+        rot_mat : array-like, shape=[..., n, n]
         extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
             default: 'extrinsic'
         order : str, {'xyz', 'zyx'}, optional
@@ -913,7 +913,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Returns
         -------
-        tait_bryan_angles : array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[..., 3]
         """
         quaternion = self.quaternion_from_matrix(rot_mat)
         tait_bryan_angles = self.tait_bryan_angles_from_quaternion(
@@ -933,11 +933,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        tait_bryan_angles : array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[..., 3]
 
         Returns
         -------
-        quaternion : array-like, shape=[n_samples, 4]
+        quaternion : array-like, shape=[..., 4]
         """
         matrix = self.matrix_from_tait_bryan_angles(
             tait_bryan_angles,
@@ -954,7 +954,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        tait_bryan_angles : array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[..., 3]
         extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
             default: 'extrinsic'
         order : str, {'xyz', 'zyx'}, optional
@@ -962,7 +962,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Returns
         -------
-        quat : array-like, shape=[n_samples, 4]
+        quat : array-like, shape=[..., 4]
         """
         extrinsic_zyx = (extrinsic_or_intrinsic == 'extrinsic'
                          and order == 'zyx')
@@ -1012,7 +1012,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        tait_bryan_angles : array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[..., 3]
         extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
             default: 'extrinsic'
         order : str, {'xyz', 'zyx'}, optional
@@ -1020,7 +1020,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Returns
         -------
-        rot_vec : array-like, shape=[n_samples, 3]
+        rot_vec : array-like, shape=[..., 3]
         """
         quaternion = self.quaternion_from_tait_bryan_angles(
             tait_bryan_angles,
@@ -1038,11 +1038,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        quaternion : array-like, shape=[n_samples, 4]
+        quaternion : array-like, shape=[..., 4]
 
         Returns
         -------
-        tait_bryan_angles : array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[..., 3]
         """
         w, x, y, z = gs.hsplit(quaternion, 4)
         angle_1 = gs.arctan2(y * z + w * x,
@@ -1061,11 +1061,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        quaternion : array-like, shape=[n_samples, 4]
+        quaternion : array-like, shape=[..., 4]
 
         Returns
         -------
-        tait_bryan_angles : array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[..., 3]
         """
         w, x, y, z = gs.hsplit(quaternion, 4)
 
@@ -1086,7 +1086,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        quaternion : array-like, shape=[n_samples, 4]
+        quaternion : array-like, shape=[..., 4]
         extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
             default: 'extrinsic'
         order : str, {'xyz', 'zyx'}, optional
@@ -1094,7 +1094,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Returns
         -------
-        tait_bryan : array-like, shape=[n_samples, 3]
+        tait_bryan : array-like, shape=[..., 3]
         """
         extrinsic_zyx = (extrinsic_or_intrinsic == 'extrinsic'
                          and order == 'zyx')
@@ -1138,7 +1138,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        rot_vec : array-like, shape=[n_samples, 3]
+        rot_vec : array-like, shape=[..., 3]
         extrinsic_or_intrinsic : str, {'extrinsic', 'intrinsic'}, optional
             default: 'extrinsic'
         order : str, {'xyz', 'zyx'}, optional
@@ -1146,7 +1146,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Returns
         -------
-        tait_bryan_angles : array-like, shape=[n_samples, 3]
+        tait_bryan_angles : array-like, shape=[..., 3]
         """
         quaternion = self.quaternion_from_rotation_vector(rot_vec)
         tait_bryan_angles = self.tait_bryan_angles_from_quaternion(
@@ -1161,12 +1161,12 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, 3]
-        point_b : array-like, shape=[n_samples, 3]
+        point_a : array-like, shape=[..., 3]
+        point_b : array-like, shape=[..., 3]
 
         Returns
         -------
-        point_prod : array-like, shape=[n_samples, 3]
+        point_prod : array-like, shape=[..., 3]
         """
         point_a = self.regularize(point_a)
         point_b = self.regularize(point_b)
@@ -1185,11 +1185,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, 3]
+        point : array-like, shape=[..., 3]
 
         Returns
         -------
-        inv_point : array-like, shape=[n_samples, 3]
+        inv_point : array-like, shape=[..., 3]
         """
         return -self.regularize(point)
 
@@ -1204,7 +1204,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, 3]
+        point : array-like, shape=[..., 3]
         left_or_right : str, {'left', 'right'}, optional
             default: 'left'
         point_type : str, {'vector', 'matrix'}, optional
@@ -1212,7 +1212,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Returns
         -------
-        jacobian : array-like, shape=[n_samples, 3, 3]
+        jacobian : array-like, shape=[..., 3, 3]
         """
         geomstats.error.check_parameter_accepted_values(
             left_or_right, 'left_or_right', ['left', 'right'])
@@ -1299,7 +1299,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Returns
         -------
-        point : array-like, shape=[n_samples, 3]
+        point : array-like, shape=[..., 3]
         """
         random_point = gs.random.rand(n_samples, self.dim) * 2 - 1
         random_point = self.regularize(random_point)
@@ -1319,13 +1319,13 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, 3]
+        tangent_vec : array-like, shape=[..., 3]
         point_type : str, {'vector', 'matrix'}, optional
             default: self.default_point_type
 
         Returns
         -------
-        point : array-like, shape=[n_samples, 3]
+        point : array-like, shape=[..., 3]
         """
         return tangent_vec
 
@@ -1340,11 +1340,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, 3]
+        point : array-like, shape=[..., 3]
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, {dimension, [n, n]}]
+        tangent_vec : array-like, shape=[..., {dimension, [n, n]}]
         """
         return self.regularize(point)
 
@@ -1358,13 +1358,13 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        tangent_vector_a : shape=[n_samples, n, n]
-        tangent_vector_b : shape=[n_samples, n, n]
-        base_point : array-like, shape=[n_samples, n, n]
+        tangent_vector_a : shape=[..., n, n]
+        tangent_vector_b : shape=[..., n, n]
+        base_point : array-like, shape=[..., n, n]
 
         Returns
         -------
-        bracket : array-like, shape=[n_samples, n, n]
+        bracket : array-like, shape=[..., n, n]
         """
         return gs.cross(tangent_vector_a, tangent_vector_b)
 

@@ -57,14 +57,14 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, dim]
+        tangent_vec_a : array-like, shape=[..., dim]
             First tangent vector at identity.
-        tangent_vec_b : array-like, shape=[n_samples, dim]
+        tangent_vec_b : array-like, shape=[..., dim]
             Second tangent vector at identity.
 
         Returns
         -------
-        inner_prod : array-like, shape=[n_samples, dim]
+        inner_prod : array-like, shape=[..., dim]
             Inner-product of the two tangent vectors.
         """
         geomstats.error.check_parameter_accepted_values(
@@ -100,16 +100,16 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, dim]
+        tangent_vec_a : array-like, shape=[..., dim]
             First tangent vector at base_point.
-        tangent_vec_b : array-like, shape=[n_samples, dim]
+        tangent_vec_b : array-like, shape=[..., dim]
             Second tangent vector at base_point.
-        base_point : array-like, shape=[n_samples, dim], optional
+        base_point : array-like, shape=[..., dim], optional
             Point in the group (the default is identity).
 
         Returns
         -------
-        inner_prod : array-like, shape=[n_samples, dim]
+        inner_prod : array-like, shape=[..., dim]
             Inner-product of the two tangent vectors.
         """
         if base_point is None:
@@ -142,12 +142,12 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, dim], optional
+        base_point : array-like, shape=[..., dim], optional
             Point in the group (the default is identity).
 
         Returns
         -------
-        metric_mat : array-like, shape=[n_samples, dim, dim]
+        metric_mat : array-like, shape=[..., dim, dim]
             The metric matrix at base_point.
         """
         if self.group.default_point_type == 'matrix':
@@ -185,12 +185,12 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dim]
+        tangent_vec : array-like, shape=[..., dim]
             Tangent vector at identity.
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dim]
+        exp : array-like, shape=[..., dim]
             Point in the group.
         """
         tangent_vec = self.group.regularize_tangent_vec_at_identity(
@@ -210,12 +210,12 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dim]
+        tangent_vec : array-like, shape=[..., dim]
             Tangent vector at identity.
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dim]
+        exp : array-like, shape=[..., dim]
             Point in the group.
         """
         if self.left_or_right == 'left':
@@ -233,14 +233,14 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dim]
+        tangent_vec : array-like, shape=[..., dim]
             Tangent vector at a base point.
-        base_point : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[..., dim]
             Point in the group.
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dim]
+        exp : array-like, shape=[..., dim]
             Point in the group equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
@@ -285,12 +285,12 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
+        point : array-like, shape=[..., dim]
             Point in the group.
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dim]
+        log : array-like, shape=[..., dim]
             Tangent vector at the identity equal to the Riemannian logarithm
             of point at the identity.
         """
@@ -308,12 +308,12 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
+        point : array-like, shape=[..., dim]
             Point in the group.
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dim]
+        log : array-like, shape=[..., dim]
             Tangent vector at the identity equal to the Riemannian logarithm
             of point at the identity.
         """
@@ -333,15 +333,15 @@ class InvariantMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
+        point : array-like, shape=[..., dim]
             Point in the group.
-        base_point : array-like, shape=[n_samples, dim], optional
+        base_point : array-like, shape=[..., dim], optional
             Point in the group, from which to compute the log,
             (the default is identity).
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dim]
+        log : array-like, shape=[..., dim]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
@@ -404,12 +404,12 @@ class BiInvariantMetric(InvariantMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, {dim, [n, n]}]
+        tangent_vec : array-like, shape=[..., {dim, [n, n]}]
             Tangent vector at identity.
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, {dim, [n, n]}]
+        exp : array-like, shape=[..., {dim, [n, n]}]
             Point in the group.
         """
         return self.group.exp(tangent_vec)
@@ -421,12 +421,12 @@ class BiInvariantMetric(InvariantMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, {dim, [n, n]}]
+        point : array-like, shape=[..., {dim, [n, n]}]
             Point in the group.
 
         Returns
         -------
-        log : array-like, shape=[n_samples, {dim, [n, n]}]
+        log : array-like, shape=[..., {dim, [n, n]}]
             Tangent vector at the identity equal to the Riemannian logarithm
             of point at the identity.
         """

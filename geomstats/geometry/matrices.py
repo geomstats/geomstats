@@ -28,7 +28,7 @@ class Matrices(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, (m,n)]
+        point : array-like, shape=[..., m, n]
 
         Returns
         -------
@@ -44,13 +44,13 @@ class Matrices(Manifold):
 
         Parameters
         ----------
-        mat_a : array-like, shape=[n_samples, dim1, dim2]
-        mat_b : array-like, shape=[n_samples, dim2, dim3]
+        mat_a : array-like, shape=[..., dim1, dim2]
+        mat_b : array-like, shape=[..., dim2, dim3]
         atol
 
         Returns
         -------
-        eq : array-like boolean, shape=[n_samples]
+        eq : array-like boolean, shape=[...,]
         """
         is_vectorized = \
             (gs.ndim(gs.array(mat_a)) == 3) or (gs.ndim(gs.array(mat_b)) == 3)
@@ -63,14 +63,14 @@ class Matrices(Manifold):
 
         Parameters
         ----------
-        a1 : array-like, shape=[n_samples, dim_1, dim_2]
-        a2 : array-like, shape=[n_samples, dim_2, dim_3]
+        a1 : array-like, shape=[..., dim_1, dim_2]
+        a2 : array-like, shape=[..., dim_2, dim_3]
         ...
-        an : array-like, shape=[n_samples, dim_n-1, dim_n]
+        an : array-like, shape=[..., dim_n-1, dim_n]
 
         Returns
         -------
-        mul : array-like, shape=[n_samples, dim_1, dim_n]
+        mul : array-like, shape=[..., dim_1, dim_n]
         """
         return reduce(gs.matmul, args)
 
@@ -80,12 +80,12 @@ class Matrices(Manifold):
 
         Parameters
         ----------
-        mat_a : array-like, shape=[n_samples, dim, dim]
-        mat_b : array-like, shape=[n_samples, dim, dim]
+        mat_a : array-like, shape=[..., dim, dim]
+        mat_b : array-like, shape=[..., dim, dim]
 
         Returns
         -------
-        mat_c : array-like, shape=[n_samples, dim, dim]
+        mat_c : array-like, shape=[..., dim, dim]
         """
         return cls.mul(mat_a, mat_b) - cls.mul(mat_b, mat_a)
 
@@ -95,11 +95,11 @@ class Matrices(Manifold):
 
         Parameters
         ----------
-        mat : array-like, shape=[n_samples, dim, dim]
+        mat : array-like, shape=[..., dim, dim]
 
         Returns
         -------
-        transpose : array-like, shape=[n_samples, dim, dim]
+        transpose : array-like, shape=[..., dim, dim]
         """
         is_vectorized = (gs.ndim(gs.array(mat)) == 3)
         axes = (0, 2, 1) if is_vectorized else (1, 0)
@@ -111,12 +111,12 @@ class Matrices(Manifold):
 
         Parameters
         ----------
-        mat : array-like, shape=[n_samples, n, n]
+        mat : array-like, shape=[..., n, n]
         atol : float, absolute tolerance. defaults to TOLERANCE
 
         Returns
         -------
-        is_sym : array-like boolean, shape=[n_samples]
+        is_sym : array-like boolean, shape=[...,]
         """
         return cls.equal(mat, cls.transpose(mat), atol)
 
@@ -127,12 +127,12 @@ class Matrices(Manifold):
 
         Parameters
         ----------
-        mat : array-like, shape=[n_samples, n, n]
+        mat : array-like, shape=[..., n, n]
         atol : float, absolute tolerance. defaults to TOLERANCE
 
         Returns
         -------
-        is_skew_sym : array-like boolean, shape=[n_samples]
+        is_skew_sym : array-like boolean, shape=[...,]
         """
         return cls.equal(mat, - cls.transpose(mat), atol)
 
@@ -142,11 +142,11 @@ class Matrices(Manifold):
 
         Parameters
         ----------
-        mat : array-like, shape=[n_samples, n, n]
+        mat : array-like, shape=[..., n, n]
 
         Returns
         -------
-        sym : array-like, shape=[n_samples, n, n]
+        sym : array-like, shape=[..., n, n]
         """
         return 1 / 2 * (mat + cls.transpose(mat))
 
@@ -157,11 +157,11 @@ class Matrices(Manifold):
 
         Parameters
         ----------
-        mat : array-like, shape=[n_samples, n, n]
+        mat : array-like, shape=[..., n, n]
 
         Returns
         -------
-        skew_sym : array-like, shape=[n_samples, n, n]
+        skew_sym : array-like, shape=[..., n, n]
         """
         return 1 / 2 * (mat - cls.transpose(mat))
 
@@ -191,12 +191,12 @@ class Matrices(Manifold):
 
         Parameters
         ----------
-        mat_1 : array-like, shape=[n_samples, n, n]
-        mat_2 : array-like, shape=[n_samples, n, n]
+        mat_1 : array-like, shape=[..., n, n]
+        mat_2 : array-like, shape=[..., n, n]
 
         Returns
         -------
-        cong : array-like, shape=[n_samples, n, n]
+        cong : array-like, shape=[..., n, n]
         """
         return cls.mul(mat_2, mat_1, cls.transpose(mat_2))
 
@@ -215,14 +215,14 @@ class MatricesMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, m, n]
-        tangent_vec_b : array-like, shape=[n_samples, m, n]
-        base_point : array-like, shape=[n_samples, m, n], optional
-
+        tangent_vec_a : array-like, shape=[..., m, n]
+        tangent_vec_b : array-like, shape=[..., m, n]
+        base_point : array-like, shape=[..., m, n], optional
 
         Returns
         -------
-        inner_prod : the Frobenius inner product of a and b
+        inner_prod : array-like, shape=[...,]
+            Frobenius inner product of tangent_vec_a and tangent_vec_b.
         """
         inner_prod = gs.einsum(
             '...ij,...ij->...', tangent_vec_a, tangent_vec_b)

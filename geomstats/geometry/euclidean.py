@@ -21,12 +21,12 @@ class Euclidean(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
-                Input points.
+        point : array-like, shape=[..., dim]
+            Point to evaluate.
 
         Returns
         -------
-        belongs : array-like, shape=[n_samples,]
+        belongs : array-like, shape=[...,]
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
@@ -40,14 +40,14 @@ class Euclidean(Manifold):
 
         Parameters
         ----------
-        n_samples: int, optional
+        n_samples : int, optional
             default: 1
-        bound: float, optional
+        bound : float, optional
             default: 1.0
 
         Returns
         -------
-        point : array-like, shape=[n_samples, dim]
+        point : array-like, shape=[..., dim]
         """
         size = (self.dim,)
         if n_samples != 1:
@@ -75,11 +75,11 @@ class EuclideanMetric(RiemannianMetric):
 
         Parameters
         ----------
-        base_point: array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[..., dim]
 
         Returns
         -------
-        inner_prod_mat: array-like, shape=[n_samples, dim, dim]
+        inner_prod_mat : array-like, shape=[..., dim, dim]
         """
         mat = gs.eye(self.dim)
         return mat
@@ -91,16 +91,13 @@ class EuclideanMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, dim]
-                                 or shape=[1, dim]
+        tangent_vec : array-like, shape=[..., dim]
 
-        base_point: array-like, shape=[n_samples, dim]
-                                or shape=[1, dim]
+        base_point : array-like, shape=[..., dim]
 
         Returns
         -------
-        exp: array-like, shape=[n_samples, dim]
-                          or shape-[n_samples, dim]
+        exp : array-like, shape=[..., dim]
         """
         exp = base_point + tangent_vec
         return exp
@@ -112,16 +109,13 @@ class EuclideanMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, dim]
-                           or shape=[1, dim]
+        point: array-like, shape=[..., dim]
 
-        base_point: array-like, shape=[n_samples, dim]
-                                or shape=[1, dim]
+        base_point: array-like, shape=[..., dim]
 
         Returns
         -------
-        log: array-like, shape=[n_samples, dim]
-                          or shape-[n_samples, dim]
+        log: array-like, shape=[..., dim]
         """
         log = point - base_point
         return log
