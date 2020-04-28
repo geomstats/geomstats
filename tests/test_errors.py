@@ -4,6 +4,7 @@ import geomstats.backend as gs
 import geomstats.errors
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.spd_matrices import SPDMatrices
 
 
 class TestBackends(geomstats.tests.TestCase):
@@ -15,6 +16,13 @@ class TestBackends(geomstats.tests.TestCase):
             RuntimeError,
             lambda: geomstats.errors.check_belongs(
                 point, euclidean))
+
+    def test_check_belongs_with_tol(self):
+        spd = SPDMatrices(5)
+        point = spd.random_uniform()
+
+        geomstats.errors.check_belongs(
+            point, spd, atol=1e-5)
 
     def test_check_integer(self):
         a = -2
