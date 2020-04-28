@@ -1,4 +1,4 @@
-me: "Workflow"
+name: "Workflow"
 on: ["push"]
 jobs:
   build:
