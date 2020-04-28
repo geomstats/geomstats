@@ -53,7 +53,6 @@ from tensorflow import (  # NOQA
     tanh,
     tile,
     uint8,
-    where,
     zeros,
     zeros_like
 )
@@ -89,9 +88,18 @@ def array(x, dtype=None):
     return tf.convert_to_tensor(x, dtype=dtype)
 
 
-# TODO(nkoep): Handle the optional axis arguments.
-def trace(a, axis1=0, axis2=1):
-    return tf.linalg.trace(a)
+def trace(x, axis1=0, axis2=1):
+    min_axis = min(axis1, axis2)
+    max_axis = max(axis1, axis2)
+    if min_axis == 1 and max_axis == 2:
+        return tf.einsum('...ii', x)
+    if min_axis == -2 and max_axis == -1:
+        return tf.einsum('...ii', x)
+    if min_axis == 0 and max_axis == 1:
+        return tf.einsum('ii...', x)
+    if min_axis == 0 and max_axis == 2:
+        return tf.einsum('i...i', x)
+    raise NotImplementedError()
 
 
 # TODO(nkoep): Handle the optional axis arguments.
@@ -250,141 +258,24 @@ def _vectorized_mask_from_indices(
     return _duplicate_array(mask, n_samples, axis=axis)
 
 
-def _assignment_single_value_by_sum(x, value, indices, axis=0):
-    """Add a value at given indices of an array.
-
-    Parameters
-    ----------
-    x: array-like, shape=[dim]
-        Initial array.
-    value: float
-        Value to be added.
-    indices: {int, tuple, list(int), list(tuple)}
-        Single int or tuple, or list of ints or tuples of indices where value
-        is assigned.
-        If the length of the tuples is shorter than ndim(x), value is
-        assigned to each copy along axis.
-    axis: int, optional
-        Axis along which value is assigned, if vectorized.
-
-    Returns
-    -------
-    x_new : array-like, shape=[dim]
-        Copy of x where value was added at all indices (and possibly along
-        an axis).
-    """
-    single_index = not isinstance(indices, list)
-    if tf.is_tensor(indices):
-        single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
-    if single_index:
-        indices = [indices]
-
-    if isinstance(indices[0], tuple):
-        use_vectorization = (len(indices[0]) < ndim(x))
-    elif tf.is_tensor(indices[0]) and ndim(indices[0]) >= 1:
-        use_vectorization = (len(indices[0]) < ndim(x))
-    else:
-        use_vectorization = ndim(x) > 1
-
-    if use_vectorization:
-        full_shape = shape(x).numpy()
-        n_samples = full_shape[axis]
-        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1:])
-        mask = _vectorized_mask_from_indices(
-            n_samples, indices, tile_shape, axis, x.dtype)
-    else:
-        mask = _mask_from_indices(indices, shape(x), x.dtype)
-    x_new = x + value * mask
-    return x_new
-
-
-def assignment_by_sum(x, values, indices, axis=0):
-    """Add values at given indices of an array.
-
-    Parameters
-    ----------
-    x: array-like, shape=[dim]
-        Initial array.
-    values: {float, list(float)}
-        Value or list of values to be assigned.
-    indices: {
-    int, tuple(int), array-like({int, tuple, boolean})
-        Single index or array of indices where values are assigned.
-        If the length of the tuples is shorter than ndim(x) by one, values are
-        assigned to each copy along axis.
-        If indices is a list of booleans and ndim(x) > 1, values are assigned
-        across all dimensions.
-    axis: int, optional
-        Axis along which values are assigned, if vectorized.
-
-    Returns
-    -------
-    x_new : array-like, shape=[dim]
-        Copy of x as the sum of x and the values at the given indices.
-
-    Notes
-    -----
-    If a single value is provided, it is assigned at all the indices.
-    If a single index is provided, and len(indices) == ndim(x) - 1, then values
-    are assigned along axis.
-
-    Examples
-    --------
-    Most examples translate as
-    assignment(x, indices, values) <=> x[indices] = x[indices] + values
-    Some special cases are given by vectorisation.
-    (Beware that copies are always returned).
-    if ndim(x) == 3, assignment(x, 1, (1, 0), 1) <=> x[1, :, 0] += 1
-    if ndim(x) == 2, assignment(x, [1, 2], [(0, 1), (2, 3)]) <=>
-                        x[((0, 2), (1, 3))] += [1, 2]
-    """
-    if _is_boolean(indices):
-        if ndim(array(indices)) > 1:
-            indices_tensor = tf.where(indices)
-            indices = [tuple(ind) for ind in indices_tensor]
-        else:
-            indices_from_booleans = [
-                index for index, val in enumerate(indices) if val]
-            indices_along_dims = [range(dim) for dim in shape(x)]
-            indices_along_dims[axis] = indices_from_booleans
-            indices = list(product(*indices_along_dims))
-    if tf.rank(values) == 0:
-        return _assignment_single_value_by_sum(x, values, indices, axis)
-    values = cast(flatten(array(values)), x.dtype)
-
-    single_index = not isinstance(indices, list)
-    if tf.is_tensor(indices):
-        single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
-    if single_index:
-        if len(values) > 1:
-            indices = [tuple(list(indices[:axis]) + [i] + list(indices[axis:]))
-                       for i in range(x.shape[axis])]
-        else:
-            indices = [indices]
-
-    if len(values) != len(indices):
-        raise ValueError('Either one value or as many values as indices')
-
-    for i_index, index in enumerate(indices):
-        x = _assignment_single_value_by_sum(x, values[i_index], index, axis)
-    return x
-
-
-def _assignment_single_value(x, value, indices, axis=0):
+def _assignment_single_value(x, value, indices, mode='replace', axis=0):
     """Assign a value at given indices of an array.
 
     Parameters
     ----------
-    x: array-like, shape=[dim]
+    x : array-like, shape=[dim]
         Initial array.
-    value: float
+    value : float
         Value to be added.
-    indices: {int, tuple, list(int), list(tuple)}
+    indices : {int, tuple, list(int), list(tuple)}
         Single int or tuple, or list of ints or tuples of indices where value
         is assigned.
         If the length of the tuples is shorter than ndim(x), value is
         assigned to each copy along axis.
-    axis: int, optional
+    mode : string, optional
+        Whether the assignment is done by replacing the old value,
+        or by adding to it. Possible values are 'replace' and 'sum'
+    axis : int, optional
         Axis along which value is assigned, if vectorized.
 
     Returns
@@ -414,8 +305,44 @@ def _assignment_single_value(x, value, indices, axis=0):
             n_samples, indices, tile_shape, axis, x.dtype)
     else:
         mask = _mask_from_indices(indices, shape(x), x.dtype)
-    x_new = x + -x * mask + value * mask
-    return x_new
+    if mode == 'replace':
+        return x + -x * mask + value * mask
+    if mode == 'sum':
+        return x + value * mask
+    raise ValueError('mode must be one of \'replace\' or \'sum\'')
+
+
+def _assignment(x, values, indices, mode, axis):
+    if _is_boolean(indices):
+        if ndim(array(indices)) > 1:
+            indices_tensor = tf.where(indices)
+            indices = [tuple(ind) for ind in indices_tensor]
+        else:
+            indices_from_booleans = [
+                index for index, val in enumerate(indices) if val]
+            indices_along_dims = [range(dim) for dim in shape(x)]
+            indices_along_dims[axis] = indices_from_booleans
+            indices = list(product(*indices_along_dims))
+    if tf.rank(values) == 0:
+        return _assignment_single_value(x, values, indices, mode, axis)
+    values = cast(flatten(array(values)), x.dtype)
+
+    single_index = not isinstance(indices, list)
+    if tf.is_tensor(indices):
+        single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
+    if single_index:
+        if len(values) > 1:
+            indices = [tuple(list(indices[:axis]) + [i] + list(indices[axis:]))
+                       for i in range(x.shape[axis])]
+        else:
+            indices = [indices]
+
+    if len(values) != len(indices):
+        raise ValueError('Either one value or as many values as indices')
+
+    for i_index, index in enumerate(indices):
+        x = _assignment_single_value(x, values[i_index], index, mode, axis)
+    return x
 
 
 def assignment(x, values, indices, axis=0):
@@ -458,36 +385,50 @@ def assignment(x, values, indices, axis=0):
     if ndim(x) == 2, assignment(x, [1, 2], [(0, 1), (2, 3)]) <=>
                         x[((0, 2), (1, 3))] = [1, 2]
     """
-    if _is_boolean(indices):
-        if ndim(array(indices)) > 1:
-            indices_tensor = tf.where(indices)
-            indices = [tuple(ind) for ind in indices_tensor]
-        else:
-            indices_from_booleans = [
-                index for index, val in enumerate(indices) if val]
-            indices_along_dims = [range(dim) for dim in shape(x)]
-            indices_along_dims[axis] = indices_from_booleans
-            indices = list(product(*indices_along_dims))
-    if tf.rank(values) == 0:
-        return _assignment_single_value(x, values, indices, axis)
-    values = flatten(array(values))
+    return _assignment(x, values, indices, 'replace', axis)
 
-    single_index = not isinstance(indices, list)
-    if tf.is_tensor(indices):
-        single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
-    if single_index:
-        if len(values) > 1:
-            indices = [tuple(list(indices[:axis]) + [i] + list(indices[axis:]))
-                       for i in range(x.shape[axis])]
-        else:
-            indices = [indices]
 
-    if len(values) != len(indices):
-        raise ValueError('Either one value or as many values as indices')
+def assignment_by_sum(x, values, indices, axis=0):
+    """Add values at given indices of an array.
 
-    for i_index, index in enumerate(indices):
-        x = _assignment_single_value(x, values[i_index], index, axis)
-    return x
+    Parameters
+    ----------
+    x: array-like, shape=[dim]
+        Initial array.
+    values: {float, list(float)}
+        Value or list of values to be assigned.
+    indices: {
+    int, tuple(int), array-like({int, tuple, boolean})
+        Single index or array of indices where values are assigned.
+        If the length of the tuples is shorter than ndim(x) by one, values are
+        assigned to each copy along axis.
+        If indices is a list of booleans and ndim(x) > 1, values are assigned
+        across all dimensions.
+    axis: int, optional
+        Axis along which values are assigned, if vectorized.
+
+    Returns
+    -------
+    x_new : array-like, shape=[dim]
+        Copy of x as the sum of x and the values at the given indices.
+
+    Notes
+    -----
+    If a single value is provided, it is assigned at all the indices.
+    If a single index is provided, and len(indices) == ndim(x) - 1, then values
+    are assigned along axis.
+
+    Examples
+    --------
+    Most examples translate as
+    assignment_by_sum(x, indices, values) <=> x[indices] = x[indices] + values
+    Some special cases are given by vectorisation.
+    (Beware that copies are always returned).
+    if ndim(x) == 3, assignment_by_sum(x, 1, (1, 0), 1) <=> x[1, :, 0] += 1
+    if ndim(x) == 2, assignment_by_sum(x, [1, 2], [(0, 1), (2, 3)]) <=>
+                        x[((0, 2), (1, 3))] += [1, 2]
+    """
+    return _assignment(x, values, indices, 'sum', axis)
 
 
 def array_from_sparse(indices, data, target_shape):
@@ -713,3 +654,14 @@ def tril_indices(*args, **kwargs):
 def triu_indices(*args, **kwargs):
     return tuple(
         map(tf.convert_to_tensor, _np.triu_indices(*args, **kwargs)))
+
+
+def where(condition, x=None, y=None):
+    if x is None and y is None:
+        return tf.where(condition)
+    if not tf.is_tensor(x):
+        x = tf.constant(x)
+    if not tf.is_tensor(y):
+        y = tf.constant(y)
+    y = cast(y, x.dtype)
+    return tf.where(condition, x, y)

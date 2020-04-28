@@ -38,12 +38,12 @@ class Connection:
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[..., dim]
             Point on the manifold.
 
         Returns
         -------
-        gamma : array-like, shape=[n_samples, dim, dim, dim]
+        gamma : array-like, shape=[..., dim, dim, dim]
             Values of the christoffel symbols, with the covariant index on
             the first dimension.
         """
@@ -58,11 +58,11 @@ class Connection:
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, dim]
+        tangent_vec_a : array-like, shape=[..., dim]
             Tangent vector at base point.
-        tangent_vec_b : array-like, shape=[n_samples, dim]
+        tangent_vec_b : array-like, shape=[..., dim]
             Tangent vector at base point.
-        base_point : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[..., dim]
             Point on the manifold.
         """
         raise NotImplementedError(
@@ -73,15 +73,15 @@ class Connection:
 
         Parameters
         ----------
-        velocity : array-like, shape=[n_samples, dim]
+        velocity : array-like, shape=[..., dim]
             Tangent vector at the position.
-        position : array-like, shape=[n_samples, dim]
+        position : array-like, shape=[..., dim]
             Point on the manifold, the position at which to compute the
             geodesic ODE.
 
         Returns
         -------
-        geodesic_ode : array-like, shape=[n_samples, dim]
+        geodesic_ode : array-like, shape=[..., dim]
             Value of the vector field to be integrated at position.
         """
         gamma = self.christoffels(position)
@@ -103,12 +103,12 @@ class Connection:
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, dim]
+        tangent_vec : array-like, shape=[..., dim]
             Tangent vector at the base point.
-        base_point : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[..., dim]
             Point on the manifold.
         n_steps : int
-            The number of discrete time steps to take in the integration.
+            Number of discrete time steps to take in the integration.
         step : str, {'euler', 'rk4'}
             The numerical scheme to use for integration.
         point_type : str, {'vector', 'matrix'}
@@ -116,7 +116,7 @@ class Connection:
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, dim]
+        exp : array-like, shape=[..., dim]
             Point on the manifold.
         """
         initial_state = (base_point, tangent_vec)
@@ -134,18 +134,18 @@ class Connection:
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
+        point : array-like, shape=[..., dim]
             Point on the manifold.
-        base_point : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[..., dim]
             Point on the manifold.
         n_steps : int
-            The number of discrete time steps to take in the integration.
+            Number of discrete time steps to take in the integration.
         step : str, {'euler', 'rk4'}
-            The numerical scheme to use for integration.
+            Numerical scheme to use for integration.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, dim]
+        tangent_vec : array-like, shape=[..., dim]
             Tangent vector at the base point.
         """
         n_samples = geomstats.vectorization.get_n_points(
@@ -182,11 +182,11 @@ class Connection:
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[..., dim]
             Point on the manifold, from which to transport.
-        next_point : array-like, shape=[n_samples, dim]
+        next_point : array-like, shape=[..., dim]
             Point on the manifold, to transport to.
-        base_shoot : array-like, shape=[n_samples, dim]
+        base_shoot : array-like, shape=[..., dim]
             Point on the manifold, end point of the geodesics starting
             from the base point with initial speed to be transported.
         return_geodesics : bool, optional (defaults to False)
@@ -196,14 +196,14 @@ class Connection:
         Returns
         -------
         next_step : dict of array-like and callable with following keys:
-            next_tangent_vec : array-like, shape=[n_samples, dim]
+            next_tangent_vec : array-like, shape=[..., dim]
                 Tangent vector at end point.
-            end_point : array-like, shape=[n_samples, dim]
+            end_point : array-like, shape=[..., dim]
                 Point on the manifold, closes the geodesic parallelogram of the
                 construction.
             geodesics : list of callable, len=3 (only if
             `return_geodesics=True`)
-                The three geodesics of the construction.
+                Three geodesics of the construction.
 
         References
         ----------
@@ -260,11 +260,11 @@ class Connection:
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[..., dim]
             Point on the manifold, from which to transport.
-        next_point : array-like, shape=[n_samples, dim]
+        next_point : array-like, shape=[..., dim]
             Point on the manifold, to transport to.
-        base_shoot : array-like, shape=[n_samples, dim]
+        base_shoot : array-like, shape=[..., dim]
             Point on the manifold, end point of the geodesics starting
             from the base point with initial speed to be transported.
         return_geodesics : bool, optional (defaults to False)
@@ -273,9 +273,9 @@ class Connection:
 
         Returns
         -------
-        transported_tangent_vector : array-like, shape=[n_samples, dim]
+        transported_tangent_vector : array-like, shape=[..., dim]
             Tangent vector at end point.
-        end_point : array-like, shape=[n_samples, dim]
+        end_point : array-like, shape=[..., dim]
             Point on the manifold, closes the geodesic parallelogram of the
             construction.
 
@@ -343,12 +343,12 @@ class Connection:
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, dim]
+        tangent_vec_a : array-like, shape=[..., dim]
             Tangent vector at base point to transport.
-        tangent_vec_b : array-like, shape=[n_samples, dim]
+        tangent_vec_b : array-like, shape=[..., dim]
             Tangent vector at base point, initial speed of the geodesic along
             which to transport.
-        base_point : array-like, shape=[n_samples, dim]
+        base_point : array-like, shape=[..., dim]
             Point on the manifold, initial position of the geodesic along
             which to transport.
         n_steps : int
@@ -360,7 +360,7 @@ class Connection:
         Returns
         -------
         ladder : dict of array-like and callable with following keys
-            transported_tangent_vector : array-like, shape=[n_samples, dim]
+            transported_tangent_vector : array-like, shape=[..., dim]
                 Approximation of the parallel transport of tangent vector a.
             trajectory : list of list of callable, len=n_steps
                 List of lists containing the geodesics of the
@@ -410,7 +410,7 @@ class Connection:
 
         Parameters
         ----------
-        base_point: array-like, shape=[n_samples, dim]
+        base_point: array-like, shape=[..., dim]
             Point on the manifold.
         """
         raise NotImplementedError(
@@ -427,12 +427,12 @@ class Connection:
 
         Parameters
         ----------
-        initial_point : array-like, shape=[n_samples, dim]
+        initial_point : array-like, shape=[..., dim]
             Point on the manifold, initial point of the geodesic.
-        end_point : array-like, shape=[n_samples, dim], optional
+        end_point : array-like, shape=[..., dim], optional
             Point on the manifold, end point of the geodesic. If None,
             an initial tangent vector must be given.
-        initial_tangent_vec : array-like, shape=[n_samples, dim],
+        initial_tangent_vec : array-like, shape=[..., dim],
             optional
             Tangent vector at base point, the initial speed of the geodesics.
             If None, an end point must be given and a logarithm is computed.
@@ -511,7 +511,7 @@ class Connection:
 
         Parameters
         ----------
-        base_point: array-like, shape=[n_samples, dim]
+        base_point: array-like, shape=[..., dim]
             Point on the manifold.
         """
         raise NotImplementedError(

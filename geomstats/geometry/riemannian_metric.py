@@ -65,7 +65,7 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, dim], optional
+        base_point : array-like, shape=[..., dim], optional
         """
         raise NotImplementedError(
             'The computation of the inner product matrix'
@@ -76,7 +76,7 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, dim], optional
+        base_point : array-like, shape=[..., dim], optional
         """
         metric_matrix = self.inner_product_matrix(base_point)
         cometric_matrix = gs.linalg.inv(metric_matrix)
@@ -87,7 +87,7 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        base_point : array-like, shape=[n_samples, dim], optional
+        base_point : array-like, shape=[..., dim], optional
         """
         metric_derivative = autograd.jacobian(self.inner_product_matrix)
         return metric_derivative(base_point)
@@ -97,12 +97,11 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        base_point: array-like, shape=[n_samples, dim]
+        base_point: array-like, shape=[..., dim]
 
         Returns
         -------
-        christoffels: array-like,
-                             shape=[n_samples, dim, dim, dim]
+        christoffels: array-like, shape=[..., dim, dim, dim]
         """
         cometric_mat_at_point = self.inner_product_inverse_matrix(base_point)
         metric_derivative_at_point = self.inner_product_derivative_matrix(
@@ -126,16 +125,13 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        tangent_vec_a: array-like, shape=[n_samples, dim]
-                                   or shape=[1, dim]
-        tangent_vec_b: array-like, shape=[n_samples, dim]
-                                   or shape=[1, dim]
-        base_point: array-like, shape=[n_samples, dim]
-                                or shape=[1, dim]
+        tangent_vec_a: array-like, shape=[..., dim]
+        tangent_vec_b: array-like, shape=[..., dim]
+        base_point: array-like, shape=[..., dim]
 
         Returns
         -------
-        inner_product : array-like, shape=[n_samples,]
+        inner_product : array-like, shape=[...,]
         """
         inner_prod_mat = self.inner_product_matrix(base_point)
         inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
@@ -156,12 +152,12 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, dim]
-        base_point : array-like, shape=[n_samples, dim]
+        vector : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., dim]
 
         Returns
         -------
-        sq_norm : array-like, shape=[n_samples,]
+        sq_norm : array-like, shape=[...,]
         """
         sq_norm = self.inner_product(vector, vector, base_point)
         return sq_norm
@@ -177,12 +173,12 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, dim]
-        base_point : array-like, shape=[n_samples, dim]
+        vector : array-like, shape=[..., dim]
+        base_point : array-like, shape=[..., dim]
 
         Returns
         -------
-        norm : array-like, shape=[n_samples,]
+        norm : array-like, shape=[...,]
         """
         sq_norm = self.squared_norm(vector, base_point)
         norm = gs.sqrt(sq_norm)
@@ -193,12 +189,12 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, dim]
-        point_b : array-like, shape=[n_samples, dim]
+        point_a : array-like, shape=[..., dim]
+        point_b : array-like, shape=[..., dim]
 
         Returns
         -------
-        sq_dist : array-like, shape=[n_samples,]
+        sq_dist : array-like, shape=[...,]
         """
         log = self.log(point=point_b, base_point=point_a)
 
@@ -213,12 +209,12 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        point_a : array-like, shape=[n_samples, dim]
-        point_b : array-like, shape=[n_samples, dim]
+        point_a : array-like, shape=[..., dim]
+        point_b : array-like, shape=[..., dim]
 
         Returns
         -------
-        dist : array-like, shape=[n_samples,]
+        dist : array-like, shape=[...,]
         """
         sq_dist = self.squared_dist(point_a, point_b)
         dist = gs.sqrt(sq_dist)

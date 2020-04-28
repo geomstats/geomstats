@@ -697,3 +697,132 @@ class TestBackends(geomstats.tests.TestCase):
         gs_result = gs.assignment_by_sum(
             gs_result, 4 * gs_array[~gs_mask], ~gs_mask)
         self.assertAllCloseToNp(gs_result, np_result)
+
+    def test_any(self):
+        base_list = [
+            [[22., 55.],
+             [33., 88.],
+             [77., 99.]],
+            [[34., 12.],
+             [2., -3.],
+             [67., 35.]]]
+        np_array = _np.array(base_list)
+        gs_array = gs.array(base_list)
+
+        np_result = _np.any(np_array > 30.)
+        gs_result = gs.any(gs_array > 30.)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.any(np_array > 30., axis=0)
+        gs_result = gs.any(gs_array > 30., axis=0)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.any(np_array > 30., axis=-2)
+        gs_result = gs.any(gs_array > 30., axis=-2)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.any(np_array > 30., axis=(-2, -1))
+        gs_result = gs.any(gs_array > 30., axis=(-2, -1))
+        self.assertAllCloseToNp(gs_result, np_result)
+
+    def test_all(self):
+        base_list = [
+            [[22., 55.],
+             [33., 88.],
+             [77., 99.]],
+            [[34., 12.],
+             [2., -3.],
+             [67., 35.]]]
+        np_array = _np.array(base_list)
+        gs_array = gs.array(base_list)
+
+        np_result = _np.all(np_array > 30.)
+        gs_result = gs.all(gs_array > 30.)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.all(np_array > 30., axis=0)
+        gs_result = gs.all(gs_array > 30., axis=0)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.all(np_array > 30., axis=-2)
+        gs_result = gs.all(gs_array > 30., axis=-2)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.all(np_array > 30., axis=(-2, -1))
+        gs_result = gs.all(gs_array > 30., axis=(-2, -1))
+        self.assertAllCloseToNp(gs_result, np_result)
+
+    def test_trace(self):
+        base_list = [
+            [[22., 55.],
+             [33., 88.]],
+            [[34., 12.],
+             [67., 35.]]]
+        np_array = _np.array(base_list)
+        gs_array = gs.array(base_list)
+
+        np_result = _np.trace(np_array)
+        gs_result = gs.trace(gs_array)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.trace(np_array, axis1=1, axis2=2)
+        gs_result = gs.trace(gs_array, axis1=1, axis2=2)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.trace(np_array, axis1=-1, axis2=-2)
+        gs_result = gs.trace(gs_array, axis1=-1, axis2=-2)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+    def test_isclose(self):
+        base_list = [
+            [[22. + 1e-5, 22. + 1e-7],
+             [22. + 1e-6, 88. + 1e-4]]]
+        np_array = _np.array(base_list)
+        gs_array = gs.array(base_list)
+
+        np_result = _np.isclose(np_array, 22.)
+        gs_result = gs.isclose(gs_array, 22.)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.isclose(np_array, 22., atol=1e-8)
+        gs_result = gs.isclose(gs_array, 22., atol=1e-8)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.isclose(np_array, 22., rtol=1e-8, atol=1e-7)
+        gs_result = gs.isclose(gs_array, 22., rtol=1e-8, atol=1e-7)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_where(self):
+        # TODO(ninamiolane): Make tf behavior consistent with np
+        # Currently, tf returns array, while np returns tuple
+        base_list = [
+            [[22., 55.],
+             [33., 88.]],
+            [[34., 12.],
+             [67., 35.]]]
+        np_array = _np.array(base_list)
+        gs_array = gs.array(base_list)
+
+        np_result = _np.where(np_array > 20., 0., np_array)
+        gs_result = gs.where(gs_array > 20., 0., gs_array)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_result = _np.where(np_array > 20, np_array**2, 4.)
+        gs_result = gs.where(gs_array > 20, gs_array**2, 4.)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        base_list = [[0, 1, 0, 1, 0, 1, 0, 1, 0, 1]]
+        np_array = _np.array(base_list)
+        gs_array = gs.array(base_list)
+        result = gs.where(gs_array == 0)
+        expected = _np.where(np_array == 0)
+        self.assertAllCloseToNp(*result, *expected)
+
+        result = gs.where(gs_array == 0, - 1, gs_array)
+        expected = _np.where(np_array == 0, - 1, np_array)
+        self.assertAllCloseToNp(result, expected)
+
+        expected = _np.where(np_array == 1, _np.ones(10), np_array)
+        result = gs.where(gs_array == 1, gs.ones(10), gs_array)
+        self.assertAllCloseToNp(result, expected)
