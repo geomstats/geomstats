@@ -8,6 +8,8 @@ from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
+# TODO : Add documentation to this file.
+
 class Landmarks(Manifold):
     """Class for landmarks."""
 
