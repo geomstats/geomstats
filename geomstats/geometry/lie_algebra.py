@@ -24,8 +24,8 @@ class MatrixLieAlgebra:
     """
 
     def __init__(self, dim, n):
-        geomstats.error.check_integer(dim, 'dim')
-        geomstats.error.check_integer(n, 'n')
+        geomstats.errors.check_integer(dim, 'dim')
+        geomstats.errors.check_integer(n, 'n')
         self.dim = dim
         self.n = n
         self.basis = None

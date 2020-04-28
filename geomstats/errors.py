@@ -5,6 +5,9 @@ import math
 import geomstats.backend as gs
 
 
+TOL = 1e-6
+
+
 def check_integer(n, n_name):
     """Raise an error if n is not a > 0 integer.
 
@@ -23,7 +26,7 @@ def check_integer(n, n_name):
                 ' got {}.'.format(n_name, n))
 
 
-def check_belongs(point, manifold):
+def check_belongs(point, manifold, tol=TOL):
     """Raise an error if point does not belong to the input manifold.
 
     Parameters
@@ -35,7 +38,7 @@ def check_belongs(point, manifold):
     manifold_name : string
         Name of the manifold for the error message.
     """
-    if not gs.all(manifold.belongs(point)):
+    if not gs.all(manifold.belongs(point, tol)):
         raise RuntimeError(
             'Some points do not belong to manifold \'%s\' of dimension %d.'
             % (type(manifold).__name__, manifold.dim))
