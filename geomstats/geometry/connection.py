@@ -133,7 +133,7 @@ class Connection:
         return exp
 
     def log(self, point, base_point, n_steps=N_STEPS, step='euler',
-            max_iter=25, verbose=False):
+            max_iter=25, verbose=False, tol=1e-6):
         """Compute logarithm map associated to the affine connection.
 
         Solve the boundary value problem associated to the geodesic equation
@@ -170,14 +170,14 @@ class Connection:
         tangent_vec = gs.random.rand(*gs.flatten(base_point).shape)
         res = minimize(
             objective_with_grad, tangent_vec, method='L-BFGS-B', jac=True,
-            options={'disp': verbose, 'maxiter': max_iter})
+            options={'disp': verbose, 'maxiter': max_iter}, tol=tol)
 
         tangent_vec = gs.array(res.x)
         tangent_vec = gs.reshape(tangent_vec, base_point.shape)
         return tangent_vec
 
     def _pole_ladder_step(self, base_point, next_point, base_shoot,
-                          return_geodesics=False):
+                          return_geodesics=False, **kwargs):
         """Compute one Pole Ladder step.
 
         One step of pole ladder scheme [LP2013a]_ using the geodesic to
@@ -255,7 +255,7 @@ class Connection:
                 'end_point': end_point}
 
     def _schild_ladder_step(self, base_point, next_point, base_shoot,
-                            return_geodesics=False):
+                            return_geodesics=False, **kwargs):
         """Compute one Schild's Ladder step.
 
         One step of the Schild's ladder scheme [LP2013a]_ using the geodesic to
