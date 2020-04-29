@@ -97,7 +97,7 @@ class Connection:
         return equation
 
     def exp(self, tangent_vec, base_point, n_steps=N_STEPS, step='euler',
-            point_type=None):
+            point_type=None, **kwargs):
         """Exponential map associated to the affine connection.
 
         Exponential map at base_point of tangent_vec computed by integration
@@ -132,7 +132,8 @@ class Connection:
         exp = flow[-1]
         return exp
 
-    def log(self, point, base_point, n_steps=N_STEPS, step='euler'):
+    def log(self, point, base_point, n_steps=N_STEPS, step='euler',
+            max_iter=25, verbose=False):
         """Compute logarithm map associated to the affine connection.
 
         Solve the boundary value problem associated to the geodesic equation
@@ -169,7 +170,7 @@ class Connection:
         tangent_vec = gs.random.rand(*gs.flatten(base_point).shape)
         res = minimize(
             objective_with_grad, tangent_vec, method='L-BFGS-B', jac=True,
-            options={'disp': False, 'maxiter': 25})
+            options={'disp': verbose, 'maxiter': max_iter})
 
         tangent_vec = gs.array(res.x)
         tangent_vec = gs.reshape(tangent_vec, base_point.shape)
@@ -477,11 +478,13 @@ class Connection:
         base_shoot = self.exp(
             base_point=current_point, tangent_vec=next_tangent_vec)
         trajectory = []
+        current_speed = 1. / n_ladders * tangent_vec_b
         for i_point in range(n_ladders):
-            frac_tangent_vector_b = (i_point + 1) / n_ladders * tangent_vec_b
-            next_point = self.exp(
-                base_point=base_point,
-                tangent_vec=frac_tangent_vector_b)
+            initial_state = (current_point, current_speed)
+            flow, vel = integrate(
+                self.geodesic_equation, initial_state, n_steps=1, step='rk4')
+            next_point = flow[-1]
+            current_speed = vel[-1]
             next_step = single_step(
                 base_point=current_point,
                 next_point=next_point,
