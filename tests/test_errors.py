@@ -17,12 +17,12 @@ class TestBackends(geomstats.tests.TestCase):
             lambda: geomstats.errors.check_belongs(
                 point, euclidean))
 
-    def test_check_belongs_with_tol(self):
+    @staticmethod
+    def test_check_belongs_with_tol():
         spd = SPDMatrices(5)
         point = spd.random_uniform()
 
-        geomstats.errors.check_belongs(
-            point, spd, atol=1e-5)
+        geomstats.errors.check_belongs(point, spd, atol=1e-5)
 
     def test_check_integer(self):
         a = -2
