@@ -127,7 +127,7 @@ class Connection:
         return exp
 
     def log(self, point, base_point, n_steps=N_STEPS, step='euler',
-            max_iter=25, verbose=False):
+            max_iter=25, verbose=False, tol=1e-6):
         """Compute logarithm map associated to the affine connection.
 
         Solve the boundary value problem associated to the geodesic equation
@@ -168,8 +168,7 @@ class Connection:
         tangent_vec = gs.random.rand(gs.sum(gs.shape(base_point)))
         res = minimize(
             objective_with_grad, tangent_vec, method='L-BFGS-B', jac=True,
-            options={'disp': verbose, 'maxiter': max_iter})
-
+            options={'disp': verbose, 'maxiter': max_iter}, tol=tol)
         tangent_vec = res.x
         tangent_vec = gs.reshape(tangent_vec, base_point.shape)
         return tangent_vec
