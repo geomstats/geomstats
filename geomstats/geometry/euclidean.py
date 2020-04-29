@@ -27,6 +27,7 @@ class Euclidean(Manifold):
         Returns
         -------
         belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the Euclidean space.
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
@@ -40,14 +41,17 @@ class Euclidean(Manifold):
 
         Parameters
         ----------
-        n_samples : int, optional
-            default: 1
-        bound : float, optional
-            default: 1.0
+        n_samples : int
+            Number of samples
+            Optional, default: 1
+        bound : float
+            Side of hypercube support of the uniform distribution.
+            Optional, default: 1.0
 
         Returns
         -------
         point : array-like, shape=[..., dim]
+           Sample.
         """
         size = (self.dim,)
         if n_samples != 1:
