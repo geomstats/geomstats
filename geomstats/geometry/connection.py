@@ -216,26 +216,26 @@ class Connection:
         """
         mid_tangent_vector_to_shoot = 1. / 2. * self.log(
             base_point=base_point,
-            point=next_point)
+            point=next_point, **kwargs)
 
         mid_point = self.exp(
             base_point=base_point,
-            tangent_vec=mid_tangent_vector_to_shoot)
+            tangent_vec=mid_tangent_vector_to_shoot, **kwargs)
 
         tangent_vector_to_shoot = - self.log(
             base_point=mid_point,
-            point=base_shoot)
+            point=base_shoot, **kwargs)
 
         end_shoot = self.exp(
             base_point=mid_point,
-            tangent_vec=tangent_vector_to_shoot)
+            tangent_vec=tangent_vector_to_shoot, **kwargs)
 
         next_tangent_vec = - self.log(
-            base_point=next_point, point=end_shoot)
+            base_point=next_point, point=end_shoot, **kwargs)
 
         end_point = self.exp(
             base_point=next_point,
-            tangent_vec=next_tangent_vec)
+            tangent_vec=next_tangent_vec, **kwargs)
 
         geodesics = []
         if return_geodesics:
@@ -291,22 +291,22 @@ class Connection:
         """
         mid_tangent_vector_to_shoot = 1. / 2. * self.log(
             base_point=base_shoot,
-            point=next_point)
+            point=next_point, **kwargs)
 
         mid_point = self.exp(
             base_point=base_shoot,
-            tangent_vec=mid_tangent_vector_to_shoot)
+            tangent_vec=mid_tangent_vector_to_shoot, **kwargs)
 
         tangent_vector_to_shoot = - self.log(
             base_point=mid_point,
-            point=base_point)
+            point=base_point, **kwargs)
 
         end_shoot = self.exp(
             base_point=mid_point,
-            tangent_vec=tangent_vector_to_shoot)
+            tangent_vec=tangent_vector_to_shoot, **kwargs)
 
         next_tangent_vec = self.log(
-            base_point=next_point, point=end_shoot)
+            base_point=next_point, point=end_shoot, **kwargs)
 
         geodesics = []
         if return_geodesics:
@@ -365,7 +365,7 @@ class Connection:
         ladder : dict of array-like and callable with following keys
             transported_tangent_vector : array-like, shape=[n_samples, dim]
                 Approximation of the parallel transport of tangent vector a.
-            trajectory : list of list of callable, len=n_steps
+            trajectory : list of list of callable, len=n_ladders
                 List of lists containing the geodesics of the
                 construction, only if `return_geodesics=True` in the step
                 function. The geodesics are methods of the class connection.
@@ -417,8 +417,8 @@ class Connection:
                 'trajectory': trajectory}
 
     def ladder_parallel_transport(
-            self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1,
-            step='pole', **single_step_kwargs):
+            self, tangent_vec_a, tangent_vec_b, base_point, n_ladders=1,
+            scheme='pole', **single_step_kwargs):
         """Approximate parallel transport using the pole ladder scheme.
 
         Approximate Parallel transport using either the pole ladder or the
@@ -439,10 +439,10 @@ class Connection:
         base_point : array-like, shape=[..., dim]
             Point on the manifold, initial position of the geodesic along
             which to transport.
-        n_steps : int
+        n_ladders : int
             The number of pole ladder steps.
             Optional, default: 1.
-        step : str, {'pole', 'schild'}
+        scheme : str, {'pole', 'schild'}
             The scheme to use for the construction of the ladder at each step.
             Optoinal, default: 'pole'.
         **single_step_kwargs : keyword arguments for the step functions
@@ -473,12 +473,12 @@ class Connection:
         next_tangent_vec = gs.copy(tangent_vec_a)
         methods = {'pole': self._pole_ladder_step,
                    'schild': self._schild_ladder_step}
-        single_step = methods[step]
+        single_step = methods[scheme]
         base_shoot = self.exp(
             base_point=current_point, tangent_vec=next_tangent_vec)
         trajectory = []
-        for i_point in range(n_steps):
-            frac_tangent_vector_b = (i_point + 1) / n_steps * tangent_vec_b
+        for i_point in range(n_ladders):
+            frac_tangent_vector_b = (i_point + 1) / n_ladders * tangent_vec_b
             next_point = self.exp(
                 base_point=base_point,
                 tangent_vec=frac_tangent_vector_b)
@@ -493,6 +493,7 @@ class Connection:
         transported_tangent_vec = next_step['next_tangent_vec']
 
         return {'transported_tangent_vec': transported_tangent_vec,
+                'end_point': current_point,
                 'trajectory': trajectory}
 
     def riemannian_curvature(self, base_point):
