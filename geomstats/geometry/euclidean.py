@@ -10,6 +10,11 @@ class Euclidean(Manifold):
 
     By definition, a Euclidean space is a vector space of a given
     dimension, equipped with a Euclidean metric.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the Euclidean space.
     """
 
     def __init__(self, dim):
@@ -65,9 +70,14 @@ class EuclideanMetric(RiemannianMetric):
     """Class for Euclidean metrics.
 
     As a Riemannian metric, the Euclidean metric is:
-    - flat: the inner product is independent of the base point.
+    - flat: the inner-product is independent of the base point.
     - positive definite: it has signature (dimension, 0, 0),
     where dimension is the dimension of the Euclidean space.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the Euclidean space.
     """
 
     def __init__(self, dim):
@@ -75,15 +85,18 @@ class EuclideanMetric(RiemannianMetric):
             dim=dim, signature=(dim, 0, 0))
 
     def inner_product_matrix(self, base_point=None):
-        """Compute inner product matrix, independent of the base point.
+        """Compute the inner-product matrix, independent of the base point.
 
         Parameters
         ----------
         base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
 
         Returns
         -------
         inner_prod_mat : array-like, shape=[..., dim, dim]
+            Inner-product matrix.
         """
         mat = gs.eye(self.dim)
         return mat
@@ -96,12 +109,14 @@ class EuclideanMetric(RiemannianMetric):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., dim]
-
+            Tangent vector.
         base_point : array-like, shape=[..., dim]
+            Base point.
 
         Returns
         -------
         exp : array-like, shape=[..., dim]
+            Riemannian exponential.
         """
         exp = base_point + tangent_vec
         return exp
@@ -114,12 +129,14 @@ class EuclideanMetric(RiemannianMetric):
         Parameters
         ----------
         point: array-like, shape=[..., dim]
-
+            Point.
         base_point: array-like, shape=[..., dim]
+            Base point.
 
         Returns
         -------
         log: array-like, shape=[..., dim]
+            Riemannian logarithm.
         """
         log = point - base_point
         return log
