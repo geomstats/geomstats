@@ -67,7 +67,7 @@ class TestConnection(geomstats.tests.TestCase):
             expected = self.hypersphere.metric.parallel_transport(
                 tan_vec_a, tan_vec_b, base_point)
             ladder = self.hypersphere.metric.ladder_parallel_transport(
-                tan_vec_a, tan_vec_b, base_point, step=step, n_steps=n_steps)
+                tan_vec_a, tan_vec_b, base_point, scheme=step, n_ladders=n_steps)
             result = ladder['transported_tangent_vec']
 
             self.assertAllClose(result, expected, rtol=tol, atol=tol)
@@ -88,7 +88,7 @@ class TestConnection(geomstats.tests.TestCase):
                 tan_vec_a, tan_vec_b, base_point)
             ladder = self.hypersphere.metric.ladder_parallel_transport(
                 tan_vec_a, tan_vec_b, base_point, return_geodesics=True,
-                step=step, n_steps=n_steps)
+                scheme=step, n_ladders=n_steps)
             result = ladder['transported_tangent_vec']
 
             self.assertAllClose(result, expected, rtol=rtol, atol=atol)
