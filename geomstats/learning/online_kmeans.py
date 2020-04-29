@@ -193,6 +193,7 @@ class OnlineKMeans(BaseEstimator, ClusterMixin):
 
         Returns
         -------
-        labels : Index of the cluster each sample belongs to.
+        labels : int
+            Index of the cluster each sample belongs to.
         """
         return self.metric.closest_neighbor_index(point, self.cluster_centers_)

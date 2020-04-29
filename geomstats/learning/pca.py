@@ -35,7 +35,7 @@ def _assess_dimension_(spectrum, rank, n_samples, n_features):
 
     Returns
     -------
-    ll : float,
+    ll : float
         The log-likelihood
 
     Notes
@@ -79,7 +79,7 @@ def _assess_dimension_(spectrum, rank, n_samples, n_features):
 
 
 def _infer_dimension_(spectrum, n_samples, n_features):
-    """Infers the dimension of a dataset of shape (n_samples, n_features).
+    """Infer the dimension of a dataset of shape (n_samples, n_features).
 
     The dataset is described by its spectrum `spectrum`.
     """
@@ -91,12 +91,21 @@ def _infer_dimension_(spectrum, n_samples, n_features):
 
 
 class TangentPCA(_BasePCA):
-    """Tangent Principal component analysis (tPCA).
+    r"""Tangent Principal component analysis (tPCA).
 
     Linear dimensionality reduction using
     Singular Value Decomposition of the
     Riemannian Log of the data at the tangent space
     of the Frechet mean.
+
+    Parameters
+    ----------
+    metric : RiemannianMetric
+        Riemannian metric.
+    n_components : int
+        Number of principal components.
+    point_type : str, {\'vector\', \'matrix\'}
+        Point type.
     """
 
     def __init__(self, metric, n_components=None, copy=True,
@@ -123,7 +132,7 @@ class TangentPCA(_BasePCA):
         y : Ignored (Compliance with scikit-learn interface)
         base_point : array-like, shape=[n_samples, n_features], optional
             Point at which to perform the tangent PCA
-            Optional, default to Frechet mean if None
+            Optional, default to Frechet mean if None.
 
         Returns
         -------
@@ -144,11 +153,12 @@ class TangentPCA(_BasePCA):
         y : Ignored (Compliance with scikit-learn interface)
         base_point : array-like, shape=[n_samples, n_features]
             Point at which to perform the tangent PCA
-            Optional, default to Frechet mean if None
+            Optional, default to Frechet mean if None.
 
         Returns
         -------
-        X_new : array-like, shape (n_samples, n_components)
+        X_new : array-like, shape=[n_samples, n_components]
+            Projected data.
         """
         U, S, _ = self._fit(X, base_point=base_point)
 
@@ -170,6 +180,7 @@ class TangentPCA(_BasePCA):
         Returns
         -------
         X_new : array-like, shape=[n_samples, n_components]
+            Projected data.
         """
         tangent_vecs = self.metric.log(X, base_point=self.base_point_fit)
         if self.point_type == 'matrix':
@@ -197,7 +208,8 @@ class TangentPCA(_BasePCA):
 
         Returns
         -------
-        X_original array-like, shape=[n_samples, n_features]
+        X_original : array-like, shape=[n_samples, n_features]
+            Original data.
         """
         scores = self.mean_ + gs.matmul(
             X, self.components_)
@@ -221,14 +233,13 @@ class TangentPCA(_BasePCA):
             and n_features is the number of features.
         y : Ignored (Compliance with scikit-learn interface)
         base_point : array-like, shape=[n_samples, n_features]
-            Point at which to perform the tangent PCA
-            Optional, default to Frechet mean if None
-        point_type : str, {'vector', 'matrix'}
-            Optional
+            Point at which to perform the tangent PCA.
+            Optional, default to Frechet mean if None.
 
         Returns
         -------
-        U, S, V: SVD decomposition
+        U, S, V : array-like
+            Matrices of the SVD decomposition
         """
         if base_point is None:
             mean = FrechetMean(metric=self.metric, point_type=self.point_type)
