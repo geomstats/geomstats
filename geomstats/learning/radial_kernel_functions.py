@@ -7,9 +7,9 @@ https://en.wikipedia.org/wiki/Radial_basis_function
 
 Notes
 -----
-We chose not to apply the normalization coefficients used in some references.
-These normalization coefficients are used in order that the kernel functions
-integrate to 1 on the Euclidean space of dimension 1.
+We chose not to apply the normalization coefficients used in some references
+in order that the kernel functions integrate to 1 on the Euclidean space of
+dimension 1.
 """
 
 import geomstats.backend as gs

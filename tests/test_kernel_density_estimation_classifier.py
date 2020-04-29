@@ -38,6 +38,50 @@ class TestKernelDensityEstimationClassifier(geomstats.tests.TestCase):
         expected = gs.array([0])
         self.assertAllClose(expected, result)
 
+    def test_predict_one_dimensional_data(self):
+        """Test the 'predict' class method."""
+        training_dataset = gs.array(
+            [[0.0],
+             [1.0],
+             [2.0],
+             [3.0]])
+        labels = [0, 0, 1, 1]
+        kde = KernelDensityEstimationClassifier(
+            distance='minkowski')
+        kde.fit(training_dataset, labels)
+        result = kde.predict(gs.array([1.1]))
+        expected = gs.array([0])
+        self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_only
+    def test_predict_one_dimensional_data_callable_distance(self):
+        """Test the 'predict' class method on one dimensional data."""
+        training_dataset = gs.array([0, 1, 2, 3])
+        labels = [0, 0, 1, 1]
+        kde = KernelDensityEstimationClassifier(
+            distance=self.distance)
+        kde.fit(training_dataset, labels)
+        result = kde.predict(gs.array([1.1]))
+        expected = gs.array([0])
+        self.assertAllClose(expected, result)
+
+    @geomstats.tests.np_only
+    def test_predict_proba_uniform_kernel_one_dimensional_data(self):
+        """Test the 'predict_proba' class method using the 'uniform' kernel.
+
+        Test the 'predict_proba' class method using the 'uniform' kernel on
+        one-dimensional date of shape [n_samples,].
+        """
+        training_dataset = gs.array([0, 1, 2, 3])
+        labels = [0, 0, 1, 1]
+        kde = KernelDensityEstimationClassifier(
+            kernel='uniform',
+            distance=self.distance)
+        kde.fit(training_dataset, labels)
+        result = kde.predict_proba(gs.array([0.9]))
+        expected = gs.array([[1 / 2, 1 / 2]])
+        self.assertAllClose(expected, result, atol=TOLERANCE)
+
     def test_predict_proba_uniform_kernel(self):
         """Test the 'predict_proba' class method using the 'uniform' kernel."""
         training_dataset = gs.array(

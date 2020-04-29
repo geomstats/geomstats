@@ -135,3 +135,65 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
             metric_params=distance_params,
             n_jobs=n_jobs,
             **kwargs)
+
+    def fit(self, X, y):
+        """Fit the model using X as training data and y as target values.
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_samples, n_features], [n_samples,] or
+            [n_samples, n_samples] if distance is 'precomputed'
+            Training data.
+        y : array-like, shape=[n_samples] or [n_samples, n_outputs]
+            Target values.
+        """
+        data_shape = gs.shape(X)
+        if len(data_shape) == 1:
+            n_samples = data_shape[0]
+            X = gs.reshape(X, (n_samples, 1))
+        super(KernelDensityEstimationClassifier, self).fit(X, y)
+
+    def predict(self, X):
+        """Predict the class labels for the provided data.
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_queries, n_features] or
+            [n_queries, n_indexed] if metric is 'precomputed'
+            Test samples.
+
+        Returns
+        -------
+        y : array-like, shape=[n_queries] or [n_queries, n_outputs]
+            Class labels for each data sample.
+        """
+        data_shape = gs.shape(X)
+        if len(data_shape) == 1:
+            n_samples = data_shape[0]
+            X = gs.reshape(X, (n_samples, 1))
+        y_pred = super(KernelDensityEstimationClassifier, self).predict(X)
+        return y_pred
+
+    def predict_proba(self, X):
+        """Return probability estimates for the test data X.
+
+        Parameters
+        ----------
+        X : array-like, shape=[n_queries, n_features] or
+            [n_queries, n_indexed] if metric is 'precomputed'
+            Test samples.
+
+        Returns
+        -------
+        probabilities : array-like, shape=[n_queries, n_classes] or a list of
+            n_outputs of such arrays if n_outputs > 1
+            The class probabilities of the input samples. Classes are ordered
+            by lexicographic order.
+        """
+        data_shape = gs.shape(X)
+        if len(data_shape) == 1:
+            n_samples = data_shape[0]
+            X = gs.reshape(X, (n_samples, 1))
+        probabilities = super(
+            KernelDensityEstimationClassifier, self).predict_proba(X)
+        return probabilities
