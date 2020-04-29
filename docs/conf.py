@@ -1,22 +1,32 @@
+"""Sphinx configuration file."""
+
+import geomstats
+
+
 project = 'Geomstats'
-copyright = '2019, Geomstats, Inc.'
+copyright = '2019-2020, Geomstats, Inc.'
 author = 'Geomstats Team'
-
-version = '0.1'
-# The full version, including alpha/beta/rc tags
-release = '0.1'
-
+release = version = geomstats.__version__
 
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.doctest',
     'sphinx.ext.coverage',
-    'sphinx.ext.mathjax',
-    'sphinx.ext.viewcode',
+    'sphinx.ext.doctest',
     'sphinx.ext.githubpages',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.viewcode'
 ]
 
-templates_path = ['templates']
+# Configure napoleon for numpy docstring
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+napoleon_use_param = False
+napoleon_use_ivar = False
+napoleon_use_rtype = False
+napoleon_include_init_with_doc = False
+
+templates_path = ['_templates']
 
 source_suffix = '.rst'
 
@@ -29,13 +39,12 @@ exclude_patterns = ['build', 'Thumbs.db', '.DS_Store']
 pygments_style = None
 
 html_theme = 'sphinx_rtd_theme'
-
-html_static_path = ['static']
-
+html_baseurl = 'geomstats.github.io'
 htmlhelp_basename = 'geomstatsdoc'
+html_last_updated_fmt = '%c'
 
 latex_elements = {
- }
+}
 
 
 latex_documents = [

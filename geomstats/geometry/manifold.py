@@ -1,52 +1,90 @@
-"""
-Manifold, i.e. a topological space that locally resembles
+"""Manifold module.
+
+In other words, a topological space that locally resembles
 Euclidean space near each point.
 """
 
-import math
+import geomstats.errors
 
 
-class Manifold(object):
-    """
-    Class for manifolds.
-    """
+ATOL = 1e-6
 
-    def __init__(self, dimension):
 
-        if dimension:
-            assert isinstance(dimension, int) or dimension == math.inf
-            assert dimension > 0
+class Manifold:
+    """Class for manifolds."""
 
-        self.dimension = dimension
+    def __init__(
+            self, dim, default_point_type='vector',
+            default_coords_type='intrinsic'):
+        geomstats.errors.check_integer(dim, 'dim')
+        geomstats.errors.check_parameter_accepted_values(
+            default_point_type, 'default_point_type', ['vector', 'matrix'])
 
-    def belongs(self, point, point_type=None):
-        """
-        Evaluate if a point belongs to the manifold.
+        self.dim = dim
+        self.default_point_type = default_point_type
+        self.default_coords_type = default_coords_type
+
+    def belongs(self, point):
+        """Evaluate if a point belongs to the manifold.
 
         Parameters
         ----------
-        points : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[..., dim]
                  Input points.
 
         Returns
         -------
-        belongs : array-like, shape=[n_samples, 1]
+        belongs : array-like, shape=[...,]
         """
         raise NotImplementedError('belongs is not implemented.')
 
-    def regularize(self, point, point_type=None):
-        """
-        Regularize a point to the canonical representation
-        chosen for the manifold.
+    def is_tangent(self, vector, base_point=None, atol=ATOL):
+        """Check whether the vector is tangent at base_point.
 
         Parameters
         ----------
-        points : array-like, shape=[n_samples, dimension]
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        is_tangent : bool
+            Boolean denoting if vector is a tangent vector at the base point.
+        """
+        raise NotImplementedError(
+            'is_tangent is not implemented.')
+
+    def to_tangent(self, vector, base_point=None):
+        """Project a vector to a tangent space of the manifold.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., dim]
+            Vector.
+        base_point : array-like, shape=[..., dim]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point.
+        """
+        raise NotImplementedError(
+            'to_tangent is not implemented.')
+
+    def regularize(self, point):
+        """Regularize a point to the canonical representation for the manifold.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
                  Input points.
 
         Returns
         -------
-        regularized_point : array-like, shape=[n_samples, dimension]
+        regularized_point : array-like, shape=[..., dim]
         """
         regularized_point = point
         return regularized_point

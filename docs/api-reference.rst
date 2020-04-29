@@ -1,124 +1,27 @@
 *************
-API reference
+API Reference
 *************
 
-.. automodule:: geomstats
-   :members:
+The API reference gives an overview of Geomstats implementation.
 
-The "manifold" module
----------------------
+The module `geometry` implements concepts in differential geometry, to
+perform computations on manifolds and Riemannian metrics, with associated exponential
+and logarithmic maps, geodesics, and parallel transport.
 
-.. automodule:: geomstats.manifold
-   :members:
+The module `learning` implements statistics and learning algorithms for data
+on manifolds, such as estimation, clustering and dimension reduction.
+The code is object-oriented and classes inherit from
+scikit-learn's base classes and mixins.
 
-The "connection" module
------------------------
+In both modules, the operations are vectorized for batch computation and provide
+support for different execution backends---namely NumPy, PyTorch, and TensorFlow.
+The module `backend` implements the operations needed to use Geomstats seemlessly with any backend.
 
-.. automodule:: geomstats.connection
-   :members:
+.. toctree::
+   :maxdepth: 3
+   :caption: Packages & Modules
 
-The "riemannian_metric" module
-------------------------------
-
-.. automodule:: geomstats.riemannian_metric
-   :members:
-
-Spaces of constant curvatures
-=============================
-
-The "embedded_manifold" module
-------------------------------
-
-.. automodule:: geomstats.embedded_manifold
-   :members:
-
-The "euclidean_space" module
-----------------------------
-
-.. automodule:: geomstats.euclidean_space
-   :members:
-
-The "minkowski_space" module
-----------------------------
-
-.. automodule:: geomstats.minkowski_space
-   :members:
-
-The "hypersphere" module
-------------------------
-
-.. automodule:: geomstats.hypersphere
-   :members:
-
-The "hyperbolic_space" module
------------------------------
-
-.. automodule:: geomstats.hyperbolic_space
-   :members:
-
-Lie groups
-==========
-
-The "lie_group" module
-----------------------
-
-.. automodule:: geomstats.lie_group
-   :members:
-
-The "matrices_space" module
----------------------------
-
-.. automodule:: geomstats.matrices_space
-   :members:
-
-The "general_linear_group" module
----------------------------------
-
-.. automodule:: geomstats.general_linear_group
-   :members:
-
-The "invariant_metric" module
------------------------------
-
-.. automodule:: geomstats.invariant_metric
-   :members:
-
-The "special_euclidean_group" module
-------------------------------------
-
-.. automodule:: geomstats.special_euclidean_group
-   :members:
-
-The "special_orthogonal_group" module
--------------------------------------
-
-.. automodule:: geomstats.special_orthogonal_group
-   :members:
-
-More manifolds
-==============
-
-The "discretized_curves_space" module
--------------------------------------
-
-.. automodule:: geomstats.discretized_curves_space
-   :members:
-
-The "spd_matrices_space" module
--------------------------------
-
-.. automodule:: geomstats.spd_matrices_space
-   :members:
-
-The "stiefel" module
---------------------
-
-.. automodule:: geomstats.stiefel
-   :members:
-
-Visualization implementations
-=============================
-
-.. automodule:: geomstats.visualization
-   :members:
-
+   geometry
+   learning
+   backend
+   visualization

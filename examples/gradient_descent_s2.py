@@ -7,12 +7,17 @@ We solve the following optimization problem:
     such than: x^{T}x = 1
 
 Using by operating a gradient descent of the quadratic form
-on the sphere. We solve this in 3 dimension on the 2-sphere
+on the sphere. We solve this in dimension 3 on the 2-sphere
 manifold so that we can visualize and render the path as a video.
+
+To run this example, you need to install ffmpeg:
+    pip3 install ffmpeg
 """
 
+import logging
+
 import matplotlib
-matplotlib.use("Agg")  # NOQA
+matplotlib.use('Agg')  # NOQA
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
@@ -23,7 +28,7 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.spd_matrices import SPDMatrices
 
 
-SPHERE2 = Hypersphere(dimension=2)
+SPHERE2 = Hypersphere(dim=2)
 METRIC = SPHERE2.metric
 
 
@@ -34,20 +39,22 @@ def gradient_descent(start,
                      lr=0.01,
                      max_iter=256,
                      precision=1e-5):
-    """Operate a gradient descent on a given manifold until either max_iter or
-    a given precision is reached."""
+    """Operate a gradient descent on a given manifold.
+
+    Until either max_iter or a given precision is reached.
+    """
     x = start
     for i in range(max_iter):
         x_prev = x
         euclidean_grad = - lr * grad(x)
-        tangent_vec = manifold.projection_to_tangent_space(
-                vector=euclidean_grad, base_point=x)
-        x = manifold.metric.exp(base_point=x, tangent_vec=tangent_vec)[0]
+        tangent_vec = manifold.to_tangent(
+            vector=euclidean_grad, base_point=x)
+        x = manifold.metric.exp(base_point=x, tangent_vec=tangent_vec)
         if (gs.abs(loss(x, use_gs=True) - loss(x_prev, use_gs=True))
                 <= precision):
-            print('x: %s' % x)
-            print('reached precision %s' % precision)
-            print('iterations: %d' % i)
+            logging.info('x: %s', x)
+            logging.info('reached precision %s', precision)
+            logging.info('iterations: %d', i)
             break
         yield x, loss(x)
 
@@ -63,7 +70,7 @@ def plot_and_save_video(geodesics,
     FFMpegWriter = animation.writers['ffmpeg']
     writer = FFMpegWriter(fps=fps)
     fig = plt.figure(figsize=(size, size))
-    ax = fig.add_subplot(111, projection='3d', aspect='equal')
+    ax = fig.add_subplot(111, projection='3d')
     sphere = visualization.Sphere()
     sphere.plot_heatmap(ax, loss)
     points = gs.to_ndarray(geodesics[0], to_ndim=2)
@@ -78,12 +85,12 @@ def plot_and_save_video(geodesics,
 
 def generate_well_behaved_matrix():
     """Generate a matrix with real eigenvalues."""
-    matrix = 2 * SPDMatrices(n=3).random_uniform()[0]
-    assert np.linalg.det(matrix) > 0
+    matrix = 2 * SPDMatrices(n=3).random_uniform()
     return matrix
 
 
 def main(output_file='out.mp4', max_iter=128):
+    """Run gradient descent on a sphere."""
     gs.random.seed(1985)
     A = generate_well_behaved_matrix()
 
@@ -99,11 +106,11 @@ def main(output_file='out.mp4', max_iter=128):
     previous_x = initial_point
     geodesics = []
     n_steps = 20
-    for x, fx in gradient_descent(initial_point,
-                                  loss,
-                                  grad,
-                                  max_iter=max_iter,
-                                  manifold=SPHERE2):
+    for x, _ in gradient_descent(initial_point,
+                                 loss,
+                                 grad,
+                                 max_iter=max_iter,
+                                 manifold=SPHERE2):
         initial_tangent_vec = METRIC.log(point=x, base_point=previous_x)
         geodesic = METRIC.geodesic(initial_point=previous_x,
                                    initial_tangent_vec=initial_tangent_vec)
@@ -117,5 +124,5 @@ def main(output_file='out.mp4', max_iter=128):
     np.testing.assert_almost_equal(loss(x), np.min(eig), decimal=2)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

@@ -12,29 +12,26 @@ class Euclidean(Manifold):
     dimension, equipped with a Euclidean metric.
     """
 
-    def __init__(self, dimension):
-        assert isinstance(dimension, int) and dimension > 0
-        self.dimension = dimension
-        self.metric = EuclideanMetric(dimension)
+    def __init__(self, dim):
+        super(Euclidean, self).__init__(dim=dim)
+        self.metric = EuclideanMetric(dim)
 
     def belongs(self, point):
         """Evaluate if a point belongs to the Euclidean space.
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dimension]
-                Input points.
+        point : array-like, shape=[..., dim]
+            Point to evaluate.
 
         Returns
         -------
-        belongs : array-like, shape=[n_samples, 1]
+        belongs : array-like, shape=[...,]
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        n_points, point_dim = point.shape
-        belongs = point_dim == self.dimension
-        belongs = gs.to_ndarray(belongs, to_ndim=1)
-        belongs = gs.to_ndarray(belongs, to_ndim=2, axis=1)
-        belongs = gs.tile(belongs, (n_points, 1))
+        point_dim = point.shape[-1]
+        belongs = point_dim == self.dim
+        if gs.ndim(point) == 2:
+            belongs = gs.tile([belongs], (point.shape[0],))
 
         return belongs
 
@@ -43,14 +40,18 @@ class Euclidean(Manifold):
 
         Parameters
         ----------
-        n_samples: int, optional
-        bound: float, optional
+        n_samples : int, optional
+            default: 1
+        bound : float, optional
+            default: 1.0
 
         Returns
         -------
-        point : array-like, shape=[n_samples, dimension]
+        point : array-like, shape=[..., dim]
         """
-        size = (n_samples, self.dimension)
+        size = (self.dim,)
+        if n_samples != 1:
+            size = (n_samples, self.dim)
         point = bound * (gs.random.rand(*size) - 0.5) * 2
 
         return point
@@ -65,24 +66,22 @@ class EuclideanMetric(RiemannianMetric):
     where dimension is the dimension of the Euclidean space.
     """
 
-    def __init__(self, dimension):
-        assert isinstance(dimension, int) and dimension > 0
-        super(EuclideanMetric, self).__init__(dimension=dimension,
-                                              signature=(dimension, 0, 0))
+    def __init__(self, dim):
+        super(EuclideanMetric, self).__init__(
+            dim=dim, signature=(dim, 0, 0))
 
     def inner_product_matrix(self, base_point=None):
         """Compute inner product matrix, independent of the base point.
 
         Parameters
         ----------
-        base_point: array-like, shape=[n_samples, dimension]
+        base_point : array-like, shape=[..., dim]
 
         Returns
         -------
-        inner_prod_mat: array-like, shape=[n_samples, dimension, dimension]
+        inner_prod_mat : array-like, shape=[..., dim, dim]
         """
-        mat = gs.eye(self.dimension)
-        mat = gs.to_ndarray(mat, to_ndim=3)
+        mat = gs.eye(self.dim)
         return mat
 
     def exp(self, tangent_vec, base_point):
@@ -92,19 +91,14 @@ class EuclideanMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec: array-like, shape=[n_samples, dimension]
-                                 or shape=[1, dimension]
+        tangent_vec : array-like, shape=[..., dim]
 
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
+        base_point : array-like, shape=[..., dim]
 
         Returns
         -------
-        exp: array-like, shape=[n_samples, dimension]
-                          or shape-[n_samples, dimension]
+        exp : array-like, shape=[..., dim]
         """
-        tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
         exp = base_point + tangent_vec
         return exp
 
@@ -115,50 +109,13 @@ class EuclideanMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point: array-like, shape=[n_samples, dimension]
-                           or shape=[1, dimension]
+        point: array-like, shape=[..., dim]
 
-        base_point: array-like, shape=[n_samples, dimension]
-                                or shape=[1, dimension]
+        base_point: array-like, shape=[..., dim]
 
         Returns
         -------
-        log: array-like, shape=[n_samples, dimension]
-                          or shape-[n_samples, dimension]
+        log: array-like, shape=[..., dim]
         """
-        point = gs.to_ndarray(point, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
         log = point - base_point
         return log
-
-    def mean(self, points, weights=None):
-        """Compute the frechet mean.
-
-        The Frechet mean of (weighted) points computed with the
-        Euclidean metric is the weighted average of the points
-        in the Euclidean space.
-
-        Parameters
-        ----------
-        points: array-like, shape=[n_samples, dimension]
-
-        weights: array-like, shape=[n_samples, 1], optional
-
-        Returns
-        -------
-        mean: array-like, shape=[1, dimension]
-        """
-        if isinstance(points, list):
-            points = gs.vstack(points)
-        points = gs.to_ndarray(points, to_ndim=2)
-        n_points = gs.shape(points)[0]
-
-        if isinstance(weights, list):
-            weights = gs.vstack(weights)
-        elif weights is None:
-            weights = gs.ones((n_points, ))
-
-        weighted_points = gs.einsum('n,nj->nj', weights, points)
-        mean = (gs.sum(weighted_points, axis=0) / gs.sum(weights))
-        mean = gs.to_ndarray(mean, to_ndim=2)
-        return mean

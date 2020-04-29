@@ -34,7 +34,7 @@ class TestEstimators(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_template_transformer_error(self):
-        X, y = self.data
+        X, _ = self.data
         n_samples = gs.shape(X)[0]
         trans = TemplateTransformer()
         trans.fit(X)
@@ -42,12 +42,12 @@ class TestEstimators(geomstats.tests.TestCase):
         self.assertRaises(ValueError, trans.transform, X_diff_size)
 
     def test_template_transformer(self):
-        X, y = self.data
+        X, _ = self.data
         trans = TemplateTransformer()
-        assert trans.demo_param == 'demo'
+        self.assertTrue(trans.demo_param == 'demo')
 
         trans.fit(X)
-        assert trans.n_features_ == X.shape[1]
+        self.assertTrue(trans.n_features_ == X.shape[1])
 
         X_trans = trans.transform(X)
         self.assertAllClose(X_trans, gs.sqrt(X))
@@ -59,12 +59,12 @@ class TestEstimators(geomstats.tests.TestCase):
     def test_template_classifier(self):
         X, y = self.data
         clf = TemplateClassifier()
-        assert clf.demo_param == 'demo'
+        self.assertTrue(clf.demo_param == 'demo')
 
         clf.fit(X, y)
-        assert hasattr(clf, 'classes_')
-        assert hasattr(clf, 'X_')
-        assert hasattr(clf, 'y_')
+        self.assertTrue(hasattr(clf, 'classes_'))
+        self.assertTrue(hasattr(clf, 'X_'))
+        self.assertTrue(hasattr(clf, 'y_'))
 
         y_pred = clf.predict(X)
-        assert y_pred.shape == (X.shape[0],)
+        self.assertTrue(y_pred.shape == (X.shape[0],))

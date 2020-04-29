@@ -1,6 +1,7 @@
-"""
+"""Visualize convergence of the BCH formula approximation on so(n).
+
 Visualize the first, second and third order approximation of the Baker Campbell
-Hausdorf formula on so(n). To this end, sample 2 random elements a,b of so(n)
+Hausdorff formula on so(n). To this end, sample 2 random elements a,b of so(n)
 and compute both the BCH approximations of different orders as well as
 log(exp(a)exp(b)) and compare these in the Frobenius norm.
 
@@ -18,29 +19,29 @@ import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
-from geomstats.geometry.special_orthogonal_group import SpecialOrthogonal
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 N = 3
 MAX_ORDER = 10
 
 GROUP = SpecialOrthogonal(n=N)
-GROUP.default_point_type = 'matrix'
 
 DIM = int(N * (N - 1) / 2)
 ALGEBRA = SkewSymmetricMatrices(n=N)
 
 
 def main():
-    norm_rv_1 = gs.normal(size=DIM)
+    """Visualize convergence of the BCH formula approximation on so(n)."""
+    norm_rv_1 = gs.random.normal(size=DIM)
     tan_rv_1 = ALGEBRA.matrix_representation(
-        norm_rv_1 / gs.norm(norm_rv_1, axis=0) / 2
+        norm_rv_1 / gs.linalg.norm(norm_rv_1, axis=0) / 2
     )
     exp_1 = gs.linalg.expm(tan_rv_1)
 
-    norm_rv_2 = gs.normal(size=DIM)
+    norm_rv_2 = gs.random.normal(size=DIM)
     tan_rv_2 = ALGEBRA.matrix_representation(
-        norm_rv_2 / gs.norm(norm_rv_2, axis=0) / 2
+        norm_rv_2 / gs.linalg.norm(norm_rv_2, axis=0) / 2
     )
     exp_2 = gs.linalg.expm(tan_rv_2)
 
@@ -86,7 +87,6 @@ def main():
     plt.grid()
 
     plt.show()
-    plt.close()
 
 
 if __name__ == '__main__':
