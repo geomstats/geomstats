@@ -40,7 +40,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         Parameters
         ----------
         mat : array-like, shape=[..., n, n]
-            The square matrix to check.
+            Square matrix to check.
         atol : float
             Tolerance for the equality evaluation.
 
