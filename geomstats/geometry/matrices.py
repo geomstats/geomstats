@@ -3,7 +3,7 @@
 from functools import reduce
 
 import geomstats.backend as gs
-import geomstats.error
+import geomstats.errors
 from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
@@ -16,8 +16,8 @@ class Matrices(Manifold):
 
     def __init__(self, m, n):
         super(Matrices, self).__init__(dim=m * n)
-        geomstats.error.check_integer(n, 'n')
-        geomstats.error.check_integer(m, 'm')
+        geomstats.errors.check_integer(n, 'n')
+        geomstats.errors.check_integer(m, 'm')
         self.m = m
         self.n = n
         self.default_point_type = 'matrix'

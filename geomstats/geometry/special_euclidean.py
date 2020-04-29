@@ -61,7 +61,7 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
 
         Parameters
         ----------
-        point : array-like, shape=[..., n, n],
+        point : array-like, shape=[..., n, n].
             Point to be checked.
 
         Returns

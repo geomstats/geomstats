@@ -6,7 +6,7 @@ import math
 from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
-import geomstats.error as error
+import geomstats.errors as error
 import geomstats.vectorization
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.matrices import MatricesMetric
