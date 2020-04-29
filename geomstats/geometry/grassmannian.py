@@ -16,10 +16,17 @@ class Grassmannian(EmbeddedManifold):
     """Class for Grassmann manifolds Gr(n, k).
 
     Class for Grassmann manifolds Gr(n, k) of k-dimensional
-    subspaces in the n-dimensional euclidean space.
+    subspaces in the n-dimensional Euclidean space.
 
     The subspaces are represented by their (unique) orthogonal projection
     matrix onto themselves.
+
+    Parameters
+    ----------
+    n : int
+        Dimension of the Euclidean space.
+    k : int
+        Dimension of the subspaces.
     """
 
     def __init__(self, n, k):
@@ -52,12 +59,14 @@ class Grassmannian(EmbeddedManifold):
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
+            Point to be checked.
         tolerance : int
-            default: TOLERANCE
+            Optional, default: TOLERANCE
 
         Returns
         -------
-        belongs : bool
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the Grassmannian.
         """
         raise NotImplementedError(
             'The Grassmann `belongs` is not implemented.'
@@ -68,6 +77,13 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
     """Canonical metric of the Grassmann manifold.
 
     Coincides with the Frobenius metric.
+
+    Parameters
+    ----------
+    n : int
+        Dimension of the Euclidean space.
+    k : int
+        Dimension of the subspaces.
     """
 
     def __init__(self, n, p):
@@ -91,13 +107,16 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         Parameters
         ----------
         vector : array-like, shape=[..., n, n]
+            Tangent vector.
             `vector` is skew-symmetric, in so(n).
-        point : array-like, shape=[..., n, n]
-            `point` is a rank p projector of Gr(n, k).
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+            `base_point` is a rank p projector of Gr(n, k).
 
         Returns
         -------
         exp : array-like, shape=[..., n, n]
+            Riemannian exponential.
         """
         expm = gs.linalg.expm
         mul = Matrices.mul
@@ -116,14 +135,14 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
-            Point in the Grassmannian.
+            Point.
         base_point : array-like, shape=[..., n, n]
-            Point in the Grassmannian.
+            Base point.
 
         Returns
         -------
         tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector at `base_point`.
+            Riemannian logarithm, a tangent vector at `base_point`.
 
         References
         ----------
