@@ -62,15 +62,14 @@ class _Hypersphere(EmbeddedManifold):
         Parameters
         ----------
         point : array-like, shape=[..., dim + 1]
-            Points in Euclidean space.
+            Point in Euclidean space.
         tolerance : float, optional
             Tolerance at which to evaluate norm == 1 (default: TOLERANCE).
 
         Returns
         -------
         belongs : array-like, shape=[..., 1]
-            Array of booleans evaluating if each point belongs to
-            the hypersphere.
+            Boolean evaluating if point belongs to the hypersphere.
         """
         point_dim = gs.shape(point)[-1]
         if point_dim != self.dim + 1:

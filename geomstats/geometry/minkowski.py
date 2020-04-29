@@ -6,7 +6,13 @@ from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 class Minkowski(Manifold):
-    """Class for Minkowski Space."""
+    """Class for Minkowski space.
+
+    Parameters
+    ----------
+    dim : int
+       Dimension of Minkowski space.
+    """
 
     def __init__(self, dim):
         super(Minkowski, self).__init__(dim=dim)
@@ -18,11 +24,12 @@ class Minkowski(Manifold):
         Parameters
         ----------
         point : array-like, shape=[..., dim]
-            Input points.
+            Point to evaluate.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the Minkowski space.
         """
         point_dim = point.shape[-1]
         belongs = point_dim == self.dim
@@ -32,17 +39,21 @@ class Minkowski(Manifold):
         return belongs
 
     def random_uniform(self, n_samples=1, bound=1.):
-        """Sample in the Minkowski space with the uniform distribution.
+        """Sample in the Minkowski space from the uniform distribution.
 
         Parameters
         ----------
-        n_samples: int, optional
-        bound: float, optional
+        n_samples: int
+            Number of samples.
+            Optional, default: 1
+        bound : float
+            Side of hypercube support of the uniform distribution.
+            Optional, default: 1
 
         Returns
         -------
         points : array-like, shape=[..., dim]
-            Sampled points.
+            Sample.
         """
         size = (self.dim,)
         if n_samples != 1:
@@ -56,6 +67,11 @@ class MinkowskiMetric(RiemannianMetric):
     """Class for the pseudo-Riemannian Minkowski metric.
 
     The metric is flat: the inner product is independent of the base point.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the Minkowski space.
     """
 
     def __init__(self, dim):
@@ -69,10 +85,12 @@ class MinkowskiMetric(RiemannianMetric):
         Parameters
         ----------
         base_point : array-like, shape=[..., dim]
+            Base point.
 
         Returns
         -------
         inner_prod_mat : array-like, shape=[..., dim, dim]
+            Inner-product matrix.
         """
         inner_prod_mat = gs.eye(self.dim - 1, self.dim - 1)
         first_row = gs.array([0.] * (self.dim - 1))
@@ -94,11 +112,14 @@ class MinkowskiMetric(RiemannianMetric):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., dim]
+            Tangent vector.
         base_point : array-like, shape=[..., dim]
+            Base point.
 
         Returns
         -------
         exp : array-like, shape=[..., dim]
+            Riemannian exponential.
         """
         exp = base_point + tangent_vec
         return exp
@@ -111,11 +132,14 @@ class MinkowskiMetric(RiemannianMetric):
         Parameters
         ----------
         point : array-like, shape=[..., dim]
+            Point.
         base_point : array-like, shape=[..., dim]
+            Base point.
 
         Returns
         -------
         log : array-like, shape=[..., dim]
+            Riemannian logarithm.
         """
         log = point - base_point
         return log
