@@ -125,12 +125,12 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
         ----------
         n_samples : int, optional (1)
             Number of samples.
-        tol :  unused
+        tol : unused
 
         Returns
         -------
         samples : array-like, shape=[..., n + 1, n + 1]
-            Points sampled on the SE(n).
+            Points sampled in SE(n).
         """
         random_translation = self.translations.random_uniform(n_samples)
         random_rotation = self.rotations.random_uniform(n_samples)
@@ -156,7 +156,7 @@ class _SpecialEuclidean3Vectors(LieGroup):
 
     i.e. the Lie group of rigid transformations. Elements of SE(3) can either
     be represented as vectors (in 3d) or as matrices in general. The matrix
-    representation corresponds to homogeneous coordinates.This class is
+    representation corresponds to homogeneous coordinates. This class is
     specific to the vector representation of rotations. For the matrix
     representation use the SpecialEuclidean class and set `n=3`.
 
@@ -345,7 +345,7 @@ class _SpecialEuclidean3Vectors(LieGroup):
             Point of the group.
 
         Equation
-        ---------
+        --------
         (:math: `(R_1, t_1) \\cdot (R_2, t_2) = (R_1 R_2, R_1 t_2 + t_1)`)
 
         Returns
