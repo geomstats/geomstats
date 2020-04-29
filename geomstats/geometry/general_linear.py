@@ -7,7 +7,13 @@ from geomstats.geometry.matrices import Matrices
 
 
 class GeneralLinear(Matrices):
-    """Class for the general linear group GL(n)."""
+    """Class for the general linear group GL(n).
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shape of the matrices: n x n.
+    """
 
     def __init__(self, n, **kwargs):
         Matrices.__init__(self, n, n)
@@ -15,7 +21,18 @@ class GeneralLinear(Matrices):
         self.n = n
 
     def belongs(self, point):
-        """Test if a matrix is invertible and of the right size."""
+        """Check if a matrix is invertible and of the right shape.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Matrix to be checked.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...,]
+            Boolean denoting if point is in GL(n).
+        """
         point_shape = point.shape
         mat_dim_1, mat_dim_2 = point_shape[-2], point_shape[-1]
         det = gs.linalg.det(point)
@@ -35,10 +52,17 @@ class GeneralLinear(Matrices):
 
     @staticmethod
     def inverse(point):
-        """Return the inverse of a matrix."""
+        """Return the inverse of a matrix.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Matrix to be inverted.
+        """
         return gs.linalg.inv(point)
 
     def _replace_values(self, samples, new_samples, indcs):
+        """Replace samples with new samples at specific indices."""
         replaced_indices = [
             i for i, is_replaced in enumerate(indcs) if is_replaced]
         value_indices = list(
@@ -50,11 +74,13 @@ class GeneralLinear(Matrices):
 
         Parameters
         ----------
-        n_samples : int, optional
+        n_samples : int
             Number of samples.
-        tol: float, optional
+            Optional, default: 1.
+        tol: float
             Threshold for the absolute value of the determinant of the
             returned matrix.
+            Optional, default: 1e-6.
 
         Returns
         -------
@@ -94,8 +120,10 @@ class GeneralLinear(Matrices):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector.
         base_point : array-like, shape=[..., n, n]}
-            Defaults to identity.
+            Base point.
+            Optional, default: None.
 
         Returns
         -------
@@ -111,7 +139,7 @@ class GeneralLinear(Matrices):
     @classmethod
     def log(cls, point, base_point=None):
         r"""
-        Calculate a left-invariant vector field bringing base_point to point.
+        Compute a left-invariant vector field bringing base_point to point.
 
         The output is a vector of the tangent space at base_point, so not a Lie
         algebra element if it is not the identity.
@@ -119,8 +147,10 @@ class GeneralLinear(Matrices):
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
+            Point.
         base_point : array-like, shape=[..., n, n]
-            Defaults to identity.
+            Base point.
+            Optional, default: None.
 
         Returns
         -------
@@ -152,12 +182,13 @@ class GeneralLinear(Matrices):
         point : array-like, shape=[n, n]
             Target point.
         base_point : array-like, shape=[n, n], optional
-            Base point. Defaults to identity.
+            Base point.
+            Optional, default: None.
 
         Returns
         -------
         path : callable
-            The one-parameter orbit.
+            One-parameter orbit.
             Satisfies `path(0) = base_point` and `path(1) = point`.
 
         Notes
