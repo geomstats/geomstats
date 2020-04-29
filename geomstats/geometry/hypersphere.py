@@ -33,8 +33,8 @@ INV_TAN_TAYLOR_COEFFS = [0., - 1. / 3.,
                          0., -1. / 4725.]
 
 
-class Hypersphere(EmbeddedManifold):
-    """Class for the n-dimensional hypersphere.
+class _Hypersphere(EmbeddedManifold):
+    """Private class for the n-dimensional hypersphere.
 
     Class for the n-dimensional hypersphere embedded in the
     (n+1)-dimensional Euclidean space.
@@ -44,16 +44,15 @@ class Hypersphere(EmbeddedManifold):
 
     Parameters
     ----------
-    dim: int
+    dim : int
         Dimension of the hypersphere.
     """
 
     def __init__(self, dim):
-        super(Hypersphere, self).__init__(
+        super(_Hypersphere, self).__init__(
             dim=dim,
             embedding_manifold=Euclidean(dim + 1))
         self.embedding_metric = self.embedding_manifold.metric
-        self.metric = HypersphereMetric(dim)
 
     def belongs(self, point, tolerance=TOLERANCE):
         """Test if a point belongs to the hypersphere.
@@ -386,6 +385,7 @@ class HypersphereMetric(RiemannianMetric):
             dim=dim,
             signature=(dim, 0, 0))
         self.embedding_metric = EuclideanMetric(dim + 1)
+        self._space = _Hypersphere(dim=dim)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute the inner-product of two tangent vectors at a base point.
@@ -447,8 +447,6 @@ class HypersphereMetric(RiemannianMetric):
             Point on the hypersphere equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        # TODO(ninamiolane): Decide on metric.space or space.metric
-        #  for the hypersphere
         # TODO(ninamiolane): Raise error when vector is not tangent
         _, extrinsic_dim = base_point.shape
         n_tangent_vecs, _ = tangent_vec.shape
@@ -682,3 +680,23 @@ class HypersphereMetric(RiemannianMetric):
         if gs.ndim(christoffel) == 4 and gs.shape(christoffel)[0] == 1:
             christoffel = gs.squeeze(christoffel, axis=0)
         return christoffel
+
+
+class Hypersphere(_Hypersphere):
+    """Class for the n-dimensional hypersphere.
+
+    Class for the n-dimensional hypersphere embedded in the
+    (n+1)-dimensional Euclidean space.
+
+    By default, points are parameterized by their extrinsic
+    (n+1)-coordinates.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the hypersphere.
+    """
+
+    def __init__(self, dim):
+        super(Hypersphere, self).__init__(dim)
+        self.metric = HypersphereMetric(dim)

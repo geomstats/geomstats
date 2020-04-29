@@ -23,7 +23,7 @@ def check_integer(n, n_name):
                 ' got {}.'.format(n_name, n))
 
 
-def check_belongs(point, manifold, manifold_name):
+def check_belongs(point, manifold, **kwargs):
     """Raise an error if point does not belong to the input manifold.
 
     Parameters
@@ -35,9 +35,10 @@ def check_belongs(point, manifold, manifold_name):
     manifold_name : string
         Name of the manifold for the error message.
     """
-    if not gs.all(manifold.belongs(point)):
+    if not gs.all(manifold.belongs(point, **kwargs)):
         raise RuntimeError(
-            'Some points do not belong to manifold \'%s\'.' % manifold_name)
+            'Some points do not belong to manifold \'%s\' of dimension %d.'
+            % (type(manifold).__name__, manifold.dim))
 
 
 def check_parameter_accepted_values(param, param_name, accepted_values):

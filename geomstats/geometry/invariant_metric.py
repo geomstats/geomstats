@@ -3,7 +3,7 @@
 import logging
 
 import geomstats.backend as gs
-import geomstats.error
+import geomstats.errors
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -37,7 +37,7 @@ class InvariantMetric(RiemannianMetric):
         if inner_product_mat_at_identity is None:
             inner_product_mat_at_identity = gs.eye(self.group.dim)
 
-        geomstats.error.check_parameter_accepted_values(
+        geomstats.errors.check_parameter_accepted_values(
             left_or_right, 'left_or_right', ['left', 'right'])
 
         eigenvalues = gs.linalg.eigvalsh(inner_product_mat_at_identity)
@@ -67,7 +67,7 @@ class InvariantMetric(RiemannianMetric):
         inner_prod : array-like, shape=[..., dim]
             Inner-product of the two tangent vectors.
         """
-        geomstats.error.check_parameter_accepted_values(
+        geomstats.errors.check_parameter_accepted_values(
             self.group.default_point_type,
             'default_point_type',
             ['vector', 'matrix'])
