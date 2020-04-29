@@ -1,6 +1,6 @@
 """Apply Expectation Maximization on manifolds and plots the results.
 
-Random data is generated in seperate regions of the
+Random data is generated in separate regions of the
 manifold. Then Expectation Maximization deduces a Gaussian Mixture Model
 that best fits the random data. For the moment
 the example works on the Poincaré Ball hyperbolic space.
@@ -14,7 +14,7 @@ from matplotlib.patches import Circle
 
 import geomstats.backend as gs
 from geomstats.geometry.poincare_ball import PoincareBall
-from geomstats.learning.em_expectation_maximization import RiemannianEM
+from geomstats.learning.expectation_maximization import RiemannianEM
 
 DEFAULT_PLOT_PRECISION = 100
 
@@ -142,7 +142,13 @@ def expectation_maximisation_poincare_ball():
 
 
 def main():
-    """Define main function."""
+    """Apply Expectation Maximisation on random data.
+
+    Fits three randomly generated clusters into a
+    Gaussian Mixture Model on Poincaré Ball.
+    Then a plot function computes the probability density
+    function of the GMM for a large
+    """
     plots = expectation_maximisation_poincare_ball()
 
     plots.show()

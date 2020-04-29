@@ -6,7 +6,7 @@ from sklearn.base import BaseEstimator, ClusterMixin
 
 import geomstats.backend as gs
 from geomstats.geometry.poincare_ball \
-    import NormalizationFactor, PoincareBall
+    import PoincareBall
 from geomstats.learning._template import TransformerMixin
 from geomstats.learning.frechet_mean import FrechetMean
 
@@ -143,7 +143,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             posterior_probabilities.sum(0)
 
         self.variances = \
-            self.normalization_factor.find_variance_from_index(
+            self.riemannian_metric.find_variance_from_index(
                 weighted_dist_means_data)
 
     def _expectation(self, data):
@@ -158,7 +158,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         probability_distribution_function = \
             PoincareBall.pdf(
                 data, self.means, self.variances,
-                norm_func=self.normalization_factor.find_normalization_factor,
+                norm_func=self.riemannian_metric.find_normalization_factor,
                 metric=self.riemannian_metric)
 
         if (probability_distribution_function.mean() !=
@@ -275,11 +275,10 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             gs.ones(self.n_gaussian) / self.n_gaussian
         posterior_probabilities = gs.ones((data.shape[0],
                                            self.means.shape[0]))
-        self.normalization_factor = NormalizationFactor(
-            gs.arange(ZETA_LOWER_BOUND,
-                      ZETA_UPPER_BOUND,
-                      ZETA_STEP),
-            self._dimension)
+
+        self.normalization_factor = \
+            self.riemannian_metric.normalization_factor_init(
+                gs.arange(ZETA_LOWER_BOUND, ZETA_UPPER_BOUND, ZETA_STEP))
 
         for epoch in range(max_iter):
             old_posterior_probabilities = posterior_probabilities
