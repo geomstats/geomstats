@@ -24,21 +24,21 @@ def _default_gradient_descent(
         Input points lying in the Lie Group.
     weights : array-like, shape=[n_samples,]
         default is 1 for each point
-        Weights of each point.
+        Weights associated to the points.
     max_iter : int, optional (defaults to 32)
-        The maximum number of iterations to perform in the gradient descent.
+        Maximum number of iterations to perform in the gradient descent.
     epsilon : float, optional (defaults to 1e-6)
-        The tolerance to reach convergence. The exstrinsic norm of the
+        Tolerance to reach convergence. The exstrinsic norm of the
         gradient is used as criterion.
     step : float, optional (defaults to 1.)
-        The learning rate in the gradient descent.
+        Learning rate in the gradient descent.
     verbose : bool
         Level of verbosity to inform about convergence.
 
     Returns
     -------
     exp_bar : array-like, shape=[n,n]
-        The exponential_barycenter of the input points.
+        Exponential_barycenter of the input points.
     """
     ndim = 2 if group.default_point_type == 'vector' else 3
     if gs.ndim(gs.array(points)) < ndim or len(points) == 1:
@@ -91,14 +91,14 @@ class ExponentialBarycenter(BaseEstimator):
     Parameters
     ----------
     group : LieGroup
-        A Lie group instance on which the data lie.
+        Lie group instance on which the data lie.
     max_iter : int, optional (defaults to 32)
-        The maximum number of iterations to perform in the gradient descent.
+        Maximum number of iterations to perform in the gradient descent.
     epsilon : float, optional (defaults to 1e-6)
-        The tolerance to reach convergence. The exstrinsic norm of the
+        Tolerance to reach convergence. The exstrinsic norm of the
         gradient is used as criterion.
     step : float, optional (defaults to 1.)
-        The learning rate in the gradient descent.
+        Learning rate in the gradient descent.
     verbose : bool
         Level of verbosity to inform about convergence.
 
@@ -126,13 +126,15 @@ class ExponentialBarycenter(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
-            The training input samples.
-        y : array-like, shape (n_samples,) or (n_samples, n_outputs)
-            The target values (class labels in classification, real numbers in
+        X : {array-like, sparse matrix}, shape=[n_samples, n_features]
+            Training input samples.
+        y : array-like, shape=[n_samples,] or [n_samples, n_outputs]
+            Target values (class labels in classification, real numbers in
             regression).
-            Ignored
-        weights : array-like, shape=[n_samples,], optional
+            Ignored.
+        weights : array-like, shape=[n_samples,]
+            Weights associated to the points.
+            Optional, default: None.
 
         Returns
         -------

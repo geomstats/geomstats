@@ -70,9 +70,12 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
             The training input samples.
         y : array-like, shape (n_samples,) or (n_samples, n_outputs)
             Ignored
-        weights : array-like, shape=[n_samples, 1], optional
+        weights : array-like, shape=[n_samples, 1]
+            Weights associated to the points.
+            Optional, default: None
         base_point : array-like, shape=[{dim, [n, n]}]
-            Point similar to the input data from which to compute the logs
+            Point similar to the input data from which to compute the logs.
+            Optional, default: None.
 
         Returns
         -------
@@ -103,6 +106,7 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
         Returns
         -------
         X_new : array-like, shape=[n_samples, dim]
+            Lifted data.
         """
         if base_point is None:
             base_point = self.estimator.estimate_
