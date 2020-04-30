@@ -67,8 +67,12 @@ class PoincareBall(Hyperbolic):
         return gs.sum(point**2, axis=-1) < (1 - tolerance)
 
     @staticmethod
-    def pdf(data, means, variances, norm_func, metric):
-        """Return the probability density function.
+    def gmm_pdf(data, means, variances, norm_func, metric):
+        """Return the separate probability density function of GMM.
+
+        The probability density function is computed for
+        each component of the GMM separately (i.e., mixture coefficients
+        are not taken into account).
 
         Parameters
         ----------

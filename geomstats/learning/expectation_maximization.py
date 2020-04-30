@@ -156,7 +156,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             n_features is the number of features.
         """
         probability_distribution_function = \
-            PoincareBall.pdf(
+            PoincareBall.gmm_pdf(
                 data, self.means, self.variances,
                 norm_func=self.riemannian_metric.find_normalization_factor,
                 metric=self.riemannian_metric)
