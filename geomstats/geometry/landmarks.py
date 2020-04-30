@@ -40,7 +40,7 @@ class Landmarks(Manifold):
         -------
         belongs : bool
         """
-        # TODO(ninamiolane): vectorize this method
+        # TODO (ninamiolane): vectorize this method
         belongs = self.ambient_manifold.belongs(point)
         belongs = gs.all(belongs)
         return belongs

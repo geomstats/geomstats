@@ -375,7 +375,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
             matrix_c = matrix_lv[:, p:2 * p, p:2 * p]
 
-            # TODO(nina): Add break condition
+            # TODO (nina): Add break condition
             # of the form: if gs.all(gs.less_equal(norm_matrix_c, tol)):
 
             matrix_phi = gs.linalg.expm(-matrix_c)

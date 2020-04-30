@@ -80,7 +80,7 @@ def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
 
-# TODO(nkoep): The 'repeat' function was added in TF 2.1. Backport the
+# TODO (nkoep): The 'repeat' function was added in TF 2.1. Backport the
 #              implementation from tensorflow/python/ops/array_ops.py.
 repeat = _raise_not_implemented_error
 
@@ -103,7 +103,7 @@ def trace(x, axis1=0, axis2=1):
     raise NotImplementedError()
 
 
-# TODO(nkoep): Handle the optional axis arguments.
+# TODO (nkoep): Handle the optional axis arguments.
 def diagonal(a, axis1=0, axis2=1):
     return tf.linalg.diag_part(a)
 
@@ -561,8 +561,8 @@ def sum(x, axis=None, keepdims=False, name=None):
 
 
 def einsum(equation, *inputs, **kwargs):
-    # TODO(ninamiolane): Allow this to work when '->' is not provided
-    # TODO(ninamiolane): Allow this to work for cases like n...k
+    # TODO (ninamiolane): Allow this to work when '->' is not provided
+    # TODO (ninamiolane): Allow this to work for cases like n...k
     einsum_str = equation
     input_tensors_list = inputs
 

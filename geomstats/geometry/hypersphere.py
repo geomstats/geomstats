@@ -447,7 +447,7 @@ class HypersphereMetric(RiemannianMetric):
             Point on the hypersphere equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        # TODO(ninamiolane): Raise error when vector is not tangent
+        # TODO (ninamiolane): Raise error when vector is not tangent
         _, extrinsic_dim = base_point.shape
         n_tangent_vecs, _ = tangent_vec.shape
 
@@ -632,7 +632,7 @@ class HypersphereMetric(RiemannianMetric):
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
         base_point = gs.to_ndarray(base_point, to_ndim=2)
-        # TODO(nguigs): work around this condition:
+        # TODO (nguigs): work around this condition:
         # assert len(base_point) == len(tangent_vec_a) == len(tangent_vec_b)
         theta = gs.linalg.norm(tangent_vec_b, axis=1)
         normalized_b = gs.einsum('n, ni->ni', 1 / theta, tangent_vec_b)

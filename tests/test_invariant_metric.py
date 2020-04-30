@@ -39,7 +39,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             left_or_right='right')
 
         # General left and right invariant metrics
-        # FIXME(nina): This is valid only for bi-invariant metrics
+        # FIXME (nina): This is valid only for bi-invariant metrics
         sym_mat_at_identity = gs.eye(group.dim)
 
         left_metric = InvariantMetric(
