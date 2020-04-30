@@ -64,7 +64,7 @@ class TestLandmarks(geomstats.tests.TestCase):
     def test_l2_metric_log_and_squared_norm_and_dist(self):
         """Test that squared norm of logarithm is squared dist."""
         tangent_vec = self.l2_metric_s2.log(
-            landmarks=self.landmarks_b, base_landmarks=self.landmarks_a)
+            point=self.landmarks_b, base_point=self.landmarks_a)
         log_ab = tangent_vec
         result = self.l2_metric_s2.squared_norm(
             vector=log_ab, base_point=self.landmarks_a)
@@ -77,10 +77,9 @@ class TestLandmarks(geomstats.tests.TestCase):
     def test_l2_metric_log_and_exp(self):
         """Test that exp and log are inverse maps."""
         tangent_vec = self.l2_metric_s2.log(
-            landmarks=self.landmarks_b, base_landmarks=self.landmarks_a)
+            point=self.landmarks_b, base_point=self.landmarks_a)
         result = self.l2_metric_s2.exp(
-            tangent_vec=tangent_vec,
-            base_landmarks=self.landmarks_a)
+            tangent_vec=tangent_vec, base_point=self.landmarks_a)
         expected = self.landmarks_b
 
         self.assertAllClose(result, expected, atol=self.atol)
@@ -97,7 +96,7 @@ class TestLandmarks(geomstats.tests.TestCase):
         landmarks_bc = landmarks_bc(self.times)
 
         tangent_vecs = self.l2_metric_s2.log(
-            landmarks=landmarks_bc, base_landmarks=landmarks_ab)
+            point=landmarks_bc, base_point=landmarks_ab)
 
         result = self.l2_metric_s2.inner_product(
             tangent_vecs, tangent_vecs, landmarks_ab)
@@ -130,10 +129,10 @@ class TestLandmarks(geomstats.tests.TestCase):
         landmarks_bc = landmarks_bc(self.times)
 
         tangent_vecs = self.l2_metric_s2.log(
-            landmarks=landmarks_bc, base_landmarks=landmarks_ab)
+            point=landmarks_bc, base_point=landmarks_ab)
 
         result = self.l2_metric_s2.exp(
-            tangent_vec=tangent_vecs, base_landmarks=landmarks_ab)
+            tangent_vec=tangent_vecs, base_point=landmarks_ab)
         self.assertAllClose(gs.shape(result), gs.shape(landmarks_ab))
 
     @geomstats.tests.np_only
@@ -147,7 +146,7 @@ class TestLandmarks(geomstats.tests.TestCase):
         landmarks_bc = landmarks_bc(self.times)
 
         tangent_vecs = self.l2_metric_s2.log(
-            landmarks=landmarks_bc, base_landmarks=landmarks_ab)
+            point=landmarks_bc, base_point=landmarks_ab)
 
         result = tangent_vecs
         self.assertAllClose(gs.shape(result), gs.shape(landmarks_ab))
@@ -157,10 +156,7 @@ class TestLandmarks(geomstats.tests.TestCase):
         """Test the geodesic method of L2Metric."""
         landmarks_ab = self.l2_metric_s2.geodesic(
             self.landmarks_a, self.landmarks_b)
-        landmarks_bc = self.l2_metric_s2.geodesic(
-            self.landmarks_b, self.landmarks_c)
         landmarks_ab = landmarks_ab(self.times)
-        landmarks_bc = landmarks_bc(self.times)
 
         result = landmarks_ab
         expected = gs.zeros(landmarks_ab.shape)
@@ -171,7 +167,3 @@ class TestLandmarks(geomstats.tests.TestCase):
             expected[:, k, :] = geod(self.times)
 
         self.assertAllClose(result, expected)
-
-        geod = self.l2_metric_s2.geodesic(
-            initial_landmarks=landmarks_ab,
-            end_landmarks=landmarks_bc)
