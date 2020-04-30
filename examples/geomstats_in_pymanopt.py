@@ -10,6 +10,7 @@ The example currently requires installing the pymanopt HEAD from git:
 import logging
 import os
 
+import pymanopt.function
 from pymanopt import Problem
 from pymanopt.manifolds.manifold import Manifold
 from pymanopt.solvers import SteepestDescent
@@ -25,6 +26,7 @@ class GeomstatsSphere(Manifold):
 
     def __init__(self, ambient_dimension):
         self._sphere = Hypersphere(ambient_dimension - 1)
+        self._point_layout = 1
 
     def norm(self, base_vector, tangent_vector):
         return self._sphere.metric.norm(tangent_vector, base_point=base_vector)
@@ -49,6 +51,18 @@ class GeomstatsSphere(Manifold):
     def rand(self):
         return self._sphere.random_uniform()
 
+    @staticmethod
+    def randvec():
+        pass
+
+    @staticmethod
+    def zerovec():
+        pass
+
+    @staticmethod
+    def egrad2rgrad():
+        pass
+
 
 def estimate_dominant_eigenvector(matrix):
     """Returns the dominant eigenvector of the symmetric matrix A by minimizing
@@ -60,9 +74,11 @@ def estimate_dominant_eigenvector(matrix):
     if not gs.allclose(gs.sum(matrix - gs.transpose(matrix)), 0.0):
         raise ValueError('Matrix must be symmetric.')
 
+    @pymanopt.function.Callable
     def cost(vector):
         return -gs.dot(vector, gs.dot(matrix, vector))
 
+    @pymanopt.function.Callable
     def egrad(vector):
         return -2 * gs.dot(matrix, vector)
 
