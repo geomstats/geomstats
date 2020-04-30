@@ -19,12 +19,15 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
         initial_tangent_vec_b = [0., 1., 0.]
         initial_tangent_vec_c = [-1., 0., 0.]
 
-        curve_a = s2.metric.geodesic(initial_point=initial_point,
-                                     initial_tangent_vec=initial_tangent_vec_a)
-        curve_b = s2.metric.geodesic(initial_point=initial_point,
-                                     initial_tangent_vec=initial_tangent_vec_b)
-        curve_c = s2.metric.geodesic(initial_point=initial_point,
-                                     initial_tangent_vec=initial_tangent_vec_c)
+        curve_a = s2.metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec_a)
+        curve_b = s2.metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec_b)
+        curve_c = s2.metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec_c)
 
         self.n_sampling_points = 10
         sampling_times = gs.linspace(0., 1., self.n_sampling_points)
@@ -51,9 +54,7 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_belongs(self):
         result = self.space_curves_in_sphere_2d.belongs(self.curve_a)
-        expected = True
-
-        self.assertAllClose(result, expected)
+        self.assertTrue(result)
 
     @geomstats.tests.np_only
     def test_l2_metric_log_and_squared_norm_and_dist(self):

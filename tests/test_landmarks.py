@@ -38,9 +38,9 @@ class TestLandmarks(geomstats.tests.TestCase):
         self.atol = 1e-6
         gs.random.seed(1234)
         self.space_landmarks_in_euclidean_3d = Landmarks(
-            ambient_manifold=r3)
+            ambient_manifold=r3, n_landmarks=self.n_sampling_points)
         self.space_landmarks_in_sphere_2d = Landmarks(
-            ambient_manifold=s2)
+            ambient_manifold=s2, n_landmarks=self.n_sampling_points)
         self.l2_metric_s2 = self.space_landmarks_in_sphere_2d.l2_metric
         self.l2_metric_r3 = self.space_landmarks_in_euclidean_3d.l2_metric
         self.landmarks_a = landmark_set_a
@@ -53,13 +53,12 @@ class TestLandmarks(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    # TODO (ninamiolane): Uncomment when belongs is vectorized
-    # @geomstats.tests.np_and_pytorch_only
-    # def test_belongs_vectorization(self):
-    #     landmark_sets = gs.array([self.landmarks_a, self.landmarks_b])
-    #     result = self.space_landmarks_in_sphere_2d.belongs(landmark_sets)
-    #     expected = gs.array([True, True])
-    #     self.assertAllClose(result, expected)
+    @geomstats.tests.np_and_pytorch_only
+    def test_belongs_vectorization(self):
+        landmark_sets = gs.array([self.landmarks_a, self.landmarks_b])
+        result = self.space_landmarks_in_sphere_2d.belongs(landmark_sets)
+        expected = gs.array([True, True])
+        self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only
     def test_l2_metric_log_and_squared_norm_and_dist(self):
