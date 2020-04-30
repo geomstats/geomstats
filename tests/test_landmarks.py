@@ -41,8 +41,8 @@ class TestLandmarks(geomstats.tests.TestCase):
             ambient_manifold=r3, n_landmarks=self.n_sampling_points)
         self.space_landmarks_in_sphere_2d = Landmarks(
             ambient_manifold=s2, n_landmarks=self.n_sampling_points)
-        self.l2_metric_s2 = self.space_landmarks_in_sphere_2d.l2_metric
-        self.l2_metric_r3 = self.space_landmarks_in_euclidean_3d.l2_metric
+        self.l2_metric_s2 = self.space_landmarks_in_sphere_2d.metric
+        self.l2_metric_r3 = self.space_landmarks_in_euclidean_3d.metric
         self.landmarks_a = landmark_set_a
         self.landmarks_b = landmark_set_b
         self.landmarks_c = landmark_set_c

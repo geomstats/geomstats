@@ -27,6 +27,12 @@ class TestProductManifold(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_random_and_belongs_matrix(self):
+        n_samples = 1
+        data = self.space_matrix.random_uniform(n_samples)
+        result = self.space_matrix.belongs(data)
+        expected = gs.array([True] * n_samples)
+        self.assertAllClose(result, expected)
+
         n_samples = 5
         data = self.space_matrix.random_uniform(n_samples)
         result = self.space_matrix.belongs(data)
@@ -126,4 +132,22 @@ class TestProductManifold(geomstats.tests.TestCase):
     def test_regularize_matrix(self):
         expected = self.space_matrix.random_uniform(5)
         result = self.space_matrix.regularize(expected)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_inner_product_matrix(self):
+        n_samples = 1
+        expected = self.space_matrix.random_uniform(n_samples)
+        base_point = self.space_matrix.random_uniform(n_samples)
+        logs = self.space_matrix.metric.log(expected, base_point)
+        result = self.space_matrix.metric.inner_product(logs, logs)
+        expected = self.space_matrix.metric.squared_dist(base_point, expected)
+        self.assertAllClose(result, expected)
+
+        n_samples = 5
+        expected = self.space_matrix.random_uniform(n_samples)
+        base_point = self.space_matrix.random_uniform(n_samples)
+        logs = self.space_matrix.metric.log(expected, base_point)
+        result = self.space_matrix.metric.inner_product(logs, logs)
+        expected = self.space_matrix.metric.squared_dist(base_point, expected)
         self.assertAllClose(result, expected)

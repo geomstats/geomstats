@@ -158,10 +158,12 @@ class ProductRiemannianMetric(RiemannianMetric):
             Inner-product of the two tangent vectors.
         """
         if base_point is None:
-            base_point = [None, ] * self.n_metrics
+            base_point = gs.array([[None]] * self.n_metrics)
 
         if point_type is None:
             point_type = self.default_point_type
+        geomstats.errors.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
 
         if point_type == 'vector':
             tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
@@ -175,24 +177,13 @@ class ProductRiemannianMetric(RiemannianMetric):
                 'inner_product', args, intrinsic)
             return gs.sum(gs.stack(inner_prod, axis=1), axis=1)
 
-        if point_type == 'matrix':
-            # TODO (ninamiolane): Vectorize this more efficiently
-            tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
-            tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
-            tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
-            tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
-            base_point = gs.to_ndarray(base_point, to_ndim=2)
-            base_point = gs.to_ndarray(base_point, to_ndim=3)
-            inner_products = [
-                metric.inner_product(
-                    tangent_vec_a[..., i, :],
-                    tangent_vec_b[..., i, :],
-                    base_point[..., i, :])
-                for i, metric in enumerate(self.metrics)]
-            return sum(inner_products)
-
-        raise ValueError('invalid point_type argument: {}, expected '
-                         'either matrix of vector'.format(point_type))
+        inner_products = [
+            metric.inner_product(
+                tangent_vec_a[..., i, :],
+                tangent_vec_b[..., i, :],
+                base_point[..., i, :])
+            for i, metric in enumerate(self.metrics)]
+        return sum(inner_products)
 
     def exp(self, tangent_vec, base_point=None, point_type=None):
         """Compute the Riemannian exponential of a tangent vector.
@@ -258,6 +249,9 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         if point_type is None:
             point_type = self.default_point_type
+        geomstats.errors.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
+
         if point_type == 'vector':
             point = gs.to_ndarray(point, to_ndim=2)
             base_point = gs.to_ndarray(base_point, to_ndim=2)
@@ -267,15 +261,11 @@ class ProductRiemannianMetric(RiemannianMetric):
             logs = gs.concatenate(logs, axis=1)
             return logs
 
-        if point_type == 'matrix':
-            point = gs.to_ndarray(point, to_ndim=2, axis=0)
-            point = gs.to_ndarray(point, to_ndim=3, axis=0)
-            base_point = gs.to_ndarray(base_point, to_ndim=2, axis=0)
-            base_point = gs.to_ndarray(base_point, to_ndim=3, axis=0)
-            logs = gs.stack(
-                [self.metrics[i].log(point[:, i], base_point[:, i])
-                 for i in range(self.n_metrics)], axis=1)
-            return logs
-
-        raise ValueError('invalid point_type argument: {}, expected '
-                         'either matrix of vector'.format(point_type))
+        point = gs.to_ndarray(point, to_ndim=2, axis=0)
+        point = gs.to_ndarray(point, to_ndim=3, axis=0)
+        base_point = gs.to_ndarray(base_point, to_ndim=2, axis=0)
+        base_point = gs.to_ndarray(base_point, to_ndim=3, axis=0)
+        logs = gs.stack(
+            [self.metrics[i].log(point[:, i], base_point[:, i])
+             for i in range(self.n_metrics)], axis=1)
+        return logs

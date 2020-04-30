@@ -17,9 +17,8 @@ class Landmarks(ProductManifold):
     """Class for space of landmarks.
 
     The landmark space is a product manifold where all manifolds in the
-    product are the same. The default metric the product metric and
+    product are the same. The default metric is the product metric and
     is often referred to as the L2 metric.
-    The LDDMM metric could also be implemented.
 
     Parameters
     ----------
@@ -34,37 +33,53 @@ class Landmarks(ProductManifold):
             manifolds=[ambient_manifold] * n_landmarks,
             default_point_type='matrix')
         self.ambient_manifold = ambient_manifold
-        self.l2_metric = L2Metric(ambient_manifold, n_landmarks)
+        self.metric = L2Metric(ambient_manifold.metric, n_landmarks)
         self.n_landmarks = n_landmarks
 
 
 class L2Metric(ProductRiemannianMetric):
-    """L2 Riemannian metric on the space of landmarks."""
+    """L2 Riemannian metric on the space of landmarks.
 
-    def __init__(self, ambient_manifold, n_landmarks):
+    Parameters
+    ----------
+    ambient_metric : RiemannianMetric
+        Manifold in which landmarks lie
+    n_landmarks: int
+            Number of landmarks.
+
+    """
+
+    def __init__(self, ambient_metric, n_landmarks):
         super(L2Metric, self).__init__(
-            metrics=[ambient_manifold.metric] * n_landmarks,
+            metrics=[ambient_metric] * n_landmarks,
             default_point_type='matrix')
-        self.ambient_manifold = ambient_manifold
-        self.ambient_metric = ambient_manifold.metric
+        self.ambient_metric = ambient_metric
 
     def geodesic(
             self, initial_point, end_point=None, initial_tangent_vec=None):
-        """Compute geodesic from initial & end landmark set (or init. tan vec).
+        """Generate parameterized function for the geodesic curve.
 
-        Compute the geodesic specified either by an initial landmark set and
-        an end landmark set, or by an initial landmark set and an initial
-        tangent vector.
+        Geodesic curve defined by either:
+        - an initial landmark set and an initial tangent vector,
+        - an initial landmark set and an end landmark set.
 
         Parameters
         ----------
-        initial_point
-        end_point
-        initial_tangent_vec
+        initial_point : array-like, shape=[..., dim]
+            Landmark set, initial point of the geodesic.
+        end_point : array-like, shape=[..., dim]
+            Landmark set, end point of the geodesic. If None,
+            an initial tangent vector must be given.
+            Optional, default : None
+        initial_tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point, the initial speed of the geodesics.
+            If None, an end point must be given and a logarithm is computed.
+            Optional, default : None
 
         Returns
         -------
-        landmarks_on_geodesic
+        path : callable
+            The time parameterized geodesic curve.
         """
         landmarks_ndim = 2
         initial_landmarks = gs.to_ndarray(
