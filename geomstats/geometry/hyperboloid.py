@@ -51,11 +51,13 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic'}, optional
+    coords_type : str, {'extrinsic', 'intrinsic'}
         Default coordinates to represent points in hyperbolic space.
-    scale : int, optional
+        Optional, default: 'extrinsic'.
+    scale : int
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
+        Optional, default: 1.
     """
 
     default_coords_type = 'extrinsic'
@@ -86,10 +88,11 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         tolerance : float, optional
             Tolerance at which to evaluate how close the squared norm
             is to the reference value.
+            Optional, default: TOLERANCE.
 
         Returns
         -------
-        belongs : array-like, shape=[..., 1]
+        belongs : array-like, shape=[...,]
             Array of booleans indicating whether the corresponding points
             belong to the hyperbolic space.
         """
@@ -183,24 +186,32 @@ class Hyperboloid(Hyperbolic, EmbeddedManifold):
         ----------
         point_intrinsic : array-like, shape=[..., dim]
             Point in the embedded manifold in intrinsic coordinates.
+
+        Returns
+        -------
+        point_extrinsic : array-like, shape=[..., dim + 1]
+            Point in the embedded manifold in extrinsic coordinates.
         """
         if self.dim != point_intrinsic.shape[-1]:
             raise NameError("Wrong intrinsic dimension: "
                             + str(point_intrinsic.shape[-1]) + " instead of "
                             + str(self.dim))
-        return\
-            Hyperbolic.change_coordinates_system(point_intrinsic,
-                                                 'intrinsic',
-                                                 'extrinsic')
+        return Hyperbolic.change_coordinates_system(
+            point_intrinsic, 'intrinsic', 'extrinsic')
 
     def extrinsic_to_intrinsic_coords(self, point_extrinsic):
         """Convert from extrinsic to intrinsic coordinates.
 
         Parameters
         ----------
-        point_extrinsic : array-like, shape=[..., dim_embedding]
+        point_extrinsic : array-like, shape=[..., dim + 1]
             Point in the embedded manifold in extrinsic coordinates,
             i. e. in the coordinates of the embedding manifold.
+
+        Returns
+        -------
+        point_intrinsic : array-like, shape=[..., dim]
+            Point in intrinsic coordinates.
         """
         belong_point = self.belongs(point_extrinsic)
         if not gs.all(belong_point):
@@ -218,11 +229,13 @@ class HyperboloidMetric(HyperbolicMetric):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic', etc}, optional
+    point_type : str, {'extrinsic', 'intrinsic', etc}
         Default coordinates to represent points in hyperbolic space.
-    scale : int, optional
+        Optional, default: 'extrinsic'.
+    scale : int
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
+        Optional, default: 1.
     """
 
     default_point_type = 'vector'
@@ -244,11 +257,14 @@ class HyperboloidMetric(HyperbolicMetric):
 
         Parameters
         ----------
-        base_point: array-like, shape=[..., dim+1]
+        base_point: array-like, shape=[..., dim + 1]
+            Base point.
+            Optional, default: None.
 
         Returns
         -------
-        inner_prod_mat: array-like, shape=[..., dim+1, dim+1]
+        inner_prod_mat: array-like, shape=[..., dim+1, dim + 1]
+            Inner-product matrix.
         """
         self.embedding_metric.inner_product_matrix(base_point)
 
@@ -266,7 +282,7 @@ class HyperboloidMetric(HyperbolicMetric):
 
         Returns
         -------
-        inner_prod : array-like, shape=[..., 1]
+        inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
         inner_prod = self.embedding_metric.inner_product(
@@ -288,7 +304,7 @@ class HyperboloidMetric(HyperbolicMetric):
 
         Returns
         -------
-        sq_norm : array-like, shape=[..., 1]
+        sq_norm : array-like, shape=[...,]
             Squared norm of the vector.
         """
         sq_norm = self.embedding_metric.squared_norm(vector)
@@ -416,7 +432,7 @@ class HyperboloidMetric(HyperbolicMetric):
 
         Returns
         -------
-        dist : array-like, shape=[..., 1]
+        dist : array-like, shape=[...,]
             Geodesic distance between the two points.
         """
         sq_norm_a = self.embedding_metric.squared_norm(point_a)

@@ -21,11 +21,13 @@ class InvariantMetric(RiemannianMetric):
     Parameters
     ----------
     group : LieGroup
-        The group to equip with the invariant metric
+        Group to equip with the invariant metric
     inner_product_mat_at_identity : array-like, shape=[dim, dim]
-        The matrix that defines the metric at identity.
+        Matrix that defines the metric at identity.
+        Optional, default to identity matrix if None.
     left_or_right : str, {'left', 'right'}
         Wether to use a left or right invariant metric.
+        Optional, default: 'left'.
     """
 
     def __init__(self, group,
@@ -104,8 +106,9 @@ class InvariantMetric(RiemannianMetric):
             First tangent vector at base_point.
         tangent_vec_b : array-like, shape=[..., dim]
             Second tangent vector at base_point.
-        base_point : array-like, shape=[..., dim], optional
-            Point in the group (the default is identity).
+        base_point : array-like, shape=[..., dim]
+            Point in the group.
+            Optional, default to identity if None.
 
         Returns
         -------
@@ -148,7 +151,7 @@ class InvariantMetric(RiemannianMetric):
         Returns
         -------
         metric_mat : array-like, shape=[..., dim, dim]
-            The metric matrix at base_point.
+            Metric matrix at base_point.
         """
         if self.group.default_point_type == 'matrix':
             raise NotImplementedError(
@@ -237,6 +240,7 @@ class InvariantMetric(RiemannianMetric):
             Tangent vector at a base point.
         base_point : array-like, shape=[..., dim]
             Point in the group.
+            Optional, default to identity if None.
 
         Returns
         -------

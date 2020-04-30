@@ -22,9 +22,10 @@ class PoincareBall(Hyperbolic):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    scale : int, optional
+    scale : int
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
+        Optional, default: 1.
     """
 
     default_coords_type = 'ball'
@@ -51,6 +52,7 @@ class PoincareBall(Hyperbolic):
         tolerance : float, optional
             Tolerance at which to evaluate how close the squared norm
             is to the reference value.
+            Optional, default: TOLERANCE.
 
         Returns
         -------
@@ -68,9 +70,10 @@ class PoincareBallMetric(RiemannianMetric):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    scale : int, optional
+    scale : int
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
+        Optional, default 1.
     """
 
     default_point_type = 'vector'
@@ -292,10 +295,13 @@ class PoincareBallMetric(RiemannianMetric):
         Parameters
         ----------
         base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default to zeros if None.
 
         Returns
         -------
         inner_prod_mat : array-like, shape=[..., dim, dim]
+            Inner-product matrix.
         """
         if base_point is None:
             base_point = gs.zeros((1, self.dim))

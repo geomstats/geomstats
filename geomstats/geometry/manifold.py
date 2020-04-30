@@ -19,8 +19,10 @@ class Manifold:
         Dimension of the manifold.
     default_point_type : str, {\'vector\', \'matrix\'}
         Point type.
+        Optional, default: 'vector'.
     default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
         Coordinate type.
+        Optional, default: 'intrinsic'.
     """
 
     def __init__(
@@ -58,6 +60,10 @@ class Manifold:
             Vector.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
+            Optional, default: none.
+        atol : float
+            Absolute tolerance.
+            Optional, default: ATOL.
 
         Returns
         -------

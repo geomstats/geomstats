@@ -36,6 +36,9 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         ----------
         mat : array-like, shape=[..., n, n]
             Matrix to be checked.
+        atol : float
+            Tolerance.
+            Optional, default: TOLERANCE.
 
         Returns
         -------
@@ -53,8 +56,9 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
 
         Parameters
         ----------
-        n_samples : int, optional (default: 1)
+        n_samples : int
             Number of samples.
+            Optional, default: 1.
 
         Returns
         -------
@@ -74,10 +78,12 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
 
         Parameters
         ----------
-        n_samples : int, optional (default: 1)
+        n_samples : int
             Number of samples.
+            Optional, default: 1.
         base_point : array-like, shape=[..., n, n]
             Base point of the tangent space.
+            Optional, default: None.
 
         Returns
         -------
@@ -387,8 +393,9 @@ class SPDMetricAffine(RiemannianMetric):
         ----------
         n : int
             Integer representing the shape of the matrices: n x n.
-        power_affine : int, optional
+        power_affine : int
             Power transformation of the classical SPD metric.
+            Optional, default: 1.
 
         References
         ----------

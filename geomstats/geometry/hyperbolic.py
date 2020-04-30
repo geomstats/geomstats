@@ -28,11 +28,13 @@ class Hyperbolic(Manifold):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic', etc}, optional
+    point_type : str, {'extrinsic', 'intrinsic', etc}
         Default coordinates to represent points in hyperbolic space.
-    scale : int, optional
+        Optional, default: 'extrinsic'.
+    scale : int
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
+        Optional, default: 1.
     """
 
     default_coords_type = 'extrinsic'
@@ -296,9 +298,10 @@ class Hyperbolic(Manifold):
         ----------
         point : array-like, shape=[..., dim]
             Point to be tested.
-        tolerance : float, optional
+        tolerance : float
             Tolerance at which to evaluate how close the squared norm
             is to the reference value.
+            Optional, default: TOLERANCE.
 
         Returns
         -------
@@ -318,8 +321,9 @@ class Hyperbolic(Manifold):
         ----------
         point : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space.
-        to_point_type : str, {'extrinsic', 'intrinsic', etc}, optional
+        to_point_type : str, {'extrinsic', 'intrinsic', etc}
             Coordinates type.
+            Optional, default: 'ball'.
 
         Returns
         -------
@@ -362,10 +366,12 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        n_samples : int, optional
+        n_samples : int
             Number of samples.
-        bound: float, optional
+            Optional, default: 1.
+        bound: float
             Bound defining the hypersquare in which to sample uniformly.
+            Optional, default: 1.
 
         Returns
         -------
@@ -417,8 +423,9 @@ class HyperbolicMetric(RiemannianMetric):
             First tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., dim + 1]
             Second tangent vector at base point.
-        base_point : array-like, shape=[..., dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space.
+            Optional, default: None.
 
         Returns
         -------
@@ -440,8 +447,9 @@ class HyperbolicMetric(RiemannianMetric):
         ----------
         vector : array-like, shape=[..., dim + 1]
             Vector on the tangent space of the hyperbolic space at base point.
-        base_point : array-like, shape=[..., dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
+            Optional, default: None.
 
         Returns
         -------
@@ -462,8 +470,9 @@ class HyperbolicMetric(RiemannianMetric):
         ----------
         vector : array-like, shape=[..., dim + 1]
             Vector on the tangent space of the hyperbolic space at base point.
-        base_point : array-like, shape=[..., dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
+            Optional, default: None.
 
         Returns
         -------
@@ -481,8 +490,9 @@ class HyperbolicMetric(RiemannianMetric):
             First tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., dim + 1]
             Second tangent vector at base point.
-        base_point : array-like, shape=[..., dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space.
+            Optional, default: None.
 
         Returns
         -------

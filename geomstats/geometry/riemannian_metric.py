@@ -24,21 +24,40 @@ def loss(y_pred, y_true, metric):
 
     Parameters
     ----------
-    y_pred
-    y_true
-    metric
+    y_pred : array-like, shape=[..., dim]
+        Prediction.
+    y_true : array-like, shape=[..., dim]
+        Ground-truth.
+    metric : RiemannianMetric
+        Metric.
 
     Returns
     -------
-    loss
-
+    sq_dist : array-like, shape=[...,]
+        Loss, i.e. the squared distance.
     """
     sq_dist = metric.squared_dist(y_pred, y_true)
     return sq_dist
 
 
 def grad(y_pred, y_true, metric):
-    """Closed-form for the gradient of the loss function."""
+    """Closed-form for the gradient of the loss function.
+
+    Parameters
+    ----------
+    y_pred : array-like, shape=[..., dim]
+        Prediction.
+    y_true : array-like, shape=[..., dim]
+        Ground-truth.
+    metric : RiemannianMetric
+        Metric.
+
+    Returns
+    -------
+    loss_grad : array-like, shape=[...,]
+        Gradient of the loss.
+
+    """
     tangent_vec = metric.log(base_point=y_pred, point=y_true)
     grad_vec = - 2. * tangent_vec
 
@@ -53,7 +72,19 @@ def grad(y_pred, y_true, metric):
 
 
 class RiemannianMetric(Connection):
-    """Class for Riemannian and pseudo-Riemannian metrics."""
+    """Class for Riemannian and pseudo-Riemannian metrics.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the manifold.
+    signature : tuple
+        Signature of the metric.
+        Optional, default: None.
+    default_point_type : str, {'vector', 'matrix'}
+        Point type.
+        Optional, default: 'vector'.
+    """
 
     def __init__(self, dim, signature=None, default_point_type='vector'):
         super(RiemannianMetric, self).__init__(
@@ -65,7 +96,14 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        base_point : array-like, shape=[..., dim], optional
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., dim, dim]
+            Inner-product matrix.
         """
         raise NotImplementedError(
             'The computation of the inner product matrix'
@@ -76,7 +114,14 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        base_point : array-like, shape=[..., dim], optional
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., dim, dim]
+            Inverse of inner-product matrix.
         """
         metric_matrix = self.inner_product_matrix(base_point)
         cometric_matrix = gs.linalg.inv(metric_matrix)
@@ -87,7 +132,14 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        base_point : array-like, shape=[..., dim], optional
+        base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., dim, dim]
+            Derivative of inverse of inner-product matrix.
         """
         metric_derivative = autograd.jacobian(self.inner_product_matrix)
         return metric_derivative(base_point)
@@ -98,10 +150,12 @@ class RiemannianMetric(Connection):
         Parameters
         ----------
         base_point: array-like, shape=[..., dim]
+            Base point.
 
         Returns
         -------
         christoffels: array-like, shape=[..., dim, dim, dim]
+            Christoffel symbols.
         """
         cometric_mat_at_point = self.inner_product_inverse_matrix(base_point)
         metric_derivative_at_point = self.inner_product_derivative_matrix(
@@ -126,12 +180,17 @@ class RiemannianMetric(Connection):
         Parameters
         ----------
         tangent_vec_a: array-like, shape=[..., dim]
+            Tangent vector.
         tangent_vec_b: array-like, shape=[..., dim]
+            Tangent vector.
         base_point: array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
 
         Returns
         -------
         inner_product : array-like, shape=[...,]
+            Inner-product.
         """
         inner_prod_mat = self.inner_product_matrix(base_point)
         inner_prod_mat = gs.to_ndarray(inner_prod_mat, to_ndim=3)
@@ -153,11 +212,15 @@ class RiemannianMetric(Connection):
         Parameters
         ----------
         vector : array-like, shape=[..., dim]
+            Vector.
         base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
 
         Returns
         -------
         sq_norm : array-like, shape=[...,]
+            Squared norm.
         """
         sq_norm = self.inner_product(vector, vector, base_point)
         return sq_norm
@@ -174,11 +237,15 @@ class RiemannianMetric(Connection):
         Parameters
         ----------
         vector : array-like, shape=[..., dim]
+            Vector.
         base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, default: None.
 
         Returns
         -------
         norm : array-like, shape=[...,]
+            Norm.
         """
         sq_norm = self.squared_norm(vector, base_point)
         norm = gs.sqrt(sq_norm)
@@ -190,11 +257,14 @@ class RiemannianMetric(Connection):
         Parameters
         ----------
         point_a : array-like, shape=[..., dim]
+            Point.
         point_b : array-like, shape=[..., dim]
+            Point.
 
         Returns
         -------
         sq_dist : array-like, shape=[...,]
+            Squared distance.
         """
         log = self.log(point=point_b, base_point=point_a)
 
@@ -210,11 +280,14 @@ class RiemannianMetric(Connection):
         Parameters
         ----------
         point_a : array-like, shape=[..., dim]
+            Point.
         point_b : array-like, shape=[..., dim]
+            Point.
 
         Returns
         -------
         dist : array-like, shape=[...,]
+            Distance.
         """
         sq_dist = self.squared_dist(point_a, point_b)
         dist = gs.sqrt(sq_dist)
@@ -228,12 +301,13 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        points
+        points : array-like, shape=[..., dim]
+            Points.
 
         Returns
         -------
-        diameter
-
+        diameter : float
+            Distance between two farthest points.
         """
         diameter = 0.0
         n_points = points.shape[0]
@@ -250,12 +324,15 @@ class RiemannianMetric(Connection):
 
         Parameters
         ----------
-        point
-        neighbors
+        point : array-like, shape=[..., dim]
+            Point.
+        neighbors : array-like, shape=[..., dim]
+            Neighbors.
+
         Returns
         -------
-        closest_neighbor_index
-
+        closest_neighbor_index : int
+            Index of closest neighbor.
         """
         dist = self.dist(point, neighbors)
         closest_neighbor_index = gs.argmin(dist)
