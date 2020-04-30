@@ -423,8 +423,7 @@ These are some of the most common elements for functions (and ones we’d like y
 
 3. Parameters - a formatted list of arguments with type information and description
 
-   a. On the first line, state the parameter name, type, and shape when appropriate. The parameter name should be separated from the rest of the line by a ``:`` (with a space on either side). If a parameter is optional, write ``optional`` after the type information (separated by a comma and a space).
-
+   a. On the first line, state the parameter name, type, and shape when appropriate. The parameter name should be separated from the rest of the line by a ``:`` (with a space on either side). If a parameter is optional, write ``Optional, default: default_value.`` as a separate line in the description.
    b. On the next line, indent and write a summary of the parameter beginning with a capital letter and ending with a period.
 
    c. See :ref:`docstring_examples` below
@@ -449,7 +448,7 @@ Docstring Examples
 ^^^^^^^^^^^^^^^^^^
 Here's a generic docstring template::
 
-   def my_method(self, my_param_1, my_param_2):
+   def my_method(self, my_param_1, my_param_2='vector'):
       """Write a one-line summary for the method.
 
       Write a description of the method, including "big O"
@@ -461,6 +460,7 @@ Here's a generic docstring template::
          Write a short description of parameter my_param_1.
       my_param_2 : str, {'vector', 'matrix'}
          Write a short description of parameter my_param_2.
+         Optional, default: 'vector'.
 
       Returns
       -------
