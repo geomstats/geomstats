@@ -155,19 +155,19 @@ class SymmetricMatrices(EmbeddedManifold):
     @staticmethod
     def apply_func_to_eigvals(mat, function, check_positive=False):
         """
-        Apply function to eigenvalues and reconstruct the matrimat.
+        Apply function to eigenvalues and reconstruct the matrix.
 
         Parameters
         ----------
         mat : array_like, shape=[..., n, n]
-            Symmetric matrimat.
+            Symmetric matrix.
         function : callable
             Function to apply to eigenvalues.
 
         Returns
         -------
         mat : array_like, shape=[..., n, n]
-            Symmetric matrimat.
+            Symmetric matrix.
         """
         eigvals, eigvecs = gs.linalg.eigh(mat)
         if check_positive:
@@ -176,7 +176,7 @@ class SymmetricMatrices(EmbeddedManifold):
                     'Negative eigenvalue encountered in'
                     ' {}'.format(function.__name__))
         eigvals = function(eigvals)
-        eigvals = algebra_utils.from_vector_to_diagonal_matrimat(eigvals)
+        eigvals = algebra_utils.from_vector_to_diagonal_matrix(eigvals)
         transp_eigvecs = Matrices.transpose(eigvecs)
         reconstuction = gs.matmul(eigvecs, eigvals)
         reconstuction = gs.matmul(reconstuction, transp_eigvecs)
