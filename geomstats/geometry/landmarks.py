@@ -33,7 +33,7 @@ class Landmarks(ProductManifold):
             manifolds=[ambient_manifold] * n_landmarks,
             default_point_type='matrix')
         self.ambient_manifold = ambient_manifold
-        self.metric = L2Metric(ambient_manifold.metric, n_landmarks)
+        self.metric = L2Metric(ambient_manifold, n_landmarks)
         self.n_landmarks = n_landmarks
 
 
@@ -42,18 +42,19 @@ class L2Metric(ProductRiemannianMetric):
 
     Parameters
     ----------
-    ambient_metric : RiemannianMetric
+    ambient_manifold : Manifold
         Manifold in which landmarks lie
     n_landmarks: int
             Number of landmarks.
 
     """
 
-    def __init__(self, ambient_metric, n_landmarks):
+    def __init__(self, ambient_manifold, n_landmarks):
         super(L2Metric, self).__init__(
-            metrics=[ambient_metric] * n_landmarks,
+            metrics=[ambient_manifold.metric] * n_landmarks,
             default_point_type='matrix')
-        self.ambient_metric = ambient_metric
+        self.ambient_manifold = ambient_manifold
+        self.ambient_metric = ambient_manifold.metric
 
     def geodesic(
             self, initial_point, end_point=None, initial_tangent_vec=None):
