@@ -1,4 +1,4 @@
-"""Parameterized manifold."""
+"""Parameterized curves on any given manifold."""
 
 import math
 
@@ -15,7 +15,13 @@ R3 = Euclidean(dim=3)
 
 
 class DiscretizedCurves(Manifold):
-    """Space of discretized curves sampled at points in ambient_manifold."""
+    """Space of discretized curves sampled at points in ambient_manifold.
+
+    Parameters
+    ----------
+    ambiant_manifold : Manifold
+        Manifold in which curves take values.
+    """
 
     def __init__(self, ambient_manifold):
         super(DiscretizedCurves, self).__init__(dim=math.inf)
@@ -27,14 +33,16 @@ class DiscretizedCurves(Manifold):
     def belongs(self, point):
         """Test whether a point belongs to the manifold.
 
+        Test that all points on the curve belong to the manifold
+
         Parameters
         ----------
-        point : array-like, shape=[..., n_sampling_points, ambiant_dim]
+        point : array-like, shape=[n_sampling_points, ambiant_dim]
             Point representing a discretized curve.
 
         Returns
         -------
-        belongs : array-like, shape=[...,]
+        belongs : bool
             Boolean evaluating if point belongs to the space of discretized
             curves.
         """
@@ -46,6 +54,12 @@ class SRVMetric(RiemannianMetric):
     """Elastic metric defined using the Square Root Velocity Function.
 
     See [Sea2011]_ for details.
+
+    Parameters
+    ----------
+    ambiant_manifold : Manifold
+        Manifold in which curves take values.
+
 
     References
     ----------
@@ -65,53 +79,54 @@ class SRVMetric(RiemannianMetric):
                                 base_curve):
         """Compute the pointwise inner product of pair of tangent vectors.
 
-        Compute the inner product of the components of a (series of)
-        pair(s) of tangent vectors at (a) base curve(s).
+        Compute the point-wise inner-product between two tangent vectors
+        at a base curve.
 
         Parameters
         ----------
-        tangent_vec_a :
-        tangent_vec_b :
-        base_curve :
+        tangent_vec_a : array-like, shape=[..., n_sampling_points, ambiant_dim]
+            Tangent vector to discretized curve.
+        tangent_vec_b : array-like, shape=[..., n_sampling_points, ambiant_dim]
+            Tangent vector to discretized curve.
+        base_curve : array-like, shape=[..., n_sampling_points, ambiant_dim]
+            Point representing a discretized curve.
 
         Returns
         -------
-        inner_prod :
+        inner_prod : array-like, shape=[..., n_sampling_points]
+            Point-wise inner-product.
         """
         base_curve = gs.to_ndarray(base_curve, to_ndim=3)
         tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
         tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
 
-        n_tangent_vecs = tangent_vec_a.shape[0]
-        n_sampling_points = tangent_vec_a.shape[1]
-        inner_prod = gs.zeros([n_tangent_vecs, n_sampling_points])
-
         def inner_prod_aux(vec_a, vec_b, curve):
             inner_prod = self.ambient_metric.inner_product(vec_a, vec_b, curve)
             return gs.squeeze(inner_prod)
 
-        inner_prod = gs.vectorize((tangent_vec_a, tangent_vec_b, base_curve),
-                                  inner_prod_aux,
-                                  dtype=gs.float32,
-                                  multiple_args=True,
-                                  signature='(i,j),(i,j),(i,j)->(i)')
+        inner_prod = gs.vectorize(
+            (tangent_vec_a, tangent_vec_b, base_curve),
+            inner_prod_aux,
+            dtype=gs.float32,
+            multiple_args=True,
+            signature='(i,j),(i,j),(i,j)->(i)')
 
         return inner_prod
 
     def pointwise_norm(self, tangent_vec, base_curve):
-        """Compute the norm of tangent vector components at base curve.
-
-        Compute the norms of the components of a (series of) tangent
-        vector(s) at (a) base curve(s).
+        """Compute the point-wise norms of a tangent vector at a base curve.
 
         Parameters
         ----------
-        tangent_vec :
-        base_curve :
+        tangent_vec : array-like, shape=[..., n_sampling_points, ambiant_dim]
+            Tangent vector to discretized curve.
+        base_curve : array-like, shape=[..., n_sampling_points, ambiant_dim]
+            Point representing a discretized curve.
 
         Returns
         -------
-        norm :
+        norm : array-like, shape=[..., n_sampling_points]
+            Point-wise norms.
         """
         # TODO: Revise this to refer to action on single elements
         sq_norm = self.pointwise_inner_product(
@@ -129,11 +144,12 @@ class SRVMetric(RiemannianMetric):
 
         Parameters
         ----------
-        curve :
+        curve : array-like, shape=[..., n_sampling_points, ambiant_dim]
+            Discretized curve.
 
         Returns
         -------
-        srv :
+        srv : array-like, shape=[..., n_sampling_points - 1, ambiant_dim]
         """
         curve = gs.to_ndarray(curve, to_ndim=3)
         n_curves, n_sampling_points, n_coords = curve.shape

@@ -10,9 +10,6 @@ from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-# TODO : Add documentation to this file.
-
-
 class Landmarks(ProductManifold):
     """Class for space of landmarks.
 
@@ -23,7 +20,7 @@ class Landmarks(ProductManifold):
     Parameters
     ----------
     ambient_manifold : Manifold
-        Manifold in which landmarks lie
+        Manifold to which landmarks belong
     n_landmarks: int
             Number of landmarks.
     """
