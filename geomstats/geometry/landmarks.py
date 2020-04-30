@@ -5,45 +5,37 @@ import math
 import geomstats.backend as gs
 import geomstats.vectorization
 from geomstats.geometry.manifold import Manifold
+from geomstats.geometry.product_manifold import ProductManifold
+from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 # TODO : Add documentation to this file.
 
-class Landmarks(Manifold):
-    """Class for landmarks."""
 
-    def __init__(self, ambient_manifold, n_landmarks=None):
-        """Construct an instance of the LandmarksSpace class.
+class Landmarks(ProductManifold):
+    """Class for space of landmarks.
 
-        Parameters
-        ----------
-        ambient_manifold : object from the class Manifold
-        n_landmarks
-        """
-        dimension = None
-        if n_landmarks:
-            self.dim = n_landmarks * ambient_manifold.dim
-        super(Landmarks, self).__init__(dim=dimension)
+    The landmark space is a product manifold where all manifolds in the
+    product are the same. The default metric the product metric and
+    is often referred to as the L2 metric.
+    The LDDMM metric could also be implemented.
+
+    Parameters
+    ----------
+    ambient_manifold : Manifold
+        Manifold in which landmarks lie
+    n_landmarks: int
+            Number of landmarks.
+    """
+
+    def __init__(self, ambient_manifold, n_landmarks):
+        super(Landmarks, self).__init__(
+            manifolds=[ambient_manifold] * n_landmarks,
+            default_point_type='matrix')
         self.ambient_manifold = ambient_manifold
-        self.l2_metric = L2Metric(self.ambient_manifold)
+        self.l2_metric = self.metric
         self.n_landmarks = n_landmarks
-
-    def belongs(self, point):
-        """Compute whether or not a point belongs to the manifold.
-
-        Parameters
-        ----------
-        point
-
-        Returns
-        -------
-        belongs : bool
-        """
-        # TODO (ninamiolane): vectorize this method
-        belongs = self.ambient_manifold.belongs(point)
-        belongs = gs.all(belongs)
-        return belongs
 
 
 class L2Metric(RiemannianMetric):

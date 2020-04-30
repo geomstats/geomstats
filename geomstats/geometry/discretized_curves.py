@@ -28,12 +28,14 @@ class DiscretizedCurves(Manifold):
 
         Parameters
         ----------
-        point : array-like
+        point : array-like, shape=[..., n_sampling_points, ambiant_dim]
             Point representing a discretized curve.
 
         Returns
         -------
-        belongs : bool
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the space of discretized
+            curves.
         """
         belongs = gs.all(self.ambient_manifold.belongs(point))
         return belongs
@@ -46,7 +48,10 @@ class SRVMetric(RiemannianMetric):
 
     References
     ----------
-    .. [Sea2011] Srivastava et al. 2011.
+    .. [Sea2011] A. Srivastava, E. Klassen, S. H. Joshi and I. H. Jermyn,
+    "Shape Analysis of Elastic Curves in Euclidean Spaces,"
+    in IEEE Transactions on Pattern Analysis and Machine Intelligence,
+    vol. 33, no. 7, pp. 1415-1428, July 2011.
     """
 
     def __init__(self, ambient_manifold):
