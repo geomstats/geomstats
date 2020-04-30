@@ -63,12 +63,13 @@ class _Hypersphere(EmbeddedManifold):
         ----------
         point : array-like, shape=[..., dim + 1]
             Point in Euclidean space.
-        tolerance : float, optional
-            Tolerance at which to evaluate norm == 1 (default: TOLERANCE).
+        tolerance : floatl
+            Tolerance at which to evaluate norm == 1.
+            Optional, default: TOLERANCE.
 
         Returns
         -------
-        belongs : array-like, shape=[..., 1]
+        belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the hypersphere.
         """
         point_dim = gs.shape(point)[-1]
@@ -94,12 +95,12 @@ class _Hypersphere(EmbeddedManifold):
         Parameters
         ----------
         point : array-like, shape=[..., dim + 1]
-            Points on the hypersphere.
+            Point on the hypersphere.
 
         Returns
         -------
         projected_point : array-like, shape=[..., dim + 1]
-            Points in canonical representation chosen for the hypersphere.
+            Point in canonical representation chosen for the hypersphere.
         """
         if not gs.all(self.belongs(point)):
             raise ValueError('Points do not belong to the manifold.')
@@ -299,8 +300,12 @@ class _Hypersphere(EmbeddedManifold):
 
         Parameters
         ----------
-        n_samples : int, optional
+        n_samples : int
             Number of samples.
+            Optional, default: 1.
+        tol : float
+            Tolerance.
+            Optional, default: 1e-6.
 
         Returns
         -------
@@ -337,10 +342,12 @@ class _Hypersphere(EmbeddedManifold):
 
         Parameters
         ----------
-        kappa : int, optional
+        kappa : int
             Kappa parameter of the von Mises distribution.
-        n_samples : int, optional
+            Optional, default: 10.
+        n_samples : int
             Number of samples.
+            Optional, default: 1.
 
         Returns
         -------
@@ -400,7 +407,7 @@ class HypersphereMetric(RiemannianMetric):
 
         Returns
         -------
-        inner_prod : array-like, shape=[..., 1]
+        inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
         inner_prod = self.embedding_metric.inner_product(
@@ -654,6 +661,7 @@ class HypersphereMetric(RiemannianMetric):
 
         point_type: str, {'spherical', 'intrinsic', 'extrinsic'}
             Coordinates in which to express the Christoffel symbols.
+            Optional, default: 'spherical'.
 
         Returns
         -------

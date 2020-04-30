@@ -14,12 +14,18 @@ EPSILON = 1e-3
 
 
 class Connection:
-    """Class for affine connections.
+    r"""Class for affine connections.
 
     Parameters
     ----------
-    dim: int
+    dim : int
         Dimension of the underlying manifold.
+    default_point_type : str, {\'vector\', \'matrix\'}
+        Point type.
+        Optional, default: \'vector\'.
+    default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
+        Coordinate type.
+        Optional, default: \'intrinsic\'.
     """
 
     def __init__(
@@ -44,7 +50,7 @@ class Connection:
         Returns
         -------
         gamma : array-like, shape=[..., dim, dim, dim]
-            Values of the christoffel symbols, with the covariant index on
+            Christoffel symbols, with the covariant index on
             the first dimension.
         """
         raise NotImplementedError(
@@ -109,10 +115,13 @@ class Connection:
             Point on the manifold.
         n_steps : int
             Number of discrete time steps to take in the integration.
+            Optional, default: N_STEPS.
         step : str, {'euler', 'rk4'}
             The numerical scheme to use for integration.
+            Optional, default: 'euler'.
         point_type : str, {'vector', 'matrix'}
             Type of representation used for points.
+            Optional, default: None.
 
         Returns
         -------
@@ -140,8 +149,10 @@ class Connection:
             Point on the manifold.
         n_steps : int
             Number of discrete time steps to take in the integration.
+            Optional, default: N_STEPS.
         step : str, {'euler', 'rk4'}
             Numerical scheme to use for integration.
+            Optional, default: 'euler'.
 
         Returns
         -------
@@ -267,9 +278,10 @@ class Connection:
         base_shoot : array-like, shape=[..., dim]
             Point on the manifold, end point of the geodesics starting
             from the base point with initial speed to be transported.
-        return_geodesics : bool, optional (defaults to False)
+        return_geodesics : bool
             Whether to return points computed along each geodesic of the
             construction.
+            Optional, default: False.
 
         Returns
         -------
@@ -353,8 +365,10 @@ class Connection:
             which to transport.
         n_steps : int
             The number of pole ladder steps.
+            Optional, default: 1.
         step : str, {'pole', 'schild'}
             The scheme to use for the construction of the ladder at each step.
+            Optoinal, default: 'pole'.
         **single_step_kwargs : keyword arguments for the step functions
 
         Returns
@@ -433,16 +447,17 @@ class Connection:
             Point on the manifold, end point of the geodesic. If None,
             an initial tangent vector must be given.
         initial_tangent_vec : array-like, shape=[..., dim],
-            optional
             Tangent vector at base point, the initial speed of the geodesics.
+            Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
         point_type : str, {'vector', 'matrix'}
-            The type of point.
+            Point type.
+            Optional, default: 'vector'.
 
         Returns
         -------
         path : callable
-            The time parameterized geodesic curve.
+            Time parameterized geodesic curve.
         """
         point_ndim = 1
         if point_type == 'matrix':

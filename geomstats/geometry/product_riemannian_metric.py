@@ -18,6 +18,12 @@ class ProductRiemannianMetric(RiemannianMetric):
     ----------
     metrics : list
         List of metrics in the product.
+    default_point_type : str, {'vector', 'matrix'}
+        Point type.
+        Optional, default: 'vector'.
+    n_jobs : int
+        Number of jobs for parallel computing.
+        Optional, default: 1.
     """
 
     def __init__(self, metrics, default_point_type='vector', n_jobs=1):
@@ -47,10 +53,12 @@ class ProductRiemannianMetric(RiemannianMetric):
         Parameters
         ----------
         base_point : array-like, shape=[..., n_metrics, dim] or
-            [..., dim], optional
+            [..., dim]
             Point on the manifold at which to compute the inner-product matrix.
-        point_type : str, {'vector', 'matrix'}, optional
+            Optional, default: None.
+        point_type : str, {'vector', 'matrix'}
             Type of representation used for points.
+            Optional, default: None.
 
         Returns
         -------
@@ -95,7 +103,7 @@ class ProductRiemannianMetric(RiemannianMetric):
 
         Returns
         -------
-        intrinsic: bool
+        intrinsic : array-like, shape=[...,]
             Whether intrinsic coordinates are used for all manifolds.
         """
         if self.default_point_type != 'vector':
@@ -145,14 +153,16 @@ class ProductRiemannianMetric(RiemannianMetric):
             First tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., dim + 1]
             Second tangent vector at base point.
-        base_point : array-like, shape=[..., dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point on the manifold.
-        point_type : str, {'vector', 'matrix'}, optional
+            Optional, default: None.
+        point_type : str, {'vector', 'matrix'}
             Type of representation used for points.
+            Optional, default: None.
 
         Returns
         -------
-        inner_prod : array-like, shape=[..., 1]
+        inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
         if base_point is None:
@@ -201,8 +211,10 @@ class ProductRiemannianMetric(RiemannianMetric):
             Tangent vector at a base point.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
-        point_type : str, {'vector', 'matrix'}, optional
+            Optional, default: None.
+        point_type : str, {'vector', 'matrix'}
             Type of representation used for points.
+            Optional, default: None.
 
         Returns
         -------
@@ -243,8 +255,10 @@ class ProductRiemannianMetric(RiemannianMetric):
             Point on the manifold.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
-        point_type : str, {'vector', 'matrix'}, optional
+            Optional, default: None.
+        point_type : str, {'vector', 'matrix'}
             Type of representation used for points.
+            Optional, default: None.
 
         Returns
         -------

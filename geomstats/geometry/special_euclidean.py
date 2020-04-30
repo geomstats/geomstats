@@ -123,14 +123,15 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
 
         Parameters
         ----------
-        n_samples : int, optional (1)
+        n_samples : int
             Number of samples.
+            Optional, default: 1.
         tol : unused
 
         Returns
         -------
         samples : array-like, shape=[..., n + 1, n + 1]
-            Points sampled in SE(n).
+            Sample in SE(n).
         """
         random_translation = self.translations.random_uniform(n_samples)
         random_rotation = self.rotations.random_uniform(n_samples)
@@ -162,9 +163,10 @@ class _SpecialEuclidean3Vectors(LieGroup):
 
     Parameter
     ---------
-    epsilon : float, optional (defaults to 0)
+    epsilon : float
         Precision to use for calculations involving potential
         division by 0 in rotations.
+        Optional, default: 0.
     """
 
     def __init__(self, epsilon=0.):
@@ -182,9 +184,9 @@ class _SpecialEuclidean3Vectors(LieGroup):
 
         Parameters
         ----------
-        point_type : str, {'vector', 'matrix'}, optional
+        point_type : str, {'vector', 'matrix'}
             The point_type of the returned value.
-            default: self.default_point_type
+            Optional, default: self.default_point_type
 
         Returns
         -------
@@ -208,11 +210,11 @@ class _SpecialEuclidean3Vectors(LieGroup):
         Parameters
         ----------
         point : array-like, shape=[..., 3]
-            The point of which to check whether it belongs to SE(3).
+            Point to check.
 
         Returns
         -------
-        belongs : array-like, shape=[..., 1]
+        belongs : array-like, shape=[...,]
             Boolean indicating whether point belongs to SE(3).
         """
         point_dim = point.shape[-1]
@@ -229,11 +231,12 @@ class _SpecialEuclidean3Vectors(LieGroup):
         Parameters
         ----------
         point : array-like, shape=[..., 3]
-            The point to regularize.
+            Point to regularize.
 
         Returns
         -------
         point : array-like, shape=[..., 3]
+            Regularized point.
         """
         rotations = self.rotations
         dim_rotations = rotations.dim
@@ -256,11 +259,15 @@ class _SpecialEuclidean3Vectors(LieGroup):
         Parameters
         ----------
         tangent_vec: array-like, shape=[..., 3]
-        metric : RiemannianMetric, optional
+            Tangent vector.
+        metric : RiemannianMetric
+            Metric.
+            Optional, default: None.
 
         Returns
         -------
-        regularized_vec : the regularized tangent vector
+        regularized_vec : array-like, shape=[..., 3]
+            Regularized vector.
         """
         return self.regularize_tangent_vec(
             tangent_vec, self.identity, metric)
@@ -272,13 +279,17 @@ class _SpecialEuclidean3Vectors(LieGroup):
         Parameters
         ----------
         tangent_vec: array-like, shape=[..., 3]
+            Tangent vector.
         base_point : array-like, shape=[..., 3]
-        metric : RiemannianMetric, optional
-            default: self.left_canonical_metric
+            Base point.
+        metric : RiemannianMetric
+            Metric.
+            Optional, default to self.left_canonical_metric if None.
 
         Returns
         -------
-        regularized_vec : the regularized tangent vector
+        regularized_vec : array-like, shape=[..., 3]
+            Regularized vector.
         """
         if metric is None:
             metric = self.left_canonical_metric
@@ -310,11 +321,13 @@ class _SpecialEuclidean3Vectors(LieGroup):
 
         Parameters
         ----------
-        vec: array-like, shape=[..., 3]
+        vec : array-like, shape=[..., 3]
+            Vector.
 
         Returns
         -------
-        mat: array-like, shape=[..., n+1, n+1]
+        mat : array-like, shape=[..., 4, 4]
+            Matrix.
         """
         vec = self.regularize(vec)
         n_vecs, _ = vec.shape
@@ -350,9 +363,8 @@ class _SpecialEuclidean3Vectors(LieGroup):
 
         Returns
         -------
-        composition :
-            The composition of point_a and point_b.
-
+        composition : array-like, shape=[..., 3]
+            Composition of point_a and point_b.
         """
         rotations = self.rotations
         dim_rotations = rotations.dim
@@ -387,11 +399,12 @@ class _SpecialEuclidean3Vectors(LieGroup):
         Parameters
         ----------
         point: array-like, shape=[..., 3]
+            Point.
 
         Returns
         -------
         inverse_point : array-like, shape=[..., 3]
-            The inverted point.
+            Inverted point.
 
         Notes
         -----
@@ -429,13 +442,15 @@ class _SpecialEuclidean3Vectors(LieGroup):
         Parameters
         ----------
         point: array-like, shape=[..., 3]
-        left_or_right: str, {'left', 'right'}, optional
+            Point.
+        left_or_right: str, {'left', 'right'}
             Whether to compute the jacobian of the left or right translation.
+            Optional, default: 'left'.
 
         Returns
         -------
         jacobian : array-like, shape=[..., 3]
-            The jacobian of the left / right translation.
+            Jacobian of the left / right translation.
         """
         if left_or_right not in ('left', 'right'):
             raise ValueError('`left_or_right` must be `left` or `right`.')
@@ -486,11 +501,12 @@ class _SpecialEuclidean3Vectors(LieGroup):
         Parameters
         ----------
         tangent_vec: array-like, shape=[..., 3]
+            Tangent vector.
 
         Returns
         -------
         group_exp: array-like, shape=[..., 3]
-            The group exponential of the tangent vectors calculated
+            Group exponential of the tangent vectors computed
             at the identity.
         """
         rotations = self.rotations
@@ -561,11 +577,12 @@ class _SpecialEuclidean3Vectors(LieGroup):
         Parameters
         ----------
         point: array-like, shape=[..., 3]
+            Point.
 
         Returns
         -------
         group_log: array-like, shape=[..., 3]
-            the group logarithm in the Lie algbra
+            Group logarithm in the Lie algebra.
         """
         point = self.regularize(point)
 
@@ -639,13 +656,14 @@ class _SpecialEuclidean3Vectors(LieGroup):
 
         Parameters
         ----------
-        n_samples : int, optional
-            default : 1
+        n_samples : int
+            Number of samples.
+            Optional, default: 1
 
         Returns
         -------
         random_point : array-like, shape=[..., 3]
-            An array of random elements in SE(3) having the given.
+            Sample.
         """
         random_translation = self.translations.random_uniform(n_samples)
         random_rot_vec = self.rotations.random_uniform(n_samples)
@@ -660,7 +678,7 @@ class _SpecialEuclidean3Vectors(LieGroup):
 
         Returns
         -------
-        exponential_mat : The matrix exponential of rot_vec
+        exponential_mat : Matrix exponential of rot_vec
         """
         # TODO(nguigs): find usecase for this method
         rot_vec = self.rotations.regularize(rot_vec)
@@ -716,10 +734,11 @@ class SpecialEuclidean(_SpecialEuclidean3Vectors, _SpecialEuclideanMatrices):
         Integer representing the shapes of the matrices : n x n.
     point_type : str, {\'vector\', \'matrix\'}
         Representation of the elements of the group.
-    epsilon : float, optional
-        precision to use for calculations involving potential divison by 0 in
-        rotations
-        default: 0
+        Optional, default: 'matrix',
+    epsilon : float
+        Precision used for calculations involving potential divison by 0 in
+        rotations.
+        Optional, default: 0.
     """
 
     def __new__(cls, n, point_type='matrix', epsilon=0.):

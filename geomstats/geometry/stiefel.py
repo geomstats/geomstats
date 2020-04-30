@@ -58,10 +58,11 @@ class Stiefel(EmbeddedManifold):
             Point.
         tolerance : float, optional
             Tolerance at which to evaluate.
+            Optional, default: TOLERANCE.
 
         Returns
         -------
-        belongs : array-like, shape=[..., 1]
+        belongs : array-like, shape=[...,]
             Array of booleans evaluating if the corresponding points
             belong to the Stiefel manifold.
         """
@@ -92,10 +93,12 @@ class Stiefel(EmbeddedManifold):
         Parameters
         ----------
         point : array-like, shape=[..., n, p]
+            Point.
 
         Returns
         -------
-        projector : array-like, shape=[..., n, n]
+        projected : array-like, shape=[..., n, n]
+            Projected point.
         """
         return Matrices.mul(point, Matrices.transpose(point))
 
@@ -108,8 +111,9 @@ class Stiefel(EmbeddedManifold):
 
         Parameters
         ----------
-        n_samples : int, optional
+        n_samples : int
             Number of samples.
+            Optional, default: 1.
 
         Returns
         -------

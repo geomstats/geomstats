@@ -13,7 +13,13 @@ TOLERANCE = 1e-12
 
 
 class SymmetricMatrices(EmbeddedManifold):
-    """Class for the vector space of symmetric matrices of size n."""
+    """Class for the vector space of symmetric matrices of size n.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shapes of the matrices: n x n.
+    """
 
     def __init__(self, n, **kwargs):
         super(SymmetricMatrices, self).__init__(
@@ -22,7 +28,18 @@ class SymmetricMatrices(EmbeddedManifold):
         self.n = n
 
     def belongs(self, mat, atol=TOLERANCE):
-        """Check if mat belongs to the vector space of symmetric matrices."""
+        """Check if mat belongs to the vector space of symmetric matrices.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix to check.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if mat is a symmetric matrix.
+        """
         check_shape = self.embedding_manifold.belongs(mat)
         return gs.logical_and(check_shape, Matrices.is_symmetric(mat, atol))
 
@@ -42,7 +59,18 @@ class SymmetricMatrices(EmbeddedManifold):
     @staticmethod
     @geomstats.vectorization.decorator(['matrix'])
     def to_vector(mat):
-        """Convert the symmetric part of a symmetric matrix into a vector."""
+        """Convert the symmetric part of a symmetric matrix into a vector.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        vec : array-like, shape=[..., n(n+1)/2]
+            Vector.
+        """
         if not gs.all(Matrices.is_symmetric(mat)):
             logging.warning('non-symmetric matrix encountered.')
         mat = Matrices.to_symmetric(mat)
@@ -58,7 +86,18 @@ class SymmetricMatrices(EmbeddedManifold):
     @staticmethod
     @geomstats.vectorization.decorator(['vector', 'else'])
     def from_vector(vec, dtype=gs.float32):
-        """Convert a vector into a symmetric matrix."""
+        """Convert a vector into a symmetric matrix.
+
+        Parameters
+        ----------
+        vec : array-like, shape=[..., n(n+1)/2]
+            Vector.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., n, n]
+            Symmetric matrix.
+        """
         vec_dim = vec.shape[-1]
         mat_dim = (gs.sqrt(8. * vec_dim + 1) - 1) / 2
         if mat_dim != int(mat_dim):
@@ -76,68 +115,68 @@ class SymmetricMatrices(EmbeddedManifold):
 
     @classmethod
     @geomstats.vectorization.decorator(['else', 'matrix'])
-    def expm(cls, x):
+    def expm(cls, mat):
         """
         Compute the matrix exponential for a symmetric matrix.
 
         Parameters
         ----------
-        x : array_like, shape=[..., n, n]
+        mat : array_like, shape=[..., n, n]
             Symmetric matrix.
 
         Returns
         -------
         exponential : array_like, shape=[..., n, n]
-            Exponential of x.
+            Exponential of mat.
         """
-        return cls.apply_func_to_eigvals(x, gs.exp)
+        return cls.apply_func_to_eigvals(mat, gs.exp)
 
     @classmethod
-    def powerm(cls, x, power):
+    def powerm(cls, mat, power):
         """
         Compute the matrix power.
 
         Parameters
         ----------
-        x : array_like, shape=[..., n, n]
+        mat : array_like, shape=[..., n, n]
             Symmetric matrix with non-negative eigenvalues.
         power : float
-            The power at which x will be raised.
+            Power at which mat will be raised.
 
         Returns
         -------
         powerm : array_like, shape=[..., n, n]
-            Matrix power of x.
+            Matrix power of mat.
         """
         def _power(eigvals):
             return gs.power(eigvals, power)
-        return cls.apply_func_to_eigvals(x, _power, check_positive=True)
+        return cls.apply_func_to_eigvals(mat, _power, check_positive=True)
 
     @staticmethod
-    def apply_func_to_eigvals(x, function, check_positive=False):
+    def apply_func_to_eigvals(mat, function, check_positive=False):
         """
-        Apply function to eigenvalues and reconstruct the matrix.
+        Apply function to eigenvalues and reconstruct the matrimat.
 
         Parameters
         ----------
-        x : array_like, shape=[..., n, n]
-            Symmetric matrix.
+        mat : array_like, shape=[..., n, n]
+            Symmetric matrimat.
         function : callable
             Function to apply to eigenvalues.
 
         Returns
         -------
-        x : array_like, shape=[..., n, n]
-            Symmetric matrix.
+        mat : array_like, shape=[..., n, n]
+            Symmetric matrimat.
         """
-        eigvals, eigvecs = gs.linalg.eigh(x)
+        eigvals, eigvecs = gs.linalg.eigh(mat)
         if check_positive:
             if gs.any(gs.cast(eigvals, gs.float32) < 0.):
                 logging.warning(
                     'Negative eigenvalue encountered in'
                     ' {}'.format(function.__name__))
         eigvals = function(eigvals)
-        eigvals = algebra_utils.from_vector_to_diagonal_matrix(eigvals)
+        eigvals = algebra_utils.from_vector_to_diagonal_matrimat(eigvals)
         transp_eigvecs = Matrices.transpose(eigvecs)
         reconstuction = gs.matmul(eigvecs, eigvals)
         reconstuction = gs.matmul(reconstuction, transp_eigvecs)

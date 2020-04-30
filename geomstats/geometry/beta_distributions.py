@@ -19,6 +19,13 @@ class BetaDistributions(EmbeddedManifold):
     r"""Class for the manifold of beta distributions.
 
     This is :math: Beta = `R_+^* \times R_+^*`.
+
+    Attributes
+    ----------
+    dim : int
+        Dimension of the manifold of beta distributions.
+    embedding_manifold : Manifold
+        Embedding manifold.
     """
 
     def __init__(self):
@@ -56,10 +63,12 @@ class BetaDistributions(EmbeddedManifold):
 
         Parameters
         ----------
-        n_samples : int, optional
+        n_samples : int
             Number of samples.
-        bound : float, optional
+            Optional, default: 1.
+        bound : float
             Side of the square where the beta parameters are sampled.
+            Optional, default: 5.
 
         Returns
         -------
@@ -80,6 +89,7 @@ class BetaDistributions(EmbeddedManifold):
             Point representing a beta distribution.
         n_samples : int
             Number of points to sample with each pair of parameters in point.
+            Optional, default: 1.
 
         Returns
         -------
@@ -106,18 +116,19 @@ class BetaDistributions(EmbeddedManifold):
         data : array-like, shape=[..., n_samples]
             Data to estimate parameters from. Arrays of
             different length may be passed.
-        loc : float, optional
+        loc : float
             Location parameter of the distribution to estimate parameters
             from. It is kept fixed during optimization.
-            default: 0
-        scale : float, optional
+            Optional, default: 0.
+        scale : float
             Scale parameter of the distribution to estimate parameters
             from. It is kept fixed during optimization.
-            default: 1
+            Optional, default: 1.
 
         Returns
         -------
         parameter : array-like, shape=[..., 2]
+            Estimate of parameter obtained by maximum likelihood.
         """
         data = gs.cast(data, gs.float32)
         data = gs.to_ndarray(
@@ -142,30 +153,33 @@ class BetaMetric(RiemannianMetric):
         Parameters
         ----------
         param_a : array-like, shape=[...,]
+            First parameter of the beta distribution.
         param_b : array-like, shape=[...,]
+            Second parameter of the beta distribution.
 
         Returns
         -------
         metric_det : array-like, shape=[...,]
+            Determinant of the metric.
         """
         metric_det = gs.polygamma(1, param_a) * gs.polygamma(1, param_b) - \
             gs.polygamma(1, param_a + param_b) * (gs.polygamma(1, param_a) +
                                                   gs.polygamma(1, param_b))
         return metric_det
 
-    def inner_product_matrix(self, base_point=None):
-        """Compute inner product matrix at the tangent space at base point.
+    def inner_product_matrix(self, base_point):
+        """Compute inner-product matrix at the tangent space at base point.
 
         Parameters
         ----------
         base_point : array-like, shape=[..., 2]
+            Base point.
 
         Returns
         -------
-        base_point : array-like, shape=[..., 2, 2]
+        mat : array-like, shape=[..., 2, 2]
+            Inner-product matrix.
         """
-        if base_point is None:
-            raise ValueError('The metric depends on the base point.')
         param_a = base_point[..., 0]
         param_b = base_point[..., 1]
         polygamma_ab = gs.polygamma(1, param_a + param_b)
@@ -186,10 +200,12 @@ class BetaMetric(RiemannianMetric):
         Parameters
         ----------
         base_point : array-like, shape=[..., 2]
+            Base point.
 
         Returns
         -------
         christoffels : array-like, shape=[..., 2, 2, 2]
+            Christoffel symbols.
         """
         def coefficients(param_a, param_b):
             metric_det = 2 * self.metric_det(param_a, param_b)
@@ -221,12 +237,17 @@ class BetaMetric(RiemannianMetric):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., dim]
+            Tangent vector.
         base_point : array-like, shape=[..., dim]
+            Base point.
         n_steps : int
+            Number of steps for integration.
+            Optional, default: N_STEPS.
 
         Returns
         -------
         exp : array-like, shape=[..., dim]
+            Riemannian exponential.
         """
         base_point = gs.to_ndarray(base_point, to_ndim=2)
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=2)
@@ -255,8 +276,12 @@ class BetaMetric(RiemannianMetric):
         Parameters
         ----------
         point : array-like, shape=[..., dim]
+            Point.
         base_point : array-like, shape=[..., dim]
+            Base point.
         n_steps : int
+            Number of steps for integration.
+            Optional, default: N_STEPS.
 
         Returns
         -------

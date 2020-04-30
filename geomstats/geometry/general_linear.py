@@ -123,7 +123,7 @@ class GeneralLinear(Matrices):
             Tangent vector.
         base_point : array-like, shape=[..., n, n]}
             Base point.
-            Optional, default: None.
+            Optional, default to identity if None.
 
         Returns
         -------
@@ -150,7 +150,7 @@ class GeneralLinear(Matrices):
             Point.
         base_point : array-like, shape=[..., n, n]
             Base point.
-            Optional, default: None.
+            Optional, default to identity if None.
 
         Returns
         -------
@@ -183,7 +183,7 @@ class GeneralLinear(Matrices):
             Target point.
         base_point : array-like, shape=[n, n], optional
             Base point.
-            Optional, default: None.
+            Optional, default to identity if None.
 
         Returns
         -------

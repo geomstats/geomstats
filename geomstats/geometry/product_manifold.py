@@ -32,6 +32,10 @@ class ProductManifold(Manifold):
         List of manifolds in the product.
     default_point_type : str, {'vector', 'matrix'}
         Default representation of points.
+        Optional, default: 'vector'.
+    n_jobs : int
+        Number of jobs for parallel computing.
+        Optional, default: 1.
     """
 
     # FIXME(nguigs): This only works for 1d points
@@ -80,10 +84,11 @@ class ProductManifold(Manifold):
             Point.
         point_type : str, {'vector', 'matrix'}
             Representation of point.
+            Optional, default: None.
 
         Returns
         -------
-        belongs : array-like, shape=[..., 1]
+        belongs : array-like, shape=[...,]
             Array of booleans evaluating if the corresponding points
             belong to the manifold.
         """
@@ -115,6 +120,7 @@ class ProductManifold(Manifold):
             Point to be regularized.
         point_type : str, {'vector', 'matrix'}
             Representation of point.
+            Optional, default: None.
 
         Returns
         -------
@@ -147,6 +153,7 @@ class ProductManifold(Manifold):
             Number of samples.
         point_type : str, {'vector', 'matrix'}
             Representation of point.
+            Optional, default: None.
 
         Returns
         -------

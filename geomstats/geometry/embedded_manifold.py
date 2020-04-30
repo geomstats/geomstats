@@ -12,6 +12,12 @@ class EmbeddedManifold(Manifold):
         Dimension of the embedded manifold.
     embedding_manifold : Manifold
         Embedding manifold.
+    default_point_type : str, {'vector', 'matrix'}
+        Point type.
+        Optional, default: 'vector'.
+    default_coords_type : str, {'intrinsic', 'extrinsic', etc}
+        Coordinate type.
+        Optional, default: 'intrinsic'.
     """
 
     def __init__(self, dim, embedding_manifold, default_point_type='vector',
@@ -28,6 +34,11 @@ class EmbeddedManifold(Manifold):
         ----------
         point_intrinsic : array-like, shape=[..., dim]
             Point in the embedded manifold in intrinsic coordinates.
+
+        Returns
+        -------
+        point_extrinsic : array-like, shape=[..., dim_embedding]
+            Point in the embedded manifold in extrinsic coordinates.
         """
         raise NotImplementedError(
             'intrinsic_to_extrinsic_coords is not implemented.')
@@ -40,6 +51,11 @@ class EmbeddedManifold(Manifold):
         point_extrinsic : array-like, shape=[..., dim_embedding]
             Point in the embedded manifold in extrinsic coordinates,
             i. e. in the coordinates of the embedding manifold.
+
+        Returns
+        -------
+        point_intrinsic : array-lie, shape=[..., dim]
+            Point in the embedded manifold in intrinsic coordinates.
         """
         raise NotImplementedError(
             'extrinsic_to_intrinsic_coords is not implemented.')
@@ -50,7 +66,11 @@ class EmbeddedManifold(Manifold):
         Parameters
         ----------
         point : array-like, shape=[..., dim_embedding]
-            Point in embedding manifold
+            Point in embedding manifold.
+
+        Returns
+        -------
+            Projected point.
         """
         raise NotImplementedError(
             'projection is not implemented.')

@@ -47,8 +47,8 @@ class Euclidean(Manifold):
         Parameters
         ----------
         n_samples : int
-            Number of samples
-            Optional, default: 1
+            Number of samples.
+            Optional, default: 1.
         bound : float
             Side of hypercube support of the uniform distribution.
             Optional, default: 1.0

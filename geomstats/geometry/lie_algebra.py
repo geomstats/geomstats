@@ -40,11 +40,14 @@ class MatrixLieAlgebra:
         Parameters
         ----------
         matrix_a : array-like, shape=[..., n, n]
+            Matrix.
         matrix_b : array-like, shape=[..., n, n]
+            Matrix.
 
         Returns
         -------
         bracket : shape=[..., n, n]
+            Lie bracket.
         """
         return gs.matmul(matrix_a, matrix_b) - gs.matmul(matrix_b, matrix_a)
 
@@ -63,9 +66,11 @@ class MatrixLieAlgebra:
         Parameters
         ----------
         matrix_a, matrix_b : array-like, shape=[..., n, n]
+            Matrices.
         order : int
             The order to which the approximation is calculated. Note that this
             is NOT the same as using only e_i with i < order.
+            Optional, default 2.
 
         References
         ----------
@@ -95,15 +100,17 @@ class MatrixLieAlgebra:
         return result
 
     def basis_representation(self, matrix_representation):
-        """Compute the coefficients of matrices in the given base.
+        """Compute the coefficients of matrices in the given basis.
 
         Parameters
         ----------
         matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
 
         Returns
         -------
         basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis.
         """
         raise NotImplementedError("basis_representation not implemented.")
 
@@ -116,10 +123,12 @@ class MatrixLieAlgebra:
         Parameters
         ----------
         basis_representation : array-like, shape=[..., dim]
+            Coefficients in the basis.
 
         Returns
         -------
         matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
         """
         basis_representation = gs.to_ndarray(basis_representation, to_ndim=2)
 

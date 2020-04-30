@@ -17,16 +17,19 @@ def loss(y_pred, y_true, group, metric=None):
     Parameters
     ----------
     y_pred : array-like, shape=[..., {dim, [n, n]}]
+        Prediction.
     y_true : array-like, shape=[..., {dim, [n, n]}]
-        shape has to match y_pred
+        Ground-truth.
+        Shape has to match y_pred.
     group : LieGroup
-    metric : RiemannianMetric, optional
-        default: the left invariant metric of the Lie group
+    metric : RiemannianMetric
+        Riemannian metric.
+        Optional, default to the left invariant metric if None.
 
     Returns
     -------
     loss : array-like, shape=[..., {dim, [n, n]}]
-        the squared (geodesic) distance between y_pred and y_true
+        Squared (geodesic) distance between y_pred and y_true
     """
     if metric is None:
         metric = group.left_canonical_metric
@@ -40,16 +43,19 @@ def grad(y_pred, y_true, group, metric=None):
     Parameters
     ----------
     y_pred : array-like, shape=[..., {dim, [n, n]}]
+        Prediction.
     y_true : array-like, shape=[..., {dim, [n, n]}]
-        shape has to match y_pred
+        Ground-truth.
+        Shape has to match y_pred.
     group : LieGroup
-    metric : RiemannianMetric, optional
-        default: the left invariant metric of the Lie group
+    metric : RiemannianMetric
+        Riemannian metric.
+        optional, default to the left invariant metric if None.
 
     Returns
     -------
     grad : array-like, shape=[..., {dim, [n, n]}]
-        tangent vector at point `y_pred`
+        Tangent vector at point `y_pred`.
     """
     if metric is None:
         metric = group.left_canonical_metric
@@ -67,6 +73,14 @@ class LieGroup(Manifold):
     If point_type is 'matrix' the format of the inputs is
     [..., n, n] where n is the parameter of GL(n) e.g. the amount of rows
     and columns of the matrix.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the Lie group.
+    default_point_type : str, {'vector', 'matrix'}
+        Point type.
+        Optional, default: 'vector'.
     """
 
     def __init__(self, dim, default_point_type='vector', **kwargs):
@@ -92,12 +106,14 @@ class LieGroup(Manifold):
 
         Parameters
         ----------
-        point_type : str, {'matrix', 'vector'}, optional
-            default: the default point type
+        point_type : str, {'matrix', 'vector'}
+            Point type.
+            Optional, default: None.
 
         Returns
         -------
         identity : array-like, shape={[dim], [n, n]}
+            Identity of the Lie group.
         """
         raise NotImplementedError(
             'The Lie group identity is not implemented.'
@@ -113,14 +129,14 @@ class LieGroup(Manifold):
         Parameters
         ----------
         point_a : array-like, shape=[..., {dim, [n, n]}]
-            the left factor in the product
+            Left factor in the product.
         point_b : array-like, shape=[..., {dim, [n, n]}]
-            the right factor in the product
+            Right factor in the product.
 
         Returns
         -------
         composed : array-like, shape=[..., {dim, [n, n]}]
-            the product of point_a and point_b along the first dim
+            Product of point_a and point_b along the first dimension.
         """
         raise NotImplementedError(
             'The Lie group composition is not implemented.'
@@ -133,12 +149,12 @@ class LieGroup(Manifold):
         Parameters
         ----------
         point : array-like, shape=[..., {dim, [n, n]}]
-            the points to be inverted
+            Point to be inverted.
 
         Returns
         -------
         inverse : array-like, shape=[..., {dim, [n, n]}]
-            the inverted point
+            Inverted point.
         """
         raise NotImplementedError('The Lie group inverse is not implemented.')
 
@@ -151,15 +167,16 @@ class LieGroup(Manifold):
         Parameters
         ----------
         point : array-like, shape=[..., {dim, [n, n]]
-            the points to be inverted
+            Point to be inverted.
         left_or_right : str, {'left', 'right'}
-            indicate whether to calculate the differential of left or right
-            translations
+            Indicate whether to calculate the differential of left or right
+            translations.
+            Optional, default: 'left'.
 
         Returns
         -------
-        jacobian :
-            the jacobian of the left/right translation by point
+        jacobian : array-like, shape=[..., dim, dim]
+            Jacobian of the left/right translation by point.
         """
         if self.default_point_type == 'matrix':
             return point
@@ -174,11 +191,12 @@ class LieGroup(Manifold):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
-            the tangent vector to exponentiate
+            Tangent vector.
 
         Returns
         -------
         point : array-like, shape=[..., {dim, [n, n]}]
+            Group exponential.
         """
         raise NotImplementedError(
             'The group exponential from the identity is not implemented.'
@@ -190,12 +208,14 @@ class LieGroup(Manifold):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector.
         base_point : array-like, shape=[..., {dim, [n, n]}]
+            Base point.
 
         Returns
         -------
         exp : array-like, shape=[..., {dim, [n, n]}]
-            the computed exponential
+            Group exponential.
         """
         if self.default_point_type == 'vector':
             jacobian = self.jacobian_translation(
@@ -221,13 +241,15 @@ class LieGroup(Manifold):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
+            Tangent vector.
         base_point : array-like, shape=[..., {dim, [n, n]}]
-            default: self.identity
+            Base point.
+            Optional, default: self.identity
 
         Returns
         -------
         result : array-like, shape=[..., {dim, [n, n]}]
-            The exponentiated tangent vector
+            Group exponential.
         """
         identity = self.get_identity()
 
@@ -248,10 +270,12 @@ class LieGroup(Manifold):
         Parameters
         ----------
         point : array-like, shape=[..., {dim, [n, n]}]
+            Point.
 
         Returns
         -------
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
+            Group logarithm.
         """
         raise NotImplementedError(
             'The group logarithm from the identity is not implemented.'
@@ -263,11 +287,14 @@ class LieGroup(Manifold):
         Parameters
         ----------
         point : array-like, shape=[..., {dim, [n, n]}]
+            Point.
         base_point : array-like, shape=[..., {dim, [n, n]}]
+            Base point.
 
         Returns
         -------
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
+            Group logarithm.
         """
         if self.default_point_type == 'vector':
             jacobian = self.jacobian_translation(
@@ -291,11 +318,15 @@ class LieGroup(Manifold):
         Parameters
         ----------
         point : array-like, shape=[..., {dim, [n, n]}]
+            Point.
         base_point : array-like, shape=[..., {dim, [n, n]}]
+            Base point.
+            Optional, default to identity if None.
 
         Returns
         -------
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
+            Group logarithm.
         """
         # TODO(ninamiolane): Build a standalone decorator that *only*
         # deals with point_type None and base_point None
@@ -313,7 +344,13 @@ class LieGroup(Manifold):
         return result
 
     def add_metric(self, metric):
-        """Add a metric to the instance's list of metrics."""
+        """Add a metric to the instance's list of metrics.
+
+        Parameters
+        ----------
+        metric : RiemannianMetric
+            Metric to add.
+        """
         self.metrics.append(metric)
 
     def lie_bracket(
@@ -327,13 +364,17 @@ class LieGroup(Manifold):
 
         Parameters
         ----------
-        tangent_vector_a : shape=[..., n, n]
-        tangent_vector_b : shape=[..., n, n]
+        tangent_vector_a : array-like, shape=[..., n, n]
+            Tangent vector.
+        tangent_vector_b : array-like, shape=[..., n, n]
+            Tangent vector.
         base_point : array-like, shape=[..., n, n]
+            Base point.
 
         Returns
         -------
         bracket : array-like, shape=[..., n, n]
+            Lie bracket.
         """
         if base_point is None:
             base_point = self.get_identity(point_type=self.default_point_type)
@@ -348,14 +389,9 @@ class LieGroup(Manifold):
         return first_term - second_term
 
     def _is_in_lie_algebra(self, tangent_vec, atol=ATOL):
-        """Check wether a tangent vector belongs to the lie algebra.
-
-        This method could also be in a separate class for the Lie algebra.
-
-        """
+        """Check wether a tangent vector belongs to the lie algebra."""
         raise NotImplementedError(
-            'The Lie Algebra belongs method is not implemented'
-        )
+            'The Lie Algebra belongs method is not implemented')
 
     def is_tangent(self, vector, base_point=None, atol=ATOL):
         """Check whether the vector is tangent at base_point.
@@ -402,6 +438,7 @@ class LieGroup(Manifold):
         Returns
         -------
         tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector.
         """
         if base_point is None:
             return self._to_lie_algebra(vector)
