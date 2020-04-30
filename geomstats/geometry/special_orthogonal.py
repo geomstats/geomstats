@@ -681,7 +681,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         rot_mat = gs.zeros((n_quaternions,) + (self.n,) * 2)
 
         for i in range(n_quaternions):
-            # TODO(nina): Vectorize by applying the composition of
+            # TODO (nina): Vectorize by applying the composition of
             # quaternions to the identity matrix
             column_1 = [w[i] ** 2 + x[i] ** 2 - y[i] ** 2 - z[i] ** 2,
                         2 * x[i] * y[i] - 2 * w[i] * z[i],

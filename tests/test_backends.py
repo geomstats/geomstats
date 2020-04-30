@@ -667,7 +667,7 @@ class TestBackends(geomstats.tests.TestCase):
         np_array[0, :, 0] += _np.cos(theta) * _np.cos(phi)
         np_array[0, :, 1] -= _np.sin(theta) * _np.sin(phi)
 
-        # TODO(ninamiolane): This test fails 15% of the time,
+        # TODO (ninamiolane): This test fails 15% of the time,
         # when gs and _np computations are in the reverse order.
         # We should investigate this.
         self.assertAllCloseToNp(gs_array, np_array)
@@ -794,7 +794,7 @@ class TestBackends(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_where(self):
-        # TODO(ninamiolane): Make tf behavior consistent with np
+        # TODO (ninamiolane): Make tf behavior consistent with np
         # Currently, tf returns array, while np returns tuple
         base_list = [
             [[22., 55.],

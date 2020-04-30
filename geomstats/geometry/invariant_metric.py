@@ -82,7 +82,7 @@ class InvariantMetric(RiemannianMetric):
                 '...j,...j->...', inner_prod, tangent_vec_b)
 
         else:
-            # TODO(nguigs): allow for diagonal metric_matrices
+            # TODO (nguigs): allow for diagonal metric_matrices
             logging.warning(
                 'Only the canonical inner product -Frobenius inner product-'
                 ' is implemented for Lie groups whose elements are represented'
@@ -253,7 +253,7 @@ class InvariantMetric(RiemannianMetric):
         if gs.allclose(base_point, identity):
             return self.exp_from_identity(tangent_vec)
 
-        # TODO(nguigs): factorize this code to pushforward tangent vec to
+        # TODO (nguigs): factorize this code to pushforward tangent vec to
         #  identity by left/right translation
         jacobian = self.group.jacobian_translation(
             point=base_point, left_or_right=self.left_or_right)
@@ -392,7 +392,7 @@ class BiInvariantMetric(InvariantMetric):
             'SpecialOrthogonal' not in group.__str__()
             and 'SO' not in group.__str__()
             and 'SpecialOrthogonal3' not in group.__str__())
-        # TODO(nguigs): implement it for SE(3)
+        # TODO (nguigs): implement it for SE(3)
         if cond:
             raise ValueError(
                 'The bi-invariant metric is only implemented for SO(n)')

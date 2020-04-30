@@ -53,7 +53,7 @@ class TestLandmarks(geomstats.tests.TestCase):
         expected = True
         self.assertAllClose(result, expected)
 
-    # TODO(ninamiolane): Uncomment when belongs is vectorized
+    # TODO (ninamiolane): Uncomment when belongs is vectorized
     # @geomstats.tests.np_and_pytorch_only
     # def test_belongs_vectorization(self):
     #     landmark_sets = gs.array([self.landmarks_a, self.landmarks_b])
