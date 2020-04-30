@@ -1,17 +1,17 @@
-name: "Todo"
+name: "Fixme"
 on: ["push"]
 jobs:
   build:
     runs-on: "ubuntu-latest"
     steps:
       - uses: "actions/checkout@master"
-      - name: "TODO to Issue"
+      - name: "FIXME to Issue"
         uses: "alstr/todo-to-issue-action@master"
         with:
           REPO: ${{ github.repository }}
           BEFORE: ${{ github.event.before }}
           SHA: ${{ github.sha }}
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LABEL: "# TODO"
+          LABEL: "# FIXME"
           COMMENT_MARKER: "#"
         id: "todo"
