@@ -1,4 +1,4 @@
-name: "Workflow"
+name: "Todo"
 on: ["push"]
 jobs:
   build:
@@ -12,6 +12,24 @@ jobs:
           BEFORE: ${{ github.event.before }}
           SHA: ${{ github.sha }}
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LABEL: "# TODO", "# FIXME"
+          LABEL: "# TODO"
+          COMMENT_MARKER: "#"
+        id: "todo"
+
+name: "Fixme"
+on: ["push"]
+jobs:
+  build:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: "actions/checkout@master"
+      - name: "FIXME to Issue"
+        uses: "alstr/todo-to-issue-action@master"
+        with:
+          REPO: ${{ github.repository }}
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LABEL: "# FIXME"
           COMMENT_MARKER: "#"
         id: "todo"
