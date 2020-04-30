@@ -673,3 +673,53 @@ class TestHypersphere(geomstats.tests.TestCase):
         result = christoffel.shape
         expected = gs.array([2, dim, dim, dim])
         self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
+    def test_parallel_transport_vectorization(self):
+        sphere = Hypersphere(2)
+        n_samples = 4
+
+        def is_isometry(tan_a, trans_a, endpoint):
+            is_tangent = gs.isclose(
+                sphere.metric.inner_product(endpoint, trans_a), 0., atol=1e-6)
+            is_equinormal = gs.isclose(
+                gs.linalg.norm(trans_a, axis=-1),
+                gs.linalg.norm(tan_a, axis=-1))
+            return gs.logical_and(is_tangent, is_equinormal)
+
+        base_point = sphere.random_uniform(n_samples)
+        tan_vec_a = sphere.to_tangent(gs.random.rand(n_samples, 3), base_point)
+        tan_vec_b = sphere.to_tangent(gs.random.rand(n_samples, 3), base_point)
+        end_point = sphere.metric.exp(tan_vec_b, base_point)
+
+        transported = sphere.metric.parallel_transport(
+            tan_vec_a, tan_vec_b, base_point)
+        result = is_isometry(tan_vec_a, transported, end_point)
+        self.assertTrue(gs.all(result))
+
+        base_point = base_point[0]
+        tan_vec_a = sphere.to_tangent(tan_vec_a, base_point)
+        tan_vec_b = sphere.to_tangent(tan_vec_b, base_point)
+        end_point = sphere.metric.exp(tan_vec_b, base_point)
+        transported = sphere.metric.parallel_transport(
+            tan_vec_a, tan_vec_b, base_point)
+        result = is_isometry(tan_vec_a, transported, end_point)
+        self.assertTrue(gs.all(result))
+
+        one_tan_vec_a = tan_vec_a[0]
+        transported = sphere.metric.parallel_transport(
+            one_tan_vec_a, tan_vec_b, base_point)
+        result = is_isometry(one_tan_vec_a, transported, end_point)
+        self.assertTrue(gs.all(result))
+
+        one_tan_vec_b = tan_vec_b[0]
+        end_point = end_point[0]
+        transported = sphere.metric.parallel_transport(
+            tan_vec_a, one_tan_vec_b, base_point)
+        result = is_isometry(tan_vec_a, transported, end_point)
+        self.assertTrue(gs.all(result))
+
+        transported = sphere.metric.parallel_transport(
+            one_tan_vec_a, one_tan_vec_b, base_point)
+        result = is_isometry(one_tan_vec_a, transported, end_point)
+        self.assertTrue(result)

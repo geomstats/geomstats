@@ -89,13 +89,16 @@ class ProductManifold(Manifold):
         """
         if point_type is None:
             point_type = self.default_point_type
+        geomstats.errors.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
+
         if point_type == 'vector':
             intrinsic = self.metric.is_intrinsic(point)
             belongs = self._iterate_over_manifolds(
                 'belongs', {'point': point}, intrinsic)
             belongs = gs.stack(belongs, axis=1)
 
-        elif point_type == 'matrix':
+        else:
             belongs = gs.stack([
                 space.belongs(point[:, i]) for i, space in enumerate(
                     self.manifolds)],
@@ -166,8 +169,6 @@ class ProductManifold(Manifold):
                     data = gs.concatenate([data, samples], axis=-1)
             return data
 
-        point = [
-            space.random_uniform(n_samples)
-            for space in self.manifolds]
-        samples = gs.stack(point, axis=1)
+        point = [space.random_uniform(n_samples) for space in self.manifolds]
+        samples = gs.stack(point, axis=-2)
         return samples

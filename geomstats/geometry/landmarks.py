@@ -10,21 +10,17 @@ from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
-# TODO : Add documentation to this file.
-
-
 class Landmarks(ProductManifold):
     """Class for space of landmarks.
 
     The landmark space is a product manifold where all manifolds in the
-    product are the same. The default metric the product metric and
+    product are the same. The default metric is the product metric and
     is often referred to as the L2 metric.
-    The LDDMM metric could also be implemented.
 
     Parameters
     ----------
     ambient_manifold : Manifold
-        Manifold in which landmarks lie
+        Manifold to which landmarks belong
     n_landmarks: int
             Number of landmarks.
     """
@@ -34,179 +30,68 @@ class Landmarks(ProductManifold):
             manifolds=[ambient_manifold] * n_landmarks,
             default_point_type='matrix')
         self.ambient_manifold = ambient_manifold
-        self.l2_metric = self.metric
+        self.metric = L2Metric(ambient_manifold, n_landmarks)
         self.n_landmarks = n_landmarks
 
 
-class L2Metric(RiemannianMetric):
-    """L2 Riemannian metric on the space of landmarks."""
+class L2Metric(ProductRiemannianMetric):
+    """L2 Riemannian metric on the space of landmarks.
 
-    def __init__(self, ambient_manifold):
+    Parameters
+    ----------
+    ambient_manifold : Manifold
+        Manifold in which landmarks lie
+    n_landmarks: int
+            Number of landmarks.
+
+    """
+
+    def __init__(self, ambient_manifold, n_landmarks):
         super(L2Metric, self).__init__(
-            dim=math.inf,
-            signature=(math.inf, 0, 0))
+            metrics=[ambient_manifold.metric] * n_landmarks,
+            default_point_type='matrix')
         self.ambient_manifold = ambient_manifold
         self.ambient_metric = ambient_manifold.metric
 
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'matrix'])
-    def inner_product(self, tangent_vec_a, tangent_vec_b, base_landmarks):
-        """Compute inner product between tangent vectors at base landmark set.
+    def geodesic(
+            self, initial_point, end_point=None, initial_tangent_vec=None):
+        """Generate parameterized function for the geodesic curve.
+
+        Geodesic curve defined by either:
+        - an initial landmark set and an initial tangent vector,
+        - an initial landmark set and an end landmark set.
 
         Parameters
         ----------
-        tangent_vec_a
-        tangent_vec_b
-        base_landmarks
+        initial_point : array-like, shape=[..., dim]
+            Landmark set, initial point of the geodesic.
+        end_point : array-like, shape=[..., dim]
+            Landmark set, end point of the geodesic. If None,
+            an initial tangent vector must be given.
+            Optional, default : None
+        initial_tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at base point, the initial speed of the geodesics.
+            If None, an end point must be given and a logarithm is computed.
+            Optional, default : None
 
         Returns
         -------
-        inner_prod
-        """
-        if not (tangent_vec_a.shape == tangent_vec_b.shape
-                and tangent_vec_a.shape == base_landmarks.shape):
-            raise NotImplementedError
-
-        n_landmark_sets, n_landmarks_per_set, n_coords = tangent_vec_a.shape
-
-        new_dim = n_landmark_sets * n_landmarks_per_set
-        tangent_vec_a = gs.reshape(tangent_vec_a, (new_dim, n_coords))
-        tangent_vec_b = gs.reshape(tangent_vec_b, (new_dim, n_coords))
-        base_landmarks = gs.reshape(base_landmarks, (new_dim, n_coords))
-
-        inner_prod = self.ambient_metric.inner_product(
-            tangent_vec_a, tangent_vec_b, base_landmarks)
-        inner_prod = gs.reshape(
-            inner_prod, (n_landmark_sets, n_landmarks_per_set))
-        inner_prod = gs.sum(inner_prod, -1)
-
-        n_landmarks_per_set_float = gs.array(n_landmarks_per_set)
-        n_landmarks_per_set_float = gs.cast(
-            n_landmarks_per_set_float, gs.float32)
-        inner_prod = inner_prod / n_landmarks_per_set_float
-        inner_prod = gs.to_ndarray(inner_prod, to_ndim=1)
-        inner_prod = gs.to_ndarray(inner_prod, to_ndim=2, axis=1)
-
-        return inner_prod
-
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
-    def dist(self, landmarks_a, landmarks_b):
-        """Compute geodesic distance between two landmark sets.
-
-        Parameters
-        ----------
-        landmarks_a
-        landmarks_b
-
-        Returns
-        -------
-        dist
-        """
-        if landmarks_a.shape != landmarks_b.shape:
-            raise NotImplementedError
-
-        n_landmark_sets, n_landmarks_per_set, n_coords = landmarks_a.shape
-
-        landmarks_a = gs.reshape(
-            landmarks_a, (n_landmark_sets * n_landmarks_per_set, n_coords))
-        landmarks_b = gs.reshape(
-            landmarks_b, (n_landmark_sets * n_landmarks_per_set, n_coords))
-
-        dist = self.ambient_metric.dist(landmarks_a, landmarks_b)
-        dist = gs.reshape(dist, (n_landmark_sets, n_landmarks_per_set))
-        n_landmarks_per_set_float = gs.array(n_landmarks_per_set)
-        n_landmarks_per_set_float = gs.cast(
-            n_landmarks_per_set_float, gs.float32)
-        dist = gs.sqrt(gs.sum(dist ** 2, -1) / n_landmarks_per_set_float)
-        dist = gs.to_ndarray(dist, to_ndim=1)
-        dist = gs.to_ndarray(dist, to_ndim=2, axis=1)
-
-        return dist
-
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
-    def exp(self, tangent_vec, base_landmarks):
-        """Compute Riemannian exponential of tan vector wrt base landmark set.
-
-        Parameters
-        ----------
-        tangent_vec
-        base_landmarks
-
-        Returns
-        -------
-        exp
-        """
-        n_landmark_sets, n_landmarks_per_set, n_coords = base_landmarks.shape
-        n_tangent_vecs = tangent_vec.shape[0]
-
-        new_dim = n_landmark_sets * n_landmarks_per_set
-        new_base_landmarks = gs.reshape(base_landmarks, (new_dim, n_coords))
-        new_tangent_vec = gs.reshape(tangent_vec, (new_dim, n_coords))
-
-        exp = self.ambient_metric.exp(new_tangent_vec, new_base_landmarks)
-        exp = gs.reshape(exp, (n_tangent_vecs, n_landmarks_per_set, n_coords))
-        exp = gs.squeeze(exp)
-
-        return exp
-
-    @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
-    def log(self, landmarks, base_landmarks):
-        """Compute Riemannian log of a set of landmarks wrt base landmark set.
-
-        Parameters
-        ----------
-        landmarks
-        base_landmarks
-
-        Returns
-        -------
-        log
-        """
-        if landmarks.shape != base_landmarks.shape:
-            raise NotImplementedError
-
-        n_landmark_sets, n_landmarks_per_set, n_coords = landmarks.shape
-
-        landmarks = gs.reshape(
-            landmarks, (n_landmark_sets * n_landmarks_per_set, n_coords))
-        base_landmarks = gs.reshape(
-            base_landmarks, (n_landmark_sets * n_landmarks_per_set, n_coords))
-        log = self.ambient_metric.log(landmarks, base_landmarks)
-        log = gs.reshape(log, (n_landmark_sets, n_landmarks_per_set, n_coords))
-        log = gs.squeeze(log)
-
-        return log
-
-    def geodesic(self, initial_landmarks,
-                 end_landmarks=None, initial_tangent_vec=None):
-        """Compute geodesic from initial & end landmark set (or init. tan vec).
-
-        Compute the geodesic specified either by an initial landmark set and
-        an end landmark set, or by an initial landmark set and an initial
-        tangent vector.
-
-        Parameters
-        ----------
-        initial_landmarks
-        end_landmarks
-        initial_tangent_vec
-
-        Returns
-        -------
-        landmarks_on_geodesic
+        path : callable
+            The time parameterized geodesic curve.
         """
         landmarks_ndim = 2
         initial_landmarks = gs.to_ndarray(
-            initial_landmarks, to_ndim=landmarks_ndim + 1)
+            initial_point, to_ndim=landmarks_ndim + 1)
 
-        if end_landmarks is None and initial_tangent_vec is None:
+        if end_point is None and initial_tangent_vec is None:
             raise ValueError(
                 'Specify an end landmark set or an initial tangent'
                 'vector to define the geodesic.')
-        if end_landmarks is not None:
+        if end_point is not None:
             end_landmarks = gs.to_ndarray(
-                end_landmarks, to_ndim=landmarks_ndim + 1)
-            shooting_tangent_vec = self.log(landmarks=end_landmarks,
-                                            base_landmarks=initial_landmarks)
+                end_point, to_ndim=landmarks_ndim + 1)
+            shooting_tangent_vec = self.log(
+                point=end_landmarks, base_point=initial_landmarks)
             if initial_tangent_vec is not None:
                 if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
                     raise RuntimeError(
@@ -214,8 +99,8 @@ class L2Metric(RiemannianMetric):
                         ' far from the initial tangent vector.')
             initial_tangent_vec = shooting_tangent_vec
         initial_tangent_vec = gs.array(initial_tangent_vec)
-        initial_tangent_vec = gs.to_ndarray(initial_tangent_vec,
-                                            to_ndim=landmarks_ndim + 1)
+        initial_tangent_vec = gs.to_ndarray(
+            initial_tangent_vec, to_ndim=landmarks_ndim + 1)
 
         def landmarks_on_geodesic(t):
             t = gs.cast(t, gs.float32)
@@ -233,7 +118,7 @@ class L2Metric(RiemannianMetric):
                     raise RuntimeError
                 exp = self.exp(
                     tangent_vec=tangent_vec,
-                    base_landmarks=new_initial_landmarks)
+                    base_point=new_initial_landmarks)
                 return exp
 
             landmarks_at_time_t = gs.vectorize(
