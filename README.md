@@ -16,7 +16,7 @@ The module `geometry` implements concepts in differential geometry, and the modu
 
 ## Install geomstats via pip3
 
-From a terminal (OS X & Linux), you can install geomstats and its requirements with ``pip3`` as follows::
+From a terminal (OS X & Linux), you can install geomstats and its requirements with ``pip3`` as follows:
 
 ```
 pip3 install geomstats
@@ -26,7 +26,7 @@ This method installs the latest version of geomstats that is uploaded on PyPi. N
 
 ## Install geomstats via Git
 
-From a terminal (OS X & Linux), you can install geomstats and its requirements via ``git`` as follows::
+From a terminal (OS X & Linux), you can install geomstats and its requirements via ``git`` as follows:
 
 ```
 git clone https://github.com/geomstats/geomstats.git
@@ -43,7 +43,7 @@ pip3 install -r dev-requirements.txt -r opt-requirements.txt
 
 Geomstats can run seemlessly with ``numpy``, ``tensorflow`` or ``pytorch``. Note that ``pytorch`` and ``tensorflow`` requirements are optional, as geomstats can be used with ``numpy`` only. By default, the ``numpy`` backend is used. The visualizations are only available with this backend.
 
-To get the ``tensorflow`` and ``pytorch`` versions compatible with geomstats, install the [optional requirements](https://github.com/geomstats/geomstats/blob/master/opt-requirements.txt)::
+To get the ``tensorflow`` and ``pytorch`` versions compatible with geomstats, install the [optional requirements](https://github.com/geomstats/geomstats/blob/master/opt-requirements.txt):
 
 ```
 pip3 install -r opt-requirements.txt
