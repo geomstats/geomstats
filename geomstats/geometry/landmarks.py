@@ -1,13 +1,9 @@
 """Manifold for sets of landmarks that belong to any given manifold."""
 
-import math
-
 import geomstats.backend as gs
-import geomstats.vectorization
-from geomstats.geometry.manifold import Manifold
 from geomstats.geometry.product_manifold import ProductManifold
-from geomstats.geometry.product_riemannian_metric import ProductRiemannianMetric
-from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.product_riemannian_metric import \
+    ProductRiemannianMetric
 
 
 class Landmarks(ProductManifold):

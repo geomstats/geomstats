@@ -1,7 +1,5 @@
 """Unit tests for parameterized manifolds."""
 
-import tests.helper as helper
-
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.discretized_curves import DiscretizedCurves

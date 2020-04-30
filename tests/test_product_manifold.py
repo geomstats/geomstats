@@ -30,8 +30,7 @@ class TestProductManifold(geomstats.tests.TestCase):
         n_samples = 1
         data = self.space_matrix.random_uniform(n_samples)
         result = self.space_matrix.belongs(data)
-        expected = gs.array([True] * n_samples)
-        self.assertAllClose(result, expected)
+        self.assertTrue(result)
 
         n_samples = 5
         data = self.space_matrix.random_uniform(n_samples)

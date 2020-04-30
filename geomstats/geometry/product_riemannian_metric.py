@@ -158,17 +158,17 @@ class ProductRiemannianMetric(RiemannianMetric):
             Inner-product of the two tangent vectors.
         """
         if base_point is None:
-            base_point = gs.array([[None]] * self.n_metrics)
+            base_point = gs.empty((self.n_metrics, self.dim))
 
         if point_type is None:
             point_type = self.default_point_type
         geomstats.errors.check_parameter_accepted_values(
             point_type, 'point_type', ['vector', 'matrix'])
 
+        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
+        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
+        base_point = gs.to_ndarray(base_point, to_ndim=2)
         if point_type == 'vector':
-            tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
-            tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
-            base_point = gs.to_ndarray(base_point, to_ndim=2)
             intrinsic = self.is_intrinsic(tangent_vec_b)
             args = {'tangent_vec_a': tangent_vec_a,
                     'tangent_vec_b': tangent_vec_b,

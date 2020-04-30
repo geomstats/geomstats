@@ -46,7 +46,7 @@ class TestPoincarePolydisk(geomstats.tests.TestCase):
 
         single_disk = PoincarePolydisk(n_disks=1, coords_type=coords_type)
         two_disks = PoincarePolydisk(n_disks=2, coords_type=coords_type)
-
+        print(point_b.shape)
         distance_single_disk = single_disk.metric.dist(point_a, point_b)
         distance_two_disks = two_disks.metric.dist(
             duplicate_point_a, duplicate_point_b)
