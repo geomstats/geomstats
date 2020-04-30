@@ -297,7 +297,7 @@ class LieGroup(Manifold):
         -------
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
         """
-        # TODO(ninamiolane): Build a standalone decorator that *only*
+        # TODO (ninamiolane): Build a standalone decorator that *only*
         # deals with point_type None and base_point None
         identity = self.get_identity(point_type=self.default_point_type)
         if base_point is None:

@@ -256,7 +256,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         NB: points on the n-dimensional sphere are
         (n+1)-D vectors of norm 1.
         """
-        # TODO(nina): Fix that this test fails, also in numpy
+        # TODO (nina): Fix that this test fails, also in numpy
         # Riemannian Exp then Riemannian Log
         # General case
         # NB: Riemannian log gives a regularized tangent vector,

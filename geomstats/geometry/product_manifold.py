@@ -34,7 +34,7 @@ class ProductManifold(Manifold):
         Default representation of points.
     """
 
-    # FIXME(nguigs): This only works for 1d points
+    # FIXME (nguigs): This only works for 1d points
 
     def __init__(self, manifolds, default_point_type='vector', n_jobs=1):
         geomstats.errors.check_parameter_accepted_values(

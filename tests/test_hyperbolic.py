@@ -393,7 +393,7 @@ class TestHyperbolic(geomstats.tests.TestCase):
         self.assertAllClose(result, expected, atol=1e-2)
 
     def test_geodesic_and_belongs(self):
-        # TODO(nina): Fix this tests, as it fails when geodesic goes "too far"
+        # TODO (nina): Fix this tests, as it fails when geodesic goes "too far"
         initial_point = gs.array([4.0, 1., 3.0, math.sqrt(5)])
         n_geodesic_points = 100
         vector = gs.array([1., 0., 0., 0.])
