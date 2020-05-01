@@ -2,7 +2,7 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.discretized_curves import DiscretizedCurves
+from geomstats.geometry.discretized_curves import DiscreteCurves
 from geomstats.geometry.hypersphere import Hypersphere
 
 
@@ -37,9 +37,9 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
         self.times = gs.linspace(0., 1., self.n_discretized_curves)
         self.atol = 1e-6
         gs.random.seed(1234)
-        self.space_curves_in_euclidean_3d = DiscretizedCurves(
+        self.space_curves_in_euclidean_3d = DiscreteCurves(
             ambient_manifold=r3)
-        self.space_curves_in_sphere_2d = DiscretizedCurves(
+        self.space_curves_in_sphere_2d = DiscreteCurves(
             ambient_manifold=s2)
         self.l2_metric_s2 = self.space_curves_in_sphere_2d.l2_metric(
             self.n_sampling_points)
@@ -55,6 +55,14 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
     def test_belongs(self):
         result = self.space_curves_in_sphere_2d.belongs(self.curve_a)
         self.assertTrue(result)
+
+        curve_ab = [self.curve_a[:-1], self.curve_b]
+        result = self.space_curves_in_sphere_2d.belongs(curve_ab)
+        self.assertTrue(gs.all(result))
+
+        curve_ab = gs.array([self.curve_a, self.curve_b])
+        result = self.space_curves_in_sphere_2d.belongs(curve_ab)
+        self.assertTrue(gs.all(result))
 
     @geomstats.tests.np_only
     def test_l2_metric_log_and_squared_norm_and_dist(self):

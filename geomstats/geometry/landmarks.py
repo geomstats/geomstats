@@ -16,9 +16,9 @@ class Landmarks(ProductManifold):
     Parameters
     ----------
     ambient_manifold : Manifold
-        Manifold to which landmarks belong
-    n_landmarks: int
-            Number of landmarks.
+        Manifold to which landmarks belong.
+    n_landmarks : int
+        Number of landmarks.
     """
 
     def __init__(self, ambient_manifold, n_landmarks):
