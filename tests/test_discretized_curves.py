@@ -7,7 +7,6 @@ from geomstats.geometry.hypersphere import Hypersphere
 
 
 class TestDiscretizedCurves(geomstats.tests.TestCase):
-    @geomstats.tests.np_and_pytorch_only
     def setUp(self):
         s2 = Hypersphere(dim=2)
         r3 = s2.embedding_manifold
@@ -64,7 +63,6 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
         result = self.space_curves_in_sphere_2d.belongs(curve_ab)
         self.assertTrue(gs.all(result))
 
-    @geomstats.tests.np_only
     def test_l2_metric_log_and_squared_norm_and_dist(self):
         """Test that squared norm of logarithm is squared dist."""
         tangent_vec = self.l2_metric_s2.log(
@@ -76,7 +74,6 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_l2_metric_log_and_exp(self):
         """Test that exp and log are inverse maps."""
         tangent_vec = self.l2_metric_s2.log(
@@ -117,7 +114,7 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
             curves_ab, curves_bc)
         self.assertAllClose(gs.shape(result), (n_samples,))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_tf_only
     def test_l2_metric_exp_vectorization(self):
         """Test the vectorization of exp."""
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
@@ -133,7 +130,7 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
             base_point=curves_ab)
         self.assertAllClose(gs.shape(result), gs.shape(curves_ab))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_tf_only
     def test_l2_metric_log_vectorization(self):
         """Test the vectorization of log."""
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
@@ -147,29 +144,23 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
         result = tangent_vecs
         self.assertAllClose(gs.shape(result), gs.shape(curves_ab))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_tf_only
     def test_l2_metric_geodesic(self):
         """Test the geodesic method of L2Metric."""
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
-        curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
         curves_ab = curves_ab(self.times)
-        curves_bc = curves_bc(self.times)
 
         result = curves_ab
-        expected = gs.zeros(curves_ab.shape)
+        expected = []
         for k in range(self.n_sampling_points):
             geod = self.l2_metric_s2.ambient_metric.geodesic(
                 initial_point=self.curve_a[k, :],
                 end_point=self.curve_b[k, :])
-            expected[:, k, :] = geod(self.times)
-
+            expected.append(geod(self.times))
+        expected = gs.stack(expected, axis=1)
         self.assertAllClose(result, expected)
 
-        geod = self.l2_metric_s2.geodesic(
-            initial_point=curves_ab,
-            end_point=curves_bc)
-
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_tf_only
     def test_srv_metric_pointwise_inner_product(self):
         curves_ab = self.l2_metric_s2.geodesic(self.curve_a, self.curve_b)
         curves_bc = self.l2_metric_s2.geodesic(self.curve_b, self.curve_c)
