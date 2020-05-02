@@ -36,7 +36,7 @@ def _assess_dimension_(spectrum, rank, n_samples, n_features):
     Returns
     -------
     ll : float
-        The log-likelihood
+        Log-likelihood.
 
     Notes
     -----
@@ -104,8 +104,10 @@ class TangentPCA(_BasePCA):
         Riemannian metric.
     n_components : int
         Number of principal components.
-    point_type : str, {\'vector\', \'matrix\'}
+        Optional, default: None.
+    point_type : str, {'vector', 'matrix'}
         Point type.
+        Optional, default: 'vector'.
     """
 
     def __init__(self, metric, n_components=None, copy=True,
