@@ -24,7 +24,7 @@ def loss(y_pred, y_true, group, metric=None):
     group : LieGroup
     metric : RiemannianMetric
         Riemannian metric.
-        Optional, default to the left invariant metric if None.
+        Optional, defaults to the left invariant metric if None.
 
     Returns
     -------
@@ -50,7 +50,7 @@ def grad(y_pred, y_true, group, metric=None):
     group : LieGroup
     metric : RiemannianMetric
         Riemannian metric.
-        optional, default to the left invariant metric if None.
+        optional, defaults to the left invariant metric if None.
 
     Returns
     -------
@@ -321,7 +321,7 @@ class LieGroup(Manifold):
             Point.
         base_point : array-like, shape=[..., {dim, [n, n]}]
             Base point.
-            Optional, default to identity if None.
+            Optional, defaults to identity if None.
 
         Returns
         -------
