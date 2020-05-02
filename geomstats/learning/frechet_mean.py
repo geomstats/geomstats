@@ -326,8 +326,6 @@ class FrechetMean(BaseEstimator):
         self : object
             Returns self.
         """
-        # TODO (nina): Profile this code to study performance,
-        # i.e. what to do with sq_dists_between_iterates.
 
         is_linear_metric = isinstance(
             self.metric, (EuclideanMetric, MatricesMetric, MinkowskiMetric))
