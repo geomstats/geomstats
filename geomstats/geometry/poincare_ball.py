@@ -296,7 +296,7 @@ class PoincareBallMetric(RiemannianMetric):
         ----------
         base_point : array-like, shape=[..., dim]
             Base point.
-            Optional, default to zeros if None.
+            Optional, defaults to zeros if None.
 
         Returns
         -------

@@ -284,7 +284,7 @@ class _SpecialEuclidean3Vectors(LieGroup):
             Base point.
         metric : RiemannianMetric
             Metric.
-            Optional, default to self.left_canonical_metric if None.
+            Optional, defaults to self.left_canonical_metric if None.
 
         Returns
         -------

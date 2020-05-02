@@ -24,7 +24,7 @@ class InvariantMetric(RiemannianMetric):
         Group to equip with the invariant metric
     inner_product_mat_at_identity : array-like, shape=[dim, dim]
         Matrix that defines the metric at identity.
-        Optional, default to identity matrix if None.
+        Optional, defaults to identity matrix if None.
     left_or_right : str, {'left', 'right'}
         Wether to use a left or right invariant metric.
         Optional, default: 'left'.
@@ -108,7 +108,7 @@ class InvariantMetric(RiemannianMetric):
             Second tangent vector at base_point.
         base_point : array-like, shape=[..., dim]
             Point in the group.
-            Optional, default to identity if None.
+            Optional, defaults to identity if None.
 
         Returns
         -------
@@ -240,7 +240,7 @@ class InvariantMetric(RiemannianMetric):
             Tangent vector at a base point.
         base_point : array-like, shape=[..., dim]
             Point in the group.
-            Optional, default to identity if None.
+            Optional, defaults to identity if None.
 
         Returns
         -------
