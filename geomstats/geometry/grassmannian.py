@@ -107,7 +107,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         Parameters
         ----------
         vector : array-like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
             `vector` is skew-symmetric, in so(n).
         base_point : array-like, shape=[..., n, n]
             Base point.

@@ -121,7 +121,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         power : float
             Power function to differentiate.
         tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array_like, shape=[..., n, n]
             Base point.
 
@@ -203,7 +203,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         power : int
             Power.
         tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array_like, shape=[..., n, n]
             Base point.
 
@@ -234,7 +234,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         power : int
             Power.
         tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array_like, shape=[..., n, n]
             Base point.
 
@@ -262,7 +262,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         Parameters
         ----------
         tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array_like, shape=[..., n, n]
             Base point.
 
@@ -291,7 +291,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         Parameters
         ----------
         tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array_like, shape=[..., n, n]
             Base point.
 
@@ -319,7 +319,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         Parameters
         ----------
         tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array_like, shape=[..., n, n]
             Base point.
 
@@ -348,7 +348,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         Parameters
         ----------
         tangent_vec : array_like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array_like, shape=[..., n, n]
             Base point.
 
@@ -444,9 +444,9 @@ class SPDMetricAffine(RiemannianMetric):
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
             Base point.
 
@@ -515,7 +515,7 @@ class SPDMetricAffine(RiemannianMetric):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
             Base point.
 
@@ -699,9 +699,9 @@ class SPDMetricProcrustes(RiemannianMetric):
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
             Base point.
 
@@ -740,9 +740,9 @@ class SPDMetricEuclidean(RiemannianMetric):
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
             Base point.
 
@@ -783,7 +783,7 @@ class SPDMetricEuclidean(RiemannianMetric):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
             Base point.
 
@@ -836,9 +836,9 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         Parameters
         ----------
         tangent_vec_a : array-like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         tangent_vec_b : array-like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
             Base point.
 
@@ -870,7 +870,7 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
             Base point.
 

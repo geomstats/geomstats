@@ -23,7 +23,7 @@ class BetaDistributions(EmbeddedManifold):
     Attributes
     ----------
     dim : int
-        Dimension of the manifold of beta distributions.
+        Dimension of the manifold of beta distributions, equal to 2.
     embedding_manifold : Manifold
         Embedding manifold.
     """
@@ -237,12 +237,12 @@ class BetaMetric(RiemannianMetric):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., dim]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., dim]
             Base point.
         n_steps : int
             Number of steps for integration.
-            Optional, default: N_STEPS.
+            Optional, default: 100.
 
         Returns
         -------
@@ -281,7 +281,7 @@ class BetaMetric(RiemannianMetric):
             Base point.
         n_steps : int
             Number of steps for integration.
-            Optional, default: N_STEPS.
+            Optional, default: 100.
 
         Returns
         -------

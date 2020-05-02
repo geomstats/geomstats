@@ -89,7 +89,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         Returns
         -------
         tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         """
         return cls.to_skew_symmetric(vec)
 
@@ -241,7 +241,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., 3]
-            Tangent vector.
+            Tangent vector at base point.
         metric : RiemannianMetric
             Metric.
             Optional, default: self.left_canonical_metric.
@@ -1386,7 +1386,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., 3]
-            Tangent vector.
+            Tangent vector at base point.
         point_type : str, {'vector', 'matrix'}
             Point type.
             Optional, default: self.default_point_type.
@@ -1430,9 +1430,9 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         tangent_vector_a : shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         tangent_vector_b : shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
             Base point.
             Optional, default: None.
@@ -1450,7 +1450,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., 3]
-            Tangent vector.
+            Tangent vector at base point.
 
         Returns
         -------
