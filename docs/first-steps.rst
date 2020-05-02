@@ -21,7 +21,7 @@ From a terminal (OS X & Linux), you can install geomstats and its requirements v
     git clone https://github.com/geomstats/geomstats.git
     pip3 install -r requirements.txt
 
-This methods installs the latest GitHub version. Developers should install this version, together with the development requirements and the optional requirements to enable ``tensorflow`` and ``pytorch`` backends::
+This methods installs the `latest GitHub version<https://github.com/geomstats/geomstats>`_. Developers should install this version, together with the development requirements and the optional requirements to enable ``tensorflow`` and ``pytorch`` backends::
 
     pip3 install -r dev-requirements.txt -r opt-requirements.txt
 
