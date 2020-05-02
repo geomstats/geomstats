@@ -10,58 +10,54 @@ The example currently requires installing the pymanopt HEAD from git:
 import logging
 import os
 
-import pymanopt.function
-from pymanopt import Problem
-from pymanopt.manifolds.manifold import Manifold
+import pymanopt
+from pymanopt.manifolds.manifold import EuclideanEmbeddedSubmanifold
 from pymanopt.solvers import SteepestDescent
 
 import geomstats.backend as gs
 from geomstats.geometry.hypersphere import Hypersphere
 
 
-class GeomstatsSphere(Manifold):
+class GeomstatsSphere(EuclideanEmbeddedSubmanifold):
     """A simple adapter class which proxies calls by pymanopt's solvers to
     `Manifold` subclasses to the underlying geomstats `Hypersphere` class.
     """
 
     def __init__(self, ambient_dimension):
-        self._sphere = Hypersphere(ambient_dimension - 1)
-        self._point_layout = 1
+        dim = ambient_dimension - 1
+        self._sphere = Hypersphere(dim)
+        super().__init__('{}-dimensional Hypersphere'.format(dim), dim)
 
-    def norm(self, base_vector, tangent_vector):
-        return self._sphere.metric.norm(tangent_vector, base_point=base_vector)
+    def norm(self, base_point, tangent_vector):
+        return self._sphere.metric.norm(tangent_vector, base_point=base_point)
 
-    def inner(self, base_vector, tangent_vector_a, tangent_vector_b):
+    def inner(self, base_point, tangent_vector_a, tangent_vector_b):
         return self._sphere.metric.inner_product(
-            tangent_vector_a, tangent_vector_b, base_point=base_vector)
+            tangent_vector_a, tangent_vector_b, base_point=base_point)
 
-    def proj(self, base_vector, tangent_vector):
+    def proj(self, base_point, ambient_vector):
         return self._sphere.to_tangent(
-            tangent_vector, base_point=base_vector)
+            ambient_vector, base_point=base_point)
 
-    def retr(self, base_vector, tangent_vector):
+    def retr(self, base_point, tangent_vector):
         """The retraction operator, which maps a tangent vector in the tangent
         space at a specific point back to the manifold by approximating moving
         along a geodesic. Since geomstats's `Hypersphere` class doesn't provide
         a retraction we use the exponential map instead (see also
         https://hal.archives-ouvertes.fr/hal-00651608/document).
         """
-        return self._sphere.metric.exp(tangent_vector, base_point=base_vector)
+        return self._sphere.metric.exp(tangent_vector, base_point=base_point)
 
     def rand(self):
         return self._sphere.random_uniform()
 
-    @staticmethod
-    def randvec():
-        pass
+    def randvec(self, base_point):
+        random_point = gs.random.normal(size=self.dim + 1)
+        random_tangent_vector = self.proj(base_point, random_point)
+        return random_tangent_vector / gs.linalg.norm(random_tangent_vector)
 
-    @staticmethod
-    def zerovec():
-        pass
-
-    @staticmethod
-    def egrad2rgrad():
-        pass
+    def zerovec(self, base_point):
+        return gs.zeros_like(self.rand())
 
 
 def estimate_dominant_eigenvector(matrix):
@@ -83,7 +79,7 @@ def estimate_dominant_eigenvector(matrix):
         return -2 * gs.dot(matrix, vector)
 
     sphere = GeomstatsSphere(num_columns)
-    problem = Problem(manifold=sphere, cost=cost, egrad=egrad)
+    problem = pymanopt.Problem(manifold=sphere, cost=cost, egrad=egrad)
     solver = SteepestDescent()
     return solver.solve(problem)
 
