@@ -37,6 +37,7 @@ def _default_gradient_descent(
         Optional, default: 1.
     verbose : bool
         Level of verbosity to inform about convergence.
+        Optional, default: False.
 
     Returns
     -------
@@ -107,6 +108,7 @@ class ExponentialBarycenter(BaseEstimator):
         Optional, default: 1.
     verbose : bool
         Level of verbosity to inform about convergence.
+        Optional, default: 1.
 
     Attributes
     ----------

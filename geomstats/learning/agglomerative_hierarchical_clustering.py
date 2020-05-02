@@ -66,7 +66,7 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
         The number of clusters found by the algorithm. If
         ``distance_threshold=None``, it will be equal to the given
         ``n_clusters``.
-    labels_ : ndarray, shape=[n_samples,]
+    labels_ : ndarray, shape=[...,]
         Cluster labels for each point.
     n_leaves_ : int
         Number of leaves in the hierarchical tree.
@@ -100,7 +100,7 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
         else:
             def affinity(data):
                 n_samples = data.shape[0]
-                affinity_matrix = gs.zeros([n_samples, n_samples])
+                affinity_matrix = gs.zeros([..., n_samples])
                 for i_sample in range(1, n_samples):
                     affinity_matrix[i_sample, :i_sample] = distance(
                         data[i_sample, ...], data[:i_sample, ...]).reshape(
