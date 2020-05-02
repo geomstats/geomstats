@@ -14,9 +14,6 @@ EPSILON = 1e-5
 ATOL = 1e-5
 
 
-# TODO (nina): Speed up tf tests
-
-
 class TestSpecialOrthogonal3(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)

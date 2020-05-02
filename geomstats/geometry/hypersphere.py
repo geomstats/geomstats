@@ -447,7 +447,6 @@ class HypersphereMetric(RiemannianMetric):
             Point on the hypersphere equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        # TODO (ninamiolane): Raise error when vector is not tangent
         _, extrinsic_dim = base_point.shape
         n_tangent_vecs, _ = tangent_vec.shape
 
