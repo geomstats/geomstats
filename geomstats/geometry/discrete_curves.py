@@ -100,8 +100,10 @@ class SRVMetric(RiemannianMetric):
             if hasattr(ambient_manifold, 'metric'):
                 self.ambient_metric = ambient_manifold.metric
             else:
-                raise ValueError('Either a metric must be passed or an '
-                                 'ambient manifold equipped with a metric.')
+                raise ValueError('Instantiating an object of class '
+                                 'DiscreteCurves requires either a metric'
+                                 ' or an ambient manifold'
+                                 ' equipped with a metric.')
         else:
             self.ambient_metric = metric
         self.l2_metric = lambda n: L2Metric(ambient_manifold, n_landmarks=n)
@@ -127,10 +129,6 @@ class SRVMetric(RiemannianMetric):
         inner_prod : array-like, shape=[..., n_sampling_points]
             Point-wise inner-product.
         """
-        base_curve = gs.to_ndarray(base_curve, to_ndim=3)
-        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
-        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=3)
-
         def inner_prod_aux(vec_a, vec_b, curve):
             inner_prod = self.ambient_metric.inner_product(vec_a, vec_b, curve)
             return gs.squeeze(inner_prod)
@@ -175,11 +173,12 @@ class SRVMetric(RiemannianMetric):
         Parameters
         ----------
         curve : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Discretized curve.
+            Discrete curve.
 
         Returns
         -------
         srv : array-like, shape=[..., n_sampling_points - 1, ambient_dim]
+            Square-root velocity representation of a discrete curve.
         """
         curve = gs.to_ndarray(curve, to_ndim=3)
         n_curves, n_sampling_points, n_coords = curve.shape
@@ -239,39 +238,40 @@ class SRVMetric(RiemannianMetric):
 
         return curve
 
-    def exp(self, tangent_vec, base_curve):
+    def exp(self, tangent_vec, base_point):
         """Compute Riemannian exponential of tangent vector wrt to base curve.
 
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n_sampling_points, ambient_dim]
             Tangent vector to discrete curve.
-        base_curve : array-like, shape=[..., n_sampling_points, ambient_dim]
+        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
             Discrete curve.
 
         Return
         ------
-        end_curve :
+        end_curve :  array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve, result of the Riemannian exponential.
         """
         if not isinstance(self.ambient_metric, EuclideanMetric):
             raise AssertionError('The exponential map is only implemented '
                                  'for discrete curves embedded in a '
                                  'Euclidean space.')
-        base_curve = gs.to_ndarray(base_curve, to_ndim=3)
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
         tangent_vec = gs.to_ndarray(tangent_vec, to_ndim=3)
-        n_sampling_points = base_curve.shape[1]
+        n_sampling_points = base_point.shape[1]
 
-        base_curve_srv = self.square_root_velocity(base_curve)
+        base_curve_srv = self.square_root_velocity(base_point)
 
         tangent_vec_derivative = (n_sampling_points - 1) * (
             tangent_vec[:, 1:, :] - tangent_vec[:, :-1, :])
         base_curve_velocity = (n_sampling_points - 1) * (
-            base_curve[:, 1:, :] - base_curve[:, :-1, :])
+                base_point[:, 1:, :] - base_point[:, :-1, :])
         base_curve_velocity_norm = self.pointwise_norm(
-            base_curve_velocity, base_curve[:, :-1, :])
+            base_curve_velocity, base_point[:, :-1, :])
 
         inner_prod = self.pointwise_inner_product(
-            tangent_vec_derivative, base_curve_velocity, base_curve[:, :-1, :])
+            tangent_vec_derivative, base_curve_velocity, base_point[:, :-1, :])
         coef_1 = 1 / gs.sqrt(base_curve_velocity_norm)
         coef_2 = -1 / (2 * base_curve_velocity_norm**(5 / 2)) * inner_prod
 
@@ -282,20 +282,20 @@ class SRVMetric(RiemannianMetric):
         end_curve_srv = self.l2_metric(n_sampling_points - 1).exp(
             tangent_vec=srv_initial_derivative, base_point=base_curve_srv)
         end_curve_starting_point = self.ambient_metric.exp(
-            tangent_vec=tangent_vec[:, 0, :], base_point=base_curve[:, 0, :])
+            tangent_vec=tangent_vec[:, 0, :], base_point=base_point[:, 0, :])
         end_curve = self.square_root_velocity_inverse(
             end_curve_srv, end_curve_starting_point)
 
         return end_curve
 
-    def log(self, curve, base_curve):
+    def log(self, point, base_point):
         """Compute Riemannian logarithm of a curve wrt a base curve.
 
         Parameters
         ----------
-        curve : array-like, shape=[..., n_sampling_points, ambient_dim]
+        point : array-like, shape=[..., n_sampling_points, ambient_dim]
             Discrete curve.
-        base_curve : array-like, shape=[..., n_sampling_points, ambient_dim]
+        base_point : array-like, shape=[..., n_sampling_points, ambient_dim]
             Discrete curve to use as base point.
 
         Returns
@@ -307,21 +307,21 @@ class SRVMetric(RiemannianMetric):
             raise AssertionError('The logarithm map is only implemented '
                                  'for discrete curves embedded in a '
                                  'Euclidean space.')
-        curve = gs.to_ndarray(curve, to_ndim=3)
-        base_curve = gs.to_ndarray(base_curve, to_ndim=3)
-        n_curves, n_sampling_points, n_coords = curve.shape
+        point = gs.to_ndarray(point, to_ndim=3)
+        base_point = gs.to_ndarray(base_point, to_ndim=3)
+        n_curves, n_sampling_points, n_coords = point.shape
 
-        curve_srv = self.square_root_velocity(curve)
-        base_curve_srv = self.square_root_velocity(base_curve)
+        curve_srv = self.square_root_velocity(point)
+        base_curve_srv = self.square_root_velocity(base_point)
 
-        base_curve_velocity = (n_sampling_points - 1) * (base_curve[:, 1:, :] -
-                                                         base_curve[:, :-1, :])
+        base_curve_velocity = (n_sampling_points - 1) * (base_point[:, 1:, :] -
+                                                         base_point[:, :-1, :])
         base_curve_velocity_norm = self.pointwise_norm(base_curve_velocity,
-                                                       base_curve[:, :-1, :])
+                                                       base_point[:, :-1, :])
 
         inner_prod = self.pointwise_inner_product(curve_srv - base_curve_srv,
                                                   base_curve_velocity,
-                                                  base_curve[:, :-1, :])
+                                                  base_point[:, :-1, :])
         coef_1 = gs.sqrt(base_curve_velocity_norm)
         coef_2 = 1 / base_curve_velocity_norm**(3 / 2) * inner_prod
 
@@ -330,7 +330,7 @@ class SRVMetric(RiemannianMetric):
         log_derivative = term_1 + term_2
 
         log_starting_points = self.ambient_metric.log(
-            point=curve[:, 0, :], base_point=base_curve[:, 0, :])
+            point=point[:, 0, :], base_point=base_point[:, 0, :])
         log_starting_points = gs.transpose(
             gs.tile(log_starting_points, (1, 1, 1)), (1, 0, 2))
 
@@ -381,8 +381,8 @@ class SRVMetric(RiemannianMetric):
                              'vector to define the geodesic.')
         if end_curve is not None:
             end_curve = gs.to_ndarray(end_curve, to_ndim=curve_ndim + 1)
-            shooting_tangent_vec = self.log(curve=end_curve,
-                                            base_curve=initial_curve)
+            shooting_tangent_vec = self.log(point=end_curve,
+                                            base_point=initial_curve)
             if initial_tangent_vec is not None:
                 if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
                     raise RuntimeError(
@@ -409,20 +409,20 @@ class SRVMetric(RiemannianMetric):
             for k in range(len(t)):
                 curve_at_time_t[k, :] = self.exp(
                     tangent_vec=tangent_vecs[k, :],
-                    base_curve=new_initial_curve)
+                    base_point=new_initial_curve)
             return curve_at_time_t
 
         return curve_on_geodesic
 
-    def dist(self, curve_a, curve_b):
+    def dist(self, point_a, point_b):
         """Geodesic distance between two curves.
 
         Parameters
         ----------
-        curve_a : array-like, shape=[..., n_sampling_points, ambient_dim]
+        point_a : array-like, shape=[..., n_sampling_points, ambient_dim]
             Discrete curve.
-        curve_b : array-like, shape=[..., n_sampling_points, ambient_dim]
-            Discrete curve to use as base point.
+        point_b : array-like, shape=[..., n_sampling_points, ambient_dim]
+            Discrete curve.
 
         Returns
         -------
@@ -432,14 +432,14 @@ class SRVMetric(RiemannianMetric):
             raise AssertionError('The distance is only implemented for '
                                  'discrete curves embedded in a '
                                  'Euclidean space.')
-        if curve_a.shape != curve_b.shape:
+        if point_a.shape != point_b.shape:
             raise ValueError('The curves need to have the same shapes.')
 
-        srv_a = self.square_root_velocity(curve_a)
-        srv_b = self.square_root_velocity(curve_b)
+        srv_a = self.square_root_velocity(point_a)
+        srv_b = self.square_root_velocity(point_b)
         n_sampling_points = srv_a.shape[-2]
         dist_starting_points = self.ambient_metric.dist(
-            curve_a[0, :], curve_b[0, :])
+            point_a[0, :], point_b[0, :])
         dist_srvs = self.l2_metric(n_sampling_points).dist(srv_a, srv_b)
         dist = gs.sqrt(dist_starting_points**2 + dist_srvs**2)
 

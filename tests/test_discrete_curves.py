@@ -2,11 +2,11 @@
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.discretized_curves import DiscreteCurves
+from geomstats.geometry.discrete_curves import DiscreteCurves
 from geomstats.geometry.hypersphere import Hypersphere
 
 
-class TestDiscretizedCurves(geomstats.tests.TestCase):
+class TestDiscreteCurves(geomstats.tests.TestCase):
     def setUp(self):
         s2 = Hypersphere(dim=2)
         r3 = s2.embedding_manifold
@@ -169,13 +169,20 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
 
         tangent_vecs = self.l2_metric_s2.log(
             point=curves_bc, base_point=curves_ab)
-
         result = self.srv_metric_r3.pointwise_inner_product(
             tangent_vec_a=tangent_vecs,
             tangent_vec_b=tangent_vecs,
             base_curve=curves_ab)
         expected_shape = (self.n_discretized_curves, self.n_sampling_points)
         self.assertAllClose(gs.shape(result), expected_shape)
+
+        result = self.srv_metric_r3.pointwise_inner_product(
+            tangent_vec_a=tangent_vecs[0],
+            tangent_vec_b=tangent_vecs[0],
+            base_curve=curves_ab[0])
+        expected_shape = (self.n_sampling_points,)
+        self.assertAllClose(gs.shape(result), expected_shape)
+
 
     @geomstats.tests.np_only
     def test_square_root_velocity_and_inverse(self):
@@ -206,10 +213,10 @@ class TestDiscretizedCurves(geomstats.tests.TestCase):
         curves_ab = curves_ab(self.times)
         curves_bc = curves_bc(self.times)
 
-        log = self.srv_metric_r3.log(curve=curves_bc,
-                                     base_curve=curves_ab)
+        log = self.srv_metric_r3.log(point=curves_bc,
+                                     base_point=curves_ab)
         result = self.srv_metric_r3.exp(tangent_vec=log,
-                                        base_curve=curves_ab)
+                                        base_point=curves_ab)
         expected = curves_bc
 
         self.assertAllClose(gs.squeeze(result), expected)

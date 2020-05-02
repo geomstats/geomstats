@@ -73,7 +73,7 @@ class L2Metric(ProductRiemannianMetric):
         Returns
         -------
         path : callable
-            The time parameterized geodesic curve.
+            Time parameterized geodesic curve.
         """
         landmarks_ndim = 2
         initial_landmarks = gs.to_ndarray(
