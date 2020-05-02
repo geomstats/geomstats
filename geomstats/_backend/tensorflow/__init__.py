@@ -505,7 +505,7 @@ def get_slice(x, indices):
 
 def vectorize(x, pyfunc, multiple_args=False, dtype=None, **kwargs):
     if multiple_args:
-        return tf.map_fn(lambda x: pyfunc(*x), elems=x, dtype=dtype)
+        return tf.map_fn(lambda y: pyfunc(*y), elems=x, dtype=dtype)
     return tf.map_fn(pyfunc, elems=x, dtype=dtype)
 
 

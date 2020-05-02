@@ -457,30 +457,27 @@ class Connection:
         path : callable
             Time parameterized geodesic curve.
         """
-        point_ndim = 1
-        if point_type == 'matrix':
-            point_ndim = 2
+        if point_type is None:
+            point_type = self.default_point_type
+        geomstats.errors.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
 
-        initial_point = gs.to_ndarray(
-            initial_point, to_ndim=point_ndim + 1)
+        signature = '(i,j),(j)->(i,j)'
+        if point_type == 'matrix':
+            signature = '(i,j,k),(j,k)->(i,j,k)'
 
         if end_point is None and initial_tangent_vec is None:
             raise ValueError('Specify an end point or an initial tangent '
                              'vector to define the geodesic.')
         if end_point is not None:
-            end_point = gs.to_ndarray(end_point, to_ndim=point_ndim + 1)
             shooting_tangent_vec = self.log(
-                point=end_point,
-                base_point=initial_point)
+                point=end_point, base_point=initial_point)
             if initial_tangent_vec is not None:
                 if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
                     raise RuntimeError(
                         'The shooting tangent vector is too'
                         ' far from the input initial tangent vector.')
             initial_tangent_vec = shooting_tangent_vec
-        initial_tangent_vec = gs.array(initial_tangent_vec)
-        initial_tangent_vec = gs.to_ndarray(
-            initial_tangent_vec, to_ndim=point_ndim + 1)
 
         def path(t):
             """Generate parameterized function for geodesic curve.
@@ -490,33 +487,27 @@ class Connection:
             t : array-like, shape=[n_points,]
                 Times at which to compute points of the geodesics.
             """
-            t = gs.array(t)
-            t = gs.cast(t, gs.float32)
-            t = gs.to_ndarray(t, to_ndim=1)
-            t = gs.to_ndarray(t, to_ndim=2, axis=1)
-            new_initial_point = gs.to_ndarray(
-                initial_point,
-                to_ndim=point_ndim + 1)
-            new_initial_tangent_vec = gs.to_ndarray(
-                initial_tangent_vec,
-                to_ndim=point_ndim + 1)
-
+            t = gs.array(t, gs.float32)
             if point_type == 'vector':
                 tangent_vecs = gs.einsum(
-                    'il,nk->ik',
-                    t,
-                    new_initial_tangent_vec)
-            elif point_type == 'matrix':
+                    'i,...k->...ik', t, initial_tangent_vec)
+            else:
                 tangent_vecs = gs.einsum(
-                    'il,nkm->ikm',
-                    t,
-                    new_initial_tangent_vec)
+                    'i,...km->...ikm', t, initial_tangent_vec)
 
-            point_at_time_t = self.exp(
-                tangent_vec=tangent_vecs,
-                base_point=new_initial_point)
-            return point_at_time_t
+            def single_path(tangent_vec, base_point):
+                exp = self.exp(
+                    tangent_vec=tangent_vec,  base_point=base_point)
+                return exp
 
+            point_at_time_t = gs.vectorize(
+                (tangent_vecs, initial_point),
+                single_path,
+                multiple_args=True,
+                signature=signature)
+
+            return point_at_time_t[0] if len(initial_point) == 1 \
+                else point_at_time_t
         return path
 
     def torsion(self, base_point):
