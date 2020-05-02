@@ -63,7 +63,7 @@ class Manifold:
             Optional, default: none.
         atol : float
             Absolute tolerance.
-            Optional, default: ATOL.
+            Optional, default: 1e-6.
 
         Returns
         -------
