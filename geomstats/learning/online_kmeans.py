@@ -28,7 +28,7 @@ def online_kmeans(X, metric, n_clusters, n_repetitions=20,
 
     Parameters
     ----------
-    X : array-like, shape=[n_samples, n_features]
+    X : array-like, shape=[..., n_features]
         Input data. It is treated sequentially by the algorithm, i.e.
         one datum is chosen randomly at each iteration.
     metric : object

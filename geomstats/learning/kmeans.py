@@ -19,17 +19,21 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
     ----------
     n_clusters : int
         Number of clusters (k value of the k-means).
+        Optional, default: 8.
     riemannian_metric : object of class RiemannianMetric
         The geomstats Riemmanian metric associate to the space used.
     init : str
         How to initialize centroids at the beginning of the algorithm. The
         choice 'random' will select training points as initial centroids
         uniformly at random.
+        Optional, default: 'random'.
     tol : float
         Convergence factor. Convergence is achieved when the difference of mean
         distance between two steps is lower than tol.
+        Optional, default: 1e-2.
     verbose : int
         If verbose > 0, information will be printed during learning.
+        Optional, default: 0.
 
     Example
     -------
@@ -58,16 +62,17 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, n_features]
+        X : array-like, shape=[..., n_features]
             Training data, where n_samples is the number of samples and
             n_features is the number of features.
         max_iter : int
             Maximum number of iterations.
+            Optional, default: 100.
 
         Returns
         -------
         self : array-like, shape=[n_clusters,]
-            centroids array
+            Centroids.
         """
         n_samples = X.shape[0]
         belongs = gs.zeros(n_samples)
@@ -129,12 +134,12 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, n_features]
+        X : array-like, shape=[..., n_features]
             Input data.
 
         Returns
         -------
-        self : array-like, shape=[n_samples,]
+        self : array-like, shape=[...,]
             Array of predicted cluster indices for each sample.
         """
         if self.centroids is None:

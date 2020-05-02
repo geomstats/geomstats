@@ -24,9 +24,9 @@ def variance(points,
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, dim]
+    points : array-like, shape=[..., dim]
         Points.
-    weights : array-like, shape=[n_samples,]
+    weights : array-like, shape=[...,]
         Weights associated to the points.
         Optional, default: None.
 
@@ -60,9 +60,9 @@ def linear_mean(points, weights=None, point_type='vector'):
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, dim]
+    points : array-like, shape=[..., dim]
         Points to be averaged.
-    weights : array-like, shape=[n_samples,]
+    weights : array-like, shape=[...,]
         Weights associated to the points.
         Optional, default: None.
 
@@ -208,9 +208,9 @@ def _adaptive_gradient_descent(points,
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, dim]
+    points : array-like, shape=[..., dim]
         Points to be averaged.
-    weights : array-like, shape=[n_samples, 1], optional
+    weights : array-like, shape=[..., 1], optional
         Weights associated to the points.
     max_iter : int, optional
         Maximum number of iterations for the gradient descent.
@@ -221,7 +221,7 @@ def _adaptive_gradient_descent(points,
 
     Returns
     -------
-    current_mean: array-like, shape=[n_samples, dim]
+    current_mean: array-like, shape=[..., dim]
         Weighted Frechet mean of the points.
     """
     if point_type == 'matrix':
@@ -332,13 +332,13 @@ class FrechetMean(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape=[n_samples, n_features]
+        X : {array-like, sparse matrix}, shape=[..., n_features]
             Training input samples.
-        y : array-like, shap=[n_samples,] or [n_samples, n_outputs]
+        y : array-like, shape=[...,] or [..., n_outputs]
             Target values (class labels in classification, real numbers in
             regression).
             Ignored.
-        weights : array-like, shape=[n_samples,]
+        weights : array-like, shape=[...,]
             Weights associated to the points.
             Optional, default: None.
 
