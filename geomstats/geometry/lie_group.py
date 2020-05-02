@@ -191,7 +191,7 @@ class LieGroup(Manifold):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
-            Tangent vector.
+            Tangent vector at base point.
 
         Returns
         -------
@@ -208,7 +208,7 @@ class LieGroup(Manifold):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., {dim, [n, n]}]
             Base point.
 
@@ -241,7 +241,7 @@ class LieGroup(Manifold):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., {dim, [n, n]}]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., {dim, [n, n]}]
             Base point.
             Optional, default: self.identity
@@ -365,9 +365,9 @@ class LieGroup(Manifold):
         Parameters
         ----------
         tangent_vector_a : array-like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         tangent_vector_b : array-like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
             Base point.
 
@@ -438,7 +438,7 @@ class LieGroup(Manifold):
         Returns
         -------
         tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         """
         if base_point is None:
             return self._to_lie_algebra(vector)

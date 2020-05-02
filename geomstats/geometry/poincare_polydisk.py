@@ -90,7 +90,7 @@ class PoincarePolydisk(ProductManifold):
         Returns
         -------
         tangent_vec : array-like, shape=[..., n_disks, dim + 1]
-            Tangent vector.
+            Tangent vector at base point.
         """
         n_disks = base_point.shape[1]
         hyperbolic_space = Hyperboloid(2, self.coords_type)

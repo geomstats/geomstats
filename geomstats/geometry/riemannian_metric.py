@@ -180,9 +180,9 @@ class RiemannianMetric(Connection):
         Parameters
         ----------
         tangent_vec_a: array-like, shape=[..., dim]
-            Tangent vector.
+            Tangent vector at base point.
         tangent_vec_b: array-like, shape=[..., dim]
-            Tangent vector.
+            Tangent vector at base point.
         base_point: array-like, shape=[..., dim]
             Base point.
             Optional, default: None.

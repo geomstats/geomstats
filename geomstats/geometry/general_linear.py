@@ -120,7 +120,7 @@ class GeneralLinear(Matrices):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., n, n]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]}
             Base point.
             Optional, default to identity if None.

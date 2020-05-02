@@ -109,7 +109,7 @@ class EuclideanMetric(RiemannianMetric):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., dim]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., dim]
             Base point.
 

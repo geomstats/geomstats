@@ -259,7 +259,7 @@ class _SpecialEuclidean3Vectors(LieGroup):
         Parameters
         ----------
         tangent_vec: array-like, shape=[..., 3]
-            Tangent vector.
+            Tangent vector at base point.
         metric : RiemannianMetric
             Metric.
             Optional, default: None.
@@ -279,7 +279,7 @@ class _SpecialEuclidean3Vectors(LieGroup):
         Parameters
         ----------
         tangent_vec: array-like, shape=[..., 3]
-            Tangent vector.
+            Tangent vector at base point.
         base_point : array-like, shape=[..., 3]
             Base point.
         metric : RiemannianMetric
@@ -501,7 +501,7 @@ class _SpecialEuclidean3Vectors(LieGroup):
         Parameters
         ----------
         tangent_vec: array-like, shape=[..., 3]
-            Tangent vector.
+            Tangent vector at base point.
 
         Returns
         -------
