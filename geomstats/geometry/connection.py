@@ -455,16 +455,15 @@ class Connection:
         Returns
         -------
         path : callable
-            Time parameterized geodesic curve.
+            Time parameterized geodesic curve. IF a batch of initial
+            conditions is passed, the output array's first dimension
+            represents time, and the second corresponds to the different
+            initial conditions.
         """
         if point_type is None:
             point_type = self.default_point_type
         geomstats.errors.check_parameter_accepted_values(
             point_type, 'point_type', ['vector', 'matrix'])
-
-        signature = '(i,j),(j)->(i,j)'
-        if point_type == 'matrix':
-            signature = '(i,j,k),(j,k)->(i,j,k)'
 
         if end_point is None and initial_tangent_vec is None:
             raise ValueError('Specify an end point or an initial tangent '
@@ -478,6 +477,17 @@ class Connection:
                         'The shooting tangent vector is too'
                         ' far from the input initial tangent vector.')
             initial_tangent_vec = shooting_tangent_vec
+
+        if point_type == 'vector':
+            initial_point = gs.to_ndarray(initial_point, to_ndim=2)
+            initial_tangent_vec = gs.to_ndarray(
+                initial_tangent_vec, to_ndim=2)
+
+        else:
+            initial_point = gs.to_ndarray(initial_point, to_ndim=3)
+            initial_tangent_vec = gs.to_ndarray(
+                initial_tangent_vec, to_ndim=3)
+        n_initial_conditions = initial_tangent_vec.shape[0]
 
         def path(t):
             """Generate parameterized function for geodesic curve.
@@ -495,19 +505,11 @@ class Connection:
                 tangent_vecs = gs.einsum(
                     'i,...km->...ikm', t, initial_tangent_vec)
 
-            def single_path(tangent_vec, base_point):
-                exp = self.exp(
-                    tangent_vec=tangent_vec,  base_point=base_point)
-                return exp
-
-            point_at_time_t = gs.vectorize(
-                (tangent_vecs, initial_point),
-                single_path,
-                multiple_args=True,
-                signature=signature)
-
-            return point_at_time_t[0] if len(initial_point) == 1 \
-                else point_at_time_t
+            points_at_time_t = [
+                self.exp(tv, pt) for tv,
+                                     pt in zip(tangent_vecs, initial_point)]
+            points_at_time_t = gs.stack(points_at_time_t, axis=1)
+            return points_at_time_t[:, 0] if
         return path
 
     def torsion(self, base_point):
