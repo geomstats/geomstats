@@ -63,17 +63,35 @@ class TestPoincareBall(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_dist_vectorization(self):
+
         point_a = gs.array([0.2, 0.5])
         point_b = gs.array([[0.3, -0.5], [0.2, 0.2]])
+        point_c = gs.array([[0.2, 0.3], [0.5, 0.5], [-0.4, 0.1]])
 
         dist_a_b =\
             self.manifold.metric.dist(point_a, point_b)
 
-        result_vect = dist_a_b
-        result =\
+        dist_b_c = gs.flatten(
+            self.manifold.metric.dist(point_b, point_c))
+
+        dist_c_b = self.manifold.metric.dist(point_c, point_b)
+        dist_b_b = self.manifold.metric.dist(point_b, point_c)
+
+        result_vect = gs.concatenate(
+            (dist_a_b, dist_b_c), axis=0)
+
+        result_a_b =\
             [self.manifold.metric.dist(point_a, point_b[i])
              for i in range(len(point_b))]
+
+        result_b_c = \
+            [self.manifold.metric.dist(point_b[i], point_c[j])
+             for i in range(len(point_b))
+             for j in range(len(point_c))
+             ]
+        result = result_a_b + result_b_c
         result = gs.stack(result, axis=0)
+
         self.assertAllClose(result_vect, result)
 
     def test_mobius_vectorization(self):

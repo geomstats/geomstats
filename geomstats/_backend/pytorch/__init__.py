@@ -154,6 +154,10 @@ def flip(x, axis):
     return torch.flip(x, dims=axis)
 
 
+def broadcast_arrays(*args, **kwargs):
+    return torch.broadcast_tensors(*args, **kwargs)
+
+
 def concatenate(seq, axis=0, out=None):
     # XXX(nkoep): Why do we cast to float32 instead of float64 here?
     seq = [cast(t, float32) for t in seq]

@@ -17,6 +17,7 @@ from autograd.numpy import (  # NOQA
     argmax,
     argmin,
     array,
+    broadcast_arrays,
     ceil,
     clip,
     concatenate,
