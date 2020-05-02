@@ -121,22 +121,25 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             Probability of a given sample to belong to a component
             of the GMM, computed for all components.
         """
-        n_data, n_gaussian = data.shape[0], self.means.shape[0]
+        #n_data, n_gaussian = data.shape[0], self.means.shape[0]
 
-        data_expand = gs.expand_dims(data, 1)
-        data_expand = gs.repeat(data_expand, n_gaussian, axis=1)
-        means = gs.expand_dims(self.means, 0)
-        means = gs.repeat(means, n_data, axis=0)
+        #data_expand = gs.expand_dims(data, 1)
+        #data_expand = gs.repeat(data_expand, n_gaussian, axis=1)
+        #means = gs.expand_dims(self.means, 0)
+        #means = gs.repeat(means, n_data, axis=0)
 
-        data_flattened = gs.reshape(data_expand, (-1, data_expand.shape[-1]))
-        means_flattened = gs.reshape(means, (-1, means.shape[-1]))
+        # data_flattened = gs.reshape(data_expand, (-1, data_expand.shape[-1]))
+        # means_flattened = gs.reshape(means, (-1, means.shape[-1]))
+
+        # dist_means_data = (self.riemannian_metric.dist(
+        #     data_flattened, means_flattened) ** 2)
 
         dist_means_data = (self.riemannian_metric.dist(
-            data_flattened, means_flattened) ** 2)
+            data, self.means) ** 2)
 
-        dist_means_data = gs.reshape(dist_means_data,
-                                     (data_expand.shape[0],
-                                      data_expand.shape[1]))
+        # dist_means_data = gs.reshape(dist_means_data,
+        #                              (data_expand.shape[0],
+        #                               data_expand.shape[1]))
 
         weighted_dist_means_data = (dist_means_data *
                                     posterior_probabilities).sum(0) / \

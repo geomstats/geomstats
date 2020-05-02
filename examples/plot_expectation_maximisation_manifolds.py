@@ -136,7 +136,7 @@ def expectation_maximisation_poincare_ball():
                                               variances,
                                               plot_precision=100,
                                               save_path='result.png',
-                                              metric=metric.dist)
+                                              metric=metric)
 
     return plot
 
