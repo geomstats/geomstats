@@ -326,7 +326,6 @@ class FrechetMean(BaseEstimator):
         self : object
             Returns self.
         """
-
         is_linear_metric = isinstance(
             self.metric, (EuclideanMetric, MatricesMetric, MinkowskiMetric))
 
