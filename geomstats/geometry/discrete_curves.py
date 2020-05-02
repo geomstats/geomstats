@@ -266,7 +266,7 @@ class SRVMetric(RiemannianMetric):
         tangent_vec_derivative = (n_sampling_points - 1) * (
             tangent_vec[:, 1:, :] - tangent_vec[:, :-1, :])
         base_curve_velocity = (n_sampling_points - 1) * (
-                base_point[:, 1:, :] - base_point[:, :-1, :])
+            base_point[:, 1:, :] - base_point[:, :-1, :])
         base_curve_velocity_norm = self.pointwise_norm(
             base_curve_velocity, base_point[:, :-1, :])
 

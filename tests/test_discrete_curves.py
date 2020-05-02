@@ -183,7 +183,6 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected_shape = (self.n_sampling_points,)
         self.assertAllClose(gs.shape(result), expected_shape)
 
-
     @geomstats.tests.np_only
     def test_square_root_velocity_and_inverse(self):
         """Test of square_root_velocity and its inverse.
