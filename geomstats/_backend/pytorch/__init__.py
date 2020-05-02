@@ -343,8 +343,8 @@ def sum(x, axis=None, keepdims=None, **kwargs):
 
 
 def einsum(*args, **kwargs):
-    # TODO(ninamiolane): Allow this to work when '->' is not provided
-    # TODO(ninamiolane): Allow this to work for cases like n...k
+    # TODO (ninamiolane): Allow this to work when '->' is not provided
+    # TODO (ninamiolane): Allow this to work for cases like n...k
     einsum_str = args[0]
     input_tensors_list = args[1:]
 

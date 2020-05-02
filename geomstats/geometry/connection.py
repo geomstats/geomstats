@@ -91,7 +91,7 @@ class Connection:
             Value of the vector field to be integrated at position.
         """
         gamma = self.christoffels(position)
-        # TODO(ninamiolane): Use einsum with 3 tensors when it is
+        # TODO (ninamiolane): Use einsum with 3 tensors when it is
         # enabled in the backend
         equation = gs.einsum(
             '...kij,...i->...kj', gamma, velocity)

@@ -7,7 +7,7 @@ Contributing
 Geomstats is a community effort, and everyone is welcome to
 contribute.
 
-The project is hosted on https://github.com/geomstats/geomstats
+The project is hosted on https://github.com/geomstats/geomstats.
 
 Code is not the only way to help the project:
 

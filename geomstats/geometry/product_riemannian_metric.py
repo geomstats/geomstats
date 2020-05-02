@@ -184,7 +184,7 @@ class ProductRiemannianMetric(RiemannianMetric):
             return gs.sum(gs.stack(inner_prod, axis=1), axis=1)
 
         if point_type == 'matrix':
-            # TODO(ninamiolane): Vectorize this more efficiently
+            # TODO (ninamiolane): Vectorize this more efficiently
             tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
             tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=3)
             tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)

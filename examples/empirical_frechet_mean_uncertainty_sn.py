@@ -57,7 +57,7 @@ def empirical_frechet_var_bubble(n_samples, theta, dim,
     for _ in range(n_expectation):
         # Sample n points from the uniform distribution on a sub-sphere
         # of radius theta (i.e cos(theta) in ambient space)
-        # TODO(nina): Add this code as a method of hypersphere
+        # TODO (nina): Add this code as a method of hypersphere
         data = gs.zeros((n_samples, dim + 1), dtype=gs.float64)
         directions = bubble.random_uniform(n_samples)
         directions = gs.to_ndarray(directions, to_ndim=2)
@@ -67,7 +67,7 @@ def empirical_frechet_var_bubble(n_samples, theta, dim,
                 data[i, j] = gs.sin(theta) * directions[i, j]
             data[i, dim] = gs.cos(theta)
 
-        # TODO(nina): Use FrechetMean here
+        # TODO (nina): Use FrechetMean here
         current_mean = _adaptive_gradient_descent(
             data, metric=sphere.metric,
             max_iter=32, init_point=north_pole)

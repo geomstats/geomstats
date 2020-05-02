@@ -680,7 +680,7 @@ class _SpecialEuclidean3Vectors(LieGroup):
         -------
         exponential_mat : Matrix exponential of rot_vec
         """
-        # TODO(nguigs): find usecase for this method
+        # TODO (nguigs): find usecase for this method
         rot_vec = self.rotations.regularize(rot_vec)
         n_rot_vecs, _ = rot_vec.shape
 
@@ -703,7 +703,7 @@ class _SpecialEuclidean3Vectors(LieGroup):
         coef_2[mask_close_to_0] = (1. / 6.
                                    - angle[mask_close_to_0] ** 3 / 120.)
 
-        # TODO(nina): Check if the discontinuity at 0 is expected.
+        # TODO (nina): Check if the discontinuity at 0 is expected.
         coef_1[mask_0] = 0
         coef_2[mask_0] = 0
 

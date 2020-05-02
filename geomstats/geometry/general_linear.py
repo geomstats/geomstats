@@ -210,7 +210,7 @@ class GeneralLinear(Matrices):
         Return a collection of trajectories (4-D array)
         from a collection of input matrices (3-D array).
         """
-        # TODO(nina): Will work when expm gets properly 4-D vectorized.
+        # TODO (nina): Will work when expm gets properly 4-D vectorized.
         tangent_vec = cls.log(point, base_point)
 
         def path(time):

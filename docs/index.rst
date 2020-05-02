@@ -26,6 +26,8 @@ In this context, Geomstats provides code to fulfill four objectives:
 - democratize the use of geometric statistics by implementing user-friendly geometric learning algorithms using Scikit-Learn API; and
 - provide a platform to share learning algorithms on manifolds.
 
+The `source code <https://github.com/geomstats/geomstats>`_ is freely available on GitHub.
+
 The package is organized into two main modules:
 `geometry` and `learning`.
 
