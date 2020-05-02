@@ -3404,8 +3404,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     tangent_vec=tangent_vec,
                     base_point=base_point)
 
-                # TODO (nina): Investigate what it means to regularize
-                # the tangent vector when there is no metric.
                 metric = group.left_canonical_metric
                 expected = group.regularize_tangent_vec(
                     tangent_vec=tangent_vec,
@@ -3433,8 +3431,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     tangent_vec=tangent_vec,
                     base_point=base_point)
 
-                # TODO (nina): Investigate what it means to regularize
-                # the tangent vector when there is no metric.
                 metric = group.left_canonical_metric
                 reg_tangent_vec = group.regularize_tangent_vec(
                     tangent_vec=tangent_vec,
