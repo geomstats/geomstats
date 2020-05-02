@@ -20,18 +20,21 @@ def _default_gradient_descent(
     ----------
     group : LieGroup
         Instance of the class LieGroup.
-    points : array-like, shape=[n_samples, [n,n]]
+    points : array-like, shape=[..., [n,n]]
         Input points lying in the Lie Group.
-    weights : array-like, shape=[n_samples,]
-        default is 1 for each point
+    weights : array-like, shape=[...,]
         Weights associated to the points.
-    max_iter : int, optional (defaults to 32)
+        Optional, defaults to 1 for each point if None.
+    max_iter : int
         Maximum number of iterations to perform in the gradient descent.
-    epsilon : float, optional (defaults to 1e-6)
+        Optional, default: 32.
+    epsilon : float
         Tolerance to reach convergence. The exstrinsic norm of the
         gradient is used as criterion.
-    step : float, optional (defaults to 1.)
+        Optional, default: 1e-6.
+    step : float
         Learning rate in the gradient descent.
+        Optional, default: 1.
     verbose : bool
         Level of verbosity to inform about convergence.
 
@@ -92,13 +95,16 @@ class ExponentialBarycenter(BaseEstimator):
     ----------
     group : LieGroup
         Lie group instance on which the data lie.
-    max_iter : int, optional (defaults to 32)
+    max_iter : int
         Maximum number of iterations to perform in the gradient descent.
-    epsilon : float, optional (defaults to 1e-6)
+        Optional, default: 32.
+    epsilon : float
         Tolerance to reach convergence. The exstrinsic norm of the
         gradient is used as criterion.
-    step : float, optional (defaults to 1.)
+        Optional, default: 1e-6.
+    step : float
         Learning rate in the gradient descent.
+        Optional, default: 1.
     verbose : bool
         Level of verbosity to inform about convergence.
 
@@ -126,13 +132,13 @@ class ExponentialBarycenter(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape=[n_samples, n_features]
+        X : {array-like, sparse matrix}, shape=[..., n_features]
             Training input samples.
-        y : array-like, shape=[n_samples,] or [n_samples, n_outputs]
+        y : array-like, shape=[...,] or [..., n_outputs]
             Target values (class labels in classification, real numbers in
             regression).
             Ignored.
-        weights : array-like, shape=[n_samples,]
+        weights : array-like, shape=[...,]
             Weights associated to the points.
             Optional, default: None.
 

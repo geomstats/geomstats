@@ -58,7 +58,7 @@ class Matrices(Manifold):
             Matrix.
         atol : float
             Tolerance.
-            Optional, default: TOLERANCE.
+            Optional, default: 1e-5.
 
         Returns
         -------
@@ -137,7 +137,7 @@ class Matrices(Manifold):
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: TOLERANCE.
+            Optional, default: 1e-5.
 
         Returns
         -------
@@ -156,7 +156,7 @@ class Matrices(Manifold):
             Matrix.
         atol : float
             Absolute tolerance.
-            Optional, default: TOLERANCE.
+            Optional, default: 1e-5.
 
         Returns
         -------

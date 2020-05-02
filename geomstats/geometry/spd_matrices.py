@@ -43,7 +43,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         Returns
         -------
         belongs : array-like, shape=[...,]
-            Boolean denoting if mat is a SPD matrix.
+            Boolean denoting if mat is an SPD matrix.
         """
         is_symmetric = super(SPDMatrices, self).belongs(mat, atol)
         eigvalues, _ = gs.linalg.eigh(mat)

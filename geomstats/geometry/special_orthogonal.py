@@ -65,7 +65,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
-            Point in SO(n)
+            Point in SO(n).
 
         Returns
         -------
@@ -407,7 +407,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Returns
         -------
         skew_mat : array-like, shape=[..., n, n]
-            Skew symmetric matrix.
+            Skew-symmetric matrix.
         """
         n_vecs, vec_dim = gs.shape(vec)
 
@@ -486,7 +486,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         skew_mat : array-like, shape=[..., n, n]
-            Skew symmetric matrix.
+            Skew-symmetric matrix.
 
         Returns
         -------

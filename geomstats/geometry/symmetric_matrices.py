@@ -59,7 +59,7 @@ class SymmetricMatrices(EmbeddedManifold):
     @staticmethod
     @geomstats.vectorization.decorator(['matrix'])
     def to_vector(mat):
-        """Convert the symmetric part of a symmetric matrix into a vector.
+        """Convert a symmetric matrix into a vector.
 
         Parameters
         ----------

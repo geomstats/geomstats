@@ -58,7 +58,7 @@ class Stiefel(EmbeddedManifold):
             Point.
         tolerance : float, optional
             Tolerance at which to evaluate.
-            Optional, default: TOLERANCE.
+            Optional, default: 1e-5.
 
         Returns
         -------

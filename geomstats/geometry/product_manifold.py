@@ -89,8 +89,7 @@ class ProductManifold(Manifold):
         Returns
         -------
         belongs : array-like, shape=[...,]
-            Array of booleans evaluating if the corresponding points
-            belong to the manifold.
+            Boolean evaluating if the point belongs to the manifold.
         """
         if point_type is None:
             point_type = self.default_point_type

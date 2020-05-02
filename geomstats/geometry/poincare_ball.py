@@ -52,7 +52,7 @@ class PoincareBall(Hyperbolic):
         tolerance : float, optional
             Tolerance at which to evaluate how close the squared norm
             is to the reference value.
-            Optional, default: TOLERANCE.
+            Optional, default: 1e-6.
 
         Returns
         -------

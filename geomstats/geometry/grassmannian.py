@@ -61,7 +61,7 @@ class Grassmannian(EmbeddedManifold):
         point : array-like, shape=[..., n, n]
             Point to be checked.
         tolerance : int
-            Optional, default: TOLERANCE
+            Optional, default: 1e-5.
 
         Returns
         -------

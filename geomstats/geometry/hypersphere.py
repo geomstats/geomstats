@@ -63,9 +63,9 @@ class _Hypersphere(EmbeddedManifold):
         ----------
         point : array-like, shape=[..., dim + 1]
             Point in Euclidean space.
-        tolerance : floatl
+        tolerance : float
             Tolerance at which to evaluate norm == 1.
-            Optional, default: TOLERANCE.
+            Optional, default: 1e-6.
 
         Returns
         -------
