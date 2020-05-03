@@ -79,9 +79,8 @@ def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
 
-# TODO (nkoep): The 'repeat' function was added in TF 2.1. Backport the
-#              implementation from tensorflow/python/ops/array_ops.py.
-repeat = _raise_not_implemented_error
+def repeat(*args, **kwargs):
+    return tf.repeat(*args, **kwargs)
 
 
 def array(x, dtype=None):
