@@ -24,9 +24,10 @@ class PoincareBall(Hyperbolic):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    scale : int, optional
+    scale : int
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
+        Optional, default: 1.
     """
 
     default_coords_type = 'ball'
@@ -53,6 +54,7 @@ class PoincareBall(Hyperbolic):
         tolerance : float, optional
             Tolerance at which to evaluate how close the squared norm
             is to the reference value.
+            Optional, default: 1e-6.
 
         Returns
         -------
@@ -70,9 +72,10 @@ class PoincareBallMetric(RiemannianMetric):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    scale : int, optional
+    scale : int
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
+        Optional, default 1.
     """
 
     default_point_type = 'vector'
@@ -238,7 +241,8 @@ class PoincareBallMetric(RiemannianMetric):
 
         Returns
         -------
-        dist : array-like, shape=[n_samples_a, n_samples_b, dim]
+        dist : array-like,
+            shape=[n_samples_a, dim] or [n_samples_a, n_samples_b, dim]
             Geodesic distance between the two set of points.
             If n_samples_a == n_samples_b then dist is the element-wise
             distance result of a point in points_a with the point from
@@ -247,11 +251,9 @@ class PoincareBallMetric(RiemannianMetric):
             of applying geodesic distance for each point from points_a to all
             points from points_b.
         """
-        if len(points_a.shape) != len(points_b.shape):
-            logging.error('Uncompatible length of shapes')
-
-        if(points_a.shape[-1] != points_b.shape[-1]):
+        if points_a.shape[-1] != points_b.shape[-1]:
             logging.error('Manifold Dimensions not equal')
+            return
 
         elif points_a.shape[0] != points_b.shape[0]:
 
@@ -337,10 +339,13 @@ class PoincareBallMetric(RiemannianMetric):
         Parameters
         ----------
         base_point : array-like, shape=[..., dim]
+            Base point.
+            Optional, defaults to zeros if None.
 
         Returns
         -------
         inner_prod_mat : array-like, shape=[..., dim, dim]
+            Inner-product matrix.
         """
         if base_point is None:
             base_point = gs.zeros((1, self.dim))

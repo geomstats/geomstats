@@ -535,10 +535,10 @@ def cast(x, dtype):
 def broadcast_arrays(x, y, **kwargs):
     tensors = [x, y]
     shapes = [t.get_shape().as_list() for t in tensors]
-    max_rank = max([len(s) for s in shapes])
+    max_rank = max(len(s) for s in shapes)
 
-    for index in range(len(shapes)):
-        shape = shapes[index]
+    for index, value in enumerate(shapes):
+        shape = value
         if len(shape) == max_rank:
             continue
 
@@ -593,8 +593,6 @@ def sum(x, axis=None, keepdims=False, name=None):
 
 
 def einsum(equation, *inputs, **kwargs):
-    # TODO (ninamiolane): Allow this to work when '->' is not provided
-    # TODO (ninamiolane): Allow this to work for cases like n...k
     einsum_str = equation
     input_tensors_list = inputs
 

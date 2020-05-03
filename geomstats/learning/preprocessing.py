@@ -66,13 +66,16 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, {dim, [n, n]}]
+        X : array-like, shape=[..., {dim, [n, n]}]
             The training input samples.
         y : array-like, shape (n_samples,) or (n_samples, n_outputs)
             Ignored
-        weights : array-like, shape=[n_samples, 1], optional
+        weights : array-like, shape=[..., 1]
+            Weights associated to the points.
+            Optional, default: None
         base_point : array-like, shape=[{dim, [n, n]}]
-            Point similar to the input data from which to compute the logs
+            Point similar to the input data from which to compute the logs.
+            Optional, default: None.
 
         Returns
         -------
@@ -93,7 +96,7 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, {dim, [n, n]}]
+        X : array-like, shape=[..., {dim, [n, n]}]
             Data to transform.
         y : Ignored (Compliance with scikit-learn interface)
         base_point : array-like, shape={dim, [n,n]}, optional (mean)
@@ -102,7 +105,8 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
 
         Returns
         -------
-        X_new : array-like, shape=[n_samples, dim]
+        X_new : array-like, shape=[..., dim]
+            Lifted data.
         """
         if base_point is None:
             base_point = self.estimator.estimate_
@@ -134,7 +138,7 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, dim]
+        X : array-like, shape=[..., dim]
             New data, where dim is the dimension of the manifold data belong
             to.
         base_point : array-like, shape={dim, [n,n]}, optional (mean)
@@ -143,7 +147,7 @@ class ToTangentSpace(BaseEstimator, TransformerMixin):
 
         Returns
         -------
-        X_original : array-like, shape=[n_samples, {dim, [n, n]}
+        X_original : array-like, shape=[..., {dim, [n, n]}
             Data lying on the manifold.
         """
         if base_point is None:

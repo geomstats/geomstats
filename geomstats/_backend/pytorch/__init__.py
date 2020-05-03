@@ -13,6 +13,7 @@ from torch import (  # NOQA
     asin as arcsin,
     atan2 as arctan2,
     bool as t_bool,
+    broadcast_tensors as broadcast_arrays,
     ceil,
     clamp as clip,
     cos,
@@ -152,10 +153,6 @@ def flip(x, axis):
     if axis is None:
         axis = list(range(x.ndim))
     return torch.flip(x, dims=axis)
-
-
-def broadcast_arrays(*args, **kwargs):
-    return torch.broadcast_tensors(*args, **kwargs)
 
 
 def concatenate(seq, axis=0, out=None):
@@ -347,8 +344,6 @@ def sum(x, axis=None, keepdims=None, **kwargs):
 
 
 def einsum(*args, **kwargs):
-    # TODO (ninamiolane): Allow this to work when '->' is not provided
-    # TODO (ninamiolane): Allow this to work for cases like n...k
     einsum_str = args[0]
     input_tensors_list = args[1:]
 

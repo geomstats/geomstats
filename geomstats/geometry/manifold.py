@@ -11,7 +11,19 @@ ATOL = 1e-6
 
 
 class Manifold:
-    """Class for manifolds."""
+    r"""Class for manifolds.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the manifold.
+    default_point_type : str, {\'vector\', \'matrix\'}
+        Point type.
+        Optional, default: 'vector'.
+    default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
+        Coordinate type.
+        Optional, default: 'intrinsic'.
+    """
 
     def __init__(
             self, dim, default_point_type='vector',
@@ -30,11 +42,12 @@ class Manifold:
         Parameters
         ----------
         point : array-like, shape=[..., dim]
-                 Input points.
+            Point to evaluate.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the manifold.
         """
         raise NotImplementedError('belongs is not implemented.')
 
@@ -47,6 +60,10 @@ class Manifold:
             Vector.
         base_point : array-like, shape=[..., dim]
             Point on the manifold.
+            Optional, default: none.
+        atol : float
+            Absolute tolerance.
+            Optional, default: 1e-6.
 
         Returns
         -------
@@ -80,11 +97,12 @@ class Manifold:
         Parameters
         ----------
         point : array-like, shape=[..., dim]
-                 Input points.
+            Point.
 
         Returns
         -------
         regularized_point : array-like, shape=[..., dim]
+            Regularized point.
         """
         regularized_point = point
         return regularized_point

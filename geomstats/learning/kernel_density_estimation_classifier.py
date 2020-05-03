@@ -91,7 +91,7 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
         but may also contain the `p` parameter value if the
         `effective_metric_` attribute is set to 'minkowski'.
     outputs_2d_ : bool
-        False when `y`'s shape is [n_samples,] or [n_samples, 1] during fit,
+        False when `y`'s shape is [...,] or [..., 1] during fit,
         otherwise True.
 
     References
@@ -141,10 +141,10 @@ class KernelDensityEstimationClassifier(RadiusNeighborsClassifier):
 
         Parameters
         ----------
-        X : array-like, shape=[n_samples, n_features], [n_samples,] or
-            [n_samples, n_samples] if distance is 'precomputed'
+        X : array-like, shape=[..., n_features], [...,] or
+            [..., n_samples] if distance is 'precomputed'
             Training data.
-        y : array-like, shape=[n_samples] or [n_samples, n_outputs]
+        y : array-like, shape=[...,] or [..., n_outputs]
             Target values.
         """
         data_shape = gs.shape(X)
