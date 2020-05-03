@@ -6,6 +6,7 @@ import sys
 import warnings
 
 import examples.empirical_frechet_mean_uncertainty_sn as empirical_frechet_mean_uncertainty_sn  # NOQA
+import examples.geomstats_in_pymanopt as geomstats_in_pymanopt
 import examples.gradient_descent_s2 as gradient_descent_s2
 import examples.learning_graph_structured_data_h2 as learning_gsd_h2
 import examples.loss_and_gradient_se3 as loss_and_gradient_se3
@@ -55,6 +56,11 @@ class TestExamples(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_empirical_frechet_mean_uncertainty_sn():
         empirical_frechet_mean_uncertainty_sn.main()
+
+    @staticmethod
+    @geomstats.tests.np_only
+    def test_geomstats_in_pymanopt():
+        geomstats_in_pymanopt()
 
     @staticmethod
     @geomstats.tests.np_only
