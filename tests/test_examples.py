@@ -60,7 +60,7 @@ class TestExamples(geomstats.tests.TestCase):
     @staticmethod
     @geomstats.tests.np_only
     def test_geomstats_in_pymanopt():
-        geomstats_in_pymanopt()
+        geomstats_in_pymanopt.main()
 
     @staticmethod
     @geomstats.tests.np_only
