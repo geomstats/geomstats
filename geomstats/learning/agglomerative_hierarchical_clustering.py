@@ -100,7 +100,7 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
         else:
             def affinity(data):
                 n_samples = data.shape[0]
-                affinity_matrix = gs.zeros([..., n_samples])
+                affinity_matrix = gs.zeros([n_samples, n_samples])
                 for i_sample in range(1, n_samples):
                     affinity_matrix[i_sample, :i_sample] = distance(
                         data[i_sample, ...], data[:i_sample, ...]).reshape(
