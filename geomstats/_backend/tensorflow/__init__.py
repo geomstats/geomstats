@@ -79,8 +79,8 @@ def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
 
-def repeat(*args, **kwargs):
-    return tf.repeat(*args, **kwargs)
+def repeat(a, repeats, axis=None):
+    return tf.repeat(input=a, repeats=repeats, axis=axis)
 
 
 def array(x, dtype=None):
