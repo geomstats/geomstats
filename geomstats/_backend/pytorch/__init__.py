@@ -91,8 +91,6 @@ sin = _box_scalar(sin)
 sinh = _box_scalar(sinh)
 
 
-
-
 def convert_to_wider_dtype(tensor_list):
     dtype_list = [x.dtype for x in tensor_list]
     wider_dtype = dtype_list[0]
