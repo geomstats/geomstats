@@ -1,5 +1,7 @@
 """Visualization for Geometric Statistics."""
 
+import functools
+
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
@@ -20,6 +22,26 @@ AX_SCALE = 1.2
 IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'S1', 'S2',
                'H2_poincare_disk', 'H2_poincare_half_plane', 'H2_klein_disk',
                'poincare_polydisk']
+
+
+def to_numpy(f):
+    """Decorator to convert inputs to numpy arrays."""
+    @functools.wraps(f)
+    def inner(*args, **kwargs):
+        np_args = []
+        np_kwargs = []
+        for arg in args:
+            if gs.is_array(arg):
+                arg = gs.to_numpy(arg)
+            np_args.append(arg)
+        for kwarg in kwargs.values():
+            if gs.is_array(kwarg):
+                kwarg = gs.to_numpy(kwarg)
+            np_kwargs.append(kwarg)
+        args = tuple(np_args)
+        kwargs = {key: kwarg for key, kwargs in zip(kwargs, np_kwargs)}
+        return f(*args, **kwargs)
+    return inner
 
 
 class Arrow3D():

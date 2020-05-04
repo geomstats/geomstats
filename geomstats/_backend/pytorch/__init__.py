@@ -88,6 +88,14 @@ sin = _box_scalar(sin)
 sinh = _box_scalar(sinh)
 
 
+def is_array(x):
+    return torch.is_tensor(x)
+
+
+def to_numpy(x):
+    return x.numpy()
+
+
 def less_equal(x, y, **kwargs):
     if not torch.is_tensor(x):
         x = torch.tensor(x)

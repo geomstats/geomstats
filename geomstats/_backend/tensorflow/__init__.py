@@ -79,6 +79,14 @@ def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
 
+def is_array(x):
+    return tf.is_tensor(x)
+
+
+def to_numpy(x):
+    return tf.make_ndarray(x)
+
+
 def repeat(a, repeats, axis=None):
     return tf.repeat(input=a, repeats=repeats, axis=axis)
 
