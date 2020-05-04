@@ -826,3 +826,11 @@ class TestBackends(geomstats.tests.TestCase):
         expected = _np.where(np_array == 1, _np.ones(10), np_array)
         result = gs.where(gs_array == 1, gs.ones(10), gs_array)
         self.assertAllCloseToNp(result, expected)
+
+    def test_convert_to_wider_dtype(self):
+        gs_list = [gs.array([1, 2]), gs.array([2.2, 3.3], dtype=gs.float32)]
+        gs_result = gs.convert_to_wider_dtype(gs_list)
+
+        result = [a.dtype == gs.float32 for a in gs_result]
+
+        self.assertTrue(gs.all(result))
