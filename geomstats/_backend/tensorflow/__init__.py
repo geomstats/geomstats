@@ -87,7 +87,7 @@ def is_array(x):
 
 
 def to_numpy(x):
-    return tf.make_ndarray(x)
+    return x.numpy()
 
 
 def convert_to_wider_dtype(tensor_list):
@@ -560,7 +560,14 @@ def dot(x, y):
 
 
 def isclose(x, y, rtol=1e-05, atol=1e-08):
-    rhs = tf.constant(atol) + tf.constant(rtol) * tf.abs(y)
+    if not tf.is_tensor(x):
+        x = tf.constant(x)
+    if not tf.is_tensor(y):
+        y = tf.constant(y)
+    x, y = convert_to_wider_dtype([x, y])
+    rhs = (
+        tf.constant(atol, dtype=x.dtype)
+        + tf.constant(rtol, dtype=x.dtype) * tf.abs(y))
     return tf.less_equal(tf.abs(tf.subtract(x, y)), rhs)
 
 
@@ -647,7 +654,7 @@ def einsum(equation, *inputs, **kwargs):
             result = squeeze(result, axis=0)
         return result
 
-    return tf.einsum(equation, *inputs, **kwargs)
+    return tf.einsum(equation, *input_tensors_list, **kwargs)
 
 
 def transpose(x, axes=None):
