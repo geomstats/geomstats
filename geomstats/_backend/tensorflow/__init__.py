@@ -565,9 +565,11 @@ def isclose(x, y, rtol=1e-05, atol=1e-08):
     if not tf.is_tensor(y):
         y = tf.constant(y)
     x, y = convert_to_wider_dtype([x, y])
+    dtype = x.dtype
+
     rhs = (
-        tf.constant(atol, dtype=x.dtype)
-        + tf.constant(rtol, dtype=x.dtype) * tf.abs(y))
+        tf.constant(atol, dtype=dtype)
+        + tf.constant(rtol, dtype=dtype) * tf.abs(y))
     return tf.less_equal(tf.abs(tf.subtract(x, y)), rhs)
 
 
