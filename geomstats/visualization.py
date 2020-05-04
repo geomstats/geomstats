@@ -163,7 +163,6 @@ class Sphere():
     def draw_points(self, ax, points=None, **scatter_kwargs):
         if points is None:
             points = self.points
-        print(points)
         points_x = [point[0] for point in points]
         points_y = [point[1] for point in points]
         points_z = [point[2] for point in points]

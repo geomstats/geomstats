@@ -54,7 +54,8 @@ def plot_geodesic_with_initial_tangent_vector(initial_point,
 def main():
     """Plot the geodesics."""
     initial_point = gs.array([np.sqrt(2), 1., 0.])
-    end_point = H2.from_coordinates([1.5, 1.5], 'intrinsic')
+    end_point = gs.array([1.5, 1.5])
+    end_point = H2.from_coordinates(end_point, 'intrinsic')
     initial_tangent_vec = H2.to_tangent(
         vector=gs.array([3.5, 0.6, 0.8]),
         base_point=initial_point)
