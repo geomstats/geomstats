@@ -578,6 +578,8 @@ def einsum(equation, *inputs, **kwargs):
     einsum_str = equation
     input_tensors_list = inputs
 
+    input_tensors_list = convert_to_wider_dtype(input_tensors_list)
+
     einsum_list = einsum_str.split('->')
     input_str = einsum_list[0]
     output_str = einsum_list[1]
