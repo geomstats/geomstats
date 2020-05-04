@@ -855,3 +855,19 @@ class TestBackends(geomstats.tests.TestCase):
         result = [a.dtype == gs.float32 for a in gs_result]
 
         self.assertTrue(gs.all(result))
+
+        gs_list = [gs.array([1, 2]), gs.array([2.2, 3.3], dtype=gs.float64)]
+        gs_result = gs.convert_to_wider_dtype(gs_list)
+
+        result = [a.dtype == gs.float64 for a in gs_result]
+
+        self.assertTrue(gs.all(result))
+
+        gs_list = [
+            gs.array([11.11, 222.2], dtype=gs.float64),
+            gs.array([2.2, 3.3], dtype=gs.float32)]
+        gs_result = gs.convert_to_wider_dtype(gs_list)
+
+        result = [a.dtype == gs.float64 for a in gs_result]
+
+        self.assertTrue(gs.all(result))
