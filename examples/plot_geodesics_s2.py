@@ -1,7 +1,6 @@
 """Plot a geodesic on the sphere S2."""
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
