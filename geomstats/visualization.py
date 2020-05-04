@@ -481,6 +481,7 @@ def convert_to_trihedron(point, space=None):
     return trihedrons
 
 
+@to_numpy
 def plot(points, ax=None, space=None,
          point_type='extrinsic', **point_draw_kwargs):
     """Plot points in the 3D Special Euclidean Group.
