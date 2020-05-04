@@ -90,9 +90,9 @@ class Circle():
     """Class used to draw a circle."""
 
     def __init__(self, n_angles=100, points=None):
-        angles = np.linspace(0, 2 * np.pi, n_angles)
-        self.circle_x = np.cos(angles)
-        self.circle_y = np.sin(angles)
+        angles = gs.linspace(0, 2 * gs.pi, n_angles)
+        self.circle_x = gs.cos(angles)
+        self.circle_y = gs.sin(angles)
         self.points = []
         if points is not None:
             self.add_points(points)
@@ -123,7 +123,7 @@ class Circle():
     def draw_points(self, ax, points=None, **plot_kwargs):
         if points is None:
             points = self.points
-        points = np.array(points)
+        points = gs.array(points)
         ax.plot(points[:, 0], points[:, 1], marker='o', linestyle="None",
                 **plot_kwargs)
 
@@ -141,15 +141,15 @@ class Sphere():
         if n_circles_latitude is None:
             n_circles_latitude = max(n_meridians / 2, 4)
 
-        u, v = np.meshgrid(
-            np.arange(0, 2 * np.pi, 2 * np.pi / n_meridians),
-            np.arange(0, np.pi, np.pi / n_circles_latitude))
+        u, v = gs.meshgrid(
+            gs.arange(0, 2 * gs.pi, 2 * gs.pi / n_meridians),
+            gs.arange(0, gs.pi, gs.pi / n_circles_latitude))
 
-        self.center = np.zeros(3)
+        self.center = gs.zeros(3)
         self.radius = 1
-        self.sphere_x = self.center[0] + self.radius * np.cos(u) * np.sin(v)
-        self.sphere_y = self.center[1] + self.radius * np.sin(u) * np.sin(v)
-        self.sphere_z = self.center[2] + self.radius * np.cos(v)
+        self.sphere_x = self.center[0] + self.radius * gs.cos(u) * gs.sin(v)
+        self.sphere_y = self.center[1] + self.radius * gs.sin(u) * gs.sin(v)
+        self.sphere_z = self.center[2] + self.radius * gs.cos(v)
 
         self.points = []
         if points is not None:
@@ -168,12 +168,11 @@ class Sphere():
                  xlabel='X', ylabel='Y', zlabel='Z')
         return ax
 
-    @to_numpy
     def add_points(self, points):
         if not gs.all(S2.belongs(points)):
             raise ValueError('Points do not belong to the sphere.')
         if not isinstance(points, list):
-            points = points.tolist()
+            points = list(points)
         self.points.extend(points)
 
     def draw(self, ax, **scatter_kwargs):
@@ -187,9 +186,10 @@ class Sphere():
     def draw_points(self, ax, points=None, **scatter_kwargs):
         if points is None:
             points = self.points
-        points_x = np.vstack([point[0] for point in points])
-        points_y = np.vstack([point[1] for point in points])
-        points_z = np.vstack([point[2] for point in points])
+        print(points)
+        points_x = [point[0] for point in points]
+        points_y = [point[1] for point in points]
+        points_z = [point[2] for point in points]
         ax.scatter(points_x, points_y, points_z, **scatter_kwargs)
 
     def fibonnaci_points(self, n_points=16000):
@@ -200,16 +200,16 @@ class Sphere():
         z_vals = []
 
         offset = 2. / n_points
-        increment = np.pi * (3. - np.sqrt(5.))
+        increment = gs.pi * (3. - gs.sqrt(5.))
 
         for i in range(n_points):
             y = ((i * offset) - 1) + (offset / 2)
-            r = np.sqrt(1 - pow(y, 2))
+            r = gs.sqrt(1 - pow(y, 2))
 
             phi = ((i + 1) % n_points) * increment
 
-            x = np.cos(phi) * r
-            z = np.sin(phi) * r
+            x = gs.cos(phi) * r
+            z = gs.sin(phi) * r
 
             x_vals.append(x)
             y_vals.append(y)
@@ -219,7 +219,7 @@ class Sphere():
         y_vals = [(self.radius * i) for i in y_vals]
         z_vals = [(self.radius * i) for i in z_vals]
 
-        return np.array([x_vals, y_vals, z_vals])
+        return gs.array([x_vals, y_vals, z_vals])
 
     def plot_heatmap(self, ax,
                      scalar_function,
@@ -228,7 +228,7 @@ class Sphere():
                      cmap='jet'):
         """Plot a heatmap defined by a loss on the sphere."""
         points = self.fibonnaci_points(n_points)
-        intensity = np.array([scalar_function(x) for x in points.T])
+        intensity = gs.array([scalar_function(x) for x in points.T])
         ax.scatter(points[0, :], points[1, :], points[2, :],
                    c=intensity,
                    alpha=alpha,
@@ -238,7 +238,7 @@ class Sphere():
 
 class PoincareDisk():
     def __init__(self, points=None, point_type='extrinsic'):
-        self.center = np.array([0., 0.])
+        self.center = gs.array([0., 0.])
         self.points = []
         self.point_type = point_type
 
@@ -282,9 +282,9 @@ class PoincareDisk():
         ax.add_artist(circle)
         if len(self.points) > 0:
             if gs.all([len(point) == 2 for point in self.points]):
-                points_x = np.stack(
+                points_x = gs.stack(
                     [point[0] for point in self.points], axis=0)
-                points_y = np.stack(
+                points_y = gs.stack(
                     [point[1] for point in self.points], axis=0)
                 ax.scatter(points_x, points_y, **kwargs)
             else:
@@ -295,7 +295,7 @@ class PoincarePolyDisk():
     """Class used to plot points in the Poincare polydisk."""
 
     def __init__(self, points=None, point_type='ball', n_disks=2):
-        self.center = np.array([0., 0.])
+        self.center = gs.array([0., 0.])
         self.points = []
         self.point_type = point_type
         self.n_disks = n_disks
@@ -336,8 +336,8 @@ class PoincarePolyDisk():
         """Draw."""
         circle = plt.Circle((0, 0), radius=1., color='black', fill=False)
         ax.add_artist(circle)
-        points_x = np.vstack([point[0] for point in self.points])
-        points_y = np.vstack([point[1] for point in self.points])
+        points_x = gs.vstack([point[0] for point in self.points])
+        points_y = gs.vstack([point[1] for point in self.points])
         ax.scatter(points_x, points_y, **kwargs)
 
 
@@ -375,7 +375,7 @@ class PoincareHalfPlane():
         disk_x = disk_coords[:, 0]
         disk_y = disk_coords[:, 1]
 
-        half_plane_coords = np.zeros_like(disk_coords)
+        half_plane_coords = gs.zeros_like(disk_coords)
         denominator = (disk_x ** 2 + (1 - disk_y) ** 2)
         half_plane_coords[:, 0] = 2 * disk_x / denominator
         half_plane_coords[:, 1] = ((1 - disk_x ** 2 - disk_y ** 2)
@@ -383,14 +383,14 @@ class PoincareHalfPlane():
         return half_plane_coords
 
     def draw(self, ax, **kwargs):
-        points_x = np.vstack([point[0] for point in self.points])
-        points_y = np.vstack([point[1] for point in self.points])
+        points_x = gs.vstack([point[0] for point in self.points])
+        points_y = gs.vstack([point[1] for point in self.points])
         ax.scatter(points_x, points_y, **kwargs)
 
 
 class KleinDisk():
     def __init__(self, points=None):
-        self.center = np.array([0., 0.])
+        self.center = gs.array([0., 0.])
         self.points = []
         if points is not None:
             self.add_points(points)
@@ -418,24 +418,24 @@ class KleinDisk():
     @staticmethod
     def convert_to_klein_coordinates(points):
         poincare_coords = points[:, 1:] / (1 + points[:, :1])
-        poincare_radius = np.linalg.norm(
+        poincare_radius = gs.linalg.norm(
             poincare_coords, axis=1)
-        poincare_angle = np.arctan2(
+        poincare_angle = gs.arctan2(
             poincare_coords[:, 1], poincare_coords[:, 0])
 
         klein_radius = 2 * poincare_radius / (1 + poincare_radius ** 2)
         klein_angle = poincare_angle
 
-        klein_coords = np.zeros_like(poincare_coords)
-        klein_coords[:, 0] = klein_radius * np.cos(klein_angle)
-        klein_coords[:, 1] = klein_radius * np.sin(klein_angle)
+        klein_coords = gs.zeros_like(poincare_coords)
+        klein_coords[:, 0] = klein_radius * gs.cos(klein_angle)
+        klein_coords[:, 1] = klein_radius * gs.sin(klein_angle)
         return klein_coords
 
     def draw(self, ax, **kwargs):
         circle = plt.Circle((0, 0), radius=1., color='black', fill=False)
         ax.add_artist(circle)
-        points_x = np.vstack([point[0] for point in self.points])
-        points_y = np.vstack([point[1] for point in self.points])
+        points_x = gs.vstack([point[0] for point in self.points])
+        points_y = gs.vstack([point[1] for point in self.points])
         ax.scatter(points_x, points_y, **kwargs)
 
 
@@ -449,7 +449,7 @@ def convert_to_trihedron(point, space=None):
     - the trihedron's orientation is the rotation of the canonical basis
     of R^3 by the rotation part of point.
     """
-    point = np.to_ndarray(point, to_ndim=2)
+    point = gs.to_ndarray(point, to_ndim=2)
     n_points, _ = point.shape
 
     dim_rotations = SO3_GROUP.dim
@@ -459,22 +459,22 @@ def convert_to_trihedron(point, space=None):
         translation = point[:, dim_rotations:]
     elif space == 'SO3_GROUP':
         rot_vec = point
-        translation = np.zeros((n_points, 3))
+        translation = gs.zeros((n_points, 3))
     else:
         raise NotImplementedError(
             'Trihedrons are only implemented for SO(3) and SE(3).')
 
     rot_mat = SO3_GROUP.matrix_from_rotation_vector(rot_vec)
     rot_mat = SO3_GROUP.projection(rot_mat)
-    basis_vec_1 = np.array([1, 0, 0])
-    basis_vec_2 = np.array([0, 1, 0])
-    basis_vec_3 = np.array([0, 0, 1])
+    basis_vec_1 = gs.array([1, 0, 0])
+    basis_vec_2 = gs.array([0, 1, 0])
+    basis_vec_3 = gs.array([0, 0, 1])
 
     trihedrons = []
     for i in range(n_points):
-        trihedron_vec_1 = np.dot(rot_mat[i], basis_vec_1)
-        trihedron_vec_2 = np.dot(rot_mat[i], basis_vec_2)
-        trihedron_vec_3 = np.dot(rot_mat[i], basis_vec_3)
+        trihedron_vec_1 = gs.dot(rot_mat[i], basis_vec_1)
+        trihedron_vec_2 = gs.dot(rot_mat[i], basis_vec_2)
+        trihedron_vec_3 = gs.dot(rot_mat[i], basis_vec_3)
         trihedron = Trihedron(translation[i],
                               trihedron_vec_1,
                               trihedron_vec_2,
@@ -483,7 +483,6 @@ def convert_to_trihedron(point, space=None):
     return trihedrons
 
 
-@to_numpy
 def plot(points, ax=None, space=None,
          point_type='extrinsic', **point_draw_kwargs):
     """Plot points in the 3D Special Euclidean Group.
@@ -501,15 +500,15 @@ def plot(points, ax=None, space=None,
         raise ValueError("No points given for plotting.")
 
     if points.ndim < 2:
-        points = np.expand_dims(points, 0)
+        points = gs.expand_dims(points, 0)
 
     if space in ('SO3_GROUP', 'SE3_GROUP'):
         if ax is None:
             ax = plt.subplot(111, projection='3d')
         if space == 'SE3_GROUP':
-            ax_s = AX_SCALE * np.amax(np.abs(points[:, 3:6]))
+            ax_s = AX_SCALE * gs.amax(gs.abs(points[:, 3:6]))
         elif space == 'SO3_GROUP':
-            ax_s = AX_SCALE * np.amax(np.abs(points[:, :3]))
+            ax_s = AX_SCALE * gs.amax(gs.abs(points[:, :3]))
         plt.setp(ax,
                  xlim=(-ax_s, ax_s),
                  ylim=(-ax_s, ax_s),
@@ -541,8 +540,8 @@ def plot(points, ax=None, space=None,
         n_disks = points.shape[1]
         poincare_poly_disk = PoincarePolyDisk(point_type=point_type,
                                               n_disks=n_disks)
-        n_columns = np.ceil(n_disks ** 0.5)
-        n_rows = np.ceil(n_disks / n_columns)
+        n_columns = gs.ceil(n_disks ** 0.5)
+        n_rows = gs.ceil(n_disks / n_columns)
 
         axis_list = []
 
