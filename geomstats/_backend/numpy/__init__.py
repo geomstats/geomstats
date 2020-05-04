@@ -93,6 +93,21 @@ from . import linalg  # NOQA
 from . import random  # NOQA
 from .common import to_ndarray  # NOQA
 
+DTYPES = [int32, int64, float32, float64]
+
+
+def convert_to_wider_dtype(tensor_list):
+    dtype_list = [x.dtype for x in tensor_list]
+    wider_dtype = dtype_list[0]
+    wider_dtype_index = DTYPES.index(wider_dtype)
+    for dtype in dtype_list[1:]:
+        index = DTYPES.index(dtype)
+        if index > wider_dtype_index:
+            wider_dtype = dtype
+            wider_dtype_index = index
+    tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
+    return tensor_list
+
 
 def is_array(x):
     return type(x) == np.ndarray

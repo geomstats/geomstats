@@ -34,6 +34,7 @@ BACKEND_ATTRIBUTES = {
         'ceil',
         'clip',
         'concatenate',
+        'convert_to_wider_dtype',
         'copy',
         'cos',
         'cosh',
