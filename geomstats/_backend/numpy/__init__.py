@@ -109,14 +109,6 @@ def convert_to_wider_dtype(tensor_list):
     return tensor_list
 
 
-def is_array(x):
-    return type(x) == np.ndarray
-
-
-def to_numpy(x):
-    return x
-
-
 def flatten(x):
     return x.flatten()
 

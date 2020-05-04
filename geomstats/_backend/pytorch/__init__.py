@@ -91,14 +91,6 @@ sin = _box_scalar(sin)
 sinh = _box_scalar(sinh)
 
 
-def is_array(x):
-    return torch.is_tensor(x)
-
-
-def to_numpy(x):
-    return x.numpy()
-
-
 def convert_to_wider_dtype(tensor_list):
     dtype_list = [x.dtype for x in tensor_list]
     wider_dtype = dtype_list[0]
