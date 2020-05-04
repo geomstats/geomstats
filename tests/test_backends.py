@@ -318,6 +318,27 @@ class TestBackends(geomstats.tests.TestCase):
         gs_result = gs.einsum('...,...i->...i', array_1, array_2)
         self.assertAllCloseToNp(gs_result, np_result)
 
+    def test_einsum_dtypes(self):
+        np_array_1 = _np.array([[1, 4]])
+        np_array_2 = _np.array([[2., 3.]])
+        array_1 = gs.array([[1, 4]])
+        array_2 = gs.array([[2., 3.]])
+
+        np_result = _np.einsum('...i,...i->...', np_array_1, np_array_2)
+        gs_result = gs.einsum('...i,...i->...', array_1, array_2)
+
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_array_1 = _np.array([[1., 4.], [-1., 5.]])
+        np_array_2 = _np.array([[2, 3]])
+        array_1 = gs.array([[1., 4.], [-1., 5.]])
+        array_2 = gs.array([[2, 3]])
+
+        np_result = _np.einsum('...i,...i->...', np_array_1, np_array_2)
+        gs_result = gs.einsum('...i,...i->...', array_1, array_2)
+
+        self.assertAllCloseToNp(gs_result, np_result)
+
     def test_assignment_with_matrices(self):
         np_array = _np.zeros((2, 3, 3))
         gs_array = gs.zeros((2, 3, 3))
