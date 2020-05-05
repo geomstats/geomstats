@@ -388,7 +388,7 @@ class KleinDisk():
                 'Points do not belong to the hyperbolic space.')
         points = self.convert_to_klein_coordinates(points)
         if not isinstance(points, list):
-            points = points.tolist()
+            points = list(points)
         self.points.extend(points)
 
     @staticmethod
@@ -402,16 +402,18 @@ class KleinDisk():
         klein_radius = 2 * poincare_radius / (1 + poincare_radius ** 2)
         klein_angle = poincare_angle
 
-        klein_coords = gs.zeros_like(poincare_coords)
-        klein_coords[:, 0] = klein_radius * gs.cos(klein_angle)
-        klein_coords[:, 1] = klein_radius * gs.sin(klein_angle)
+        coords_0 = gs.expand_dims(
+            klein_radius * gs.cos(klein_angle), axis=1)
+        coords_1 = gs.expand_dims(
+            klein_radius * gs.sin(klein_angle), axis=1)
+        klein_coords = gs.concatenate([coords_0, coords_1], axis=1)
         return klein_coords
 
     def draw(self, ax, **kwargs):
         circle = plt.Circle((0, 0), radius=1., color='black', fill=False)
         ax.add_artist(circle)
-        points_x = gs.vstack([point[0] for point in self.points])
-        points_y = gs.vstack([point[1] for point in self.points])
+        points_x = [gs.to_numpy(point[0]) for point in self.points]
+        points_y = [gs.to_numpy(point[1]) for point in self.points]
         ax.scatter(points_x, points_y, **kwargs)
 
 

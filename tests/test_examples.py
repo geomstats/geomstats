@@ -109,7 +109,6 @@ class TestExamples(geomstats.tests.TestCase):
         plot_square_h2_poincare_half_plane.main()
 
     @staticmethod
-    @geomstats.tests.np_only
     def test_plot_square_h2_square_klein_disk():
         plot_square_h2_klein_disk.main()
 
