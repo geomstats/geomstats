@@ -24,11 +24,10 @@ class RiemannianMinimumDistanceToMeanClassifier():
     def __init__(
             self,
             riemannian_metric,
-            mean_method='default',
-            verbose=0,
             point_type='matrix'):
         self.riemannian_metric = riemannian_metric
         self.point_type = point_type
+        self.G = None
 
     def fit(self, X, Y):
         """
@@ -76,7 +75,8 @@ class RiemannianMinimumDistanceToMeanClassifier():
             Y[i, c] = 1
         return Y
 
-    def split_data_in_classes(self, X, Y, c):
+    @staticmethod
+    def split_data_in_classes(X, Y, c):
         """
         Split a labelled dataset in sub-datasets of each label.
 
