@@ -138,7 +138,8 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         skew = self.to_tangent(random_mat)
         return self.exp(skew)
 
-    def angle_of_rot2(self, r):
+    @staticmethod
+    def angle_of_rot2(r):
         """
         Get angle of a 2D rotation.
 
