@@ -64,8 +64,6 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
 
         self.assertAllClose(Y_result, Y_expected)
 
-        return
-
 # if(__name__=='__main__'):
 #     tmp=TestRiemannianMinimumDistanceToMeanClassifier()
 #     tmp.test_fit()

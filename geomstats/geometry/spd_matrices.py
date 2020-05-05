@@ -149,7 +149,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         # if no EigenSummary provided
         # assert (self.eigensummary is not None),\
         #     "Need to first set eigenspace and eigenvalues."
-        if(mean_spd is None):
+        if mean_spd is None:
             eigenvalues, eigenspace =\
                 self.eigensummary.eigenvalues, self.eigensummary.eigenspace
             rotations = SpecialOrthogonal(n).random_gaussian(
@@ -178,7 +178,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         # if no EigenSummary provided
         # assert (self.eigensummary is not None),\
         #     "Need to first set eigenspace and eigenvalues."
-        if(mean_spd is None):
+        if mean_spd is None:
             eigenvalues, eigenspace =\
                 self.eigensummary.eigenvalues, self.eigensummary.eigenspace
             eigenvalues =\

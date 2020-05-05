@@ -52,7 +52,6 @@ class RiemannianMinimumDistanceToMeanClassifier():
             # frechet_means.append(mean_estimator.fit(data_class).estimate_[0])
             frechet_means.append(mean_estimator.fit(data_class).estimate_)
         self.G = gs.array(frechet_means)
-        return
 
     def predict(self, X):
         """
