@@ -157,6 +157,5 @@ class TestExamples(geomstats.tests.TestCase):
         plot_online_kmeans_s2.main()
 
     @staticmethod
-    @geomstats.tests.np_only
     def test_plot_pole_ladder_s2():
         plot_pole_ladder_s2.main()
