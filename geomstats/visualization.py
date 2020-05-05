@@ -442,9 +442,9 @@ def convert_to_trihedron(point, space=None):
 
     rot_mat = SO3_GROUP.matrix_from_rotation_vector(rot_vec)
     rot_mat = SO3_GROUP.projection(rot_mat)
-    basis_vec_1 = gs.array([1, 0, 0])
-    basis_vec_2 = gs.array([0, 1, 0])
-    basis_vec_3 = gs.array([0, 0, 1])
+    basis_vec_1 = gs.array([1., 0., 0.])
+    basis_vec_2 = gs.array([0., 1., 0.])
+    basis_vec_3 = gs.array([0., 0., 1.])
 
     trihedrons = []
     for i in range(n_points):
@@ -485,10 +485,12 @@ def plot(points, ax=None, space=None,
             ax_s = AX_SCALE * gs.amax(gs.abs(points[:, 3:6]))
         elif space == 'SO3_GROUP':
             ax_s = AX_SCALE * gs.amax(gs.abs(points[:, :3]))
+        ax_s = gs.to_numpy(ax_s)
+        bounds = (-ax_s, ax_s)
         plt.setp(ax,
-                 xlim=(-ax_s, ax_s),
-                 ylim=(-ax_s, ax_s),
-                 zlim=(-ax_s, ax_s),
+                 xlim=bounds,
+                 ylim=bounds,
+                 zlim=bounds,
                  xlabel='X', ylabel='Y', zlabel='Z')
         trihedrons = convert_to_trihedron(points, space=space)
         for t in trihedrons:

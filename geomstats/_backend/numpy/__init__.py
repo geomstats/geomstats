@@ -96,6 +96,10 @@ from .common import to_ndarray  # NOQA
 DTYPES = [int32, int64, float32, float64]
 
 
+def to_numpy(x):
+    return x
+
+
 def convert_to_wider_dtype(tensor_list):
     dtype_list = [x.dtype for x in tensor_list]
     wider_dtype = dtype_list[0]
