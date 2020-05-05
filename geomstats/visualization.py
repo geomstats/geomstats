@@ -241,7 +241,7 @@ class PoincareDisk():
             points = self.convert_to_poincare_coordinates(points)
 
         if not isinstance(points, list):
-            points = points.tolist()
+            points = list(points)
 
         if gs.all([len(point) == 2 for point in self.points]):
             self.points.extend(points)

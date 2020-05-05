@@ -75,7 +75,6 @@ class TestExamples(geomstats.tests.TestCase):
         learning_gsd_h2.main()
 
     @staticmethod
-    @geomstats.tests.np_only
     def test_plot_geodesics_h2():
         plot_geodesics_h2.main()
 
