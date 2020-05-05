@@ -89,7 +89,7 @@ class Circle():
         if not gs.all(S1.belongs(points)):
             raise ValueError('Points do  not belong to the circle.')
         if not isinstance(points, list):
-            points = points.tolist()
+            points = list(points)
         self.points.extend(points)
 
     def draw(self, ax, **plot_kwargs):
@@ -331,7 +331,7 @@ class PoincareHalfPlane():
                 'Points do not belong to the hyperbolic space.')
         points = self.convert_to_half_plane_coordinates(points)
         if not isinstance(points, list):
-            points = points.tolist()
+            points = list(points)
         self.points.extend(points)
 
     @staticmethod
@@ -351,16 +351,18 @@ class PoincareHalfPlane():
         disk_x = disk_coords[:, 0]
         disk_y = disk_coords[:, 1]
 
-        half_plane_coords = gs.zeros_like(disk_coords)
         denominator = (disk_x ** 2 + (1 - disk_y) ** 2)
-        half_plane_coords[:, 0] = 2 * disk_x / denominator
-        half_plane_coords[:, 1] = ((1 - disk_x ** 2 - disk_y ** 2)
-                                   / denominator)
+        coords_0 = gs.expand_dims(2 * disk_x / denominator, axis=1)
+        coords_1 = gs.expand_dims(
+            (1 - disk_x ** 2 - disk_y ** 2) / denominator, axis=1)
+
+        half_plane_coords = gs.concatenate(
+            [coords_0, coords_1], axis=1)
         return half_plane_coords
 
     def draw(self, ax, **kwargs):
-        points_x = gs.vstack([point[0] for point in self.points])
-        points_y = gs.vstack([point[1] for point in self.points])
+        points_x = [gs.to_numpy(point[0]) for point in self.points]
+        points_y = [gs.to_numpy(point[1]) for point in self.points]
         ax.scatter(points_x, points_y, **kwargs)
 
 
