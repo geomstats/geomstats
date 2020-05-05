@@ -99,7 +99,6 @@ class TestExamples(geomstats.tests.TestCase):
         plot_grid_h2.main()
 
     @staticmethod
-    @geomstats.tests.np_only
     def test_plot_square_h2_square_poincare_disk():
         plot_square_h2_poincare_disk.main()
 
