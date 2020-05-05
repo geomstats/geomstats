@@ -79,7 +79,6 @@ class TestExamples(geomstats.tests.TestCase):
         plot_geodesics_h2.main()
 
     @staticmethod
-    @geomstats.tests.np_only
     def test_plot_geodesics_poincare_polydisk():
         plot_geodesics_poincare_polydisk.main()
 

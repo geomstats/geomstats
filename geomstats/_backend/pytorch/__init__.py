@@ -13,7 +13,6 @@ from torch import (  # NOQA
     asin as arcsin,
     atan2 as arctan2,
     bool as t_bool,
-    ceil,
     clamp as clip,
     cos,
     cosh,
@@ -106,6 +105,12 @@ def convert_to_wider_dtype(tensor_list):
             wider_dtype_index = index
     tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
     return tensor_list
+
+
+def ceil(x):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    return torch.ceil(x)
 
 
 def less_equal(x, y, **kwargs):

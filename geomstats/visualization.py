@@ -295,7 +295,7 @@ class PoincarePolyDisk():
         if self.point_type == 'extrinsic':
             points = self.convert_to_poincare_coordinates(points)
         if not isinstance(points, list):
-            points = points.tolist()
+            points = list(points)
         self.points.extend(points)
 
     def clear_points(self):
@@ -312,8 +312,8 @@ class PoincarePolyDisk():
         """Draw."""
         circle = plt.Circle((0, 0), radius=1., color='black', fill=False)
         ax.add_artist(circle)
-        points_x = gs.vstack([point[0] for point in self.points])
-        points_y = gs.vstack([point[1] for point in self.points])
+        points_x = [gs.to_numpy(point[0]) for point in self.points]
+        points_y = [gs.to_numpy(point[1]) for point in self.points]
         ax.scatter(points_x, points_y, **kwargs)
 
 
@@ -485,7 +485,7 @@ def plot(points, ax=None, space=None,
             ax_s = AX_SCALE * gs.amax(gs.abs(points[:, 3:6]))
         elif space == 'SO3_GROUP':
             ax_s = AX_SCALE * gs.amax(gs.abs(points[:, :3]))
-        ax_s = gs.to_numpy(ax_s)
+        ax_s = float(ax_s)
         bounds = (-ax_s, ax_s)
         plt.setp(ax,
                  xlim=bounds,
@@ -518,8 +518,8 @@ def plot(points, ax=None, space=None,
         n_disks = points.shape[1]
         poincare_poly_disk = PoincarePolyDisk(point_type=point_type,
                                               n_disks=n_disks)
-        n_columns = gs.ceil(n_disks ** 0.5)
-        n_rows = gs.ceil(n_disks / n_columns)
+        n_columns = int(gs.ceil(n_disks ** 0.5))
+        n_rows = int(gs.ceil(n_disks / n_columns))
 
         axis_list = []
 
