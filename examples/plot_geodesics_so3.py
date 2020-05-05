@@ -18,8 +18,9 @@ def main():
     """Plot a geodesic on SO(3)."""
     initial_point = SO3_GROUP.identity
     initial_tangent_vec = gs.array([0.5, 0.5, 0.8])
-    geodesic = METRIC.geodesic(initial_point=initial_point,
-                               initial_tangent_vec=initial_tangent_vec)
+    geodesic = METRIC.geodesic(
+        initial_point=initial_point,
+        initial_tangent_vec=initial_tangent_vec)
 
     t = gs.linspace(0., 1., N_STEPS)
 

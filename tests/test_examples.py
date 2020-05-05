@@ -89,7 +89,6 @@ class TestExamples(geomstats.tests.TestCase):
         plot_geodesics_s2.main()
 
     @staticmethod
-    @geomstats.tests.np_only
     def test_plot_geodesics_se3():
         plot_geodesics_se3.main()
 
