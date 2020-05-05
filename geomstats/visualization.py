@@ -25,7 +25,9 @@ IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'S1', 'S2',
 
 EPS = 1e-8
 
+
 def nice_matplotlib():
+    """Wrapper function for nice plotting style."""
     plt.style.use('seaborn')
     fontsize = 15
     matplotlib.rc('font', size=fontsize)
@@ -588,11 +590,10 @@ def plot(points, ax=None, space=None,
 
 
 class DataArrow():
-    """
-    Arrow class for pointing from some data coordinates to other data coordinates
-    """
-    def __init__(self,fig):
-        self.fig=fig
+    """Arrow class for pointing from some data coordinates to others."""
+
+    def __init__(self, fig):
+        self.fig = fig
 
     def draw(self, x_from, y_from, x_to, y_to):
         """
@@ -623,9 +624,7 @@ class DataArrow():
 
 
 class Ellipsis():
-    """
-    Plotting class for ellipses representing SPD matrices in 2 dimensions
-    """
+    """Plotting class for ellipses representing SPD matrices in 2D."""
 
     def __init__(self):
         self.fig = plt.figure()
@@ -636,21 +635,29 @@ class Ellipsis():
         nice_matplotlib()
 
     def draw(self, data_point, **kwargs):
+        """Draw the ellipsis."""
         X, Y, x, y = self.compute_coordinates(data_point)
         self.fig.axes[0].plot(X, Y, **kwargs)
         return x, y
 
-    def angle_of_rot2(self, r):
-        return gs.arctan(r[0][1] / r[0][0])
-
     def compute_coordinates(self, P):
+        """
+        Compute the ellipsis coordinates from 2D SPD matrix.
+
+        :param P: array-like, shape = [2, 2]: SPD matrix.
+        :return:
+        X: array-like, shape = [Np,];
+        Y: array-like, shape = [Np,];
+        X and Y coordinates.
+        """
         w, vr = gs.linalg.eig(P)
         w = w.real + EPS
         Np = 100
 
         [e1, e2] = w
         x0, y0 = 0, 0
-        angle = self.angle_of_rot2(vr)
+        n = vr.shape[0]
+        angle = SpecialOrthogonal(n).angle_of_rot2(vr)
         c, s = gs.cos(angle), gs.sin(angle)
         the = gs.linspace(0, 2 * gs.pi, Np)
         X = e1 * gs.cos(the) * c - s * e2 * gs.sin(the) + x0
@@ -658,6 +665,7 @@ class Ellipsis():
         return X, Y, X[Np // 4], Y[Np // 4]
 
     def plot(self):
+        """Plot final plot."""
         plt.legend(loc='best')
         self.fig.axes[0].set_title(
             'Example plot of the MDM classifier in dimension 2\n'
