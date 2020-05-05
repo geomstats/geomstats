@@ -103,7 +103,8 @@ class DataHelper():
     Y: Labels, shape=[n_samples, n_classes] (one-hot encoding)
     """
 
-    def shuffle(self, X, Y):
+    @staticmethod
+    def shuffle(X, Y):
         """
         Shuffle the dataset.
 
@@ -118,7 +119,8 @@ class DataHelper():
         Y = gs.array(Y)
         return X, Y
 
-    def get_label_at_index(self, i, labels):
+    @staticmethod
+    def get_label_at_index(i, labels):
         """
         Get the label of data point indexed by 'i'.
 

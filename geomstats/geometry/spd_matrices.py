@@ -32,6 +32,8 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             n=n,
             dim=int(n * (n + 1) / 2),
             embedding_manifold=GeneralLinear(n=n))
+        self.eigensummary = EigenSummary(
+            eigenspace=gs.eye(n), eigenvalues=gs.eye(n))
 
     def belongs(self, mat, atol=TOLERANCE):
         """Check if a matrix is symmetric and invertible.
@@ -145,13 +147,13 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
 
         # Should make it possible to simply perform EIG operation
         # if no EigenSummary provided
-        assert (self.eigensummary is not None),\
-            "Need to first set eigenspace and eigenvalues."
-
-        eigenvalues, eigenspace =\
-            self.eigensummary.eigenvalues, self.eigensummary.eigenspace
-        rotations = SpecialOrthogonal(n).random_gaussian(
-            eigenspace, var_rotations, n_samples=n_samples)
+        # assert (self.eigensummary is not None),\
+        #     "Need to first set eigenspace and eigenvalues."
+        if(mean_spd is None):
+            eigenvalues, eigenspace =\
+                self.eigensummary.eigenvalues, self.eigensummary.eigenspace
+            rotations = SpecialOrthogonal(n).random_gaussian(
+                eigenspace, var_rotations, n_samples=n_samples)
 
         spd_mat = gs.array(
             [gs.matmul(rotations[i],
@@ -174,17 +176,17 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
 
         # Should make it possible to simply perform EIG operation
         # if no EigenSummary provided
-        assert (self.eigensummary is not None),\
-            "Need to first set eigenspace and eigenvalues."
-
-        eigenvalues, eigenspace =\
-            self.eigensummary.eigenvalues, self.eigensummary.eigenspace
-        eigenvalues =\
-            gs.diag(gs.random.multivariate_normal(
-                gs.diag(eigenvalues), gs.diag(noise)))
-        self.set_eigensummary(eigenspace, eigenvalues)
-        rotations = SpecialOrthogonal(n).random_gaussian(
-            eigenspace, var_rotations, n_samples=n_samples)
+        # assert (self.eigensummary is not None),\
+        #     "Need to first set eigenspace and eigenvalues."
+        if(mean_spd is None):
+            eigenvalues, eigenspace =\
+                self.eigensummary.eigenvalues, self.eigensummary.eigenspace
+            eigenvalues =\
+                gs.diag(gs.random.multivariate_normal(
+                    gs.diag(eigenvalues), gs.diag(noise)))
+            self.set_eigensummary(eigenspace, eigenvalues)
+            rotations = SpecialOrthogonal(n).random_gaussian(
+                eigenspace, var_rotations, n_samples=n_samples)
 
         spd_mat = gs.array(
             [gs.matmul(rotations[i],

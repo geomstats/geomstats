@@ -1,33 +1,33 @@
+"""Methods for testing the MDM classifier module."""
 import geomstats.backend as gs
-import numpy as np
 import geomstats.tests
-from geomstats.learning.mdm import RiemannianMinimumDistanceToMeanClassifier
 from geomstats.geometry.spd_matrices import SPDMetricAffine
+from geomstats.learning.mdm import RiemannianMinimumDistanceToMeanClassifier
+
+E = gs.exp(1)
 
 
 class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
-    '''
-    Test of Riemannian MDM classifier
-    '''
+    """Test of Riemannian MDM classifier."""
 
     @geomstats.tests.np_only
     def test_fit(self):
-
+        """Test the fit method."""
         MDMEstimator = RiemannianMinimumDistanceToMeanClassifier(
             SPDMetricAffine(n=2), point_type='matrix')
 
-        points_A = gs.array([[[np.e**2, 0], [0, 1]],
+        points_A = gs.array([[[E**2, 0], [0, 1]],
                              [[1, 0], [0, 1]]])
         labels_A = gs.array([[1, 0],
                              [1, 0]])
-        bary_A_expected = gs.array([[np.e, 0],
+        bary_A_expected = gs.array([[E, 0],
                                     [0, 1]])
 
-        points_B = gs.array([[[np.e**8, 0], [0, 1]],
+        points_B = gs.array([[[E**8, 0], [0, 1]],
                              [[1, 0], [0, 1]]])
         labels_B = gs.array([[0, 1],
                              [0, 1]])
-        bary_B_expected = gs.array([[np.e**4, 0],
+        bary_B_expected = gs.array([[E**4, 0],
                                     [0, 1]])
 
         train_data = gs.concatenate([points_A, points_B])
@@ -41,25 +41,23 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
         self.assertAllClose(bary_A_result, bary_A_expected)
         self.assertAllClose(bary_B_result, bary_B_expected)
 
-        return
-
     @geomstats.tests.np_only
     def test_predict(self):
-
-        bary_A = gs.array([[np.e, 0],
+        """Test the predict method."""
+        bary_A = gs.array([[E, 0],
                            [0, 1]])
-        bary_B = gs.array([[np.e**4, 0],
+        bary_B = gs.array([[E**4, 0],
                            [0, 1]])
 
         MDMEstimator = RiemannianMinimumDistanceToMeanClassifier(
             SPDMetricAffine(n=2), point_type='matrix')
         MDMEstimator.G = gs.concatenate([bary_A[None, ...], bary_B[None, ...]])
 
-        X = gs.array([[np.e**3, 0],
+        X = gs.array([[E**3, 0],
                       [0, 1]])[None, ...]
 
-        distance_AX_expected = 2.
-        distance_BX_expected = 1.
+        # distance_AX_expected = 2.
+        # distance_BX_expected = 1.
         Y_expected = gs.array([[0, 1]])
 
         Y_result = MDMEstimator.predict(X)
