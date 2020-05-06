@@ -1,7 +1,5 @@
 """Unit tests for loading Graph dataset."""
 
-import os
-
 import geomstats.backend as gs
 import geomstats.datasets.utils as utils
 import geomstats.tests
@@ -15,14 +13,11 @@ class TestDatasets(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def setUp(self):
-        self.data_folder = utils.DATA_FOLDER
-
+        """Set up tests."""
         self.g1 = Graph()
         self.g2 = Graph(
-            graph_matrix_path=os.path.join(
-                self.data_folder, utils.KARATE_PATH),
-            labels_path=os.path.join(
-                self.data_folder, utils.KARATE_LABELS_PATH))
+            graph_matrix_path=utils.KARATE_PATH,
+            labels_path=utils.KARATE_LABELS_PATH)
 
     def test_load_cities(self):
         """Test that the cities coordinates belong to the sphere."""
