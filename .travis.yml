@@ -12,13 +12,14 @@ install:
       pip install -q -r $req
     done
 script:
+  - PYTHONPATH=$PYTHONPATH:$(pwd)
   - flake8 --ignore=D,W503,W504 geomstats examples tests
   - flake8 geomstats/geometry geomstats/learning
   - |
     if [[ $TRAVIS_PYTHON_VERSION != 3.8 ||
           ($TRAVIS_PYTHON_VERSION == 3.8 &&
            $GEOMSTATS_BACKEND != tensorflow) ]]; then
-      nose2 --with-coverage --verbose tests
+      nose2 --with-coverage --verbose tests.test_notebooks
     fi
 env:
   - GEOMSTATS_BACKEND=numpy
