@@ -1,7 +1,7 @@
 """Unit tests for loading Graph dataset."""
 
 import geomstats.backend as gs
-import geomstats.datasets.utils as utils
+import geomstats.datasets.utils as data_utils
 import geomstats.tests
 from geomstats.datasets.graph_data_preparation import Graph
 from geomstats.geometry.hypersphere import Hypersphere
@@ -16,13 +16,13 @@ class TestDatasets(geomstats.tests.TestCase):
         """Set up tests."""
         self.g1 = Graph()
         self.g2 = Graph(
-            graph_matrix_path=utils.KARATE_PATH,
-            labels_path=utils.KARATE_LABELS_PATH)
+            graph_matrix_path=data_utils.KARATE_PATH,
+            labels_path=data_utils.KARATE_LABELS_PATH)
 
     def test_load_cities(self):
         """Test that the cities coordinates belong to the sphere."""
         sphere = Hypersphere(dim=2)
-        data, _ = utils.load_cities()
+        data, _ = data_utils.load_cities()
         data = sphere.spherical_to_extrinsic(data)
         result = sphere.belongs(data)
 
@@ -31,7 +31,7 @@ class TestDatasets(geomstats.tests.TestCase):
     def test_load_poses(self):
         """Test that the poses belong to SO(3)."""
         so3 = SpecialOrthogonal(n=3)
-        data, _ = utils.load_poses()
+        data, _ = data_utils.load_poses()
         result = so3.belongs(data)
 
         self.assertTrue(gs.all(result))

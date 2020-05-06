@@ -1,14 +1,12 @@
 """Prepare and process graph-structured data."""
 
-import os
 import random
 
 import geomstats.backend as gs
+import geomstats.datasets.utils as data_utils
 
-DEFAULT_GRAPH_MATRIX_PATH = os.path.join(
-    'geomstats', 'datasets', 'data', 'graph_random', 'graph_random.txt')
-DEFAULT_GRAPH_LABELS_PATH = os.path.join(
-    'geomstats', 'datasets', 'data', 'graph_random', 'graph_random_labels.txt')
+GRAPH_MATRIX_PATH = data_utils.GRAPH_RANDOM_PATH
+GRAPH_LABELS_PATH = data_utils.GRAPH_RANDOM_LABELS_PATH
 
 
 class Graph:
@@ -39,8 +37,8 @@ class Graph:
     labels = None
 
     def __init__(self,
-                 graph_matrix_path=DEFAULT_GRAPH_MATRIX_PATH,
-                 labels_path=DEFAULT_GRAPH_LABELS_PATH):
+                 graph_matrix_path=GRAPH_MATRIX_PATH,
+                 labels_path=GRAPH_LABELS_PATH):
         self.edges = {}
         with open(graph_matrix_path, 'r') as edges_file:
             for i, line in enumerate(edges_file):
