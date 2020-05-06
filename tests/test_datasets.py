@@ -5,6 +5,7 @@ import geomstats.datasets.utils as data_utils
 import geomstats.tests
 from geomstats.datasets.graph_data_preparation import Graph
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
@@ -27,11 +28,19 @@ class TestDatasets(geomstats.tests.TestCase):
 
         self.assertTrue(gs.all(result))
 
-    def test_load_poses(self):
+    def test_load_poses_only_rotations(self):
         """Test that the poses belong to SO(3)."""
         so3 = SpecialOrthogonal(n=3)
         data, _ = data_utils.load_poses()
         result = so3.belongs(data)
+
+        self.assertTrue(gs.all(result))
+
+    def test_load_poses(self):
+        """Test that the poses belong to SE(3)."""
+        se3 = SpecialEuclidean(n=3)
+        data, _ = data_utils.load_poses(only_rotations=False)
+        result = se3.belongs(data)
 
         self.assertTrue(gs.all(result))
 
