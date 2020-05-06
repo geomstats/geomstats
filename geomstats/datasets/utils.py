@@ -41,11 +41,11 @@ def load_cities():
     with open(CITIES_PATH) as json_file:
         data_file = json.load(json_file)
 
-        for i, row_i in enumerate(data_file):
-            lat_in_radians = row_i['lat'] / 90 * gs.pi / 2
-            lng_in_radians = row_i['lng'] / 180 * gs.pi
+        for row in data_file:
+            lat_in_radians = row['lat'] / 90 * gs.pi / 2
+            lng_in_radians = row['lng'] / 180 * gs.pi
             data.append(gs.array([lat_in_radians, lng_in_radians]))
-            names.append(row_i['city'])
+            names.append(row['city'])
 
     data = gs.array(data)
     return data, names
@@ -68,10 +68,10 @@ def load_poses(only_rotations=True):
     with open(POSES_PATH) as json_file:
         data_file = json.load(json_file)
 
-        for i, row_i in enumerate(data_file):
-            pose_mat = gs.array(row_i['rot_mat'])
+        for row in data_file:
+            pose_mat = gs.array(row['rot_mat'])
             if not only_rotations:
-                trans_mat = gs.array(row_i['trans_mat'])
+                trans_mat = gs.array(row['trans_mat'])
                 trans_mat = gs.expand_dims(trans_mat, axis=1)
                 pose_mat = gs.concatenate(
                     [pose_mat, trans_mat], axis=1)
@@ -79,7 +79,7 @@ def load_poses(only_rotations=True):
                     [pose_mat, gs.array([[0., 0., 0., 1.]])],
                     axis=0)
             data.append(pose_mat)
-            img_paths.append(row_i['img'])
+            img_paths.append(row['img'])
 
     data = gs.array(data)
     return data, img_paths
