@@ -69,8 +69,16 @@ def load_poses(only_rotations=True):
         data_file = json.load(json_file)
 
         for i, row_i in enumerate(data_file):
-            rot_mat = row_i['rot_mat']
-            data.append(rot_mat)
+            pose_mat = gs.array(row_i['rot_mat'])
+            if not only_rotations:
+                trans_mat = gs.array(row_i['trans_mat'])
+                trans_mat = gs.expand_dims(trans_mat, axis=1)
+                pose_mat = gs.concatenate(
+                    [pose_mat, trans_mat], axis=1)
+                pose_mat = gs.concatenate(
+                    [pose_mat, gs.array([[0., 0., 0., 1.]])],
+                    axis=0)
+            data.append(pose_mat)
             img_paths.append(row_i['img'])
 
     data = gs.array(data)
