@@ -35,10 +35,7 @@ def load_cities():
     name : list
         List of city names.
     """
-    n_samples = 50
-    dim = 2
-
-    data = gs.empty((n_samples, dim))
+    data = []
     names = []
 
     with open(CITIES_PATH) as json_file:
@@ -47,9 +44,10 @@ def load_cities():
         for i, row_i in enumerate(data_file):
             lat_in_radians = row_i['lat'] / 90 * gs.pi / 2
             lng_in_radians = row_i['lng'] / 180 * gs.pi
-            data[i] = gs.array([lat_in_radians, lng_in_radians])
+            data.append(gs.array([lat_in_radians, lng_in_radians]))
             names.append(row_i['city'])
 
+    data = gs.array(data)
     return data, names
 
 
@@ -64,9 +62,6 @@ def load_poses(only_rotations=True):
     img_paths : list
         List of img paths.
     """
-    n_samples = 5
-    shape = (3, 3) if only_rotations else (4, 4)
-
     data = []
     img_paths = []
 
