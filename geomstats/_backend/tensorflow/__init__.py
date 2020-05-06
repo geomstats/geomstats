@@ -62,6 +62,14 @@ from tensorflow import (  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 
+
+DTYPES = {
+    int32: 0,
+    int64: 1,
+    float32: 2,
+    float64: 3}
+
+
 arctanh = tf.math.atanh
 ceil = tf.math.ceil
 cross = tf.linalg.cross
@@ -79,9 +87,22 @@ def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
 
-# TODO (nkoep): The 'repeat' function was added in TF 2.1. Backport the
-#              implementation from tensorflow/python/ops/array_ops.py.
-repeat = _raise_not_implemented_error
+def to_numpy(x):
+    return x.numpy()
+
+
+def convert_to_wider_dtype(tensor_list):
+    dtype_list = [DTYPES[x.dtype] for x in tensor_list]
+    wider_dtype_index = max(dtype_list)
+
+    wider_dtype = list(DTYPES.keys())[wider_dtype_index]
+
+    tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
+    return tensor_list
+
+
+def repeat(a, repeats, axis=None):
+    return tf.repeat(input=a, repeats=repeats, axis=axis)
 
 
 def array(x, dtype=None):
@@ -570,7 +591,16 @@ def dot(x, y):
 
 
 def isclose(x, y, rtol=1e-05, atol=1e-08):
-    rhs = tf.constant(atol) + tf.constant(rtol) * tf.abs(y)
+    if not tf.is_tensor(x):
+        x = tf.constant(x)
+    if not tf.is_tensor(y):
+        y = tf.constant(y)
+    x, y = convert_to_wider_dtype([x, y])
+    dtype = x.dtype
+
+    rhs = (
+        tf.constant(atol, dtype=dtype)
+        + tf.constant(rtol, dtype=dtype) * tf.abs(y))
     return tf.less_equal(tf.abs(tf.subtract(x, y)), rhs)
 
 
@@ -595,6 +625,8 @@ def sum(x, axis=None, keepdims=False, name=None):
 def einsum(equation, *inputs, **kwargs):
     einsum_str = equation
     input_tensors_list = inputs
+
+    input_tensors_list = convert_to_wider_dtype(input_tensors_list)
 
     einsum_list = einsum_str.split('->')
     input_str = einsum_list[0]
@@ -655,7 +687,7 @@ def einsum(equation, *inputs, **kwargs):
             result = squeeze(result, axis=0)
         return result
 
-    return tf.einsum(equation, *inputs, **kwargs)
+    return tf.einsum(equation, *input_tensors_list, **kwargs)
 
 
 def transpose(x, axes=None):
