@@ -9,10 +9,14 @@ import geomstats.backend as gs
 DATA_FOLDER = os.path.join(
     'geomstats', 'datasets', 'data')
 
-CITIES_PATH = 'cities/cities.json'
-POSES_PATH = 'poses/poses.json'
-KARATE_PATH = 'graph_karate/karate.txt'
-KARATE_LABELS_PATH = 'graph_karate/karate_labels.txt'
+CITIES_PATH = os.path.join(
+    DATA_FOLDER, 'cities/cities.json')
+POSES_PATH = os.path.join(
+    DATA_FOLDER, 'poses/poses.json')
+KARATE_PATH = os.path.join(
+    DATA_FOLDER, 'graph_karate/karate.txt')
+KARATE_LABELS_PATH = os.path.join(
+    DATA_FOLDER, 'graph_karate/karate_labels.txt')
 
 
 def load_cities():
@@ -30,11 +34,10 @@ def load_cities():
     n_samples = 50
     dim = 2
 
-    path = os.path.join(DATA_FOLDER, CITIES_PATH)
     data = gs.empty((n_samples, dim))
     names = []
 
-    with open(path) as json_file:
+    with open(CITIES_PATH) as json_file:
         data_file = json.load(json_file)
 
         for i, row_i in enumerate(data_file):
@@ -60,18 +63,13 @@ def load_poses(only_rotations=True):
     n_samples = 5
     shape = (3, 3) if only_rotations else (4, 4)
 
-    path = os.path.join(DATA_FOLDER, POSES_PATH)
     data = gs.empty((n_samples,) + shape)
     img_paths = []
 
-    with open(path) as json_file:
+    with open(POSES_PATH) as json_file:
         data_file = json.load(json_file)
 
         for i, row_i in enumerate(data_file):
-            # rot_mat = gs.array([
-            #     [row_i[1], row_i[2], row_i[3]],
-            #     [row_i[4], row_i[5], row_i[6]],
-            #     [row_i[10], row_i[11], row_i[12]]], dtype=gs.float64)
             rot_mat = row_i['rot_mat']
             data[i] = rot_mat
             img_paths.append(row_i['img'])
