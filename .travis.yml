@@ -11,8 +11,9 @@ install:
     for req in ci-requirements.txt dev-requirements.txt opt-requirements.txt requirements.txt; do
       pip install -q -r $req
     done
+  - pip install git+ssh://git@github.com/geomstats/geomstats.git
+
 script:
-  - PYTHONPATH=$PYTHONPATH:$(pwd)
   - flake8 --ignore=D,W503,W504 geomstats examples tests
   - flake8 geomstats/geometry geomstats/learning
   - |
