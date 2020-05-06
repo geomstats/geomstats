@@ -1,5 +1,6 @@
 """Visualization for Geometric Statistics."""
 
+import matplotlib
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
@@ -20,6 +21,20 @@ AX_SCALE = 1.2
 IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'S1', 'S2',
                'H2_poincare_disk', 'H2_poincare_half_plane', 'H2_klein_disk',
                'poincare_polydisk']
+
+
+def tutorial_matplotlib():
+    plt.style.use('seaborn')
+    fontsize = 12
+    matplotlib.rc('font', size=fontsize)
+    matplotlib.rc('text', usetex=True)
+    matplotlib.rc('legend', fontsize=fontsize)
+    matplotlib.rc('axes', titlesize=21, labelsize=14)
+    matplotlib.rc(
+        'font',
+        family='serif',
+        serif=['Computer Modern Roman'],
+        monospace=['Computer Modern Typewriter'])
 
 
 class Arrow3D():
