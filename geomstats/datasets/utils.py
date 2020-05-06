@@ -17,6 +17,10 @@ KARATE_PATH = os.path.join(
     DATA_FOLDER, 'graph_karate/karate.txt')
 KARATE_LABELS_PATH = os.path.join(
     DATA_FOLDER, 'graph_karate/karate_labels.txt')
+GRAPH_RANDOM_PATH = os.path.join(
+    DATA_FOLDER, 'graph_random/graph_random.txt')
+GRAPH_RANDOM_LABELS_PATH = os.path.join(
+    DATA_FOLDER, 'graph_random/graph_random_labels.txt')
 
 
 def load_cities():
