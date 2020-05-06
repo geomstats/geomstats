@@ -6,9 +6,9 @@ import random
 import geomstats.backend as gs
 
 DEFAULT_GRAPH_MATRIX_PATH = os.path.join(
-    'data', 'graph_random', 'graph_random.txt')
+    'geomstats', 'datasets', 'data', 'graph_random', 'graph_random.txt')
 DEFAULT_GRAPH_LABELS_PATH = os.path.join(
-    'data', 'graph_random', 'graph_random_labels.txt')
+    'geomstats', 'datasets', 'data', 'graph_random', 'graph_random_labels.txt')
 
 
 class Graph:
