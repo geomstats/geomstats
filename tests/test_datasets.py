@@ -7,6 +7,7 @@ import geomstats.datasets.utils as utils
 import geomstats.tests
 from geomstats.datasets.graph_data_preparation import Graph
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestDatasets(geomstats.tests.TestCase):
@@ -26,9 +27,17 @@ class TestDatasets(geomstats.tests.TestCase):
     def test_load_cities(self):
         """Test that the cities coordinates belong to the sphere."""
         sphere = Hypersphere(dim=2)
-        data, names = utils.load_cities()
+        data, _ = utils.load_cities()
         data = sphere.spherical_to_extrinsic(data)
         result = sphere.belongs(data)
+
+        self.assertTrue(gs.all(result))
+
+    def test_load_poses(self):
+        """Test that the poses belong to SO(3)."""
+        so3 = SpecialOrthogonal(n=3)
+        data, _ = utils.load_poses()
+        result = so3.belongs(data)
 
         self.assertTrue(gs.all(result))
 
