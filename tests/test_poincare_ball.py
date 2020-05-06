@@ -9,7 +9,6 @@ coordinates systems.
 
 """
 
-import logging
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hyperboloid import Hyperboloid
@@ -73,7 +72,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
             self.manifold.metric.dist(point_a, point_b)
 
         dist_b_c = gs.flatten(
-            self.manifold.metric.dist(point_b, point_c))
+            self.manifold.metric.dist_broadcast(point_b, point_c))
 
         result_vect = gs.concatenate(
             (dist_a_b, dist_b_c), axis=0)
@@ -91,7 +90,6 @@ class TestPoincareBall(geomstats.tests.TestCase):
         result = gs.stack(result, axis=0)
 
         self.assertAllClose(result_vect, result)
-
 
     def test_mobius_vectorization(self):
         point_a = gs.array([0.5, 0.5])

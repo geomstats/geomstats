@@ -1,5 +1,6 @@
 """Tensorflow based computation backend."""
 
+from collections import Counter
 from itertools import product
 
 import numpy as _np
@@ -569,14 +570,14 @@ def broadcast_arrays(x, y, **kwargs):
             tensor = tf.expand_dims(tensor, axis=0)
         tensors[index] = tensor
 
-    from collections import Counter
     broadcast_shape = []
     for index in range(max_rank):
         dimensions = [s[index] for s in shapes]
         repeats = Counter(dimensions)
         if len(repeats) > 2 or (len(repeats) == 2 and
                                 1 not in list(repeats.keys())):
-            raise Exception("Broadcasting not possible")
+            raise ValueError('operands could not be '
+                             'broadcast together with shapes', shapes)
         broadcast_shape.append(max(repeats.keys()))
 
     for axis, dimension in enumerate(broadcast_shape):

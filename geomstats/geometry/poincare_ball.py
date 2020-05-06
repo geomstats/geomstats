@@ -229,36 +229,37 @@ class PoincareBallMetric(RiemannianMetric):
         return mobius_add
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
-    def dist(self, points_a, points_b):
+    def dist_broadcast(self, point_a, point_b):
         """Compute the geodesic distance between points.
+
+        If n_samples_a == n_samples_b then dist is the element-wise
+        distance result of a point in points_a with the point from
+        points_b of the same index. If n_samples_a not equal to
+        n_samples_b then dist is the result of applying geodesic
+        distance for each point from points_a to all points from
+        points_b.
 
         Parameters
         ----------
-        points_a : array-like, shape=[n_samples_a, dim]
+        point_a : array-like, shape=[n_samples_a, dim]
             Set of points in hyperbolic space.
-        points_b : array-like, shape=[n_samples_b, dim]
+        point_b : array-like, shape=[n_samples_b, dim]
             Second set of points in hyperbolic space.
 
         Returns
         -------
         dist : array-like,
             shape=[n_samples_a, dim] or [n_samples_a, n_samples_b, dim]
-            Geodesic distance between the two set of points.
-            If n_samples_a == n_samples_b then dist is the element-wise
-            distance result of a point in points_a with the point from
-            points_b of the same index.
-            If n_samples_a not equal to n_samples_b then dist is the result
-            of applying geodesic distance for each point from points_a to all
-            points from points_b.
+            Geodesic distance between the two points.
         """
-        if points_a.shape[-1] != points_b.shape[-1]:
-            logging.error('Manifold Dimensions not equal')
-            return
+        if point_a.shape[-1] != point_b.shape[-1]:
+            logging.error('Manifold dimensions not equal')
+            return None
 
-        elif points_a.shape[0] != points_b.shape[0]:
+        if point_a.shape[0] != point_b.shape[0]:
 
             point_a_broadcast, point_b_broadcast = gs.broadcast_arrays(
-                points_a[:, None], points_b[None, ...])
+                point_a[:, None], point_b[None, ...])
 
             point_a_flatten = gs.reshape(
                 point_a_broadcast, (-1, point_a_broadcast.shape[-1]))
@@ -277,26 +278,49 @@ class PoincareBallMetric(RiemannianMetric):
                 diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
 
             dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
-            dist = gs.to_ndarray(dist, to_ndim=1)
-            dist = gs.to_ndarray(dist, to_ndim=2, axis=1)
             dist *= self.scale
-            dist = gs.reshape(dist, (points_a.shape[0], points_b.shape[0]))
+            dist = gs.reshape(dist, (point_a.shape[0], point_b.shape[0]))
             dist = gs.squeeze(dist)
 
-        elif points_a.shape == points_b.shape:
+        elif point_a.shape == point_b.shape:
 
-            point_a_norm = gs.clip(gs.sum(points_a ** 2, -1), 0., 1 - EPSILON)
-            point_b_norm = gs.clip(gs.sum(points_b ** 2, -1), 0., 1 - EPSILON)
+            point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0., 1 - EPSILON)
+            point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0., 1 - EPSILON)
 
-            diff_norm = gs.sum((points_a - points_b) ** 2, -1)
+            diff_norm = gs.sum((point_a - point_b) ** 2, -1)
             norm_function = 1 + 2 * \
                 diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
 
             dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
-            dist = gs.to_ndarray(dist, to_ndim=1)
-            dist = gs.to_ndarray(dist, to_ndim=2, axis=1)
             dist *= self.scale
 
+        return dist
+
+    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
+    def dist(self, point_a, point_b):
+        """Compute the geodesic distance between two points.
+
+        Parameters
+        ----------
+        point_a : array-like, shape=[..., dim]
+            First point in hyperbolic space.
+        point_b : array-like, shape=[..., dim]
+            Second point in hyperbolic space.
+
+        Returns
+        -------
+        dist : array-like, shape=[...,]
+            Geodesic distance between the two points.
+        """
+        point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0., 1 - EPSILON)
+        point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0., 1 - EPSILON)
+
+        diff_norm = gs.sum((point_a - point_b) ** 2, -1)
+        norm_function = 1 + 2 * \
+            diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
+
+        dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
+        dist *= self.scale
         return dist
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
