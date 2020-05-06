@@ -35,7 +35,7 @@ class TestDatasets(geomstats.tests.TestCase):
 
         self.assertTrue(gs.all(result))
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_pytorch_only
     def test_graph_load(self):
         """Test the correct number of edges and nodes for each graph."""
         result = [len(self.g1.edges) + len(self.g1.labels),
@@ -44,6 +44,7 @@ class TestDatasets(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_random_walks(self):
         """Test that random walks have the right length and number."""
         walk_length_g1 = 3
