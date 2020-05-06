@@ -131,8 +131,8 @@ def main():
     n_negative = 2
     context_size = 1
     karate_graph = gdp.Graph(
-        graph_matrix_path='examples/data/graph_karate/karate.txt',
-        labels_path='examples/data/graph_karate/karate_labels.txt')
+        graph_matrix_path='data/graph_karate/karate.txt',
+        labels_path='data/graph_karate/karate_labels.txt')
 
     nb_vertices_by_edges =\
         [len(e_2) for _, e_2 in karate_graph.edges.items()]
