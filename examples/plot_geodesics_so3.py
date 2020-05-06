@@ -1,6 +1,6 @@
 """Plot a geodesic of SO(3).
 
-SO(3) is equipped with its left-invariant canonical metric.
+SO(3) is equipped with its bi-invariant canonical metric.
 """
 
 import matplotlib.pyplot as plt
