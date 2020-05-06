@@ -17,4 +17,4 @@ class TestNotebooks(geomstats.tests.TestCase):
     @staticmethod
     @geomstats.tests.np_only
     def test_notebook():
-        _exec_notebook('.../notebooks/tangent_pca_s2.ipynb')
+        _exec_notebook('notebooks/tangent_pca_s2.ipynb')
