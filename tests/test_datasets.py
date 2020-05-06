@@ -11,7 +11,6 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 class TestDatasets(geomstats.tests.TestCase):
     """Test for loading graph-structured data."""
 
-    @geomstats.tests.np_only
     def setUp(self):
         """Set up tests."""
         self.g1 = Graph()
