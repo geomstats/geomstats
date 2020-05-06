@@ -62,7 +62,11 @@ from . import linalg  # NOQA
 from . import random  # NOQA
 
 
-DTYPES = [int32, int64, float32, float64]
+DTYPES = {
+    int32: 0,
+    int64: 1,
+    float32: 2,
+    float64: 3}
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -95,14 +99,11 @@ def to_numpy(x):
 
 
 def convert_to_wider_dtype(tensor_list):
-    dtype_list = [x.dtype for x in tensor_list]
-    wider_dtype = dtype_list[0]
-    wider_dtype_index = DTYPES.index(wider_dtype)
-    for dtype in dtype_list[1:]:
-        index = DTYPES.index(dtype)
-        if index > wider_dtype_index:
-            wider_dtype = dtype
-            wider_dtype_index = index
+    dtype_list = [DTYPES[x.dtype] for x in tensor_list]
+    wider_dtype_index = max(dtype_list)
+
+    wider_dtype = list(DTYPES.keys())[wider_dtype_index]
+
     tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
     return tensor_list
 
