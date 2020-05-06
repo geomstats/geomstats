@@ -101,6 +101,10 @@ DTYPES = {
     dtype('float64'): 3}
 
 
+def to_numpy(x):
+    return x
+
+
 def convert_to_wider_dtype(tensor_list):
     dtype_list = [DTYPES[x.dtype] for x in tensor_list]
     wider_dtype_index = max(dtype_list)

@@ -93,6 +93,7 @@ BACKEND_ATTRIBUTES = {
         'tan',
         'tanh',
         'tile',
+        'to_numpy',
         'to_ndarray',
         'trace',
         'transpose',
