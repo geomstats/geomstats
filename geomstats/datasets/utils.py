@@ -67,7 +67,7 @@ def load_poses(only_rotations=True):
     n_samples = 5
     shape = (3, 3) if only_rotations else (4, 4)
 
-    data = gs.empty((n_samples,) + shape)
+    data = []
     img_paths = []
 
     with open(POSES_PATH) as json_file:
@@ -75,7 +75,8 @@ def load_poses(only_rotations=True):
 
         for i, row_i in enumerate(data_file):
             rot_mat = row_i['rot_mat']
-            data[i] = rot_mat
+            data.append(rot_mat)
             img_paths.append(row_i['img'])
 
+    data = gs.array(data)
     return data, img_paths
