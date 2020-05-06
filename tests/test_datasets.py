@@ -1,21 +1,36 @@
 """Unit tests for loading Graph dataset."""
 
+import os
+
+import geomstats.backend as gs
+import geomstats.datasets.utils as utils
 import geomstats.tests
 from geomstats.datasets.graph_data_preparation import Graph
+from geomstats.geometry.hypersphere import Hypersphere
 
 
-class TestLoadGraph(geomstats.tests.TestCase):
+class TestDatasets(geomstats.tests.TestCase):
     """Test for loading graph-structured data."""
 
     @geomstats.tests.np_only
     def setUp(self):
-        """Declare the graph by default and the Karate club graph."""
+        self.data_folder = utils.DATA_FOLDER
+
         self.g1 = Graph()
         self.g2 = Graph(
-            graph_matrix_path='data'
-                              '/graph_karate/karate.txt',
-            labels_path='data'
-                        '/graph_karate/karate_labels.txt')
+            graph_matrix_path=os.path.join(
+                self.data_folder, utils.KARATE_PATH),
+            labels_path=os.path.join(
+                self.data_folder, utils.KARATE_LABELS_PATH))
+
+    def test_load_cities(self):
+        """Test that the cities coordinates belong to the sphere."""
+        sphere = Hypersphere(dim=2)
+        data, names = utils.load_cities()
+        data = sphere.spherical_to_extrinsic(data)
+        result = sphere.belongs(data)
+
+        self.assertTrue(gs.all(result))
 
     @geomstats.tests.np_only
     def test_graph_load(self):

@@ -9,8 +9,10 @@ import geomstats.backend as gs
 DATA_FOLDER = os.path.join(
     'geomstats', 'datasets', 'data')
 
-CITIES_FILENAME = 'cities/cities.json'
-POSES_FILENAME = 'poses/poses.json'
+CITIES_PATH = 'cities/cities.json'
+POSES_PATH = 'poses/poses.json'
+KARATE_PATH = 'graph_karate/karate.txt'
+KARATE_LABELS_PATH = 'graph_karate/karate_labels.txt'
 
 
 def load_cities():
@@ -28,7 +30,7 @@ def load_cities():
     n_samples = 50
     dim = 2
 
-    path = os.path.join(DATA_FOLDER, CITIES_FILENAME)
+    path = os.path.join(DATA_FOLDER, CITIES_PATH)
     data = gs.empty((n_samples, dim))
     names = []
 
@@ -58,7 +60,7 @@ def load_poses(only_rotations=True):
     n_samples = 5
     shape = (3, 3) if only_rotations else (4, 4)
 
-    path = os.path.join(DATA_FOLDER, POSES_FILENAME)
+    path = os.path.join(DATA_FOLDER, POSES_PATH)
     data = gs.empty((n_samples,) + shape)
     img_paths = []
 
