@@ -128,7 +128,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
 
     def random_gaussian_rotation_orbit(
             self, mean_spd=None, var_rotations=None, n_samples=1):
-        """
+        r"""
         Define a Gaussian random sample of SPD matrices.
 
         (actually an orbit for rotations)
@@ -154,7 +154,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
                                              var_rotations=None,
                                              var_eigenvalues=None,
                                              n_samples=1):
-        """
+        r"""
         Define a Gaussian random sample of SPD matrices.
 
         (actually an orbit for rotations)
