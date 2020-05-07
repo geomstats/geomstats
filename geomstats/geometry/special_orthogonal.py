@@ -144,7 +144,8 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         :param r: array-like, shape=[n, n]: rotation
         :return: float: angle of rotation
         """
-        if self.n != 2: raise NotImplementedError
+        if self.n != 2:
+            raise NotImplementedError
         return gs.arctan(point[0][1] / point[0][0])
 
     def angle_of_rot2(self, point):
@@ -162,7 +163,8 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         :param alpha: float: scalar to divide of angle by
         :return: array-like, shape=[n, n]: rotation with divided angle
         """
-        if self.n != 2: raise NotImplementedError
+        if self.n != 2:
+            raise NotImplementedError
         angle = self.angle_of_rot2(point) * alpha
         c, s = gs.cos(angle), gs.sin(angle)
         return gs.array([[c, -s], [s, c]])
@@ -191,10 +193,9 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         :param n_samples: int, number of samples
         :return: rot_gaussian: array-like, shape=[n_samples, n, n]
         """
-        if self.n != 2: raise NotImplementedError
+        if self.n != 2:
+            raise NotImplementedError
         rot_uniform = self.random_uniform(n_samples)
-        # rot_normalized = gs.array([self.divide_angle_of_cov2(
-        #     rot_uniform[i], var) for i in range(rot_uniform.shape[0])])
         rot_normalized = self.multiply_angle_of_rot2(rot_uniform, var)
         rot_gaussian = gs.matmul(mean, rot_normalized)
         return rot_gaussian
