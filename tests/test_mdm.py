@@ -53,7 +53,8 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
 
         MDMEstimator = RiemannianMinimumDistanceToMeanClassifier(
             SPDMetricAffine(n=2), n_clusters, point_type='matrix')
-        MDMEstimator.mean_estimate = gs.concatenate([bary_A[None, ...], bary_B[None, ...]])
+        MDMEstimator.mean_estimate = gs.concatenate(
+            [bary_A[None, ...], bary_B[None, ...]])
 
         X = gs.array([[e ** 3, 0],
                       [0, 1]])[None, ...]
