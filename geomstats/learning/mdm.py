@@ -8,14 +8,13 @@ class RiemannianMinimumDistanceToMeanClassifier():
     """
     Classifier implementing the MDM scheme on manifolds.
 
-    Parameters
+    Attributes
     ----------
     riemannian_metric : string or callable.
         The distance metric to use.
-
-    Attributes
-    ----------
-    G: array-like, shape=[n_classes, n_features] if point_type='vector'
+    n_clusters: int, number of clusters.
+    mean_estimate: array-like, shape=[n_classes, n_features] if
+    point_type='vector'
                    shape=[n_classes, n_features, n_features]
                     if point_type='matrix'
        Frechet means of each class.
@@ -24,10 +23,12 @@ class RiemannianMinimumDistanceToMeanClassifier():
     def __init__(
             self,
             riemannian_metric,
+            n_clusters,
             point_type='matrix'):
         self.riemannian_metric = riemannian_metric
+        self.n_clusters = n_clusters
         self.point_type = point_type
-        self.G = None
+        self.mean_estimate = None
 
     def fit(self, X, Y):
         """
@@ -42,16 +43,15 @@ class RiemannianMinimumDistanceToMeanClassifier():
         :param Y: array-like, shape=[n_samples, n_classes]
                   Training labels, where n_classes is the number of classes.
         """
-        n_classes = Y.shape[-1]
         mean_estimator = FrechetMean(
             metric=self.riemannian_metric,
             point_type=self.point_type)
         frechet_means = []
-        for c in range(n_classes):
+        for c in range(self.n_clusters):
             data_class = self.split_data_in_classes(X, Y, c)
             # frechet_means.append(mean_estimator.fit(data_class).estimate_[0])
             frechet_means.append(mean_estimator.fit(data_class).estimate_)
-        self.G = gs.array(frechet_means)
+        self.mean_estimate = gs.array(frechet_means)
 
     def predict(self, X):
         """
@@ -67,11 +67,11 @@ class RiemannianMinimumDistanceToMeanClassifier():
                     Predicted labels, where n_classes is the number of classes.
         """
         n_samples = X.shape[0]
-        n_classes = self.G.shape[0]
-        Y = gs.zeros((n_samples, n_classes))
+        Y = gs.zeros((n_samples, self.n_clusters))
         for i in range(n_samples):
-            c = self.riemannian_metric.closest_neighbor_index(X[i], self.G)
-            Y[i, c] = 1
+            label = self.riemannian_metric.closest_neighbor_index(X[i], self
+                                                              .mean_estimate)
+            Y[i, label] = 1
         return Y
 
     @staticmethod
