@@ -91,7 +91,8 @@ class DatasetSPD2D:
         spd = SPDMatrices(n=self.n_features)
         spd.set_eigensummary(eigenspace, eigenvalues)
         spd_data = spd.random_gaussian_rotation_orbit_noisy(
-            var_rotations=var, var_eigenvalues=var_eigenvalues, n_samples=self.n_samples)
+            var_rotations=var, var_eigenvalues=var_eigenvalues,
+            n_samples=self.n_samples)
         return spd_data
 
 
