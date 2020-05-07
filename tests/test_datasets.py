@@ -29,7 +29,7 @@ class TestDatasets(geomstats.tests.TestCase):
 
     def test_load_poses_only_rotations(self):
         """Test that the poses belong to SO(3)."""
-        so3 = SpecialOrthogonal(n=3)
+        so3 = SpecialOrthogonal(n=3, point_type='vector')
         data, _ = data_utils.load_poses()
         result = so3.belongs(data)
 
@@ -37,7 +37,7 @@ class TestDatasets(geomstats.tests.TestCase):
 
     def test_load_poses(self):
         """Test that the poses belong to SE(3)."""
-        se3 = SpecialEuclidean(n=3)
+        se3 = SpecialEuclidean(n=3, point_type='vector')
         data, _ = data_utils.load_poses(only_rotations=False)
         result = se3.belongs(data)
 
