@@ -138,35 +138,48 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         skew = self.to_tangent(random_mat)
         return self.exp(skew)
 
-    @staticmethod
-    def angle_of_rot2(r):
-        """
-        Get angle of a 2D rotation.
+    def _angle_of_rot2(self, point):
+        """Get angle of a 2D rotation.
 
         :param r: array-like, shape=[n, n]: rotation
         :return: float: angle of rotation
         """
-        # assert (self.n == 2),\
-        #     'This function was only tested for n==2, do not use otherwise.'
-        return gs.arctan(r[0][1] / r[0][0])
+        if self.n != 2: raise NotImplementedError
+        return gs.arctan(point[0][1] / point[0][0])
 
-    def divide_angle_of_cov2(self, r, alpha):
+    def angle_of_rot2(self, point):
+        """Get angle of a 2D rotation; vectorized version.
+
+        :param r: array-like (or a list of), shape=[n, n]: rotation
+        :return: float (or a list of): angle of rotation
         """
-        Divide the angle of a 2D rotation by a scalar.
+        return gs.vectorize(point, self._angle_of_rot2, signature='(n,n)->()')
 
-        :param r: array-like, shape=[n, n]: rotation
+    def _multiply_angle_of_rot2(self, point, alpha):
+        """Multiply the angle of a 2D rotation by a scalar.
+
+        :param point: array-like, shape=[n, n]: rotation
         :param alpha: float: scalar to divide of angle by
         :return: array-like, shape=[n, n]: rotation with divided angle
         """
-        # assert (self.n == 2),\
-        #     'This function was only tested for n==2, do not use otherwise.'
-        angle = self.angle_of_rot2(r) * alpha
+        if self.n != 2: raise NotImplementedError
+        angle = self.angle_of_rot2(point) * alpha
         c, s = gs.cos(angle), gs.sin(angle)
         return gs.array([[c, -s], [s, c]])
 
-    def random_gaussian(self, mean, var, n_samples=1):
+    def multiply_angle_of_rot2(self, point, alpha):
+        """Divide the angle of a 2D rotation by a scalar; vectorized version.
+
+        :param point: array-like (or a list of), shape = [n, n]: rotation
+        :param alpha: float: scalar (or a list of) to divide of angle by
+        :return: array-like (or a list of), shape=[n, n]:
+                 rotation with divided angle
         """
-        Emulate a Gaussian distribution in SO(n).
+        return gs.vectorize([point, alpha], self._multiply_angle_of_rot2,
+                            multiple_args=True, signature='(n,n),()->(n,n)')
+
+    def random_gaussian(self, mean, var, n_samples=1):
+        """Emulate a Gaussian distribution in SO(n).
 
         WARNING: This was only tested and may be viable only in SO(2).
 
@@ -178,11 +191,11 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         :param n_samples: int, number of samples
         :return: rot_gaussian: array-like, shape=[n_samples, n, n]
         """
-        # assert (self.n == 2),\
-        #     'This function was only tested for n==2, do not use otherwise.'
+        if self.n != 2: raise NotImplementedError
         rot_uniform = self.random_uniform(n_samples)
-        rot_normalized = gs.array([self.divide_angle_of_cov2(
-            rot_uniform[i], var) for i in range(rot_uniform.shape[0])])
+        # rot_normalized = gs.array([self.divide_angle_of_cov2(
+        #     rot_uniform[i], var) for i in range(rot_uniform.shape[0])])
+        rot_normalized = self.multiply_angle_of_rot2(rot_uniform, var)
         rot_gaussian = gs.matmul(mean, rot_normalized)
         return rot_gaussian
 

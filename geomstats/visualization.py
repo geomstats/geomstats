@@ -641,17 +641,17 @@ class Ellipsis2D():
         return x, y
 
     @staticmethod
-    def compute_coordinates(P):
+    def compute_coordinates(point):
         """
         Compute the ellipsis coordinates from 2D SPD matrix.
 
-        :param P: array-like, shape = [2, 2]: SPD matrix.
+        :param point: array-like, shape = [2, 2]: SPD matrix.
         :return:
         X: array-like, shape = [Np,];
         Y: array-like, shape = [Np,];
         X and Y coordinates.
         """
-        w, vr = gs.linalg.eig(P)
+        w, vr = gs.linalg.eig(point)
         w = w.real + EPS
         Np = 100
 
@@ -662,8 +662,8 @@ class Ellipsis2D():
         c, s = gs.cos(angle), gs.sin(angle)
         the = gs.linspace(0, 2 * gs.pi, Np)
         X = e1 * gs.cos(the) * c - s * e2 * gs.sin(the) + x0
-        Y = e1 * gs.cos(the) * s + c * e2 * gs.sin(the) + y0
-        return X, Y, X[Np // 4], Y[Np // 4]
+        y = e1 * gs.cos(the) * s + c * e2 * gs.sin(the) + y0
+        return X, y, X[Np // 4], y[Np // 4]
 
     def plot(self):
         """Plot final plot."""

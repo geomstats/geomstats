@@ -11,6 +11,7 @@ from torch import (  # NOQA
     argmax,
     argmin,
     asin as arcsin,
+    atan as arctan,
     atan2 as arctan2,
     bool as t_bool,
     broadcast_tensors as broadcast_arrays,

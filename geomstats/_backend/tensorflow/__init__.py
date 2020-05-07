@@ -12,6 +12,7 @@ from tensorflow import (  # NOQA
     argmax,
     argmin,
     asin as arcsin,
+    atan as arctan,
     atan2 as arctan2,
     clip_by_value as clip,
     concat as concatenate,

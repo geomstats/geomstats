@@ -126,73 +126,58 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         self.eigensummary = EigenSummary(
             eigenspace=eigenspace, eigenvalues=eigenvalues)
 
-    def get_eigensummary(self):
-        """
-        Get the current eigenspace for a specific family of matrices.
-
-        :return Eigen namedtuple : Current eigenspace and eigenvalues.
-        """
-        return self.eigensummary
-
-    def random_gaussian(
+    def random_gaussian_rotation_orbit(
             self, mean_spd=None, var_rotations=None, n_samples=1):
         """
         Define a Gaussian random sample of SPD matrices.
 
-        (definition is debatable)
-        'mean_spd' is the mean SPD matrix; 'var_rotations' is the
-        scalar variance by which the mean is rotated.
+        (actually an orbit for rotations)
+        :math:'mean_spd' is the mean SPD matrix; :math:'var_rotations' is the
+        scalar variance by which the mean is rotated:
+        :math:'X_{out} = R \Sigma_{in} R^T'.
         """
         n = self.n
 
-        # Should make it possible to simply perform EIG operation
-        # if no EigenSummary provided
-        # assert (self.eigensummary is not None),\
-        #     "Need to first set eigenspace and eigenvalues."
+        if self.eigensummary is None: raise NotImplementedError
         if mean_spd is None:
             eigenvalues, eigenspace =\
                 self.eigensummary.eigenvalues, self.eigensummary.eigenspace
             rotations = SpecialOrthogonal(n).random_gaussian(
                 eigenspace, var_rotations, n_samples=n_samples)
 
-        spd_mat = gs.array(
-            [gs.matmul(rotations[i],
-                       gs.matmul(eigenvalues,
-                                 rotations[i].T))
-             for i in range(n_samples)])
+        spd_mat = Matrices.mul(rotations, eigenvalues, Matrices.transpose(
+            rotations))
 
         return spd_mat
 
-    def random_gaussian_noisy(self, mean_spd=None, var_rotations=None,
-                              noise=None, n_samples=1):
+    def random_gaussian_rotation_orbit_noisy(self, mean_spd=None,
+                                             var_rotations=None,
+                                             var_eigenvalues=None,
+                                             n_samples=1):
         """
         Define a Gaussian random sample of SPD matrices.
 
-        (definition is debatable)
-        'mean_spd' is the mean SPD matrix; 'var_rotations' is the
-        scalar variance by which the mean is rotated.
+        (actually an orbit for rotations)
+        :math:'mean_spd' is the mean SPD matrix; :math:'var_rotations' is the
+        scalar variance by which the mean is rotated:
+        :math:'\Sigma_{mid} \sim \mathcal{N}(\Sigma_{in}, \sigma_{eig}';
+        :math:'X_{out} = R \Sigma_{in} R^T'.
         """
         n = self.n
 
-        # Should make it possible to simply perform EIG operation
-        # if no EigenSummary provided
-        # assert (self.eigensummary is not None),\
-        #     "Need to first set eigenspace and eigenvalues."
+        if self.eigensummary is None: raise NotImplementedError
         if mean_spd is None:
             eigenvalues, eigenspace =\
                 self.eigensummary.eigenvalues, self.eigensummary.eigenspace
             eigenvalues =\
                 gs.diag(gs.random.multivariate_normal(
-                    gs.diag(eigenvalues), gs.diag(noise)))
+                    gs.diag(eigenvalues), gs.diag(var_eigenvalues)))
             self.set_eigensummary(eigenspace, eigenvalues)
             rotations = SpecialOrthogonal(n).random_gaussian(
                 eigenspace, var_rotations, n_samples=n_samples)
 
-        spd_mat = gs.array(
-            [gs.matmul(rotations[i],
-                       gs.matmul(eigenvalues,
-                                 rotations[i].T))
-             for i in range(n_samples)])
+        spd_mat = Matrices.mul(rotations, eigenvalues, Matrices.transpose(
+            rotations))
 
         return spd_mat
 
