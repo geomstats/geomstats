@@ -10,8 +10,8 @@ geomstats = runpy.run_path(os.path.join(base_dir, 'geomstats', '__init__.py'))
 
 
 def parse_requirements_file(filename):
-    with open(filename) as f:
-        return f.read().splitlines()
+    with open(filename) as input_file:
+        return input_file.read().splitlines()
 
 
 if __name__ == '__main__':

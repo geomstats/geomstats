@@ -4,7 +4,7 @@ A set of all orthonormal p-frames in n-dimensional space, where p <= n
 """
 
 import geomstats.backend as gs
-import geomstats.error
+import geomstats.errors
 import geomstats.vectorization
 from geomstats import algebra_utils
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
@@ -31,8 +31,8 @@ class Stiefel(EmbeddedManifold):
     """
 
     def __init__(self, n, p):
-        geomstats.error.check_integer(n, 'n')
-        geomstats.error.check_integer(p, 'p')
+        geomstats.errors.check_integer(n, 'n')
+        geomstats.errors.check_integer(p, 'p')
         if p > n:
             raise ValueError('p needs to be smaller than n.')
 
@@ -54,14 +54,15 @@ class Stiefel(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, n, p]
+        point : array-like, shape=[..., n, p]
             Point.
         tolerance : float, optional
             Tolerance at which to evaluate.
+            Optional, default: 1e-5.
 
         Returns
         -------
-        belongs : array-like, shape=[n_samples, 1]
+        belongs : array-like, shape=[...,]
             Array of booleans evaluating if the corresponding points
             belong to the Stiefel manifold.
         """
@@ -91,11 +92,13 @@ class Stiefel(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, n, p]
+        point : array-like, shape=[..., n, p]
+            Point.
 
         Returns
         -------
-        projector : array-like, shape=[n_samples, n, n]
+        projected : array-like, shape=[..., n, n]
+            Projected point.
         """
         return Matrices.mul(point, Matrices.transpose(point))
 
@@ -108,12 +111,13 @@ class Stiefel(EmbeddedManifold):
 
         Parameters
         ----------
-        n_samples : int, optional
+        n_samples : int
             Number of samples.
+            Optional, default: 1.
 
         Returns
         -------
-        samples : array-like, shape=[n_samples, n, p]
+        samples : array-like, shape=[..., n, p]
             Samples on the Stiefel manifold.
         """
         n, p = self.n, self.p
@@ -174,16 +178,16 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, n, p]
+        tangent_vec_a : array-like, shape=[..., n, p]
             First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[n_samples, n, p]
+        tangent_vec_b : array-like, shape=[..., n, p]
             Second tangent vector at base point.
-        base_point : array-like, shape=[n_samples, n, p]
+        base_point : array-like, shape=[..., n, p]
             Point in the Stiefel manifold.
 
         Returns
         -------
-        inner_prod : array-like, shape=[n_samples, 1]
+        inner_prod : array-like, shape=[..., 1]
             Inner-product of the two tangent vectors.
         """
         base_point_transpose = gs.transpose(base_point, axes=(0, 2, 1))
@@ -202,14 +206,14 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, n, p]
+        tangent_vec : array-like, shape=[..., n, p]
             Tangent vector at a base point.
-        base_point : array-like, shape=[n_samples, n, p]
+        base_point : array-like, shape=[..., n, p]
             Point in the Stiefel manifold.
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, n, p]
+        exp : array-like, shape=[..., n, p]
             Point in the Stiefel manifold equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
@@ -266,8 +270,8 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, n, p]
-        base_point : array-like, shape=[n_samples, n, p]
+        point : array-like, shape=[..., n, p]
+        base_point : array-like, shape=[..., n, p]
         matrix_m : array-like
 
         Returns
@@ -345,14 +349,14 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, n, p]
+        point : array-like, shape=[..., n, p]
             Point in the Stiefel manifold.
-        base_point : array-like, shape=[n_samples, n, p]
+        base_point : array-like, shape=[..., n, p]
             Point in the Stiefel manifold.
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dim + 1]
+        log : array-like, shape=[..., dim + 1]
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
@@ -375,7 +379,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
             matrix_c = matrix_lv[:, p:2 * p, p:2 * p]
 
-            # TODO(nina): Add break condition
+            # TODO (nina): Add break condition
             # of the form: if gs.all(gs.less_equal(norm_matrix_c, tol)):
 
             matrix_phi = gs.linalg.expm(-matrix_c)
@@ -404,14 +408,14 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[n_samples, n, p]
+        tangent_vec : array-like, shape=[..., n, p]
             Tangent vector at a base point.
-        base_point : array-like, shape=[n_samples, n, p]
+        base_point : array-like, shape=[..., n, p]
             Point in the Stiefel manifold.
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, n, p]
+        exp : array-like, shape=[..., n, p]
             Point in the Stiefel manifold equal to the retraction
             of tangent_vec at the base point.
         """
@@ -443,14 +447,14 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, n, p]
+        point : array-like, shape=[..., n, p]
             Point in the Stiefel manifold.
-        base_point : array-like, shape=[n_samples, n, p]
+        base_point : array-like, shape=[..., n, p]
             Point in the Stiefel manifold.
 
         Returns
         -------
-        log : array-like, shape=[n_samples, dim + 1]
+        log : array-like, shape=[..., dim + 1]
             Tangent vector at the base point equal to the lifting
             of point at the base point.
         """

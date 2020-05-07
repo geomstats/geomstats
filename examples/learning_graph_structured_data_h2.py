@@ -37,7 +37,7 @@ def grad_log_sigmoid(vector):
     -------
     gradient : array-like, shape=[n_samples, dim]
     """
-    return (1 / (1 + gs.exp(vector)))
+    return 1 / (1 + gs.exp(vector))
 
 
 def grad_squared_distance(point_a, point_b):
@@ -131,8 +131,8 @@ def main():
     n_negative = 2
     context_size = 1
     karate_graph = gdp.Graph(
-        graph_matrix_path='examples/data/graph_karate/karate.txt',
-        labels_path='examples/data/graph_karate/karate_labels.txt')
+        graph_matrix_path='data/graph_karate/karate.txt',
+        labels_path='data/graph_karate/karate_labels.txt')
 
     nb_vertices_by_edges =\
         [len(e_2) for _, e_2 in karate_graph.edges.items()]

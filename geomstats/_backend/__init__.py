@@ -34,6 +34,7 @@ BACKEND_ATTRIBUTES = {
         'ceil',
         'clip',
         'concatenate',
+        'convert_to_wider_dtype',
         'copy',
         'cos',
         'cosh',
@@ -73,6 +74,7 @@ BACKEND_ATTRIBUTES = {
         'ones',
         'ones_like',
         'outer',
+        'polygamma',
         'power',
         'repeat',
         'reshape',
@@ -91,6 +93,7 @@ BACKEND_ATTRIBUTES = {
         'tan',
         'tanh',
         'tile',
+        'to_numpy',
         'to_ndarray',
         'trace',
         'transpose',
@@ -119,7 +122,7 @@ BACKEND_ATTRIBUTES = {
     ],
     'random': [
         'normal',
-        # TODO(nkoep): Remove 'rand' and replace it by 'uniform'. Much like
+        # TODO (nkoep): Remove 'rand' and replace it by 'uniform'. Much like
         #              'randn' is a convenience wrapper (which we don't use)
         #              for 'normal', 'rand' only wraps 'uniform'.
         'rand',

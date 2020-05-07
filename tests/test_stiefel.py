@@ -1,6 +1,4 @@
-"""
-Unit tests for Stiefel manifolds.
-"""
+"""Unit tests for Stiefel manifolds."""
 
 import warnings
 

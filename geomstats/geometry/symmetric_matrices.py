@@ -13,7 +13,13 @@ TOLERANCE = 1e-12
 
 
 class SymmetricMatrices(EmbeddedManifold):
-    """Class for the vector space of symmetric matrices of size n."""
+    """Class for the vector space of symmetric matrices of size n.
+
+    Parameters
+    ----------
+    n : int
+        Integer representing the shapes of the matrices: n x n.
+    """
 
     def __init__(self, n, **kwargs):
         super(SymmetricMatrices, self).__init__(
@@ -22,8 +28,20 @@ class SymmetricMatrices(EmbeddedManifold):
         self.n = n
 
     def belongs(self, mat, atol=TOLERANCE):
-        """Check if mat belongs to the vector space of symmetric matrices."""
-        return self.embedding_manifold.is_symmetric(mat=mat, atol=atol)
+        """Check if mat belongs to the vector space of symmetric matrices.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix to check.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if mat is a symmetric matrix.
+        """
+        check_shape = self.embedding_manifold.belongs(mat)
+        return gs.logical_and(check_shape, Matrices.is_symmetric(mat, atol))
 
     def get_basis(self):
         """Compute the basis of the vector space of symmetric matrices."""
@@ -40,11 +58,22 @@ class SymmetricMatrices(EmbeddedManifold):
 
     @staticmethod
     @geomstats.vectorization.decorator(['matrix'])
-    def vector_from_symmetric_matrix(mat):
-        """Convert the symmetric part of a symmetric matrix into a vector."""
+    def to_vector(mat):
+        """Convert a symmetric matrix into a vector.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        vec : array-like, shape=[..., n(n+1)/2]
+            Vector.
+        """
         if not gs.all(Matrices.is_symmetric(mat)):
             logging.warning('non-symmetric matrix encountered.')
-        mat = Matrices.make_symmetric(mat)
+        mat = Matrices.to_symmetric(mat)
         _, dim, _ = mat.shape
         indices_i, indices_j = gs.triu_indices(dim)
         vec = []
@@ -56,80 +85,91 @@ class SymmetricMatrices(EmbeddedManifold):
 
     @staticmethod
     @geomstats.vectorization.decorator(['vector', 'else'])
-    def symmetric_matrix_from_vector(vec, dtype=gs.float32):
-        """Convert a vector into a symmetric matrix."""
+    def from_vector(vec, dtype=gs.float32):
+        """Convert a vector into a symmetric matrix.
+
+        Parameters
+        ----------
+        vec : array-like, shape=[..., n(n+1)/2]
+            Vector.
+
+        Returns
+        -------
+        mat : array-like, shape=[..., n, n]
+            Symmetric matrix.
+        """
         vec_dim = vec.shape[-1]
         mat_dim = (gs.sqrt(8. * vec_dim + 1) - 1) / 2
         if mat_dim != int(mat_dim):
             raise ValueError('Invalid input dimension, it must be of the form'
-                             '(n_samples, n * (n - 1) / 2)')
+                             '(n_samples, n * (n + 1) / 2)')
         mat_dim = int(mat_dim)
-        mask = 2 * gs.ones((mat_dim, mat_dim)) - gs.eye(mat_dim)
-        indices = list(zip(*gs.triu_indices(3)))
         shape = (mat_dim, mat_dim)
+        mask = 2 * gs.ones(shape) - gs.eye(mat_dim)
+        indices = list(zip(*gs.triu_indices(mat_dim)))
         vec = gs.cast(vec, dtype)
         upper_triangular = gs.stack([
             gs.array_from_sparse(indices, data, shape) for data in vec])
-        mat = Matrices.make_symmetric(upper_triangular) * mask
+        mat = Matrices.to_symmetric(upper_triangular) * mask
         return mat
 
     @classmethod
     @geomstats.vectorization.decorator(['else', 'matrix'])
-    def expm(cls, x):
+    def expm(cls, mat):
         """
         Compute the matrix exponential for a symmetric matrix.
 
         Parameters
         ----------
-        x : array_like, shape=[n_samples, n, n]
+        mat : array_like, shape=[..., n, n]
             Symmetric matrix.
 
         Returns
         -------
-        exponential : array_like, shape=[n_samples, n, n]
-            Exponential of x.
+        exponential : array_like, shape=[..., n, n]
+            Exponential of mat.
         """
-        return cls.apply_func_to_eigvals(x, gs.exp)
+        return cls.apply_func_to_eigvals(mat, gs.exp)
 
     @classmethod
-    def powerm(cls, x, power):
+    def powerm(cls, mat, power):
         """
         Compute the matrix power.
 
         Parameters
         ----------
-        x : array_like, shape=[n_samples, n, n]
+        mat : array_like, shape=[..., n, n]
             Symmetric matrix with non-negative eigenvalues.
         power : float
-            The power at which x will be raised.
+            Power at which mat will be raised.
 
         Returns
         -------
-        powerm : array_like, shape=[n_samples, n, n]
-            Matrix power of x.
+        powerm : array_like, shape=[..., n, n]
+            Matrix power of mat.
         """
         def _power(eigvals):
             return gs.power(eigvals, power)
-        return cls.apply_func_to_eigvals(x, _power, check_positive=True)
+        return cls.apply_func_to_eigvals(mat, _power, check_positive=True)
 
     @staticmethod
-    def apply_func_to_eigvals(x, function, check_positive=False):
+    def apply_func_to_eigvals(mat, function, check_positive=False):
         """
         Apply function to eigenvalues and reconstruct the matrix.
 
         Parameters
         ----------
-        x : array_like, shape=[n_samples, n, n]
+        mat : array_like, shape=[..., n, n]
             Symmetric matrix.
         function : callable
             Function to apply to eigenvalues.
 
         Returns
         -------
-        x : array_like, shape=[n_samples, n, n]
+        mat : array_like, shape=[..., n, n]
             Symmetric matrix.
         """
-        eigvals, eigvecs = gs.linalg.eigh(x)
+        eigvals, eigvecs = gs.linalg.eigh(mat)
         if check_positive:
             if gs.any(gs.cast(eigvals, gs.float32) < 0.):
                 logging.warning(

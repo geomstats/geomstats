@@ -14,9 +14,9 @@ class TestIntegrator(geomstats.tests.TestCase):
         self.euclidean = Euclidean(self.dimension)
         self.matrices = Matrices(self.dimension, self.dimension)
         self.intercept = self.euclidean.random_uniform(1)
-        self.slope = Matrices.make_symmetric(self.matrices.random_uniform(1))
+        self.slope = Matrices.to_symmetric(self.matrices.random_uniform(1))
 
-    def function_linear(self, point, vector):
+    def function_linear(self, _, vector):
         return - gs.dot(self.slope, vector)
 
     @geomstats.tests.np_and_pytorch_only
@@ -41,7 +41,7 @@ class TestIntegrator(geomstats.tests.TestCase):
     def test_integrator(self):
         initial_state = self.euclidean.random_uniform(2)
 
-        def function(position, velocity):
+        def function(_, velocity):
             return gs.zeros_like(velocity)
         for step in ['euler', 'rk4']:
             flow, _ = integrator.integrate(function, initial_state, step=step)

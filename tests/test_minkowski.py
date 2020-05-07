@@ -1,6 +1,5 @@
-"""
-Unit tests for Minkowski space.
-"""
+"""Unit tests for Minkowski space."""
+
 import math
 
 import numpy as np

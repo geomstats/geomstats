@@ -1,6 +1,4 @@
-"""
-Unit tests for manifolds.
-"""
+"""Unit tests for manifolds."""
 
 import geomstats.backend as gs
 import geomstats.tests

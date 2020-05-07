@@ -16,7 +16,7 @@ The module `geometry` implements concepts in differential geometry, and the modu
 
 ## Install geomstats via pip3
 
-From a terminal (OS X & Linux), you can install geomstats and its requirements with ``pip3`` as follows::
+From a terminal (OS X & Linux), you can install geomstats and its requirements with ``pip3`` as follows:
 
 ```
 pip3 install geomstats
@@ -26,22 +26,28 @@ This method installs the latest version of geomstats that is uploaded on PyPi. N
 
 ## Install geomstats via Git
 
-From a terminal (OS X & Linux), you can install geomstats and its requirements via ``git`` as follows::
+From a terminal (OS X & Linux), you can install geomstats and its requirements via ``git`` as follows:
 
 ```
 git clone https://github.com/geomstats/geomstats.git
 pip3 install -r requirements.txt
 ```
 
-This method installs the latest GitHub version of geomstats. Developers should install this version, together with the development requirements:
+This method installs the latest GitHub version of geomstats. Developers should install this version, together with the development requirements and the optional requirements to enable ``tensorflow`` and ``pytorch`` backends:
 
 ```
-pip3 install -r dev-requirements.txt
+pip3 install -r dev-requirements.txt -r opt-requirements.txt
 ```
 
 ## Choose the backend
 
 Geomstats can run seemlessly with ``numpy``, ``tensorflow`` or ``pytorch``. Note that ``pytorch`` and ``tensorflow`` requirements are optional, as geomstats can be used with ``numpy`` only. By default, the ``numpy`` backend is used. The visualizations are only available with this backend.
+
+To get the ``tensorflow`` and ``pytorch`` versions compatible with geomstats, install the [optional requirements](https://github.com/geomstats/geomstats/blob/master/opt-requirements.txt):
+
+```
+pip3 install -r opt-requirements.txt
+```
 
 You can choose your backend by setting the environment variable ``GEOMSTATS_BACKEND`` to ``numpy``, ``tensorflow`` or ``pytorch``, and importing the ``backend`` module. From the command line:
 
@@ -54,7 +60,6 @@ and in the Python3 code:
 ```
 import geomstats.backend as gs
 ```
-
 
 ## Getting started
 

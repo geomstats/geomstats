@@ -42,6 +42,7 @@ from torch import (  # NOQA
     nonzero,
     ones,
     ones_like,
+    polygamma,
     pow as power,
     repeat_interleave as repeat,
     reshape,
@@ -54,13 +55,19 @@ from torch import (  # NOQA
     tanh,
     tril,
     uint8,
-    where,
     zeros,
     zeros_like
 )
 
 from . import linalg  # NOQA
 from . import random  # NOQA
+
+
+DTYPES = {
+    int32: 0,
+    int64: 1,
+    float32: 2,
+    float64: 3}
 
 
 def _raise_not_implemented_error(*args, **kwargs):
@@ -80,12 +87,27 @@ def _box_scalar(function):
     return wrapper
 
 
+ceil = _box_scalar(ceil)
 cos = _box_scalar(cos)
 cosh = _box_scalar(cosh)
 exp = _box_scalar(exp)
 log = _box_scalar(log)
 sin = _box_scalar(sin)
 sinh = _box_scalar(sinh)
+
+
+def to_numpy(x):
+    return x.numpy()
+
+
+def convert_to_wider_dtype(tensor_list):
+    dtype_list = [DTYPES[x.dtype] for x in tensor_list]
+    wider_dtype_index = max(dtype_list)
+
+    wider_dtype = list(DTYPES.keys())[wider_dtype_index]
+
+    tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
+    return tensor_list
 
 
 def less_equal(x, y, **kwargs):
@@ -124,10 +146,20 @@ def logical_and(x, y):
 
 
 def any(x, axis=None):
-    if axis is None and torch.is_tensor(x):
-        return x.bool().any()
-    numpy_result = _np.array(_np.any(_np.array(x), axis=axis))
-    return torch.from_numpy(numpy_result)
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    if axis is None:
+        return torch.any(x)
+    if isinstance(axis, int):
+        return torch.any(x.bool(), axis)
+    if len(axis) == 1:
+        return torch.any(x, *axis)
+    axis = list(axis)
+    for i_axis, one_axis in enumerate(axis):
+        if one_axis < 0:
+            axis[i_axis] = ndim(x) + one_axis
+    new_axis = tuple(k - 1 if k >= 0 else k for k in axis[1:])
+    return any(torch.any(x.bool(), axis[0]), new_axis)
 
 
 def cast(x, dtype):
@@ -186,6 +218,8 @@ def array(val, dtype=None):
             for index, t in enumerate(val):
                 if torch.is_tensor(t) and t.dtype != local_dtype:
                     cast(t, local_dtype)
+                elif torch.is_tensor(t):
+                    val[index] = cast(t, dtype=local_dtype)
                 else:
                     val[index] = torch.tensor(t, dtype=local_dtype)
             val = stack(val)
@@ -196,10 +230,7 @@ def array(val, dtype=None):
         val = _np.array(val)
 
     if isinstance(val, _np.ndarray):
-        if val.dtype == bool:
-            val = torch.from_numpy(_np.array(val, dtype=_np.uint8))
-        else:
-            val = torch.from_numpy(val)
+        val = torch.from_numpy(val)
 
     if not isinstance(val, torch.Tensor):
         val = torch.Tensor([val])
@@ -213,10 +244,20 @@ def array(val, dtype=None):
 
 
 def all(x, axis=None):
-    if axis is None and torch.is_tensor(x):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    if axis is None:
         return x.bool().all()
-    numpy_result = _np.array(_np.all(_np.array(x), axis=axis))
-    return torch.from_numpy(numpy_result)
+    if isinstance(axis, int):
+        return torch.all(x.bool(), axis)
+    if len(axis) == 1:
+        return torch.all(x, *axis)
+    axis = list(axis)
+    for i_axis, one_axis in enumerate(axis):
+        if one_axis < 0:
+            axis[i_axis] = ndim(x) + one_axis
+    new_axis = tuple(k - 1 if k >= 0 else k for k in axis[1:])
+    return all(torch.all(x.bool(), axis[0]), new_axis)
 
 
 def get_slice(x, indices):
@@ -285,8 +326,7 @@ def shape(val):
 
 
 def dot(a, b):
-    np_dot = _np.dot(a, b)
-    return torch.from_numpy(_np.array(np_dot)).float()
+    return einsum('...i,...i->...', a, b)
 
 
 def maximum(a, b):
@@ -306,13 +346,12 @@ def sqrt(x):
     return torch.sqrt(x)
 
 
-# TODO(nkoep): PyTorch exposes its own 'isclose' function, which is currently
-#              undocumented for some reason, see
-#                https://github.com/pytorch/pytorch/issues/35471
-#              In the future, we may simply use that function instead.
-def isclose(*args, **kwargs):
-    # TODO(ninamiolane): Use native torch.isclose
-    return torch.from_numpy(_np.array(_np.isclose(*args, **kwargs)))
+def isclose(x, y, rtol=1e-5, atol=1e-8):
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    if not torch.is_tensor(y):
+        y = torch.tensor(y)
+    return torch.isclose(x, y, atol=atol, rtol=rtol)
 
 
 def sum(x, axis=None, keepdims=None, **kwargs):
@@ -326,14 +365,19 @@ def sum(x, axis=None, keepdims=None, **kwargs):
 
 
 def einsum(*args, **kwargs):
-    # TODO(ninamiolane): Allow this to work when '->' is not provided
-    # TODO(ninamiolane): Allow this to work for cases like n...k
     einsum_str = args[0]
     input_tensors_list = args[1:]
 
+    input_tensors_list = convert_to_wider_dtype(
+        input_tensors_list)
+
+    if len(input_tensors_list) == 1:
+        return torch.einsum(einsum_str, input_tensors_list)
+
     einsum_list = einsum_str.split('->')
     input_str = einsum_list[0]
-    output_str = einsum_list[1]
+    if len(einsum_list) > 1:
+        output_str = einsum_list[1]
 
     input_str_list = input_str.split(',')
 
@@ -341,10 +385,11 @@ def einsum(*args, **kwargs):
     all_ellipsis = bool(_np.prod(is_ellipsis))
 
     if all_ellipsis:
+        ndims = [len(input_str[3:]) for input_str in input_str_list]
+
         if len(input_str_list) > 2:
             raise NotImplementedError(
                 'Ellipsis support not implemented for >2 input tensors')
-        ndims = [len(input_str[3:]) for input_str in input_str_list]
 
         tensor_a = input_tensors_list[0]
         tensor_b = input_tensors_list[1]
@@ -384,10 +429,13 @@ def einsum(*args, **kwargs):
         input_str_list = [
             input_str.replace('...', prefix) for input_str, prefix in zip(
                 input_str_list, input_prefix_list)]
-        output_str = output_str.replace('...', output_prefix)
 
         input_str = input_str_list[0] + ',' + input_str_list[1]
-        einsum_str = input_str + '->' + output_str
+
+        einsum_str = input_str
+        if len(einsum_list) > 1:
+            output_str = output_str.replace('...', output_prefix)
+            einsum_str = input_str + '->' + output_str
 
         result = torch.einsum(einsum_str, tensor_a, tensor_b, **kwargs)
 
@@ -414,9 +462,18 @@ def squeeze(x, axis=None):
     return torch.squeeze(x, dim=axis)
 
 
-def trace(*args, **kwargs):
-    np_trace = _np.trace(*args, **kwargs)
-    return torch.from_numpy(_np.array(np_trace)).float()
+def trace(x, axis1=0, axis2=1):
+    min_axis = min(axis1, axis2)
+    max_axis = max(axis1, axis2)
+    if min_axis == 1 and max_axis == 2:
+        return torch.einsum('...ii', x)
+    if min_axis == -2 and max_axis == -1:
+        return torch.einsum('...ii', x)
+    if min_axis == 0 and max_axis == 1:
+        return torch.einsum('ii...', x)
+    if min_axis == 0 and max_axis == 2:
+        return torch.einsum('i...i', x)
+    raise NotImplementedError()
 
 
 def arctanh(x):
@@ -444,8 +501,9 @@ def triu_indices(*args, **kwargs):
 
 
 def tile(x, y):
-    # TODO(johmathe): Native tile implementation
-    return array(_np.tile(x, y))
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    return x.repeat(y)
 
 
 def expand_dims(x, axis=0):
@@ -499,6 +557,17 @@ def mean(x, axis=None):
     if axis is None:
         return torch.mean(x)
     return torch.mean(x, dim=axis)
+
+
+def where(condition, x=None, y=None):
+    if x is None and y is None:
+        return torch.where(condition)
+    if not torch.is_tensor(x):
+        x = torch.tensor(x)
+    if not torch.is_tensor(y):
+        y = torch.tensor(y)
+    y = cast(y, x.dtype)
+    return torch.where(condition, x, y)
 
 
 def get_mask_i_float(i, n):
@@ -575,9 +644,15 @@ def assignment(x, values, indices, axis=0):
         x_new[indices] = values
         return x_new
     zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
+    len_indices = len(indices) if _is_iterable(indices) else 1
     if zip_indices:
         indices = tuple(zip(*indices))
     if not use_vectorization:
+        if not zip_indices:
+            len_indices = len(indices) if _is_iterable(indices) else 1
+        len_values = len(values) if _is_iterable(values) else 1
+        if len_values > 1 and len_values != len_indices:
+            raise ValueError('Either one value or as many values as indices')
         x_new[indices] = values
     else:
         indices = tuple(
@@ -614,15 +689,19 @@ def assignment_by_sum(x, values, indices, axis=0):
     If a list is given, it must have the same length as indices.
     """
     x_new = copy(x)
-
+    values = array(values)
     use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
     if _is_boolean(indices):
-        x_new[indices] = values
+        x_new[indices] += values
         return x_new
     zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
     if zip_indices:
         indices = list(zip(*indices))
     if not use_vectorization:
+        len_indices = len(indices) if _is_iterable(indices) else 1
+        len_values = len(values) if _is_iterable(values) else 1
+        if len_values > 1 and len_values != len_indices:
+            raise ValueError('Either one value or as many values as indices')
         x_new[indices] += values
     else:
         indices = tuple(

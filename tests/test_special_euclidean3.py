@@ -1,5 +1,4 @@
-"""
-Unit tests for special euclidean group SE(n).
+"""Unit tests for special euclidean group SE(n).
 
 Note: Only the *canonical* left- and right- invariant
 metrics on SE(3) are tested here. Other invariant
@@ -21,8 +20,6 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean
 # where it is relative to each element of the array
 
 RTOL = 1e-5
-
-# TODO(nina): Speed up tf tests
 
 
 class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):

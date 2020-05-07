@@ -50,7 +50,7 @@ def det(*args, **kwargs):
     return torch.from_numpy(np.array(np.linalg.det(*args, **kwargs)))
 
 
-def norm(x, ord=2, axis=None, keepdims=False):
+def norm(x, ord=2, axis=None):
     if axis is None:
         return torch.norm(x, p=ord)
     return torch.norm(x, p=ord, dim=axis)

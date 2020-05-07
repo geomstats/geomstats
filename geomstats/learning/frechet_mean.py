@@ -3,16 +3,14 @@
 import logging
 import math
 
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import BaseEstimator
 
 import geomstats.backend as gs
-import geomstats.error as error
+import geomstats.errors as error
 import geomstats.vectorization
 from geomstats.geometry.euclidean import EuclideanMetric
-from geomstats.geometry.matrices import Matrices, MatricesMetric
+from geomstats.geometry.matrices import MatricesMetric
 from geomstats.geometry.minkowski import MinkowskiMetric
-from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
-from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 EPSILON = 1e-4
 
@@ -26,10 +24,11 @@ def variance(points,
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, dim]
+    points : array-like, shape=[..., dim]
         Points.
-    weights : array-like, shape=[n_samples, 1], optional
+    weights : array-like, shape=[...,]
         Weights associated to the points.
+        Optional, default: None.
 
     Returns
     -------
@@ -61,18 +60,17 @@ def linear_mean(points, weights=None, point_type='vector'):
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, dim]
+    points : array-like, shape=[..., dim]
         Points to be averaged.
-    weights : array-like, shape=[n_samples, 1], optional
+    weights : array-like, shape=[...,]
         Weights associated to the points.
+        Optional, default: None.
 
     Returns
     -------
-    mean : array-like, shape=[1, dim]
+    mean : array-like, shape=[dim,]
         Weighted linear mean of the points.
     """
-    # TODO(ninamiolane): Factorize this code to handle lists
-    # in the whole codebase
     if isinstance(points, list):
         points = gs.stack(points, axis=0)
     if isinstance(weights, list):
@@ -97,6 +95,7 @@ def linear_mean(points, weights=None, point_type='vector'):
 
 def _default_gradient_descent(points, metric, weights,
                               max_iter, point_type, epsilon, verbose):
+    """Perform default gradient descent."""
     if point_type == 'vector':
         points = gs.to_ndarray(points, to_ndim=2)
         einsum_str = 'n,nj->j'
@@ -160,6 +159,7 @@ def _default_gradient_descent(points, metric, weights,
 
 def _ball_gradient_descent(points, metric, weights, max_iter,
                            lr=1e-3, tau=5e-3):
+    """Perform ball gradient descent."""
     if len(points) == 1:
         return points
 
@@ -195,7 +195,7 @@ def _adaptive_gradient_descent(points,
                                epsilon=1e-12,
                                init_point=None,
                                point_type='vector'):
-    """Compute the Frechet mean using gradient descent.
+    """Perform adaptive gradient descent.
 
     Frechet mean of (weighted) points using adaptive time-steps
     The loss function optimized is :math:`||M_1(x)||_x`
@@ -206,9 +206,9 @@ def _adaptive_gradient_descent(points,
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, dim]
+    points : array-like, shape=[..., dim]
         Points to be averaged.
-    weights : array-like, shape=[n_samples, 1], optional
+    weights : array-like, shape=[..., 1], optional
         Weights associated to the points.
     max_iter : int, optional
         Maximum number of iterations for the gradient descent.
@@ -219,7 +219,7 @@ def _adaptive_gradient_descent(points,
 
     Returns
     -------
-    current_mean: array-like, shape=[n_samples, dim]
+    current_mean: array-like, shape=[..., dim]
         Weighted Frechet mean of the points.
     """
     if point_type == 'matrix':
@@ -284,12 +284,25 @@ def _adaptive_gradient_descent(points,
     return current_mean
 
 
-class FrechetMean(BaseEstimator, TransformerMixin):
-    """Empirical Frechet mean.
+class FrechetMean(BaseEstimator):
+    r"""Empirical Frechet mean.
 
     Parameters
     ----------
-    max_iter:
+    metric : RiemannianMetric
+        Riemannian metric.
+    max_iter : int
+        Maximum number of iterations for gradient descent.
+        Optional, default: 32.
+    point_type : str, {\'vector\', \'matrix\'}
+        Point type.
+        Optional, default: None.
+    method : str, {\'default\', \'adaptive\', \'ball\'}
+        Gradient descent method.
+        Optional, default: \'default\'.
+    verbose : bool
+        Verbose option.
+        Optional, default: False.
     """
 
     def __init__(self, metric,
@@ -317,22 +330,21 @@ class FrechetMean(BaseEstimator, TransformerMixin):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
-            The training input samples.
-        y : array-like, shape (n_samples,) or (n_samples, n_outputs)
-            The target values (class labels in classification, real numbers in
+        X : {array-like, sparse matrix}, shape=[..., n_features]
+            Training input samples.
+        y : array-like, shape=[...,] or [..., n_outputs]
+            Target values (class labels in classification, real numbers in
             regression).
-            Ignored
-        weights : array-like, shape=[n_samples, 1], optional
+            Ignored.
+        weights : array-like, shape=[...,]
+            Weights associated to the points.
+            Optional, default: None.
 
         Returns
         -------
         self : object
             Returns self.
         """
-        # TODO(nina): Profile this code to study performance,
-        # i.e. what to do with sq_dists_between_iterates.
-
         is_linear_metric = isinstance(
             self.metric, (EuclideanMetric, MatricesMetric, MinkowskiMetric))
 
@@ -359,88 +371,3 @@ class FrechetMean(BaseEstimator, TransformerMixin):
         self.estimate_ = mean
 
         return self
-
-    def transform(self, X, y=None, base_point=None):
-        """Lift data to a tangent space.
-
-        Compute the logs of all data point and reshapes them to
-        1d vectors if necessary. By default the logs are taken at the mean
-        but any other base point can be passed. Any machine learning
-        algorithm can then be used with the output array.
-
-        Parameters
-        ----------
-        X : array-like, shape=[n_samples, {dim, [n, n]}]
-            Data to transform.
-        y : Ignored (Compliance with scikit-learn interface)
-        base_point : array-like, shape={dim, [n,n]}, optional (mean)
-            Point on the manifold, the returned samples will be tangent
-            vectors at the base point.
-
-        Returns
-        -------
-        X_new : array-like, shape=[n_samples, dim]
-        """
-        # TODO(nguis): put this in a dedicated class
-        if base_point is None:
-            base_point = self.estimate_
-
-            if self.estimate_ is None:
-                raise RuntimeError('fit needs to be called first or a '
-                                   'base_point passed.')
-
-        tangent_vecs = self.metric.log(X, base_point=base_point)
-
-        if self.point_type == 'vector':
-            return tangent_vecs
-
-        if gs.all(Matrices.is_symmetric(tangent_vecs)):
-            X = SymmetricMatrices.vector_from_symmetric_matrix(
-                tangent_vecs)
-        elif gs.all(Matrices.is_skew_symmetric(tangent_vecs)):
-            X = SkewSymmetricMatrices(
-                tangent_vecs.shape[-1]).basis_representation(tangent_vecs)
-        else:
-            X = gs.reshape(tangent_vecs, (len(X), - 1))
-
-        return X
-
-    def inverse_transform(self, X, base_point=None):
-        """Reconstruction of X.
-
-        The reconstruction will match X_original whose transform would be X.
-
-        Parameters
-        ----------
-        X : array-like, shape=[n_samples, dim]
-            New data, where dim is the dimension of the manifold data belong
-            to.
-        base_point : array-like, shape={dim, [n,n]}, optional (mean)
-            Point on the manifold, where the input samples are tangent
-            vectors.
-
-        Returns
-        -------
-        X_original : array-like, shape=[n_samples, {dim, [n, n]}
-            Data lying on the manifold.
-        """
-        if base_point is None:
-            base_point = self.estimate_
-
-            if self.estimate_ is None:
-                raise RuntimeError('fit needs to be called first or a '
-                                   'base_point passed.')
-
-        if self.point_type == 'matrix':
-            if gs.all(Matrices.is_symmetric(base_point)):
-                tangent_vecs = SymmetricMatrices(
-                    base_point.shape[-1]).symmetric_matrix_from_vector(X)
-            elif gs.all(Matrices.is_skew_symmetric(base_point)):
-                tangent_vecs = SkewSymmetricMatrices(
-                    base_point.shape[-1]).matrix_representation(X)
-            else:
-                dim = base_point.shape[-1]
-                tangent_vecs = gs.reshape(X, (len(X), dim, dim))
-        else:
-            tangent_vecs = X
-        return self.metric.exp(tangent_vecs, base_point)

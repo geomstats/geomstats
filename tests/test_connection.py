@@ -60,9 +60,9 @@ class TestConnection(geomstats.tests.TestCase):
             n_steps = 1 if step == 'pole' else 100
             tol = 1e-6 if step == 'pole' else 1e-1
             base_point = self.hypersphere.random_uniform(n_samples)
-            tan_vec_a = self.hypersphere.projection_to_tangent_space(
+            tan_vec_a = self.hypersphere.to_tangent(
                 gs.random.rand(n_samples, 3), base_point)
-            tan_vec_b = self.hypersphere.projection_to_tangent_space(
+            tan_vec_b = self.hypersphere.to_tangent(
                 gs.random.rand(n_samples, 3), base_point)
             expected = self.hypersphere.metric.parallel_transport(
                 tan_vec_a, tan_vec_b, base_point)
@@ -80,9 +80,9 @@ class TestConnection(geomstats.tests.TestCase):
             rtol = 1e-6 if step == 'pole' else 1e-1
             atol = 1e-6 if step == 'pole' else 1e-2
             base_point = self.hypersphere.random_uniform(n_samples)
-            tan_vec_a = self.hypersphere.projection_to_tangent_space(
+            tan_vec_a = self.hypersphere.to_tangent(
                 gs.random.rand(n_samples, 3), base_point)
-            tan_vec_b = self.hypersphere.projection_to_tangent_space(
+            tan_vec_b = self.hypersphere.to_tangent(
                 gs.random.rand(n_samples, 3), base_point)
             expected = self.hypersphere.metric.parallel_transport(
                 tan_vec_a, tan_vec_b, base_point)

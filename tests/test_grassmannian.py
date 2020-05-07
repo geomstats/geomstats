@@ -1,6 +1,4 @@
-"""
-Unit tests for the Grassmannian.
-"""
+"""Unit tests for the Grassmannian."""
 
 import geomstats.backend as gs
 import geomstats.tests

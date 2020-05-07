@@ -4,8 +4,6 @@ Sample a point on S2 and two tangent vectors to transport one along the
 other.
 """
 
-import os
-
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
@@ -26,11 +24,11 @@ def main():
     """Compute pole ladder and plot the construction."""
     base_point = SPACE.random_uniform(1)
     tangent_vec_b = SPACE.random_uniform(1)
-    tangent_vec_b = SPACE.projection_to_tangent_space(
+    tangent_vec_b = SPACE.to_tangent(
         tangent_vec_b, base_point)
     tangent_vec_b *= N_STEPS / 2
     tangent_vec_a = SPACE.random_uniform(1)
-    tangent_vec_a = SPACE.projection_to_tangent_space(
+    tangent_vec_a = SPACE.to_tangent(
         tangent_vec_a, base_point) * N_STEPS / 4
 
     ladder = METRIC.ladder_parallel_transport(
@@ -48,8 +46,8 @@ def main():
     sphere_visu = visualization.Sphere(n_meridians=30)
     ax = sphere_visu.set_ax(ax=ax)
 
-    t = gs.linspace(0, 1, N_POINTS)
-    t_main = gs.linspace(0, 1, N_POINTS * 4)
+    t = gs.linspace(0., 1., N_POINTS)
+    t_main = gs.linspace(0., 1., N_POINTS * 4)
     for points in trajectory:
         main_geodesic, diagonal, final_geodesic = points
         sphere_visu.draw_points(
@@ -64,7 +62,7 @@ def main():
 
     base_point = gs.to_ndarray(base_point, to_ndim=2)
     origin = gs.concatenate(
-        [base_point, base_point, final_geodesic(gs.array([0]))])
+        [base_point, base_point, final_geodesic(gs.array([0]))], axis=1)
 
     ax.quiver(
         origin[:, 0], origin[:, 1], origin[:, 2],
@@ -77,10 +75,4 @@ def main():
 
 
 if __name__ == '__main__':
-    if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        print('Examples with visualizations are only implemented '
-              'with numpy backend.\n'
-              'To change backend, write: '
-              'export GEOMSTATS_BACKEND = \'numpy\'.')
-    else:
-        main()
+    main()

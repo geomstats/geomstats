@@ -27,6 +27,7 @@ from autograd.numpy import (  # NOQA
     diagonal,
     divide,
     dot,
+    dtype,
     einsum,
     empty,
     empty_like,
@@ -86,11 +87,32 @@ from autograd.numpy import (  # NOQA
     zeros,
     zeros_like
 )
+from autograd.scipy.special import polygamma # NOQA
 from scipy.sparse import coo_matrix
 
 from . import linalg  # NOQA
 from . import random  # NOQA
 from .common import to_ndarray  # NOQA
+
+DTYPES = {
+    dtype('int32'): 0,
+    dtype('int64'): 1,
+    dtype('float32'): 2,
+    dtype('float64'): 3}
+
+
+def to_numpy(x):
+    return x
+
+
+def convert_to_wider_dtype(tensor_list):
+    dtype_list = [DTYPES[x.dtype] for x in tensor_list]
+    wider_dtype_index = max(dtype_list)
+
+    wider_dtype = list(DTYPES.keys())[wider_dtype_index]
+
+    tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
+    return tensor_list
 
 
 def flatten(x):
@@ -171,9 +193,15 @@ def assignment(x, values, indices, axis=0):
         x_new[indices] = values
         return x_new
     zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
+    len_indices = len(indices) if _is_iterable(indices) else 1
     if zip_indices:
         indices = tuple(zip(*indices))
     if not use_vectorization:
+        if not zip_indices:
+            len_indices = len(indices) if _is_iterable(indices) else 1
+        len_values = len(values) if _is_iterable(values) else 1
+        if len_values > 1 and len_values != len_indices:
+            raise ValueError('Either one value or as many values as indices')
         x_new[indices] = values
     else:
         indices = tuple(
@@ -213,12 +241,16 @@ def assignment_by_sum(x, values, indices, axis=0):
 
     use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
     if _is_boolean(indices):
-        x_new[indices] = values
+        x_new[indices] += values
         return x_new
     zip_indices = _is_iterable(indices) and _is_iterable(indices[0])
     if zip_indices:
         indices = tuple(zip(*indices))
     if not use_vectorization:
+        len_indices = len(indices) if _is_iterable(indices) else 1
+        len_values = len(values) if _is_iterable(values) else 1
+        if len_values > 1 and len_values != len_indices:
+            raise ValueError('Either one value or as many values as indices')
         x_new[indices] += values
     else:
         indices = tuple(

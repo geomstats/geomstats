@@ -12,9 +12,9 @@ class TestLoadGraph(geomstats.tests.TestCase):
         """Declare the graph by default and the Karate club graph."""
         self.g1 = Graph()
         self.g2 = Graph(
-            graph_matrix_path='examples/data'
+            graph_matrix_path='data'
                               '/graph_karate/karate.txt',
-            labels_path='examples/data'
+            labels_path='data'
                         '/graph_karate/karate_labels.txt')
 
     @geomstats.tests.np_only
