@@ -4,6 +4,9 @@ import json
 import os
 
 import geomstats.backend as gs
+from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 DATA_FOLDER = os.path.join(
@@ -45,6 +48,12 @@ def load_cities():
             data_file))
 
     data = gs.array(data)
+    sphere = Hypersphere(dim=2)
+    so3 = SpecialOrthogonal(n=3, point_type='vector')
+    rot_vec = gs.array([0., gs.pi / 4, 0.])
+    rot_mat = so3.matrix_from_rotation_vector(rot_vec)
+    data = sphere.spherical_to_extrinsic(data)
+    data = Matrices.mul(data, rot_mat)
     return data, names
 
 
