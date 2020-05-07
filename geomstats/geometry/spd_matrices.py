@@ -138,7 +138,8 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         """
         n = self.n
 
-        if self.eigensummary is None: raise NotImplementedError
+        if self.eigensummary is None:
+            raise NotImplementedError
         if mean_spd is None:
             eigenvalues, eigenspace =\
                 self.eigensummary.eigenvalues, self.eigensummary.eigenspace
@@ -165,7 +166,8 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         """
         n = self.n
 
-        if self.eigensummary is None: raise NotImplementedError
+        if self.eigensummary is None:
+            raise NotImplementedError
         if mean_spd is None:
             eigenvalues, eigenspace =\
                 self.eigensummary.eigenvalues, self.eigensummary.eigenspace
