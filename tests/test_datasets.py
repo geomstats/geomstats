@@ -23,7 +23,6 @@ class TestDatasets(geomstats.tests.TestCase):
         """Test that the cities coordinates belong to the sphere."""
         sphere = Hypersphere(dim=2)
         data, _ = data_utils.load_cities()
-        data = sphere.spherical_to_extrinsic(data)
         result = sphere.belongs(data)
 
         self.assertTrue(gs.all(result))
