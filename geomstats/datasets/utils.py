@@ -47,10 +47,12 @@ def load_cities():
             data_file))
 
     data = gs.array(data)
-    lat = data[:, 0]
-    colat = gs.pi / 2 - lat
 
-    data = gs.concatenate([[colat], [data[:, 1]]], axis=1)
+    colat = gs.pi / 2 - data[:, 0]
+    colat = gs.expand_dims(colat, axis=1)
+    lng = gs.expand_dims(data[:, 1], axis=1)
+
+    data = gs.concatenate([colat, lng], axis=1)
     sphere = Hypersphere(dim=2)
     data = sphere.spherical_to_extrinsic(data)
     return data, names
