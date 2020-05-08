@@ -62,7 +62,7 @@ def main():
 
     base_point = gs.to_ndarray(base_point, to_ndim=2)
     origin = gs.concatenate(
-        [base_point, base_point, final_geodesic(gs.array([0]))], axis=1)
+        [base_point, base_point, final_geodesic(gs.array([0.]))], axis=1)
 
     ax.quiver(
         origin[:, 0], origin[:, 1], origin[:, 2],
