@@ -23,8 +23,9 @@ class TestDatasets(geomstats.tests.TestCase):
         """Test that the cities coordinates belong to the sphere."""
         sphere = Hypersphere(dim=2)
         data, _ = data_utils.load_cities()
-        result = sphere.belongs(data)
+        self.assertAllClose(gs.shape(data), (50, 3))
 
+        result = sphere.belongs(data)
         self.assertTrue(gs.all(result))
 
     def test_load_poses_only_rotations(self):
