@@ -155,7 +155,7 @@ class _Hypersphere(EmbeddedManifold):
         return tangent_vec
 
     @geomstats.vectorization.decorator(['else', 'vector'])
-    def spherical_to_extrinsic(self, point_spherical, north_pole_axis=2):
+    def spherical_to_extrinsic(self, point_spherical):
         """Convert point from spherical to extrinsic coordinates.
 
         Convert from the spherical coordinates in the hypersphere
@@ -181,18 +181,11 @@ class _Hypersphere(EmbeddedManifold):
         theta = point_spherical[:, 0]
         phi = point_spherical[:, 1]
 
-        if north_pole_axis == 2:
-            point_extrinsic = gs.stack(
-                [gs.sin(theta) * gs.cos(phi),
-                 gs.sin(theta) * gs.sin(phi),
-                 gs.cos(theta)],
-                axis=1)
-        else:
-            point_extrinsic = gs.stack(
-                [gs.sin(phi) * gs.cos(theta),
-                 gs.sin(phi) * gs.sin(theta),
-                 gs.cos(phi)],
-                axis=1)
+        point_extrinsic = gs.stack(
+            [gs.sin(theta) * gs.cos(phi),
+             gs.sin(theta) * gs.sin(phi),
+             gs.cos(theta)],
+            axis=1)
 
         if not gs.all(self.belongs(point_extrinsic)):
             raise ValueError('Points do not belong to the manifold.')
