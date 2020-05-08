@@ -7,7 +7,6 @@ from geomstats import algebra_utils
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup
-from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 
 

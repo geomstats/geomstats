@@ -168,7 +168,7 @@ class LieGroup(Manifold):
         Parameters
         ----------
         point : array-like, shape=[..., {dim, [n, n]]
-            Point to be inverted.
+            Point.
         left_or_right : str, {'left', 'right'}
             Indicate whether to calculate the differential of left or right
             translations.
@@ -183,16 +183,46 @@ class LieGroup(Manifold):
             'The jacobian of the Lie group translation is not implemented.'
         )
 
-    def tangent_translation_map(self, point, left_or_right, inverse=False):
+    def tangent_translation_map(
+            self, point, left_or_right='left', inverse=False):
+        r"""Compute the push-forward map by the left/right translation.
+
+        Compute the push-forward map, of the left/right translation by the
+        point. It corresponds to the tangent map, or differential of the
+        group multiplication by the point or its inverse. For groups with a
+        vector representation, it is only implemented at identity, but it can
+        be used at other points by passing `inverse=True`. This method wraps
+        the jacobian translation which actually computes the matrix
+        representation of the map.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., {dim, [n, n]]
+            Point.
+        left_or_right : str, {'left', 'right'}
+            Whether to calculate the differential of left or right
+            translations.
+            Optional, default: 'left'
+        inverse : bool,
+            Whether to inverse the jacobian matrix. If True, the push forward
+            by the translation by the inverse of point is returned.
+            Optional, default: False.
+
+        Returns
+        -------
+        tangent_map : callable
+            Tangent map of the left/right translation by point. It can be
+            applied to tangent vectors.
+        """
         errors.check_parameter_accepted_values(
             left_or_right, 'left_or_right', ['left', 'right'])
         if self.default_point_type == 'matrix':
             if inverse:
                 point = self.inverse(point)
             if left_or_right == 'left':
-                return lambda tangent_vec: self.compose(
+                return lambda tangent_vec: Matrices.mul(
                     point, tangent_vec)
-            return lambda tangent_vec: self.compose(
+            return lambda tangent_vec: Matrices.mul(
                 tangent_vec, point)
 
         jacobian = self.jacobian_translation(point, left_or_right)

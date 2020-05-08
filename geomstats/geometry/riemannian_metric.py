@@ -62,11 +62,13 @@ def grad(y_pred, y_true, metric):
     grad_vec = - 2. * tangent_vec
 
     inner_prod_mat = metric.inner_product_matrix(base_point=y_pred)
+    is_vectorized = inner_prod_mat.ndim == 3
+    axes = (0, 2, 1) if is_vectorized else (1, 0)
 
     loss_grad = gs.einsum(
-        'ni,nij->ni',
+        '...i,...ij->...i',
         grad_vec,
-        gs.transpose(inner_prod_mat, axes=(0, 2, 1)))
+        gs.transpose(inner_prod_mat, axes=axes))
 
     return loss_grad
 
