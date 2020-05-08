@@ -20,6 +20,7 @@ from torch import (  # NOQA
     cos,
     cosh,
     cross,
+    diag,
     div as divide,
     empty_like,
     eq,

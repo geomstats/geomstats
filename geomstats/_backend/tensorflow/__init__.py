@@ -18,6 +18,7 @@ from tensorflow import (  # NOQA
     concat as concatenate,
     cos,
     cosh,
+    diag,
     divide,
     equal,
     exp,
