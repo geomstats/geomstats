@@ -318,26 +318,17 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         if metric is None:
             metric = self.left_canonical_metric
         base_point = self.regularize(base_point)
-        n_vecs = tangent_vec.shape[0]
 
-        jacobian = self.jacobian_translation(
-            point=base_point, left_or_right=metric.left_or_right)
-        jacobian = gs.array([jacobian[0]] * n_vecs)
-        inv_jacobian = gs.linalg.inv(jacobian)
-        inv_jacobian = gs.to_ndarray(inv_jacobian, to_ndim=3)
-        tangent_vec_at_id = gs.einsum(
-            '...i,...ij->...j',
-            tangent_vec,
-            Matrices.transpose(inv_jacobian))
+        tangent_vec_at_id = self.tangent_translation_map(
+            base_point, left_or_right=metric.left_or_right, inverse=True)(
+            tangent_vec
+        )
 
         tangent_vec_at_id = self.regularize_tangent_vec_at_identity(
             tangent_vec_at_id, metric)
 
-        jacobian = gs.to_ndarray(jacobian, to_ndim=3)
-        regularized_tangent_vec = gs.einsum(
-            '...i,...ij->...j',
-            tangent_vec_at_id,
-            Matrices.transpose(jacobian))
+        regularized_tangent_vec = self.tangent_translation_map(
+            base_point, left_or_right=metric.left_or_right)(tangent_vec_at_id)
 
         return regularized_tangent_vec
 
@@ -383,8 +374,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         else:
             aux_mat = gs.matmul(gs.transpose(mat, axes=(0, 2, 1)), mat)
 
-            inv_sqrt_mat = gs.linalg.inv(
-                gs.linalg.sqrtm(aux_mat))
+            inv_sqrt_mat = gs.linalg.inv(gs.linalg.sqrtm(aux_mat))
 
             rot_mat = gs.matmul(mat, inv_sqrt_mat)
 
@@ -1254,8 +1244,6 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         """
         return -self.regularize(point)
 
-    @geomstats.vectorization.decorator(
-        ['else', 'vector', 'else'])
     def jacobian_translation(
             self, point, left_or_right='left'):
         """Compute the jacobian matrix corresponding to translation.
@@ -1282,7 +1270,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
             left_or_right, 'left_or_right', ['left', 'right'])
 
         point = self.regularize(point)
-
+        point = gs.to_ndarray(point, to_ndim=2)
         n_points, _ = point.shape
 
         angle = gs.linalg.norm(point, axis=-1)
@@ -1321,8 +1309,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
             + TAYLOR_COEFFS_1_AT_PI[6] * delta_angle ** 6)
 
         angle += mask_0_float
-        coef_2 += mask_pi_float * (
-            (1 - coef_1) / angle ** 2)
+        coef_2 += mask_pi_float * ((1 - coef_1) / angle ** 2)
 
         # This avoids dividing by 0.
         mask_else = ~mask_0 & ~mask_pi
@@ -1351,7 +1338,8 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
             jacobian += gs.einsum('n,ij->nij', mask_i_float, jacobian_i)
 
-        return jacobian
+        return jacobian[0] if (len(point) == 1 or point.ndim == 1) \
+            else jacobian
 
     def random_uniform(self, n_samples=1):
         """Sample in SO(3) with the uniform distribution.

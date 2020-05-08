@@ -467,8 +467,8 @@ class _SpecialEuclidean3Vectors(LieGroup):
         rot_vec = point[:, :dim_rotations]
 
         jacobian_rot = self.rotations.jacobian_translation(
-            point=rot_vec,
-            left_or_right=left_or_right)
+            point=rot_vec, left_or_right=left_or_right)
+        jacobian_rot = gs.to_ndarray(jacobian_rot, to_ndim=3)
         block_zeros_1 = gs.zeros(
             (n_points, dim_rotations, dim_translations))
         jacobian_block_line_1 = gs.concatenate(
@@ -491,8 +491,10 @@ class _SpecialEuclidean3Vectors(LieGroup):
             jacobian_block_line_2 = gs.concatenate(
                 [inv_skew_mat, eye], axis=2)
 
-        return gs.concatenate(
-            [jacobian_block_line_1, jacobian_block_line_2], axis=1)
+        jacobian = gs.concatenate(
+            [jacobian_block_line_1, jacobian_block_line_2], axis=-2)
+        return jacobian[0] if (len(point) == 1 or point.ndim == 1) \
+            else jacobian
 
     @geomstats.vectorization.decorator(['else', 'vector'])
     def exp_from_identity(self, tangent_vec):
@@ -682,9 +684,9 @@ class _SpecialEuclidean3Vectors(LieGroup):
         """
         # TODO (nguigs): find usecase for this method
         rot_vec = self.rotations.regularize(rot_vec)
-        n_rot_vecs, _ = rot_vec.shape
+        n_rot_vecs = 1 if rot_vec.ndim == 1 else len(rot_vec)
 
-        angle = gs.linalg.norm(rot_vec, axis=1)
+        angle = gs.linalg.norm(rot_vec, axis=-1)
         angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
         skew_rot_vec = self.rotations.skew_matrix_from_vector(rot_vec)

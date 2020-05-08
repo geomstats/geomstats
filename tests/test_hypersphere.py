@@ -480,31 +480,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         expected = gs.array(n_geodesic_points * [True])
         self.assertAllClose(expected, result)
 
-    def test_geodesic_and_coincides_exp(self):
-        n_geodesic_points = 10
-        initial_point = self.space.random_uniform(2)
-        vector = gs.array([[2., 0., -1., -2., 1.]] * 2)
-        initial_tangent_vec = self.space.to_tangent(
-            vector=vector, base_point=initial_point)
-        geodesic = self.metric.geodesic(
-            initial_point=initial_point,
-            initial_tangent_vec=initial_tangent_vec)
-        t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
-        points = geodesic(t)
-        result = points[-1]
-        expected = self.space.metric.exp(vector, initial_point)
-        self.assertAllClose(expected, result)
-
-        initial_point = initial_point[0]
-        initial_tangent_vec = initial_tangent_vec[0]
-        geodesic = self.metric.geodesic(
-            initial_point=initial_point,
-            initial_tangent_vec=initial_tangent_vec)
-        points = geodesic(t)
-        result = points[-1]
-        expected = self.space.metric.exp(vector, initial_point)
-        self.assertAllClose(expected, result)
-
     def test_geodesic_end_point(self):
         n_geodesic_points = 10
         initial_point = self.space.random_uniform(4)

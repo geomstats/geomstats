@@ -430,7 +430,7 @@ class Connection:
 
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
-                 point_type='vector'):
+                 point_type=None):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
@@ -503,13 +503,15 @@ class Connection:
                     'i,...k->...ik', t, initial_tangent_vec)
             else:
                 tangent_vecs = gs.einsum(
-                    'i,...km->...ikm', t, initial_tangent_vec)
+                    'i,...kl->...ikl', t, initial_tangent_vec)
 
             points_at_time_t = [
                 self.exp(tv, pt) for tv,
                                      pt in zip(tangent_vecs, initial_point)]
             points_at_time_t = gs.stack(points_at_time_t, axis=1)
-            return points_at_time_t[:, 0] if
+
+            return points_at_time_t[:, 0] if n_initial_conditions == 1 else \
+                points_at_time_t
         return path
 
     def torsion(self, base_point):

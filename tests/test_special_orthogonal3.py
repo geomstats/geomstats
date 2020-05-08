@@ -2813,11 +2813,10 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
         n_samples = self.n_samples
         points = group.random_uniform(n_samples=n_samples)
-        jacobians = group.jacobian_translation(point=points,
-                                               left_or_right='left')
+        jacobians = group.jacobian_translation(
+            point=points, left_or_right='left')
         self.assertAllClose(
-            gs.shape(jacobians),
-            (n_samples, group.dim, group.dim))
+            gs.shape(jacobians), (n_samples, group.dim, group.dim))
 
     def test_exp(self):
         """
@@ -2854,8 +2853,8 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         expected = group.compose(rot_vec_base_point,
                                  gs.dot(inv_jacobian, rot_vec_2))
 
-        result = metric.exp(base_point=rot_vec_base_point,
-                            tangent_vec=rot_vec_2)
+        result = metric.exp(
+            base_point=rot_vec_base_point, tangent_vec=rot_vec_2)
         self.assertAllClose(result, expected)
 
     def test_exp_vectorization(self):
