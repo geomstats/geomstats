@@ -54,7 +54,7 @@ def load_cities():
 
     data = gs.concatenate([colat, lng], axis=1)
     sphere = Hypersphere(dim=2)
-    data = sphere.spherical_to_extrinsic(data)
+    data = sphere.spherical_to_extrinsic(data, north_pole_axis=2)
     return data, names
 
 
