@@ -35,17 +35,14 @@ def load_cities():
     name : list
         List of city names.
     """
-    data = []
-    names = []
-
     with open(CITIES_PATH) as json_file:
         data_file = json.load(json_file)
 
-        for row in data_file:
-            lat_in_radians = row['lat'] / 90 * gs.pi / 2
-            lng_in_radians = row['lng'] / 180 * gs.pi
-            data.append(gs.array([lat_in_radians, lng_in_radians]))
-            names.append(row['city'])
+        names = [row['city'] for row in data_file]
+        data = list(map(
+            lambda row: [row[
+                col_name] / 180 * gs.pi for col_name in ['lat', 'lng']],
+            data_file))
 
     data = gs.array(data)
     return data, names
