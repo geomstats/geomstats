@@ -507,7 +507,7 @@ class Connection:
 
             points_at_time_t = [
                 self.exp(tv, pt) for tv,
-                                     pt in zip(tangent_vecs, initial_point)]
+                pt in zip(tangent_vecs, initial_point)]
             points_at_time_t = gs.stack(points_at_time_t, axis=1)
 
             return points_at_time_t[:, 0] if n_initial_conditions == 1 else \
