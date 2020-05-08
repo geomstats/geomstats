@@ -75,7 +75,7 @@ def load_poses(only_rotations=True):
             pose_vec = so3.rotation_vector_from_matrix(pose_mat)
             if not only_rotations:
                 trans_vec = gs.array(row['trans_mat'])
-                pose_vec = gs.concatenate([pose_vec, trans_vec])
+                pose_vec = gs.concatenate([pose_vec, trans_vec], axis=-1)
             data.append(pose_vec)
             img_paths.append(row['img'])
 
