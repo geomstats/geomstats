@@ -20,3 +20,8 @@ class TestNotebooks(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_tangent_pca_s2():
         _exec_notebook('notebooks/tangent_pca_s2.ipynb')
+
+    @staticmethod
+    @geomstats.tests.np_only
+    def test_01_data_on_manifolds():
+        _exec_notebook('notebooks/01_data_on_manifolds.ipynb')
