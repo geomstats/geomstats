@@ -25,6 +25,10 @@ class TestDatasets(geomstats.tests.TestCase):
         data, _ = data_utils.load_cities()
         self.assertAllClose(gs.shape(data), (50, 3))
 
+        tokyo = data[0]
+        self.assertAllClose(
+            tokyo, gs.array([0.61993792, -0.52479018, 0.58332859]))
+
         result = sphere.belongs(data)
         self.assertTrue(gs.all(result))
 

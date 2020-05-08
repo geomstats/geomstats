@@ -50,11 +50,11 @@ def load_cities():
 
     colat = gs.pi / 2 - data[:, 0]
     colat = gs.expand_dims(colat, axis=1)
-    lng = gs.expand_dims(data[:, 1], axis=1)
+    lng = gs.expand_dims(data[:, 1] + gs.pi, axis=1)
 
     data = gs.concatenate([colat, lng], axis=1)
     sphere = Hypersphere(dim=2)
-    data = sphere.spherical_to_extrinsic(data, north_pole_axis=2)
+    data = sphere.spherical_to_extrinsic(data)
     return data, names
 
 
