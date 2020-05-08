@@ -43,13 +43,16 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         self.lie_algebra = SkewSymmetricMatrices(n=n)
         self.bi_invariant_metric = BiInvariantMetric(group=self)
 
-    def belongs(self, point):
+    def belongs(self, point, atol=ATOL):
         """Check whether point is an orthogonal matrix.
 
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
             Point to check.
+        atol : float
+            Absolute tolerance to check equality of the transpose and the
+            inverse of point.
 
         Returns
         -------
@@ -57,7 +60,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
             Boolean evaluating if point belongs to SO(n).
         """
         return self.equal(
-            self.mul(point, self.transpose(point)), self.identity)
+            self.mul(point, self.transpose(point)), self.identity, atol=atol)
 
     @classmethod
     def inverse(cls, point):
