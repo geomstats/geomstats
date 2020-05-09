@@ -178,9 +178,12 @@ class Sphere():
     def draw_points(self, ax, points=None, **scatter_kwargs):
         if points is None:
             points = self.points
+        points_x = [point[0] for point in points]
+        points_y = [point[1] for point in points]
+        points_z = [point[2] for point in points]
+        ax.scatter(points_x, points_y, points_z, **scatter_kwargs)
 
         for i_point, point in enumerate(points):
-            ax.scatter(point[0], point[1], point[2], **scatter_kwargs)
             if 'label' in scatter_kwargs:
                 if len(scatter_kwargs['label']) == len(points):
                     ax.text(
