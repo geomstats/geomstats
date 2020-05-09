@@ -112,7 +112,7 @@ class TangentPCA(_BasePCA):
 
     def __init__(self, metric, n_components=None, copy=True,
                  whiten=False, tol=0.0, iterated_power='auto',
-                 random_state=None, point_type='vector'):
+                 random_state=None):
         self.metric = metric
         self.n_components = n_components
         self.copy = copy
@@ -120,7 +120,7 @@ class TangentPCA(_BasePCA):
         self.tol = tol
         self.iterated_power = iterated_power
         self.random_state = random_state
-        self.point_type = point_type
+        self.point_type = metric.default_point_type
         self.base_point_fit = None
 
     def fit(self, X, y=None, base_point=None):
