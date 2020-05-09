@@ -3,6 +3,10 @@
 import tensorflow as tf
 
 
+def multivariate_normal(*args, **kwargs):
+    return tf.contrib.distributions.MultivariateNormalFullCovariance(
+        *args, **kwargs)
+
 def randint(low, high=None, size=None):
     if size is None:
         size = (1,)
