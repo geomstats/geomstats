@@ -2,6 +2,7 @@
 
 
 import geomstats.backend as gs
+import geomstats.errors as errors
 import geomstats.geometry.riemannian_metric as riemannian_metric
 from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.manifold import Manifold
@@ -167,7 +168,7 @@ class LieGroup(Manifold):
         Parameters
         ----------
         point : array-like, shape=[..., {dim, [n, n]]
-            Point to be inverted.
+            Point.
         left_or_right : str, {'left', 'right'}
             Indicate whether to calculate the differential of left or right
             translations.
@@ -178,12 +179,57 @@ class LieGroup(Manifold):
         jacobian : array-like, shape=[..., dim, dim]
             Jacobian of the left/right translation by point.
         """
-        if self.default_point_type == 'matrix':
-            return point
-
         raise NotImplementedError(
             'The jacobian of the Lie group translation is not implemented.'
         )
+
+    def tangent_translation_map(
+            self, point, left_or_right='left', inverse=False):
+        r"""Compute the push-forward map by the left/right translation.
+
+        Compute the push-forward map, of the left/right translation by the
+        point. It corresponds to the tangent map, or differential of the
+        group multiplication by the point or its inverse. For groups with a
+        vector representation, it is only implemented at identity, but it can
+        be used at other points by passing `inverse=True`. This method wraps
+        the jacobian translation which actually computes the matrix
+        representation of the map.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., {dim, [n, n]]
+            Point.
+        left_or_right : str, {'left', 'right'}
+            Whether to calculate the differential of left or right
+            translations.
+            Optional, default: 'left'
+        inverse : bool,
+            Whether to inverse the jacobian matrix. If True, the push forward
+            by the translation by the inverse of point is returned.
+            Optional, default: False.
+
+        Returns
+        -------
+        tangent_map : callable
+            Tangent map of the left/right translation by point. It can be
+            applied to tangent vectors.
+        """
+        errors.check_parameter_accepted_values(
+            left_or_right, 'left_or_right', ['left', 'right'])
+        if self.default_point_type == 'matrix':
+            if inverse:
+                point = self.inverse(point)
+            if left_or_right == 'left':
+                return lambda tangent_vec: Matrices.mul(
+                    point, tangent_vec)
+            return lambda tangent_vec: Matrices.mul(
+                tangent_vec, point)
+
+        jacobian = self.jacobian_translation(point, left_or_right)
+        if inverse:
+            jacobian = gs.linalg.inv(jacobian)
+        return lambda tangent_vec: gs.einsum(
+            '...ij,...j->...i', jacobian, tangent_vec)
 
     def exp_from_identity(self, tangent_vec):
         """Compute the group exponential of tangent vector from the identity.
@@ -218,17 +264,13 @@ class LieGroup(Manifold):
             Group exponential.
         """
         if self.default_point_type == 'vector':
-            jacobian = self.jacobian_translation(
-                point=base_point, left_or_right='left')
-            inv_jacobian = gs.linalg.inv(jacobian)
+            tangent_translation = self.tangent_translation_map(
+                point=base_point, left_or_right='left', inverse=True)
 
-            tangent_vec_at_id = gs.einsum(
-                '...i,...ij->...j',
-                tangent_vec, Matrices.transpose(inv_jacobian))
+            tangent_vec_at_id = tangent_translation(tangent_vec)
             exp_from_identity = self.exp_from_identity(
                 tangent_vec=tangent_vec_at_id)
-            exp = self.compose(
-                base_point, exp_from_identity)
+            exp = self.compose(base_point, exp_from_identity)
             exp = self.regularize(exp)
             return exp
 
@@ -297,16 +339,11 @@ class LieGroup(Manifold):
             Group logarithm.
         """
         if self.default_point_type == 'vector':
-            jacobian = self.jacobian_translation(
+            tangent_translation = self.tangent_translation_map(
                 point=base_point, left_or_right='left')
-            point_near_id = self.compose(
-                self.inverse(base_point), point)
-            log_from_id = self.log_from_identity(
-                point=point_near_id)
-
-            log = gs.einsum(
-                '...i,...ij->...j', log_from_id, Matrices.transpose(jacobian))
-
+            point_near_id = self.compose(self.inverse(base_point), point)
+            log_from_id = self.log_from_identity(point=point_near_id)
+            log = tangent_translation(log_from_id)
             return log
 
         lie_point = self.compose(self.inverse(base_point), point)
