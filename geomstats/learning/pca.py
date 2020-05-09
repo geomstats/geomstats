@@ -105,9 +105,6 @@ class TangentPCA(_BasePCA):
     n_components : int
         Number of principal components.
         Optional, default: None.
-    point_type : str, {'vector', 'matrix'}
-        Point type.
-        Optional, default: 'vector'.
     """
 
     def __init__(self, metric, n_components=None, copy=True,
