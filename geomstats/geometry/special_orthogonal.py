@@ -183,13 +183,14 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
     identity = property(get_identity)
 
-    def belongs(self, point):
+    def belongs(self, point, atol=ATOL):
         """Evaluate if a point belongs to SO(3).
 
         Parameters
         ----------
         point : array-like, shape=[..., 3]
             Point to check whether it belongs to SO(3).
+        atol : unused
 
         Returns
         -------
