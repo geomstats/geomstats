@@ -36,13 +36,16 @@ class Manifold:
         self.default_point_type = default_point_type
         self.default_coords_type = default_coords_type
 
-    def belongs(self, point):
+    def belongs(self, point, atol=ATOL):
         """Evaluate if a point belongs to the manifold.
 
         Parameters
         ----------
         point : array-like, shape=[..., dim]
             Point to evaluate.
+        atol : float
+            Absolute tolerance.
+            Optional, default: 1e-6.
 
         Returns
         -------
