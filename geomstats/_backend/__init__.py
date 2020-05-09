@@ -30,6 +30,7 @@ BACKEND_ATTRIBUTES = {
         'array_from_sparse',
         'assignment',
         'assignment_by_sum',
+        'broadcast_arrays',
         'cast',
         'ceil',
         'clip',

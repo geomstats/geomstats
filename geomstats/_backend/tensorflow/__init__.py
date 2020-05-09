@@ -1,5 +1,6 @@
 """Tensorflow based computation backend."""
 
+from collections import Counter
 from itertools import product
 
 import numpy as _np
@@ -551,6 +552,39 @@ def vstack(x):
 
 def cast(x, dtype):
     return tf.cast(x, dtype)
+
+
+def broadcast_arrays(x, y, **kwargs):
+    tensors = [x, y]
+    shapes = [t.get_shape().as_list() for t in tensors]
+    max_rank = max(len(s) for s in shapes)
+
+    for index, value in enumerate(shapes):
+        shape = value
+        if len(shape) == max_rank:
+            continue
+
+        tensor = tensors[index]
+        for _ in range(max_rank - len(shape)):
+            shape.insert(0, 1)
+            tensor = tf.expand_dims(tensor, axis=0)
+        tensors[index] = tensor
+
+    broadcast_shape = []
+    for index in range(max_rank):
+        dimensions = [s[index] for s in shapes]
+        repeats = Counter(dimensions)
+        if len(repeats) > 2 or (len(repeats) == 2 and
+                                1 not in list(repeats.keys())):
+            raise ValueError('operands could not be '
+                             'broadcast together with shapes', shapes)
+        broadcast_shape.append(max(repeats.keys()))
+
+    for axis, dimension in enumerate(broadcast_shape):
+        tensors = [tf.concat([t] * dimension, axis=axis)
+                   if t.get_shape()[axis] == 1 else t for t in tensors]
+
+    return tensors
 
 
 def dot(x, y):

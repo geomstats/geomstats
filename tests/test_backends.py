@@ -871,3 +871,18 @@ class TestBackends(geomstats.tests.TestCase):
         result = [a.dtype == gs.float64 for a in gs_result]
 
         self.assertTrue(gs.all(result))
+
+    def test_broadcast_arrays(self):
+
+        array_1 = gs.array([[1, 2, 3]])
+        array_2 = gs.array([[4], [5]])
+        result = gs.broadcast_arrays(array_1, array_2)
+
+        result_verdict = [gs.array([[1, 2, 3], [1, 2, 3]]),
+                          gs.array([[4, 4, 4], [5, 5, 5]])]
+
+        self.assertAllClose(result[0], result_verdict[0])
+        self.assertAllClose(result[1], result_verdict[1])
+
+        with self.assertRaises((ValueError, RuntimeError)):
+            gs.broadcast_arrays(gs.array([1, 2]), gs.array([3, 4, 5]))

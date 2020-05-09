@@ -13,6 +13,7 @@ from torch import (  # NOQA
     asin as arcsin,
     atan2 as arctan2,
     bool as t_bool,
+    broadcast_tensors as broadcast_arrays,
     ceil,
     clamp as clip,
     cos,
