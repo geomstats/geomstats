@@ -53,6 +53,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         atol : float
             Absolute tolerance to check equality of the transpose and the
             inverse of point.
+            Optional, default: 1e-5.
 
         Returns
         -------
@@ -379,7 +380,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
             Rotation matrix.
         """
         mat = point
-        n_mats, n, _ = mat.shape
+        n_mats, _, _ = mat.shape
 
         mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
         rot_mat = gs.einsum('nij,njk->nik', mat_unitary_u, mat_unitary_v)
@@ -770,8 +771,9 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         return rot_mat
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
-    def matrix_from_tait_bryan_angles_extrinsic_xyz(self, tait_bryan_angles):
+    @staticmethod
+    @geomstats.vectorization.decorator(['vector'])
+    def matrix_from_tait_bryan_angles_extrinsic_xyz(tait_bryan_angles):
         """Convert Tait-Bryan angles to rot mat in extrensic coords (xyz).
 
         Convert a rotation given in terms of the tait bryan angles,
@@ -825,8 +827,9 @@ class _SpecialOrthogonal3Vectors(LieGroup):
             rot_mat.append(gs.hstack((column_1, column_2, column_3)))
         return gs.stack(rot_mat)
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
-    def matrix_from_tait_bryan_angles_extrinsic_zyx(self, tait_bryan_angles):
+    @staticmethod
+    @geomstats.vectorization.decorator(['vector'])
+    def matrix_from_tait_bryan_angles_extrinsic_zyx(tait_bryan_angles):
         """Convert Tait-Bryan angles to rot mat in extrensic coords (zyx).
 
         Convert a rotation given in terms of the tait bryan angles,
