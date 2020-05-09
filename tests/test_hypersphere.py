@@ -256,24 +256,30 @@ class TestHypersphere(geomstats.tests.TestCase):
         NB: points on the n-dimensional sphere are
         (n+1)-D vectors of norm 1.
         """
-        # TODO (nina): Fix that this test fails, also in numpy
         # Riemannian Exp then Riemannian Log
         # General case
         # NB: Riemannian log gives a regularized tangent vector,
         # so we take the norm modulo 2 * pi.
         base_point = gs.array([0., -3., 0., 3., 4.])
         base_point = base_point / gs.linalg.norm(base_point)
-        vector = gs.array([9., 5., 0., 0., -1.])
+
+        vector = gs.array([3., 2., 0., 0., -1.])
         vector = self.space.to_tangent(
             vector=vector, base_point=base_point)
 
-        # exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
-        # result = self.metric.log(point=exp, base_point=base_point)
+        exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
+        result = self.metric.log(point=exp, base_point=base_point)
 
         expected = vector
         norm_expected = gs.linalg.norm(expected)
         regularized_norm_expected = gs.mod(norm_expected, 2 * gs.pi)
         expected = expected / norm_expected * regularized_norm_expected
+
+        # The Log can be the opposite vector on the tangent space,
+        # whose Exp gives the base_point
+        are_close = gs.allclose(result, expected)
+        norm_2pi = gs.isclose(gs.linalg.norm(result - expected), 2 * gs.pi)
+        self.assertTrue(are_close or norm_2pi)
 
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """Test Log and Exp.
@@ -451,21 +457,39 @@ class TestHypersphere(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_geodesic_and_belongs(self):
-        n_geodesic_points = 100
-        initial_point = self.space.random_uniform()
-        vector = gs.array([2., 0., -1., -2., 1.])
+        n_geodesic_points = 10
+        initial_point = self.space.random_uniform(2)
+        vector = gs.array([[2., 0., -1., -2., 1.]] * 2)
         initial_tangent_vec = self.space.to_tangent(
             vector=vector, base_point=initial_point)
         geodesic = self.metric.geodesic(
             initial_point=initial_point,
             initial_tangent_vec=initial_tangent_vec)
-
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)
+        result = gs.stack([self.space.belongs(pt) for pt in points])
+        self.assertTrue(gs.all(result))
 
+        initial_point = initial_point[0]
+        initial_tangent_vec = initial_tangent_vec[0]
+        geodesic = self.metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec)
+        points = geodesic(t)
         result = self.space.belongs(points)
         expected = gs.array(n_geodesic_points * [True])
+        self.assertAllClose(expected, result)
 
+    def test_geodesic_end_point(self):
+        n_geodesic_points = 10
+        initial_point = self.space.random_uniform(4)
+        geodesic = self.metric.geodesic(
+            initial_point=initial_point[:2],
+            end_point=initial_point[2:])
+        t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
+        points = geodesic(t)
+        result = points[-1]
+        expected = initial_point[2:]
         self.assertAllClose(expected, result)
 
     def test_inner_product(self):

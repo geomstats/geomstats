@@ -89,7 +89,7 @@ class Circle():
         if not gs.all(S1.belongs(points)):
             raise ValueError('Points do  not belong to the circle.')
         if not isinstance(points, list):
-            points = points.tolist()
+            points = list(points)
         self.points.extend(points)
 
     def draw(self, ax, **plot_kwargs):
@@ -149,7 +149,7 @@ class Sphere():
         if not gs.all(S2.belongs(points)):
             raise ValueError('Points do not belong to the sphere.')
         if not isinstance(points, list):
-            points = points.tolist()
+            points = list(points)
         self.points.extend(points)
 
     def draw(self, ax, **scatter_kwargs):
@@ -163,9 +163,9 @@ class Sphere():
     def draw_points(self, ax, points=None, **scatter_kwargs):
         if points is None:
             points = self.points
-        points_x = gs.vstack([point[0] for point in points])
-        points_y = gs.vstack([point[1] for point in points])
-        points_z = gs.vstack([point[2] for point in points])
+        points_x = [point[0] for point in points]
+        points_y = [point[1] for point in points]
+        points_z = [point[2] for point in points]
         ax.scatter(points_x, points_y, points_z, **scatter_kwargs)
 
     def fibonnaci_points(self, n_points=16000):
@@ -241,7 +241,7 @@ class PoincareDisk():
             points = self.convert_to_poincare_coordinates(points)
 
         if not isinstance(points, list):
-            points = points.tolist()
+            points = list(points)
 
         if gs.all([len(point) == 2 for point in self.points]):
             self.points.extend(points)
@@ -295,7 +295,7 @@ class PoincarePolyDisk():
         if self.point_type == 'extrinsic':
             points = self.convert_to_poincare_coordinates(points)
         if not isinstance(points, list):
-            points = points.tolist()
+            points = list(points)
         self.points.extend(points)
 
     def clear_points(self):
@@ -312,8 +312,8 @@ class PoincarePolyDisk():
         """Draw."""
         circle = plt.Circle((0, 0), radius=1., color='black', fill=False)
         ax.add_artist(circle)
-        points_x = gs.vstack([point[0] for point in self.points])
-        points_y = gs.vstack([point[1] for point in self.points])
+        points_x = [gs.to_numpy(point[0]) for point in self.points]
+        points_y = [gs.to_numpy(point[1]) for point in self.points]
         ax.scatter(points_x, points_y, **kwargs)
 
 
@@ -331,7 +331,7 @@ class PoincareHalfPlane():
                 'Points do not belong to the hyperbolic space.')
         points = self.convert_to_half_plane_coordinates(points)
         if not isinstance(points, list):
-            points = points.tolist()
+            points = list(points)
         self.points.extend(points)
 
     @staticmethod
@@ -351,16 +351,18 @@ class PoincareHalfPlane():
         disk_x = disk_coords[:, 0]
         disk_y = disk_coords[:, 1]
 
-        half_plane_coords = gs.zeros_like(disk_coords)
         denominator = (disk_x ** 2 + (1 - disk_y) ** 2)
-        half_plane_coords[:, 0] = 2 * disk_x / denominator
-        half_plane_coords[:, 1] = ((1 - disk_x ** 2 - disk_y ** 2)
-                                   / denominator)
+        coords_0 = gs.expand_dims(2 * disk_x / denominator, axis=1)
+        coords_1 = gs.expand_dims(
+            (1 - disk_x ** 2 - disk_y ** 2) / denominator, axis=1)
+
+        half_plane_coords = gs.concatenate(
+            [coords_0, coords_1], axis=1)
         return half_plane_coords
 
     def draw(self, ax, **kwargs):
-        points_x = gs.vstack([point[0] for point in self.points])
-        points_y = gs.vstack([point[1] for point in self.points])
+        points_x = [gs.to_numpy(point[0]) for point in self.points]
+        points_y = [gs.to_numpy(point[1]) for point in self.points]
         ax.scatter(points_x, points_y, **kwargs)
 
 
@@ -388,7 +390,7 @@ class KleinDisk():
                 'Points do not belong to the hyperbolic space.')
         points = self.convert_to_klein_coordinates(points)
         if not isinstance(points, list):
-            points = points.tolist()
+            points = list(points)
         self.points.extend(points)
 
     @staticmethod
@@ -402,16 +404,18 @@ class KleinDisk():
         klein_radius = 2 * poincare_radius / (1 + poincare_radius ** 2)
         klein_angle = poincare_angle
 
-        klein_coords = gs.zeros_like(poincare_coords)
-        klein_coords[:, 0] = klein_radius * gs.cos(klein_angle)
-        klein_coords[:, 1] = klein_radius * gs.sin(klein_angle)
+        coords_0 = gs.expand_dims(
+            klein_radius * gs.cos(klein_angle), axis=1)
+        coords_1 = gs.expand_dims(
+            klein_radius * gs.sin(klein_angle), axis=1)
+        klein_coords = gs.concatenate([coords_0, coords_1], axis=1)
         return klein_coords
 
     def draw(self, ax, **kwargs):
         circle = plt.Circle((0, 0), radius=1., color='black', fill=False)
         ax.add_artist(circle)
-        points_x = gs.vstack([point[0] for point in self.points])
-        points_y = gs.vstack([point[1] for point in self.points])
+        points_x = [gs.to_numpy(point[0]) for point in self.points]
+        points_y = [gs.to_numpy(point[1]) for point in self.points]
         ax.scatter(points_x, points_y, **kwargs)
 
 
@@ -442,9 +446,9 @@ def convert_to_trihedron(point, space=None):
 
     rot_mat = SO3_GROUP.matrix_from_rotation_vector(rot_vec)
     rot_mat = SO3_GROUP.projection(rot_mat)
-    basis_vec_1 = gs.array([1, 0, 0])
-    basis_vec_2 = gs.array([0, 1, 0])
-    basis_vec_3 = gs.array([0, 0, 1])
+    basis_vec_1 = gs.array([1., 0., 0.])
+    basis_vec_2 = gs.array([0., 1., 0.])
+    basis_vec_3 = gs.array([0., 0., 1.])
 
     trihedrons = []
     for i in range(n_points):
@@ -475,7 +479,8 @@ def plot(points, ax=None, space=None,
     if points is None:
         raise ValueError("No points given for plotting.")
 
-    points = gs.to_ndarray(points, to_ndim=2)
+    if points.ndim < 2:
+        points = gs.expand_dims(points, 0)
 
     if space in ('SO3_GROUP', 'SE3_GROUP'):
         if ax is None:
@@ -484,10 +489,12 @@ def plot(points, ax=None, space=None,
             ax_s = AX_SCALE * gs.amax(gs.abs(points[:, 3:6]))
         elif space == 'SO3_GROUP':
             ax_s = AX_SCALE * gs.amax(gs.abs(points[:, :3]))
+        ax_s = float(ax_s)
+        bounds = (-ax_s, ax_s)
         plt.setp(ax,
-                 xlim=(-ax_s, ax_s),
-                 ylim=(-ax_s, ax_s),
-                 zlim=(-ax_s, ax_s),
+                 xlim=bounds,
+                 ylim=bounds,
+                 zlim=bounds,
                  xlabel='X', ylabel='Y', zlabel='Z')
         trihedrons = convert_to_trihedron(points, space=space)
         for t in trihedrons:
@@ -515,8 +522,8 @@ def plot(points, ax=None, space=None,
         n_disks = points.shape[1]
         poincare_poly_disk = PoincarePolyDisk(point_type=point_type,
                                               n_disks=n_disks)
-        n_columns = gs.ceil(n_disks ** 0.5)
-        n_rows = gs.ceil(n_disks / n_columns)
+        n_columns = int(gs.ceil(n_disks ** 0.5))
+        n_rows = int(gs.ceil(n_disks / n_columns))
 
         axis_list = []
 

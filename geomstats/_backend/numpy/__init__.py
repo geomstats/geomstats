@@ -17,6 +17,7 @@ from autograd.numpy import (  # NOQA
     argmax,
     argmin,
     array,
+    broadcast_arrays,
     ceil,
     clip,
     concatenate,
@@ -28,6 +29,7 @@ from autograd.numpy import (  # NOQA
     diagonal,
     divide,
     dot,
+    dtype,
     einsum,
     empty,
     empty_like,
@@ -93,6 +95,26 @@ from scipy.sparse import coo_matrix
 from . import linalg  # NOQA
 from . import random  # NOQA
 from .common import to_ndarray  # NOQA
+
+DTYPES = {
+    dtype('int32'): 0,
+    dtype('int64'): 1,
+    dtype('float32'): 2,
+    dtype('float64'): 3}
+
+
+def to_numpy(x):
+    return x
+
+
+def convert_to_wider_dtype(tensor_list):
+    dtype_list = [DTYPES[x.dtype] for x in tensor_list]
+    wider_dtype_index = max(dtype_list)
+
+    wider_dtype = list(DTYPES.keys())[wider_dtype_index]
+
+    tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
+    return tensor_list
 
 
 def flatten(x):

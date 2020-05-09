@@ -24,10 +24,11 @@ def variance(points,
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, dim]
+    points : array-like, shape=[..., dim]
         Points.
-    weights : array-like, shape=[n_samples, 1], optional
+    weights : array-like, shape=[...,]
         Weights associated to the points.
+        Optional, default: None.
 
     Returns
     -------
@@ -59,18 +60,17 @@ def linear_mean(points, weights=None, point_type='vector'):
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, dim]
+    points : array-like, shape=[..., dim]
         Points to be averaged.
-    weights : array-like, shape=[n_samples, 1], optional
+    weights : array-like, shape=[...,]
         Weights associated to the points.
+        Optional, default: None.
 
     Returns
     -------
-    mean : array-like, shape=[1, dim]
+    mean : array-like, shape=[dim,]
         Weighted linear mean of the points.
     """
-    # TODO (ninamiolane): Factorize this code to handle lists
-    # in the whole codebase
     if isinstance(points, list):
         points = gs.stack(points, axis=0)
     if isinstance(weights, list):
@@ -95,6 +95,7 @@ def linear_mean(points, weights=None, point_type='vector'):
 
 def _default_gradient_descent(points, metric, weights,
                               max_iter, point_type, epsilon, verbose):
+    """Perform default gradient descent."""
     if point_type == 'vector':
         points = gs.to_ndarray(points, to_ndim=2)
         einsum_str = 'n,nj->j'
@@ -158,6 +159,7 @@ def _default_gradient_descent(points, metric, weights,
 
 def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
                            lr=1e-3, tau=5e-3):
+    """Perform ball gradient descent."""
     if len(points) == 1:
         return points
 
@@ -237,7 +239,7 @@ def _adaptive_gradient_descent(points,
                                epsilon=1e-12,
                                init_point=None,
                                point_type='vector'):
-    """Compute the Frechet mean using gradient descent.
+    """Perform adaptive gradient descent.
 
     Frechet mean of (weighted) points using adaptive time-steps
     The loss function optimized is :math:`||M_1(x)||_x`
@@ -248,9 +250,9 @@ def _adaptive_gradient_descent(points,
 
     Parameters
     ----------
-    points : array-like, shape=[n_samples, dim]
+    points : array-like, shape=[..., dim]
         Points to be averaged.
-    weights : array-like, shape=[n_samples, 1], optional
+    weights : array-like, shape=[..., 1], optional
         Weights associated to the points.
     max_iter : int, optional
         Maximum number of iterations for the gradient descent.
@@ -261,7 +263,7 @@ def _adaptive_gradient_descent(points,
 
     Returns
     -------
-    current_mean: array-like, shape=[n_samples, dim]
+    current_mean: array-like, shape=[..., dim]
         Weighted Frechet mean of the points.
     """
     if point_type == 'matrix':
@@ -327,11 +329,24 @@ def _adaptive_gradient_descent(points,
 
 
 class FrechetMean(BaseEstimator):
-    """Empirical Frechet mean.
+    r"""Empirical Frechet mean.
 
     Parameters
     ----------
-    max_iter:
+    metric : RiemannianMetric
+        Riemannian metric.
+    max_iter : int
+        Maximum number of iterations for gradient descent.
+        Optional, default: 32.
+    point_type : str, {\'vector\', \'matrix\'}
+        Point type.
+        Optional, default: None.
+    method : str, {\'default\', \'adaptive\', \'ball\'}
+        Gradient descent method.
+        Optional, default: \'default\'.
+    verbose : bool
+        Verbose option.
+        Optional, default: False.
     """
 
     def __init__(self, metric,
@@ -363,22 +378,21 @@ class FrechetMean(BaseEstimator):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix}, shape (n_samples, n_features)
-            The training input samples.
-        y : array-like, shape (n_samples,) or (n_samples, n_outputs)
-            The target values (class labels in classification, real numbers in
+        X : {array-like, sparse matrix}, shape=[..., n_features]
+            Training input samples.
+        y : array-like, shape=[...,] or [..., n_outputs]
+            Target values (class labels in classification, real numbers in
             regression).
-            Ignored
-        weights : array-like, shape=[n_samples, 1], optional
+            Ignored.
+        weights : array-like, shape=[...,]
+            Weights associated to the points.
+            Optional, default: None.
 
         Returns
         -------
         self : object
             Returns self.
         """
-        # TODO (nina): Profile this code to study performance,
-        # i.e. what to do with sq_dists_between_iterates.
-
         is_linear_metric = isinstance(
             self.metric, (EuclideanMetric, MatricesMetric, MinkowskiMetric))
 

@@ -14,12 +14,18 @@ EPSILON = 1e-3
 
 
 class Connection:
-    """Class for affine connections.
+    r"""Class for affine connections.
 
     Parameters
     ----------
-    dim: int
+    dim : int
         Dimension of the underlying manifold.
+    default_point_type : str, {\'vector\', \'matrix\'}
+        Point type.
+        Optional, default: \'vector\'.
+    default_coords_type : str, {\'intrinsic\', \'extrinsic\', etc}
+        Coordinate type.
+        Optional, default: \'intrinsic\'.
     """
 
     def __init__(
@@ -44,7 +50,7 @@ class Connection:
         Returns
         -------
         gamma : array-like, shape=[..., dim, dim, dim]
-            Values of the christoffel symbols, with the covariant index on
+            Christoffel symbols, with the covariant index on
             the first dimension.
         """
         raise NotImplementedError(
@@ -85,8 +91,6 @@ class Connection:
             Value of the vector field to be integrated at position.
         """
         gamma = self.christoffels(position)
-        # TODO (ninamiolane): Use einsum with 3 tensors when it is
-        # enabled in the backend
         equation = gs.einsum(
             '...kij,...i->...kj', gamma, velocity)
         equation = - gs.einsum(
@@ -109,10 +113,13 @@ class Connection:
             Point on the manifold.
         n_steps : int
             Number of discrete time steps to take in the integration.
+            Optional, default: N_STEPS.
         step : str, {'euler', 'rk4'}
             The numerical scheme to use for integration.
+            Optional, default: 'euler'.
         point_type : str, {'vector', 'matrix'}
             Type of representation used for points.
+            Optional, default: None.
 
         Returns
         -------
@@ -140,8 +147,10 @@ class Connection:
             Point on the manifold.
         n_steps : int
             Number of discrete time steps to take in the integration.
+            Optional, default: N_STEPS.
         step : str, {'euler', 'rk4'}
             Numerical scheme to use for integration.
+            Optional, default: 'euler'.
 
         Returns
         -------
@@ -267,9 +276,10 @@ class Connection:
         base_shoot : array-like, shape=[..., dim]
             Point on the manifold, end point of the geodesics starting
             from the base point with initial speed to be transported.
-        return_geodesics : bool, optional (defaults to False)
+        return_geodesics : bool
             Whether to return points computed along each geodesic of the
             construction.
+            Optional, default: False.
 
         Returns
         -------
@@ -353,8 +363,10 @@ class Connection:
             which to transport.
         n_steps : int
             The number of pole ladder steps.
+            Optional, default: 1.
         step : str, {'pole', 'schild'}
             The scheme to use for the construction of the ladder at each step.
+            Optoinal, default: 'pole'.
         **single_step_kwargs : keyword arguments for the step functions
 
         Returns
@@ -418,7 +430,7 @@ class Connection:
 
     def geodesic(self, initial_point,
                  end_point=None, initial_tangent_vec=None,
-                 point_type='vector'):
+                 point_type=None):
         """Generate parameterized function for the geodesic curve.
 
         Geodesic curve defined by either:
@@ -433,41 +445,49 @@ class Connection:
             Point on the manifold, end point of the geodesic. If None,
             an initial tangent vector must be given.
         initial_tangent_vec : array-like, shape=[..., dim],
-            optional
             Tangent vector at base point, the initial speed of the geodesics.
+            Optional, default: None.
             If None, an end point must be given and a logarithm is computed.
         point_type : str, {'vector', 'matrix'}
-            The type of point.
+            Point type.
+            Optional, default: 'vector'.
 
         Returns
         -------
         path : callable
-            The time parameterized geodesic curve.
+            Time parameterized geodesic curve. If a batch of initial
+            conditions is passed, the output array's first dimension
+            represents time, and the second corresponds to the different
+            initial conditions.
         """
-        point_ndim = 1
-        if point_type == 'matrix':
-            point_ndim = 2
-
-        initial_point = gs.to_ndarray(
-            initial_point, to_ndim=point_ndim + 1)
+        if point_type is None:
+            point_type = self.default_point_type
+        geomstats.errors.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
 
         if end_point is None and initial_tangent_vec is None:
             raise ValueError('Specify an end point or an initial tangent '
                              'vector to define the geodesic.')
         if end_point is not None:
-            end_point = gs.to_ndarray(end_point, to_ndim=point_ndim + 1)
             shooting_tangent_vec = self.log(
-                point=end_point,
-                base_point=initial_point)
+                point=end_point, base_point=initial_point)
             if initial_tangent_vec is not None:
                 if not gs.allclose(shooting_tangent_vec, initial_tangent_vec):
                     raise RuntimeError(
                         'The shooting tangent vector is too'
                         ' far from the input initial tangent vector.')
             initial_tangent_vec = shooting_tangent_vec
-        initial_tangent_vec = gs.array(initial_tangent_vec)
-        initial_tangent_vec = gs.to_ndarray(
-            initial_tangent_vec, to_ndim=point_ndim + 1)
+
+        if point_type == 'vector':
+            initial_point = gs.to_ndarray(initial_point, to_ndim=2)
+            initial_tangent_vec = gs.to_ndarray(
+                initial_tangent_vec, to_ndim=2)
+
+        else:
+            initial_point = gs.to_ndarray(initial_point, to_ndim=3)
+            initial_tangent_vec = gs.to_ndarray(
+                initial_tangent_vec, to_ndim=3)
+        n_initial_conditions = initial_tangent_vec.shape[0]
 
         def path(t):
             """Generate parameterized function for geodesic curve.
@@ -477,33 +497,22 @@ class Connection:
             t : array-like, shape=[n_points,]
                 Times at which to compute points of the geodesics.
             """
-            t = gs.array(t)
-            t = gs.cast(t, gs.float32)
+            t = gs.array(t, gs.float32)
             t = gs.to_ndarray(t, to_ndim=1)
-            t = gs.to_ndarray(t, to_ndim=2, axis=1)
-            new_initial_point = gs.to_ndarray(
-                initial_point,
-                to_ndim=point_ndim + 1)
-            new_initial_tangent_vec = gs.to_ndarray(
-                initial_tangent_vec,
-                to_ndim=point_ndim + 1)
-
             if point_type == 'vector':
                 tangent_vecs = gs.einsum(
-                    'il,nk->ik',
-                    t,
-                    new_initial_tangent_vec)
-            elif point_type == 'matrix':
+                    'i,...k->...ik', t, initial_tangent_vec)
+            else:
                 tangent_vecs = gs.einsum(
-                    'il,nkm->ikm',
-                    t,
-                    new_initial_tangent_vec)
+                    'i,...kl->...ikl', t, initial_tangent_vec)
 
-            point_at_time_t = self.exp(
-                tangent_vec=tangent_vecs,
-                base_point=new_initial_point)
-            return point_at_time_t
+            points_at_time_t = [
+                self.exp(tv, pt) for tv,
+                pt in zip(tangent_vecs, initial_point)]
+            points_at_time_t = gs.stack(points_at_time_t, axis=1)
 
+            return points_at_time_t[:, 0] if n_initial_conditions == 1 else \
+                points_at_time_t
         return path
 
     def torsion(self, base_point):

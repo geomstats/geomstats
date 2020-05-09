@@ -13,6 +13,7 @@ from torch import (  # NOQA
     asin as arcsin,
     atan2 as arctan2,
     bool as t_bool,
+    broadcast_tensors as broadcast_arrays,
     ceil,
     clamp as clip,
     cos,
@@ -64,6 +65,13 @@ from . import linalg  # NOQA
 from . import random  # NOQA
 
 
+DTYPES = {
+    int32: 0,
+    int64: 1,
+    float32: 2,
+    float64: 3}
+
+
 def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
@@ -81,12 +89,27 @@ def _box_scalar(function):
     return wrapper
 
 
+ceil = _box_scalar(ceil)
 cos = _box_scalar(cos)
 cosh = _box_scalar(cosh)
 exp = _box_scalar(exp)
 log = _box_scalar(log)
 sin = _box_scalar(sin)
 sinh = _box_scalar(sinh)
+
+
+def to_numpy(x):
+    return x.numpy()
+
+
+def convert_to_wider_dtype(tensor_list):
+    dtype_list = [DTYPES[x.dtype] for x in tensor_list]
+    wider_dtype_index = max(dtype_list)
+
+    wider_dtype = list(DTYPES.keys())[wider_dtype_index]
+
+    tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
+    return tensor_list
 
 
 def less_equal(x, y, **kwargs):
@@ -344,10 +367,11 @@ def sum(x, axis=None, keepdims=None, **kwargs):
 
 
 def einsum(*args, **kwargs):
-    # TODO (ninamiolane): Allow this to work when '->' is not provided
-    # TODO (ninamiolane): Allow this to work for cases like n...k
     einsum_str = args[0]
     input_tensors_list = args[1:]
+
+    input_tensors_list = convert_to_wider_dtype(
+        input_tensors_list)
 
     if len(input_tensors_list) == 1:
         return torch.einsum(einsum_str, input_tensors_list)

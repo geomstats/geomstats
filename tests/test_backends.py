@@ -327,6 +327,27 @@ class TestBackends(geomstats.tests.TestCase):
         gs_result = gs.einsum('...,...i->...i', array_1, array_2)
         self.assertAllCloseToNp(gs_result, np_result)
 
+    def test_einsum_dtypes(self):
+        np_array_1 = _np.array([[1, 4]])
+        np_array_2 = _np.array([[2., 3.]])
+        array_1 = gs.array([[1, 4]])
+        array_2 = gs.array([[2., 3.]])
+
+        np_result = _np.einsum('...i,...i->...', np_array_1, np_array_2)
+        gs_result = gs.einsum('...i,...i->...', array_1, array_2)
+
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_array_1 = _np.array([[1., 4.], [-1., 5.]])
+        np_array_2 = _np.array([[2, 3]])
+        array_1 = gs.array([[1., 4.], [-1., 5.]])
+        array_2 = gs.array([[2, 3]])
+
+        np_result = _np.einsum('...i,...i->...', np_array_1, np_array_2)
+        gs_result = gs.einsum('...i,...i->...', array_1, array_2)
+
+        self.assertAllCloseToNp(gs_result, np_result)
+
     def test_assignment_with_matrices(self):
         np_array = _np.zeros((2, 3, 3))
         gs_array = gs.zeros((2, 3, 3))
@@ -835,3 +856,42 @@ class TestBackends(geomstats.tests.TestCase):
         expected = _np.where(np_array == 1, _np.ones(10), np_array)
         result = gs.where(gs_array == 1, gs.ones(10), gs_array)
         self.assertAllCloseToNp(result, expected)
+
+    def test_convert_to_wider_dtype(self):
+        gs_list = [gs.array([1, 2]), gs.array([2.2, 3.3], dtype=gs.float32)]
+        gs_result = gs.convert_to_wider_dtype(gs_list)
+
+        result = [a.dtype == gs.float32 for a in gs_result]
+
+        self.assertTrue(gs.all(result))
+
+        gs_list = [gs.array([1, 2]), gs.array([2.2, 3.3], dtype=gs.float64)]
+        gs_result = gs.convert_to_wider_dtype(gs_list)
+
+        result = [a.dtype == gs.float64 for a in gs_result]
+
+        self.assertTrue(gs.all(result))
+
+        gs_list = [
+            gs.array([11.11, 222.2], dtype=gs.float64),
+            gs.array([2.2, 3.3], dtype=gs.float32)]
+        gs_result = gs.convert_to_wider_dtype(gs_list)
+
+        result = [a.dtype == gs.float64 for a in gs_result]
+
+        self.assertTrue(gs.all(result))
+
+    def test_broadcast_arrays(self):
+
+        array_1 = gs.array([[1, 2, 3]])
+        array_2 = gs.array([[4], [5]])
+        result = gs.broadcast_arrays(array_1, array_2)
+
+        result_verdict = [gs.array([[1, 2, 3], [1, 2, 3]]),
+                          gs.array([[4, 4, 4], [5, 5, 5]])]
+
+        self.assertAllClose(result[0], result_verdict[0])
+        self.assertAllClose(result[1], result_verdict[1])
+
+        with self.assertRaises((ValueError, RuntimeError)):
+            gs.broadcast_arrays(gs.array([1, 2]), gs.array([3, 4, 5]))

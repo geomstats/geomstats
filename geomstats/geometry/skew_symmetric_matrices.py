@@ -18,7 +18,7 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
     Parameters
     ----------
     n : int
-        The number of rows and columns.
+        Number of rows and columns.
     """
 
     def __init__(self, n):
@@ -40,13 +40,15 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         Parameters
         ----------
         mat : array-like, shape=[..., n, n]
-            The square matrix to check.
+            Square matrix to check.
         atol : float
             Tolerance for the equality evaluation.
+            Optional, default: TOLERANCE.
 
         Returns
         -------
-        belongs : bool
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if matrix is skew symmetric.
         """
         return Matrices(self.n, self.n).is_skew_symmetric(mat=mat, atol=atol)
 
@@ -59,10 +61,12 @@ class SkewSymmetricMatrices(MatrixLieAlgebra):
         Parameters
         ----------
         matrix_representation : array-like, shape=[..., n, n]
+            Matrix.
 
         Returns
         -------
         basis_representation : array-like, shape=[..., dim]
+            Representation in the basis.
         """
         old_shape = gs.shape(matrix_representation)
         as_vector = gs.reshape(matrix_representation, (old_shape[0], -1))
