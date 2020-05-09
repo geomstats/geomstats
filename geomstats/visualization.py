@@ -27,7 +27,7 @@ def tutorial_matplotlib():
     plt.style.use('seaborn')
     fontsize = 12
     matplotlib.rc('font', size=fontsize)
-    matplotlib.rc('text', usetex=True)
+    matplotlib.rc('text')
     matplotlib.rc('legend', fontsize=fontsize)
     matplotlib.rc('axes', titlesize=21, labelsize=14)
     matplotlib.rc(
