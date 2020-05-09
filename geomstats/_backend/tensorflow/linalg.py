@@ -11,11 +11,6 @@ expm = tf.linalg.expm
 inv = tf.linalg.inv
 sqrtm = tf.linalg.sqrtm
 diagonal = tf.linalg.diag_part
-diag = tf.linalg.diag
-
-
-# def diag(*args, **kwargs):
-#     return tf.linalg.diag(*args, **kwargs)
 
 
 def norm(x, dtype=tf.float32, **kwargs):
