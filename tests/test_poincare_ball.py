@@ -63,13 +63,28 @@ class TestPoincareBall(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_dist_vectorization(self):
-
         point_a = gs.array([0.2, 0.5])
         point_b = gs.array([[0.3, -0.5], [0.2, 0.2]])
-        point_c = gs.array([[0.2, 0.3], [0.5, 0.5], [-0.4, 0.1]])
 
         dist_a_b =\
             self.manifold.metric.dist(point_a, point_b)
+
+        result_vect = dist_a_b
+        result =\
+            [self.manifold.metric.dist(point_a, point_b[i])
+             for i in range(len(point_b))]
+        result = gs.stack(result, axis=0)
+        self.assertAllClose(result_vect, result)
+
+    def test_dist_broadcast(self):
+
+        point_a = gs.array([[0.2, 0.5], [0.3, 0.1]])
+        point_b = gs.array([[0.3, -0.5], [0.2, 0.2]])
+        point_c = gs.array([[0.2, 0.3], [0.5, 0.5], [-0.4, 0.1]])
+        point_d = gs.array([0.1, 0.2, 0.3])
+
+        dist_a_b =\
+            self.manifold.metric.dist_broadcast(point_a, point_b)
 
         dist_b_c = gs.flatten(
             self.manifold.metric.dist_broadcast(point_b, point_c))
@@ -78,11 +93,11 @@ class TestPoincareBall(geomstats.tests.TestCase):
             (dist_a_b, dist_b_c), axis=0)
 
         result_a_b =\
-            [self.manifold.metric.dist(point_a, point_b[i])
+            [self.manifold.metric.dist_broadcast(point_a[i], point_b[i])
              for i in range(len(point_b))]
 
         result_b_c = \
-            [self.manifold.metric.dist(point_b[i], point_c[j])
+            [self.manifold.metric.dist_broadcast(point_b[i], point_c[j])
              for i in range(len(point_b))
              for j in range(len(point_c))
              ]
@@ -90,6 +105,8 @@ class TestPoincareBall(geomstats.tests.TestCase):
         result = gs.stack(result, axis=0)
 
         self.assertAllClose(result_vect, result)
+        with self.assertRaises(ValueError):
+            self.manifold.metric.dist_broadcast(point_a, point_d)
 
     def test_mobius_vectorization(self):
         point_a = gs.array([0.5, 0.5])

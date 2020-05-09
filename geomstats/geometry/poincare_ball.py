@@ -3,7 +3,6 @@
 The n-dimensional hyperbolic space embedded with
 the hyperboloid representation (embedded in minkowsky space).
 """
-import logging
 
 import geomstats.backend as gs
 import geomstats.vectorization
@@ -253,8 +252,7 @@ class PoincareBallMetric(RiemannianMetric):
             Geodesic distance between the two points.
         """
         if point_a.shape[-1] != point_b.shape[-1]:
-            logging.error('Manifold dimensions not equal')
-            return None
+            raise ValueError('Manifold dimensions not equal')
 
         if point_a.shape[0] != point_b.shape[0]:
 
@@ -283,16 +281,7 @@ class PoincareBallMetric(RiemannianMetric):
             dist = gs.squeeze(dist)
 
         elif point_a.shape == point_b.shape:
-
-            point_a_norm = gs.clip(gs.sum(point_a ** 2, -1), 0., 1 - EPSILON)
-            point_b_norm = gs.clip(gs.sum(point_b ** 2, -1), 0., 1 - EPSILON)
-
-            diff_norm = gs.sum((point_a - point_b) ** 2, -1)
-            norm_function = 1 + 2 * \
-                diff_norm / ((1 - point_a_norm) * (1 - point_b_norm))
-
-            dist = gs.log(norm_function + gs.sqrt(norm_function ** 2 - 1))
-            dist *= self.scale
+            dist = self.dist(point_a, point_b)
 
         return dist
 
