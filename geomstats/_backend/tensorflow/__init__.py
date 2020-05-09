@@ -18,7 +18,6 @@ from tensorflow import (  # NOQA
     concat as concatenate,
     cos,
     cosh,
-    diag,
     divide,
     equal,
     exp,
@@ -78,6 +77,7 @@ ceil = tf.math.ceil
 cross = tf.linalg.cross
 erf = tf.math.erf
 isnan = tf.math.is_nan
+diag = tf.linalg.diag
 log = tf.math.log
 mod = tf.math.mod
 polygamma = tf.math.polygamma

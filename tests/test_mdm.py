@@ -4,7 +4,10 @@ import geomstats.tests
 from geomstats.geometry.spd_matrices import SPDMetricAffine
 from geomstats.learning.mdm import RiemannianMinimumDistanceToMeanClassifier
 
-e = gs.exp(1)
+import os
+os.system('export GEOMSTATS_BACKEND=tensorflow')
+
+e = gs.exp(1.)
 
 
 class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
@@ -67,7 +70,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
 
         self.assertAllClose(Y_result, Y_expected)
 
-# if(__name__=='__main__'):
-#     tmp=TestRiemannianMinimumDistanceToMeanClassifier()
-#     tmp.test_fit()
-#     tmp.test_predict()
+if(__name__=='__main__'):
+    tmp=TestRiemannianMinimumDistanceToMeanClassifier()
+    tmp.test_fit()
+    tmp.test_predict()
