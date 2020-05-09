@@ -8,5 +8,4 @@ from numpy.random import (  # NOQA
     seed,
     shuffle,
     uniform,
-
 )

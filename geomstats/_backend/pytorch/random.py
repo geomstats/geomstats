@@ -3,6 +3,10 @@
 import torch
 
 
+def multivariate_normal(*args, **kwargs):
+    return torch.distributions.multivariate_normal.MultivariateNormal(
+        *args, **kwargs)
+
 def rand(*args, **kwargs):
     return torch.rand(*args, **kwargs)
 
