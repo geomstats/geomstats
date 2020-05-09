@@ -8,6 +8,7 @@ from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
 ATOL = 1e-5
@@ -41,13 +42,17 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         self.lie_algebra = SkewSymmetricMatrices(n=n)
         self.bi_invariant_metric = BiInvariantMetric(group=self)
 
-    def belongs(self, point):
+    def belongs(self, point, atol=ATOL):
         """Check whether point is an orthogonal matrix.
 
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
             Point to check.
+        atol : float
+            Absolute tolerance to check equality of the transpose and the
+            inverse of point.
+            Optional, default: 1e-5.
 
         Returns
         -------
@@ -55,7 +60,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
             Boolean evaluating if point belongs to SO(n).
         """
         return self.equal(
-            self.mul(point, self.transpose(point)), self.identity)
+            self.mul(point, self.transpose(point)), self.identity, atol=atol)
 
     @classmethod
     def inverse(cls, point):
@@ -72,6 +77,25 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
             Inverse.
         """
         return cls.transpose(point)
+
+    @classmethod
+    def projection(cls, point):
+        """Project a matrix on SO(n) by minimizing the Frobenius norm.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        rot_mat : array-like, shape=[..., n, n]
+            Rotation matrix.
+        """
+        aux_mat = cls.mul(cls.transpose(point), point)
+        inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, - 1 / 2)
+        rot_mat = cls.mul(point, inv_sqrt_mat)
+        return rot_mat
 
     def _is_in_lie_algebra(self, tangent_vec, atol=ATOL):
         return self.lie_algebra.belongs(tangent_vec, atol=atol)
@@ -158,13 +182,14 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
     identity = property(get_identity)
 
-    def belongs(self, point):
+    def belongs(self, point, atol=ATOL):
         """Evaluate if a point belongs to SO(3).
 
         Parameters
         ----------
         point : array-like, shape=[..., 3]
             Point to check whether it belongs to SO(3).
+        atol : unused
 
         Returns
         -------
@@ -333,11 +358,11 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
     @geomstats.vectorization.decorator(['else', 'matrix'])
     def projection(self, point):
-        """Project a matrix on SO(n) using the Frobenius norm.
+        """Project a matrix on SO(3) using the Frobenius norm.
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, n]
             Matrix.
 
         Returns
@@ -346,37 +371,23 @@ class _SpecialOrthogonal3Vectors(LieGroup):
             Rotation matrix.
         """
         mat = point
-        n_mats, n, _ = mat.shape
+        n_mats, _, _ = mat.shape
 
-        if n == 3:
-            mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
-            rot_mat = gs.einsum('nij,njk->nik', mat_unitary_u, mat_unitary_v)
-            mask = gs.less(gs.linalg.det(rot_mat), 0.)
-            mask_float = gs.cast(mask, gs.float32) + self.epsilon
-            diag = gs.array([[1., 1., -1.]])
-            diag = gs.to_ndarray(
-                algebra_utils.from_vector_to_diagonal_matrix(diag),
-                to_ndim=3) + self.epsilon
-            new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
+        mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
+        rot_mat = gs.einsum('nij,njk->nik', mat_unitary_u, mat_unitary_v)
+        mask = gs.less(gs.linalg.det(rot_mat), 0.)
+        mask_float = gs.cast(mask, gs.float32) + self.epsilon
+        diag = gs.array([[1., 1., -1.]])
+        diag = gs.to_ndarray(
+            algebra_utils.from_vector_to_diagonal_matrix(diag),
+            to_ndim=3) + self.epsilon
+        new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
-            aux_mat = gs.einsum(
-                'nij,njk->nik',
-                mat_unitary_u,
-                new_mat_diag_s)
-            rot_mat += gs.einsum(
-                'n,njk->njk',
-                mask_float,
-                gs.einsum(
-                    'nij,njk->nik',
-                    aux_mat,
-                    mat_unitary_v))
-        else:
-            aux_mat = gs.matmul(gs.transpose(mat, axes=(0, 2, 1)), mat)
-
-            inv_sqrt_mat = gs.linalg.inv(gs.linalg.sqrtm(aux_mat))
-
-            rot_mat = gs.matmul(mat, inv_sqrt_mat)
-
+        aux_mat = gs.einsum(
+            'nij,njk->nik', mat_unitary_u, new_mat_diag_s)
+        rot_mat += gs.einsum(
+            'n,njk->njk', mask_float,
+            gs.einsum('nij,njk->nik', aux_mat, mat_unitary_v))
         return rot_mat
 
     @geomstats.vectorization.decorator(['else', 'vector'])
@@ -751,8 +762,9 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         return rot_mat
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
-    def matrix_from_tait_bryan_angles_extrinsic_xyz(self, tait_bryan_angles):
+    @staticmethod
+    @geomstats.vectorization.decorator(['vector'])
+    def matrix_from_tait_bryan_angles_extrinsic_xyz(tait_bryan_angles):
         """Convert Tait-Bryan angles to rot mat in extrensic coords (xyz).
 
         Convert a rotation given in terms of the tait bryan angles,
@@ -775,11 +787,12 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         """
         n_tait_bryan_angles, _ = tait_bryan_angles.shape
 
-        rot_mat = gs.zeros((n_tait_bryan_angles,) + (self.n,) * 2)
+        rot_mat = []
         angle_1 = tait_bryan_angles[:, 0]
         angle_2 = tait_bryan_angles[:, 1]
         angle_3 = tait_bryan_angles[:, 2]
 
+        # TODO: avoid for loop in vectorization of tait bryan angles
         for i in range(n_tait_bryan_angles):
             cos_angle_1 = gs.cos(angle_1[i])
             sin_angle_1 = gs.sin(angle_1[i])
@@ -802,11 +815,12 @@ class _SpecialOrthogonal3Vectors(LieGroup):
                           - cos_angle_1 * sin_angle_3)],
                         [cos_angle_2 * cos_angle_3]]
 
-            rot_mat[i] = gs.hstack((column_1, column_2, column_3))
-        return rot_mat
+            rot_mat.append(gs.hstack((column_1, column_2, column_3)))
+        return gs.stack(rot_mat)
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
-    def matrix_from_tait_bryan_angles_extrinsic_zyx(self, tait_bryan_angles):
+    @staticmethod
+    @geomstats.vectorization.decorator(['vector'])
+    def matrix_from_tait_bryan_angles_extrinsic_zyx(tait_bryan_angles):
         """Convert Tait-Bryan angles to rot mat in extrensic coords (zyx).
 
         Convert a rotation given in terms of the tait bryan angles,
@@ -829,7 +843,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         """
         n_tait_bryan_angles, _ = tait_bryan_angles.shape
 
-        rot_mat = gs.zeros((n_tait_bryan_angles,) + (self.n,) * 2)
+        rot_mat = []
         angle_1 = tait_bryan_angles[:, 0]
         angle_2 = tait_bryan_angles[:, 1]
         angle_3 = tait_bryan_angles[:, 2]
@@ -857,8 +871,8 @@ class _SpecialOrthogonal3Vectors(LieGroup):
             column_3 = [[sin_angle_2],
                         [- cos_angle_2 * sin_angle_1],
                         [cos_angle_1 * cos_angle_2]]
-            rot_mat[i] = gs.hstack((column_1, column_2, column_3))
-        return rot_mat
+            rot_mat.append(gs.hstack((column_1, column_2, column_3)))
+        return gs.stack(rot_mat)
 
     @geomstats.vectorization.decorator(['else', 'vector', 'else', 'else'])
     def matrix_from_tait_bryan_angles(self, tait_bryan_angles,

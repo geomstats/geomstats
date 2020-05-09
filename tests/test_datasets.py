@@ -1,23 +1,50 @@
 """Unit tests for loading Graph dataset."""
 
+import geomstats.backend as gs
+import geomstats.datasets.utils as data_utils
 import geomstats.tests
 from geomstats.datasets.graph_data_preparation import Graph
+from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.special_euclidean import SpecialEuclidean
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
-class TestLoadGraph(geomstats.tests.TestCase):
+class TestDatasets(geomstats.tests.TestCase):
     """Test for loading graph-structured data."""
 
-    @geomstats.tests.np_only
     def setUp(self):
-        """Declare the graph by default and the Karate club graph."""
+        """Set up tests."""
         self.g1 = Graph()
         self.g2 = Graph(
-            graph_matrix_path='data'
-                              '/graph_karate/karate.txt',
-            labels_path='data'
-                        '/graph_karate/karate_labels.txt')
+            graph_matrix_path=data_utils.KARATE_PATH,
+            labels_path=data_utils.KARATE_LABELS_PATH)
 
-    @geomstats.tests.np_only
+    def test_load_cities(self):
+        """Test that the cities coordinates belong to the sphere."""
+        sphere = Hypersphere(dim=2)
+        data, _ = data_utils.load_cities()
+        data = sphere.spherical_to_extrinsic(data)
+        result = sphere.belongs(data)
+
+        self.assertTrue(gs.all(result))
+
+    def test_load_poses_only_rotations(self):
+        """Test that the poses belong to SO(3)."""
+        so3 = SpecialOrthogonal(n=3)
+        data, _ = data_utils.load_poses()
+        result = so3.belongs(data)
+
+        self.assertTrue(gs.all(result))
+
+    def test_load_poses(self):
+        """Test that the poses belong to SE(3)."""
+        se3 = SpecialEuclidean(n=3)
+        data, _ = data_utils.load_poses(only_rotations=False)
+        result = se3.belongs(data)
+
+        self.assertTrue(gs.all(result))
+
+    @geomstats.tests.np_and_pytorch_only
     def test_graph_load(self):
         """Test the correct number of edges and nodes for each graph."""
         result = [len(self.g1.edges) + len(self.g1.labels),
@@ -26,6 +53,7 @@ class TestLoadGraph(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_random_walks(self):
         """Test that random walks have the right length and number."""
         walk_length_g1 = 3
