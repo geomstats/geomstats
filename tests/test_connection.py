@@ -207,7 +207,3 @@ class TestConnection(geomstats.tests.TestCase):
         expected = space.bi_invariant_metric.exp(
             initial_tangent_vec, initial_point)
         self.assertAllClose(expected, result)
-
-
-if __name__ == '__main__':
-    geomstats.tests.main()

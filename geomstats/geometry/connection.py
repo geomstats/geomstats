@@ -455,7 +455,7 @@ class Connection:
         Returns
         -------
         path : callable
-            Time parameterized geodesic curve. IF a batch of initial
+            Time parameterized geodesic curve. If a batch of initial
             conditions is passed, the output array's first dimension
             represents time, and the second corresponds to the different
             initial conditions.
@@ -498,6 +498,7 @@ class Connection:
                 Times at which to compute points of the geodesics.
             """
             t = gs.array(t, gs.float32)
+            t = gs.to_ndarray(t, to_ndim=1)
             if point_type == 'vector':
                 tangent_vecs = gs.einsum(
                     'i,...k->...ik', t, initial_tangent_vec)
