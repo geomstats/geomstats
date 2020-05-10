@@ -330,7 +330,7 @@ class SRVMetric(RiemannianMetric):
         log_starting_points = self.ambient_metric.log(
             point=point[:, 0, :], base_point=base_point[:, 0, :])
         log_starting_points = gs.to_ndarray(
-                log_starting_points, to_ndim=3, axis=1)
+            log_starting_points, to_ndim=3, axis=1)
 
         log_cumsum = gs.hstack(
             [gs.zeros((n_curves, 1, n_coords)),
