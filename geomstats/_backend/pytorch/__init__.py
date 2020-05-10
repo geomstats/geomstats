@@ -77,7 +77,6 @@ def _raise_not_implemented_error(*args, **kwargs):
 
 
 searchsorted = _raise_not_implemented_error
-vectorize = _raise_not_implemented_error
 
 
 def _box_scalar(function):
@@ -753,3 +752,9 @@ def array_from_sparse(indices, data, target_shape):
         torch.LongTensor(indices).t(),
         torch.FloatTensor(cast(data, float32)),
         torch.Size(target_shape)).to_dense()
+
+
+def vectorize(x, pyfunc, multiple_args=False, **kwargs):
+    if multiple_args:
+        return stack(list(map(lambda y: pyfunc(*y), zip(*x))))
+    return stack(list(map(pyfunc, x)))
