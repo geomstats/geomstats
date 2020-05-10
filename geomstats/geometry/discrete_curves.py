@@ -194,9 +194,7 @@ class SRVMetric(RiemannianMetric):
 
         index = gs.arange(n_curves * n_sampling_points - 1)
         mask = ~((index + 1) % n_sampling_points == 0)
-        index_select = index[mask]
         srv = gs.reshape(srv[mask], srv_shape)
-        #srv = gs.reshape(gs.get_slice(srv, index_select), srv_shape)
 
         return srv
 
@@ -373,7 +371,6 @@ class SRVMetric(RiemannianMetric):
                                  'discrete curves embedded in a '
                                  'Euclidean space.')
         curve_ndim = 2
-        curve_shape = initial_curve.shape
         initial_curve = gs.to_ndarray(initial_curve, to_ndim=curve_ndim + 1)
 
         if end_curve is None and initial_tangent_vec is None:
