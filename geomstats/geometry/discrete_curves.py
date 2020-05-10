@@ -65,10 +65,10 @@ class DiscreteCurves(Manifold):
         def each_belongs(pt):
             return gs.all(self.ambient_manifold.belongs(pt))
 
-        if isinstance(point, list):
-            return gs.vectorize(point, each_belongs)
+        if isinstance(point, list) or point.ndim > 2:
+            return gs.stack([each_belongs(pt) for pt in point])
 
-        return gs.vectorize(point, each_belongs, signature='(n,k)->()')
+        return each_belongs(point)
 
 
 class SRVMetric(RiemannianMetric):
@@ -193,8 +193,8 @@ class SRVMetric(RiemannianMetric):
             '...i,...->...i', velocity, 1. / gs.sqrt(velocity_norm))
 
         index = gs.arange(n_curves * n_sampling_points - 1)
-        mask = ~gs.equal((index + 1) % n_sampling_points, 0)
-        index_select = gs.get_slice(index, gs.squeeze(gs.where(mask)))
+        mask = ~((index + 1) % n_sampling_points == 0)
+        index_select = index[mask]
         srv = gs.reshape(gs.get_slice(srv, index_select), srv_shape)
 
         return srv
@@ -404,13 +404,12 @@ class SRVMetric(RiemannianMetric):
 
             tangent_vecs = gs.einsum('il,nkm->ikm', t, new_initial_tangent_vec)
 
-            curve_shape_at_time_t = gs.hstack([len(t), curve_shape])
-            curve_at_time_t = gs.zeros(curve_shape_at_time_t)
+            curve_at_time_t = []
             for k in range(len(t)):
-                curve_at_time_t[k, :] = self.exp(
+                curve_at_time_t.append(self.exp(
                     tangent_vec=tangent_vecs[k, :],
-                    base_point=new_initial_curve)
-            return curve_at_time_t
+                    base_point=new_initial_curve))
+            return gs.stack(curve_at_time_t)
 
         return curve_on_geodesic
 
