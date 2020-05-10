@@ -195,7 +195,8 @@ class SRVMetric(RiemannianMetric):
         index = gs.arange(n_curves * n_sampling_points - 1)
         mask = ~((index + 1) % n_sampling_points == 0)
         index_select = index[mask]
-        srv = gs.reshape(gs.get_slice(srv, index_select), srv_shape)
+        srv = gs.reshape(srv[mask], srv_shape)
+        #srv = gs.reshape(gs.get_slice(srv, index_select), srv_shape)
 
         return srv
 
@@ -220,9 +221,8 @@ class SRVMetric(RiemannianMetric):
                                  'implemented for discrete curves embedded '
                                  'in a Euclidean space.')
         if gs.ndim(srv) != gs.ndim(starting_point):
-            starting_point = gs.transpose(
-                gs.tile(starting_point, (1, 1, 1)),
-                axes=(1, 0, 2))
+            starting_point = gs.to_ndarray(
+                starting_point, to_ndim=srv.ndim, axis=1)
         srv_shape = srv.shape
         srv = gs.to_ndarray(srv, to_ndim=3)
         n_curves, n_sampling_points_minus_one, n_coords = srv.shape
@@ -331,8 +331,8 @@ class SRVMetric(RiemannianMetric):
 
         log_starting_points = self.ambient_metric.log(
             point=point[:, 0, :], base_point=base_point[:, 0, :])
-        log_starting_points = gs.transpose(
-            gs.tile(log_starting_points, (1, 1, 1)), (1, 0, 2))
+        log_starting_points = gs.to_ndarray(
+                log_starting_points, to_ndim=3, axis=1)
 
         log_cumsum = gs.hstack(
             [gs.zeros((n_curves, 1, n_coords)),

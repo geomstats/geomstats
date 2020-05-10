@@ -176,7 +176,6 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         expected_shape = (self.n_sampling_points,)
         self.assertAllClose(gs.shape(result), expected_shape)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_square_root_velocity_and_inverse(self):
         """Test of square_root_velocity and its inverse.
 
@@ -194,7 +193,6 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_srv_metric_exp_and_log(self):
         """Test that exp and log are inverse maps and vectorized.
 
@@ -213,7 +211,6 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
         self.assertAllClose(gs.squeeze(result), expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_srv_metric_geodesic(self):
         """Test that the geodesic between two curves in a Euclidean space.
 
@@ -242,14 +239,13 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_srv_metric_dist_and_geod(self):
         """Test that the length of the geodesic gives the distance.
 
         N.B: Here curve_a and curve_b are seen as curves in R3 and not S2.
         """
-        geod = self.srv_metric_r3.geodesic(initial_curve=self.curve_a,
-                                           end_curve=self.curve_b)
+        geod = self.srv_metric_r3.geodesic(
+            initial_curve=self.curve_a, end_curve=self.curve_b)
         geod = geod(self.times)
 
         srv = self.srv_metric_r3.square_root_velocity(geod)
@@ -260,6 +256,5 @@ class TestDiscreteCurves(geomstats.tests.TestCase):
         norms = l2_metric.norm(srv_derivative, geod[:-1, :-1, :])
         result = gs.sum(norms, 0) / self.n_discretized_curves
 
-        expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)
-
+        expected = self.srv_metric_r3.dist(self.curve_a, self.curve_b)[0]
         self.assertAllClose(result, expected)
