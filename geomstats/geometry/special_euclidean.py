@@ -46,10 +46,11 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
 
     def __init__(self, n):
         super(_SpecialEuclideanMatrices, self).__init__(
-            dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n + 1)
+            dim=int((n * (n + 1)) / 2), default_point_type='matrix', n=n + 1)
         self.rotations = SpecialOrthogonal(n=n)
         self.translations = Euclidean(dim=n)
         self.n = n
+        self.dim = int((n * (n + 1)) / 2)
 
     def get_identity(self):
         """Return the identity matrix."""
