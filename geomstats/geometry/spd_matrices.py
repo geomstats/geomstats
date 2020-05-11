@@ -32,8 +32,8 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             n=n,
             dim=int(n * (n + 1) / 2),
             embedding_manifold=GeneralLinear(n=n))
-        self.eigensummary = EigenSummary(
-            eigenspace=gs.eye(n), eigenvalues=gs.eye(n))
+        # self.eigensummary = EigenSummary(
+        #     eigenspace=gs.eye(n), eigenvalues=gs.eye(n))
 
     def belongs(self, mat, atol=TOLERANCE):
         """Check if a matrix is symmetric and invertible.
@@ -114,36 +114,49 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
 
         return tangent_vec
 
-    def set_eigensummary(self, eigenspace, eigenvalues):
-        """
-        Set the current eigenspace for a specific family of matrices.
-
-        :param eigenspace: array-like, shape=[n, n]:
-        Current eigenspace.
-        :param eigenvalues: array-like, shape=[n, n]:
-        Current eigenvalues.
-        """
-        self.eigensummary = EigenSummary(
-            eigenspace=eigenspace, eigenvalues=eigenvalues)
+    # def set_eigensummary(self, eigenspace, eigenvalues):
+    #     """
+    #     Set the current eigenspace for a specific family of matrices.
+    #
+    #     :param eigenspace: array-like, shape=[n, n]:
+    #     Current eigenspace.
+    #     :param eigenvalues: array-like, shape=[n, n]:
+    #     Current eigenvalues.
+    #     """
+    #     self.eigensummary = EigenSummary(
+    #         eigenspace=eigenspace, eigenvalues=eigenvalues)
 
     def random_gaussian_rotation_orbit(
-            self, mean_spd=None, var_rotations=None, n_samples=1):
+            self, mean_spd=None, eigensummary=None, var_rotations=1.,
+            n_samples=1):
         r"""
         Define a Gaussian random sample of SPD matrices.
 
         (actually an orbit for rotations)
+        :param mean_spd: array-like, shape = [n, n]: mean SPD matrix.
+        :param var_rotations: float: variance in rotation.
+        :param eigensummary: EigenSummary: represents the mean SPD matrix
+               decomposed in eigenspace and eigenvalues.
+        mean_spd and eigensummary are mutually exclusive; an error is thrown
+        if both are not None, or if both are None.
+
         :math:'mean_spd' is the mean SPD matrix; :math:'var_rotations' is the
         scalar variance by which the mean is rotated:
         :math:'X_{out} = R \Sigma_{in} R^T'.
         """
         n = self.n
 
-        if self.eigensummary is None:
+        if mean_spd is not None and eigensummary is not None:
             raise NotImplementedError
-        if mean_spd is None:
-            eigenvalues, eigenspace =\
-                self.eigensummary.eigenvalues, self.eigensummary.eigenspace
-            rotations = SpecialOrthogonal(n).random_gaussian(
+        if mean_spd is None and eigensummary is None:
+            raise NotImplementedError
+        elif eigensummary is None:
+            eigenvalues, eigenspace = gs.linalg.eigh(mean_spd)
+            eigenvalues = gs.diag(eigenvalues)
+        elif mean_spd is None:
+            eigenvalues, eigenspace\
+                = eigensummary.eigenvalues, eigensummary.eigenspace
+        rotations = SpecialOrthogonal(n).random_gaussian(
                 eigenspace, var_rotations, n_samples=n_samples)
 
         spd_mat = Matrices.mul(rotations, eigenvalues, Matrices.transpose(
@@ -152,32 +165,48 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         return spd_mat
 
     def random_gaussian_rotation_orbit_noisy(self, mean_spd=None,
-                                             var_rotations=None,
+                                             eigensummary=None,
+                                             var_rotations=1.,
                                              var_eigenvalues=None,
                                              n_samples=1):
         r"""
         Define a Gaussian random sample of SPD matrices.
 
         (actually an orbit for rotations)
+        :param mean_spd: array-like, shape = [n, n]: mean SPD matrix.
+        :param var_rotations: float: variance in rotation.
+        :param var_eigenvalues: array-like, shape = [n,]: additional
+               variance in eigenvalues.
+        :param eigensummary: EigenSummary: represents the mean SPD matrix
+               decomposed in eigenspace and eigenvalues.
+        mean_spd and eigensummary are mutually exclusive; an error is thrown
+        if both are not None, or if both are None.
+
         :math:'mean_spd' is the mean SPD matrix; :math:'var_rotations' is the
         scalar variance by which the mean is rotated:
         :math:'\Sigma_{mid} \sim \mathcal{N}(\Sigma_{in}, \sigma_{eig}';
         :math:'X_{out} = R \Sigma_{in} R^T'.
         """
         n = self.n
+        if var_eigenvalues is None:
+            var_eigenvalues = gs.ones(n)
 
-        if self.eigensummary is None:
+        if mean_spd is not None and eigensummary is not None:
             raise NotImplementedError
-        if mean_spd is None:
-            eigenvalues, eigenspace =\
-                self.eigensummary.eigenvalues, self.eigensummary.eigenspace
-            eigenvalues =\
-                gs.diag(gs.random.multivariate_normal(
-                    gs.diag(eigenvalues), gs.diag(var_eigenvalues)))
-            self.set_eigensummary(eigenspace, eigenvalues)
-            rotations = SpecialOrthogonal(n).random_gaussian(
+        if mean_spd is None and eigensummary is None:
+            raise NotImplementedError
+        elif eigensummary is None:
+            eigenvalues, eigenspace = gs.linalg.eigh(mean_spd)
+            eigenvalues = gs.diag(eigenvalues)
+        elif mean_spd is None:
+            eigenvalues, eigenspace\
+                = eigensummary.eigenvalues, eigensummary.eigenspace
+        rotations = SpecialOrthogonal(n).random_gaussian(
                 eigenspace, var_rotations, n_samples=n_samples)
 
+        eigenvalues =\
+                gs.abs(gs.diag(gs.random.multivariate_normal(
+                    gs.diag(eigenvalues), gs.diag(var_eigenvalues))))
         spd_mat = Matrices.mul(rotations, eigenvalues, Matrices.transpose(
             rotations))
 
