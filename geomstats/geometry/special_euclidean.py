@@ -376,8 +376,8 @@ class _SpecialEuclidean3Vector(LieGroup):
         composition_translation = gs.einsum(
             '...j,...kj->...k', translation_b, rot_mat_a) + translation_a
 
-        composition = gs.concatenate((composition_rot_vec,
-                                      composition_translation), axis=-1)
+        composition = gs.concatenate(
+            (composition_rot_vec, composition_translation), axis=-1)
         return self.regularize(composition)
 
     @geomstats.vectorization.decorator(['else', 'vector'])
