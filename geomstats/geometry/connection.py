@@ -415,7 +415,7 @@ class Connection:
 
     def ladder_parallel_transport(
             self, tangent_vec_a, tangent_vec_b, base_point, n_ladders=1,
-            scheme='pole', **single_step_kwargs):
+            scheme='pole', approximate_geo=False, **single_step_kwargs):
         """Approximate parallel transport using the pole ladder scheme.
 
         Approximate Parallel transport using either the pole ladder or the
@@ -440,6 +440,8 @@ class Connection:
             The number of pole ladder steps.
         scheme : str, {'pole', 'schild'}
             The scheme to use for the construction of the ladder at each step.
+        approximate_geo : bool
+            Whether approximate geodesics are used.
         **single_step_kwargs : keyword arguments for the step functions
 
         Returns
@@ -474,11 +476,18 @@ class Connection:
         trajectory = []
         current_speed = 1. / n_ladders * tangent_vec_b
         for i_point in range(n_ladders):
-            initial_state = (current_point, current_speed)
-            flow, vel = integrate(
-                self.geodesic_equation, initial_state, n_steps=1, step='rk4')
-            next_point = flow[-1]
-            current_speed = vel[-1]
+            if approximate_geo:
+                initial_state = (current_point, current_speed)
+                flow, vel = integrate(
+                    self.geodesic_equation,
+                    initial_state, n_steps=1, step='rk4')
+                next_point = flow[-1]
+                current_speed = vel[-1]
+            else:
+                frac_tan_vector_b = (i_point + 1) / n_ladders * tangent_vec_b
+                next_point = self.exp(
+                    base_point=base_point,
+                    tangent_vec=frac_tan_vector_b)
             next_step = single_step(
                 base_point=current_point,
                 next_point=next_point,

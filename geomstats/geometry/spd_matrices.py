@@ -449,7 +449,7 @@ class SPDMetricAffine(RiemannianMetric):
             '...ij,...jk->...ik', sqrt_base_point, exp)
         return exp
 
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the affine-invariant exponential map.
 
         Compute the Riemannian exponential at point base_point
@@ -514,7 +514,7 @@ class SPDMetricAffine(RiemannianMetric):
             '...ij,...jk->...ik', log, sqrt_base_point)
         return log
 
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute the affine-invariant logarithm map.
 
         Compute the Riemannian logarithm at point base_point,
