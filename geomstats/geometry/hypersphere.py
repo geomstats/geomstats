@@ -438,7 +438,7 @@ class HypersphereMetric(RiemannianMetric):
         return sq_norm
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
-    def exp(self, tangent_vec, base_point):
+    def exp(self, tangent_vec, base_point, **kwargs):
         """Compute the Riemannian exponential of a tangent vector.
 
         Parameters
@@ -498,7 +498,7 @@ class HypersphereMetric(RiemannianMetric):
         return exp
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
-    def log(self, point, base_point):
+    def log(self, point, base_point, **kwargs):
         """Compute the Riemannian logarithm of a point.
 
         Parameters
