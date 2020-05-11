@@ -23,6 +23,10 @@ class TestVisualization(geomstats.tests.TestCase):
 
         plt.figure()
 
+    @staticmethod
+    def test_tutorial_matplotlib():
+        visualization.tutorial_matplotlib()
+
     @geomstats.tests.np_only
     def test_plot_points_so3(self):
         points = self.SO3_GROUP.random_uniform(self.n_samples)
