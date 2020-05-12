@@ -4,6 +4,8 @@ import json
 import os
 
 import geomstats.backend as gs
+from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 DATA_FOLDER = os.path.join(
@@ -45,6 +47,14 @@ def load_cities():
             data_file))
 
     data = gs.array(data)
+
+    colat = gs.pi / 2 - data[:, 0]
+    colat = gs.expand_dims(colat, axis=1)
+    lng = gs.expand_dims(data[:, 1] + gs.pi, axis=1)
+
+    data = gs.concatenate([colat, lng], axis=1)
+    sphere = Hypersphere(dim=2)
+    data = sphere.spherical_to_extrinsic(data)
     return data, names
 
 
@@ -61,21 +71,18 @@ def load_poses(only_rotations=True):
     """
     data = []
     img_paths = []
+    so3 = SpecialOrthogonal(n=3, point_type='vector')
 
     with open(POSES_PATH) as json_file:
         data_file = json.load(json_file)
 
         for row in data_file:
             pose_mat = gs.array(row['rot_mat'])
+            pose_vec = so3.rotation_vector_from_matrix(pose_mat)
             if not only_rotations:
-                trans_mat = gs.array(row['trans_mat'])
-                trans_mat = gs.expand_dims(trans_mat, axis=1)
-                pose_mat = gs.concatenate(
-                    [pose_mat, trans_mat], axis=1)
-                pose_mat = gs.concatenate(
-                    [pose_mat, gs.array([[0., 0., 0., 1.]])],
-                    axis=0)
-            data.append(pose_mat)
+                trans_vec = gs.array(row['trans_mat'])
+                pose_vec = gs.concatenate([pose_vec, trans_vec], axis=-1)
+            data.append(pose_vec)
             img_paths.append(row['img'])
 
     data = gs.array(data)

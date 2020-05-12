@@ -23,14 +23,18 @@ class TestDatasets(geomstats.tests.TestCase):
         """Test that the cities coordinates belong to the sphere."""
         sphere = Hypersphere(dim=2)
         data, _ = data_utils.load_cities()
-        data = sphere.spherical_to_extrinsic(data)
-        result = sphere.belongs(data)
+        self.assertAllClose(gs.shape(data), (50, 3))
 
+        tokyo = data[0]
+        self.assertAllClose(
+            tokyo, gs.array([0.61993792, -0.52479018, 0.58332859]))
+
+        result = sphere.belongs(data)
         self.assertTrue(gs.all(result))
 
     def test_load_poses_only_rotations(self):
         """Test that the poses belong to SO(3)."""
-        so3 = SpecialOrthogonal(n=3)
+        so3 = SpecialOrthogonal(n=3, point_type='vector')
         data, _ = data_utils.load_poses()
         result = so3.belongs(data)
 
@@ -38,7 +42,7 @@ class TestDatasets(geomstats.tests.TestCase):
 
     def test_load_poses(self):
         """Test that the poses belong to SE(3)."""
-        se3 = SpecialEuclidean(n=3)
+        se3 = SpecialEuclidean(n=3, point_type='vector')
         data, _ = data_utils.load_poses(only_rotations=False)
         result = se3.belongs(data)
 

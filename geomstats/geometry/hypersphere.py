@@ -186,6 +186,7 @@ class _Hypersphere(EmbeddedManifold):
              gs.sin(theta) * gs.sin(phi),
              gs.cos(theta)],
             axis=1)
+
         if not gs.all(self.belongs(point_extrinsic)):
             raise ValueError('Points do not belong to the manifold.')
 

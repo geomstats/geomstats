@@ -1,5 +1,6 @@
 """Visualization for Geometric Statistics."""
 
+import matplotlib
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
@@ -20,6 +21,20 @@ AX_SCALE = 1.2
 IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'S1', 'S2',
                'H2_poincare_disk', 'H2_poincare_half_plane', 'H2_klein_disk',
                'poincare_polydisk']
+
+
+def tutorial_matplotlib():
+    plt.style.use('seaborn')
+    fontsize = 12
+    matplotlib.rc('font', size=fontsize)
+    matplotlib.rc('text')
+    matplotlib.rc('legend', fontsize=fontsize)
+    matplotlib.rc('axes', titlesize=21, labelsize=14)
+    matplotlib.rc(
+        'font',
+        family='times',
+        serif=['Computer Modern Roman'],
+        monospace=['Computer Modern Typewriter'])
 
 
 class Arrow3D():
@@ -167,6 +182,14 @@ class Sphere():
         points_y = [point[1] for point in points]
         points_z = [point[2] for point in points]
         ax.scatter(points_x, points_y, points_z, **scatter_kwargs)
+
+        for i_point, point in enumerate(points):
+            if 'label' in scatter_kwargs:
+                if len(scatter_kwargs['label']) == len(points):
+                    ax.text(
+                        point[0], point[1], point[2],
+                        scatter_kwargs['label'][i_point],
+                        size=10, zorder=1, color='k')
 
     def fibonnaci_points(self, n_points=16000):
         """Spherical Fibonacci point sets yield nearly uniform point
