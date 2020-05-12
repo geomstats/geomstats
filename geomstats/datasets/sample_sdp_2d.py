@@ -2,6 +2,7 @@
 
 import geomstats.backend as gs
 from geomstats.geometry.spd_matrices import SPDMatrices
+from geomstats.geometry.spd_matrices import EigenSummary
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
@@ -74,9 +75,10 @@ class DatasetSPD2D:
         :return: array-like, shape = [n, n]: data.
         """
         spd = SPDMatrices(n=self.n_features)
-        spd.set_eigensummary(eigenspace, eigenvalues)
+        eigensummary = EigenSummary(eigenspace, eigenvalues)
         spd_data = spd.random_gaussian_rotation_orbit(
-            var_rotations=var, n_samples=self.n_samples)
+            eigensummary=eigensummary, var_rotations=var,
+            n_samples=self.n_samples)
         return spd_data
 
     def make_data_noisy(self, eigenspace, eigenvalues, var, var_eigenvalues):
@@ -89,10 +91,10 @@ class DatasetSPD2D:
         :return: array-like, shape = [n, n]: data.
         """
         spd = SPDMatrices(n=self.n_features)
-        spd.set_eigensummary(eigenspace, eigenvalues)
+        eigensummary = EigenSummary(eigenspace, eigenvalues)
         spd_data = spd.random_gaussian_rotation_orbit_noisy(
-            var_rotations=var, var_eigenvalues=var_eigenvalues,
-            n_samples=self.n_samples)
+            eigensummary=eigensummary, var_rotations=var,
+            var_eigenvalues=var_eigenvalues, n_samples=self.n_samples)
         return spd_data
 
 

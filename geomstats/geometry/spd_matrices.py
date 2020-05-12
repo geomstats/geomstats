@@ -32,8 +32,6 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             n=n,
             dim=int(n * (n + 1) / 2),
             embedding_manifold=GeneralLinear(n=n))
-        # self.eigensummary = EigenSummary(
-        #     eigenspace=gs.eye(n), eigenvalues=gs.eye(n))
 
     def belongs(self, mat, atol=TOLERANCE):
         """Check if a matrix is symmetric and invertible.
@@ -113,18 +111,6 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             '...ij,...jk->...ik', tangent_vec, sqrt_base_point)
 
         return tangent_vec
-
-    # def set_eigensummary(self, eigenspace, eigenvalues):
-    #     """
-    #     Set the current eigenspace for a specific family of matrices.
-    #
-    #     :param eigenspace: array-like, shape=[n, n]:
-    #     Current eigenspace.
-    #     :param eigenvalues: array-like, shape=[n, n]:
-    #     Current eigenvalues.
-    #     """
-    #     self.eigensummary = EigenSummary(
-    #         eigenspace=eigenspace, eigenvalues=eigenvalues)
 
     def random_gaussian_rotation_orbit(
             self, mean_spd=None, eigensummary=None, var_rotations=1.,
