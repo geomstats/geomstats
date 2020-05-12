@@ -31,8 +31,8 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         self.metric_logeuclidean = SPDMetricLogEuclidean(n=self.n)
         self.n_samples = 4
 
-    def setUp_alt(self, n=3):
-        """Set up the test."""
+    def setUp_alt(self, n=3, n_samples=4):
+        """Set up the test, flexible parameters."""
         warnings.simplefilter('ignore', category=ImportWarning)
 
         gs.random.seed(1234)
@@ -43,7 +43,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         self.metric_procrustes = SPDMetricProcrustes(n=self.n)
         self.metric_euclidean = SPDMetricEuclidean(n=self.n)
         self.metric_logeuclidean = SPDMetricLogEuclidean(n=self.n)
-        self.n_samples = 4
+        self.n_samples = n_samples
 
     def test_belongs(self):
         """Test of belongs method."""
@@ -91,13 +91,20 @@ class TestSPDMatrices(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_random_gaussian_rotation_orbit(self):
         """Test random_gaussian_rotation_orbit"""
-        self.setUp_alt(n=2)
+        n = 2
+        self.setUp_alt(n)
         mean_spd = self.space.random_uniform()
         var_rotations = 1.
         points = self.space.random_gaussian_rotation_orbit(
             mean_spd=mean_spd, var_rotations=var_rotations, n_samples=4)
+        point = self.space.random_gaussian_rotation_orbit(
+            mean_spd=mean_spd, var_rotations=var_rotations, n_samples=1)
+        shapes_expected = gs.array([4,2,2])
+        shape_expected = gs.array([2,2])
         result = self.space.belongs(points)
         expected = gs.array([True] * 4)
+        self.assertAllClose(points.shape, shapes_expected)
+        self.assertAllClose(point.shape, shape_expected)
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_only

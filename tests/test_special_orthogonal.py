@@ -115,3 +115,31 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         point = group.projection(mat)
         result = group.belongs(point, atol=1e-4)
         self.assertTrue(gs.all(result))
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_angle_of_rot2(self):
+        theta = 5 * gs.pi / 4
+        point_1 = self.group.rotation_from_angle(theta)
+        theta_result = self.group.angle_of_rot2(point_1)
+        self.assertAllClose((theta-theta_result) % (2 * gs.pi), 0)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_multiply_angle_of_rot2(self):
+        theta = 3 * gs.pi / 4
+        point = self.group.rotation_from_angle(theta)
+        mul_factor = 1 / 3
+        point_new = self.group.multiply_angle_of_rot2(point, mul_factor)
+        theta_new = self.group.angle_of_rot2(point_new)
+        theta_new_expected = theta * mul_factor
+        self.assertAllClose((theta_new - theta_new_expected) % (2*gs.pi), 0)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_random_gaussian(self):
+        n_samples = 4
+        mean = self.group.random_uniform(n_samples=n_samples)
+        var = 1.
+        points = self.group.random_gaussian(mean=mean, var=var,
+                                        n_samples=n_samples)
+        result = self.group.belongs(points)
+        expected = gs.array([True] * n_samples)
+        return self.assertAllClose(result, expected)
