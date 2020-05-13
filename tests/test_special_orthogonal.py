@@ -117,7 +117,19 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
     @geomstats.tests.np_and_pytorch_only
+    def test_rotation_from_angle(self):
+        """Test rotation_from_angle."""
+        theta = [gs.pi / 3, gs.pi / 2]
+        points = self.group.rotation_from_angle(theta)
+        expected_points = gs.array([[[.5, -gs.sqrt(3) / 2],
+                                     [gs.sqrt(3) / 2, .5]],
+                                   [[0, -1],
+                                     [1, 0]]])
+        self.assertAllClose(points, expected_points)
+
+    @geomstats.tests.np_and_pytorch_only
     def test_angle_of_rot2(self):
+        """Test angle_of_rot2."""
         theta = 5 * gs.pi / 4
         point_1 = self.group.rotation_from_angle(theta)
         theta_result = self.group.angle_of_rot2(point_1)
@@ -125,6 +137,7 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_multiply_angle_of_rot2(self):
+        """Test multiply_angle_of_rot2."""
         theta = 3 * gs.pi / 4
         point = self.group.rotation_from_angle(theta)
         mul_factor = 1 / 3
@@ -135,6 +148,7 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_random_gaussian(self):
+        """Test random_gaussian."""
         n_samples = 4
         mean = self.group.random_uniform(n_samples=n_samples)
         var = 1.
