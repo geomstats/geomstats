@@ -75,6 +75,7 @@ arctanh = tf.math.atanh
 ceil = tf.math.ceil
 cross = tf.linalg.cross
 erf = tf.math.erf
+isnan = tf.math.is_nan
 log = tf.math.log
 matmul = tf.linalg.matmul
 mod = tf.math.mod
@@ -708,8 +709,8 @@ def cumsum(a, axis=None):
 
 def cumprod(a, axis=None):
     if axis is None:
-        return a.flatten().cumprod(dim=0)
-    return tf.math.cumprod(a, dim=axis)
+        return tf.math.cumprod(flatten(a), axis=0)
+    return tf.math.cumprod(a, axis=axis)
 
 
 def tril(m, k=0):

@@ -52,7 +52,7 @@ def plot_gaussian_mixture_distribution(data,
         z_axis_samples[z_index] = mesh_probabilities.sum(-1)
 
     fig = plt.figure('Learned Gaussian Mixture Model '
-                     'via Expectation Maximisation on Poincaré Disc')
+                     'via Expectation Maximization on Poincaré Disc')
 
     ax = fig.gca(projection='3d')
     ax.plot_surface(x_axis_samples,
@@ -142,12 +142,12 @@ def expectation_maximisation_poincare_ball():
 
 
 def main():
-    """Apply Expectation Maximisation on random data.
+    """Apply Expectation Maximization on random data.
 
     Fits three randomly generated clusters into a
     Gaussian Mixture Model on Poincaré Ball.
     Then a plot function computes the probability density
-    function of the GMM for a large
+    function of the GMM for visualization.
     """
     plots = expectation_maximisation_poincare_ball()
 

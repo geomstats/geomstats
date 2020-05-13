@@ -1,7 +1,6 @@
 """Unit tests for visualization."""
 
 import matplotlib
-matplotlib.use('Agg')  # NOQA
 import matplotlib.pyplot as plt
 
 import geomstats.tests
@@ -10,6 +9,8 @@ from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
+
+matplotlib.use('Agg')  # NOQA
 
 
 class TestVisualization(geomstats.tests.TestCase):

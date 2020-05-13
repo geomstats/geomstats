@@ -39,17 +39,21 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         The geomstats Riemmanian metric associated with
         the used manifold.
     initialisation_method : basestring
+        Optional, default: 'random'.
         Choice between initialization method for variances, means and weights.
            'random' : will select random uniformally train point as
                      initial centroids.
             'kmeans' : will apply Riemannian kmeans to deduce
             variances and means that the EM will use initially.
     tol : float
+        Optional, default: 1e-2.
         Convergence factor. If the difference of mean distance
         between two step is lower than tol.
     mean_method : basestring
+        Optional, default: 'default'.
         Specify the method to compute the mean.
     point_type : basestring
+        Optional, default: 'vector'.
         Specify whether to use vector or matrix representation.
     _dimension : int
         Manifold dimension.
@@ -76,12 +80,17 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
     -------
     self : object
         Returns the instance itself.
+
+    Example
+    -------
+    Available example on the Poincaré Ball manifold
+    :mod:`examples.plot_expectation_maximization_manifolds`
     """
 
     def __init__(self,
                  riemannian_metric,
                  n_gaussians=8,
-                 initialisation_method=('random'),
+                 initialisation_method='random',
                  tol=DEFAULT_TOL,
                  mean_method='default',
                  point_type='vector'):
@@ -89,7 +98,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self.n_gaussians = n_gaussians
         self.riemannian_metric = riemannian_metric
         self.initialisation_method = initialisation_method
-        # TODO: hzaatiti, tgeral68 implement kmeans initialisation
+        # TODO : hzaatiti, tgeral68 implement kmeans initialisation
         self.tol = tol
         self.mean_method = mean_method
         self.point_type = point_type
@@ -174,7 +183,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                 variances_range=self.variances_range,
                 norm_func_var=self.normalization_factor_var)
 
-        if (gs.isnan(probability_distribution_function.mean())):
+        if gs.isnan(probability_distribution_function.mean()):
             logging.warning('EXPECTATION : Probability distribution function'
                             'contain elements that are not numbers')
 
@@ -225,7 +234,9 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         conv_factor_mean : float
             Convergence factor for means.
         max_iter : int
-            Maximum number of iterations for computing the means.
+            Optional, default: 100.
+            Maximum number of iterations for computing
+            the means.
         """
         self.update_posterior_probabilities(posterior_probabilities)
 
@@ -266,10 +277,13 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             Training data, where n_samples is the number of samples
             and n_features is the number of features.
         max_iter : int
+            Optional, default: 100.
             Maximum number of iterations.
         lr_mean : float
+            Optional, default: 5e-2.
             Learning rate for the mean.
         conv_factor_mean : float
+            Optional, default: 5e-3.
             Convergence factor for the mean.
 
         Returns

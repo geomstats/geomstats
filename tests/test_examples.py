@@ -10,8 +10,8 @@ import examples.gradient_descent_s2 as gradient_descent_s2
 import examples.learning_graph_structured_data_h2 as learning_gsd_h2
 import examples.loss_and_gradient_se3 as loss_and_gradient_se3
 import examples.loss_and_gradient_so3 as loss_and_gradient_so3
-import examples.plot_expectation_maximisation_manifolds as plot_em_manifolds
 import examples.plot_bch_so3 as plot_bch_so3
+import examples.plot_expectation_maximization_manifolds as plot_em_manifolds
 import examples.plot_geodesics_h2 as plot_geodesics_h2
 import examples.plot_geodesics_poincare_polydisk as plot_geodesics_poincare_polydisk # NOQA
 import examples.plot_geodesics_s2 as plot_geodesics_s2
@@ -31,11 +31,12 @@ import examples.tangent_pca_h2 as tangent_pca_h2
 import examples.tangent_pca_s2 as tangent_pca_s2
 import examples.tangent_pca_so3 as tangent_pca_so3
 import matplotlib
-matplotlib.use('Agg')  # NOQA
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 import geomstats.tests
+
+matplotlib.use('Agg')  # NOQA
 
 
 class TestExamples(geomstats.tests.TestCase):

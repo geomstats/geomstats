@@ -14,14 +14,14 @@ ZETA_STEP = 0.001
 
 class TestEM(geomstats.tests.TestCase):
     """Class for testing Expectation Maximization."""
-
+    @geomstats.tests.np_and_pytorch_only
     def setUp(self):
         """Set manifold, data and EM parameters."""
         self.n_samples = 5
         self.dim = 2
         self.space = PoincareBall(dim=self.dim)
         self.metric = self.space.metric
-        self.initialisation_method = 'random',
+        self.initialisation_method = 'random'
         self.mean_method = 'frechet-poincare-ball'
 
         cluster_1 = gs.random.uniform(
@@ -37,7 +37,7 @@ class TestEM(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_fit(self):
-        """Test fitting a GMM into data."""
+        """Test fitting data into a GMM."""
         gmm_learning = RiemannianEM(
             riemannian_metric=self.metric,
             n_gaussians=self.n_gaussian,
@@ -69,15 +69,18 @@ class TestEM(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_normalization_factor(self):
         """Test for Gaussian distribution normalization factor."""
-        self.metric.normalization_factor_init(
-            gs.arange(ZETA_LOWER_BOUND, ZETA_UPPER_BOUND, ZETA_STEP))
+        variances_range,\
+            normalization_factor_var,\
+            phi_inv_var = \
+            self.metric.normalization_factor_init(gs.arange(
+                ZETA_LOWER_BOUND, ZETA_UPPER_BOUND, ZETA_STEP))
         self.assertAllClose(
-            self.metric.normalization_factor_var[4], 0.00291884, TOLERANCE)
-        self.assertAllClose(self.metric.phi_inv_var[3], 0.00562326, TOLERANCE)
+            normalization_factor_var[4], 0.00291884, TOLERANCE)
+        self.assertAllClose(phi_inv_var[3], 0.00562326, TOLERANCE)
 
         variances_test = gs.array([0.8, 1.2])
         norm_factor_test = self.metric.find_normalization_factor(
-            variances_test)
+            variances_test, variances_range, normalization_factor_var)
         norm_factor_verdict = gs.array([0.79577319, 2.3791778])
         self.assertAllClose(norm_factor_test, norm_factor_verdict, TOLERANCE)
 
@@ -92,6 +95,6 @@ class TestEM(geomstats.tests.TestCase):
             norm_factor_gradient_test, norm_factor_gradient_verdict, TOLERANCE)
 
         find_var_test = self.metric.find_variance_from_index(
-            gs.array([0.5, 0.4, 0.3, 0.2]))
+            gs.array([0.5, 0.4, 0.3, 0.2]), variances_range, phi_inv_var)
         find_var_verdict = gs.array([0.481, 0.434, 0.378, 0.311])
         self.assertAllClose(find_var_test, find_var_verdict, TOLERANCE)

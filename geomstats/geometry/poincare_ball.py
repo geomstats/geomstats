@@ -80,7 +80,7 @@ class PoincareBall(Hyperbolic):
         Parameters
         ----------
         data : array-like, shape=[n_samples, dim]
-            Points for which the GMM probability density is computed.
+            Points at which the GMM probability density is computed.
         means : array-like, shape=[n_gaussians, dim]
             Means of each component of the GMM.
         variances : array-like, shape=[n_gaussians,]
@@ -554,8 +554,9 @@ class PoincareBallMetric(RiemannianMetric):
         return \
             variances, normalization_factor_var, phi_inv_var
 
+    @staticmethod
     def find_normalization_factor(
-            self, variance, variances_range, normalization_factor_var):
+            variance, variances_range, normalization_factor_var):
         """Find the normalization factor given some variances.
 
         Parameters
@@ -588,8 +589,9 @@ class PoincareBallMetric(RiemannianMetric):
 
         return norm_factor
 
+    @staticmethod
     def find_variance_from_index(
-            self, weighted_distances, variances_range, phi_inv_var):
+            weighted_distances, variances_range, phi_inv_var):
         r"""Return the variance given weighted distances.
 
         Parameters

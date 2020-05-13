@@ -241,7 +241,8 @@ class TestBackends(geomstats.tests.TestCase):
         expected = gs.array(([1, 2, 6, 24, 120, 720, 5040, 40320, 362880]))
         self.assertAllClose(result, expected)
 
-        result = gs.cumprod(gs.arange(1, 11).reshape(2, 5), axis=1)
+        result = gs.reshape(gs.arange(1, 11), (2, 5))
+        result = gs.cumprod(result, axis=1)
         expected = gs.array(([[1, 2, 6, 24, 120], [6, 42, 336, 3024, 30240]]))
         self.assertAllClose(result, expected)
 
