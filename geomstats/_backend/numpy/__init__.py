@@ -47,6 +47,7 @@ from autograd.numpy import (  # NOQA
     int32,
     int64,
     isclose,
+    isnan,
     less,
     less_equal,
     linspace,

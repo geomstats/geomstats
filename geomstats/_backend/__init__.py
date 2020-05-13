@@ -62,6 +62,7 @@ BACKEND_ATTRIBUTES = {
         'hsplit',
         'hstack',
         'isclose',
+        'isnan',
         'less',
         'less_equal',
         'linspace',

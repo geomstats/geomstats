@@ -108,8 +108,8 @@ def expectation_maximisation_poincare_ball():
     n_samples = 5
 
     cluster_1 = gs.random.uniform(low=0.2, high=0.6, size=(n_samples, dim))
-    cluster_2 = gs.random.uniform(low=-0.2, high=-0.6, size=(n_samples, dim))
-    cluster_3 = gs.random.uniform(low=0, high=-0.3, size=(n_samples, dim))
+    cluster_2 = gs.random.uniform(low=-0.6, high=-0.2, size=(n_samples, dim))
+    cluster_3 = gs.random.uniform(low=-0.3, high=0, size=(n_samples, dim))
     cluster_3[:, 0] = -cluster_3[:, 0]
 
     data = gs.concatenate((cluster_1, cluster_2, cluster_3), axis=0)
@@ -120,7 +120,7 @@ def expectation_maximisation_poincare_ball():
 
     metric = manifold.metric
 
-    EM = RiemannianEM(n_gaussian=n_clusters,
+    EM = RiemannianEM(n_gaussians=n_clusters,
                       riemannian_metric=metric,
                       initialisation_method='random',
                       mean_method='frechet-poincare-ball')

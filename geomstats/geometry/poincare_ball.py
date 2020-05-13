@@ -68,7 +68,9 @@ class PoincareBall(Hyperbolic):
         return gs.sum(point**2, axis=-1) < (1 - tolerance)
 
     @staticmethod
-    def gmm_pdf(data, means, variances, norm_func, metric):
+    def gmm_pdf(
+            data, means, variances, norm_func,
+            metric, variances_range, norm_func_var):
         """Return the separate probability density function of GMM.
 
         The probability density function is computed for
@@ -79,55 +81,44 @@ class PoincareBall(Hyperbolic):
         ----------
         data : array-like, shape=[n_samples, dim]
             Points for which the GMM probability density is computed.
-        means : array-like, shape=[n_gaussian, dim]
+        means : array-like, shape=[n_gaussians, dim]
             Means of each component of the GMM.
-        variances : array-like, shape=[n_gaussian]
+        variances : array-like, shape=[n_gaussians,]
             Variances of each component of the GMM.
-        norm_func: : function
+        norm_func : function
             Normalisation factor function.
         metric : function
             Distance function associated with the used metric.
 
         Returns
         -------
-        result : array-like, shape=[n_samples, n_gaussian]
+        pdf : array-like, shape=[n_samples, n_gaussians,]
             Probability density function computed at each data
             sample and for each component of the GMM.
         """
-        data_length, _, n_gaussian = data.shape + (means.shape[0],)
-
-        data_expanded = gs.expand_dims(data, 1)
-        data_expanded = gs.repeat(data_expanded, n_gaussian, axis=1)
-
-        #means_expanded = gs.expand_dims(means, 0)
-        #means_expanded = gs.repeat(means_expanded, data_length, axis=0)
+        data_length, _, _ = data.shape + (means.shape[0],)
 
         variances_expanded = gs.expand_dims(variances, 0)
         variances_expanded = gs.repeat(variances_expanded, data_length, 0)
 
         variances_flatten = variances_expanded.flatten()
-        #data_flatten = gs.reshape(
-        #    data_expanded, (-1, data_expanded.shape[-1]))
-        #means_flatten = gs.reshape(
-        #    means_expanded, (-1, means_expanded.shape[-1]))
-        #distances = -(metric.dist(data_flatten, means_flatten) ** 2)
 
         distances = -(metric.dist_broadcast(data, means) ** 2)
-        distances = gs.reshape(distances, (data.shape[0]*variances.shape[0]))
+        distances = gs.reshape(distances, (data.shape[0] * variances.shape[0]))
 
         num = gs.exp(
             distances / (2 * variances_flatten ** 2))
 
-        den = norm_func(variances)
+        den = norm_func(variances, variances_range, norm_func_var)
 
         den = gs.expand_dims(den, 0)
         den = gs.repeat(den, data_length, axis=0).flatten()
 
-        result = num / den
-        result = gs.reshape(
-            result, (data_expanded.shape[0], data_expanded.shape[1]))
+        pdf = num / den
+        pdf = gs.reshape(
+            pdf, (data.shape[0], means.shape[0]))
 
-        return result
+        return pdf
 
     @staticmethod
     def weighted_gmm_pdf(mixture_coefficients,
@@ -139,20 +130,20 @@ class PoincareBall(Hyperbolic):
 
         Parameters
         ----------
-        mixture_coefficients : array-like, shape=[n_gaussian,]
+        mixture_coefficients : array-like, shape=[n_gaussians,]
             Coefficients of the Gaussian mixture model.
         mesh_data : array-like, shape=[n_precision, dim]
-            Points for which the GMM probability density is computed.
-        means : array-like, shape=[n_gaussian, dim]
+            Points at which the GMM probability density is computed.
+        means : array-like, shape=[n_gaussians, dim]
             Means of each component of the GMM.
-        variances : array-like, shape=[n_gaussian]
+        variances : array-like, shape=[n_gaussians,]
             Variances of each component of the GMM.
         metric : function
             Distance function associated with the used metric.
 
         Returns
         -------
-        result : array-like, shape=[n_precision,n_gaussian]
+        weighted_pdf : array-like, shape=[n_precision, n_gaussians,]
             Probability density function computed for each point of
             the mesh data, for each component of the GMM.
         """
@@ -178,9 +169,9 @@ class PoincareBall(Hyperbolic):
         result_denum = gs.repeat(
             result_denum, len(distribution_normal), axis=0)
 
-        result = result_num / result_denum
+        weighted_pdf = result_num / result_denum
 
-        return result
+        return weighted_pdf
 
 
 class PoincareBallMetric(RiemannianMetric):
@@ -497,11 +488,26 @@ class PoincareBallMetric(RiemannianMetric):
         Parameters
         ----------
         variances : array-like, shape=[n_variances,]
-            An array of standard deviations.
-        normalizastion_factor_var : array-like, shape=[n_variances,]
-            An array of computed normalization factor.
+            Array of standard deviations.
+        normalization_factor_var : array-like, shape=[n_variances,]
+            Array of computed normalization factor.
         phi_inv_var : array-like, shape=[n_variances,]
-            An array of the computed inverse of a function phi
+            Array of the computed inverse of a function phi
+            whose expression is closed-form
+            :math:`\sigma\mapsto \sigma^3 \times \frac{d  }
+            {\mathstrut d\sigma}\log \zeta_m(\sigma)'
+            where :math:'\sigma' denotes the variance
+            and :math:'\zeta' the normalization coefficient
+            and :math:'m' the dimension.
+
+        Returns
+        -------
+        variances : array-like, shape=[n_variances,]
+            Array of standard deviations.
+        normalization_factor_var : array-like, shape=[n_variances,]
+            Array of computed normalization factor.
+        phi_inv_var : array-like, shape=[n_variances,]
+            Array of the computed inverse of a function phi
             whose expression is closed-form
             :math:`\sigma\mapsto \sigma^3 \times \frac{d  }
             {\mathstrut d\sigma}\log \zeta_m(\sigma)'
@@ -509,26 +515,25 @@ class PoincareBallMetric(RiemannianMetric):
             and :math:'\zeta' the normalization coefficient
             and :math:'m' the dimension.
         """
-        self.variances = variances
-        self.normalization_factor_var = \
+        normalization_factor_var = \
             self.normalization_factor(variances)
 
-        cond_1 = self.normalization_factor_var.sum() != \
-            self.normalization_factor_var.sum()
-        cond_2 = self.normalization_factor_var.sum() == float('+inf')
-        cond_3 = self.normalization_factor_var.sum() == float('-inf')
+        cond_1 = normalization_factor_var.sum() != \
+            normalization_factor_var.sum()
+        cond_2 = normalization_factor_var.sum() == float('+inf')
+        cond_3 = normalization_factor_var.sum() == float('-inf')
 
         if cond_1 or cond_2 or cond_3:
             logging.warning(
-                            'Untracktable normalization factor :')
+                'Untracktable normalization factor :')
 
-            limit_nf = ((self.normalization_factor_var /
-                         self.normalization_factor_var)
+            limit_nf = ((normalization_factor_var /
+                         normalization_factor_var)
                         * 0).nonzero()[0].item()
             max_nf = len(variances)
-            self.variances = self.variances[0:limit_nf]
-            self.normalization_factor_var = \
-                self.normalization_factor_var[0:limit_nf]
+            variances = variances[0:limit_nf]
+            normalization_factor_var = \
+                normalization_factor_var[0:limit_nf]
             if cond_1:
                 logging.warning('\t Nan value '
                                 'in processing normalization factor')
@@ -537,65 +542,84 @@ class PoincareBallMetric(RiemannianMetric):
                                  'processing normalization factor')
 
             logging.warning('\t Max variance is now : %s',
-                            str(self.variances[-1]))
+                            str(variances[-1]))
             logging.warning('\t Number of possible variance is now: %s / %s ',
-                            str(len(self.variances)), str(max_nf))
+                            str(len(variances)), str(max_nf))
 
         _, log_grad_zeta = \
-            self.norm_factor_gradient(self.variances)
+            self.norm_factor_gradient(variances)
 
-        self.phi_inv_var = self.variances ** 3 * log_grad_zeta
+        phi_inv_var = variances ** 3 * log_grad_zeta
 
-    def find_normalization_factor(self, variance):
+        return \
+            variances, normalization_factor_var, phi_inv_var
+
+    def find_normalization_factor(
+            self, variance, variances_range, normalization_factor_var):
         """Find the normalization factor given some variances.
 
         Parameters
         ----------
-        variance : array-like, shape=[n_gaussian,]
-        An array of standard deviations for each component
-        of some GMM.
+        variance : array-like, shape=[n_gaussians,]
+            Array of standard deviations for each component
+            of some GMM.
+        variances_range : array-like, shape=[n_variances,]
+            Array of standard deviations.
+        normalization_factor_var : array-like, shape=[n_variances,]
+            Array of computed normalization factor.
 
         Returns
         -------
-        result : array-like, shape=[n_gaussian,]
+        norm_factor : array-like, shape=[n_gaussians,]
             Array of normalization factors for the given
             variances.
         """
-        n_gaussian, precision = variance.shape[0], self.variances.shape[0]
+        n_gaussians, precision = variance.shape[0], variances_range.shape[0]
 
-        ref = gs.expand_dims(self.variances, 0)
-        ref = gs.repeat(ref, n_gaussian, axis=0)
+        ref = gs.expand_dims(variances_range, 0)
+        ref = gs.repeat(ref, n_gaussians, axis=0)
         val = gs.expand_dims(variance, 1)
         val = gs.repeat(val, precision, axis=1)
 
         difference = gs.abs(ref - val)
 
         index = gs.argmin(difference, axis=-1)
-        result = self.normalization_factor_var[index]
+        norm_factor = normalization_factor_var[index]
 
-        return result
+        return norm_factor
 
-    def find_variance_from_index(self, weighted_distances):
-        """Return the variance given weighted distances.
+    def find_variance_from_index(
+            self, weighted_distances, variances_range, phi_inv_var):
+        r"""Return the variance given weighted distances.
 
         Parameters
         ----------
-        weighted_distances : array-like, shape=[n_gaussian,]
+        weighted_distances : array-like, shape=[n_gaussians,]
             Mean of the weighted distances between training data
             and current barycentres. The weights of each data sample
             corresponds to the probability of belonging to a component
             of the Gaussian mixture model.
+        variances_range : array-like, shape=[n_variances,]
+            Array of standard deviations.
+        phi_inv_var : array-like, shape=[n_variances,]
+            Array of the computed inverse of a function phi
+            whose expression is closed-form
+            :math:`\sigma\mapsto \sigma^3 \times \frac{d  }
+            {\mathstrut d\sigma}\log \zeta_m(\sigma)'
+            where :math:'\sigma' denotes the variance
+            and :math:'\zeta' the normalization coefficient
+            and :math:'m' the dimension.
 
         Returns
         -------
-        result : array-like, shape=[n_gaussian]
+        var : array-like, shape=[n_gaussians,]
             Estimated variances for each component of the GMM.
         """
-        n_gaussian, precision = \
-            weighted_distances.shape[0], self.variances.shape[0]
+        n_gaussians, precision = \
+            weighted_distances.shape[0], variances_range.shape[0]
 
-        ref = gs.expand_dims(self.phi_inv_var, 0)
-        ref = gs.repeat(ref, n_gaussian, axis=0)
+        ref = gs.expand_dims(phi_inv_var, 0)
+        ref = gs.repeat(ref, n_gaussians, axis=0)
 
         val = gs.expand_dims(weighted_distances, 1)
         val = gs.repeat(val, precision, axis=1)
@@ -604,9 +628,9 @@ class PoincareBallMetric(RiemannianMetric):
 
         index = gs.argmin(abs_difference, -1)
 
-        result = self.variances[index]
+        var = variances_range[index]
 
-        return result
+        return var
 
     def normalization_factor(self, variances):
         """Return normalization factor.
@@ -614,7 +638,7 @@ class PoincareBallMetric(RiemannianMetric):
         Parameters
         ----------
         variances : array-like, shape=[n,]
-            An array of equally distant values of the
+            Array of equally distant values of the
             variance precision time.
 
         Returns
@@ -654,16 +678,16 @@ class PoincareBallMetric(RiemannianMetric):
 
         alternate_neg = (-ones_) ** (range_)
 
-        ins_gs = (((self.dim - 1) - 2 * range_) *
-                  expand_variances) / gs.sqrt(2)
-        ins_squared_gs = ((((self.dim - 1) - 2 * range_) *
-                           expand_variances) / gs.sqrt(2)) ** 2
-        as_o_gs = (1 + gs.erf(ins_gs)) * gs.exp(ins_squared_gs)
-        bs_o_gs = binomial_coefficient * as_o_gs
-        r_gs = alternate_neg * bs_o_gs
+        erf_arg = (((self.dim - 1) - 2 * range_) *
+                   expand_variances) / gs.sqrt(2)
+        exp_arg = ((((self.dim - 1) - 2 * range_) *
+                    expand_variances) / gs.sqrt(2)) ** 2
+        norm_func_1 = (1 + gs.erf(erf_arg)) * gs.exp(exp_arg)
+        norm_func_2 = binomial_coefficient * norm_func_1
+        norm_func_3 = alternate_neg * norm_func_2
 
         norm_func = NORMALIZATION_FACTOR_CST * variances * \
-            r_gs.sum(0) * (1 / (2 ** (self.dim - 1)))
+            norm_func_3.sum(0) * (1 / (2 ** (self.dim - 1)))
 
         return norm_func
 

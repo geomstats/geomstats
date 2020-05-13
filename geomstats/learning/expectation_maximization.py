@@ -26,32 +26,51 @@ MEAN_MAX_ITER = 150
 
 
 class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
-    """Expectation-maximization class on Poincaré Ball.
+    r"""Expectation-maximization class on Poincaré Ball.
 
     A class for performing Expectation-Maximization on the
-    Poincaré Ball to fit data into a Gaussian Mixture Model.
+    Poincaré Ball to fit data into a Gaussian Mixture Model (GMM).
 
     Parameters
     ----------
+    n_gaussians : int
+        Number of Gaussian components in the mix.
     riemannian_metric : object of class RiemannianMetric
         The geomstats Riemmanian metric associated with
-                        the used manifold.
-    n_gaussian : int
-        Number of Gaussian components in the mix.
+        the used manifold.
     initialisation_method : basestring
         Choice between initialization method for variances, means and weights.
            'random' : will select random uniformally train point as
                      initial centroids.
-            # TODO: hzaatiti, tgeral68 implement kmeans initialisation
             'kmeans' : will apply Riemannian kmeans to deduce
             variances and means that the EM will use initially.
     tol : float
         Convergence factor. If the difference of mean distance
         between two step is lower than tol.
-    mean_method: basestring
+    mean_method : basestring
         Specify the method to compute the mean.
-    point_type: basestring
+    point_type : basestring
         Specify whether to use vector or matrix representation.
+    _dimension : int
+        Manifold dimension.
+    mixture_coefficients : array-like, shape=[n_gaussians,]
+        Weights for each GMM component.
+    variances : array-like, shape=[n_gaussians,]
+        Variances for each GMM component.
+    means : array-like, shape=[n_gaussian, _dimension]
+        Barycentre of each component of the GMM.
+    normalization_factor_var : array-like, shape=[n_variances,]
+        Array of computed normalization factor.
+    variances_range : array-like, shape=[n_variances,]
+        Array of standard deviations.
+    phi_inv_var : array-like, shape=[n_variances,]
+        Array of the computed inverse of a function phi
+        whose expression is closed-form
+        :math:`\sigma\mapsto \sigma^3 \times \frac{d  }
+        {\mathstrut d\sigma}\log \zeta_m(\sigma)'
+        where :math:'\sigma' denotes the variance
+        and :math:'\zeta' the normalization coefficient
+        and :math:'m' the dimension.
 
     Returns
     -------
@@ -61,15 +80,16 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
     def __init__(self,
                  riemannian_metric,
-                 n_gaussian=8,
-                 initialisation_method='random',
+                 n_gaussians=8,
+                 initialisation_method=('random'),
                  tol=DEFAULT_TOL,
                  mean_method='default',
                  point_type='vector'):
 
-        self.n_gaussian = n_gaussian
+        self.n_gaussians = n_gaussians
         self.riemannian_metric = riemannian_metric
         self.initialisation_method = initialisation_method
+        # TODO: hzaatiti, tgeral68 implement kmeans initialisation
         self.tol = tol
         self.mean_method = mean_method
         self.point_type = point_type
@@ -78,13 +98,16 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self.variances = None
         self.means = None
         self.normalization_factor = None
+        self.variances_range = None
+        self.normalization_factor_var = None
+        self.phi_inv_var = None
 
     def update_posterior_probabilities(self, posterior_probabilities):
         """Posterior probabilities update function.
 
         Parameters
         ----------
-        posterior_probabilities : array-like, shape=[n_samples, n_gaussian]
+        posterior_probabilities : array-like, shape=[n_samples, n_gaussians,]
             Probability of a given sample to belong to a component
             of the GMM, computed for all components.
         """
@@ -93,7 +116,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
     def update_means(self, data, posterior_probabilities,
                      lr_means, tau_means, max_iter=DEFAULT_MAX_ITER):
         """Means update function."""
-        n_gaussian = posterior_probabilities.shape[-1]
+        n_gaussians = posterior_probabilities.shape[-1]
 
         mean = FrechetMean(
             metric=self.riemannian_metric,
@@ -104,20 +127,20 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             point_type=self.point_type)
 
         data_expand = gs.expand_dims(data, 1)
-        data_expand = gs.repeat(data_expand, n_gaussian, axis=1)
+        data_expand = gs.repeat(data_expand, n_gaussians, axis=1)
 
         mean.fit(data_expand, weights=posterior_probabilities)
         self.means = gs.squeeze(mean.estimate_)
 
     def update_variances(self, data, posterior_probabilities):
-        """Variances update function.
+        """Update variances function.
 
         Parameters
         ----------
-        data : array-like, shape=[n_samples, n_features]
+        data : array-like, shape=[n_samples, n_features,]
             Training data, where n_samples is the number of samples and
             n_features is the number of features.
-        posterior_probabilities : array-like, shape=[n_samples, n_gaussian]
+        posterior_probabilities : array-like, shape=[n_samples, n_gaussians,]
             Probability of a given sample to belong to a component
             of the GMM, computed for all components.
         """
@@ -130,7 +153,9 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
         self.variances = \
             self.riemannian_metric.find_variance_from_index(
-                weighted_dist_means_data)
+                weighted_dist_means_data,
+                self.variances_range,
+                self.phi_inv_var)
 
     def _expectation(self, data):
         """Update the posterior probabilities.
@@ -145,10 +170,11 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             PoincareBall.gmm_pdf(
                 data, self.means, self.variances,
                 norm_func=self.riemannian_metric.find_normalization_factor,
-                metric=self.riemannian_metric)
+                metric=self.riemannian_metric,
+                variances_range=self.variances_range,
+                norm_func_var=self.normalization_factor_var)
 
-        if (probability_distribution_function.mean() !=
-                probability_distribution_function.mean()):
+        if (gs.isnan(probability_distribution_function.mean())):
             logging.warning('EXPECTATION : Probability distribution function'
                             'contain elements that are not numbers')
 
@@ -188,10 +214,10 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
         Parameters
         ----------
-        data : array-like, shape=[n_samples, n_features]
+        data : array-like, shape=[n_samples, n_features,]
             Training data, where n_samples is the number of samples and
             n_features is the number of features.
-        posterior_probabilities : array-like, shape=[n_samples, n_gaussian]
+        posterior_probabilities : array-like, shape=[n_samples, n_gaussians,]
             Probability of a given sample to belong to a component
             of the GMM, computed for all components.
         lr_means : float
@@ -254,17 +280,20 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         """
         self._dimension = data.shape[-1]
         self.means = (gs.random.rand(
-            self.n_gaussian,
+            self.n_gaussians,
             self._dimension) - 0.5) / self._dimension
-        self.variances = gs.random.rand(self.n_gaussian) / 10 + 0.8
+        self.variances = gs.random.rand(self.n_gaussians) / 10 + 0.8
         self.mixture_coefficients = \
-            gs.ones(self.n_gaussian) / self.n_gaussian
+            gs.ones(self.n_gaussians) / self.n_gaussians
         posterior_probabilities = gs.ones((data.shape[0],
                                            self.means.shape[0]))
 
-        self.normalization_factor = \
+        self.variances_range,\
+            self.normalization_factor_var, \
+            self.phi_inv_var =\
             self.riemannian_metric.normalization_factor_init(
-                gs.arange(ZETA_LOWER_BOUND, ZETA_UPPER_BOUND, ZETA_STEP))
+                gs.arange(
+                    ZETA_LOWER_BOUND, ZETA_UPPER_BOUND, ZETA_STEP))
 
         for epoch in range(max_iter):
             old_posterior_probabilities = posterior_probabilities
