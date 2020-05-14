@@ -9,6 +9,8 @@ author = 'Geomstats Team'
 release = version = geomstats.__version__
 
 extensions = [
+    'nbsphinx',
+    'nbsphinx_link',
     'sphinx.ext.autodoc',
     'sphinx.ext.coverage',
     'sphinx.ext.doctest',
