@@ -1,6 +1,7 @@
 """Visualization for Geometric Statistics."""
 
 import matplotlib
+import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
@@ -21,6 +22,19 @@ AX_SCALE = 1.2
 IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'S1', 'S2',
                'H2_poincare_disk', 'H2_poincare_half_plane', 'H2_klein_disk',
                'poincare_polydisk']
+
+EPS = 1e-8
+
+def nice_matplotlib():
+    plt.style.use('seaborn')
+    fontsize = 15
+    matplotlib.rc('font', size=fontsize)
+    matplotlib.rc('text', usetex=True)
+    matplotlib.rc('legend', fontsize=fontsize)
+    matplotlib.rc('font',
+                  family='times',
+                  serif=['Computer Modern Roman'],
+                  monospace=['Computer Modern Typewriter'])
 
 
 def tutorial_matplotlib():
@@ -571,3 +585,82 @@ def plot(points, ax=None, space=None,
         klein_disk.draw(ax, **point_draw_kwargs)
 
     return ax
+
+
+class DataArrow():
+    """
+    Arrow class for pointing from some data coordinates to other data coordinates
+    """
+    def __init__(self,fig):
+        self.fig=fig
+
+    def draw(self, x_from, y_from, x_to, y_to):
+        """
+        Draw the arrow in data coordinates.
+
+        :param x_from: x coordinate at arrow base
+        :param y_from: y coordinate at arrow base
+        :param x_to: x coordinate at arrow head
+        :param y_to: y coordinate at arrow head
+        """
+        fig_trans = self.fig.transFigure.inverted()
+        coord_from = fig_trans.transform(
+            self.fig.axes[0].transData.transform(
+                (x_from, y_from)))
+        coord_to = fig_trans.transform(
+            self.fig.axes[0].transData.transform(
+                (x_to, y_to)))
+        arrow = matplotlib.patches.FancyArrowPatch(
+            coord_from,
+            coord_to,
+            transform=self.fig.transFigure,
+            fc="k",
+            connectionstyle="arc3,rad=0.",
+            arrowstyle='fancy',
+            alpha=1.,
+            mutation_scale=5.)
+        self.fig.patches.append(arrow)
+
+
+class Ellipsis():
+    """
+    Plotting class for ellipses representing SPD matrices in 2 dimensions
+    """
+
+    def __init__(self):
+        self.fig = plt.figure()
+        spec = gridspec.GridSpec(ncols=1, nrows=1, figure=self.fig)
+        self.fig.add_subplot(spec[0, 0])
+        self.colors = ['r', 'g', 'b', 'xkcd:camel', 'k']
+        self.colors_alt = ['xkcd:burgundy', 'olive', 'cyan', 'xkcd:mud brown']
+        nice_matplotlib()
+
+    def draw(self, data_point, **kwargs):
+        X, Y, x, y = self.compute_coordinates(data_point)
+        self.fig.axes[0].plot(X, Y, **kwargs)
+        return x, y
+
+    def angle_of_rot2(self, r):
+        return gs.arctan(r[0][1] / r[0][0])
+
+    def compute_coordinates(self, P):
+        w, vr = gs.linalg.eig(P)
+        w = w.real + EPS
+        Np = 100
+
+        [e1, e2] = w
+        x0, y0 = 0, 0
+        angle = self.angle_of_rot2(vr)
+        c, s = gs.cos(angle), gs.sin(angle)
+        the = gs.linspace(0, 2 * gs.pi, Np)
+        X = e1 * gs.cos(the) * c - s * e2 * gs.sin(the) + x0
+        Y = e1 * gs.cos(the) * s + c * e2 * gs.sin(the) + y0
+        return X, Y, X[Np // 4], Y[Np // 4]
+
+    def plot(self):
+        plt.legend(loc='best')
+        self.fig.axes[0].set_title(
+            'Example plot of the MDM classifier in dimension 2\n'
+            '3-class fit and 3 test sample prediction\n'
+            '(black arrows denote assignement)')
+        plt.show()
