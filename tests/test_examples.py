@@ -22,6 +22,7 @@ import examples.plot_grid_h2 as plot_grid_h2
 import examples.plot_kernel_density_estimation_classifier_s2 as plot_kernel_density_estimation_classifier_s2 # NOQA
 import examples.plot_kmeans_manifolds as plot_kmeans_manifolds
 import examples.plot_knn_s2 as plot_knn_s2
+import examples.plot_mdm_spd as plot_mdm_spd
 import examples.plot_online_kmeans_s1 as plot_online_kmeans_s1
 import examples.plot_online_kmeans_s2 as plot_online_kmeans_s2
 import examples.plot_pole_ladder_s2 as plot_pole_ladder_s2
@@ -110,6 +111,10 @@ class TestExamples(geomstats.tests.TestCase):
     @staticmethod
     def test_plot_grid_h2():
         plot_grid_h2.main()
+
+    @staticmethod
+    def test_plot_mdm_spd():
+        plot_mdm_spd.main()
 
     @staticmethod
     def test_plot_square_h2_square_poincare_disk():

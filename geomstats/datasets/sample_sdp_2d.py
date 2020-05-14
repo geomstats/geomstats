@@ -24,7 +24,6 @@ class DatasetSPD2D:
         self.n_samples = n_samples
         self.n_features = n_features
         self.n_classes = n_classes
-        self.data_helper = DataHelper()
 
     def generate_sample_dataset(self):
         """Generate the dataset.
@@ -35,7 +34,7 @@ class DatasetSPD2D:
         y: array-like, shape = [n_samples * n_classes, n_classes]: labels
         """
         X, y = self.setup_data()
-        X, y = self.data_helper.shuffle(X, y)
+        X, y = shuffle(X, y)
         return X, y
 
     def setup_data(self):
@@ -98,36 +97,26 @@ class DatasetSPD2D:
         return spd_data
 
 
-class DataHelper:
-    """DataHelper provides simple functions to handle data.
+def shuffle(X, Y):
+    """Shuffle the dataset.
 
-    Data is assumed of the following shape:
-    X: Data, shape=[n_samples, ...]
-    Y: Labels, shape=[n_samples, n_classes] (one-hot encoding)
+    X: array-like,
+       shape = [n_samples * n_classes, n_features, n_features]: data
+    :param Y: array-like, shape = [n_samples * n_classes, n_classes]
+    :return: Co-shuffled version of X and Y
     """
+    tmp = list(zip(X, Y))
+    gs.random.shuffle(tmp)
+    X, Y = zip(*tmp)
+    X = gs.array(X)
+    Y = gs.array(Y)
+    return X, Y
 
-    @staticmethod
-    def shuffle(X, Y):
-        """Shuffle the dataset.
+def get_label_at_index(i, labels):
+    """Get the label of data point indexed by 'i'.
 
-        X: array-like,
-           shape = [n_samples * n_classes, n_features, n_features]: data
-        :param Y: array-like, shape = [n_samples * n_classes, n_classes]
-        :return: Co-shuffled version of X and Y
-        """
-        tmp = list(zip(X, Y))
-        gs.random.shuffle(tmp)
-        X, Y = zip(*tmp)
-        X = gs.array(X)
-        Y = gs.array(Y)
-        return X, Y
-
-    @staticmethod
-    def get_label_at_index(i, labels):
-        """Get the label of data point indexed by 'i'.
-
-        :param i: int, index of data point.
-        :param labels: array-like, shape = [n_samples * n_classes, n_features]
-        :return: int, class index.
-        """
-        return gs.where(labels[i])[0][0]
+    :param i: int, index of data point.
+    :param labels: array-like, shape = [n_samples * n_classes, n_features]
+    :return: int, class index.
+    """
+    return gs.where(labels[i])[0][0]

@@ -5,7 +5,7 @@ from geomstats.geometry.spd_matrices import SPDMetricAffine
 from geomstats.learning.mdm import RiemannianMinimumDistanceToMeanClassifier
 
 
-e = gs.exp(1.)
+EULER = gs.exp(1.)
 
 
 class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
@@ -18,18 +18,18 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
         MDMEstimator = RiemannianMinimumDistanceToMeanClassifier(
             SPDMetricAffine(n=2), n_clusters, point_type='matrix')
 
-        points_A = gs.array([[[e ** 2, 0], [0, 1]],
+        points_A = gs.array([[[EULER ** 2, 0], [0, 1]],
                              [[1, 0], [0, 1]]])
         labels_A = gs.array([[1, 0],
                              [1, 0]])
-        bary_A_expected = gs.array([[e, 0],
+        bary_A_expected = gs.array([[EULER, 0],
                                     [0, 1]])
 
-        points_B = gs.array([[[e ** 8, 0], [0, 1]],
+        points_B = gs.array([[[EULER ** 8, 0], [0, 1]],
                              [[1, 0], [0, 1]]])
         labels_B = gs.array([[0, 1],
                              [0, 1]])
-        bary_B_expected = gs.array([[e ** 4, 0],
+        bary_B_expected = gs.array([[EULER ** 4, 0],
                                     [0, 1]])
 
         train_data = gs.concatenate([points_A, points_B])
@@ -47,9 +47,9 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
     def test_predict(self):
         """Test the predict method."""
         n_clusters = 2
-        bary_A = gs.array([[e, 0],
+        bary_A = gs.array([[EULER, 0],
                            [0, 1]])
-        bary_B = gs.array([[e ** 4, 0],
+        bary_B = gs.array([[EULER ** 4, 0],
                            [0, 1]])
 
         MDMEstimator = RiemannianMinimumDistanceToMeanClassifier(
@@ -57,7 +57,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
         MDMEstimator.mean_estimate = gs.concatenate(
             [bary_A[None, ...], bary_B[None, ...]])
 
-        X = gs.array([[e ** 3, 0],
+        X = gs.array([[EULER ** 3, 0],
                       [0, 1]])[None, ...]
 
         # distance_AX_expected = 2.
