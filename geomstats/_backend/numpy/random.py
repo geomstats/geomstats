@@ -5,5 +5,7 @@ from numpy.random import (  # NOQA
     rand,
     randint,
     seed,
-    uniform
+    uniform,
+    multivariate_normal,
+    shuffle
 )

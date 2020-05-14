@@ -22,6 +22,7 @@ BACKEND_ATTRIBUTES = {
         'arccos',
         'arccosh',
         'arcsin',
+        'arctan',
         'arctan2',
         'arctanh',
         'argmax',
@@ -42,6 +43,7 @@ BACKEND_ATTRIBUTES = {
         'cross',
         'cumprod',
         'cumsum',
+        'diag',
         'diagonal',
         'divide',
         'dot',
@@ -133,7 +135,9 @@ BACKEND_ATTRIBUTES = {
         'rand',
         'randint',
         'seed',
-        'uniform'
+        'uniform',
+        'multivariate_normal',
+        'shuffle'
     ]
 }
 
