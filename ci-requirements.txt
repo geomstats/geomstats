@@ -1,6 +1,7 @@
 codecov
 coverage
 nbsphinx
+nbsphinx_link
 pandoc
 sphinx
 sphinx_rtd_theme
