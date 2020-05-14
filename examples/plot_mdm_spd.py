@@ -23,7 +23,7 @@ def main():
     ellipsis = visualization.Ellipsis2D()
     for i in range(n_samples):
         x = data[i]
-        y = dataset_generator.data_helper.get_label_at_index(i, labels)
+        y = geomstats.datasets.sample_sdp_2d.get_label_at_index(i, labels)
         ellipsis.draw(x, color=ellipsis.colors[y], alpha=.1)
 
     # define and fit MDM classifier to data

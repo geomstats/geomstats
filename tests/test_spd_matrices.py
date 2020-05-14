@@ -87,7 +87,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         result = self.space.belongs(points)
         expected = gs.array([True] * 4)
         self.assertAllClose(result, expected)
-#
+
     @geomstats.tests.np_only
     def test_random_gaussian_rotation_orbit(self):
         """Test random_gaussian_rotation_orbit"""

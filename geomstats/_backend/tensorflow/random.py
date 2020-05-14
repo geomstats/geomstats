@@ -3,6 +3,9 @@
 import tensorflow as tf
 
 
+shuffle = tf.random.shuffle
+
+
 def multivariate_normal(*args, **kwargs):
     return tf.contrib.distributions.MultivariateNormalFullCovariance(
         *args, **kwargs)
@@ -32,10 +35,6 @@ def randint(low, high=None, size=None):
 
 def seed(*args):
     return tf.compat.v1.set_random_seed(*args)
-
-
-def shuffle(x):
-    return tf.random.shuffle(x)
 
 
 def uniform(low=0.0, high=1.0, size=None):
