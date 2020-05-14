@@ -236,6 +236,16 @@ class TestBackends(geomstats.tests.TestCase):
             [7., 8., 9.]])
         self.assertAllClose(result, expected)
 
+    def test_cumprod(self):
+        result = gs.cumprod(gs.arange(1, 10))
+        expected = gs.array(([1, 2, 6, 24, 120, 720, 5040, 40320, 362880]))
+        self.assertAllClose(result, expected)
+
+        result = gs.reshape(gs.arange(1, 11), (2, 5))
+        result = gs.cumprod(result, axis=1)
+        expected = gs.array(([[1, 2, 6, 24, 120], [6, 42, 336, 3024, 30240]]))
+        self.assertAllClose(result, expected)
+
     @geomstats.tests.pytorch_only
     def test_cumsum(self):
         result = gs.cumsum(gs.arange(10))

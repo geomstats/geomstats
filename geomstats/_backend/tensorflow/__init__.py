@@ -74,6 +74,8 @@ DTYPES = {
 arctanh = tf.math.atanh
 ceil = tf.math.ceil
 cross = tf.linalg.cross
+erf = tf.math.erf
+isnan = tf.math.is_nan
 log = tf.math.log
 matmul = tf.linalg.matmul
 mod = tf.math.mod
@@ -527,7 +529,7 @@ def hsplit(x, n_splits):
 
 
 def flatten(x):
-    """Collapses the tensor into 1-D.
+    """Collapse the tensor into 1-D.
 
     Following https://www.tensorflow.org/api_docs/python/tf/reshape
     """
@@ -703,6 +705,12 @@ def cumsum(a, axis=None):
     if axis is None:
         return tf.math.cumsum(flatten(a), axis=0)
     return tf.math.cumsum(a, axis=axis)
+
+
+def cumprod(a, axis=None):
+    if axis is None:
+        return tf.math.cumprod(flatten(a), axis=0)
+    return tf.math.cumprod(a, axis=axis)
 
 
 def tril(m, k=0):

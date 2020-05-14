@@ -22,6 +22,7 @@ from torch import (  # NOQA
     div as divide,
     empty_like,
     eq,
+    erf,
     exp,
     eye,
     flatten,
@@ -720,6 +721,12 @@ def cumsum(x, axis=None):
     if axis is None:
         return x.flatten().cumsum(dim=0)
     return torch.cumsum(x, dim=axis)
+
+
+def cumprod(x, axis=None):
+    if axis is None:
+        return x.flatten().cumprod(dim=0)
+    return torch.cumprod(x, dim=axis)
 
 
 def array_from_sparse(indices, data, target_shape):

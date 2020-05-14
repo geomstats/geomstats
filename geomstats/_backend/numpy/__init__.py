@@ -24,6 +24,7 @@ from autograd.numpy import (  # NOQA
     cos,
     cosh,
     cross,
+    cumprod,
     cumsum,
     diagonal,
     divide,
@@ -46,6 +47,7 @@ from autograd.numpy import (  # NOQA
     int32,
     int64,
     isclose,
+    isnan,
     less,
     less_equal,
     linspace,
@@ -350,3 +352,12 @@ def array_from_sparse(indices, data, target_shape):
     """
     return array(
         coo_matrix((data, list(zip(*indices))), target_shape).todense())
+
+
+def erf(x):
+    cst_erf = 8.0 / (3.0 * np.pi) * (np.pi - 3.0) / (4.0 - np.pi)
+    return \
+        np.sign(x) * \
+        np.sqrt(1 - np.exp(-x * x *
+                           (4 / np.pi + cst_erf * x * x) /
+                           (1 + cst_erf * x * x)))
