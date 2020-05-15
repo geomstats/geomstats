@@ -54,4 +54,3 @@ To contribute to `geomstats` visit the page :ref:`contributing`.
    examples.rst
    api-reference.rst
    contributing.rst
-   01_data_on_manifolds

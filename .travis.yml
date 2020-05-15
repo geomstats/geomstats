@@ -29,7 +29,6 @@ env:
 
 after_success:
   - bash <(curl -s https://codecov.io/bash) -c -F $GEOMSTATS_BACKEND
-  - pip3 install pandoc
   - >
     PYTHONPATH=. sphinx-build
     -b html
