@@ -143,7 +143,7 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             eigenvalues, eigenspace\
                 = eigensummary.eigenvalues, eigensummary.eigenspace
         rotations = SpecialOrthogonal(n).random_gaussian(
-                eigenspace, var_rotations, n_samples=n_samples)
+            eigenspace, var_rotations, n_samples=n_samples)
 
         spd_mat = Matrices.mul(rotations, eigenvalues, Matrices.transpose(
             rotations))
@@ -188,11 +188,11 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             eigenvalues, eigenspace\
                 = eigensummary.eigenvalues, eigensummary.eigenspace
         rotations = SpecialOrthogonal(n).random_gaussian(
-                eigenspace, var_rotations, n_samples=n_samples)
+            eigenspace, var_rotations, n_samples=n_samples)
 
         eigenvalues =\
-                gs.abs(gs.diag(gs.random.multivariate_normal(
-                    gs.diag(eigenvalues), gs.diag(var_eigenvalues))))
+            gs.abs(gs.diag(gs.random.multivariate_normal(
+                gs.diag(eigenvalues), gs.diag(var_eigenvalues))))
         spd_mat = Matrices.mul(rotations, eigenvalues, Matrices.transpose(
             rotations))
 

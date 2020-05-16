@@ -1,8 +1,8 @@
 """Helper data classes for the MDM illustration example on SPD matrices."""
 
 import geomstats.backend as gs
-from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.spd_matrices import EigenSummary
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
@@ -111,6 +111,7 @@ def shuffle(X, Y):
     X = gs.array(X)
     Y = gs.array(Y)
     return X, Y
+
 
 def get_label_at_index(i, labels):
     """Get the label of data point indexed by 'i'.

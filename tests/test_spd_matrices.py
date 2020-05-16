@@ -99,8 +99,8 @@ class TestSPDMatrices(geomstats.tests.TestCase):
             mean_spd=mean_spd, var_rotations=var_rotations, n_samples=4)
         point = self.space.random_gaussian_rotation_orbit(
             mean_spd=mean_spd, var_rotations=var_rotations, n_samples=1)
-        shapes_expected = gs.array([4,2,2])
-        shape_expected = gs.array([2,2])
+        shapes_expected = gs.array([4, 2, 2])
+        shape_expected = gs.array([2, 2])
         result = self.space.belongs(points)
         expected = gs.array([True] * 4)
         self.assertAllClose(points.shape, shapes_expected)
@@ -174,8 +174,8 @@ class TestSPDMatrices(geomstats.tests.TestCase):
                                [0., 2.5, 1.5],
                                [0., 1.5, 2.5]])
         tangent_vec = gs.array([[2., 1., 1.],
-                               [1., .5, .5],
-                               [1., .5, .5]])
+                                [1., .5, .5],
+                                [1., .5, .5]])
         power = .5
         result = self.space.differential_power(
             power=power,
@@ -291,8 +291,8 @@ class TestSPDMatrices(geomstats.tests.TestCase):
                                [0., 2.5, 1.5],
                                [0., 1.5, 2.5]])
         tangent_vec = gs.array([[2., 1., 1.],
-                               [1., .5, .5],
-                               [1., .5, .5]])
+                                [1., .5, .5],
+                                [1., .5, .5]])
         metric = SPDMetricAffine(3, power_affine=.5)
         result = metric.inner_product(tangent_vec, tangent_vec, base_point)
         expected = 713 / 144
@@ -565,6 +565,6 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         self.assertAllClose(expected, result, atol=1e-4)
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     TestSPDMatrices().test_random_gaussian_rotation_orbit()
     TestSPDMatrices().test_random_gaussian_rotation_orbit_noisy()

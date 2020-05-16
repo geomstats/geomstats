@@ -64,7 +64,18 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
 
     @classmethod
     def inverse(cls, point):
-        """Return the transpose matrix of point."""
+        """Return the inverse of matrices.
+
+        Parameters
+        ----------
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        transpose : array-like, shape=[..., n, n]
+            Inverse.
+        """
         return cls.transpose(point)
 
     @classmethod
