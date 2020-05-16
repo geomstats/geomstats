@@ -589,7 +589,7 @@ def plot(points, ax=None, space=None,
     return ax
 
 
-class DataArrow():
+class DataArrow:
     """Arrow class for pointing from some data coordinates to others."""
 
     def __init__(self, fig):
@@ -623,7 +623,7 @@ class DataArrow():
         self.fig.patches.append(arrow)
 
 
-class Ellipsis2D():
+class Ellipsis2D:
     """Plotting class for ellipses representing SPD matrices in 2D."""
 
     def __init__(self):
@@ -647,29 +647,25 @@ class Ellipsis2D():
 
         :param point: array-like, shape = [2, 2]: SPD matrix.
         :return:
-        X: array-like, shape = [Np,];
-        Y: array-like, shape = [Np,];
+        X: array-like, shape = [n_steps,];
+        Y: array-like, shape = [n_steps,];
         X and Y coordinates.
         """
         w, vr = gs.linalg.eig(point)
         w = w.real + EPS
-        Np = 100
+        n_steps = 100
 
         [e1, e2] = w
         x0, y0 = 0, 0
         n = vr.shape[0]
         angle = SpecialOrthogonal(n).angle_of_rot2(vr)
         c, s = gs.cos(angle), gs.sin(angle)
-        the = gs.linspace(0, 2 * gs.pi, Np)
+        the = gs.linspace(0, 2 * gs.pi, n_steps)
         X = e1 * gs.cos(the) * c - s * e2 * gs.sin(the) + x0
         y = e1 * gs.cos(the) * s + c * e2 * gs.sin(the) + y0
-        return X, y, X[Np // 4], y[Np // 4]
+        return X, y, X[n_steps // 4], y[n_steps // 4]
 
     def plot(self):
         """Plot final plot."""
         plt.legend(loc='best')
-        self.fig.axes[0].set_title(
-            'Example plot of the MDM classifier in dimension 2\n'
-            '3-class fit and 3 test sample prediction\n'
-            '(black arrows denote assignement)')
         plt.show()
