@@ -1,6 +1,6 @@
 """Riemannian and pseudo-Riemannian metrics."""
 
-import autograd
+import jax
 
 import geomstats.backend as gs
 import geomstats.vectorization
@@ -143,7 +143,7 @@ class RiemannianMetric(Connection):
         mat : array-like, shape=[..., dim, dim]
             Derivative of inverse of inner-product matrix.
         """
-        metric_derivative = autograd.jacobian(self.inner_product_matrix)
+        metric_derivative = jax.jacfwd(self.inner_product_matrix)
         return metric_derivative(base_point)
 
     def christoffels(self, base_point):

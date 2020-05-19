@@ -1,8 +1,8 @@
 """Numpy based linear algebra backend."""
 
-import autograd.numpy as np
+import jax.numpy as np
 import scipy.linalg
-from autograd.numpy.linalg import (  # NOQA
+from jax.numpy.linalg import (  # NOQA
     det,
     eig,
     eigh,

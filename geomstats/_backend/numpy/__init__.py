@@ -1,7 +1,7 @@
 """Numpy based computation backend."""
 
-import autograd.numpy as np
-from autograd.numpy import (  # NOQA
+import jax.numpy as np
+from jax.numpy import (  # NOQA
     abs,
     all,
     allclose,
@@ -90,7 +90,7 @@ from autograd.numpy import (  # NOQA
     zeros,
     zeros_like
 )
-from autograd.scipy.special import polygamma # NOQA
+from jax.scipy.special import polygamma # NOQA
 from scipy.sparse import coo_matrix
 
 from . import linalg  # NOQA

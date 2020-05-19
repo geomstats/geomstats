@@ -1,6 +1,6 @@
 """Affine connections."""
 
-import autograd
+import jax
 from scipy.optimize import minimize
 
 import geomstats.backend as gs
@@ -167,10 +167,10 @@ class Connection:
             loss = 1. / self.dim * gs.sum(delta ** 2, axis=-1)
             return 1. / n_samples * gs.sum(loss)
 
-        objective_grad = autograd.elementwise_grad(objective)
+        objective_grad = jax.grad(objective)
 
         def objective_with_grad(velocity):
-            """Create helpful objective func wrapper for autograd comp."""
+            """Create helpful objective func wrapper for jax grad comp."""
             return objective(velocity), objective_grad(velocity)
 
         tangent_vec = gs.random.rand(gs.sum(gs.shape(base_point)))

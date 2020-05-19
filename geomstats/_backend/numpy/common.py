@@ -1,4 +1,4 @@
-import autograd.numpy as np
+import jax.numpy as np
 
 
 def to_ndarray(x, to_ndim, axis=0):
