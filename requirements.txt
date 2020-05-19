@@ -1,4 +1,5 @@
 jax==0.1.67
+jaxlib==0.1.47
 jupyter
 joblib==0.14.1
 matplotlib
