@@ -72,6 +72,24 @@ class TestConnection(geomstats.tests.TestCase):
 
             self.assertAllClose(result, expected, rtol=tol, atol=tol)
 
+    def test_pole_ladder_simplified(self):
+        n_samples = 2
+        for n_steps in [1, 10]:
+            base_point = self.hypersphere.random_uniform(n_samples)
+            tan_vec_a = self.hypersphere.projection_to_tangent_space(
+                gs.random.rand(n_samples, 3), base_point)
+            tan_vec_b = self.hypersphere.projection_to_tangent_space(
+                gs.random.rand(n_samples, 3), base_point)
+            expected_point = self.hypersphere.metric.exp(tan_vec_b, base_point)
+            expected = self.hypersphere.metric.parallel_transport(
+                tan_vec_a, tan_vec_b, base_point)
+            ladder = self.hypersphere.metric.pole_ladder(
+                tan_vec_a, tan_vec_b, base_point, n_ladders=n_steps)
+            result = ladder['transported_tangent_vec']
+            result_point = ladder['end_point']
+            self.assertAllClose(result, expected)
+            self.assertAllClose(result_point, expected_point)
+
     @geomstats.tests.np_and_pytorch_only
     def test_parallel_transport_trajectory(self):
         n_samples = 2
