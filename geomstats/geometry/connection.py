@@ -508,6 +508,37 @@ class Connection:
                 'end_point': current_point,
                 'trajectory': trajectory}
 
+    def pole_ladder(self, tangent_vec_a, tangent_vec_b, base_point, n_ladders=1,
+                    approximate_geo=False, **kwargs):
+        current_point = gs.copy(base_point)
+        current_speed = gs.copy(tangent_vec_b) / n_ladders
+        current_shoot = self.exp(tangent_vec_a, base_point, **kwargs)
+        for i_point in range(n_ladders):
+            if approximate_geo:
+                initial_state = (current_point, current_speed)
+                flow, vel = integrate(
+                    self.geodesic_equation,
+                    initial_state, n_steps=2, end_time=2, step='rk4')
+                current_point = flow[-1]
+                mid_point = flow[-2]
+                current_speed = vel[-1]
+            else:
+                frac_tan_vector_b = (i_point + 1) / n_ladders * tangent_vec_b
+                frac_tan_b_midpoint = (2 * i_point + 1) / (2 * n_ladders) * \
+                    tangent_vec_b
+                mid_point = self.exp(
+                    base_point=base_point, tangent_vec=frac_tan_b_midpoint)
+                current_point = self.exp(
+                    base_point=base_point, tangent_vec=frac_tan_vector_b)
+            tan_to_shoot = - self.log(current_shoot, mid_point, **kwargs)
+            current_shoot = self.exp(tan_to_shoot, mid_point, **kwargs)
+        transported = self.log(current_shoot, current_point, **kwargs)
+        if n_ladders % 2 == 1:
+            transported *= -1.
+        return {'transported_tangent_vec': transported,
+                'end_point': current_point,
+                'trajectory': []}
+
     def riemannian_curvature(self, base_point):
         """Compute Riemannian curvature tensor associated with the connection.
 
