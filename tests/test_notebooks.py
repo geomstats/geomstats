@@ -7,11 +7,12 @@ import geomstats.tests
 
 
 def _exec_notebook(path):
-    with tempfile.NamedTemporaryFile(suffix='.ipynb') as fout:
-        args = ['jupyter', 'nbconvert', '--to', 'notebook', '--execute',
-                '--ExecutePreprocessor.timeout=1000',
-                '--output', fout.name, path]
-        subprocess.check_call(args)
+
+    file_name = tempfile.NamedTemporaryFile(suffix='.ipynb').name
+    args = ['jupyter', 'nbconvert', '--to', 'notebook', '--execute',
+            '--ExecutePreprocessor.timeout=1000',
+            '--output', file_name, path]
+    subprocess.check_call(args)
 
 
 class TestNotebooks(geomstats.tests.TestCase):
