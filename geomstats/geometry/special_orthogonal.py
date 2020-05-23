@@ -170,9 +170,9 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
 class _SpecialOrthogonalVectors(LieGroup):
     """Class for the special orthogonal groups SO({2,3}) in vector form.
 
-    i.e. the Lie groups of planar and 3D rotations. This class is specific to the
-    vector representation of rotations. For the matrix representation use the
-    SpecialOrthogonal class and set `n=2` or `n=3`.
+    i.e. the Lie groups of planar and 3D rotations. This class is specific to
+    the vector representation of rotations. For the matrix representation use
+    the SpecialOrthogonal class and set `n=2` or `n=3`.
 
     Parameters
     ----------
