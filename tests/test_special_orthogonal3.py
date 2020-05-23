@@ -116,7 +116,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     group=self.group,
                     inner_product_mat_at_identity=mats[3],
                     left_or_right='right')}
-                }
+            }
 
         angles_close_to_pi_all = {
             3: ['with_angle_close_pi_low',
@@ -156,7 +156,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
     def test_skew_matrix_from_vector(self):
         # Specific to 3D case
-        n = 3
         rot_vec = gs.array([0.9, -0.5, 1.1])
         skew_matrix = self.group.skew_matrix_from_vector(rot_vec)
         result = gs.dot(skew_matrix, rot_vec)
@@ -337,12 +336,11 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             point = self.elements[3][angle_type]
             if angle_type in self.angles_close_to_pi[3]:
                 continue
-    
             rot_mat = self.group.matrix_from_rotation_vector(point)
             result = self.group.rotation_vector_from_matrix(rot_mat)
-    
+
             expected = self.group.regularize(point)
-    
+
             self.assertAllClose(result, expected)
 
     def test_matrix_from_tait_bryan_angles_extrinsic_xyz(self):
@@ -2485,8 +2483,8 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
     def test_left_jacobian_through_its_determinant(self):
         for angle_type in self.elements[3]:
             point = self.elements[3][angle_type]
-            jacobian = self.group.jacobian_translation(point=point,
-                                                  left_or_right='left')
+            jacobian = self.group.jacobian_translation(
+                point=point, left_or_right='left')
             result = gs.linalg.det(jacobian)
             point = self.group.regularize(point)
             angle = gs.linalg.norm(point)
@@ -2537,8 +2535,8 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     + (1 - phi) / 3 * gs.ones([3, 3])
                     + gs.pi / (10 * gs.sqrt(3.)) * skew)
         inv_jacobian = gs.linalg.inv(jacobian)
-        expected = self.group.compose(rot_vec_base_point,
-                                 gs.dot(inv_jacobian, rot_vec_2))
+        expected = self.group.compose(
+            rot_vec_base_point, gs.dot(inv_jacobian, rot_vec_2))
 
         result = metric.exp(
             base_point=rot_vec_base_point, tangent_vec=rot_vec_2)
@@ -2598,11 +2596,10 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     + gs.pi / (10 * gs.sqrt(3.)) * skew)
         inv_jacobian = gs.linalg.inv(jacobian)
         aux = gs.dot(inv_jacobian, expected)
-        rot_vec_2 = self.group.compose(rot_vec_base_point,
-                                  aux)
+        rot_vec_2 = self.group.compose(rot_vec_base_point, aux)
 
-        result = metric.log(base_point=rot_vec_base_point,
-                            point=rot_vec_2)
+        result = metric.log(
+            base_point=rot_vec_base_point, point=rot_vec_2)
 
         self.assertAllClose(result, expected)
 
