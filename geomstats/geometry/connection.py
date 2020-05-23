@@ -2,6 +2,7 @@
 
 import autograd
 from scipy.optimize import minimize
+from torch.optim.lbfgs import LBFGS
 
 import geomstats.backend as gs
 import geomstats.errors
@@ -162,23 +163,19 @@ class Connection:
 
         def objective(velocity):
             """Define the objective function."""
-            velocity = velocity.reshape(base_point.shape)
+            velocity = gs.array(velocity)
+            velocity = gs.reshape(velocity, base_point.shape)
             delta = self.exp(velocity, base_point, n_steps, step) - point
             loss = 1. / self.dim * gs.sum(delta ** 2, axis=-1)
             return 1. / n_samples * gs.sum(loss)
 
-        objective_grad = autograd.elementwise_grad(objective)
-
-        def objective_with_grad(velocity):
-            """Create helpful objective func wrapper for autograd comp."""
-            return objective(velocity), objective_grad(velocity)
-
-        tangent_vec = gs.random.rand(gs.sum(gs.shape(base_point)))
+        objective_with_grad = gs.autograd.value_and_grad(objective)
+        tangent_vec = gs.random.rand(sum(gs.shape(base_point)))
         res = minimize(
             objective_with_grad, tangent_vec, method='L-BFGS-B', jac=True,
             options={'disp': False, 'maxiter': 25})
 
-        tangent_vec = res.x
+        tangent_vec = gs.array(res.x)
         tangent_vec = gs.reshape(tangent_vec, base_point.shape)
         return tangent_vec
 
