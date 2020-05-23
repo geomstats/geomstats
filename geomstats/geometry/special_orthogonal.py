@@ -138,6 +138,35 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         skew = self.to_tangent(random_mat)
         return self.exp(skew)
 
+    @staticmethod
+    @geomstats.vectorization.decorator(['else', 'vector'])
+    def skew_matrix_from_vector(vec):
+        """Get the skew-symmetric matrix derived from the vector.
+
+        In nD, fill a skew-symmetric matrix with the values of the vector.
+
+        Parameters
+        ----------
+        vec : array-like, shape=[..., dim]
+            Vector.
+
+        Returns
+        -------
+        skew_mat : array-like, shape=[..., n, n]
+            Skew-symmetric matrix.
+        """
+        n_vecs, vec_dim = gs.shape(vec)
+
+        mat_dim = gs.cast(
+            ((1. + gs.sqrt(1. + 8. * vec_dim)) / 2.), gs.int32)
+        skew_mat = gs.zeros((n_vecs,) + (self.n,) * 2)
+        upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
+
+        for i in range(n_vecs):
+            skew_mat[i][upper_triangle_indices] = vec[i]
+            skew_mat[i] = skew_mat[i] - gs.transpose(skew_mat[i])
+        return skew_mat
+
 
 class _SpecialOrthogonal3Vectors(LieGroup):
     """Class for the special orthogonal group SO(3) in vector representation.
@@ -411,69 +440,50 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         """
         n_vecs, vec_dim = gs.shape(vec)
 
-        if self.n == 2:
-            vec = gs.tile(vec, [1, 2])
-            vec = gs.reshape(vec, (n_vecs, 2))
+        levi_civita_symbol = gs.tile([[
+            [[0., 0., 0.],
+             [0., 0., 1.],
+             [0., -1., 0.]],
+            [[0., 0., -1.],
+             [0., 0., 0.],
+             [1., 0., 0.]],
+            [[0., 1., 0.],
+             [-1., 0., 0.],
+             [0., 0., 0.]]
+        ]], (n_vecs, 1, 1, 1))
 
-            id_skew = gs.array(
-                gs.tile([[[0., 1.], [-1., 0.]]], (n_vecs, 1, 1)))
-            skew_mat = gs.einsum(
-                '...ij,...i->...ij', gs.cast(id_skew, gs.float32), vec)
+        levi_civita_symbol = gs.array(levi_civita_symbol)
+        levi_civita_symbol += self.epsilon
 
-        elif self.n == 3:
-            levi_civita_symbol = gs.tile([[
-                [[0., 0., 0.],
-                 [0., 0., 1.],
-                 [0., -1., 0.]],
-                [[0., 0., -1.],
-                 [0., 0., 0.],
-                 [1., 0., 0.]],
-                [[0., 1., 0.],
-                 [-1., 0., 0.],
-                 [0., 0., 0.]]
-            ]], (n_vecs, 1, 1, 1))
+        # This avoids dividing by 0.
+        basis_vec_1 = gs.array(
+            gs.tile([[1., 0., 0.]], (n_vecs, 1))) + self.epsilon
+        basis_vec_2 = gs.array(
+            gs.tile([[0., 1., 0.]], (n_vecs, 1))) + self.epsilon
+        basis_vec_3 = gs.array(
+            gs.tile([[0., 0., 1.]], (n_vecs, 1))) + self.epsilon
 
-            levi_civita_symbol = gs.array(levi_civita_symbol)
-            levi_civita_symbol += self.epsilon
+        cross_prod_1 = gs.einsum(
+            'nijk,ni,nj->nk',
+            levi_civita_symbol,
+            basis_vec_1,
+            vec)
+        cross_prod_2 = gs.einsum(
+            'nijk,ni,nj->nk',
+            levi_civita_symbol,
+            basis_vec_2,
+            vec)
+        cross_prod_3 = gs.einsum(
+            'nijk,ni,nj->nk',
+            levi_civita_symbol,
+            basis_vec_3,
+            vec)
 
-            # This avoids dividing by 0.
-            basis_vec_1 = gs.array(
-                gs.tile([[1., 0., 0.]], (n_vecs, 1))) + self.epsilon
-            basis_vec_2 = gs.array(
-                gs.tile([[0., 1., 0.]], (n_vecs, 1))) + self.epsilon
-            basis_vec_3 = gs.array(
-                gs.tile([[0., 0., 1.]], (n_vecs, 1))) + self.epsilon
-
-            cross_prod_1 = gs.einsum(
-                'nijk,ni,nj->nk',
-                levi_civita_symbol,
-                basis_vec_1,
-                vec)
-            cross_prod_2 = gs.einsum(
-                'nijk,ni,nj->nk',
-                levi_civita_symbol,
-                basis_vec_2,
-                vec)
-            cross_prod_3 = gs.einsum(
-                'nijk,ni,nj->nk',
-                levi_civita_symbol,
-                basis_vec_3,
-                vec)
-
-            cross_prod_1 = gs.to_ndarray(cross_prod_1, to_ndim=3, axis=1)
-            cross_prod_2 = gs.to_ndarray(cross_prod_2, to_ndim=3, axis=1)
-            cross_prod_3 = gs.to_ndarray(cross_prod_3, to_ndim=3, axis=1)
-            skew_mat = gs.concatenate(
-                [cross_prod_1, cross_prod_2, cross_prod_3], axis=1)
-
-        else:  # SO(n)
-            mat_dim = gs.cast(
-                ((1. + gs.sqrt(1. + 8. * vec_dim)) / 2.), gs.int32)
-            skew_mat = gs.zeros((n_vecs,) + (self.n,) * 2)
-            upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
-            for i in range(n_vecs):
-                skew_mat[i][upper_triangle_indices] = vec[i]
-                skew_mat[i] = skew_mat[i] - gs.transpose(skew_mat[i])
+        cross_prod_1 = gs.to_ndarray(cross_prod_1, to_ndim=3, axis=1)
+        cross_prod_2 = gs.to_ndarray(cross_prod_2, to_ndim=3, axis=1)
+        cross_prod_3 = gs.to_ndarray(cross_prod_3, to_ndim=3, axis=1)
+        skew_mat = gs.concatenate(
+            [cross_prod_1, cross_prod_2, cross_prod_3], axis=1)
         return skew_mat
 
     @geomstats.vectorization.decorator(['else', 'matrix', 'output_point'])
@@ -1645,8 +1655,9 @@ class _SpecialOrthogonal2Vectors(LieGroup):
             gs.einsum('nij,njk->nik', aux_mat, mat_unitary_v))
         return rot_mat
 
+    @staticmethod
     @geomstats.vectorization.decorator(['else', 'vector'])
-    def skew_matrix_from_vector(self, vec):
+    def skew_matrix_from_vector(vec):
         """Get the skew-symmetric matrix derived from the vector.
 
         In 3D, compute the skew-symmetric matrix,known as the cross-product of
@@ -1664,7 +1675,7 @@ class _SpecialOrthogonal2Vectors(LieGroup):
         skew_mat : array-like, shape=[..., n, n]
             Skew-symmetric matrix.
         """
-        n_vecs, vec_dim = gs.shape(vec)
+        n_vecs, _ = gs.shape(vec)
 
         vec = gs.tile(vec, [1, 2])
         vec = gs.reshape(vec, (n_vecs, 2))

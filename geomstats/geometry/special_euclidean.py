@@ -1045,13 +1045,13 @@ class _SpecialEuclidean2Vectors(LieGroup):
         sin_coef = gs.zeros_like(angle)
 
         cos_coef += mask_close_0_float * (
-                TAYLOR_COEFFS_1_AT_0[0] * angle
-                + TAYLOR_COEFFS_1_AT_0[1] * angle ** 3
-                + TAYLOR_COEFFS_1_AT_0[2] * angle ** 5)
+            TAYLOR_COEFFS_1_AT_0[0] * angle
+            + TAYLOR_COEFFS_1_AT_0[1] * angle ** 3
+            + TAYLOR_COEFFS_1_AT_0[2] * angle ** 5)
         sin_coef += mask_close_0_float * (
-                1
-                - TAYLOR_COEFFS_2_AT_0[0] * angle ** 2
-                - TAYLOR_COEFFS_2_AT_0[2] * angle ** 4)
+            1
+            - TAYLOR_COEFFS_2_AT_0[0] * angle ** 2
+            - TAYLOR_COEFFS_2_AT_0[2] * angle ** 4)
 
         angle = angle + mask_close_0_float * 1e-6
         cos_coef += mask_else_float * ((1. - gs.cos(angle)) / angle)
@@ -1088,7 +1088,6 @@ class _SpecialEuclidean2Vectors(LieGroup):
 
         transform = self._exp_translation_transform(angle)
 
-        n_tangent_vecs, _ = tangent_vec.shape
         exp_translation = gs.einsum('ijk, ik -> ij', transform, translation)
 
         group_exp = gs.concatenate(
@@ -1130,13 +1129,13 @@ class _SpecialEuclidean2Vectors(LieGroup):
         inv_determinant = gs.zeros_like(angle)
 
         inv_determinant += 0.5 * mask_close_0_float / (
-                TAYLOR_COEFFS_1_AT_0[0]
-                + TAYLOR_COEFFS_1_AT_0[1] * angle ** 2
-                + TAYLOR_COEFFS_1_AT_0[2] * angle ** 6)
+            TAYLOR_COEFFS_1_AT_0[0]
+            + TAYLOR_COEFFS_1_AT_0[1] * angle ** 2
+            + TAYLOR_COEFFS_1_AT_0[2] * angle ** 6)
 
         angle = angle + 1e-6
         inv_determinant += mask_else_float * (
-                angle ** 2 / (2 * (1 - gs.cos(angle))))
+            angle ** 2 / (2 * (1 - gs.cos(angle))))
 
         transform = gs.einsum(
             'il, ijk -> ijk', inv_determinant,
@@ -1144,7 +1143,6 @@ class _SpecialEuclidean2Vectors(LieGroup):
 
         translation = point[:, dim_rotations:]
 
-        n_points, _ = point.shape
         log_translation = gs.einsum('ijk, ik -> ij', transform, translation)
 
         return gs.concatenate(
