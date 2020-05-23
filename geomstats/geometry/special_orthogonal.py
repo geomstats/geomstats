@@ -835,8 +835,9 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
             [cross_prod_1, cross_prod_2, cross_prod_3], axis=1)
         return skew_mat
 
+    @staticmethod
     @geomstats.vectorization.decorator(['else', 'matrix', 'output_point'])
-    def vector_from_skew_matrix(self, skew_mat):
+    def vector_from_skew_matrix(skew_mat):
         """Derive a vector from the skew-symmetric matrix.
 
         In 3D, compute the vector defining the cross product
@@ -852,8 +853,6 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         vec : array-like, shape=[..., dim]
             Vector.
         """
-        n_skew_mats, _, _ = skew_mat.shape
-
         vec_1 = gs.to_ndarray(skew_mat[:, 2, 1], to_ndim=2, axis=1)
         vec_2 = gs.to_ndarray(skew_mat[:, 0, 2], to_ndim=2, axis=1)
         vec_3 = gs.to_ndarray(skew_mat[:, 1, 0], to_ndim=2, axis=1)

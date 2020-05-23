@@ -602,13 +602,13 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
         inv_determinant = gs.zeros_like(rot_vec)
 
         inv_determinant += 0.5 * mask_close_0_float / (
-                TAYLOR_COEFFS_1_AT_0[0]
-                + TAYLOR_COEFFS_1_AT_0[1] * rot_vec ** 2
-                + TAYLOR_COEFFS_1_AT_0[2] * rot_vec ** 6)
+            TAYLOR_COEFFS_1_AT_0[0]
+            + TAYLOR_COEFFS_1_AT_0[1] * rot_vec ** 2
+            + TAYLOR_COEFFS_1_AT_0[2] * rot_vec ** 6)
 
         rot_vec = rot_vec + 1e-6
         inv_determinant += mask_else_float * (
-                rot_vec ** 2 / (2 * (1 - gs.cos(rot_vec))))
+            rot_vec ** 2 / (2 * (1 - gs.cos(rot_vec))))
 
         transform = gs.einsum(
             'il, ijk -> ijk', inv_determinant,
@@ -835,15 +835,15 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         coef_2 += mask_0_float * 1. / 6. * gs.ones_like(angle)
 
         coef_1 += mask_close_0_float * (
-                TAYLOR_COEFFS_1_AT_0[0]
-                + TAYLOR_COEFFS_1_AT_0[2] * angle ** 2
-                + TAYLOR_COEFFS_1_AT_0[4] * angle ** 4
-                + TAYLOR_COEFFS_1_AT_0[6] * angle ** 6)
+            TAYLOR_COEFFS_1_AT_0[0]
+            + TAYLOR_COEFFS_1_AT_0[2] * angle ** 2
+            + TAYLOR_COEFFS_1_AT_0[4] * angle ** 4
+            + TAYLOR_COEFFS_1_AT_0[6] * angle ** 6)
         coef_2 += mask_close_0_float * (
-                TAYLOR_COEFFS_2_AT_0[0]
-                + TAYLOR_COEFFS_2_AT_0[2] * angle ** 2
-                + TAYLOR_COEFFS_2_AT_0[4] * angle ** 4
-                + TAYLOR_COEFFS_2_AT_0[6] * angle ** 6)
+            TAYLOR_COEFFS_2_AT_0[0]
+            + TAYLOR_COEFFS_2_AT_0[2] * angle ** 2
+            + TAYLOR_COEFFS_2_AT_0[4] * angle ** 4
+            + TAYLOR_COEFFS_2_AT_0[6] * angle ** 6)
 
         angle += mask_0_float * 1.
 
@@ -892,24 +892,24 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         coef_2 = gs.zeros_like(angle)
 
         coef_2 += mask_close_0_float * (
-                1. / 12. + angle ** 2 / 720.
-                + angle ** 4 / 30240.
-                + angle ** 6 / 1209600.)
+            1. / 12. + angle ** 2 / 720.
+            + angle ** 4 / 30240.
+            + angle ** 6 / 1209600.)
 
         delta_angle = angle - gs.pi
         coef_2 += mask_close_pi_float * (
-                1. / PI2
-                + (PI2 - 8.) * delta_angle / (4. * PI3)
-                - ((PI2 - 12.)
-                   * delta_angle ** 2 / (4. * PI4))
-                + ((-192. + 12. * PI2 + PI4)
-                   * delta_angle ** 3 / (48. * PI5))
-                - ((-240. + 12. * PI2 + PI4)
-                   * delta_angle ** 4 / (48. * PI6))
-                + ((-2880. + 120. * PI2 + 10. * PI4 + PI6)
-                   * delta_angle ** 5 / (480. * PI7))
-                - ((-3360 + 120. * PI2 + 10. * PI4 + PI6)
-                   * delta_angle ** 6 / (480. * PI8)))
+            1. / PI2
+            + (PI2 - 8.) * delta_angle / (4. * PI3)
+            - ((PI2 - 12.)
+               * delta_angle ** 2 / (4. * PI4))
+            + ((-192. + 12. * PI2 + PI4)
+               * delta_angle ** 3 / (48. * PI5))
+            - ((-240. + 12. * PI2 + PI4)
+               * delta_angle ** 4 / (48. * PI6))
+            + ((-2880. + 120. * PI2 + 10. * PI4 + PI6)
+               * delta_angle ** 5 / (480. * PI7))
+            - ((-3360 + 120. * PI2 + 10. * PI4 + PI6)
+               * delta_angle ** 6 / (480. * PI8)))
 
         psi = 0.5 * angle * gs.sin(angle) / (1 - gs.cos(angle))
         coef_2 += mask_else_float * (1 - psi) / (angle ** 2)
