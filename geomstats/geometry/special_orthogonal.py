@@ -836,7 +836,7 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
         return skew_mat
 
     @staticmethod
-    @geomstats.vectorization.decorator(['else', 'matrix', 'output_point'])
+    @geomstats.vectorization.decorator(['matrix', 'output_point'])
     def vector_from_skew_matrix(skew_mat):
         """Derive a vector from the skew-symmetric matrix.
 
