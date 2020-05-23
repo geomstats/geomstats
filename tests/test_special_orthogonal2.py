@@ -56,10 +56,9 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         group = self.so[n]
         rot_vec = gs.array([0.9])
         skew_matrix = group.skew_matrix_from_vector(rot_vec)
-        result = gs.dot(skew_matrix, skew_matrix)
+        result = gs.matmul(skew_matrix, skew_matrix)
         diag = gs.array([-0.81, -0.81])
         expected = algebra_utils.from_vector_to_diagonal_matrix(diag)
-
         self.assertAllClose(result, expected)
 
     def test_skew_matrix_and_vector(self):
@@ -130,8 +129,8 @@ class TestSpecialOrthogonal2(geomstats.tests.TestCase):
         group = self.so[n]
 
         angle = gs.pi / 3
-        expected = gs.array([[1. / 2, -gs.sqrt(3) / 2],
-                             [gs.sqrt(3) / 2, 1. / 2]])
+        expected = gs.array([[1. / 2, -gs.sqrt(3.) / 2],
+                             [gs.sqrt(3.) / 2, 1. / 2]])
         result = group.matrix_from_rotation_vector(gs.array([angle]))
         self.assertAllClose(result, expected)
 

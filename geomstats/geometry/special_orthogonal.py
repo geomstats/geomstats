@@ -1561,10 +1561,10 @@ class _SpecialOrthogonal2Vectors(LieGroup):
             Regularized point.
         """
         regularized_point = point
-        # regularized_point = gs.to_ndarray(regularized_point, to_ndim=2, axis=1)
         regularized_point = gs.mod(regularized_point, 2 * gs.pi)
-        regularized_point = regularized_point * (regularized_point < gs.pi) + (
-                    regularized_point - 2 * gs.pi) * (regularized_point > gs.pi)
+        regularized_point = gs.where(
+            regularized_point < gs.pi,
+            regularized_point, regularized_point - 2 * gs.pi)
         return regularized_point
 
     @geomstats.vectorization.decorator(
