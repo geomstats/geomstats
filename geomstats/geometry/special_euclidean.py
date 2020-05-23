@@ -780,7 +780,7 @@ class _SpecialEuclidean2Vectors(LieGroup):
         return self.get_identity(point_type).shape
 
     def belongs(self, point):
-        """Evaluate if a point belongs to SE(3).
+        """Evaluate if a point belongs to SE(2).
 
         Parameters
         ----------
@@ -790,14 +790,13 @@ class _SpecialEuclidean2Vectors(LieGroup):
         Returns
         -------
         belongs : array-like, shape=[...,]
-            Boolean indicating whether point belongs to SE(3).
+            Boolean indicating whether point belongs to SE(2).
         """
         point_dim = point.shape[-1]
         point_ndim = point.ndim
         belongs = gs.logical_and(point_dim == self.dim, point_ndim < 3)
-
         belongs = gs.logical_and(
-            belongs, self.rotations.belongs(point[..., :self.n]))
+            belongs, self.rotations.belongs(point[..., :self.rotations.dim]))
         return belongs
 
     def regularize(self, point):
@@ -817,7 +816,7 @@ class _SpecialEuclidean2Vectors(LieGroup):
         dim_rotations = rotations.dim
 
         regularized_point = point
-        regularized_point = gs.to_ndarray(regularized_point, to_ndim=2)
+        # regularized_point = gs.to_ndarray(regularized_point, to_ndim=2)
         rot_vec = regularized_point[..., :dim_rotations]
         regularized_rot_vec = rotations.regularize(
             rot_vec)
@@ -1052,13 +1051,14 @@ class _SpecialEuclidean2Vectors(LieGroup):
         sin_coef += mask_close_0_float * (
                 1
                 - TAYLOR_COEFFS_2_AT_0[0] * angle ** 2
-                - TAYLOR_COEFFS_2_AT_0[4] * angle ** 4)
+                - TAYLOR_COEFFS_2_AT_0[2] * angle ** 4)
 
+        angle = angle + mask_close_0_float * 1e-6
         cos_coef += mask_else_float * ((1. - gs.cos(angle)) / angle)
         sin_coef += mask_else_float * (gs.sin(angle) / angle)
 
-        sin_term = gs.einsum('...,...i->...i', sin_coef, base_1)
-        cos_term = gs.einsum('...,...i->...i', cos_coef, base_2)
+        sin_term = gs.einsum('...i,...ij->...ij', sin_coef, base_1)
+        cos_term = gs.einsum('...i,...ij->...ij', cos_coef, base_2)
         transform = sin_term + cos_term
 
         return transform
@@ -1117,8 +1117,7 @@ class _SpecialEuclidean2Vectors(LieGroup):
         dim_rotations = rotations.dim
 
         rot_vec = point[:, :dim_rotations]
-        angle = gs.linalg.norm(rot_vec, axis=1)
-        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
+        angle = gs.to_ndarray(rot_vec, to_ndim=2, axis=1)
 
         exp_transform = self._exp_translation_transform(angle)
 
@@ -1135,11 +1134,13 @@ class _SpecialEuclidean2Vectors(LieGroup):
                 + TAYLOR_COEFFS_1_AT_0[1] * angle ** 2
                 + TAYLOR_COEFFS_1_AT_0[2] * angle ** 6)
 
+        angle = angle + 1e-6
         inv_determinant += mask_else_float * (
                 angle ** 2 / (2 * (1 - gs.cos(angle))))
 
-        transform = inv_determinant * gs.transpose(
-            exp_transform, axes=[0, 2, 1])
+        transform = gs.einsum(
+            'il, ijk -> ijk', inv_determinant,
+            gs.transpose(exp_transform, axes=[0, 2, 1]))
 
         translation = point[:, dim_rotations:]
 
@@ -1198,5 +1199,5 @@ class SpecialEuclidean(_SpecialEuclidean2Vectors,
         if n != 3 and point_type == 'vector':
             raise NotImplementedError(
                 'SE(n) is only implemented in matrix representation'
-                ' when n != 3.')
+                ' when n > 3.')
         return _SpecialEuclideanMatrices(n)
