@@ -1654,9 +1654,8 @@ class _SpecialOrthogonal2Vectors(LieGroup):
             gs.einsum('nij,njk->nik', aux_mat, mat_unitary_v))
         return rot_mat
 
-    @staticmethod
     @geomstats.vectorization.decorator(['else', 'vector'])
-    def skew_matrix_from_vector(vec):
+    def skew_matrix_from_vector(self, vec):
         """Get the skew-symmetric matrix derived from the vector.
 
         In 3D, compute the skew-symmetric matrix,known as the cross-product of
@@ -1676,8 +1675,8 @@ class _SpecialOrthogonal2Vectors(LieGroup):
         """
         n_vecs, _ = gs.shape(vec)
 
-        vec = gs.tile(vec, [1, 2])
-        vec = gs.reshape(vec, (n_vecs, 2))
+        vec = gs.tile(vec, [1, self.n])
+        vec = gs.reshape(vec, (n_vecs, self.n))
 
         id_skew = gs.array(
             gs.tile([[[0., 1.], [-1., 0.]]], (n_vecs, 1, 1)))

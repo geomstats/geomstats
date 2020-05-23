@@ -4,9 +4,9 @@ import warnings
 
 import tests.helper as helper
 
-from geomstats import algebra_utils
 import geomstats.backend as gs
 import geomstats.tests
+from geomstats import algebra_utils
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
