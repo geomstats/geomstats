@@ -138,9 +138,8 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         skew = self.to_tangent(random_mat)
         return self.exp(skew)
 
-    @staticmethod
     @geomstats.vectorization.decorator(['else', 'vector'])
-    def skew_matrix_from_vector(vec):
+    def skew_matrix_from_vector(self, vec):
         """Get the skew-symmetric matrix derived from the vector.
 
         In nD, fill a skew-symmetric matrix with the values of the vector.
@@ -438,7 +437,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         skew_mat : array-like, shape=[..., n, n]
             Skew-symmetric matrix.
         """
-        n_vecs, vec_dim = gs.shape(vec)
+        n_vecs, _ = gs.shape(vec)
 
         levi_civita_symbol = gs.tile([[
             [[0., 0., 0.],
