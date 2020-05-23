@@ -155,7 +155,7 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
 class _SpecialEuclideanVectors(LieGroup):
     """Base Class for the special euclidean groups in 2d and 3d in vector form.
 
-    i.e. the Lie group of rigid transformations. Elements of SE(2) and SE(3) can
+    i.e. the Lie group of rigid transformations. Elements of SE(2), SE(3) can
     either be represented as vectors (in 2d) or as matrices in general. The
     matrix representation corresponds to homogeneous coordinates. This class is
     specific to the vector representation of rotations. For the matrix
