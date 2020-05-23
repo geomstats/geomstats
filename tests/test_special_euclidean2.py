@@ -12,7 +12,6 @@ import tests.helper as helper
 
 import geomstats.backend as gs
 import geomstats.tests
-from geomstats.geometry.invariant_metric import InvariantMetric
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 # Tolerance for errors on predicted vectors, relative to the *norm*
