@@ -145,10 +145,10 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             raise NotImplementedError
         if mean_spd is None and eigensummary is None:
             raise NotImplementedError
-        elif eigensummary is None:
+        if eigensummary is None:
             eigenvalues, eigenspace = gs.linalg.eigh(mean_spd)
             eigenvalues = gs.diag(eigenvalues)
-        elif mean_spd is None:
+        if mean_spd is None:
             eigenvalues, eigenspace\
                 = eigensummary.eigenvalues, eigensummary.eigenspace
         rotations = SpecialOrthogonal(n).random_gaussian(
@@ -199,10 +199,10 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             raise NotImplementedError
         if mean_spd is None and eigensummary is None:
             raise NotImplementedError
-        elif eigensummary is None:
+        if eigensummary is None:
             eigenvalues, eigenspace = gs.linalg.eigh(mean_spd)
             eigenvalues = gs.diag(eigenvalues)
-        elif mean_spd is None:
+        if mean_spd is None:
             eigenvalues, eigenspace\
                 = eigensummary.eigenvalues, eigensummary.eigenspace
         rotations = SpecialOrthogonal(n).random_gaussian(
