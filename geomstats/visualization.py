@@ -666,7 +666,7 @@ class Ellipsis2D:
         return X, y, X[n_steps // 4], y[n_steps // 4]
 
     @staticmethod
-    def plot(self):
+    def plot():
         """Plot final plot."""
         plt.legend(loc='best')
         plt.show()
