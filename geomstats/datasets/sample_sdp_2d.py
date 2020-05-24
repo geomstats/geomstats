@@ -9,15 +9,17 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 class DatasetSPD2D:
     """Sample 2D SPD dataset.
 
-    Attributes
-    ----------
-    n_samples: int, number of samples per class;
-    n_features: int, dimension of data;
-    n_classes: int, number of classes;
-    data_helper: DataHelper, wrapper for helper methods.
-
     Data is of shape [n_samples * n_classes, n_features];
     Labels are of shape [n_samples * n_classes, n_classes].
+
+    Attributes
+    ----------
+    n_samples: int
+        Number of samples per class.
+    n_features: int
+        Dimension of data.
+    n_classes: int
+        Number of classes.
     """
 
     def __init__(self, n_samples=100, n_features=2, n_classes=3):
@@ -28,10 +30,13 @@ class DatasetSPD2D:
     def generate_sample_dataset(self):
         """Generate the dataset.
 
-        :return:
-        X: array-like,
-           shape = [n_samples * n_classes, n_features, n_features]: data
-        y: array-like, shape = [n_samples * n_classes, n_classes]: labels
+        Returns
+        -------
+        X : array-like,
+           shape = [n_samples * n_classes, n_features, n_features]
+            Data.
+        y : array-like, shape = [n_samples * n_classes, n_classes]
+            Labels.
         """
         X, y = self.setup_data()
         X, y = shuffle(X, y)
@@ -40,10 +45,13 @@ class DatasetSPD2D:
     def setup_data(self):
         """Generate the un-shuffled dataset.
 
-        :return:
-        X: array-like,
-           shape = [n_samples * n_classes, n_features, n_features]: data
-        y: array-like, shape = [n_samples * n_classes, n_classes]: labels
+        Returns
+        -------
+        X : array-like,
+           shape = [n_samples * n_classes, n_features, n_features]
+            Data.
+        y : array-like, shape = [n_samples * n_classes, n_classes]
+            Labels.
         """
         mean_covariance_eigenvalues = gs.random.uniform(
             0.1, 5., (self.n_classes, self.n_features))
@@ -68,10 +76,19 @@ class DatasetSPD2D:
     def make_data(self, eigenspace, eigenvalues, var):
         """Generate Gaussian data from mean matrix and variance.
 
-        :param eigenspace: array-like, shape = [n, n]
-        :param eigenvalues: array-like, shape = [n, n] (diagonal matrix)
-        :param var: float, variance of the wanted distribution.
-        :return: array-like, shape = [n, n]: data.
+        Parameters
+        ----------
+        eigenspace : array-like, shape = [n, n]
+            Data eigenvectors.
+        eigenvalues : array-like, shape = [n, n]
+            Eigenvalues matrix (diagonal matrix).
+        var : float
+            Variance of the wanted distribution.
+
+        Returns
+        -------
+        spd_data : array-like, shape = [n, n]
+            Output data.
         """
         spd = SPDMatrices(n=self.n_features)
         eigensummary = EigenSummary(eigenspace, eigenvalues)
@@ -83,11 +100,21 @@ class DatasetSPD2D:
     def make_data_noisy(self, eigenspace, eigenvalues, var, var_eigenvalues):
         """Generate noisy Gaussian data from mean matrix and variance.
 
-        :param eigenspace: array-like, shape = [n, n]
-        :param eigenvalues: array-like, shape = [n, n] (diagonal matrix)
-        :param var: float, variance of the wanted distribution.
-        :param var_eigenvalues: float, noise within the distribution.
-        :return: array-like, shape = [n, n]: data.
+        Parameters
+        ----------
+        eigenspace : array-like, shape = [n, n]
+            Data eigenvectors.
+        eigenvalues : array-like, shape = [n, n]
+            Eigenvalues matrix (diagonal matrix).
+        var : float
+            Variance of the wanted distribution.
+        var_eigenvalues : float
+            Noise within the distribution.
+
+        Returns
+        -------
+        spd_data : array-like, shape = [n, n]
+            Output data.
         """
         spd = SPDMatrices(n=self.n_features)
         eigensummary = EigenSummary(eigenspace, eigenvalues)
@@ -100,24 +127,41 @@ class DatasetSPD2D:
 def shuffle(X, Y):
     """Shuffle the dataset.
 
-    X: array-like,
-       shape = [n_samples * n_classes, n_features, n_features]: data
-    :param Y: array-like, shape = [n_samples * n_classes, n_classes]
-    :return: Co-shuffled version of X and Y
+    Parameters
+    ----------
+    X : array-like,
+       shape = [n_samples * n_classes, n_features, n_features]
+        Data to shuffle.
+    Y : array-like, shape = [n_samples * n_classes, n_classes]
+        Labels to shuffle along with the data.
+
+    Returns
+    -------
+    X_ : Shuffled version of X
+    Y_ : Shuffled version of Y
     """
     tmp = list(zip(X, Y))
     gs.random.shuffle(tmp)
     X, Y = zip(*tmp)
-    X = gs.array(X)
-    Y = gs.array(Y)
-    return X, Y
+    X_ = gs.array(X)
+    Y_ = gs.array(Y)
+    return X_, Y_
 
 
 def get_label_at_index(i, labels):
     """Get the label of data point indexed by 'i'.
 
-    :param i: int, index of data point.
-    :param labels: array-like, shape = [n_samples * n_classes, n_features]
-    :return: int, class index.
+    Parameters
+    ----------
+    i : int
+        Index of data point.
+    labels : array-like, shape = [n_samples * n_classes, n_features]
+        All labels.
+
+    Returns
+    -------
+    label_i : int
+        Class index.
     """
-    return gs.where(labels[i])[0][0]
+    label_i = gs.where(labels[i])[0][0]
+    return label_i
