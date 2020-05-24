@@ -35,7 +35,7 @@ def main():
     # plot Frechet means computed in the MDM
     for i in range(n_classes):
         ellipsis.draw(
-            MDMEstimator.mean_estimate_[i],
+            MDMEstimator.mean_estimates_[i],
             color=ellipsis.colors_alt[i],
             linewidth=5,
             label='Barycenter of class ' + str(i))
@@ -49,7 +49,7 @@ def main():
         x_from, y_from = ellipsis.draw(
             data_test[i], color=ellipsis.colors[c], linewidth=5)
         _, _, x_to, y_to = ellipsis.compute_coordinates(
-            MDMEstimator.mean_estimate_[c])
+            MDMEstimator.mean_estimates_[c])
         arrow = visualization.DataArrow(ellipsis.fig)
         arrow.draw(x_from, y_from, x_to, y_to)
 

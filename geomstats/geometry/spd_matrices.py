@@ -116,19 +116,28 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             self, mean_spd=None, eigensummary=None, var_rotations=1.,
             n_samples=1):
         r"""
-        Define a Gaussian random sample of SPD matrices.
+        Define a Gaussian-like random sample of SPD matrices.
 
-        (actually an orbit for rotations)
-        :param mean_spd: array-like, shape = [n, n]: mean SPD matrix.
-        :param var_rotations: float: variance in rotation.
-        :param eigensummary: EigenSummary: represents the mean SPD matrix
-               decomposed in eigenspace and eigenvalues.
-        mean_spd and eigensummary are mutually exclusive; an error is thrown
-        if both are not None, or if both are None.
+        Formally speaking, sample an orbit for given rotations in the SPD
+        manifold. For all means and purposes, it looks rather Gaussian.
 
+        Parameters
+        ----------
+        mean_spd : array-like, shape = [n, n]
+            Mean SPD matrix.
+        var_rotations : float
+            Variance in rotation.
+        eigensummary : EigenSummary
+            Represents the mean SPD matrix decomposed in eigenspace and
+            eigenvalues.
+
+        Notes
+        -----
         :math:'mean_spd' is the mean SPD matrix; :math:'var_rotations' is the
         scalar variance by which the mean is rotated:
         :math:'X_{out} = R \Sigma_{in} R^T'.
+        mean_spd and eigensummary are mutually exclusive; an error is thrown
+        if both are not None, or if both are None.
         """
         n = self.n
 
@@ -156,22 +165,31 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
                                              var_eigenvalues=None,
                                              n_samples=1):
         r"""
-        Define a Gaussian random sample of SPD matrices.
+        Define a Gaussian-like random sample of SPD matrices.
 
-        (actually an orbit for rotations)
-        :param mean_spd: array-like, shape = [n, n]: mean SPD matrix.
-        :param var_rotations: float: variance in rotation.
-        :param var_eigenvalues: array-like, shape = [n,]: additional
-               variance in eigenvalues.
-        :param eigensummary: EigenSummary: represents the mean SPD matrix
-               decomposed in eigenspace and eigenvalues.
-        mean_spd and eigensummary are mutually exclusive; an error is thrown
-        if both are not None, or if both are None.
+        Formally speaking, sample an orbit for given rotations in the SPD
+        manifold. For all means and purposes, it looks rather Gaussian.
 
+        Parameters
+        ----------
+        mean_spd : array-like, shape = [n, n]
+            Mean SPD matrix.
+        var_rotations : float
+            Variance in rotation.
+        var_eigenvalues : array-like, shape = [n,]
+            Additional variance in eigenvalues.
+        eigensummary : EigenSummary
+            Represents the mean SPD matrix decomposed in eigenspace and
+            eigenvalues.
+
+        Notes
+        -----
         :math:'mean_spd' is the mean SPD matrix; :math:'var_rotations' is the
         scalar variance by which the mean is rotated:
         :math:'\Sigma_{mid} \sim \mathcal{N}(\Sigma_{in}, \sigma_{eig}';
         :math:'X_{out} = R \Sigma_{in} R^T'.
+        mean_spd and eigensummary are mutually exclusive; an error is thrown
+        if both are not None, or if both are None.
         """
         n = self.n
         if var_eigenvalues is None:
