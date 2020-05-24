@@ -665,6 +665,7 @@ class Ellipsis2D:
         y = e1 * gs.cos(the) * s + c * e2 * gs.sin(the) + y0
         return X, y, X[n_steps // 4], y[n_steps // 4]
 
+    @staticmethod
     def plot(self):
         """Plot final plot."""
         plt.legend(loc='best')
