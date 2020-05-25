@@ -37,8 +37,8 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
 
         MDMEstimator.fit(train_data, train_labels)
 
-        bary_a_result = MDMEstimator.mean_estimate[0]
-        bary_b_result = MDMEstimator.mean_estimate[1]
+        bary_a_result = MDMEstimator.mean_estimates_[0]
+        bary_b_result = MDMEstimator.mean_estimates_[1]
 
         self.assertAllClose(bary_a_result, bary_a_expected)
         self.assertAllClose(bary_b_result, bary_b_expected)
@@ -54,7 +54,7 @@ class TestRiemannianMinimumDistanceToMeanClassifier(geomstats.tests.TestCase):
 
         MDMEstimator = RiemannianMinimumDistanceToMeanClassifier(
             SPDMetricAffine(n=2), n_clusters, point_type='matrix')
-        MDMEstimator.mean_estimate = gs.concatenate(
+        MDMEstimator.mean_estimates_ = gs.concatenate(
             [bary_a[None, ...], bary_b[None, ...]])
 
         X = gs.array([[EULER ** 3, 0],
