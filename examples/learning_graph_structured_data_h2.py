@@ -131,7 +131,7 @@ def main():
     """
     gs.random.seed(1234)
     dim = 2
-    max_epochs = 5
+    max_epochs = 100
     lr = .05
     n_negative = 2
     context_size = 1
