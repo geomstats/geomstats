@@ -156,9 +156,9 @@ class _SpecialEuclideanVectors(LieGroup):
     """Base Class for the special euclidean groups in 2d and 3d in vector form.
 
     i.e. the Lie group of rigid transformations. Elements of SE(2), SE(3) can
-    either be represented as vectors (in 2d) or as matrices in general. The
-    matrix representation corresponds to homogeneous coordinates. This class is
-    specific to the vector representation of rotations. For the matrix
+    either be represented as vectors (in 2d or 3d) or as matrices in general.
+    The matrix representation corresponds to homogeneous coordinates. This
+    class is specific to the vector representation of rotations. For the matrix
     representation use the SpecialEuclidean class and set `n=2` or `n=3`.
 
     Parameter
@@ -204,17 +204,17 @@ class _SpecialEuclideanVectors(LieGroup):
         return self.get_identity(point_type).shape
 
     def belongs(self, point):
-        """Evaluate if a point belongs to SE(2).
+        """Evaluate if a point belongs to SE(2) or SE(3).
 
         Parameters
         ----------
-        point : array-like, shape=[..., 3]
+        point : array-like, shape=[..., dimension]
             Point to check.
 
         Returns
         -------
         belongs : array-like, shape=[...,]
-            Boolean indicating whether point belongs to SE(2).
+            Boolean indicating whether point belongs to SE(2) or SE(3).
         """
         point_dim = point.shape[-1]
         point_ndim = point.ndim
@@ -810,7 +810,7 @@ class _SpecialEuclidean3Vectors(_SpecialEuclideanVectors):
         Returns
         -------
         transform : array-like, shape=[..., 3, 3]
-        Matrix to be applied to the translation part in exp
+            Matrix to be applied to the translation part in exp.
         """
         n_samples = rot_vec.shape[0]
 
