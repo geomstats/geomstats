@@ -21,8 +21,6 @@ from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 RTOL = 1e-5
 
-# TODO(nina): Speed up tf tests
-
 
 class TestSpecialEuclidean3Methods(geomstats.tests.TestCase):
     def setUp(self):

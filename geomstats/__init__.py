@@ -1,8 +1,8 @@
-__version__ = '2.0.0'
+__version__ = '2.1.0'
 
 import geomstats._backend
 import geomstats._logging
-import geomstats.geometry.discretized_curves
+import geomstats.geometry.discrete_curves
 import geomstats.geometry.euclidean
 import geomstats.geometry.hyperbolic
 import geomstats.geometry.hypersphere

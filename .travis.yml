@@ -11,6 +11,8 @@ install:
     for req in ci-requirements.txt dev-requirements.txt opt-requirements.txt requirements.txt; do
       pip install -q -r $req
     done
+before_script:
+  - export PYTHONPATH=$PYTHONPATH:$(pwd)
 script:
   - flake8 --ignore=D,W503,W504 geomstats examples tests
   - flake8 geomstats/geometry geomstats/learning

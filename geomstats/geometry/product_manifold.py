@@ -32,9 +32,13 @@ class ProductManifold(Manifold):
         List of manifolds in the product.
     default_point_type : str, {'vector', 'matrix'}
         Default representation of points.
+        Optional, default: 'vector'.
+    n_jobs : int
+        Number of jobs for parallel computing.
+        Optional, default: 1.
     """
 
-    # FIXME(nguigs): This only works for 1d points
+    # FIXME (nguigs): This only works for 1d points
 
     def __init__(self, manifolds, default_point_type='vector', n_jobs=1):
         geomstats.errors.check_parameter_accepted_values(
@@ -80,22 +84,25 @@ class ProductManifold(Manifold):
             Point.
         point_type : str, {'vector', 'matrix'}
             Representation of point.
+            Optional, default: None.
 
         Returns
         -------
-        belongs : array-like, shape=[..., 1]
-            Array of booleans evaluating if the corresponding points
-            belong to the manifold.
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if the point belongs to the manifold.
         """
         if point_type is None:
             point_type = self.default_point_type
+        geomstats.errors.check_parameter_accepted_values(
+            point_type, 'point_type', ['vector', 'matrix'])
+
         if point_type == 'vector':
             intrinsic = self.metric.is_intrinsic(point)
             belongs = self._iterate_over_manifolds(
                 'belongs', {'point': point}, intrinsic)
             belongs = gs.stack(belongs, axis=1)
 
-        elif point_type == 'matrix':
+        else:
             belongs = gs.stack([
                 space.belongs(point[:, i]) for i, space in enumerate(
                     self.manifolds)],
@@ -115,6 +122,7 @@ class ProductManifold(Manifold):
             Point to be regularized.
         point_type : str, {'vector', 'matrix'}
             Representation of point.
+            Optional, default: None.
 
         Returns
         -------
@@ -147,6 +155,7 @@ class ProductManifold(Manifold):
             Number of samples.
         point_type : str, {'vector', 'matrix'}
             Representation of point.
+            Optional, default: None.
 
         Returns
         -------
@@ -166,8 +175,6 @@ class ProductManifold(Manifold):
                     data = gs.concatenate([data, samples], axis=-1)
             return data
 
-        point = [
-            space.random_uniform(n_samples)
-            for space in self.manifolds]
-        samples = gs.stack(point, axis=1)
+        point = [space.random_uniform(n_samples) for space in self.manifolds]
+        samples = gs.stack(point, axis=-2)
         return samples

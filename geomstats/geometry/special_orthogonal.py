@@ -7,8 +7,8 @@ from geomstats import algebra_utils
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup
-from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
+from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 
 ATOL = 1e-5
@@ -42,31 +42,88 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         self.lie_algebra = SkewSymmetricMatrices(n=n)
         self.bi_invariant_metric = BiInvariantMetric(group=self)
 
-    def belongs(self, point):
-        """Check whether point is an orthogonal matrix."""
+    def belongs(self, point, atol=ATOL):
+        """Check whether point is an orthogonal matrix.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point to check.
+        atol : float
+            Absolute tolerance to check equality of the transpose and the
+            inverse of point.
+            Optional, default: 1e-5.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to SO(n).
+        """
         return self.equal(
-            self.mul(point, self.transpose(point)), self.identity)
+            self.mul(point, self.transpose(point)), self.identity, atol=atol)
 
     @classmethod
     def inverse(cls, point):
-        """Return the transpose matrix of point."""
+        """Return the transpose matrix of point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Point in SO(n).
+
+        Returns
+        -------
+        inverse : array-like, shape=[..., n, n]
+            Inverse.
+        """
         return cls.transpose(point)
+
+    @classmethod
+    def projection(cls, point):
+        """Project a matrix on SO(n) by minimizing the Frobenius norm.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., n, n]
+            Matrix.
+
+        Returns
+        -------
+        rot_mat : array-like, shape=[..., n, n]
+            Rotation matrix.
+        """
+        aux_mat = cls.mul(cls.transpose(point), point)
+        inv_sqrt_mat = SymmetricMatrices.powerm(aux_mat, - 1 / 2)
+        rot_mat = cls.mul(point, inv_sqrt_mat)
+        return rot_mat
 
     def _is_in_lie_algebra(self, tangent_vec, atol=ATOL):
         return self.lie_algebra.belongs(tangent_vec, atol=atol)
 
     @classmethod
-    def _to_lie_algebra(cls, tangent_vec):
-        """Project vector onto skew-symmetric matrices."""
-        return cls.to_skew_symmetric(tangent_vec)
+    def _to_lie_algebra(cls, vec):
+        """Project vector onto skew-symmetric matrices.
+
+        Parameters
+        ----------
+        vec : array-like, shape=[..., n, n]
+            Vector.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        """
+        return cls.to_skew_symmetric(vec)
 
     def random_uniform(self, n_samples=1, tol=1e-6):
         """Sample in SO(n) from the uniform distribution.
 
         Parameters
         ----------
-        n_samples : int, optional (1)
+        n_samples : int
             Number of samples.
+            Optional, default: 1.
         tol : unused
 
         Returns
@@ -91,10 +148,10 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
     Parameters
     ----------
-    epsilon : float, optional
-        precision to use for calculations involving potential divison by 0 in
-        rotations
-        default: 0
+    epsilon : float
+        Precision to use for calculations involving potential divison by 0 in
+        rotations.
+        Optional, default: 0.
     """
 
     def __init__(self, epsilon=0.):
@@ -110,12 +167,13 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        point_type : str,
+        point_type : str, {'vector', 'matrix'}
             Point_type of the returned value. Unused here.
 
         Returns
         -------
         identity : array-like, shape=[3,]
+            Identity.
         """
         identity = gs.zeros(self.dim)
         if point_type == 'matrix':
@@ -124,13 +182,14 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
     identity = property(get_identity)
 
-    def belongs(self, point):
+    def belongs(self, point, atol=ATOL):
         """Evaluate if a point belongs to SO(3).
 
         Parameters
         ----------
         point : array-like, shape=[..., 3]
             Point to check whether it belongs to SO(3).
+        atol : unused
 
         Returns
         -------
@@ -157,10 +216,12 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         point : array-like, shape=[...,3]
+            Point.
 
         Returns
         -------
         regularized_point : array-like, shape=[..., 3]
+            Regularized point.
         """
         regularized_point = point
         angle = gs.linalg.norm(regularized_point, axis=-1)
@@ -203,13 +264,16 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[..., 3]]
-        metric : RiemannianMetric, optional
-            default: self.left_canonical_metric
+        tangent_vec : array-like, shape=[..., 3]
+            Tangent vector at base point.
+        metric : RiemannianMetric
+            Metric.
+            Optional, default: self.left_canonical_metric.
 
         Returns
         -------
-        regularized_vec : array-like, shape=[..., 3]]
+        regularized_vec : array-like, shape=[..., 3]
+            Regularized tangent vector.
         """
         if metric is None:
             metric = self.left_canonical_metric
@@ -266,85 +330,64 @@ class _SpecialOrthogonal3Vectors(LieGroup):
             Tangent vector at base point.
         base_point : array-like, shape=[..., 3]
             Point on the manifold.
-        metric : RiemannianMetric, optional
-            default: self.left_canonical_metric
+        metric : RiemannianMetric
+            Metric.
+            Optional, default: self.left_canonical_metric.
 
         Returns
         -------
-        regularized_tangent_vec : array-like,
-            shape=[..., 3]
+        regularized_tangent_vec : array-like, shape=[..., 3]
+            Regularized tangent vector.
         """
         if metric is None:
             metric = self.left_canonical_metric
         base_point = self.regularize(base_point)
-        n_vecs = tangent_vec.shape[0]
 
-        jacobian = self.jacobian_translation(
-            point=base_point, left_or_right=metric.left_or_right)
-        jacobian = gs.array([jacobian[0]] * n_vecs)
-        inv_jacobian = gs.linalg.inv(jacobian)
-        inv_jacobian = gs.to_ndarray(inv_jacobian, to_ndim=3)
-        tangent_vec_at_id = gs.einsum(
-            '...i,...ij->...j',
-            tangent_vec,
-            Matrices.transpose(inv_jacobian))
+        tangent_vec_at_id = self.tangent_translation_map(
+            base_point, left_or_right=metric.left_or_right, inverse=True)(
+            tangent_vec
+        )
 
         tangent_vec_at_id = self.regularize_tangent_vec_at_identity(
             tangent_vec_at_id, metric)
 
-        jacobian = gs.to_ndarray(jacobian, to_ndim=3)
-        regularized_tangent_vec = gs.einsum(
-            '...i,...ij->...j',
-            tangent_vec_at_id,
-            Matrices.transpose(jacobian))
+        regularized_tangent_vec = self.tangent_translation_map(
+            base_point, left_or_right=metric.left_or_right)(tangent_vec_at_id)
 
         return regularized_tangent_vec
 
     @geomstats.vectorization.decorator(['else', 'matrix'])
     def projection(self, point):
-        """Project a matrix on SO(n) using the Frobenius norm.
+        """Project a matrix on SO(3) using the Frobenius norm.
 
         Parameters
         ----------
-        mat : array-like, shape=[..., n, n]
+        point : array-like, shape=[..., n, n]
+            Matrix.
 
         Returns
         -------
         rot_mat : array-like, shape=[..., n, n]
+            Rotation matrix.
         """
         mat = point
-        n_mats, n, _ = mat.shape
+        n_mats, _, _ = mat.shape
 
-        if n == 3:
-            mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
-            rot_mat = gs.einsum('nij,njk->nik', mat_unitary_u, mat_unitary_v)
-            mask = gs.less(gs.linalg.det(rot_mat), 0.)
-            mask_float = gs.cast(mask, gs.float32) + self.epsilon
-            diag = gs.array([[1., 1., -1.]])
-            diag = gs.to_ndarray(
-                algebra_utils.from_vector_to_diagonal_matrix(diag),
-                to_ndim=3) + self.epsilon
-            new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
+        mat_unitary_u, _, mat_unitary_v = gs.linalg.svd(mat)
+        rot_mat = gs.einsum('nij,njk->nik', mat_unitary_u, mat_unitary_v)
+        mask = gs.less(gs.linalg.det(rot_mat), 0.)
+        mask_float = gs.cast(mask, gs.float32) + self.epsilon
+        diag = gs.array([[1., 1., -1.]])
+        diag = gs.to_ndarray(
+            algebra_utils.from_vector_to_diagonal_matrix(diag),
+            to_ndim=3) + self.epsilon
+        new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
-            aux_mat = gs.einsum(
-                'nij,njk->nik',
-                mat_unitary_u,
-                new_mat_diag_s)
-            rot_mat += gs.einsum(
-                'n,njk->njk',
-                mask_float,
-                gs.einsum(
-                    'nij,njk->nik',
-                    aux_mat,
-                    mat_unitary_v))
-        else:
-            aux_mat = gs.matmul(gs.transpose(mat, axes=(0, 2, 1)), mat)
-
-            inv_sqrt_mat = gs.linalg.inv(
-                gs.linalg.sqrtm(aux_mat))
-
-            rot_mat = gs.matmul(mat, inv_sqrt_mat)
-
+        aux_mat = gs.einsum(
+            'nij,njk->nik', mat_unitary_u, new_mat_diag_s)
+        rot_mat += gs.einsum(
+            'n,njk->njk', mask_float,
+            gs.einsum('nij,njk->nik', aux_mat, mat_unitary_v))
         return rot_mat
 
     @geomstats.vectorization.decorator(['else', 'vector'])
@@ -359,10 +402,12 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         vec : array-like, shape=[..., dim]
+            Vector.
 
         Returns
         -------
         skew_mat : array-like, shape=[..., n, n]
+            Skew-symmetric matrix.
         """
         n_vecs, vec_dim = gs.shape(vec)
 
@@ -441,10 +486,12 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         skew_mat : array-like, shape=[..., n, n]
+            Skew-symmetric matrix.
 
         Returns
         -------
         vec : array-like, shape=[..., dim]
+            Vector.
         """
         n_skew_mats, _, _ = skew_mat.shape
 
@@ -486,10 +533,12 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         rot_mat : array-like, shape=[..., n, n]
+            Rotation matrix.
 
         Returns
         -------
         regularized_rot_vec : array-like, shape=[..., 3]
+            Rotation vector.
         """
         n_rot_mats, _, _ = rot_mat.shape
 
@@ -534,10 +583,12 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         rot_vec: array-like, shape=[..., 3]
+            Rotation vector.
 
         Returns
         -------
         rot_mat: array-like, shape=[..., 3]
+            Rotation matrix.
         """
         rot_vec = self.regularize(rot_vec)
 
@@ -585,10 +636,12 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         rot_mat : array-like, shape=[..., 3, 3]
+            Rotation matrix.
 
         Returns
         -------
         quaternion : array-like, shape=[..., 4]
+            Quaternion.
         """
         rot_vec = self.rotation_vector_from_matrix(rot_mat)
         quaternion = self.quaternion_from_rotation_vector(rot_vec)
@@ -602,10 +655,12 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         rot_vec : array-like, shape=[..., 3]
+            Rotation vector.
 
         Returns
         -------
         quaternion : array-like, shape=[..., 4]
+            Quaternion.
         """
         rot_vec = self.regularize(rot_vec)
 
@@ -635,10 +690,12 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         quaternion : array-like, shape=[..., 4]
+            Quaternion.
 
         Returns
         -------
         rot_vec : array-like, shape=[..., 3]
+            Rotation vector.
         """
         cos_half_angle = quaternion[:, 0]
         cos_half_angle = gs.clip(cos_half_angle, -1, 1)
@@ -669,10 +726,12 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         quaternion : array-like, shape=[..., 4]
+            Quaternion.
 
         Returns
         -------
         rot_mat : array-like, shape=[..., 3]
+            Rotation matrix.
         """
         n_quaternions, _ = quaternion.shape
 
@@ -681,7 +740,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         rot_mat = gs.zeros((n_quaternions,) + (self.n,) * 2)
 
         for i in range(n_quaternions):
-            # TODO(nina): Vectorize by applying the composition of
+            # TODO (nina): Vectorize by applying the composition of
             # quaternions to the identity matrix
             column_1 = [w[i] ** 2 + x[i] ** 2 - y[i] ** 2 - z[i] ** 2,
                         2 * x[i] * y[i] - 2 * w[i] * z[i],
@@ -703,8 +762,9 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
         return rot_mat
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
-    def matrix_from_tait_bryan_angles_extrinsic_xyz(self, tait_bryan_angles):
+    @staticmethod
+    @geomstats.vectorization.decorator(['vector'])
+    def matrix_from_tait_bryan_angles_extrinsic_xyz(tait_bryan_angles):
         """Convert Tait-Bryan angles to rot mat in extrensic coords (xyz).
 
         Convert a rotation given in terms of the tait bryan angles,
@@ -727,11 +787,12 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         """
         n_tait_bryan_angles, _ = tait_bryan_angles.shape
 
-        rot_mat = gs.zeros((n_tait_bryan_angles,) + (self.n,) * 2)
+        rot_mat = []
         angle_1 = tait_bryan_angles[:, 0]
         angle_2 = tait_bryan_angles[:, 1]
         angle_3 = tait_bryan_angles[:, 2]
 
+        # TODO: avoid for loop in vectorization of tait bryan angles
         for i in range(n_tait_bryan_angles):
             cos_angle_1 = gs.cos(angle_1[i])
             sin_angle_1 = gs.sin(angle_1[i])
@@ -754,11 +815,12 @@ class _SpecialOrthogonal3Vectors(LieGroup):
                           - cos_angle_1 * sin_angle_3)],
                         [cos_angle_2 * cos_angle_3]]
 
-            rot_mat[i] = gs.hstack((column_1, column_2, column_3))
-        return rot_mat
+            rot_mat.append(gs.hstack((column_1, column_2, column_3)))
+        return gs.stack(rot_mat)
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
-    def matrix_from_tait_bryan_angles_extrinsic_zyx(self, tait_bryan_angles):
+    @staticmethod
+    @geomstats.vectorization.decorator(['vector'])
+    def matrix_from_tait_bryan_angles_extrinsic_zyx(tait_bryan_angles):
         """Convert Tait-Bryan angles to rot mat in extrensic coords (zyx).
 
         Convert a rotation given in terms of the tait bryan angles,
@@ -781,7 +843,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         """
         n_tait_bryan_angles, _ = tait_bryan_angles.shape
 
-        rot_mat = gs.zeros((n_tait_bryan_angles,) + (self.n,) * 2)
+        rot_mat = []
         angle_1 = tait_bryan_angles[:, 0]
         angle_2 = tait_bryan_angles[:, 1]
         angle_3 = tait_bryan_angles[:, 2]
@@ -809,8 +871,8 @@ class _SpecialOrthogonal3Vectors(LieGroup):
             column_3 = [[sin_angle_2],
                         [- cos_angle_2 * sin_angle_1],
                         [cos_angle_1 * cos_angle_2]]
-            rot_mat[i] = gs.hstack((column_1, column_2, column_3))
-        return rot_mat
+            rot_mat.append(gs.hstack((column_1, column_2, column_3)))
+        return gs.stack(rot_mat)
 
     @geomstats.vectorization.decorator(['else', 'vector', 'else', 'else'])
     def matrix_from_tait_bryan_angles(self, tait_bryan_angles,
@@ -1186,15 +1248,15 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         point : array-like, shape=[..., 3]
+            Point.
 
         Returns
         -------
         inv_point : array-like, shape=[..., 3]
+            Inverse.
         """
         return -self.regularize(point)
 
-    @geomstats.vectorization.decorator(
-        ['else', 'vector', 'else'])
     def jacobian_translation(
             self, point, left_or_right='left'):
         """Compute the jacobian matrix corresponding to translation.
@@ -1205,20 +1267,23 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         point : array-like, shape=[..., 3]
-        left_or_right : str, {'left', 'right'}, optional
-            default: 'left'
-        point_type : str, {'vector', 'matrix'}, optional
-            default: self.default_point_type
+            Point.
+        left_or_right : str, {'left', 'right'}
+            Wether to use left or right invariant metric.
+            Optional, default: 'left'.
+        point_type : str, {'vector', 'matrix'}
+            Optional, default: self.default_point_type
 
         Returns
         -------
         jacobian : array-like, shape=[..., 3, 3]
+            Jacobian.
         """
         geomstats.errors.check_parameter_accepted_values(
             left_or_right, 'left_or_right', ['left', 'right'])
 
         point = self.regularize(point)
-
+        point = gs.to_ndarray(point, to_ndim=2)
         n_points, _ = point.shape
 
         angle = gs.linalg.norm(point, axis=-1)
@@ -1257,8 +1322,7 @@ class _SpecialOrthogonal3Vectors(LieGroup):
             + TAYLOR_COEFFS_1_AT_PI[6] * delta_angle ** 6)
 
         angle += mask_0_float
-        coef_2 += mask_pi_float * (
-            (1 - coef_1) / angle ** 2)
+        coef_2 += mask_pi_float * ((1 - coef_1) / angle ** 2)
 
         # This avoids dividing by 0.
         mask_else = ~mask_0 & ~mask_pi
@@ -1287,7 +1351,8 @@ class _SpecialOrthogonal3Vectors(LieGroup):
 
             jacobian += gs.einsum('n,ij->nij', mask_i_float, jacobian_i)
 
-        return jacobian
+        return jacobian[0] if (len(point) == 1 or point.ndim == 1) \
+            else jacobian
 
     def random_uniform(self, n_samples=1):
         """Sample in SO(3) with the uniform distribution.
@@ -1295,11 +1360,13 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         n_samples : int
-            the amount of samples
+            Number of samples.
+            Optional, default: 1.
 
         Returns
         -------
         point : array-like, shape=[..., 3]
+            Sample.
         """
         random_point = gs.random.rand(n_samples, self.dim) * 2 - 1
         random_point = self.regularize(random_point)
@@ -1320,12 +1387,15 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         tangent_vec : array-like, shape=[..., 3]
-        point_type : str, {'vector', 'matrix'}, optional
-            default: self.default_point_type
+            Tangent vector at base point.
+        point_type : str, {'vector', 'matrix'}
+            Point type.
+            Optional, default: self.default_point_type.
 
         Returns
         -------
         point : array-like, shape=[..., 3]
+            Point.
         """
         return tangent_vec
 
@@ -1341,10 +1411,12 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         point : array-like, shape=[..., 3]
+            Point.
 
         Returns
         -------
         tangent_vec : array-like, shape=[..., {dimension, [n, n]}]
+            Group logarithm.
         """
         return self.regularize(point)
 
@@ -1359,19 +1431,48 @@ class _SpecialOrthogonal3Vectors(LieGroup):
         Parameters
         ----------
         tangent_vector_a : shape=[..., n, n]
+            Tangent vector at base point.
         tangent_vector_b : shape=[..., n, n]
+            Tangent vector at base point.
         base_point : array-like, shape=[..., n, n]
+            Base point.
+            Optional, default: None.
 
         Returns
         -------
         bracket : array-like, shape=[..., n, n]
+            Lie bracket.
         """
         return gs.cross(tangent_vector_a, tangent_vector_b)
 
     def exp(self, tangent_vec, base_point=None):
+        """Compute the group exponential.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., 3]
+            Tangent vector at base point.
+
+        Returns
+        -------
+        point : array-like, shape=[..., {dimension, [n, n]}]
+            Group exponential.
+        """
         return LieGroup.exp(self, tangent_vec, base_point)
 
     def log(self, point, base_point=None):
+        """Compute the group logarithm.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., 3]
+            Point.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., {dimension, [n, n]}]
+            Group logarithm.
+        """
         return LieGroup.log(self, point, base_point)
 
 

@@ -21,11 +21,13 @@ class InvariantMetric(RiemannianMetric):
     Parameters
     ----------
     group : LieGroup
-        The group to equip with the invariant metric
+        Group to equip with the invariant metric
     inner_product_mat_at_identity : array-like, shape=[dim, dim]
-        The matrix that defines the metric at identity.
+        Matrix that defines the metric at identity.
+        Optional, defaults to identity matrix if None.
     left_or_right : str, {'left', 'right'}
         Wether to use a left or right invariant metric.
+        Optional, default: 'left'.
     """
 
     def __init__(self, group,
@@ -82,7 +84,7 @@ class InvariantMetric(RiemannianMetric):
                 '...j,...j->...', inner_prod, tangent_vec_b)
 
         else:
-            # TODO(nguigs): allow for diagonal metric_matrices
+            # TODO (nguigs): allow for diagonal metric_matrices
             logging.warning(
                 'Only the canonical inner product -Frobenius inner product-'
                 ' is implemented for Lie groups whose elements are represented'
@@ -104,8 +106,9 @@ class InvariantMetric(RiemannianMetric):
             First tangent vector at base_point.
         tangent_vec_b : array-like, shape=[..., dim]
             Second tangent vector at base_point.
-        base_point : array-like, shape=[..., dim], optional
-            Point in the group (the default is identity).
+        base_point : array-like, shape=[..., dim]
+            Point in the group.
+            Optional, defaults to identity if None.
 
         Returns
         -------
@@ -121,18 +124,10 @@ class InvariantMetric(RiemannianMetric):
                 tangent_vec_b,
                 base_point)
 
-        jacobian = self.group.jacobian_translation(base_point)
-        inv_jacobian = self.group.inverse(jacobian)
-        if self.left_or_right == 'left':
-            tangent_vec_a_at_id = self.group.compose(
-                inv_jacobian, tangent_vec_a)
-            tangent_vec_b_at_id = self.group.compose(
-                inv_jacobian, tangent_vec_b)
-        elif self.left_or_right == 'right':
-            tangent_vec_a_at_id = self.group.compose(
-                tangent_vec_a, inv_jacobian)
-            tangent_vec_b_at_id = self.group.compose(
-                tangent_vec_b, inv_jacobian)
+        tangent_translation = self.group.tangent_translation_map(
+            base_point, left_or_right=self.left_or_right, inverse=True)
+        tangent_vec_a_at_id = tangent_translation(tangent_vec_a)
+        tangent_vec_b_at_id = tangent_translation(tangent_vec_b)
         inner_prod = self.inner_product_at_identity(
             tangent_vec_a_at_id, tangent_vec_b_at_id)
         return inner_prod
@@ -148,7 +143,7 @@ class InvariantMetric(RiemannianMetric):
         Returns
         -------
         metric_mat : array-like, shape=[..., dim, dim]
-            The metric matrix at base_point.
+            Metric matrix at base_point.
         """
         if self.group.default_point_type == 'matrix':
             raise NotImplementedError(
@@ -157,11 +152,11 @@ class InvariantMetric(RiemannianMetric):
 
         if base_point is None:
             base_point = self.group.identity
-        base_point = self.group.regularize(base_point)
+        else:
+            base_point = self.group.regularize(base_point)
 
         jacobian = self.group.jacobian_translation(
-            point=base_point,
-            left_or_right=self.left_or_right)
+            point=base_point, left_or_right=self.left_or_right)
 
         inv_jacobian = GeneralLinear.inverse(jacobian)
         inv_jacobian_transposed = Matrices.transpose(inv_jacobian)
@@ -237,6 +232,7 @@ class InvariantMetric(RiemannianMetric):
             Tangent vector at a base point.
         base_point : array-like, shape=[..., dim]
             Point in the group.
+            Optional, defaults to identity if None.
 
         Returns
         -------
@@ -253,14 +249,10 @@ class InvariantMetric(RiemannianMetric):
         if gs.allclose(base_point, identity):
             return self.exp_from_identity(tangent_vec)
 
-        # TODO(nguigs): factorize this code to pushforward tangent vec to
-        #  identity by left/right translation
-        jacobian = self.group.jacobian_translation(
-            point=base_point, left_or_right=self.left_or_right)
-        inv_jacobian = gs.linalg.inv(jacobian)
-        inv_jacobian_transposed = Matrices.transpose(inv_jacobian)
-        tangent_vec_at_id = gs.einsum(
-            '...i,...ij->...j', tangent_vec, inv_jacobian_transposed)
+        tangent_vec_at_id = self.group.tangent_translation_map(
+            point=base_point,
+            left_or_right=self.left_or_right,
+            inverse=True)(tangent_vec)
         exp_from_id = self.exp_from_identity(tangent_vec_at_id)
 
         if self.left_or_right == 'left':
@@ -365,9 +357,8 @@ class InvariantMetric(RiemannianMetric):
                 point, self.group.inverse(base_point))
 
         log_from_id = self.log_from_identity(point_near_id)
-        jacobian = self.group.jacobian_translation(
-            base_point, left_or_right=self.left_or_right)
-        log = gs.einsum('...ij,...j->...i', jacobian, log_from_id)
+        log = self.group.tangent_translation_map(
+            base_point, left_or_right=self.left_or_right)(log_from_id)
         return log
 
 
@@ -392,7 +383,7 @@ class BiInvariantMetric(InvariantMetric):
             'SpecialOrthogonal' not in group.__str__()
             and 'SO' not in group.__str__()
             and 'SpecialOrthogonal3' not in group.__str__())
-        # TODO(nguigs): implement it for SE(3)
+        # TODO (nguigs): implement it for SE(3)
         if cond:
             raise ValueError(
                 'The bi-invariant metric is only implemented for SO(n)')

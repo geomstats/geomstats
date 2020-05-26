@@ -58,10 +58,11 @@ class Stiefel(EmbeddedManifold):
             Point.
         tolerance : float, optional
             Tolerance at which to evaluate.
+            Optional, default: 1e-5.
 
         Returns
         -------
-        belongs : array-like, shape=[..., 1]
+        belongs : array-like, shape=[...,]
             Array of booleans evaluating if the corresponding points
             belong to the Stiefel manifold.
         """
@@ -92,10 +93,12 @@ class Stiefel(EmbeddedManifold):
         Parameters
         ----------
         point : array-like, shape=[..., n, p]
+            Point.
 
         Returns
         -------
-        projector : array-like, shape=[..., n, n]
+        projected : array-like, shape=[..., n, n]
+            Projected point.
         """
         return Matrices.mul(point, Matrices.transpose(point))
 
@@ -108,8 +111,9 @@ class Stiefel(EmbeddedManifold):
 
         Parameters
         ----------
-        n_samples : int, optional
+        n_samples : int
             Number of samples.
+            Optional, default: 1.
 
         Returns
         -------
@@ -375,7 +379,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
             matrix_c = matrix_lv[:, p:2 * p, p:2 * p]
 
-            # TODO(nina): Add break condition
+            # TODO (nina): Add break condition
             # of the form: if gs.all(gs.less_equal(norm_matrix_c, tol)):
 
             matrix_phi = gs.linalg.expm(-matrix_c)

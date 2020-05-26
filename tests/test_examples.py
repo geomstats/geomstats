@@ -10,12 +10,15 @@ import examples.gradient_descent_s2 as gradient_descent_s2
 import examples.learning_graph_structured_data_h2 as learning_gsd_h2
 import examples.loss_and_gradient_se3 as loss_and_gradient_se3
 import examples.loss_and_gradient_so3 as loss_and_gradient_so3
+import examples.plot_bch_so3 as plot_bch_so3
+import examples.plot_expectation_maximization_manifolds as plot_em_manifolds
 import examples.plot_geodesics_h2 as plot_geodesics_h2
 import examples.plot_geodesics_poincare_polydisk as plot_geodesics_poincare_polydisk # NOQA
 import examples.plot_geodesics_s2 as plot_geodesics_s2
 import examples.plot_geodesics_se3 as plot_geodesics_se3
 import examples.plot_geodesics_so3 as plot_geodesics_so3
 import examples.plot_grid_h2 as plot_grid_h2
+import examples.plot_kernel_density_estimation_classifier_s2 as plot_kernel_density_estimation_classifier_s2 # NOQA
 import examples.plot_kmeans_manifolds as plot_kmeans_manifolds
 import examples.plot_knn_s2 as plot_knn_s2
 import examples.plot_online_kmeans_s1 as plot_online_kmeans_s1
@@ -28,11 +31,12 @@ import examples.tangent_pca_h2 as tangent_pca_h2
 import examples.tangent_pca_s2 as tangent_pca_s2
 import examples.tangent_pca_so3 as tangent_pca_so3
 import matplotlib
-matplotlib.use('Agg')  # NOQA
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 import geomstats.tests
+
+matplotlib.use('Agg')  # NOQA
 
 
 class TestExamples(geomstats.tests.TestCase):
@@ -75,46 +79,42 @@ class TestExamples(geomstats.tests.TestCase):
 
     @staticmethod
     @geomstats.tests.np_only
+    def test_plot_bch_so3():
+        plot_bch_so3.main()
+
+    @staticmethod
     def test_plot_geodesics_h2():
         plot_geodesics_h2.main()
 
     @staticmethod
-    @geomstats.tests.np_only
     def test_plot_geodesics_poincare_polydisk():
         plot_geodesics_poincare_polydisk.main()
 
     @staticmethod
-    @geomstats.tests.np_only
     def test_plot_geodesics_s2():
         plot_geodesics_s2.main()
 
     @staticmethod
-    @geomstats.tests.np_only
     def test_plot_geodesics_se3():
         plot_geodesics_se3.main()
 
     @staticmethod
-    @geomstats.tests.np_only
     def test_plot_geodesics_so3():
         plot_geodesics_so3.main()
 
     @staticmethod
-    @geomstats.tests.np_only
     def test_plot_grid_h2():
         plot_grid_h2.main()
 
     @staticmethod
-    @geomstats.tests.np_only
     def test_plot_square_h2_square_poincare_disk():
         plot_square_h2_poincare_disk.main()
 
     @staticmethod
-    @geomstats.tests.np_only
     def test_plot_square_h2_square_poincare_half_plane():
         plot_square_h2_poincare_half_plane.main()
 
     @staticmethod
-    @geomstats.tests.np_only
     def test_plot_square_h2_square_klein_disk():
         plot_square_h2_klein_disk.main()
 
@@ -135,8 +135,18 @@ class TestExamples(geomstats.tests.TestCase):
 
     @staticmethod
     @geomstats.tests.np_only
+    def test_plot_kernel_density_estimation_classifier_s2():
+        plot_kernel_density_estimation_classifier_s2.main()
+
+    @staticmethod
+    @geomstats.tests.np_only
     def test_plot_kmeans_manifolds():
         plot_kmeans_manifolds.main()
+
+    @staticmethod
+    @geomstats.tests.np_only
+    def test_plot_em_manifolds():
+        plot_em_manifolds.main()
 
     @staticmethod
     @geomstats.tests.np_only
@@ -154,6 +164,5 @@ class TestExamples(geomstats.tests.TestCase):
         plot_online_kmeans_s2.main()
 
     @staticmethod
-    @geomstats.tests.np_only
     def test_plot_pole_ladder_s2():
         plot_pole_ladder_s2.main()

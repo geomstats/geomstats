@@ -14,9 +14,6 @@ EPSILON = 1e-5
 ATOL = 1e-5
 
 
-# TODO(nina): Speed up tf tests
-
-
 class TestSpecialOrthogonal3(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=ImportWarning)
@@ -150,7 +147,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         self.angles_close_to_pi_all = angles_close_to_pi_all
         self.n_samples = 4
 
-    @geomstats.tests.np_and_tf_only
     def test_projection(self):
         # Test 3D and nD cases
         for n in self.n_seq:
@@ -162,7 +158,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
             expected = rot_mat
             self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_projection_vectorization(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -203,20 +198,11 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
             self.assertAllClose(gs.shape(result), (n_samples, n, n))
 
-    @geomstats.tests.np_only
     def test_random_uniform_shape(self):
-        for n in self.n_seq:
-            group = self.so[n]
-            result = group.random_uniform()
-            self.assertAllClose(gs.shape(result), (group.dim,))
+        group = self.so[3]
+        result = group.random_uniform()
+        self.assertAllClose(gs.shape(result), (group.dim,))
 
-        # point_type = 'matrix'
-        # for n in self.n_seq:
-        #     group = self.so[n]
-        #     result = group.random_uniform(point_type=point_type)
-        #     self.assertAllClose(gs.shape(result), (n, n))
-
-    @geomstats.tests.np_only
     def test_random_and_belongs(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -388,7 +374,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_rotation_vector_and_rotation_matrix(self):
         """
         This tests that the composition of
@@ -414,6 +399,7 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     self.assertAllClose(result, expected)
 
             else:  # n == 2
+                # TODO(nguigs): bring back a 1d representation of SO2
                 point = gs.array([0.78])
 
                 rot_mat = group.matrix_from_rotation_vector(point)
@@ -423,7 +409,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
                 self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_matrix_from_tait_bryan_angles_extrinsic_xyz(self):
         n = 3
         group = self.so[n]
@@ -466,7 +451,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_matrix_from_tait_bryan_angles_extrinsic_zyx(self):
         n = 3
         group = self.so[n]
@@ -552,7 +536,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_matrix_from_tait_bryan_angles_intrinsic_xyz(self):
         """
         This tests that the rotation matrix computed from the
@@ -609,7 +592,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_matrix_from_tait_bryan_angles_intrinsic_zyx(self):
         """
         This tests that the matrix computed from the
@@ -891,7 +873,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_matrix_and_tait_bryan_angles_extrinsic_xyz(self):
         """
         This tests that the composition of
@@ -928,7 +909,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                             result,
                             expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_matrix_and_tait_bryan_angles_extrinsic_zyx(self):
         """
         This tests that the composition of
@@ -1053,7 +1033,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                             result,
                             expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_tait_bryan_angles_and_matrix_extrinsic_xyz(self):
         """
         This tests that the composition of
@@ -1170,7 +1149,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                             result,
                             expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_tait_bryan_angles_and_matrix_extrinsic_zyx(self):
         """
         This tests that the composition of
@@ -1287,7 +1265,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                             result,
                             expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_matrix_and_tait_bryan_angles_intrinsic_xyz(self):
         """
         This tests that the composition of
@@ -1395,7 +1372,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                             result,
                             expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_matrix_and_tait_bryan_angles_intrinsic_zyx(self):
         """
         This tests that the composition of
@@ -1432,7 +1408,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                             result,
                             expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_tait_bryan_angles_and_matrix_intrinsic_xyz(self):
         """
         This tests that the composition of
@@ -1549,7 +1524,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                             result,
                             expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_tait_bryan_angles_and_matrix_intrinsic_zyx(self):
         """
         This tests that the composition of
@@ -1666,7 +1640,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                             result,
                             expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_quaternion_from_tait_bryan_angles_intrinsic_xyz(self):
         n = 3
         group = self.so[n]
@@ -1718,7 +1691,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                             result,
                             expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_quaternion_from_tait_bryan_angles_intrinsic_zyx(self):
         n = 3
         group = self.so[n]
@@ -1914,7 +1886,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                             result,
                             expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_quaternion_from_tait_bryan_angles_extrinsic_xyz(self):
         """
         This tests that the quaternion computed from the
@@ -1942,7 +1913,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                             result,
                             expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_quaternion_from_tait_bryan_angles_extrinsic_zyx(self):
         """
         This tests that the quaternion computed from the
@@ -2063,7 +2033,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                             result,
                             expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_quaternion_and_tait_bryan_angles_extrinsic_xyz(self):
         """
         This tests that the composition of
@@ -2132,7 +2101,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                             result,
                             expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_quaternion_and_tait_bryan_angles_intrinsic_xyz(self):
         """
         This tests that the composition of
@@ -2201,7 +2169,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                             result,
                             expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_tait_bryan_angles_and_quaternion_intrinsic_xyz(self):
         n = 3
         group = self.so[n]
@@ -2311,7 +2278,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                             result,
                             expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_rotation_vector_and_tait_bryan_angles_xyz(self):
         """
         This tests that the composition of
@@ -2353,7 +2319,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                                     result,
                                     expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_quaternion_and_tait_bryan_angles_extrinsic_zyx(self):
         """
         This tests that the composition of
@@ -2397,7 +2362,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                                 result,
                                 expected))
 
-    @geomstats.tests.np_and_pytorch_only
     def test_quaternion_and_tait_bryan_angles_intrinsic_zyx(self):
         """
         This tests that the composition of
@@ -2441,7 +2405,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                                 result,
                                 expected))
 
-    @geomstats.tests.np_and_tf_only
     def test_rotation_vector_and_rotation_matrix_vectorization(self):
         for n in self.n_seq:
             group = self.so[n]
@@ -2637,7 +2600,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                 gs.allclose(result, expected)
                 or gs.allclose(result, inv_expected))
 
-    @geomstats.tests.np_and_tf_only
     def test_quaternion_and_rotation_vector_and_matrix_vectorization(self):
         n = 3
         group = self.so[n]
@@ -2738,7 +2700,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                 expected = group.identity
                 self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_tf_only
     def test_compose_vectorization(self):
         point_type = 'vector'
         for n in self.n_seq:
@@ -2816,11 +2777,10 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
 
         n_samples = self.n_samples
         points = group.random_uniform(n_samples=n_samples)
-        jacobians = group.jacobian_translation(point=points,
-                                               left_or_right='left')
+        jacobians = group.jacobian_translation(
+            point=points, left_or_right='left')
         self.assertAllClose(
-            gs.shape(jacobians),
-            (n_samples, group.dim, group.dim))
+            gs.shape(jacobians), (n_samples, group.dim, group.dim))
 
     def test_exp(self):
         """
@@ -2857,8 +2817,8 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
         expected = group.compose(rot_vec_base_point,
                                  gs.dot(inv_jacobian, rot_vec_2))
 
-        result = metric.exp(base_point=rot_vec_base_point,
-                            tangent_vec=rot_vec_2)
+        result = metric.exp(
+            base_point=rot_vec_base_point, tangent_vec=rot_vec_2)
         self.assertAllClose(result, expected)
 
     def test_exp_vectorization(self):
@@ -3407,8 +3367,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     tangent_vec=tangent_vec,
                     base_point=base_point)
 
-                # TODO(nina): Investigate what it means to regularize
-                # the tangent vector when there is no metric.
                 metric = group.left_canonical_metric
                 expected = group.regularize_tangent_vec(
                     tangent_vec=tangent_vec,
@@ -3436,8 +3394,6 @@ class TestSpecialOrthogonal3(geomstats.tests.TestCase):
                     tangent_vec=tangent_vec,
                     base_point=base_point)
 
-                # TODO(nina): Investigate what it means to regularize
-                # the tangent vector when there is no metric.
                 metric = group.left_canonical_metric
                 reg_tangent_vec = group.regularize_tangent_vec(
                     tangent_vec=tangent_vec,

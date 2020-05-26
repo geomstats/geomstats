@@ -17,16 +17,19 @@ from autograd.numpy import (  # NOQA
     argmax,
     argmin,
     array,
+    broadcast_arrays,
     ceil,
     clip,
     concatenate,
     cos,
     cosh,
     cross,
+    cumprod,
     cumsum,
     diagonal,
     divide,
     dot,
+    dtype,
     einsum,
     empty,
     empty_like,
@@ -44,6 +47,7 @@ from autograd.numpy import (  # NOQA
     int32,
     int64,
     isclose,
+    isnan,
     less,
     less_equal,
     linspace,
@@ -92,6 +96,26 @@ from scipy.sparse import coo_matrix
 from . import linalg  # NOQA
 from . import random  # NOQA
 from .common import to_ndarray  # NOQA
+
+DTYPES = {
+    dtype('int32'): 0,
+    dtype('int64'): 1,
+    dtype('float32'): 2,
+    dtype('float64'): 3}
+
+
+def to_numpy(x):
+    return x
+
+
+def convert_to_wider_dtype(tensor_list):
+    dtype_list = [DTYPES[x.dtype] for x in tensor_list]
+    wider_dtype_index = max(dtype_list)
+
+    wider_dtype = list(DTYPES.keys())[wider_dtype_index]
+
+    tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
+    return tensor_list
 
 
 def flatten(x):
@@ -328,3 +352,12 @@ def array_from_sparse(indices, data, target_shape):
     """
     return array(
         coo_matrix((data, list(zip(*indices))), target_shape).todense())
+
+
+def erf(x):
+    cst_erf = 8.0 / (3.0 * np.pi) * (np.pi - 3.0) / (4.0 - np.pi)
+    return \
+        np.sign(x) * \
+        np.sqrt(1 - np.exp(-x * x *
+                           (4 / np.pi + cst_erf * x * x) /
+                           (1 + cst_erf * x * x)))

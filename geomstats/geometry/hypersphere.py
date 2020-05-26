@@ -62,15 +62,15 @@ class _Hypersphere(EmbeddedManifold):
         Parameters
         ----------
         point : array-like, shape=[..., dim + 1]
-            Points in Euclidean space.
-        tolerance : float, optional
-            Tolerance at which to evaluate norm == 1 (default: TOLERANCE).
+            Point in Euclidean space.
+        tolerance : float
+            Tolerance at which to evaluate norm == 1.
+            Optional, default: 1e-6.
 
         Returns
         -------
-        belongs : array-like, shape=[..., 1]
-            Array of booleans evaluating if each point belongs to
-            the hypersphere.
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the hypersphere.
         """
         point_dim = gs.shape(point)[-1]
         if point_dim != self.dim + 1:
@@ -95,12 +95,12 @@ class _Hypersphere(EmbeddedManifold):
         Parameters
         ----------
         point : array-like, shape=[..., dim + 1]
-            Points on the hypersphere.
+            Point on the hypersphere.
 
         Returns
         -------
         projected_point : array-like, shape=[..., dim + 1]
-            Points in canonical representation chosen for the hypersphere.
+            Point in canonical representation chosen for the hypersphere.
         """
         if not gs.all(self.belongs(point)):
             raise ValueError('Points do not belong to the manifold.')
@@ -186,6 +186,7 @@ class _Hypersphere(EmbeddedManifold):
              gs.sin(theta) * gs.sin(phi),
              gs.cos(theta)],
             axis=1)
+
         if not gs.all(self.belongs(point_extrinsic)):
             raise ValueError('Points do not belong to the manifold.')
 
@@ -300,8 +301,12 @@ class _Hypersphere(EmbeddedManifold):
 
         Parameters
         ----------
-        n_samples : int, optional
+        n_samples : int
             Number of samples.
+            Optional, default: 1.
+        tol : float
+            Tolerance.
+            Optional, default: 1e-6.
 
         Returns
         -------
@@ -338,10 +343,12 @@ class _Hypersphere(EmbeddedManifold):
 
         Parameters
         ----------
-        kappa : int, optional
+        kappa : int
             Kappa parameter of the von Mises distribution.
-        n_samples : int, optional
+            Optional, default: 10.
+        n_samples : int
             Number of samples.
+            Optional, default: 1.
 
         Returns
         -------
@@ -401,7 +408,7 @@ class HypersphereMetric(RiemannianMetric):
 
         Returns
         -------
-        inner_prod : array-like, shape=[..., 1]
+        inner_prod : array-like, shape=[...,]
             Inner-product of the two tangent vectors.
         """
         inner_prod = self.embedding_metric.inner_product(
@@ -447,7 +454,6 @@ class HypersphereMetric(RiemannianMetric):
             Point on the hypersphere equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        # TODO(ninamiolane): Raise error when vector is not tangent
         _, extrinsic_dim = base_point.shape
         n_tangent_vecs, _ = tangent_vec.shape
 
@@ -629,17 +635,13 @@ class HypersphereMetric(RiemannianMetric):
         transported_tangent_vec: array-like, shape=[..., dim + 1]
             Transported tangent vector at exp_(base_point)(tangent_vec_b).
         """
-        tangent_vec_a = gs.to_ndarray(tangent_vec_a, to_ndim=2)
-        tangent_vec_b = gs.to_ndarray(tangent_vec_b, to_ndim=2)
-        base_point = gs.to_ndarray(base_point, to_ndim=2)
-        # TODO(nguigs): work around this condition:
-        # assert len(base_point) == len(tangent_vec_a) == len(tangent_vec_b)
-        theta = gs.linalg.norm(tangent_vec_b, axis=1)
-        normalized_b = gs.einsum('n, ni->ni', 1 / theta, tangent_vec_b)
-        pb = gs.einsum('ni,ni->n', tangent_vec_a, normalized_b)
-        p_orth = tangent_vec_a - gs.einsum('n,ni->ni', pb, normalized_b)
-        transported = - gs.einsum('n,ni->ni', gs.sin(theta) * pb, base_point)\
-            + gs.einsum('n,ni->ni', gs.cos(theta) * pb, normalized_b)\
+        theta = gs.linalg.norm(tangent_vec_b, axis=-1)
+        normalized_b = gs.einsum('..., ...i->...i', 1 / theta, tangent_vec_b)
+        pb = gs.einsum('...i,...i->...', tangent_vec_a, normalized_b)
+        p_orth = tangent_vec_a - gs.einsum('..., ...i->...i', pb, normalized_b)
+        transported = \
+            - gs.einsum('..., ...i->...i', gs.sin(theta) * pb, base_point)\
+            + gs.einsum('..., ...i->...i', gs.cos(theta) * pb, normalized_b)\
             + p_orth
         return transported
 
@@ -655,6 +657,7 @@ class HypersphereMetric(RiemannianMetric):
 
         point_type: str, {'spherical', 'intrinsic', 'extrinsic'}
             Coordinates in which to express the Christoffel symbols.
+            Optional, default: 'spherical'.
 
         Returns
         -------

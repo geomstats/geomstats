@@ -30,14 +30,17 @@ BACKEND_ATTRIBUTES = {
         'array_from_sparse',
         'assignment',
         'assignment_by_sum',
+        'broadcast_arrays',
         'cast',
         'ceil',
         'clip',
         'concatenate',
+        'convert_to_wider_dtype',
         'copy',
         'cos',
         'cosh',
         'cross',
+        'cumprod',
         'cumsum',
         'diagonal',
         'divide',
@@ -46,6 +49,7 @@ BACKEND_ATTRIBUTES = {
         'empty',
         'empty_like',
         'equal',
+        'erf',
         'exp',
         'expand_dims',
         'eye',
@@ -58,6 +62,7 @@ BACKEND_ATTRIBUTES = {
         'hsplit',
         'hstack',
         'isclose',
+        'isnan',
         'less',
         'less_equal',
         'linspace',
@@ -92,6 +97,7 @@ BACKEND_ATTRIBUTES = {
         'tan',
         'tanh',
         'tile',
+        'to_numpy',
         'to_ndarray',
         'trace',
         'transpose',
@@ -120,7 +126,7 @@ BACKEND_ATTRIBUTES = {
     ],
     'random': [
         'normal',
-        # TODO(nkoep): Remove 'rand' and replace it by 'uniform'. Much like
+        # TODO (nkoep): Remove 'rand' and replace it by 'uniform'. Much like
         #              'randn' is a convenience wrapper (which we don't use)
         #              for 'normal', 'rand' only wraps 'uniform'.
         'rand',

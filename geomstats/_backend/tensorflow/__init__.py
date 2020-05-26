@@ -1,5 +1,6 @@
 """Tensorflow based computation backend."""
 
+from collections import Counter
 from itertools import product
 
 import numpy as _np
@@ -62,9 +63,19 @@ from tensorflow import (  # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 
+
+DTYPES = {
+    int32: 0,
+    int64: 1,
+    float32: 2,
+    float64: 3}
+
+
 arctanh = tf.math.atanh
 ceil = tf.math.ceil
 cross = tf.linalg.cross
+erf = tf.math.erf
+isnan = tf.math.is_nan
 log = tf.math.log
 matmul = tf.linalg.matmul
 mod = tf.math.mod
@@ -79,9 +90,22 @@ def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
 
-# TODO(nkoep): The 'repeat' function was added in TF 2.1. Backport the
-#              implementation from tensorflow/python/ops/array_ops.py.
-repeat = _raise_not_implemented_error
+def to_numpy(x):
+    return x.numpy()
+
+
+def convert_to_wider_dtype(tensor_list):
+    dtype_list = [DTYPES[x.dtype] for x in tensor_list]
+    wider_dtype_index = max(dtype_list)
+
+    wider_dtype = list(DTYPES.keys())[wider_dtype_index]
+
+    tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
+    return tensor_list
+
+
+def repeat(a, repeats, axis=None):
+    return tf.repeat(input=a, repeats=repeats, axis=axis)
 
 
 def array(x, dtype=None):
@@ -102,7 +126,7 @@ def trace(x, axis1=0, axis2=1):
     raise NotImplementedError()
 
 
-# TODO(nkoep): Handle the optional axis arguments.
+# TODO (nkoep): Handle the optional axis arguments.
 def diagonal(a, axis1=0, axis2=1):
     return tf.linalg.diag_part(a)
 
@@ -484,7 +508,7 @@ def get_slice(x, indices):
 
 def vectorize(x, pyfunc, multiple_args=False, dtype=None, **kwargs):
     if multiple_args:
-        return tf.map_fn(lambda x: pyfunc(*x), elems=x, dtype=dtype)
+        return tf.map_fn(lambda y: pyfunc(*y), elems=x, dtype=dtype)
     return tf.map_fn(pyfunc, elems=x, dtype=dtype)
 
 
@@ -505,7 +529,7 @@ def hsplit(x, n_splits):
 
 
 def flatten(x):
-    """Collapses the tensor into 1-D.
+    """Collapse the tensor into 1-D.
 
     Following https://www.tensorflow.org/api_docs/python/tf/reshape
     """
@@ -532,12 +556,54 @@ def cast(x, dtype):
     return tf.cast(x, dtype)
 
 
+def broadcast_arrays(x, y, **kwargs):
+    tensors = [x, y]
+    shapes = [t.get_shape().as_list() for t in tensors]
+    max_rank = max(len(s) for s in shapes)
+
+    for index, value in enumerate(shapes):
+        shape = value
+        if len(shape) == max_rank:
+            continue
+
+        tensor = tensors[index]
+        for _ in range(max_rank - len(shape)):
+            shape.insert(0, 1)
+            tensor = tf.expand_dims(tensor, axis=0)
+        tensors[index] = tensor
+
+    broadcast_shape = []
+    for index in range(max_rank):
+        dimensions = [s[index] for s in shapes]
+        repeats = Counter(dimensions)
+        if len(repeats) > 2 or (len(repeats) == 2 and
+                                1 not in list(repeats.keys())):
+            raise ValueError('operands could not be '
+                             'broadcast together with shapes', shapes)
+        broadcast_shape.append(max(repeats.keys()))
+
+    for axis, dimension in enumerate(broadcast_shape):
+        tensors = [tf.concat([t] * dimension, axis=axis)
+                   if t.get_shape()[axis] == 1 else t for t in tensors]
+
+    return tensors
+
+
 def dot(x, y):
     return tf.tensordot(x, y, axes=1)
 
 
 def isclose(x, y, rtol=1e-05, atol=1e-08):
-    rhs = tf.constant(atol) + tf.constant(rtol) * tf.abs(y)
+    if not tf.is_tensor(x):
+        x = tf.constant(x)
+    if not tf.is_tensor(y):
+        y = tf.constant(y)
+    x, y = convert_to_wider_dtype([x, y])
+    dtype = x.dtype
+
+    rhs = (
+        tf.constant(atol, dtype=dtype)
+        + tf.constant(rtol, dtype=dtype) * tf.abs(y))
     return tf.less_equal(tf.abs(tf.subtract(x, y)), rhs)
 
 
@@ -560,10 +626,10 @@ def sum(x, axis=None, keepdims=False, name=None):
 
 
 def einsum(equation, *inputs, **kwargs):
-    # TODO(ninamiolane): Allow this to work when '->' is not provided
-    # TODO(ninamiolane): Allow this to work for cases like n...k
     einsum_str = equation
     input_tensors_list = inputs
+
+    input_tensors_list = convert_to_wider_dtype(input_tensors_list)
 
     einsum_list = einsum_str.split('->')
     input_str = einsum_list[0]
@@ -624,7 +690,7 @@ def einsum(equation, *inputs, **kwargs):
             result = squeeze(result, axis=0)
         return result
 
-    return tf.einsum(equation, *inputs, **kwargs)
+    return tf.einsum(equation, *input_tensors_list, **kwargs)
 
 
 def transpose(x, axes=None):
@@ -639,6 +705,12 @@ def cumsum(a, axis=None):
     if axis is None:
         return tf.math.cumsum(flatten(a), axis=0)
     return tf.math.cumsum(a, axis=axis)
+
+
+def cumprod(a, axis=None):
+    if axis is None:
+        return tf.math.cumprod(flatten(a), axis=0)
+    return tf.math.cumprod(a, axis=axis)
 
 
 def tril(m, k=0):

@@ -17,17 +17,17 @@ To run this example, you need to install ffmpeg:
 import logging
 
 import matplotlib
-matplotlib.use('Agg')  # NOQA
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
+
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.spd_matrices import SPDMatrices
 
-
+matplotlib.use('Agg')  # NOQA
 SPHERE2 = Hypersphere(dim=2)
 METRIC = SPHERE2.metric
 

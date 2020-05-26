@@ -236,6 +236,16 @@ class TestBackends(geomstats.tests.TestCase):
             [7., 8., 9.]])
         self.assertAllClose(result, expected)
 
+    def test_cumprod(self):
+        result = gs.cumprod(gs.arange(1, 10))
+        expected = gs.array(([1, 2, 6, 24, 120, 720, 5040, 40320, 362880]))
+        self.assertAllClose(result, expected)
+
+        result = gs.reshape(gs.arange(1, 11), (2, 5))
+        result = gs.cumprod(result, axis=1)
+        expected = gs.array(([[1, 2, 6, 24, 120], [6, 42, 336, 3024, 30240]]))
+        self.assertAllClose(result, expected)
+
     @geomstats.tests.pytorch_only
     def test_cumsum(self):
         result = gs.cumsum(gs.arange(10))
@@ -316,6 +326,27 @@ class TestBackends(geomstats.tests.TestCase):
 
         np_result = _np.einsum('...,...i->...i', np_array_1, np_array_2)
         gs_result = gs.einsum('...,...i->...i', array_1, array_2)
+        self.assertAllCloseToNp(gs_result, np_result)
+
+    def test_einsum_dtypes(self):
+        np_array_1 = _np.array([[1, 4]])
+        np_array_2 = _np.array([[2., 3.]])
+        array_1 = gs.array([[1, 4]])
+        array_2 = gs.array([[2., 3.]])
+
+        np_result = _np.einsum('...i,...i->...', np_array_1, np_array_2)
+        gs_result = gs.einsum('...i,...i->...', array_1, array_2)
+
+        self.assertAllCloseToNp(gs_result, np_result)
+
+        np_array_1 = _np.array([[1., 4.], [-1., 5.]])
+        np_array_2 = _np.array([[2, 3]])
+        array_1 = gs.array([[1., 4.], [-1., 5.]])
+        array_2 = gs.array([[2, 3]])
+
+        np_result = _np.einsum('...i,...i->...', np_array_1, np_array_2)
+        gs_result = gs.einsum('...i,...i->...', array_1, array_2)
+
         self.assertAllCloseToNp(gs_result, np_result)
 
     def test_assignment_with_matrices(self):
@@ -667,7 +698,7 @@ class TestBackends(geomstats.tests.TestCase):
         np_array[0, :, 0] += _np.cos(theta) * _np.cos(phi)
         np_array[0, :, 1] -= _np.sin(theta) * _np.sin(phi)
 
-        # TODO(ninamiolane): This test fails 15% of the time,
+        # TODO (ninamiolane): This test fails 15% of the time,
         # when gs and _np computations are in the reverse order.
         # We should investigate this.
         self.assertAllCloseToNp(gs_array, np_array)
@@ -794,7 +825,7 @@ class TestBackends(geomstats.tests.TestCase):
 
     @geomstats.tests.np_and_pytorch_only
     def test_where(self):
-        # TODO(ninamiolane): Make tf behavior consistent with np
+        # TODO (ninamiolane): Make tf behavior consistent with np
         # Currently, tf returns array, while np returns tuple
         base_list = [
             [[22., 55.],
@@ -826,3 +857,42 @@ class TestBackends(geomstats.tests.TestCase):
         expected = _np.where(np_array == 1, _np.ones(10), np_array)
         result = gs.where(gs_array == 1, gs.ones(10), gs_array)
         self.assertAllCloseToNp(result, expected)
+
+    def test_convert_to_wider_dtype(self):
+        gs_list = [gs.array([1, 2]), gs.array([2.2, 3.3], dtype=gs.float32)]
+        gs_result = gs.convert_to_wider_dtype(gs_list)
+
+        result = [a.dtype == gs.float32 for a in gs_result]
+
+        self.assertTrue(gs.all(result))
+
+        gs_list = [gs.array([1, 2]), gs.array([2.2, 3.3], dtype=gs.float64)]
+        gs_result = gs.convert_to_wider_dtype(gs_list)
+
+        result = [a.dtype == gs.float64 for a in gs_result]
+
+        self.assertTrue(gs.all(result))
+
+        gs_list = [
+            gs.array([11.11, 222.2], dtype=gs.float64),
+            gs.array([2.2, 3.3], dtype=gs.float32)]
+        gs_result = gs.convert_to_wider_dtype(gs_list)
+
+        result = [a.dtype == gs.float64 for a in gs_result]
+
+        self.assertTrue(gs.all(result))
+
+    def test_broadcast_arrays(self):
+
+        array_1 = gs.array([[1, 2, 3]])
+        array_2 = gs.array([[4], [5]])
+        result = gs.broadcast_arrays(array_1, array_2)
+
+        result_verdict = [gs.array([[1, 2, 3], [1, 2, 3]]),
+                          gs.array([[4, 4, 4], [5, 5, 5]])]
+
+        self.assertAllClose(result[0], result_verdict[0])
+        self.assertAllClose(result[1], result_verdict[1])
+
+        with self.assertRaises((ValueError, RuntimeError)):
+            gs.broadcast_arrays(gs.array([1, 2]), gs.array([3, 4, 5]))
