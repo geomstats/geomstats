@@ -5,9 +5,6 @@ import random
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 
-GRAPH_MATRIX_PATH = data_utils.GRAPH_RANDOM_PATH
-GRAPH_LABELS_PATH = data_utils.GRAPH_RANDOM_LABELS_PATH
-
 
 class Graph:
     """Class for generating a graph object from a dataset.
@@ -36,9 +33,7 @@ class Graph:
     n_nodes = None
     labels = None
 
-    def __init__(self,
-                 graph_matrix_path=GRAPH_MATRIX_PATH,
-                 labels_path=GRAPH_LABELS_PATH):
+    def __init__(self, graph_matrix_path, labels_path):
         self.edges = {}
         with open(graph_matrix_path, 'r') as edges_file:
             for i, line in enumerate(edges_file):
