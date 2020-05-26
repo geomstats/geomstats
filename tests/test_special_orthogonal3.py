@@ -1,4 +1,4 @@
-"""Unit tests for special orthogonal self.group SO(3)."""
+"""Unit tests for special orthogonal group SO(3)."""
 
 import warnings
 
