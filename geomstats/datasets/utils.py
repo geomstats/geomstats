@@ -58,6 +58,17 @@ def load_cities():
     return data, names
 
 
+def load_random():
+    """Load data from data/graph_random.
+
+    Returns
+    -------
+    graph: Graph
+        Graph containing nodes, edges, and labels from the random dataset.
+    """
+    return Graph(GRAPH_RANDOM_PATH, GRAPH_RANDOM_LABELS_PATH)
+
+
 def load_karate():
     """Load data from data/graph_karate.
 
@@ -65,8 +76,6 @@ def load_karate():
     -------
     graph: Graph
         Graph containing nodes, edges, and labels from the karate dataset.
-    name : list
-        List of city names.
     """
     return Graph(KARATE_PATH, KARATE_LABELS_PATH)
 
