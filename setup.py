@@ -69,10 +69,9 @@ if __name__ == '__main__':
             "README.md",
         ],
         include_package_data=True,
-        package_data={'':
-            ['datasets/data/*',
-            'datasets/data/*/*',
-            'datasets/data/*/*/*',
-            'datasets/data/*/*/*/*']},
+        package_data={'':['datasets/data/*',
+                          'datasets/data/*/*',
+                          'datasets/data/*/*/*',
+                          'datasets/data/*/*/*/*']},
         zip_safe=False,
     )
