@@ -3,7 +3,6 @@
 import random
 
 import geomstats.backend as gs
-import geomstats.datasets.utils as data_utils
 
 
 class Graph:
