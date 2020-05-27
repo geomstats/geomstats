@@ -4,9 +4,9 @@ import json
 import os
 
 import geomstats.backend as gs
+from geomstats.datasets.prepare_graph_data import Graph
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-from geomstats.datasets.prepare_graph_data import Graph
 
 
 MODULE_PATH = os.path.dirname(__file__)
@@ -23,6 +23,7 @@ GRAPH_RANDOM_PATH = os.path.join(
     DATA_PATH, 'graph_random', 'graph_random.txt')
 GRAPH_RANDOM_LABELS_PATH = os.path.join(
     DATA_PATH, 'graph_random', 'graph_random_labels.txt')
+
 
 def load_cities():
     """Load data from data/cities/cities.json.
