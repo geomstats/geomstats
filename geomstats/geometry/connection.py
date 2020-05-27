@@ -164,6 +164,7 @@ class Connection:
         def objective(velocity):
             """Define the objective function."""
             velocity = gs.array(velocity)
+            velocity = gs.cast(velocity, dtype=base_point.dtype)
             velocity = gs.reshape(velocity, base_point.shape)
             delta = self.exp(velocity, base_point, n_steps, step) - point
             loss = 1. / self.dim * gs.sum(delta ** 2, axis=-1)

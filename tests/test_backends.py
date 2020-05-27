@@ -896,3 +896,23 @@ class TestBackends(geomstats.tests.TestCase):
 
         with self.assertRaises((ValueError, RuntimeError)):
             gs.broadcast_arrays(gs.array([1, 2]), gs.array([3, 4, 5]))
+
+    def test_value_and_grad(self):
+        n = 10
+        vector = gs.ones(n)
+        result_loss, result_grad = gs.autograd.value_and_grad(
+            lambda v: gs.sum(v ** 2))(vector)
+        expected_loss = n
+        expected_grad = 2 * vector
+        self.assertAllClose(result_loss, expected_loss)
+        self.assertAllClose(result_grad, expected_grad)
+
+    def test_value_and_grad_numpy_input(self):
+        n = 10
+        vector = _np.ones(n)
+        result_loss, result_grad = gs.autograd.value_and_grad(
+            lambda v: gs.sum(v ** 2))(vector)
+        expected_loss = n
+        expected_grad = 2 * vector
+        self.assertAllClose(result_loss, expected_loss)
+        self.assertAllClose(result_grad, expected_grad)
