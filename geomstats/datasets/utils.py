@@ -6,13 +6,11 @@ import os
 import geomstats.backend as gs
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
-
 from geomstats.datasets.prepare_graph_data import Graph
 
 
 MODULE_PATH = os.path.dirname(__file__)
 DATA_PATH = os.path.join(MODULE_PATH, 'data')
-
 CITIES_PATH = os.path.join(
     DATA_PATH, 'cities', 'cities.json')
 POSES_PATH = os.path.join(
@@ -60,6 +58,15 @@ def load_cities():
 
 
 def load_karate():
+    """Load data from data/graph_karate.
+
+    Returns
+    -------
+    graph: Graph
+        Graph containing nodes, edges, and labels from the karate dataset.
+    name : list
+        List of city names.
+    """
     return Graph(KARATE_PATH, KARATE_LABELS_PATH)
 
 
