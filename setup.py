@@ -7,7 +7,7 @@ from setuptools import find_packages, setup
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 geomstats = runpy.run_path(os.path.join(base_dir, 'geomstats', '__init__.py'))
-
+print(base_dir)
 
 def parse_requirements_file(filename):
     with open(filename) as input_file:
@@ -62,10 +62,12 @@ if __name__ == '__main__':
         ],
         long_description=long_description,
         long_description_content_type='text/markdown',
-        packages=find_packages(),
+        packages=find_packages(),#include=['geomstats','gemostats.*']),
         data_files=[
             "LICENSE.md",
-            "README.md"
+            "README.md",
         ],
+        include_package_data=True,
+        package_data = {'': ['datasets/data/*/*']},
         zip_safe=False,
     )
