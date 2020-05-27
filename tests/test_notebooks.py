@@ -28,3 +28,7 @@ class TestNotebooks(geomstats.tests.TestCase):
     @staticmethod
     def test_02_from_vector_spaces_to_manifolds():
         _exec_notebook('notebooks/02_from_vector_spaces_to_manifolds.ipynb')
+
+    @staticmethod
+    def test_03_embedding_graph_structured_data_h2():
+        _exec_notebook('notebooks/03_embedding_graph_structured_data_h2.ipynb')
