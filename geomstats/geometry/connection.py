@@ -1,8 +1,6 @@
 """Affine connections."""
 
-import autograd
 from scipy.optimize import minimize
-from torch.optim.lbfgs import LBFGS
 
 import geomstats.backend as gs
 import geomstats.errors
@@ -158,9 +156,6 @@ class Connection:
         tangent_vec : array-like, shape=[..., dim]
             Tangent vector at the base point.
         """
-        n_samples = geomstats.vectorization.get_n_points(
-            base_point, point_type='vector')
-
         def objective(velocity):
             """Define the objective function."""
             velocity = gs.array(velocity)
@@ -168,7 +163,7 @@ class Connection:
             velocity = gs.reshape(velocity, base_point.shape)
             delta = self.exp(velocity, base_point, n_steps, step) - point
             loss = 1. / self.dim * gs.sum(delta ** 2, axis=-1)
-            return 1. / n_samples * gs.sum(loss)
+            return gs.sum(loss)
 
         objective_with_grad = gs.autograd.value_and_grad(objective)
         tangent_vec = gs.random.rand(*gs.flatten(base_point).shape)
