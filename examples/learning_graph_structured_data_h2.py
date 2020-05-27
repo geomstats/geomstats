@@ -5,9 +5,9 @@ import logging
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
+import geomstats.visualization as visualization
 from geomstats.datasets.utils import load_karate
 from geomstats.geometry.poincare_ball import PoincareBall
-import geomstats.visualization as visualization
 
 
 def log_sigmoid(vector):
