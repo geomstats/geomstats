@@ -170,7 +170,7 @@ class Connection:
             return 1. / n_samples * gs.sum(loss)
 
         objective_with_grad = gs.autograd.value_and_grad(objective)
-        tangent_vec = gs.random.rand(sum(gs.shape(base_point)))
+        tangent_vec = gs.random.rand(*gs.flatten(base_point).shape)
         res = minimize(
             objective_with_grad, tangent_vec, method='L-BFGS-B', jac=True,
             options={'disp': False, 'maxiter': 25})
