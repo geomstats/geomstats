@@ -7,11 +7,12 @@ import geomstats.tests
 
 
 def _exec_notebook(path):
-    with tempfile.NamedTemporaryFile(suffix='.ipynb') as fout:
-        args = ['jupyter', 'nbconvert', '--to', 'notebook', '--execute',
-                '--ExecutePreprocessor.timeout=1000',
-                '--output', fout.name, path]
-        subprocess.check_call(args)
+
+    file_name = tempfile.NamedTemporaryFile(suffix='.ipynb').name
+    args = ['jupyter', 'nbconvert', '--to', 'notebook', '--execute',
+            '--ExecutePreprocessor.timeout=1000',
+            '--output', file_name, path]
+    subprocess.check_call(args)
 
 
 class TestNotebooks(geomstats.tests.TestCase):
@@ -27,3 +28,7 @@ class TestNotebooks(geomstats.tests.TestCase):
     @staticmethod
     def test_02_from_vector_spaces_to_manifolds():
         _exec_notebook('notebooks/02_from_vector_spaces_to_manifolds.ipynb')
+
+    @staticmethod
+    def test_03_embedding_graph_structured_data_h2():
+        _exec_notebook('notebooks/03_embedding_graph_structured_data_h2.ipynb')

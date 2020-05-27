@@ -37,7 +37,7 @@ def load_cities():
     name : list
         List of city names.
     """
-    with open(CITIES_PATH) as json_file:
+    with open(CITIES_PATH, encoding='utf-8') as json_file:
         data_file = json.load(json_file)
 
         names = [row['city'] for row in data_file]
