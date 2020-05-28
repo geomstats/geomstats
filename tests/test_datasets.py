@@ -9,10 +9,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestDatasets(geomstats.tests.TestCase):
-    """Test for loading package data and utilities."""
-
-    def setUp(self):
-        """Set up tests."""
+    """Test for data-loading utilities."""
 
     def test_load_cities(self):
         """Test that the cities coordinates belong to the sphere."""
@@ -59,7 +56,6 @@ class TestDatasets(geomstats.tests.TestCase):
         expected = 20
         self.assertTrue(result == expected)
 
-
     @geomstats.tests.np_and_pytorch_only
     def test_random_walks_random_graph(self):
         """Test that random walks have the right length and number."""
@@ -75,7 +71,6 @@ class TestDatasets(geomstats.tests.TestCase):
                     walk_length + 1]
 
         self.assertAllClose(result, expected)
-
 
     @geomstats.tests.np_and_pytorch_only
     def test_random_walks_karate_graph(self):
