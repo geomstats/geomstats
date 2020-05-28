@@ -1,12 +1,12 @@
 """Unit tests for pre-processing transformers."""
 
 import geomstats.backend as gs
+import geomstats.geometry.spd_matrices as spd
 import geomstats.tests
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.minkowski import Minkowski
-import geomstats.geometry.spd_matrices as spd
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.preprocessing import ToTangentSpace
 
@@ -54,9 +54,9 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         self.assertAllClose(expected, result)
 
     def test_estimate_transform_spd(self):
-        point = SPDMatrices(3).random_uniform()
+        point = spd.SPDMatrices(3).random_uniform()
         points = gs.stack([point, point])
-        transformer = ToTangentSpace(geometry=SPDMetricAffine(3))
+        transformer = ToTangentSpace(geometry=spd.SPDMetricAffine(3))
         transformer.fit(X=points)
         result = transformer.transform(points)
         expected = gs.zeros((2, 6))

@@ -121,7 +121,7 @@ def load_poses(only_rotations=True):
 def load_connectomes(as_vectors=False):
     """Load data from brain connectomes.
 
-    Loads the correlation data from the kaggle MSLP 2014 Schizophrenia 
+    Load the correlation data from the kaggle MSLP 2014 Schizophrenia
     Challenge. The original data came as flattened vectors, but if `raw=True`
     is passed, the correlation values are reshaped as symmetric matrices with
     ones on the diagonal.
