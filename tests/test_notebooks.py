@@ -11,6 +11,7 @@ def _exec_notebook(path):
     file_name = tempfile.NamedTemporaryFile(suffix='.ipynb').name
     args = ['jupyter', 'nbconvert', '--to', 'notebook', '--execute',
             '--ExecutePreprocessor.timeout=1000',
+            '--ExecutePreprocessor.kernel_name=python3',
             '--output', file_name, path]
     subprocess.check_call(args)
 

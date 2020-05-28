@@ -5,14 +5,9 @@ import logging
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
-import geomstats.datasets.utils
 import geomstats.visualization as visualization
-from geomstats.datasets import graph_data_preparation as gdp
+from geomstats.datasets.utils import load_karate_graph
 from geomstats.geometry.poincare_ball import PoincareBall
-
-
-GRAPH_MATRIX_PATH = geomstats.datasets.utils.KARATE_PATH
-LABELS_PATH = geomstats.datasets.utils.KARATE_LABELS_PATH
 
 
 def log_sigmoid(vector):
@@ -135,9 +130,7 @@ def main():
     lr = .05
     n_negative = 2
     context_size = 1
-    karate_graph = gdp.Graph(
-        graph_matrix_path=GRAPH_MATRIX_PATH,
-        labels_path=LABELS_PATH)
+    karate_graph = load_karate_graph()
 
     nb_vertices_by_edges =\
         [len(e_2) for _, e_2 in karate_graph.edges.items()]

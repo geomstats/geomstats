@@ -4,25 +4,25 @@ import json
 import os
 
 import geomstats.backend as gs
+from geomstats.datasets.prepare_graph_data import Graph
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
-DATA_FOLDER = os.path.join(
-    'geomstats', 'datasets', 'data')
-
+MODULE_PATH = os.path.dirname(__file__)
+DATA_PATH = os.path.join(MODULE_PATH, 'data')
 CITIES_PATH = os.path.join(
-    DATA_FOLDER, 'cities/cities.json')
+    DATA_PATH, 'cities', 'cities.json')
 POSES_PATH = os.path.join(
-    DATA_FOLDER, 'poses/poses.json')
+    DATA_PATH, 'poses', 'poses.json')
 KARATE_PATH = os.path.join(
-    DATA_FOLDER, 'graph_karate/karate.txt')
+    DATA_PATH, 'graph_karate', 'karate.txt')
 KARATE_LABELS_PATH = os.path.join(
-    DATA_FOLDER, 'graph_karate/karate_labels.txt')
+    DATA_PATH, 'graph_karate', 'karate_labels.txt')
 GRAPH_RANDOM_PATH = os.path.join(
-    DATA_FOLDER, 'graph_random/graph_random.txt')
+    DATA_PATH, 'graph_random', 'graph_random.txt')
 GRAPH_RANDOM_LABELS_PATH = os.path.join(
-    DATA_FOLDER, 'graph_random/graph_random_labels.txt')
+    DATA_PATH, 'graph_random', 'graph_random_labels.txt')
 
 
 def load_cities():
@@ -56,6 +56,28 @@ def load_cities():
     sphere = Hypersphere(dim=2)
     data = sphere.spherical_to_extrinsic(data)
     return data, names
+
+
+def load_random_graph():
+    """Load data from data/graph_random.
+
+    Returns
+    -------
+    graph: prepare_graph_data.Graph
+        Graph containing nodes, edges, and labels from the random dataset.
+    """
+    return Graph(GRAPH_RANDOM_PATH, GRAPH_RANDOM_LABELS_PATH)
+
+
+def load_karate_graph():
+    """Load data from data/graph_karate.
+
+    Returns
+    -------
+    graph: prepare_graph_data.Graph
+        Graph containing nodes, edges, and labels from the karate dataset.
+    """
+    return Graph(KARATE_PATH, KARATE_LABELS_PATH)
 
 
 def load_poses(only_rotations=True):

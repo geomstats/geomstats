@@ -24,7 +24,6 @@ IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'S1', 'S2',
 
 
 def tutorial_matplotlib():
-    plt.style.use('seaborn')
     fontsize = 12
     matplotlib.rc('font', size=fontsize)
     matplotlib.rc('text')

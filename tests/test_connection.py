@@ -94,7 +94,6 @@ class TestConnection(geomstats.tests.TestCase):
 
             self.assertAllClose(result, expected, rtol=rtol, atol=atol)
 
-    @geomstats.tests.np_only
     def test_exp_connection_metric(self):
         point = gs.array([gs.pi / 2, 0])
         vector = gs.array([0.25, 0.5])
@@ -109,7 +108,6 @@ class TestConnection(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, rtol=1e-6)
 
-    @geomstats.tests.np_only
     def test_exp_connection_metric_vectorization(self):
         point = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
         vector = gs.array([[0.25, 0.5], [0.30, 0.2]])
@@ -124,7 +122,6 @@ class TestConnection(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, rtol=1e-6)
 
-    @geomstats.tests.np_only
     def test_log_connection_metric(self):
         base_point = gs.array([gs.pi / 3, gs.pi / 4])
         point = gs.array([1.0, gs.pi / 2])
@@ -139,7 +136,6 @@ class TestConnection(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, rtol=1e-5, atol=1e-5)
 
-    @geomstats.tests.np_only
     def test_log_connection_metric_vectorization(self):
         base_point = gs.array([[gs.pi / 3, gs.pi / 4], [gs.pi / 2, gs.pi / 4]])
         point = gs.array([[1.0, gs.pi / 2], [gs.pi / 6, gs.pi / 3]])
