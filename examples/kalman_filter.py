@@ -124,7 +124,7 @@ class Localization:
         self.dim_noise = 3
         self.dim_obs = 2
 
-    def ad_chi(self, state):
+    def adjoint_map(self, state):
         """Construct the tangent map associated to Ad_X : g |-> XgX^-1."""
         theta, x, y = state
         tangent_base = gs.array([[0, -1],
@@ -155,7 +155,7 @@ class Localization:
         input_vector_form = dt * gs.hstack((angular_speed, linear_speed))
         input_inv = self.group.inverse(input_vector_form)
 
-        return self.ad_chi(input_inv)
+        return self.adjoint_map(input_inv)
 
     def noise_jacobian(self, state, sensor_input):
         """Construct the jacobian associated to the process noise.
@@ -329,7 +329,7 @@ def main():
     plt.plot(range(obs_freq, n_traj + 1, obs_freq), observations,
              marker='*', linestyle='', label='Observation')
     plt.legend()
-    plt.title('Position')
+    plt.title('1D Localization - Position')
 
     plt.figure()
     plt.plot(true_traj[:, 1], label='GT')
@@ -339,7 +339,7 @@ def main():
         estimate[:, 1] - uncertainty[:, 1], color='k', linestyle=':',
         label='3_sigma envelope')
     plt.legend()
-    plt.title('Speed')
+    plt.title('1D Localization - Speed')
 
     model = Localization()
     kalman = KalmanFilter(model)
