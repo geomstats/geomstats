@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
-from geomstats.datasets.utils import load_karate
+from geomstats.datasets.utils import load_karate_graph
 from geomstats.geometry.poincare_ball import PoincareBall
 
 
@@ -130,7 +130,7 @@ def main():
     lr = .05
     n_negative = 2
     context_size = 1
-    karate_graph = load_karate()
+    karate_graph = load_karate_graph()
 
     nb_vertices_by_edges =\
         [len(e_2) for _, e_2 in karate_graph.edges.items()]
