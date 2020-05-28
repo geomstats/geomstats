@@ -63,7 +63,7 @@ def load_random_graph():
 
     Returns
     -------
-    graph: Graph
+    graph: prepare_graph_data.Graph
         Graph containing nodes, edges, and labels from the random dataset.
     """
     return Graph(GRAPH_RANDOM_PATH, GRAPH_RANDOM_LABELS_PATH)
@@ -74,7 +74,7 @@ def load_karate_graph():
 
     Returns
     -------
-    graph: Graph
+    graph: prepare_graph_data.Graph
         Graph containing nodes, edges, and labels from the karate dataset.
     """
     return Graph(KARATE_PATH, KARATE_LABELS_PATH)
