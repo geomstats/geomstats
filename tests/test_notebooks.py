@@ -36,6 +36,7 @@ class TestNotebooks(geomstats.tests.TestCase):
         _exec_notebook('notebooks/03_embedding_graph_structured_data_h2.ipynb')
 
     @staticmethod
+    @geomstats.tests.np_and_pytorch_only
     def test_04_simple_machine_learning_tangent_spaces():
         _exec_notebook(
             'notebooks/04_simple_machine_learning_tangent_spaces.ipynb')
