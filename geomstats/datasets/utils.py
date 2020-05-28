@@ -58,7 +58,7 @@ def load_cities():
     return data, names
 
 
-def load_random():
+def load_random_graph():
     """Load data from data/graph_random.
 
     Returns
