@@ -92,6 +92,14 @@ class TestDatasets(geomstats.tests.TestCase):
     def test_load_connectomes(self):
         """Test that the connectomes belong to SPD"""
         spd = SPDMatrices(28)
-        data, patient_ids, labels = data_utils.load_connectomes()
+        data, _, _ = data_utils.load_connectomes(as_vectors=True)
+        result = data.shape
+        expected = (86, 27 * 14)
+        self.assertAllClose(result, expected)
+
+        data, _, labels = data_utils.load_connectomes()
         result = spd.belongs(data)
+        self.assertTrue(gs.all(result))
+
+        result = gs.logical_and(labels >= 0, labels <= 1)
         self.assertTrue(gs.all(result))

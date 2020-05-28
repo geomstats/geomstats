@@ -118,7 +118,30 @@ def load_poses(only_rotations=True):
     return data, img_paths
 
 
-def load_connectomes(raw=False):
+def load_connectomes(as_vectors=False):
+    """Load data from brain connectomes.
+
+    Loads the correlation data from the kaggle MSLP 2014 Schizophrenia 
+    Challenge. The original data came as flattened vectors, but if `raw=True`
+    is passed, the correlation values are reshaped as symmetric matrices with
+    ones on the diagonal.
+
+    Parameters
+    ----------
+    as_vectors : bool
+        Whether to return raw data as vectors or as symmetric matrices.
+        Optional, default: False
+
+    Returns
+    -------
+    data : array-like, shape=[86, {[28, 28], 378}
+        Connectomes.
+    patient_id : array-like, shape=[86,]
+        Patient unique identifiers
+    target : array-like, shape=[86,]
+        Labels, whether patients belong to the diseased class (1) or control
+        (0).
+    """
     with open(CONNECTOMES_PATH) as csvfile:
         data_list = list(csv.reader(csvfile))
     patient_id = gs.array([int(row[0]) for row in data_list[1:]])
@@ -128,7 +151,7 @@ def load_connectomes(raw=False):
     with open(CONNECTOMES_LABELS_PATH) as csvfile:
         labels = list(csv.reader(csvfile))
     target = gs.array([int(row[1]) for row in labels[1:]])
-    if raw:
+    if as_vectors:
         return data, patient_id, target
     mat = SkewSymmetricMatrices(28).matrix_representation(data)
     mat = gs.eye(28) - gs.transpose(gs.tril(mat), (0, 2, 1))
