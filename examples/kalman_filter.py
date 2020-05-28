@@ -33,8 +33,6 @@ from geomstats import algebra_utils
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
-os.environ['GEOMSTATS_BACKEND'] = 'numpy'  # NOGA
-
 
 class LocalizationLinear:
     """Class for modeling a linear 1D localization problem.
