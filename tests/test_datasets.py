@@ -64,7 +64,7 @@ class TestDatasets(geomstats.tests.TestCase):
         n_walks_per_node = 1
 
         paths = graph.random_walk(walk_length=walk_length,
-                                     n_walks_per_node=n_walks_per_node)
+                                  n_walks_per_node=n_walks_per_node)
 
         result = [len(paths), len(paths[0])]
         expected = [len(graph.edges) * n_walks_per_node,
@@ -80,7 +80,7 @@ class TestDatasets(geomstats.tests.TestCase):
         n_walks_per_node = 2
 
         paths = graph.random_walk(walk_length=walk_length,
-                                     n_walks_per_node=n_walks_per_node)
+                                  n_walks_per_node=n_walks_per_node)
 
         result = [len(paths), len(paths[0])]
         expected = [len(graph.edges) * n_walks_per_node,
