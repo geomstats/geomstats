@@ -69,7 +69,7 @@ def load_random_graph():
     return Graph(GRAPH_RANDOM_PATH, GRAPH_RANDOM_LABELS_PATH)
 
 
-def load_karate():
+def load_karate_graph():
     """Load data from data/graph_karate.
 
     Returns
