@@ -4,7 +4,7 @@ import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
-from  geomstats.geometry.spd_matrices import SPDMatrices
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
