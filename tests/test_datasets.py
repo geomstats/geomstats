@@ -13,8 +13,8 @@ class TestDatasets(geomstats.tests.TestCase):
 
     def setUp(self):
         """Set up tests."""
-        self.g1 = data_utils.load_random()
-        self.g2 = data_utils.load_karate()
+        self.g1 = data_utils.load_random_graph()
+        self.g2 = data_utils.load_karate_graph()
 
     def test_load_cities(self):
         """Test that the cities coordinates belong to the sphere."""
