@@ -82,6 +82,25 @@ class Euclidean(Manifold):
 
         return point
 
+    def exp(self, tangent_vec, base_point=None):
+        """Compute the group exponential, which is simply the addition.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n]
+            Point from which the exponential is computed.
+
+        Returns
+        -------
+        point : array-like, shape=[..., n]
+            Group exponential.
+        """
+        if not self.belongs(tangent_vec):
+            raise ValueError('The update must be of the same dimension')
+        return tangent_vec + base_point
+
 
 class EuclideanMetric(RiemannianMetric):
     """Class for Euclidean metrics.
