@@ -1,9 +1,10 @@
-"""Unit tests for loading Graph dataset."""
+"""Unit tests for loading datasets."""
 
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 import geomstats.tests
 from geomstats.geometry.hypersphere import Hypersphere
+from  geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
@@ -87,3 +88,10 @@ class TestDatasets(geomstats.tests.TestCase):
                     walk_length + 1]
 
         self.assertAllClose(result, expected)
+
+    def test_load_connectomes(self):
+        """Test that the connectomes belong to SPD"""
+        spd = SPDMatrices(28)
+        data, patient_ids, labels = data_utils.load_connectomes()
+        result = spd.belongs(data)
+        self.assertTrue(gs.all(result))
