@@ -1,11 +1,13 @@
 """Loading toy datasets."""
 
+import csv
 import json
 import os
 
 import geomstats.backend as gs
 from geomstats.datasets.prepare_graph_data import Graph
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
@@ -13,6 +15,11 @@ MODULE_PATH = os.path.dirname(__file__)
 DATA_PATH = os.path.join(MODULE_PATH, 'data')
 CITIES_PATH = os.path.join(
     DATA_PATH, 'cities', 'cities.json')
+CONNECTOMES_PATH = os.path.join(
+    DATA_PATH, 'connectomes/train_FNC.csv')
+CONNECTOMES_LABELS_PATH = os.path.join(
+    DATA_PATH, 'connectomes/train_labels.csv')
+
 POSES_PATH = os.path.join(
     DATA_PATH, 'poses', 'poses.json')
 KARATE_PATH = os.path.join(
@@ -109,3 +116,22 @@ def load_poses(only_rotations=True):
 
     data = gs.array(data)
     return data, img_paths
+
+
+def load_connectomes(raw=False):
+    with open(CONNECTOMES_PATH) as csvfile:
+        data_list = list(csv.reader(csvfile))
+    patient_id = gs.array([int(row[0]) for row in data_list[1:]])
+    data = gs.array(
+        [[float(value) for value in row[1:]] for row in data_list[1:]])
+
+    with open(CONNECTOMES_LABELS_PATH) as csvfile:
+        labels = list(csv.reader(csvfile))
+    target = gs.array([int(row[1]) for row in labels[1:]])
+    if raw:
+        return data, patient_id, target
+    mat = SkewSymmetricMatrices(28).matrix_representation(data)
+    mat = gs.eye(28) - gs.transpose(gs.tril(mat), (0, 2, 1))
+    mat = 1. / 2. * (mat + gs.transpose(mat, (0, 2, 1)))
+
+    return mat, patient_id, target
