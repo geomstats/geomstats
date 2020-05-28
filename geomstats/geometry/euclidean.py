@@ -21,6 +21,23 @@ class Euclidean(Manifold):
         super(Euclidean, self).__init__(dim=dim)
         self.metric = EuclideanMetric(dim)
 
+    def get_identity(self, point_type=None):
+        """Get the identity of the group.
+
+        Parameters
+        ----------
+        point_type : str, {'vector', 'matrix'}
+            The point_type of the returned value.
+            Optional, default: self.default_point_type
+
+        Returns
+        -------
+        identity : array-like, shape=[n]
+        """
+        identity = gs.zeros(self.dim)
+        return identity
+    identity = property(get_identity)
+
     def belongs(self, point):
         """Evaluate if a point belongs to the Euclidean space.
 
