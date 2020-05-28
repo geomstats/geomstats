@@ -6,7 +6,7 @@ from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.hyperboloid import Hyperboloid
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.minkowski import Minkowski
-from geomstats.geometry.spd_matrices import SPDMatrices, SPDMetricAffine
+import geomstats.geometry.spd_matrices as spd
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.preprocessing import ToTangentSpace
 
@@ -79,8 +79,14 @@ class TestToTangentSpace(geomstats.tests.TestCase):
         self.assertAllClose(expected, result)
 
     def test_inverse_transform_spd(self):
-        point = SPDMatrices(3).random_uniform(10)
-        transformer = ToTangentSpace(geometry=SPDMetricAffine(3))
+        point = spd.SPDMatrices(3).random_uniform(10)
+        transformer = ToTangentSpace(geometry=spd.SPDMetricLogEuclidean(3))
+        X = transformer.fit_transform(X=point)
+        result = transformer.inverse_transform(X)
+        expected = point
+        self.assertAllClose(expected, result, atol=1e-4)
+
+        transformer = ToTangentSpace(geometry=spd.SPDMetricAffine(3))
         X = transformer.fit_transform(X=point)
         result = transformer.inverse_transform(X)
         expected = point
