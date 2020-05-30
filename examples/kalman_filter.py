@@ -45,13 +45,13 @@ class LocalizationLinear:
     A sensor provides acceleration inputs, while another one provides sparse
     measurements of the position.
     """
-    def __init__(self):
-        self.group = Euclidean(2)
-        self.dim = self.group.dim
-        self.dim_noise = 1
-        self.dim_obs = 1
+    group = Euclidean(2)
+    dim = group.dim
+    dim_noise = 1
+    dim_obs = 1
 
-    def propagate(self, state, sensor_input):
+    @staticmethod
+    def propagate(state, sensor_input):
         """Propagate with piece-wise constant acceleration and velocity."""
         dt, acc = sensor_input
         pos, speed = state
@@ -59,26 +59,31 @@ class LocalizationLinear:
         speed = speed + dt * acc
         return gs.array([pos, speed])
 
-    def propagation_jacobian(self, state, sensor_input):
+    @staticmethod
+    def propagation_jacobian(state, sensor_input):
         """Compute the matrix associated to the affine propagation."""
         dt, _ = sensor_input
-        jac = gs.eye(self.dim)
+        jac = gs.eye(LocalizationLinear.dim)
         jac[0, 1] = dt
         return jac
 
-    def noise_jacobian(self, state, sensor_input):
+    @staticmethod
+    def noise_jacobian(state, sensor_input):
         """Compute the matrix associated to the propagation noise.
 
         The noise is supposed additive.
         """
         dt, _ = sensor_input
-        return gs.sqrt(dt) * gs.eye(self.dim, self.dim_noise, -1)
+        return gs.sqrt(dt) * gs.eye(
+            LocalizationLinear.dim, LocalizationLinear.dim_noise, -1)
 
-    def observation_jacobian(self, state, observation):
+    @staticmethod
+    def observation_jacobian(state, observation):
         """Compute the matrix associated to the observation model."""
         return gs.eye(1, 2)
 
-    def get_measurement_noise_cov(self, state, observation_cov):
+    @staticmethod
+    def get_measurement_noise_cov(state, observation_cov):
         """Get the observation covariance."""
         return observation_cov
 
@@ -87,7 +92,8 @@ class LocalizationLinear:
         """Model used to create the measurements."""
         return state[:1]
 
-    def innovation(self, state, observation):
+    @staticmethod
+    def innovation(state, observation):
         """Discrepancy between the measurement and its expected value."""
         return observation - LocalizationLinear.observation_model(state)
 
@@ -101,6 +107,10 @@ class Localization:
     sparse position observations.
     """
     group = SpecialEuclidean(2, 'vector')
+    dim = group.dim
+    dim_noise = 3
+    dim_obs = 2
+
     @staticmethod
     def split_input(sensor_input):
         """Separate the input into its main parts."""
@@ -121,61 +131,62 @@ class Localization:
             theta = gs.array([theta])
         return Localization.group.rotations.log_from_identity(theta.T)
 
-    def __init__(self):
-        self.dim = self.group.dim
-        self.dim_noise = 3
-        self.dim_obs = 2
-
-    def adjoint_map(self, state):
+    @staticmethod
+    def adjoint_map(state):
         """Construct the tangent map associated to Ad_X : g |-> XgX^-1."""
         theta, x, y = state
         tangent_base = gs.array([[0, -1],
                                  [1, 0]])
         ad = gs.eye(3)
-        ad[1:, 1:] = self.rotation_matrix(theta)
+        ad[1:, 1:] = Localization.rotation_matrix(theta)
         ad[1:, 0] = -tangent_base.dot([x, y])
 
         return ad
 
-    def propagate(self, state, sensor_input):
+    @staticmethod
+    def propagate(state, sensor_input):
         """Propagate state with constant velocity motion model on SE(2)."""
-        dt, linear_speed, angular_speed = self.split_input(sensor_input)
+        dt, linear_speed, angular_speed = Localization.split_input(sensor_input)
         theta, x, y = state
-        x, y = state[1:] + dt * self.rotation_matrix(theta).dot(
+        x, y = state[1:] + dt * Localization.rotation_matrix(theta).dot(
             linear_speed)
         theta = theta + dt * angular_speed
-        theta = self.regularize_angle(theta)
+        theta = Localization.regularize_angle(theta)
         return gs.concatenate((theta, [x, y]))
 
-    def propagation_jacobian(self, state, sensor_input):
+    @staticmethod
+    def propagation_jacobian(state, sensor_input):
         """Construct the jacobian associated to the input.
 
         Since the propagation writes f(x) = x*u, and the error is modeled on
         the Lie algebra, the jacobian is Ad_{u^{-1}}.
         """
-        dt, linear_speed, angular_speed = self.split_input(sensor_input)
+        dt, linear_speed, angular_speed = Localization.split_input(sensor_input)
         input_vector_form = dt * gs.hstack((angular_speed, linear_speed))
-        input_inv = self.group.inverse(input_vector_form)
+        input_inv = Localization.group.inverse(input_vector_form)
 
-        return self.adjoint_map(input_inv)
+        return Localization.adjoint_map(input_inv)
 
-    def noise_jacobian(self, state, sensor_input):
+    @staticmethod
+    def noise_jacobian(state, sensor_input):
         """Construct the jacobian associated to the process noise.
 
         The noise being considered multiplicative, it is simply the identity
         scaled by the time stamp.
         """
-        dt, _, _ = self.split_input(sensor_input)
-        return gs.sqrt(dt) * gs.eye(self.dim_noise)
+        dt, _, _ = Localization.split_input(sensor_input)
+        return gs.sqrt(dt) * gs.eye(Localization.dim_noise)
 
-    def observation_jacobian(self, state, observation):
+    @staticmethod
+    def observation_jacobian(state, observation):
         """Construct the jacobian associated to the innovation."""
         return gs.eye(2, 3, 1)
 
-    def get_measurement_noise_cov(self, state, observation_cov):
+    @staticmethod
+    def get_measurement_noise_cov(state, observation_cov):
         """Construct the measurement covariance for the innovation."""
         theta, _, _ = state
-        rot = self.rotation_matrix(theta)
+        rot = Localization.rotation_matrix(theta)
         return rot.T.dot(observation_cov).dot(rot)
 
     @staticmethod
@@ -183,14 +194,15 @@ class Localization:
         """Model used to obtain the measurements."""
         return state[1:]
 
-    def innovation(self, state, observation):
+    @staticmethod
+    def innovation(state, observation):
         """Discrepancy between the measurement and its expected value.
 
         Here the linear error observation - expected is brought back to
         the Lie algebra
         """
         theta, _, _ = state
-        rot = self.rotation_matrix(theta)
+        rot = Localization.rotation_matrix(theta)
         expected = Localization.observation_model(state)
         return rot.T.dot(observation - expected)
 
