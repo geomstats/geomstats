@@ -18,9 +18,13 @@ The non-linear propagation writes
 :math:`(R_{i+1}, x_{i+1}) = (R_i \Omega_i, x_i + dt * R_i u_i)`,
 where :math:`\Omega_i, u_i` is the measured odometry of the system.
 The implementation follows that of the Invariant Extended Kalman Filter (IEKF)
-which was designed for such cases, see A. Barrau, S. Bonnabel, The Invariant
-Extended Kalman Filter as a Stable Observer, IEEE Transactions on Automatic
-Control, 2017.
+which was designed for such cases [BB2017].
+
+References
+----------
+.. [BB2017] Barrau, Bonnabel, "The Invariant Extended Kalman Filter as a Stable
+Observer", IEEE Transactions on Automatic Control, 2017
+https://arxiv.org/abs/1410.1465
 """
 
 import os
@@ -207,7 +211,7 @@ class KalmanFilter:
         self.measurement_noise = gs.zeros(
             (self.model.dim_obs, self.model.dim_obs))
 
-    def initialise_covariances(self, prior_values, process_values, obs_values):
+    def initialize_covariances(self, prior_values, process_values, obs_values):
         """Set the values of the covariances."""
         values = [prior_values, process_values, obs_values]
         attributes = ['covariance', 'process_noise', 'measurement_noise']
@@ -230,10 +234,10 @@ class KalmanFilter:
 
     def compute_gain(self, observation):
         """Compute the Kalman gain given the observation model."""
-        N = self.model.get_measurement_noise_cov(
+        obs_cov = self.model.get_measurement_noise_cov(
             self.state, self.measurement_noise)
         obs_jac = self.model.observation_jacobian(self.state, observation)
-        innovation_cov = obs_jac.dot(self.covariance).dot(obs_jac.T) + N
+        innovation_cov = obs_jac.dot(self.covariance).dot(obs_jac.T) + obs_cov
         return self.covariance.dot(obs_jac.T).dot(
             gs.linalg.inv(innovation_cov))
 
@@ -299,12 +303,12 @@ def main():
     n_traj = 1000
     obs_freq = 50
     dt = 0.1
-    P0 = gs.array([10., 1.])
-    P0 = np.diag(P0)
-    Q = 0.001 * gs.eye(model.dim_noise)
-    N = 10 * gs.eye(model.dim_obs)
-    initial_covs = (P0, Q, N)
-    kalman.initialise_covariances(*initial_covs)
+    init_cov = gs.array([10., 1.])
+    init_cov = np.diag(init_cov)
+    prop_cov = 0.001 * gs.eye(model.dim_noise)
+    obs_cov = 10 * gs.eye(model.dim_obs)
+    initial_covs = (init_cov, prop_cov, obs_cov)
+    kalman.initialize_covariances(*initial_covs)
 
     true_state = gs.array([0, 0])
     true_inputs = [gs.array([dt, gs.random.uniform(-1, 1)]) for _ in
@@ -313,7 +317,7 @@ def main():
     true_traj, inputs, observations = create_data(
         kalman, true_state, true_inputs, obs_freq)
 
-    initial_state = np.random.multivariate_normal(true_state, P0)
+    initial_state = np.random.multivariate_normal(true_state, init_cov)
     estimate, uncertainty = estimation(
         kalman, initial_state, inputs, observations, obs_freq)
 
@@ -341,12 +345,12 @@ def main():
 
     model = Localization()
     kalman = KalmanFilter(model)
-    P0 = gs.array([1., 10., 10.])
-    P0 = np.diag(P0)
-    Q = 0.001 * gs.eye(model.dim_noise)
-    N = 0.1 * gs.eye(model.dim_obs)
-    initial_covs = (P0, Q, N)
-    kalman.initialise_covariances(*initial_covs)
+    init_cov = gs.array([1., 10., 10.])
+    init_cov = np.diag(init_cov)
+    prop_cov = 0.001 * gs.eye(model.dim_noise)
+    obs_cov = 0.1 * gs.eye(model.dim_obs)
+    initial_covs = (init_cov, prop_cov, obs_cov)
+    kalman.initialize_covariances(*initial_covs)
 
     true_state = gs.array([0, 0, 0])
     true_inputs = [gs.array([dt, .5, 0., 0.05]) for _ in range(n_traj)]
@@ -354,7 +358,7 @@ def main():
     true_traj, inputs, observations = create_data(
         kalman, true_state, true_inputs, obs_freq)
 
-    initial_state = np.random.multivariate_normal(true_state, P0)
+    initial_state = np.random.multivariate_normal(true_state, init_cov)
     estimate, uncertainty = estimation(
         kalman, initial_state, inputs, observations, obs_freq)
 
