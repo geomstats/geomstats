@@ -35,6 +35,7 @@ import numpy as np
 import geomstats.backend as gs
 from geomstats import algebra_utils
 from geomstats.geometry.euclidean import Euclidean
+from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
 
@@ -63,8 +64,9 @@ class LocalizationLinear:
     def propagation_jacobian(state, sensor_input):
         """Compute the matrix associated to the affine propagation."""
         dt, _ = sensor_input
-        jac = gs.eye(LocalizationLinear.dim)
-        jac[0, 1] = dt
+        dim = LocalizationLinear.dim
+        jac = gs.eye(dim)
+        jac = gs.assignment(jac, dt, (0, 1))
         return jac
 
     @staticmethod
@@ -121,7 +123,6 @@ class Localization:
         """Construct the rotation matrix associated to the angle theta."""
         if gs.ndim(gs.array(theta)) <= 1:
             theta = gs.array([theta])
-        theta = gs.transpose(theta)
         return Localization.group.rotations.matrix_from_rotation_vector(theta)
 
     @staticmethod
@@ -129,7 +130,7 @@ class Localization:
         """Bring back angle theta in ]-pi, pi]."""
         if gs.ndim(gs.array(theta)) <= 1:
             theta = gs.array([theta])
-        return Localization.group.rotations.log_from_identity(theta.T)
+        return Localization.group.rotations.log_from_identity(theta)
 
     @staticmethod
     def adjoint_map(state):
@@ -137,9 +138,15 @@ class Localization:
         theta, x, y = state
         tangent_base = gs.array([[0, -1],
                                  [1, 0]])
-        ad = gs.eye(3)
-        ad[1:, 1:] = Localization.rotation_matrix(theta)
-        ad[1:, 0] = -tangent_base.dot([x, y])
+        orientation_part = gs.eye(1, Localization.dim)
+        position_wrt_orientation = - tangent_base.dot([x, y]).reshape(2, 1)
+        position_wrt_position = Localization.rotation_matrix(theta)
+        last_lines = gs.hstack((
+            position_wrt_orientation, position_wrt_position))
+        ad = gs.vstack((orientation_part, last_lines))
+        # ad = gs.eye(3)
+        # ad[1:, 1:] = Localization.rotation_matrix(theta)
+        # ad[1:, 0] = -tangent_base.dot([x, y])
 
         return ad
 
@@ -187,7 +194,7 @@ class Localization:
         """Construct the measurement covariance for the innovation."""
         theta, _, _ = state
         rot = Localization.rotation_matrix(theta)
-        return rot.T.dot(observation_cov).dot(rot)
+        return Matrices.mul(Matrices.transpose(rot), observation_cov, rot)
 
     @staticmethod
     def observation_model(state):
@@ -204,7 +211,7 @@ class Localization:
         theta, _, _ = state
         rot = Localization.rotation_matrix(theta)
         expected = Localization.observation_model(state)
-        return rot.T.dot(observation - expected)
+        return Matrices.mul(Matrices.transpose(rot), observation - expected)
 
 
 class KalmanFilter:
@@ -228,11 +235,7 @@ class KalmanFilter:
         values = [prior_values, process_values, obs_values]
         attributes = ['covariance', 'process_noise', 'measurement_noise']
         for (index, val) in enumerate(values):
-            if gs.ndim(val) == 1:
-                setattr(self, attributes[index],
-                        algebra_utils.from_vector_to_diagonal_matrix(val))
-            else:
-                setattr(self, attributes[index], val)
+            setattr(self, attributes[index], val)
 
     def propagate(self, sensor_input):
         """Propagate the estimate and its covariance."""
@@ -240,8 +243,11 @@ class KalmanFilter:
         prop_jac = self.model.propagation_jacobian(self.state, sensor_input)
         noise_jac = self.model.noise_jacobian(self.state, sensor_input)
 
-        self.covariance = prop_jac.dot(self.covariance).dot(
-            prop_jac.T) + noise_jac.dot(prop_noise).dot(noise_jac.T)
+        prop_cov = Matrices.mul(
+            prop_jac, self.covariance, Matrices.transpose(prop_jac))
+        noise_cov = Matrices.mul(
+            noise_jac, prop_noise, Matrices.transpose(noise_jac))
+        self.covariance = prop_cov + noise_cov
         self.state = self.model.propagate(self.state, sensor_input)
 
     def compute_gain(self, observation):
@@ -249,8 +255,10 @@ class KalmanFilter:
         obs_cov = self.model.get_measurement_noise_cov(
             self.state, self.measurement_noise)
         obs_jac = self.model.observation_jacobian(self.state, observation)
-        innovation_cov = obs_jac.dot(self.covariance).dot(obs_jac.T) + obs_cov
-        return self.covariance.dot(obs_jac.T).dot(
+        expected_cov = Matrices.mul(
+            obs_jac, self.covariance, Matrices.transpose(obs_jac))
+        innovation_cov = expected_cov + obs_cov
+        return Matrices.mul(self.covariance, Matrices.transpose(obs_jac),
             gs.linalg.inv(innovation_cov))
 
     def update(self, observation):
@@ -316,15 +324,17 @@ def main():
     obs_freq = 50
     dt = 0.1
     init_cov = gs.array([10., 1.])
-    init_cov = np.diag(init_cov)
+    init_cov = algebra_utils.from_vector_to_diagonal_matrix(init_cov)
     prop_cov = 0.001 * gs.eye(model.dim_noise)
     obs_cov = 10 * gs.eye(model.dim_obs)
     initial_covs = (init_cov, prop_cov, obs_cov)
     kalman.initialize_covariances(*initial_covs)
 
-    true_state = gs.array([0, 0])
-    true_inputs = [gs.array([dt, gs.random.uniform(-1, 1)]) for _ in
+    true_state = gs.array([0., 0.])
+    true_inputs = [gs.array([dt, 0.]) for _ in
                    range(n_traj)]
+    # true_inputs = [gs.array([dt, gs.random.uniform(-1, 1)]) for _ in
+    #                range(n_traj)]
 
     true_traj, inputs, observations = create_data(
         kalman, true_state, true_inputs, obs_freq)
@@ -358,7 +368,7 @@ def main():
     model = Localization()
     kalman = KalmanFilter(model)
     init_cov = gs.array([1., 10., 10.])
-    init_cov = np.diag(init_cov)
+    init_cov = algebra_utils.from_vector_to_diagonal_matrix(init_cov)
     prop_cov = 0.001 * gs.eye(model.dim_noise)
     obs_cov = 0.1 * gs.eye(model.dim_obs)
     initial_covs = (init_cov, prop_cov, obs_cov)
