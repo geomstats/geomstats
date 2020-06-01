@@ -1,6 +1,7 @@
 """The manifold of symmetric positive definite (SPD) matrices."""
 
 import math
+from collections import namedtuple
 
 import geomstats.backend as gs
 import geomstats.vectorization
@@ -8,10 +9,13 @@ from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 EPSILON = 1e-6
 TOLERANCE = 1e-12
+
+EigenSummary = namedtuple("Eigen", "eigenspace eigenvalues")
 
 
 class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
@@ -107,6 +111,88 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
             '...ij,...jk->...ik', tangent_vec, sqrt_base_point)
 
         return tangent_vec
+
+    def set_eigensummary(self, eigenspace, eigenvalues):
+        """
+        Set the current eigenspace for a specific family of matrices.
+
+        :param eigenspace: array-like, shape=[n, n]:
+        Current eigenspace.
+        :param eigenvalues: array-like, shape=[n, n]:
+        Current eigenvalues.
+        """
+        self.eigensummary = EigenSummary(
+            eigenspace=eigenspace, eigenvalues=eigenvalues)
+
+    def get_eigensummary(self):
+        """
+        Get the current eigenspace for a specific family of matrices.
+
+        :return Eigen namedtuple : Current eigenspace and eigenvalues.
+        """
+        return self.eigensummary
+
+    def random_gaussian(
+            self, mean_spd=None, var_rotations=None, n_samples=1):
+        """
+        Define a Gaussian random sample of SPD matrices.
+
+        (definition is debatable)
+        'mean_spd' is the mean SPD matrix; 'var_rotations' is the
+        scalar variance by which the mean is rotated.
+        """
+        n = self.n
+
+        # Should make it possible to simply perform EIG operation
+        # if no EigenSummary provided
+        assert (self.eigensummary is not None),\
+            "Need to first set eigenspace and eigenvalues."
+
+        eigenvalues, eigenspace =\
+            self.eigensummary.eigenvalues, self.eigensummary.eigenspace
+        rotations = SpecialOrthogonal(n).random_gaussian(
+            eigenspace, var_rotations, n_samples=n_samples)
+
+        spd_mat = gs.array(
+            [gs.matmul(rotations[i],
+                       gs.matmul(eigenvalues,
+                                 rotations[i].T))
+             for i in range(n_samples)])
+
+        return spd_mat
+
+    def random_gaussian_noisy(self, mean_spd=None, var_rotations=None,
+                              noise=None, n_samples=1):
+        """
+        Define a Gaussian random sample of SPD matrices.
+
+        (definition is debatable)
+        'mean_spd' is the mean SPD matrix; 'var_rotations' is the
+        scalar variance by which the mean is rotated.
+        """
+        n = self.n
+
+        # Should make it possible to simply perform EIG operation
+        # if no EigenSummary provided
+        assert (self.eigensummary is not None),\
+            "Need to first set eigenspace and eigenvalues."
+
+        eigenvalues, eigenspace =\
+            self.eigensummary.eigenvalues, self.eigensummary.eigenspace
+        eigenvalues =\
+            gs.diag(gs.random.multivariate_normal(
+                gs.diag(eigenvalues), gs.diag(noise)))
+        self.set_eigensummary(eigenspace, eigenvalues)
+        rotations = SpecialOrthogonal(n).random_gaussian(
+            eigenspace, var_rotations, n_samples=n_samples)
+
+        spd_mat = gs.array(
+            [gs.matmul(rotations[i],
+                       gs.matmul(eigenvalues,
+                                 rotations[i].T))
+             for i in range(n_samples)])
+
+        return spd_mat
 
     @staticmethod
     @geomstats.vectorization.decorator(['else', 'matrix', 'matrix'])
