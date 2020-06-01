@@ -138,33 +138,52 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         skew = self.to_tangent(random_mat)
         return self.exp(skew)
 
-    @geomstats.vectorization.decorator(['else', 'vector'])
-    def skew_matrix_from_vector(self, vec):
-        """Get the skew-symmetric matrix derived from the vector.
-
-        In nD, fill a skew-symmetric matrix with the values of the vector.
-
-        Parameters
-        ----------
-        vec : array-like, shape=[..., dim]
-            Vector.
-
-        Returns
-        -------
-        skew_mat : array-like, shape=[..., n, n]
-            Skew-symmetric matrix.
+    def angle_of_rot2(self, r):
         """
-        n_vecs, vec_dim = gs.shape(vec)
+        Get angle of a 2D rotation.
 
-        mat_dim = gs.cast(
-            ((1. + gs.sqrt(1. + 8. * vec_dim)) / 2.), gs.int32)
-        skew_mat = gs.zeros((n_vecs,) + (self.n,) * 2)
-        upper_triangle_indices = gs.triu_indices(mat_dim, k=1)
+        :param r: array-like, shape=[n, n]: rotation
+        :return: float: angle of rotation
+        """
+        assert (self.n == 2),\
+            'This function was only tested for n==2, do not use otherwise.'
+        return gs.arctan(r[0][1] / r[0][0])
 
-        for i in range(n_vecs):
-            skew_mat[i][upper_triangle_indices] = vec[i]
-            skew_mat[i] = skew_mat[i] - gs.transpose(skew_mat[i])
-        return skew_mat
+    def divide_angle_of_cov2(self, r, alpha):
+        """
+        Divide the angle of a 2D rotation by a scalar.
+
+        :param r: array-like, shape=[n, n]: rotation
+        :param alpha: float: scalar to divide of angle by
+        :return: array-like, shape=[n, n]: rotation with divided angle
+        """
+        assert (self.n == 2),\
+            'This function was only tested for n==2, do not use otherwise.'
+        angle = self.angle_of_rot2(r) * alpha
+        c, s = gs.cos(angle), gs.sin(angle)
+        return gs.array([[c, -s], [s, c]])
+
+    def random_gaussian(self, mean, var, n_samples=1):
+        """
+        Emulate a Gaussian distribution in SO(n).
+
+        WARNING: This was only tested and may be viable only in SO(2).
+
+        :param mean: array-like, shape=[n, n]
+                     Mean rotation.
+        :param var: float
+                    Variance of the distribution,
+                    corresponds to an angle in dimension 2.
+        :param n_samples: int, number of samples
+        :return: rot_gaussian: array-like, shape=[n_samples, n, n]
+        """
+        assert (self.n == 2),\
+            'This function was only tested for n==2, do not use otherwise.'
+        rot_uniform = self.random_uniform(n_samples)
+        rot_normalized = gs.array([self.divide_angle_of_cov2(
+            rot_uniform[i], var) for i in range(rot_uniform.shape[0])])
+        rot_gaussian = gs.matmul(mean, rot_normalized)
+        return rot_gaussian
 
 
 class _SpecialOrthogonalVectors(LieGroup):
