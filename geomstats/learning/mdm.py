@@ -35,6 +35,7 @@ class RiemannianMinimumDistanceToMeanClassifier:
         Compute Frechet mean of each class.
 
         Stores the mean in the class attributes mean_estimates_.
+        
         Parameters
         ----------
         X : array-like, shape=[n_samples, n_features]
