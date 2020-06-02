@@ -65,8 +65,11 @@ class LocalizationLinear:
         """Compute the matrix associated to the affine propagation."""
         dt, _ = sensor_input
         dim = LocalizationLinear.dim
-        jac = gs.eye(dim)
-        jac = gs.assignment(jac, dt, (0, 1))
+        position_line = gs.hstack((gs.eye(dim // 2), dt * gs.eye(dim // 2)))
+        speed_line = gs.hstack((
+            gs.zeros((dim // 2, dim // 2)), gs.eye(dim // 2)))
+        jac = gs.vstack((position_line, speed_line))
+        # jac = gs.assignment(jac, dt, (0, 1))
         return jac
 
     @staticmethod
@@ -76,13 +79,16 @@ class LocalizationLinear:
         The noise is supposed additive.
         """
         dt, _ = sensor_input
-        return gs.sqrt(dt) * gs.eye(
-            LocalizationLinear.dim, LocalizationLinear.dim_noise, -1)
+        dim = LocalizationLinear.dim
+        position_wrt_noise = gs.zeros((dim // 2, dim // 2))
+        speed_wrt_noise = gs.sqrt(dt) * gs.eye(dim // 2)
+        jac = gs.vstack((position_wrt_noise, speed_wrt_noise))
+        return jac
 
     @staticmethod
     def observation_jacobian(state, observation):
         """Compute the matrix associated to the observation model."""
-        return gs.eye(1, 2)
+        return gs.eye(LocalizationLinear.dim_obs, LocalizationLinear.dim)
 
     @staticmethod
     def get_measurement_noise_cov(state, observation_cov):
@@ -110,13 +116,14 @@ class Localization:
     """
     group = SpecialEuclidean(2, 'vector')
     dim = group.dim
+    dim_rot = group.rotations.dim
     dim_noise = 3
     dim_obs = 2
 
     @staticmethod
     def split_input(sensor_input):
         """Separate the input into its main parts."""
-        return sensor_input[0], sensor_input[1:3], sensor_input[3]
+        return sensor_input[0], sensor_input[1:Localization.group.n + 1], sensor_input[Localization.group.n + 1:]
 
     @staticmethod
     def rotation_matrix(theta):
@@ -128,7 +135,7 @@ class Localization:
     @staticmethod
     def regularize_angle(theta):
         """Bring back angle theta in ]-pi, pi]."""
-        if gs.ndim(gs.array(theta)) <= 1:
+        if gs.ndim(gs.array(theta)) < 1:
             theta = gs.array([theta])
         return Localization.group.rotations.log_from_identity(theta)
 
@@ -136,17 +143,15 @@ class Localization:
     def adjoint_map(state):
         """Construct the tangent map associated to Ad_X : g |-> XgX^-1."""
         theta, x, y = state
-        tangent_base = gs.array([[0, -1],
-                                 [1, 0]])
-        orientation_part = gs.eye(1, Localization.dim)
-        position_wrt_orientation = - tangent_base.dot([x, y]).reshape(2, 1)
+        tangent_base = gs.array([[0., -1.],
+                                 [1., 0.]])
+        orientation_part = gs.eye(Localization.dim_rot, Localization.dim)
+        pos_column = gs.reshape(state[1:], (Localization.group.n, 1))
+        position_wrt_orientation = - Matrices.mul(tangent_base, pos_column)
         position_wrt_position = Localization.rotation_matrix(theta)
         last_lines = gs.hstack((
             position_wrt_orientation, position_wrt_position))
         ad = gs.vstack((orientation_part, last_lines))
-        # ad = gs.eye(3)
-        # ad[1:, 1:] = Localization.rotation_matrix(theta)
-        # ad[1:, 0] = -tangent_base.dot([x, y])
 
         return ad
 
@@ -155,11 +160,12 @@ class Localization:
         """Propagate state with constant velocity motion model on SE(2)."""
         dt, linear_speed, angular_speed = Localization.split_input(sensor_input)
         theta, x, y = state
-        x, y = state[1:] + dt * Localization.rotation_matrix(theta).dot(
-            linear_speed)
+        local_speed = Matrices.mul(
+            Localization.rotation_matrix(theta), linear_speed)
+        new_pos = state[1:] + dt * local_speed
         theta = theta + dt * angular_speed
         theta = Localization.regularize_angle(theta)
-        return gs.concatenate((theta, [x, y]))
+        return gs.concatenate((theta, new_pos), axis=0)
 
     @staticmethod
     def propagation_jacobian(state, sensor_input):
@@ -169,7 +175,7 @@ class Localization:
         the Lie algebra, the jacobian is Ad_{u^{-1}}.
         """
         dt, linear_speed, angular_speed = Localization.split_input(sensor_input)
-        input_vector_form = dt * gs.hstack((angular_speed, linear_speed))
+        input_vector_form = dt * gs.concatenate((angular_speed, linear_speed), axis=0)
         input_inv = Localization.group.inverse(input_vector_form)
 
         return Localization.adjoint_map(input_inv)
@@ -187,7 +193,9 @@ class Localization:
     @staticmethod
     def observation_jacobian(state, observation):
         """Construct the jacobian associated to the innovation."""
-        return gs.eye(2, 3, 1)
+        orientation_part = gs.zeros((Localization.dim_obs, Localization.dim_rot))
+        position_part = gs.eye(Localization.dim_obs, Localization.group.n)
+        return gs.hstack((orientation_part, position_part))
 
     @staticmethod
     def get_measurement_noise_cov(state, observation_cov):
@@ -266,9 +274,10 @@ class KalmanFilter:
         innovation = self.model.innovation(self.state, observation)
         gain = self.compute_gain(observation)
         obs_jac = self.model.observation_jacobian(self.state, observation)
-        self.covariance = (gs.eye(self.model.dim) - gain.dot(obs_jac)).dot(
-            self.covariance)
-        self.state = self.model.group.exp(gain.dot(innovation), self.state)
+        cov_factor = gs.eye(self.model.dim) - Matrices.mul(gain, obs_jac)
+        self.covariance = Matrices.mul(cov_factor, self.covariance)
+        state_upd = Matrices.mul(gain, innovation)
+        self.state = self.model.group.exp(state_upd, self.state)
         if gs.ndim(self.state) > 1:
             return gs.squeeze(self.state)
 
@@ -289,13 +298,17 @@ def main():
             kalman.model.observation_model(pose)
             for pose in true_traj[obs_freq::obs_freq]]
 
+        obs_dtype = true_obs[0].dtype
         observations = [
             np.random.multivariate_normal(obs, kalman.measurement_noise)
             for obs in true_obs]
+        observations = [gs.cast(obs, obs_dtype) for obs in observations]
 
+        input_dtype = true_inputs[0].dtype
         inputs = [gs.concatenate(
             (incr[:1], np.random.multivariate_normal(
-                incr[1:], kalman.process_noise))) for incr in true_inputs]
+                incr[1:], kalman.process_noise)), axis=0) for incr in true_inputs]
+        inputs = [gs.cast(incr, input_dtype) for incr in inputs]
 
         return gs.array(true_traj), inputs, gs.array(observations)
 
@@ -331,10 +344,9 @@ def main():
     kalman.initialize_covariances(*initial_covs)
 
     true_state = gs.array([0., 0.])
-    true_inputs = [gs.array([dt, 0.]) for _ in
-                   range(n_traj)]
-    # true_inputs = [gs.array([dt, gs.random.uniform(-1, 1)]) for _ in
-    #                range(n_traj)]
+    true_acc = gs.random.uniform(-1, 1, (n_traj, 1))
+    dt_vectorized = dt * gs.ones((n_traj, 1))
+    true_inputs = gs.hstack((dt_vectorized, true_acc))
 
     true_traj, inputs, observations = create_data(
         kalman, true_state, true_inputs, obs_freq)
@@ -374,13 +386,14 @@ def main():
     initial_covs = (init_cov, prop_cov, obs_cov)
     kalman.initialize_covariances(*initial_covs)
 
-    true_state = gs.array([0, 0, 0])
+    true_state = gs.zeros(model.dim)
     true_inputs = [gs.array([dt, .5, 0., 0.05]) for _ in range(n_traj)]
 
     true_traj, inputs, observations = create_data(
         kalman, true_state, true_inputs, obs_freq)
 
-    initial_state = np.random.multivariate_normal(true_state, init_cov)
+    initial_state = gs.array(np.random.multivariate_normal(true_state, init_cov))
+    initial_state = gs.cast(initial_state, true_state.dtype)
     estimate, uncertainty = estimation(
         kalman, initial_state, inputs, observations, obs_freq)
 
