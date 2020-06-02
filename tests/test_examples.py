@@ -74,7 +74,6 @@ class TestExamples(geomstats.tests.TestCase):
         loss_and_gradient_se3.main()
 
     @staticmethod
-    # @geomstats.tests.np_only
     def test_kalman_filter():
         kalman_filter.main()
 

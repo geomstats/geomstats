@@ -8,7 +8,7 @@ is known, and sparse position measurements are obtained. It thus relies on a
 
 The former is a 1D-localization problem where the state is a 2D vector (x, v)
 made of the system's position and speed. The process writes
-(x_{i+1}, v_{i+1}) = (x_i + dt * v_i, v_i + dt * a_i),
+:math:`(x_{i+1}, v_{i+1}) = (x_i + dt * v_i, v_i + dt * a_i)`,
 where dt is the time-step between i and i+1, and a_i a noisy acceleration
 measured by a given sensor.
 
@@ -27,8 +27,6 @@ Observer", IEEE Transactions on Automatic Control, 2017
 https://arxiv.org/abs/1410.1465
 """
 
-import os
-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -46,6 +44,7 @@ class LocalizationLinear:
     A sensor provides acceleration inputs, while another one provides sparse
     measurements of the position.
     """
+
     group = Euclidean(2)
     dim = group.dim
     dim_noise = 1
@@ -114,6 +113,7 @@ class Localization:
     A sensor provides the linear and angular speed, while another one provides
     sparse position observations.
     """
+
     group = SpecialEuclidean(2, 'vector')
     dim = group.dim
     dim_rot = group.rotations.dim
@@ -123,7 +123,8 @@ class Localization:
     @staticmethod
     def split_input(sensor_input):
         """Separate the input into its main parts."""
-        return sensor_input[0], sensor_input[1:Localization.group.n + 1], sensor_input[Localization.group.n + 1:]
+        return sensor_input[0], sensor_input[1:Localization.group.n + 1],\
+            sensor_input[Localization.group.n + 1:]
 
     @staticmethod
     def rotation_matrix(theta):
@@ -158,12 +159,12 @@ class Localization:
     @staticmethod
     def propagate(state, sensor_input):
         """Propagate state with constant velocity motion model on SE(2)."""
-        dt, linear_speed, angular_speed = Localization.split_input(sensor_input)
+        dt, linear_vel, angular_vel = Localization.split_input(sensor_input)
         theta, x, y = state
-        local_speed = Matrices.mul(
-            Localization.rotation_matrix(theta), linear_speed)
-        new_pos = state[1:] + dt * local_speed
-        theta = theta + dt * angular_speed
+        local_vel = Matrices.mul(
+            Localization.rotation_matrix(theta), linear_vel)
+        new_pos = state[1:] + dt * local_vel
+        theta = theta + dt * angular_vel
         theta = Localization.regularize_angle(theta)
         return gs.concatenate((theta, new_pos), axis=0)
 
@@ -174,8 +175,9 @@ class Localization:
         Since the propagation writes f(x) = x*u, and the error is modeled on
         the Lie algebra, the jacobian is Ad_{u^{-1}}.
         """
-        dt, linear_speed, angular_speed = Localization.split_input(sensor_input)
-        input_vector_form = dt * gs.concatenate((angular_speed, linear_speed), axis=0)
+        dt, linear_vel, angular_vel = Localization.split_input(sensor_input)
+        input_vector_form = dt * gs.concatenate(
+            (angular_vel, linear_vel), axis=0)
         input_inv = Localization.group.inverse(input_vector_form)
 
         return Localization.adjoint_map(input_inv)
@@ -193,7 +195,8 @@ class Localization:
     @staticmethod
     def observation_jacobian(state, observation):
         """Construct the jacobian associated to the innovation."""
-        orientation_part = gs.zeros((Localization.dim_obs, Localization.dim_rot))
+        orientation_part = gs.zeros(
+            (Localization.dim_obs, Localization.dim_rot))
         position_part = gs.eye(Localization.dim_obs, Localization.group.n)
         return gs.hstack((orientation_part, position_part))
 
@@ -213,8 +216,8 @@ class Localization:
     def innovation(state, observation):
         """Discrepancy between the measurement and its expected value.
 
-        Here the linear error observation - expected is brought back to
-        the Lie algebra
+        The linear error (observation - expected) is cast into the state's
+        frame, following [BB2017]
         """
         theta, _, _ = state
         rot = Localization.rotation_matrix(theta)
@@ -266,7 +269,8 @@ class KalmanFilter:
         expected_cov = Matrices.mul(
             obs_jac, self.covariance, Matrices.transpose(obs_jac))
         innovation_cov = expected_cov + obs_cov
-        return Matrices.mul(self.covariance, Matrices.transpose(obs_jac),
+        return Matrices.mul(
+            self.covariance, Matrices.transpose(obs_jac),
             gs.linalg.inv(innovation_cov))
 
     def update(self, observation):
@@ -278,8 +282,6 @@ class KalmanFilter:
         self.covariance = Matrices.mul(cov_factor, self.covariance)
         state_upd = Matrices.mul(gain, innovation)
         self.state = self.model.group.exp(state_upd, self.state)
-        if gs.ndim(self.state) > 1:
-            return gs.squeeze(self.state)
 
 
 def main():
@@ -307,7 +309,8 @@ def main():
         input_dtype = true_inputs[0].dtype
         inputs = [gs.concatenate(
             (incr[:1], np.random.multivariate_normal(
-                incr[1:], kalman.process_noise)), axis=0) for incr in true_inputs]
+                incr[1:], kalman.process_noise)), axis=0)
+            for incr in true_inputs]
         inputs = [gs.cast(incr, input_dtype) for incr in inputs]
 
         return gs.array(true_traj), inputs, gs.array(observations)
@@ -392,7 +395,8 @@ def main():
     true_traj, inputs, observations = create_data(
         kalman, true_state, true_inputs, obs_freq)
 
-    initial_state = gs.array(np.random.multivariate_normal(true_state, init_cov))
+    initial_state = gs.array(
+        np.random.multivariate_normal(true_state, init_cov))
     initial_state = gs.cast(initial_state, true_state.dtype)
     estimate, uncertainty = estimation(
         kalman, initial_state, inputs, observations, obs_freq)
