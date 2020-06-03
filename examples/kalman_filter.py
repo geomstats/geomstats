@@ -286,10 +286,10 @@ class KalmanFilter:
 def main():
     """Carry out two examples of state estimation on groups.
 
-     Both examples are localization problems, where only a part of the system
-     is observed. The first one is a linear system, while the second one is
-     non-linear.
-     """
+    Both examples are localization problems, where only a part of the system
+    is observed. The first one is a linear system, while the second one is
+    non-linear.
+    """
     def create_data(kalman, true_init, true_inputs, obs_freq):
         """Create data for a specific example."""
         true_traj = [1 * true_init]
