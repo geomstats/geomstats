@@ -142,12 +142,12 @@ class Localization:
     @staticmethod
     def adjoint_map(state):
         """Construct the tangent map associated to Ad_X : g |-> XgX^-1."""
-        theta, x, y = state
+        theta, _, _ = state
         tangent_base = gs.array([[0., -1.],
                                  [1., 0.]])
         orientation_part = gs.eye(Localization.dim_rot, Localization.dim)
         pos_column = gs.reshape(state[1:], (Localization.group.n, 1))
-        position_wrt_orientation = - Matrices.mul(tangent_base, pos_column)
+        position_wrt_orientation = Matrices.mul(- tangent_base, pos_column)
         position_wrt_position = Localization.rotation_matrix(theta)
         last_lines = gs.hstack((
             position_wrt_orientation, position_wrt_position))
@@ -159,7 +159,7 @@ class Localization:
     def propagate(state, sensor_input):
         """Propagate state with constant velocity motion model on SE(2)."""
         dt, linear_vel, angular_vel = Localization.split_input(sensor_input)
-        theta, x, y = state
+        theta, _, _ = state
         local_vel = Matrices.mul(
             Localization.rotation_matrix(theta), linear_vel)
         new_pos = state[1:] + dt * local_vel
