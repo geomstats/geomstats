@@ -79,11 +79,6 @@ class TestExamples(geomstats.tests.TestCase):
 
     @staticmethod
     @geomstats.tests.np_only
-    def test_kalman_filter():
-        kalman_filter.main()
-
-    @staticmethod
-    @geomstats.tests.np_only
     def test_learning_graph_structured_data_h2():
         learning_gsd_h2.main()
 

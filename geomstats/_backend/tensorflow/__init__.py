@@ -542,7 +542,8 @@ def matmul(a, b):
     behavior of torch's and numpy's versions of matmul
     """
     if ndim(b) < ndim(a):
-        return tf.linalg.matvec(a, b)
+        if ndim(b) == 1 or b.shape[-2] != a.shape[-1]:
+            return tf.linalg.matvec(a, b)
     return tf.linalg.matmul(a, b)
 
 

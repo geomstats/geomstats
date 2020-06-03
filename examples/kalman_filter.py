@@ -68,7 +68,6 @@ class LocalizationLinear:
         speed_line = gs.hstack((
             gs.zeros((dim // 2, dim // 2)), gs.eye(dim // 2)))
         jac = gs.vstack((position_line, speed_line))
-        # jac = gs.assignment(jac, dt, (0, 1))
         return jac
 
     @staticmethod
