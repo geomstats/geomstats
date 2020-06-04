@@ -21,6 +21,23 @@ class Euclidean(Manifold):
         super(Euclidean, self).__init__(dim=dim)
         self.metric = EuclideanMetric(dim)
 
+    def get_identity(self, point_type=None):
+        """Get the identity of the group.
+
+        Parameters
+        ----------
+        point_type : str, {'vector', 'matrix'}
+            The point_type of the returned value.
+            Optional, default: self.default_point_type
+
+        Returns
+        -------
+        identity : array-like, shape=[n]
+        """
+        identity = gs.zeros(self.dim)
+        return identity
+    identity = property(get_identity)
+
     def belongs(self, point):
         """Evaluate if a point belongs to the Euclidean space.
 
@@ -64,6 +81,25 @@ class Euclidean(Manifold):
         point = bound * (gs.random.rand(*size) - 0.5) * 2
 
         return point
+
+    def exp(self, tangent_vec, base_point=None):
+        """Compute the group exponential, which is simply the addition.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n]
+            Tangent vector at base point.
+        base_point : array-like, shape=[..., n]
+            Point from which the exponential is computed.
+
+        Returns
+        -------
+        point : array-like, shape=[..., n]
+            Group exponential.
+        """
+        if not self.belongs(tangent_vec):
+            raise ValueError('The update must be of the same dimension')
+        return tangent_vec + base_point
 
 
 class EuclideanMetric(RiemannianMetric):
