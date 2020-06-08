@@ -380,6 +380,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
             matrix_c = matrix_lv[:, p:2 * p, p:2 * p]
 
+            if gs.linalg.norm(matrix_c) < tol:
+                break
+
             matrix_phi = gs.linalg.expm(-matrix_c)
 
             aux_matrix = gs.matmul(
@@ -389,9 +392,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
                 [matrix_v[:, :, 0:p],
                  aux_matrix],
                 axis=2)
-
-            if gs.linalg.norm(matrix_c) < tol:
-                break
 
         matrix_xv = gs.matmul(base_point, matrix_lv[:, 0:p, 0:p])
         matrix_qv = gs.matmul(matrix_q, matrix_lv[:, p:2 * p, 0:p])
