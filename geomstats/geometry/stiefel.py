@@ -298,12 +298,6 @@ class StiefelCanonicalMetric(RiemannianMetric):
         """
         matrix_w = gs.concatenate([matrix_m, matrix_n], axis=1)
 
-        matrix_v = gs.zeros((
-            matrix_w.shape[0],
-            max(matrix_w.shape[1], matrix_w.shape[2]),
-            max(matrix_w.shape[1], matrix_w.shape[2])
-        ))
-
         matrix_v, _ = gs.linalg.qr(matrix_w, mode='complete')
 
         return matrix_v
