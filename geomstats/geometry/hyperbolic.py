@@ -28,11 +28,13 @@ class Hyperbolic(Manifold):
     ----------
     dim : int
         Dimension of the hyperbolic space.
-    point_type : str, {'extrinsic', 'intrinsic', etc}, optional
+    point_type : str, {'extrinsic', 'intrinsic', etc}
         Default coordinates to represent points in hyperbolic space.
-    scale : int, optional
+        Optional, default: 'extrinsic'.
+    scale : int
         Scale of the hyperbolic space, defined as the set of points
         in Minkowski space whose squared norm is equal to -scale.
+        Optional, default: 1.
     """
 
     default_coords_type = 'extrinsic'
@@ -55,12 +57,12 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point_extrinsic : array-like, shape=[n_samples, dim + 1]
+        point_extrinsic : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
 
         Returns
         -------
-        point_intrinsic : array-like, shape=[n_samples, dim]
+        point_intrinsic : array-like, shape=[..., dim]
             Point in hyperbolic space in intrinsic coordinates.
         """
         return point
@@ -76,12 +78,12 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point_intrinsic : array-like, shape=[n_samples, dim]
+        point_intrinsic : array-like, shape=[..., dim]
             Point in hyperbolic space in intrinsic coordinates.
 
         Returns
         -------
-        point_extrinsic : array-like, shape=[n_samples, dim + 1]
+        point_extrinsic : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
         """
         coord_0 = gs.sqrt(1. + gs.linalg.norm(point_intrinsic, axis=-1) ** 2)
@@ -102,12 +104,12 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point_extrinsic : array-like, shape=[n_samples, dim + 1]
+        point_extrinsic : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
 
         Returns
         -------
-        point_intrinsic : array-like, shape=[n_samples, dim]
+        point_intrinsic : array-like, shape=[..., dim]
         """
         point_intrinsic = point_extrinsic[..., 1:]
 
@@ -123,12 +125,12 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim + 1]
+        point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
 
         Returns
         -------
-        point_ball : array-like, shape=[n_samples, dim]
+        point_ball : array-like, shape=[..., dim]
             Point in hyperbolic space in Poincare ball coordinates.
         """
         return point[..., 1:] / (1 + point[..., :1])
@@ -144,12 +146,12 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
+        point : array-like, shape=[..., dim]
             Point in hyperbolic space in Poincare ball coordinates.
 
         Returns
         -------
-        extrinsic : array-like, shape=[n_samples, dim + 1]
+        extrinsic : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
         """
         squared_norm = gs.sum(point**2, -1)
@@ -172,12 +174,12 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, 2]
+        point : array-like, shape=[..., 2]
             Point in hyperbolic space in half-plane coordinates.
 
         Returns
         -------
-        extrinsic : array-like, shape=[n_samples, 3]
+        extrinsic : array-like, shape=[..., 3]
             Point in hyperbolic plane in extrinsic coordinates.
         """
         x, y = point[:, 0], point[:, 1]
@@ -201,12 +203,12 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, 2]
+        point : array-like, shape=[..., 2]
             Point in the hyperbolic plane in intrinsic coordinates.
 
         Returns
         -------
-        point_half_plane : array-like, shape=[n_samples, 2]
+        point_half_plane : array-like, shape=[..., 2]
             Point in the hyperbolic plane in Poincare upper half-plane
             coordinates.
         """
@@ -246,8 +248,7 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
-                            or shape=[n_samples, dim + 1]
+        point : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space.
         from_coordinates_system : str, {'extrinsic', 'intrinsic', etc}
             Coordinates type.
@@ -256,7 +257,7 @@ class Hyperbolic(Manifold):
 
         Returns
         -------
-        point_to : array-like, shape=[n_samples, dim]
+        point_to : array-like, shape=[..., dim]
                                or shape=[n_sample, dim + 1]
             Point in hyperbolic space in coordinates given by to_point_type.
         """
@@ -295,15 +296,16 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
+        point : array-like, shape=[..., dim]
             Point to be tested.
-        tolerance : float, optional
+        tolerance : float
             Tolerance at which to evaluate how close the squared norm
             is to the reference value.
+            Optional, default: TOLERANCE.
 
         Returns
         -------
-        belongs : array-like, shape=[n_samples, 1]
+        belongs : array-like, shape=[..., 1]
             Array of booleans indicating whether the corresponding points
             belong to the hyperbolic space.
         """
@@ -317,16 +319,15 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
-                            or shape=[n_samples, dim + 1]
+        point : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space.
-        to_point_type : str, {'extrinsic', 'intrinsic', etc}, optional
+        to_point_type : str, {'extrinsic', 'intrinsic', etc}
             Coordinates type.
+            Optional, default: 'ball'.
 
         Returns
         -------
-        point_to : array-like, shape=[n_samples, dim]
-                               or shape=[n_sample, dim + 1]
+        point_to : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space in coordinates given by to_point_type.
         """
         return Hyperbolic.change_coordinates_system(point,
@@ -341,16 +342,14 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, dim]
-                            or shape=[n_samples, dim + 1]
+        point : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space in coordinates from_point_type.
         from_point_type : str, {'ball', 'extrinsic', 'intrinsic', 'half_plane'}
             Coordinates type.
 
         Returns
         -------
-        point_current : array-like, shape=[n_samples, dim]
-                                    or shape=[n_sample, dim + 1]
+        point_current : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space.
         """
         return Hyperbolic.change_coordinates_system(
@@ -367,14 +366,16 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        n_samples : int, optional
+        n_samples : int
             Number of samples.
-        bound: float, optional
+            Optional, default: 1.
+        bound: float
             Bound defining the hypersquare in which to sample uniformly.
+            Optional, default: 1.
 
         Returns
         -------
-        samples : array-like, shape=[n_samples, dim + 1]
+        samples : array-like, shape=[..., dim + 1]
             Samples in hyperbolic space.
         """
         size = (n_samples, self.dim)
@@ -418,16 +419,17 @@ class HyperbolicMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, dim + 1]
+        tangent_vec_a : array-like, shape=[..., dim + 1]
             First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[n_samples, dim + 1]
+        tangent_vec_b : array-like, shape=[..., dim + 1]
             Second tangent vector at base point.
-        base_point : array-like, shape=[n_samples, dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space.
+            Optional, default: None.
 
         Returns
         -------
-        inner_prod : array-like, shape=[n_samples, 1]
+        inner_prod : array-like, shape=[..., 1]
             Inner-product of the two tangent vectors.
         """
         inner_prod = self._inner_product(
@@ -443,14 +445,15 @@ class HyperbolicMetric(RiemannianMetric):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, dim + 1]
+        vector : array-like, shape=[..., dim + 1]
             Vector on the tangent space of the hyperbolic space at base point.
-        base_point : array-like, shape=[n_samples, dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
+            Optional, default: None.
 
         Returns
         -------
-        sq_norm : array-like, shape=[n_samples, 1]
+        sq_norm : array-like, shape=[..., 1]
             Squared norm of the vector.
         """
         sq_norm = self._squared_norm(vector)
@@ -465,14 +468,15 @@ class HyperbolicMetric(RiemannianMetric):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, dim + 1]
+        vector : array-like, shape=[..., dim + 1]
             Vector on the tangent space of the hyperbolic space at base point.
-        base_point : array-like, shape=[n_samples, dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
+            Optional, default: None.
 
         Returns
         -------
-        sq_norm : array-like, shape=[n_samples, 1]
+        sq_norm : array-like, shape=[..., 1]
             Squared norm of the vector.
         """
         return super().squared_norm(vector, base_point=base_point)
@@ -482,16 +486,17 @@ class HyperbolicMetric(RiemannianMetric):
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, dim + 1]
+        tangent_vec_a : array-like, shape=[..., dim + 1]
             First tangent vector at base point.
-        tangent_vec_b : array-like, shape=[n_samples, dim + 1]
+        tangent_vec_b : array-like, shape=[..., dim + 1]
             Second tangent vector at base point.
-        base_point : array-like, shape=[n_samples, dim + 1], optional
+        base_point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space.
+            Optional, default: None.
 
         Returns
         -------
-        inner_prod : array-like, shape=[n_samples, 1]
+        inner_prod : array-like, shape=[..., 1]
             Inner-product of the two tangent vectors.
         """
         return super().inner_product(tangent_vec_a, tangent_vec_b,

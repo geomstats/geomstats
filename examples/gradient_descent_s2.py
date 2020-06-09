@@ -17,17 +17,17 @@ To run this example, you need to install ffmpeg:
 import logging
 
 import matplotlib
-matplotlib.use('Agg')  # NOQA
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import numpy as np
+
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.spd_matrices import SPDMatrices
 
-
+matplotlib.use('Agg')  # NOQA
 SPHERE2 = Hypersphere(dim=2)
 METRIC = SPHERE2.metric
 
@@ -47,7 +47,7 @@ def gradient_descent(start,
     for i in range(max_iter):
         x_prev = x
         euclidean_grad = - lr * grad(x)
-        tangent_vec = manifold.projection_to_tangent_space(
+        tangent_vec = manifold.to_tangent(
             vector=euclidean_grad, base_point=x)
         x = manifold.metric.exp(base_point=x, tangent_vec=tangent_vec)
         if (gs.abs(loss(x, use_gs=True) - loss(x_prev, use_gs=True))

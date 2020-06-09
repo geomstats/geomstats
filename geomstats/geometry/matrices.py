@@ -3,36 +3,44 @@
 from functools import reduce
 
 import geomstats.backend as gs
-import geomstats.error
+import geomstats.errors
+from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.manifold import Manifold
-from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 TOLERANCE = 1e-5
 
 
 class Matrices(Manifold):
-    """Class for the space of matrices (m, n)."""
+    """Class for the space of matrices (m, n).
+
+    Parameters
+    ----------
+    m, n : int
+        Integers representing the shapes of the matrices: m x n.
+    """
 
     def __init__(self, m, n):
         super(Matrices, self).__init__(dim=m * n)
-        geomstats.error.check_integer(n, 'n')
-        geomstats.error.check_integer(m, 'm')
+        geomstats.errors.check_integer(n, 'n')
+        geomstats.errors.check_integer(m, 'm')
         self.m = m
         self.n = n
         self.default_point_type = 'matrix'
         self.metric = MatricesMetric(m, n)
 
     def belongs(self, point):
-        """Check if point belongs to the Matrix space.
+        """Check if point belongs to the Matrices space.
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, (m,n)]
+        point : array-like, shape=[..., m, n]
+            Point to be checked.
 
         Returns
         -------
-        belongs : boolean
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the Matrices space.
         """
         point = gs.to_ndarray(point, to_ndim=3)
         _, mat_dim_1, mat_dim_2 = point.shape
@@ -44,13 +52,18 @@ class Matrices(Manifold):
 
         Parameters
         ----------
-        mat_a : array-like, shape=[n_samples, dim1, dim2]
-        mat_b : array-like, shape=[n_samples, dim2, dim3]
-        atol
+        mat_a : array-like, shape=[..., dim1, dim2]
+            Matrix.
+        mat_b : array-like, shape=[..., dim2, dim3]
+            Matrix.
+        atol : float
+            Tolerance.
+            Optional, default: 1e-5.
 
         Returns
         -------
-        eq : array-like boolean, shape=[n_samples]
+        eq : array-like, shape=[...,]
+            Boolean evaluating if the matrices are close.
         """
         is_vectorized = \
             (gs.ndim(gs.array(mat_a)) == 3) or (gs.ndim(gs.array(mat_b)) == 3)
@@ -59,33 +72,40 @@ class Matrices(Manifold):
 
     @staticmethod
     def mul(*args):
-        """Calculate the product of matrices a1, ..., an.
+        """Compute the product of matrices a1, ..., an.
 
         Parameters
         ----------
-        a1 : array-like, shape=[n_samples, dim_1, dim_2]
-        a2 : array-like, shape=[n_samples, dim_2, dim_3]
+        a1 : array-like, shape=[..., dim_1, dim_2]
+            Matrix.
+        a2 : array-like, shape=[..., dim_2, dim_3]
+            Matrix.
         ...
-        an : array-like, shape=[n_samples, dim_n-1, dim_n]
+        an : array-like, shape=[..., dim_n-1, dim_n]
+            Matrix.
 
         Returns
         -------
-        mul : array-like, shape=[n_samples, dim_1, dim_n]
+        mul : array-like, shape=[..., dim_1, dim_n]
+            Result of the product of matrices.
         """
         return reduce(gs.matmul, args)
 
     @classmethod
     def bracket(cls, mat_a, mat_b):
-        """Calculate the commutator of a and b, i.e. `[a, b] = ab - ba`.
+        """Compute the commutator of a and b, i.e. `[a, b] = ab - ba`.
 
         Parameters
         ----------
-        mat_a : array-like, shape=[n_samples, dim, dim]
-        mat_b : array-like, shape=[n_samples, dim, dim]
+        mat_a : array-like, shape=[..., n, n]
+            Matrix.
+        mat_b : array-like, shape=[..., n, n]
+            Matrix.
 
         Returns
         -------
-        mat_c : array-like, shape=[n_samples, dim, dim]
+        mat_c : array-like, shape=[..., n, n]
+            Commutator.
         """
         return cls.mul(mat_a, mat_b) - cls.mul(mat_b, mat_a)
 
@@ -95,11 +115,13 @@ class Matrices(Manifold):
 
         Parameters
         ----------
-        mat : array-like, shape=[n_samples, dim, dim]
+        mat : array-like, shape=[..., n, n]
+            Matrix.
 
         Returns
         -------
-        transpose : array-like, shape=[n_samples, dim, dim]
+        transpose : array-like, shape=[..., n, n]
+            Transposed matrix.
         """
         is_vectorized = (gs.ndim(gs.array(mat)) == 3)
         axes = (0, 2, 1) if is_vectorized else (1, 0)
@@ -111,72 +133,87 @@ class Matrices(Manifold):
 
         Parameters
         ----------
-        mat : array-like, shape=[n_samples, n, n]
-        atol : float, absolute tolerance. defaults to TOLERANCE
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: 1e-5.
 
         Returns
         -------
-        is_sym : array-like boolean, shape=[n_samples]
+        is_sym : array-like, shape=[...,]
+            Boolean evaluating if the matrix is symmetric.
         """
         return cls.equal(mat, cls.transpose(mat), atol)
 
     @classmethod
     def is_skew_symmetric(cls, mat, atol=TOLERANCE):
-        """
-        Check if a matrix is skew symmetric.
+        """Check if a matrix is skew symmetric.
 
         Parameters
         ----------
-        mat : array-like, shape=[n_samples, n, n]
-        atol : float, absolute tolerance. defaults to TOLERANCE
+        mat : array-like, shape=[..., n, n]
+            Matrix.
+        atol : float
+            Absolute tolerance.
+            Optional, default: 1e-5.
 
         Returns
         -------
-        is_skew_sym : array-like boolean, shape=[n_samples]
+        is_skew_sym : array-like, shape=[...,]
+            Boolean evaluating if the matrix is skew-symmetric.
         """
         return cls.equal(mat, - cls.transpose(mat), atol)
 
     @classmethod
-    def make_symmetric(cls, mat):
+    def to_symmetric(cls, mat):
         """Make a matrix symmetric, by averaging with its transpose.
 
         Parameters
         ----------
-        mat : array-like, shape=[n_samples, n, n]
+        mat : array-like, shape=[..., n, n]
+            Matrix.
 
         Returns
         -------
-        sym : array-like, shape=[n_samples, n, n]
+        sym : array-like, shape=[..., n, n]
+            Symmetric matrix.
         """
         return 1 / 2 * (mat + cls.transpose(mat))
 
     @classmethod
-    def make_skew_symmetric(cls, mat):
+    def to_skew_symmetric(cls, mat):
         """
         Make a matrix skew-symmetric, by averaging with minus its transpose.
 
         Parameters
         ----------
-        mat : array-like, shape=[n_samples, n, n]
+        mat : array-like, shape=[..., n, n]
+            Matrix.
 
         Returns
         -------
-        skew_sym : array-like, shape=[n_samples, n, n]
+        skew_sym : array-like, shape=[..., n, n]
+            Skew-symmetric matrix.
         """
         return 1 / 2 * (mat - cls.transpose(mat))
 
     def random_uniform(self, n_samples=1, bound=1.):
-        """Generate n samples from a uniform distribution.
+        """Sample from a uniform distribution.
 
         Parameters
         ----------
         n_samples : int
-            Number of samples to generate.
+            Number of samples.
+            Optional, default: 1.
+        bound : float
+            Bound.
+            Optional, default: 1.
 
         Returns
         -------
-        point : array-like
-            Point sampled.
+        point : array-like, shape=[m, n] or [n_samples, m, n]
+            Sample.
         """
         m, n = self.m, self.n
         size = (n_samples, m, n) if n_samples != 1 else (m, n)
@@ -191,38 +228,50 @@ class Matrices(Manifold):
 
         Parameters
         ----------
-        mat_1 : array-like, shape=[n_samples, n, n]
-        mat_2 : array-like, shape=[n_samples, n, n]
+        mat_1 : array-like, shape=[..., n, n]
+            Matrix.
+        mat_2 : array-like, shape=[..., n, n]
+            Matrix.
 
         Returns
         -------
-        cong : array-like, shape=[n_samples, n, n]
+        cong : array-like, shape=[..., n, n]
+            Result of the congruent action.
         """
         return cls.mul(mat_2, mat_1, cls.transpose(mat_2))
 
 
-class MatricesMetric(RiemannianMetric):
-    """Euclidean metric on matrices given by Frobenius inner product."""
+class MatricesMetric(EuclideanMetric):
+    """Euclidean metric on matrices given by Frobenius inner-product.
+
+    Parameters
+    ----------
+    m, n : int
+        Integers representing the shapes of the matrices: m x n.
+    """
 
     def __init__(self, m, n):
         dimension = m * n
         super(MatricesMetric, self).__init__(
-            dim=dimension,
-            signature=(dimension, 0, 0))
+            dim=dimension)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
-        """Compute Frobenius inner product of two tan vecs at `base_point`.
+        """Compute Frobenius inner-product of two tan vecs at `base_point`.
 
         Parameters
         ----------
-        tangent_vec_a : array-like, shape=[n_samples, m, n]
-        tangent_vec_b : array-like, shape=[n_samples, m, n]
-        base_point : array-like, shape=[n_samples, m, n], optional
-
+        tangent_vec_a : array-like, shape=[..., m, n]
+            Tangent vector.
+        tangent_vec_b : array-like, shape=[..., m, n]
+            Tangent vector.
+        base_point : array-like, shape=[..., m, n]
+            Base point.
+            Optional, default: None.
 
         Returns
         -------
-        inner_prod : the Frobenius inner product of a and b
+        inner_prod : array-like, shape=[...,]
+            Frobenius inner-product of tangent_vec_a and tangent_vec_b.
         """
         inner_prod = gs.einsum(
             '...ij,...ij->...', tangent_vec_a, tangent_vec_b)

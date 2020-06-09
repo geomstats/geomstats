@@ -158,7 +158,7 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         one_vec = self.space.random_uniform()
         one_base_point = self.space.random_uniform()
-        one_tangent_vec = self.space.projection_to_tangent_space(
+        one_tangent_vec = self.space.to_tangent(
             one_vec, base_point=one_base_point)
 
         result = self.metric.exp(one_tangent_vec, one_base_point)
@@ -185,19 +185,19 @@ class TestHypersphere(geomstats.tests.TestCase):
         n_vecs = self.space.random_uniform(n_samples=n_samples)
         n_base_points = self.space.random_uniform(n_samples=n_samples)
 
-        n_tangent_vecs = self.space.projection_to_tangent_space(
+        n_tangent_vecs = self.space.to_tangent(
             n_vecs, base_point=one_base_point)
         result = self.metric.exp(n_tangent_vecs, one_base_point)
 
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-        one_tangent_vec = self.space.projection_to_tangent_space(
+        one_tangent_vec = self.space.to_tangent(
             one_vec, base_point=n_base_points)
         result = self.metric.exp(one_tangent_vec, n_base_points)
 
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
-        n_tangent_vecs = self.space.projection_to_tangent_space(
+        n_tangent_vecs = self.space.to_tangent(
             n_vecs, base_point=n_base_points)
         result = self.metric.exp(n_tangent_vecs, n_base_points)
 
@@ -256,24 +256,30 @@ class TestHypersphere(geomstats.tests.TestCase):
         NB: points on the n-dimensional sphere are
         (n+1)-D vectors of norm 1.
         """
-        # TODO(nina): Fix that this test fails, also in numpy
         # Riemannian Exp then Riemannian Log
         # General case
         # NB: Riemannian log gives a regularized tangent vector,
         # so we take the norm modulo 2 * pi.
         base_point = gs.array([0., -3., 0., 3., 4.])
         base_point = base_point / gs.linalg.norm(base_point)
-        vector = gs.array([9., 5., 0., 0., -1.])
-        vector = self.space.projection_to_tangent_space(
+
+        vector = gs.array([3., 2., 0., 0., -1.])
+        vector = self.space.to_tangent(
             vector=vector, base_point=base_point)
 
-        # exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
-        # result = self.metric.log(point=exp, base_point=base_point)
+        exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
+        result = self.metric.log(point=exp, base_point=base_point)
 
         expected = vector
         norm_expected = gs.linalg.norm(expected)
         regularized_norm_expected = gs.mod(norm_expected, 2 * gs.pi)
         expected = expected / norm_expected * regularized_norm_expected
+
+        # The Log can be the opposite vector on the tangent space,
+        # whose Exp gives the base_point
+        are_close = gs.allclose(result, expected)
+        norm_2pi = gs.isclose(gs.linalg.norm(result - expected), 2 * gs.pi)
+        self.assertTrue(are_close or norm_2pi)
 
     def test_exp_and_log_and_projection_to_tangent_space_edge_case(self):
         """Test Log and Exp.
@@ -291,12 +297,12 @@ class TestHypersphere(geomstats.tests.TestCase):
         base_point = gs.array([10., -2., -.5, 34., 3.])
         base_point = base_point / gs.linalg.norm(base_point)
         vector = 1e-10 * gs.array([.06, -51., 6., 5., 3.])
-        vector = self.space.projection_to_tangent_space(
+        vector = self.space.to_tangent(
             vector=vector, base_point=base_point)
 
         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
         result = self.metric.log(point=exp, base_point=base_point)
-        expected = self.space.projection_to_tangent_space(
+        expected = self.space.to_tangent(
             vector=vector, base_point=base_point)
 
         self.assertAllClose(result, expected, atol=1e-8)
@@ -417,7 +423,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         base_point = gs.array([16., -2., -2.5, 84., 3.])
         base_point = base_point / gs.linalg.norm(base_point)
         vector = gs.array([9., 0., -1., -2., 1.])
-        tangent_vec = self.space.projection_to_tangent_space(
+        tangent_vec = self.space.to_tangent(
             vector=vector, base_point=base_point)
 
         exp = self.metric.exp(
@@ -439,7 +445,7 @@ class TestHypersphere(geomstats.tests.TestCase):
             [[9., 0., -1., -2., 1.],
              [9., 0., -1., -2., 1]])
 
-        tangent_vec = self.space.projection_to_tangent_space(
+        tangent_vec = self.space.to_tangent(
             vector=vector, base_point=base_point)
 
         exp = self.metric.exp(
@@ -451,21 +457,39 @@ class TestHypersphere(geomstats.tests.TestCase):
         self.assertAllClose(result, expected)
 
     def test_geodesic_and_belongs(self):
-        n_geodesic_points = 100
-        initial_point = self.space.random_uniform()
-        vector = gs.array([2., 0., -1., -2., 1.])
-        initial_tangent_vec = self.space.projection_to_tangent_space(
+        n_geodesic_points = 10
+        initial_point = self.space.random_uniform(2)
+        vector = gs.array([[2., 0., -1., -2., 1.]] * 2)
+        initial_tangent_vec = self.space.to_tangent(
             vector=vector, base_point=initial_point)
         geodesic = self.metric.geodesic(
             initial_point=initial_point,
             initial_tangent_vec=initial_tangent_vec)
-
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
         points = geodesic(t)
+        result = gs.stack([self.space.belongs(pt) for pt in points])
+        self.assertTrue(gs.all(result))
 
+        initial_point = initial_point[0]
+        initial_tangent_vec = initial_tangent_vec[0]
+        geodesic = self.metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec)
+        points = geodesic(t)
         result = self.space.belongs(points)
         expected = gs.array(n_geodesic_points * [True])
+        self.assertAllClose(expected, result)
 
+    def test_geodesic_end_point(self):
+        n_geodesic_points = 10
+        initial_point = self.space.random_uniform(4)
+        geodesic = self.metric.geodesic(
+            initial_point=initial_point[:2],
+            end_point=initial_point[2:])
+        t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
+        points = geodesic(t)
+        result = points[-1]
+        expected = initial_point[2:]
         self.assertAllClose(expected, result)
 
     def test_inner_product(self):
@@ -562,9 +586,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         self.assertAllClose(expected, result)
 
     def test_closest_neighbor_index(self):
-        """
-        Check that the closest neighbor is one of neighbors.
-        """
+        """Check that the closest neighbor is one of neighbors."""
         n_samples = 10
         points = self.space.random_uniform(n_samples=n_samples)
         point = points[0, :]
@@ -675,3 +697,53 @@ class TestHypersphere(geomstats.tests.TestCase):
         result = christoffel.shape
         expected = gs.array([2, dim, dim, dim])
         self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_and_tf_only
+    def test_parallel_transport_vectorization(self):
+        sphere = Hypersphere(2)
+        n_samples = 4
+
+        def is_isometry(tan_a, trans_a, endpoint):
+            is_tangent = gs.isclose(
+                sphere.metric.inner_product(endpoint, trans_a), 0., atol=1e-6)
+            is_equinormal = gs.isclose(
+                gs.linalg.norm(trans_a, axis=-1),
+                gs.linalg.norm(tan_a, axis=-1))
+            return gs.logical_and(is_tangent, is_equinormal)
+
+        base_point = sphere.random_uniform(n_samples)
+        tan_vec_a = sphere.to_tangent(gs.random.rand(n_samples, 3), base_point)
+        tan_vec_b = sphere.to_tangent(gs.random.rand(n_samples, 3), base_point)
+        end_point = sphere.metric.exp(tan_vec_b, base_point)
+
+        transported = sphere.metric.parallel_transport(
+            tan_vec_a, tan_vec_b, base_point)
+        result = is_isometry(tan_vec_a, transported, end_point)
+        self.assertTrue(gs.all(result))
+
+        base_point = base_point[0]
+        tan_vec_a = sphere.to_tangent(tan_vec_a, base_point)
+        tan_vec_b = sphere.to_tangent(tan_vec_b, base_point)
+        end_point = sphere.metric.exp(tan_vec_b, base_point)
+        transported = sphere.metric.parallel_transport(
+            tan_vec_a, tan_vec_b, base_point)
+        result = is_isometry(tan_vec_a, transported, end_point)
+        self.assertTrue(gs.all(result))
+
+        one_tan_vec_a = tan_vec_a[0]
+        transported = sphere.metric.parallel_transport(
+            one_tan_vec_a, tan_vec_b, base_point)
+        result = is_isometry(one_tan_vec_a, transported, end_point)
+        self.assertTrue(gs.all(result))
+
+        one_tan_vec_b = tan_vec_b[0]
+        end_point = end_point[0]
+        transported = sphere.metric.parallel_transport(
+            tan_vec_a, one_tan_vec_b, base_point)
+        result = is_isometry(tan_vec_a, transported, end_point)
+        self.assertTrue(gs.all(result))
+
+        transported = sphere.metric.parallel_transport(
+            one_tan_vec_a, one_tan_vec_b, base_point)
+        result = is_isometry(one_tan_vec_a, transported, end_point)
+        self.assertTrue(result)

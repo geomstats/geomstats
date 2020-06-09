@@ -1,5 +1,6 @@
 """Tensorflow based computation backend."""
 
+from collections import Counter
 from itertools import product
 
 import numpy as _np
@@ -53,22 +54,32 @@ from tensorflow import (  # NOQA
     tanh,
     tile,
     uint8,
-    where,
     zeros,
     zeros_like
 )
 
 
-
+from . import autograd # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
+
+
+DTYPES = {
+    int32: 0,
+    int64: 1,
+    float32: 2,
+    float64: 3}
+
 
 arctanh = tf.math.atanh
 ceil = tf.math.ceil
 cross = tf.linalg.cross
+erf = tf.math.erf
+isnan = tf.math.is_nan
 log = tf.math.log
 matmul = tf.linalg.matmul
 mod = tf.math.mod
+polygamma = tf.math.polygamma
 power = tf.math.pow
 real = tf.math.real
 set_diag = tf.linalg.set_diag
@@ -79,21 +90,43 @@ def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
 
-# TODO(nkoep): The 'repeat' function was added in TF 2.1. Backport the
-#              implementation from tensorflow/python/ops/array_ops.py.
-repeat = _raise_not_implemented_error
+def to_numpy(x):
+    return x.numpy()
+
+
+def convert_to_wider_dtype(tensor_list):
+    dtype_list = [DTYPES[x.dtype] for x in tensor_list]
+    wider_dtype_index = max(dtype_list)
+
+    wider_dtype = list(DTYPES.keys())[wider_dtype_index]
+
+    tensor_list = [cast(x, dtype=wider_dtype) for x in tensor_list]
+    return tensor_list
+
+
+def repeat(a, repeats, axis=None):
+    return tf.repeat(input=a, repeats=repeats, axis=axis)
 
 
 def array(x, dtype=None):
     return tf.convert_to_tensor(x, dtype=dtype)
 
 
-# TODO(nkoep): Handle the optional axis arguments.
-def trace(a, axis1=0, axis2=1):
-    return tf.linalg.trace(a)
+def trace(x, axis1=0, axis2=1):
+    min_axis = min(axis1, axis2)
+    max_axis = max(axis1, axis2)
+    if min_axis == 1 and max_axis == 2:
+        return tf.einsum('...ii', x)
+    if min_axis == -2 and max_axis == -1:
+        return tf.einsum('...ii', x)
+    if min_axis == 0 and max_axis == 1:
+        return tf.einsum('ii...', x)
+    if min_axis == 0 and max_axis == 2:
+        return tf.einsum('i...i', x)
+    raise NotImplementedError()
 
 
-# TODO(nkoep): Handle the optional axis arguments.
+# TODO (nkoep): Handle the optional axis arguments.
 def diagonal(a, axis1=0, axis2=1):
     return tf.linalg.diag_part(a)
 
@@ -188,8 +221,10 @@ def _mask_from_indices(indices, mask_shape, dtype=float32):
 
     for i_index, index in enumerate(indices):
         if not isinstance(index, tuple):
-            indices[i_index] = (index,)
-
+            if hasattr(index, '__iter__'):
+                indices[i_index] = tuple(index)
+            else:
+                indices[i_index] = (index,)
     for index in indices:
         if len(index) != len(mask_shape):
             raise ValueError('Indices must have the same size as shape')
@@ -247,33 +282,32 @@ def _vectorized_mask_from_indices(
     return _duplicate_array(mask, n_samples, axis=axis)
 
 
-def _assignment_single_value_by_sum(x, value, indices, axis=0):
-    """Add a value at given indices of an array.
+def _assignment_single_value(x, value, indices, mode='replace', axis=0):
+    """Assign a value at given indices of an array.
 
     Parameters
     ----------
-    x: array-like, shape=[dim]
+    x : array-like, shape=[dim]
         Initial array.
-    value: float
+    value : float
         Value to be added.
-    indices: {int, tuple, list(int), list(tuple)}
+    indices : {int, tuple, list(int), list(tuple)}
         Single int or tuple, or list of ints or tuples of indices where value
         is assigned.
         If the length of the tuples is shorter than ndim(x), value is
         assigned to each copy along axis.
-    axis: int, optional
+    mode : string, optional
+        Whether the assignment is done by replacing the old value,
+        or by adding to it. Possible values are 'replace' and 'sum'
+    axis : int, optional
         Axis along which value is assigned, if vectorized.
 
     Returns
     -------
     x_new : array-like, shape=[dim]
-        Copy of x where value was added at all indices (and possibly along
-        an axis).
+        Copy of x where value was assigned at all indices (and possibly
+        along an axis).
     """
-    if _is_boolean(indices):
-        indices = [indices]
-        indices = [index for index, val in enumerate(indices) if val]
-
     single_index = not isinstance(indices, list)
     if tf.is_tensor(indices):
         single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
@@ -295,12 +329,47 @@ def _assignment_single_value_by_sum(x, value, indices, axis=0):
             n_samples, indices, tile_shape, axis, x.dtype)
     else:
         mask = _mask_from_indices(indices, shape(x), x.dtype)
+    if mode == 'replace':
+        return x + -x * mask + value * mask
+    if mode == 'sum':
+        return x + value * mask
+    raise ValueError('mode must be one of \'replace\' or \'sum\'')
 
-    x_new = x + value * mask
-    return x_new
+
+def _assignment(x, values, indices, mode, axis):
+    if _is_boolean(indices):
+        if ndim(array(indices)) > 1:
+            indices_tensor = tf.where(indices)
+            indices = [tuple(ind) for ind in indices_tensor]
+        else:
+            indices_from_booleans = [
+                index for index, val in enumerate(indices) if val]
+            indices_along_dims = [range(dim) for dim in shape(x)]
+            indices_along_dims[axis] = indices_from_booleans
+            indices = list(product(*indices_along_dims))
+    if tf.rank(values) == 0:
+        return _assignment_single_value(x, values, indices, mode, axis)
+    values = cast(flatten(array(values)), x.dtype)
+
+    single_index = not isinstance(indices, list)
+    if tf.is_tensor(indices):
+        single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
+    if single_index:
+        if len(values) > 1:
+            indices = [tuple(list(indices[:axis]) + [i] + list(indices[axis:]))
+                       for i in range(x.shape[axis])]
+        else:
+            indices = [indices]
+
+    if len(values) != len(indices):
+        raise ValueError('Either one value or as many values as indices')
+
+    for i_index, index in enumerate(indices):
+        x = _assignment_single_value(x, values[i_index], index, mode, axis)
+    return x
 
 
-def assignment_by_sum(x, values, indices, axis=0):
+def assignment(x, values, indices, axis=0):
     """Add values at given indices of an array.
 
     Parameters
@@ -309,11 +378,13 @@ def assignment_by_sum(x, values, indices, axis=0):
         Initial array.
     values: {float, list(float)}
         Value or list of values to be assigned.
-    indices: {int, tuple, list(int), list(tuple)}
-        Single int or tuple, or list of ints or tuples of indices where value
-        is assigned.
-        If the length of the tuples is shorter than ndim(x), values are
+    indices: {
+    int, tuple(int), array-like({int, tuple, boolean})
+        Single index or array of indices where values are assigned.
+        If the length of the tuples is shorter than ndim(x) by one, values are
         assigned to each copy along axis.
+        If indices is a list of booleans and ndim(x) > 1, values are assigned
+        across all dimensions.
     axis: int, optional
         Axis along which values are assigned, if vectorized.
 
@@ -325,90 +396,24 @@ def assignment_by_sum(x, values, indices, axis=0):
     Notes
     -----
     If a single value is provided, it is assigned at all the indices.
-    If a list is given, it must have the same length as indices.
+    If a single index is provided, and len(indices) == ndim(x) - 1, then values
+    are assigned along axis.
+
+    Examples
+    --------
+    Most examples translate as
+    assignment(x, indices, values) <=> x[indices] = values
+    Some special cases are given by vectorisation.
+    (Beware that copies are always returned).
+    if ndim(x) == 3, assignment(x, 1, (1, 0), 1) <=> x[1, :, 0] = 1
+    if ndim(x) == 2, assignment(x, [1, 2], [(0, 1), (2, 3)]) <=>
+                        x[((0, 2), (1, 3))] = [1, 2]
     """
-    if _is_boolean(indices):
-        if ndim(array(indices)) > 1:
-            indices = tf.where(indices)
-        else:
-            indices_from_booleans = [
-                index for index, val in enumerate(indices) if val]
-            indices_along_dims = [range(dim) for dim in shape(x)]
-            indices_along_dims[axis] = indices_from_booleans
-            indices = list(product(*indices_along_dims))
-    if tf.rank(values) == 0:
-        return _assignment_single_value_by_sum(x, values, indices, axis)
-    values = flatten(array(values))
-
-    single_index = not isinstance(indices, list)
-    if tf.is_tensor(indices):
-        single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
-    if single_index:
-        indices = [indices]
-
-    if len(values) != len(indices):
-        raise ValueError('Either one value or as many values as indices')
-
-    for (nb_index, index) in enumerate(indices):
-        x = _assignment_single_value_by_sum(
-            x, values[nb_index], index, axis)
-    return x
+    return _assignment(x, values, indices, 'replace', axis)
 
 
-def _assignment_single_value(x, value, indices, axis=0):
-    """Assign a value at given indices of an array.
-
-    Parameters
-    ----------
-    x: array-like, shape=[dim]
-        Initial array.
-    value: float
-        Value to be added.
-    indices: {int, tuple, list(int), list(tuple)}
-        Single int or tuple, or list of ints or tuples of indices where value
-        is assigned.
-        If the length of the tuples is shorter than ndim(x), value is
-        assigned to each copy along axis.
-    axis: int, optional
-        Axis along which value is assigned, if vectorized.
-
-    Returns
-    -------
-    x_new : array-like, shape=[dim]
-        Copy of x where value was assigned at all indices (and possibly
-        along an axis).
-    """
-    if _is_boolean(indices):
-        indices = [indices]
-        indices = [index for index, val in enumerate(indices) if val]
-
-    single_index = not isinstance(indices, list)
-    if tf.is_tensor(indices):
-        single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
-    if single_index:
-        indices = [indices]
-
-    if isinstance(indices[0], tuple):
-        use_vectorization = (len(indices[0]) < ndim(x))
-    elif tf.is_tensor(indices[0]) and ndim(indices[0]) >= 1:
-        use_vectorization = (len(indices[0]) < ndim(x))
-    else:
-        use_vectorization = ndim(x) > 1
-
-    if use_vectorization:
-        full_shape = shape(x).numpy()
-        n_samples = full_shape[axis]
-        tile_shape = list(full_shape[:axis]) + list(full_shape[axis + 1:])
-        mask = _vectorized_mask_from_indices(
-            n_samples, indices, tile_shape, axis, x.dtype)
-    else:
-        mask = _mask_from_indices(indices, shape(x), x.dtype)
-    x_new = x + -x * mask + value * mask
-    return x_new
-
-
-def assignment(x, values, indices, axis=0):
-    """Assign values at given indices of an array.
+def assignment_by_sum(x, values, indices, axis=0):
+    """Add values at given indices of an array.
 
     Parameters
     ----------
@@ -416,49 +421,38 @@ def assignment(x, values, indices, axis=0):
         Initial array.
     values: {float, list(float)}
         Value or list of values to be assigned.
-    indices: {int, tuple, list(int), list(tuple)}
-        Single int or tuple, or list of ints or tuples of indices where value
-        is assigned.
-        If the length of the tuples is shorter than ndim(x), values are
+    indices: {
+    int, tuple(int), array-like({int, tuple, boolean})
+        Single index or array of indices where values are assigned.
+        If the length of the tuples is shorter than ndim(x) by one, values are
         assigned to each copy along axis.
+        If indices is a list of booleans and ndim(x) > 1, values are assigned
+        across all dimensions.
     axis: int, optional
         Axis along which values are assigned, if vectorized.
 
     Returns
     -------
     x_new : array-like, shape=[dim]
-        Copy of x with the values assigned at the given indices.
+        Copy of x as the sum of x and the values at the given indices.
 
     Notes
     -----
     If a single value is provided, it is assigned at all the indices.
-    If a list is given, it must have the same length as indices.
+    If a single index is provided, and len(indices) == ndim(x) - 1, then values
+    are assigned along axis.
+
+    Examples
+    --------
+    Most examples translate as
+    assignment_by_sum(x, indices, values) <=> x[indices] = x[indices] + values
+    Some special cases are given by vectorisation.
+    (Beware that copies are always returned).
+    if ndim(x) == 3, assignment_by_sum(x, 1, (1, 0), 1) <=> x[1, :, 0] += 1
+    if ndim(x) == 2, assignment_by_sum(x, [1, 2], [(0, 1), (2, 3)]) <=>
+                        x[((0, 2), (1, 3))] += [1, 2]
     """
-    if _is_boolean(indices):
-        if ndim(array(indices)) > 1:
-            indices = tf.where(indices)
-        else:
-            indices_from_booleans = [
-                index for index, val in enumerate(indices) if val]
-            indices_along_dims = [range(dim) for dim in shape(x)]
-            indices_along_dims[axis] = indices_from_booleans
-            indices = list(product(*indices_along_dims))
-    if tf.rank(values) == 0:
-        return _assignment_single_value(x, values, indices, axis)
-    values = flatten(array(values))
-
-    single_index = not isinstance(indices, list)
-    if tf.is_tensor(indices):
-        single_index = ndim(indices) <= 1 and sum(indices.shape) <= ndim(x)
-    if single_index:
-        indices = [indices]
-
-    if len(values) != len(indices):
-        raise ValueError('Either one value or as many values as indices')
-
-    for i_index, index in enumerate(indices):
-        x = _assignment_single_value(x, values[i_index], index, axis)
-    return x
+    return _assignment(x, values, indices, 'sum', axis)
 
 
 def array_from_sparse(indices, data, target_shape):
@@ -514,7 +508,7 @@ def get_slice(x, indices):
 
 def vectorize(x, pyfunc, multiple_args=False, dtype=None, **kwargs):
     if multiple_args:
-        return tf.map_fn(lambda x: pyfunc(*x), elems=x, dtype=dtype)
+        return tf.map_fn(lambda y: pyfunc(*y), elems=x, dtype=dtype)
     return tf.map_fn(pyfunc, elems=x, dtype=dtype)
 
 
@@ -535,9 +529,10 @@ def hsplit(x, n_splits):
 
 
 def flatten(x):
-    """Collapses the tensor into 1-D.
+    """Collapse the tensor into 1-D.
 
-    Following https://www.tensorflow.org/api_docs/python/tf/reshape"""
+    Following https://www.tensorflow.org/api_docs/python/tf/reshape
+    """
     return tf.reshape(x, [-1])
 
 
@@ -561,12 +556,54 @@ def cast(x, dtype):
     return tf.cast(x, dtype)
 
 
+def broadcast_arrays(x, y, **kwargs):
+    tensors = [x, y]
+    shapes = [t.get_shape().as_list() for t in tensors]
+    max_rank = max(len(s) for s in shapes)
+
+    for index, value in enumerate(shapes):
+        shape = value
+        if len(shape) == max_rank:
+            continue
+
+        tensor = tensors[index]
+        for _ in range(max_rank - len(shape)):
+            shape.insert(0, 1)
+            tensor = tf.expand_dims(tensor, axis=0)
+        tensors[index] = tensor
+
+    broadcast_shape = []
+    for index in range(max_rank):
+        dimensions = [s[index] for s in shapes]
+        repeats = Counter(dimensions)
+        if len(repeats) > 2 or (len(repeats) == 2 and
+                                1 not in list(repeats.keys())):
+            raise ValueError('operands could not be '
+                             'broadcast together with shapes', shapes)
+        broadcast_shape.append(max(repeats.keys()))
+
+    for axis, dimension in enumerate(broadcast_shape):
+        tensors = [tf.concat([t] * dimension, axis=axis)
+                   if t.get_shape()[axis] == 1 else t for t in tensors]
+
+    return tensors
+
+
 def dot(x, y):
     return tf.tensordot(x, y, axes=1)
 
 
 def isclose(x, y, rtol=1e-05, atol=1e-08):
-    rhs = tf.constant(atol) + tf.constant(rtol) * tf.abs(y)
+    if not tf.is_tensor(x):
+        x = tf.constant(x)
+    if not tf.is_tensor(y):
+        y = tf.constant(y)
+    x, y = convert_to_wider_dtype([x, y])
+    dtype = x.dtype
+
+    rhs = (
+        tf.constant(atol, dtype=dtype)
+        + tf.constant(rtol, dtype=dtype) * tf.abs(y))
     return tf.less_equal(tf.abs(tf.subtract(x, y)), rhs)
 
 
@@ -589,10 +626,10 @@ def sum(x, axis=None, keepdims=False, name=None):
 
 
 def einsum(equation, *inputs, **kwargs):
-    # TODO(ninamiolane): Allow this to work when '->' is not provided
-    # TODO(ninamiolane): Allow this to work for cases like n...k
     einsum_str = equation
     input_tensors_list = inputs
+
+    input_tensors_list = convert_to_wider_dtype(input_tensors_list)
 
     einsum_list = einsum_str.split('->')
     input_str = einsum_list[0]
@@ -653,7 +690,7 @@ def einsum(equation, *inputs, **kwargs):
             result = squeeze(result, axis=0)
         return result
 
-    return tf.einsum(equation, *inputs, **kwargs)
+    return tf.einsum(equation, *input_tensors_list, **kwargs)
 
 
 def transpose(x, axes=None):
@@ -670,6 +707,12 @@ def cumsum(a, axis=None):
     return tf.math.cumsum(a, axis=axis)
 
 
+def cumprod(a, axis=None):
+    if axis is None:
+        return tf.math.cumprod(flatten(a), axis=0)
+    return tf.math.cumprod(a, axis=axis)
+
+
 def tril(m, k=0):
     if k != 0:
         raise NotImplementedError("Only k=0 supported so far")
@@ -683,3 +726,14 @@ def tril_indices(*args, **kwargs):
 def triu_indices(*args, **kwargs):
     return tuple(
         map(tf.convert_to_tensor, _np.triu_indices(*args, **kwargs)))
+
+
+def where(condition, x=None, y=None):
+    if x is None and y is None:
+        return tf.where(condition)
+    if not tf.is_tensor(x):
+        x = tf.constant(x)
+    if not tf.is_tensor(y):
+        y = tf.constant(y)
+    y = cast(y, x.dtype)
+    return tf.where(condition, x, y)

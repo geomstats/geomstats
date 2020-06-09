@@ -7,6 +7,7 @@ import geomstats.tests
 from geomstats.geometry.connection import Connection
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestConnection(geomstats.tests.TestCase):
@@ -60,14 +61,14 @@ class TestConnection(geomstats.tests.TestCase):
             n_steps = 1 if step == 'pole' else 100
             tol = 1e-6 if step == 'pole' else 1e-1
             base_point = self.hypersphere.random_uniform(n_samples)
-            tan_vec_a = self.hypersphere.projection_to_tangent_space(
+            tan_vec_a = self.hypersphere.to_tangent(
                 gs.random.rand(n_samples, 3), base_point)
-            tan_vec_b = self.hypersphere.projection_to_tangent_space(
+            tan_vec_b = self.hypersphere.to_tangent(
                 gs.random.rand(n_samples, 3), base_point)
             expected = self.hypersphere.metric.parallel_transport(
                 tan_vec_a, tan_vec_b, base_point)
             ladder = self.hypersphere.metric.ladder_parallel_transport(
-                tan_vec_a, tan_vec_b, base_point, scheme=step, n_ladders=n_steps)
+                tan_vec_a, tan_vec_b, base_point, scheme=step, n_rungs=n_steps)
             result = ladder['transported_tangent_vec']
 
             self.assertAllClose(result, expected, rtol=tol, atol=tol)
@@ -98,20 +99,19 @@ class TestConnection(geomstats.tests.TestCase):
             rtol = 1e-6 if step == 'pole' else 1e-1
             atol = 1e-6 if step == 'pole' else 1e-2
             base_point = self.hypersphere.random_uniform(n_samples)
-            tan_vec_a = self.hypersphere.projection_to_tangent_space(
+            tan_vec_a = self.hypersphere.to_tangent(
                 gs.random.rand(n_samples, 3), base_point)
-            tan_vec_b = self.hypersphere.projection_to_tangent_space(
+            tan_vec_b = self.hypersphere.to_tangent(
                 gs.random.rand(n_samples, 3), base_point)
             expected = self.hypersphere.metric.parallel_transport(
                 tan_vec_a, tan_vec_b, base_point)
             ladder = self.hypersphere.metric.ladder_parallel_transport(
                 tan_vec_a, tan_vec_b, base_point, return_geodesics=True,
-                scheme=step, n_ladders=n_steps)
+                scheme=step, n_rungs=n_steps)
             result = ladder['transported_tangent_vec']
 
             self.assertAllClose(result, expected, rtol=rtol, atol=atol)
 
-    @geomstats.tests.np_only
     def test_exp_connection_metric(self):
         point = gs.array([gs.pi / 2, 0])
         vector = gs.array([0.25, 0.5])
@@ -126,7 +126,6 @@ class TestConnection(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, rtol=1e-6)
 
-    @geomstats.tests.np_only
     def test_exp_connection_metric_vectorization(self):
         point = gs.array([[gs.pi / 2, 0], [gs.pi / 6, gs.pi / 4]])
         vector = gs.array([[0.25, 0.5], [0.30, 0.2]])
@@ -141,7 +140,6 @@ class TestConnection(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, rtol=1e-6)
 
-    @geomstats.tests.np_only
     def test_log_connection_metric(self):
         base_point = gs.array([gs.pi / 3, gs.pi / 4])
         point = gs.array([1.0, gs.pi / 2])
@@ -156,7 +154,6 @@ class TestConnection(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, rtol=1e-5, atol=1e-5)
 
-    @geomstats.tests.np_only
     def test_log_connection_metric_vectorization(self):
         base_point = gs.array([[gs.pi / 3, gs.pi / 4], [gs.pi / 2, gs.pi / 4]])
         point = gs.array([[1.0, gs.pi / 2], [gs.pi / 6, gs.pi / 3]])
@@ -171,6 +168,56 @@ class TestConnection(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, rtol=1e-5, atol=1e-5)
 
+    def test_geodesic_and_coincides_exp_hypersphere(self):
+        n_geodesic_points = 10
+        initial_point = self.hypersphere.random_uniform(2)
+        vector = gs.array([[2., 0., -1.]] * 2)
+        initial_tangent_vec = self.hypersphere.to_tangent(
+            vector=vector, base_point=initial_point)
+        geodesic = self.hypersphere.metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec)
+        t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
+        points = geodesic(t)
+        result = points[-1]
+        expected = self.hypersphere.metric.exp(vector, initial_point)
+        self.assertAllClose(expected, result)
 
-if __name__ == '__main__':
-    geomstats.tests.main()
+        initial_point = initial_point[0]
+        initial_tangent_vec = initial_tangent_vec[0]
+        geodesic = self.hypersphere.metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec)
+        points = geodesic(t)
+        result = points[-1]
+        expected = self.hypersphere.metric.exp(
+            initial_tangent_vec, initial_point)
+        self.assertAllClose(expected, result)
+
+    def test_geodesic_and_coincides_exp_son(self):
+        n_geodesic_points = 10
+        space = SpecialOrthogonal(n=4)
+        initial_point = space.random_uniform(2)
+        vector = gs.random.rand(2, 4, 4)
+        initial_tangent_vec = space.to_tangent(
+            vector=vector, base_point=initial_point)
+        geodesic = space.bi_invariant_metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec)
+        t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
+        points = geodesic(t)
+        result = points[-1]
+        expected = space.bi_invariant_metric.exp(
+            initial_tangent_vec, initial_point)
+        self.assertAllClose(result, expected)
+
+        initial_point = initial_point[0]
+        initial_tangent_vec = initial_tangent_vec[0]
+        geodesic = space.bi_invariant_metric.geodesic(
+            initial_point=initial_point,
+            initial_tangent_vec=initial_tangent_vec)
+        points = geodesic(t)
+        result = points[-1]
+        expected = space.bi_invariant_metric.exp(
+            initial_tangent_vec, initial_point)
+        self.assertAllClose(expected, result)

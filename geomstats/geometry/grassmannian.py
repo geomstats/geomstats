@@ -1,7 +1,7 @@
 """Module exposing `Grassmannian` and `GrassmannianMetric` classes."""
 
 import geomstats.backend as gs
-import geomstats.error
+import geomstats.errors
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
@@ -16,15 +16,22 @@ class Grassmannian(EmbeddedManifold):
     """Class for Grassmann manifolds Gr(n, k).
 
     Class for Grassmann manifolds Gr(n, k) of k-dimensional
-    subspaces in the n-dimensional euclidean space.
+    subspaces in the n-dimensional Euclidean space.
 
     The subspaces are represented by their (unique) orthogonal projection
     matrix onto themselves.
+
+    Parameters
+    ----------
+    n : int
+        Dimension of the Euclidean space.
+    k : int
+        Dimension of the subspaces.
     """
 
     def __init__(self, n, k):
-        geomstats.error.check_integer(k, 'k')
-        geomstats.error.check_integer(n, 'n')
+        geomstats.errors.check_integer(k, 'k')
+        geomstats.errors.check_integer(n, 'n')
         if k > n:
             raise ValueError(
                 'k <= n is required: k-dimensional subspaces in n dimensions.')
@@ -51,13 +58,15 @@ class Grassmannian(EmbeddedManifold):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, n, n]
+        point : array-like, shape=[..., n, n]
+            Point to be checked.
         tolerance : int
-            default: TOLERANCE
+            Optional, default: 1e-5.
 
         Returns
         -------
-        belongs : bool
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if point belongs to the Grassmannian.
         """
         raise NotImplementedError(
             'The Grassmann `belongs` is not implemented.'
@@ -68,11 +77,18 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
     """Canonical metric of the Grassmann manifold.
 
     Coincides with the Frobenius metric.
+
+    Parameters
+    ----------
+    n : int
+        Dimension of the Euclidean space.
+    k : int
+        Dimension of the subspaces.
     """
 
     def __init__(self, n, p):
-        geomstats.error.check_integer(p, 'p')
-        geomstats.error.check_integer(n, 'n')
+        geomstats.errors.check_integer(p, 'p')
+        geomstats.errors.check_integer(n, 'n')
         if p > n:
             raise ValueError('p <= n is required.')
 
@@ -90,14 +106,17 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
 
         Parameters
         ----------
-        vector : array-like, shape=[n_samples, n, n]
+        vector : array-like, shape=[..., n, n]
+            Tangent vector at base point.
             `vector` is skew-symmetric, in so(n).
-        point : array-like, shape=[n_samples, n, n]
-            `point` is a rank p projector of Gr(n, k).
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+            `base_point` is a rank p projector of Gr(n, k).
 
         Returns
         -------
-        exp : array-like, shape=[n_samples, n, n]
+        exp : array-like, shape=[..., n, n]
+            Riemannian exponential.
         """
         expm = gs.linalg.expm
         mul = Matrices.mul
@@ -115,15 +134,15 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
 
         Parameters
         ----------
-        point : array-like, shape=[n_samples, n, n]
-            Point in the Grassmannian.
-        base_point : array-like, shape=[n_samples, n, n]
-            Point in the Grassmannian.
+        point : array-like, shape=[..., n, n]
+            Point.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
 
         Returns
         -------
-        tangent_vec : array-like, shape=[n_samples, n, n]
-            Tangent vector at `base_point`.
+        tangent_vec : array-like, shape=[..., n, n]
+            Riemannian logarithm, a tangent vector at `base_point`.
 
         References
         ----------

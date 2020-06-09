@@ -39,7 +39,7 @@ class TestInvariantMetric(geomstats.tests.TestCase):
             left_or_right='right')
 
         # General left and right invariant metrics
-        # FIXME(nina): This is valid only for bi-invariant metrics
+        # FIXME (nina): This is valid only for bi-invariant metrics
         sym_mat_at_identity = gs.eye(group.dim)
 
         left_metric = InvariantMetric(
@@ -419,7 +419,6 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         Riemannian logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        # FIXME: lower numerical accuracy with tensorflow
         # General case for the reference point
         base_point = self.point_2
         # General point
@@ -443,7 +442,6 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         Riemannian logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        # FIXME: lower numerical accuracy with tensorflow
         # General case for the reference point
         base_point = self.point_2
 
@@ -465,7 +463,6 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         Riemannian logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        # FIXME: lower numerical accuracy with tensorflow
         # General case for the reference point
         base_point = self.point_2
         # For right diagonal metric: point and point_small
@@ -486,7 +483,6 @@ class TestInvariantMetric(geomstats.tests.TestCase):
         Riemannian logarithm are inverse.
         Expect their composition to give the identity function.
         """
-        # FIXME: lower numerical accuracy with tensorflow
         # General case for the reference point
         base_point = self.point_2
         # For right metric: point and point_small

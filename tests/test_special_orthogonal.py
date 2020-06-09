@@ -102,3 +102,16 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         result = self.group.to_tangent(tangent_vecs, base_points)
         expected = tangent_vecs
         self.assertAllClose(result, expected)
+
+    def test_projection_and_belongs(self):
+        gs.random.seed(3)
+        group = SpecialOrthogonal(n=4)
+        mat = gs.random.rand(4, 4)
+        point = group.projection(mat)
+        result = group.belongs(point, atol=1e-5)
+        self.assertTrue(result)
+
+        mat = gs.random.rand(2, 4, 4)
+        point = group.projection(mat)
+        result = group.belongs(point, atol=1e-4)
+        self.assertTrue(gs.all(result))

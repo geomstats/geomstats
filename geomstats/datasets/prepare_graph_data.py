@@ -4,11 +4,6 @@ import random
 
 import geomstats.backend as gs
 
-DEFAULT_GRAPH_MATRIX_PATH = 'examples/data' \
-                            '/graph_random/graph_random.txt'
-DEFAULT_GRAPH_LABELS_PATH = 'examples/data' \
-                            '/graph_random/graph_random_labels.txt'
-
 
 class Graph:
     """Class for generating a graph object from a dataset.
@@ -37,15 +32,13 @@ class Graph:
     n_nodes = None
     labels = None
 
-    def __init__(self,
-                 graph_matrix_path=DEFAULT_GRAPH_MATRIX_PATH,
-                 labels_path=DEFAULT_GRAPH_LABELS_PATH):
+    def __init__(self, graph_matrix_path, labels_path):
         self.edges = {}
         with open(graph_matrix_path, 'r') as edges_file:
             for i, line in enumerate(edges_file):
                 lsp = line.split()
                 self.edges[i] = [k for k, value in
-                                 enumerate(lsp) if (int(value) == 1)]
+                                 enumerate(lsp) if int(value) == 1]
 
         self.n_nodes = len(self.edges)
 
@@ -78,7 +71,7 @@ class Graph:
             array containing random walks.
         """
         paths = gs.empty(
-            (self.n_nodes * n_walks_per_node, walk_length + 1), dtype=int)
+            (self.n_nodes * n_walks_per_node, walk_length + 1), dtype=gs.int32)
         for index in range(len(self.edges)):
             for i in range(n_walks_per_node):
                 paths[index * n_walks_per_node + i] =\
@@ -93,4 +86,4 @@ class Graph:
             count_index = self.edges[count_index][random.randint(
                 0, len(self.edges[count_index]) - 1)]
             path.append(count_index)
-        return gs.array(path).astype(gs.int32)
+        return gs.array(path, dtype=gs.int32)

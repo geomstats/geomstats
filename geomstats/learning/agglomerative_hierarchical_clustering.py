@@ -66,7 +66,7 @@ class AgglomerativeHierarchicalClustering(AgglomerativeClustering):
         The number of clusters found by the algorithm. If
         ``distance_threshold=None``, it will be equal to the given
         ``n_clusters``.
-    labels_ : ndarray, shape=[n_samples,]
+    labels_ : ndarray, shape=[...,]
         Cluster labels for each point.
     n_leaves_ : int
         Number of leaves in the hierarchical tree.
