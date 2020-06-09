@@ -1,7 +1,7 @@
 r"""Illustrate how a Kalman-like filter can be defined on Lie groups.
 
 A generic Kalman filter class is defined for systems on Lie groups for which
-the exponential is subjective. Its use is illustrated on two localization
+the exponential is surjective. Its use is illustrated on two localization
 problems, a linear and a non-linear one. In both cases, the propagation model
 is known, and sparse position measurements are obtained. It thus relies on a
 `model` of the system, providing the system's equations and jacobians.
@@ -52,7 +52,24 @@ class LocalizationLinear:
 
     @staticmethod
     def propagate(state, sensor_input):
-        """Propagate with piece-wise constant acceleration and velocity."""
+        r"""Propagate with piece-wise constant acceleration and velocity.
+
+        Takes a given (position, speed) pair :math:`(x, v)` and creates a new
+        one :math:`(x + dt * v, v + dt * acc)`, where the time step and the
+        acceleration are given by an accelerometer.
+
+        Parameters
+        ----------
+        state : array-like, shape=[dim]
+            Vector representing a state (position, speed).
+        sensor_input : array-like, shape=[2]
+            Vector representing the information from the accelerometer.
+
+        Returns
+        -------
+        new_state : array-like, shape=[dim]
+            Vector representing the propagated state.
+        """
         dt, acc = sensor_input
         pos, speed = state
         pos = pos + dt * speed
@@ -61,7 +78,22 @@ class LocalizationLinear:
 
     @staticmethod
     def propagation_jacobian(state, sensor_input):
-        """Compute the matrix associated to the affine propagation."""
+        r"""Compute the Jacobian associated to the affine propagation..
+
+        The Jacobian is given by :math:`\begin{bmatrix} 1 & dt \\ & 1
+        \end{bmatrix}`.
+
+        Parameters
+        ----------
+        state : unused
+        sensor_input : array-like, shape=[2]
+            Vector representing the information from the accelerometer.
+
+        Returns
+        -------
+        jacobian : array-like, shape=[dim, dim]
+            Jacobian of the propagation.
+        """
         dt, _ = sensor_input
         dim = LocalizationLinear.dim
         position_line = gs.hstack((gs.eye(dim // 2), dt * gs.eye(dim // 2)))
@@ -72,9 +104,22 @@ class LocalizationLinear:
 
     @staticmethod
     def noise_jacobian(state, sensor_input):
-        """Compute the matrix associated to the propagation noise.
+        r"""Compute the matrix associated to the propagation noise.
 
-        The noise is supposed additive.
+        The noise is supposed additive and only applies to the speed part.
+        The Jacobian is given by :math:`\begin{bmatrix} 0 & \sqrt{dt}
+        \end{bmatrix}`.
+
+        Parameters
+        ----------
+        state : unused
+        sensor_input : array-like, shape=[2]
+            Vector representing the information from the accelerometer.
+
+        Returns
+        -------
+        jacobian : array-like, shape=[dim_noise, dim]
+            Jacobian of the propagation w.r.t. the noise.
         """
         dt, _ = sensor_input
         dim = LocalizationLinear.dim
@@ -85,22 +130,74 @@ class LocalizationLinear:
 
     @staticmethod
     def observation_jacobian(state, observation):
-        """Compute the matrix associated to the observation model."""
+        r"""Compute the matrix associated to the observation model.
+
+        The Jacobian is given by :math:`\begin{bmatrix} 1 & 0 \end{bmatrix}`.
+
+        Parameters
+        ----------
+        state : unused
+        observation : unused
+
+        Returns
+        -------
+        jacobian : array-like, shape=[dim_obs, dim]
+            Jacobian of the observation.
+        """
         return gs.eye(LocalizationLinear.dim_obs, LocalizationLinear.dim)
 
     @staticmethod
     def get_measurement_noise_cov(state, observation_cov):
-        """Get the observation covariance."""
+        r"""Get the observation covariance.
+
+        Parameters
+        ----------
+        state : unused
+        observation_cov : array-like, shape=[dim_obs, dim_obs]
+            Covariance matrix associated to the sensor.
+
+        Returns
+        -------
+        covariance : array-like, shape=[dim_obs, dim_obs]
+            Covariance of the observation.
+        """
         return observation_cov
 
     @staticmethod
     def observation_model(state):
-        """Model used to create the measurements."""
+        """Model used to create the measurements.
+
+        This model simply outputs the position part of the state, i.e. its
+        first element.
+
+        Parameters
+        ----------
+        state : array-like, shape=[dim]
+            Vector representing the state.
+
+        Returns
+        -------
+        observation : array-like, shape=[dim_obs]
+            Expected observation of the state.
+        """
         return state[:1]
 
     @staticmethod
     def innovation(state, observation):
-        """Discrepancy between the measurement and its expected value."""
+        """Discrepancy between the measurement and its expected value.
+
+        Parameters
+        ----------
+        state : array-like, shape=[dim]
+            Vector representing the state.
+        observation : array-like, shape=[dim_obs]
+            Obtained measurement.
+
+        Returns
+        -------
+        innovation : array-like, shape=[dim_obs]
+            Error between the measurement and the expected value.
+        """
         return observation - LocalizationLinear.observation_model(state)
 
 
@@ -120,14 +217,43 @@ class Localization:
     dim_obs = 2
 
     @staticmethod
-    def split_input(sensor_input):
-        """Separate the input into its main parts."""
+    def preprocess_input(sensor_input):
+        """Separate the input into its main parts.
+
+        Each input is the concatenation of four parts: the time step, the 2D
+        linear velocity and the angular velocity.
+
+        Parameters
+        ----------
+        sensor_input : array-like, shape=[4]
+            Vector representing the sensor input.
+
+        Returns
+        -------
+        dt : float
+            Time step between two consecutive inputs.
+        linear_vel : array-like, shape=[2]
+            2D linear velocity.
+        angular_vel : array-like, shape=[dim_rot]
+            Angular velocity.
+        """
         return sensor_input[0], sensor_input[1:Localization.group.n + 1],\
             sensor_input[Localization.group.n + 1:]
 
     @staticmethod
     def rotation_matrix(theta):
-        """Construct the rotation matrix associated to the angle theta."""
+        """Construct the rotation matrix associated to the angle theta.
+
+        Parameters
+        ----------
+        theta : float
+            Rotation angle.
+
+        Returns
+        -------
+        rot : array-like, shape=[2, 2]
+            2D rotation matrix of angle theta.
+        """
         if gs.ndim(gs.array(theta)) <= 1:
             theta = gs.array([theta])
         return Localization.group.rotations.matrix_from_rotation_vector(theta)
@@ -141,7 +267,25 @@ class Localization:
 
     @staticmethod
     def adjoint_map(state):
-        """Construct the tangent map associated to Ad_X : g |-> XgX^-1."""
+        r"""Construct the matrix associated to the adjoint representation.
+
+        The inner automorphism is given by :math:`Ad_X : g |-> XgX^-1`. For a
+        state :math:`X = (\theta, x, y)`, the matrix associated to its tangent
+        map, the adjoint representation, is
+        :math:`\begin{bmatrix} 1 & \\ -J [x, y] & R(\theta) \end{bmatrix}`,
+        where :math:`R(\theta)` is the rotation matrix of angle theta, and
+        :math:`J = \begin{bmatrix} 0 & -1 \\ 1 & 0 \end{bmatrix}`
+
+        Parameters
+        ----------
+        state : array-like, shape=[dim]
+            Vector representing a state.
+
+        Returns
+        -------
+        adjoint : array-like, shape=[dim, dim]
+            Adjoint representation of the state.
+        """
         theta, _, _ = state
         tangent_base = gs.array([[0., -1.],
                                  [1., 0.]])
@@ -157,8 +301,27 @@ class Localization:
 
     @staticmethod
     def propagate(state, sensor_input):
-        """Propagate state with constant velocity motion model on SE(2)."""
-        dt, linear_vel, angular_vel = Localization.split_input(sensor_input)
+        r"""Propagate state with constant velocity motion model on SE(2).
+
+        From a given state (orientation, position) pair :math:`(\theta, x)`,
+        a new one is obtained as :math:`(\theta + dt * \omega,
+        x + dt * R(\theta) u)`, where the time step, the linear and angular
+        velocities u and :math:\omega are given some sensor (e.g., odometers).
+
+        Parameters
+        ----------
+        state : array-like, shape=[dim]
+            Vector representing a state (orientation, position).
+        sensor_input : array-like, shape=[4]
+            Vector representing the information from the sensor.
+
+        Returns
+        -------
+        new_state : array-like, shape=[dim]
+            Vector representing the propagated state.
+        """
+
+        dt, linear_vel, angular_vel = Localization.preprocess_input(sensor_input)
         theta, _, _ = state
         local_vel = Matrices.mul(
             Localization.rotation_matrix(theta), linear_vel)
@@ -169,12 +332,23 @@ class Localization:
 
     @staticmethod
     def propagation_jacobian(state, sensor_input):
-        """Construct the jacobian associated to the input.
+        r"""Compute the Jacobian associated to the input.
 
         Since the propagation writes f(x) = x*u, and the error is modeled on
-        the Lie algebra, the jacobian is Ad_{u^{-1}}.
+        the Lie algebra, the Jacobian is Ad_{u^{-1}} [BB2017].
+
+        Parameters
+        ----------
+        state : unused
+        sensor_input : array-like, shape=[4]
+            Vector representing the information from the sensor.
+
+        Returns
+        -------
+        jacobian : array-like, shape=[dim, dim]
+            Jacobian of the propagation.
         """
-        dt, linear_vel, angular_vel = Localization.split_input(sensor_input)
+        dt, linear_vel, angular_vel = Localization.preprocess_input(sensor_input)
         input_vector_form = dt * gs.concatenate(
             (angular_vel, linear_vel), axis=0)
         input_inv = Localization.group.inverse(input_vector_form)
@@ -183,17 +357,41 @@ class Localization:
 
     @staticmethod
     def noise_jacobian(state, sensor_input):
-        """Construct the jacobian associated to the process noise.
+        r"""Compute the matrix associated to the propagation noise.
 
         The noise being considered multiplicative, it is simply the identity
-        scaled by the time stamp.
+        scaled by the time step.
+
+        Parameters
+        ----------
+        state : unused
+        sensor_input : array-like, shape=[4]
+            Vector representing the information from the sensor.
+
+        Returns
+        -------
+        jacobian : array-like, shape=[dim_noise, dim]
+            Jacobian of the propagation w.r.t. the noise.
         """
-        dt, _, _ = Localization.split_input(sensor_input)
+        dt, _, _ = Localization.preprocess_input(sensor_input)
         return gs.sqrt(dt) * gs.eye(Localization.dim_noise)
 
     @staticmethod
     def observation_jacobian(state, observation):
-        """Construct the jacobian associated to the innovation."""
+        r"""Compute the matrix associated to the observation model.
+
+        The Jacobian is given by :math:`\begin{bmatrix} 0 & I_2 \end{bmatrix}`.
+
+        Parameters
+        ----------
+        state : unused
+        observation : unused
+
+        Returns
+        -------
+        jacobian : array-like, shape=[dim_obs, dim]
+            Jacobian of the observation.
+        """
         orientation_part = gs.zeros(
             (Localization.dim_obs, Localization.dim_rot))
         position_part = gs.eye(Localization.dim_obs, Localization.group.n)
@@ -201,22 +399,65 @@ class Localization:
 
     @staticmethod
     def get_measurement_noise_cov(state, observation_cov):
-        """Construct the measurement covariance for the innovation."""
+        r"""Get the observation covariance.
+
+        For an observation y and an orientation theta, the modified observation
+        considered for the innovation is :math:`R(\theta)^T y` [BB2017], so the
+        covariance N is rotated accordingly as :math:`R(\theta)^T N R(\theta)`.
+
+        Parameters
+        ----------
+        state : array-like, shape=[dim]
+            Vector representing a state.
+        observation_cov : array-like, shape=[dim_obs, dim_obs]
+            Covariance matrix associated to the sensor.
+
+        Returns
+        -------
+        covariance : array-like, shape=[dim_obs, dim_obs]
+            Covariance of the observation.
+        """
         theta, _, _ = state
         rot = Localization.rotation_matrix(theta)
         return Matrices.mul(Matrices.transpose(rot), observation_cov, rot)
 
     @staticmethod
     def observation_model(state):
-        """Model used to obtain the measurements."""
-        return state[1:]
+        """Model used to create the measurements.
+
+        This model simply outputs the position part of the state, i.e. its
+        two last elements.
+
+        Parameters
+        ----------
+        state : array-like, shape=[dim]
+            Vector representing the state.
+
+        Returns
+        -------
+        observation : array-like, shape=[dim_obs]
+            Expected observation of the state.
+        """
+        return state[Localization.dim_rot:]
 
     @staticmethod
     def innovation(state, observation):
         """Discrepancy between the measurement and its expected value.
 
         The linear error (observation - expected) is cast into the state's
-        frame, following [BB2017]
+        frame by rotation, following [BB2017]
+
+        Parameters
+        ----------
+        state : array-like, shape=[dim]
+            Vector representing the state.
+        observation : array-like, shape=[dim_obs]
+            Obtained measurement.
+
+        Returns
+        -------
+        innovation : array-like, shape=[dim_obs]
+            Error between the measurement and the expected value.
         """
         theta, _, _ = state
         rot = Localization.rotation_matrix(theta)
@@ -228,7 +469,14 @@ class KalmanFilter:
     """Class for a general Kalman filter working on Lie groups.
 
     Given an adapted model, it provides the tools to carry out non-linear state
-    estimation with an error modeled on the Lie algebra.
+    estimation with an error modeled on the Lie algebra. The model must provide
+    the functions to propagate and update a state, the observation model, and
+    the computation of the Jacobians.
+
+    Parameter
+    ---------
+    model : {class, instance}
+        Object representing an observed dynamical system.
     """
 
     def __init__(self, model):
@@ -242,13 +490,24 @@ class KalmanFilter:
 
     def initialize_covariances(self, prior_values, process_values, obs_values):
         """Set the values of the covariances."""
-        values = [prior_values, process_values, obs_values]
-        attributes = ['covariance', 'process_noise', 'measurement_noise']
-        for (index, val) in enumerate(values):
-            setattr(self, attributes[index], val)
+        cov_dict = {
+            'covariance': prior_values,
+            'process_noise': process_values,
+            'measurement_noise': obs_values}
+        for key in cov_dict:
+            setattr(self, key, cov_dict[key])
 
     def propagate(self, sensor_input):
-        """Propagate the estimate and its covariance."""
+        """Propagate the estimate and its covariance.
+
+        Given the propagation Jacobian F and the noise Jacobian G, the
+        covariance P becomes F P F^T + G Q G^T.
+
+        Parameters
+        ----------
+        sensor_input : array-like
+            Vector representing the propagation sensor input.
+        """
         prop_noise = self.process_noise
         prop_jac = self.model.propagation_jacobian(self.state, sensor_input)
         noise_jac = self.model.noise_jacobian(self.state, sensor_input)
@@ -261,7 +520,22 @@ class KalmanFilter:
         self.state = self.model.propagate(self.state, sensor_input)
 
     def compute_gain(self, observation):
-        """Compute the Kalman gain given the observation model."""
+        """Compute the Kalman gain given the observation model.
+
+        Given the observation Jacobian H and covariance N (not necessarily
+        equal to that of the sensor), and the current covariance P, the Kalman
+        gain is K = P H^T(H P H^T + N)^{-1}.
+
+        Parameters
+        ----------
+        observation : array-like, shape=[dim_obs]
+            Obtained measurement.
+
+        Returns
+        -------
+        gain : array-like, shape=[model.dim, model.dim_obs]
+            Kalman gain.
+        """
         obs_cov = self.model.get_measurement_noise_cov(
             self.state, self.measurement_noise)
         obs_jac = self.model.observation_jacobian(self.state, observation)
@@ -273,7 +547,19 @@ class KalmanFilter:
             gs.linalg.inv(innovation_cov))
 
     def update(self, observation):
-        """Update the current estimate given an observation."""
+        r"""Update the current estimate given an observation.
+
+        The state is updated by the matrix-vector product of the Kalman gain K
+        and the innovation. The possibly non-linear update function is provided
+        by the model.
+        Given the observation Jacobian H and covariance N, the current
+        covariance P is updated as (I - KH)P.
+
+        Parameters
+        ----------
+        observation : array-like, shape=[dim_obs]
+            Obtained measurement.
+        """
         innovation = self.model.innovation(self.state, observation)
         gain = self.compute_gain(observation)
         obs_jac = self.model.observation_jacobian(self.state, observation)
@@ -283,6 +569,92 @@ class KalmanFilter:
         self.state = self.model.group.exp(state_upd, self.state)
 
 
+def create_data(kalman, true_init, true_inputs, obs_freq):
+    """Create data for a specific example.
+
+    Parameters
+    ----------
+    kalman : KalmanFilter
+        Filter which will be used to estimate the state.
+    true_init : array-like, shape=[dim]
+        True initial state.
+    true_inputs : list(array-like, shape=[dim_input])
+        Noise-free inputs giving the evolution of the true state.
+    obs_freq : int
+        Number of time steps between observations.
+
+    Returns
+    -------
+    true_traj : array-like, shape=[len(true_inputs), dim]
+        Trajectory of the true state.
+    inputs : list(array-like, shape=[dim_input])
+        Simulated noisy inputs received by the sensor.
+    observations : array-like, shape=[len(true_inputs)/obs_freq, dim_obs]
+        Simulated noisy observations of the system.
+    """
+    true_traj = [1 * true_init]
+    for incr in true_inputs:
+        true_traj.append(kalman.model.propagate(true_traj[-1], incr))
+    true_obs = [
+        kalman.model.observation_model(pose)
+        for pose in true_traj[obs_freq::obs_freq]]
+
+    obs_dtype = true_obs[0].dtype
+    observations = [
+        np.random.multivariate_normal(obs, kalman.measurement_noise)
+        for obs in true_obs]
+    observations = [gs.cast(obs, obs_dtype) for obs in observations]
+
+    input_dtype = true_inputs[0].dtype
+    inputs = [gs.concatenate(
+        (incr[:1], np.random.multivariate_normal(
+            incr[1:], kalman.process_noise)), axis=0)
+        for incr in true_inputs]
+    inputs = [gs.cast(incr, input_dtype) for incr in inputs]
+
+    return gs.array(true_traj), inputs, gs.array(observations)
+
+
+def estimation(kalman, initial_state, inputs, observations, obs_freq):
+    """Carry out the state estimation for a specific system.
+
+    Parameters
+    ----------
+    kalman : KalmanFilter
+        Filter used to estimate the state.
+    initial_state : array-like, shape=[dim]
+        Guess of the true initial state.
+    inputs : list(array-like, shape=[dim_input])
+        Inputs received by the propagation sensor.
+    observations : array-like, shape=[len(inputs) + 1/obs_freq, dim_obs]
+        Measurements of the system.
+    obs_freq : int
+        Number of time steps between observations.
+
+    Returns
+    -------
+    traj : array-like, shape=[len(inputs) + 1, dim]
+        Estimated trajectory.
+    three_sigmas : array-like, shape=[len(inputs) + 1, dim]
+        3-sigma envelope of the estimated state covariance.
+    """
+    kalman.state = 1 * initial_state
+
+    traj = [1 * kalman.state]
+    uncertainty = [1 * gs.diagonal(kalman.covariance)]
+    for i in range(len(inputs)):
+        kalman.propagate(inputs[i])
+        if i > 0 and i % obs_freq == obs_freq - 1:
+            kalman.update(observations[(i // obs_freq)])
+        traj.append(1 * kalman.state)
+        uncertainty.append(1 * gs.diagonal(kalman.covariance))
+    traj = gs.array(traj)
+    uncertainty = gs.array(uncertainty)
+    three_sigmas = 3 * gs.sqrt(uncertainty)
+
+    return traj, three_sigmas
+
+
 def main():
     """Carry out two examples of state estimation on groups.
 
@@ -290,47 +662,6 @@ def main():
     is observed. The first one is a linear system, while the second one is
     non-linear.
     """
-    def create_data(kalman, true_init, true_inputs, obs_freq):
-        """Create data for a specific example."""
-        true_traj = [1 * true_init]
-        for incr in true_inputs:
-            true_traj.append(kalman.model.propagate(true_traj[-1], incr))
-        true_obs = [
-            kalman.model.observation_model(pose)
-            for pose in true_traj[obs_freq::obs_freq]]
-
-        obs_dtype = true_obs[0].dtype
-        observations = [
-            np.random.multivariate_normal(obs, kalman.measurement_noise)
-            for obs in true_obs]
-        observations = [gs.cast(obs, obs_dtype) for obs in observations]
-
-        input_dtype = true_inputs[0].dtype
-        inputs = [gs.concatenate(
-            (incr[:1], np.random.multivariate_normal(
-                incr[1:], kalman.process_noise)), axis=0)
-            for incr in true_inputs]
-        inputs = [gs.cast(incr, input_dtype) for incr in inputs]
-
-        return gs.array(true_traj), inputs, gs.array(observations)
-
-    def estimation(observer, initial_state, inputs, obs, obs_freq):
-        """Carry out the state estimation for a specific system."""
-        observer.state = 1 * initial_state
-
-        traj = [1 * observer.state]
-        uncertainty = [1 * gs.diagonal(observer.covariance)]
-        for i in range(n_traj):
-            observer.propagate(inputs[i])
-            if i > 0 and i % obs_freq == obs_freq - 1:
-                observer.update(obs[(i // obs_freq)])
-            traj.append(1 * observer.state)
-            uncertainty.append(1 * gs.diagonal(observer.covariance))
-        traj = gs.array(traj)
-        uncertainty = gs.array(uncertainty)
-        three_sigmas = 3 * gs.sqrt(uncertainty)
-
-        return traj, three_sigmas
 
     np.random.seed(12345)
     model = LocalizationLinear()
