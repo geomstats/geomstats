@@ -33,7 +33,7 @@ import numpy as np
 import geomstats.backend as gs
 from geomstats import algebra_utils
 from geomstats.learning.kalman_filter import (
-    KalmanFilter, LocalizationLinear, Localization)
+    KalmanFilter, Localization, LocalizationLinear)
 
 
 def create_data(kalman, true_init, true_inputs, obs_freq):
@@ -109,7 +109,7 @@ def estimation(kalman, initial_state, inputs, observations, obs_freq):
 
     traj = [1 * kalman.state]
     uncertainty = [1 * gs.diagonal(kalman.covariance)]
-    for i in range(len(inputs)):
+    for i, _ in enumerate(inputs):
         kalman.propagate(inputs[i])
         if i > 0 and i % obs_freq == obs_freq - 1:
             kalman.update(observations[(i // obs_freq)])

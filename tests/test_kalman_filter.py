@@ -3,10 +3,10 @@
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.algebra_utils import from_vector_to_diagonal_matrix
+from geomstats.geometry.matrices import Matrices
+from geomstats.learning.kalman_filter import KalmanFilter
 from geomstats.learning.kalman_filter import Localization
 from geomstats.learning.kalman_filter import LocalizationLinear
-from geomstats.learning.kalman_filter import KalmanFilter
-from geomstats.geometry.matrices import Matrices
 
 
 class TestKalmanFilter(geomstats.tests.TestCase):
@@ -70,7 +70,7 @@ class TestKalmanFilter(geomstats.tests.TestCase):
         # Test preprocess_input
         expected = time_step[0], linear_vel, angular_vel
         result = self.nonlinear_model.preprocess_input(increment)
-        for i in range(len(expected)):
+        for i in range(3):
             self.assertAllClose(expected[i], result[i])
 
         # Test rotation_matrix
