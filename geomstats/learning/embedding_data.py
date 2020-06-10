@@ -29,6 +29,7 @@ class Embedding ():
     context_size : int
         Size of the context size to consider.
     """
+
     data = None
     manifold = None
     dim = None
@@ -37,7 +38,9 @@ class Embedding ():
     n_negative = None
     context_size = None
 
-    def __init__(self, data, manifold, dim, max_epochs, lr, n_negative, context_size,):
+    def __init__(
+            self, data, manifold, dim, max_epochs,
+            lr, n_negative, context_size,):
 
         self.data = data
         self.manifold = manifold
@@ -47,10 +50,11 @@ class Embedding ():
         self.n_negative = n_negative
         self.context_size = context_size
 
-    def log_sigmoid(self, vector):
+    @staticmethod
+    def log_sigmoid(vector):
         """Logsigmoid function.
 
-        Apply log sigmoid function
+        Apply log sigmoid function.
 
         Parameters
         ----------
@@ -62,8 +66,8 @@ class Embedding ():
         """
         return gs.log((1 / (1 + gs.exp(-vector))))
 
-
-    def grad_log_sigmoid(self, vector):
+    @staticmethod
+    def grad_log_sigmoid(vector):
         """Gradient of log sigmoid function.
 
         Parameters
@@ -76,12 +80,12 @@ class Embedding ():
         """
         return 1 / (1 + gs.exp(vector))
 
-
-    def grad_squared_distance(self, point_a, point_b):
+    @staticmethod
+    def grad_squared_distance(point_a, point_b):
         """Gradient of squared hyperbolic distance.
 
         Gradient of the squared distance based on the
-        Ball representation according to point_a
+        Ball representation according to point_a.
 
         Parameters
         ----------
@@ -99,7 +103,6 @@ class Embedding ():
         log_map = hyperbolic_metric.log(point_b, point_a)
 
         return -2 * log_map
-
 
     def loss(self, example_embedding, context_embedding, negative_embedding,
              ):
@@ -157,7 +160,8 @@ class Embedding ():
             * positive_distance_grad
 
         negative_distance_grad =\
-            self.grad_squared_distance(reshaped_example_embedding, negative_embedding)
+            self.grad_squared_distance(
+                reshaped_example_embedding, negative_embedding)
 
         negative_distance = gs.to_ndarray(negative_distance,
                                           to_ndim=2, axis=-1)
@@ -201,15 +205,15 @@ class Embedding ():
         embeddings = gs.random.normal(size=(self.data.n_nodes, self.dim))
         embeddings = embeddings * 0.2
 
-
         for epoch in range(self.max_epochs):
             total_loss = []
             for path in random_walks:
 
                 for example_index, one_path in enumerate(path):
-                    context_index = path[max(0, example_index - self.context_size):
-                                         min(example_index + self.context_size,
-                                             len(path))]
+                    context_index = path[max(
+                        0, example_index - self.context_size):
+                            min(example_index + self.context_size,
+                                len(path))]
                     negative_index = \
                         gs.random.randint(negative_sampling_table.shape[0],
                                           size=(len(context_index),
