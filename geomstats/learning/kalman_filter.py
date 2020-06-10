@@ -464,8 +464,8 @@ class KalmanFilter:
             'covariance': prior_values,
             'process_noise': process_values,
             'measurement_noise': obs_values}
-        for key in cov_dict:
-            setattr(self, key, cov_dict[key])
+        for attribute, value in cov_dict.items():
+            setattr(self, attribute, value)
 
     def propagate(self, sensor_input):
         """Propagate the estimate and its covariance.
