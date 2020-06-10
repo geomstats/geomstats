@@ -329,7 +329,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         return matrix_v
 
     @geomstats.vectorization.decorator(['else', 'matrix', 'matrix', 'else'])
-    def log(self, point, base_point, max_iter=30, tol=1e-7):
+    def log(self, point, base_point, max_iter=30, tol=1e-6):
         """Compute the Riemannian logarithm of a point.
 
         Based on [ZR2017]_.
@@ -353,7 +353,7 @@ class StiefelCanonicalMetric(RiemannianMetric):
         tol: float
             Tolerance to reach convergence. The matrix 2-norm is used as
             criterion.
-            Optional, default: 1e-7.
+            Optional, default: 1e-6.
 
         Returns
         -------
@@ -380,7 +380,9 @@ class StiefelCanonicalMetric(RiemannianMetric):
 
             matrix_c = matrix_lv[:, p:2 * p, p:2 * p]
 
-            if gs.linalg.norm(matrix_c) < tol:
+            norm_matrix_c = gs.linalg.norm(matrix_c)
+
+            if gs.less_equal(norm_matrix_c, tol):
                 break
 
             matrix_phi = gs.linalg.expm(-matrix_c)
