@@ -1,0 +1,126 @@
+"""Learning embedding of graph using Poincare Ball Model."""
+
+
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+
+import geomstats.backend as gs
+import geomstats.visualization as visualization
+from geomstats.datasets.utils import load_karate_graph
+from geomstats.geometry.poincare_ball import PoincareBall
+from geomstats.learning.kmeans import RiemannianKMeans
+from geomstats.learning.embedding_data import Embedding
+
+
+def main():
+    """Learning Poincaré graph embedding.
+
+    Learns Poincaré Ball embedding by using Riemannian
+    gradient descent algorithm.
+    """
+    gs.random.seed(1234)
+    dim = 2
+    max_epochs = 5
+    lr = .05
+    n_negative = 2
+    context_size = 1
+    karate_graph = load_karate_graph()
+
+    hyperbolic_manifold = PoincareBall(2)
+
+    embedding_class = Embedding(data = karate_graph,
+                                manifold = hyperbolic_manifold,
+                                dim = dim,
+                                max_epochs=max_epochs,
+                                lr = lr,
+                                n_negative = n_negative,
+                                context_size = context_size)
+
+
+    embeddings = embedding_class.embed()
+
+    colors = {1: 'b', 2: 'r'}
+    group_1 = mpatches.Patch(color=colors[1], label='Group 1')
+    group_2 = mpatches.Patch(color=colors[2], label='Group 2')
+
+    circle = visualization.PoincareDisk(point_type='ball')
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    ax.axes.xaxis.set_visible(False)
+    ax.axes.yaxis.set_visible(False)
+    circle.set_ax(ax)
+    circle.draw(ax=ax)
+    for i_embedding, embedding in enumerate(embeddings):
+        x = embedding[0]
+        y = embedding[1]
+        pt_id = i_embedding
+        plt.scatter(
+            x, y,
+            c=colors[karate_graph.labels[pt_id][0]],
+            s=150
+        )
+        ax.annotate(pt_id, (x, y))
+
+    plt.tick_params(
+        which='both')
+    plt.title('Poincare Ball Embedding of the Karate Club Network')
+    plt.legend(handles=[group_1, group_2])
+    plt.show()
+
+
+    n_clusters = 2
+
+    kmeans = RiemannianKMeans(riemannian_metric=hyperbolic_manifold.metric,
+                              n_clusters=n_clusters,
+                              init='random',
+                              mean_method='frechet-poincare-ball'
+                              )
+
+    centroids = kmeans.fit(X=embeddings, max_iter=100)
+    labels = kmeans.predict(X=embeddings)
+
+    # %%
+
+    colors = ['g', 'c', 'm']
+    circle = visualization.PoincareDisk(point_type='ball')
+    fig2, ax2 = plt.subplots(figsize=(8, 8))
+    circle.set_ax(ax2)
+    circle.draw(ax=ax2)
+    ax2.axes.xaxis.set_visible(False)
+    ax2.axes.yaxis.set_visible(False)
+    group_1_predicted = mpatches.Patch(color=colors[0], label='Predicted Group 1')
+    group_2_predicted = mpatches.Patch(color=colors[1], label='Predicted Group 2')
+    group_centroids = mpatches.Patch(color=colors[2], label='Cluster centroids')
+
+    for i in range(n_clusters):
+        for i_embedding, embedding in enumerate(embeddings):
+            x = embedding[0]
+            y = embedding[1]
+            pt_id = i_embedding
+            if labels[i_embedding] == 0:
+                color = colors[0]
+            else:
+                color = colors[1]
+            plt.scatter(
+                x, y,
+                c=color,
+                s=150
+            )
+            ax2.annotate(pt_id, (x, y))
+
+    for i_centroid, centroid in enumerate(centroids):
+        x = centroid[0]
+        y = centroid[1]
+        plt.scatter(
+            x, y,
+            c=colors[2],
+            marker='*',
+            s=150,
+        )
+
+    plt.title('K-means applied to Karate club embedding')
+    plt.legend(handles=[group_1_predicted, group_2_predicted, group_centroids])
+    plt.show()
+
+if __name__ == '__main__':
+    main()
