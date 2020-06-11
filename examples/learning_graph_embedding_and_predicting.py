@@ -6,9 +6,8 @@ import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 import geomstats.visualization as visualization
+from geomstats.datasets.prepare_graph_data import HyperbolicEmbedding
 from geomstats.datasets.utils import load_karate_graph
-from geomstats.geometry.poincare_ball import PoincareBall
-from geomstats.learning.embedding_data import Embedding
 from geomstats.learning.kmeans import RiemannianKMeans
 
 
@@ -20,24 +19,12 @@ def main():
     to learn labels of each data sample.
     """
     gs.random.seed(1234)
-    dim = 2
-    max_epochs = 100
-    lr = .05
-    n_negative = 2
-    context_size = 1
+
     karate_graph = load_karate_graph()
 
-    hyperbolic_manifold = PoincareBall(2)
+    hyperbolic_embedding = HyperbolicEmbedding(karate_graph)
 
-    embedding_class = Embedding(data=karate_graph,
-                                manifold=hyperbolic_manifold,
-                                dim=dim,
-                                max_epochs=max_epochs,
-                                lr=lr,
-                                n_negative=n_negative,
-                                context_size=context_size)
-
-    embeddings = embedding_class.embed()
+    embeddings = hyperbolic_embedding.embed()
 
     colors = {1: 'b', 2: 'r'}
     group_1 = mpatches.Patch(color=colors[1], label='Group 1')
@@ -69,11 +56,11 @@ def main():
 
     n_clusters = 2
 
-    kmeans = RiemannianKMeans(riemannian_metric=hyperbolic_manifold.metric,
-                              n_clusters=n_clusters,
-                              init='random',
-                              mean_method='frechet-poincare-ball'
-                              )
+    kmeans = RiemannianKMeans(
+        riemannian_metric=hyperbolic_embedding.manifold.metric,
+        n_clusters=n_clusters,
+        init='random',
+        mean_method='frechet-poincare-ball')
 
     centroids = kmeans.fit(X=embeddings, max_iter=100)
     labels = kmeans.predict(X=embeddings)
