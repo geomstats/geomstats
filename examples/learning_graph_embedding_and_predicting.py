@@ -22,9 +22,9 @@ def main():
 
     karate_graph = load_karate_graph()
 
-    hyperbolic_embedding = HyperbolicEmbedding(karate_graph)
+    hyperbolic_embedding = HyperbolicEmbedding()
 
-    embeddings = hyperbolic_embedding.embed()
+    embeddings = hyperbolic_embedding.embed(karate_graph)
 
     colors = {1: 'b', 2: 'r'}
     group_1 = mpatches.Patch(color=colors[1], label='Group 1')

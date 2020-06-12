@@ -6,7 +6,7 @@ from geomstats.datasets.prepare_graph_data import HyperbolicEmbedding
 from geomstats.datasets.utils import load_karate_graph
 
 
-class TestHyperbolicEmbedding(geomstats.tests.TestCase):
+class TestPrepareGraphData(geomstats.tests.TestCase):
     """Class for testing embedding."""
 
     def setUp(self):
@@ -17,10 +17,9 @@ class TestHyperbolicEmbedding(geomstats.tests.TestCase):
         lr = .05
         n_negative = 2
         context_size = 1
-        karate_graph = load_karate_graph()
+        self.karate_graph = load_karate_graph()
 
         self.embedding_class = HyperbolicEmbedding(
-            graph=karate_graph,
             dim=dim,
             max_epochs=max_epochs,
             lr=lr,
@@ -56,12 +55,12 @@ class TestHyperbolicEmbedding(geomstats.tests.TestCase):
         expected_loss = 1.00322045
         expected_grad = gs.array([-0.16565083, -0.16565083])
 
-        self.assertAllClose(loss_value, expected_loss, rtol=1e-3)
+        self.assertAllClose(loss_value[0], expected_loss, rtol=1e-3)
         self.assertAllClose(gs.squeeze(loss_grad), expected_grad, rtol=1e-3)
 
     @geomstats.tests.np_and_pytorch_only
     def test_embed(self):
         """Test embedding function."""
-        embeddings = self.embedding_class.embed()
+        embeddings = self.embedding_class.embed(self.karate_graph)
         self.assertTrue(
-            self.embedding_class.manifold.belongs(embeddings).all())
+            gs.all(self.embedding_class.manifold.belongs(embeddings)))
