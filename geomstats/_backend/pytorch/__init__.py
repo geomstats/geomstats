@@ -640,12 +640,8 @@ def assignment(x, values, indices, axis=0):
     If a list is given, it must have the same length as indices.
     """
     x_new = copy(x)
-    if hasattr(indices, '__len__'):
-        if len(indices.shape) != 0:
-            use_vectorization = len(indices) < ndim(x)
-        else:
-            use_vectorization = False
 
+    use_vectorization = hasattr(indices, '__len__') and len(indices) < ndim(x)
     if _is_boolean(indices):
         x_new[indices] = values
         return x_new

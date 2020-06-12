@@ -93,8 +93,6 @@ class HyperbolicEmbedding:
 
     Parameters
     ----------
-    graph : object
-        An instance of the Graph class.
     dim : object
         Dimensions of the used hyperbolic space.
     max_epochs : int
@@ -110,10 +108,9 @@ class HyperbolicEmbedding:
     """
 
     def __init__(
-            self, graph, dim=2, max_epochs=100,
+            self, dim=2, max_epochs=100,
             lr=.05, n_context=1, n_negative=2):
 
-        self.graph = graph
         self.manifold = PoincareBall(dim)
         self.max_epochs = max_epochs
         self.lr = lr
@@ -244,10 +241,15 @@ class HyperbolicEmbedding:
 
         return total_loss, example_grad
 
-    def embed(self):
+    def embed(self, graph):
         """Compute embedding.
 
         Optimize a loss function to obtain a representable embedding.
+
+        Parameters
+        ----------
+        graph : object
+            An instance of the Graph class.
 
         Returns
         -------
@@ -256,11 +258,11 @@ class HyperbolicEmbedding:
             is represented as a point belonging to the manifold.
         """
         nb_vertices_by_edges = \
-            [len(e_2) for _, e_2 in self.graph.edges.items()]
-        logging.info('Number of edges: %s', len(self.graph.edges))
+            [len(e_2) for _, e_2 in graph.edges.items()]
+        logging.info('Number of edges: %s', len(graph.edges))
         logging.info(
             'Mean vertices by edges: %s',
-            (sum(nb_vertices_by_edges, 0) / len(self.graph.edges)))
+            (sum(nb_vertices_by_edges, 0) / len(graph.edges)))
 
         negative_table_parameter = 5
         negative_sampling_table = []
@@ -270,9 +272,9 @@ class HyperbolicEmbedding:
                 ([i] * int((nb_v ** (3. / 4.))) * negative_table_parameter)
 
         negative_sampling_table = gs.array(negative_sampling_table)
-        random_walks = self.graph.random_walk()
+        random_walks = graph.random_walk()
         embeddings = gs.random.normal(
-            size=(self.graph.n_nodes, self.manifold.dim))
+            size=(graph.n_nodes, self.manifold.dim))
         embeddings = embeddings * 0.2
 
         for epoch in range(self.max_epochs):
@@ -299,8 +301,9 @@ class HyperbolicEmbedding:
                                                              negative_index):
                         context_embedding = embeddings[one_context_i]
 
-                        negative_embedding = embeddings[gs.cast(
-                            one_negative_i, dtype=gs.int64)]
+                        negative_embedding = gs.get_slice(
+                            embeddings, gs.squeeze(gs.cast(
+                                one_negative_i, dtype=gs.int64)))
 
                         l, g_ex = self.loss(
                             example_embedding,
@@ -310,9 +313,12 @@ class HyperbolicEmbedding:
 
                         example_to_update = embeddings[one_path]
 
+                        valeur = self.manifold.metric.exp(
+                            -self.lr * g_ex, example_to_update)
+
                         embeddings = gs.assignment(
-                            embeddings, self.manifold.metric.exp(
-                                -self.lr * g_ex, example_to_update), one_path)
+                            embeddings, valeur, gs.to_ndarray(
+                                one_path, to_ndim=1), axis=1)
 
             logging.info(
                 'iteration %d loss_value %f',
