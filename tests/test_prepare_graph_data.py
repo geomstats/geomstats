@@ -42,7 +42,6 @@ class TestPrepareGraphData(geomstats.tests.TestCase):
         expected = gs.array([0.47502081, 0.42555748])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_loss(self):
         """Test loss function."""
         point = gs.array([0.5, 0.5])
@@ -58,7 +57,6 @@ class TestPrepareGraphData(geomstats.tests.TestCase):
         self.assertAllClose(loss_value[0], expected_loss, rtol=1e-3)
         self.assertAllClose(gs.squeeze(loss_grad), expected_grad, rtol=1e-3)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_embed(self):
         """Test embedding function."""
         embeddings = self.embedding_class.embed(self.karate_graph)
