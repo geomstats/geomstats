@@ -165,7 +165,6 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         self.assertAllClose(
             gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
 
-    @geomstats.tests.np_only
     def test_group_exp_from_identity_vectorization(self):
         n_samples = self.n_samples
         tangent_vecs = self.group.random_uniform(n_samples=n_samples)
@@ -174,7 +173,6 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         self.assertAllClose(
             gs.shape(result), (n_samples, *self.group.get_point_type_shape()))
 
-    @geomstats.tests.np_only
     def test_group_log_from_identity_vectorization(self):
         n_samples = self.n_samples
         points = self.group.random_uniform(n_samples=n_samples)
@@ -184,7 +182,6 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
             gs.shape(result),
             (n_samples, *self.group.get_point_type_shape()))
 
-    @geomstats.tests.np_only
     def test_group_exp_vectorization(self):
         n_samples = self.n_samples
         # Test with the 1 base_point, and several different tangent_vecs
@@ -214,7 +211,6 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
                 gs.shape(result),
                 (n_samples, *self.group.get_point_type_shape()))
 
-    @geomstats.tests.np_only
     def test_group_log_vectorization(self):
         n_samples = self.n_samples
         # Test with the 1 base point, and several different points
@@ -245,7 +241,6 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
                 gs.shape(result),
                 (n_samples, *self.group.get_point_type_shape()))
 
-    @geomstats.tests.np_only
     def test_group_exp_from_identity(self):
         # Group exponential of a translation (no rotational part)
         # Expect the original translation
@@ -255,7 +250,6 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         expected = tangent_vec
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_group_log_from_identity(self):
         # Group logarithm of a translation (no rotational part)
         # Expect the original translation
@@ -265,7 +259,6 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
         expected = point
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_group_log_then_exp_from_identity(self):
         """
         Test that the group exponential from the identity
@@ -283,7 +276,6 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
             if geomstats.tests.tf_backend():
                 break
 
-    @geomstats.tests.np_only
     def test_group_exp(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
@@ -298,7 +290,6 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
                     + self.elements_all['translation_large'])
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_group_log(self):
         # Reference point is a translation (no rotational part)
         # so that the jacobian of the left-translation of the Lie group
@@ -314,7 +305,6 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
     def test_group_log_then_exp(self):
         """
         Test that the group exponential
@@ -334,7 +324,6 @@ class TestSpecialEuclidean2Methods(geomstats.tests.TestCase):
                 if geomstats.tests.tf_backend():
                     break
 
-    @geomstats.tests.np_only
     def test_group_exp_then_log(self):
         """
         Test that the group exponential
