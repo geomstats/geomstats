@@ -502,6 +502,13 @@ def get_slice(x, indices):
     >>> get_slice(a, ((0, 2), (8, 9)))
     <tf.Tensor: id=41, shape=(2,), dtype=int32, numpy=array([ 8, 29])>
     """
+    if hasattr(indices, 'shape'):
+        if indices.shape.rank == 0:
+            return x[indices]
+
+        if tf.is_tensor(indices) and indices.shape[-1] == 1:
+            return tf.gather_nd(x, indices)
+
     return tf.gather_nd(x, list(zip(*indices)))
 
 

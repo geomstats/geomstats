@@ -291,6 +291,9 @@ class HyperbolicEmbedding:
                                           size=(len(context_index),
                                                 self.n_negative))
 
+                    negative_index = gs.expand_dims(
+                        gs.flatten(negative_index), axis=-1)
+
                     negative_index = gs.get_slice(
                         negative_sampling_table, negative_index)
 

@@ -39,6 +39,7 @@ from torch import (  # NOQA
     lt as less,
     matmul,
     max as amax,
+    mean,
     meshgrid,
     min as amin,
     nonzero,
@@ -553,12 +554,6 @@ def prod(x, axis=None):
     if axis is None:
         return torch.prod(x)
     return torch.prod(x, dim=axis)
-
-
-def mean(x, axis=None):
-    if axis is None:
-        return torch.mean(x)
-    return torch.mean(x, dim=axis)
 
 
 def where(condition, x=None, y=None):

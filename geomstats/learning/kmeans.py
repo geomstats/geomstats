@@ -75,10 +75,9 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
             Centroids.
         """
         n_samples = X.shape[0]
-        belongs = gs.zeros(n_samples)
         self.centroids = [gs.expand_dims(X[randint(0, n_samples - 1)], 0)
                           for i in range(self.n_clusters)]
-        self.centroids = gs.concatenate(self.centroids)
+        self.centroids = gs.concatenate(self.centroids, axis=0)
         index = 0
         while index < max_iter:
             index += 1
