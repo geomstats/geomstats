@@ -19,7 +19,7 @@ class TestPrepareGraphData(geomstats.tests.TestCase):
         context_size = 1
         self.karate_graph = load_karate_graph()
 
-        self.embedding_class = HyperbolicEmbedding(
+        self.embedding = HyperbolicEmbedding(
             dim=dim,
             max_epochs=max_epochs,
             lr=lr,
@@ -29,7 +29,7 @@ class TestPrepareGraphData(geomstats.tests.TestCase):
     def test_log_sigmoid(self):
         """Test log_sigmoid."""
         point = gs.array([0.1, 0.3])
-        result = self.embedding_class.log_sigmoid(point)
+        result = self.embedding.log_sigmoid(point)
 
         expected = gs.array([-0.644397, -0.554355])
         self.assertAllClose(result, expected)
@@ -37,7 +37,7 @@ class TestPrepareGraphData(geomstats.tests.TestCase):
     def test_grad_log_sigmoid(self):
         """Test grad_log_sigmoid."""
         point = gs.array([0.1, 0.3])
-        result = self.embedding_class.grad_log_sigmoid(point)
+        result = self.embedding.grad_log_sigmoid(point)
 
         expected = gs.array([0.47502081, 0.42555748])
         self.assertAllClose(result, expected)
@@ -48,7 +48,7 @@ class TestPrepareGraphData(geomstats.tests.TestCase):
         point_context = gs.array([0.6, 0.6])
         point_negative = gs.array([-0.4, -0.4])
 
-        loss_value, loss_grad = self.embedding_class.loss(
+        loss_value, loss_grad = self.embedding.loss(
             point, point_context, point_negative)
 
         expected_loss = 1.00322045
@@ -59,6 +59,6 @@ class TestPrepareGraphData(geomstats.tests.TestCase):
 
     def test_embed(self):
         """Test embedding function."""
-        embeddings = self.embedding_class.embed(self.karate_graph)
+        embeddings = self.embedding.embed(self.karate_graph)
         self.assertTrue(
-            gs.all(self.embedding_class.manifold.belongs(embeddings)))
+            gs.all(self.embedding.manifold.belongs(embeddings)))
