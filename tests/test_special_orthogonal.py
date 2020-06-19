@@ -158,8 +158,3 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         result = self.group.belongs(points)
         expected = gs.array([True] * n_samples)
         return self.assertAllClose(result, expected)
-
-if __name__ == '__main__':
-    x = TestSpecialOrthogonal()
-    x.setUp()
-    x.test_multiply_angle_of_rot2()
