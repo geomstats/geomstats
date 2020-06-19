@@ -12,6 +12,7 @@ from tensorflow import (  # NOQA
     argmax,
     argmin,
     asin as arcsin,
+    atan as arctan,
     atan2 as arctan2,
     clip_by_value as clip,
     concat as concatenate,
@@ -76,6 +77,7 @@ ceil = tf.math.ceil
 cross = tf.linalg.cross
 erf = tf.math.erf
 isnan = tf.math.is_nan
+diag = tf.linalg.diag
 log = tf.math.log
 mod = tf.math.mod
 polygamma = tf.math.polygamma

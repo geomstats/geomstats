@@ -31,6 +31,20 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         self.metric_logeuclidean = SPDMetricLogEuclidean(n=self.n)
         self.n_samples = 4
 
+    def setUp_alt(self, n=3, n_samples=4):
+        """Set up the test, flexible parameters."""
+        warnings.simplefilter('ignore', category=ImportWarning)
+
+        gs.random.seed(1234)
+
+        self.n = n
+        self.space = SPDMatrices(n=self.n)
+        self.metric_affine = SPDMetricAffine(n=self.n)
+        self.metric_procrustes = SPDMetricProcrustes(n=self.n)
+        self.metric_euclidean = SPDMetricEuclidean(n=self.n)
+        self.metric_logeuclidean = SPDMetricLogEuclidean(n=self.n)
+        self.n_samples = n_samples
+
     def test_belongs(self):
         """Test of belongs method."""
         mats = gs.array(
@@ -70,6 +84,40 @@ class TestSPDMatrices(geomstats.tests.TestCase):
     def test_random_uniform_and_belongs_vectorization(self):
         """Test of random_uniform and belongs methods."""
         points = self.space.random_uniform(4)
+        result = self.space.belongs(points)
+        expected = gs.array([True] * 4)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_random_gaussian_rotation_orbit(self):
+        """Test random_gaussian_rotation_orbit"""
+        n = 2
+        self.setUp_alt(n)
+        mean_spd = self.space.random_uniform()
+        var_rotations = 1.
+        points = self.space.random_gaussian_rotation_orbit(
+            mean_spd=mean_spd, var_rotations=var_rotations, n_samples=4)
+        point = self.space.random_gaussian_rotation_orbit(
+            mean_spd=mean_spd, var_rotations=var_rotations, n_samples=1)
+        shapes_expected = gs.array([4, 2, 2])
+        shape_expected = gs.array([2, 2])
+        result = self.space.belongs(points)
+        expected = gs.array([True] * 4)
+        self.assertAllClose(points.shape, shapes_expected)
+        self.assertAllClose(point.shape, shape_expected)
+        self.assertAllClose(result, expected)
+
+    @geomstats.tests.np_only
+    def test_random_gaussian_rotation_orbit_noisy(self):
+        """Test random_gaussian_rotation_orbit"""
+        n = 2
+        self.setUp_alt(n)
+        mean_spd = self.space.random_uniform()
+        var_rotations = 1.
+        var_eigenvalues = gs.ones(n)
+        points = self.space.random_gaussian_rotation_orbit_noisy(
+            mean_spd=mean_spd, var_rotations=var_rotations,
+            var_eigenvalues=var_eigenvalues, n_samples=4)
         result = self.space.belongs(points)
         expected = gs.array([True] * 4)
         self.assertAllClose(result, expected)
@@ -126,8 +174,8 @@ class TestSPDMatrices(geomstats.tests.TestCase):
                                [0., 2.5, 1.5],
                                [0., 1.5, 2.5]])
         tangent_vec = gs.array([[2., 1., 1.],
-                               [1., .5, .5],
-                               [1., .5, .5]])
+                                [1., .5, .5],
+                                [1., .5, .5]])
         power = .5
         result = self.space.differential_power(
             power=power,
@@ -243,8 +291,8 @@ class TestSPDMatrices(geomstats.tests.TestCase):
                                [0., 2.5, 1.5],
                                [0., 1.5, 2.5]])
         tangent_vec = gs.array([[2., 1., 1.],
-                               [1., .5, .5],
-                               [1., .5, .5]])
+                                [1., .5, .5],
+                                [1., .5, .5]])
         metric = SPDMetricAffine(3, power_affine=.5)
         result = metric.inner_product(tangent_vec, tangent_vec, base_point)
         expected = 713 / 144
@@ -515,3 +563,8 @@ class TestSPDMatrices(geomstats.tests.TestCase):
         result = metric.norm(transported, end_point)
 
         self.assertAllClose(expected, result, atol=1e-4)
+
+
+if __name__ == '__main__':
+    TestSPDMatrices().test_random_gaussian_rotation_orbit()
+    TestSPDMatrices().test_random_gaussian_rotation_orbit_noisy()

@@ -22,6 +22,7 @@ BACKEND_ATTRIBUTES = {
         'arccos',
         'arccosh',
         'arcsin',
+        'arctan',
         'arctan2',
         'arctanh',
         'argmax',
@@ -42,6 +43,7 @@ BACKEND_ATTRIBUTES = {
         'cross',
         'cumprod',
         'cumsum',
+        'diag',
         'diagonal',
         'divide',
         'dot',
@@ -130,9 +132,11 @@ BACKEND_ATTRIBUTES = {
         # TODO (nkoep): Remove 'rand' and replace it by 'uniform'. Much like
         #              'randn' is a convenience wrapper (which we don't use)
         #              for 'normal', 'rand' only wraps 'uniform'.
+        'multivariate_normal',
         'rand',
         'randint',
         'seed',
+        'shuffle',
         'uniform'
     ]
 }
