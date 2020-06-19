@@ -126,39 +126,24 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         skew = self.to_tangent(random_mat)
         return self.exp(skew)
 
-    def _rotation_from_angle(self, theta):
-        """Create 2D rotation matrix from scalar angle.
-
-        :param theta: float.
-        :return array-like, shape = [2, 2]
-        """
-        if self.n != 2:
-            raise NotImplementedError
-        c = gs.cos(theta)
-        s = gs.sin(theta)
-        return gs.array([[c, -s],
-                         [s, c]])
-
     def rotation_from_angle(self, theta):
         """Create 2D rotation matrices from scalar angles.
 
         :param theta: float, or list of.
         :return array-like, shape = [2, 2], or list of.
         """
-        return gs.vectorize(theta, self._rotation_from_angle,
-                            signature='()->(n,n)')
-
-    def _angle_of_rot2(self, point):
-        """Get angle of a 2D rotation.
-
-        :param r: array-like, shape=[n, n]: rotation
-        :return: float: angle of rotation
-        """
         if self.n != 2:
             raise NotImplementedError
-        s = point[1][0]
-        c = point[0][0]
-        return gs.sign(s) * gs.arccos(c)
+        c = gs.cos(theta)
+        s = gs.sin(theta)
+        mat_first_line = gs.transpose(gs.array([c, -s]))
+        mat_second_line = gs.transpose(gs.array([s, c]))
+        mat_first_line = gs.expand_dims(
+            mat_first_line, -1)
+        mat_second_line = gs.expand_dims(mat_second_line, -1)
+        mat = gs.concatenate(
+            [mat_first_line, mat_second_line], axis=-2)
+        return mat
 
     def angle_of_rot2(self, point):
         """Get angle of a 2D rotation; vectorized version.
@@ -166,32 +151,27 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         :param r: array-like (or a list of), shape=[n, n]: rotation
         :return: float (or a list of): angle of rotation
         """
-        return gs.vectorize(point, self._angle_of_rot2, signature='(n,n)->()')
-
-    def _multiply_angle_of_rot2(self, point, alpha):
-        """Multiply the angle of a 2D rotation by a scalar.
-
-        Best to have original anngle in :math [0, PI].
-        :param point: array-like, shape=[n, n]: rotation
-        :param alpha: float: scalar to divide of angle by
-        :return: array-like, shape=[n, n]: rotation with divided angle
-        """
         if self.n != 2:
             raise NotImplementedError
-        angle = self._angle_of_rot2(point) * alpha
-        return self._rotation_from_angle(angle)
+        sinus = point[..., 1, 0]
+        cosinus = point[..., 0, 0]
+        return gs.einsum(
+            '...,...->...', gs.sign(sinus), gs.arccos(cosinus))
 
     def multiply_angle_of_rot2(self, point, alpha):
         """Divide the angle of a 2D rotation by a scalar; vectorized version.
 
-        Best to have original anngle in :math [0, PI].
+        Best to have original angle in :math [0, PI].
         :param point: array-like (or a list of), shape = [n, n]: rotation
         :param alpha: float: scalar (or a list of) to divide of angle by
         :return: array-like (or a list of), shape=[n, n]:
                  rotation with divided angle
         """
-        return gs.vectorize([point, alpha], self._multiply_angle_of_rot2,
-                            multiple_args=True, signature='(n,n),()->(n,n)')
+        if self.n != 2:
+            raise NotImplementedError
+        angle = gs.einsum(
+            '...,...->...', self.angle_of_rot2(point), alpha)
+        return self.rotation_from_angle(angle)
 
     def random_gaussian(self, mean, var, n_samples=1):
         """Emulate a Gaussian distribution in SO(n).

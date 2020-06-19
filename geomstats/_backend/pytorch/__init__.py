@@ -371,7 +371,12 @@ def sum(x, axis=None, keepdims=None, **kwargs):
 
 def einsum(*args, **kwargs):
     einsum_str = args[0]
-    input_tensors_list = args[1:]
+    input_tensors_list = []
+
+    for x in args[1:]:
+        if not torch.is_tensor(x):
+            x = torch.tensor(x)
+        input_tensors_list.append(x)
 
     input_tensors_list = convert_to_wider_dtype(
         input_tensors_list)
