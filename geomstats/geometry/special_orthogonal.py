@@ -178,7 +178,7 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         """
         if self.n != 2:
             raise NotImplementedError
-        angle = self.angle_of_rot2(point) * alpha
+        angle = self._angle_of_rot2(point) * alpha
         return self._rotation_from_angle(angle)
 
     def multiply_angle_of_rot2(self, point, alpha):
