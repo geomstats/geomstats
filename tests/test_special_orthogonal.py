@@ -153,8 +153,8 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
         n_samples = 4
         mean = self.group.random_uniform(n_samples=n_samples)
         var = gs.array([1.] * n_samples)
-        points = self.group.random_gaussian(mean=mean, var=var,
-                                            n_samples=n_samples)
+        points = self.group.random_gaussian(
+            mean=mean, var=var, n_samples=n_samples)
         result = self.group.belongs(points)
         expected = gs.array([True] * n_samples)
         return self.assertAllClose(result, expected)
