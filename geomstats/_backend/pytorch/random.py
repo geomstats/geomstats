@@ -14,6 +14,9 @@ def normal(loc=0.0, scale=1.0, size=(1,)):
     return torch.normal(mean=loc, std=scale, size=size)
 
 
+permutation = torch.randperm
+
+
 def rand(*args, **kwargs):
     return torch.rand(*args, **kwargs)
 

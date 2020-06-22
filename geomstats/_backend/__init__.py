@@ -133,6 +133,7 @@ BACKEND_ATTRIBUTES = {
         #              'randn' is a convenience wrapper (which we don't use)
         #              for 'normal', 'rand' only wraps 'uniform'.
         'multivariate_normal',
+        'permutation',
         'rand',
         'randint',
         'seed',

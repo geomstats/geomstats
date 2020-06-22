@@ -119,9 +119,11 @@ class TestSpecialOrthogonal(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_rotation_from_angle(self):
         """Test rotation_from_angle."""
-        theta = [gs.pi / 3, gs.pi / 2]
+        theta = [gs.pi / 6, gs.pi / 3, gs.pi / 2]
         points = self.group.rotation_from_angle(theta)
-        expected_points = gs.array([[[.5, -gs.sqrt(3) / 2],
+        expected_points = gs.array([[[gs.sqrt(3) / 2, -.5],
+                                     [.5, gs.sqrt(3) / 2]],
+                                    [[.5, -gs.sqrt(3) / 2],
                                      [gs.sqrt(3) / 2, .5]],
                                     [[0, -1],
                                      [1, 0]]])

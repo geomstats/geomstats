@@ -139,8 +139,8 @@ class _SpecialOrthogonalMatrices(GeneralLinear, LieGroup):
         mat_first_line = gs.transpose(gs.array([c, -s]))
         mat_second_line = gs.transpose(gs.array([s, c]))
         mat_first_line = gs.expand_dims(
-            mat_first_line, -1)
-        mat_second_line = gs.expand_dims(mat_second_line, -1)
+            mat_first_line, -2)
+        mat_second_line = gs.expand_dims(mat_second_line, -2)
         mat = gs.concatenate(
             [mat_first_line, mat_second_line], axis=-2)
         return mat

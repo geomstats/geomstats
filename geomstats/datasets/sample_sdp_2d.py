@@ -55,7 +55,7 @@ class DatasetSPD2D:
         """
         mean_covariance_eigenvalues = gs.random.uniform(
             0.1, 5., (self.n_classes, self.n_features))
-        var = gs.array([1.,])
+        var = 1.
         base_rotations = SpecialOrthogonal(n=self.n_features).random_gaussian(
             gs.eye(self.n_features), var, n_samples=self.n_classes)
         var_rotations = gs.random.uniform(
@@ -141,11 +141,15 @@ def shuffle(X, Y):
     X_ : Shuffled version of X
     Y_ : Shuffled version of Y
     """
-    tmp = list(zip(X, Y))
-    gs.random.shuffle(tmp)
-    X, Y = zip(*tmp)
-    X_ = gs.array(X)
-    Y_ = gs.array(Y)
+    # tmp = list(zip(X, Y))
+
+    idx_shuffled = gs.random.permutation(X.shape[0])
+    X_ = X[idx_shuffled]
+    Y_ = Y[idx_shuffled]
+
+    # X, Y = zip(*tmp)
+    # X_ = gs.array(X)
+    # Y_ = gs.array(Y)
     return X_, Y_
 
 

@@ -652,7 +652,7 @@ class Ellipsis2D:
         X and Y coordinates.
         """
         w, vr = gs.linalg.eig(point)
-        w = w.real + EPS
+        w = w + EPS
         n_steps = 100
 
         [e1, e2] = w

@@ -9,7 +9,6 @@ def _raise_not_implemented_error(*args, **kwargs):
     raise NotImplementedError
 
 
-eig = _raise_not_implemented_error
 logm = _raise_not_implemented_error
 powerm = _raise_not_implemented_error
 
@@ -32,6 +31,11 @@ def inv(*args, **kwargs):
 
 def eigvalsh(*args, **kwargs):
     return torch.from_numpy(np.linalg.eigvalsh(*args, **kwargs))
+
+
+def eig(*args, **kwargs):
+    eigs = np.linalg.eig(*args, **kwargs)
+    return torch.from_numpy(eigs[0]), torch.from_numpy(eigs[1])
 
 
 def eigh(*args, **kwargs):
