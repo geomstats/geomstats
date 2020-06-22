@@ -55,8 +55,9 @@ class DatasetSPD2D:
         """
         mean_covariance_eigenvalues = gs.random.uniform(
             0.1, 5., (self.n_classes, self.n_features))
+        var = gs.array([1.,])
         base_rotations = SpecialOrthogonal(n=self.n_features).random_gaussian(
-            gs.eye(self.n_features), 1, n_samples=self.n_classes)
+            gs.eye(self.n_features), var, n_samples=self.n_classes)
         var_rotations = gs.random.uniform(
             .5, .75, (self.n_classes))
 
