@@ -15,6 +15,10 @@ def normal(loc=0.0, scale=1.0, size=(1, 1)):
     return tf.random.normal(mean=loc, stddev=scale, shape=size)
 
 
+def permutation(n):
+    return tf.random.shuffle(tf.range(n))
+
+
 def rand(*args):
     return tf.random.uniform(shape=args)
 
@@ -40,4 +44,7 @@ def seed(*args):
 def uniform(low=0.0, high=1.0, size=None):
     if size is None:
         size = (1,)
-    return tf.random.uniform(shape=size, minval=low, maxval=high)
+    if not isinstance(size, tuple):
+        size = (size,)
+    eager = tf.random.uniform(shape=size, minval=low, maxval=high)
+    return tf.Variable(eager)
