@@ -610,7 +610,7 @@ class HypersphereMetric(RiemannianMetric):
         dist : array-like, shape=[n_samples, n_samples]
             Pairwise distance matrix between all points.
         """
-        n_samples, dim = point.shape
+        n_samples, _ = point.shape
 
         dist = gs.zeros((n_samples, n_samples))
 
@@ -618,9 +618,9 @@ class HypersphereMetric(RiemannianMetric):
             for j in range(i + 1, n_samples):
                 if i == j:
                     continue
-                else:
-                    dist[i][j] = self.dist(point[i], point[j])
-                    dist[j][i] = dist[i][j]
+
+                dist[i][j] = self.dist(point[i], point[j])
+                dist[j][i] = dist[i][j]
 
         return dist
 

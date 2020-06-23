@@ -3,7 +3,7 @@
 import tensorflow as tf
 
 
-def choice(x, size, axis=0, unique=True):
+def choice(x, size, axis=0):
     dim_x = tf.cast(tf.shape(x)[axis], tf.int64)
     indices = tf.range(0, dim_x, dtype=tf.int64)
     sample_index = tf.random.shuffle(indices)[:size]
