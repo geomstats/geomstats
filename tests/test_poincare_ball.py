@@ -108,6 +108,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
         with self.assertRaises(ValueError):
             self.manifold.metric.dist_broadcast(point_a, point_d)
 
+    @geomstats.tests.np_and_pytorch_only
     def test_dist_pairwise(self):
 
         point = gs.array([[0.1, 0.2], [0.3, 0.4], [0.5,0.5]])
