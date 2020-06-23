@@ -21,6 +21,7 @@ import examples.plot_geodesics_so3 as plot_geodesics_so3
 import examples.plot_grid_h2 as plot_grid_h2
 import examples.plot_kernel_density_estimation_classifier_s2 as plot_kernel_density_estimation_classifier_s2 # NOQA
 import examples.plot_kmeans_manifolds as plot_kmeans_manifolds
+import examples.plot_kmedoids_manifolds as plot_kmedoids_manifolds
 import examples.plot_knn_s2 as plot_knn_s2
 import examples.plot_online_kmeans_s1 as plot_online_kmeans_s1
 import examples.plot_online_kmeans_s2 as plot_online_kmeans_s2
@@ -147,6 +148,11 @@ class TestExamples(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_plot_kmeans_manifolds():
         plot_kmeans_manifolds.main()
+
+    @staticmethod
+    @geomstats.tests.np_only
+    def test_plot_kmedoids_manifolds():
+        plot_kmedoids_manifolds.main()
 
     @staticmethod
     @geomstats.tests.np_only

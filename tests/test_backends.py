@@ -917,7 +917,6 @@ class TestBackends(geomstats.tests.TestCase):
         self.assertAllClose(result_loss, expected_loss)
         self.assertAllClose(result_grad, expected_grad)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_choice(self):
 
         x = gs.array([0.1, 0.2, 0.3, 0.4, 0.5])
