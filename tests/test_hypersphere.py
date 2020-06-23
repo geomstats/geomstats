@@ -404,6 +404,21 @@ class TestHypersphere(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
+    def test_dist_pairwise(self):
+
+        point_a = (1. / gs.sqrt(129.)
+                   * gs.array([10., -2., -5., 0., 0.]))
+        point_b = (1. / gs.sqrt(435.)
+                   * gs.array([1., -20., -5., 0., 3.]))
+
+        point = gs.array([point_a, point_b])
+        result = self.metric.dist_pairwise(point)
+
+        expected = gs.array([[0., 1.24864502],
+                             [1.24864502, 0.]])
+
+        self.assertAllClose(result, expected, rtol=1e-3)
+
     def test_dist_orthogonal_points(self):
         # Distance between two orthogonal points is pi / 2.
         point_a = gs.array([10., -2., -.5, 0., 0.])
