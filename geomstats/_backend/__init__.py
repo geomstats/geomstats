@@ -126,6 +126,7 @@ BACKEND_ATTRIBUTES = {
         'svd'
     ],
     'random': [
+        'choice',
         'normal',
         # TODO (nkoep): Remove 'rand' and replace it by 'uniform'. Much like
         #              'randn' is a convenience wrapper (which we don't use)
