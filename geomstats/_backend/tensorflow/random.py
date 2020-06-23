@@ -3,7 +3,6 @@
 import tensorflow as tf
 
 
-
 def choice(x, size, axis=0, unique=True):
     dim_x = tf.cast(tf.shape(x)[axis], tf.int64)
     indices = tf.range(0, dim_x, dtype=tf.int64)
@@ -11,6 +10,7 @@ def choice(x, size, axis=0, unique=True):
     sample = tf.gather(x, sample_index, axis=axis)
 
     return sample
+
 
 def randint(low, high=None, size=None):
     if size is None:
