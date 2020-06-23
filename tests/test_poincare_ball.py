@@ -119,7 +119,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
                              [0.65821943, 0., 0.71497076],
                              [1.34682524, 0.71497076, 0.]])
 
-        self.assertAllClose(result, expected, rtol = 1e-3)
+        self.assertAllClose(result, expected, rtol=1e-3)
 
     def test_mobius_vectorization(self):
         point_a = gs.array([0.5, 0.5])

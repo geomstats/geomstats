@@ -25,6 +25,12 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         choice 'random' will select training points as initial centroids
         uniformly at random.
         Optional, default: 'random'.
+    cluster_centers_ : array-like, shape=[n_clusters, dim]
+        Array of cluster centers.
+    labels_ : array-like, shape=[n_clusters, dim]
+        Labels predicted for each data sample.
+    medoid_indices_ : array-like, shape=[n_clusters]
+        Indices of the cluster centers from the data array.
 
     Example
     -------
@@ -37,6 +43,9 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         self.riemannian_metric = riemannian_metric
         self.n_clusters = n_clusters
         self.init = init
+        self.cluster_centers_ = None
+        self.labels_ = None
+        self.medoid_indices_ = None
 
     def _initialize_medoids(self, distances):
         """Select initial medoids when beginning clustering."""
@@ -44,7 +53,7 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
             medoids = gs.random.choice(
                 gs.arange(len(distances)), self.n_clusters)
         else:
-            logging.error('Unknown initialization method ' + self.init + '.')
+            logging.error('Unknown initialization method.')
 
         return medoids
 
@@ -83,8 +92,8 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
 
             if gs.all(old_medoids_indices == medoids_indices):
                 break
-            elif iteration == max_iter - 1:
-                logging.warn(
+            if iteration == max_iter - 1:
+                logging.warning(
                     'Maximum number of iteration reached before '
                     'convergence. Consider increasing max_iter to '
                     'improve the fit.'
@@ -96,7 +105,7 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
 
         return self.cluster_centers_
 
-    def _update_medoid_indexes(self, distances, labels, medoid_indexes):
+    def _update_medoid_indexes(self, distances, labels, medoid_indices):
 
         for cluster in range(self.n_clusters):
 
@@ -116,10 +125,10 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
             min_cost = in_cluster_all_costs[min_cost_index]
 
             current_cost = in_cluster_all_costs[
-                gs.argmax(cluster_index == medoid_indexes)]
+                gs.argmax(cluster_index == medoid_indices)]
 
             if min_cost < current_cost:
-                medoid_indexes[cluster] = cluster_index[min_cost_index]
+                medoid_indices[cluster] = cluster_index[min_cost_index]
 
     def predict(self, data):
         """Predict the closest cluster for each sample in X.
