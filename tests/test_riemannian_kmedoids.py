@@ -1,4 +1,4 @@
-"""Unit tests for Riemannian KMeans."""
+"""Unit tests for Riemannian KMedoids."""
 
 import geomstats.backend as gs
 import geomstats.tests
@@ -6,7 +6,7 @@ from geomstats.geometry import hypersphere
 from geomstats.learning.kmedoids import RiemannianKMedoids
 
 
-class TestRiemannianKMdoids(geomstats.tests.TestCase):
+class TestRiemannianKMedoids(geomstats.tests.TestCase):
     _multiprocess_can_split_ = True
 
     @geomstats.tests.np_only

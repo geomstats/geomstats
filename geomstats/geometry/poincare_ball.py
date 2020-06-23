@@ -360,7 +360,7 @@ class PoincareBallMetric(RiemannianMetric):
                     continue
                 else:
                     dist[i][j] = self.dist(point[i], point[j])
-                    dist[j][i]= dist[i][j]
+                    dist[j][i] = dist[i][j]
 
         return dist
 

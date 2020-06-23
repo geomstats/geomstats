@@ -111,7 +111,7 @@ class TestPoincareBall(geomstats.tests.TestCase):
     @geomstats.tests.np_and_pytorch_only
     def test_dist_pairwise(self):
 
-        point = gs.array([[0.1, 0.2], [0.3, 0.4], [0.5,0.5]])
+        point = gs.array([[0.1, 0.2], [0.3, 0.4], [0.5, 0.5]])
 
         result = self.manifold.metric.dist_pairwise(point)
 
@@ -120,7 +120,6 @@ class TestPoincareBall(geomstats.tests.TestCase):
                              [1.34682524, 0.71497076, 0.]])
 
         self.assertAllClose(result, expected, rtol = 1e-3)
-
 
     def test_mobius_vectorization(self):
         point_a = gs.array([0.5, 0.5])

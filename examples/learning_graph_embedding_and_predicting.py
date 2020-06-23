@@ -23,7 +23,7 @@ def main():
 
     karate_graph = load_karate_graph()
 
-    hyperbolic_embedding = HyperbolicEmbedding(max_epochs=20)
+    hyperbolic_embedding = HyperbolicEmbedding()
 
     embeddings = hyperbolic_embedding.embed(karate_graph)
 
