@@ -8,7 +8,6 @@ from torch import (  # NOQA
     abs,
     acos as arccos,
     arange,
-    argmax,
     argmin,
     asin as arcsin,
     atan2 as arctan2,
@@ -101,6 +100,12 @@ sinh = _box_scalar(sinh)
 
 def to_numpy(x):
     return x.numpy()
+
+
+def argmax(a, **kwargs):
+    if a.dtype == torch.bool:
+        return torch.as_tensor(_np.argmax(a.data.numpy(), **kwargs))
+    return torch.argmax(a, **kwargs)
 
 
 def convert_to_wider_dtype(tensor_list):
