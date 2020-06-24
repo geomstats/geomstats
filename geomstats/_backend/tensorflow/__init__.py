@@ -55,6 +55,7 @@ from tensorflow import (  # NOQA
     tanh,
     tile,
     uint8,
+    zeros,
     zeros_like
 )
 
@@ -763,5 +764,5 @@ def where(condition, x=None, y=None):
     return tf.where(condition, x, y)
 
 
-def zeros(*args, **kwargs):
-    return tf.Variable(*args, **kwargs)
+# def zeros(*args, **kwargs):
+#     return tf.Variable(*args, **kwargs)
