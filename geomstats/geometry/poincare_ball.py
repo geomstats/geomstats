@@ -337,33 +337,6 @@ class PoincareBallMetric(RiemannianMetric):
 
         return mobius_add
 
-    def dist_pairwise(self, point):
-        """Compute the pairwise distance between points.
-
-        Parameters
-        ----------
-        point : array-like, shape=[n_samples, dim]
-            Set of points in hyperbolic space.
-
-        Returns
-        -------
-        dist : array-like, shape=[n_samples, n_samples]
-            Pairwise distance matrix between all points.
-        """
-        n_samples, _ = point.shape
-
-        dist = gs.zeros((n_samples, n_samples))
-
-        for i in range(0, n_samples):
-            for j in range(i + 1, n_samples):
-                if i == j:
-                    continue
-
-                dist[i][j] = self.dist(point[i], point[j])
-                dist[j][i] = dist[i][j]
-
-        return dist
-
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def dist_broadcast(self, point_a, point_b):
         """Compute the geodesic distance between points.

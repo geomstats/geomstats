@@ -28,7 +28,7 @@ def kmedoids_poincare_ball():
     metric = manifold.metric
 
     cluster_1 = gs.random.uniform(low=0.5, high=0.6, size=(n_samples, dim))
-    cluster_2 = gs.random.uniform(low=0, high=-0.2, size=(n_samples, dim))
+    cluster_2 = gs.random.uniform(low=-0.2, high=0, size=(n_samples, dim))
     data = gs.concatenate((cluster_1, cluster_2), axis=0)
 
     kmedoids = RiemannianKMedoids(riemannian_metric=metric,
@@ -135,9 +135,12 @@ def main():
 
 
 if __name__ == '__main__':
-    if os.environ['GEOMSTATS_BACKEND'] != 'numpy':
-        logging.info('Examples with visualizations are only implemented '
-                     'with numpy backend.\n'
+
+    compatible_backends = ['numpy', 'pytorch']
+
+    if os.environ['GEOMSTATS_BACKEND'] not in compatible_backends:
+        logging.info('K-Medoids example is implemented'
+                     'with numpy or pytorch backend.\n'
                      'To change backend, write: '
                      'export GEOMSTATS_BACKEND = \'numpy\'.')
     else:

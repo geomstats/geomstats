@@ -125,7 +125,7 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
             min_cost = in_cluster_all_costs[min_cost_index]
 
             current_cost = in_cluster_all_costs[
-                gs.argmax(cluster_index == medoid_indices)]
+                gs.argmax(cluster_index == medoid_indices[cluster])]
 
             if min_cost < current_cost:
                 medoid_indices[cluster] = cluster_index[min_cost_index]

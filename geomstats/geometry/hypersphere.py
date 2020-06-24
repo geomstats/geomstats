@@ -597,33 +597,6 @@ class HypersphereMetric(RiemannianMetric):
 
         return dist
 
-    def dist_pairwise(self, point):
-        """Compute the pairwise distance between points.
-
-        Parameters
-        ----------
-        point : array-like, shape=[n_samples, dim]
-            Set of points belonging to the hypersphere.
-
-        Returns
-        -------
-        dist : array-like, shape=[n_samples, n_samples]
-            Pairwise distance matrix between all points.
-        """
-        n_samples, _ = point.shape
-
-        dist = gs.zeros((n_samples, n_samples))
-
-        for i in range(0, n_samples):
-            for j in range(i + 1, n_samples):
-                if i == j:
-                    continue
-
-                dist[i][j] = self.dist(point[i], point[j])
-                dist[j][i] = dist[i][j]
-
-        return dist
-
     def squared_dist(self, point_a, point_b):
         """Squared geodesic distance between two points.
 
