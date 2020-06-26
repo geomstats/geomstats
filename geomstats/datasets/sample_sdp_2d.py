@@ -149,7 +149,7 @@ def shuffle(X, y):
     y_ = y[idx_shuffled]
 
     is_tf = False
-    if(is_tf):
+    if is_tf:
         product_idx_x = itertools.product(
             range(X.shape[0]), range(X.shape[1]), range(X.shape[2]))
         product_idx_y = itertools.product(
