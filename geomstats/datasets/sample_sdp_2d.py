@@ -1,5 +1,7 @@
 """Helper data classes for the MDM illustration example on SPD matrices."""
 
+import itertools
+
 import geomstats.backend as gs
 from geomstats.geometry.spd_matrices import EigenSummary
 from geomstats.geometry.spd_matrices import SPDMatrices
@@ -61,18 +63,18 @@ class DatasetSPD2D:
         var_rotations = gs.random.uniform(
             .5, .75, (self.n_classes))
 
-        X = gs.zeros(
-            (self.n_classes *
-             self.n_samples,
-             self.n_features,
-             self.n_features))
         y = gs.zeros((self.n_classes * self.n_samples, self.n_classes))
+        X = []
         for i in range(self.n_classes):
-            X[i * self.n_samples:(i + 1) * self.n_samples] = self.make_data(
+            value_x = self.make_data(
                 base_rotations[i], gs.diag(
                     mean_covariance_eigenvalues[i]), var_rotations[i])
-            y[i * self.n_samples:(i + 1) * self.n_samples, i] = 1
-        return X, y
+            value_y = 1
+            idx_y = [(j, i) for j in range(i * self.n_samples, (i + 1) *
+                                           self.n_samples)]
+            y = gs.assignment(y, value_y, idx_y)
+            X.append(value_x)
+        return gs.concatenate(X, axis=0), y
 
     def make_data(self, eigenspace, eigenvalues, var):
         """Generate Gaussian data from mean matrix and variance.
@@ -125,7 +127,7 @@ class DatasetSPD2D:
         return spd_data
 
 
-def shuffle(X, Y):
+def shuffle(X, y):
     """Shuffle the dataset.
 
     Parameters
@@ -133,7 +135,7 @@ def shuffle(X, Y):
     X : array-like,
        shape = [n_samples * n_classes, n_features, n_features]
         Data to shuffle.
-    Y : array-like, shape = [n_samples * n_classes, n_classes]
+    y : array-like, shape = [n_samples * n_classes, n_classes]
         Labels to shuffle along with the data.
 
     Returns
@@ -141,16 +143,23 @@ def shuffle(X, Y):
     X_ : Shuffled version of X
     Y_ : Shuffled version of Y
     """
-    # tmp = list(zip(X, Y))
 
     idx_shuffled = gs.random.permutation(X.shape[0])
     X_ = X[idx_shuffled]
-    Y_ = Y[idx_shuffled]
+    y_ = y[idx_shuffled]
 
-    # X, Y = zip(*tmp)
-    # X_ = gs.array(X)
-    # Y_ = gs.array(Y)
-    return X_, Y_
+    is_tf = False
+    if(is_tf):
+        product_idx_x = itertools.product(
+            range(X.shape[0]), range(X.shape[1]), range(X.shape[2]))
+        product_idx_y = itertools.product(
+            range(y.shape[0]), range(y.shape[1]))
+        idx_x = [(int(idx_shuffled[i]), j, k) for i, j, k in product_idx_x]
+        idx_y = [(int(idx_shuffled[i]), j) for i, j in product_idx_y]
+        X_ = gs.assignment(X, X, idx_x)
+        y_ = gs.assignment(y, y, idx_y)
+
+    return X_, y_
 
 
 def get_label_at_index(i, labels):
