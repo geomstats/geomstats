@@ -651,7 +651,7 @@ class Ellipsis2D:
         Y: array-like, shape = [n_steps,];
         X and Y coordinates.
         """
-        w, vr = gs.linalg.eig(point)
+        w, vr = gs.linalg.eigh(point)
         w = w + EPS
         n_steps = 100
 
