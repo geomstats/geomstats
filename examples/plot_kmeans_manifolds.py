@@ -31,7 +31,7 @@ def kmean_poincare_ball():
     cluster_2 = gs.random.uniform(low=0, high=-0.2, size=(n_samples, dim))
     data = gs.concatenate((cluster_1, cluster_2), axis=0)
 
-    kmeans = RiemannianKMeans(riemannian_metric=metric,
+    kmeans = RiemannianKMeans(metric=metric,
                               n_clusters=n_clusters,
                               init='random',
                               mean_method='frechet-poincare-ball'

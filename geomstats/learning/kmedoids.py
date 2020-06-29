@@ -15,7 +15,7 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
 
     Parameters
     ----------
-    riemannian_metric : object of class RiemannianMetric
+    metric : object of class RiemannianMetric
         The geomstats Riemmanian metric associate to the space used.
     n_clusters : int
         Number of clusters (k value of k-medoids).
@@ -39,8 +39,8 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
     """
 
     def __init__(
-            self, riemannian_metric, n_clusters=8, init='random'):
-        self.riemannian_metric = riemannian_metric
+            self, metric, n_clusters=8, init='random'):
+        self.metric = metric
         self.n_clusters = n_clusters
         self.init = init
         self.cluster_centers_ = None
@@ -78,7 +78,7 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
         self : array-like, shape=[n_clusters,]
             Centroids.
         """
-        distances = self.riemannian_metric.dist_pairwise(data)
+        distances = self.metric.dist_pairwise(data)
 
         medoids_indices = self._initialize_medoids(distances)
 
@@ -150,7 +150,7 @@ class RiemannianKMedoids(TransformerMixin, ClusterMixin, BaseEstimator):
             distances = gs.zeros(len(self.cluster_centers_))
             for cluster_index, cluster_value in enumerate(
                     self.cluster_centers_):
-                distances[cluster_index] = self.riemannian_metric.dist(
+                distances[cluster_index] = self.metric.dist(
                     point_value, cluster_value)
 
             labels[point_index] = gs.argmin(distances)

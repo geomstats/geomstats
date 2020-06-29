@@ -31,7 +31,7 @@ def kmedoids_poincare_ball():
     cluster_2 = gs.random.uniform(low=-0.2, high=0, size=(n_samples, dim))
     data = gs.concatenate((cluster_1, cluster_2), axis=0)
 
-    kmedoids = RiemannianKMedoids(riemannian_metric=metric,
+    kmedoids = RiemannianKMedoids(metric=metric,
                                   n_clusters=n_clusters,
                                   init='random')
 
@@ -89,7 +89,7 @@ def kmedoids_hypersphere():
 
     data = gs.concatenate((cluster_1, cluster_2), axis=0)
 
-    kmedoids = RiemannianKMedoids(riemannian_metric=metric,
+    kmedoids = RiemannianKMedoids(metric=metric,
                                   n_clusters=n_clusters)
     centroids = kmedoids.fit(data)
     labels = kmedoids.predict(data)

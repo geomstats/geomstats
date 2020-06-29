@@ -39,7 +39,7 @@ class TestEM(geomstats.tests.TestCase):
     def test_fit(self):
         """Test fitting data into a GMM."""
         gmm_learning = RiemannianEM(
-            riemannian_metric=self.metric,
+            metric=self.metric,
             n_gaussians=self.n_gaussian,
             initialisation_method=self.initialisation_method,
             mean_method=self.mean_method)
