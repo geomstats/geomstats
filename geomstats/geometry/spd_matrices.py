@@ -686,7 +686,8 @@ class SPDMetricProcrustes(RiemannianMetric):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricProcrustes, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0))
+            signature=(dim, 0, 0),
+            default_point_type='matrix')
         self.n = n
         self.space = SPDMatrices(n)
 
@@ -726,7 +727,8 @@ class SPDMetricEuclidean(RiemannianMetric):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricEuclidean, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0))
+            signature=(dim, 0, 0),
+            default_point_type='matrix')
         self.n = n
         self.space = SPDMatrices(n)
         self.power_euclidean = power_euclidean
@@ -823,7 +825,8 @@ class SPDMetricLogEuclidean(RiemannianMetric):
         dim = int(n * (n + 1) / 2)
         super(SPDMetricLogEuclidean, self).__init__(
             dim=dim,
-            signature=(dim, 0, 0))
+            signature=(dim, 0, 0),
+            default_point_type='matrix')
         self.n = n
         self.space = SPDMatrices(n)
 

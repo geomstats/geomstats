@@ -1,23 +1,16 @@
-"""Unit tests for loading Graph dataset."""
+"""Unit tests for loading datasets."""
 
 import geomstats.backend as gs
 import geomstats.datasets.utils as data_utils
 import geomstats.tests
-from geomstats.datasets.graph_data_preparation import Graph
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.spd_matrices import SPDMatrices
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 class TestDatasets(geomstats.tests.TestCase):
-    """Test for loading graph-structured data."""
-
-    def setUp(self):
-        """Set up tests."""
-        self.g1 = Graph()
-        self.g2 = Graph(
-            graph_matrix_path=data_utils.KARATE_PATH,
-            labels_path=data_utils.KARATE_LABELS_PATH)
+    """Test for data-loading utilities."""
 
     def test_load_cities(self):
         """Test that the cities coordinates belong to the sphere."""
@@ -49,32 +42,64 @@ class TestDatasets(geomstats.tests.TestCase):
         self.assertTrue(gs.all(result))
 
     @geomstats.tests.np_and_pytorch_only
-    def test_graph_load(self):
+    def test_karate_graph(self):
         """Test the correct number of edges and nodes for each graph."""
-        result = [len(self.g1.edges) + len(self.g1.labels),
-                  len(self.g2.edges) + len(self.g2.labels)]
-        expected = [20, 68]
+        graph = data_utils.load_karate_graph()
+        result = len(graph.edges) + len(graph.labels)
+        expected = 68
+        self.assertTrue(result == expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_random_graph(self):
+        """Test the correct number of edges and nodes for each graph."""
+        graph = data_utils.load_random_graph()
+        result = len(graph.edges) + len(graph.labels)
+        expected = 20
+        self.assertTrue(result == expected)
+
+    @geomstats.tests.np_and_pytorch_only
+    def test_random_walks_random_graph(self):
+        """Test that random walks have the right length and number."""
+        graph = data_utils.load_random_graph()
+        walk_length = 3
+        n_walks_per_node = 1
+
+        paths = graph.random_walk(walk_length=walk_length,
+                                  n_walks_per_node=n_walks_per_node)
+
+        result = [len(paths), len(paths[0])]
+        expected = [len(graph.edges) * n_walks_per_node,
+                    walk_length + 1]
 
         self.assertAllClose(result, expected)
 
     @geomstats.tests.np_and_pytorch_only
-    def test_random_walks(self):
+    def test_random_walks_karate_graph(self):
         """Test that random walks have the right length and number."""
-        walk_length_g1 = 3
-        walk_length_g2 = 6
+        graph = data_utils.load_karate_graph()
+        walk_length = 6
+        n_walks_per_node = 2
 
-        n_walks_per_node_g1 = 1
-        n_walks_per_node_g2 = 2
+        paths = graph.random_walk(walk_length=walk_length,
+                                  n_walks_per_node=n_walks_per_node)
 
-        paths1 = self.g1.random_walk(walk_length=walk_length_g1,
-                                     n_walks_per_node=n_walks_per_node_g1)
-        paths2 = self.g2.random_walk(walk_length=walk_length_g2,
-                                     n_walks_per_node=n_walks_per_node_g2)
-
-        result = [len(paths1), len(paths1[0]), len(paths2), len(paths2[0])]
-        expected = [len(self.g1.edges) * n_walks_per_node_g1,
-                    walk_length_g1 + 1,
-                    len(self.g2.edges) * n_walks_per_node_g2,
-                    walk_length_g2 + 1]
+        result = [len(paths), len(paths[0])]
+        expected = [len(graph.edges) * n_walks_per_node,
+                    walk_length + 1]
 
         self.assertAllClose(result, expected)
+
+    def test_load_connectomes(self):
+        """Test that the connectomes belong to SPD"""
+        spd = SPDMatrices(28)
+        data, _, _ = data_utils.load_connectomes(as_vectors=True)
+        result = data.shape
+        expected = (86, 27 * 14)
+        self.assertAllClose(result, expected)
+
+        data, _, labels = data_utils.load_connectomes()
+        result = spd.belongs(data)
+        self.assertTrue(gs.all(result))
+
+        result = gs.logical_and(labels >= 0, labels <= 1)
+        self.assertTrue(gs.all(result))

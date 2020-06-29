@@ -1,28 +1,35 @@
 """Loading toy datasets."""
 
+import csv
 import json
 import os
 
 import geomstats.backend as gs
+from geomstats.datasets.prepare_graph_data import Graph
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.skew_symmetric_matrices import SkewSymmetricMatrices
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
-DATA_FOLDER = os.path.join(
-    'geomstats', 'datasets', 'data')
-
+MODULE_PATH = os.path.dirname(__file__)
+DATA_PATH = os.path.join(MODULE_PATH, 'data')
 CITIES_PATH = os.path.join(
-    DATA_FOLDER, 'cities/cities.json')
+    DATA_PATH, 'cities', 'cities.json')
+CONNECTOMES_PATH = os.path.join(
+    DATA_PATH, 'connectomes/train_FNC.csv')
+CONNECTOMES_LABELS_PATH = os.path.join(
+    DATA_PATH, 'connectomes/train_labels.csv')
+
 POSES_PATH = os.path.join(
-    DATA_FOLDER, 'poses/poses.json')
+    DATA_PATH, 'poses', 'poses.json')
 KARATE_PATH = os.path.join(
-    DATA_FOLDER, 'graph_karate/karate.txt')
+    DATA_PATH, 'graph_karate', 'karate.txt')
 KARATE_LABELS_PATH = os.path.join(
-    DATA_FOLDER, 'graph_karate/karate_labels.txt')
+    DATA_PATH, 'graph_karate', 'karate_labels.txt')
 GRAPH_RANDOM_PATH = os.path.join(
-    DATA_FOLDER, 'graph_random/graph_random.txt')
+    DATA_PATH, 'graph_random', 'graph_random.txt')
 GRAPH_RANDOM_LABELS_PATH = os.path.join(
-    DATA_FOLDER, 'graph_random/graph_random_labels.txt')
+    DATA_PATH, 'graph_random', 'graph_random_labels.txt')
 
 
 def load_cities():
@@ -58,6 +65,28 @@ def load_cities():
     return data, names
 
 
+def load_random_graph():
+    """Load data from data/graph_random.
+
+    Returns
+    -------
+    graph: prepare_graph_data.Graph
+        Graph containing nodes, edges, and labels from the random dataset.
+    """
+    return Graph(GRAPH_RANDOM_PATH, GRAPH_RANDOM_LABELS_PATH)
+
+
+def load_karate_graph():
+    """Load data from data/graph_karate.
+
+    Returns
+    -------
+    graph: prepare_graph_data.Graph
+        Graph containing nodes, edges, and labels from the karate dataset.
+    """
+    return Graph(KARATE_PATH, KARATE_LABELS_PATH)
+
+
 def load_poses(only_rotations=True):
     """Load data from data/poses/poses.csv.
 
@@ -87,3 +116,45 @@ def load_poses(only_rotations=True):
 
     data = gs.array(data)
     return data, img_paths
+
+
+def load_connectomes(as_vectors=False):
+    """Load data from brain connectomes.
+
+    Load the correlation data from the kaggle MSLP 2014 Schizophrenia
+    Challenge. The original data came as flattened vectors, but if `raw=True`
+    is passed, the correlation values are reshaped as symmetric matrices with
+    ones on the diagonal.
+
+    Parameters
+    ----------
+    as_vectors : bool
+        Whether to return raw data as vectors or as symmetric matrices.
+        Optional, default: False
+
+    Returns
+    -------
+    data : array-like, shape=[86, {[28, 28], 378}
+        Connectomes.
+    patient_id : array-like, shape=[86,]
+        Patient unique identifiers
+    target : array-like, shape=[86,]
+        Labels, whether patients belong to the diseased class (1) or control
+        (0).
+    """
+    with open(CONNECTOMES_PATH) as csvfile:
+        data_list = list(csv.reader(csvfile))
+    patient_id = gs.array([int(row[0]) for row in data_list[1:]])
+    data = gs.array(
+        [[float(value) for value in row[1:]] for row in data_list[1:]])
+
+    with open(CONNECTOMES_LABELS_PATH) as csvfile:
+        labels = list(csv.reader(csvfile))
+    target = gs.array([int(row[1]) for row in labels[1:]])
+    if as_vectors:
+        return data, patient_id, target
+    mat = SkewSymmetricMatrices(28).matrix_representation(data)
+    mat = gs.eye(28) - gs.transpose(gs.tril(mat), (0, 2, 1))
+    mat = 1. / 2. * (mat + gs.transpose(mat, (0, 2, 1)))
+
+    return mat, patient_id, target

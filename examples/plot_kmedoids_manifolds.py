@@ -1,10 +1,10 @@
-"""Run K-means on manifolds for K=2 and Plot the results.
+"""Run K-medoids on manifolds for K=2 and Plot the results.
 
 Two random clusters are generated in separate regions of the
-manifold. Then K-means is applied using the metric of the manifold.
+manifold. Then K-medoids is applied using the metric of the manifold.
 The points are represented with two distinct colors. For the moment
 the example works on the Poincaré Ball and the Hypersphere.
-Computed means are marked as green stars.
+Computed centroids are marked as green stars.
 """
 
 import logging
@@ -16,11 +16,11 @@ import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.poincare_ball import PoincareBall
-from geomstats.learning.kmeans import RiemannianKMeans
+from geomstats.learning.kmedoids import RiemannianKMedoids
 
 
-def kmean_poincare_ball():
-    """Run K-means on the Poincare ball."""
+def kmedoids_poincare_ball():
+    """Run K-medoids on the Poincare ball."""
     n_samples = 20
     dim = 2
     n_clusters = 2
@@ -28,17 +28,15 @@ def kmean_poincare_ball():
     metric = manifold.metric
 
     cluster_1 = gs.random.uniform(low=0.5, high=0.6, size=(n_samples, dim))
-    cluster_2 = gs.random.uniform(low=0, high=-0.2, size=(n_samples, dim))
+    cluster_2 = gs.random.uniform(low=-0.2, high=0, size=(n_samples, dim))
     data = gs.concatenate((cluster_1, cluster_2), axis=0)
 
-    kmeans = RiemannianKMeans(metric=metric,
-                              n_clusters=n_clusters,
-                              init='random',
-                              mean_method='frechet-poincare-ball'
-                              )
+    kmedoids = RiemannianKMedoids(metric=metric,
+                                  n_clusters=n_clusters,
+                                  init='random')
 
-    centroids = kmeans.fit(X=data, max_iter=100)
-    labels = kmeans.predict(X=data)
+    centroids = kmedoids.fit(data=data, max_iter=100)
+    labels = kmedoids.predict(data=data)
 
     plt.figure(1)
     colors = ['red', 'blue']
@@ -68,13 +66,13 @@ def kmean_poincare_ball():
         s=100,
         point_type=manifold.point_type)
 
-    ax.set_title('Kmeans on Poincaré Ball Manifold')
+    ax.set_title('Kmedoids on Poincaré Ball Manifold')
 
     return plt
 
 
-def kmean_hypersphere():
-    """Run K-means on the sphere."""
+def kmedoids_hypersphere():
+    """Run K-medoids on the sphere."""
     n_samples = 50
     dim = 2
     n_clusters = 2
@@ -91,10 +89,10 @@ def kmean_hypersphere():
 
     data = gs.concatenate((cluster_1, cluster_2), axis=0)
 
-    kmeans = RiemannianKMeans(metric, n_clusters, tol=1e-3)
-    kmeans.fit(data)
-    labels = kmeans.predict(data)
-    centroids = kmeans.centroids
+    kmedoids = RiemannianKMedoids(metric=metric,
+                                  n_clusters=n_clusters)
+    centroids = kmedoids.fit(data)
+    labels = kmedoids.predict(data)
 
     plt.figure(2)
     colors = ['red', 'blue']
@@ -122,24 +120,27 @@ def kmean_hypersphere():
         s=200,
         color='green')
 
-    ax.set_title('Kmeans on Hypersphere Manifold')
+    ax.set_title('Kmedoids on Hypersphere Manifold')
 
     return plt
 
 
 def main():
-    """Run K-means on the Poincare ball and the sphere."""
-    kmean_poincare_ball()
+    """Run K-medoids on the Poincare ball and the sphere."""
+    kmedoids_poincare_ball()
 
-    plots = kmean_hypersphere()
+    plots = kmedoids_hypersphere()
 
     plots.show()
 
 
 if __name__ == '__main__':
-    if os.environ['GEOMSTATS_BACKEND'] != 'numpy':
-        logging.info('Examples with visualizations are only implemented '
-                     'with numpy backend.\n'
+
+    compatible_backends = ['numpy', 'pytorch']
+
+    if os.environ['GEOMSTATS_BACKEND'] not in compatible_backends:
+        logging.info('K-Medoids example is implemented'
+                     'with numpy or pytorch backend.\n'
                      'To change backend, write: '
                      'export GEOMSTATS_BACKEND = \'numpy\'.')
     else:

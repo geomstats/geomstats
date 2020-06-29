@@ -1,5 +1,6 @@
 """Numpy based computation backend."""
 
+import autograd # NOQA
 import autograd.numpy as np
 from autograd.numpy import (  # NOQA
     abs,

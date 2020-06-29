@@ -59,7 +59,7 @@ from tensorflow import (  # NOQA
 )
 
 
-
+from . import autograd # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 
@@ -77,7 +77,6 @@ cross = tf.linalg.cross
 erf = tf.math.erf
 isnan = tf.math.is_nan
 log = tf.math.log
-matmul = tf.linalg.matmul
 mod = tf.math.mod
 polygamma = tf.math.polygamma
 power = tf.math.pow
@@ -503,6 +502,13 @@ def get_slice(x, indices):
     >>> get_slice(a, ((0, 2), (8, 9)))
     <tf.Tensor: id=41, shape=(2,), dtype=int32, numpy=array([ 8, 29])>
     """
+    if hasattr(indices, 'shape'):
+        if indices.shape.rank == 0:
+            return x[indices]
+
+        if tf.is_tensor(indices) and indices.shape[-1] == 1:
+            return tf.gather_nd(x, indices)
+
     return tf.gather_nd(x, list(zip(*indices)))
 
 
@@ -534,6 +540,18 @@ def flatten(x):
     Following https://www.tensorflow.org/api_docs/python/tf/reshape
     """
     return tf.reshape(x, [-1])
+
+
+def matmul(a, b):
+    """Matrix-matrix or matrix-vector product of two tensors.
+
+    This wraps both mathvec and matmul into a single function, to mimic the
+    behavior of torch's and numpy's versions of matmul
+    """
+    if ndim(b) < ndim(a):
+        if ndim(b) == 1 or b.shape[-2] != a.shape[-1]:
+            return tf.linalg.matvec(a, b)
+    return tf.linalg.matmul(a, b)
 
 
 def outer(x, y):

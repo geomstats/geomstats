@@ -110,6 +110,7 @@ BACKEND_ATTRIBUTES = {
         'zeros',
         'zeros_like'
     ],
+    'autograd': ['value_and_grad'],
     'linalg': [
         'det',
         'eig',
@@ -125,6 +126,7 @@ BACKEND_ATTRIBUTES = {
         'svd'
     ],
     'random': [
+        'choice',
         'normal',
         # TODO (nkoep): Remove 'rand' and replace it by 'uniform'. Much like
         #              'randn' is a convenience wrapper (which we don't use)

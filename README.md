@@ -7,10 +7,10 @@ Geomstats is an open-source Python package for computations and statistics on ma
 
 The module `geometry` implements concepts in differential geometry, and the module `learning` implements statistics and learning algorithms for data on manifolds.
 
-<img align="left" src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=110 height=110>
+<img align="left" src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=90 height=90>
 
-- To get started with ```geomstats```, see the [examples directory](https://github.com/geomstats/geomstats/tree/master/examples).
-- For more in-depth applications of ``geomstats``, see the [applications repository](https://github.com/geomstats/applications/).
+
+- To get started with ```geomstats```, see the [examples](https://github.com/geomstats/geomstats/tree/master/examples) and [notebooks](https://github.com/geomstats/geomstats/tree/master/notebooks) directories.
 - The documentation of ```geomstats``` can be found on the [documentation website](https://geomstats.github.io/).
 - If you find ``geomstats`` useful, please kindly cite our [paper](https://arxiv.org/abs/2004.04667).
 
@@ -78,7 +78,7 @@ space of 3D rotations.
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.pca import TangentPCA
 
-so3 = SpecialOrthogonal(n=3)
+so3 = SpecialOrthogonal(n=3, point_type='vector')
 metric = so3.bi_invariant_metric
 
 data = so3.random_uniform(n_samples=10)
@@ -93,7 +93,7 @@ The user only needs a high-level understanding of Riemannian geometry.
 Each algorithm can be used with any of the manifolds and metric
 implemented in the package.
 
-To see additional examples, go to the [examples directory](https://github.com/geomstats/geomstats/tree/master/examples).
+To see additional examples, go to the [examples](https://github.com/geomstats/geomstats/tree/master/examples) or [notebooks](https://github.com/geomstats/geomstats/tree/master/notebooks) directories.
 
 ## Contributing
 

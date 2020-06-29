@@ -5,8 +5,6 @@ and minkowisky extrinsic/intrisic.
 We also verify that converting point will lead to get same
 distance (implemented for ball model and extrinsic only)
 """
-
-
 import geomstats.backend as gs
 import geomstats.tests
 from geomstats.geometry.hyperbolic import Hyperbolic
