@@ -92,7 +92,7 @@ The user only needs a high-level understanding of Riemannian geometry.
 Each algorithm can be used with any of the manifolds and metric
 implemented in the package.
 
-To see additional examples, go to the [examples directory](https://github.com/geomstats/geomstats/tree/master/examples).
+To see additional examples, go to the [examples](https://github.com/geomstats/geomstats/tree/master/examples) or [notebooks](https://github.com/geomstats/geomstats/tree/master/notebooks) directories.
 
 ## Contributing
 
