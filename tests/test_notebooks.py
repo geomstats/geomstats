@@ -33,8 +33,8 @@ class TestNotebooks(geomstats.tests.TestCase):
 
     @staticmethod
     @geomstats.tests.np_only
-    def test_04_tangent_pca_s2():
-        _exec_notebook('notebooks/04_tangent_pca_s2.ipynb')
+    def test_04_frechet_mean_and_tangent_pca():
+        _exec_notebook('notebooks/04_frechet_mean_and_tangent_pca.ipynb')
 
     @staticmethod
     @geomstats.tests.np_and_pytorch_only
