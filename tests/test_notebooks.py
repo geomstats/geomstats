@@ -18,11 +18,6 @@ def _exec_notebook(path):
 
 class TestNotebooks(geomstats.tests.TestCase):
     @staticmethod
-    @geomstats.tests.np_only
-    def test_tangent_pca_s2():
-        _exec_notebook('notebooks/tangent_pca_s2.ipynb')
-
-    @staticmethod
     def test_01_data_on_manifolds():
         _exec_notebook('notebooks/01_data_on_manifolds.ipynb')
 
@@ -32,11 +27,16 @@ class TestNotebooks(geomstats.tests.TestCase):
 
     @staticmethod
     @geomstats.tests.np_and_pytorch_only
-    def test_03_embedding_graph_structured_data_h2():
-        _exec_notebook('notebooks/03_embedding_graph_structured_data_h2.ipynb')
+    def test_03_simple_machine_learning_tangent_spaces():
+        _exec_notebook(
+            'notebooks/03_simple_machine_learning_tangent_spaces.ipynb')
+
+    @staticmethod
+    @geomstats.tests.np_only
+    def test_04_tangent_pca_s2():
+        _exec_notebook('notebooks/04_tangent_pca_s2.ipynb')
 
     @staticmethod
     @geomstats.tests.np_and_pytorch_only
-    def test_04_simple_machine_learning_tangent_spaces():
-        _exec_notebook(
-            'notebooks/04_simple_machine_learning_tangent_spaces.ipynb')
+    def test_05_embedding_graph_structured_data_h2():
+        _exec_notebook('notebooks/05_embedding_graph_structured_data_h2.ipynb')
