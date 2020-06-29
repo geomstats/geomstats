@@ -58,7 +58,7 @@ def main():
     n_clusters = 2
 
     kmeans = RiemannianKMeans(
-        riemannian_metric=hyperbolic_embedding.manifold.metric,
+        metric=hyperbolic_embedding.manifold.metric,
         n_clusters=n_clusters,
         init='random',
         mean_method='frechet-poincare-ball')
@@ -111,7 +111,7 @@ def main():
     plt.show()
 
     kmedoid = RiemannianKMedoids(
-        riemannian_metric=hyperbolic_embedding.manifold.metric,
+        metric=hyperbolic_embedding.manifold.metric,
         n_clusters=n_clusters,
         init='random')
 

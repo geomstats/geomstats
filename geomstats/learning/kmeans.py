@@ -20,7 +20,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
     n_clusters : int
         Number of clusters (k value of the k-means).
         Optional, default: 8.
-    riemannian_metric : object of class RiemannianMetric
+    metric : object of class RiemannianMetric
         The geomstats Riemmanian metric associate to the space used.
     init : str
         How to initialize centroids at the beginning of the algorithm. The
@@ -42,11 +42,11 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
     """
 
     def __init__(
-            self, riemannian_metric, n_clusters=8, init='random',
+            self, metric, n_clusters=8, init='random',
             tol=1e-2, mean_method='default', verbose=0, point_type='vector'):
         self.n_clusters = n_clusters
         self.init = init
-        self.riemannian_metric = riemannian_metric
+        self.metric = metric
         self.tol = tol
         self.verbose = verbose
         self.mean_method = mean_method
@@ -83,7 +83,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
             index += 1
 
             dists = [gs.to_ndarray(
-                     self.riemannian_metric.dist(self.centroids[i], X), 2, 1)
+                     self.metric.dist(self.centroids[i], X), 2, 1)
                      for i in range(self.n_clusters)]
             dists = gs.hstack(dists)
             belongs = gs.argmin(dists, 1)
@@ -94,7 +94,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                 if len(fold) > 0:
 
                     mean = FrechetMean(
-                        metric=self.riemannian_metric,
+                        metric=self.metric,
                         method=self.mean_method,
                         max_iter=150,
                         point_type=self.point_type)
@@ -104,8 +104,8 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
                 else:
                     self.centroids[i] = X[randint(0, n_samples - 1)]
 
-            centroids_distances = self.riemannian_metric.dist(old_centroids,
-                                                              self.centroids)
+            centroids_distances = self.metric.dist(
+                old_centroids, self.centroids)
 
             if gs.mean(centroids_distances) < self.tol:
                 if self.verbose > 0:
@@ -129,7 +129,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         """Predict the labels for each data point.
 
         Label each data point with the cluster having the nearest
-        centroid using riemannian_metric distance.
+        centroid using metric distance.
 
         Parameters
         ----------
@@ -144,7 +144,7 @@ class RiemannianKMeans(TransformerMixin, ClusterMixin, BaseEstimator):
         if self.centroids is None:
             raise RuntimeError('fit needs to be called first.')
         dists = gs.stack(
-            [self.riemannian_metric.dist(centroid, X)
+            [self.metric.dist(centroid, X)
              for centroid in self.centroids],
             axis=1)
         dists = gs.squeeze(dists)

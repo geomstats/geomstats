@@ -18,7 +18,7 @@ class TestRiemannianKMedoids(geomstats.tests.TestCase):
 
         data = manifold.random_von_mises_fisher(kappa=100, n_samples=200)
 
-        kmedoids = RiemannianKMedoids(riemannian_metric=metric, n_clusters=1)
+        kmedoids = RiemannianKMedoids(metric=metric, n_clusters=1)
         center = kmedoids.fit(data)
 
         self.assertTrue(manifold.belongs(center))

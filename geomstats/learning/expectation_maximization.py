@@ -35,7 +35,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
     ----------
     n_gaussians : int
         Number of Gaussian components in the mix.
-    riemannian_metric : object of class RiemannianMetric
+    metric : object of class RiemannianMetric
         The geomstats Riemmanian metric associated with
         the used manifold.
     initialisation_method : basestring
@@ -88,7 +88,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
     """
 
     def __init__(self,
-                 riemannian_metric,
+                 metric,
                  n_gaussians=8,
                  initialisation_method='random',
                  tol=DEFAULT_TOL,
@@ -96,7 +96,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                  point_type='vector'):
 
         self.n_gaussians = n_gaussians
-        self.riemannian_metric = riemannian_metric
+        self.metric = metric
         self.initialisation_method = initialisation_method
         # TODO : hzaatiti, tgeral68 implement kmeans initialisation
         self.tol = tol
@@ -128,7 +128,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         n_gaussians = posterior_probabilities.shape[-1]
 
         mean = FrechetMean(
-            metric=self.riemannian_metric,
+            metric=self.metric,
             method=self.mean_method,
             lr=lr_means,
             tau=tau_means,
@@ -153,7 +153,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             Probability of a given sample to belong to a component
             of the GMM, computed for all components.
         """
-        dist_means_data = (self.riemannian_metric.dist_broadcast(
+        dist_means_data = (self.metric.dist_broadcast(
             data, self.means) ** 2)
 
         weighted_dist_means_data = (dist_means_data *
@@ -161,7 +161,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             posterior_probabilities.sum(0)
 
         self.variances = \
-            self.riemannian_metric.find_variance_from_index(
+            self.metric.find_variance_from_index(
                 weighted_dist_means_data,
                 self.variances_range,
                 self.phi_inv_var)
@@ -178,8 +178,8 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         probability_distribution_function = \
             PoincareBall.gmm_pdf(
                 data, self.means, self.variances,
-                norm_func=self.riemannian_metric.find_normalization_factor,
-                metric=self.riemannian_metric,
+                norm_func=self.metric.find_normalization_factor,
+                metric=self.metric,
                 variances_range=self.variances_range,
                 norm_func_var=self.normalization_factor_var)
 
@@ -305,7 +305,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
         self.variances_range,\
             self.normalization_factor_var, \
             self.phi_inv_var =\
-            self.riemannian_metric.normalization_factor_init(
+            self.metric.normalization_factor_init(
                 gs.arange(
                     ZETA_LOWER_BOUND, ZETA_UPPER_BOUND, ZETA_STEP))
 
