@@ -48,10 +48,10 @@ repository.
 
 
 On the sphere
-=============
+-------------
 
 Generate data on the sphere
----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: ipython3
 
@@ -72,7 +72,7 @@ Generate data on the sphere
 
 
 Fréchet mean
-------------
+~~~~~~~~~~~~
 
 We compute the Fréchet mean of the simulated data points.
 
@@ -96,7 +96,7 @@ We compute the Fréchet mean of the simulated data points.
 
 
 Tangent PCA (at the Fréchet mean)
----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We perform tangent PCA at the Fréchet mean, with two principal
 components.
@@ -154,10 +154,10 @@ principal components.
 
 
 In the Hyperbolic plane
-=======================
+-----------------------
 
 Generate data on the hyperbolic plane
--------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: ipython3
 
@@ -179,7 +179,7 @@ Generate data on the hyperbolic plane
 
 
 Fréchet mean
-------------
+~~~~~~~~~~~~
 
 We compute the Fréchet mean of the data points.
 
@@ -203,7 +203,7 @@ We compute the Fréchet mean of the data points.
 
 
 Tangent PCA (at the Fréchet mean)
----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We perform tangent PCA at the Fréchet mean.
 
