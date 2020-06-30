@@ -18,12 +18,6 @@ before_script:
 script:
   - flake8 --ignore=D,W503,W504 geomstats examples tests
   - flake8 geomstats/geometry geomstats/learning
-  - |
-    if [[ $TRAVIS_PYTHON_VERSION != 3.8 ||
-          ($TRAVIS_PYTHON_VERSION == 3.8 &&
-           $GEOMSTATS_BACKEND != tensorflow) ]]; then
-      nose2 --with-coverage --verbose tests
-    fi
 env:
   - GEOMSTATS_BACKEND=numpy
   - GEOMSTATS_BACKEND=pytorch
@@ -31,6 +25,11 @@ env:
 
 after_success:
   - bash <(curl -s https://codecov.io/bash) -c -F $GEOMSTATS_BACKEND
+  - jupyter nbconvert --to rst --output-dir='docs' notebooks/01_data_on_manifolds.ipynb
+  - jupyter nbconvert --to rst --output-dir='docs' notebooks/02_from_vector_spaces_to_manifolds.ipynb
+  - jupyter nbconvert --to rst --output-dir='docs' notebooks/03_simple_machine_learning_tangent_spaces.ipynb
+  - jupyter nbconvert --to rst --output-dir='docs' notebooks/04_frechet_mean_and_tangent_pca.ipynb
+  - jupyter nbconvert --to rst --output-dir='docs' notebooks/05_embedding_graph_structured_data_h2.ipynb
   - >
     PYTHONPATH=. sphinx-build
     -b html

@@ -55,3 +55,7 @@ To contribute to `geomstats` visit the page :ref:`contributing`.
    api-reference.rst
    contributing.rst
    01_data_on_manifolds.rst
+   02_from_vector_spaces_to_manifolds.rst
+   03_simple_machine_learning_tangent_spaces.rst
+   04_frechet_mean_and_tangent_pca.rst
+   05_embedding_graph_structured_data_h2.rst
