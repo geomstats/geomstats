@@ -1,5 +1,5 @@
-Data on Manifolds
-=================
+Tutorial: Data on Manifolds
+===========================
 
 Setup
 -----
@@ -21,6 +21,12 @@ repository.
     os.chdir(geomstats_gitroot_path[:-1])
     
     print('Working directory: ', os.getcwd())
+
+
+.. parsed-literal::
+
+    Working directory:  /code/geomstats
+
 
 We import the backend that will be used for geomstats computations and
 set a seed for reproducibility of the results.
@@ -108,14 +114,8 @@ linear space: a plane.
     ax.legend();
 
 
-.. parsed-literal::
 
-    /Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages/matplotlib/font_manager.py:1241: UserWarning: findfont: Font family ['times'] not found. Falling back to DejaVu Sans.
-      (prop.get_family(), self.defaultFamily[fontext]))
-
-
-
-.. image:: 01_data_on_manifolds_files/01_data_on_manifolds_12_1.png
+.. image:: 01_data_on_manifolds_files/01_data_on_manifolds_12_0.png
 
 
 What happens to the usual statistical theory when the data doesn’t
