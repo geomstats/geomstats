@@ -21,7 +21,7 @@ From a terminal (OS X & Linux), you can install geomstats and its requirements v
     git clone https://github.com/geomstats/geomstats.git
     pip3 install -r requirements.txt
 
-This methods installs the `latest GitHub version<https://github.com/geomstats/geomstats>`_. Developers should install this version, together with the development requirements and the optional requirements to enable ``tensorflow`` and ``pytorch`` backends::
+This methods installs the `latest GitHub version <https://github.com/geomstats/geomstats>`_. Developers should install this version, together with the development requirements and the optional requirements to enable ``tensorflow`` and ``pytorch`` backends::
 
     pip3 install -r dev-requirements.txt -r opt-requirements.txt
 
@@ -63,7 +63,7 @@ on simulated data on the 5-dimensional hypersphere.
     from geomstats.geometry.hypersphere import Hypersphere
     from geomstats.learning.online_kmeans import OnlineKMeans
 
-    sphere = Hypersphere(dimension=5)
+    sphere = Hypersphere(dim=5)
 
     data = sphere.random_uniform(n_samples=10)
 
@@ -78,7 +78,7 @@ space of 3D rotations.
     from geomstats.geometry.special_orthogonal import SpecialOrthogonal
     from geomstats.learning.pca import TangentPCA
 
-    so3 = SpecialOrthogonal(n=3)
+    so3 = SpecialOrthogonal(n=3, point_type='vector')
     metric = so3.bi_invariant_metric
 
     data = so3.random_uniform(n_samples=10)
