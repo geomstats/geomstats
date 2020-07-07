@@ -7,7 +7,7 @@ Geomstats is an open-source Python package for computations and statistics on ma
 
 The module `geometry` implements concepts in differential geometry, and the module `learning` implements statistics and learning algorithms for data on manifolds.
 
-<img align="left" src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=130 height=130>
+<img align="left" src="https://raw.githubusercontent.com/ninamiolane/geomstats/master/examples/imgs/h2_grid.png" width=120 height=120>
 
 
 - To get an overview of ```geomstats```, see our [introductory video](https://www.youtube.com/watch?v=Ju-Wsd84uG0&list=PLYx7XA2nY5GejOB1lsvriFeMytD1-VS1B&index=3)
