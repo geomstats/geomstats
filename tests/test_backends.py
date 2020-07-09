@@ -916,3 +916,18 @@ class TestBackends(geomstats.tests.TestCase):
         expected_grad = 2 * vector
         self.assertAllClose(result_loss, expected_loss)
         self.assertAllClose(result_grad, expected_grad)
+
+    def test_choice(self):
+
+        x = gs.array([0.1, 0.2, 0.3, 0.4, 0.5])
+        a = 4
+
+        result = gs.random.choice(x, a)
+
+        for i in result:
+            if i in x:
+                self.assertTrue(True)
+            else:
+                self.assertTrue(False)
+
+        self.assertEqual(len(result), a)

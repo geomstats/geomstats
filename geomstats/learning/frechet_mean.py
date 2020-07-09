@@ -167,7 +167,8 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
 
         iteration = 0
         convergence = math.inf
-        barycenter = points.mean(0, keepdims=True) * 0
+        barycenter = gs.mean(points, axis=0, keepdims=True)
+
         while convergence > tau and max_iter > iteration:
 
             iteration += 1

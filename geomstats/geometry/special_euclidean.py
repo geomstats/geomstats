@@ -560,7 +560,7 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
         n_samples = rot_vec.shape[0]
         base_1 = gs.array([gs.eye(2)] * n_samples)
         base_2 = -gs.array(
-            [self.rotations.skew_matrix_from_vector([1])] * n_samples)
+            [self.rotations.skew_matrix_from_vector(gs.ones(1))] * n_samples)
 
         mask_close_0 = gs.isclose(rot_vec, 0.)
         mask_else = ~mask_close_0
@@ -584,8 +584,8 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
         cos_coef += mask_else_float * ((1. - gs.cos(rot_vec)) / rot_vec)
         sin_coef += mask_else_float * (gs.sin(rot_vec) / rot_vec)
 
-        sin_term = gs.einsum('...i,...ij->...ij', sin_coef, base_1)
-        cos_term = gs.einsum('...i,...ij->...ij', cos_coef, base_2)
+        sin_term = gs.einsum('...i,...jk->...jk', sin_coef, base_1)
+        cos_term = gs.einsum('...i,...jk->...jk', cos_coef, base_2)
         transform = sin_term + cos_term
 
         return transform
@@ -594,7 +594,10 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
         rot_vec = gs.to_ndarray(rot_vec, to_ndim=2, axis=1)
         exp_transform = self._exp_translation_transform(rot_vec)
 
-        mask_close_0 = gs.isclose(rot_vec, 0.)
+        if rot_vec.dtype == gs.float32:
+            mask_close_0 = gs.isclose(rot_vec, 0., atol=1e-6)
+        else:
+            mask_close_0 = gs.isclose(rot_vec, 0.)
         mask_else = ~mask_close_0
 
         mask_close_0_float = gs.cast(mask_close_0, gs.float32)
@@ -607,10 +610,9 @@ class _SpecialEuclidean2Vectors(_SpecialEuclideanVectors):
             + TAYLOR_COEFFS_1_AT_0[1] * rot_vec ** 2
             + TAYLOR_COEFFS_1_AT_0[2] * rot_vec ** 6)
 
-        rot_vec = rot_vec + 1e-6
+        rot_vec = rot_vec + 1e-3 * mask_close_0_float
         inv_determinant += mask_else_float * (
             rot_vec ** 2 / (2 * (1 - gs.cos(rot_vec))))
-
         transform = gs.einsum(
             'il, ijk -> ijk', inv_determinant,
             gs.transpose(exp_transform, axes=[0, 2, 1]))
