@@ -9,8 +9,8 @@ from geomstats.geometry.poincare_ball \
     import PoincareBall
 from geomstats.learning._template import TransformerMixin
 from geomstats.learning.frechet_mean import FrechetMean
-from geomstats.learning.kmeans import RiemannianKMeans
 from geomstats.learning.frechet_mean import variance
+from geomstats.learning.kmeans import RiemannianKMeans
 
 EM_CONV_RATE = 1e-4
 MINIMUM_EPOCHS = 10
