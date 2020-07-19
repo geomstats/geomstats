@@ -308,7 +308,8 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
 
             labeled_data = gs.vstack([labels, data.T]).T
             for label, centroid in enumerate(centroids):
-                grouped_by_label = labeled_data[gs.where(labeled_data[:, 0]== label)][:,1:]
+                label_mask = gs.where(labeled_data[:, 0] == label)
+                grouped_by_label = labeled_data[label_mask][:,1:]
                 v = variance(grouped_by_label, centroid, self.metric)
                 self.variances[label] = v
         else:
