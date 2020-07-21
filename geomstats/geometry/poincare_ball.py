@@ -190,14 +190,17 @@ class PoincareBall(Hyperbolic):
         projected_point : array-like, shape=[..., dim]
             Point projected on the ball.
         """
+        if(point.shape[-1] != self.dim):
+            raise NameError("Bad dimension expected ", self.dim)
 
         l2_norm = gs.linalg.norm(point, axis=-1)
-        if gs.any(l2_norm >= 1-EPSILON):
-            projected_point = gs.einsum('...j,...->...j', point * (1-EPSILON), 1./l2_norm)
-            projected_point = -gs.maximum(-projected_point, -x)
+        if gs.any(l2_norm >= 1 - EPSILON):
+            projected_point =\
+                gs.einsum('...j,...->...j', point * (1 - EPSILON), 1. / l2_norm)
+            projected_point = -gs.maximum(-projected_point, -point)
             return projected_point
-        else:
-            return point
+
+        return point
 
 
 class PoincareBallMetric(RiemannianMetric):
