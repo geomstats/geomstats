@@ -124,7 +124,7 @@ def _default_gradient_descent(points, metric, weights,
         condition = ~gs.logical_or(var_is_0, sq_dist_is_small)
         if not (condition or iteration == 0):
             break
-        
+
         logs = metric.log(point=points, base_point=mean)
 
         tangent_mean = gs.einsum(einsum_str, weights, logs)
@@ -167,8 +167,8 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
 
         iteration = 0
         convergence = math.inf
-        barycenter = gs.mean(points, axis=0, keepdims=True) 
-        
+        barycenter = gs.mean(points, axis=0, keepdims=True)
+
         while convergence > tau and max_iter > iteration:
 
             iteration += 1
