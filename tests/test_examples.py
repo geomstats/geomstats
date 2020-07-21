@@ -7,10 +7,12 @@ import warnings
 
 import examples.empirical_frechet_mean_uncertainty_sn as empirical_frechet_mean_uncertainty_sn  # NOQA
 import examples.gradient_descent_s2 as gradient_descent_s2
+import examples.kalman_filter as kalman_filter
 import examples.learning_graph_structured_data_h2 as learning_gsd_h2
 import examples.loss_and_gradient_se3 as loss_and_gradient_se3
 import examples.loss_and_gradient_so3 as loss_and_gradient_so3
 import examples.plot_bch_so3 as plot_bch_so3
+import examples.plot_expectation_maximization_manifolds as plot_em_manifolds
 import examples.plot_geodesics_h2 as plot_geodesics_h2
 import examples.plot_geodesics_poincare_polydisk as plot_geodesics_poincare_polydisk # NOQA
 import examples.plot_geodesics_s2 as plot_geodesics_s2
@@ -19,6 +21,7 @@ import examples.plot_geodesics_so3 as plot_geodesics_so3
 import examples.plot_grid_h2 as plot_grid_h2
 import examples.plot_kernel_density_estimation_classifier_s2 as plot_kernel_density_estimation_classifier_s2 # NOQA
 import examples.plot_kmeans_manifolds as plot_kmeans_manifolds
+import examples.plot_kmedoids_manifolds as plot_kmedoids_manifolds
 import examples.plot_knn_s2 as plot_knn_s2
 import examples.plot_online_kmeans_s1 as plot_online_kmeans_s1
 import examples.plot_online_kmeans_s2 as plot_online_kmeans_s2
@@ -30,11 +33,12 @@ import examples.tangent_pca_h2 as tangent_pca_h2
 import examples.tangent_pca_s2 as tangent_pca_s2
 import examples.tangent_pca_so3 as tangent_pca_so3
 import matplotlib
-matplotlib.use('Agg')  # NOQA
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
 import geomstats.tests
+
+matplotlib.use('Agg')  # NOQA
 
 
 class TestExamples(geomstats.tests.TestCase):
@@ -69,6 +73,10 @@ class TestExamples(geomstats.tests.TestCase):
     @staticmethod
     def test_loss_and_gradient_se3():
         loss_and_gradient_se3.main()
+
+    @staticmethod
+    def test_kalman_filter():
+        kalman_filter.main()
 
     @staticmethod
     @geomstats.tests.np_only
@@ -140,6 +148,16 @@ class TestExamples(geomstats.tests.TestCase):
     @geomstats.tests.np_only
     def test_plot_kmeans_manifolds():
         plot_kmeans_manifolds.main()
+
+    @staticmethod
+    @geomstats.tests.np_only
+    def test_plot_kmedoids_manifolds():
+        plot_kmedoids_manifolds.main()
+
+    @staticmethod
+    @geomstats.tests.np_only
+    def test_plot_em_manifolds():
+        plot_em_manifolds.main()
 
     @staticmethod
     @geomstats.tests.np_only

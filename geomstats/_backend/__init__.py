@@ -30,6 +30,7 @@ BACKEND_ATTRIBUTES = {
         'array_from_sparse',
         'assignment',
         'assignment_by_sum',
+        'broadcast_arrays',
         'cast',
         'ceil',
         'clip',
@@ -39,6 +40,7 @@ BACKEND_ATTRIBUTES = {
         'cos',
         'cosh',
         'cross',
+        'cumprod',
         'cumsum',
         'diagonal',
         'divide',
@@ -47,6 +49,7 @@ BACKEND_ATTRIBUTES = {
         'empty',
         'empty_like',
         'equal',
+        'erf',
         'exp',
         'expand_dims',
         'eye',
@@ -59,6 +62,7 @@ BACKEND_ATTRIBUTES = {
         'hsplit',
         'hstack',
         'isclose',
+        'isnan',
         'less',
         'less_equal',
         'linspace',
@@ -106,6 +110,7 @@ BACKEND_ATTRIBUTES = {
         'zeros',
         'zeros_like'
     ],
+    'autograd': ['value_and_grad'],
     'linalg': [
         'det',
         'eig',
@@ -121,6 +126,7 @@ BACKEND_ATTRIBUTES = {
         'svd'
     ],
     'random': [
+        'choice',
         'normal',
         # TODO (nkoep): Remove 'rand' and replace it by 'uniform'. Much like
         #              'randn' is a convenience wrapper (which we don't use)

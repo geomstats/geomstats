@@ -8,11 +8,11 @@ from torch import (  # NOQA
     abs,
     acos as arccos,
     arange,
-    argmax,
     argmin,
     asin as arcsin,
     atan2 as arctan2,
     bool as t_bool,
+    broadcast_tensors as broadcast_arrays,
     ceil,
     clamp as clip,
     cos,
@@ -21,6 +21,7 @@ from torch import (  # NOQA
     div as divide,
     empty_like,
     eq,
+    erf,
     exp,
     eye,
     flatten,
@@ -37,6 +38,7 @@ from torch import (  # NOQA
     lt as less,
     matmul,
     max as amax,
+    mean,
     meshgrid,
     min as amin,
     nonzero,
@@ -59,6 +61,7 @@ from torch import (  # NOQA
     zeros_like
 )
 
+from . import autograd # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 
@@ -75,7 +78,6 @@ def _raise_not_implemented_error(*args, **kwargs):
 
 
 searchsorted = _raise_not_implemented_error
-vectorize = _raise_not_implemented_error
 
 
 def _box_scalar(function):
@@ -98,6 +100,12 @@ sinh = _box_scalar(sinh)
 
 def to_numpy(x):
     return x.numpy()
+
+
+def argmax(a, **kwargs):
+    if a.dtype == torch.bool:
+        return torch.as_tensor(_np.argmax(a.data.numpy(), **kwargs))
+    return torch.argmax(a, **kwargs)
 
 
 def convert_to_wider_dtype(tensor_list):
@@ -553,12 +561,6 @@ def prod(x, axis=None):
     return torch.prod(x, dim=axis)
 
 
-def mean(x, axis=None):
-    if axis is None:
-        return torch.mean(x)
-    return torch.mean(x, dim=axis)
-
-
 def where(condition, x=None, y=None):
     if x is None and y is None:
         return torch.where(condition)
@@ -722,6 +724,12 @@ def cumsum(x, axis=None):
     return torch.cumsum(x, dim=axis)
 
 
+def cumprod(x, axis=None):
+    if axis is None:
+        return x.flatten().cumprod(dim=0)
+    return torch.cumprod(x, dim=axis)
+
+
 def array_from_sparse(indices, data, target_shape):
     """Create an array of given shape, with values at specific indices.
 
@@ -745,3 +753,9 @@ def array_from_sparse(indices, data, target_shape):
         torch.LongTensor(indices).t(),
         torch.FloatTensor(cast(data, float32)),
         torch.Size(target_shape)).to_dense()
+
+
+def vectorize(x, pyfunc, multiple_args=False, **kwargs):
+    if multiple_args:
+        return stack(list(map(lambda y: pyfunc(*y), zip(*x))))
+    return stack(list(map(pyfunc, x)))

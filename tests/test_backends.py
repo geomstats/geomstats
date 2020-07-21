@@ -236,6 +236,16 @@ class TestBackends(geomstats.tests.TestCase):
             [7., 8., 9.]])
         self.assertAllClose(result, expected)
 
+    def test_cumprod(self):
+        result = gs.cumprod(gs.arange(1, 10))
+        expected = gs.array(([1, 2, 6, 24, 120, 720, 5040, 40320, 362880]))
+        self.assertAllClose(result, expected)
+
+        result = gs.reshape(gs.arange(1, 11), (2, 5))
+        result = gs.cumprod(result, axis=1)
+        expected = gs.array(([[1, 2, 6, 24, 120], [6, 42, 336, 3024, 30240]]))
+        self.assertAllClose(result, expected)
+
     @geomstats.tests.pytorch_only
     def test_cumsum(self):
         result = gs.cumsum(gs.arange(10))
@@ -871,3 +881,53 @@ class TestBackends(geomstats.tests.TestCase):
         result = [a.dtype == gs.float64 for a in gs_result]
 
         self.assertTrue(gs.all(result))
+
+    def test_broadcast_arrays(self):
+
+        array_1 = gs.array([[1, 2, 3]])
+        array_2 = gs.array([[4], [5]])
+        result = gs.broadcast_arrays(array_1, array_2)
+
+        result_verdict = [gs.array([[1, 2, 3], [1, 2, 3]]),
+                          gs.array([[4, 4, 4], [5, 5, 5]])]
+
+        self.assertAllClose(result[0], result_verdict[0])
+        self.assertAllClose(result[1], result_verdict[1])
+
+        with self.assertRaises((ValueError, RuntimeError)):
+            gs.broadcast_arrays(gs.array([1, 2]), gs.array([3, 4, 5]))
+
+    def test_value_and_grad(self):
+        n = 10
+        vector = gs.ones(n)
+        result_loss, result_grad = gs.autograd.value_and_grad(
+            lambda v: gs.sum(v ** 2))(vector)
+        expected_loss = n
+        expected_grad = 2 * vector
+        self.assertAllClose(result_loss, expected_loss)
+        self.assertAllClose(result_grad, expected_grad)
+
+    def test_value_and_grad_numpy_input(self):
+        n = 10
+        vector = _np.ones(n)
+        result_loss, result_grad = gs.autograd.value_and_grad(
+            lambda v: gs.sum(v ** 2))(vector)
+        expected_loss = n
+        expected_grad = 2 * vector
+        self.assertAllClose(result_loss, expected_loss)
+        self.assertAllClose(result_grad, expected_grad)
+
+    def test_choice(self):
+
+        x = gs.array([0.1, 0.2, 0.3, 0.4, 0.5])
+        a = 4
+
+        result = gs.random.choice(x, a)
+
+        for i in result:
+            if i in x:
+                self.assertTrue(True)
+            else:
+                self.assertTrue(False)
+
+        self.assertEqual(len(result), a)

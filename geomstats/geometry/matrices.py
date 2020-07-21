@@ -4,8 +4,8 @@ from functools import reduce
 
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.manifold import Manifold
-from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 
 TOLERANCE = 1e-5
@@ -241,7 +241,7 @@ class Matrices(Manifold):
         return cls.mul(mat_2, mat_1, cls.transpose(mat_2))
 
 
-class MatricesMetric(RiemannianMetric):
+class MatricesMetric(EuclideanMetric):
     """Euclidean metric on matrices given by Frobenius inner-product.
 
     Parameters
@@ -253,8 +253,7 @@ class MatricesMetric(RiemannianMetric):
     def __init__(self, m, n):
         dimension = m * n
         super(MatricesMetric, self).__init__(
-            dim=dimension,
-            signature=(dimension, 0, 0))
+            dim=dimension)
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner-product of two tan vecs at `base_point`.

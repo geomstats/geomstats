@@ -157,28 +157,73 @@ def _default_gradient_descent(points, metric, weights,
     return mean
 
 
-def _ball_gradient_descent(points, metric, weights, max_iter,
+def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
                            lr=1e-3, tau=5e-3):
     """Perform ball gradient descent."""
     if len(points) == 1:
         return points
 
-    iteration = 0
-    convergence = math.inf
-    barycenter = points.mean(0, keepdims=True) * 0
+    if weights is None:
 
-    while convergence > tau and max_iter > iteration:
+        iteration = 0
+        convergence = math.inf
+        barycenter = gs.mean(points, axis=0, keepdims=True)
 
-        iteration += 1
+        while convergence > tau and max_iter > iteration:
 
-        grad_tangent = 2 * metric.log(points, barycenter)
+            iteration += 1
 
-        cc_barycenter = metric.exp(
-            lr * grad_tangent.sum(0, keepdims=True), barycenter)
+            grad_tangent = 2 * metric.log(points, barycenter)
 
-        convergence = metric.dist(cc_barycenter, barycenter).max().item()
+            cc_barycenter = metric.exp(
+                lr * grad_tangent.sum(0, keepdims=True), barycenter)
 
-        barycenter = cc_barycenter
+            convergence = metric.dist(cc_barycenter, barycenter).max().item()
+
+            barycenter = cc_barycenter
+    else:
+
+        weights = gs.expand_dims(weights, -1)
+        weights = gs.repeat(weights, points.shape[-1], axis=2)
+
+        barycenter = (points * weights).sum(0, keepdims=True) / weights.sum(0)
+        barycenter_gs = gs.squeeze(barycenter)
+
+        points_gs = gs.squeeze(points)
+        points_flattened = gs.reshape(points_gs, (-1, points_gs.shape[-1]))
+
+        convergence = math.inf
+        iteration = 0
+
+        while convergence > tau and max_iter > iteration:
+
+            iteration += 1
+
+            barycenter_flattened = gs.repeat(barycenter,
+                                             len(points_gs), axis=0)
+            barycenter_flattened = gs.reshape(
+                barycenter_flattened,
+                (-1, barycenter_flattened.shape[-1]))
+
+            grad_tangent = 2 * metric.log(points_flattened,
+                                          barycenter_flattened)
+            grad_tangent = gs.reshape(grad_tangent,
+                                      points.shape)
+            grad_tangent = grad_tangent * weights
+
+            lr_grad_tangent = lr * grad_tangent.sum(0, keepdims=True)
+            lr_grad_tangent_s = lr_grad_tangent.squeeze()
+
+            cc_barycenter = metric.exp(barycenter_gs,
+                                       lr_grad_tangent_s)
+
+            convergence = metric.dist(cc_barycenter,
+                                      barycenter_gs).max().item()
+
+            barycenter_gs = cc_barycenter
+            barycenter = gs.expand_dims(cc_barycenter, 0)
+
+        barycenter = gs.squeeze(barycenter)
 
     if iteration == max_iter:
         logging.warning(
@@ -310,6 +355,8 @@ class FrechetMean(BaseEstimator):
                  epsilon=EPSILON,
                  point_type=None,
                  method='default',
+                 lr=1e-3,
+                 tau=5e-3,
                  verbose=False):
 
         self.metric = metric
@@ -317,6 +364,8 @@ class FrechetMean(BaseEstimator):
         self.epsilon = epsilon
         self.point_type = point_type
         self.method = method
+        self.lr = lr
+        self.tau = tau
         self.verbose = verbose
         self.estimate_ = None
 
@@ -366,7 +415,7 @@ class FrechetMean(BaseEstimator):
         elif self.method == 'frechet-poincare-ball':
             mean = _ball_gradient_descent(
                 points=X, weights=weights, metric=self.metric,
-                max_iter=self.max_iter)
+                lr=self.lr, tau=self.tau, max_iter=self.max_iter)
 
         self.estimate_ = mean
 

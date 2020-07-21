@@ -9,27 +9,30 @@ import matplotlib.pyplot as plt
 import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.hypersphere import Hypersphere
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 
 SPACE = Hypersphere(2)
 METRIC = SPACE.metric
+ROTATIONS = SpecialOrthogonal(3, 'vector')
 
 N_STEPS = 4
 N_POINTS = 10
 
-gs.random.seed(0)
+gs.random.seed(1)
 
 
 def main():
     """Compute pole ladder and plot the construction."""
     base_point = SPACE.random_uniform(1)
     tangent_vec_b = SPACE.random_uniform(1)
-    tangent_vec_b = SPACE.to_tangent(
-        tangent_vec_b, base_point)
-    tangent_vec_b *= N_STEPS / 2
-    tangent_vec_a = SPACE.random_uniform(1)
-    tangent_vec_a = SPACE.to_tangent(
-        tangent_vec_a, base_point) * N_STEPS / 4
+    tangent_vec_b = SPACE.to_tangent(tangent_vec_b, base_point)
+    tangent_vec_b = tangent_vec_b / gs.linalg.norm(tangent_vec_b)
+
+    rotation_vector = gs.pi / 2 * base_point
+    rotation_matrix = ROTATIONS.matrix_from_rotation_vector(rotation_vector)
+    tangent_vec_a = gs.dot(rotation_matrix, tangent_vec_b)
+    tangent_vec_b *= 3. / 2.
 
     ladder = METRIC.ladder_parallel_transport(
         tangent_vec_a,
@@ -62,8 +65,7 @@ def main():
 
     base_point = gs.to_ndarray(base_point, to_ndim=2)
     origin = gs.concatenate(
-        [base_point, base_point, final_geodesic(gs.array([0]))], axis=1)
-
+        [base_point, base_point, final_geodesic(0.)], axis=0)
     ax.quiver(
         origin[:, 0], origin[:, 1], origin[:, 2],
         tangent_vectors[:, 0], tangent_vectors[:, 1], tangent_vectors[:, 2],

@@ -1,5 +1,6 @@
 """Tensorflow based computation backend."""
 
+from collections import Counter
 from itertools import product
 
 import numpy as _np
@@ -58,7 +59,7 @@ from tensorflow import (  # NOQA
 )
 
 
-
+from . import autograd # NOQA
 from . import linalg  # NOQA
 from . import random  # NOQA
 
@@ -73,8 +74,9 @@ DTYPES = {
 arctanh = tf.math.atanh
 ceil = tf.math.ceil
 cross = tf.linalg.cross
+erf = tf.math.erf
+isnan = tf.math.is_nan
 log = tf.math.log
-matmul = tf.linalg.matmul
 mod = tf.math.mod
 polygamma = tf.math.polygamma
 power = tf.math.pow
@@ -500,12 +502,19 @@ def get_slice(x, indices):
     >>> get_slice(a, ((0, 2), (8, 9)))
     <tf.Tensor: id=41, shape=(2,), dtype=int32, numpy=array([ 8, 29])>
     """
+    if hasattr(indices, 'shape'):
+        if indices.shape.rank == 0:
+            return x[indices]
+
+        if tf.is_tensor(indices) and indices.shape[-1] == 1:
+            return tf.gather_nd(x, indices)
+
     return tf.gather_nd(x, list(zip(*indices)))
 
 
 def vectorize(x, pyfunc, multiple_args=False, dtype=None, **kwargs):
     if multiple_args:
-        return tf.map_fn(lambda x: pyfunc(*x), elems=x, dtype=dtype)
+        return tf.map_fn(lambda y: pyfunc(*y), elems=x, dtype=dtype)
     return tf.map_fn(pyfunc, elems=x, dtype=dtype)
 
 
@@ -526,11 +535,23 @@ def hsplit(x, n_splits):
 
 
 def flatten(x):
-    """Collapses the tensor into 1-D.
+    """Collapse the tensor into 1-D.
 
     Following https://www.tensorflow.org/api_docs/python/tf/reshape
     """
     return tf.reshape(x, [-1])
+
+
+def matmul(a, b):
+    """Matrix-matrix or matrix-vector product of two tensors.
+
+    This wraps both mathvec and matmul into a single function, to mimic the
+    behavior of torch's and numpy's versions of matmul
+    """
+    if ndim(b) < ndim(a):
+        if ndim(b) == 1 or b.shape[-2] != a.shape[-1]:
+            return tf.linalg.matvec(a, b)
+    return tf.linalg.matmul(a, b)
 
 
 def outer(x, y):
@@ -551,6 +572,39 @@ def vstack(x):
 
 def cast(x, dtype):
     return tf.cast(x, dtype)
+
+
+def broadcast_arrays(x, y, **kwargs):
+    tensors = [x, y]
+    shapes = [t.get_shape().as_list() for t in tensors]
+    max_rank = max(len(s) for s in shapes)
+
+    for index, value in enumerate(shapes):
+        shape = value
+        if len(shape) == max_rank:
+            continue
+
+        tensor = tensors[index]
+        for _ in range(max_rank - len(shape)):
+            shape.insert(0, 1)
+            tensor = tf.expand_dims(tensor, axis=0)
+        tensors[index] = tensor
+
+    broadcast_shape = []
+    for index in range(max_rank):
+        dimensions = [s[index] for s in shapes]
+        repeats = Counter(dimensions)
+        if len(repeats) > 2 or (len(repeats) == 2 and
+                                1 not in list(repeats.keys())):
+            raise ValueError('operands could not be '
+                             'broadcast together with shapes', shapes)
+        broadcast_shape.append(max(repeats.keys()))
+
+    for axis, dimension in enumerate(broadcast_shape):
+        tensors = [tf.concat([t] * dimension, axis=axis)
+                   if t.get_shape()[axis] == 1 else t for t in tensors]
+
+    return tensors
 
 
 def dot(x, y):
@@ -669,6 +723,12 @@ def cumsum(a, axis=None):
     if axis is None:
         return tf.math.cumsum(flatten(a), axis=0)
     return tf.math.cumsum(a, axis=axis)
+
+
+def cumprod(a, axis=None):
+    if axis is None:
+        return tf.math.cumprod(flatten(a), axis=0)
+    return tf.math.cumprod(a, axis=axis)
 
 
 def tril(m, k=0):

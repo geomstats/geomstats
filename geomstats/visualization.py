@@ -1,5 +1,6 @@
 """Visualization for Geometric Statistics."""
 
+import matplotlib
 import matplotlib.pyplot as plt
 
 import geomstats.backend as gs
@@ -22,7 +23,20 @@ IMPLEMENTED = ['SO3_GROUP', 'SE3_GROUP', 'S1', 'S2',
                'poincare_polydisk']
 
 
-class Arrow3D():
+def tutorial_matplotlib():
+    fontsize = 12
+    matplotlib.rc('font', size=fontsize)
+    matplotlib.rc('text')
+    matplotlib.rc('legend', fontsize=fontsize)
+    matplotlib.rc('axes', titlesize=21, labelsize=14)
+    matplotlib.rc(
+        'font',
+        family='times',
+        serif=['Computer Modern Roman'],
+        monospace=['Computer Modern Typewriter'])
+
+
+class Arrow3D:
     """An arrow in 3d, i.e. a point and a vector."""
 
     def __init__(self, point, vector):
@@ -36,7 +50,7 @@ class Arrow3D():
                   **quiver_kwargs)
 
 
-class Trihedron():
+class Trihedron:
     """A trihedron, i.e. 3 Arrow3Ds at the same point."""
 
     def __init__(self, point, vec_1, vec_2, vec_3):
@@ -63,7 +77,7 @@ class Trihedron():
             self.arrow_3.draw(ax, color=green, **arrow_draw_kwargs)
 
 
-class Circle():
+class Circle:
     """Class used to draw a circle."""
 
     def __init__(self, n_angles=100, points=None):
@@ -105,7 +119,7 @@ class Circle():
                 **plot_kwargs)
 
 
-class Sphere():
+class Sphere:
     """Create the arrays sphere_x, sphere_y, sphere_z to plot a sphere.
 
     Create the arrays sphere_x, sphere_y, sphere_z of values
@@ -168,6 +182,14 @@ class Sphere():
         points_z = [point[2] for point in points]
         ax.scatter(points_x, points_y, points_z, **scatter_kwargs)
 
+        for i_point, point in enumerate(points):
+            if 'label' in scatter_kwargs:
+                if len(scatter_kwargs['label']) == len(points):
+                    ax.text(
+                        point[0], point[1], point[2],
+                        scatter_kwargs['label'][i_point],
+                        size=10, zorder=1, color='k')
+
     def fibonnaci_points(self, n_points=16000):
         """Spherical Fibonacci point sets yield nearly uniform point
         distributions on the unit sphere."""
@@ -212,7 +234,7 @@ class Sphere():
                    cmap=plt.get_cmap(cmap))
 
 
-class PoincareDisk():
+class PoincareDisk:
     def __init__(self, points=None, point_type='extrinsic'):
         self.center = gs.array([0., 0.])
         self.points = []
@@ -267,7 +289,7 @@ class PoincareDisk():
                 raise ValueError('Points do not have dimension 2.')
 
 
-class PoincarePolyDisk():
+class PoincarePolyDisk:
     """Class used to plot points in the Poincare polydisk."""
 
     def __init__(self, points=None, point_type='ball', n_disks=2):
@@ -317,7 +339,7 @@ class PoincarePolyDisk():
         ax.scatter(points_x, points_y, **kwargs)
 
 
-class PoincareHalfPlane():
+class PoincareHalfPlane:
     """Class used to plot points in the Poincare Half Plane."""
 
     def __init__(self, points=None):
@@ -366,7 +388,7 @@ class PoincareHalfPlane():
         ax.scatter(points_x, points_y, **kwargs)
 
 
-class KleinDisk():
+class KleinDisk:
     def __init__(self, points=None):
         self.center = gs.array([0., 0.])
         self.points = []
@@ -517,6 +539,7 @@ def plot(points, ax=None, space=None,
         ax = poincare_disk.set_ax(ax=ax)
         poincare_disk.add_points(points)
         poincare_disk.draw(ax, **point_draw_kwargs)
+        plt.axis('off')
 
     elif space == 'poincare_polydisk':
         n_disks = points.shape[1]

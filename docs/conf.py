@@ -9,6 +9,8 @@ author = 'Geomstats Team'
 release = version = geomstats.__version__
 
 extensions = [
+    'nbsphinx',
+    'nbsphinx_link',
     'sphinx.ext.autodoc',
     'sphinx.ext.coverage',
     'sphinx.ext.doctest',
@@ -26,9 +28,13 @@ napoleon_use_ivar = False
 napoleon_use_rtype = False
 napoleon_include_init_with_doc = False
 
+# Configure nbsphinx for notebooks execution
+nbsphinx_execute = 'never'
+nbsphinx_allow_errors = True
+
 templates_path = ['_templates']
 
-source_suffix = '.rst'
+source_suffix = ['.rst', '.ipynb']
 
 master_doc = 'index'
 
