@@ -26,6 +26,7 @@ SUM_CHECK_PDF = 1e-4
 MEAN_MAX_ITER = 150
 MIN_VAR_INIT = 1e-3
 
+
 class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
     r"""Expectation-maximization class on Poincaré Ball.
 
@@ -317,7 +318,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                 label_mask = gs.where(labeled_data[:, 0] == label)
                 grouped_by_label = labeled_data[label_mask][:, 1:]
                 v = variance(grouped_by_label, centroid, self.metric)
-                if(grouped_by_label.shape[0] == 1):
+                if grouped_by_label.shape[0] == 1:
                     v += MIN_VAR_INIT
                 self.variances[label] = v
         else:
