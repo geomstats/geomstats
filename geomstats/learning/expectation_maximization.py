@@ -293,7 +293,7 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             Gaussian mixture model: means, variances and mixture_coefficients.
         """
         self._dimension = data.shape[-1]
-        if self.initialisation_method == "kmeans":
+        if self.initialisation_method == 'kmeans':
             kmeans = RiemannianKMeans(metric=self.metric,
                                       n_clusters=self.n_gaussians,
                                       init='random',
@@ -306,7 +306,8 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             self.means = centroids
             self.variances = gs.zeros(self.n_gaussians)
 
-            labeled_data = gs.transpose(gs.vstack([labels, gs.transpose(data)]))
+            labeled_data = gs.vstack([labels, gs.transpose(data)])
+            labeled_data = gs.transpose(labeled_data)
             for label, centroid in enumerate(centroids):
                 label_mask = gs.where(labeled_data[:, 0] == label)
                 grouped_by_label = labeled_data[label_mask][:, 1:]
