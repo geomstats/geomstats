@@ -317,8 +317,11 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
                 label_mask = gs.where(labeled_data[:, 0] == label)
                 grouped_by_label = labeled_data[label_mask][:, 1:]
                 v = variance(grouped_by_label, centroid, self.metric)
+<<<<<<< HEAD
                 if(grouped_by_label.shape[0] == 1):
                     v += MIN_VAR_INIT
+=======
+>>>>>>> 4aab934ccb57b5fb0524f69f20d0aa76d910222f
                 self.variances[label] = v
         else:
             self.means = (gs.random.rand(
