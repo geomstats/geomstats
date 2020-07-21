@@ -50,6 +50,18 @@ class TestEM(geomstats.tests.TestCase):
         self.assertTrue((variances < 1).all() and (variances > 0).all())
         self.assertTrue(self.space.belongs(means).all())
 
+        gmm_learning = RiemannianEM(
+            metric=self.metric,
+            n_gaussians=self.n_gaussian,
+            initialisation_method='kmeans',
+            mean_method=self.mean_method)
+
+        means, variances, coefficients = gmm_learning.fit(self.data)
+
+        self.assertTrue((coefficients < 1).all() and (coefficients > 0).all())
+        self.assertTrue((variances < 1).all() and (variances > 0).all())
+        self.assertTrue(self.space.belongs(means).all())
+
     @geomstats.tests.np_only
     def test_weighted_frechet_mean(self):
         """Test for weighted mean."""
