@@ -53,7 +53,7 @@ class TestEM(geomstats.tests.TestCase):
         gmm_learning = RiemannianEM(
             metric=self.metric,
             n_gaussians=self.n_gaussian,
-            initialisation_method="kmeans",
+            initialisation_method='kmeans',
             mean_method=self.mean_method)
 
         means, variances, coefficients = gmm_learning.fit(self.data)
