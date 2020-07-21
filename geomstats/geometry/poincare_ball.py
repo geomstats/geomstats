@@ -173,6 +173,32 @@ class PoincareBall(Hyperbolic):
 
         return weighted_pdf
 
+    @geomstats.vectorization.decorator(['else', 'vector'])
+    def projection(self, point):
+        """Project a point on the ball.
+
+        Project a point by clipping such that l2
+        norm being lower than 1
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point in embedding Euclidean space.
+
+        Returns
+        -------
+        projected_point : array-like, shape=[..., dim]
+            Point projected on the ball.
+        """
+
+        l2_norm = gs.linalg.norm(point, axis=-1)
+        if gs.any(l2_norm >= 1-EPSILON):
+            projected_point = gs.einsum('...j,...->...j', point * (1-EPSILON), 1./l2_norm)
+            projected_point = -gs.maximum(-projected_point, -x)
+            return projected_point
+        else:
+            return point
+
 
 class PoincareBallMetric(RiemannianMetric):
     """Class that defines operations using a Poincare ball.
@@ -334,8 +360,7 @@ class PoincareBallMetric(RiemannianMetric):
 
         mobius_add = gs.einsum(
             '...i,...k->...i', add_nominator, 1 / add_denominator)
-
-        return mobius_add
+        return ball_manifold.projection(mobius_add)
 
     @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def dist_broadcast(self, point_a, point_b):
