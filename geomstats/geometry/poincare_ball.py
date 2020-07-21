@@ -190,7 +190,7 @@ class PoincareBall(Hyperbolic):
         projected_point : array-like, shape=[..., dim]
             Point projected on the ball.
         """
-        if(point.shape[-1] != self.dim):
+        if point.shape[-1] != self.dim:
             raise NameError("Bad dimension expected ", self.dim)
 
         l2_norm = gs.linalg.norm(point, axis=-1)
