@@ -9,8 +9,6 @@ from geomstats.geometry.poincare_ball \
     import PoincareBall
 from geomstats.learning._template import TransformerMixin
 from geomstats.learning.frechet_mean import FrechetMean
-from geomstats.learning.frechet_mean import variance
-from geomstats.learning.kmeans import RiemannianKMeans
 
 EM_CONV_RATE = 1e-4
 MINIMUM_EPOCHS = 10
@@ -216,7 +214,6 @@ class RiemannianEM(TransformerMixin, ClusterMixin, BaseEstimator):
             logging.warning('EXPECTATION : Gaussian got no elements '
                             '(precision error) reinitialize')
             posterior_probabilities[posterior_probabilities == 0] = PDF_TOL
-
 
         return posterior_probabilities
 
