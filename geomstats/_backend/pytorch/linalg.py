@@ -35,7 +35,7 @@ def eigvalsh(*args, **kwargs):
 
 
 def eigh(*args, **kwargs):
-    eigvals, eigvecs = torch.symeig(*args, eigenvectors = True, **kwargs)
+    eigvals, eigvecs = torch.symeig(*args, eigenvectors=True, **kwargs)
     return eigvals, eigvecs
 
 
