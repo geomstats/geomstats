@@ -35,8 +35,8 @@ def eigvalsh(*args, **kwargs):
 
 
 def eigh(*args, **kwargs):
-    eigs = np.linalg.eigh(*args, **kwargs)
-    return torch.from_numpy(eigs[0]), torch.from_numpy(eigs[1])
+    eigvals, eigvecs = torch.symeig(*args, eigenvectors = True, **kwargs)
+    return eigvals, eigvecs
 
 
 def svd(*args, **kwargs):
