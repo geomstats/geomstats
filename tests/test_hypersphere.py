@@ -296,7 +296,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         # Edge case: tangent vector has norm < epsilon
         base_point = gs.array([10., -2., -.5, 34., 3.])
         base_point = base_point / gs.linalg.norm(base_point)
-        vector = 1e-10 * gs.array([.06, -51., 6., 5., 3.])
+        vector = 1e-9 * gs.array([.06, -51., 6., 5., 3.])
         vector = self.space.to_tangent(
             vector=vector, base_point=base_point)
 
@@ -304,7 +304,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         result = self.metric.log(point=exp, base_point=base_point)
         expected = self.space.to_tangent(
             vector=vector, base_point=base_point)
-
         self.assertAllClose(result, expected, atol=1e-8)
 
     def test_squared_norm_and_squared_dist(self):
@@ -503,6 +502,7 @@ class TestHypersphere(geomstats.tests.TestCase):
             initial_point=initial_point[:2],
             end_point=initial_point[2:])
         t = gs.linspace(start=0., stop=1., num=n_geodesic_points)
+        print(t)
         points = geodesic(t)
         result = points[-1]
         expected = initial_point[2:]

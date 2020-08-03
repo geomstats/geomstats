@@ -3,6 +3,9 @@
 import geomstats.backend as gs
 
 
+EPSILON = 1e-8
+
+
 def from_vector_to_diagonal_matrix(vector):
     """Create diagonal matrices from rows of a matrix.
 
@@ -21,3 +24,13 @@ def from_vector_to_diagonal_matrix(vector):
     identity = gs.cast(identity, vector.dtype)
     diagonals = gs.einsum('...i,ij->...ij', vector, identity)
     return diagonals
+
+
+def taylor_exp(point, taylor_coefs, function, order=7, tol=EPSILON):
+    return gs.where(
+        point < tol,
+        gs.einsum(
+            'k,k...->...',
+            gs.array(taylor_coefs[:order]),
+            gs.array([point ** k for k in range(order)])),
+        function(point))

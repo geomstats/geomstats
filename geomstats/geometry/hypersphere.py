@@ -10,6 +10,7 @@ from itertools import product
 
 import geomstats.backend as gs
 import geomstats.vectorization
+from geomstats.algebra_utils import taylor_exp
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.euclidean import EuclideanMetric
@@ -23,6 +24,11 @@ COS_TAYLOR_COEFFS = [1., 0.,
                      + 1.0 / math.factorial(4), 0.,
                      - 1.0 / math.factorial(6), 0.,
                      + 1.0 / math.factorial(8), 0.]
+SINC_TAYLOR_COEFFS = [1., 0.,
+                      - 1.0 / math.factorial(3), 0.,
+                      + 1.0 / math.factorial(5), 0.,
+                      - 1.0 / math.factorial(7), 0.,
+                      + 1.0 / math.factorial(9)]
 INV_SIN_TAYLOR_COEFFS = [0., 1. / 6.,
                          0., 7. / 360.,
                          0., 31. / 15120.,
@@ -463,35 +469,10 @@ class HypersphereMetric(RiemannianMetric):
         norm_tangent_vec = self.embedding_metric.norm(proj_tangent_vec)
         norm_tangent_vec = gs.to_ndarray(norm_tangent_vec, to_ndim=1)
 
-        mask_0 = gs.isclose(norm_tangent_vec, 0.)
-        mask_non0 = ~mask_0
-
-        coef_1 = gs.zeros((n_tangent_vecs,))
-        coef_2 = gs.zeros((n_tangent_vecs,))
-        norm2 = norm_tangent_vec[mask_0]**2
-        norm4 = norm2**2
-        norm6 = norm2**3
-
-        coef_1 = gs.assignment(
-            coef_1,
-            1. - norm2 / 2. + norm4 / 24. - norm6 / 720.,
-            mask_0)
-        coef_2 = gs.assignment(
-            coef_2,
-            1. - norm2 / 6. + norm4 / 120. - norm6 / 5040.,
-            mask_0)
-
-        coef_1 = gs.assignment(
-            coef_1,
-            gs.cos(norm_tangent_vec[mask_non0]),
-            mask_non0)
-        coef_2 = gs.assignment(
-            coef_2,
-            gs.sin(
-                norm_tangent_vec[mask_non0]) /
-            norm_tangent_vec[mask_non0],
-            mask_non0)
-
+        coef_1 = taylor_exp(norm_tangent_vec, COS_TAYLOR_COEFFS, gs.cos)
+        coef_2 = taylor_exp(
+            norm_tangent_vec, SINC_TAYLOR_COEFFS,
+            lambda x: gs.sin(x) / x)
         exp = (gs.einsum('...,...j->...j', coef_1, base_point)
                + gs.einsum('...,...j->...j', coef_2, proj_tangent_vec))
 
@@ -521,52 +502,14 @@ class HypersphereMetric(RiemannianMetric):
         cos_angle = gs.clip(cos_angle, -1., 1.)
 
         angle = gs.arccos(cos_angle)
-        angle = gs.to_ndarray(angle, to_ndim=1)
-        angle = gs.to_ndarray(angle, to_ndim=2, axis=1)
 
-        mask_0 = gs.isclose(angle, 0.)
-        mask_else = gs.equal(mask_0, gs.array(False))
+        coef_1_ = taylor_exp(
+            angle, INV_SIN_TAYLOR_COEFFS, lambda x: x / gs.sin(x), order=8)
+        coef_2_ = taylor_exp(
+            angle, INV_TAN_TAYLOR_COEFFS, lambda x: x / gs.tan(x), order=8)
 
-        mask_0_float = gs.cast(mask_0, gs.float32)
-        mask_else_float = gs.cast(mask_else, gs.float32)
-
-        coef_1 = gs.zeros_like(angle)
-        coef_2 = gs.zeros_like(angle)
-
-        coef_1 += mask_0_float * (
-            1. + INV_SIN_TAYLOR_COEFFS[1] * angle ** 2
-            + INV_SIN_TAYLOR_COEFFS[3] * angle ** 4
-            + INV_SIN_TAYLOR_COEFFS[5] * angle ** 6
-            + INV_SIN_TAYLOR_COEFFS[7] * angle ** 8)
-        coef_2 += mask_0_float * (
-            1. + INV_TAN_TAYLOR_COEFFS[1] * angle ** 2
-            + INV_TAN_TAYLOR_COEFFS[3] * angle ** 4
-            + INV_TAN_TAYLOR_COEFFS[5] * angle ** 6
-            + INV_TAN_TAYLOR_COEFFS[7] * angle ** 8)
-
-        # This avoids division by 0.
-        angle += mask_0_float * 1.
-
-        coef_1 += mask_else_float * angle / gs.sin(angle)
-        coef_2 += mask_else_float * angle / gs.tan(angle)
-
-        log = (gs.einsum('...i,...j->...j', coef_1, point)
-               - gs.einsum('...i,...j->...j', coef_2, base_point))
-
-        mask_same_values = gs.isclose(point, base_point)
-
-        mask_else = gs.equal(mask_same_values, gs.array(False))
-        mask_else_float = gs.cast(mask_else, gs.float32)
-        mask_else_float = gs.to_ndarray(mask_else_float, to_ndim=1)
-        mask_else_float = gs.to_ndarray(mask_else_float, to_ndim=2)
-        mask_not_same_points = gs.sum(mask_else_float, axis=1)
-        mask_same_points = gs.isclose(mask_not_same_points, 0.)
-        mask_same_points = gs.cast(mask_same_points, gs.float32)
-        mask_same_points = gs.to_ndarray(mask_same_points, to_ndim=2, axis=1)
-
-        mask_same_points_float = gs.cast(mask_same_points, gs.float32)
-
-        log -= mask_same_points_float * log
+        log = (gs.einsum('...i,...j->...j', coef_1_, point)
+               - gs.einsum('...i,...j->...j', coef_2_, base_point))
 
         return log
 
