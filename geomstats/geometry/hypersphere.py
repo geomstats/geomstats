@@ -5,38 +5,18 @@ Euclidean space.
 """
 
 import logging
-import math
 from itertools import product
 
+import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.vectorization
-from geomstats.algebra_utils import taylor_exp
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import Euclidean
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-6
-EPSILON = 1e-8
-
-COS_TAYLOR_COEFFS = [1., 0.,
-                     - 1.0 / math.factorial(2), 0.,
-                     + 1.0 / math.factorial(4), 0.,
-                     - 1.0 / math.factorial(6), 0.,
-                     + 1.0 / math.factorial(8), 0.]
-SINC_TAYLOR_COEFFS = [1., 0.,
-                      - 1.0 / math.factorial(3), 0.,
-                      + 1.0 / math.factorial(5), 0.,
-                      - 1.0 / math.factorial(7), 0.,
-                      + 1.0 / math.factorial(9)]
-INV_SIN_TAYLOR_COEFFS = [0., 1. / 6.,
-                         0., 7. / 360.,
-                         0., 31. / 15120.,
-                         0., 127. / 604800.]
-INV_TAN_TAYLOR_COEFFS = [0., - 1. / 3.,
-                         0., - 1. / 45.,
-                         0., - 2. / 945.,
-                         0., -1. / 4725.]
+EPSILON = 1e-4
 
 
 class _Hypersphere(EmbeddedManifold):
@@ -443,7 +423,6 @@ class HypersphereMetric(RiemannianMetric):
         sq_norm = self.embedding_metric.squared_norm(vector)
         return sq_norm
 
-    @geomstats.vectorization.decorator(['else', 'vector', 'vector'])
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential of a tangent vector.
 
@@ -460,19 +439,15 @@ class HypersphereMetric(RiemannianMetric):
             Point on the hypersphere equal to the Riemannian exponential
             of tangent_vec at the base point.
         """
-        _, extrinsic_dim = base_point.shape
-        n_tangent_vecs, _ = tangent_vec.shape
-
-        hypersphere = Hypersphere(dim=extrinsic_dim - 1)
+        hypersphere = Hypersphere(dim=self.dim)
         proj_tangent_vec = hypersphere.to_tangent(
             tangent_vec, base_point)
-        norm_tangent_vec = self.embedding_metric.norm(proj_tangent_vec)
-        norm_tangent_vec = gs.to_ndarray(norm_tangent_vec, to_ndim=1)
+        norm2 = self.embedding_metric.squared_norm(proj_tangent_vec)
 
-        coef_1 = taylor_exp(norm_tangent_vec, COS_TAYLOR_COEFFS, gs.cos)
-        coef_2 = taylor_exp(
-            norm_tangent_vec, SINC_TAYLOR_COEFFS,
-            lambda x: gs.sin(x) / x)
+        coef_1 = utils.taylor_exp_even_func(
+            norm2, utils.COS_TAYLOR_COEFFS, gs.cos, order=4)
+        coef_2 = utils.taylor_exp_even_func(
+            norm2, utils.SINC_TAYLOR_COEFFS, lambda x: gs.sin(x) / x, order=4)
         exp = (gs.einsum('...,...j->...j', coef_1, base_point)
                + gs.einsum('...,...j->...j', coef_2, proj_tangent_vec))
 
@@ -495,21 +470,17 @@ class HypersphereMetric(RiemannianMetric):
             Tangent vector at the base point equal to the Riemannian logarithm
             of point at the base point.
         """
-        norm_base_point = self.embedding_metric.norm(base_point)
-        norm_point = self.embedding_metric.norm(point)
         inner_prod = self.embedding_metric.inner_product(base_point, point)
-        cos_angle = inner_prod / (norm_base_point * norm_point)
-        cos_angle = gs.clip(cos_angle, -1., 1.)
-
-        angle = gs.arccos(cos_angle)
-
-        coef_1_ = taylor_exp(
-            angle, INV_SIN_TAYLOR_COEFFS, lambda x: x / gs.sin(x), order=8)
-        coef_2_ = taylor_exp(
-            angle, INV_TAN_TAYLOR_COEFFS, lambda x: x / gs.tan(x), order=8)
-
-        log = (gs.einsum('...i,...j->...j', coef_1_, point)
-               - gs.einsum('...i,...j->...j', coef_2_, base_point))
+        cos_angle = gs.clip(inner_prod, -1., 1.)
+        squared_angle = gs.arccos(cos_angle) ** 2
+        coef_1_ = utils.taylor_exp_even_func(
+            squared_angle, utils.INV_SINC_TAYLOR_COEFFS,
+            lambda x: x / gs.sin(x), order=5)
+        coef_2_ = utils.taylor_exp_even_func(
+            squared_angle, utils.INV_TANC_TAYLOR_COEFFS,
+            lambda x: x / gs.tan(x), order=5)
+        log = (gs.einsum('...,...j->...j', coef_1_, point)
+               - gs.einsum('...,...j->...j', coef_2_, base_point))
 
         return log
 
