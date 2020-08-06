@@ -26,6 +26,17 @@ INV_TANC_TAYLOR_COEFFS = [1.,
                           - 2. / 945.,
                           - 1. / 4725.]
 
+cos_close_0 = {'function': gs.cos, 'coeffs': COS_TAYLOR_COEFFS}
+sinc_close_0 = {
+    'function': lambda x: gs.sin(x) / x,
+    'coeffs': SINC_TAYLOR_COEFFS}
+inv_sinc_close_0 = {
+    'function': lambda x: x / gs.sin(x),
+    'coeffs': INV_SINC_TAYLOR_COEFFS}
+inv_tanc_close_0 = {
+    'function': lambda x: x / gs.tan(x),
+    'coeffs': INV_TANC_TAYLOR_COEFFS}
+
 
 def from_vector_to_diagonal_matrix(vector):
     """Create diagonal matrices from rows of a matrix.
@@ -48,7 +59,7 @@ def from_vector_to_diagonal_matrix(vector):
 
 
 def taylor_exp_even_func(
-        point, taylor_coefs, function, order=7, tol=EPSILON):
+        point, taylor_function, order=7, tol=EPSILON):
     """
 
     Parameters
@@ -67,9 +78,9 @@ def taylor_exp_even_func(
 
     """
     approx = gs.einsum(
-        'k,k...->...', gs.array(taylor_coefs[:order]),
+        'k,k...->...', gs.array(taylor_function['coeffs'][:order]),
         gs.array([point ** k for k in range(order)]))
     point_ = gs.where(gs.abs(point) <= tol, tol, point)
-    exact = function(gs.sqrt(point_))
+    exact = taylor_function['function'](gs.sqrt(point_))
     result = gs.where(gs.abs(point) < tol, approx, exact)
     return result

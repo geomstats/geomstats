@@ -445,9 +445,9 @@ class HypersphereMetric(RiemannianMetric):
         norm2 = self.embedding_metric.squared_norm(proj_tangent_vec)
 
         coef_1 = utils.taylor_exp_even_func(
-            norm2, utils.COS_TAYLOR_COEFFS, gs.cos, order=4)
+            norm2, utils.cos_close_0, order=4)
         coef_2 = utils.taylor_exp_even_func(
-            norm2, utils.SINC_TAYLOR_COEFFS, lambda x: gs.sin(x) / x, order=4)
+            norm2, utils.sinc_close_0, order=4)
         exp = (gs.einsum('...,...j->...j', coef_1, base_point)
                + gs.einsum('...,...j->...j', coef_2, proj_tangent_vec))
 
@@ -474,11 +474,9 @@ class HypersphereMetric(RiemannianMetric):
         cos_angle = gs.clip(inner_prod, -1., 1.)
         squared_angle = gs.arccos(cos_angle) ** 2
         coef_1_ = utils.taylor_exp_even_func(
-            squared_angle, utils.INV_SINC_TAYLOR_COEFFS,
-            lambda x: x / gs.sin(x), order=5)
+            squared_angle, utils.inv_sinc_close_0, order=5)
         coef_2_ = utils.taylor_exp_even_func(
-            squared_angle, utils.INV_TANC_TAYLOR_COEFFS,
-            lambda x: x / gs.tan(x), order=5)
+            squared_angle, utils.inv_tanc_close_0, order=5)
         log = (gs.einsum('...,...j->...j', coef_1_, point)
                - gs.einsum('...,...j->...j', coef_2_, base_point))
 
