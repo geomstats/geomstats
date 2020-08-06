@@ -148,7 +148,6 @@ class TestHypersphere(geomstats.tests.TestCase):
         point = point / gs.linalg.norm(point)
 
         log = self.metric.log(point=point, base_point=base_point)
-        print(log == base_point - point)
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         expected = point
 

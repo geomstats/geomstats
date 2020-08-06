@@ -96,6 +96,7 @@ exp = _box_scalar(exp)
 log = _box_scalar(log)
 sin = _box_scalar(sin)
 sinh = _box_scalar(sinh)
+tan = _box_scalar(tan)
 
 
 def to_numpy(x):
