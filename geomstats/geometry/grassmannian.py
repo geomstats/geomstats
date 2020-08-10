@@ -38,7 +38,7 @@ class Grassmannian(EmbeddedManifold):
 
         self.n = n
         self.k = k
-        self.metric = GrassmannianCanonicalMetric(3, 2)
+        self.metric = GrassmannianCanonicalMetric(n, k)
 
         dim = int(k * (n - k))
         super(Grassmannian, self).__init__(
@@ -68,9 +68,92 @@ class Grassmannian(EmbeddedManifold):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the Grassmannian.
         """
-        raise NotImplementedError(
-            'The Grassmann `belongs` is not implemented.'
-            'It shall test whether p*=p, p^2 = p and rank(p) = k.')
+        point = gs.to_ndarray(point, to_ndim=3)
+
+        if not gs.all(self._check_square(point)):
+            raise ValueError('all points must be square.')
+
+        symm = self._check_symmetric(point)
+        idem = self._check_idempotent(point, tolerance)
+        rank = self._check_rank(point, self.k, tolerance)
+
+        belongs = gs.all(gs.stack([symm, idem, rank], axis=0), axis=0)
+
+        return belongs
+
+    @staticmethod
+    def _check_square(point):
+        """Check if a point is square.
+
+        Parameters
+        ----------
+        point
+        n: Euclidean dimension
+        k: subspace dimension
+
+        Returns
+        -------
+        belongs : bool
+        """
+
+        [n_points, n, p] = point.shape
+
+        return [n == p] * n_points
+
+    @staticmethod
+    def _check_symmetric(point):
+        """Check that a point is a symmetric.
+
+        Parameters
+        ----------
+        point
+
+        Returns
+        -------
+        belongs : bool
+        """
+
+        return Matrices.is_symmetric(point)
+
+    @staticmethod
+    def _check_idempotent(point, tolerance):
+        """Check that a point is idempotent.
+
+        Parameters
+        ----------
+        point
+        tolerance
+
+        Returns
+        -------
+        belongs : bool
+        """
+
+        diff = gs.einsum('...ij,...jk->...ik', point, point) - point
+        diff_norm = gs.linalg.norm(diff, axis=(1, 2))
+
+        return gs.less_equal(diff_norm, tolerance)
+
+    @staticmethod
+    def _check_rank(point, rank, tolerance):
+        """Check that the rank of the point is equal to the
+        subspace dimension.  Matrix rank is equal to number of
+        singular values greater than 0.
+
+        Parameters
+        ----------
+        point
+        rank
+        tolerance
+
+        Returns
+        -------
+        belongs : bool
+        """
+
+        [_, s, _] = gs.linalg.svd(point)
+
+        return gs.sum(s > tolerance, axis=1) == rank
 
 
 class GrassmannianCanonicalMetric(RiemannianMetric):
