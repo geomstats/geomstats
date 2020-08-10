@@ -68,3 +68,16 @@ class TestGrassmannian(geomstats.tests.TestCase):
         result = self.metric.log(points, base_points)
         expected = tangent_vecs
         self.assertAllClose(result, expected)
+
+    def test_belongs(self):
+        point = p_xy
+        result = self.space.belongs(point)
+        self.assertTrue(result)
+
+        point = gs.array([p_yz, p_xz])
+        result = self.space.belongs(point)
+        self.assertTrue(result.all())
+
+        not_a_point = gs.random.rand(3, 3)
+        result = self.space.belongs(not_a_point)
+        self.assertTrue(~result)

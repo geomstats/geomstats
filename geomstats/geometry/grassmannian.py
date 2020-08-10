@@ -96,9 +96,9 @@ class Grassmannian(EmbeddedManifold):
         belongs : bool
         """
 
-        [n_points, n, p] = point.shape
+        n, p = point.shape[-2:]
 
-        return [n == p] * n_points
+        return n == p
 
     @staticmethod
     def _check_symmetric(point):
