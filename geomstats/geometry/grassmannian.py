@@ -2,11 +2,13 @@
 
 import geomstats.backend as gs
 import geomstats.errors
+from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
+from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 TOLERANCE = 1e-5
 EPSILON = 1e-6
@@ -49,6 +51,23 @@ class Grassmannian(EmbeddedManifold):
         self.n = n
         self.k = k
         self.metric = GrassmannianCanonicalMetric(3, 2)
+
+    def random_uniform(self, n_samples=1):
+        """Sample random points from a uniform distribution.
+
+        Parameters
+        ----------
+        n_samples: int,
+            Optional. default: 1.
+
+        Returns
+        -------
+        """
+        basis_change = SpecialOrthogonal(self.n).random_uniform(n_samples)
+        projector = from_vector_to_diagonal_matrix(
+            gs.array([1.] * self.k + [0.] * (self.n - self.k)))
+        return Matrices.mul(
+            basis_change, projector, GeneralLinear.inverse(basis_change))
 
     def belongs(self, point, tolerance=TOLERANCE):
         """Check if the point belongs to the manifold.
@@ -95,7 +114,6 @@ class Grassmannian(EmbeddedManifold):
         -------
         belongs : bool
         """
-
         n, p = point.shape[-2:]
 
         return n == p
@@ -112,7 +130,6 @@ class Grassmannian(EmbeddedManifold):
         -------
         belongs : bool
         """
-
         return Matrices.is_symmetric(point)
 
     @staticmethod
@@ -128,7 +145,6 @@ class Grassmannian(EmbeddedManifold):
         -------
         belongs : bool
         """
-
         diff = gs.einsum('...ij,...jk->...ik', point, point) - point
         diff_norm = gs.linalg.norm(diff, axis=(1, 2))
 
@@ -136,7 +152,9 @@ class Grassmannian(EmbeddedManifold):
 
     @staticmethod
     def _check_rank(point, rank, tolerance):
-        """Check that the rank of the point is equal to the
+        """Check rank of a matrix.
+
+        Check that the rank of the point is equal to the
         subspace dimension.  Matrix rank is equal to number of
         singular values greater than 0.
 
@@ -150,7 +168,6 @@ class Grassmannian(EmbeddedManifold):
         -------
         belongs : bool
         """
-
         [_, s, _] = gs.linalg.svd(point)
 
         return gs.sum(s > tolerance, axis=1) == rank
