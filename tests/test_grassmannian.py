@@ -94,3 +94,23 @@ class TestGrassmannian(geomstats.tests.TestCase):
         point = self.space.random_uniform()
         result = self.space.belongs(point)
         self.assertTrue(result)
+
+        expected = (self.n,) * 2
+        result_shape = point.shape
+        self.assertAllClose(result_shape, expected)
+
+        n_samples = 5
+        points = self.space.random_uniform(n_samples)
+        result = gs.all(self.space.belongs(points))
+        self.assertTrue(result)
+
+        expected = (n_samples,) + (self.n,) * 2
+        result_shape = points.shape
+        self.assertAllClose(result_shape, expected)
+
+    def test_is_to_tangent(self):
+        base_point = self.space.random_uniform()
+        vector = gs.random.rand(self.n, self.n)
+        tangent_vec = self.space.to_tangent(vector, base_point)
+        result = self.space.is_tangent(tangent_vec, base_point)
+        self.assertTrue(result)
