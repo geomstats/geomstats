@@ -2,13 +2,11 @@
 
 import geomstats.backend as gs
 import geomstats.errors
-from geomstats.algebra_utils import from_vector_to_diagonal_matrix
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.matrices import Matrices
 from geomstats.geometry.riemannian_metric import RiemannianMetric
-from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
 TOLERANCE = 1e-5
 EPSILON = 1e-6
@@ -55,19 +53,34 @@ class Grassmannian(EmbeddedManifold):
     def random_uniform(self, n_samples=1):
         """Sample random points from a uniform distribution.
 
+        Following [Chikuse03]_, :math: `n_samples * n * k`scalars are sampled
+        from a standard normal distribution and reshaped to matrices,
+        the projectors on their first k columns follow a uniform distribution.
+
         Parameters
         ----------
         n_samples: int,
+            The number of points to sample
             Optional. default: 1.
 
         Returns
         -------
+        projectors : array-like, shape=[..., n, n]
+            Points following a uniform distribution
+
+        References
+        ----------
+        .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
+        New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
         """
-        basis_change = SpecialOrthogonal(self.n).random_uniform(n_samples)
-        projector = from_vector_to_diagonal_matrix(
-            gs.array([1.] * self.k + [0.] * (self.n - self.k)))
-        return Matrices.mul(
-            basis_change, projector, GeneralLinear.inverse(basis_change))
+        points = gs.random.normal(size=n_samples * self.k * self. n)
+        points = gs.reshape(points, (n_samples, self.n, self.k))
+        full_rank = Matrices.mul(Matrices.transpose(points), points)
+        projector = Matrices.mul(
+            points,
+            GeneralLinear.inverse(full_rank),
+            Matrices.transpose(points))
+        return projector[0] if n_samples == 1 else projector
 
     def belongs(self, point, tolerance=TOLERANCE):
         """Check if the point belongs to the manifold.
@@ -87,8 +100,6 @@ class Grassmannian(EmbeddedManifold):
         belongs : array-like, shape=[...,]
             Boolean evaluating if point belongs to the Grassmannian.
         """
-        point = gs.to_ndarray(point, to_ndim=3)
-
         if not gs.all(self._check_square(point)):
             raise ValueError('all points must be square.')
 
@@ -99,6 +110,16 @@ class Grassmannian(EmbeddedManifold):
         belongs = gs.all(gs.stack([symm, idem, rank], axis=0), axis=0)
 
         return belongs
+
+    def is_tangent(self, vector, base_point=None, atol=TOLERANCE):
+        diff = Matrices.mul(
+            base_point, vector) + Matrices.mul(vector, base_point) - vector
+        is_close = gs.all(gs.isclose(diff, 0, atol=atol))
+        return gs.logical_and(Matrices.is_symmetric(vector), is_close)
+
+    def to_tangent(self, vector, base_point=None):
+        skew = Matrices.to_skew_symmetric(vector)
+        return Matrices.bracket(base_point, skew)
 
     @staticmethod
     def _check_square(point):
@@ -146,7 +167,7 @@ class Grassmannian(EmbeddedManifold):
         belongs : bool
         """
         diff = gs.einsum('...ij,...jk->...ik', point, point) - point
-        diff_norm = gs.linalg.norm(diff, axis=(1, 2))
+        diff_norm = gs.linalg.norm(diff, axis=(-2, -1))
 
         return gs.less_equal(diff_norm, tolerance)
 
@@ -170,7 +191,7 @@ class Grassmannian(EmbeddedManifold):
         """
         [_, s, _] = gs.linalg.svd(point)
 
-        return gs.sum(s > tolerance, axis=1) == rank
+        return gs.sum(s > tolerance, axis=-1) == rank
 
 
 class GrassmannianCanonicalMetric(RiemannianMetric):
@@ -206,7 +227,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
 
         Parameters
         ----------
-        vector : array-like, shape=[..., n, n]
+        tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at base point.
             `vector` is skew-symmetric, in so(n).
         base_point : array-like, shape=[..., n, n]
@@ -226,7 +247,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         r"""Compute the Riemannian logarithm of point w.r.t. base_point.
 
         Given :math:`P, P'` in Gr(n, k) the logarithm from :math:`P`
-        to :math:`P` is given by the infinitesimal rotation [Batzies2015]_:
+        to :math:`P'` is given by the infinitesimal rotation [Batzies2015]_:
 
         .. math::
 
