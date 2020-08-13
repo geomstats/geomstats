@@ -524,7 +524,7 @@ def vectorize(x, pyfunc, multiple_args=False, dtype=None, **kwargs):
 
 def split(x, indices_or_sections, axis=0):
     if isinstance(indices_or_sections, int):
-        return tf.split(x, indices_or_sections, dim=axis)
+        return tf.split(x, indices_or_sections, axis=axis)
     indices_or_sections = _np.array(indices_or_sections)
     intervals_length = indices_or_sections[1:] - indices_or_sections[:-1]
     last_interval_length = x.shape[axis] - indices_or_sections[-1]
