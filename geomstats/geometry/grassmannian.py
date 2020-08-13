@@ -114,7 +114,7 @@ class Grassmannian(EmbeddedManifold):
     def is_tangent(self, vector, base_point=None, atol=TOLERANCE):
         diff = Matrices.mul(
             base_point, vector) + Matrices.mul(vector, base_point) - vector
-        is_close = gs.all(gs.isclose(diff, 0, atol=atol))
+        is_close = gs.all(gs.isclose(diff, 0., atol=atol))
         return gs.logical_and(Matrices.is_symmetric(vector), is_close)
 
     def to_tangent(self, vector, base_point=None):
@@ -229,7 +229,8 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         ----------
         tangent_vec : array-like, shape=[..., n, n]
             Tangent vector at base point.
-            `vector` is skew-symmetric, in so(n).
+            `tangent_vec` is the bracket of a skew-symmetric matrix with the
+            base_point.
         base_point : array-like, shape=[..., n, n]
             Base point.
             `base_point` is a rank p projector of Gr(n, k).
@@ -241,7 +242,8 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         """
         expm = gs.linalg.expm
         mul = Matrices.mul
-        return mul(expm(tangent_vec), base_point, expm(-tangent_vec))
+        rot = Matrices.bracket(base_point, -tangent_vec)
+        return mul(expm(rot), base_point, expm(-rot))
 
     def log(self, point, base_point):
         r"""Compute the Riemannian logarithm of point w.r.t. base_point.
@@ -276,4 +278,4 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
         sym2 = 2 * point - id_n
         sym1 = 2 * base_point - id_n
         rot = GLn.mul(sym2, sym1)
-        return GLn.log(rot) / 2
+        return Matrices.bracket(GLn.log(rot) / 2, base_point)
