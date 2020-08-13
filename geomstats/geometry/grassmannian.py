@@ -5,7 +5,7 @@ import geomstats.errors
 from geomstats.geometry.embedded_manifold import EmbeddedManifold
 from geomstats.geometry.euclidean import EuclideanMetric
 from geomstats.geometry.general_linear import GeneralLinear
-from geomstats.geometry.matrices import Matrices
+from geomstats.geometry.matrices import Matrices, MatricesMetric
 from geomstats.geometry.riemannian_metric import RiemannianMetric
 
 TOLERANCE = 1e-5
@@ -73,8 +73,7 @@ class Grassmannian(EmbeddedManifold):
         .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
         New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
         """
-        points = gs.random.normal(size=n_samples * self.k * self. n)
-        points = gs.reshape(points, (n_samples, self.n, self.k))
+        points = gs.random.normal(size=(n_samples, self. n, self.k))
         full_rank = Matrices.mul(Matrices.transpose(points), points)
         projector = Matrices.mul(
             points,
@@ -194,7 +193,7 @@ class Grassmannian(EmbeddedManifold):
         return gs.sum(s > tolerance, axis=-1) == rank
 
 
-class GrassmannianCanonicalMetric(RiemannianMetric):
+class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
     """Canonical metric of the Grassmann manifold.
 
     Coincides with the Frobenius metric.
@@ -215,8 +214,7 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
 
         dim = int(p * (n - p))
         super(GrassmannianCanonicalMetric, self).__init__(
-            dim=dim,
-            signature=(dim, 0, 0))
+            m=n, n=n, dim=dim, signature=(dim, 0, 0))
 
         self.n = n
         self.p = p

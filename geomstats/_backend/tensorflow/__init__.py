@@ -14,7 +14,7 @@ from tensorflow import (  # NOQA
     asin as arcsin,
     atan2 as arctan2,
     clip_by_value as clip,
-    concat as concatenate,
+    concat,
     cos,
     cosh,
     divide,
@@ -91,6 +91,10 @@ def _raise_not_implemented_error(*args, **kwargs):
 
 def to_numpy(x):
     return x.numpy()
+
+
+def concatenate(x, axis=0, out=None):
+    return concat(x, axis=axis)
 
 
 def convert_to_wider_dtype(tensor_list):
