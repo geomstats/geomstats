@@ -250,10 +250,10 @@ class MatricesMetric(EuclideanMetric):
         Integers representing the shapes of the matrices: m x n.
     """
 
-    def __init__(self, m, n):
+    def __init__(self, m, n, **kwargs):
         dimension = m * n
         super(MatricesMetric, self).__init__(
-            dim=dimension)
+            dim=dimension, default_point_type='matrix')
 
     def inner_product(self, tangent_vec_a, tangent_vec_b, base_point=None):
         """Compute Frobenius inner-product of two tan vecs at `base_point`.

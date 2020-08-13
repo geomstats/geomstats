@@ -116,9 +116,10 @@ class EuclideanMetric(RiemannianMetric):
         Dimension of the Euclidean space.
     """
 
-    def __init__(self, dim):
+    def __init__(self, dim, default_point_type='vector'):
         super(EuclideanMetric, self).__init__(
-            dim=dim, signature=(dim, 0, 0))
+            dim=dim, signature=(dim, 0, 0),
+            default_point_type=default_point_type)
 
     def inner_product_matrix(self, base_point=None):
         """Compute the inner-product matrix, independent of the base point.
