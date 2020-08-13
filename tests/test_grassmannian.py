@@ -61,7 +61,7 @@ class TestGrassmannian(geomstats.tests.TestCase):
         self.assertTrue(self.space.is_tangent(result, p_xy))
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_only
+    @geomstats.tests.np_and_tf_only
     def test_log_vectorized(self):
         tangent_vecs = pi_4 * gs.array([r_y, r_z])
         base_points = gs.array([p_xy, p_xz])
@@ -77,7 +77,7 @@ class TestGrassmannian(geomstats.tests.TestCase):
 
         point = gs.array([p_yz, p_xz])
         result = self.space.belongs(point)
-        self.assertTrue(result.all())
+        self.assertTrue(gs.all(result))
 
         not_a_point = gs.random.rand(3, 2)
         self.assertRaises(ValueError, self.space.belongs, not_a_point)
