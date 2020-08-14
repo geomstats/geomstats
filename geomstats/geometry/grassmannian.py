@@ -81,17 +81,17 @@ class Grassmannian(EmbeddedManifold):
             Matrices.transpose(points))
         return projector[0] if n_samples == 1 else projector
 
-    def belongs(self, point, tolerance=TOLERANCE):
+    def belongs(self, point, atol=TOLERANCE):
         """Check if the point belongs to the manifold.
 
         Check if an (n,n)-matrix is an orthogonal projector
-        onto a subspace of rank p.
+        onto a subspace of rank k.
 
         Parameters
         ----------
         point : array-like, shape=[..., n, n]
             Point to be checked.
-        tolerance : int
+        atol : int
             Optional, default: 1e-5.
 
         Returns
@@ -102,21 +102,59 @@ class Grassmannian(EmbeddedManifold):
         if not gs.all(self._check_square(point)):
             raise ValueError('all points must be square.')
 
-        symm = self._check_symmetric(point)
-        idem = self._check_idempotent(point, tolerance)
-        rank = self._check_rank(point, self.k, tolerance)
+        symm = Matrices.is_symmetric(point)
+        idem = self._check_idempotent(point, atol)
+        rank = self._check_rank(point, self.k, atol)
 
         belongs = gs.all(gs.stack([symm, idem, rank], axis=0), axis=0)
 
         return belongs
 
     def is_tangent(self, vector, base_point=None, atol=TOLERANCE):
+        r"""Check if a vector is tangent to the manifold at the base point.
+
+        Check if the (n,n)-matrix :math: `Y` is symmetric and verifies the
+        relation :math: PY + YP = Y where :math: `P` represents the base
+        point and :math: `Y` the vector.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+            Matrix to be checked.
+        base_point : array-like, shape=[..., n, n]
+            Base point.
+        atol : int
+            Optional, default: 1e-5.
+
+        Returns
+        -------
+        belongs : array-like, shape=[...,]
+            Boolean evaluating if `vector` is tangent to the Grassmannian at
+            `base_point`.
+        """
         diff = Matrices.mul(
             base_point, vector) + Matrices.mul(vector, base_point) - vector
         is_close = gs.all(gs.isclose(diff, 0., atol=atol))
         return gs.logical_and(Matrices.is_symmetric(vector), is_close)
 
     def to_tangent(self, vector, base_point=None):
+        """Project a vector to a tangent space of the manifold.
+
+        Compute the bracket (commutator) of the base_point with
+        the skew-symmetric part of vector.
+
+        Parameters
+        ----------
+        vector : array-like, shape=[..., n, n]
+            Vector.
+        base_point : array-like, shape=[..., n, n]
+            Point on the manifold.
+
+        Returns
+        -------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector at base point.
+        """
         skew = Matrices.to_skew_symmetric(vector)
         return Matrices.bracket(base_point, skew)
 
@@ -137,20 +175,6 @@ class Grassmannian(EmbeddedManifold):
         n, p = point.shape[-2:]
 
         return n == p
-
-    @staticmethod
-    def _check_symmetric(point):
-        """Check that a point is a symmetric.
-
-        Parameters
-        ----------
-        point
-
-        Returns
-        -------
-        belongs : bool
-        """
-        return Matrices.is_symmetric(point)
 
     @staticmethod
     def _check_idempotent(point, tolerance):
@@ -273,6 +297,8 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         """
         GLn = GeneralLinear(self.n)
         id_n = GLn.identity
+        id_n, point, base_point = gs.convert_to_wider_dtype([
+            id_n, point, base_point])
         sym2 = 2 * point - id_n
         sym1 = 2 * base_point - id_n
         rot = GLn.mul(sym2, sym1)

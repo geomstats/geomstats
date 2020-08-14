@@ -54,6 +54,7 @@ class TestGrassmannian(geomstats.tests.TestCase):
         expected = gs.array([p_yz, p_xz])
         self.assertAllClose(result, expected)
 
+    @geomstats.tests.np_and_tf_only
     def test_log(self):
         expected = Matrices.bracket(pi_4 * r_y, p_xy)
         result = self.metric.log(
