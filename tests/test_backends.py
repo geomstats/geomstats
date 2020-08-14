@@ -934,7 +934,7 @@ class TestBackends(geomstats.tests.TestCase):
 
     def test_split(self):
         x = gs.array([0.1, 0.2, 0.3, 0.4])
-        result_1, result_2 = gs.split(x, 2)
-        expected_1, expected_2 = _np.split(x, 2)
-        self.assertAllCloseToNp(result_1, expected_1)
-        self.assertAllCloseToNp(result_2, expected_2)
+        result = gs.split(x, 2)
+        expected = _np.split(x, 2)
+        for res, exp in zip(result, expected):
+            self.assertAllClose(res, exp)
