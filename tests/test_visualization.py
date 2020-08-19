@@ -1,9 +1,6 @@
-"""
-Unit tests for visualization.
-"""
+"""Unit tests for visualization."""
 
 import matplotlib
-matplotlib.use('Agg')  # NOQA
 import matplotlib.pyplot as plt
 
 import geomstats.tests
@@ -13,17 +10,23 @@ from geomstats.geometry.hypersphere import Hypersphere
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 
+matplotlib.use('Agg')  # NOQA
 
-class TestVisualizationMethods(geomstats.tests.TestCase):
+
+class TestVisualization(geomstats.tests.TestCase):
     def setUp(self):
         self.n_samples = 10
-        self.SO3_GROUP = SpecialOrthogonal(n=3)
-        self.SE3_GROUP = SpecialEuclidean(n=3)
-        self.S1 = Hypersphere(dimension=1)
-        self.S2 = Hypersphere(dimension=2)
-        self.H2 = Hyperbolic(dimension=2)
+        self.SO3_GROUP = SpecialOrthogonal(n=3, point_type='vector')
+        self.SE3_GROUP = SpecialEuclidean(n=3, point_type='vector')
+        self.S1 = Hypersphere(dim=1)
+        self.S2 = Hypersphere(dim=2)
+        self.H2 = Hyperbolic(dim=2)
 
         plt.figure()
+
+    @staticmethod
+    def test_tutorial_matplotlib():
+        visualization.tutorial_matplotlib()
 
     @geomstats.tests.np_only
     def test_plot_points_so3(self):

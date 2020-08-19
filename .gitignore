@@ -123,7 +123,14 @@ dmypy.json
 # Idea folder
 .idea/
 
+# VSCode
+.vscode/
+
+# Mac
+*.DS_Store
+
 # End of https://www.gitignore.io/api/python,jupyternotebooks
 
 # Miscellaneous
 out.mp4
+examples/out.mp4

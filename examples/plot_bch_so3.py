@@ -1,7 +1,7 @@
-"""Visualize convergenve of the BCH formula approximation on so(n).
+"""Visualize convergence of the BCH formula approximation on so(n).
 
 Visualize the first, second and third order approximation of the Baker Campbell
-Hausdorf formula on so(n). To this end, sample 2 random elements a,b of so(n)
+Hausdorff formula on so(n). To this end, sample 2 random elements a,b of so(n)
 and compute both the BCH approximations of different orders as well as
 log(exp(a)exp(b)) and compare these in the Frobenius norm.
 
@@ -26,13 +26,13 @@ N = 3
 MAX_ORDER = 10
 
 GROUP = SpecialOrthogonal(n=N)
-GROUP.default_point_type = 'matrix'
 
 DIM = int(N * (N - 1) / 2)
 ALGEBRA = SkewSymmetricMatrices(n=N)
 
 
 def main():
+    """Visualize convergence of the BCH formula approximation on so(n)."""
     norm_rv_1 = gs.random.normal(size=DIM)
     tan_rv_1 = ALGEBRA.matrix_representation(
         norm_rv_1 / gs.linalg.norm(norm_rv_1, axis=0) / 2

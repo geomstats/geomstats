@@ -45,7 +45,7 @@ def exp_then_log_from_identity(metric, tangent_vec):
     return result
 
 
-def log_then_exp(metric, point, base_point):
+def log_then_exp(metric, point, base_point=None):
     aux = metric.log(point=point,
                      base_point=base_point)
     result = metric.exp(tangent_vec=aux,
@@ -53,7 +53,7 @@ def log_then_exp(metric, point, base_point):
     return result
 
 
-def exp_then_log(metric, tangent_vec, base_point):
+def exp_then_log(metric, tangent_vec, base_point=None):
     aux = metric.exp(tangent_vec=tangent_vec,
                      base_point=base_point)
     result = metric.log(point=aux,

@@ -1,6 +1,4 @@
-"""
-Unit tests for the Grassmannian.
-"""
+"""Unit tests for the Grassmannian."""
 
 import geomstats.backend as gs
 import geomstats.tests
@@ -32,7 +30,7 @@ pi_2 = gs.pi / 2
 pi_4 = gs.pi / 4
 
 
-class TestGrassmannianMethods(geomstats.tests.TestCase):
+class TestGrassmannian(geomstats.tests.TestCase):
     def setUp(self):
         gs.random.seed(1234)
 
@@ -41,7 +39,6 @@ class TestGrassmannianMethods(geomstats.tests.TestCase):
         self.space = Grassmannian(self.n, self.k)
         self.metric = GrassmannianCanonicalMetric(self.n, self.k)
 
-    @geomstats.tests.np_only
     def test_exp_np(self):
         result = self.metric.exp(
             pi_2 * r_y,

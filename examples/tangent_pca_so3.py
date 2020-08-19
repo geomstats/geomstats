@@ -1,4 +1,4 @@
-"""Perform tangent PCA at the mean."""
+"""Perform tangent PCA at the mean on SO(3)."""
 
 import logging
 
@@ -10,7 +10,7 @@ from geomstats.geometry.special_orthogonal import SpecialOrthogonal
 from geomstats.learning.frechet_mean import FrechetMean
 from geomstats.learning.pca import TangentPCA
 
-SO3_GROUP = SpecialOrthogonal(n=3)
+SO3_GROUP = SpecialOrthogonal(n=3, point_type='vector')
 METRIC = SO3_GROUP.bi_invariant_metric
 
 N_SAMPLES = 10
@@ -18,7 +18,7 @@ N_COMPONENTS = 2
 
 
 def main():
-    """Perform tangent PCA at the mean."""
+    """Perform tangent PCA at the mean on SO(3)."""
     fig = plt.figure(figsize=(15, 5))
 
     data = SO3_GROUP.random_uniform(n_samples=N_SAMPLES)
@@ -44,8 +44,8 @@ def main():
     ax_var.set_ylim((0, 1))
     ax_var.plot(xticks, tpca.explained_variance_ratio_)
 
-    ax = fig.add_subplot(122, projection="3d")
-    plt.setp(ax, xlabel="X", ylabel="Y", zlabel="Z")
+    ax = fig.add_subplot(122, projection='3d')
+    plt.setp(ax, xlabel='X', ylabel='Y', zlabel='Z')
 
     ax.set_title('Data in SO3 (black) and Frechet mean (color)')
     visualization.plot(data, ax, space='SO3_GROUP', color='black')
@@ -56,5 +56,5 @@ def main():
     plt.show()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

@@ -1,4 +1,4 @@
-"""Perform tangent PCA at the mean."""
+"""Perform tangent PCA at the mean on the sphere."""
 
 import logging
 
@@ -12,10 +12,10 @@ from geomstats.learning.pca import TangentPCA
 
 
 def main():
-    """Perform tangent PCA at the mean."""
+    """Perform tangent PCA at the mean on the sphere."""
     fig = plt.figure(figsize=(15, 5))
 
-    sphere = Hypersphere(dimension=2)
+    sphere = Hypersphere(dim=2)
 
     data = sphere.random_von_mises_fisher(kappa=15, n_samples=140)
 
@@ -53,7 +53,7 @@ def main():
     ax_var.set_ylim((0, 1))
     ax_var.plot(xticks, tpca.explained_variance_ratio_)
 
-    ax = fig.add_subplot(122, projection="3d")
+    ax = fig.add_subplot(122, projection='3d')
 
     visualization.plot(
         mean_estimate, ax, space='S2', color='darkgreen', s=10)
@@ -67,5 +67,5 @@ def main():
     plt.show()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

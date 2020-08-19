@@ -8,17 +8,17 @@ from geomstats.geometry.beta_distributions import BetaDistributions
 from geomstats.geometry.beta_distributions import BetaMetric
 
 
-class TestBetaMethods(geomstats.tests.TestCase):
+class TestBetaDistributions(geomstats.tests.TestCase):
     def setUp(self):
         warnings.simplefilter('ignore', category=UserWarning)
         self.beta = BetaDistributions()
         self.metric = BetaMetric()
         self.n_samples = 10
-        self.dimension = self.beta.dimension
+        self.dim = self.beta.dim
 
-    @geomstats.tests.np_and_pytorch_only
     def test_random_uniform_and_belongs(self):
-        """
+        """Test random_uniform and belongs.
+
         Test that the random uniform method samples
         on the beta distribution space.
         """
@@ -26,20 +26,30 @@ class TestBetaMethods(geomstats.tests.TestCase):
         point = self.beta.random_uniform(n_samples)
         result = self.beta.belongs(point)
         expected = gs.array([True] * n_samples)
-
         self.assertAllClose(expected, result)
 
-    @geomstats.tests.np_and_pytorch_only
-    def test_random_uniform(self):
+    def test_random_uniform_and_belongs_vectorization(self):
+        """Test random_uniform and belongs.
+
+        Test that the random uniform method samples
+        on the beta distribution space.
         """
+        point = self.beta.random_uniform()
+        result = self.beta.belongs(point)
+        expected = True
+        self.assertAllClose(expected, result)
+
+    def test_random_uniform(self):
+        """Test random_uniform.
+
         Test that the random uniform method samples points of the right shape
         """
         point = self.beta.random_uniform(self.n_samples)
-        self.assertAllClose(gs.shape(point), (self.n_samples, self.dimension))
+        self.assertAllClose(gs.shape(point), (self.n_samples, self.dim))
 
-    @geomstats.tests.np_only
     def test_sample(self):
-        """
+        """Test samples.
+
         Test that the sample method samples variates from beta distributions
         with the specified parameters, using the law of large numbers
         """
@@ -52,9 +62,9 @@ class TestBetaMethods(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected, rtol=tol, atol=tol)
 
-    @geomstats.tests.np_only
     def test_maximum_likelihood_fit(self):
-        """
+        """Test maximum likelihood.
+
         Test that the maximum likelihood fit method recovers
         parameters of beta distribution.
         """
@@ -83,7 +93,8 @@ class TestBetaMethods(geomstats.tests.TestCase):
 
     @geomstats.tests.np_only
     def test_log_and_exp(self):
-        """
+        """Test Log and Exp.
+
         Test that the Riemannian exponential
         and the Riemannian logarithm are inverse.
 
@@ -98,8 +109,10 @@ class TestBetaMethods(geomstats.tests.TestCase):
         result = self.metric.exp(tangent_vec=log, base_point=base_point)
         self.assertAllClose(result, expected, rtol=1e-2)
 
+    @geomstats.tests.np_and_tf_only
     def test_christoffels_vectorization(self):
-        """
+        """Test Christoffel synbols.
+
         Check vectorization of Christoffel symbols in
         spherical coordinates on the 2-sphere.
         """
@@ -107,5 +120,11 @@ class TestBetaMethods(geomstats.tests.TestCase):
         christoffel = self.metric.christoffels(points)
         result = christoffel.shape
         expected = gs.array(
-            [self.n_samples, self.dimension, self.dimension, self.dimension])
+            [self.n_samples, self.dim, self.dim, self.dim])
+        self.assertAllClose(result, expected)
+
+    def test_inner_product_matrix(self):
+        point = gs.array([1., 1.])
+        result = self.beta.metric.inner_product_matrix(point)
+        expected = gs.array([[1., -0.644934066], [-0.644934066, 1.]])
         self.assertAllClose(result, expected)

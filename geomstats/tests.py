@@ -1,5 +1,4 @@
-"""
-Testing class for geomstats.
+"""Testing class for geomstats.
 
 This class abstracts the backend type.
 """
@@ -64,18 +63,6 @@ def np_and_pytorch_only(test_item):
         test_item)
 
 
-class DummySession:
-    """Class for dummy sessions."""
-
-    def __enter__(self):
-        """Enter."""
-        pass
-
-    def __exit__(self, a, b, c):
-        """Exit."""
-        pass
-
-
 _TestBaseClass = unittest.TestCase
 if tf_backend():
     import tensorflow as tf
@@ -86,27 +73,21 @@ class TestCase(_TestBaseClass):
     def assertAllClose(self, a, b, rtol=1e-6, atol=1e-6):
         if tf_backend():
             return super().assertAllClose(a, b, rtol=rtol, atol=atol)
-        elif np_backend():
+        if np_backend():
             return np.testing.assert_allclose(a, b, rtol=rtol, atol=atol)
         return self.assertTrue(gs.allclose(a, b, rtol=rtol, atol=atol))
 
     def assertAllCloseToNp(self, a, np_a, rtol=1e-6, atol=1e-6):
         are_same_shape = np.all(a.shape == np_a.shape)
-        if pytorch_backend():
-            are_same = np.all(np.array(a) == np_a)
-        else:
-            are_same = np.all(a == np_a)
-        return are_same_shape and are_same
-
-    def session(self):
+        are_same = np.allclose(a, np_a, rtol=rtol, atol=atol)
         if tf_backend():
-            return super().test_session()
-        return DummySession()
+            return super().assertTrue(are_same_shape and are_same)
+        return super().assertTrue(are_same_shape and are_same)
 
     def assertShapeEqual(self, a, b):
         if tf_backend():
             return super().assertShapeEqual(a, b)
-        super().assertEqual(a.shape, b.shape)
+        return super().assertEqual(a.shape, b.shape)
 
     @classmethod
     def setUpClass(cls):

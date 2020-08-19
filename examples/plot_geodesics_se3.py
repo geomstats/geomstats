@@ -1,29 +1,28 @@
-"""
-Plot a geodesic of SE(3) equipped
-with its left-invariant canonical METRIC.
-"""
+"""Plot a geodesic of SE(3).
 
-import logging
-import os
+SE3 is equipped with its left-invariant canonical metric.
+"""
 
 import matplotlib.pyplot as plt
-import numpy as np
 
+import geomstats.backend as gs
 import geomstats.visualization as visualization
 from geomstats.geometry.special_euclidean import SpecialEuclidean
 
-SE3_GROUP = SpecialEuclidean(n=3)
+SE3_GROUP = SpecialEuclidean(n=3, point_type='vector')
 METRIC = SE3_GROUP.left_canonical_metric
+N_STEPS = 40
 
 
 def main():
+    """Plot a geodesic on SE3."""
     initial_point = SE3_GROUP.identity
-    initial_tangent_vec = [1.8, 0.2, 0.3, 3., 3., 1.]
-    geodesic = METRIC.geodesic(initial_point=initial_point,
-                               initial_tangent_vec=initial_tangent_vec)
+    initial_tangent_vec = gs.array([1.8, 0.2, 0.3, 3., 3., 1.])
+    geodesic = METRIC.geodesic(
+        initial_point=initial_point,
+        initial_tangent_vec=initial_tangent_vec)
 
-    n_steps = 40
-    t = np.linspace(-3, 3, n_steps)
+    t = gs.linspace(-3., 3., N_STEPS)
 
     points = geodesic(t)
 
@@ -31,11 +30,5 @@ def main():
     plt.show()
 
 
-if __name__ == "__main__":
-    if os.environ['GEOMSTATS_BACKEND'] == 'tensorflow':
-        logging.info('Examples with visualizations are only implemented '
-                     'with numpy backend.\n'
-                     'To change backend, write: '
-                     'export GEOMSTATS_BACKEND = \'numpy\'.')
-    else:
-        main()
+if __name__ == '__main__':
+    main()
