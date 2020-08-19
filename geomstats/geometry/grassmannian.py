@@ -1,4 +1,32 @@
-"""Module exposing `Grassmannian` and `GrassmannianMetric` classes."""
+"""
+Manifold of linear subspaces. 
+
+The Grassmannian :math:`Gr(n, k)` is the manifold of k-dimensional
+subspaces in n-dimensional Euclidean space.
+
+:math:`Gr(n, k) \subset {\\cal M}_n({\\mathbb R})` is represented by 
+:math:`n \\times n` matrices 
+of rank :math:`k`,  satisfying :math:`p^2 = p` and :math:`p^T = p`.
+Each :math:`p \in Gr(n, k)` is identified with the unique 
+orthogonal projector onto :math:`{\\rm Im}(p)`. 
+
+:math:`Gr(n, k)` is a homogoneous space, 
+which may be realised as the quotient of the special orthogonal group 
+by the subgroup of rotations stabilising a k-dimensional subspace:
+
+.. math::
+
+    Gr(n, k) \simeq \\frac {SO(n)} {SO(k) \\times SO(n-k)} 
+
+Note that it is also customary to represent the Grassmannian 
+by equivalence classes of orthogonal :math:`k`-frames in :math:`{\\mathbb R}^n`. 
+For such a representation, use the Stiefel manifold instead. 
+
+.. math:: 
+
+    Gr(n, k) \simeq St(n, k) / SO(k) 
+
+"""
 
 import geomstats.backend as gs
 import geomstats.errors
