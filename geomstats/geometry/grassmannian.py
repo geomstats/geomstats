@@ -59,14 +59,14 @@ class Grassmannian(EmbeddedManifold):
 
         Parameters
         ----------
-        n_samples: int,
+        n_samples : int
             The number of points to sample
             Optional. default: 1.
 
         Returns
         -------
         projectors : array-like, shape=[..., n, n]
-            Points following a uniform distribution
+            Points following a uniform distribution.
 
         References
         ----------
@@ -160,13 +160,12 @@ class Grassmannian(EmbeddedManifold):
 
     @staticmethod
     def _check_square(point):
-        """Check if a point is square.
+        """Check if a point is a square matrix.
 
         Parameters
         ----------
-        point
-        n: Euclidean dimension
-        k: subspace dimension
+        point : array-like, shape=[..., n, n]
+            Matrix.
 
         Returns
         -------
