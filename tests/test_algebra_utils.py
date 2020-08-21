@@ -13,8 +13,6 @@ class TestTaylorExp(geomstats.tests.TestCase):
             utils.inv_tanc_close_0,
             utils.cosc_close_0]
         self.functions[4]['function'] = lambda x: (1 - math.cos(x)) / x ** 2
-        # self.functions[5]['function'] = (
-        #     lambda x: (1 - (x / math.tan(x))) / x ** 2)
 
     def test_all(self):
         for taylor_function in self.functions:
