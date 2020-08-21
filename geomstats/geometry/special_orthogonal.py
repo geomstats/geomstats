@@ -4,7 +4,6 @@ import geomstats.algebra_utils as utils
 import geomstats.backend as gs
 import geomstats.errors
 import geomstats.vectorization
-from geomstats import algebra_utils
 from geomstats.geometry.general_linear import GeneralLinear
 from geomstats.geometry.invariant_metric import BiInvariantMetric
 from geomstats.geometry.lie_group import LieGroup
@@ -14,14 +13,6 @@ from geomstats.geometry.symmetric_matrices import SymmetricMatrices
 
 ATOL = 1e-5
 
-TAYLOR_COEFFS_1_AT_0 = [1., 0.,
-                        - 1. / 12., 0.,
-                        - 1. / 720., 0.,
-                        - 1. / 30240., 0.]
-TAYLOR_COEFFS_2_AT_0 = [1. / 12., 0.,
-                        1. / 720., 0.,
-                        1. / 30240., 0.,
-                        1. / 1209600., 0.]
 TAYLOR_COEFFS_1_AT_PI = [0., - gs.pi / 4.,
                          - 1. / 4., - gs.pi / 48.,
                          - 1. / 48., - gs.pi / 480.,
@@ -252,7 +243,7 @@ class _SpecialOrthogonalVectors(LieGroup):
         diag = gs.concatenate((gs.ones(self.n - 1), -gs.ones(1)), axis=0)
         diag = gs.to_ndarray(diag, to_ndim=2)
         diag = gs.to_ndarray(
-            algebra_utils.from_vector_to_diagonal_matrix(diag),
+            utils.from_vector_to_diagonal_matrix(diag),
             to_ndim=3) + self.epsilon
         new_mat_diag_s = gs.tile(diag, [n_mats, 1, 1])
 
@@ -1601,14 +1592,9 @@ class _SpecialOrthogonal3Vectors(_SpecialOrthogonalVectors):
 
         angle = gs.sqrt(squared_angle)
         delta_angle = angle - gs.pi
-        approx_at_pi = (
-            TAYLOR_COEFFS_1_AT_PI[1] * delta_angle +
-            TAYLOR_COEFFS_1_AT_PI[2] * delta_angle ** 2 +
-            TAYLOR_COEFFS_1_AT_PI[3] * delta_angle ** 3 +
-            TAYLOR_COEFFS_1_AT_PI[4] * delta_angle ** 4 +
-            TAYLOR_COEFFS_1_AT_PI[5] * delta_angle ** 5 +
-            TAYLOR_COEFFS_1_AT_PI[6] * delta_angle ** 6)
-
+        approx_at_pi = gs.sum(gs.array([
+            TAYLOR_COEFFS_1_AT_PI[k] * delta_angle ** k for k in range(1, 7)
+        ]))
         coef_1 = utils.taylor_exp_even_func(
             squared_angle / 4, utils.inv_tanc_close_0)
         coef_1 = gs.where(
