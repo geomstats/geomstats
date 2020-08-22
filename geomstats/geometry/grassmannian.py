@@ -93,8 +93,8 @@ class Grassmannian(EmbeddedManifold):
     def is_tangent(self, tangent_vec, point):
         """Check if an (n,n)-matrix is tangent to a point in the Grassmannian.
 
-        A matrix :math:`X` is tangent to :math:`P \\in Gr(n, k)` 
-        if and only if :math:`X^T = X` and :math:`PX + XP = X`. 
+        A matrix :math:`X` is tangent to :math:`P \\in Gr(n, k)`
+        if and only if :math:`X^T = X` and :math:`PX + XP = X`.
 
         Parameters
         ----------
@@ -105,7 +105,7 @@ class Grassmannian(EmbeddedManifold):
 
         Returns
         _______
-        is_tangent : boolean, shape=[...] 
+        is_tangent : boolean, shape=[...]
 
         """
         is_inf_rot = Matrices.is_skew_symmetric(tangent_vec)
@@ -175,8 +175,8 @@ class GrassmannianCanonicalMetric(RiemannianMetric):
 
             Y = \frac 1 2 \log \big((2 P' - 1)(2 P - 1)\big)
 
-        The tangent vector :math:`X` at :math:`P` 
-        is then recovered by :math:`X = [Y, P]`. 
+        The tangent vector :math:`X` at :math:`P`
+        is then recovered by :math:`X = [Y, P]`.
 
         Parameters
         ----------
