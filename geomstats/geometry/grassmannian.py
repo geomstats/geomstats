@@ -1,24 +1,24 @@
-"""
+r"""
 Manifold of linear subspaces.
 
 The Grassmannian :math:`Gr(n, k)` is the manifold of k-dimensional
 subspaces in n-dimensional Euclidean space.
 
 :math:`Gr(n, k)` is represented by
-:math:`n \\times n` matrices
+:math:`n \times n` matrices
 of rank :math:`k`  satisfying :math:`P^2 = P` and :math:`P^T = P`.
 Each :math:`P \in Gr(n, k)` is identified with the unique
-orthogonal projector onto :math:`{\\rm Im}(P)`.
+orthogonal projector onto :math:`{\rm Im}(P)`.
 
-:math:`Gr(n, k)` is a homogoneous space, quotient of the special orthogonal group
-by the subgroup of rotations stabilising a k-dimensional subspace:
+:math:`Gr(n, k)` is a homogoneous space, quotient of the special orthogonal
+group by the subgroup of rotations stabilising a k-dimensional subspace:
 
 .. math::
 
-    Gr(n, k) \simeq \\frac {SO(n)} {SO(k) \\times SO(n-k)}
+    Gr(n, k) \simeq \frac {SO(n)} {SO(k) \times SO(n-k)}
 
 It is therefore customary to represent the Grassmannian
-by equivalence classes of orthogonal :math:`k`-frames in :math:`{\\mathbb R}^n`.
+by equivalence classes of orthogonal :math:`k`-frames in :math:`{\mathbb R}^n`.
 For such a representation, work in the Stiefel manifold instead.
 
 .. math::
@@ -237,9 +237,9 @@ class Grassmannian(EmbeddedManifold):
         return gs.sum(s > tolerance, axis=-1) == rank
 
     def is_tangent(self, tangent_vec, point):
-        """Check if an (n,n)-matrix is tangent to a point in the Grassmannian.
+        r"""Check if an (n,n)-matrix is tangent to a point in the Grassmannian.
 
-        A matrix :math:`X` is tangent to :math:`P \\in Gr(n, k)`
+        A matrix :math:`X` is tangent to :math:`P \in Gr(n, k)`
         if and only if :math:`X^T = X` and :math:`PX + XP = X`.
 
         Parameters
@@ -256,8 +256,8 @@ class Grassmannian(EmbeddedManifold):
         """
         is_inf_rot = Matrices.is_skew_symmetric(tangent_vec)
         is_transverse = Matrices.equal(
-                Matrices.bracket(tangent_vec, point),
-                point)
+            Matrices.bracket(tangent_vec, point),
+            point)
         return gs.logical_and(is_inf_rot, is_transverse)
 
     def to_tangent(self, tangent_vec, point):
