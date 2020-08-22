@@ -1,30 +1,29 @@
 """
-Manifold of linear subspaces. 
+Manifold of linear subspaces.
 
 The Grassmannian :math:`Gr(n, k)` is the manifold of k-dimensional
 subspaces in n-dimensional Euclidean space.
 
-:math:`Gr(n, k) \subset {\\cal M}_n({\\mathbb R})` is represented by 
-:math:`n \\times n` matrices 
-of rank :math:`k`,  satisfying :math:`p^2 = p` and :math:`p^T = p`.
-Each :math:`p \in Gr(n, k)` is identified with the unique 
-orthogonal projector onto :math:`{\\rm Im}(p)`. 
+:math:`Gr(n, k)` is represented by
+:math:`n \\times n` matrices
+of rank :math:`k`  satisfying :math:`P^2 = P` and :math:`P^T = P`.
+Each :math:`P \in Gr(n, k)` is identified with the unique
+orthogonal projector onto :math:`{\\rm Im}(P)`.
 
-:math:`Gr(n, k)` is a homogoneous space, 
-which may be realised as the quotient of the special orthogonal group 
+:math:`Gr(n, k)` is a homogoneous space, quotient of the special orthogonal group
 by the subgroup of rotations stabilising a k-dimensional subspace:
 
 .. math::
 
-    Gr(n, k) \simeq \\frac {SO(n)} {SO(k) \\times SO(n-k)} 
+    Gr(n, k) \simeq \\frac {SO(n)} {SO(k) \\times SO(n-k)}
 
-Note that it is also customary to represent the Grassmannian 
-by equivalence classes of orthogonal :math:`k`-frames in :math:`{\\mathbb R}^n`. 
-For such a representation, use the Stiefel manifold instead. 
+It is therefore customary to represent the Grassmannian
+by equivalence classes of orthogonal :math:`k`-frames in :math:`{\\mathbb R}^n`.
+For such a representation, work in the Stiefel manifold instead.
 
-.. math:: 
+.. math::
 
-    Gr(n, k) \simeq St(n, k) / SO(k) 
+    Gr(n, k) \simeq St(n, k) / SO(k)
 
 """
 
@@ -42,12 +41,6 @@ EPSILON = 1e-6
 
 class Grassmannian(EmbeddedManifold):
     """Class for Grassmann manifolds Gr(n, k).
-
-    Class for Grassmann manifolds Gr(n, k) of k-dimensional
-    subspaces in the n-dimensional Euclidean space.
-
-    The subspaces are represented by their (unique) orthogonal projection
-    matrix onto themselves.
 
     Parameters
     ----------
@@ -78,38 +71,7 @@ class Grassmannian(EmbeddedManifold):
         self.k = k
         self.metric = GrassmannianCanonicalMetric(3, 2)
 
-    def random_uniform(self, n_samples=1):
-        """Sample random points from a uniform distribution.
-
-        Following [Chikuse03]_, :math: `n_samples * n * k`scalars are sampled
-        from a standard normal distribution and reshaped to matrices,
-        the projectors on their first k columns follow a uniform distribution.
-
-        Parameters
-        ----------
-        n_samples : int
-            The number of points to sample
-            Optional. default: 1.
-
-        Returns
-        -------
-        projectors : array-like, shape=[..., n, n]
-            Points following a uniform distribution.
-
-        References
-        ----------
-        .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
-        New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
-        """
-        points = gs.random.normal(size=(n_samples, self. n, self.k))
-        full_rank = Matrices.mul(Matrices.transpose(points), points)
-        projector = Matrices.mul(
-            points,
-            GeneralLinear.inverse(full_rank),
-            Matrices.transpose(points))
-        return projector[0] if n_samples == 1 else projector
-
-    def belongs(self, point, atol=TOLERANCE):
+    def belongs(self, point, tolerance=TOLERANCE):
         """Check if the point belongs to the manifold.
 
         Check if an (n,n)-matrix is an orthogonal projector
@@ -137,6 +99,37 @@ class Grassmannian(EmbeddedManifold):
         belongs = gs.all(gs.stack([symm, idem, rank], axis=0), axis=0)
 
         return belongs
+
+    def random_uniform(self, n_samples=1):
+        """Sample random points from a uniform distribution.
+
+        Following [Chikuse03]_, :math: `n_samples * n * k`scalars are sampled
+        from a standard normal distribution and reshaped to matrices,
+        the projectors on their first k columns follow a uniform distribution.
+
+        Parameters
+        ----------
+        n_samples : int
+            The number of points to sample
+            Optional. default: 1.
+
+        Returns
+        -------
+        projectors : array-like, shape=[..., n, n]
+            Points following a uniform distribution.
+
+        References
+        ----------
+        .. [Chikuse03] Yasuko Chikuse, Statistics on special manifolds,
+        New York: Springer-Verlag. 2003, 10.1007/978-0-387-21540-2
+        """
+        points = gs.random.normal(size=(n_samples, self.n, self.k))
+        full_rank = Matrices.mul(Matrices.transpose(points), points)
+        projector = Matrices.mul(
+            points,
+            GeneralLinear.inverse(full_rank),
+            Matrices.transpose(points))
+        return projector[0] if n_samples == 1 else projector
 
     def is_tangent(self, vector, base_point=None, atol=TOLERANCE):
         r"""Check if a vector is tangent to the manifold at the base point.
@@ -244,11 +237,28 @@ class Grassmannian(EmbeddedManifold):
         return gs.sum(s > tolerance, axis=-1) == rank
 
     def is_tangent(self, tangent_vec, point):
+        """Check if an (n,n)-matrix is tangent to a point in the Grassmannian.
+
+        A matrix :math:`X` is tangent to :math:`P \\in Gr(n, k)`
+        if and only if :math:`X^T = X` and :math:`PX + XP = X`.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[..., n, n]
+            Tangent vector to be checked.
+        point : array-like, shape=[..., n, n]
+            Base point.
+
+        Returns
+        _______
+        is_tangent : boolean, shape=[...]
+
+        """
         is_inf_rot = Matrices.is_skew_symmetric(tangent_vec)
         is_transverse = Matrices.equal(
-                Matrices.bracket(tangent_vec, point), 
+                Matrices.bracket(tangent_vec, point),
                 point)
-        return gs.and(is_inf_rot, is_transverse)
+        return gs.logical_and(is_inf_rot, is_transverse)
 
     def to_tangent(self, tangent_vec, point):
         inf_rot = Matrices.to_skew_symmetric(tangent_vec)
@@ -292,7 +302,6 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
             base_point.
         base_point : array-like, shape=[..., n, n]
             Base point.
-            `base_point` is a rank p projector of Gr(n, k).
 
         Returns
         -------
@@ -308,11 +317,14 @@ class GrassmannianCanonicalMetric(MatricesMetric, RiemannianMetric):
         r"""Compute the Riemannian logarithm of point w.r.t. base_point.
 
         Given :math:`P, P'` in Gr(n, k) the logarithm from :math:`P`
-        to :math:`P'` is given by the infinitesimal rotation [Batzies2015]_:
+        to :math:`P` is induced by the infinitesimal rotation [Batzies2015]_:
 
         .. math::
 
-            \omega = \frac 1 2 \log \big((2 P' - 1)(2 P - 1)\big)
+            Y = \frac 1 2 \log \big((2 P' - 1)(2 P - 1)\big)
+
+        The tangent vector :math:`X` at :math:`P`
+        is then recovered by :math:`X = [Y, P]`.
 
         Parameters
         ----------
