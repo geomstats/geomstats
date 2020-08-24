@@ -36,12 +36,51 @@ class TestEM(geomstats.tests.TestCase):
         self.data = gs.concatenate((cluster_1, cluster_2, cluster_3), axis=0)
 
     @geomstats.tests.np_only
-    def test_fit(self):
+    def test_fit_init_kmeans(self):
         """Test fitting data into a GMM."""
         gmm_learning = RiemannianEM(
             metric=self.metric,
             n_gaussians=self.n_gaussian,
             initialisation_method=self.initialisation_method,
+            mean_method=self.mean_method)
+
+        means, variances, coefficients = gmm_learning.fit(self.data)
+
+        self.assertTrue((coefficients < 1).all() and (coefficients > 0).all())
+        self.assertTrue((variances < 1).all() and (variances > 0).all())
+        self.assertTrue(self.space.belongs(means).all())
+
+        gmm_learning = RiemannianEM(
+            metric=self.metric,
+            n_gaussians=self.n_gaussian,
+            initialisation_method='kmeans',
+            mean_method=self.mean_method)
+
+        means, variances, coefficients = gmm_learning.fit(self.data)
+
+        self.assertTrue((coefficients < 1).all() and (coefficients > 0).all())
+        self.assertTrue((variances < 1).all() and (variances > 0).all())
+        self.assertTrue(self.space.belongs(means).all())
+
+    @geomstats.tests.np_only
+    def test_fit_init_random(self):
+        """Test fitting data into a GMM."""
+        gmm_learning = RiemannianEM(
+            metric=self.metric,
+            n_gaussians=self.n_gaussian,
+            initialisation_method=self.initialisation_method,
+            mean_method=self.mean_method)
+
+        means, variances, coefficients = gmm_learning.fit(self.data)
+
+        self.assertTrue((coefficients < 1).all() and (coefficients > 0).all())
+        self.assertTrue((variances < 1).all() and (variances > 0).all())
+        self.assertTrue(self.space.belongs(means).all())
+
+        gmm_learning = RiemannianEM(
+            metric=self.metric,
+            n_gaussians=self.n_gaussian,
+            initialisation_method='random',
             mean_method=self.mean_method)
 
         means, variances, coefficients = gmm_learning.fit(self.data)

@@ -162,7 +162,7 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
     """Perform ball gradient descent."""
     if len(points) == 1:
         return points
-
+    points = gs.to_ndarray(points, to_ndim=2)
     if weights is None:
 
         iteration = 0
@@ -172,9 +172,7 @@ def _ball_gradient_descent(points, metric, weights=None, max_iter=32,
         while convergence > tau and max_iter > iteration:
 
             iteration += 1
-
             grad_tangent = 2 * metric.log(points, barycenter)
-
             cc_barycenter = metric.exp(
                 lr * grad_tangent.sum(0, keepdims=True), barycenter)
 

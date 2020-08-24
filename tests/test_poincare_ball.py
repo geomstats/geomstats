@@ -214,6 +214,11 @@ class TestPoincareBall(geomstats.tests.TestCase):
         belong = self.manifold.belongs(point)
         self.assertFalse(belong)
 
+    def test_projection(self):
+        point = gs.array([1.2, 0.5])
+        projected_point = self.manifold.projection(point)
+        self.assertTrue(gs.sum(projected_point * projected_point) < 1.)
+
     def test_exp_poincare(self):
 
         point = gs.array([0.3, 0.5])
