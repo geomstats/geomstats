@@ -5,7 +5,6 @@ from functools import wraps
 import numpy as _np
 import torch
 from torch import (  # NOQA
-    abs,
     acos as arccos,
     arange,
     argmin,
@@ -89,6 +88,7 @@ def _box_scalar(function):
     return wrapper
 
 
+abs = _box_scalar(abs)
 ceil = _box_scalar(ceil)
 cos = _box_scalar(cos)
 cosh = _box_scalar(cosh)
@@ -96,6 +96,7 @@ exp = _box_scalar(exp)
 log = _box_scalar(log)
 sin = _box_scalar(sin)
 sinh = _box_scalar(sinh)
+tan = _box_scalar(tan)
 
 
 def to_numpy(x):

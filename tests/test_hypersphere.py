@@ -144,7 +144,7 @@ class TestHypersphere(geomstats.tests.TestCase):
         base_point = gs.array([1., 2., 3., 4., 6.])
         base_point = base_point / gs.linalg.norm(base_point)
         point = (base_point
-                 + 1e-12 * gs.array([-1., -2., 1., 1., .1]))
+                 + 1e-4 * gs.array([-1., -2., 1., 1., .1]))
         point = point / gs.linalg.norm(point)
 
         log = self.metric.log(point=point, base_point=base_point)
@@ -245,6 +245,21 @@ class TestHypersphere(geomstats.tests.TestCase):
         result = self.metric.log(n_points, n_base_points)
         self.assertAllClose(gs.shape(result), (n_samples, dim))
 
+    def test_exp_log_are_inverse(self):
+        initial_point = self.space.random_uniform(2)
+        end_point = self.space.random_uniform(2)
+        vec = self.space.metric.log(point=end_point, base_point=initial_point)
+        result = self.space.metric.exp(vec, initial_point)
+        self.assertAllClose(end_point, result)
+
+    def test_log_extreme_case(self):
+        initial_point = self.space.random_uniform(2)
+        vec = 1e-4 * gs.random.rand(*initial_point.shape)
+        vec = self.space.to_tangent(vec, initial_point)
+        point = self.space.metric.exp(vec, base_point=initial_point)
+        result = self.space.metric.log(point, initial_point)
+        self.assertAllClose(vec, result)
+
     def test_exp_and_log_and_projection_to_tangent_space_general_case(self):
         """Test Log and Exp.
 
@@ -296,16 +311,13 @@ class TestHypersphere(geomstats.tests.TestCase):
         # Edge case: tangent vector has norm < epsilon
         base_point = gs.array([10., -2., -.5, 34., 3.])
         base_point = base_point / gs.linalg.norm(base_point)
-        vector = 1e-10 * gs.array([.06, -51., 6., 5., 3.])
+        vector = 1e-4 * gs.array([.06, -51., 6., 5., 3.])
         vector = self.space.to_tangent(
             vector=vector, base_point=base_point)
 
         exp = self.metric.exp(tangent_vec=vector, base_point=base_point)
         result = self.metric.log(point=exp, base_point=base_point)
-        expected = self.space.to_tangent(
-            vector=vector, base_point=base_point)
-
-        self.assertAllClose(result, expected, atol=1e-8)
+        self.assertAllClose(result, vector, atol=1e-7)
 
     def test_squared_norm_and_squared_dist(self):
         """
