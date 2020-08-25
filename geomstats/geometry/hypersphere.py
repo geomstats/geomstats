@@ -440,8 +440,7 @@ class HypersphereMetric(RiemannianMetric):
             of tangent_vec at the base point.
         """
         hypersphere = Hypersphere(dim=self.dim)
-        proj_tangent_vec = hypersphere.to_tangent(
-            tangent_vec, base_point)
+        proj_tangent_vec = hypersphere.to_tangent(tangent_vec, base_point)
         norm2 = self.embedding_metric.squared_norm(proj_tangent_vec)
 
         coef_1 = utils.taylor_exp_even_func(

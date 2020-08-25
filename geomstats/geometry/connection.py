@@ -231,13 +231,6 @@ class Connection:
             base_point=mid_point,
             tangent_vec=tangent_vector_to_shoot, **kwargs)
 
-        next_tangent_vec = - self.log(
-            base_point=next_point, point=end_shoot, **kwargs)
-
-        end_point = self.exp(
-            base_point=next_point,
-            tangent_vec=next_tangent_vec, **kwargs)
-
         geodesics = []
         if return_geodesics:
             main_geodesic = self.geodesic(
@@ -250,9 +243,8 @@ class Connection:
                 initial_point=next_point,
                 end_point=end_shoot)
             geodesics = [main_geodesic, diagonal, final_geodesic]
-        return {'next_tangent_vec': next_tangent_vec,
-                'geodesics': geodesics,
-                'end_point': end_point}
+        return {'geodesics': geodesics,
+                'end_point': end_shoot}
 
     def _schild_ladder_step(self, base_point, next_point, base_shoot,
                             return_geodesics=False, **kwargs):
@@ -306,9 +298,6 @@ class Connection:
             base_point=mid_point,
             tangent_vec=tangent_vector_to_shoot, **kwargs)
 
-        next_tangent_vec = self.log(
-            base_point=next_point, point=end_shoot, **kwargs)
-
         geodesics = []
         if return_geodesics:
             main_geodesic = self.geodesic(
@@ -328,100 +317,12 @@ class Connection:
                 diagonal,
                 second_diagonal,
                 final_geodesic]
-        return {'next_tangent_vec': next_tangent_vec,
-                'geodesics': geodesics,
+        return {'geodesics': geodesics,
                 'end_point': end_shoot}
-
-    def average_schild_ladder(
-            self, tangent_vec_a, tangent_vec_b, base_point, n_steps=1,
-            scheme='schild', **single_step_kwargs):
-        """Average two opposite construction Schild's Ladder steps.
-
-        Approximate Parallel transport using either the pole ladder or the
-        Schild's ladder scheme [LP2013b]_. Pole ladder is exact in symmetric
-        spaces [GJSP2019]_ while Schild's ladder is a first order
-        approximation. Both schemes are available any affine connection
-        manifolds whose exponential and logarithm maps are implemented.
-        `tangent_vec_a` is transported along the geodesic starting
-        at the base_point with initial tangent vector `tangent_vec_b`.
-
-        Parameters
-        ----------
-        tangent_vec_a : array-like, shape=[n_samples, dimension]
-            Tangent vector at base point to transport.
-        tangent_vec_b : array-like, shape=[n_samples, dimension]
-            Tangent vector at base point, initial speed of the geodesic along
-            which to transport.
-        base_point : array-like, shape=[n_samples, dimension]
-            Point on the manifold, initial position of the geodesic along
-            which to transport.
-        n_steps : int
-            The number of pole ladder steps.
-        scheme : str, {'pole', 'schild'}
-            The scheme to use for the construction of the ladder at each step.
-        approximate_geo : bool
-            Whether approximate geodesics are used.
-        **single_step_kwargs : keyword arguments for the step functions
-
-        Returns
-        -------
-        ladder : dict of array-like and callable with following keys
-            transported_tangent_vector : array-like, shape=[n_samples, dim]
-                Approximation of the parallel transport of tangent vector a.
-            trajectory : list of list of callable, len=n_ladders
-                List of lists containing the geodesics of the
-                construction, only if `return_geodesics=True` in the step
-                function. The geodesics are methods of the class connection.
-
-        References
-        ----------
-        .. [LP2013b] Marco Lorenzi, Xavier Pennec. Efficient Parallel Transpor
-          of Deformations in Time Series of Images: from Schild's to
-          Pole Ladder.Journal of Mathematical Imaging and Vision, Springer
-          Verlag, 2013, 50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
-        """
-        current_point = gs.copy(base_point)
-        next_tangent_vec = gs.copy(tangent_vec_a)
-        methods = {'pole': self._pole_ladder_step,
-                   'schild': self._schild_ladder_step}
-        single_step = methods[step]
-        base_shoot_1 = self.exp(
-            base_point=current_point,  tangent_vec=next_tangent_vec)
-        base_shoot_2 = self.exp(
-            base_point=current_point,  tangent_vec=- 1. * next_tangent_vec)
-        trajectory = []
-        for i_point in range(0, n_steps):
-            frac_tangent_vector_b = (i_point + 1) / n_steps * tangent_vec_b
-            next_point = self.exp(
-                base_point=base_point,
-                tangent_vec=frac_tangent_vector_b)
-            next_step_1 = single_step(
-                base_point=current_point,
-                next_point=next_point,
-                base_shoot=base_shoot_1,
-                **single_step_kwargs)
-            next_step_2 = single_step(
-                base_point=current_point,
-                next_point=next_point,
-                base_shoot=base_shoot_2,
-                **single_step_kwargs)
-            current_point = next_point
-            next_tangent_vec_1 = next_step_1['next_tangent_vec']
-            next_tangent_vec_2 = next_step_2['next_tangent_vec']
-            next_tangent_vec = (next_tangent_vec_1 - next_tangent_vec_2) / 2.
-            base_shoot_1 = self.exp(
-                base_point=current_point, tangent_vec=next_tangent_vec)
-            base_shoot_2 = self.exp(
-                base_point=current_point, tangent_vec=- 1. * next_tangent_vec)
-            trajectory.append(next_step_1['geodesics'])
-        transported_tangent_vec = next_tangent_vec
-
-        return {'transported_tangent_vec': transported_tangent_vec,
-                'trajectory': trajectory}
 
     def ladder_parallel_transport(
             self, tangent_vec_a, tangent_vec_b, base_point, n_rungs=1,
-            scheme='pole', approximate_geo=False, **single_step_kwargs):
+            scheme='pole', alpha=2, **single_step_kwargs):
         """Approximate parallel transport using the pole ladder scheme.
 
         Approximate Parallel transport using either the pole ladder or the
@@ -443,13 +344,15 @@ class Connection:
             Point on the manifold, initial position of the geodesic along
             which to transport.
         n_rungs : int
-            The number of pole ladder steps.
+            Number of steps of the ladder.
             Optional, default: 1.
         scheme : str, {'pole', 'schild'}
             The scheme to use for the construction of the ladder at each step.
             Optional, default: 'pole'.
-        approximate_geo : bool
-            Whether approximate geodesics are used.
+        alpha : float
+            Exponent for the scaling of the vector to transport. Must be
+            greater or equal to 1, 2 is optimal. See [GP2020]_.
+            Optional, default: 2
         **single_step_kwargs : keyword arguments for the step functions
 
         Returns
@@ -469,33 +372,25 @@ class Connection:
           Pole Ladder.Journal of Mathematical Imaging and Vision, Springer
           Verlag, 2013, 50 (1-2), pp.5-17. ⟨10.1007/s10851-013-0470-3⟩
 
-        .. [GJSP2019] N. Guigui, Shuman Jia, Maxime Sermesant, Xavier Pennec.
-          Symmetric Algorithmic Components for Shape Analysis with
-          Diffeomorphisms. GSI 2019, Aug 2019, Toulouse, France. pp.10.
-          ⟨hal-02148832⟩
+        .. [GP2020] Nicolas Guigui, Xavier Pennec. Numerical Accuracy of
+        Ladder Schemes for Parallel Transport on Manifolds. 2020.
+        ⟨hal-02894783⟩
         """
-        current_point = gs.copy(base_point)
-        next_tangent_vec = gs.copy(tangent_vec_a)
+        geomstats.errors.check_integer(n_rungs, 'n_rungs')
+        if alpha < 1:
+            raise ValueError('alpha must be greater or equal to one')
+        current_point = base_point
+        next_tangent_vec = tangent_vec_a / (n_rungs ** alpha)
         methods = {'pole': self._pole_ladder_step,
                    'schild': self._schild_ladder_step}
         single_step = methods[scheme]
         base_shoot = self.exp(
             base_point=current_point, tangent_vec=next_tangent_vec)
         trajectory = []
-        current_speed = 1. / n_rungs * tangent_vec_b
         for i_point in range(n_rungs):
-            if approximate_geo:
-                initial_state = (current_point, current_speed)
-                flow, vel = integrate(
-                    self.geodesic_equation,
-                    initial_state, n_steps=1, step='rk4')
-                next_point = flow[-1]
-                current_speed = vel[-1]
-            else:
-                frac_tan_vector_b = (i_point + 1) / n_rungs * tangent_vec_b
-                next_point = self.exp(
-                    base_point=base_point,
-                    tangent_vec=frac_tan_vector_b)
+            frac_tan_vector_b = (i_point + 1) / n_rungs * tangent_vec_b
+            next_point = self.exp(
+                base_point=base_point, tangent_vec=frac_tan_vector_b)
             next_step = single_step(
                 base_point=current_point,
                 next_point=next_point,
@@ -504,42 +399,13 @@ class Connection:
             current_point = next_point
             base_shoot = next_step['end_point']
             trajectory.append(next_step['geodesics'])
-        transported_tangent_vec = next_step['next_tangent_vec']
-
+        transported_tangent_vec = self.log(base_shoot, current_point)
+        if n_rungs % 2 == 1 and scheme == 'pole':
+            transported_tangent_vec *= -1.
+        transported_tangent_vec *= n_rungs ** alpha
         return {'transported_tangent_vec': transported_tangent_vec,
                 'end_point': current_point,
                 'trajectory': trajectory}
-
-    def pole_ladder(self, tangent_vec_a, tangent_vec_b, base_point, n_ladders=1,
-                    approximate_geo=False, **kwargs):
-        current_point = gs.copy(base_point)
-        current_speed = gs.copy(tangent_vec_b) / n_ladders
-        current_shoot = self.exp(tangent_vec_a, base_point, **kwargs)
-        for i_point in range(n_ladders):
-            if approximate_geo:
-                initial_state = (current_point, current_speed)
-                flow, vel = integrate(
-                    self.geodesic_equation,
-                    initial_state, n_steps=2, end_time=2, step='rk4')
-                current_point = flow[-1]
-                mid_point = flow[-2]
-                current_speed = vel[-1]
-            else:
-                frac_tan_vector_b = (i_point + 1) / n_ladders * tangent_vec_b
-                frac_tan_b_midpoint = (2 * i_point + 1) / (2 * n_ladders) * \
-                    tangent_vec_b
-                mid_point = self.exp(
-                    base_point=base_point, tangent_vec=frac_tan_b_midpoint)
-                current_point = self.exp(
-                    base_point=base_point, tangent_vec=frac_tan_vector_b)
-            tan_to_shoot = - self.log(current_shoot, mid_point, **kwargs)
-            current_shoot = self.exp(tan_to_shoot, mid_point, **kwargs)
-        transported = self.log(current_shoot, current_point, **kwargs)
-        if n_ladders % 2 == 1:
-            transported *= -1.
-        return {'transported_tangent_vec': transported,
-                'end_point': current_point,
-                'trajectory': []}
 
     def riemannian_curvature(self, base_point):
         """Compute Riemannian curvature tensor associated with the connection.
