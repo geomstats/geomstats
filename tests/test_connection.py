@@ -54,11 +54,36 @@ class TestConnection(geomstats.tests.TestCase):
 
         self.assertAllClose(result, expected)
 
-    @geomstats.tests.np_and_pytorch_only
     def test_parallel_transport(self):
         n_samples = 2
+        base_point = self.hypersphere.random_uniform(n_samples)
+        tan_vec_a = self.hypersphere.to_tangent(
+            gs.random.rand(n_samples, 3), base_point)
+        tan_vec_b = self.hypersphere.to_tangent(
+            gs.random.rand(n_samples, 3), base_point)
+        expected = self.hypersphere.metric.parallel_transport(
+            tan_vec_a, tan_vec_b, base_point)
+        expected_point = self.hypersphere.metric.exp(
+            tan_vec_b, base_point)
+        base_point = gs.cast(base_point, gs.float64)
+        base_point, tan_vec_a, tan_vec_b = gs.convert_to_wider_dtype(
+            [base_point, tan_vec_a, tan_vec_b])
+        for step, alpha in zip(['pole', 'schild'], [1, 2]):
+            min_n = 1 if step == 'pole' else 50
+            tol = 1e-5 if step == 'pole' else 1e-2
+            for n_rungs in [min_n, 11]:
+                ladder = self.hypersphere.metric.ladder_parallel_transport(
+                    tan_vec_a, tan_vec_b, base_point, scheme=step,
+                    n_rungs=n_rungs, alpha=alpha)
+                result = ladder['transported_tangent_vec']
+                result_point = ladder['end_point']
+                self.assertAllClose(result, expected, rtol=tol, atol=tol)
+                self.assertAllClose(result_point, expected_point)
+
+    def test_parallel_transport_trajectory(self):
+        n_samples = 2
         for step in ['pole', 'schild']:
-            n_steps = 1 if step == 'pole' else 100
+            n_steps = 1 if step == 'pole' else 50
             tol = 1e-6 if step == 'pole' else 1e-2
             base_point = self.hypersphere.random_uniform(n_samples)
             tan_vec_a = self.hypersphere.to_tangent(
@@ -67,51 +92,16 @@ class TestConnection(geomstats.tests.TestCase):
                 gs.random.rand(n_samples, 3), base_point)
             expected = self.hypersphere.metric.parallel_transport(
                 tan_vec_a, tan_vec_b, base_point)
+            expected_point = self.hypersphere.metric.exp(
+                tan_vec_b, base_point)
             ladder = self.hypersphere.metric.ladder_parallel_transport(
-                tan_vec_a / n_steps ** 2, tan_vec_b, base_point, scheme=step,
-                n_rungs=n_steps)
-            result = ladder['transported_tangent_vec'] * n_steps ** 2
-
-            self.assertAllClose(result, expected, rtol=tol, atol=tol)
-
-    def test_pole_ladder_simplified(self):
-        n_samples = 2
-        for n_steps in [1, 10]:
-            base_point = self.hypersphere.random_uniform(n_samples)
-            tan_vec_a = self.hypersphere.to_tangent(
-                gs.random.rand(n_samples, 3), base_point)
-            tan_vec_b = self.hypersphere.to_tangent(
-                gs.random.rand(n_samples, 3), base_point)
-            expected_point = self.hypersphere.metric.exp(tan_vec_b, base_point)
-            expected = self.hypersphere.metric.parallel_transport(
-                tan_vec_a, tan_vec_b, base_point)
-            ladder = self.hypersphere.metric.pole_ladder(
-                tan_vec_a, tan_vec_b, base_point, n_ladders=n_steps)
+                tan_vec_a, tan_vec_b, base_point,
+                return_geodesics=True, scheme=step, n_rungs=n_steps)
             result = ladder['transported_tangent_vec']
             result_point = ladder['end_point']
-            self.assertAllClose(result, expected)
+
+            self.assertAllClose(result, expected, rtol=tol, atol=tol)
             self.assertAllClose(result_point, expected_point)
-
-    @geomstats.tests.np_and_pytorch_only
-    def test_parallel_transport_trajectory(self):
-        n_samples = 2
-        for step in ['pole', 'schild']:
-            n_steps = 1 if step == 'pole' else 100
-            rtol = 1e-6 if step == 'pole' else 1e-1
-            atol = 1e-6 if step == 'pole' else 1e-2
-            base_point = self.hypersphere.random_uniform(n_samples)
-            tan_vec_a = self.hypersphere.to_tangent(
-                gs.random.rand(n_samples, 3), base_point)
-            tan_vec_b = self.hypersphere.to_tangent(
-                gs.random.rand(n_samples, 3), base_point)
-            expected = self.hypersphere.metric.parallel_transport(
-                tan_vec_a, tan_vec_b, base_point)
-            ladder = self.hypersphere.metric.ladder_parallel_transport(
-                tan_vec_a / n_steps ** 2, tan_vec_b, base_point,
-                return_geodesics=True, scheme=step, n_rungs=n_steps)
-            result = ladder['transported_tangent_vec'] * n_steps ** 2
-
-            self.assertAllClose(result, expected, rtol=rtol, atol=atol)
 
     def test_exp_connection_metric(self):
         point = gs.array([gs.pi / 2, 0])
