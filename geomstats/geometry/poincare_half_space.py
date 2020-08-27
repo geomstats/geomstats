@@ -84,7 +84,8 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         self.scale = scale
         self.poincare_ball = PoincareBall(dim=dim, scale=scale)
 
-    def half_space_to_ball_coordinates(self, point):
+    @staticmethod
+    def half_space_to_ball_coordinates(point):
         """Convert a point from Poincare half space to Poincare ball
         coordinates.
         """
