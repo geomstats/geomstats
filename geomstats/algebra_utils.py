@@ -25,19 +25,21 @@ COSC_TAYLOR_COEFFS = [1. / 2.,
 VAR_INV_TAN_TAYLOR_COEFFS = [
     1. / 12., 1. / 720., 1. / 30240., 1. / 1209600.]
 
-cos_close_0 = {'function': gs.cos, 'coeffs': COS_TAYLOR_COEFFS}
+cos_close_0 = {'function': gs.cos, 'coefficients': COS_TAYLOR_COEFFS}
 sinc_close_0 = {
-    'function': lambda x: gs.sin(x) / x, 'coeffs': SINC_TAYLOR_COEFFS}
+    'function': lambda x: gs.sin(x) / x, 'coefficients': SINC_TAYLOR_COEFFS}
 inv_sinc_close_0 = {
-    'function': lambda x: x / gs.sin(x), 'coeffs': INV_SINC_TAYLOR_COEFFS}
+    'function': lambda x: x / gs.sin(x),
+    'coefficients': INV_SINC_TAYLOR_COEFFS}
 inv_tanc_close_0 = {
-    'function': lambda x: x / gs.tan(x), 'coeffs': INV_TANC_TAYLOR_COEFFS}
+    'function': lambda x: x / gs.tan(x),
+    'coefficients': INV_TANC_TAYLOR_COEFFS}
 cosc_close_0 = {
     'function': lambda x: (1 - gs.cos(x)) / x ** 2,
-    'coeffs': COSC_TAYLOR_COEFFS}
+    'coefficients': COSC_TAYLOR_COEFFS}
 var_inv_tanc_close_0 = {
     'function': lambda x: (1 - (x / gs.tan(x))) / x ** 2,
-    'coeffs': VAR_INV_TAN_TAYLOR_COEFFS}
+    'coefficients': VAR_INV_TAN_TAYLOR_COEFFS}
 
 
 def from_vector_to_diagonal_matrix(vector):
@@ -66,17 +68,27 @@ def taylor_exp_even_func(
 
     Parameters
     ----------
-    point
-    taylor_function
-    order
-    tol
+    point : array-like
+        Argument of the function to approximate.
+    taylor_function : dict with following keys
+        function : callable
+            Even function to approximate around zero.
+        coefficients : list
+            Taylor coefficients of even order at zero.
+    order : int
+        Order of the Taylor approximation.
+        Optional, Default: 5.
+    tol : float
+        Threshold to use the approximation instead of the function's value.
+        Where `abs(point) <= tol`, the approximation is returned.
 
     Returns
     -------
-
+    function_value: array-like
+        Value of the function at point.
     """
     approx = gs.einsum(
-        'k,k...->...', gs.array(taylor_function['coeffs'][:order]),
+        'k,k...->...', gs.array(taylor_function['coefficients'][:order]),
         gs.array([point ** k for k in range(order)]))
     point_ = gs.where(gs.abs(point) <= tol, tol, point)
     exact = taylor_function['function'](gs.sqrt(point_))

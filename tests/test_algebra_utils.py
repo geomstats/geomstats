@@ -4,7 +4,7 @@ import geomstats.algebra_utils as utils
 import geomstats.tests
 
 
-class TestTaylorExp(geomstats.tests.TestCase):
+class TestAlgebraUtils(geomstats.tests.TestCase):
     def setUp(self):
         self.functions = [
             utils.cos_close_0,
