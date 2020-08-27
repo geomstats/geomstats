@@ -57,11 +57,25 @@ class PoincareHalfSpace(Hyperbolic):
 
 
 class PoincareHalfSpaceMetric(RiemannianMetric):
+    """Class for the metric of the n-dimensional hyperbolic space.
+
+    Class for the metric of the n-dimensional hyperbolic space
+    as embedded in the Poincaré half space model.
+
+    Parameters
+    ----------
+    dim : int
+        Dimension of the hyperbolic space.
+    scale : int
+        Scale of the hyperbolic space, defined as the set of points
+        in Minkowski space whose squared norm is equal to -scale.
+        Optional, default: 1.
+    """
 
     default_point_type = 'vector'
     default_coords_type = 'half-space'
 
-    def __init__(self, dim, scale=1):
+    def __init__(self, dim, scale=1.):
         super(PoincareHalfSpaceMetric, self).__init__(
             dim=dim,
             signature=(dim, 0, 0))
@@ -81,10 +95,9 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         point_ball = gs.hstack([component_1, gs.to_ndarray(component_2, 2)])
         return gs.squeeze(point_ball)
 
-    def ball_to_half_space_coordinates(self, point):
-        """Convert a point from Poincare ball to Poincare half space
-        coordinates.
-        """
+    @staticmethod
+    def ball_to_half_space_coordinates(point):
+        """Convert a point from Poincare ball to Poincare half space."""
         point = gs.to_ndarray(point, 2)
         den = 1 + gs.linalg.norm(point)**2 - 2 * point[:, -1]
         component_1 = 2 * point[:, :-1] / den
@@ -93,10 +106,9 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
             [component_1, gs.to_ndarray(component_2, 2)])
         return gs.squeeze(point_half_space)
 
-    def half_space_to_ball_tangent(self, tangent_vec, base_point):
-        """Convert a tangent vector at base point from Poincare half space
-        to Poincare ball coordinates.
-        """
+    @staticmethod
+    def half_space_to_ball_tangent(tangent_vec, base_point):
+        """Convert a tangent_vec from Poincare half space to Poincare ball."""
         base_point = gs.to_ndarray(base_point, 2)
         tangent_vec = gs.to_ndarray(tangent_vec, 2)
         den = 1 + gs.linalg.norm(base_point)**2 + 2 * base_point[:, -1]
@@ -110,10 +122,9 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
             [component_1, gs.to_ndarray(component_2, 2)])
         return gs.squeeze(tangent_vec_ball)
 
-    def ball_to_half_space_tangent(self, tangent_vec, base_point):
-        """Convert a tangent vector at base point from Poincare ball to
-        Poincare half space coordinates.
-        """
+    @staticmethod
+    def ball_to_half_space_tangent(tangent_vec, base_point):
+        """Convert a tangent_vec from Poincare ball to Poincare half space."""
         base_point = gs.to_ndarray(base_point, 2)
         tangent_vec = gs.to_ndarray(tangent_vec, 2)
         den = 1 + gs.linalg.norm(base_point)**2 - 2 * base_point[:, -1]
@@ -128,9 +139,7 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         return gs.squeeze(tangent_vec_half_space)
 
     def exp(self, tangent_vec, base_point):
-        """Compute the Riemannian exponential of a tangent vector at
-        a base point.
-        """
+        """Compute the Riemannian exponential."""
         base_point_ball = self.half_space_to_ball_coordinates(
             base_point)
         tangent_vec_ball = self.half_space_to_ball_tangent(

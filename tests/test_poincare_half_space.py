@@ -1,5 +1,4 @@
-"""Unit tests for the Hyperbolic space using Poincare half space model.
-"""
+"""Unit tests for the Hyperbolic space using Poincare half space model."""
 import numpy as np
 
 import geomstats.backend as gs
@@ -46,14 +45,14 @@ class TestPoincareHalfSpace(geomstats.tests.TestCase):
 
     def test_exp_and_coordinates_tangent(self):
         base_point = gs.array([1.5, 2.3])
-        tangent_vec = gs.array([0, 1])
+        tangent_vec = gs.array([0., 1.])
         end_point = self.metric.exp(tangent_vec, base_point)
         self.assertAllClose(base_point[0], end_point[0])
 
     @geomstats.tests.np_only
     def test_exp(self):
-        point = gs.array([1, 1])
-        tangent_vec = gs.array([2, 1])
+        point = gs.array([1., 1.])
+        tangent_vec = gs.array([2., 1.])
         end_point = self.metric.exp(tangent_vec, point)
 
         circle_center = point[0] + point[1] * tangent_vec[1] / tangent_vec[0]
