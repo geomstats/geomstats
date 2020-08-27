@@ -86,8 +86,17 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
 
     @staticmethod
     def half_space_to_ball_coordinates(point):
-        """Convert a point from Poincare half space to Poincare ball
-        coordinates.
+        """Convert a point from Poincare half space to Poincare ball.
+
+        Parameters
+        ----------
+        point : array-like, shape=[...,n]
+            Point in the Poincare half space.
+
+        Returns
+        -------
+        point_ball : array-like, shape=[...,n]
+            Corresponding point in the Poincare ball.
         """
         point = gs.to_ndarray(point, 2)
         den = 1 + gs.linalg.norm(point)**2 + 2 * point[:, -1]
@@ -98,7 +107,18 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
 
     @staticmethod
     def ball_to_half_space_coordinates(point):
-        """Convert a point from Poincare ball to Poincare half space."""
+        """Convert a point from Poincare ball to Poincare half space.
+
+        Parameters
+        ----------
+        point : array-like, shape=[...,n]
+            Point in the Poincare ball.
+
+        Returns
+        -------
+        point_ball : array-like, shape=[...,n]
+            Corresponding point in the Poincare half space.
+        """
         point = gs.to_ndarray(point, 2)
         den = 1 + gs.linalg.norm(point)**2 - 2 * point[:, -1]
         component_1 = 2 * point[:, :-1] / den
@@ -109,7 +129,20 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
 
     @staticmethod
     def half_space_to_ball_tangent(tangent_vec, base_point):
-        """Convert a tangent_vec from Poincare half space to Poincare ball."""
+        """Convert a tangent_vec from Poincare half space to Poincare ball.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[...,n]
+            Tangent vector at the base point in the Poincare half space.
+        base_point : array-like, shape=[...,n]
+            Point in the Poincare half space.
+
+        Returns
+        -------
+        tangent_vector_ball : array-like, shape=[...,n]
+            Corresponding tangent vector in the Poincare ball.
+        """
         base_point = gs.to_ndarray(base_point, 2)
         tangent_vec = gs.to_ndarray(tangent_vec, 2)
         den = 1 + gs.linalg.norm(base_point)**2 + 2 * base_point[:, -1]
@@ -125,7 +158,21 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
 
     @staticmethod
     def ball_to_half_space_tangent(tangent_vec, base_point):
-        """Convert a tangent_vec from Poincare ball to Poincare half space."""
+        """Convert a tangent_vec from Poincare ball to Poincare half space.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[...,n]
+            Tangent vector at the base point in the Poincare ball.
+        base_point : array-like, shape=[...,n]
+            Point in the Poincare ball.
+
+        Returns
+        -------
+        tangent_vector_ball : array-like, shape=[...,n]
+            Corresponding tangent vector in the Poincare half space.
+
+        """
         base_point = gs.to_ndarray(base_point, 2)
         tangent_vec = gs.to_ndarray(tangent_vec, 2)
         den = 1 + gs.linalg.norm(base_point)**2 - 2 * base_point[:, -1]
@@ -140,7 +187,21 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         return gs.squeeze(tangent_vec_half_space)
 
     def exp(self, tangent_vec, base_point):
-        """Compute the Riemannian exponential."""
+        """Compute the Riemannian exponential.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[...,n]
+            Tangent vector at the base point in the Poincare half space.
+        base_point : array-like, shape=[...,n]
+            Point in the Poincare half space.
+
+        Returns
+        -------
+        end_point : array-like, shape=[...,n]
+            Point in the Poincare half space, reached by the geodesic
+            starting from `base_point` with initial velocity `tangent_vec`
+        """
         base_point_ball = self.half_space_to_ball_coordinates(
             base_point)
         tangent_vec_ball = self.half_space_to_ball_tangent(
