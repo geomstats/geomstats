@@ -103,6 +103,19 @@ class TestConnection(geomstats.tests.TestCase):
             self.assertAllClose(result, expected, rtol=tol, atol=tol)
             self.assertAllClose(result_point, expected_point)
 
+    def test_ladder_alpha(self):
+        n_samples = 2
+        base_point = self.hypersphere.random_uniform(n_samples)
+        tan_vec_a = self.hypersphere.to_tangent(
+            gs.random.rand(n_samples, 3), base_point)
+        tan_vec_b = self.hypersphere.to_tangent(
+            gs.random.rand(n_samples, 3), base_point)
+        self.assertRaises(
+            ValueError,
+            lambda: self.hypersphere.metric.ladder_parallel_transport(
+                tan_vec_a, tan_vec_b, base_point,
+                return_geodesics=False, scheme='pole', n_rungs=1, alpha=0.5))
+
     def test_exp_connection_metric(self):
         point = gs.array([gs.pi / 2, 0])
         vector = gs.array([0.25, 0.5])
@@ -214,3 +227,17 @@ class TestConnection(geomstats.tests.TestCase):
         expected = space.bi_invariant_metric.exp(
             initial_tangent_vec, initial_point)
         self.assertAllClose(expected, result)
+
+    def test_geodesic_invalid_initial_conditions(self):
+        space = SpecialOrthogonal(n=4)
+        initial_point = space.random_uniform(2)
+        vector = gs.random.rand(2, 4, 4)
+        initial_tangent_vec = space.to_tangent(
+            vector=vector, base_point=initial_point)
+        end_point = space.random_uniform(2)
+        self.assertRaises(
+            RuntimeError,
+            lambda: space.bi_invariant_metric.geodesic(
+                initial_point=initial_point,
+                initial_tangent_vec=initial_tangent_vec,
+                end_point=end_point))
