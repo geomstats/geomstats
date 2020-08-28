@@ -279,9 +279,8 @@ class Hyperbolic(Manifold):
                 '...i,...->...i', base_point[..., :-1],
                 (scalar_prod + tangent_vec[..., -1]) / den**2))
         component_2 = 2 * (
-                scalar_prod / den
-                - (scalar_prod * (sq_norm - 1) + tangent_vec[..., -1])
-                / den ** 2)
+            scalar_prod / den
+            - (scalar_prod * (sq_norm - 1) + tangent_vec[..., -1]) / den ** 2)
         tangent_vec_ball = gs.concatenate(
             [component_1, component_2[..., None]], axis=-1)
         return tangent_vec_ball
@@ -430,7 +429,7 @@ class Hyperbolic(Manifold):
         ----------
         point : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space in coordinates from_point_type.
-        from_coords_type : str, {'ball', 'extrinsic', 'intrinsic', 'half_plane'}
+        from_coords_type : str, {'ball', 'extrinsic', 'intrinsic', ...}
             Coordinates type.
 
         Returns
