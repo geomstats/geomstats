@@ -163,9 +163,8 @@ class Hyperbolic(Manifold):
         intrinsic = (2 * point) / expanded_denominator
         return gs.concatenate([t, intrinsic], -1)
 
-    @staticmethod
-    @geomstats.vectorization.decorator(['vector'])
-    def _half_plane_to_extrinsic_coordinates(point):
+    @classmethod
+    def _half_plane_to_extrinsic_coordinates(cls, point):
         """Convert half plane to extrinsic coordinates.
 
         Convert the parameterization of a point in the hyperbolic plane
@@ -182,19 +181,11 @@ class Hyperbolic(Manifold):
         extrinsic : array-like, shape=[..., 3]
             Point in hyperbolic plane in extrinsic coordinates.
         """
-        x, y = point[:, 0], point[:, 1]
-        x2 = point[:, 0]**2
-        den = x2 + (1 + y)**2
-        x = gs.to_ndarray(x, to_ndim=2, axis=0)
-        y = gs.to_ndarray(y, to_ndim=2, axis=0)
-        x2 = gs.to_ndarray(x2, to_ndim=2, axis=0)
-        den = gs.to_ndarray(den, to_ndim=2, axis=0)
-        ball_point = gs.hstack((2 * x / den, (x2 + y**2 - 1) / den))
-        return Hyperbolic._ball_to_extrinsic_coordinates(ball_point)
+        ball_point = cls.half_space_to_ball_coordinates(point)
+        return cls._ball_to_extrinsic_coordinates(ball_point)
 
-    @staticmethod
-    @geomstats.vectorization.decorator(['vector'])
-    def _extrinsic_to_half_plane_coordinates(point):
+    @classmethod
+    def _extrinsic_to_half_plane_coordinates(cls, point):
         """Convert extrinsic to half plane coordinates.
 
         Convert the parameterization of a point in the hyperbolic plane
@@ -213,24 +204,119 @@ class Hyperbolic(Manifold):
             coordinates.
         """
         point_ball = \
-            Hyperbolic._extrinsic_to_ball_coordinates(point)
-        point_ball_x, point_ball_y = point_ball[:, 0], point_ball[:, 1]
-        point_ball_x2 = point_ball_x**2
-        denom = point_ball_x2 + (1 - point_ball_y)**2
-
-        point_ball_x = gs.to_ndarray(
-            point_ball_x, to_ndim=2, axis=0)
-        point_ball_y = gs.to_ndarray(
-            point_ball_y, to_ndim=2, axis=0)
-        point_ball_x2 = gs.to_ndarray(
-            point_ball_x2, to_ndim=2, axis=0)
-        denom = gs.to_ndarray(
-            denom, to_ndim=2, axis=0)
-
-        point_half_plane = gs.hstack((
-            (2 * point_ball_x) / denom,
-            (1 - point_ball_x2 - point_ball_y**2) / denom))
+            cls._extrinsic_to_ball_coordinates(point)
+        point_half_plane = cls.ball_to_half_space_coordinates(point_ball)
         return point_half_plane
+
+    @staticmethod
+    def half_space_to_ball_coordinates(point):
+        """Convert a point from Poincare half space to Poincare ball.
+
+        Parameters
+        ----------
+        point : array-like, shape=[...,n]
+            Point in the Poincare half space.
+
+        Returns
+        -------
+        point_ball : array-like, shape=[...,n]
+            Corresponding point in the Poincare ball.
+        """
+        sq_norm = gs.sum(point ** 2, axis=-1)
+        den = 1 + sq_norm + 2 * point[..., -1]
+        component_1 = gs.einsum(
+            '...i,...->...i', point[..., :-1], 2. / den)
+        component_2 = (sq_norm - 1) / den
+        point_ball = gs.concatenate(
+            [component_1, component_2[..., None]], axis=-1)
+        return point_ball
+
+    @staticmethod
+    def ball_to_half_space_coordinates(point):
+        """Convert a point from Poincare ball to Poincare half space.
+
+        Parameters
+        ----------
+        point : array-like, shape=[...,n]
+            Point in the Poincare ball.
+
+        Returns
+        -------
+        point_ball : array-like, shape=[...,n]
+            Corresponding point in the Poincare half space.
+        """
+        sq_norm = gs.sum(point ** 2, axis=-1)
+        den = 1 + sq_norm - 2 * point[..., -1]
+        component_1 = gs.einsum(
+            '...i,...->...i', point[..., :-1], 2. / den)
+        component_2 = (1 - sq_norm) / den
+        point_half_space = gs.concatenate(
+            [component_1, component_2[..., None]], axis=-1)
+        return point_half_space
+
+    @staticmethod
+    def half_space_to_ball_tangent(tangent_vec, base_point):
+        """Convert a tangent_vec from Poincare half space to Poincare ball.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[...,n]
+            Tangent vector at the base point in the Poincare half space.
+        base_point : array-like, shape=[...,n]
+            Point in the Poincare half space.
+
+        Returns
+        -------
+        tangent_vector_ball : array-like, shape=[...,n]
+            Corresponding tangent vector in the Poincare ball.
+        """
+        sq_norm = gs.sum(base_point ** 2, axis=-1)
+        den = 1. + sq_norm + 2. * base_point[..., -1]
+        scalar_prod = gs.sum(base_point * tangent_vec, axis=-1)
+        component_1 = (
+            gs.einsum('...i,...->...i', tangent_vec[..., :-1], 2. / den)
+            - 4. * gs.einsum(
+                '...i,...->...i', base_point[..., :-1],
+                (scalar_prod + tangent_vec[..., -1]) / den**2))
+        component_2 = 2 * (
+                scalar_prod / den
+                - (scalar_prod * (sq_norm - 1) + tangent_vec[..., -1])
+                / den ** 2)
+        tangent_vec_ball = gs.concatenate(
+            [component_1, component_2[..., None]], axis=-1)
+        return tangent_vec_ball
+
+    @staticmethod
+    def ball_to_half_space_tangent(tangent_vec, base_point):
+        """Convert a tangent_vec from Poincare ball to Poincare half space.
+
+        Parameters
+        ----------
+        tangent_vec : array-like, shape=[...,n]
+            Tangent vector at the base point in the Poincare ball.
+        base_point : array-like, shape=[...,n]
+            Point in the Poincare ball.
+
+        Returns
+        -------
+        tangent_vector_ball : array-like, shape=[...,n]
+            Corresponding tangent vector in the Poincare half space.
+
+        """
+        sq_norm = gs.sum(base_point ** 2, axis=-1)
+        den = 1 + sq_norm - 2 * base_point[..., -1]
+        scalar_prod = gs.sum(base_point * tangent_vec, -1)
+        component_1 = (
+            gs.einsum('...i,...->...i', tangent_vec[..., :-1], 2. / den)
+            - gs.einsum(
+                '...i,...->...i', base_point[..., :-1],
+                4. * (scalar_prod - tangent_vec[..., -1]) / den**2))
+        component_2 = 2. * (
+            scalar_prod / den
+            - (scalar_prod * (1. - sq_norm) - tangent_vec[..., -1]) / den**2)
+        tangent_vec_half_space = gs.concatenate(
+            [component_1, component_2[..., None]], axis=-1)
+        return tangent_vec_half_space
 
     @staticmethod
     def change_coordinates_system(point,
@@ -321,7 +407,7 @@ class Hyperbolic(Manifold):
         ----------
         point : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space.
-        to_point_type : str, {'extrinsic', 'intrinsic', etc}
+        to_coords_type : str, {'extrinsic', 'intrinsic', etc}
             Coordinates type.
             Optional, default: 'ball'.
 
@@ -344,7 +430,7 @@ class Hyperbolic(Manifold):
         ----------
         point : array-like, shape=[..., {dim, dim + 1}]
             Point in hyperbolic space in coordinates from_point_type.
-        from_point_type : str, {'ball', 'extrinsic', 'intrinsic', 'half_plane'}
+        from_coords_type : str, {'ball', 'extrinsic', 'intrinsic', 'half_plane'}
             Coordinates type.
 
         Returns
