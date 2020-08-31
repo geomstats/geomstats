@@ -80,7 +80,7 @@ class TestPoincareHalfSpace(geomstats.tests.TestCase):
             base_point)
         result = self.manifold.ball_to_half_space_tangent(
             tangent_vec_ball, base_point_ball)
-        self.assertAllClose(result, base_point)
+        self.assertAllClose(result, tangent_vec)
 
     @geomstats.tests.np_only
     def test_exp(self):

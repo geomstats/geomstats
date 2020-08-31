@@ -278,9 +278,9 @@ class Hyperbolic(Manifold):
             - 4. * gs.einsum(
                 '...i,...->...i', base_point[..., :-1],
                 (scalar_prod + tangent_vec[..., -1]) / den**2))
-        component_2 = 2 * (
-            scalar_prod / den
-            - (scalar_prod * (sq_norm - 1) + tangent_vec[..., -1]) / den ** 2)
+        component_2 = 2 * scalar_prod / den \
+            - 2 * (sq_norm - 1) * (scalar_prod + tangent_vec[..., -1]) \
+            / den ** 2
         tangent_vec_ball = gs.concatenate(
             [component_1, component_2[..., None]], axis=-1)
         return tangent_vec_ball
@@ -307,12 +307,12 @@ class Hyperbolic(Manifold):
         scalar_prod = gs.sum(base_point * tangent_vec, -1)
         component_1 = (
             gs.einsum('...i,...->...i', tangent_vec[..., :-1], 2. / den)
-            - gs.einsum(
+            - 4. * gs.einsum(
                 '...i,...->...i', base_point[..., :-1],
-                4. * (scalar_prod - tangent_vec[..., -1]) / den**2))
-        component_2 = 2. * (
-            scalar_prod / den
-            - (scalar_prod * (1. - sq_norm) - tangent_vec[..., -1]) / den**2)
+                (scalar_prod - tangent_vec[..., -1]) / den**2))
+        component_2 = -2. * scalar_prod / den \
+            - 2 * (1. - sq_norm) * (scalar_prod - tangent_vec[..., -1]) \
+            / den**2
         tangent_vec_half_space = gs.concatenate(
             [component_1, component_2[..., None]], axis=-1)
         return tangent_vec_half_space
