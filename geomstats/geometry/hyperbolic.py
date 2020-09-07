@@ -50,19 +50,17 @@ class Hyperbolic(Manifold):
     def _extrinsic_to_extrinsic_coordinates(point):
         """Convert the parameterization of a point.
 
-        Convert the parameterization of a point in hyperbolic space
-        from its extrinsic coordinates, to its intrinsic coordinates
-        in Minkowski space.
+        Dummy method that returns the input point.
 
         Parameters
         ----------
-        point_extrinsic : array-like, shape=[..., dim + 1]
+        point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
 
         Returns
         -------
-        point_intrinsic : array-like, shape=[..., dim]
-            Point in hyperbolic space in intrinsic coordinates.
+        point_extrinsic : array-like, shape=[..., dim]
+            Point in hyperbolic space in extrinsic coordinates.
         """
         return point
 
