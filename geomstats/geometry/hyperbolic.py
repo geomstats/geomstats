@@ -67,7 +67,6 @@ class Hyperbolic(Manifold):
         return point
 
     @staticmethod
-    @geomstats.vectorization.decorator(['vector'])
     def _intrinsic_to_extrinsic_coordinates(point):
         """Convert intrinsic to extrinsic coordinates.
 
