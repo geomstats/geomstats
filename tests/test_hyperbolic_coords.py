@@ -66,10 +66,10 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
         x = self.intrinsic_manifold.to_coordinates(
             x_in, to_coords_type='extrinsic')
         x_up = self.extrinsic_manifold.to_coordinates(
-            x, to_coords_type='half-plane')
+            x, to_coords_type='half-space')
 
         x2 = Hyperbolic.change_coordinates_system(
-            x_up, 'half-plane', 'extrinsic')
+            x_up, 'half-space', 'extrinsic')
         self.assertAllClose(x, x2)
 
     def test_intrinsic_extrinsic_intrinsic(self):

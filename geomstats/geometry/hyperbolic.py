@@ -67,7 +67,8 @@ class Hyperbolic(Manifold):
         return point
 
     @staticmethod
-    def _intrinsic_to_extrinsic_coordinates(point_intrinsic):
+    @geomstats.vectorization.decorator(['vector'])
+    def _intrinsic_to_extrinsic_coordinates(point):
         """Convert intrinsic to extrinsic coordinates.
 
         Convert the parameterization of a point in hyperbolic space
@@ -76,7 +77,7 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point_intrinsic : array-like, shape=[..., dim]
+        point : array-like, shape=[..., dim]
             Point in hyperbolic space in intrinsic coordinates.
 
         Returns
@@ -84,14 +85,14 @@ class Hyperbolic(Manifold):
         point_extrinsic : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
         """
-        coord_0 = gs.sqrt(1. + gs.sum(point_intrinsic ** 2, axis=-1))
+        coord_0 = gs.sqrt(1. + gs.sum(point ** 2, axis=-1))
         point_extrinsic = gs.concatenate(
-            [coord_0[..., None], point_intrinsic], axis=-1)
+            [coord_0[..., None], point], axis=-1)
 
         return point_extrinsic
 
     @staticmethod
-    def _extrinsic_to_intrinsic_coordinates(point_extrinsic):
+    def _extrinsic_to_intrinsic_coordinates(point):
         """Convert extrinsic to intrinsic coordinates.
 
         Convert the parameterization of a point in hyperbolic space
@@ -100,14 +101,14 @@ class Hyperbolic(Manifold):
 
         Parameters
         ----------
-        point_extrinsic : array-like, shape=[..., dim + 1]
+        point : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
 
         Returns
         -------
         point_intrinsic : array-like, shape=[..., dim]
         """
-        point_intrinsic = point_extrinsic[..., 1:]
+        point_intrinsic = point[..., 1:]
 
         return point_intrinsic
 
@@ -116,7 +117,7 @@ class Hyperbolic(Manifold):
         """Convert extrinsic to ball coordinates.
 
         Convert the parameterization of a point in hyperbolic space
-        from its intrinsic coordinates, to the poincare ball model
+        from its intrinsic coordinates, to the Poincare ball model
         coordinates.
 
         Parameters
@@ -129,14 +130,16 @@ class Hyperbolic(Manifold):
         point_ball : array-like, shape=[..., dim]
             Point in hyperbolic space in Poincare ball coordinates.
         """
-        return point[..., 1:] / (1 + point[..., :1])
+        point_ball = point[..., 1:] / (1 + point[..., :1])
+
+        return point_ball
 
     @staticmethod
     def _ball_to_extrinsic_coordinates(point):
         """Convert ball to extrinsic coordinates.
 
         Convert the parameterization of a point in hyperbolic space
-        from its poincare ball model coordinates, to the extrinsic
+        from its Poincare ball model coordinates, to the extrinsic
         coordinates.
 
         Parameters
@@ -146,7 +149,7 @@ class Hyperbolic(Manifold):
 
         Returns
         -------
-        extrinsic : array-like, shape=[..., dim + 1]
+        point_extrinsic : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
         """
         squared_norm = gs.sum(point**2, -1)
@@ -154,66 +157,73 @@ class Hyperbolic(Manifold):
         t = (1 + squared_norm) / denominator
         intrinsic = gs.einsum(
             '...i, ...->...i', 2 * point, 1. / denominator)
-        return gs.concatenate([t[..., None], intrinsic], -1)
+        point_extrinsic = gs.concatenate([t[..., None], intrinsic], -1)
+        return point_extrinsic
 
     @classmethod
-    def _half_plane_to_extrinsic_coordinates(cls, point):
-        """Convert half plane to extrinsic coordinates.
+    def _half_space_to_extrinsic_coordinates(cls, point):
+        """Convert half-space to extrinsic coordinates.
 
-        Convert the parameterization of a point in the hyperbolic plane
-        from its upper half plane model coordinates, to the extrinsic
+        Convert the parameterization of a point in the hyperbolic space
+        from its Poincare half-space coordinates, to the extrinsic
         coordinates.
 
         Parameters
         ----------
-        point : array-like, shape=[..., 2]
-            Point in hyperbolic space in half-plane coordinates.
+        point : array-like, shape=[..., dim]
+            Point in hyperbolic space in half-space coordinates.
 
         Returns
         -------
-        extrinsic : array-like, shape=[..., 3]
-            Point in hyperbolic plane in extrinsic coordinates.
+        point_extrinsic : array-like, shape=[..., dim + 1]
+            Point in hyperbolic space in extrinsic coordinates.
         """
-        ball_point = cls.half_space_to_ball_coordinates(point)
-        return cls._ball_to_extrinsic_coordinates(ball_point)
+        point_ball = cls.half_space_to_ball_coordinates(point)
+        point_extrinsic = cls._ball_to_extrinsic_coordinates(point_ball)
+
+        return point_extrinsic
 
     @classmethod
-    def _extrinsic_to_half_plane_coordinates(cls, point):
-        """Convert extrinsic to half plane coordinates.
+    def _extrinsic_to_half_space_coordinates(cls, point):
+        """Convert extrinsic to half-space coordinates.
 
-        Convert the parameterization of a point in the hyperbolic plane
-        from its intrinsic coordinates, to the poincare upper half plane
+        Convert the parameterization of a point in the hyperbolic space
+        from its extrinsic coordinates, to the Poincare half-space
         coordinates.
 
         Parameters
         ----------
-        point : array-like, shape=[..., 2]
-            Point in the hyperbolic plane in intrinsic coordinates.
+        point : array-like, shape=[..., dim + 1]
+            Point in the hyperbolic space in extrinsic coordinates.
 
         Returns
         -------
-        point_half_plane : array-like, shape=[..., 2]
-            Point in the hyperbolic plane in Poincare upper half-plane
-            coordinates.
+        point_half_space : array-like, shape=[..., dim]
+            Point in the hyperbolic space in half-space coordinates.
         """
         point_ball = \
             cls._extrinsic_to_ball_coordinates(point)
-        point_half_plane = cls.ball_to_half_space_coordinates(point_ball)
-        return point_half_plane
+        point_half_space = cls.ball_to_half_space_coordinates(point_ball)
+
+        return point_half_space
 
     @staticmethod
     def half_space_to_ball_coordinates(point):
-        """Convert a point from Poincare half space to Poincare ball.
+        """Convert half-space to ball coordinates.
+
+        Convert the parameterization of a point in the hyperbolic space
+        from its Poincare half-space coordinates, to the Poincare ball
+        coordinates.
 
         Parameters
         ----------
-        point : array-like, shape=[...,n]
-            Point in the Poincare half space.
+        point : array-like, shape=[..., dim]
+            Point in the hyperbolic space in half-space coordinates.
 
         Returns
         -------
-        point_ball : array-like, shape=[...,n]
-            Corresponding point in the Poincare ball.
+        point_ball : array-like, shape=[..., dim]
+            Point in the hyperbolic space in Poincare ball coordinates.
         """
         sq_norm = gs.sum(point ** 2, axis=-1)
         den = 1 + sq_norm + 2 * point[..., -1]
@@ -222,21 +232,26 @@ class Hyperbolic(Manifold):
         component_2 = (sq_norm - 1) / den
         point_ball = gs.concatenate(
             [component_1, component_2[..., None]], axis=-1)
+
         return point_ball
 
     @staticmethod
     def ball_to_half_space_coordinates(point):
-        """Convert a point from Poincare ball to Poincare half space.
+        """Convert ball to half space coordinates.
+
+        Convert the parameterization of a point in the hyperbolic space
+        from its Poincare ball coordinates, to the Poincare half-space
+        coordinates.
 
         Parameters
         ----------
-        point : array-like, shape=[...,n]
-            Point in the Poincare ball.
+        point : array-like, shape=[..., dim]
+            Point in the hyperbolic space in Poincare ball coordinates.
 
         Returns
         -------
-        point_ball : array-like, shape=[...,n]
-            Corresponding point in the Poincare half space.
+        point_ball : array-like, shape=[..., dim]
+            Point in the hyperbolic space in half-space coordinates.
         """
         sq_norm = gs.sum(point ** 2, axis=-1)
         den = 1 + sq_norm - 2 * point[..., -1]
@@ -245,23 +260,28 @@ class Hyperbolic(Manifold):
         component_2 = (1 - sq_norm) / den
         point_half_space = gs.concatenate(
             [component_1, component_2[..., None]], axis=-1)
+
         return point_half_space
 
     @staticmethod
     def half_space_to_ball_tangent(tangent_vec, base_point):
-        """Convert a tangent_vec from Poincare half space to Poincare ball.
+        """Convert half-space to ball tangent coordinates.
+
+        Convert the parameterization of a tangent vector to the
+        hyperbolic space from its Poincare half-space coordinates, to
+        the Poinare ball coordinates.
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[...,n]
-            Tangent vector at the base point in the Poincare half space.
-        base_point : array-like, shape=[...,n]
-            Point in the Poincare half space.
+        tangent_vec : array-like, shape=[..., dim]
+            Tangent vector at the base point in the Poincare half-space.
+        base_point : array-like, shape=[..., dim]
+            Point in the Poincare half-space.
 
         Returns
         -------
-        tangent_vector_ball : array-like, shape=[...,n]
-            Corresponding tangent vector in the Poincare ball.
+        tangent_vec_ball : array-like, shape=[..., dim]
+           Tangent vector in the Poincare ball.
         """
         sq_norm = gs.sum(base_point ** 2, axis=-1)
         den = 1. + sq_norm + 2. * base_point[..., -1]
@@ -276,23 +296,28 @@ class Hyperbolic(Manifold):
             / den ** 2
         tangent_vec_ball = gs.concatenate(
             [component_1, component_2[..., None]], axis=-1)
+
         return tangent_vec_ball
 
     @staticmethod
     def ball_to_half_space_tangent(tangent_vec, base_point):
-        """Convert a tangent_vec from Poincare ball to Poincare half space.
+        """Convert ball to half-space tangent coordinates.
+
+        Convert the parameterization of a tangent vector to the
+        hyperbolic space from its Poincare ball coordinates, to
+        the Poinare half-space coordinates.
 
         Parameters
         ----------
-        tangent_vec : array-like, shape=[...,n]
+        tangent_vec : array-like, shape=[..., dim]
             Tangent vector at the base point in the Poincare ball.
-        base_point : array-like, shape=[...,n]
+        base_point : array-like, shape=[..., dim]
             Point in the Poincare ball.
 
         Returns
         -------
-        tangent_vector_ball : array-like, shape=[...,n]
-            Corresponding tangent vector in the Poincare half space.
+        tangent_vec_half_spacel : array-like, shape=[..., dim]
+            Tangent vector in the Poincare half-space.
 
         """
         sq_norm = gs.sum(base_point ** 2, axis=-1)
@@ -308,6 +333,7 @@ class Hyperbolic(Manifold):
             / den**2
         tangent_vec_half_space = gs.concatenate(
             [component_1, component_2[..., None]], axis=-1)
+
         return tangent_vec_half_space
 
     @staticmethod
@@ -348,10 +374,10 @@ class Hyperbolic(Manifold):
                 Hyperbolic._intrinsic_to_extrinsic_coordinates,
             'extrinsic-intrinsic':
                 Hyperbolic._extrinsic_to_intrinsic_coordinates,
-            'extrinsic-half-plane':
-                Hyperbolic._extrinsic_to_half_plane_coordinates,
-            'half-plane-extrinsic':
-                Hyperbolic._half_plane_to_extrinsic_coordinates,
+            'extrinsic-half-space':
+                Hyperbolic._extrinsic_to_half_space_coordinates,
+            'half-space-extrinsic':
+                Hyperbolic._half_space_to_extrinsic_coordinates,
             'extrinsic-extrinsic':
                 Hyperbolic._extrinsic_to_extrinsic_coordinates
         }
