@@ -62,7 +62,7 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
         self.assertFalse(is_out)
 
     def test_extrinsic_half_plane_extrinsic(self):
-        x_in = gs.array([0.5, 7])
+        x_in = gs.array([0.5, 7], dtype=gs.float64)
         x = self.intrinsic_manifold.to_coordinates(
             x_in, to_coords_type='extrinsic')
         x_up = self.extrinsic_manifold.to_coordinates(
@@ -70,7 +70,7 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
 
         x2 = Hyperbolic.change_coordinates_system(
             x_up, 'half-plane', 'extrinsic')
-        self.assertAllClose(x, x2, atol=1e-8)
+        self.assertAllClose(x, x2)
 
     def test_intrinsic_extrinsic_intrinsic(self):
         x_intr = gs.array([0.5, 7])
@@ -157,7 +157,7 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
             self.extrinsic_metric.log(y_extr, x_extr), x_extr)
         x_extr_b = self.extrinsic_manifold.from_coordinates(
             x_ball_log_exp, from_coords_type='ball')
-        self.assertAllClose(x_extr_a, x_extr_b, atol=1e-4)
+        self.assertAllClose(x_extr_a, x_extr_b, atol=3e-4)
 
     def test_log_exp_ball(self):
         x = gs.array([0.1, 0.2])

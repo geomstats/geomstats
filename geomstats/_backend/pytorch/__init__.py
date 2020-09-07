@@ -172,8 +172,8 @@ def any(x, axis=None):
 
 def cast(x, dtype):
     if torch.is_tensor(x):
-        return x.to(dtype)
-    return array(x).to(dtype)
+        return x.to(dtype=dtype)
+    return array(x).to(dtype=dtype)
 
 
 def flip(x, axis):
@@ -185,8 +185,7 @@ def flip(x, axis):
 
 
 def concatenate(seq, axis=0, out=None):
-    # XXX(nkoep): Why do we cast to float32 instead of float64 here?
-    seq = [cast(t, float32) for t in seq]
+    seq = convert_to_wider_dtype(seq)
     return torch.cat(seq, dim=axis, out=out)
 
 

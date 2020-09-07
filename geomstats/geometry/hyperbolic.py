@@ -68,7 +68,6 @@ class Hyperbolic(Manifold):
         return point
 
     @staticmethod
-    @geomstats.vectorization.decorator(['vector'])
     def _intrinsic_to_extrinsic_coordinates(point_intrinsic):
         """Convert intrinsic to extrinsic coordinates.
 
@@ -86,11 +85,9 @@ class Hyperbolic(Manifold):
         point_extrinsic : array-like, shape=[..., dim + 1]
             Point in hyperbolic space in extrinsic coordinates.
         """
-        coord_0 = gs.sqrt(1. + gs.linalg.norm(point_intrinsic, axis=-1) ** 2)
-        coord_0 = gs.to_ndarray(coord_0, to_ndim=1)
-        coord_0 = gs.to_ndarray(coord_0, to_ndim=2, axis=1)
-
-        point_extrinsic = gs.hstack([coord_0, point_intrinsic])
+        coord_0 = gs.sqrt(1. + gs.sum(point_intrinsic ** 2, axis=-1))
+        point_extrinsic = gs.concatenate(
+            [coord_0[..., None], point_intrinsic], axis=-1)
 
         return point_extrinsic
 
@@ -136,7 +133,6 @@ class Hyperbolic(Manifold):
         return point[..., 1:] / (1 + point[..., :1])
 
     @staticmethod
-    @geomstats.vectorization.decorator(['vector'])
     def _ball_to_extrinsic_coordinates(point):
         """Convert ball to extrinsic coordinates.
 
@@ -156,12 +152,10 @@ class Hyperbolic(Manifold):
         """
         squared_norm = gs.sum(point**2, -1)
         denominator = 1 - squared_norm
-        t = gs.to_ndarray((1 + squared_norm) / denominator, to_ndim=2, axis=1)
-        expanded_denominator = gs.expand_dims(denominator, -1)
-        expanded_denominator = gs.tile(
-            expanded_denominator, (1, point.shape[-1]))
-        intrinsic = (2 * point) / expanded_denominator
-        return gs.concatenate([t, intrinsic], -1)
+        t = (1 + squared_norm) / denominator
+        intrinsic = gs.einsum(
+            '...i, ...->...i', 2 * point, 1. / denominator)
+        return gs.concatenate([t[..., None], intrinsic], -1)
 
     @classmethod
     def _half_plane_to_extrinsic_coordinates(cls, point):
