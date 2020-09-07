@@ -46,7 +46,7 @@ class TestPoincareHalfSpace(geomstats.tests.TestCase):
         point_ext = self.hyperboloid_manifold.from_coordinates(
             point_ball, 'ball')
         point_half_space_expected = self.hyperboloid_manifold.to_coordinates(
-            point_ext, 'half-plane')
+            point_ext, 'half-space')
         self.assertAllClose(point_half_space, point_half_space_expected)
 
     def test_coordinates(self):

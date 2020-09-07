@@ -61,15 +61,15 @@ class TestHyperbolicCoords(geomstats.tests.TestCase):
         is_out = self.ball_manifold.belongs(x_false)
         self.assertFalse(is_out)
 
-    def test_extrinsic_half_plane_extrinsic(self):
+    def test_extrinsic_half_space_extrinsic(self):
         x_in = gs.array([0.5, 7])
         x = self.intrinsic_manifold.to_coordinates(
             x_in, to_coords_type='extrinsic')
         x_up = self.extrinsic_manifold.to_coordinates(
-            x, to_coords_type='half-plane')
+            x, to_coords_type='half-space')
 
         x2 = Hyperbolic.change_coordinates_system(
-            x_up, 'half-plane', 'extrinsic')
+            x_up, 'half-space', 'extrinsic')
         self.assertAllClose(x, x2, atol=1e-8)
 
     def test_intrinsic_extrinsic_intrinsic(self):
