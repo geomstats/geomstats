@@ -73,9 +73,12 @@ def create_data(kalman, true_init, true_inputs, obs_freq):
     observations = [gs.cast(obs, obs_dtype) for obs in observations]
 
     input_dtype = true_inputs[0].dtype
-    inputs = [gs.concatenate(
-        (incr[:1], np.random.multivariate_normal(
-            incr[1:], kalman.process_noise)), axis=0)
+    inputs = [
+        gs.concatenate([
+            incr[:1],
+            gs.array(
+                np.random.multivariate_normal(
+                    incr[1:], kalman.process_noise))], axis=0)
         for incr in true_inputs]
     inputs = [gs.cast(incr, input_dtype) for incr in inputs]
 
