@@ -23,7 +23,7 @@ class TestSPDMatrices(geomstats.tests.TestCase):
 
         gs.random.seed(1234)
 
-        self.n = 3
+        self.n = 5
         self.space = SPDMatrices(n=self.n)
         self.metric_affine = SPDMetricAffine(n=self.n)
         self.metric_procrustes = SPDMetricProcrustes(n=self.n)

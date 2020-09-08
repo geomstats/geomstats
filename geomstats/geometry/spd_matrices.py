@@ -69,7 +69,8 @@ class SPDMatrices(SymmetricMatrices, EmbeddedManifold):
         size = (n_samples, n, n) if n_samples != 1 else (n, n)
 
         mat = 2 * gs.random.rand(*size) - 1
-        spd_mat = GeneralLinear.exp(mat + Matrices.transpose(mat))
+        mat = gs.cast(mat, gs.float64)
+        spd_mat = self.expm(Matrices.to_symmetric(mat))
 
         return spd_mat
 
