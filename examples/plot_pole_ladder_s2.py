@@ -38,7 +38,7 @@ def main():
         tangent_vec_a,
         tangent_vec_b,
         base_point,
-        n_steps=N_STEPS,
+        n_rungs=N_STEPS,
         return_geodesics=True)
 
     pole_ladder = ladder['transported_tangent_vec']

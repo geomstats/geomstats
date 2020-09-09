@@ -116,8 +116,8 @@ class InvariantMetric(RiemannianMetric):
             Inner-product of the two tangent vectors.
         """
         if base_point is None:
-            return self.inner_product_at_identity(tangent_vec_a,
-                                                  tangent_vec_b)
+            return self.inner_product_at_identity(
+                tangent_vec_a, tangent_vec_b)
         if self.group.default_point_type == 'vector':
             return super(InvariantMetric, self).inner_product(
                 tangent_vec_a,

@@ -46,10 +46,11 @@ class _SpecialEuclideanMatrices(GeneralLinear, LieGroup):
 
     def __init__(self, n):
         super(_SpecialEuclideanMatrices, self).__init__(
-            dim=int((n * (n - 1)) / 2), default_point_type='matrix', n=n + 1)
+            default_point_type='matrix', n=n + 1)
         self.rotations = SpecialOrthogonal(n=n)
         self.translations = Euclidean(dim=n)
         self.n = n
+        self.dim = int((n * (n + 1)) / 2)
 
     def get_identity(self):
         """Return the identity matrix."""
@@ -344,8 +345,8 @@ class _SpecialEuclideanVectors(LieGroup):
         composition_translation = gs.einsum(
             '...j,...kj->...k', translation_b, rot_mat_a) + translation_a
 
-        composition = gs.concatenate((composition_rot_vec,
-                                      composition_translation), axis=-1)
+        composition = gs.concatenate(
+            (composition_rot_vec, composition_translation), axis=-1)
         return self.regularize(composition)
 
     @geomstats.vectorization.decorator(['else', 'vector'])
