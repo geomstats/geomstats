@@ -3,6 +3,7 @@
 Poincare half-space representation.
 """
 
+import geomstats.backend as gs
 from geomstats.geometry.hyperbolic import Hyperbolic
 from geomstats.geometry.poincare_ball import PoincareBall
 from geomstats.geometry.riemannian_metric import RiemannianMetric
@@ -82,6 +83,27 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         self.scale = scale
         self.poincare_ball = PoincareBall(dim=dim, scale=scale)
 
+    def inner_product(self, tangent_vec_a, tangent_vec_b, base_point):
+        """Compute the inner-product of two tangent vectors at a base point.
+
+        Parameters
+        ----------
+        tangent_vec_a : array-like, shape=[..., dim + 1]
+            First tangent vector at base point.
+        tangent_vec_b : array-like, shape=[..., dim + 1]
+            Second tangent vector at base point.
+        base_point : array-like, shape=[..., dim + 1]
+            Point in hyperbolic space.
+
+        Returns
+        -------
+        inner_prod : array-like, shape=[..., 1]
+            Inner-product of the two tangent vectors.
+        """
+        inner_prod = gs.sum(tangent_vec_a * tangent_vec_b, axis=-1)
+        inner_prod = inner_prod / base_point[..., -1]**2
+        return inner_prod
+
     def exp(self, tangent_vec, base_point):
         """Compute the Riemannian exponential.
 
@@ -107,3 +129,27 @@ class PoincareHalfSpaceMetric(RiemannianMetric):
         end_point = self.poincare_ball.ball_to_half_space_coordinates(
             end_point_ball)
         return end_point
+
+    def log(self, point, base_point):
+        """Compute Riemannian logarithm of a point wrt a base point.
+
+        Parameters
+        ----------
+        point : array-like, shape=[..., dim]
+            Point in hyperbolic space.
+        base_point : array-like, shape=[..., dim]
+            Point in hyperbolic space.
+
+        Returns
+        -------
+        log : array-like, shape=[..., dim]
+            Tangent vector at the base point equal to the Riemannian logarithm
+            of point at the base point.
+        """
+        point_ball = self.poincare_ball.half_space_to_ball_coordinates(point)
+        base_point_ball = self.poincare_ball.half_space_to_ball_coordinates(
+            base_point)
+        log_ball = self.poincare_ball.metric.log(point_ball, base_point_ball)
+        log = self.poincare_ball.ball_to_half_space_tangent(
+            log_ball, base_point_ball)
+        return log
